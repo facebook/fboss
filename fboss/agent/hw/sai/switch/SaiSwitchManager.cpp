@@ -1363,7 +1363,7 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
         errorStats.dramDataPathPacketError().value_or(0);
   }
 
-  // Read switch debug counter stats (L2, L3, Tunnel drops)
+  // Read switch debug counter stats (L2, L3, Tunnel, SRV6 MySID drops)
   auto& debugCounterMgr = managerTable_->debugCounterManager();
   auto switchDebugStatIds = debugCounterMgr.getConfiguredSwitchDebugStatIds();
   if (switchDebugStatIds.size()) {
@@ -1371,6 +1371,10 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
         switchDebugStatIds.begin(), switchDebugStatIds.end());
     switch_->updateStats(debugStatsVec, SAI_STATS_MODE_READ);
     auto debugStatValues = switch_->getStats(debugStatsVec);
+    const auto srv6MySidSwitchDropCounterStatId =
+        debugCounterMgr.getSrv6MySidSwitchDropCounterStatId();
+    const auto hasStrictSrv6SwitchCounter = srv6MySidSwitchDropCounterStatId !=
+        std::numeric_limits<sai_stat_id_t>::max();
     for (const auto& [statId, value] : debugStatValues) {
       if (statId == debugCounterMgr.getL2SwitchDropCounterStatId()) {
         switchDropStats_.switchL2InDrops() =
@@ -1378,6 +1382,16 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
       } else if (statId == debugCounterMgr.getL3SwitchDropCounterStatId()) {
         switchDropStats_.switchL3InDrops() =
             switchDropStats_.switchL3InDrops().value_or(0) + value;
+      } else if (statId == srv6MySidSwitchDropCounterStatId) {
+        switchDropStats_.switchSrv6MySidDrops() =
+            switchDropStats_.switchSrv6MySidDrops().value_or(0) + value;
+      } else if (
+          !hasStrictSrv6SwitchCounter &&
+          statId == debugCounterMgr.getTunnelSwitchDropCounterStatId()) {
+        // Backward-compatible fallback when dedicated SRv6 switch counter
+        // is not supported by the SDK/ASIC.
+        switchDropStats_.switchSrv6MySidDrops() =
+            switchDropStats_.switchSrv6MySidDrops().value_or(0) + value;
       } else if (statId == debugCounterMgr.getTunnelSwitchDropCounterStatId()) {
         switchDropStats_.switchTunnelInDrops() =
             switchDropStats_.switchTunnelInDrops().value_or(0) + value;

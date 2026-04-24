@@ -100,6 +100,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::ROUTE_COUNTERS:
+    case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
       return true;
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
@@ -182,7 +183,6 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
-    case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     case HwAsic::Feature::RCI_WATERMARK_COUNTER:
     case HwAsic::Feature::DTL_WATERMARK_COUNTER:
     case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:

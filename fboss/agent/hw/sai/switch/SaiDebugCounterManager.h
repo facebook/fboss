@@ -59,6 +59,9 @@ class SaiDebugCounterManager {
   sai_stat_id_t getTunnelSwitchDropCounterStatId() const {
     return tunnelSwitchDropCounterStatId_;
   }
+  sai_stat_id_t getSrv6MySidSwitchDropCounterStatId() const {
+    return srv6MySidSwitchDropCounterStatId_;
+  }
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   sai_stat_id_t getSrv6MySidDropCounterStatId() const {
     return srv6MySidDropCounterStatId_;
@@ -79,6 +82,7 @@ class SaiDebugCounterManager {
   void setupL2SwitchDropCounter();
   void setupL3SwitchDropCounter();
   void setupTunnelSwitchDropCounter();
+  void setupSrv6MySidSwitchDropCounter();
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   void setupSrv6MySidDropCounter();
 #endif
@@ -90,6 +94,7 @@ class SaiDebugCounterManager {
   std::shared_ptr<SaiInSwitchDebugCounter> l2SwitchDropCounter_;
   std::shared_ptr<SaiInSwitchDebugCounter> l3SwitchDropCounter_;
   std::shared_ptr<SaiInSwitchDebugCounter> tunnelSwitchDropCounter_;
+  std::shared_ptr<SaiInSwitchDebugCounter> srv6MySidSwitchDropCounter_;
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   std::shared_ptr<SaiInPortDebugCounter> srv6MySidDropCounter_;
   sai_stat_id_t srv6MySidDropCounterStatId_{kInvalidStatId()};
@@ -102,6 +107,7 @@ class SaiDebugCounterManager {
   sai_stat_id_t l2SwitchDropCounterStatId_{kInvalidStatId()};
   sai_stat_id_t l3SwitchDropCounterStatId_{kInvalidStatId()};
   sai_stat_id_t tunnelSwitchDropCounterStatId_{kInvalidStatId()};
+  sai_stat_id_t srv6MySidSwitchDropCounterStatId_{kInvalidStatId()};
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;

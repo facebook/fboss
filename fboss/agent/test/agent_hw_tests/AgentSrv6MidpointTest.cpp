@@ -318,20 +318,41 @@ class AgentSrv6MidpointTest : public AgentHwTest {
                << " send=" << (sendPort.has_value() ? "front-panel" : "cpu")
                << " outerDst="
                << (outerDst.has_value() ? outerDst->str() : "default");
-    auto portStatsBefore = this->getLatestPortStats(injectPort);
     auto egressStatsBefore = this->getLatestPortStats(egressPort);
+    std::optional<HwSwitchDropStats> switchDropStatsBefore;
+    std::optional<HwPortStats> portStatsBefore;
+    if (sendPort.has_value()) {
+      portStatsBefore = this->getLatestPortStats(injectPort);
+    } else {
+      switchDropStatsBefore = this->getAggregatedSwitchDropStats();
+    }
 
     sendMidpointPacket(false /* ecnMarked */, isV4, sendPort, outerDst);
 
     WITH_RETRIES({
-      auto portStatsAfter = this->getLatestPortStats(injectPort);
+      std::optional<HwPortStats> portStatsAfter;
+      std::optional<HwSwitchDropStats> switchDropStatsAfter;
+      if (sendPort.has_value()) {
+        portStatsAfter = this->getLatestPortStats(injectPort);
+      } else {
+        switchDropStatsAfter = this->getAggregatedSwitchDropStats();
+      }
       auto egressStatsAfter = this->getLatestPortStats(egressPort);
-      EXPECT_EVENTUALLY_GT(
-          *portStatsAfter.inDiscards_(), *portStatsBefore.inDiscards_());
-      EXPECT_EVENTUALLY_TRUE(portStatsAfter.inSrv6MySidDiscards_().has_value());
-      EXPECT_EVENTUALLY_GT(
-          portStatsAfter.inSrv6MySidDiscards_().value_or(0),
-          portStatsBefore.inSrv6MySidDiscards_().value_or(0));
+      if (sendPort.has_value()) {
+        EXPECT_EVENTUALLY_GT(
+            *portStatsAfter->inDiscards_(), *portStatsBefore->inDiscards_());
+        EXPECT_EVENTUALLY_TRUE(
+            portStatsAfter->inSrv6MySidDiscards_().has_value());
+        EXPECT_EVENTUALLY_GT(
+            portStatsAfter->inSrv6MySidDiscards_().value_or(0),
+            portStatsBefore->inSrv6MySidDiscards_().value_or(0));
+      } else {
+        // CPU-injected traffic validates the dedicated switch-level
+        // SAI_IN_DROP_REASON_SRV6_LOCAL_SID_DROP counter path.
+        EXPECT_EVENTUALLY_GT(
+            switchDropStatsAfter->switchSrv6MySidDrops().value_or(0),
+            switchDropStatsBefore->switchSrv6MySidDrops().value_or(0));
+      }
       // Packet should not be forwarded out the egress port.
       EXPECT_EVENTUALLY_EQ(
           *egressStatsAfter.outBytes_(), *egressStatsBefore.outBytes_());

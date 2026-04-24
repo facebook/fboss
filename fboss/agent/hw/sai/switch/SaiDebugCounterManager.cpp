@@ -11,12 +11,15 @@
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
+#include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+
+#include <folly/logging/xlog.h>
 
 extern "C" {
 #include <sai.h>
@@ -30,9 +33,24 @@ void SaiDebugCounterManager::setupDebugCounters() {
   setupAclDropCounter();
   setupEgressForwardingDropCounter();
   setupTrapDropCounter();
-  setupL2SwitchDropCounter();
-  setupL3SwitchDropCounter();
-  setupTunnelSwitchDropCounter();
+  auto setupSwitchCounterSafe = [this](
+                                    auto&& setupFn, const char* counterName) {
+    try {
+      setupFn();
+    } catch (const SaiApiError& e) {
+      XLOG(WARN) << "Skipping switch debug counter setup for " << counterName
+                 << " due to SAI error: " << e.what();
+    }
+  };
+  setupSwitchCounterSafe(
+      [this]() { setupL2SwitchDropCounter(); }, "L2 switch drops");
+  setupSwitchCounterSafe(
+      [this]() { setupL3SwitchDropCounter(); }, "L3 switch drops");
+  setupSwitchCounterSafe(
+      [this]() { setupTunnelSwitchDropCounter(); }, "tunnel switch drops");
+  setupSwitchCounterSafe(
+      [this]() { setupSrv6MySidSwitchDropCounter(); },
+      "SRV6 MySID switch drops");
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   setupSrv6MySidDropCounter();
 #endif
@@ -261,6 +279,34 @@ void SaiDebugCounterManager::setupTunnelSwitchDropCounter() {
           SaiInSwitchDebugCounterTraits::Attributes::Index{});
 }
 
+void SaiDebugCounterManager::setupSrv6MySidSwitchDropCounter() {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER)) {
+    return;
+  }
+#if SAI_API_VERSION < SAI_VERSION(1, 9, 0)
+  return;
+#else
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER)) {
+    return;
+  }
+
+  SaiInSwitchDebugCounterTraits::CreateAttributes attrs{
+      SAI_DEBUG_COUNTER_TYPE_SWITCH_IN_DROP_REASONS,
+      SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
+      SaiInSwitchDebugCounterTraits::Attributes::DropReasons{
+          {SAI_IN_DROP_REASON_SRV6_LOCAL_SID_DROP}}};
+  auto& debugCounterStore = saiStore_->get<SaiInSwitchDebugCounterTraits>();
+  srv6MySidSwitchDropCounter_ = debugCounterStore.setObject(attrs, attrs);
+  srv6MySidSwitchDropCounterStatId_ =
+      SAI_SWITCH_STAT_IN_DROP_REASON_RANGE_BASE +
+      SaiApiTable::getInstance()->debugCounterApi().getAttribute(
+          srv6MySidSwitchDropCounter_->adapterKey(),
+          SaiInSwitchDebugCounterTraits::Attributes::Index{});
+#endif
+}
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
 void SaiDebugCounterManager::setupSrv6MySidDropCounter() {
   if (!platform_->getAsic()->isSupported(
@@ -319,6 +365,9 @@ SaiDebugCounterManager::getConfiguredSwitchDebugStatIds() const {
   }
   if (tunnelSwitchDropCounter_) {
     stats.insert(tunnelSwitchDropCounterStatId_);
+  }
+  if (srv6MySidSwitchDropCounter_) {
+    stats.insert(srv6MySidSwitchDropCounterStatId_);
   }
   return stats;
 }
