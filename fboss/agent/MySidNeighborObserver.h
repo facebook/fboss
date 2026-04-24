@@ -55,6 +55,12 @@ class MySidNeighborObserver : public StateObserver {
       const std::shared_ptr<ChangedNeighborEntryT>& oldEntry,
       const std::shared_ptr<ChangedNeighborEntryT>& newEntry);
 
+  // Scan neighbor table for the MySid's interface and queue resolution
+  // if a reachable non-link-local neighbor is found.
+  void handleMySidAddedOrChanged(
+      const std::shared_ptr<SwitchState>& state,
+      const std::shared_ptr<MySid>& newEntry);
+
   // Queue a resolution (or unresolution) for batch dispatch.
   void queueResolution(
       const std::shared_ptr<MySid>& mySid,
