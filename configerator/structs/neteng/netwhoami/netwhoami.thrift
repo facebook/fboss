@@ -5,9 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-// Minimal stub for OSS builds. The full netwhoami.thrift has 1264 lines and
-// 8+ transitive configerator dependencies. BGP++ only uses NetWhoAmI.name()
-// in Config.cpp to read the device name from /etc/netwhoami.json.
+// Minimal stub for OSS builds
+// BGP++ only uses NetWhoAmI.name() in Config.cpp to read the device name from /etc/netwhoami.json.
 
 namespace cpp2 facebook.netwhoami
 namespace py neteng.netwhoami
