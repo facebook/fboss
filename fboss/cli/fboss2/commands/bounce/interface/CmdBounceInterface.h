@@ -12,15 +12,26 @@
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
+
+inline const std::string kBounceInterfaceYesFlag = "-y,--yes";
+inline const std::string kBounceInterfaceCommandName = "bounce_interface";
 
 struct CmdBounceInterfaceTraits : public WriteCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = std::vector<std::string>;
   using RetType = std::string;
+  std::vector<utils::LocalOption> LocalOptions = {
+      {kBounceInterfaceYesFlag,
+       "Skip the Safer Human Touch confirmation prompt. Use only when you "
+       "have read the warning and accept the risk.",
+       std::nullopt,
+       /*isFlag=*/true},
+  };
 };
 
 class CmdBounceInterface
