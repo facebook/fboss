@@ -830,12 +830,14 @@ TEST_P(AgentMirrorOnDropDnxTest, ModWithMultipleMirrors) {
     // Pump traffic to each traffic loop, and get initial stats.
     for (auto& loop : trafficLoops) {
       sendPackets(
-          getAgentEnsemble()->getMinPktsForLineRate(loop.injectionPortId),
+          static_cast<int>(
+              getAgentEnsemble()->getMinPktsForLineRate(loop.injectionPortId)),
           loop.injectionPortId,
           loop.dstIp);
     }
     sendPackets(
-        getAgentEnsemble()->getMinPktsForLineRate(collectorPortId),
+        static_cast<int>(
+            getAgentEnsemble()->getMinPktsForLineRate(collectorPortId)),
         collectorPortId,
         kCollectorIp_);
 
@@ -1509,7 +1511,9 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
     for (int i : injectionPortIndices) {
       PortID portId = portIdsToTest()[i];
       sendPackets(
-          getAgentEnsemble()->getMinPktsForLineRate(portId), portId, loopIp(i));
+          static_cast<int>(getAgentEnsemble()->getMinPktsForLineRate(portId)),
+          portId,
+          loopIp(i));
 
       WITH_RETRIES_N(10, {
         uint64_t rate = getCurrentRate(portId);
