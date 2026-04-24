@@ -57,7 +57,9 @@ void SaiCounterManager::updateStats() {
         SAI_STATS_MODE_READ);
 #endif
     auto& stats = counterHandle->counter->getStats();
-    counterHandle->hwSwitchCounter.bytes() = stats.begin()->second;
+    counterHandle->hwSwitchCounter.packets() =
+        stats.at(SAI_COUNTER_STAT_PACKETS);
+    counterHandle->hwSwitchCounter.bytes() = stats.at(SAI_COUNTER_STAT_BYTES);
   }
 }
 
