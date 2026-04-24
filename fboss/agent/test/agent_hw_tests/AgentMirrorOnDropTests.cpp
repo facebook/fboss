@@ -13,6 +13,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTestBase.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -47,163 +48,9 @@ using namespace ::testing;
 
 enum class DroppedPacketType { NONE, NIF, CPU };
 
-// Base class for Mirror on Drop tests.
-// Flow of the test:
-// 1. Setup mirror on drop, using a Recycle port as the MoD port.
-// 2. Pick an Interface port and add a route to the MoD collector IP.
-// 3. Trigger some packet drops.
-// 4. A MoD packet will be generated and injected into the port picked in (1).
-// 5. The MoD packet will be routed and sent out of the port picked in (2).
-// 6. The MoD packet will be looped back and punted to the CPU by ACL.
-// 7. We capture the packet using PacketSnooper and verify the contents.
-class AgentMirrorOnDropTest : public AgentHwTest {
- public:
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    auto config = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
-    // To allow infinite traffic loops.
-    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
-    return config;
-  }
-
-  std::vector<ProductionFeature> getProductionFeaturesVerified()
-      const override {
-    return {ProductionFeature::MIRROR_ON_DROP};
-  }
-
- protected:
-  // Packet to be dropped
-  const folly::IPAddressV6 kDropDestIp{
-      "2401:3333:3333:3333:3333:3333:3333:3333"};
-
-  // MOD/collector addresses
-  const folly::MacAddress kCollectorNextHopMac_{"02:88:88:88:88:88"};
-  const folly::IPAddressV6 kCollectorIp_{
-      "2401:9999:9999:9999:9999:9999:9999:9999"};
-  const folly::IPAddressV6 kSwitchIp_{"2401:face:b00c::01"};
-  const int16_t kMirrorSrcPort = 0x6666;
-  const int16_t kMirrorDstPort = 0x7777;
-
-  // Packet fields used in makePacket() — used to verify inner packet in MoD
-  const folly::IPAddressV6 kPacketSrcIp_{
-      "2401:2222:2222:2222:2222:2222:2222:2222"};
-  static constexpr uint16_t kPacketSrcPort = 0x4444;
-  static constexpr uint16_t kPacketDstPort = 0x5555;
-
-  std::string portDesc(const PortID& portId) {
-    const auto& cfg = getAgentEnsemble()->getCurrentConfig();
-    for (const auto& port : *cfg.ports()) {
-      if (PortID(*port.logicalID()) == portId) {
-        return folly::sformat(
-            "portId={} name={}", *port.logicalID(), *port.name());
-      }
-    }
-    return "";
-  }
-
-  void setupEcmpTraffic(
-      const PortID& portId,
-      const folly::IPAddressV6& addr,
-      const folly::MacAddress& nextHopMac,
-      bool disableTtlDecrement = false) {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper{
-        getProgrammedState(), getSw()->needL2EntryForNeighbor(), nextHopMac};
-    const PortDescriptor port{portId};
-    RoutePrefixV6 route{addr, 128};
-    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
-      return ecmpHelper.resolveNextHops(state, {port});
-    });
-    auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(
-        &routeUpdater,
-        {port},
-        {std::move(route)},
-        {},
-        std::nullopt,
-        disableTtlDecrement ? std::make_optional(true) : std::nullopt);
-    if (disableTtlDecrement) {
-      for (auto& nhop : ecmpHelper.getNextHops()) {
-        utility::disablePortTTLDecrementIfSupported(
-            getAgentEnsemble(), ecmpHelper.getRouterId(), nhop);
-      }
-    }
-  }
-
-  void addDropPacketAcl(cfg::SwitchConfig* config, const PortID& portId) {
-    auto* acl = utility::addAcl_DEPRECATED(
-        config,
-        fmt::format("drop-packet-{}", portId),
-        cfg::AclActionType::DENY);
-    acl->etherType() = cfg::EtherType::IPv6;
-    acl->srcPort() = portId;
-  }
-
-  // Create a packet that will be dropped. The entire packet is expected to be
-  // copied to the MoD payload. However note that if the test involves looping
-  // traffic before they are dropped (e.g. by triggering buffer exhaustion), the
-  // src/dst MAC defined here may be different from the MoD payload.
-  std::unique_ptr<TxPacket> makePacket(
-      const folly::IPAddressV6& dstIp,
-      int priority = 0,
-      size_t payloadSize = 512) {
-    // Create a structured payload pattern.
-    std::vector<uint8_t> payload(payloadSize, 0);
-    for (int i = 0; i < payload.size() / 2; ++i) {
-      payload[i * 2] = i & 0xff;
-      payload[i * 2 + 1] = (i >> 8) & 0xff;
-    }
-
-    return utility::makeUDPTxPacket(
-        getSw(),
-        getVlanIDForTx(),
-        utility::kLocalCpuMac(),
-        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
-        kPacketSrcIp_,
-        dstIp,
-        kPacketSrcPort,
-        kPacketDstPort,
-        (priority * 8) << 2, // dscp is the 6 MSBs in TC
-        255,
-        std::move(payload));
-  }
-
-  std::unique_ptr<TxPacket> sendPackets(
-      int count,
-      std::optional<PortID> portId,
-      const folly::IPAddressV6& dstIp,
-      int priority = 0,
-      size_t payloadSize = 512) {
-    auto pkt = makePacket(dstIp, priority, payloadSize);
-    XLOG(DBG3) << "Sending " << count << " packets:\n"
-               << PktUtil::hexDump(pkt->buf());
-    for (int i = 0; i < count; ++i) {
-      if (portId.has_value()) {
-        getAgentEnsemble()->sendPacketAsync(
-            makePacket(dstIp, priority, payloadSize),
-            PortDescriptor(*portId),
-            std::nullopt);
-      } else {
-        getAgentEnsemble()->sendPacketAsync(
-            makePacket(dstIp, priority, payloadSize),
-            std::nullopt,
-            std::nullopt);
-      }
-    }
-    return pkt; // return for later comparison
-  }
-
-  SystemPortID systemPortId(const PortID& portId) {
-    return getSystemPortID(
-        portId, getProgrammedState(), scopeResolver().scope(portId).switchId());
-  }
-};
-
 // DNX/Jericho3 specific Mirror on Drop test class.
 class AgentMirrorOnDropDnxTest
-    : public AgentMirrorOnDropTest,
+    : public AgentMirrorOnDropTestBase,
       public testing::WithParamInterface<cfg::PortType> {
  public:
   cfg::SwitchConfig initialConfig(
@@ -1872,7 +1719,7 @@ void verifyXgsModCapturedPacket(
   }
 }
 
-class AgentMirrorOnDropXgsTest : public AgentMirrorOnDropTest {
+class AgentMirrorOnDropXgsTest : public AgentMirrorOnDropTestBase {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {

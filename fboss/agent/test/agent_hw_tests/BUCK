@@ -200,6 +200,7 @@ cpp_library(
         "AgentMacLearningAndNeighborResolutionTests.cpp",
         "AgentMacLearningTests.cpp",
         "AgentMemoryUsageTests.cpp",
+        "AgentMirrorOnDropTestBase.cpp",
         "AgentMirrorOnDropTests.cpp",
         "AgentMirroringTests.cpp",
         "AgentMmuTuningTests.cpp",
@@ -240,6 +241,7 @@ cpp_library(
     ],
     headers = [
         "AgentArsBase.h",
+        "AgentMirrorOnDropTestBase.h",
         "AgentRollbackTests.h",
         "AgentTestAddressConstants.h",
         "AgentTestEcmpConstants.h",
