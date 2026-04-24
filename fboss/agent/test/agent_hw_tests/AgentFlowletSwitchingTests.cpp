@@ -783,6 +783,7 @@ class AgentFlowletWideArsSwitchingTest : public AgentFlowletSwitchingTest {
     FLAGS_dlbResourceCheckEnable = true;
     FLAGS_enable_route_resource_protection = true;
     FLAGS_ecmp_width = kWideEcmpWidth;
+    FLAGS_ars_resource_percentage = 100;
   }
 
  protected:
