@@ -1204,5 +1204,46 @@
         "SRV6_MIDPOINT",
         "INTERFACE_NEIGHBOR_TABLE"
     ]
-  }
+  },
+  "featureSupportSpecs": [
+    {
+      "feature": 100,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba"
+          ],
+          "productLine": 4,
+          "minSdkVersion": "26.2.5210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+        }
+      ]
+    },
+    {
+      "feature": 102,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba"
+          ],
+          "productLine": 4,
+          "minSdkVersion": "26.2.5210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+        }
+      ]
+    },
+    {
+      "feature": 104,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba"
+          ],
+          "productLine": 4,
+          "minSdkVersion": "26.2.5210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+        }
+      ]
+    }
+  ]
 }
