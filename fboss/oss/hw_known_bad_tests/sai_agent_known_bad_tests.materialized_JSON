@@ -23212,6 +23212,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/7.ResolveNeighborAndCheckCache$"
         },
         {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -23509,6 +23512,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/7.ResolveNeighborAndCheckCache$"
+        },
+        {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -24400,6 +24406,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/7.ResolveNeighborAndCheckCache$"
         },
         {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -24649,6 +24658,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/7.ResolveNeighborAndCheckCache$"
+        },
+        {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -24905,6 +24917,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/7.ResolveNeighborAndCheckCache$"
         },
         {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -25154,6 +25169,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/7.ResolveNeighborAndCheckCache$"
+        },
+        {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -25417,6 +25435,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/7.ResolveNeighborAndCheckCache$"
+        },
+        {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
