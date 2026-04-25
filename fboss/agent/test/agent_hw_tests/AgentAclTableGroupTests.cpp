@@ -500,4 +500,28 @@ TEST_F(AgentAclTableGroupTest, SingleAclTableGroup) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentAclTableGroupTest, MultipleTablesNoEntries) {
+  ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
+
+  auto setup = [this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
+    addAclTable1(newCfg);
+    addAclTable2(newCfg);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto switchId = scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
+    auto client = ensemble.getHwAgentTestClient(switchId);
+    ASSERT_TRUE(client->sync_isAclTableGroupEnabled(0));
+    ASSERT_TRUE(client->sync_isAclTableEnabled(kAclTable1()));
+    ASSERT_TRUE(client->sync_isAclTableEnabled(kAclTable2()));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
