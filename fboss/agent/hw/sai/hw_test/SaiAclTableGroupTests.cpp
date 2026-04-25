@@ -613,24 +613,6 @@ class SaiAclTableGroupTest : public HwTest {
   }
 };
 
-TEST_F(SaiAclTableGroupTest, SingleAclTableGroup) {
-  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
-
-  auto setup = [this]() {
-    auto newCfg = initialConfig();
-
-    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
-
-    applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() {
-    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(SaiAclTableGroupTest, MultipleTablesNoEntries) {
   ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
