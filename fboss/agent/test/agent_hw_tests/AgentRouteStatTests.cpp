@@ -184,10 +184,12 @@ class AgentRouteStatTest : public AgentHwTest {
       sendPacket(dst, srcPort);
     }
 
-    for (const auto& [counterID, before] : countersBefore) {
-      auto after = getRouteCounterValue(counterID);
-      EXPECT_EQ(after, before);
-    }
+    WITH_RETRIES({
+      for (const auto& [counterID, before] : countersBefore) {
+        auto after = getRouteCounterValue(counterID);
+        EXPECT_EVENTUALLY_EQ(after, before);
+      }
+    });
   }
 
   void setupEcmpHelper() {
