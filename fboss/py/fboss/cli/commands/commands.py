@@ -101,8 +101,10 @@ class PrintNeighborTableCmd(FbossCmd):
 
     def run(self):
         with self._create_agent_client() as client:
+            # pyrefly: ignore [missing-attribute]
             self.nbr_table = self._get_nbr_table(client)
             ports = client.getAllPortInfo()
+        # pyrefly: ignore [missing-attribute]
         self._print_table(self.nbr_table, self.WIDTH, ports)
 
     def _print_table(self, entries, width, ports):

@@ -671,6 +671,7 @@ def _process_connection_with_si_settings(
                 )
                 overrides.append(override)
 
+    # pyrefly: ignore [bad-return]
     return (
         configured_pins,
         overrides,

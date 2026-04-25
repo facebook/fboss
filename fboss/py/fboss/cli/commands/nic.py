@@ -21,6 +21,7 @@ class NicCmd(cmds.PrintNeighborTableCmd):
     _NO_MAC_FOUND_MESSAGE = "No MAC address found in ARP/NDP tables!"
     _UNKNOWN_VENDOR_MESSAGE = "Unknown NIC Vendor."
 
+    # pyrefly: ignore [bad-override]
     def run(self, detail, verbose):
         with self._create_agent_client() as client:
             # Get the MAC addresses for IPV4.

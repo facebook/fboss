@@ -603,6 +603,7 @@ def generate_report(
     app_failure_count = sum(1 for f in failures if f["status"] == "APPLICATION_FAILURE")
     release_counts = Counter(f["release"] for f in failures)
     worst_release = (
+        # pyrefly: ignore [no-matching-overload]
         max(release_counts, key=release_counts.get) if release_counts else None
     )
 

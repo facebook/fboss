@@ -159,6 +159,7 @@ def get_client(args, timeout=5.0):
     protocol = TBinaryProtocol.TBinaryProtocol(sock)
     transport = protocol.trans
     transport.open()
+    # pyrefly: ignore [missing-attribute]
     client = FbossCtrl.Client(protocol)
     yield client
     transport.close()
@@ -171,6 +172,7 @@ def get_qsfp_client(args, timeout=5.0):
     protocol = TBinaryProtocol.TBinaryProtocol(sock)
     transport = protocol.trans
     transport.open()
+    # pyrefly: ignore [missing-attribute]
     client = QsfpService.Client(protocol)
     yield client
     transport.close()

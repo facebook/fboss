@@ -280,56 +280,78 @@ def read_si_settings(
             Column = column_int_enum_generator(column_names)
             continue
         chip = Chip(
+            # pyrefly: ignore [missing-attribute]
             slot_id=int(row[Column.SLOT_ID]),
+            # pyrefly: ignore [missing-attribute]
             chip_id=int(row[Column.CHIP_ID]),
+            # pyrefly: ignore [missing-attribute]
             chip_type=ChipType[row[Column.CHIP_TYPE]],
+            # pyrefly: ignore [missing-attribute]
             core_type=CoreType[row[Column.CORE_TYPE]],
+            # pyrefly: ignore [missing-attribute]
             core_id=int(row[Column.CORE_ID]),
         )
         pin_connection = SiSettingPinConnection(
             chip=chip,
+            # pyrefly: ignore [missing-attribute]
             logical_lane_id=int(row[Column.CORE_LANE]),
         )
 
         lane_speed = None
+        # pyrefly: ignore [missing-attribute]
         if row[Column.LANE_SPEED]:
             try:
+                # pyrefly: ignore [missing-attribute]
                 PortSpeed(int(row[Column.LANE_SPEED]))
             except ValueError:
+                # pyrefly: ignore [missing-attribute]
                 raise Exception("Invalid speed ", row[Column.LANE_SPEED])
+            # pyrefly: ignore [missing-attribute]
             lane_speed = PortSpeed(int(row[Column.LANE_SPEED]))
 
         media_type = None
+        # pyrefly: ignore [missing-attribute]
         if row[Column.MEDIA_TYPE]:
             try:
+                # pyrefly: ignore [missing-attribute]
                 media_type = TransmitterTechnology[row[Column.MEDIA_TYPE]]
             except KeyError:
+                # pyrefly: ignore [missing-attribute]
                 raise Exception("Invalid media type ", row[Column.MEDIA_TYPE])
 
         cable_length = None
+        # pyrefly: ignore [missing-attribute]
         if row[Column.CABLE_LENGTH]:
+            # pyrefly: ignore [missing-attribute]
             cable_length = float(row[Column.MEDIA_TYPE])
 
         # Add optics settings if present in the csv file.
         driver_peaking = None
         tcvr_setting = None
+        # pyrefly: ignore [missing-attribute]
         tcvr_vendor = row[Column.TCVR_VENDOR]
         if tcvr_vendor:
             # if the vendor is specified, we need to check the part number and
             # the driver peaking values that they are specified
+            # pyrefly: ignore [missing-attribute]
             tcvr_part_num = row[Column.TCVR_PART_NUM]
             if not tcvr_part_num:
                 raise Exception(
                     "Invalid transceiver part number type not populated ",
+                    # pyrefly: ignore [missing-attribute]
                     row[Column.TCVR_PART_NUM],
                 )
             vendor = Vendor(
-                name=str(row[Column.TCVR_VENDOR]), partNumber=str(tcvr_part_num)
+                # pyrefly: ignore [missing-attribute]
+                name=str(row[Column.TCVR_VENDOR]),
+                partNumber=str(tcvr_part_num),
             )
+            # pyrefly: ignore [missing-attribute]
             driver_peaking = int(row[Column.DRIVER_PEAKING])
             if driver_peaking is None:
                 raise Exception(
                     "Invalid driver peaking value not populated ",
+                    # pyrefly: ignore [missing-attribute]
                     row[Column.DRIVER_PEAKING],
                 )
             tcvr_setting = TransceiverOverrideSetting(vendor=vendor)
@@ -342,195 +364,315 @@ def read_si_settings(
 
         tx_kwargs: Dict[str, Any] = {}
         if chip.core_type == CoreType.G200:
+            # pyrefly: ignore [missing-attribute]
             if "TX_PRE3" in column_names and row[Column.TX_PRE3]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["firPre3"] = int(row[Column.TX_PRE3])
+            # pyrefly: ignore [missing-attribute]
             if "TX_PRE2" in column_names and row[Column.TX_PRE2]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["firPre2"] = int(row[Column.TX_PRE2])
+            # pyrefly: ignore [missing-attribute]
             if "TX_PRE1" in column_names and row[Column.TX_PRE1]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["firPre1"] = int(row[Column.TX_PRE1])
+            # pyrefly: ignore [missing-attribute]
             if "TX_MAIN" in column_names and row[Column.TX_MAIN]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["firMain"] = int(row[Column.TX_MAIN])
+            # pyrefly: ignore [missing-attribute]
             if "TX_POST1" in column_names and row[Column.TX_POST1]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["firPost1"] = int(row[Column.TX_POST1])
+            # pyrefly: ignore [missing-attribute]
             if "TX_POST2" in column_names and row[Column.TX_POST2]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["firPost2"] = int(row[Column.TX_POST2])
+            # pyrefly: ignore [missing-attribute]
             if "TX_POST3" in column_names and row[Column.TX_POST3]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["firPost3"] = int(row[Column.TX_POST3])
         else:
+            # pyrefly: ignore [missing-attribute]
             if "TX_PRE3" in column_names and row[Column.TX_PRE3]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["pre3"] = int(row[Column.TX_PRE3])
+            # pyrefly: ignore [missing-attribute]
             if "TX_PRE2" in column_names and row[Column.TX_PRE2]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["pre2"] = int(row[Column.TX_PRE2])
+            # pyrefly: ignore [missing-attribute]
             if "TX_PRE1" in column_names and row[Column.TX_PRE1]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["pre"] = int(row[Column.TX_PRE1])
+            # pyrefly: ignore [missing-attribute]
             if "TX_MAIN" in column_names and row[Column.TX_MAIN]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["main"] = int(row[Column.TX_MAIN])
+            # pyrefly: ignore [missing-attribute]
             if "TX_POST1" in column_names and row[Column.TX_POST1]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["post"] = int(row[Column.TX_POST1])
+            # pyrefly: ignore [missing-attribute]
             if "TX_POST2" in column_names and row[Column.TX_POST2]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["post2"] = int(row[Column.TX_POST2])
+            # pyrefly: ignore [missing-attribute]
             if "TX_POST3" in column_names and row[Column.TX_POST3]:
+                # pyrefly: ignore [missing-attribute]
                 tx_kwargs["post3"] = int(row[Column.TX_POST3])
 
+        # pyrefly: ignore [missing-attribute]
         if "TX_PRECODING" in column_names and row[Column.TX_PRECODING]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["precoding"] = int(row[Column.TX_PRECODING])
+        # pyrefly: ignore [missing-attribute]
         if "TX_DIFF_ENCODER_EN" in column_names and row[Column.TX_DIFF_ENCODER_EN]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["diffEncoderEn"] = int(row[Column.TX_DIFF_ENCODER_EN])
+        # pyrefly: ignore [missing-attribute]
         if "TX_DIG_GAIN" in column_names and row[Column.TX_DIG_GAIN]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["digGain"] = int(row[Column.TX_DIG_GAIN])
+        # pyrefly: ignore [missing-attribute]
         if "TX_DRIVER_SWING" in column_names and row[Column.TX_DRIVER_SWING]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["driverSwing"] = int(row[Column.TX_DRIVER_SWING])
+        # pyrefly: ignore [missing-attribute]
         if "TX_DRIVE_CURRENT" in column_names and row[Column.TX_DRIVE_CURRENT]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["driveCurrent"] = int(row[Column.TX_DRIVE_CURRENT])
+        # pyrefly: ignore [missing-attribute]
         if "TX_FFE_COEFF_0" in column_names and row[Column.TX_FFE_COEFF_0]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["ffeCoeff0"] = int(row[Column.TX_FFE_COEFF_0])
+        # pyrefly: ignore [missing-attribute]
         if "TX_FFE_COEFF_1" in column_names and row[Column.TX_FFE_COEFF_1]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["ffeCoeff1"] = int(row[Column.TX_FFE_COEFF_1])
+        # pyrefly: ignore [missing-attribute]
         if "TX_FFE_COEFF_2" in column_names and row[Column.TX_FFE_COEFF_2]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["ffeCoeff2"] = int(row[Column.TX_FFE_COEFF_2])
+        # pyrefly: ignore [missing-attribute]
         if "TX_FFE_COEFF_3" in column_names and row[Column.TX_FFE_COEFF_3]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["ffeCoeff3"] = int(row[Column.TX_FFE_COEFF_3])
+        # pyrefly: ignore [missing-attribute]
         if "TX_FFE_COEFF_4" in column_names and row[Column.TX_FFE_COEFF_4]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["ffeCoeff4"] = int(row[Column.TX_FFE_COEFF_4])
+        # pyrefly: ignore [missing-attribute]
         if "TX_INNER_EYE_NEG" in column_names and row[Column.TX_INNER_EYE_NEG]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["innerEyeNeg"] = int(row[Column.TX_INNER_EYE_NEG])
+        # pyrefly: ignore [missing-attribute]
         if "TX_INNER_EYE_POS" in column_names and row[Column.TX_INNER_EYE_POS]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["innerEyePos"] = int(row[Column.TX_INNER_EYE_POS])
+        # pyrefly: ignore [missing-attribute]
         if "TX_LDO_BYPASS" in column_names and row[Column.TX_LDO_BYPASS]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["ldoBypass"] = int(row[Column.TX_LDO_BYPASS])
+        # pyrefly: ignore [missing-attribute]
         if "TX_FFE_COEFF_5" in column_names and row[Column.TX_FFE_COEFF_5]:
+            # pyrefly: ignore [missing-attribute]
             tx_kwargs["ffeCoeff5"] = int(row[Column.TX_FFE_COEFF_5])
         tx_setting = TxSettings(**tx_kwargs)
 
         rx_kwargs: Dict[str, Any] = {}
+        # pyrefly: ignore [missing-attribute]
         if "RX_REACH" in column_names and row[Column.RX_REACH]:
             rx_kwargs["rxReach"] = (
                 RxReach.RX_NORMAL_REACH
+                # pyrefly: ignore [missing-attribute]
                 if int(row[Column.RX_REACH]) == 0
                 else RxReach.RX_EXTENDED_REACH
             )
+        # pyrefly: ignore [missing-attribute]
         if "RX_CTLE_CODE" in column_names and row[Column.RX_CTLE_CODE]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["ctlCode"] = int(row[Column.RX_CTLE_CODE])
+        # pyrefly: ignore [missing-attribute]
         if "RX_DSP_MODE" in column_names and row[Column.RX_DSP_MODE]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["dspMode"] = int(row[Column.RX_DSP_MODE])
+        # pyrefly: ignore [missing-attribute]
         if "RX_AFE_TRIM" in column_names and row[Column.RX_AFE_TRIM]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["afeTrim"] = int(row[Column.RX_AFE_TRIM])
+        # pyrefly: ignore [missing-attribute]
         if "RX_INSTG_BOOST1_STRT" in column_names and row[Column.RX_INSTG_BOOST1_STRT]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["instgBoost1Start"] = int(row[Column.RX_INSTG_BOOST1_STRT])
+        # pyrefly: ignore [missing-attribute]
         if "RX_INSTG_BOOST1_STEP" in column_names and row[Column.RX_INSTG_BOOST1_STEP]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["instgBoost1Step"] = int(row[Column.RX_INSTG_BOOST1_STEP])
+        # pyrefly: ignore [missing-attribute]
         if "RX_INSTG_BOOST1_STOP" in column_names and row[Column.RX_INSTG_BOOST1_STOP]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["instgBoost1Stop"] = int(row[Column.RX_INSTG_BOOST1_STOP])
         if (
             "RX_INSTG_BOOST2_OR_HR_STRT" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_INSTG_BOOST2_OR_HR_STRT]
         ):
             rx_kwargs["instgBoost2OrHrStart"] = int(
+                # pyrefly: ignore [missing-attribute]
                 row[Column.RX_INSTG_BOOST2_OR_HR_STRT]
             )
         if (
             "RX_INSTG_BOOST2_OR_HR_STEP" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_INSTG_BOOST2_OR_HR_STEP]
         ):
             rx_kwargs["instgBoost2OrHrStep"] = int(
+                # pyrefly: ignore [missing-attribute]
                 row[Column.RX_INSTG_BOOST2_OR_HR_STEP]
             )
         if (
             "RX_INSTG_BOOST2_OR_HR_STOP" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_INSTG_BOOST2_OR_HR_STOP]
         ):
             rx_kwargs["instgBoost2OrHrStop"] = int(
+                # pyrefly: ignore [missing-attribute]
                 row[Column.RX_INSTG_BOOST2_OR_HR_STOP]
             )
         if (
             "RX_INSTG_C1_START_1P7" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_INSTG_C1_START_1P7]
         ):
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["instgC1Start1p7"] = int(row[Column.RX_INSTG_C1_START_1P7])
+        # pyrefly: ignore [missing-attribute]
         if "RX_INSTG_C1_STEP_1P7" in column_names and row[Column.RX_INSTG_C1_STEP_1P7]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["instgC1Step1p7"] = int(row[Column.RX_INSTG_C1_STEP_1P7])
+        # pyrefly: ignore [missing-attribute]
         if "RX_INSTG_C1_STOP_1P7" in column_names and row[Column.RX_INSTG_C1_STOP_1P7]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["instgC1Stop1p7"] = int(row[Column.RX_INSTG_C1_STOP_1P7])
         if (
             "RX_INSTG_DFE_START_1P7" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_INSTG_DFE_START_1P7]
         ):
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["instgDfeStart1p7"] = int(row[Column.RX_INSTG_DFE_START_1P7])
         if (
             "RX_INSTG_DFE_STEP_1P7" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_INSTG_DFE_STEP_1P7]
         ):
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["instgDfeStep1p7"] = int(row[Column.RX_INSTG_DFE_STEP_1P7])
         if (
             "RX_INSTG_DFE_STOP_1P7" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_INSTG_DFE_STOP_1P7]
         ):
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["instgDfeStop1p7"] = int(row[Column.RX_INSTG_DFE_STOP_1P7])
+        # pyrefly: ignore [missing-attribute]
         if "RX_DIFF_ENCODER_EN" in column_names and row[Column.RX_DIFF_ENCODER_EN]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["diffEncoderEn"] = int(row[Column.RX_DIFF_ENCODER_EN])
         if (
             "RX_ENABLE_SCAN_SELECTION" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_ENABLE_SCAN_SELECTION]
         ):
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["enableScanSelection"] = int(row[Column.RX_ENABLE_SCAN_SELECTION])
         if (
             "RX_INSTG_SCAN_USE_SR_SETTINGS" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_INSTG_SCAN_USE_SR_SETTINGS]
         ):
             rx_kwargs["instgScanUseSrSettings"] = int(
+                # pyrefly: ignore [missing-attribute]
                 row[Column.RX_INSTG_SCAN_USE_SR_SETTINGS]
             )
+        # pyrefly: ignore [missing-attribute]
         if "RX_CDR_CFG_OV_EN" in column_names and row[Column.RX_CDR_CFG_OV_EN]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["cdrCfgOvEn"] = int(row[Column.RX_CDR_CFG_OV_EN])
         if (
             "RX_CDR_TDET_1ST_ORD_STEP_OV_VAL" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_CDR_TDET_1ST_ORD_STEP_OV_VAL]
         ):
             rx_kwargs["cdrTdet1stOrdStepOvVal"] = int(
+                # pyrefly: ignore [missing-attribute]
                 row[Column.RX_CDR_TDET_1ST_ORD_STEP_OV_VAL]
             )
         if (
             "RX_CDR_TDET_2ND_ORD_STEP_OV_VAL" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_CDR_TDET_2ND_ORD_STEP_OV_VAL]
         ):
             rx_kwargs["cdrTdet2ndOrdStepOvVal"] = int(
+                # pyrefly: ignore [missing-attribute]
                 row[Column.RX_CDR_TDET_2ND_ORD_STEP_OV_VAL]
             )
         if (
             "RX_CDR_TDET_FINE_STEP_OV_VAL" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_CDR_TDET_FINE_STEP_OV_VAL]
         ):
             rx_kwargs["cdrTdetFineStepOvVal"] = int(
+                # pyrefly: ignore [missing-attribute]
                 row[Column.RX_CDR_TDET_FINE_STEP_OV_VAL]
             )
+        # pyrefly: ignore [missing-attribute]
         if "RX_LDO_BYPASS" in column_names and row[Column.RX_LDO_BYPASS]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["ldoBypass"] = int(row[Column.RX_LDO_BYPASS])
+        # pyrefly: ignore [missing-attribute]
         if "RX_FFE_LENGTH_BITMAP" in column_names and row[Column.RX_FFE_LENGTH_BITMAP]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["ffeLengthBitmap"] = int(row[Column.RX_FFE_LENGTH_BITMAP])
+        # pyrefly: ignore [missing-attribute]
         if "RX_INSTG_ENABLE_SCAN" in column_names and row[Column.RX_INSTG_ENABLE_SCAN]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["instgEnableScan"] = int(row[Column.RX_INSTG_ENABLE_SCAN])
+        # pyrefly: ignore [missing-attribute]
         if "RX_DCW_EN" in column_names and row[Column.RX_DCW_EN]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["dcwEn"] = int(row[Column.RX_DCW_EN])
         if (
             "RX_DCW_STEP_COARSE_OV_VAL" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_DCW_STEP_COARSE_OV_VAL]
         ):
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["dcwStepCoarseOvVal"] = int(row[Column.RX_DCW_STEP_COARSE_OV_VAL])
         if (
             "RX_DCW_STEP_FINE_OV_VAL" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_DCW_STEP_FINE_OV_VAL]
         ):
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["dcwStepFineOvVal"] = int(row[Column.RX_DCW_STEP_FINE_OV_VAL])
+        # pyrefly: ignore [missing-attribute]
         if "RX_DCW_OV_EN" in column_names and row[Column.RX_DCW_OV_EN]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["dcwOvEn"] = int(row[Column.RX_DCW_OV_EN])
         if (
             "RX_FFE_LMS_DYNAMIC_GATING_EN" in column_names
+            # pyrefly: ignore [missing-attribute]
             and row[Column.RX_FFE_LMS_DYNAMIC_GATING_EN]
         ):
             rx_kwargs["ffeLmsDynamicGatingEn"] = int(
+                # pyrefly: ignore [missing-attribute]
                 row[Column.RX_FFE_LMS_DYNAMIC_GATING_EN]
             )
+        # pyrefly: ignore [missing-attribute]
         if "RX_PRECODING" in column_names and row[Column.RX_PRECODING]:
+            # pyrefly: ignore [missing-attribute]
             rx_kwargs["precoding"] = int(row[Column.RX_PRECODING])
         rx_setting = RxSettings(**rx_kwargs)
 

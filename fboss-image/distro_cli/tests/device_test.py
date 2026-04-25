@@ -382,7 +382,13 @@ class TestDownloadWithCache(unittest.TestCase):
 
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                full_url, 404, "Not Found", {}, None
+                # pyrefly: ignore [bad-argument-type]
+                full_url,
+                404,
+                "Not Found",
+                # pyrefly: ignore [bad-argument-type]
+                {},
+                None,
             )
 
             with self.assertRaises(DistroInfraError) as context:
@@ -399,7 +405,13 @@ class TestDownloadWithCache(unittest.TestCase):
 
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                full_url, 500, "Internal Server Error", {}, None
+                # pyrefly: ignore [bad-argument-type]
+                full_url,
+                500,
+                "Internal Server Error",
+                # pyrefly: ignore [bad-argument-type]
+                {},
+                None,
             )
 
             with self.assertRaises(DistroInfraError) as context:
@@ -420,7 +432,13 @@ class TestDownloadWithCache(unittest.TestCase):
 
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                full_url, 304, "Not Modified", {}, None
+                # pyrefly: ignore [bad-argument-type]
+                full_url,
+                304,
+                "Not Modified",
+                # pyrefly: ignore [bad-argument-type]
+                {},
+                None,
             )
 
             with self.assertRaises(DistroInfraError) as context:
@@ -444,7 +462,13 @@ class TestDownloadWithCache(unittest.TestCase):
 
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                full_url, 304, "Not Modified", {}, None
+                # pyrefly: ignore [bad-argument-type]
+                full_url,
+                304,
+                "Not Modified",
+                # pyrefly: ignore [bad-argument-type]
+                {},
+                None,
             )
 
             result = _download_with_cache(self.cache_dir, url_prefix, filename)
@@ -558,7 +582,13 @@ class TestDownloadWithCache(unittest.TestCase):
 
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                full_url, 403, "Forbidden", {}, None
+                # pyrefly: ignore [bad-argument-type]
+                full_url,
+                403,
+                "Forbidden",
+                # pyrefly: ignore [bad-argument-type]
+                {},
+                None,
             )
 
             with self.assertRaises(DistroInfraError) as context:
@@ -575,7 +605,13 @@ class TestDownloadWithCache(unittest.TestCase):
 
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                full_url, 503, "Service Unavailable", {}, None
+                # pyrefly: ignore [bad-argument-type]
+                full_url,
+                503,
+                "Service Unavailable",
+                # pyrefly: ignore [bad-argument-type]
+                {},
+                None,
             )
 
             with self.assertRaises(DistroInfraError) as context:
