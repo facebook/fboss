@@ -274,9 +274,9 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
 
 } // namespace
 
-// ASIC supports up to 8K SRv6 next hops: 400 groups x 20 members = 8000
+// ASIC supports up to 7.8K SRv6 next hops: 390 groups x 20 members = 7800
 BENCHMARK(HwSrv6NextHopScaleBenchmark) {
-  srv6EcmpGroupScaleBenchmark(400, 20);
+  srv6EcmpGroupScaleBenchmark(390, 20);
 }
 
 // Current SDK release supports up to 1K ECMP groups: 1024 groups x 5 members

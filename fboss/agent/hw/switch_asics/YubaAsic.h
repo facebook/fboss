@@ -124,7 +124,7 @@ class YubaAsic : public TajoAsic {
     return 2048;
   }
   std::optional<uint32_t> getMaxSrv6EcmpNextHops() const override {
-    return 8000;
+    return 7800;
   }
   std::optional<uint32_t> getMaxSrv6SingleNextHops() const override {
     return 3000;
