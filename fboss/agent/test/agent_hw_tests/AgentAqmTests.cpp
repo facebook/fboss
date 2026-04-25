@@ -356,11 +356,6 @@ class AgentAqmTest : public AgentHwTest {
       bool enableWred,
       bool enableEcn,
       bool warmbootTest = false) {
-    if (!isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
-      GTEST_SKIP();
-      return;
-    }
-
     auto kQueueId = utility::getOlympicQueueId(utility::OlympicQueueType::ECN1);
     // For VoQ switch, AQM stats are collected from queue!
     auto useQueueStatsForAqm =
