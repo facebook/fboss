@@ -11,7 +11,7 @@
 #pragma once
 
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/fsdb/if/facebook/gen-cpp2/fsdb_model_types.h"
+#include "fboss/fsdb/if/FsdbModel.h"
 
 // Forward declarations and definitions
 namespace facebook::fboss {
