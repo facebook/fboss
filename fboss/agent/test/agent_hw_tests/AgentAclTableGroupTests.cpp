@@ -524,4 +524,23 @@ TEST_F(AgentAclTableGroupTest, MultipleTablesNoEntries) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentAclTableGroupTest, MultipleTablesWithEntries) {
+  ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
+
+  auto setup = [this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
+    addAclTable1(newCfg);
+    addAclTable1Entry1(newCfg, kAclTable1());
+    addAclTable2(newCfg);
+    addAclTable2Entry1(newCfg);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() { verifyMultipleTableWithEntriesHelper(); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
