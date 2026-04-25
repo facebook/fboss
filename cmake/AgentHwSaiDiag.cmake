@@ -9,7 +9,6 @@ add_library(diag_shell
 )
 
 target_link_libraries(diag_shell
-  agent_features
   sai_repl
   python_repl
   fboss_error

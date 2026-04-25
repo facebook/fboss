@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/hw/sai/diag/DiagShell.h"
-#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/hw/sai/diag/PythonRepl.h"
 #include "fboss/agent/hw/sai/diag/SaiRepl.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
@@ -27,6 +26,11 @@
 #include <unistd.h>
 
 #include <thread>
+
+DEFINE_bool(
+    sai_log_to_scribe,
+    true,
+    "Log SAI shell commands and output to scribe");
 
 DEFINE_int32(
     diag_shell_read_timeout_ms,
@@ -220,7 +224,7 @@ std::string DiagShell::getPrompt() const {
 void DiagShell::consumeInput(
     std::unique_ptr<std::string> input,
     std::unique_ptr<ClientInformation> client) {
-  if (FLAGS_sai_log_diag_cmds_to_scuba) {
+  if (FLAGS_sai_log_to_scribe) {
     logToScuba(std::move(client), *input);
   }
   if (!repl_) {

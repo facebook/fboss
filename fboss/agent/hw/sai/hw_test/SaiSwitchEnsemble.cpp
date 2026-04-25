@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/hw/sai/hw_test/SaiSwitchEnsemble.h"
 
-#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
@@ -144,10 +143,6 @@ void SaiSwitchEnsemble::init(const TestEnsembleInitInfo& info) {
     agentConfig = std::make_unique<AgentConfig>(thrift, "");
   }
   initFlagDefaults(*agentConfig->thrift.defaultCommandLineArgs());
-  // Tests issue diag-shell commands with synthetic client identifiers
-  // (e.g., "hw_test@hw_test"); those rows have no audit value and pollute
-  // the fboss_sai_commands Scuba table.
-  FLAGS_sai_log_diag_cmds_to_scuba = false;
   auto platform =
       initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures(), 0);
   if (platform->getAsic()->getAsicVendor() ==
