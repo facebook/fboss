@@ -296,4 +296,36 @@ TEST_F(AgentRouteStatTest, CounterModify) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentRouteStatTest, V4V6SharedCounter) {
+  auto setup = [this]() {
+    setupEcmpHelper();
+    addRoute(
+        kAddr1,
+        120,
+        PortDescriptor(masterLogicalInterfacePortIds()[0]),
+        kCounterID1);
+    addV4Route(
+        kAddr4,
+        24,
+        PortDescriptor(masterLogicalInterfacePortIds()[0]),
+        kCounterID1);
+  };
+  auto verify = [this]() {
+    auto srcPort = masterLogicalInterfacePortIds()[1];
+
+    // sending to v6 route increments shared counter
+    sendAndVerifyCounterIncrement({{kAddr1, *kCounterID1}}, srcPort);
+
+    // sending to v4 route increments the same shared counter
+    sendAndVerifyCounterIncrement(
+        {{folly::IPAddress(kAddr4), *kCounterID1}}, srcPort);
+
+    // sending to either v4 or v6 increments the shared counter
+    sendAndVerifyCounterIncrement(
+        {{kAddr1, *kCounterID1}, {folly::IPAddress(kAddr4), *kCounterID1}},
+        srcPort);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

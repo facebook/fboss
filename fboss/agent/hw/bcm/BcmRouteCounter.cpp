@@ -305,7 +305,6 @@ BcmRouteFlexCounterTable::BcmRouteFlexCounterTable(BcmSwitch* hw)
  *      - deallocate counter action
  *      - create new counter action with max counter
  *      - reattach all counters
- * 3) V6 and V4 prefixes cannot share counters
  * Due to this limitation, we are pre allocating kMaxFlexRouteCounters(1k)
  * counters regardless of maxRouteCounterID value. This allows us to
  * avoid complexity of maintaing counter to route mapping.
