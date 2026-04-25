@@ -284,6 +284,12 @@ BENCHMARK(HwSrv6EcmpGroupScaleBenchmark) {
   srv6EcmpGroupScaleBenchmark(1024, 5);
 }
 
+// Single-nhop SRv6 route scale: 3000 routes, each with its own unique SRv6
+// next hop (3000 distinct SidList + underlay-nhop SAI objects).
+BENCHMARK(HwSrv6SingleNextHopRouteScaleBenchmark) {
+  srv6EcmpGroupScaleBenchmark(3000, 1);
+}
+
 // ASIC supports 50K routes with SRv6 encap. Test all three flavors:
 // 1. Only IPv6 routes
 BENCHMARK(HwSrv6V6RouteScaleBenchmark) {
