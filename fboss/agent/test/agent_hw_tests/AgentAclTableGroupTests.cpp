@@ -747,4 +747,25 @@ TEST_F(AgentAclTableGroupTest, DeleteFirstTableAfterWarmboot) {
   verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
 }
 
+TEST_F(AgentAclTableGroupTest, DeleteSecondTableAfterWarmboot) {
+  ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
+
+  auto setup = [this]() { warmbootSetupHelper(tableAddType::tableBoth); };
+
+  auto setupPostWarmboot = [=, this]() {
+    warmbootSetupHelper(tableAddType::table1);
+  };
+
+  auto verifyPostWarmboot = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto switchId = scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
+    auto client = ensemble.getHwAgentTestClient(switchId);
+    ASSERT_TRUE(client->sync_isAclTableGroupEnabled(0));
+    ASSERT_TRUE(client->sync_isAclTableEnabled(kAclTable3()));
+    ASSERT_FALSE(client->sync_isAclTableEnabled(utility::getTtlAclTableName()));
+  };
+
+  verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
+}
+
 } // namespace facebook::fboss
