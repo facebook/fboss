@@ -21384,12 +21384,6 @@
         },
         {
           "test_name_regex": "AgentEgressAclErspanMirroringTest/IPv[46].*$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentHwPtpTcProvisionTests.VerifyPtpTcDelayRequest/FOURHUNDREDG$"
-        },
-        {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentHwPtpTcProvisionTests.VerifyPtpTcDelayRequest/FOURHUNDREDG$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4/multi_switch": [
@@ -21755,12 +21749,6 @@
         },
         {
           "test_name_regex": "AgentEgressAclErspanMirroringTest/IPv[46].*$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentHwPtpTcProvisionTests.VerifyPtpTcDelayRequest/FOURHUNDREDG$"
-        },
-        {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentHwPtpTcProvisionTests.VerifyPtpTcDelayRequest/FOURHUNDREDG$"
         }
     ],
     "chenab/2505.34/2505.34/chenab/mono": [
@@ -25324,9 +25312,6 @@
     "leaba/26.2.5210/26.2.5210/graphene200/multi_switch/rbb": [
         {
           "test_name_regex": "AgentSrv6DecapTest/[01].sendDecapPacketNonLastSegmentDropped$"
-        },
-        {
-          "test_name_regex": "AgentSrv6MidpointTest/[01].sendPacketForUASidUnresolvedDropped$"
         },
         {
           "test_name_regex": "AgentSrv6MidpointTest/[01].dropPacketUASidIsLastSid$"
