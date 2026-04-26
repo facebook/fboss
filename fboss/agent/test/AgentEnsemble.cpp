@@ -816,6 +816,10 @@ void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
   newAgentConf.defaultCommandLineArgs() = defaultCommandLineArgs;
   newAgentConf.sw() = initialConfig_;
   newAgentConf.platform() = *testConfig->thrift.platform();
+  auto inputConfig = AgentConfig::fromFile(FLAGS_config)->thrift;
+  if (inputConfig.sw()->sdkVersion().has_value()) {
+    newAgentConf.sw()->sdkVersion() = inputConfig.sw()->sdkVersion().value();
+  }
 
   auto agentConfig = AgentConfig(newAgentConf);
 
