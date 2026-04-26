@@ -618,35 +618,6 @@ class SaiAclTableGroupTest : public HwTest {
  * and DSCP ACLs in the Table 1 and TTL ACL in Table 2 (production use case) and
  * then tests deletion and addition of these tables in the config
  */
-TEST_F(SaiAclTableGroupTest, TestAclTableGroupRoundtrip) {
-  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
-  /*
-   * Create ACL table group in the same format as the current agent config.
-   * This will allow us to test warmboot roundtrip tests from and to prod
-   * while running HWemtpytest inbetween
-   */
-
-  auto setup = [this]() {
-    auto newCfg = initialConfig();
-
-    utility::addAclTableGroup(
-        &newCfg,
-        kAclStage(),
-        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE_GROUP());
-    utility::addDefaultAclTable(newCfg);
-    applyNewConfig(newCfg);
-
-    addAclTable1Entry1(newCfg, utility::kDefaultAclTable());
-    applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() {
-    verifyAclTableHelper(utility::kDefaultAclTable(), kAclTable1Entry1(), 1);
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(SaiAclTableGroupTest, RepositionAclEntriesPostWarmboot) {
   ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 

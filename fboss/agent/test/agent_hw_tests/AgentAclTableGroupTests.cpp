@@ -768,4 +768,27 @@ TEST_F(AgentAclTableGroupTest, DeleteSecondTableAfterWarmboot) {
   verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
 }
 
+TEST_F(AgentAclTableGroupTest, TestAclTableGroupRoundtrip) {
+  ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
+
+  auto setup = [this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    utility::addAclTableGroup(
+        &newCfg,
+        kAclStage(),
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE_GROUP());
+    utility::addDefaultAclTable(newCfg);
+    applyNewConfig(newCfg);
+    addAclTable1Entry1(newCfg, utility::kDefaultAclTable());
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    verifyAclTableHelper(utility::kDefaultAclTable(), 1);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
