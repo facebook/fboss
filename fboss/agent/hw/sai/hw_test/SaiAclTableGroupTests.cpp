@@ -613,33 +613,6 @@ class SaiAclTableGroupTest : public HwTest {
   }
 };
 
-TEST_F(SaiAclTableGroupTest, RemoveAclTable) {
-  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
-
-  auto setup = [this]() {
-    auto newCfg = initialConfig();
-
-    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
-    addAclTable1(newCfg);
-    addAclTable1Entry1(newCfg, kAclTable1());
-    addAclTable2(newCfg);
-    applyNewConfig(newCfg);
-
-    // Remove one Table with entries, and another with no entries
-    utility::delAclTable(&newCfg, kAclTable1());
-    utility::delAclTable(&newCfg, kAclTable2());
-    applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() {
-    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
-    ASSERT_FALSE(utility::isAclTableEnabled(getHwSwitch(), kAclTable1()));
-    ASSERT_FALSE(utility::isAclTableEnabled(getHwSwitch(), kAclTable2()));
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 /*
  * The below testcases vary from the above in the sense that they add the QPH
  * and DSCP ACLs in the Table 1 and TTL ACL in Table 2 (production use case) and

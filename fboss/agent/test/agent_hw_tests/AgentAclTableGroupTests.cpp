@@ -563,4 +563,33 @@ TEST_F(AgentAclTableGroupTest, AddTablesThenEntries) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentAclTableGroupTest, RemoveAclTable) {
+  ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
+
+  auto setup = [this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
+    addAclTable1(newCfg);
+    addAclTable1Entry1(newCfg, kAclTable1());
+    addAclTable2(newCfg);
+    applyNewConfig(newCfg);
+    utility::delAclTable(&newCfg, kAclTable1());
+    utility::delAclTable(&newCfg, kAclTable2());
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto switchId = scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
+    auto client = ensemble.getHwAgentTestClient(switchId);
+    ASSERT_TRUE(client->sync_isAclTableGroupEnabled(
+        static_cast<int32_t>(cfg::AclStage::INGRESS)));
+    ASSERT_FALSE(client->sync_isAclTableEnabled(kAclTable1()));
+    ASSERT_FALSE(client->sync_isAclTableEnabled(kAclTable2()));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
