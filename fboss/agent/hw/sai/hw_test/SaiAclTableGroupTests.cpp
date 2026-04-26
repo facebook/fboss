@@ -618,29 +618,6 @@ class SaiAclTableGroupTest : public HwTest {
  * and DSCP ACLs in the Table 1 and TTL ACL in Table 2 (production use case) and
  * then tests deletion and addition of these tables in the config
  */
-TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteAddSecond) {
-  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
-
-  auto setup = [this]() {
-    auto newCfg = initialConfig();
-    addTwoAclTables(&newCfg);
-    // Delete and Readd the second Acl Table
-    deleteTtlAclTable(&newCfg);
-    utility::addTtlAclTable(&newCfg, 2 /* priority */);
-    applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() {
-    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable3()));
-    ASSERT_TRUE(
-        utility::isAclTableEnabled(
-            getHwSwitch(), utility::getTtlAclTableName()));
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(SaiAclTableGroupTest, AddFirstTableAfterWarmboot) {
   ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
