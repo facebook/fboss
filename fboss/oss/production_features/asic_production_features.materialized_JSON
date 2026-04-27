@@ -354,7 +354,8 @@
         85,
         86,
         87,
-        79
+        79,
+        106
     ],
     "tomahawk5": [
         2,
@@ -959,7 +960,8 @@
         "HIGH_FREQUENCY_CPU_POLLING_STATS",
         "CLASS_ID_FOR_NEIGHBOR",
         "UDF_HASH",
-        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
+        "SAVE_SDK_STATE"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -1246,6 +1248,18 @@
           "productLine": 4,
           "minSdkVersion": "26.2.5210",
           "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+        }
+      ]
+    },
+    {
+      "feature": 106,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk4"
+          ],
+          "productLine": 3,
+          "minSdkVersion": "13.3.0.0_odp"
         }
       ]
     }
