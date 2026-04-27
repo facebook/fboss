@@ -57,6 +57,7 @@
 #include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/MultiSwitchPacketStreamMap.h"
+#include "fboss/agent/MySidNeighborObserver.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PacketObserver.h"
@@ -471,6 +472,7 @@ SwSwitch::SwSwitch(
       lookupClassUpdater_(new LookupClassUpdater(this)),
       lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
       staticL2ForNeighborObserver_(new StaticL2ForNeighborObserver(this)),
+      mySidNeighborObserver_(new MySidNeighborObserver(this)),
       macTableManager_(new MacTableManager(this)),
       phySnapshotManager_(new PhySnapshotManager(
           kIphySnapshotIntervalSeconds,
@@ -641,6 +643,7 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   packetTxThreadHeartbeat_.reset();
   lacpThreadHeartbeat_.reset();
   neighborCacheThreadHeartbeat_.reset();
+  mySidNeighborObserver_.reset();
   if (rib_) {
     rib_->stop();
   }

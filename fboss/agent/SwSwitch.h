@@ -93,6 +93,7 @@ class LookupClassRouteUpdater;
 class MacTableManager;
 class ResolvedNexthopMonitor;
 class ResolvedNexthopProbeScheduler;
+class MySidNeighborObserver;
 class StaticL2ForNeighborObserver;
 class MKAServiceManager;
 class PacketStreamHandler;
@@ -1390,6 +1391,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<LookupClassUpdater> lookupClassUpdater_;
   std::unique_ptr<LookupClassRouteUpdater> lookupClassRouteUpdater_;
   std::unique_ptr<StaticL2ForNeighborObserver> staticL2ForNeighborObserver_;
+  std::unique_ptr<MySidNeighborObserver> mySidNeighborObserver_;
   std::unique_ptr<MacTableManager> macTableManager_;
 #if FOLLY_HAS_COROUTINES
   std::unique_ptr<MKAServiceManager> mkaServiceManager_;
