@@ -62,7 +62,7 @@ TEST_F(MySidApplyConfigTest, AddDecapEntry) {
   cfg::MySidConfig mySidConfig;
   mySidConfig.locatorPrefix() = "3001:db8::/32";
   cfg::MySidEntryConfig entry;
-  entry.decap_ref() = cfg::DecapMySidConfig{};
+  entry.decap() = cfg::DecapMySidConfig{};
   mySidConfig.entries()[0x7fff] = entry;
   config.mySidConfig() = mySidConfig;
 
@@ -80,13 +80,13 @@ TEST_F(MySidApplyConfigTest, AddMultipleEntries) {
   mySidConfig.locatorPrefix() = "3001:db8::/32";
 
   cfg::MySidEntryConfig decapEntry;
-  decapEntry.decap_ref() = cfg::DecapMySidConfig{};
+  decapEntry.decap() = cfg::DecapMySidConfig{};
   mySidConfig.entries()[0x7fff] = decapEntry;
 
   cfg::MySidEntryConfig nodeEntry;
   cfg::NodeMySidConfig nodeConfig;
   nodeConfig.nodeAddress() = "fc00:100::1";
-  nodeEntry.node_ref() = nodeConfig;
+  nodeEntry.node() = nodeConfig;
   mySidConfig.entries()[3] = nodeEntry;
 
   config.mySidConfig() = mySidConfig;
@@ -104,11 +104,11 @@ TEST_F(MySidApplyConfigTest, RemoveStaticEntry) {
   mySidConfig.locatorPrefix() = "3001:db8::/32";
 
   cfg::MySidEntryConfig entry1;
-  entry1.decap_ref() = cfg::DecapMySidConfig{};
+  entry1.decap() = cfg::DecapMySidConfig{};
   mySidConfig.entries()[0x7fff] = entry1;
 
   cfg::MySidEntryConfig entry2;
-  entry2.decap_ref() = cfg::DecapMySidConfig{};
+  entry2.decap() = cfg::DecapMySidConfig{};
   mySidConfig.entries()[0x7ffe] = entry2;
 
   config.mySidConfig() = mySidConfig;
@@ -139,7 +139,7 @@ TEST_F(MySidApplyConfigTest, RemoveAllStaticEntries) {
   cfg::MySidConfig mySidConfig;
   mySidConfig.locatorPrefix() = "3001:db8::/32";
   cfg::MySidEntryConfig entry;
-  entry.decap_ref() = cfg::DecapMySidConfig{};
+  entry.decap() = cfg::DecapMySidConfig{};
   mySidConfig.entries()[0x7fff] = entry;
   config.mySidConfig() = mySidConfig;
   applyConfig(config);
@@ -174,7 +174,7 @@ TEST_F(MySidApplyConfigTest, DynamicEntriesPreservedOnConfigChange) {
   cfg::MySidConfig mySidConfig;
   mySidConfig.locatorPrefix() = "3001:db8::/32";
   cfg::MySidEntryConfig staticEntry;
-  staticEntry.decap_ref() = cfg::DecapMySidConfig{};
+  staticEntry.decap() = cfg::DecapMySidConfig{};
   mySidConfig.entries()[0x7fff] = staticEntry;
   config.mySidConfig() = mySidConfig;
   applyConfig(config);
@@ -201,7 +201,7 @@ TEST_F(MySidApplyConfigTest, UpdateExistingEntry) {
   cfg::MySidConfig mySidConfig;
   mySidConfig.locatorPrefix() = "3001:db8::/32";
   cfg::MySidEntryConfig entry;
-  entry.decap_ref() = cfg::DecapMySidConfig{};
+  entry.decap() = cfg::DecapMySidConfig{};
   mySidConfig.entries()[1] = entry;
   config.mySidConfig() = mySidConfig;
   applyConfig(config);
@@ -214,7 +214,7 @@ TEST_F(MySidApplyConfigTest, UpdateExistingEntry) {
   cfg::MySidEntryConfig nodeEntry;
   cfg::NodeMySidConfig nodeConfig;
   nodeConfig.nodeAddress() = "fc00:100::1";
-  nodeEntry.node_ref() = nodeConfig;
+  nodeEntry.node() = nodeConfig;
   mySidConfig.entries()[1] = nodeEntry;
   config.mySidConfig() = mySidConfig;
   applyConfig(config);
@@ -231,7 +231,7 @@ TEST_F(MySidApplyConfigTest, LocatorPrefixChange) {
   cfg::MySidConfig mySidConfig;
   mySidConfig.locatorPrefix() = "3001:db8::/32";
   cfg::MySidEntryConfig entry;
-  entry.decap_ref() = cfg::DecapMySidConfig{};
+  entry.decap() = cfg::DecapMySidConfig{};
   mySidConfig.entries()[0x7fff] = entry;
   config.mySidConfig() = mySidConfig;
   applyConfig(config);
@@ -257,7 +257,7 @@ TEST_F(MySidApplyConfigTest, InvalidPortNameThrows) {
   cfg::MySidEntryConfig entry;
   cfg::AdjacencyMySidConfig adjConfig;
   adjConfig.portName() = "nonexistent_port";
-  entry.adjacency_ref() = adjConfig;
+  entry.adjacency() = adjConfig;
   mySidConfig.entries()[1] = entry;
   config.mySidConfig() = mySidConfig;
 
@@ -276,7 +276,7 @@ TEST_F(MySidApplyConfigTest, AdjacencyEntryHasInterfaceId) {
   cfg::MySidEntryConfig entry;
   cfg::AdjacencyMySidConfig adjConfig;
   adjConfig.portName() = "port1";
-  entry.adjacency_ref() = adjConfig;
+  entry.adjacency() = adjConfig;
   mySidConfig.entries()[1] = entry;
   config.mySidConfig() = mySidConfig;
   applyConfig(config);
