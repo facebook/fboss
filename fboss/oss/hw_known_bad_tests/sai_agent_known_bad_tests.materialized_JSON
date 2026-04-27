@@ -22578,6 +22578,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentRouteStatTest.RouteEntryTest$"
         },
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentAclTableRecreateTest.AclEntryCount$"
+        },
+        {
           "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
         },
         {
@@ -22836,6 +22839,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentRouteStatTest.RouteEntryTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentAclTableRecreateTest.AclEntryCount$"
         },
         {
           "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
