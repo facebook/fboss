@@ -441,6 +441,69 @@ class AgentMultiNodeVoqSwitchHyperPortTest : public AgentMultiNodeTest {
 
     return true;
   }
+
+  bool verifyNdpAfterHyperPortMemberFlap(
+      const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
+    XLOG(DBG2) << "Verifying NDP after stress flapping hyper port members";
+
+    auto myHostname = topologyInfo->getMyHostname();
+
+    std::vector<AggregatePortThrift> aggregatePorts;
+    {
+      auto swAgentClient = utility::getSwAgentThriftClient(myHostname);
+      swAgentClient->sync_getAggregatePortTable(aggregatePorts);
+    }
+    CHECK(!aggregatePorts.empty()) << "No aggregate ports on " << myHostname;
+
+    constexpr int kNumFlaps = 5;
+
+    for (const auto& aggPort : aggregatePorts) {
+      for (const auto& member : aggPort.memberPorts().value()) {
+        auto memberPortID = member.memberPortID().value();
+        XLOG(DBG2) << "Flapping member port " << memberPortID
+                   << " of hyper port " << aggPort.name().value() << " "
+                   << kNumFlaps << " times";
+        for (int i = 0; i < kNumFlaps; i++) {
+          XLOG(DBG2) << "  Flap " << (i + 1) << "/" << kNumFlaps;
+          utility::adminDisablePort(myHostname, memberPortID);
+          utility::adminEnablePort(myHostname, memberPortID);
+        }
+      }
+    }
+
+    auto verifyHyperPortsUp = [&myHostname]() {
+      std::vector<AggregatePortThrift> aggPorts;
+      auto swAgentClient = utility::getSwAgentThriftClient(myHostname);
+      swAgentClient->sync_getAggregatePortTable(aggPorts);
+      for (const auto& aggPort : aggPorts) {
+        if (!aggPort.isUp().value()) {
+          XLOG(DBG2) << "Hyper port " << aggPort.name().value()
+                     << " is not up on " << myHostname;
+          return false;
+        }
+        for (const auto& member : aggPort.memberPorts().value()) {
+          if (!member.isForwarding().value()) {
+            XLOG(DBG2) << "Member port " << member.memberPortID().value()
+                       << " of hyper port " << aggPort.name().value()
+                       << " is not forwarding on " << myHostname;
+            return false;
+          }
+        }
+      }
+      return true;
+    };
+
+    if (!checkWithRetryErrorReturn(
+            verifyHyperPortsUp, 180, std::chrono::milliseconds(1000), true)) {
+      XLOG(DBG2) << "Hyper ports did not recover after flapping on "
+                 << myHostname;
+      return false;
+    }
+
+    XLOG(DBG2) << "All hyper ports recovered after stress flapping, "
+               << "verifying NDP/ping";
+    return verifyNdpBehindHyperPorts(topologyInfo);
+  }
 };
 
 TEST_F(AgentMultiNodeVoqSwitchHyperPortTest, verifyNdpBehindHyperPorts) {
@@ -467,6 +530,20 @@ TEST_F(
         return this->verifyHyperPortTrafficDistribution(topologyInfo);
     }
   });
+}
+
+TEST_F(
+    AgentMultiNodeVoqSwitchHyperPortTest,
+    verifyNdpAfterHyperPortMemberFlap) {
+  if (!FLAGS_hyper_port) {
+    GTEST_SKIP() << "Skipping: hyper_port flag is not set";
+  }
+  ASSERT_TRUE(checkWithRetryErrorReturn(
+      [this]() { return verifyNdpBehindHyperPorts(topologyInfo_); },
+      120,
+      std::chrono::milliseconds(5000),
+      true));
+  ASSERT_TRUE(verifyNdpAfterHyperPortMemberFlap(topologyInfo_));
 }
 
 } // namespace facebook::fboss
