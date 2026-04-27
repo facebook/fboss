@@ -308,7 +308,8 @@ INSTANTIATE_TEST_SUITE_P(
         cfg::PortSpeed::FIFTYG,
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::TWOHUNDREDG,
-        cfg::PortSpeed::FOURHUNDREDG),
+        cfg::PortSpeed::FOURHUNDREDG,
+        cfg::PortSpeed::EIGHTHUNDREDG),
     [](const ::testing::TestParamInfo<cfg::PortSpeed>& info) {
       return apache::thrift::util::enumNameSafe(info.param);
     });
