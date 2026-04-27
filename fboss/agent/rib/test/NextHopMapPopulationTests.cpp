@@ -19,6 +19,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/SwitchStateNextHopIdUpdater.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
@@ -642,6 +643,104 @@ TEST_F(NextHopMapPopulationTest, PopAndLookupWithNormalRouteAddition) {
       << "POP_AND_LOOKUP MPLS route should NOT have "
       << "normalizedResolvedNextHopSetID";
 
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+}
+
+// --- SwitchStateNextHopIdUpdater incremental diff tests ---
+// These verify the updater correctly diffs RIB vs FIB maps and only
+// applies the delta (adds missing entries, removes stale entries).
+
+TEST_F(NextHopMapPopulationTest, UpdaterNoChangesReturnsSameState) {
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Run the updater again with no RIB changes — should return same state
+  auto stateBefore = sw_->getState();
+  auto managerCopy = sw_->getRib()->getNextHopIDManagerCopy();
+  SwitchStateNextHopIdUpdater ribUpdater(managerCopy.get());
+  auto stateAfter = ribUpdater(stateBefore);
+  EXPECT_EQ(stateAfter.get(), stateBefore.get());
+}
+
+TEST_F(NextHopMapPopulationTest, UpdaterIncrementalAddViaRouteUpdater) {
+  // Start with standard routes (shared ECMP, single nhop, overlapping, etc.)
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Incrementally add routes with both new and existing nexthops
+  updater = sw_->getRouteUpdater();
+  // These reuse existing nexthops — only new set IDs
+  addV4Route(updater, "10.10.0.0/24", {"3.3.3.10"});
+  addV4Route(updater, "10.10.1.0/24", {"1.1.1.10", "4.4.4.10"});
+  addV6Route(updater, "2001:db8:100::/64", {"3::10", "4::10"});
+  // These use brand new nexthops — new nhop IDs + set IDs
+  addV4Route(updater, "10.10.4.0/24", {"1.1.1.30", "2.2.2.30"});
+  addV6Route(updater, "2001:db8:101::/64", {"1::30"});
+  // DROP/TO_CPU don't allocate IDs
+  addV4DropRoute(updater, "10.10.2.0/24");
+  addV4ToCpuRoute(updater, "10.10.3.0/24");
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+}
+
+TEST_F(NextHopMapPopulationTest, UpdaterIncrementalRemoveViaRouteUpdater) {
+  // Start with standard routes
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Delete several routes: one from shared ECMP pair, overlapping groups, etc.
+  updater = sw_->getRouteUpdater();
+  delV4Route(updater, "10.0.0.0/24");
+  delV4Route(updater, "10.3.0.0/24");
+  delV4Route(updater, "10.3.1.0/24");
+  delV6Route(updater, "2001:db8:1::/64");
+  delV6Route(updater, "2001:db8:30::/64");
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Delete remaining routes that used unique nexthops
+  updater = sw_->getRouteUpdater();
+  delV4Route(updater, "10.1.0.0/24");
+  delV6Route(updater, "2001:db8:10::/64");
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+}
+
+TEST_F(NextHopMapPopulationTest, UpdaterAddAndRemoveInSingleUpdate) {
+  // Start with standard routes
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Simultaneously delete some routes and add new ones
+  updater = sw_->getRouteUpdater();
+  // Delete shared ECMP pair and overlapping group
+  delV4Route(updater, "10.0.0.0/24");
+  delV4Route(updater, "10.0.1.0/24");
+  delV4Route(updater, "10.3.0.0/24");
+  delV6Route(updater, "2001:db8:1::/64");
+  delV6Route(updater, "2001:db8:2::/64");
+  // Add new routes with mix of existing and new nexthops
+  addV4Route(updater, "10.20.0.0/24", {"1.1.1.10", "3.3.3.10"});
+  addV4Route(updater, "10.20.1.0/24", {"4.4.4.10"});
+  addV6Route(updater, "2001:db8:200::/64", {"1::10", "2::10", "3::10"});
+  addV4DropRoute(updater, "10.20.2.0/24");
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 }
