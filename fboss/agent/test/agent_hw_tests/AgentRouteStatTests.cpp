@@ -203,7 +203,7 @@ class AgentRouteStatTest : public AgentHwTest {
   std::unique_ptr<utility::EcmpSetupTargetedPorts4> ecmpHelper4_;
 };
 
-TEST_F(AgentRouteStatTest, RouteEntryTest) {
+TEST_F(AgentRouteStatTest, V4V6SeparateCounters) {
   auto setup = [this]() {
     setupEcmpHelper();
     addRoute(
@@ -252,6 +252,38 @@ TEST_F(AgentRouteStatTest, RouteEntryTest) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentRouteStatTest, V4V6SharedCounter) {
+  auto setup = [this]() {
+    setupEcmpHelper();
+    addRoute(
+        kAddr1,
+        120,
+        PortDescriptor(masterLogicalInterfacePortIds()[0]),
+        kCounterID1);
+    addV4Route(
+        kAddr4,
+        24,
+        PortDescriptor(masterLogicalInterfacePortIds()[0]),
+        kCounterID1);
+  };
+  auto verify = [this]() {
+    auto srcPort = masterLogicalInterfacePortIds()[1];
+
+    // sending to v6 route increments shared counter
+    sendAndVerifyCounterIncrement({{kAddr1, *kCounterID1}}, srcPort);
+
+    // sending to v4 route increments the same shared counter
+    sendAndVerifyCounterIncrement(
+        {{folly::IPAddress(kAddr4), *kCounterID1}}, srcPort);
+
+    // sending to either v4 or v6 increments the shared counter
+    sendAndVerifyCounterIncrement(
+        {{kAddr1, *kCounterID1}, {folly::IPAddress(kAddr4), *kCounterID1}},
+        srcPort);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(AgentRouteStatTest, CounterModify) {
   auto setup = [this]() {
     setupEcmpHelper();
@@ -292,38 +324,6 @@ TEST_F(AgentRouteStatTest, CounterModify) {
     // Restore the route to original state, so verify
     // can be run multiple times
     addRoute(kAddr1, 120, PortDescriptor(origRoutePort), kCounterID1);
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(AgentRouteStatTest, V4V6SharedCounter) {
-  auto setup = [this]() {
-    setupEcmpHelper();
-    addRoute(
-        kAddr1,
-        120,
-        PortDescriptor(masterLogicalInterfacePortIds()[0]),
-        kCounterID1);
-    addV4Route(
-        kAddr4,
-        24,
-        PortDescriptor(masterLogicalInterfacePortIds()[0]),
-        kCounterID1);
-  };
-  auto verify = [this]() {
-    auto srcPort = masterLogicalInterfacePortIds()[1];
-
-    // sending to v6 route increments shared counter
-    sendAndVerifyCounterIncrement({{kAddr1, *kCounterID1}}, srcPort);
-
-    // sending to v4 route increments the same shared counter
-    sendAndVerifyCounterIncrement(
-        {{folly::IPAddress(kAddr4), *kCounterID1}}, srcPort);
-
-    // sending to either v4 or v6 increments the shared counter
-    sendAndVerifyCounterIncrement(
-        {{kAddr1, *kCounterID1}, {folly::IPAddress(kAddr4), *kCounterID1}},
-        srcPort);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
