@@ -3,11 +3,13 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 
@@ -41,19 +43,56 @@ class MySidNeighborObserver : public StateObserver {
  private:
   template <typename AddedNeighborEntryT>
   void processAdded(
-      const std::shared_ptr<SwitchState>& switchState,
+      const std::vector<std::shared_ptr<MySid>>& mySidsOnIntf,
       const std::shared_ptr<AddedNeighborEntryT>& addedEntry);
 
   template <typename RemovedNeighborEntryT>
   void processRemoved(
-      const std::shared_ptr<SwitchState>& switchState,
+      const std::vector<std::shared_ptr<MySid>>& mySidsOnIntf,
       const std::shared_ptr<RemovedNeighborEntryT>& removedEntry);
 
   template <typename ChangedNeighborEntryT>
   void processChanged(
-      const StateDelta& stateDelta,
+      const std::vector<std::shared_ptr<MySid>>& mySidsOnIntf,
       const std::shared_ptr<ChangedNeighborEntryT>& oldEntry,
       const std::shared_ptr<ChangedNeighborEntryT>& newEntry);
+
+  // True iff this MySid is a uA candidate that needs an initial
+  // resolution: type is ADJACENCY_MICRO_SID and no unresolved next-hop
+  // id has been allocated yet. Used by the MySid-added/changed handler
+  // and by the neighbor-added walk.
+  bool needsResolve(const std::shared_ptr<MySid>& mySid) const;
+
+  // Bucket every uA MySid in `state` by its `adjacencyInterfaceId`.
+  // Built once per stateUpdated to make per-neighbor lookups O(K)
+  // (K = uA MySids on the intf) rather than re-scanning the full
+  // MySidMap for each neighbor delta event.
+  std::unordered_map<InterfaceID, std::vector<std::shared_ptr<MySid>>>
+  buildIntfToUASidsMap(const std::shared_ptr<SwitchState>& state) const;
+
+  // Check if a neighbor entry is relevant for MySid resolution:
+  // must be reachable and non-link-local.
+  template <typename NeighborEntryT>
+  bool isReachableNonLinkLocalNeighbor(
+      const std::shared_ptr<NeighborEntryT>& entry) const;
+
+  // Bind the neighbor's IP to every uA MySid in `mySidsOnIntf` (already
+  // filtered to the neighbor's intf) that matches the neighbor's IP
+  // family and does not yet have an unresolved next hop.
+  template <typename NeighborEntryT>
+  void assignNeighborToMySids(
+      const std::vector<std::shared_ptr<MySid>>& mySidsOnIntf,
+      const std::shared_ptr<NeighborEntryT>& neighborEntry);
+
+  // For every bound uA MySid in `mySidsOnIntf` matching the neighbor's
+  // IP family, queue a conditional unresolve keyed by the removed
+  // neighbor's IP. RIB does the precise match against the materialized
+  // unresolved next-hop set (the observer can't, since it only sees a
+  // NextHopSetID).
+  template <typename NeighborEntryT>
+  void clearNeighborFromMySids(
+      const std::vector<std::shared_ptr<MySid>>& mySidsOnIntf,
+      const std::shared_ptr<NeighborEntryT>& neighborEntry);
 
   // Scan neighbor table for the MySid's interface and queue resolution
   // if a reachable non-link-local neighbor is found.
@@ -70,7 +109,7 @@ class MySidNeighborObserver : public StateObserver {
   // Queue a conditional unresolve: clear the MySid's unresolved + resolved
   // ids only if the materialized unresolved next-hop set contains
   // removedIp. RIB-side check.
-  void queueUnresolveIfMatch(
+  void queueReresolveIfMatch(
       const std::shared_ptr<MySid>& mySid,
       folly::IPAddress removedIp);
 
