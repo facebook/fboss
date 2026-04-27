@@ -197,6 +197,7 @@ class RibRouteUpdater {
   NextHopIDManager* nextHopIDManager_{nullptr};
   MySidTable* mySidTable_{nullptr};
   std::unordered_set<void*> needsResolution_;
+  std::unordered_set<void*> resolving_;
   /*
    * Cache for next hop to FWD information. For our use case
    * its pretty common for the same next hops to repeat, so

@@ -710,6 +710,12 @@ void RibRouteUpdater::getFwdInfoFromNhop(
   auto route = it->value();
   CHECK(route);
 
+  if (resolving_.find(route.get()) != resolving_.end()) {
+    XLOG(DBG2) << "Cycle detected resolving nexthop " << nh
+               << " — route is already being resolved";
+    return;
+  }
+
   if (needResolve(route)) {
     route = resolveOne<AddressT>(it);
     CHECK(route);
@@ -778,6 +784,10 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   auto route = value<AddressT>(ritr);
   // Starting resolution for this route, remove from resolution queue
   needsResolution_.erase(route.get());
+  resolving_.insert(route.get());
+  SCOPE_EXIT {
+    resolving_.erase(route.get());
+  };
 
   bool hasToCpu{false};
   bool hasDrop{false};
@@ -1020,6 +1030,7 @@ void RibRouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
   for (auto ritr = routes->begin(); ritr != routes->end(); ++ritr) {
     if (needResolve(value(*ritr))) {
       resolveOne<AddressT>(ritr);
+      DCHECK(resolving_.empty());
     }
   }
 }
@@ -1045,6 +1056,7 @@ void RibRouteUpdater::updateDone() {
   SCOPE_EXIT {
     needsResolution_.clear();
     unresolvedToResolvedNhops_.clear();
+    resolving_.clear();
   };
   resolve(v4Routes_);
   resolve(v6Routes_);
