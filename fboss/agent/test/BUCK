@@ -54,6 +54,7 @@ cpp_unittest(
         "MirrorManagerTest.cpp",
         "MySidApplyConfigTest.cpp",
         "MySidConfigUtilsTest.cpp",
+        "MySidNeighborObserverTest.cpp",
         "MySidRibUpdateTest.cpp",
         "NDPTest.cpp",
         "OperDeltaFilterTests.cpp",
