@@ -76,8 +76,8 @@ class AgentHwPtpTcProvisionTests
         config,
         portSpeed,
         ports);
-    // Use PHY loopback instead of MAC loopback for TH4
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    // Use PHY loopback instead of MAC loopback for Broadcom platforms
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
       for (auto& port : *config.ports()) {
         if (port.portType() == cfg::PortType::INTERFACE_PORT) {
           port.loopbackMode() = cfg::PortLoopbackMode::PHY;
