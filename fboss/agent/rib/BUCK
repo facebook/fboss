@@ -51,6 +51,7 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
+        "//folly:conv",
         "//folly:network_address",
         "//folly:range",
         "//folly:scope_guard",
@@ -176,6 +177,7 @@ cpp_library(
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent/state:state",
+        "//folly:network_address",
     ],
     exported_external_deps = [
         "boost",

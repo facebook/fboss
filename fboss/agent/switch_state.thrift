@@ -521,6 +521,7 @@ struct RouteNextHopEntry {
   7: optional list<common.NextHopThrift> overrideNextHops;
   8: optional i64 normalizedResolvedNextHopSetID;
   9: optional i64 resolvedNextHopSetID;
+  10: optional string namedNextHopGroup;
 }
 
 struct RouteNextHopsMulti {

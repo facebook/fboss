@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include <folly/IPAddress.h>
 #include <gtest/gtest_prod.h>
 #include <cstdint>
 #include <optional>
+#include <set>
 #include <unordered_map>
 #include <vector>
 #include "fboss/agent/state/FibInfoMap.h"
@@ -229,6 +231,24 @@ class NextHopIDManager {
     return nameToNextHopSet_.find(name) != nameToNextHopSet_.end();
   }
 
+  // Reverse mapping: track which routes reference a named NHG
+  using RoutePrefixKey = std::pair<RouterID, folly::CIDRNetwork>;
+  using RouteSet = std::set<RoutePrefixKey>;
+
+  void addRouteForNamedNhg(
+      const std::string& name,
+      const RouterID& rid,
+      const folly::CIDRNetwork& prefix);
+
+  void removeRouteForNamedNhg(
+      const std::string& name,
+      const RouterID& rid,
+      const folly::CIDRNetwork& prefix);
+
+  const RouteSet& getRoutesForNamedNhg(const std::string& name) const;
+
+  bool hasRoutesForNamedNhg(const std::string& name) const;
+
   /**
    * Reconstruct the NextHopIDManager for two main scenarios:
    *
@@ -289,6 +309,8 @@ class NextHopIDManager {
   std::unordered_map<std::string, RouteNextHopSet> nameToNextHopSet_;
   // Map from name to NextHopSetID for quick lookup
   std::unordered_map<std::string, NextHopSetID> nameToNextHopSetID_;
+  // Reverse mapping: named NHG name to routes referencing it
+  std::unordered_map<std::string, RouteSet> nameToRoutes_;
 
   // Get the ref count for a given NextHop
   uint32_t getNextHopRefCount(const NextHop& nextHop);
@@ -333,6 +355,8 @@ class NextHopIDManager {
   FRIEND_TEST(NextHopIDManagerTest, namedNextHopGroupWarmBoot);
   FRIEND_TEST(NextHopIDManagerTest, namedNextHopGroupSharesSetIdWithRoutes);
   FRIEND_TEST(NextHopIDManagerTest, routeReusesNamedNextHopGroupSetId);
+  FRIEND_TEST(NextHopIDManagerTest, namedNhgRouteReverseMapping);
+  FRIEND_TEST(NextHopIDManagerTest, namedNhgRouteReverseMappingWarmBoot);
   FRIEND_TEST(
       RibMySidUpdaterTest,
       nhopRefCountBumped_afterResolvingNhopWithIntfId);

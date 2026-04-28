@@ -6137,7 +6137,8 @@ std::pair<apache::thrift::ident::nexthops, ChildThriftPath<::std::vector<::faceb
 std::pair<apache::thrift::ident::overrideEcmpSwitchingMode, Child<::facebook::fboss::cfg::SwitchingMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::SwitchingMode>>>,
 std::pair<apache::thrift::ident::overrideNextHops, ChildThriftPath<::std::vector<::facebook::fboss::NextHopThrift>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::normalizedResolvedNextHopSetID, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<apache::thrift::ident::resolvedNextHopSetID, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<apache::thrift::ident::resolvedNextHopSetID, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::namedNextHopGroup, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -6152,6 +6153,7 @@ std::pair<apache::thrift::ident::resolvedNextHopSetID, Child<::std::int64_t, ::a
     STRUCT_CHILD_GETTERS(overrideNextHops, 7);
     STRUCT_CHILD_GETTERS(normalizedResolvedNextHopSetID, 8);
     STRUCT_CHILD_GETTERS(resolvedNextHopSetID, 9);
+    STRUCT_CHILD_GETTERS(namedNextHopGroup, 10);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -6164,6 +6166,7 @@ std::pair<apache::thrift::ident::resolvedNextHopSetID, Child<::std::int64_t, ::a
     else if constexpr (__id == apache::thrift::FieldId{7}) { return overrideNextHops(); }
     else if constexpr (__id == apache::thrift::FieldId{8}) { return normalizedResolvedNextHopSetID(); }
     else if constexpr (__id == apache::thrift::FieldId{9}) { return resolvedNextHopSetID(); }
+    else if constexpr (__id == apache::thrift::FieldId{10}) { return namedNextHopGroup(); }
   }
 };
 

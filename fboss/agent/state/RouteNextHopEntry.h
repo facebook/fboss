@@ -132,6 +132,21 @@ class RouteNextHopEntry
     }
   }
 
+  std::optional<std::string> getNamedNextHopGroup() const {
+    if (auto name = safe_cref<switch_state_tags::namedNextHopGroup>()) {
+      return name->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setNamedNextHopGroup(const std::optional<std::string>& name) {
+    if (name) {
+      ref<switch_state_tags::namedNextHopGroup>() = *name;
+    } else {
+      ref<switch_state_tags::namedNextHopGroup>().reset();
+    }
+  }
+
   const std::optional<AclLookupClass> getClassID() const {
     if (auto classID = safe_cref<switch_state_tags::classID>()) {
       return classID->cref();
