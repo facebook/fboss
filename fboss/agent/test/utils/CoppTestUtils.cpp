@@ -1281,6 +1281,12 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
           ControlPlane::makeRxReasonToQueueEntry(
               cfg::PacketRxReason::DHCPV6, coppMidPriQueueId));
     }
+
+    if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      rxReasonToQueues.push_back(
+          ControlPlane::makeRxReasonToQueueEntry(
+              cfg::PacketRxReason::BPDU, kCoppLowPriQueueId));
+    }
   }
 
   if (hwAsic->isSupported(HwAsic::Feature::SAI_EAPOL_TRAP)) {
