@@ -391,6 +391,9 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
         updateHardwareVersions(eepromContents);
       }
       pmUnitNameInEeprom = eepromContents.getProductName();
+      if (pmUnitNameInEeprom) {
+        dataStore_.updatePmUnitEepromProductName(slotPath, *pmUnitNameInEeprom);
+      }
       productionStateInEeprom = std::stoi(eepromContents.getProductionState());
       productVersionInEeprom =
           std::stoi(eepromContents.getProductionSubState());

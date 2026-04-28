@@ -125,6 +125,16 @@ void DataStore::updatePmUnitVersion(
           *version.productSubVersion()));
 }
 
+void DataStore::updatePmUnitEepromProductName(
+    const std::string& slotPath,
+    const std::string& eepromProductName) {
+  slotPathToPmUnitInfo[slotPath].eepromProductName() = eepromProductName;
+  XLOG(INFO) << fmt::format(
+      "At SlotPath {}, updating PmUnit eepromProductName: {}",
+      slotPath,
+      eepromProductName);
+}
+
 void DataStore::updatePmUnitSuccessfullyExplored(
     const std::string& slotPath,
     bool successfullyExplored) {
