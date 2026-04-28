@@ -293,6 +293,22 @@ target_link_libraries(hw_rx_slow_path_rate
   trap_packet_utils
 )
 
+add_library(hw_cpu_latency_benchmark_helper
+  fboss/agent/hw/benchmarks/HwCpuLatencyBenchmarkHelper.cpp
+)
+
+target_link_libraries(hw_cpu_latency_benchmark_helper
+  mono_agent_ensemble
+  mono_agent_benchmarks
+  agent_test_utils
+  ecmp_helper
+  config_utils
+  copp_test_utils
+  common_utils
+  Folly::folly
+  Folly::follybenchmark
+)
+
 add_library(hw_init_and_exit_benchmark_helper
   fboss/agent/hw/benchmarks/HwInitAndExitBenchmarkHelper.cpp
 )
