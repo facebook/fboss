@@ -728,11 +728,17 @@ struct VersionedPmUnitConfig {
 // `name`: Name of the PmUnit.
 //
 // `version`: Version of the pmUnit.
+//
+// `eepromProductName`: Product Name from EEPROM (Type 1). Unlike `name`,
+// this is always the raw EEPROM value and is never overridden by config.
+// Used by sensor_service for vendor-specific sensor resolution (e.g.,
+// different PSU vendors have different thresholds).
 struct PmUnitInfo {
   1: string name;
   2: optional PmUnitVersion version;
   3: optional platform_manager_presence.PresenceInfo presenceInfo;
   4: bool successfullyExplored;
+  5: optional string eepromProductName;
 }
 
 // `PmUnitVersion`: Version of a PmUnit.

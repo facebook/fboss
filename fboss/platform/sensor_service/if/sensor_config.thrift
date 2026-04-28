@@ -90,11 +90,17 @@ struct PmSensor {
 // `productVersion`: Minimum productVersion (EEPROM V5 Type 9).
 //
 // `productSubVersion`: Minimum productSubVersion (EEPROM V5 Type 10).
+//
+// `productName`: Optional EEPROM Product Name to match against. When set,
+// this VersionedPmSensor only applies if the hardware's EEPROM Product Name
+// matches this value. Enables vendor-specific thresholds (e.g., different
+// PSU vendors on the same platform).
 struct VersionedPmSensor {
   1: list<PmSensor> sensors;
   2: i16 productProductionState;
   3: i16 productVersion;
   4: i16 productSubVersion;
+  5: optional string productName;
 }
 
 // `PmUnitSensors`: Describes every sensor in PmUnit.
