@@ -509,17 +509,18 @@ inline MultiPortCpuLatencySetup createAllPortCpuLatencyEnsemble() {
       intfMac);
 
   std::vector<PortDescriptor> portDescriptors;
-  std::vector<flat_set<PortDescriptor>> portDescSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> portDescSets;
   for (auto& portId : allPorts) {
     portDescriptors.emplace_back(portId);
-    portDescSets.push_back(flat_set<PortDescriptor>{PortDescriptor(portId)});
+    portDescSets.push_back(
+        boost::container::flat_set<PortDescriptor>{PortDescriptor(portId)});
   }
 
   ensemble->applyNewState(
       [&portDescriptors, &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
         return ecmpHelper.resolveNextHops(
             in,
-            flat_set<PortDescriptor>(
+            boost::container::flat_set<PortDescriptor>(
                 std::make_move_iterator(portDescriptors.begin()),
                 std::make_move_iterator(portDescriptors.end())));
       });

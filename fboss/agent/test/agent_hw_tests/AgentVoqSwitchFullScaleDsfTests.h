@@ -40,10 +40,10 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     return *groups;
   }
 
-  flat_set<PortDescriptor> getRemoteSysPortDesc() {
+  boost::container::flat_set<PortDescriptor> getRemoteSysPortDesc() {
     auto remoteSysPorts =
         getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
-    flat_set<PortDescriptor> sysPortDescs;
+    boost::container::flat_set<PortDescriptor> sysPortDescs;
     std::for_each(
         remoteSysPorts->begin(),
         remoteSysPorts->end(),

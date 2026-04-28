@@ -19,22 +19,22 @@
 #include "folly/Range.h"
 #include "folly/json/dynamic.h"
 
-#include "boost/container/flat_set.hpp"
+#include <set>
 
 namespace facebook::fboss {
 
 struct LoadBalancerFields {
   using IPv4Field = cfg::IPv4Field;
-  using IPv4Fields = boost::container::flat_set<IPv4Field>;
+  using IPv4Fields = std::set<IPv4Field>;
 
   using IPv6Field = cfg::IPv6Field;
-  using IPv6Fields = boost::container::flat_set<IPv6Field>;
+  using IPv6Fields = std::set<IPv6Field>;
 
   using TransportField = cfg::TransportField;
-  using TransportFields = boost::container::flat_set<TransportField>;
+  using TransportFields = std::set<TransportField>;
 
   using MPLSField = cfg::MPLSField;
-  using MPLSFields = boost::container::flat_set<MPLSField>;
+  using MPLSFields = std::set<MPLSField>;
 
   using UdfGroupIds = std::vector<std::string>;
 };

@@ -8,6 +8,7 @@ cpp_library(
     headers = glob(["*.h"]),
     exported_deps = [
         "fbsource//third-party/googletest:gtest_headers",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fboss_event_base",
         "//fboss/agent:switch_config-cpp2-types",
@@ -29,6 +30,7 @@ cpp_library(
     name = "standalone_rib",
     srcs = [
         "ConfigApplier.cpp",
+        "MySidConfigUtils.cpp",
         "RibMySidUpdater.cpp",
         "RibRouteWeightNormalizer.cpp",
         "RouteUpdater.cpp",

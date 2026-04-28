@@ -55,12 +55,41 @@ target_link_libraries(qsfp_config
   FBThrift::thriftcpp2
 )
 
+add_library(build_from_xcvr_lib
+  fboss/lib/bsp/BuildFromXcvrLib.cpp
+)
+
+target_link_libraries(build_from_xcvr_lib
+  bsp_platform_mapping_cpp2
+  led_mapping_cpp2
+  xcvr_lib
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
+add_executable(build_from_xcvr_lib_test
+  fboss/lib/bsp/tests/BuildFromXcvrLibTest.cpp
+)
+
+target_link_libraries(build_from_xcvr_lib_test
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+  bsp_platform_mapping_cpp2
+  build_from_xcvr_lib
+  led_mapping_cpp2
+  platform_config_lib
+  xcvr_lib
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
 add_library(bsp_platform_mapping
   fboss/lib/bsp/BspPlatformMapping.cpp
 )
 
 target_link_libraries(bsp_platform_mapping
   bsp_platform_mapping_cpp2
+  build_from_xcvr_lib
   FBThrift::thriftcpp2
 )
 
@@ -110,7 +139,6 @@ add_library(icecube800bc_bsp
 
 target_link_libraries(icecube800bc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -261,6 +289,7 @@ target_link_libraries(qsfp_bsp_core
   fpga_multi_pim_container
   ledIO
   led_mapping_cpp2
+  build_from_xcvr_lib
 )
 
 add_library(transceiver_validator

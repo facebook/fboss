@@ -8,6 +8,9 @@ rpm.builder(
         rpm.configuration(
             arch = "x86_64",
         ),
+        rpm.configuration(
+            arch = "aarch64",
+        ),
     ],
     features = [
         rpm.install(

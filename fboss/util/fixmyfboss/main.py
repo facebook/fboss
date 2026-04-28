@@ -55,6 +55,7 @@ def run_checks(checks: Dict[str, Check]) -> List[status.Status]:
     for name, check in checks.items():
         overwrite_print(f"Checking: {name}")
         check.run()
+        assert check.result is not None, f"Check {name} did not produce a result"
         results.append(check.result)
     clear_line()
     return results
@@ -116,11 +117,11 @@ def show_result_summary(checks: List[Check]) -> None:
     print("-----")
 
     for check in problems + errors + warnings:
-        print_res_name = styled(
-            f"[  {check.result.name}  ]", color_bg(check.result.color), bold()
-        )
+        result = check.result
+        assert result is not None
+        print_res_name = styled(f"[  {result.name}  ]", color_bg(result.color), bold())
         print(f"{print_res_name} {check.name}")
-        print(f"{indent(str(check.result))}")
+        print(f"{indent(str(result))}")
 
 
 def show_remediations(
@@ -141,21 +142,25 @@ def show_remediations(
 
 
 def get_manual_remediations(checks: List[Check]) -> List[str]:
-    problems = [check for check in checks if isinstance(check.result, status.Problem)]
-    return [
-        problem.result.manual_remediation
-        for problem in problems
-        if problem.result.has_manual_remediation
-    ]
+    results: List[str] = []
+    for check in checks:
+        if (
+            isinstance(check.result, status.Problem)
+            and check.result.manual_remediation is not None
+        ):
+            results.append(check.result.manual_remediation)
+    return results
 
 
 def get_auto_remediations(checks: List[Check]) -> List[Remediation]:
-    problems = [check for check in checks if isinstance(check.result, status.Problem)]
-    return [
-        problem.result.remediation
-        for problem in problems
-        if problem.result.has_auto_remediation
-    ]
+    results: List[Remediation] = []
+    for check in checks:
+        if (
+            isinstance(check.result, status.Problem)
+            and check.result.remediation is not None
+        ):
+            results.append(check.result.remediation)
+    return results
 
 
 if __name__ == "__main__":

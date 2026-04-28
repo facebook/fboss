@@ -538,6 +538,7 @@ class HwAsic {
     CUT_THROUGH_FORWARDING,
     SRV6_MYSID_DISCARD_COUNTER,
     SRV6_MYSID_RESOURCE_COUNTER,
+    DEVICE_WATERMARK_SUPPORT,
   };
 
   enum class AsicMode {
@@ -666,6 +667,30 @@ class HwAsic {
    * Number of forwarding engines / units with its own buffer pool.
    */
   virtual uint32_t getNumCores() const = 0;
+
+  /**
+   * Number of physical dies in the ASIC package. Multi-die ASICs (e.g. Q4D
+   * with 2 dies) have ports spread across dies. Knowing the die count allows
+   * test infrastructure to distribute port selection across dies for better
+   * coverage. Default is 1 (single-die).
+   */
+  virtual uint32_t getNumDies() const {
+    return 1;
+  }
+
+  /**
+   * Returns which die a given core belongs to. Default assumes cores are
+   * evenly distributed across dies in ascending order (e.g. for Q4D with
+   * 8 cores and 2 dies: cores 0-3 → die 0, cores 4-7 → die 1).
+   */
+  virtual uint32_t getDieIdForCore(uint32_t coreId) const {
+    auto numDies = getNumDies();
+    if (numDies <= 1) {
+      return 0;
+    }
+    auto coresPerDie = getNumCores() / numDies;
+    return coreId / coresPerDie;
+  }
 
   virtual uint32_t getSflowShimHeaderSize() const = 0;
 

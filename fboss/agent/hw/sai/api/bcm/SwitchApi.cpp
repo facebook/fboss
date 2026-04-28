@@ -173,8 +173,7 @@ SaiSwitchTraits::dramQuarantinedBufferStats() {
 
 const std::vector<sai_stat_id_t>&
 SaiSwitchTraits::fabricInterCellJitterWatermarkStats() {
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
-  // TODO (nivinl): Stats ID not yet available in 14.x!
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   static const std::vector<sai_stat_id_t> stats{
       SAI_SWITCH_STAT_EXTENSION_FABRIC_INTER_CELL_JITTER_MAX_IN_NSEC};
 #else
@@ -760,6 +759,11 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT;
 #endif
   return std::nullopt;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::deviceWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
 }
 
 } // namespace facebook::fboss

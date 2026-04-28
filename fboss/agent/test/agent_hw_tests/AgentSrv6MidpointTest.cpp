@@ -338,12 +338,11 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     });
   }
 
-  void verifyMidpointDropCpuAndFrontPanel(
+  void verifyMidpointDropFrontPanel(
       PortID egressPort,
       std::optional<folly::IPAddressV6> outerDst = std::nullopt) {
     auto injectPort = findInjectPort(egressPort);
     for (bool isV4 : {false, true}) {
-      verifyMidpointDrop(injectPort, egressPort, isV4, std::nullopt, outerDst);
       verifyMidpointDrop(injectPort, egressPort, isV4, injectPort, outerDst);
     }
   }
@@ -374,7 +373,7 @@ TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASidUnresolvedDropped) {
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    this->verifyMidpointDropCpuAndFrontPanel(egressPort);
+    this->verifyMidpointDropFrontPanel(egressPort);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -388,7 +387,7 @@ TYPED_TEST(AgentSrv6MidpointTest, dropPacketUASidIsLastSid) {
     // Outer dst is the mySid prefix itself (3001:db8:1::) with no next uSID.
     // The function bits are zero so there is no uSID to shift to — the
     // packet should be dropped.
-    this->verifyMidpointDropCpuAndFrontPanel(egressPort, this->kMySidPrefix);
+    this->verifyMidpointDropFrontPanel(egressPort, this->kMySidPrefix);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

@@ -23,6 +23,17 @@ extern "C" {
 #include <sai.h>
 }
 
+inline bool operator==(const sai_u32_range_t& a, const sai_u32_range_t& b) {
+  return a.min == b.min && a.max == b.max;
+}
+
+inline std::size_t hash_value(const sai_u32_range_t& r) {
+  std::size_t seed = 0;
+  boost::hash_combine(seed, r.min);
+  boost::hash_combine(seed, r.max);
+  return seed;
+}
+
 namespace facebook::fboss {
 
 class AclApi;
@@ -189,6 +200,10 @@ struct SaiAclTableTraits {
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE, bool>;
     using FieldOuterVlanId =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID, bool>;
+    using FieldAclRangeType = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_ACL_RANGE_TYPE,
+        std::vector<sai_int32_t>>;
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
     using FieldBthOpcode =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE, bool>;
@@ -261,7 +276,8 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldRouteDstUserMeta>,
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::FieldEthertype>,
-      std::optional<Attributes::FieldOuterVlanId>
+      std::optional<Attributes::FieldOuterVlanId>,
+      std::optional<Attributes::FieldAclRangeType>
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       ,
       std::optional<Attributes::FieldBthOpcode>
@@ -316,6 +332,7 @@ SAI_ATTRIBUTE_NAME(AclTable, AvailableEntry);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableCounter);
 SAI_ATTRIBUTE_NAME(AclTable, FieldEthertype);
 SAI_ATTRIBUTE_NAME(AclTable, FieldOuterVlanId);
+SAI_ATTRIBUTE_NAME(AclTable, FieldAclRangeType);
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
 SAI_ATTRIBUTE_NAME(AclTable, FieldBthOpcode);
 #endif
@@ -456,6 +473,11 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_OUTER_VLAN_ID,
         AclEntryFieldU16>;
+    using FieldAclRangeType = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_ACL_RANGE_TYPE,
+        AclEntryFieldSaiObjectIdList,
+        StdNullOptDefault<AclEntryFieldSaiObjectIdList>>;
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
     using FieldBthOpcode = SaiAttribute<
         EnumType,
@@ -593,6 +615,7 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::FieldEthertype>,
       std::optional<Attributes::FieldOuterVlanId>,
+      std::optional<Attributes::FieldAclRangeType>,
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       std::optional<Attributes::FieldBthOpcode>,
 #endif
@@ -664,6 +687,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldNeighborDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldEthertype);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldOuterVlanId);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldAclRangeType);
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
 SAI_ATTRIBUTE_NAME(AclEntry, FieldBthOpcode);
 #endif
@@ -755,6 +779,25 @@ SAI_ATTRIBUTE_NAME(AclCounter, EnableByteCount);
 SAI_ATTRIBUTE_NAME(AclCounter, CounterPackets);
 SAI_ATTRIBUTE_NAME(AclCounter, CounterBytes);
 
+struct SaiAclRangeTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_RANGE;
+  using SaiApiT = AclApi;
+  struct Attributes {
+    using EnumType = sai_acl_range_attr_t;
+
+    using Type = SaiAttribute<EnumType, SAI_ACL_RANGE_ATTR_TYPE, sai_int32_t>;
+    using Limit =
+        SaiAttribute<EnumType, SAI_ACL_RANGE_ATTR_LIMIT, sai_u32_range_t>;
+  };
+
+  using AdapterKey = AclRangeSaiId;
+  using AdapterHostKey = std::tuple<Attributes::Type, Attributes::Limit>;
+  using CreateAttributes = std::tuple<Attributes::Type, Attributes::Limit>;
+};
+
+SAI_ATTRIBUTE_NAME(AclRange, Type);
+SAI_ATTRIBUTE_NAME(AclRange, Limit);
+
 class AclApi : public SaiApi<AclApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_ACL;
@@ -808,6 +851,14 @@ class AclApi : public SaiApi<AclApi> {
     return api_->create_acl_counter(rawSaiId(id), switch_id, count, attr_list);
   }
 
+  sai_status_t _create(
+      AclRangeSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_acl_range(rawSaiId(id), switch_id, count, attr_list);
+  }
+
   sai_status_t _remove(AclTableGroupSaiId id) const {
     return api_->remove_acl_table_group(id);
   }
@@ -826,6 +877,10 @@ class AclApi : public SaiApi<AclApi> {
 
   sai_status_t _remove(AclCounterSaiId id) const {
     return api_->remove_acl_counter(id);
+  }
+
+  sai_status_t _remove(AclRangeSaiId id) const {
+    return api_->remove_acl_range(id);
   }
 
   sai_status_t _getAttribute(AclTableGroupSaiId id, sai_attribute_t* attr)
@@ -848,6 +903,10 @@ class AclApi : public SaiApi<AclApi> {
 
   sai_status_t _getAttribute(AclCounterSaiId id, sai_attribute_t* attr) const {
     return api_->get_acl_counter_attribute(id, 1, attr);
+  }
+
+  sai_status_t _getAttribute(AclRangeSaiId id, sai_attribute_t* attr) const {
+    return api_->get_acl_range_attribute(id, 1, attr);
   }
 
   sai_status_t _setAttribute(AclTableGroupSaiId id, const sai_attribute_t* attr)
@@ -874,6 +933,11 @@ class AclApi : public SaiApi<AclApi> {
   sai_status_t _setAttribute(AclCounterSaiId id, const sai_attribute_t* attr)
       const {
     return api_->set_acl_counter_attribute(id, attr);
+  }
+
+  sai_status_t _setAttribute(AclRangeSaiId id, const sai_attribute_t* attr)
+      const {
+    return api_->set_acl_range_attribute(id, attr);
   }
 
   sai_acl_api_t* api_;

@@ -303,7 +303,7 @@ void initAndExitBenchmarkHelper(
               utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
 
           std::vector<RoutePrefixV6> prefixes;
-          std::vector<flat_set<PortDescriptor>> nhopSets;
+          std::vector<boost::container::flat_set<PortDescriptor>> nhopSets;
           CHECK_GE(portDescriptor.size(), ecmpWidth + ecmpGroup - 1);
           for (int i = 0; i < ecmpGroup; i++) {
             // For default route 0::0, need to use 0 as prefix length

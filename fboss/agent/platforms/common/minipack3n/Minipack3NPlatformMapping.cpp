@@ -66624,6 +66624,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
                       "lane": 512
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 63,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "driveCurrent": 63,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -66644,6 +66654,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
                       "lane": 512
+                    },
+                    "tx": {
+                      "pre": -2,
+                      "pre2": 0,
+                      "main": 49,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "driveCurrent": 55,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -66664,6 +66684,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
                       "lane": 512
+                    },
+                    "tx": {
+                      "pre": -2,
+                      "pre2": 0,
+                      "main": 49,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "driveCurrent": 55,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -66729,6 +66759,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
                       "lane": 513
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 63,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "driveCurrent": 63,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -66749,6 +66789,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
                       "lane": 513
+                    },
+                    "tx": {
+                      "pre": -2,
+                      "pre2": 0,
+                      "main": 49,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "driveCurrent": 55,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -66769,6 +66819,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
                       "lane": 513
+                    },
+                    "tx": {
+                      "pre": -2,
+                      "pre2": 0,
+                      "main": 49,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "driveCurrent": 55,
+                      "pre3": 0
                     }
                   }
                 ],

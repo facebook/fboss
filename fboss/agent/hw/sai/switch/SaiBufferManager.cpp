@@ -480,6 +480,12 @@ void SaiBufferManager::updateEgressBufferPoolStats() {
     // watermarks are polled as part of ingress itself.
     return;
   }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::DEVICE_WATERMARK_SUPPORT)) {
+    // Device watermark is fetched directly as a switch-level stat;
+    // no need to derive it from buffer pool watermarks.
+    return;
+  }
   // As of now, we just need to be exporting the buffer pool stats for
   // default pool, will expose the buffer pool stats for non-default if
   // needed in future.
@@ -520,12 +526,14 @@ void SaiBufferManager::updateIngressBufferPoolStats() {
       globalHeadroomWatermarkBytes_[ingressBufferPoolHandle->bufferPoolName],
       globalSharedWatermarkBytes_[ingressBufferPoolHandle->bufferPoolName]);
 
+  // There is only a single buffer pool for devices with
+  // SHARED_INGRESS_EGRESS_BUFFER_POOL, so the same pool stat serves
+  // as the device watermark. Skip if DEVICE_WATERMARK_SUPPORT is
+  // enabled, as that is fetched directly as a switch-level stat.
   if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL)) {
-    /*
-     * There is only a single buffer pool for these devices and hence the
-     * same stats needs to be updated as device watermark as well.
-     */
+          HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL) &&
+      !platform_->getAsic()->isSupported(
+          HwAsic::Feature::DEVICE_WATERMARK_SUPPORT)) {
     deviceWatermarkBytes_ = counters[SAI_BUFFER_POOL_STAT_WATERMARK_BYTES];
   }
 }

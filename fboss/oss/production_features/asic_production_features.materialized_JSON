@@ -105,6 +105,7 @@
         21,
         23,
         25,
+        27,
         29,
         30,
         31,
@@ -353,7 +354,8 @@
         85,
         86,
         87,
-        79
+        79,
+        106
     ],
     "tomahawk5": [
         2,
@@ -483,7 +485,8 @@
         86,
         99,
         101,
-        94
+        94,
+        105
     ],
     "tomahawkultra1": [
         2,
@@ -566,6 +569,7 @@
         21,
         23,
         25,
+        27,
         29,
         30,
         31,
@@ -707,6 +711,7 @@
         "WRED",
         "JUMBO_FRAMES",
         "MAC_LEARNING",
+        "ROUTE_COUNTERS",
         "SFLOWv4_SAMPLING",
         "SFLOWv6_SAMPLING",
         "MIRROR_PACKET_TRUNCATION",
@@ -955,7 +960,8 @@
         "HIGH_FREQUENCY_CPU_POLLING_STATS",
         "CLASS_ID_FOR_NEIGHBOR",
         "UDF_HASH",
-        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
+        "SAVE_SDK_STATE"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -1085,7 +1091,8 @@
         "CLASS_ID_FOR_NEIGHBOR",
         "VIRTUAL_ARS_GROUP",
         "AIFM_PACKET_STREAM_HANDLER",
-        "L2_QOS"
+        "L2_QOS",
+        "L4_DST_PORT_RANGE"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
@@ -1168,6 +1175,7 @@
         "WRED",
         "JUMBO_FRAMES",
         "MAC_LEARNING",
+        "ROUTE_COUNTERS",
         "SFLOWv4_SAMPLING",
         "SFLOWv6_SAMPLING",
         "MIRROR_PACKET_TRUNCATION",
@@ -1202,5 +1210,58 @@
         "SRV6_MIDPOINT",
         "INTERFACE_NEIGHBOR_TABLE"
     ]
-  }
+  },
+  "featureSupportSpecs": [
+    {
+      "feature": 100,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba"
+          ],
+          "productLine": 4,
+          "minSdkVersion": "26.2.5210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+        }
+      ]
+    },
+    {
+      "feature": 102,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba"
+          ],
+          "productLine": 4,
+          "minSdkVersion": "26.2.5210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+        }
+      ]
+    },
+    {
+      "feature": 104,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba"
+          ],
+          "productLine": 4,
+          "minSdkVersion": "26.2.5210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+        }
+      ]
+    },
+    {
+      "feature": 106,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk4"
+          ],
+          "productLine": 3,
+          "minSdkVersion": "13.3.0.0_odp"
+        }
+      ]
+    }
+  ]
 }

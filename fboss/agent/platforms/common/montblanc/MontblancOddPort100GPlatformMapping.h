@@ -878,6 +878,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                2
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -952,6 +1005,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -982,6 +1047,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip1",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                4
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 3
                     }
                   }
                 ]
@@ -1568,6 +1686,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                6
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1642,6 +1813,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -1672,6 +1855,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip1",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                8
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 7
                     }
                   }
                 ]
@@ -2641,6 +2877,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3142,6 +3428,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip2",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 5
                     }
                   }
                 ]
@@ -4128,6 +4464,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                12
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4202,6 +4591,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -4232,6 +4633,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip3",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                14
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 3
                     }
                   }
                 ]
@@ -4854,6 +5308,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                16
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4928,6 +5435,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -4958,6 +5477,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip3",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                18
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 7
                     }
                   }
                 ]
@@ -5927,6 +6499,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core3",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core3",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6428,6 +7050,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip4",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core3",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core3",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 5
                     }
                   }
                 ]
@@ -7306,6 +7978,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                22
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -7380,6 +8105,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -7410,6 +8147,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip5",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                24
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 3
                     }
                   }
                 ]
@@ -7996,6 +8786,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                26
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -8070,6 +8913,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -8100,6 +8955,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip5",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                28
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 7
                     }
                   }
                 ]
@@ -9069,6 +9977,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core4",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core4",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -9570,6 +10528,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip6",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core4",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core4",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 5
                     }
                   }
                 ]
@@ -10556,6 +11564,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                32
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -10630,6 +11691,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -10660,6 +11733,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip7",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                34
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 3
                     }
                   }
                 ]
@@ -11282,6 +12408,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                36
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -11356,6 +12535,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -11386,6 +12577,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip7",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                38
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 7
                     }
                   }
                 ]
@@ -12355,6 +13599,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core7",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core7",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -12856,6 +14150,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip8",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core7",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core7",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 5
                     }
                   }
                 ]
@@ -13734,6 +15078,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                42
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -13808,6 +15205,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -13838,6 +15247,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip9",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                44
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 3
                     }
                   }
                 ]
@@ -14424,6 +15886,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                46
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -14498,6 +16013,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -14528,6 +16055,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip9",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                48
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 7
                     }
                   }
                 ]
@@ -15497,6 +17077,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core8",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core8",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -15998,6 +17628,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip10",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core8",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core8",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 5
                     }
                   }
                 ]
@@ -16984,6 +18664,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                52
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -17058,6 +18791,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -17088,6 +18833,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip11",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                54
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 3
                     }
                   }
                 ]
@@ -17710,6 +19508,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                56
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -17784,6 +19635,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -17814,6 +19677,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip11",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                58
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 7
                     }
                   }
                 ]
@@ -18783,6 +20699,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core11",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core11",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -19284,6 +21250,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip12",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core11",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core11",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 5
                     }
                   }
                 ]
@@ -20162,6 +22178,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                62
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -20236,6 +22305,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -20266,6 +22347,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip13",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                64
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 3
                     }
                   }
                 ]
@@ -20852,6 +22986,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                66
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -20926,6 +23113,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -20956,6 +23155,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip13",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                68
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 7
                     }
                   }
                 ]
@@ -21925,6 +24177,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core12",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core12",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -22426,6 +24728,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip14",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core12",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core12",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 5
                     }
                   }
                 ]
@@ -23412,6 +25764,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                72
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -23486,6 +25891,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -23516,6 +25933,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip15",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                74
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 3
                     }
                   }
                 ]
@@ -24138,6 +26608,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                76
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -24212,6 +26735,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -24242,6 +26777,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip15",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                78
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 7
                     }
                   }
                 ]
@@ -25211,6 +27799,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core15",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core15",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -25712,6 +28350,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip16",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core15",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core15",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 5
                     }
                   }
                 ]
@@ -26590,6 +29278,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                82
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -26664,6 +29405,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -26694,6 +29447,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip17",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                84
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 3
                     }
                   }
                 ]
@@ -27280,6 +30086,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                86
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -27354,6 +30213,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -27384,6 +30255,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip17",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                88
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 7
                     }
                   }
                 ]
@@ -28353,6 +31277,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core16",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core16",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -28854,6 +31828,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip18",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core16",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core16",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 5
                     }
                   }
                 ]
@@ -29840,6 +32864,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                92
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -29914,6 +32991,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -29944,6 +33033,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip19",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                94
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 3
                     }
                   }
                 ]
@@ -30566,6 +33708,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                96
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -30640,6 +33835,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -30670,6 +33877,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip19",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                98
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 7
                     }
                   }
                 ]
@@ -31639,6 +34899,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core19",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core19",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -32140,6 +35450,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip20",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core19",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core19",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 5
                     }
                   }
                 ]
@@ -33018,6 +36378,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                102
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -33092,6 +36505,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -33122,6 +36547,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip21",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                104
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 3
                     }
                   }
                 ]
@@ -33708,6 +37186,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                106
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -33782,6 +37313,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -33812,6 +37355,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip21",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                108
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 7
                     }
                   }
                 ]
@@ -34781,6 +38377,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core20",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core20",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -35282,6 +38928,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip22",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core20",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core20",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 5
                     }
                   }
                 ]
@@ -36268,6 +39964,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                112
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -36342,6 +40091,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -36372,6 +40133,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip23",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                114
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 3
                     }
                   }
                 ]
@@ -36994,6 +40808,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                116
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -37068,6 +40935,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -37098,6 +40977,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip23",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                118
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 7
                     }
                   }
                 ]
@@ -38067,6 +41999,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core23",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core23",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -38568,6 +42550,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip24",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core23",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core23",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 5
                     }
                   }
                 ]
@@ -39446,6 +43478,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                122
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -39520,6 +43605,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -39550,6 +43647,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip25",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                124
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 3
                     }
                   }
                 ]
@@ -40136,6 +44286,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                126
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -40210,6 +44413,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -40240,6 +44455,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip25",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                128
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 7
                     }
                   }
                 ]
@@ -41209,6 +45477,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core24",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core24",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -41710,6 +46028,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip26",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core24",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core24",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 5
                     }
                   }
                 ]
@@ -42696,6 +47064,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                132
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -42770,6 +47191,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -42800,6 +47233,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip27",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                134
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 3
                     }
                   }
                 ]
@@ -43422,6 +47908,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                136
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -43496,6 +48035,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -43526,6 +48077,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip27",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                138
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 7
                     }
                   }
                 ]
@@ -44387,6 +48991,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core27",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core27",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -44852,6 +49506,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip28",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core27",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core27",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 5
                     }
                   }
                 ]
@@ -45730,6 +50434,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                142
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -45804,6 +50561,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -45834,6 +50603,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip29",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                144
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 3
                     }
                   }
                 ]
@@ -46420,6 +51242,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                146
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -46494,6 +51369,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -46524,6 +51411,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip29",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                148
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 7
                     }
                   }
                 ]
@@ -47493,6 +52433,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core28",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core28",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -47994,6 +52984,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip30",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core28",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core28",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 5
                     }
                   }
                 ]
@@ -48980,6 +54020,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                152
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -49054,6 +54147,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -49084,6 +54189,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip31",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                154
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 3
                     }
                   }
                 ]
@@ -49706,6 +54864,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                156
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -49780,6 +54991,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -49810,6 +55033,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip31",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                158
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 7
                     }
                   }
                 ]
@@ -50671,6 +55947,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core31",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core31",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -51136,6 +56462,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip32",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core31",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core31",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 5
                     }
                   }
                 ]
@@ -52014,6 +57390,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                162
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 144,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 144,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -52088,6 +57517,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -52118,6 +57559,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip33",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                164
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 144,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 144,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 3
                     }
                   }
                 ]
@@ -52704,6 +58198,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                166
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 144,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 144,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -52778,6 +58325,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -52808,6 +58367,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip33",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                168
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 144,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 144,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 7
                     }
                   }
                 ]
@@ -53777,6 +59389,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core32",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core32",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -54278,6 +59940,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip34",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core32",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core32",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                      "lane": 5
                     }
                   }
                 ]
@@ -55264,6 +60976,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                172
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -55338,6 +61103,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -55368,6 +61145,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip35",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                174
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 3
                     }
                   }
                 ]
@@ -55990,6 +61820,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                176
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -56064,6 +61947,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -56094,6 +61989,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip35",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                178
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 7
                     }
                   }
                 ]
@@ -57063,6 +63011,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core35",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core35",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -57564,6 +63562,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip36",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core35",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core35",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                      "lane": 5
                     }
                   }
                 ]
@@ -58442,6 +64490,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                182
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -58516,6 +64617,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -58546,6 +64659,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip37",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                184
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 3
                     }
                   }
                 ]
@@ -59132,6 +65298,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                186
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -59206,6 +65425,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -59236,6 +65467,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip37",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                188
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 7
                     }
                   }
                 ]
@@ -60205,6 +66489,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core36",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core36",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -60706,6 +67040,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip38",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core36",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core36",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                      "lane": 5
                     }
                   }
                 ]
@@ -61692,6 +68076,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                192
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -61766,6 +68203,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -61796,6 +68245,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip39",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                194
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 3
                     }
                   }
                 ]
@@ -62418,6 +68920,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                196
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -62492,6 +69047,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -62522,6 +69089,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip39",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                198
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 7
                     }
                   }
                 ]
@@ -63491,6 +70111,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core39",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core39",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -63992,6 +70662,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip40",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core39",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core39",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                      "lane": 5
                     }
                   }
                 ]
@@ -64870,6 +71590,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                202
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -64944,6 +71717,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -64974,6 +71759,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip41",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                204
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 3
                     }
                   }
                 ]
@@ -65560,6 +72398,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                206
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -65634,6 +72525,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -65664,6 +72567,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip41",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                208
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 7
                     }
                   }
                 ]
@@ -66633,6 +73589,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core40",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core40",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -67134,6 +74140,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip42",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core40",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core40",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                      "lane": 5
                     }
                   }
                 ]
@@ -68120,6 +75176,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                212
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -68194,6 +75303,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -68224,6 +75345,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip43",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                214
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 3
                     }
                   }
                 ]
@@ -68846,6 +76020,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                216
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -68920,6 +76147,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -68950,6 +76189,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip43",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                218
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 7
                     }
                   }
                 ]
@@ -69919,6 +77211,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core43",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core43",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -70420,6 +77762,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip44",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core43",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core43",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                      "lane": 5
                     }
                   }
                 ]
@@ -71298,6 +78690,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                222
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -71372,6 +78817,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -71402,6 +78859,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip45",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                224
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 3
                     }
                   }
                 ]
@@ -71988,6 +79498,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                226
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -72062,6 +79625,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -72092,6 +79667,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip45",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                228
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 7
                     }
                   }
                 ]
@@ -73061,6 +80689,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core44",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core44",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -73562,6 +81240,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip46",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core44",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core44",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                      "lane": 5
                     }
                   }
                 ]
@@ -74548,6 +82276,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                232
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -74622,6 +82403,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -74652,6 +82445,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip47",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                234
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 3
                     }
                   }
                 ]
@@ -75274,6 +83120,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                236
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -75348,6 +83247,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -75378,6 +83289,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip47",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                238
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 7
                     }
                   }
                 ]
@@ -76347,6 +84311,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core47",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core47",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -76848,6 +84862,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip48",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core47",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core47",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                      "lane": 5
                     }
                   }
                 ]
@@ -77726,6 +85790,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                242
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -77800,6 +85917,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -77830,6 +85959,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                244
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 3
                     }
                   }
                 ]
@@ -78416,6 +86598,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                246
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -78490,6 +86725,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -78520,6 +86767,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                248
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 7
                     }
                   }
                 ]
@@ -79489,6 +87789,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core48",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core48",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -79990,6 +88340,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip50",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core48",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core48",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 5
                     }
                   }
                 ]
@@ -80976,6 +89376,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                252
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -81050,6 +89503,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -81080,6 +89545,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip51",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                254
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 3
                     }
                   }
                 ]
@@ -81702,6 +90220,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                256
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -81776,6 +90347,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -81806,6 +90389,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip51",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                258
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 7
                     }
                   }
                 ]
@@ -82775,6 +91411,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core51",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core51",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -83276,6 +91962,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip52",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core51",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core51",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 5
                     }
                   }
                 ]
@@ -84154,6 +92890,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                262
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -84228,6 +93017,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -84258,6 +93059,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip53",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                264
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 3
                     }
                   }
                 ]
@@ -84844,6 +93698,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                266
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -84918,6 +93825,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -84948,6 +93867,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip53",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                268
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 7
                     }
                   }
                 ]
@@ -85917,6 +94889,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core52",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core52",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -86418,6 +95440,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip54",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core52",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core52",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 5
                     }
                   }
                 ]
@@ -87404,6 +96476,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                272
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -87478,6 +96603,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -87508,6 +96645,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip55",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                274
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 3
                     }
                   }
                 ]
@@ -88130,6 +97320,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                276
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -88204,6 +97447,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -88234,6 +97489,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip55",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                278
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 7
                     }
                   }
                 ]
@@ -89203,6 +98511,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core55",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core55",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -89704,6 +99062,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip56",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core55",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core55",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                      "lane": 5
                     }
                   }
                 ]
@@ -90582,6 +99990,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                282
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -90656,6 +100117,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -90686,6 +100159,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip57",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                284
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 3
                     }
                   }
                 ]
@@ -91272,6 +100798,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                286
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -91346,6 +100925,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -91376,6 +100967,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip57",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                288
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 7
                     }
                   }
                 ]
@@ -92345,6 +101989,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core56",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core56",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -92846,6 +102540,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip58",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core56",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core56",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                      "lane": 5
                     }
                   }
                 ]
@@ -93832,6 +103576,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                292
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -93906,6 +103703,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -93936,6 +103745,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip59",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                294
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 3
                     }
                   }
                 ]
@@ -94558,6 +104420,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                296
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -94632,6 +104547,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -94662,6 +104589,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip59",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                298
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 7
                     }
                   }
                 ]
@@ -95523,6 +105503,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core59",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core59",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -95988,6 +106018,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip60",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core59",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core59",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                      "lane": 5
                     }
                   }
                 ]
@@ -96866,6 +106946,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                302
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -96940,6 +107073,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -96970,6 +107115,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip61",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                304
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 3
                     }
                   }
                 ]
@@ -97556,6 +107754,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                306
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -97630,6 +107881,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -97660,6 +107923,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip61",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                308
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 7
                     }
                   }
                 ]
@@ -98629,6 +108945,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core60",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core60",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -99130,6 +109496,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip62",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core60",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core60",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                      "lane": 5
                     }
                   }
                 ]
@@ -100116,6 +110532,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                312
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -100190,6 +110659,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                  "lane": 3
+                }
+              }
             }
           ],
           "portType": 0,
@@ -100220,6 +110701,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip63",
                       "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                314
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 3
                     }
                   }
                 ]
@@ -100842,6 +111376,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "subsumedPorts": [
+                316
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -100916,6 +111503,18 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   "lane": 6
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -100946,6 +111545,59 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip63",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "subsumedPorts": [
+                318
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 7
                     }
                   }
                 ]
@@ -101807,6 +112459,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core63",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core63",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -102272,6 +112974,56 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip64",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "61": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core63",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core63",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -32,
+                      "pre2": 4,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                      "lane": 5
                     }
                   }
                 ]
@@ -134438,6 +145190,10758 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
       "driverPeaking": {
         "7": 2
       }
+    },
+    {
+      "factor": {
+        "ports": [
+          1
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 101,
+              "post": -19,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          3
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 10,
+              "main": 100,
+              "post": -14,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 101,
+              "post": -17,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 2,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          5
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -33,
+              "pre2": 11,
+              "main": 101,
+              "post": -9,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 101,
+              "post": -16,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          7
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -33,
+              "pre2": 10,
+              "main": 101,
+              "post": -12,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 102,
+              "post": -16,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 2,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          9
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -12,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 106,
+              "post": -14,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          10
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 102,
+              "post": -17,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          11
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 110,
+              "post": -10,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          13
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -9,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 2,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          15
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 111,
+              "post": -12,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          17
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 110,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 2,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          19
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core3",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 9,
+              "main": 106,
+              "post": -12,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core3",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          20
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core3",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -15,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core3",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          21
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -34,
+              "pre2": 11,
+              "main": 102,
+              "post": -9,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          23
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -33,
+              "pre2": 12,
+              "main": 104,
+              "post": -6,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 104,
+              "post": -13,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 2,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          25
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 107,
+              "post": -13,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -11,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          27
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 109,
+              "post": -11,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 108,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 2,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          29
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core4",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 10,
+              "main": 103,
+              "post": -11,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core4",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 105,
+              "post": -14,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          30
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core4",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -11,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core4",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 102,
+              "post": -16,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          31
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 106,
+              "post": -8,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          33
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -10,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 2,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          35
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -14,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 10,
+              "main": 103,
+              "post": -8,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          37
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -11,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -15,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 2,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          39
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core7",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -8,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core7",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 9,
+              "main": 106,
+              "post": -5,
+              "post2": -14,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          40
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core7",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 110,
+              "post": -7,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core7",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 10,
+              "main": 105,
+              "post": -5,
+              "post2": -14,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          41
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 10,
+              "main": 107,
+              "post": -5,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 11,
+              "main": 106,
+              "post": -6,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          43
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 111,
+              "post": -3,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -11,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 2,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          45
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 112,
+              "post": -5,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 110,
+              "post": -7,
+              "post2": -14,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          47
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 114,
+              "post": -3,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 6,
+              "main": 113,
+              "post": -10,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 2,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          49
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core8",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -7,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core8",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 6,
+              "main": 108,
+              "post": -13,
+              "post2": -14,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          50
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core8",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 10,
+              "main": 109,
+              "post": -4,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core8",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 105,
+              "post": -9,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          51
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 115,
+              "post": -6,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 7,
+              "main": 112,
+              "post": -6,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          53
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 112,
+              "post": -9,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 111,
+              "post": -8,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 2,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          55
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 114,
+              "post": -2,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -5,
+              "post2": -14,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          57
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 7,
+              "main": 116,
+              "post": -5,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 110,
+              "post": -8,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 2,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          59
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core11",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 108,
+              "post": -18,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core11",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 103,
+              "post": -15,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          60
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core11",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -15,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core11",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          61
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 10,
+              "main": 101,
+              "post": -14,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 103,
+              "post": -15,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          63
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 9,
+              "main": 106,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 104,
+              "post": -16,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          65
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 106,
+              "post": -14,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 104,
+              "post": -18,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          67
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -14,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          69
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core12",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 10,
+              "main": 103,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core12",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 103,
+              "post": -16,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          70
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core12",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 109,
+              "post": -16,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core12",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 98,
+              "post": -17,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          71
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 105,
+              "post": -15,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          73
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 105,
+              "post": -14,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 115,
+              "post": -2,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          75
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 109,
+              "post": -17,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 102,
+              "post": -13,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          77
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 7,
+              "main": 107,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
+              "post": -19,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          79
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core15",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 108,
+              "post": -12,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core15",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          80
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core15",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -15,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core15",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 104,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          81
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          83
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 10,
+              "main": 107,
+              "post": -8,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 106,
+              "post": -14,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          85
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -11,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 105,
+              "post": -12,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          87
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -11,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core17",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 107,
+              "post": -15,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          89
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core16",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 106,
+              "post": -12,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core16",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
+              "post": -16,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          90
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core16",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core16",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 102,
+              "post": -14,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          91
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -10,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          93
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 9,
+              "main": 108,
+              "post": -9,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 105,
+              "post": -13,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          95
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 107,
+              "post": -13,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 109,
+              "post": -15,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          97
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 5,
+              "main": 112,
+              "post": -16,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core18",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 107,
+              "post": -16,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          99
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core19",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 110,
+              "post": -14,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core19",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -13,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          100
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core19",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 109,
+              "post": -14,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core19",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -10,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          101
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 108,
+              "post": -9,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -12,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          103
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -9,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 6,
+              "main": 108,
+              "post": -16,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          105
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 111,
+              "post": -11,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          107
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 110,
+              "post": -10,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core21",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          109
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core20",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 110,
+              "post": -10,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core20",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 106,
+              "post": -10,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          110
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core20",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -7,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core20",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -11,
+              "post2": -14,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          111
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -11,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 107,
+              "post": -14,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          113
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -10,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -13,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          115
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 111,
+              "post": -15,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -11,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          117
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 110,
+              "post": -12,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core22",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 107,
+              "post": -14,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          119
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core23",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 110,
+              "post": -10,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core23",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          120
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core23",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core23",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 108,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          121
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -11,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 110,
+              "post": -11,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          123
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 106,
+              "post": -13,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          125
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 107,
+              "post": -9,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 105,
+              "post": -14,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          127
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 109,
+              "post": -10,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core25",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -15,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          129
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core24",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 108,
+              "post": -10,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core24",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 107,
+              "post": -15,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          130
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core24",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -9,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core24",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
+              "post": -15,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          131
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 111,
+              "post": -11,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 106,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          133
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -11,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 108,
+              "post": -13,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          135
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -14,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -12,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          137
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 111,
+              "post": -12,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core26",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          139
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core27",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 110,
+              "post": -10,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core27",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          140
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core27",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 112,
+              "post": -10,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core27",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -10,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          141
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 6,
+              "main": 120,
+              "post": -5,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 117,
+              "post": -8,
+              "post2": -5,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          143
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 6,
+              "main": 121,
+              "post": -7,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 5,
+              "main": 119,
+              "post": -13,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          145
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 122,
+              "post": -5,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 117,
+              "post": -10,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          147
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -4,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core29",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 120,
+              "post": -11,
+              "post2": -5,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          149
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core28",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 110,
+              "post": -10,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core28",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 113,
+              "post": -14,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          150
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core28",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 6,
+              "main": 114,
+              "post": -7,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core28",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          151
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 6,
+              "main": 117,
+              "post": -8,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 110,
+              "post": -13,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          153
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 114,
+              "post": -8,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 113,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          155
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 116,
+              "post": -8,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -12,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          157
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 117,
+              "post": -8,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core30",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 115,
+              "post": -14,
+              "post2": -6,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          159
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core31",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 6,
+              "main": 118,
+              "post": -7,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core31",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 7,
+              "main": 117,
+              "post": -6,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          160
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core31",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 119,
+              "post": -8,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core31",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 6,
+              "main": 118,
+              "post": -7,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          161
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 116,
+              "post": -5,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 114,
+              "post": -9,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          163
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 114,
+              "post": -7,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 112,
+              "post": -12,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          165
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 115,
+              "post": -7,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 111,
+              "post": -5,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          167
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 114,
+              "post": -5,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core33",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 111,
+              "post": -8,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          169
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core32",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 6,
+              "main": 121,
+              "post": -8,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core32",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -23,
+              "pre2": 5,
+              "main": 115,
+              "post": -14,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          170
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core32",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -7,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core32",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 5,
+              "main": 117,
+              "post": -10,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          171
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 115,
+              "post": -8,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 7,
+              "main": 112,
+              "post": -11,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          173
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 6,
+              "main": 116,
+              "post": -10,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 6,
+              "main": 114,
+              "post": -13,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          175
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 118,
+              "post": -8,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 6,
+              "main": 112,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          177
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -8,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core34",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 6,
+              "main": 113,
+              "post": -15,
+              "post2": -5,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          179
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core35",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 114,
+              "post": -10,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core35",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 109,
+              "post": -14,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          180
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core35",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 114,
+              "post": -8,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core35",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 113,
+              "post": -10,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          181
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 9,
+              "main": 107,
+              "post": -12,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 109,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          183
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 110,
+              "post": -9,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 109,
+              "post": -12,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          185
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 10,
+              "main": 106,
+              "post": -5,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 107,
+              "post": -11,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          187
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 112,
+              "post": -11,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core37",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 6,
+              "main": 110,
+              "post": -14,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          189
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core36",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 109,
+              "post": -12,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core36",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 106,
+              "post": -18,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          190
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core36",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core36",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 105,
+              "post": -14,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          191
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 108,
+              "post": -14,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          193
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 108,
+              "post": -15,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 107,
+              "post": -18,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          195
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 112,
+              "post": -12,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 10,
+              "main": 101,
+              "post": -11,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          197
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 109,
+              "post": -9,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core38",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 106,
+              "post": -16,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          199
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core39",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 110,
+              "post": -9,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core39",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 106,
+              "post": -12,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          200
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core39",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 10,
+              "main": 107,
+              "post": -10,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core39",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 10,
+              "main": 104,
+              "post": -7,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          201
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -11,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -10,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          203
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 7,
+              "main": 114,
+              "post": -11,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -24,
+              "pre2": 6,
+              "main": 111,
+              "post": -16,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          205
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 111,
+              "post": -10,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 105,
+              "post": -14,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          207
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 111,
+              "post": -10,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core41",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 110,
+              "post": -17,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          209
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core40",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 111,
+              "post": -11,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core40",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -25,
+              "pre2": 5,
+              "main": 108,
+              "post": -17,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          210
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core40",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -7,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core40",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
+              "post": -14,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          211
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 108,
+              "post": -11,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 106,
+              "post": -11,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          213
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 105,
+              "post": -14,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 107,
+              "post": -15,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          215
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -13,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -14,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          217
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 108,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core42",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 9,
+              "main": 105,
+              "post": -16,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          219
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core43",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -8,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core43",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 106,
+              "post": -16,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          220
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core43",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -33,
+              "pre2": 10,
+              "main": 107,
+              "post": -6,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core43",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 10,
+              "main": 105,
+              "post": -7,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          221
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 108,
+              "post": -10,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 108,
+              "post": -14,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          223
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 112,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -11,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          225
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 9,
+              "main": 108,
+              "post": -10,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          227
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 110,
+              "post": -10,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core45",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 108,
+              "post": -16,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          229
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core44",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core44",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
+              "post": -17,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          230
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core44",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 109,
+              "post": -11,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core44",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 106,
+              "post": -11,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          231
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -16,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 107,
+              "post": -15,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          233
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -16,
+              "post2": -6,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 104,
+              "post": -16,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          235
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -14,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 102,
+              "post": -14,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          237
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 110,
+              "post": -13,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core46",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 104,
+              "post": -18,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          239
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core47",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 10,
+              "main": 106,
+              "post": -8,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core47",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -33,
+              "pre2": 10,
+              "main": 106,
+              "post": -8,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          240
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core47",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -7,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core47",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 106,
+              "post": -6,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          241
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 9,
+              "main": 106,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 107,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          243
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 105,
+              "post": -11,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 105,
+              "post": -18,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          245
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -11,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
+              "post": -15,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          247
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 105,
+              "post": -15,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 105,
+              "post": -16,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          249
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core48",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core48",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 104,
+              "post": -18,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          250
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core48",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -10,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core48",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 104,
+              "post": -15,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          251
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -15,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 105,
+              "post": -17,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          253
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -33,
+              "pre2": 10,
+              "main": 112,
+              "post": 0,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 102,
+              "post": -19,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          255
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 105,
+              "post": -17,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 8,
+              "main": 103,
+              "post": -19,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          257
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 8,
+              "main": 117,
+              "post": -1,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 102,
+              "post": -18,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 0,
+        "7": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          259
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core51",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 104,
+              "post": -14,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core51",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 103,
+              "post": -18,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          260
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core51",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -15,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core51",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 101,
+              "post": -16,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          261
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 102,
+              "post": -14,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 115,
+              "post": -6,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          263
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 9,
+              "main": 112,
+              "post": -3,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 10,
+              "main": 108,
+              "post": -5,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 0,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          265
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 102,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 101,
+              "post": -16,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 0,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          267
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 103,
+              "post": -16,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 112,
+              "post": -9,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 2,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          269
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core52",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 106,
+              "post": -16,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core52",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 109,
+              "post": -9,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 0,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          270
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core52",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core52",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 110,
+              "post": -6,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          271
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 110,
+              "post": -7,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          273
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 110,
+              "post": -8,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 10,
+              "main": 103,
+              "post": -10,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 2,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          275
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -6,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -10,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          277
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 111,
+              "post": -7,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 106,
+              "post": -14,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 2,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          279
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core55",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 10,
+              "main": 108,
+              "post": -4,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core55",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -6,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          280
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core55",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -34,
+              "pre2": 11,
+              "main": 106,
+              "post": -3,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core55",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 10,
+              "main": 108,
+              "post": -3,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          281
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 108,
+              "post": -9,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 109,
+              "post": -10,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          283
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 7,
+              "main": 110,
+              "post": -8,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 106,
+              "post": -11,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 2,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          285
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 109,
+              "post": -7,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 7,
+              "main": 106,
+              "post": -10,
+              "post2": -14,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          287
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 108,
+              "post": -12,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 106,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 2,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          289
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core56",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 7,
+              "main": 111,
+              "post": -9,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core56",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 105,
+              "post": -11,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          290
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core56",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 109,
+              "post": -5,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core56",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 105,
+              "post": -7,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          291
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -11,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 7,
+              "main": 107,
+              "post": -15,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          293
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 109,
+              "post": -10,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 10,
+              "main": 101,
+              "post": -12,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 2,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          295
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 9,
+              "main": 106,
+              "post": -8,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 10,
+              "main": 104,
+              "post": -8,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          297
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 111,
+              "post": -8,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 10,
+              "main": 104,
+              "post": -12,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 2,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          299
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core59",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -28,
+              "pre2": 8,
+              "main": 104,
+              "post": -14,
+              "post2": -12,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core59",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          300
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core59",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 103,
+              "post": -12,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core59",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 10,
+              "main": 102,
+              "post": -10,
+              "post2": -13,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          301
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 111,
+              "post": -9,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 108,
+              "post": -13,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          303
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 111,
+              "post": -12,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 108,
+              "post": -16,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 2,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          305
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 7,
+              "main": 110,
+              "post": -11,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          307
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 6,
+              "main": 111,
+              "post": -11,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -15,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 2,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          309
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core60",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 109,
+              "post": -10,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core60",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 103,
+              "post": -16,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          310
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core60",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -8,
+              "post2": -11,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core60",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 105,
+              "post": -13,
+              "post2": -10,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          311
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 10,
+              "main": 102,
+              "post": -17,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          313
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -27,
+              "pre2": 8,
+              "main": 103,
+              "post": -19,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "2": 2,
+        "3": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          315
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -26,
+              "pre2": 6,
+              "main": 107,
+              "post": -18,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -32,
+              "pre2": 10,
+              "main": 100,
+              "post": -17,
+              "post2": -7,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          317
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -14,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 102,
+              "post": -20,
+              "post2": -6,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "6": 2,
+        "7": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          319
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core63",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -29,
+              "pre2": 8,
+              "main": 104,
+              "post": -19,
+              "post2": -6,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core63",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -34,
+              "pre2": 11,
+              "main": 102,
+              "post": -11,
+              "post2": -8,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "0": 2,
+        "1": 2
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          320
+        ],
+        "profiles": [
+          61
+        ],
+        "vendor": {
+          "name": "Vendor_1",
+          "oui": "",
+          "partNumber": "PartNum_1",
+          "rev": "",
+          "serialNumber": "",
+          "dateCode": ""
+        }
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core63",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -30,
+              "pre2": 8,
+              "main": 104,
+              "post": -17,
+              "post2": -6,
+              "post3": 0,
+              "pre3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "NPU-TH5_NIF-slot1/chip1/core63",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -31,
+              "pre2": 10,
+              "main": 103,
+              "post": -12,
+              "post2": -9,
+              "post3": 0,
+              "pre3": 0
+            }
+          }
+        ]
+      },
+      "driverPeaking": {
+        "4": 2,
+        "5": 2
+      }
     }
   ],
   "platformSupportedProfiles": [
@@ -134584,6 +156088,21 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         "speed": 200000,
         "iphy": {
           "numLanes": 4,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 3,
+          "interfaceType": 3
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 61
+      },
+      "profile": {
+        "speed": 200000,
+        "iphy": {
+          "numLanes": 2,
           "modulation": 2,
           "fec": 11,
           "medium": 3,

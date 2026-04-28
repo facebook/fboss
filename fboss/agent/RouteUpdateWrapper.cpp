@@ -157,6 +157,7 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
         configRoutes_->staticMplsRoutesWithNextHops,
         configRoutes_->staticMplsRoutesToNull,
         configRoutes_->staticMplsRoutesToCpu,
+        configRoutes_->staticMySids,
         *ribToSwitchStateFunc_,
         ribToSwitchStateCookie_);
   }
@@ -234,7 +235,8 @@ void RouteUpdateWrapper::setRoutesToConfig(
     const std::vector<cfg::StaticMplsRouteWithNextHops>&
         _staticMplsRoutesWithNextHops,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& _staticMplsRoutesToNull,
-    const std::vector<cfg::StaticMplsRouteNoNextHops>& _staticMplsRoutesToCpu) {
+    const std::vector<cfg::StaticMplsRouteNoNextHops>& _staticMplsRoutesToCpu,
+    std::vector<MySidWithNextHops> _staticMySids) {
   configRoutes_ = std::make_unique<ConfigRoutes>(ConfigRoutes{
       _configRouterIDToInterfaceRoutes,
       _staticRoutesWithNextHops,
@@ -243,7 +245,8 @@ void RouteUpdateWrapper::setRoutesToConfig(
       _staticIp2MplsRoutes,
       _staticMplsRoutesWithNextHops,
       _staticMplsRoutesToNull,
-      _staticMplsRoutesToCpu});
+      _staticMplsRoutesToCpu,
+      std::move(_staticMySids)});
 }
 
 void RouteUpdateWrapper::setRemoteLoopbackInterfaceRoutesToConfig(

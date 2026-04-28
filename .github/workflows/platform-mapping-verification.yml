@@ -44,13 +44,20 @@ jobs:
           --name
           FBOSS_PACKAGE_CONTAINER
           fboss_image:latest
-          python3
-          /var/FBOSS/fboss/fboss/oss/scripts/package-fboss.py
-          --copy-root-libs
-          --scratch-path=/var/FBOSS/tmp_bld_dir
-          --compress
-      - name: Save Docker image
-        run: sudo docker save fboss_image:latest | zstd -o ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
+          bash -c
+          "set -ex &&
+          python3 /var/FBOSS/fboss/fboss/oss/scripts/package-fboss.py --copy-root-libs --scratch-path=/var/FBOSS/tmp_bld_dir --compress &&
+          python3 -m pip install --no-deps /var/FBOSS/tmp_bld_dir/installed/fbthrift-python/share/thrift/wheels/*.whl &&
+          mkdir -p /usr/local/lib64/python3.12/site-packages &&
+          cp -r /var/FBOSS/tmp_bld_dir/installed/folly-python/lib64/python3.12/site-packages/folly /usr/local/lib64/python3.12/site-packages/ &&
+          for d in /var/FBOSS/tmp_bld_dir/installed/*/lib /var/FBOSS/tmp_bld_dir/installed/*/lib64; do
+            if [ -d \"\$d\" ]; then find \"\$d\" -maxdepth 1 -name '*.so*' -exec cp -an {} /usr/local/lib64/ \\; ; fi; done &&
+          ldconfig"
+      - name: Save Docker image with Python runtime
+        run: |
+          sudo docker commit FBOSS_PACKAGE_CONTAINER fboss_image:latest
+          sudo docker rm FBOSS_PACKAGE_CONTAINER
+          sudo docker save fboss_image:latest | zstd -o ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
       - name: Upload build artifacts
         uses: actions/upload-artifact@v6
         with:

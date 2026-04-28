@@ -10,6 +10,7 @@
 
 #include "fboss/agent/TestThriftHandler.h"
 
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/NdpCache.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/SwSwitch.h"
@@ -19,9 +20,15 @@ using facebook::network::toIPAddress;
 
 namespace {
 
+// Systemd service names for test binaries.
+const std::string kSwAgentTestService = "fboss_sw_agent_test";
+// hw_agent: prefix; append switchIndex for the full systemd unit name
+// (e.g. "fboss_hw_agent_for_testing_0").
+const std::string kHwAgentTestServicePrefix = "fboss_hw_agent_for_testing_";
+
 const std::set<std::string> kServicesSupportingRestart() {
   static const std::set<std::string> servicesSupportingRestart = {
-      "fboss_sw_agent_test",
+      kSwAgentTestService,
       "fsdb_service_for_testing",
       "qsfp_service_for_testing",
       "bgp",
@@ -35,13 +42,22 @@ const std::set<std::string> kServicesSupportingRestart() {
 // to the actual binary names.
 const std::map<std::string, std::string>& kServiceToProcessName() {
   static const std::map<std::string, std::string> serviceToProcessName = {
-      {"fboss_sw_agent_test", "fboss_sw_agent_test"},
+      {kSwAgentTestService, kSwAgentTestService},
       {"fsdb_service_for_testing", "fsdb"},
       {"qsfp_service_for_testing", "qsfp_service"},
       {"bgp", "bgp"},
   };
 
   return serviceToProcessName;
+}
+
+std::set<int16_t> getSwitchIndicesImpl(facebook::fboss::SwSwitch* sw) {
+  std::set<int16_t> switchIndices;
+  for (const auto& [switchId, switchInfo] :
+       sw->getSwitchInfoTable().getSwitchIdToSwitchInfo()) {
+    switchIndices.insert(*switchInfo.switchIndex());
+  }
+  return switchIndices;
 }
 
 } // namespace
@@ -60,6 +76,33 @@ void TestThriftHandler::gracefullyRestartService(
         folly::to<std::string>(
             "Failed to restart gracefully. Unsupported service: ",
             *serviceName));
+  }
+
+  // In multi-switch mode, match production ordering (AgentExecutor):
+  //   Stop:  sw_agent first, then hw_agent(s)
+  //   Start: hw_agent(s) first, then sw_agent
+  // This handler runs inside sw_agent, so "systemctl stop sw_agent" kills
+  // the process that spawned the shell. The systemd unit uses KillMode=process,
+  // so only the main PID is killed — the child shell from popen() survives
+  // and continues executing the remaining stop/start commands.
+  if (FLAGS_multi_switch && *serviceName == kSwAgentTestService) {
+    auto switchIndices = getSwitchIndicesImpl(getSw());
+    CHECK(!switchIndices.empty())
+        << "No switch indices found in multi-switch mode";
+
+    std::string cmd = folly::to<std::string>("systemctl stop ", *serviceName);
+    for (auto index : switchIndices) {
+      cmd += folly::to<std::string>(
+          " ; systemctl stop ", kHwAgentTestServicePrefix, index);
+    }
+    for (auto index : switchIndices) {
+      cmd += folly::to<std::string>(
+          " ; systemctl start ", kHwAgentTestServicePrefix, index);
+    }
+    cmd += folly::to<std::string>(" ; systemctl start ", *serviceName);
+    XLOG(INFO) << "Graceful restart cmd: " << cmd;
+    runShellCmd(cmd);
+    return;
   }
 
   auto cmd = folly::to<std::string>("systemctl restart ", *serviceName);
@@ -104,19 +147,37 @@ void TestThriftHandler::ungracefullyRestartService(
   // Use ';' (not '&&') so that if pkill kills the current process
   // (e.g. agent), the orphaned shell still executes systemctl restart.
   std::string cmd;
-  if (*serviceName == "fboss_sw_agent_test") {
-    std::string fileToCreate = "/dev/shm/fboss/warm_boot/cold_boot_once_0";
-    cmd = folly::to<std::string>(
-        "pkill -9 ",
-        it->second,
-        " ; touch ",
-        fileToCreate,
-        " ; systemctl restart ",
-        *serviceName);
+  if (*serviceName == kSwAgentTestService && FLAGS_multi_switch) {
+    // In multi-switch mode, kill all hw_agents first, then restart all,
+    // to simulate an atomic crash. No explicit warm boot cleanup needed.
+    // Agents cold boot naturally after SIGKILL since they don't save warm boot
+    // state on crash.
+    auto switchIndices = getSwitchIndicesImpl(getSw());
+    CHECK(!switchIndices.empty())
+        << "No switch indices found in multi-switch mode";
+
+    // Use "systemctl kill --signal=KILL" instead of pkill because the
+    // binary name (e.g. fboss_hw_agent-sai_impl) differs from the service
+    // name. Killing hw_agent causes sw_agent to exit on its own via
+    // exit_for_any_hw_disconnect; we then restart hw_agent(s) first, then
+    // sw_agent.
+    for (auto index : switchIndices) {
+      if (!cmd.empty()) {
+        cmd += " ; ";
+      }
+      cmd += folly::to<std::string>(
+          "systemctl kill --signal=KILL ", kHwAgentTestServicePrefix, index);
+    }
+    for (auto index : switchIndices) {
+      cmd += folly::to<std::string>(
+          " ; systemctl restart ", kHwAgentTestServicePrefix, index);
+    }
+    cmd += folly::to<std::string>(" ; systemctl restart ", *serviceName);
   } else {
     cmd = folly::to<std::string>(
         "pkill -9 ", it->second, " ; systemctl restart ", *serviceName);
   }
+  XLOG(INFO) << "Ungraceful restart cmd: " << cmd;
   runShellCmd(cmd);
 }
 

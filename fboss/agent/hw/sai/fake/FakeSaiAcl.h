@@ -175,6 +175,9 @@ class FakeAclEntry {
   sai_uint16_t fieldOuterVlanIdData;
   sai_uint16_t fieldOuterVlanIdMask;
 
+  bool fieldAclRangeTypeEnable{false};
+  std::vector<sai_object_id_t> fieldAclRangeTypeData;
+
   bool fieldBthOpcodeEnable{false};
   sai_uint8_t fieldBthOpcodeData;
   sai_uint8_t fieldBthOpcodeMask;
@@ -271,6 +274,7 @@ class FakeAclTable {
       bool fieldNeighborDstUserMeta,
       bool fieldEthertype,
       bool fieldOuterVlanId,
+      std::vector<sai_int32_t> fieldAclRangeType,
       bool fieldBthOpcode,
       bool fieldIpv6NextHeader,
       sai_object_id_t userDefinedFieldGroupMin,
@@ -305,6 +309,7 @@ class FakeAclTable {
         fieldNeighborDstUserMeta(fieldNeighborDstUserMeta),
         fieldEthertype(fieldEthertype),
         fieldOuterVlanId(fieldOuterVlanId),
+        fieldAclRangeType(fieldAclRangeType),
         fieldBthOpcode(fieldBthOpcode),
         fieldIpv6NextHeader(fieldIpv6NextHeader),
         userDefinedFieldGroupMin(userDefinedFieldGroupMin),
@@ -345,6 +350,7 @@ class FakeAclTable {
   bool fieldNeighborDstUserMeta;
   bool fieldEthertype;
   bool fieldOuterVlanId;
+  std::vector<sai_int32_t> fieldAclRangeType;
   bool fieldBthOpcode;
   bool fieldIpv6NextHeader;
   sai_object_id_t userDefinedFieldGroupMin;
@@ -373,8 +379,19 @@ class FakeAclCounter {
   sai_object_id_t id;
 };
 
+class FakeAclRange {
+ public:
+  FakeAclRange(sai_int32_t type, sai_u32_range_t limit)
+      : type(type), limit(limit) {}
+
+  sai_int32_t type;
+  sai_u32_range_t limit;
+  sai_object_id_t id;
+};
+
 using FakeAclEntryManager = FakeManager<sai_object_id_t, FakeAclEntry>;
 using FakeAclCounterManager = FakeManager<sai_object_id_t, FakeAclCounter>;
+using FakeAclRangeManager = FakeManager<sai_object_id_t, FakeAclRange>;
 using FakeAclTableManager = FakeManager<sai_object_id_t, FakeAclTable>;
 
 void populate_acl_api(sai_acl_api_t** acl_api);

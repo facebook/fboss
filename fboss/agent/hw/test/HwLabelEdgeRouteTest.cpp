@@ -141,8 +141,8 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
     return result;
   }
 
-  flat_set<PortDescriptor> allPorts() {
-    flat_set<PortDescriptor> result{unLabeledPorts_};
+  boost::container::flat_set<PortDescriptor> allPorts() {
+    boost::container::flat_set<PortDescriptor> result{unLabeledPorts_};
     result.merge(labeledPorts_);
     return result;
   }

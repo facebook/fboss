@@ -30,7 +30,7 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
       ensemble->getProgrammedState(),
       ensemble->getSw()->needL2EntryForNeighbor(),
       dstMac);
-  flat_set<PortDescriptor> IntfPorts;
+  boost::container::flat_set<PortDescriptor> IntfPorts;
   IntfPorts.insert(
       PortDescriptor(ensemble->masterLogicalInterfacePortIds()[0]));
 

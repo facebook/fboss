@@ -878,8 +878,6 @@ TEST(ConfigValidatorTest, TemperatureSensorWithoutThresholdsViolatorPlatform) {
 
   config.platformName() = "MONTBLANC";
   EXPECT_TRUE(ConfigValidator().isValid(config));
-  config.platformName() = "ICECUBE";
-  EXPECT_TRUE(ConfigValidator().isValid(config));
   config.platformName() = "ICETEA";
   EXPECT_TRUE(ConfigValidator().isValid(config));
   config.platformName() = "LEH800BCLS";

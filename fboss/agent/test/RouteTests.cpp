@@ -3179,3 +3179,197 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
 
   EXPECT_EQ(expectedNhops, fwdNhops);
 }
+
+TEST_F(RouteTest, selfReferencingRouteDropsRemovedNexthop) {
+  auto rid = RouterID(0);
+
+  // Step 1: Add an aggregate route 1.0.0.0/8 with:
+  //   - 1.1.1.10 (connected via intf 1, 1.1.1.0/24)
+  //   - 2.2.2.10 (connected via intf 2, 2.2.2.0/24)
+  //   - 1.2.3.10 (NOT connected, but IS within 1.0.0.0/8 — self-reference!)
+  // 1.2.3.10 has no /24 connected route, so LPM falls back to 1.0.0.0/8 itself.
+  {
+    auto u = this->sw_->getRouteUpdater();
+    u.addRoute(
+        rid,
+        IPAddress("1.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(
+            makeNextHops({"1.1.1.10", "2.2.2.10", "1.2.3.10"}), DISTANCE));
+    u.program();
+
+    auto state = this->sw_->getState();
+    auto route = this->findRoute4(state, rid, "1.0.0.0/8");
+    ASSERT_NE(route, nullptr);
+    EXPECT_TRUE(route->isResolved());
+    auto fwdNhops = getNextHops(state, route->getForwardInfo());
+    EXPECT_EQ(fwdNhops.size(), 2);
+    for (const auto& nh : fwdNhops) {
+      EXPECT_TRUE(
+          nh.addr() == IPAddress("1.1.1.10") ||
+          nh.addr() == IPAddress("2.2.2.10"));
+      EXPECT_NE(nh.addr(), IPAddress("1.2.3.10"))
+          << "Self-referencing nexthop 1.2.3.10 should not be in forwarding info";
+    }
+  }
+
+  // Step 2: Update the route to remove 1.1.1.10.
+  // Keep 2.2.2.10 and 1.2.3.10 (self-referencing).
+  {
+    auto u = this->sw_->getRouteUpdater();
+    u.addRoute(
+        rid,
+        IPAddress("1.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(makeNextHops({"2.2.2.10", "1.2.3.10"}), DISTANCE));
+    u.program();
+
+    auto state = this->sw_->getState();
+    auto route = this->findRoute4(state, rid, "1.0.0.0/8");
+    ASSERT_NE(route, nullptr);
+    EXPECT_TRUE(route->isResolved());
+    auto fwdNhops = getNextHops(state, route->getForwardInfo());
+    EXPECT_EQ(fwdNhops.size(), 1);
+    EXPECT_EQ(fwdNhops.begin()->addr(), IPAddress("2.2.2.10"));
+    EXPECT_EQ(fwdNhops.begin()->intf(), InterfaceID(2));
+    for (const auto& nh : fwdNhops) {
+      EXPECT_NE(nh.addr(), IPAddress("1.1.1.10"))
+          << "Removed nexthop 1.1.1.10 should not be in forwarding info";
+      EXPECT_NE(nh.addr(), IPAddress("1.2.3.10"))
+          << "Self-referencing nexthop 1.2.3.10 should not be in forwarding info";
+    }
+  }
+}
+
+// Routes that were previously resolved should not retain stale forwarding
+// info after being updated to form a circular dependency.
+TEST_F(RouteTest, routesWithCircularDependentNexthopsUnresolvable) {
+  auto rid = RouterID(0);
+
+  // Step 1: Add routes with connected nexthops — all should resolve
+  {
+    auto u = this->sw_->getRouteUpdater();
+    u.addRoute(
+        rid,
+        IPAddress("10.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(makeNextHops({"1.1.1.10"}), DISTANCE));
+    u.addRoute(
+        rid,
+        IPAddress("20.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(makeNextHops({"2.2.2.10"}), DISTANCE));
+    u.addRoute(
+        rid,
+        IPAddress("30.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(makeNextHops({"3.3.3.10"}), DISTANCE));
+    u.program();
+
+    auto state = this->sw_->getState();
+    EXPECT_RESOLVED(this->findRoute4(state, rid, "10.0.0.0/8"));
+    EXPECT_RESOLVED(this->findRoute4(state, rid, "20.0.0.0/8"));
+    EXPECT_RESOLVED(this->findRoute4(state, rid, "30.0.0.0/8"));
+  }
+
+  // Step 2: Update all three to form A → B → C → A cycle.
+  // They should become unresolvable and not retain stale forwarding info.
+  {
+    auto u = this->sw_->getRouteUpdater();
+    u.addRoute(
+        rid,
+        IPAddress("10.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(makeNextHops({"20.1.1.10"}), DISTANCE));
+    u.addRoute(
+        rid,
+        IPAddress("20.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(makeNextHops({"30.1.1.10"}), DISTANCE));
+    u.addRoute(
+        rid,
+        IPAddress("30.0.0.0"),
+        8,
+        kClientA,
+        RouteNextHopEntry(makeNextHops({"10.1.1.10"}), DISTANCE));
+    u.program();
+
+    auto state = this->sw_->getState();
+    EXPECT_EQ(this->findRoute4(state, rid, "10.0.0.0/8"), nullptr);
+    EXPECT_EQ(this->findRoute4(state, rid, "20.0.0.0/8"), nullptr);
+    EXPECT_EQ(this->findRoute4(state, rid, "30.0.0.0/8"), nullptr);
+
+    auto ribRouteA = findLongestMatchRoute(
+        this->sw_->getRib(), rid, IPAddressV4("10.0.0.0"), state);
+    auto ribRouteB = findLongestMatchRoute(
+        this->sw_->getRib(), rid, IPAddressV4("20.0.0.0"), state);
+    auto ribRouteC = findLongestMatchRoute(
+        this->sw_->getRib(), rid, IPAddressV4("30.0.0.0"), state);
+    ASSERT_NE(ribRouteA, nullptr);
+    ASSERT_NE(ribRouteB, nullptr);
+    ASSERT_NE(ribRouteC, nullptr);
+    EXPECT_EQ(ribRouteA->prefix(), makePrefixV4("10.0.0.0/8"));
+    EXPECT_EQ(ribRouteB->prefix(), makePrefixV4("20.0.0.0/8"));
+    EXPECT_EQ(ribRouteC->prefix(), makePrefixV4("30.0.0.0/8"));
+    EXPECT_TRUE(ribRouteA->isUnresolvable());
+    EXPECT_TRUE(ribRouteB->isUnresolvable());
+    EXPECT_TRUE(ribRouteC->isUnresolvable());
+  }
+}
+
+// Three-node cycle where C also has a valid connected nexthop.
+// C resolves (via connected), B resolves (via C), A resolves (via B).
+// The cyclic nexthop in C is dropped, but the connected one propagates up.
+TEST_F(RouteTest, cyclicNexthopsResolveViaConnected) {
+  auto rid = RouterID(0);
+  auto u = this->sw_->getRouteUpdater();
+  // A (10.0.0.0/8) → 20.1.1.10 → B
+  u.addRoute(
+      rid,
+      IPAddress("10.0.0.0"),
+      8,
+      kClientA,
+      RouteNextHopEntry(makeNextHops({"20.1.1.10"}), DISTANCE));
+  // B (20.0.0.0/8) → 30.1.1.10 → C
+  u.addRoute(
+      rid,
+      IPAddress("20.0.0.0"),
+      8,
+      kClientA,
+      RouteNextHopEntry(makeNextHops({"30.1.1.10"}), DISTANCE));
+  // C (30.0.0.0/8) → 10.1.1.10 (cyclic → A) AND 3.3.3.10 (connected via intf 3)
+  u.addRoute(
+      rid,
+      IPAddress("30.0.0.0"),
+      8,
+      kClientA,
+      RouteNextHopEntry(makeNextHops({"10.1.1.10", "3.3.3.10"}), DISTANCE));
+  u.program();
+
+  auto state = this->sw_->getState();
+  auto routeA = this->findRoute4(state, rid, "10.0.0.0/8");
+  auto routeB = this->findRoute4(state, rid, "20.0.0.0/8");
+  auto routeC = this->findRoute4(state, rid, "30.0.0.0/8");
+  ASSERT_NE(routeA, nullptr);
+  ASSERT_NE(routeB, nullptr);
+  ASSERT_NE(routeC, nullptr);
+
+  // All three should resolve — C's connected nexthop propagates up
+  EXPECT_TRUE(routeC->isResolved());
+  EXPECT_TRUE(routeB->isResolved());
+  EXPECT_TRUE(routeA->isResolved());
+
+  for (const auto& route : {routeA, routeB, routeC}) {
+    auto fwd = getNextHops(state, route->getForwardInfo());
+    EXPECT_EQ(fwd.size(), 1);
+    EXPECT_EQ(fwd.begin()->addr(), IPAddress("3.3.3.10"));
+    EXPECT_EQ(fwd.begin()->intf(), InterfaceID(3));
+  }
+}

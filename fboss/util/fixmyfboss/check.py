@@ -1,8 +1,8 @@
-# pyre-unsafe
+# pyre-strict
 
 import traceback
 from functools import wraps
-from typing import Callable, Dict
+from typing import Any, Callable, Dict, Optional
 
 from fboss.util.fixmyfboss import status
 
@@ -13,11 +13,11 @@ class Check:
     def __init__(
         self,
         name: str,
-        func: Callable,
+        func: Callable[..., status.Status],
     ) -> None:
         self.name = name
         self.func = func
-        self.result = None
+        self.result: Optional[status.Status] = None
 
     def run(self) -> None:
         try:
@@ -37,13 +37,15 @@ class Check:
 
 
 def check(
-    func=None,
-):
-    def check_decorator(func):
+    func: Callable[..., Optional[status.Status]],
+) -> "Check":
+    def check_decorator(
+        func: Callable[..., Optional[status.Status]],
+    ) -> "Check":
         name = func.__name__
 
         @wraps(func)
-        def returnStatusOkWrapper(*args, **kwargs):
+        def returnStatusOkWrapper(*args: Any, **kwargs: Any) -> status.Status:
             result = func(*args, **kwargs)
             if result is None:
                 return status.Ok()

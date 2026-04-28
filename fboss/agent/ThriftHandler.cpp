@@ -970,7 +970,7 @@ void ThriftHandler::deleteMySidEntries(
       createRibMySidToSwitchStateFunction(std::nullopt);
   rib->update(
       sw_->getScopeResolver(),
-      {} /* toAdd */,
+      std::vector<MySidEntry>{} /* toAdd */,
       *prefixes,
       "deleteMySidEntries",
       ribMySidToSwitchStateFunc,

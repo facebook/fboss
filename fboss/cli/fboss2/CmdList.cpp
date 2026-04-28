@@ -92,6 +92,8 @@
 #include "fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h"
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
+#include "fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.h"
+#include "fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h"
 #include "fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h"
 #include "fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h"
 #include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h"
@@ -350,7 +352,15 @@ const CommandTree& kCommandTree() {
        "transceiver",
        "Show Transceiver information",
        commandHandler<CmdShowTransceiver>,
-       argTypeHandler<CmdShowTransceiverTraits>},
+       argTypeHandler<CmdShowTransceiverTraits>,
+       {{"eeprom",
+         "Read transceiver EEPROM registers",
+         commandHandler<CmdShowTransceiverEeprom>,
+         argTypeHandler<CmdShowTransceiverEepromTraits>,
+         {{"dump",
+           "Dump all EEPROM pages (3 iterations with 2s delay)",
+           commandHandler<CmdShowTransceiverEepromDump>,
+           argTypeHandler<CmdShowTransceiverEepromDumpTraits>}}}}},
 
       {"show",
        "route",
@@ -505,7 +515,8 @@ const CommandTree& kCommandTree() {
        "interface",
        "Shut/No-Shut Interface",
        commandHandler<CmdBounceInterface>,
-       argTypeHandler<CmdBounceInterfaceTraits>},
+       argTypeHandler<CmdBounceInterfaceTraits>,
+       localOptionsHandler<CmdBounceInterfaceTraits>},
       {"set",
        "fanhold",
        "Set fan hold PWM",
@@ -536,7 +547,8 @@ const CommandTree& kCommandTree() {
        {{"state",
          "Set Port state",
          commandHandler<CmdSetPortState>,
-         argTypeHandler<CmdSetPortStateTraits>}}},
+         argTypeHandler<CmdSetPortStateTraits>,
+         localOptionsHandler<CmdSetPortStateTraits>}}},
 
       {"start",
        "pcap",

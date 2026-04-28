@@ -29,43 +29,102 @@ std::shared_ptr<SwitchState> SwitchStateNextHopIdUpdater::operator()(
     return state;
   }
 
-  auto nextState = state;
+  const auto& ribNhopMap = nextHopIDManager_->getIdToNextHop();
+  const auto& ribSetMap = nextHopIDManager_->getIdToNextHopIdSet();
 
-  // Build id maps once to share across all FibInfo nodes
-  auto id2Nhop = std::make_shared<IdToNextHopMap>();
-  auto id2NhopSetIds = std::make_shared<IdToNextHopIdSetMap>();
-  for (const auto& [id, nhop] : nextHopIDManager_->getIdToNextHop()) {
-    id2Nhop->addNextHop(id, nhop.toThrift());
-  }
-  for (const auto& [id, nhopIdSet] : nextHopIDManager_->getIdToNextHopIdSet()) {
-    std::set<int64_t> nhopIds;
-    for (auto nhopId : nhopIdSet) {
-      nhopIds.insert(static_cast<int64_t>(nhopId));
+  // fibsInfoMap is always populated for any switch with a switchId; if the
+  // nextHopIDManager exists, that invariant must hold.
+  auto fibsInfoMap = state->getFibsInfoMap();
+  CHECK(!fibsInfoMap->empty());
+  // FIB maps are shared across all switches, pick from first
+  const auto& [_, fibInfo] = *fibsInfoMap->cbegin();
+  auto fibNhopMap = fibInfo->getIdToNextHopMap();
+  auto fibSetMap = fibInfo->getIdToNextHopIdSetMap();
+  auto fibNameMap = fibInfo->getNameToNextHopSetId();
+
+  bool nhopChanged = false;
+  bool setChanged = false;
+  bool namedChanged = false;
+
+  // Diff nhop maps: clone FIB, add missing from RIB, remove stale from FIB
+  auto updatedNhopMap =
+      fibNhopMap ? fibNhopMap->clone() : std::make_shared<IdToNextHopMap>();
+  for (const auto& [id, nextHop] : ribNhopMap) {
+    if (!fibNhopMap || !fibNhopMap->getNextHopIf(id)) {
+      updatedNhopMap->addNextHop(id, nextHop.toThrift());
+      nhopChanged = true;
     }
-    id2NhopSetIds->addNextHopIdSet(id, nhopIds);
   }
-
-  // Update id maps and named next-hop group mappings in each FibInfo
-  for (const auto& [matcher, _] : std::as_const(*state->getFibsInfoMap())) {
-    auto fibInfo = nextState->getFibsInfoMap()->getNodeIf(matcher);
-    if (!fibInfo) {
-      continue;
-    }
-    auto fibInfoPtr = fibInfo->modify(&nextState);
-    fibInfoPtr->setIdToNextHopMap(id2Nhop);
-    fibInfoPtr->setIdToNextHopIdSetMap(id2NhopSetIds);
-
-    // Sync named next-hop group mappings from NextHopIDManager.
-    const auto& nameToNextHopSetMap =
-        nextHopIDManager_->getNameToNextHopSetMap();
-    std::map<std::string, NextHopSetId> nameToSetIdMap;
-    for (const auto& [name, _] : nameToNextHopSetMap) {
-      auto setIdOpt = nextHopIDManager_->getNextHopSetIDForName(name);
-      if (setIdOpt) {
-        nameToSetIdMap[name] = static_cast<NextHopSetId>(*setIdOpt);
+  if (fibNhopMap) {
+    for (const auto& [id, _] : std::as_const(*fibNhopMap)) {
+      if (ribNhopMap.find(NextHopID(id)) == ribNhopMap.end()) {
+        updatedNhopMap->removeNextHopIf(id);
+        nhopChanged = true;
       }
     }
-    fibInfoPtr->setNameToNextHopSetId(nameToSetIdMap);
+  }
+
+  // Diff set maps: clone FIB, add missing from RIB, remove stale from FIB
+  auto updatedSetMap =
+      fibSetMap ? fibSetMap->clone() : std::make_shared<IdToNextHopIdSetMap>();
+  for (const auto& [id, nextHopIdSet] : ribSetMap) {
+    if (!fibSetMap || !fibSetMap->getNextHopIdSetIf(id)) {
+      std::set<int64_t> nhopIds;
+      for (auto nhopId : nextHopIdSet) {
+        nhopIds.insert(static_cast<int64_t>(nhopId));
+      }
+      updatedSetMap->addNextHopIdSet(id, nhopIds);
+      setChanged = true;
+    }
+  }
+  if (fibSetMap) {
+    for (const auto& [id, _] : std::as_const(*fibSetMap)) {
+      if (ribSetMap.find(NextHopSetID(id)) == ribSetMap.end()) {
+        updatedSetMap->removeNextHopIdSetIf(id);
+        setChanged = true;
+      }
+    }
+  }
+
+  // Diff named next-hop group maps
+  const auto& ribNameMap = nextHopIDManager_->getNameToNextHopSetID();
+  auto updatedNameMap = fibNameMap;
+  for (const auto& [name, setId] : ribNameMap) {
+    auto it = fibNameMap.find(name);
+    if (it == fibNameMap.end() ||
+        it->second != static_cast<NextHopSetId>(setId)) {
+      updatedNameMap[name] = static_cast<NextHopSetId>(setId);
+      namedChanged = true;
+    }
+  }
+  for (const auto& [name, _] : fibNameMap) {
+    if (ribNameMap.find(name) == ribNameMap.end()) {
+      updatedNameMap.erase(name);
+      namedChanged = true;
+    }
+  }
+
+  if (!nhopChanged && !setChanged && !namedChanged) {
+    return state;
+  }
+
+  // Apply only the maps that actually changed
+  auto nextState = state;
+  for (const auto& [matcher, _] : std::as_const(*state->getFibsInfoMap())) {
+    auto perSwitchFibInfo = nextState->getFibsInfoMap()->getNodeIf(matcher);
+    if (!perSwitchFibInfo) {
+      continue;
+    }
+    auto fibInfoPtr = perSwitchFibInfo->modify(&nextState);
+    if (nhopChanged) {
+      fibInfoPtr->setIdToNextHopMap(updatedNhopMap);
+    }
+    if (setChanged) {
+      fibInfoPtr->setIdToNextHopIdSetMap(updatedSetMap);
+    }
+    if (namedChanged) {
+      fibInfoPtr->setNameToNextHopSetId(updatedNameMap);
+    }
   }
 
   return nextState;

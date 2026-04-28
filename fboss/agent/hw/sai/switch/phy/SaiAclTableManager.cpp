@@ -109,6 +109,7 @@ std::
       std::nullopt, // neighbor meta
       true, // ether type
       std::nullopt, // fieldOuterVlanId
+      std::nullopt, // fieldAclRangeType
       std::nullopt, // fieldBthOpcode
       std::nullopt, // fieldIpv6NextHeader
 #if (                                                                  \

@@ -85,6 +85,8 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
     ]:
         return [PortSpeed.EIGHTHUNDREDG]
+    if profile in [PortProfileID.PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL]:
+        return [PortSpeed.ONEPOINTSIXT]
     if profile in [
         PortProfileID.PROFILE_10G_1_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
@@ -158,6 +160,7 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL,
     ]:
         return 8
     if profile in [PortProfileID.PROFILE_DEFAULT]:
@@ -579,8 +582,8 @@ def _format_custom_collection_json(custom_collection: Dict[str, List[int]]) -> s
                         },
                         "value": value,
                     }
-                    for key, value in custom_collection.items()
                 }
+                for key, value in custom_collection.items()
             ]
         }
     )
@@ -671,6 +674,7 @@ def _process_connection_with_si_settings(
                 )
                 overrides.append(override)
 
+    # pyrefly: ignore [bad-return]
     return (
         configured_pins,
         overrides,
@@ -957,6 +961,7 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL,
     ]:
         return [TransmitterTechnology.OPTICAL, TransmitterTechnology.BACKPLANE]
     if profile in [
@@ -1073,6 +1078,7 @@ def fec_from_profile(profile: PortProfileID) -> FecMode:
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL,
     ]:
         return FecMode.RS544_2N
     # RS545 profiles

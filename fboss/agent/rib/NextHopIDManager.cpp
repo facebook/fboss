@@ -390,6 +390,25 @@ std::optional<RouteNextHopSet> NextHopIDManager::getNextHopsIf(
   return RouteNextHopSet(nextHopVec.begin(), nextHopVec.end());
 }
 
+bool NextHopIDManager::nextHopSetContainsAddr(
+    NextHopSetID nextHopSetID,
+    const folly::IPAddress& ip) const {
+  auto nextHopIdSetIt = idToNextHopIdSet_.find(nextHopSetID);
+  if (nextHopIdSetIt == idToNextHopIdSet_.end()) {
+    return false;
+  }
+  for (const auto& nextHopID : nextHopIdSetIt->second) {
+    auto nextHopIt = idToNextHop_.find(nextHopID);
+    CHECK(nextHopIt != idToNextHop_.end())
+        << "NextHopId " << nextHopID
+        << " not found in idToNextHop_ for NextHopSetID " << nextHopSetID;
+    if (nextHopIt->second.addr() == ip) {
+      return true;
+    }
+  }
+  return false;
+}
+
 namespace {
 
 // Verifies that the idToNextHopMap and idToNextHopIdSetMap are identical

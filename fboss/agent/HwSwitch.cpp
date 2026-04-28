@@ -223,6 +223,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.sysPortShelState() = getSysPortShelState();
   hwSwitchStats.hwRouterInterfaceStats() = getRouterInterfaceStats();
   hwSwitchStats.hardResetStats() = getHwSwitchHardResetStats();
+  hwSwitchStats.counterStats() = getHwSwitchCounterStats();
   return hwSwitchStats;
 }
 

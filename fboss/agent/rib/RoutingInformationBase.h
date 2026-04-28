@@ -62,6 +62,21 @@ using RibMySidToSwitchStateFunction = std::function<StateDelta(
     const NextHopIDManager* nextHopIDManager,
     const MySidTable& mySidTable,
     void* cookie)>;
+
+// Each pair is (MySid state object, its unresolved next-hop set). The
+// next-hop set is empty for DECAPSULATE_AND_LOOKUP / ADJACENCY_MICRO_SID
+// entries; populated for NODE_MICRO_SID. Bundling them in a pair keeps the
+// two pieces of data inseparable across all RIB / ConfigApplier call sites
+// that consume config-derived MySid state.
+using MySidWithNextHops = std::pair<std::shared_ptr<MySid>, RouteNextHopSet>;
+
+// (prefix-key for the MySid, IP of the removed neighbor). Used by the
+// observer-driven neighbor-removal path: RIB clears unresolveNextHopsId
+// + resolvedNextHopsId iff the materialized unresolved next-hop set
+// contains a next-hop with this IP. The match check happens RIB-side
+// because only the rib's NextHopIDManager can materialize a NextHopSetID.
+using MySidNeighborRemoved = std::pair<folly::CIDRNetworkV6, folly::IPAddress>;
+
 /*
  * RibRouteTables provides a thread safe abstraction for maintaining Rib data
  * structures and programming them down to the FIB. Its designed to abstract
@@ -113,6 +128,14 @@ class RibRouteTables {
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
 
+  void update(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidWithNextHops>& toAdd,
+      const std::vector<MySidNeighborRemoved>& toUnresolveIfMatch,
+      const std::vector<IpPrefix>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+
   void setClassID(
       const SwitchIdScopeResolver* resolver,
       RouterID rid,
@@ -156,6 +179,7 @@ class RibRouteTables {
           staticMplsRoutesWithNextHops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
+      const std::vector<MySidWithNextHops>& staticMySids,
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
@@ -294,6 +318,15 @@ class RibRouteTables {
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFibs);
 
+  // Shared implementation for both MySid update() overloads.
+  void updateMySidsImpl(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidWithNextHops>& toAdd,
+      const std::vector<MySidNeighborRemoved>& toUnresolveIfMatch,
+      const std::vector<IpPrefix>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+
   RouterIDToRouteTable constructRouteTables(
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
       const RouterIDAndNetworkToInterfaceRoutes&
@@ -378,6 +411,57 @@ class RoutingInformationBase {
       const RibMySidToSwitchStateFunction ribMySidToSwitchStateFunc,
       void* cookie);
   /*
+   * Update mySids in RIB and switchState from pre-built MySid state objects.
+   * Used by the config-driven path (SwSwitch::applyMySidConfig).
+   * Each entry in toAdd is (MySid state object, its unresolved next-hop set).
+   * The next-hop set is empty for DECAPSULATE_AND_LOOKUP / ADJACENCY_MICRO_SID
+   * entries; populated for NODE_MICRO_SID.
+   *
+   * The synchronous overload blocks until the rib event-base thread finishes
+   * applying the update and rethrows any exception on the caller's thread.
+   * The async overload enqueues the update fire-and-forget on the rib event
+   * base — required for callers that must not block (e.g., StateObservers
+   * running on the SwSwitch update thread, where a synchronous rib update
+   * would deadlock with the rib's own state-update callbacks).
+   */
+  void update(
+      const SwitchIdScopeResolver* resolver,
+      std::vector<MySidWithNextHops> toAdd,
+      std::vector<MySidNeighborRemoved> toUnresolveIfMatch,
+      std::vector<IpPrefix> toDelete,
+      folly::StringPiece updateType,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie) {
+    updateMySidImpl(
+        resolver,
+        std::move(toAdd),
+        std::move(toUnresolveIfMatch),
+        std::move(toDelete),
+        updateType,
+        ribMySidToSwitchStateFunc,
+        cookie,
+        false /* async */);
+  }
+
+  void updateAsync(
+      const SwitchIdScopeResolver* resolver,
+      std::vector<MySidWithNextHops> toAdd,
+      std::vector<MySidNeighborRemoved> toUnresolveIfMatch,
+      std::vector<IpPrefix> toDelete,
+      folly::StringPiece updateType,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie) {
+    updateMySidImpl(
+        resolver,
+        std::move(toAdd),
+        std::move(toUnresolveIfMatch),
+        std::move(toDelete),
+        updateType,
+        ribMySidToSwitchStateFunc,
+        cookie,
+        true /* async */);
+  }
+  /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
    * folly::IPAddress). An example of an element in this map is: (RouterID(0),
@@ -401,6 +485,7 @@ class RoutingInformationBase {
           staticMplsRoutesWithNextHops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
+      const std::vector<MySidWithNextHops>& staticMySids,
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
@@ -518,6 +603,19 @@ class RoutingInformationBase {
       const std::vector<folly::CIDRNetwork>& prefixes,
       RibToSwitchStateFunction ribToSwitchStateFunc,
       std::optional<cfg::AclLookupClass> classId,
+      void* cookie,
+      bool async);
+  // Shared body for update(MySidWithNextHops) and
+  // updateAsync(MySidWithNextHops). Sync mode (async=false) blocks the caller
+  // and rethrows any exception. Async mode (async=true) enqueues the update
+  // fire-and-forget; failures are logged on the rib event-base thread.
+  void updateMySidImpl(
+      const SwitchIdScopeResolver* resolver,
+      std::vector<MySidWithNextHops> toAdd,
+      std::vector<MySidNeighborRemoved> toUnresolveIfMatch,
+      std::vector<IpPrefix> toDelete,
+      folly::StringPiece updateType,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie,
       bool async);
 

@@ -32,8 +32,8 @@ class HwEcmpTrunkTest : public HwLinkStateDependentTest {
         (masterLogicalPortIds()[kEcmpWidth])};
   }
 
-  flat_set<PortDescriptor> getEcmpPorts() const {
-    flat_set<PortDescriptor> ports;
+  boost::container::flat_set<PortDescriptor> getEcmpPorts() const {
+    boost::container::flat_set<PortDescriptor> ports;
     for (auto i = 0; i < kEcmpWidth - 1; ++i) {
       ports.insert(PortDescriptor(PortID(masterLogicalPortIds()[i])));
     }
@@ -257,7 +257,7 @@ TEST_F(
 // Down state before warmboot resulting in ECMP shrink.
 // Warmboot happens before LACP reacts to link down resulting
 // in mismatched trunk membership in hardware/software.
-// During warm boot init, the trunk is add to ECMP for a breif
+// During warm boot init, the trunk is add to ECMP for a brief
 // time period till port states are re-applied. Post warmboot,
 // ECMP stays shrunk. Port transitions to Up after warm boot
 // but ECMP stays shrunk until LACP brings it up.

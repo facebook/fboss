@@ -568,6 +568,10 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.cpp
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.cpp
+  fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.h
+  fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.cpp
+  fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h
+  fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.cpp
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.cpp
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
@@ -589,6 +593,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/utils/CmdUtilsCommon.h
   fboss/cli/fboss2/utils/FilterUtils.h
   fboss/cli/fboss2/utils/PrbsUtils.cpp
+  fboss/cli/fboss2/utils/SafetyPromptUtils.h
+  fboss/cli/fboss2/utils/SafetyPromptUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdClientUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdUtils.cpp
   fboss/cli/fboss2/options/OutputFormat.h

@@ -33,6 +33,7 @@ struct LocalOption {
   std::string name;
   std::string helpMsg;
   std::optional<std::string> defaultValue{std::nullopt};
+  bool isFlag{false};
 };
 
 struct CmdLogInfo {

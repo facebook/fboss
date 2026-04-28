@@ -109,6 +109,7 @@ class AgentHwTest : public ::testing::Test {
   }
   SwSwitch* getSw() const;
   SwitchID getCurrentSwitchIdForTesting() const;
+  int16_t getCurrentSwitchIndexForTesting() const;
   static SwitchID getSwitchIdUnderTest(const AgentEnsemble& ensemble);
   const std::map<SwitchID, const HwAsic*> getAsics() const;
   std::vector<const HwAsic*> getL3Asics() const {
@@ -170,8 +171,9 @@ class AgentHwTest : public ::testing::Test {
       const std::vector<PortID>& ports);
   HwPortStats getNextUpdatedPortStats(const PortID& port);
   HwPortStats getLastIncrementedPortStats(const PortID& port);
-  multiswitch::HwSwitchStats getHwSwitchStats(uint16_t switchIndex) const;
-  std::map<uint16_t, multiswitch::HwSwitchStats> getHwSwitchStats() const;
+  multiswitch::HwSwitchStats getHwSwitchStats(
+      std::optional<uint16_t> switchIndex = std::nullopt) const;
+  std::map<uint16_t, multiswitch::HwSwitchStats> getAllHwSwitchStats() const;
   std::map<PortID, std::pair<HwPortStats, HwPortStats>>
   sendTrafficAndCollectStats(
       const std::vector<PortID>& ports,

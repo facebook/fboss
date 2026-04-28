@@ -146,6 +146,7 @@ class SaiSwitch : public HwSwitch {
   getRouterInterfaceStats() const override;
 
   HwResourceStats getResourceStats() const override;
+  HwSwitchCounterStats getHwSwitchCounterStats() const override;
 
   uint64_t getDeviceWatermarkBytes() const override;
 

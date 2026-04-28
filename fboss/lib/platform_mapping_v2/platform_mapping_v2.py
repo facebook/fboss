@@ -316,6 +316,7 @@ class PlatformMappingV2:
 
         unique_factors_list = sorted(unique_factors, key=self._sort_key)
 
+        # pyrefly: ignore [bad-assignment]
         for unique_factor, driver_peaking in unique_factors_list:
             port_pin_config_list: List[PortPinConfig] = []
             for merged_factor, merged_port_pin_config_list, _ in merged_factors:

@@ -69,8 +69,7 @@ void fillHwSwitchWatermarkStats(
         hwSwitchWatermarkStats.fdrFifoWatermarkBytes() = value;
         break;
 #endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
-        // TODO (nivinl): Stats ID not yet available in 14.x!
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       case SAI_SWITCH_STAT_EXTENSION_FABRIC_INTER_CELL_JITTER_MAX_IN_NSEC: {
         hwSwitchWatermarkStats.fabricInterCellJitterWatermarkUsec() = value;
         break;

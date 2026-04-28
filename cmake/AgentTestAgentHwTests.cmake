@@ -122,6 +122,9 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentL4PortBlackholingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningAndNeighborResolutionTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropDnxTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTestBase.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropXgsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirroringTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirroringScaleTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSTests.cpp
@@ -130,6 +133,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostL2Tests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostTests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostRouteTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentRouteStatTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortBandWidthTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortLedTests.cpp
@@ -152,6 +156,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentHwAclMatchActionsTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwAclQualifierTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwAclStatTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAclTableTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwResourceStatsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwParityErrorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentTrafficPfcTests.cpp
@@ -169,6 +174,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentRollbackTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteRollbackTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPacketStreamHandlerTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAclTableGroupTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
@@ -226,6 +232,7 @@ target_link_libraries(agent_hw_test_src
   sflow_shim_utils
   udf_test_utils
   pktutil
+  xgs_psamp_mod
   mirror_test_utils
   dsf_config_utils
   voq_test_utils
@@ -240,6 +247,8 @@ target_link_libraries(agent_hw_test_src
 add_executable(multi_switch_agent_hw_test
   fboss/agent/test/agent_hw_tests/MultiSwitchAgentHwTest.cpp
 )
+
+add_sai_sdk_dependencies(multi_switch_agent_hw_test)
 
 target_link_libraries(multi_switch_agent_hw_test
   -Wl,--whole-archive

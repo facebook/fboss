@@ -273,8 +273,7 @@ LinkTest::getSingleVlanOrRoutedCabledPorts() const {
   auto singleVlanOrRoutedPorts =
       utility::getSingleVlanOrRoutedCabledPorts(sw());
   for (auto port : getCabledPorts()) {
-    if (singleVlanOrRoutedPorts.find(PortDescriptor(port)) !=
-        singleVlanOrRoutedPorts.end()) {
+    if (singleVlanOrRoutedPorts.contains(PortDescriptor(port))) {
       ecmpPorts.insert(PortDescriptor(port));
     }
   }
@@ -568,14 +567,14 @@ void LinkTest::logLinkDbgMessage(std::vector<PortID>& portIDs) const {
   for (auto portID : portIDs) {
     auto portName = getPortName(portID);
     XLOG(ERR) << "Debug information for " << portName;
-    if (iPhyInfos.find(portID) != iPhyInfos.end()) {
+    if (iPhyInfos.contains(portID)) {
       XLOG(ERR) << "IPHY INFO: "
                 << apache::thrift::debugString(iPhyInfos[portID]);
     } else {
       XLOG(ERR) << "IPHY info missing for " << portName;
     }
 
-    if (xPhyInfos.find(portName) != xPhyInfos.end()) {
+    if (xPhyInfos.contains(portName)) {
       XLOG(ERR) << "XPHY INFO: "
                 << apache::thrift::debugString(xPhyInfos[portName]);
     } else {
@@ -584,7 +583,7 @@ void LinkTest::logLinkDbgMessage(std::vector<PortID>& portIDs) const {
 
     auto tcvrId =
         platform()->getPlatformPort(portID)->getTransceiverID().value();
-    if (tcvrInfos.find(tcvrId) != tcvrInfos.end()) {
+    if (tcvrInfos.contains(tcvrId)) {
       XLOG(ERR) << "Transceiver INFO: "
                 << apache::thrift::debugString(tcvrInfos[tcvrId]);
     } else {
@@ -614,7 +613,7 @@ std::vector<std::pair<PortID, PortID>> LinkTest::getPortPairsForFecErrInj()
       throw FbossError(
           "FEC different on both ends of the link: ", fecPort1, fecPort2);
     }
-    if (supportedFecs.find(fecPort1) != supportedFecs.end()) {
+    if (supportedFecs.contains(fecPort1)) {
       supportedPorts.emplace_back(port1, port2);
     }
   }

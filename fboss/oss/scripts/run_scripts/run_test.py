@@ -127,7 +127,6 @@ SUB_CMD_BENCHMARK = "benchmark"
 SUB_ARG_AGENT_RUN_MODE = "--agent-run-mode"
 SUB_ARG_AGENT_RUN_MODE_MONO = "mono"
 SUB_ARG_AGENT_RUN_MODE_MULTI = "multi_switch"
-SUB_ARG_AGENT_RUN_MODE_LEGACY = "legacy"
 SUB_ARG_NUM_NPUS = "--num-npus"
 SUB_ARG_TEST_TYPE = "--type"
 SUB_ARG_PLATFORM_HW_TEST = "platform_hw_test"
@@ -821,6 +820,13 @@ class TestRunner(abc.ABC):
         # Initialize test lists once at the start
         self._initialize_test_lists(args)
 
+        if hasattr(args, "agent_run_mode"):
+            _print_deprecation_banner(
+                [
+                    "NOTE: Default run mode is now multi_switch.",
+                    "Mono mode is DEPRECATED and will be removed in a future.",
+                ]
+            )
         tests_to_run = self._get_tests_to_run()
         tests_to_run = self._filter_tests(tests_to_run)
 
@@ -1043,6 +1049,21 @@ class QsfpTestRunner(TestRunner):
         return tests
 
 
+_YELLOW = "\033[1;33m"
+_RED = "\033[1;31m"
+_RESET = "\033[0m"
+
+
+def _print_deprecation_banner(lines):
+    """Print a highly visible warning banner with color and box formatting."""
+    width = max(len(line) for line in lines) + 4
+    border = "*" * width
+    print(f"\n{_RED}{border}")
+    for line in lines:
+        print(f"* {_YELLOW}{line.ljust(width - 4)}{_RED} *")
+    print(f"{border}{_RESET}\n", flush=True)
+
+
 class LinkTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
         sub_parser.add_argument(
@@ -1064,11 +1085,10 @@ class LinkTestRunner(TestRunner):
             choices=[
                 SUB_ARG_AGENT_RUN_MODE_MONO,
                 SUB_ARG_AGENT_RUN_MODE_MULTI,
-                SUB_ARG_AGENT_RUN_MODE_LEGACY,
             ],
             nargs="?",
-            default=SUB_ARG_AGENT_RUN_MODE_LEGACY,
-            help="Specify agent run mode. Default is legacy mode.",
+            default=SUB_ARG_AGENT_RUN_MODE_MULTI,
+            help="Specify agent run mode. Default is multi_switch mode.",
         )
         sub_parser.add_argument(
             SUB_ARG_NUM_NPUS,
@@ -1092,10 +1112,9 @@ class LinkTestRunner(TestRunner):
     def _get_test_binary_name(self):
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
             return "/opt/fboss/bin/sai_mono_link_test-sai_impl"
-        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
-            return "/opt/fboss/bin/sai_multi_link_test-sai_impl"
-        # Deprecate legacy mode when we finish testing mono mode on all platforms
-        return "/opt/fboss/bin/sai_link_test-sai_impl"
+
+        # Default to multi_switch mode
+        return "/opt/fboss/bin/sai_multi_link_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: str | None
@@ -1224,8 +1243,8 @@ class SaiAgentTestRunner(TestRunner):
                 SUB_ARG_AGENT_RUN_MODE_MULTI,
             ],
             nargs="?",
-            default=SUB_ARG_AGENT_RUN_MODE_MONO,
-            help="Specify agent run mode. Default is mono mode.",
+            default=SUB_ARG_AGENT_RUN_MODE_MULTI,
+            help="Specify agent run mode. Default is multi_switch mode.",
         )
         sub_parser.add_argument(
             SUB_ARG_NUM_NPUS,
@@ -1250,10 +1269,11 @@ class SaiAgentTestRunner(TestRunner):
         return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
-        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
-            return "/opt/fboss/bin/multi_switch_agent_hw_test"
-        # Default is mono mode
-        return "/opt/fboss/bin/sai_agent_hw_test-sai_impl"
+        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
+            return "/opt/fboss/bin/sai_agent_hw_test-sai_impl"
+
+        # Default to multi_switch mode
+        return "/opt/fboss/bin/multi_switch_agent_hw_test"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: str | None

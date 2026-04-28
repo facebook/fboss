@@ -261,16 +261,6 @@ class FsdbPubSubManagerTest : public ::testing::Test {
     return kPublishRoot;
   }
   std::vector<ExtendedOperPath> extSubscriptionPaths() const {
-#ifdef IS_OSS
-    // OSS sets serveIdPathSubs to false since it has an issue with serving IDs
-    ExtendedOperPath path = ext_path_builder::raw("agent")
-                                .raw("config")
-                                .raw("defaultCommandLineArgs")
-                                .any()
-                                .get();
-#else
-    // Internal: Use field IDs since serveIdPathSubs = true in internal test
-    // server
     ExtendedOperPath path =
         ext_path_builder::raw(
             apache::thrift::op::
@@ -285,7 +275,6 @@ class FsdbPubSubManagerTest : public ::testing::Test {
 
             .any()
             .get();
-#endif
     return {std::move(path)};
   }
 
@@ -906,8 +895,6 @@ using PatchApiTestTypes = ::testing::Types<PatchPubSubForState>;
 TYPED_TEST_SUITE(FsdbPubSubManagerPatchApiTest, PatchApiTestTypes);
 
 TYPED_TEST(FsdbPubSubManagerPatchApiTest, verifyEmptyInitialResponse) {
-  // TODO: Block this test in OSS until we support patchNodes
-#ifndef IS_OSS
   folly::Synchronized<std::vector<SubscriberChunk>> received;
   bool initialResponseReceived = false;
   bool isDataExpected;
@@ -945,7 +932,6 @@ TYPED_TEST(FsdbPubSubManagerPatchApiTest, verifyEmptyInitialResponse) {
   // check for initial chunk
   WITH_RETRIES_N(
       this->kRetries, { ASSERT_EVENTUALLY_EQ(received.rlock()->size(), 1); });
-#endif
 }
 
 TYPED_TEST(FsdbPubSubManagerTest, portOperStateToggleTest) {

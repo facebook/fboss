@@ -276,6 +276,7 @@ void RibRouteTables::reconfigure(
         staticMplsRoutesWithNextHops,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
+    const std::vector<MySidWithNextHops>& staticMySids,
     RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   // Config application is accomplished in the following sequence of steps:
@@ -336,6 +337,7 @@ void RibRouteTables::reconfigure(
                   folly::range(
                       staticMplsRoutesToCpu.cbegin(),
                       staticMplsRoutesToCpu.cend()),
+                  folly::range(staticMySids.cbegin(), staticMySids.cend()),
                   nextHopIDManager,
                   mySidTable);
               // Apply config
@@ -868,6 +870,7 @@ void RoutingInformationBase::reconfigure(
         staticMplsRoutesWithNextHops,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
+    const std::vector<MySidWithNextHops>& staticMySids,
     RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   ensureRunning();
@@ -882,6 +885,7 @@ void RoutingInformationBase::reconfigure(
         staticMplsRoutesWithNextHops,
         staticMplsRoutesToNull,
         staticMplsRoutesToCpu,
+        staticMySids,
         ribToSwitchStateFunc,
         cookie);
   };
@@ -1147,45 +1151,126 @@ void RibRouteTables::update(
   // Pre-validate and construct all MySid objects before touching mySidTable.
   // If any entry is invalid, mySidFromEntry throws here before any partial
   // state is written.
-  std::vector<std::shared_ptr<MySid>> mySids;
-  mySids.reserve(toAdd.size());
+  std::vector<MySidWithNextHops> mySidsWithNextHops;
+  mySidsWithNextHops.reserve(toAdd.size());
   for (const auto& entry : toAdd) {
-    mySids.push_back(mySidFromEntry(entry));
+    auto mySid = mySidFromEntry(entry);
+    auto nhops = entry.nextHops()->empty()
+        ? RouteNextHopSet{}
+        : util::toRouteNextHopSet(*entry.nextHops(), true);
+    mySidsWithNextHops.emplace_back(std::move(mySid), std::move(nhops));
   }
+  updateMySidsImpl(
+      resolver,
+      mySidsWithNextHops,
+      {} /* toUnresolveIfMatch */,
+      toDelete,
+      ribMySidToSwitchStateFunc,
+      cookie);
+}
+
+void RibRouteTables::update(
+    const SwitchIdScopeResolver* resolver,
+    const std::vector<MySidWithNextHops>& toAdd,
+    const std::vector<MySidNeighborRemoved>& toUnresolveIfMatch,
+    const std::vector<IpPrefix>& toDelete,
+    const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+    void* cookie) {
+  // Clone the MySid state objects since we may mutate them (set
+  // unresolvedNextHopsId). Keep the parallel next-hop set as-is.
+  std::vector<MySidWithNextHops> cloned;
+  cloned.reserve(toAdd.size());
+  for (const auto& [mySid, nhops] : toAdd) {
+    cloned.emplace_back(mySid->clone(), nhops);
+  }
+  updateMySidsImpl(
+      resolver,
+      cloned,
+      toUnresolveIfMatch,
+      toDelete,
+      ribMySidToSwitchStateFunc,
+      cookie);
+}
+
+void RibRouteTables::updateMySidsImpl(
+    const SwitchIdScopeResolver* resolver,
+    const std::vector<MySidWithNextHops>& toAdd,
+    const std::vector<MySidNeighborRemoved>& toUnresolveIfMatch,
+    const std::vector<IpPrefix>& toDelete,
+    const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+    void* cookie) {
   updateRibMySids([&](const RibMySidUpdater::VrfRouteTables& routeTables,
                       MySidTable* mySidTable,
                       NextHopIDManager* nextHopIDManager) {
+    // Conditional unresolve runs first so that any same-prefix entry
+    // appearing in both vectors (observer-driven IP-change path) gets
+    // clear-then-add semantics — toAdd's freshly-allocated nhop id can
+    // never be matched and rolled back by a stale toUnresolveIfMatch
+    // entry below.
+    for (const auto& [cidrV6, removedIp] : toUnresolveIfMatch) {
+      if (!nextHopIDManager) {
+        continue;
+      }
+      auto it = mySidTable->find(cidrV6);
+      if (it == mySidTable->end()) {
+        continue;
+      }
+      const auto& existing = it->second;
+      const auto unresolvedIdOpt = existing->getUnresolveNextHopsId();
+      if (!unresolvedIdOpt.has_value()) {
+        continue;
+      }
+      // Direct membership check — avoids materializing the entire
+      // RouteNextHopSet just to scan it.
+      if (!nextHopIDManager->nextHopSetContainsAddr(
+              *unresolvedIdOpt, removedIp)) {
+        continue;
+      }
+      // Snapshot the ids before mutating the table; `existing` becomes
+      // invalid after the assignment below.
+      const NextHopSetID oldUnresolvedId = *unresolvedIdOpt;
+      const auto oldResolvedIdOpt = existing->getResolvedNextHopsId();
+      auto cloned = existing->clone();
+      cloned->setUnresolveNextHopsId(std::nullopt);
+      if (oldResolvedIdOpt.has_value()) {
+        cloned->setResolvedNextHopsId(std::nullopt);
+      }
+      (*mySidTable)[cidrV6] = std::move(cloned);
+      nextHopIDManager->decrOrDeallocRouteNextHopSetID(oldUnresolvedId);
+      if (oldResolvedIdOpt.has_value()) {
+        nextHopIDManager->decrOrDeallocRouteNextHopSetID(*oldResolvedIdOpt);
+      }
+    }
     std::set<folly::CIDRNetwork> addedPrefixes;
-    for (size_t i = 0; i < mySids.size(); ++i) {
-      auto mySid = mySids[i];
-      const auto& entry = toAdd[i];
+    for (const auto& [mySidIn, unresolvedNextHops] : toAdd) {
+      auto mySid = mySidIn;
       const auto cidr = mySid->getMySid();
       addedPrefixes.emplace(cidr.first, cidr.second);
       const folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
       if (nextHopIDManager) {
-        const auto existingIt = mySidTable->find(cidrV6);
-        const auto existingId = (existingIt != mySidTable->end())
-            ? existingIt->second->getUnresolveNextHopsId()
-            : std::nullopt;
-        if (!entry.nextHops()->empty()) {
-          const auto newNextHopSet =
-              util::toRouteNextHopSet(*entry.nextHops(), true);
-          const auto newId =
-              nextHopIDManager->getOrAllocRouteNextHopSetID(newNextHopSet)
+        // Alloc-then-release: get a ref on the new unresolved set first so
+        // that a same-set alloc+release on a refcounted entry is a no-op
+        // (rather than a deallocate/reallocate cycle).
+        std::optional<NextHopSetID> newUnresolvedId;
+        if (!unresolvedNextHops.empty()) {
+          newUnresolvedId =
+              nextHopIDManager->getOrAllocRouteNextHopSetID(unresolvedNextHops)
                   .nextHopIdSetIter->second.id;
-          if (existingId.has_value() && newId == *existingId) {
-            // Same next hop set — undo the extra alloc and reuse existing ID
-            nextHopIDManager->decrOrDeallocRouteNextHopSetID(newId);
-            mySid->setUnresolveNextHopsId(existingId);
-          } else {
-            if (existingId.has_value()) {
-              nextHopIDManager->decrOrDeallocRouteNextHopSetID(*existingId);
-            }
-            mySid->setUnresolveNextHopsId(newId);
+        }
+        mySid->setUnresolveNextHopsId(newUnresolvedId);
+
+        // Release the old entry's refs, if any. resolve() below will
+        // re-allocate a resolvedId for the new entry when applicable.
+        if (const auto existingIt = mySidTable->find(cidrV6);
+            existingIt != mySidTable->end()) {
+          if (const auto oldUnresolvedId =
+                  existingIt->second->getUnresolveNextHopsId()) {
+            nextHopIDManager->decrOrDeallocRouteNextHopSetID(*oldUnresolvedId);
           }
-        } else if (existingId.has_value()) {
-          // New entry has no next hops but the old one did — release old ID
-          nextHopIDManager->decrOrDeallocRouteNextHopSetID(*existingId);
+          if (const auto oldResolvedId =
+                  existingIt->second->getResolvedNextHopsId()) {
+            nextHopIDManager->decrOrDeallocRouteNextHopSetID(*oldResolvedId);
+          }
         }
       }
       (*mySidTable)[cidrV6] = std::move(mySid);
@@ -1198,6 +1283,9 @@ void RibRouteTables::update(
         const auto it = mySidTable->find(cidr);
         if (it != mySidTable->end()) {
           if (const auto id = it->second->getUnresolveNextHopsId()) {
+            nextHopIDManager->decrOrDeallocRouteNextHopSetID(*id);
+          }
+          if (const auto id = it->second->getResolvedNextHopsId()) {
             nextHopIDManager->decrOrDeallocRouteNextHopSetID(*id);
           }
         }
@@ -1232,6 +1320,51 @@ void RoutingInformationBase::update(
   ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
   if (updateException) {
     std::rethrow_exception(updateException);
+  }
+}
+
+void RoutingInformationBase::updateMySidImpl(
+    const SwitchIdScopeResolver* resolver,
+    std::vector<MySidWithNextHops> toAdd,
+    std::vector<MySidNeighborRemoved> toUnresolveIfMatch,
+    std::vector<IpPrefix> toDelete,
+    folly::StringPiece updateType,
+    const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+    void* cookie,
+    bool async) {
+  ensureRunning();
+  auto updateException = std::make_shared<std::exception_ptr>();
+  auto updateFn = [resolver,
+                   toAdd = std::move(toAdd),
+                   toUnresolveIfMatch = std::move(toUnresolveIfMatch),
+                   toDelete = std::move(toDelete),
+                   ribMySidToSwitchStateFunc,
+                   cookie,
+                   async,
+                   updateException,
+                   this]() {
+    try {
+      ribTables_.update(
+          resolver,
+          toAdd,
+          toUnresolveIfMatch,
+          toDelete,
+          ribMySidToSwitchStateFunc,
+          cookie);
+    } catch (const std::exception&) {
+      if (async) {
+        throw;
+      }
+      *updateException = std::current_exception();
+    }
+  };
+  if (async) {
+    ribUpdateEventBase_.runInFbossEventBaseThread(std::move(updateFn));
+    return;
+  }
+  ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
+  if (*updateException) {
+    std::rethrow_exception(*updateException);
   }
 }
 
@@ -1278,18 +1411,6 @@ void RibRouteTables::updateFibNamedNextHopGroups(
 void RibRouteTables::addOrUpdateNamedNextHopGroups(
     const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
     const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
-  // Pre-validate all groups before mutating state. If any group is invalid,
-  // throw before any partial state is written. This matches the MySid batch
-  // validation pattern (mySidFromEntry pre-validates all entries).
-  for (const auto& [name, nextHopSet] : groups) {
-    if (name.empty()) {
-      throw FbossError("Named next-hop group name cannot be empty");
-    }
-    if (nextHopSet.empty()) {
-      throw FbossError(
-          "Named next-hop group '", name, "' has empty nexthop set");
-    }
-  }
   updateRibNamedNextHopGroups([&](NextHopIDManager* nextHopIDManager) {
     for (const auto& [name, nextHopSet] : groups) {
       nextHopIDManager->allocateNamedNextHopGroup(name, nextHopSet);
@@ -1314,6 +1435,19 @@ void RibRouteTables::deleteNamedNextHopGroups(
 void RoutingInformationBase::addOrUpdateNamedNextHopGroups(
     const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
     const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
+  // Pre-validate all groups before entering the RIB thread. If any group is
+  // invalid, throw before any state is mutated. This matches the MySid batch
+  // validation pattern (mySidFromEntry pre-validates all entries before
+  // updateRibMySids is called).
+  for (const auto& [name, nextHopSet] : groups) {
+    if (name.empty()) {
+      throw FbossError("Named next-hop group name cannot be empty");
+    }
+    if (nextHopSet.empty()) {
+      throw FbossError(
+          "Named next-hop group '", name, "' has empty nexthop set");
+    }
+  }
   updateStateInRibThread([&]() {
     ribTables_.addOrUpdateNamedNextHopGroups(groups, stateUpdateFn);
   });

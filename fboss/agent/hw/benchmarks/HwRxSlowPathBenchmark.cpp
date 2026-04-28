@@ -88,7 +88,7 @@ BENCHMARK(RxSlowPathBenchmark) {
       ensemble->getProgrammedState(),
       ensemble->getSw()->needL2EntryForNeighbor(),
       dstMac);
-  flat_set<PortDescriptor> firstIntfPort;
+  boost::container::flat_set<PortDescriptor> firstIntfPort;
   firstIntfPort.insert(
       PortDescriptor(ensemble->masterLogicalInterfacePortIds()[0]));
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {

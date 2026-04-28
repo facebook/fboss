@@ -250,31 +250,32 @@ class AgentFlowletSprayTest : public AgentFlowletSwitchingTest {
  * Send 5001::1 AR=0 hit ACL 2, cancel spray, static ECMP
  */
 TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
-  auto populatePortsAndDescs = [this](
-                                   int start,
-                                   int end,
-                                   std::vector<PortID>& portIDs,
-                                   flat_set<PortDescriptor>& portDescs) {
-    std::vector<PortDescriptor> tempPortDescs;
-    for (int w = start; w < end; ++w) {
-      portIDs.push_back(helper_->ecmpPortDescriptorAt(w).phyPortID());
-      tempPortDescs.emplace_back(helper_->ecmpPortDescriptorAt(w));
-    }
-    portDescs.insert(
-        std::make_move_iterator(tempPortDescs.begin()),
-        std::make_move_iterator(tempPortDescs.end()));
-  };
+  auto populatePortsAndDescs =
+      [this](
+          int start,
+          int end,
+          std::vector<PortID>& portIDs,
+          boost::container::flat_set<PortDescriptor>& portDescs) {
+        std::vector<PortDescriptor> tempPortDescs;
+        for (int w = start; w < end; ++w) {
+          portIDs.push_back(helper_->ecmpPortDescriptorAt(w).phyPortID());
+          tempPortDescs.emplace_back(helper_->ecmpPortDescriptorAt(w));
+        }
+        portDescs.insert(
+            std::make_move_iterator(tempPortDescs.begin()),
+            std::make_move_iterator(tempPortDescs.end()));
+      };
 
   std::vector<PortID> dlbPortIDs;
-  flat_set<PortDescriptor> dlbPortDescs;
+  boost::container::flat_set<PortDescriptor> dlbPortDescs;
   populatePortsAndDescs(0, 4, dlbPortIDs, dlbPortDescs);
 
   std::vector<PortID> sprayPortIDs;
-  flat_set<PortDescriptor> randomSprayPortDescs;
+  boost::container::flat_set<PortDescriptor> randomSprayPortDescs;
   populatePortsAndDescs(4, 8, sprayPortIDs, randomSprayPortDescs);
 
   std::vector<PortID> sprayPortIDs2;
-  flat_set<PortDescriptor> randomSprayPortDescs2;
+  boost::container::flat_set<PortDescriptor> randomSprayPortDescs2;
   populatePortsAndDescs(10, 14, sprayPortIDs2, randomSprayPortDescs2);
 
   auto setup = [this,
@@ -310,7 +311,7 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
     auto wrapper = getSw()->getRouteUpdater();
     std::vector<RoutePrefixV6> prefixes128 = {
         prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
-    std::vector<flat_set<PortDescriptor>> nhopSets128 = {
+    std::vector<boost::container::flat_set<PortDescriptor>> nhopSets128 = {
         nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup};
 
     // generate route hitting DLB
@@ -607,14 +608,14 @@ TEST_F(AgentFlowletSwitchingEnhancedScaleTest, VerifyAlternateArsEcmpObjects) {
     std::vector<RoutePrefixV6> testPrefixes(
         prefixes.begin(),
         prefixes.begin() + std::min(maxGroups, (int)prefixes.size()));
-    std::vector<flat_set<PortDescriptor>> testNhopSets(
+    std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets(
         nhopSets.begin(),
         nhopSets.begin() + std::min(maxGroups, (int)nhopSets.size()));
 
     helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
 
     // Set default route to use ports [0,1,2,3] combination
-    flat_set<PortDescriptor> trafficNhopSet;
+    boost::container::flat_set<PortDescriptor> trafficNhopSet;
     std::vector<PortDescriptor> tempPortDescs = {
         helper_->ecmpPortDescriptorAt(0),
         helper_->ecmpPortDescriptorAt(1),
@@ -626,7 +627,8 @@ TEST_F(AgentFlowletSwitchingEnhancedScaleTest, VerifyAlternateArsEcmpObjects) {
 
     auto defaultPrefix = RoutePrefixV6{folly::IPAddressV6("::"), 0};
     std::vector<RoutePrefixV6> defaultPrefixes = {defaultPrefix};
-    std::vector<flat_set<PortDescriptor>> defaultNhopSets = {trafficNhopSet};
+    std::vector<boost::container::flat_set<PortDescriptor>> defaultNhopSets = {
+        trafficNhopSet};
     helper_->programRoutes(&wrapper, defaultNhopSets, defaultPrefixes);
   };
 
@@ -716,7 +718,7 @@ TEST_F(AgentFlowletSwitchingEnhancedScaleTest, VerifyAlternateArsEcmpObjects) {
       auto wrapper = getSw()->getRouteUpdater();
 
       // Create nexthop set with first 3 ports [0,1,2]
-      flat_set<PortDescriptor> threePortNhopSet;
+      boost::container::flat_set<PortDescriptor> threePortNhopSet;
       std::vector<PortDescriptor> tempPortDescs = {
           helper_->ecmpPortDescriptorAt(0),
           helper_->ecmpPortDescriptorAt(1),
@@ -727,8 +729,8 @@ TEST_F(AgentFlowletSwitchingEnhancedScaleTest, VerifyAlternateArsEcmpObjects) {
 
       auto defaultPrefix = RoutePrefixV6{folly::IPAddressV6("::"), 0};
       std::vector<RoutePrefixV6> defaultPrefixes = {defaultPrefix};
-      std::vector<flat_set<PortDescriptor>> threePortNhopSets = {
-          threePortNhopSet};
+      std::vector<boost::container::flat_set<PortDescriptor>>
+          threePortNhopSets = {threePortNhopSet};
       helper_->programRoutes(&wrapper, threePortNhopSets, defaultPrefixes);
     }
 
@@ -741,7 +743,7 @@ TEST_F(AgentFlowletSwitchingEnhancedScaleTest, VerifyAlternateArsEcmpObjects) {
       auto wrapper = getSw()->getRouteUpdater();
 
       // Create nexthop set with first 4 ports [0,1,2,3]
-      flat_set<PortDescriptor> fourPortNhopSet;
+      boost::container::flat_set<PortDescriptor> fourPortNhopSet;
       std::vector<PortDescriptor> tempPortDescs = {
           helper_->ecmpPortDescriptorAt(0),
           helper_->ecmpPortDescriptorAt(1),
@@ -753,8 +755,8 @@ TEST_F(AgentFlowletSwitchingEnhancedScaleTest, VerifyAlternateArsEcmpObjects) {
 
       auto defaultPrefix = RoutePrefixV6{folly::IPAddressV6("::"), 0};
       std::vector<RoutePrefixV6> defaultPrefixes = {defaultPrefix};
-      std::vector<flat_set<PortDescriptor>> fourPortNhopSets = {
-          fourPortNhopSet};
+      std::vector<boost::container::flat_set<PortDescriptor>> fourPortNhopSets =
+          {fourPortNhopSet};
       helper_->programRoutes(&wrapper, fourPortNhopSets, defaultPrefixes);
     }
 
@@ -781,6 +783,7 @@ class AgentFlowletWideArsSwitchingTest : public AgentFlowletSwitchingTest {
     FLAGS_dlbResourceCheckEnable = true;
     FLAGS_enable_route_resource_protection = true;
     FLAGS_ecmp_width = kWideEcmpWidth;
+    FLAGS_ars_resource_percentage = 100;
   }
 
  protected:
@@ -957,7 +960,7 @@ TEST_F(AgentFlowletWideArsSwitchingTest, EcmpScaleTest) {
     auto wrapper = getSw()->getRouteUpdater();
 
     std::vector<RoutePrefixV6> testPrefixes;
-    std::vector<flat_set<PortDescriptor>> testNhopSets;
+    std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets;
     testPrefixes.reserve(kNumSecondaryEcmpGroups);
     testNhopSets.reserve(kNumSecondaryEcmpGroups);
 
@@ -965,7 +968,7 @@ TEST_F(AgentFlowletWideArsSwitchingTest, EcmpScaleTest) {
       testPrefixes.push_back(prefixes[i]);
       // Create unique nhop sets from 256 ports using rotation:
       // Groups 0-253: rotation with step=1, each group starts at port i
-      flat_set<PortDescriptor> nhopSet;
+      boost::container::flat_set<PortDescriptor> nhopSet;
       int rotation = i % kDefaultRouteEcmpWidth;
       for (int j = 0; j < kSecondaryEcmpWidth; ++j) {
         int portIndex = (rotation + j) % kDefaultRouteEcmpWidth;
@@ -1189,7 +1192,7 @@ TEST_F(AgentFlowletSwitchingTest, CreateMaxDlbGroups) {
       auto wrapper = getSw()->getRouteUpdater();
       std::vector<RoutePrefixV6> prefixes60 = {
           prefixes.begin(), prefixes.begin() + count};
-      std::vector<flat_set<PortDescriptor>> nhopSets60 = {
+      std::vector<boost::container::flat_set<PortDescriptor>> nhopSets60 = {
           nhopSets.begin(), nhopSets.begin() + count};
       helper_->programRoutes(&wrapper, nhopSets60, prefixes60);
     }
@@ -1198,7 +1201,7 @@ TEST_F(AgentFlowletSwitchingTest, CreateMaxDlbGroups) {
       auto wrapper = getSw()->getRouteUpdater();
       std::vector<RoutePrefixV6> prefixes128 = {
           prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
-      std::vector<flat_set<PortDescriptor>> nhopSets128 = {
+      std::vector<boost::container::flat_set<PortDescriptor>> nhopSets128 = {
           nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup};
       EXPECT_THROW(
           helper_->programRoutes(&wrapper, nhopSets128, prefixes128),
@@ -1211,7 +1214,7 @@ TEST_F(AgentFlowletSwitchingTest, CreateMaxDlbGroups) {
         FLAGS_dlbResourceCheckEnable = false;
         std::vector<RoutePrefixV6> prefixes129 = {
             prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup + 1};
-        std::vector<flat_set<PortDescriptor>> nhopSets129 = {
+        std::vector<boost::container::flat_set<PortDescriptor>> nhopSets129 = {
             nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup + 1};
         EXPECT_NO_THROW(
             helper_->programRoutes(&wrapper, nhopSets129, prefixes129));
@@ -1239,7 +1242,7 @@ TEST_F(AgentFlowletSwitchingTest, CreateMaxDlbGroups) {
       std::vector<RoutePrefixV6> prefixes10 = {
           prefixes.begin() + kMaxDlbEcmpGroup,
           prefixes.begin() + kMaxDlbEcmpGroup + count};
-      std::vector<flat_set<PortDescriptor>> nhopSets10 = {
+      std::vector<boost::container::flat_set<PortDescriptor>> nhopSets10 = {
           nhopSets.begin() + kMaxDlbEcmpGroup,
           nhopSets.begin() + kMaxDlbEcmpGroup + count};
       EXPECT_NO_THROW(helper_->programRoutes(&wrapper, nhopSets10, prefixes10));
@@ -1258,7 +1261,7 @@ TEST_F(AgentFlowletSwitchingTest, ApplyDlbResourceCheck) {
     auto wrapper = getSw()->getRouteUpdater();
     std::vector<RoutePrefixV6> prefixes60 = {
         prefixes.begin(), prefixes.begin() + count};
-    std::vector<flat_set<PortDescriptor>> nhopSets60 = {
+    std::vector<boost::container::flat_set<PortDescriptor>> nhopSets60 = {
         nhopSets.begin(), nhopSets.begin() + count};
     helper_->programRoutes(&wrapper, nhopSets60, prefixes60);
   };
@@ -1270,7 +1273,7 @@ TEST_F(AgentFlowletSwitchingTest, ApplyDlbResourceCheck) {
       auto wrapper = getSw()->getRouteUpdater();
       std::vector<RoutePrefixV6> prefixes128 = {
           prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
-      std::vector<flat_set<PortDescriptor>> nhopSets128 = {
+      std::vector<boost::container::flat_set<PortDescriptor>> nhopSets128 = {
           nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup};
       EXPECT_THROW(
           helper_->programRoutes(&wrapper, nhopSets128, prefixes128),
@@ -1282,7 +1285,7 @@ TEST_F(AgentFlowletSwitchingTest, ApplyDlbResourceCheck) {
       auto wrapper = getSw()->getRouteUpdater();
       std::vector<RoutePrefixV6> prefixes10 = {
           prefixes.begin(), prefixes.begin() + count};
-      std::vector<flat_set<PortDescriptor>> nhopSets10 = {
+      std::vector<boost::container::flat_set<PortDescriptor>> nhopSets10 = {
           nhopSets.begin(), nhopSets.begin() + count};
       helper_->programRoutes(&wrapper, nhopSets10, prefixes10);
     }
@@ -1330,9 +1333,9 @@ TEST_F(AgentFlowletBcmTest, VerifySwitchingModeUpdateSwState) {
   std::vector<RoutePrefixV6> testPrefixes2 = {
       prefixes.begin() + kMaxDlbEcmpGroup,
       prefixes.begin() + kMaxDlbEcmpGroup + 128};
-  std::vector<flat_set<PortDescriptor>> testNhopSets1 = {
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets1 = {
       nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup};
-  std::vector<flat_set<PortDescriptor>> testNhopSets2 = {
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets2 = {
       nhopSets.begin() + kMaxDlbEcmpGroup,
       nhopSets.begin() + kMaxDlbEcmpGroup + 128};
 

@@ -63,6 +63,7 @@ AgentEnsembleSwitchConfigFn makeSrv6ConfigFn() {
 void srv6EcmpGroupScaleBenchmark(int numGroups, int membersPerGroup) {
   folly::BenchmarkSuspender suspender;
 
+  FLAGS_ecmp_resource_percentage = 100;
   auto ensemble = createAgentEnsemble(
       makeSrv6ConfigFn(), false /*disableLinkStateToggler*/);
   ensemble->applyNewState(
@@ -273,14 +274,20 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
 
 } // namespace
 
-// ASIC supports up to 8K SRv6 next hops: 400 groups x 20 members = 8000
+// ASIC supports up to 7.8K SRv6 next hops: 390 groups x 20 members = 7800
 BENCHMARK(HwSrv6NextHopScaleBenchmark) {
-  srv6EcmpGroupScaleBenchmark(400, 20);
+  srv6EcmpGroupScaleBenchmark(390, 20);
 }
 
 // Current SDK release supports up to 1K ECMP groups: 1024 groups x 5 members
 BENCHMARK(HwSrv6EcmpGroupScaleBenchmark) {
   srv6EcmpGroupScaleBenchmark(1024, 5);
+}
+
+// Single-nhop SRv6 route scale: 3000 routes, each with its own unique SRv6
+// next hop (3000 distinct SidList + underlay-nhop SAI objects).
+BENCHMARK(HwSrv6SingleNextHopRouteScaleBenchmark) {
+  srv6EcmpGroupScaleBenchmark(3000, 1);
 }
 
 // ASIC supports 50K routes with SRv6 encap. Test all three flavors:

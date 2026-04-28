@@ -231,6 +231,7 @@ class NetcastleTestRunner(BaseTestRunner):
                 and n_warmboot_test.num_iterations
             ):
                 num_iterations = n_warmboot_test.num_iterations
+            # pyrefly: ignore [bad-argument-type]
             cmd.extend(["--num-wb-iterations", num_iterations])
 
         # Add regex if specified

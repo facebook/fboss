@@ -363,5 +363,6 @@ python_unittest(
     ],
     deps = [
         ":process_known_bad_test_lib",
+        "//libfb/py/asyncio:tasks",
     ],
 )

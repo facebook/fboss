@@ -204,6 +204,14 @@ class NextHopIDManager {
   // Returns std::nullopt if the NextHopSetID is not found
   std::optional<RouteNextHopSet> getNextHopsIf(NextHopSetID nextHopSetID) const;
 
+  // True iff the next-hop set identified by `nextHopSetID` contains a
+  // next-hop whose address equals `ip`. Avoids materializing the full
+  // RouteNextHopSet (which getNextHopsIf rebuilds via per-element
+  // lookups) — used by the MySid neighbor-removal hot path.
+  bool nextHopSetContainsAddr(
+      NextHopSetID nextHopSetID,
+      const folly::IPAddress& ip) const;
+
   // Get all named next-hop groups
   const std::unordered_map<std::string, RouteNextHopSet>&
   getNameToNextHopSetMap() const {
@@ -331,6 +339,9 @@ class NextHopIDManager {
   FRIEND_TEST(
       RibMySidUpdaterTest,
       twoEntriesSameNhops_resolvedSetIdSharedAndRefCountIsTwo);
+  FRIEND_TEST(
+      RibMySidNextHopTest,
+      replaceNodeMySidWithDecapReleasesBothUnresolvedAndResolvedIds);
 };
 
 } // namespace facebook::fboss

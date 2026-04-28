@@ -451,8 +451,8 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
     }
   }
 
-  flat_set<PortDescriptor> getAggregatePorts() const {
-    flat_set<PortDescriptor> aggregatePorts;
+  boost::container::flat_set<PortDescriptor> getAggregatePorts() const {
+    boost::container::flat_set<PortDescriptor> aggregatePorts;
     for (auto i = 0; i < kNumAggregatePorts; ++i) {
       aggregatePorts.insert(PortDescriptor(AggregatePortID(i + 1)));
     }

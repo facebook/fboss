@@ -172,6 +172,21 @@ SwitchID AgentHwTest::getCurrentSwitchIdForTesting() const {
   return SwitchID(FLAGS_switch_id_for_testing);
 }
 
+int16_t AgentHwTest::getCurrentSwitchIndexForTesting() const {
+  auto switchId = getCurrentSwitchIdForTesting();
+  auto switchSettings =
+      utility::getFirstNodeIf(getProgrammedState()->getSwitchSettings());
+  auto switchIdToSwitchInfo = switchSettings->getSwitchIdToSwitchInfo();
+  auto it = switchIdToSwitchInfo.find(static_cast<int64_t>(switchId));
+  if (it == switchIdToSwitchInfo.end()) {
+    throw FbossError(
+        "SwitchId ",
+        static_cast<int64_t>(switchId),
+        " not found in SwitchIdToSwitchInfo");
+  }
+  return *it->second.switchIndex();
+}
+
 SwitchID AgentHwTest::getSwitchIdUnderTest(const AgentEnsemble& ensemble) {
   return ensemble.getSw()
       ->getScopeResolver()
@@ -458,12 +473,13 @@ std::optional<HwSysPortStats> AgentHwTest::getLatestCpuSysPortStats() {
 }
 
 multiswitch::HwSwitchStats AgentHwTest::getHwSwitchStats(
-    uint16_t switchIndex) const {
+    std::optional<uint16_t> switchIndex) const {
+  auto idx = switchIndex.value_or(getCurrentSwitchIndexForTesting());
   multiswitch::HwSwitchStats switchStats;
   checkWithRetry(
-      [switchIndex, &switchStats, this]() {
-        auto switchIndex2Stats = getHwSwitchStats();
-        auto sitr = switchIndex2Stats.find(switchIndex);
+      [idx, &switchStats, this]() {
+        auto switchIndex2Stats = getAllHwSwitchStats();
+        auto sitr = switchIndex2Stats.find(idx);
         if (sitr != switchIndex2Stats.end()) {
           switchStats = std::move(sitr->second);
           return true;
@@ -476,8 +492,8 @@ multiswitch::HwSwitchStats AgentHwTest::getHwSwitchStats(
   return switchStats;
 }
 
-std::map<uint16_t, multiswitch::HwSwitchStats> AgentHwTest::getHwSwitchStats()
-    const {
+std::map<uint16_t, multiswitch::HwSwitchStats>
+AgentHwTest::getAllHwSwitchStats() const {
   return getSw()->getHwSwitchStatsExpensive();
 }
 

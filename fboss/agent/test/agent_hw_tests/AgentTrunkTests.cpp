@@ -144,7 +144,7 @@ TEST_F(AgentTrunkTest, TrunkPortStats) {
           *portStats.outMulticastPkts_() + *portStats.outBroadcastPkts_();
 
       auto getTrunkOutPkts = [&](const std::string& trunkName) -> int64_t {
-        auto hwStats = getHwSwitchStats();
+        auto hwStats = getAllHwSwitchStats();
         for (const auto& [_, switchStats] : hwStats) {
           auto it = switchStats.hwTrunkStats()->find(trunkName);
           if (it != switchStats.hwTrunkStats()->end()) {

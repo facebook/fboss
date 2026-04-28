@@ -236,6 +236,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
+    case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
       return false;
   }
   return false;
