@@ -28,6 +28,7 @@ python_library(
     deps = [
         ":asic_vendor_config",
         ":helpers",
+        ":platform_mapping_config-python-types",
         ":port_profile_mapping",
         ":profile_settings",
         ":read_files_utils",

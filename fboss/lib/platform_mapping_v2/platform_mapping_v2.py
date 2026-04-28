@@ -44,6 +44,7 @@ from neteng.fboss.platform_config.platform_config.thrift_types import (
     PlatformPortMapping,
     PlatformPortProfileConfigEntry,
 )
+from neteng.fboss.platform_mapping_config.thrift_types import ChipType, CoreType
 from neteng.fboss.switch_config.thrift_types import PortProfileID, PortType
 
 # If you want to generate multiple platform mapping variants for a single platform,
@@ -217,6 +218,22 @@ class PlatformMappingV2:
         )
         self._name2entry: Dict[str, PlatformPortEntry] = {}
         self.platform_mapping: PlatformMapping = self._generate_platform_mapping()
+
+    def _uses_root_port_controlling(self) -> bool:
+        """For TH6+ platforms, all subsumed ports use ethX/Y/1 as controlling port."""
+        # TODO: will add tahansb800bc once the test passed on tahansb800bc
+        base_platform = _PLATFORM_TO_BASE_PLATFORM.get(self.platform, self.platform)
+        if base_platform in ("ladakh800bcls", "tahansb800bc"):
+            return False
+        for chip in self.pm_parser.get_static_mapping().get_chips():
+            if chip.chip_type == ChipType.NPU:
+                core_type_name = chip.core_type.name
+                if not core_type_name.startswith("TH"):
+                    return False
+                if chip.core_type == CoreType.TH5_NIF:
+                    return False
+                return True
+        return False
 
     def get_platform_mapping(self) -> PlatformMapping:
         return self.platform_mapping
@@ -531,6 +548,8 @@ class PlatformMappingV2:
         # Key: port_id -> list of subsumed port ids for HYPER_PORT
         hyper_port_subsumed: Dict[int, List[int]] = {}
 
+        uses_root_port_controlling = self._uses_root_port_controlling()
+
         for port_id, port_entry in ports.items():
             port_detail = self.pm_parser.get_port_profile_mapping().get_ports()[port_id]
             has_explicit_controlling_port = port_detail.controlling_port is not None
@@ -579,24 +598,15 @@ class PlatformMappingV2:
                                         other_profile
                                     ].append(port_id)
                                 if not has_explicit_controlling_port:
-                                    # For some platforms, the controlling port is the root port
-                                    if self.platform in (
-                                        "icecube800banw",
-                                        "icecube800bc",
-                                        "tahansb800bc",
-                                    ):
-                                        # port ethx/x/[1-8] use ethx/x/1 as the controlling port
-                                        rootPortName = (
-                                            port_entry.mapping.name[:-1] + "1"
-                                        )
-                                        rootPortEntry = self._name2entry[rootPortName]
-                                        controlling_port_updates[port_id] = (
-                                            rootPortEntry.mapping.controllingPort
-                                        )
-                                    else:
-                                        controlling_port_updates[port_id] = (
-                                            other_port_id
-                                        )
+                                    controlling_port_updates[port_id] = other_port_id
+                                if uses_root_port_controlling:
+                                    # For TH6+ platforms, all subsumed ports
+                                    # use ethx/x/1 as the controlling port
+                                    rootPortName = port_entry.mapping.name[:-1] + "1"
+                                    rootPortEntry = self._name2entry[rootPortName]
+                                    controlling_port_updates[port_id] = (
+                                        rootPortEntry.mapping.controllingPort
+                                    )
 
                 elif port_entry.mapping.portType == PortType.HYPER_PORT:
                     for other_port_id, other_port_entry in ports.items():
