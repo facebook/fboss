@@ -351,7 +351,9 @@ void SaiQueueManager::changeQueue(
              HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL)
 #if defined(SAI_VERSION_15_4_EA_ODP)
          || (platform_->getAsic()->getAsicType() ==
-             cfg::AsicType::ASIC_TYPE_TOMAHAWK5)
+             cfg::AsicType::ASIC_TYPE_TOMAHAWK5) ||
+         (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK6)
 #endif
              )) {
       // Skip configuring a buffer pool on CPU queues for platforms like
