@@ -47,7 +47,7 @@ TEST_F(CounterManagerTest, refcountRouteCounter) {
 
 TEST_F(CounterManagerTest, getHwSwitchCounterStatsEmpty) {
   auto stats = saiManagerTable->counterManager().getHwSwitchCounterStats();
-  EXPECT_TRUE(stats.hwCounters()->empty());
+  EXPECT_TRUE(stats.routeCounters()->empty());
 }
 
 TEST_F(CounterManagerTest, getHwSwitchCounterStatsWithCounters) {
@@ -61,12 +61,12 @@ TEST_F(CounterManagerTest, getHwSwitchCounterStatsWithCounters) {
   handle1->hwSwitchCounter.bytes() = 200;
 
   auto stats = saiManagerTable->counterManager().getHwSwitchCounterStats();
-  EXPECT_EQ(stats.hwCounters()->size(), 2);
-  EXPECT_TRUE(stats.hwCounters()->count("counter.0"));
-  EXPECT_TRUE(stats.hwCounters()->count("counter.1"));
+  EXPECT_EQ(stats.routeCounters()->size(), 2);
+  EXPECT_TRUE(stats.routeCounters()->count("counter.0"));
+  EXPECT_TRUE(stats.routeCounters()->count("counter.1"));
 
-  EXPECT_EQ(*stats.hwCounters()->at("counter.0").bytes(), 100);
-  EXPECT_EQ(*stats.hwCounters()->at("counter.1").bytes(), 200);
+  EXPECT_EQ(*stats.routeCounters()->at("counter.0").bytes(), 100);
+  EXPECT_EQ(*stats.routeCounters()->at("counter.1").bytes(), 200);
 }
 
 TEST_F(CounterManagerTest, getHwSwitchCounterStatsAfterRemove) {
@@ -77,13 +77,13 @@ TEST_F(CounterManagerTest, getHwSwitchCounterStatsAfterRemove) {
         saiManagerTable->counterManager().incRefOrAddRouteCounter("counter.1");
 
     auto stats = saiManagerTable->counterManager().getHwSwitchCounterStats();
-    EXPECT_EQ(stats.hwCounters()->size(), 2);
+    EXPECT_EQ(stats.routeCounters()->size(), 2);
     // handle1 goes out of scope — refcount drops to 0, counter removed
   }
   // handle0 also out of scope
 
   auto stats = saiManagerTable->counterManager().getHwSwitchCounterStats();
-  EXPECT_TRUE(stats.hwCounters()->empty());
+  EXPECT_TRUE(stats.routeCounters()->empty());
 }
 
 TEST_F(CounterManagerTest, getStatsForCounter) {
@@ -94,7 +94,7 @@ TEST_F(CounterManagerTest, getStatsForCounter) {
   handle->hwSwitchCounter.bytes() = 42;
 
   auto stats = saiManagerTable->counterManager().getHwSwitchCounterStats();
-  EXPECT_EQ(*stats.hwCounters()->at("counter.0").bytes(), 42);
+  EXPECT_EQ(*stats.routeCounters()->at("counter.0").bytes(), 42);
 }
 
 TEST_F(CounterManagerTest, exceedMaxRouteCounterIDs) {

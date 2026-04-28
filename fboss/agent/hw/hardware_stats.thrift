@@ -428,7 +428,7 @@ struct HwSwitchCounter {
 }
 
 struct HwSwitchCounterStats {
-  1: map<string, HwSwitchCounter> hwCounters;
+  1: map<string, HwSwitchCounter> routeCounters;
 }
 
 struct HwSwitchFb303GlobalStats {

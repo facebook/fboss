@@ -67,7 +67,8 @@ HwSwitchCounterStats SaiCounterManager::getHwSwitchCounterStats() const {
   HwSwitchCounterStats counterStats;
   for (const auto& counter : routeCounters_) {
     auto counterHandle = counter.second.lock();
-    counterStats.hwCounters()[counter.first] = counterHandle->hwSwitchCounter;
+    counterStats.routeCounters()[counter.first] =
+        counterHandle->hwSwitchCounter;
   }
   return counterStats;
 }

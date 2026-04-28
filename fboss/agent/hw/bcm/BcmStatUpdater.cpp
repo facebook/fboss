@@ -166,7 +166,7 @@ HwSwitchCounterStats BcmStatUpdater::getHwSwitchCounterStats() const {
   for (const auto& [bcmCounterId, state] : *lockedState) {
     HwSwitchCounter hwCounter;
     hwCounter.bytes() = state.bytes;
-    counterStats.hwCounters()[state.name] = hwCounter;
+    counterStats.routeCounters()[state.name] = hwCounter;
   }
   return counterStats;
 }

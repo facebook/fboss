@@ -129,9 +129,9 @@ class AgentRouteStatTest : public AgentHwTest {
 
   uint64_t getRouteCounterValue(const RouteCounterID& counterID) {
     auto hwSwitchStats = getHwSwitchStats();
-    auto& hwCounters = *hwSwitchStats.counterStats()->hwCounters();
-    auto it = hwCounters.find(counterID);
-    if (it == hwCounters.end()) {
+    auto& routeCounters = *hwSwitchStats.counterStats()->routeCounters();
+    auto it = routeCounters.find(counterID);
+    if (it == routeCounters.end()) {
       return 0;
     }
     return it->second.bytes().value_or(0);
@@ -244,10 +244,10 @@ TEST_F(AgentRouteStatTest, V4V6SeparateCounters) {
 
     // verify counters exist in stats
     auto hwSwitchStats = getHwSwitchStats();
-    auto& hwCounters = *hwSwitchStats.counterStats()->hwCounters();
-    EXPECT_TRUE(hwCounters.count(*kCounterID1));
-    EXPECT_TRUE(hwCounters.count(*kCounterID2));
-    EXPECT_TRUE(hwCounters.count(*kCounterID3));
+    auto& routeCounters = *hwSwitchStats.counterStats()->routeCounters();
+    EXPECT_TRUE(routeCounters.count(*kCounterID1));
+    EXPECT_TRUE(routeCounters.count(*kCounterID2));
+    EXPECT_TRUE(routeCounters.count(*kCounterID3));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
