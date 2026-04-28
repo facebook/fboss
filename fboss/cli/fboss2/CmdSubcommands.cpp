@@ -353,6 +353,26 @@ CLI::App* CmdSubcommands::addCommand(
               "<port-list> [<attr> <value> ...] where <attr> is one "
               "of: description, mtu");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ARP_CONFIG:
+          subCmd->add_option(
+              "arp_attr_value",
+              args,
+              "<attr> <value> where <attr> is one of: "
+              "timeout, age-interval, max-probes, stale-interval");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_LOAD_BALANCING_CONFIG:
+          subCmd->add_option(
+              "load_balancing_attr_value",
+              args,
+              "<attr> <value> where <attr> is one of: "
+              "hash-fields-ipv4 (src-ip,dst-ip or none), "
+              "hash-fields-ipv6 (src-ip,dst-ip,flow-label or none), "
+              "hash-fields-transport (src-port,dst-port or none), "
+              "hash-fields-mpls (top,second,third or none), "
+              "hash-algorithm (crc16-ccitt|crc32-lo|crc32-hi|crc32-ethernet-lo|"
+              "crc32-ethernet-hi|crc32-koopman-lo|crc32-koopman-hi|crc), "
+              "hash-seed (integer or 'default' to unset)");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;

@@ -698,6 +698,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.cpp
   fboss/cli/fboss2/commands/config/CmdConfigReload.h
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
+  fboss/cli/fboss2/commands/config/arp/CmdConfigArp.cpp
+  fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp
@@ -715,6 +717,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h
   fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.cpp
   fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h
+  fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.cpp
+  fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.h
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.cpp
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h
   fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.cpp

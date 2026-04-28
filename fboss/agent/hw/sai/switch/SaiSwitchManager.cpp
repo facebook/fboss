@@ -546,8 +546,6 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
 void SaiSwitchManager::programLagLoadBalancerParams(
     std::optional<sai_uint32_t> seed,
     std::optional<cfg::HashingAlgorithm> algo) {
-  // TODO(skhare) setLoadBalancer is called only for ECMP today. Add similar
-  // logic for LAG.
   auto hashSeed = seed ? seed.value() : 0;
   auto hashAlgo = algo ? toSaiHashAlgo(algo.value()) : SAI_HASH_ALGORITHM_CRC;
   switch_->setOptionalAttribute(
@@ -566,6 +564,9 @@ void SaiSwitchManager::addOrUpdateLagLoadBalancer(
 
   if (newLb->getIPv4Fields().begin() != newLb->getIPv4Fields().end()) {
     // v4 LAG
+    auto programmedLoadBalancer =
+        getProgrammedHashAttr<SaiSwitchTraits::Attributes::LagHashV4>();
+
     cfg::Fields v4LagHashFields;
     std::for_each(
         newLb->getIPv4Fields().begin(),
@@ -580,13 +581,22 @@ void SaiSwitchManager::addOrUpdateLagLoadBalancer(
         [&v4LagHashFields](const auto& entry) {
           v4LagHashFields.transportFields()->insert(entry->cref());
         });
-    lagV4Hash_ = managerTable_->hashManager().getOrCreate(v4LagHashFields);
-    // Set the new lag v4 hash attribute on switch obj
-    switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::LagHashV4{lagV4Hash_->adapterKey()});
+
+    auto hash = managerTable_->hashManager().getOrCreate(v4LagHashFields);
+
+    // Detach the previously-programmed hash from the switch before the old
+    // lagV4Hash_ shared_ptr is dropped, otherwise SAI fails the remove call
+    // with OBJECT_IN_USE and terminate() fires from the SaiObject destructor.
+    setLoadBalancer<SaiSwitchTraits::Attributes::LagHashV4>(
+        hash, programmedLoadBalancer);
+
+    lagV4Hash_ = std::move(hash);
   }
   if (newLb->getIPv6Fields().begin() != newLb->getIPv6Fields().end()) {
     // v6 LAG
+    auto programmedLoadBalancer =
+        getProgrammedHashAttr<SaiSwitchTraits::Attributes::LagHashV6>();
+
     cfg::Fields v6LagHashFields;
     std::for_each(
         newLb->getIPv6Fields().begin(),
@@ -602,10 +612,12 @@ void SaiSwitchManager::addOrUpdateLagLoadBalancer(
           v6LagHashFields.transportFields()->insert(entry->cref());
         });
 
-    lagV6Hash_ = managerTable_->hashManager().getOrCreate(v6LagHashFields);
-    // Set the new lag v6 hash attribute on switch obj
-    switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::LagHashV6{lagV6Hash_->adapterKey()});
+    auto hash = managerTable_->hashManager().getOrCreate(v6LagHashFields);
+
+    setLoadBalancer<SaiSwitchTraits::Attributes::LagHashV6>(
+        hash, programmedLoadBalancer);
+
+    lagV6Hash_ = std::move(hash);
   }
 }
 

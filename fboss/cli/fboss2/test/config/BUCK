@@ -7,10 +7,12 @@ cpp_unittest(
     srcs = [
         "BgpConfigSessionTest.cpp",
         "CmdConfigAppliedInfoTest.cpp",
+        "CmdConfigArpTest.cpp",
         "CmdConfigHistoryTest.cpp",
         "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
         "CmdConfigInterfaceTest.cpp",
         "CmdConfigL2LearningModeTest.cpp",
+        "CmdConfigLoadBalancingTest.cpp",
         "CmdConfigQosBufferPoolTest.cpp",
         "CmdConfigReloadTest.cpp",
         "CmdConfigSessionCommitTest.cpp",
