@@ -254,4 +254,37 @@ TEST_F(NamedNextHopGroupStateTest, SerializationPreservesNamedGroups) {
   EXPECT_EQ(result["group-b"], setId2);
 }
 
+TEST_F(NamedNextHopGroupStateTest, RouteNextHopEntryNamedNextHopGroup) {
+  RouteNextHopSet nhops{
+      ResolvedNextHop(folly::IPAddress("10.0.0.1"), InterfaceID(1), 1)};
+
+  RouteNextHopEntry entry(nhops, AdminDistance::EBGP);
+  EXPECT_FALSE(entry.getNamedNextHopGroup().has_value());
+
+  entry.setNamedNextHopGroup(std::string("my-nhg"));
+  auto nhgName = entry.getNamedNextHopGroup();
+  ASSERT_TRUE(nhgName.has_value());
+  EXPECT_EQ(*nhgName, "my-nhg");
+
+  entry.setNamedNextHopGroup(std::nullopt);
+  EXPECT_FALSE(entry.getNamedNextHopGroup().has_value());
+}
+
+TEST_F(
+    NamedNextHopGroupStateTest,
+    RouteNextHopEntryNamedNhgSerializationRoundtrip) {
+  RouteNextHopSet nhops{
+      ResolvedNextHop(folly::IPAddress("10.0.0.1"), InterfaceID(1), 1)};
+
+  RouteNextHopEntry entry(nhops, AdminDistance::EBGP);
+  entry.setNamedNextHopGroup(std::string("test-group"));
+
+  auto serialized = entry.toThrift();
+  RouteNextHopEntry deserialized(std::move(serialized));
+
+  auto name = deserialized.getNamedNextHopGroup();
+  ASSERT_TRUE(name.has_value());
+  EXPECT_EQ(*name, "test-group");
+}
+
 } // namespace facebook::fboss
