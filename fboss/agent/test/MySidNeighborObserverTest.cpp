@@ -62,7 +62,7 @@ class MySidNeighborObserverTest : public ::testing::Test {
     cfg::AdjacencyMySidConfig adjConfig;
     adjConfig.portName() = portName;
     adjConfig.isV6() = isV6;
-    entry.adjacency_ref() = adjConfig;
+    entry.adjacency() = adjConfig;
     mySidConfig.entries()[funcId] = entry;
     config.mySidConfig() = mySidConfig;
     applyConfig(config);
@@ -215,7 +215,7 @@ TEST_F(MySidNeighborObserverTest, AdjacencyChangedToDecapClearsResolution) {
   cfg::MySidConfig mySidConfig;
   mySidConfig.locatorPrefix() = "3001:db8::/32";
   cfg::MySidEntryConfig entry;
-  entry.decap_ref() = cfg::DecapMySidConfig{};
+  entry.decap() = cfg::DecapMySidConfig{};
   mySidConfig.entries()[1] = entry;
   config.mySidConfig() = mySidConfig;
   applyConfig(config);
@@ -241,7 +241,7 @@ TEST_F(MySidNeighborObserverTest, AdjacencyInterfaceIdChangedReResolves) {
   cfg::MySidEntryConfig entry;
   cfg::AdjacencyMySidConfig adjConfig;
   adjConfig.portName() = "port5";
-  entry.adjacency_ref() = adjConfig;
+  entry.adjacency() = adjConfig;
   mySidConfig.entries()[1] = entry;
   config.mySidConfig() = mySidConfig;
   applyConfig(config);
