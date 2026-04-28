@@ -312,7 +312,7 @@ struct FabricLinkMonPortStats {
  * ports and received back via the IP2ME (CPU_IS_NHOP) trap mechanism.
  */
 struct CpuLatencyPortStats {
-  1: double latencyMs;
+  1: double latencyUs;
 }
 
 /*

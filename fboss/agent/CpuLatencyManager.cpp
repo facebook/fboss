@@ -268,17 +268,17 @@ void CpuLatencyManager::handlePacket(std::unique_ptr<RxPacket> pkt) {
                << " — dropping bogus timestamp";
     return;
   }
-  const double latencyMs =
-      static_cast<double>(rxTimestampNs - txTimestampNs) / 1'000'000.0;
+  const double latencyUs =
+      static_cast<double>(rxTimestampNs - txTimestampNs) / 1'000.0;
 
   XLOG(DBG3) << "CpuLatency: tx port=" << srcPort << " txTs=" << txTimestampNs
-             << " rxTs=" << rxTimestampNs << " latency=" << latencyMs << "ms";
+             << " rxTs=" << rxTimestampNs << " latency=" << latencyUs << "us";
 
   auto statsLocked = portStats_.wlock();
-  (*statsLocked)[srcPort].latencyMs() = latencyMs;
+  (*statsLocked)[srcPort].latencyUs() = latencyUs;
 
   // Record in SwitchStats histogram for fb303 export (P50/P99/avg).
-  sw_->stats()->cpuLatencyMs(latencyMs);
+  sw_->stats()->cpuLatencyUs(latencyUs);
 }
 
 } // namespace facebook::fboss
