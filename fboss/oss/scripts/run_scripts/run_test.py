@@ -84,8 +84,10 @@ from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_servic
 # Key format: vendor/coldboot-sai/warmboot-sai/asic (e.g., "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4")
 #
 # File locations:
-# - SAI/SAI Agent: ./share/hw_known_bad_tests/sai_*_known_bad_tests.materialized_JSON
+# - SAI:           ./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON
 #                  ./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON
+# - SAI Agent:     ./share/hw_known_bad_tests/sai_agent_known_bad_tests.materialized_JSON
+#                  ./share/sai_hw_unsupported_tests/sai_agent_hw_unsupported_tests.materialized_JSON
 # - QSFP: ./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON
 #         ./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON
 # - Link: ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON
@@ -157,6 +159,9 @@ ASIC_PRODUCTION_FEATURES = (
 )
 SAI_UNSUPPORTED_TESTS = (
     "./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON"
+)
+SAI_AGENT_UNSUPPORTED_TESTS = (
+    "./share/sai_hw_unsupported_tests/sai_agent_hw_unsupported_tests.materialized_JSON"
 )
 
 QSFP_SERVICE_DIR = "/dev/shm/fboss/qsfp_service"
@@ -1265,7 +1270,7 @@ class SaiAgentTestRunner(TestRunner):
 
     def _get_unsupported_tests_file(self):
         if not args.unsupported_tests_file:
-            return SAI_UNSUPPORTED_TESTS
+            return SAI_AGENT_UNSUPPORTED_TESTS
         return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
