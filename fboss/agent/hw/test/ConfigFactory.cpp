@@ -257,6 +257,11 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
         true,
         kDownlinkBaseVlanId /* TH3, TH4 ingress vlan case starts from 2000 */);
     for (auto portId : masterLogicalPortIds) {
+      // Port may have been removed as a subsumed port by a prior
+      // updatePortSpeed call on a controlling port in the same group.
+      if (utility::findCfgPortIf(config, portId) == config.ports()->end()) {
+        continue;
+      }
       utility::updatePortSpeed(
           platformMapping,
           supportsAddRemovePort,
