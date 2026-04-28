@@ -540,13 +540,13 @@
         },
         {
           "busName": "SMB_L_MUX_1@4",
-          "address": "0x76",
+          "address": "0x73",
           "kernelDeviceName": "mp2971",
           "pmUnitScopedName": "SMB_L_ASIC_VOLTAGE_4_2"
         },
         {
           "busName": "SMB_L_MUX_1@4",
-          "address": "0x73",
+          "address": "0x76",
           "kernelDeviceName": "mp2971",
           "pmUnitScopedName": "SMB_L_ASIC_VOLTAGE_4_1"
         },
