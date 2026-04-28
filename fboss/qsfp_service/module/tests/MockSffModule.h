@@ -162,10 +162,15 @@ class MockSffModule : public SffModule {
         .WillByDefault(testing::Return(moduleStatus));
   }
 
-  void setAppFwVersion(std::string fwVersion) {
+  void setAppFwVersion(
+      std::string fwVersion,
+      std::optional<int> buildNumber = std::nullopt) {
     ModuleStatus moduleStatus;
     FirmwareStatus fw;
     fw.version() = fwVersion;
+    if (buildNumber.has_value()) {
+      fw.buildNumber() = buildNumber.value();
+    }
     moduleStatus.fwStatus() = fw;
     ON_CALL(*this, getModuleStatus())
         .WillByDefault(testing::Return(moduleStatus));
