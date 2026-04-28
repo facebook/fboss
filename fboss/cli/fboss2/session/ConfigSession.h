@@ -91,6 +91,11 @@ class ConfigSession {
   // If no session exists, copies /etc/coop/agent.conf to ~/.fboss2/agent.conf
   static ConfigSession& getInstance();
 
+  // Reset the singleton (for testing only).
+  // Destroys the current instance so the next getInstance() creates a fresh
+  // session, re-reading config from disk.
+  static void resetInstance();
+
   // Static path getters - can be called without creating a session instance.
   // These are useful for checking if session files exist without triggering
   // session initialization.

@@ -93,6 +93,8 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h"
 #include "fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h"
 #include "fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h"
@@ -100,6 +102,8 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
 
 namespace facebook::fboss {
 
@@ -729,6 +733,18 @@ const CommandTree& kConfigCommandTree() {
        commandHandler<CmdConfigRollback>,
        argTypeHandler<CmdConfigRollbackTraits>},
 
+      {"config",
+       "tunnel",
+       "Configure tunnel settings",
+       commandHandler<CmdConfigTunnel>,
+       argTypeHandler<CmdConfigTunnelTraits>,
+       {{
+           "ip-in-ip",
+           "Configure IP-in-IP tunnel",
+           commandHandler<CmdConfigTunnelIpInIp>,
+           argTypeHandler<CmdConfigTunnelIpInIpTraits>,
+       }}},
+
       {
           "config",
           "vlan",
@@ -772,6 +788,18 @@ const CommandTree& kConfigCommandTree() {
        "Delete config objects",
        commandHandler<CmdDeleteConfig>,
        argTypeHandler<CmdDeleteConfigTraits>},
+
+      {"delete",
+       "tunnel",
+       "Delete (reset to default) tunnel settings",
+       commandHandler<CmdDeleteTunnel>,
+       argTypeHandler<CmdDeleteTunnelTraits>,
+       {{
+           "ip-in-ip",
+           "Delete IP-in-IP tunnel or reset its attributes",
+           commandHandler<CmdDeleteTunnelIpInIp>,
+           argTypeHandler<CmdDeleteTunnelIpInIpTraits>,
+       }}},
   };
   sort(root.begin(), root.end());
   return root;
