@@ -576,6 +576,20 @@ struct SaiPortTraits {
         bool,
         AttributeCablePropagationDelayMeasure,
         SaiBoolDefaultFalse>;
+    struct AttributeLinkUpDebouncePeriodMs {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkUpDebouncePeriodMs = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeLinkUpDebouncePeriodMs,
+        SaiIntDefault<sai_uint32_t>>;
+    struct AttributeLinkDownDebouncePeriodMs {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkDownDebouncePeriodMs = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeLinkDownDebouncePeriodMs,
+        SaiIntDefault<sai_uint32_t>>;
   };
   using AdapterKey = PortSaiId;
 
@@ -885,6 +899,8 @@ SAI_ATTRIBUTE_NAME(Port, PfcMonitorDirection)
 SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMediaType)
 SAI_ATTRIBUTE_NAME(Port, PfcPauseDurationOverride)
 SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMeasure)
+SAI_ATTRIBUTE_NAME(Port, LinkUpDebouncePeriodMs)
+SAI_ATTRIBUTE_NAME(Port, LinkDownDebouncePeriodMs)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)
