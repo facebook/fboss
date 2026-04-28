@@ -1,4 +1,7 @@
 load(
+
+# bazelify: exclude-all
+
     "//fboss/agent/hw/sai/benchmarks:benchmarks.bzl",
     "sai_mono_agent_benchmark",
     "sai_multi_switch_agent_benchmark",

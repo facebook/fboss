@@ -1,3 +1,4 @@
+# bazelify: include sai_hw_test_impl.bzl:sai_hw_test_impl
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 load(
     "//fboss/agent/hw/sai/hw_test:hw_test.bzl",

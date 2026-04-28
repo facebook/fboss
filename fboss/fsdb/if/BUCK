@@ -135,6 +135,8 @@ thrift_library(
     ],
 )
 
+# bazelify: extra_dep = //fboss/fsdb/if/oss:fsdb_model
+# bazelify: extra_dep = //fboss/fsdb/if/oss:fsdb_model_thriftpath
 cpp_library(
     name = "fsdb_model",
     headers = ["FsdbModel.h"],

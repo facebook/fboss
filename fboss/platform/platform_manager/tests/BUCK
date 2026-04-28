@@ -26,6 +26,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "config_utils_test",
     srcs = [
@@ -89,6 +90,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "device_path_resolver_test",
     srcs = [
@@ -113,6 +115,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "exploration_errors_test",
     srcs = [
@@ -123,6 +126,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "exploration_summary_test",
     srcs = [
@@ -135,6 +139,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "pkg_manager_test",
     srcs = [

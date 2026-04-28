@@ -6,6 +6,9 @@ load(
 
 oncall("fboss_agent_push")
 
+# bazelify: include sai_platform_impl.bzl:sai_platform_impl
+
+# bazelify: exclude
 cpp_library(
     name = "bcm-required-symbols",
     srcs = [

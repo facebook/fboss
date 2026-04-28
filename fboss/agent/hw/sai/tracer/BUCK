@@ -3,6 +3,8 @@ load("//fboss/agent/hw/sai/tracer:tracer.bzl", "sai_tracer_apis")
 
 oncall("fboss_agent_push")
 
+# bazelify: include sai_tracer_impl.bzl:sai_tracer_impl
+
 sai_tracer_apis()
 
 cpp_library(

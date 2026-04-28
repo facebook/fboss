@@ -2,6 +2,9 @@ load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 
 oncall("fboss_agent")
 
+
+# bazelify: exclude-all
+
 python_library(
     name = "fboss_cli_lib",
     srcs = [

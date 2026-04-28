@@ -3,6 +3,8 @@ load("//fboss/agent/hw/sai/switch:switch.bzl", "all_handler_libs", "all_npu_libs
 
 oncall("fboss_agent_push")
 
+# bazelify: include sai_switch_impl.bzl:sai_switch_impl
+
 thrift_library(
     name = "if",
     languages = [

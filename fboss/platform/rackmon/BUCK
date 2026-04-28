@@ -142,7 +142,7 @@ cpp_unittest(
     # @autodeps-skip
     name = "rackmon_test",
     srcs = [
-        "tests/DeviceLocationIteratorTest.cpp",
+        "tests/DeviceLocationIteratorTest.cpp",  # bazelify: exclude
         "tests/DeviceTest.cpp",
         "tests/ModbusCmdsTest.cpp",
         "tests/ModbusDeviceTest.cpp",
@@ -155,7 +155,7 @@ cpp_unittest(
         "tests/RackmonTest.cpp",
         "tests/RegisterDescriptorTest.cpp",
         "tests/RegisterMapTest.cpp",
-        "tests/RegisterSpanTest.cpp",
+        "tests/RegisterSpanTest.cpp",  # bazelify: exclude
         "tests/RegisterTest.cpp",
         "tests/RegisterValueTest.cpp",
         "tests/ThriftHandlerTest.cpp",

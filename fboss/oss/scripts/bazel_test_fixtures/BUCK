@@ -1,0 +1,27 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_oss")
+
+# Fixture used by test_bazelify.py to verify that bazelify generates a working
+# BUILD.bazel and that the resulting binaries link and run correctly.
+
+# external_deps uses the tuple format to reference a specific boost component.
+# If libboost_prg_exec_monitor.a leaks into the link it defines its own main(),
+# causing "duplicate symbol: main" against //fboss/util/oss:test_main.
+cpp_unittest(
+    name = "boost_test",
+    srcs = ["boost_test.cpp"],
+    external_deps = [("boost", None, "boost_container")],
+)
+
+cpp_unittest(
+    name = "gtest_main_test",
+    srcs = ["gtest_main_test.cpp"],
+    deps = [],
+)
+
+cpp_unittest(
+    name = "f14_test",
+    srcs = ["f14_test.cpp"],
+    deps = ["//folly/container:f14_hash"],
+)

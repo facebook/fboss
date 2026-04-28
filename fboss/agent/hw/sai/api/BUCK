@@ -3,6 +3,8 @@ load("//fboss/agent/hw/sai/api:api.bzl", "sai_api_libs")
 
 oncall("fboss_agent_push")
 
+# bazelify: include sai_api_impl.bzl:sai_api_impl
+
 cpp_library(
     name = "address_util",
     srcs = [

@@ -1,4 +1,7 @@
 load(
+
+# bazelify: exclude-all
+
     "//fboss/agent/platforms/wedge/utils:utils.bzl",
     "bcm_led_utils",
 )

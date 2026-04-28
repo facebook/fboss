@@ -3,12 +3,15 @@ load("//fboss/agent/hw/sai/diag:diag.bzl", "all_diag_bins", "all_diag_libs", "al
 
 oncall("fboss_agent_push")
 
+# bazelify: include sai_diag_impl.bzl:sai_diag_impl
+
 all_diag_libs()
 
 all_repl_libs()
 
 all_diag_bins()
 
+# bazelify: exclude
 cpp_library(
     name = "diag_lib",
     headers = [

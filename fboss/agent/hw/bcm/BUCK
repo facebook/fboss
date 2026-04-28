@@ -4,6 +4,8 @@ load("//fboss/agent/hw/bcm:bcm.bzl", "sdk_tracer_lib")
 
 oncall("fboss_agent_push")
 
+# bazelify: exclude-all
+
 common_srcs = [
     "BcmAclEntry.cpp",
     "BcmAclStat.cpp",

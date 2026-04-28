@@ -1,0 +1,30 @@
+# Hand-written BUILD file for OSS test main and OSS stubs.
+# Provides main() for cc_test targets, matching cmake's TestMain.cpp approach.
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "test_main",
+    srcs = ["TestMain.cpp"],
+    deps = [
+        "@folly//:folly",
+        "@googletest//:gtest",
+    ],
+    alwayslink = True,
+    visibility = ["//visibility:public"],
+)
+
+# OSS stubs for wedge_qsfp_util platform functions.
+# The internal facebook/wedge_qsfp_util.cpp is not available in OSS;
+# these stubs return (nullptr, EX_USAGE) for all platform calls.
+cc_library(
+    name = "wedge_qsfp_util_oss",
+    srcs = ["wedge_qsfp_util.cpp"],
+    deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/lib/usb:i2-api",
+        "//fboss/qsfp_service:transceiver-manager",
+        "@fb303//:fb303",
+    ],
+    visibility = ["//visibility:public"],
+)

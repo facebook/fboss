@@ -61,6 +61,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "counter_utils_test",
     srcs = [
@@ -74,6 +75,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "hw_port_fb303_stats_test",
     srcs = [
@@ -89,6 +91,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "hw_cpu_fb303_stats_test",
     srcs = [
@@ -102,6 +105,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "hw_resource_stats_publisher_test",
     srcs = [
@@ -214,6 +218,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "packet_util_tests",
     srcs = [
@@ -230,6 +235,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "hw_switch_ensemble_tests",
     srcs = [

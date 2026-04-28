@@ -2,6 +2,8 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 
 oncall("fboss_agent_push")
 
+# bazelify: add_src = oss/GalaxyFCPlatformMapping.cpp
+# bazelify: add_src = oss/GalaxyLCPlatformMapping.cpp
 cpp_library(
     name = "galaxy_platform_mapping",
     srcs = [

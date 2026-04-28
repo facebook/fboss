@@ -2,6 +2,7 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 
 oncall("fboss_agent_push")
 
+# bazelify: add_src = oss/Wedge100LedUtils.cpp
 cpp_library(
     name = "wedge-led-utils",
     srcs = [

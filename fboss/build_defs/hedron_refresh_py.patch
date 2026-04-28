@@ -1,0 +1,17 @@
+--- a/refresh.template.py
++++ b/refresh.template.py
+@@ -1414,8 +1414,12 @@
+     There should be actionable warnings, above, that led to this.""")
+         sys.exit(1)
+ 
+-    # Chain output into compile_commands.json
+-    with open('compile_commands.json', 'w') as output_file:
++    # Chain output into compile_commands.json.  Default location is
++    # /var/FBOSS/tmp_bld_dir/build/fboss/ to match the cmake build; override
++    # with FBOSS_COMPILE_COMMANDS_PATH.
++    output_path = os.environ.get("FBOSS_COMPILE_COMMANDS_PATH", "/var/FBOSS/tmp_bld_dir/build/fboss/compile_commands.json")
++    os.makedirs(os.path.dirname(output_path), exist_ok=True)
++    with open(output_path, 'w') as output_file:
+         json.dump(
+             compile_command_entries,
+             output_file,

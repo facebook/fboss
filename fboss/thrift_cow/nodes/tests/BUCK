@@ -19,6 +19,7 @@ thrift_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "thrift_hybrid_node_tests",
     srcs = [

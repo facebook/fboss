@@ -3,6 +3,9 @@ load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 
 oncall("fboss_agent")
 
+
+# bazelify: exclude-all
+
 python_library(
     name = "icecube800bc",
     srcs = ["icecube800bc.py"],

@@ -4,6 +4,9 @@ load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 
 oncall("fboss_optics_phy")
 
+
+# bazelify: exclude-all
+
 python_library(
     name = "link_explorer_app",
     srcs = ["link_explorer_app.py"],

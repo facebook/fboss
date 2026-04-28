@@ -5,7 +5,7 @@ oncall("fboss_oss")
 cpp_unittest(
     name = "cmd_config_test",
     srcs = [
-        "BgpConfigSessionTest.cpp",
+        "BgpConfigSessionTest.cpp",  # bazelify: exclude
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigHistoryTest.cpp",
         "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",

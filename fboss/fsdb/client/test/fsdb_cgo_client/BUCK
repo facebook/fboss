@@ -2,6 +2,9 @@ load("@fbcode_macros//build_defs:go_package.bzl", "go_package")
 
 oncall("fboss_agent_push")
 
+
+# bazelify: exclude-all
+
 go_package(
     name = "fsdb_cgo_client",
     deps = [

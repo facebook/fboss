@@ -1,0 +1,13 @@
+--- a/refresh.template.py
++++ b/refresh.template.py
+@@ -144,6 +144,10 @@
+         line = line.strip()
+         if line.startswith('actionKey = '):
+             action_keys.add(line[12:]) # Remainder after actionKey =
++        elif line.startswith('digest = '):
++            # Bazel 9 renamed the `actionKey = ` field to `digest = ` in
++            # `bazel dump --action_cache` output. Same 64-char hex value.
++            action_keys.add(line[9:])
+         elif line.startswith('Action cache (0 records):'):
+             marked_as_empty = True
+

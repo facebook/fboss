@@ -7,6 +7,8 @@ load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_agent_push")
 
+# bazelify: exclude-all
+
 [
     gen_sdk_build_info_src(
         name = "wedge_agent_{}_sdk_build_info".format(sdk.major_version),

@@ -9,6 +9,7 @@ cpp_library(
     ],
 )
 
+# bazelify: extra_dep = @gflags//:gflags
 cpp_library(
     name = "platform_mode",
     srcs = [
@@ -25,6 +26,7 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/PlatformProductInfo.cpp
 cpp_library(
     name = "product-info",
     srcs = [

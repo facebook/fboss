@@ -1,0 +1,11 @@
+# Hand-written BUILD file for configerator thrift common types
+# This thrift file is synced from the configerator repo
+
+load("//fboss/build_defs:thrift_library.bzl", "fboss_thrift_library")
+
+fboss_thrift_library(
+    name = "common",
+    thrift_srcs = ["common.thrift"],
+    thrift_cpp2_options = "json,reflection",
+    visibility = ["//visibility:public"],
+)

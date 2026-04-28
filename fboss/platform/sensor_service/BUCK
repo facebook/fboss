@@ -5,6 +5,7 @@ load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
 oncall("fboss_platform")
 
+# bazelify: add_src = oss/FsdbSyncer.cpp
 cpp_library(
     name = "service",
     srcs = [
@@ -73,10 +74,11 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/PmClientFactory.cpp
 cpp_library(
     name = "pmunit_info_fetcher",
     srcs = [
-        "PmClientFactory.cpp",
+        "PmClientFactory.cpp",  # bazelify: exclude
         "PmUnitInfoFetcher.cpp",
     ],
     exported_deps = [

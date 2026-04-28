@@ -3,6 +3,7 @@ load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_optics_phy")
 
+# bazelify: add_src = oss/QsfpFsdbSyncManager.cpp
 cpp_library(
     name = "fsdb-syncer",
     srcs = [

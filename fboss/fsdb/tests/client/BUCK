@@ -26,6 +26,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "fsdb_pub_sub_tests",
     srcs = [

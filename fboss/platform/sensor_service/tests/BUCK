@@ -43,6 +43,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "config_validator_test",
     srcs = [
@@ -53,6 +54,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "sensor_service_asic_temp_test",
     srcs = [
@@ -67,6 +69,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "sensor_service_power_consumption_test",
     srcs = [
@@ -79,6 +82,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "sensor_service_temperature_test",
     srcs = [
@@ -91,6 +95,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "sensor_service_input_voltage_test",
     srcs = [

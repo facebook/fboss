@@ -40,6 +40,15 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/DarwinLedManager.cpp
+# bazelify: add_src = oss/ElbertLedManager.cpp
+# bazelify: add_src = oss/FsdbSwitchStateSubscriber.cpp
+# bazelify: add_src = oss/FujiLedManager.cpp
+# bazelify: add_src = oss/MinipackLedManager.cpp
+# bazelify: add_src = oss/Wedge400BaseLedManager.cpp
+# bazelify: add_src = oss/Wedge400CLedManager.cpp
+# bazelify: add_src = oss/Wedge400LedManager.cpp
+# bazelify: add_src = oss/YampLedManager.cpp
 cpp_library(
     name = "led_manager",
     srcs = [

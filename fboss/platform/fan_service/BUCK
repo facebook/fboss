@@ -56,6 +56,8 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/DataFetcher.cpp
+# bazelify: add_src = oss/FsdbSensorSubscriber.cpp
 cpp_library(
     name = "core",
     srcs = [

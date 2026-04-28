@@ -78,8 +78,8 @@ cpp_library(
     name = "wedge_i2c",
     srcs = [
         "GalaxyI2CBus.cpp",
-        "Minipack16QI2CBus.cpp",
-        "Minipack16QTransceiverApi.cpp",
+        "Minipack16QI2CBus.cpp",  # bazelify: exclude
+        "Minipack16QTransceiverApi.cpp",  # bazelify: exclude
         "PCA9548.cpp",
         "PCA9548MultiplexedBus.cpp",
         "PCA9548MuxedBus.cpp",

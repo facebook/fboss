@@ -1,0 +1,19 @@
+--- a/refresh_compile_commands.bzl
++++ b/refresh_compile_commands.bzl
+@@ -57,6 +57,7 @@
+ # Implementation
+ 
+ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
++load("@rules_python//python:defs.bzl", "py_binary")
+ 
+ 
+ def refresh_compile_commands(
+@@ -92,7 +93,7 @@
+     _expand_template(name = script_name, labels_to_flags = targets, exclude_headers = exclude_headers, exclude_external_sources = exclude_external_sources, **kwargs)
+ 
+     # Combine them so the wrapper calls the main script
+-    native.py_binary(
++    py_binary(
+         name = name,
+         main = version_checker_script_name,
+         srcs = [version_checker_script_name, script_name],

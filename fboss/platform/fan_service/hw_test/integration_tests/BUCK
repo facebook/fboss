@@ -2,6 +2,9 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 
 oncall("fboss_platform")
 
+
+# bazelify: exclude-all
+
 cpp_binary(
     name = "fan_service_integration_test",
     srcs = [

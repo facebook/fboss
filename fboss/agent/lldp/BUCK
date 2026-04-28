@@ -34,6 +34,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "lldp_tests",
     srcs = [

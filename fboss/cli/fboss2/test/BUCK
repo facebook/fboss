@@ -37,14 +37,14 @@ cpp_unittest(
     name = "framework_test",
     srcs = [
         "AggregationParsingTest.cpp",
-        "AggregationTest.cpp",
-        "AggregationValidationTest.cpp",
+        "AggregationTest.cpp",  # bazelify: exclude
+        "AggregationValidationTest.cpp",  # bazelify: exclude
         "CmdArgsTest.cpp",
-        "CmdHelpTest.cpp",
+        "CmdHelpTest.cpp",  # bazelify: exclude
         "CmdSubCommandsTest.cpp",
-        "FilterTest.cpp",
-        "FilterValidationTest.cpp",
-        "//fboss/cli/fboss2:cmd-list-config-impl",
+        "FilterTest.cpp",  # bazelify: exclude
+        "FilterValidationTest.cpp",  # bazelify: exclude
+        "//fboss/cli/fboss2:cmd-list-config-impl",  # bazelify: exclude
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
@@ -78,13 +78,13 @@ cpp_unittest(
         "CmdShowExampleTest.cpp",
         "CmdShowFlowletTest.cpp",
         "CmdShowFsdbTest.cpp",
-        "CmdShowHardwareTest.cpp",
+        "CmdShowHardwareTest.cpp",  # bazelify: exclude
         "CmdShowHostTest.cpp",
         "CmdShowHwAgentStatusTest.cpp",
         "CmdShowHwObjectTest.cpp",
         "CmdShowInterfaceCountersTest.cpp",
         "CmdShowInterfaceErrorsTest.cpp",
-        "CmdShowInterfaceFlapsTest.cpp",
+        "CmdShowInterfaceFlapsTest.cpp",  # bazelify: exclude
         "CmdShowInterfaceStatusTest.cpp",
         "CmdShowInterfaceTest.cpp",
         "CmdShowInterfaceTrafficTest.cpp",
@@ -98,12 +98,12 @@ cpp_unittest(
         "CmdShowRouteDetailsTest.cpp",
         "CmdShowRouteSummaryTest.cpp",
         "CmdShowTeFlowTest.cpp",
-        "CmdShowTransceiverTest.cpp",
+        "CmdShowTransceiverTest.cpp",  # bazelify: exclude
         "CmdStartPcapTest.cpp",
         "CmdStopPcapTest.cpp",
         "GitTest.cpp",
         "PortMapTest.cpp",
-        "//fboss/cli/fboss2:cmd-list-config-impl",
+        "//fboss/cli/fboss2:cmd-list-config-impl",  # bazelify: exclude
     ],
     # Config files for PortMapTest parameterized tests
     resources = [

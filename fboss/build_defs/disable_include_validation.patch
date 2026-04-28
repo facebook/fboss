@@ -1,0 +1,12 @@
+--- cc/common/semantics.bzl	2026-04-02 01:36:05.966674784 +0000
++++ cc/common/semantics.bzl	2026-04-02 01:36:05.966674784 +0000
+@@ -167,7 +167,8 @@
+              "This is only used internally for a mechanism we'd like to get rid of.")
+
+ def _needs_include_validation(language):
+-    return language == "c++" or language == "cpp" or language == None
++    # Disabled: FBOSS BUCK files do not declare all headers explicitly.
++    return False
+
+ semantics = struct(
+     toolchain = "@bazel_tools//tools/cpp:toolchain_type",

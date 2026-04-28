@@ -4,6 +4,8 @@ load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versi
 
 oncall("fboss_agent_push")
 
+# bazelify: exclude-all
+
 cpp_library(
     name = "soak_test",
     srcs = [

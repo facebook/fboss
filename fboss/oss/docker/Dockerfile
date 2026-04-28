@@ -119,4 +119,9 @@ RUN if [ "$USERNAME" != "root" ] && [ "$USER_UID" != "0" ]; then \
 # Support sudo in a privileged container
 RUN chmod 600 /etc/shadow
 
+# Install Bazelisk (auto-downloads the correct Bazel version)
+RUN dnf install -y java-11-openjdk-devel && \
+    curl -L https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 -o /usr/local/bin/bazel && \
+    chmod +x /usr/local/bin/bazel
+
 USER ${USERNAME}

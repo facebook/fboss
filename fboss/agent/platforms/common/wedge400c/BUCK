@@ -2,10 +2,13 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 
 oncall("fboss_agent_push")
 
+# bazelify: add_src = oss/Wedge400CGrandTetonPlatformMapping.cpp
+# bazelify: add_src = oss/Wedge400CPlatformMapping.cpp
+# bazelify: add_src = oss/Wedge400CPlatformUtil.cpp
 cpp_library(
     name = "wedge400c_platform_mapping",
     srcs = [
-        "Wedge400CPlatformUtil.cpp",
+        "Wedge400CPlatformUtil.cpp",  # bazelify: exclude
         "facebook/Wedge400CGrandTetonPlatformMapping.cpp",
         "facebook/Wedge400CPlatformMapping.cpp",
     ],

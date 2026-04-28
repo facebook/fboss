@@ -3,12 +3,14 @@ load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_optics_phy")
 
+# bazelify: add_src = oss/QsfpModule.cpp
+# bazelify: add_src = oss/SffModule.cpp
 cpp_library(
     name = "qsfp-module",
     srcs = [
         "QsfpHelper.cpp",
         "QsfpModule.cpp",
-        "QsfpUtil.cpp",
+        "QsfpUtil.cpp",  # bazelify: exclude
         "cmis/CmisFieldInfo.cpp",
         "cmis/CmisModule.cpp",
         "cmis/facebook/CmisModule.cpp",

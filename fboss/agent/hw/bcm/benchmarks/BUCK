@@ -2,6 +2,9 @@ load("//fboss/agent/hw/bcm/benchmarks:bcm_benchmarks.bzl", "bcm_agent_benchmark"
 
 oncall("fboss_agent_push")
 
+
+# bazelify: exclude-all
+
 bcm_agent_benchmark(
     name = "bcm_ecmp_shrink_speed",
     srcs = [],

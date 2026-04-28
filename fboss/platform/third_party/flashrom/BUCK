@@ -1,5 +1,7 @@
 load("@fbcode//registry:defs.bzl", "rpm")
 
+# bazelify: exclude-all
+
 oncall("fboss_platform")
 
 rpm.builder(
