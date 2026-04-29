@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: I001
 # Copyright Meta Platforms, Inc. and affiliates.
 
 """
@@ -8,6 +9,8 @@ Provides comprehensive coverage of the BenchmarkTestRunner class,
 including benchmark loading, parsing, execution, and error handling.
 """
 
+import io
+import json
 import os
 import subprocess
 import tempfile
@@ -38,6 +41,7 @@ def mock_args():
     args.sai_logging = "WARN"
     args.fboss_logging = "WARN"
     args.test_run_timeout = 300
+    args.skip_known_bad_tests = None
     return args
 
 
@@ -152,138 +156,132 @@ def test_get_benchmarks_all_default_configs_missing(mock_exists, runner, capsys)
 
 
 def test_parse_benchmark_output_success(runner):
-    """Test parsing successful benchmark output with all metrics"""
-    stdout = """
-RibResolutionBenchmark                                       1.46s   684.78m
-{"cpu_time_usec": 1460000, "max_rss": 123456}
-"""
+    """Test parsing successful --json benchmark output"""
+    stdout = '{"RibResolutionBenchmark": 1460000000000}\n{"cpu_time_usec": 1460000, "max_rss": 123456}\n'
 
     result = runner._parse_benchmark_output("test_binary", stdout)
 
     assert result["benchmark_binary_name"] == "test_binary"
     assert result["benchmark_test_name"] == "RibResolutionBenchmark"
     assert result["test_status"] == "OK"
-    assert result["relative_time_per_iter"] == "1.46s"
-    assert result["iters_per_sec"] == "684.78m"
     assert result["cpu_time_usec"] == "1460000"
     assert result["max_rss"] == "123456"
+    assert result["metrics"]["RibResolutionBenchmark"] == 1460000000000
 
 
-def test_parse_benchmark_output_missing_json(runner):
-    """Test parsing benchmark output with missing JSON metrics"""
-    stdout = """
-RibResolutionBenchmark                                       1.46s   684.78m
-"""
+def test_parse_benchmark_output_with_rx_pps(runner):
+    """Test parsing output with cpu_rx_pps metric"""
+    stdout = '{"RxSlowPathBenchmark": 1460000000000}\n{"cpu_rx_pps": 200000}\n{"cpu_time_usec": 1460000, "max_rss": 123456}\n'
 
     result = runner._parse_benchmark_output("test_binary", stdout)
 
-    assert result["benchmark_binary_name"] == "test_binary"
+    assert result["test_status"] == "OK"
+    assert result["benchmark_test_name"] == "RxSlowPathBenchmark"
+    assert result["cpu_rx_pps"] == "200000"
+    assert result["metrics"]["cpu_rx_pps"] == 200000
+    assert result["metrics"]["RxSlowPathBenchmark"] == 1460000000000
+
+
+def test_parse_benchmark_output_missing_rusage(runner):
+    """Test parsing output with missing rusage JSON"""
+    stdout = '{"RibResolutionBenchmark": 1460000000000}\n'
+
+    result = runner._parse_benchmark_output("test_binary", stdout)
+
     assert result["benchmark_test_name"] == "RibResolutionBenchmark"
-    assert result["test_status"] == "FAILED"  # Missing JSON means FAILED
-    assert result["relative_time_per_iter"] == "1.46s"
-    assert result["iters_per_sec"] == "684.78m"
+    assert result["test_status"] == "FAILED"
     assert result["cpu_time_usec"] == ""
-    assert result["max_rss"] == ""
 
 
-def test_parse_benchmark_output_missing_benchmark_line(runner):
-    """Test parsing benchmark output with missing benchmark line"""
-    stdout = """
-{"cpu_time_usec": 1460000, "max_rss": 123456}
-"""
+def test_parse_benchmark_output_missing_benchmark(runner):
+    """Test parsing output with only rusage JSON (no benchmark name)"""
+    stdout = '{"cpu_time_usec": 1460000, "max_rss": 123456}\n'
 
     result = runner._parse_benchmark_output("test_binary", stdout)
 
-    assert result["benchmark_binary_name"] == "test_binary"
     assert result["benchmark_test_name"] == ""
-    assert result["test_status"] == "FAILED"  # Missing benchmark line means FAILED
-    assert result["relative_time_per_iter"] == ""
-    assert result["iters_per_sec"] == ""
+    assert result["test_status"] == "FAILED"
     assert result["cpu_time_usec"] == "1460000"
-    assert result["max_rss"] == "123456"
 
 
 def test_parse_benchmark_output_empty(runner):
     """Test parsing empty benchmark output"""
     result = runner._parse_benchmark_output("test_binary", "")
 
-    assert result["benchmark_binary_name"] == "test_binary"
     assert result["benchmark_test_name"] == ""
     assert result["test_status"] == "FAILED"
-    assert result["relative_time_per_iter"] == ""
-    assert result["iters_per_sec"] == ""
-    assert result["cpu_time_usec"] == ""
-    assert result["max_rss"] == ""
+    assert result["metrics"] == {}
 
 
-def test_parse_benchmark_output_with_units(runner):
-    """Test parsing benchmark output with different time units"""
-    stdout = """
-FastBenchmark                                                123ms   8.13
-{"cpu_time_usec": 123000, "max_rss": 98765}
-"""
+def test_parse_benchmark_output_with_noise(runner):
+    """Test parsing output with non-JSON text interspersed"""
+    stdout = 'DMA pool size: 16777216\n{"HwEcmpGroupShrink": 1460000000000}\nSome debug output\n{"cpu_time_usec": 1460000, "max_rss": 123456}\n'
 
     result = runner._parse_benchmark_output("test_binary", stdout)
 
     assert result["test_status"] == "OK"
-    assert result["benchmark_test_name"] == "FastBenchmark"
-    assert result["relative_time_per_iter"] == "123ms"
-    assert result["iters_per_sec"] == "8.13"
+    assert result["benchmark_test_name"] == "HwEcmpGroupShrink"
+    assert result["metrics"]["HwEcmpGroupShrink"] == 1460000000000
 
 
 # Tests for _run_benchmark_binary
 
 
-@patch("subprocess.run")
-def test_run_benchmark_binary_success(mock_run, runner, mock_args):
+def _mock_popen(stdout_text, returncode=0):
+    """Create a mock Popen that simulates streaming output line by line."""
+    mock_proc = Mock()
+    mock_proc.stdout = io.StringIO(stdout_text)
+    mock_proc.stderr = io.StringIO("")
+    mock_proc.returncode = returncode
+    mock_proc.wait = Mock(return_value=returncode)
+    mock_proc.kill = Mock()
+    return mock_proc
+
+
+@patch("subprocess.Popen")
+def test_run_benchmark_binary_success(mock_popen_cls, runner, mock_args):
     """Test successful benchmark binary execution"""
-    mock_result = Mock()
-    mock_result.returncode = 0
-    mock_result.stdout = """
-TestBenchmark                                                2.5s    400m
-{"cpu_time_usec": 2500000, "max_rss": 200000}
-"""
-    mock_result.stderr = ""
-    mock_run.return_value = mock_result
+    mock_popen_cls.return_value = _mock_popen(
+        '{"TestBenchmark": 2500000000000}\n{"cpu_time_usec": 2500000, "max_rss": 200000}\n'
+    )
 
     result = runner._run_benchmark_binary("/opt/fboss/bin/test_bench", mock_args)
 
     assert result["test_status"] == "OK"
     assert result["benchmark_test_name"] == "TestBenchmark"
-    mock_run.assert_called_once()
+    mock_popen_cls.assert_called_once()
 
 
-@patch("subprocess.run")
-def test_run_benchmark_binary_timeout(mock_run, runner, mock_args):
+@patch("subprocess.Popen")
+def test_run_benchmark_binary_timeout(mock_popen_cls, runner, mock_args):
     """Test benchmark binary timeout handling"""
-    mock_run.side_effect = subprocess.TimeoutExpired("cmd", 300)
+    mock_proc = _mock_popen("")
+    mock_proc.wait.side_effect = subprocess.TimeoutExpired("cmd", 300)
+    mock_popen_cls.return_value = mock_proc
 
     result = runner._run_benchmark_binary("/opt/fboss/bin/test_bench", mock_args)
 
     assert result["test_status"] == "TIMEOUT"
     assert result["benchmark_binary_name"] == "/opt/fboss/bin/test_bench"
     assert result["benchmark_test_name"] == ""
+    mock_proc.kill.assert_called_once()
 
 
-@patch("subprocess.run")
-def test_run_benchmark_binary_failure(mock_run, runner, mock_args):
+@patch("subprocess.Popen")
+def test_run_benchmark_binary_failure(mock_popen_cls, runner, mock_args):
     """Test benchmark binary execution failure"""
-    mock_result = Mock()
-    mock_result.returncode = 1
-    mock_result.stdout = "Some error output"
-    mock_result.stderr = "Error message"
-    mock_run.return_value = mock_result
+    mock_popen_cls.return_value = _mock_popen("Some error output\n", returncode=1)
 
     result = runner._run_benchmark_binary("/opt/fboss/bin/test_bench", mock_args)
 
     assert result["test_status"] == "FAILED"
-    mock_run.assert_called_once()
+    mock_popen_cls.assert_called_once()
 
 
-@patch("subprocess.run")
-def test_run_benchmark_binary_exception(mock_run, runner, mock_args):
+@patch("subprocess.Popen")
+def test_run_benchmark_binary_exception(mock_popen_cls, runner, mock_args):
     """Test benchmark binary execution with exception"""
-    mock_run.side_effect = Exception("Unexpected error")
+    mock_popen_cls.side_effect = Exception("Unexpected error")
 
     result = runner._run_benchmark_binary("/opt/fboss/bin/test_bench", mock_args)
 
@@ -291,25 +289,19 @@ def test_run_benchmark_binary_exception(mock_run, runner, mock_args):
     assert result["benchmark_binary_name"] == "/opt/fboss/bin/test_bench"
 
 
-@patch("subprocess.run")
-def test_run_benchmark_binary_with_config(mock_run, runner, mock_args):
+@patch("subprocess.Popen")
+def test_run_benchmark_binary_with_config(mock_popen_cls, runner, mock_args):
     """Test benchmark binary execution with config arguments"""
     mock_args.config = "/path/to/config.conf"
     mock_args.mgmt_if = "eth1"
 
-    mock_result = Mock()
-    mock_result.returncode = 0
-    mock_result.stdout = """
-TestBenchmark                                                1.0s    1000m
-{"cpu_time_usec": 1000000, "max_rss": 100000}
-"""
-    mock_result.stderr = ""
-    mock_run.return_value = mock_result
+    mock_popen_cls.return_value = _mock_popen(
+        '{"TestBenchmark": 1000000000000}\n{"cpu_time_usec": 1000000, "max_rss": 100000}\n'
+    )
 
     runner._run_benchmark_binary("/opt/fboss/bin/test_bench", mock_args)
 
-    # Verify config arguments were passed
-    call_args = mock_run.call_args[0][0]
+    call_args = mock_popen_cls.call_args[0][0]
     assert "--config" in call_args
     assert "/path/to/config.conf" in call_args
     assert "--mgmt-if" in call_args
@@ -371,28 +363,31 @@ def test_run_test_execution(
             "benchmark_binary_name": "/opt/fboss/bin/benchmark1",
             "benchmark_test_name": "Bench1",
             "test_status": "OK",
-            "relative_time_per_iter": "1.0s",
-            "iters_per_sec": "1000m",
             "cpu_time_usec": "1000000",
             "max_rss": "100000",
+            "cpu_rx_pps": "",
+            "cpu_tx_pps": "",
+            "metrics": {"Bench1": 1000000000000},
         },
         {
             "benchmark_binary_name": "/opt/fboss/bin/benchmark2",
             "benchmark_test_name": "Bench2",
             "test_status": "OK",
-            "relative_time_per_iter": "2.0s",
-            "iters_per_sec": "500m",
             "cpu_time_usec": "2000000",
             "max_rss": "200000",
+            "cpu_rx_pps": "",
+            "cpu_tx_pps": "",
+            "metrics": {"Bench2": 2000000000000},
         },
         {
             "benchmark_binary_name": "/opt/fboss/bin/benchmark3",
             "benchmark_test_name": "Bench3",
             "test_status": "OK",
-            "relative_time_per_iter": "3.0s",
-            "iters_per_sec": "333m",
             "cpu_time_usec": "3000000",
             "max_rss": "300000",
+            "cpu_rx_pps": "",
+            "cpu_tx_pps": "",
+            "metrics": {"Bench3": 3000000000000},
         },
     ]
 
@@ -461,10 +456,11 @@ def test_run_test_some_missing_binaries(
             "benchmark_binary_name": "/opt/fboss/bin/benchmark1",
             "benchmark_test_name": "Bench1",
             "test_status": "OK",
-            "relative_time_per_iter": "1.0s",
-            "iters_per_sec": "1000m",
             "cpu_time_usec": "1000000",
             "max_rss": "100000",
+            "cpu_rx_pps": "",
+            "cpu_tx_pps": "",
+            "metrics": {"Bench1": 1000000000000},
         }
 
         runner.run_test(mock_args)
@@ -577,3 +573,254 @@ def test_load_from_file_comments_and_whitespace():
         assert result == ["entry1"]
     finally:
         os.unlink(temp_file)
+
+
+# Tests for _find_jsons_in_str
+
+
+def test_find_jsons_in_str_multiple(runner):
+    """Test extracting multiple JSON objects from mixed output"""
+    output = 'noise\n{"a": 1}\nmore noise\n{"b": 2, "c": 3}\n'
+    result = runner._find_jsons_in_str(output)
+    assert len(result) == 2
+    assert result[0] == {"a": 1}
+    assert result[1] == {"b": 2, "c": 3}
+
+
+def test_find_jsons_in_str_empty(runner):
+    """Test extracting from empty string"""
+    assert runner._find_jsons_in_str("") == []
+
+
+def test_find_jsons_in_str_no_json(runner):
+    """Test extracting from string with no JSON"""
+    assert runner._find_jsons_in_str("just plain text") == []
+
+
+# Tests for _load_known_bad_test_regexes
+
+
+@pytest.fixture
+def temp_sai_bench_config():
+    """Create a temporary sai_bench config JSON file"""
+    config = {
+        "team": "sai_bench",
+        "known_bad_tests": {
+            "brcm/10.2.0.0_odp/tomahawk4": [
+                {"test_name_regex": ".*Voq.*", "reason": "VOQ not applicable"},
+                {
+                    "test_name_regex": "HwInitAndExitFabricBenchmark",
+                    "reason": "Fabric not applicable",
+                },
+            ],
+            "brcm/10.2.0.0_odp/tomahawk4/mono": [
+                {"test_name_regex": "ExtraMonoTest", "reason": "Mono specific"},
+            ],
+        },
+        "buck_rule_or_test_id_to_benchmark_thres": {
+            "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwEcmpGroupShrink": [
+                {
+                    "test_config_regex": ".*/tomahawk4.*",
+                    "thresholds": [
+                        {
+                            "metric_key_regex": "HwEcmpGroupShrink",
+                            "upper_bound": 25000000000000,  # picoseconds
+                        }
+                    ],
+                }
+            ],
+            "fboss.agent.hw.sai.benchmarks.multi_switch.RxSlowPathBenchmark": [
+                {
+                    "test_config_regex": ".*/tomahawk4.*",
+                    "thresholds": [
+                        {"metric_key_regex": "cpu_rx_pps", "lower_bound": 138800}
+                    ],
+                }
+            ],
+        },
+    }
+
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
+        json.dump(config, f)
+        temp_file = f.name
+
+    yield temp_file
+
+    if os.path.exists(temp_file):
+        os.unlink(temp_file)
+
+
+@patch("run_test.SAI_BENCH_CONFIG", new="nonexistent_file.json")
+def test_load_known_bad_test_regexes_missing_file(runner):
+    """Test loading known bad tests when config file doesn't exist"""
+    result = runner._load_known_bad_test_regexes("brcm/10.2.0.0_odp/tomahawk4")
+    assert result == []
+
+
+def test_load_known_bad_test_regexes_exact_key(runner, temp_sai_bench_config):
+    """Test loading known bad tests with exact key match"""
+    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+        regexes = runner._load_known_bad_test_regexes("brcm/10.2.0.0_odp/tomahawk4")
+    # Should get regexes from exact key only (no suffix appending)
+    assert ".*Voq.*" in regexes
+    assert "HwInitAndExitFabricBenchmark" in regexes
+
+
+def test_load_known_bad_test_regexes_no_match(runner, temp_sai_bench_config):
+    """Test loading known bad tests with no matching key"""
+    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+        regexes = runner._load_known_bad_test_regexes("brcm/10.2.0.0_odp/tomahawk5")
+    assert regexes == []
+
+
+# Tests for _find_thresholds_for_benchmark
+
+
+def test_find_thresholds_mono_match(runner, temp_sai_bench_config):
+    """Test finding thresholds for a mono benchmark by metric key in output"""
+    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+        all_thresholds = runner._load_benchmark_thresholds()
+    metrics = {"HwEcmpGroupShrink": 10000000000000, "cpu_time_usec": 123}
+    thresholds = runner._find_thresholds_for_benchmark(
+        metrics,
+        is_multi_switch=False,
+        platform_key="brcm/10.2.0.0_odp/tomahawk4",
+        all_thresholds=all_thresholds,
+    )
+    assert len(thresholds) == 1
+    assert thresholds[0]["metric_key_regex"] == "HwEcmpGroupShrink"
+    assert thresholds[0]["upper_bound"] == 25000000000000
+
+
+def test_find_thresholds_multi_switch_match(runner, temp_sai_bench_config):
+    """Test finding thresholds for a multi-switch benchmark by metric key"""
+    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+        all_thresholds = runner._load_benchmark_thresholds()
+    metrics = {"RxSlowPathBenchmark": 1460000000000, "cpu_rx_pps": 200000}
+    thresholds = runner._find_thresholds_for_benchmark(
+        metrics,
+        is_multi_switch=True,
+        platform_key="brcm/10.2.0.0_odp/tomahawk4",
+        all_thresholds=all_thresholds,
+    )
+    assert len(thresholds) == 1
+    assert thresholds[0]["metric_key_regex"] == "cpu_rx_pps"
+    assert thresholds[0]["lower_bound"] == 138800
+
+
+def test_find_thresholds_no_match(runner, temp_sai_bench_config):
+    """Test finding thresholds when no output metric matches any config key"""
+    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+        all_thresholds = runner._load_benchmark_thresholds()
+    metrics = {"NonExistentBenchmark": 100, "cpu_time_usec": 123}
+    thresholds = runner._find_thresholds_for_benchmark(
+        metrics,
+        is_multi_switch=False,
+        platform_key="brcm/10.2.0.0_odp/tomahawk4",
+        all_thresholds=all_thresholds,
+    )
+    assert thresholds == []
+
+
+def test_find_thresholds_platform_mismatch(runner, temp_sai_bench_config):
+    """Test that platform regex mismatch returns empty"""
+    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+        all_thresholds = runner._load_benchmark_thresholds()
+    metrics = {"HwEcmpGroupShrink": 10000000000000}
+    thresholds = runner._find_thresholds_for_benchmark(
+        metrics,
+        is_multi_switch=False,
+        platform_key="brcm/10.2.0.0_odp/tomahawk5",
+        all_thresholds=all_thresholds,
+    )
+    assert thresholds == []
+
+
+# Tests for _check_thresholds
+
+
+def test_check_thresholds_pass(runner):
+    """Test threshold check when metric is within bounds"""
+    result = {
+        "metrics": {"HwEcmpGroupShrink": 10000000000000},  # 10s in picoseconds
+    }
+    thresholds = [
+        {
+            "metric_key_regex": "HwEcmpGroupShrink",
+            "upper_bound": 25000000000000,  # 25s in picoseconds
+        }
+    ]
+    violations = runner._check_thresholds(result, thresholds)
+    assert violations == []
+
+
+def test_check_thresholds_upper_exceeded(runner):
+    """Test threshold check when metric exceeds upper bound"""
+    result = {
+        "metrics": {"HwEcmpGroupShrink": 30000000000000},  # 30s in picoseconds
+    }
+    thresholds = [
+        {
+            "metric_key_regex": "HwEcmpGroupShrink",
+            "upper_bound": 25000000000000,  # 25s in picoseconds
+        }
+    ]
+    violations = runner._check_thresholds(result, thresholds)
+    assert len(violations) == 1
+    assert "upper_bound" in violations[0]
+
+
+def test_check_thresholds_lower_violated(runner):
+    """Test threshold check when metric is below lower bound"""
+    result = {
+        "metrics": {"cpu_rx_pps": 100000},
+    }
+    thresholds = [{"metric_key_regex": "cpu_rx_pps", "lower_bound": 138800}]
+    violations = runner._check_thresholds(result, thresholds)
+    assert len(violations) == 1
+    assert "lower_bound" in violations[0]
+
+
+def test_check_thresholds_missing_metric_no_violation(runner):
+    """Test that missing metric does not cause violation"""
+    result = {
+        "metrics": {"SomeOtherBenchmark": 10000000000000},
+    }
+    thresholds = [
+        {
+            "metric_key_regex": "HwEcmpGroupShrink",
+            "upper_bound": 25000000000000,
+        }
+    ]
+    violations = runner._check_thresholds(result, thresholds)
+    assert violations == []
+
+
+def test_parse_benchmark_output_folly_json_format(runner):
+    """Test parsing folly --json output format (JSON object with name: picoseconds)"""
+    stdout = """{
+  "RibResolutionBenchmark": 1460000000000
+}
+{"cpu_time_usec": 1460000, "max_rss": 123456}
+"""
+    result = runner._parse_benchmark_output("test_binary", stdout)
+    assert result["test_status"] == "OK"
+    assert result["benchmark_test_name"] == "RibResolutionBenchmark"
+    assert result["metrics"]["RibResolutionBenchmark"] == 1460000000000
+    assert result["cpu_time_usec"] == "1460000"
+    assert result["max_rss"] == "123456"
+
+
+def test_parse_benchmark_output_folly_json_with_pps(runner):
+    """Test parsing folly --json output with cpu_rx_pps metric"""
+    stdout = """{
+  "RxSlowPathBenchmark": 500000000
+}
+{"cpu_rx_pps": 200000}
+{"cpu_time_usec": 500000, "max_rss": 98765}
+"""
+    result = runner._parse_benchmark_output("sai_rx_slow_path_rate-sai_impl", stdout)
+    assert result["test_status"] == "OK"
+    assert result["benchmark_test_name"] == "RxSlowPathBenchmark"
+    assert result["metrics"]["RxSlowPathBenchmark"] == 500000000
+    assert result["cpu_rx_pps"] == "200000"

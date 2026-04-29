@@ -10,6 +10,7 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 import time
 from argparse import ArgumentParser
 from datetime import datetime
@@ -163,6 +164,7 @@ SAI_UNSUPPORTED_TESTS = (
 SAI_AGENT_UNSUPPORTED_TESTS = (
     "./share/sai_hw_unsupported_tests/sai_agent_hw_unsupported_tests.materialized_JSON"
 )
+SAI_BENCH_CONFIG = "./share/hw_benchmark_tests/sai_bench.materialized_JSON"
 
 QSFP_SERVICE_DIR = "/dev/shm/fboss/qsfp_service"
 QSFP_WARMBOOT_CHECK_FILE = f"{QSFP_SERVICE_DIR}/can_warm_boot"
@@ -1660,71 +1662,248 @@ class BenchmarkTestRunner:
             default=None,
         )
 
+    def _load_known_bad_test_regexes(self, platform_key):
+        """Load known bad test regexes from sai_bench config JSON.
+        Args:
+            platform_key: Platform key string (e.g., 'brcm/10.2.0.0_odp/tomahawk4')
+
+        Returns:
+            List of regex pattern strings for known bad tests
+        """
+        # Build keys to try: exact key + stripped version if it has a run_mode suffix
+        # Matches TestRunner._initialize_test_lists pattern (always exactly 1 or 2 keys)
+        keys_to_try = [platform_key]
+        for suffix in ("/mono", "/multi_switch"):
+            if platform_key.endswith(suffix):
+                keys_to_try.append(platform_key[: -len(suffix)])
+                break
+
+        return TestRunner._get_test_regexes_from_file(
+            self,
+            file_path=SAI_BENCH_CONFIG,
+            test_dict_key="known_bad_tests",
+            keys_to_try=keys_to_try,
+        )
+
+    def _load_benchmark_thresholds(self):
+        """Load benchmark thresholds from sai_bench config JSON.
+
+        Returns:
+            Dict mapping test IDs to lists of threshold configs,
+            or empty dict if file not found
+        """
+        if not os.path.exists(SAI_BENCH_CONFIG):
+            return {}
+
+        with open(SAI_BENCH_CONFIG) as f:
+            config = json.load(f)
+
+        return config.get("buck_rule_or_test_id_to_benchmark_thres", {})
+
+    def _find_thresholds_for_benchmark(
+        self, metrics, is_multi_switch, platform_key, all_thresholds
+    ):
+        """Find matching thresholds for a benchmark using its output metrics.
+
+        Matches metric keys from the output against threshold entries by
+        comparing against the last dot-segment of each config key.
+
+        Args:
+            metrics: Dict of all metrics from benchmark output
+            is_multi_switch: Whether binary is a multi-switch variant
+            platform_key: Platform key for test_config_regex matching
+            all_thresholds: Dict from _load_benchmark_thresholds()
+
+        Returns:
+            List of MetricThreshold dicts, or empty list
+        """
+        metric_keys = set(metrics.keys())
+
+        candidates = []
+        for key, threshold_configs in all_thresholds.items():
+            if ".warmboot" in key:
+                continue
+
+            last_segment = key.rsplit(".", 1)[-1]
+            # Match if any output metric key matches the last segment of the config key
+            if last_segment not in metric_keys:
+                continue
+
+            is_multi_key = ".multi_switch." in key
+            candidates.append((key, threshold_configs, is_multi_key))
+
+        if not candidates:
+            return []
+
+        candidates.sort(key=lambda c: c[2] != is_multi_switch)
+
+        for _key, threshold_configs, _is_multi in candidates:
+            for config_entry in threshold_configs:
+                if re.search(config_entry["test_config_regex"], platform_key):
+                    return config_entry.get("thresholds", [])
+
+        return []
+
+    def _check_thresholds(self, result, thresholds):
+        """Check benchmark metrics against thresholds.
+
+        Args:
+            result: Parsed benchmark result dict
+            thresholds: List of threshold dicts with metric_key_regex,
+                       optional lower_bound, optional upper_bound
+
+        Returns:
+            List of violation description strings (empty = all pass)
+        """
+        # With --json, all metrics are already in their native units:
+        # - benchmark name key: picoseconds (from folly --json)
+        # - cpu_rx_pps, cpu_tx_pps: packets per second
+        # - max_rss, cpu_time_usec: from rusage
+        # These match the threshold units in the config directly.
+        metrics = result.get("metrics", {})
+
+        violations = []
+        for threshold in thresholds:
+            metric_regex = threshold.get("metric_key_regex", "")
+            lower = threshold.get("lower_bound")
+            upper = threshold.get("upper_bound")
+
+            for metric_key, metric_value in metrics.items():
+                if not re.search(metric_regex, metric_key):
+                    continue
+                if lower is not None and metric_value < lower:
+                    violations.append(
+                        f"{metric_key}={metric_value} < lower_bound={lower}"
+                    )
+                if upper is not None and metric_value > upper:
+                    violations.append(
+                        f"{metric_key}={metric_value} > upper_bound={upper}"
+                    )
+
+        return violations
+
+    @staticmethod
+    def _find_jsons_in_str(output):
+        """Extract all JSON dicts from a string that may contain non-JSON text.
+
+        Scans for '{' characters and tries json.JSONDecoder().raw_decode()
+        at each position.
+
+        Returns:
+            List of parsed dict objects
+        """
+        decoder = json.JSONDecoder()
+        results = []
+        idx = 0
+        while idx < len(output):
+            idx = output.find("{", idx)
+            if idx == -1:
+                break
+            try:
+                obj, end_idx = decoder.raw_decode(output, idx)
+                if isinstance(obj, dict):
+                    results.append(obj)
+                idx = end_idx
+            except (json.JSONDecodeError, ValueError):
+                idx += 1
+        return results
+
     def _parse_benchmark_output(self, binary_name, stdout):
         """Parse benchmark output to extract metrics.
+
+        With --json flag, the binary outputs multiple JSON objects:
+        - folly benchmark: {"BenchmarkName": <picoseconds>}
+        - benchmark-specific: {"cpu_rx_pps": <value>} (optional)
+        - rusage: {"cpu_time_usec": <value>, "max_rss": <value>}
+
+        All JSON key-value pairs are collected into a flat metrics dict
+        for threshold comparison.
 
         Returns a dict with:
         - benchmark_binary_name: str
         - benchmark_test_name: str
         - test_status: str (OK, FAILED, or TIMEOUT)
-        - relative_time_per_iter: str (includes time unit)
-        - iters_per_sec: str (includes possible numeric suffix)
-        - cpu_time_usec: str
-        - max_rss: str
+        - metrics: dict of all JSON key-value pairs (for threshold comparison)
+        - cpu_time_usec: str (for CSV)
+        - max_rss: str (for CSV)
+        - cpu_rx_pps: str (for CSV)
+        - cpu_tx_pps: str (for CSV)
         """
         result = {
             "benchmark_binary_name": binary_name,
             "benchmark_test_name": "",
             "test_status": "FAILED",
-            "relative_time_per_iter": "",
-            "iters_per_sec": "",
             "cpu_time_usec": "",
             "max_rss": "",
+            "cpu_rx_pps": "",
+            "cpu_tx_pps": "",
+            "metrics": {},
         }
 
-        # Look for the benchmark name line (e.g., "RibResolutionBenchmark                                       1.46s   684.78m")
-        # Pattern: benchmark name followed by time and rate
-        benchmark_line_pattern = (
-            r"^([A-Za-z0-9_]+)\s+(\d+\.?\d*[a-z]?s)\s+(\d+\.?\d*[a-z]?)$"
-        )
+        json_dicts = self._find_jsons_in_str(stdout)
 
-        # Look for cpu_time_usec and max_rss in JSON output (separate patterns so order doesn't matter)
-        cpu_time_pattern = r'"cpu_time_usec":\s*(\d+)'
-        max_rss_pattern = r'"max_rss":\s*(\d+)'
+        # Merge all JSON dicts into a flat metrics dict
+        all_metrics = {}
+        for d in json_dicts:
+            all_metrics.update(d)
 
-        found_benchmark_line = False
-        found_json = False
+        result["metrics"] = all_metrics
 
-        # Parse multiline benchmark result line
-        match = re.search(benchmark_line_pattern, stdout, re.MULTILINE)
-        if match:
-            result["benchmark_test_name"] = match.group(1)
-            result["relative_time_per_iter"] = match.group(2)
-            result["iters_per_sec"] = match.group(3)
-            found_benchmark_line = True
+        # Identify benchmark test name: the key from folly --json output
+        # It's the key that is NOT a known metric name (cpu_time_usec, max_rss, etc.)
+        known_metric_keys = {
+            "cpu_time_usec",
+            "max_rss",
+            "cpu_rx_pps",
+            "cpu_tx_pps",
+            "cpu_rx_bytes_per_sec",
+            "cpu_tx_bytes_per_sec",
+            "worst_case_lookup_msescs",
+            "worst_case_bulk_lookup_msescs",
+            "warm_boot_msecs",
+            "program_routes_msecs",
+            "subscribe_latency_ms",
+            "tx_pps",
+            "tx_bps",
+            "rx_pps",
+            "rx_bps",
+        }
+        for key, value in all_metrics.items():
+            if key not in known_metric_keys and isinstance(value, (int, float)):
+                result["benchmark_test_name"] = key
+                break
 
-        # Parse JSON output for cpu_time_usec and max_rss independently
-        cpu_match = re.search(cpu_time_pattern, stdout)
-        rss_match = re.search(max_rss_pattern, stdout)
-        if cpu_match and rss_match:
-            result["cpu_time_usec"] = cpu_match.group(1)
-            result["max_rss"] = rss_match.group(1)
-            found_json = True
+        # Populate CSV fields from metrics
+        for key in known_metric_keys:
+            if key in all_metrics:
+                result[key] = str(all_metrics[key])
 
-        # Only mark as OK if we found both the benchmark line and JSON
-        if found_benchmark_line and found_json:
+        # OK if we found both a benchmark name and rusage JSON
+        if result["benchmark_test_name"] and "cpu_time_usec" in all_metrics:
             result["test_status"] = "OK"
 
         return result
 
+    BENCHMARK_CLEANUP_DELAY_SECONDS = 5
+
+    @staticmethod
+    def _read_stream(stream, lines_list, prefix=""):
+        """Read lines from a stream, print them in real-time, and collect them."""
+        for line in stream:
+            print(f"{prefix}{line}", end="", flush=True)
+            lines_list.append(line)
+
     def _run_benchmark_binary(self, binary_name, args):
-        """Run a single benchmark binary and return parsed results"""
+        """Run a single benchmark binary and return parsed results.
+
+        Uses Popen to stream output in real-time instead of buffering
+        until process exit, so users can see benchmark progress.
+        """
         print(f"########## Running benchmark binary: {binary_name}", flush=True)
 
-        # Build command to run the benchmark
-        run_cmd = [binary_name]
+        # --json makes folly output {"BenchmarkName": <picoseconds>} instead of table
+        run_cmd = [binary_name, "--json"]
 
-        # Add config and other args if provided
         if args.config:
             run_cmd.extend(["--config", args.config, "--mgmt-if", args.mgmt_if])
         if args.platform_mapping_override_path is not None:
@@ -1737,62 +1916,80 @@ class BenchmarkTestRunner:
         if args.fruid_path is not None:
             run_cmd.extend(["--fruid_filepath=" + args.fruid_path])
 
-        # Add logging flags
         run_cmd.extend(["--enable_sai_log", args.sai_logging])
-        run_cmd.extend(["--logging", args.fboss_logging])
+        run_cmd.extend(["--logging", "WARN"])
 
         print(f"Running command: {' '.join(run_cmd)}", flush=True)
 
         try:
-            # Run the benchmark binary
-            result = subprocess.run(
+            process = subprocess.Popen(
                 run_cmd,
-                check=False,
-                timeout=args.test_run_timeout,
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
             )
 
-            print(f"########## Benchmark output for {binary_name}:")
-            print(result.stdout)
-            if result.stderr:
-                print(f"########## Benchmark stderr for {binary_name}:")
-                print(result.stderr)
+            stdout_lines = []
+            stderr_lines = []
 
-            if result.returncode != 0:
-                print(
-                    f"########## Benchmark {binary_name} failed with return code {result.returncode}"
-                )
-                # Parse output even on failure to get partial results
-            else:
-                print(f"########## Benchmark {binary_name} completed")
-            return self._parse_benchmark_output(binary_name, result.stdout)
-
-        except subprocess.TimeoutExpired:
-            print(
-                f"########## Benchmark {binary_name} timed out after {args.test_run_timeout} seconds"
+            stdout_thread = threading.Thread(
+                target=self._read_stream,
+                args=(process.stdout, stdout_lines),
             )
-            # Return timed out result with no metrics
-            return {
-                "benchmark_binary_name": binary_name,
-                "benchmark_test_name": "",
-                "test_status": "TIMEOUT",
-                "relative_time_per_iter": "",
-                "iters_per_sec": "",
-                "cpu_time_usec": "",
-                "max_rss": "",
-            }
+            stderr_thread = threading.Thread(
+                target=self._read_stream,
+                args=(process.stderr, stderr_lines, "[stderr] "),
+            )
+            stdout_thread.start()
+            stderr_thread.start()
+
+            try:
+                process.wait(timeout=args.test_run_timeout)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                stdout_thread.join()
+                stderr_thread.join()
+                print(
+                    f"\n########## Benchmark {binary_name} timed out after "
+                    f"{args.test_run_timeout} seconds"
+                )
+                return {
+                    "benchmark_binary_name": binary_name,
+                    "benchmark_test_name": "",
+                    "test_status": "TIMEOUT",
+                    "cpu_time_usec": "",
+                    "max_rss": "",
+                    "cpu_rx_pps": "",
+                    "cpu_tx_pps": "",
+                    "metrics": {},
+                }
+
+            stdout_thread.join()
+            stderr_thread.join()
+
+            captured_stdout = "".join(stdout_lines)
+
+            if process.returncode != 0:
+                print(
+                    f"\n########## Benchmark {binary_name} failed with "
+                    f"return code {process.returncode}"
+                )
+            else:
+                print(f"\n########## Benchmark {binary_name} completed")
+
+            return self._parse_benchmark_output(binary_name, captured_stdout)
+
         except Exception as e:
             print(f"########## Error running benchmark {binary_name}: {e!s}")
-            # Return failed result with no metrics
             return {
                 "benchmark_binary_name": binary_name,
                 "benchmark_test_name": "",
                 "test_status": "FAILED",
-                "relative_time_per_iter": "",
-                "iters_per_sec": "",
                 "cpu_time_usec": "",
                 "max_rss": "",
+                "cpu_rx_pps": "",
+                "cpu_tx_pps": "",
+                "metrics": {},
             }
 
     def _get_benchmarks_to_run(self, filter_file=None):
@@ -1832,7 +2029,7 @@ class BenchmarkTestRunner:
 
         return benchmarks_to_run
 
-    def run_test(self, args):  # noqa: PLR0912 - complex benchmark orchestration; splitting would harm readability
+    def run_test(self, args):  # noqa: PLR0912, PLR0915
         """Run benchmark test binaries"""
         benchmarks_to_run = self._get_benchmarks_to_run(args.filter_file)
 
@@ -1844,6 +2041,18 @@ class BenchmarkTestRunner:
             for benchmark in benchmarks_to_run:
                 print(benchmark)
             return
+
+        # Initialize known-bad regexes and thresholds
+        known_bad_regexes = []
+        all_thresholds = {}
+        platform_key = getattr(args, "skip_known_bad_tests", None)
+        if platform_key:
+            known_bad_regexes = self._load_known_bad_test_regexes(platform_key)
+            all_thresholds = self._load_benchmark_thresholds()
+            print(
+                f"Loaded {len(known_bad_regexes)} known bad test patterns "
+                f"and {len(all_thresholds)} threshold configs for '{platform_key}'"
+            )
 
         print(f"Total benchmarks to run: {len(benchmarks_to_run)}")
 
@@ -1878,7 +2087,62 @@ class BenchmarkTestRunner:
         results = []
         for benchmark_path in existing_benchmarks:
             benchmark_result = self._run_benchmark_binary(benchmark_path, args)
+
+            test_name = benchmark_result.get("benchmark_test_name", "")
+
+            # Check if known bad test
+            if (
+                test_name
+                and known_bad_regexes
+                and TestRunner._test_matches_any_regex(
+                    self, test_name, known_bad_regexes
+                )
+            ):
+                benchmark_result["test_status"] = "SKIPPED"
+                benchmark_result["threshold_status"] = "N/A"
+                benchmark_result["threshold_details"] = "Known bad test"
+                print(f"  >> SKIPPED (known bad): {test_name}")
+            elif (
+                benchmark_result["test_status"] == "OK"
+                and all_thresholds
+                and platform_key
+            ):
+                # Check thresholds for passing benchmarks
+                is_multi = "multi_switch" in os.path.basename(benchmark_path)
+                thresholds = self._find_thresholds_for_benchmark(
+                    benchmark_result.get("metrics", {}),
+                    is_multi,
+                    platform_key,
+                    all_thresholds,
+                )
+                if thresholds:
+                    violations = self._check_thresholds(benchmark_result, thresholds)
+                    if violations:
+                        benchmark_result["threshold_status"] = "EXCEEDED"
+                        benchmark_result["threshold_details"] = "; ".join(violations)
+                        print(
+                            f"  >> THRESHOLD EXCEEDED: {test_name}: "
+                            f"{benchmark_result['threshold_details']}"
+                        )
+                    else:
+                        benchmark_result["threshold_status"] = "PASS"
+                        benchmark_result["threshold_details"] = ""
+                else:
+                    benchmark_result["threshold_status"] = "NO_THRESHOLD"
+                    benchmark_result["threshold_details"] = ""
+            else:
+                benchmark_result["threshold_status"] = "N/A"
+                benchmark_result["threshold_details"] = ""
+
             results.append(benchmark_result)
+
+            # Delay between runs to allow SAI/ASIC cleanup
+            print(
+                f"Waiting {self.BENCHMARK_CLEANUP_DELAY_SECONDS}s for "
+                f"hardware cleanup...",
+                flush=True,
+            )
+            time.sleep(self.BENCHMARK_CLEANUP_DELAY_SECONDS)
 
         # Write results to CSV file
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -1889,12 +2153,16 @@ class BenchmarkTestRunner:
                 "benchmark_binary_name",
                 "benchmark_test_name",
                 "test_status",
-                "relative_time_per_iter",
-                "iters_per_sec",
                 "cpu_time_usec",
                 "max_rss",
+                "cpu_rx_pps",
+                "cpu_tx_pps",
+                "threshold_status",
+                "threshold_details",
             ]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer = csv.DictWriter(
+                csvfile, fieldnames=fieldnames, extrasaction="ignore"
+            )
 
             writer.writeheader()
             for result in results:
@@ -1907,20 +2175,33 @@ class BenchmarkTestRunner:
         print("BENCHMARK RESULTS SUMMARY")
         print("=" * 80)
         for result in results:
-            print(f"{result['benchmark_binary_name']}: {result['test_status']}")
+            status = result["test_status"]
+            threshold = result.get("threshold_status", "")
+            suffix = ""
+            if threshold == "EXCEEDED":
+                suffix = f" [THRESHOLD EXCEEDED: {result['threshold_details']}]"
+            elif threshold == "PASS":
+                suffix = " [THRESHOLD PASS]"
+            print(f"{result['benchmark_binary_name']}: {status}{suffix}")
         print("=" * 80)
 
         # Count results
         ok = sum(1 for r in results if r["test_status"] == "OK")
         failed = sum(1 for r in results if r["test_status"] == "FAILED")
         timed_out = sum(1 for r in results if r["test_status"] == "TIMEOUT")
+        skipped = sum(1 for r in results if r["test_status"] == "SKIPPED")
+        threshold_exceeded = sum(
+            1 for r in results if r.get("threshold_status") == "EXCEEDED"
+        )
         print(f"\nTotal: {len(results)} benchmarks")
         print(f"OK: {ok}")
         print(f"Failed: {failed}")
         print(f"Timed Out: {timed_out}")
+        print(f"Skipped (known bad): {skipped}")
+        print(f"Threshold Exceeded: {threshold_exceeded}")
 
-        # Exit with error if any benchmarks failed or timed out
-        if failed > 0 or timed_out > 0:
+        # Exit with error if any benchmarks failed, timed out, or exceeded thresholds
+        if failed > 0 or timed_out > 0 or threshold_exceeded > 0:
             sys.exit(1)
 
 
