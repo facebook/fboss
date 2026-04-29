@@ -64,11 +64,7 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeWarmBootTargetVersionWrapper::operator()() {
-#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001)
   return SAI_SWITCH_ATTR_EXT_WARM_BOOT_TARGET_VERSION;
-#else
-  return std::nullopt;
-#endif
 }
 
 std::optional<sai_attr_id_t>
@@ -145,6 +141,16 @@ SaiSwitchTraits::fabricInterCellJitterWatermarkStats() {
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::deletedCredits() {
   static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::deviceWatermarkBytes() {
+#if !defined(TAJO_SDK_VERSION_1_42_8)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_DEVICE_WATERMARK_BYTES};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
   return stats;
 }
 

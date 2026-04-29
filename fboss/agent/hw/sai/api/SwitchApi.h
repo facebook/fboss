@@ -1008,6 +1008,7 @@ struct SaiSwitchTraits {
   static const std::vector<sai_stat_id_t>& packetIntegrityError();
   static const std::vector<sai_stat_id_t>&
   fabricInterCellJitterWatermarkStats();
+  static const std::vector<sai_stat_id_t>& deviceWatermarkBytes();
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)

@@ -209,4 +209,27 @@ TEST(DataStoreTest, HardwareVersion) {
   EXPECT_EQ(allVersions["chassis_eeprom_version"], "6");
 }
 
+TEST(DataStoreTest, EepromProductName) {
+  PlatformConfig config;
+  DataStore dataStore(config);
+
+  dataStore.updatePmUnitName("/PSU_SLOT@0", "PSU");
+  dataStore.updatePmUnitEepromProductName("/PSU_SLOT@0", "DC3K12V_M_L");
+
+  auto pmUnitInfo = dataStore.getPmUnitInfo("/PSU_SLOT@0");
+  EXPECT_EQ(*pmUnitInfo.name(), "PSU");
+  EXPECT_TRUE(pmUnitInfo.eepromProductName().has_value());
+  EXPECT_EQ(*pmUnitInfo.eepromProductName(), "DC3K12V_M_L");
+
+  // Update eepromProductName
+  dataStore.updatePmUnitEepromProductName("/PSU_SLOT@0", "AC3K12V_M_L");
+  pmUnitInfo = dataStore.getPmUnitInfo("/PSU_SLOT@0");
+  EXPECT_EQ(*pmUnitInfo.eepromProductName(), "AC3K12V_M_L");
+
+  // Slot without eepromProductName should not have it set
+  dataStore.updatePmUnitName("/PSU_SLOT@1", "PSU");
+  pmUnitInfo = dataStore.getPmUnitInfo("/PSU_SLOT@1");
+  EXPECT_FALSE(pmUnitInfo.eepromProductName().has_value());
+}
+
 } // namespace facebook::fboss::platform::platform_manager

@@ -21,7 +21,6 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/mka_service/if/gen-cpp2/mka_structs_types.h"
 
-#include <boost/container/flat_map.hpp>
 #include <map>
 #include <string>
 #include <vector>
@@ -48,7 +47,7 @@ struct PortFields {
     bool priorityTagged;
   };
 
-  using VlanMembership = boost::container::flat_map<VlanID, VlanInfo>;
+  using VlanMembership = std::map<VlanID, VlanInfo>;
   using LLDPValidations = std::map<cfg::LLDPTag, std::string>;
   using NeighborReachability = std::vector<cfg::PortNeighbor>;
 

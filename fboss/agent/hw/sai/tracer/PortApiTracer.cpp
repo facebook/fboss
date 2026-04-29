@@ -91,6 +91,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, RxSNR),
 #endif
     SAI_ATTR_MAP(Port, LinkTrainingEnable),
+    SAI_ATTR_MAP(Port, LinkTrainingRxStatus),
     SAI_ATTR_MAP(Port, FabricAttached),
     SAI_ATTR_MAP(Port, FabricAttachedPortIndex),
     SAI_ATTR_MAP(Port, FabricAttachedSwitchId),
@@ -208,6 +209,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, CablePropagationDelayMediaType)
   SAI_EXT_ATTR_MAP(Port, PfcPauseDurationOverride)
   SAI_EXT_ATTR_MAP(Port, CablePropagationDelayMeasure)
+  SAI_EXT_ATTR_MAP(Port, LinkUpDebouncePeriodMs)
+  SAI_EXT_ATTR_MAP(Port, LinkDownDebouncePeriodMs)
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)

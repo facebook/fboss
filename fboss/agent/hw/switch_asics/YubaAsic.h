@@ -124,7 +124,7 @@ class YubaAsic : public TajoAsic {
     return 2048;
   }
   std::optional<uint32_t> getMaxSrv6EcmpNextHops() const override {
-    return 8000;
+    return 7800;
   }
   std::optional<uint32_t> getMaxSrv6SingleNextHops() const override {
     return 3000;
@@ -199,8 +199,10 @@ class YubaAsic : public TajoAsic {
   }
 
  private:
+  bool isSrv6Supported() const;
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;
+  static constexpr auto kSrv6MinSdkRequired = "26.2.5210";
   std::optional<uint64_t> currentSdkVersion_{std::nullopt};
 };
 

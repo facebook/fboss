@@ -87,6 +87,13 @@ CLI::App* CmdSubcommands::addCommand(
           CmdLocalOptions::getInstance()->getLocalOptionMap(fullCmd);
       auto& getLocalOptions = *localOptionsHandler;
       for (const auto& localOption : getLocalOptions()) {
+        if (localOption.isFlag) {
+          subCmd->add_flag(
+              localOption.name,
+              localOptionMap[localOption.name],
+              localOption.helpMsg);
+          continue;
+        }
         auto* cliOpt = subCmd->add_option(
             localOption.name,
             localOptionMap[localOption.name],

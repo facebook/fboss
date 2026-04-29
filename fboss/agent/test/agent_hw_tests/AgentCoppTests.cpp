@@ -454,7 +454,7 @@ class AgentCoppTest : public AgentHwTest {
           useInterfaceMac
               ? getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())
               : getLocalMacAddress());
-      flat_set<PortDescriptor> ports;
+      boost::container::flat_set<PortDescriptor> ports;
       ports.insert(PortDescriptor(AggregatePortID(1)));
       applyNewState(
           [this, &ports, &ecmpHelper](std::shared_ptr<SwitchState> /*in*/) {

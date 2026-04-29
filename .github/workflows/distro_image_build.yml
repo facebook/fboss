@@ -3,10 +3,14 @@ run-name: Distro Image Build
 
 on:
   pull_request:
+    paths:
+      - 'fboss-image/**'
   # Allow manually triggering the workflow
   workflow_dispatch:
   push:
     branches: [ main ]
+    paths:
+      - 'fboss-image/**'
 
 jobs:
   Distro-Image-Build:

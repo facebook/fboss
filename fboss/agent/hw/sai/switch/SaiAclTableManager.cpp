@@ -674,6 +674,19 @@ void SaiAclTableManager::updateUdfGroupAttributes(
 }
 #endif
 
+std::shared_ptr<SaiAclRange> SaiAclTableManager::getOrCreateAclRange(
+    sai_int32_t rangeType,
+    uint32_t min,
+    uint32_t max) {
+  sai_u32_range_t limit{.min = min, .max = max};
+  SaiAclRangeTraits::Attributes::Type typeAttr{rangeType};
+  SaiAclRangeTraits::Attributes::Limit limitAttr{limit};
+  SaiAclRangeTraits::AdapterHostKey key{typeAttr, limitAttr};
+  SaiAclRangeTraits::CreateAttributes attrs{typeAttr, limitAttr};
+  auto& store = saiStore_->get<SaiAclRangeTraits>();
+  return store.setObject(key, attrs);
+}
+
 AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
     const std::string& aclTableName) {
@@ -821,6 +834,21 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         SaiAclEntryTraits::Attributes::FieldL4DstPort{AclEntryFieldU16(
             std::make_pair(
                 addedAclEntry->getL4DstPort().value(), kL4PortMask))};
+  }
+
+  std::optional<SaiAclEntryTraits::Attributes::FieldAclRangeType>
+      fieldAclRangeType{std::nullopt};
+  std::shared_ptr<SaiAclRange> dstPortRangeObj;
+  if (addedAclEntry->getL4DstPortRange()) {
+    auto range = addedAclEntry->getL4DstPortRange().value();
+    dstPortRangeObj = getOrCreateAclRange(
+        SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE,
+        *range.minimum(),
+        *range.maximum());
+    std::vector<sai_object_id_t> rangeOids{dstPortRangeObj->adapterKey()};
+    fieldAclRangeType = SaiAclEntryTraits::Attributes::FieldAclRangeType{
+        AclEntryFieldSaiObjectIdList(
+            std::make_pair(rangeOids, std::vector<sai_object_id_t>{}))};
   }
 
   bool matchV4 = !addedAclEntry->getEtherType().has_value() ||
@@ -1335,14 +1363,15 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldSrcIpV4.has_value() || fieldDstIpV4.has_value() ||
        fieldSrcPort.has_value() || fieldOutPort.has_value() ||
        fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
-       fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
-       fieldIpFrag.has_value() || fieldIcmpV4Type.has_value() ||
-       fieldIcmpV4Code.has_value() || fieldIcmpV6Type.has_value() ||
-       fieldIcmpV6Code.has_value() || fieldDscp.has_value() ||
-       fieldDstMac.has_value() || fieldIpType.has_value() ||
-       fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
-       fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
-       fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
+       fieldAclRangeType.has_value() || fieldIpProtocol.has_value() ||
+       fieldTcpFlags.has_value() || fieldIpFrag.has_value() ||
+       fieldIcmpV4Type.has_value() || fieldIcmpV4Code.has_value() ||
+       fieldIcmpV6Type.has_value() || fieldIcmpV6Code.has_value() ||
+       fieldDscp.has_value() || fieldDstMac.has_value() ||
+       fieldIpType.has_value() || fieldTtl.has_value() ||
+       fieldFdbDstUserMeta.has_value() || fieldRouteDstUserMeta.has_value() ||
+       fieldEtherType.has_value() || fieldNeighborDstUserMeta.has_value() ||
+       fieldOuterVlanId.has_value() ||
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
        fieldBthOpcode.has_value() ||
 #endif
@@ -1420,6 +1449,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       fieldEtherType,
       fieldOuterVlanId,
+      fieldAclRangeType,
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       fieldBthOpcode,
 #endif
@@ -1463,6 +1493,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);
   auto entryHandle = std::make_unique<SaiAclEntryHandle>();
+  entryHandle->dstPortRange = dstPortRangeObj;
   entryHandle->aclEntry = saiAclEntry;
   entryHandle->aclCounter = saiAclCounter;
   entryHandle->aclCounterTypeAndName = aclCounterTypeAndName;
@@ -1692,6 +1723,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4;
   bool isQumran4d =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D;
+  bool isFake =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_FAKE;
   bool isTomahawk5 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
   bool isTomahawk6 =
@@ -1847,6 +1880,9 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     // ETHER_TYPE required for Aifm controller packets using 0x88B6
     if (isTomahawk6) {
       bcmQualifiers.insert(cfg::AclTableQualifier::ETHER_TYPE);
+    }
+    if (isFake) {
+      bcmQualifiers.insert(cfg::AclTableQualifier::L4_DST_PORT_RANGE);
     }
 
     return bcmQualifiers;
@@ -2026,6 +2062,12 @@ bool SaiAclTableManager::isQualifierSupported(
 #else
       return false;
 #endif
+    case cfg::AclTableQualifier::L4_DST_PORT_RANGE: {
+      auto field = std::get<
+          std::optional<SaiAclTableTraits::Attributes::FieldAclRangeType>>(
+          attributes);
+      return field.has_value();
+    }
     case cfg::AclTableQualifier::UDF:
       /* not supported */
       return false;

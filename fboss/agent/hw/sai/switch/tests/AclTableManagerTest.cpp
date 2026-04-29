@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
@@ -271,4 +272,103 @@ TEST_F(AclTableManagerTest, aclMirroring) {
   auto gotMirrorSaiIdList = saiApiTable->aclApi().getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::ActionMirrorIngress());
   EXPECT_EQ((gotMirrorSaiIdList.getData())[0], mirrorHandle->adapterKey());
+}
+
+TEST_F(AclTableManagerTest, addAclEntryWithL4DstPortRange) {
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
+  cfg::Range range;
+  range.minimum() = 1000;
+  range.maximum() = 2000;
+  aclEntry->setL4DstPortRange(range);
+  aclEntry->setActionType(kActionType());
+
+  saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+
+  auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
+      aclTableHandle, kPriority());
+  ASSERT_TRUE(aclEntryHandle);
+  ASSERT_TRUE(aclEntryHandle->dstPortRange);
+
+  auto rangeType = saiApiTable->aclApi().getAttribute(
+      aclEntryHandle->dstPortRange->adapterKey(),
+      SaiAclRangeTraits::Attributes::Type());
+  EXPECT_EQ(rangeType, SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE);
+
+  auto rangeLimit = saiApiTable->aclApi().getAttribute(
+      aclEntryHandle->dstPortRange->adapterKey(),
+      SaiAclRangeTraits::Attributes::Limit());
+  EXPECT_EQ(rangeLimit.min, 1000);
+  EXPECT_EQ(rangeLimit.max, 2000);
+}
+
+TEST_F(AclTableManagerTest, removeAclEntryWithRange) {
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
+  cfg::Range range;
+  range.minimum() = 1000;
+  range.maximum() = 2000;
+  aclEntry->setL4DstPortRange(range);
+  aclEntry->setActionType(kActionType());
+
+  saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+
+  auto& rangeStore = saiStore->get<SaiAclRangeTraits>();
+  EXPECT_EQ(rangeStore.size(), 1);
+
+  saiManagerTable->aclTableManager().removeAclEntry(
+      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+
+  auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
+      aclTableHandle, kPriority());
+  EXPECT_FALSE(aclEntryHandle);
+  EXPECT_EQ(rangeStore.size(), 0);
+}
+
+TEST_F(AclTableManagerTest, twoEntriesSameRange) {
+  cfg::Range range;
+  range.minimum() = 1000;
+  range.maximum() = 2000;
+
+  auto aclEntry1 =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
+  aclEntry1->setL4DstPortRange(range);
+  aclEntry1->setActionType(kActionType());
+  saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry1, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+
+  auto aclEntry2 =
+      std::make_shared<AclEntry>(kPriority2(), std::string("AclEntry2"));
+  aclEntry2->setL4DstPortRange(range);
+  aclEntry2->setActionType(kActionType());
+  saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry2, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+
+  auto& rangeStore = saiStore->get<SaiAclRangeTraits>();
+  EXPECT_EQ(rangeStore.size(), 1);
+
+  auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  auto handle1 = saiManagerTable->aclTableManager().getAclEntryHandle(
+      aclTableHandle, kPriority());
+  auto handle2 = saiManagerTable->aclTableManager().getAclEntryHandle(
+      aclTableHandle, kPriority2());
+  ASSERT_TRUE(handle1->dstPortRange);
+  ASSERT_TRUE(handle2->dstPortRange);
+  EXPECT_EQ(
+      handle1->dstPortRange->adapterKey(), handle2->dstPortRange->adapterKey());
+
+  saiManagerTable->aclTableManager().removeAclEntry(
+      aclEntry1, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  EXPECT_EQ(rangeStore.size(), 1);
+
+  saiManagerTable->aclTableManager().removeAclEntry(
+      aclEntry2, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  EXPECT_EQ(rangeStore.size(), 0);
 }

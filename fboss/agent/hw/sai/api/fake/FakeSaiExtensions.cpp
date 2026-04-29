@@ -323,6 +323,16 @@ SaiPortTraits::Attributes::AttributeCablePropagationDelayMeasure::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkUpDebouncePeriodMs::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
   return std::nullopt;
 }
@@ -535,6 +545,11 @@ SaiSwitchTraits::fabricInterCellJitterWatermarkStats() {
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::deletedCredits() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::deviceWatermarkBytes() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }

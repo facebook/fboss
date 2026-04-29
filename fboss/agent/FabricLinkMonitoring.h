@@ -79,6 +79,11 @@ class FabricLinkMonitoring {
   SwitchID lowestLeafSwitchId_{SHRT_MAX};
   SwitchID lowestL1SwitchId_{SHRT_MAX};
   SwitchID lowestL2SwitchId_{SHRT_MAX};
+  // Network layer classification for each DSF node switch ID,
+  // used by getSwitchIdOffset() to determine link type without
+  // relying on switch ID ordering (VOQ < L1 < L2).
+  enum class DsfSwitchLayer { LEAF, L1_FABRIC, L2_FABRIC };
+  std::map<SwitchID, DsfSwitchLayer> switchId2DsfSwitchLayer_;
   bool isVoqSwitch_;
 
   // Link counting variables per VD

@@ -61,16 +61,27 @@ void SaiSwitch::updateStatsImpl() {
     cableLengthStatsUpdateTime_ = now;
   }
 
+  // Only the counter mutation is protected by switchReachabilityChangePending_.
+  // The SDK query (getSwitchReachabilityChange) must run with the lock
+  // released: it acquires SaiApiLock and iterates over all DSF interface nodes,
+  // and SDK interrupt threads invoke setSwitchReachabilityChangePending() —
+  // which takes the same wlock — while holding BCM access_event mutex. Holding
+  // this lock across the SDK call closes a 3-way cycle with the shutdown path
+  // that has caused fboss_hw_agent SIGABRTs on graceful exit.
+  bool shouldQuery = false;
   {
     auto changePending = switchReachabilityChangePending_.wlock();
     if (*changePending > 0) {
       *changePending -= 1;
-      auto reachabilityInfo = getSwitchReachabilityChange();
-      switchReachabilityChangeProcessEventBase_.runInFbossEventBaseThread(
-          [this, reachabilityInfo = std::move(reachabilityInfo)]() mutable {
-            processSwitchReachabilityChange(reachabilityInfo);
-          });
+      shouldQuery = true;
     }
+  }
+  if (shouldQuery) {
+    auto reachabilityInfo = getSwitchReachabilityChange();
+    switchReachabilityChangeProcessEventBase_.runInFbossEventBaseThread(
+        [this, reachabilityInfo = std::move(reachabilityInfo)]() mutable {
+          processSwitchReachabilityChange(reachabilityInfo);
+        });
   }
 
   int64_t missingCount = 0, mismatchCount = 0, bogusCount = 0;

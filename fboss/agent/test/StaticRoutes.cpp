@@ -134,6 +134,7 @@ class StaticRouteTest : public ::testing::TestWithParam<bool> {
         folly::range(
             config.staticMplsRoutesToCPU()->begin(),
             config.staticMplsRoutesToCPU()->end()),
+        folly::Range<ConfigApplier::StaticMySidIterator>{},
         &nextHopIDManager_,
         nullptr);
   }

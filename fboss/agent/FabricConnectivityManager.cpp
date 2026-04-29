@@ -155,23 +155,41 @@ void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
     throw FbossError("Unable to find virtual device id for port: ", portID);
   }
 
-  fabricEndpoint.expectedSwitchId() = baseSwitchId + virtualDeviceId.value();
-  auto expectedPortID = platformMapping->getPortID(expectedPortName) -
-      getRemotePortOffset(switchIdToDsfNode_[baseSwitchId]->getPlatformType());
-
   const auto& hwAsic =
       getHwAsicForAsicType(switchIdToDsfNode_[baseSwitchId]->getAsicType());
 
-  // Find portID offset from given ASIC in a multi ASIC system
-  expectedPortID %= hwAsic.getMaxPorts();
+  // Switch IDs are assigned as: baseSwitchId + globalVD * coresPerVD.
+  // coresPerVD = numCores / numVDs gives the switch ID spacing per VD.
+  // globalVD (virtualDeviceId) directly encodes the VD's position across
+  // all ASICs, so no per-ASIC index lookup is needed.
+  auto coresPerVD = hwAsic.getNumCores() / hwAsic.getVirtualDevices();
+  fabricEndpoint.expectedSwitchId() =
+      baseSwitchId + virtualDeviceId.value() * coresPerVD;
 
-  // Find vid offset from given vid in a multi vid ASIC system
-  auto vidOffsetInAsic = virtualDeviceId.value() % hwAsic.getVirtualDevices();
+  // Compute expected port ID from the platform mapping. The SAI reports
+  // the physical ASIC port index as: coreIndex * lanesPerCore + iphyLane.
+  // We derive coreIndex from the iphy chip's physicalID (= ASIC core id)
+  // and iphyLane from the pin connection's lane field.
+  auto expectedPlatformPortId = platformMapping->getPortID(expectedPortName);
+  const auto& portEntry = platformMapping->getPlatformPort(
+      static_cast<int32_t>(expectedPlatformPortId));
+  auto iphyLane = portEntry.mapping()->pins()[0].a()->lane().value();
 
-  // Find portID offset from given vid in a multi vid ASIC systen
-  auto portsPerVirtualDeviceId = getFabricPortsPerVirtualDevice(
-      switchIdToDsfNode_[baseSwitchId]->getAsicType());
-  expectedPortID -= portsPerVirtualDeviceId * vidOffsetInAsic;
+  auto iphyChip = platformMapping->getPortIphyChip(expectedPlatformPortId);
+  auto coreId = iphyChip.physicalID().value();
+
+  // Normalize coreId to per-NPU by subtracting the first fabric core's ID
+  auto firstFabricPortForVd =
+      platformMapping->getFirstFabricPortForVirtualDevice(
+          virtualDeviceId.value());
+  auto baseCoreId = platformMapping->getPortIphyChip(firstFabricPortForVd)
+                        .physicalID()
+                        .value();
+  auto coreIndex = coreId - baseCoreId;
+
+  // Fabric cores have 8 lanes each on J-series ASICs
+  constexpr int kFabricLanesPerCore = 8;
+  auto expectedPortID = coreIndex * kFabricLanesPerCore + iphyLane;
 
   fabricEndpoint.expectedPortId() = expectedPortID;
 

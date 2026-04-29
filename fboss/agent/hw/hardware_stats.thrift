@@ -420,6 +420,17 @@ struct HwSwitchTemperatureStats {
   2: map<string, float> value = {};
 }
 
+# Generic counter object that maybe attached to
+# diverse set of objects
+struct HwSwitchCounter {
+  1: optional i64 bytes;
+  2: optional i64 packets;
+}
+
+struct HwSwitchCounterStats {
+  1: map<string, HwSwitchCounter> routeCounters;
+}
+
 struct HwSwitchFb303GlobalStats {
   1: i64 tx_pkt_allocated;
   2: i64 tx_pkt_freed;

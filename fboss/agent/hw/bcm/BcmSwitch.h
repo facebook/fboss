@@ -437,6 +437,7 @@ class BcmSwitch : public BcmSwitchIf {
   HwSwitchHardResetStats getHwSwitchHardResetStats() const override;
 
   HwResourceStats getResourceStats() const override;
+  HwSwitchCounterStats getHwSwitchCounterStats() const override;
   std::map<int, cfg::PortState> getSysPortShelState() const override {
     return {};
   }

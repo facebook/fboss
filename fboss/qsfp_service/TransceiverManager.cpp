@@ -1,6 +1,10 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "fboss/qsfp_service/TransceiverManager.h"
 
+#include <fmt/core.h>
+
+#include <algorithm>
+
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/FileUtil.h>
 #include <folly/json/DynamicConverter.h>
@@ -733,17 +737,38 @@ std::optional<FirmwareUpgradeData> TransceiverManager::getFirmwareUpgradeData(
   auto& versions = *fwFromConfig->versions();
   for (auto fwIt : versions) {
     const auto& fwType = folly::copy(fwIt.fwType().value());
-    if (fwType == cfg::FirmwareType::APPLICATION && fwStatus->version() &&
-        fwIt.version().value() != *fwStatus->version()) {
-      FW_LOG(INFO, tcvrID) << "Part Number " << partNumber
-                           << " Application Version in cfg="
-                           << fwIt.version().value()
-                           << " current operational version= "
-                           << *fwStatus->version()
-                           << ". Returning valid getFirmwareUpgradeData";
-      fwUpgradeData.currentFirmwareVersion() = *fwStatus->version();
-      fwUpgradeData.desiredFirmwareVersion() = fwIt.version().value();
-      return fwUpgradeData;
+    if (fwType == cfg::FirmwareType::APPLICATION && fwStatus->version()) {
+      auto currentVersion = *fwStatus->version();
+      auto configVersion = fwIt.version().value();
+
+      // If config specifies a 3-tuple version (e.g., "1.0.7680"), append the
+      // module's buildNumber to the reported version. If the module does not report a buildNumber, skip upgrade
+      // since the config is treated as SOT and the module can't be validated.
+      // 2-tuple configs (e.g., "1.0") compare as before.
+      if (std::count(configVersion.begin(), configVersion.end(), '.') >= 2) {
+        if (fwStatus->buildNumber().has_value()) {
+          currentVersion = fmt::format(
+              "{}.{}", currentVersion, fwStatus->buildNumber().value());
+        } else {
+          FW_LOG(INFO, tcvrID)
+              << "Part Number " << partNumber
+              << " Config specifies 3-tuple version=" << configVersion
+              << " but module does not report buildNumber."
+              << " Skipping firmware upgrade";
+          continue;
+        }
+      }
+
+      if (configVersion != currentVersion) {
+        FW_LOG(INFO, tcvrID)
+            << "Part Number " << partNumber
+            << " Application Version in cfg=" << configVersion
+            << " current operational version= " << currentVersion
+            << ". Returning valid getFirmwareUpgradeData";
+        fwUpgradeData.currentFirmwareVersion() = currentVersion;
+        fwUpgradeData.desiredFirmwareVersion() = configVersion;
+        return fwUpgradeData;
+      }
     }
     if (fwType == cfg::FirmwareType::DSP && fwStatus->dspFwVer() &&
         fwIt.version().value() != *fwStatus->dspFwVer()) {

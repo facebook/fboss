@@ -90,7 +90,7 @@ void srv6MidpointMySidScaleBenchmark(int numEntries) {
     prefix.prefixLength() = kMySidPrefixLen;
     rib->update(
         sw->getScopeResolver(),
-        {} /* toAdd */,
+        std::vector<MySidEntry>{} /* toAdd */,
         {prefix},
         "deleteMySidEntry",
         ribMySidFunc,

@@ -1819,4 +1819,92 @@ TEST_F(
   EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedSet2), 1);
 }
 
+TEST_F(NextHopIDManagerTest, namedNhgRouteReverseMapping) {
+  auto prefix1 = folly::CIDRNetwork(folly::IPAddress("10.0.0.0"), 24);
+  auto prefix2 = folly::CIDRNetwork(folly::IPAddress("10.1.0.0"), 24);
+  auto prefix3 = folly::CIDRNetwork(folly::IPAddress("2001:db8::"), 48);
+  RouterID rid0(0);
+
+  EXPECT_FALSE(manager_->hasRoutesForNamedNhg("nhg1"));
+  EXPECT_TRUE(manager_->getRoutesForNamedNhg("nhg1").empty());
+
+  manager_->addRouteForNamedNhg("nhg1", rid0, prefix1);
+  EXPECT_TRUE(manager_->hasRoutesForNamedNhg("nhg1"));
+  EXPECT_EQ(manager_->getRoutesForNamedNhg("nhg1").size(), 1);
+
+  manager_->addRouteForNamedNhg("nhg1", rid0, prefix2);
+  EXPECT_EQ(manager_->getRoutesForNamedNhg("nhg1").size(), 2);
+
+  manager_->addRouteForNamedNhg("nhg2", rid0, prefix3);
+  EXPECT_TRUE(manager_->hasRoutesForNamedNhg("nhg2"));
+  EXPECT_EQ(manager_->getRoutesForNamedNhg("nhg2").size(), 1);
+
+  manager_->removeRouteForNamedNhg("nhg1", rid0, prefix1);
+  EXPECT_EQ(manager_->getRoutesForNamedNhg("nhg1").size(), 1);
+  EXPECT_TRUE(manager_->hasRoutesForNamedNhg("nhg1"));
+
+  manager_->removeRouteForNamedNhg("nhg1", rid0, prefix2);
+  EXPECT_FALSE(manager_->hasRoutesForNamedNhg("nhg1"));
+  EXPECT_TRUE(manager_->getRoutesForNamedNhg("nhg1").empty());
+
+  EXPECT_TRUE(manager_->hasRoutesForNamedNhg("nhg2"));
+
+  manager_->removeRouteForNamedNhg("nonexistent", rid0, prefix1);
+  EXPECT_FALSE(manager_->hasRoutesForNamedNhg("nonexistent"));
+}
+
+TEST_F(NextHopIDManagerTest, namedNhgRouteReverseMappingWarmBoot) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(2), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+
+  NextHopID nhId1 = NextHopID(1);
+  NextHopID nhId2 = NextHopID(2);
+  NextHopSetID setId1 = NextHopSetID(kSetIdOffset + 1);
+
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId1), nh1.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId2), nh2.toThrift());
+
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  std::set<state::NextHopIdType> nhIdSet{
+      static_cast<state::NextHopIdType>(nhId1),
+      static_cast<state::NextHopIdType>(nhId2)};
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1), nhIdSet);
+
+  RouteNextHopSet nhops = {nh1, nh2};
+
+  auto fibsMap = createFibsMap();
+  auto fibV4 = getFibV4(fibsMap);
+
+  auto route = std::make_shared<RouteV4>(
+      RouteV4::makeThrift(makePrefixV4("10.0.0.0/24")));
+  auto nhEntry = RouteNextHopEntry(nhops, AdminDistance::EBGP);
+  nhEntry.setNamedNextHopGroup(std::string("my-nhg"));
+  route->update(ClientID::BGPD, nhEntry);
+  auto fwdInfo = route->getForwardInfo().toThrift();
+  fwdInfo.resolvedNextHopSetID() = static_cast<uint64_t>(setId1);
+  route->setResolved(RouteNextHopEntry(std::move(fwdInfo)));
+  route->publish();
+  fibV4->addNode(route);
+
+  auto multiSwitchFibInfoMap =
+      createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap);
+
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, nullptr, nullptr);
+
+  EXPECT_TRUE(manager_->hasRoutesForNamedNhg("my-nhg"));
+  const auto& routes = manager_->getRoutesForNamedNhg("my-nhg");
+  EXPECT_EQ(routes.size(), 1);
+  auto expectedPrefix = folly::CIDRNetwork(folly::IPAddress("10.0.0.0"), 24);
+  EXPECT_EQ(routes.count({RouterID(0), expectedPrefix}), 1);
+
+  EXPECT_FALSE(manager_->hasRoutesForNamedNhg("other-nhg"));
+}
+
 } // namespace facebook::fboss

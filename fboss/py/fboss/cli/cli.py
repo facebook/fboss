@@ -458,6 +458,7 @@ class PortPrbsCli:
     @fboss2_deprecate("set interface prbs state", DeprecationLevel.WARN)
     def _enable(obj, ports, p):  # noqa: B902
         """Enable prbs for given [port(s)]"""
+        # pyrefly: ignore [missing-attribute]
         port.PortPrbsCmd(obj, obj.component, ports).set_prbs(True, p)
 
     @click.command()
@@ -466,6 +467,7 @@ class PortPrbsCli:
     @fboss2_deprecate("set interface prbs state", DeprecationLevel.WARN)
     def _disable(obj, ports):  # noqa: B902
         """Disable prbs for given [port(s)]"""
+        # pyrefly: ignore [missing-attribute]
         port.PortPrbsCmd(obj, obj.component, ports).set_prbs(False)
 
     @click.command()
@@ -475,6 +477,7 @@ class PortPrbsCli:
     def _stats(obj, ports):  # noqa: B902
         """Get stats of prbs for given [port(s)]"""
 
+        # pyrefly: ignore [missing-attribute]
         port.PortPrbsCmd(obj, obj.component, ports).get_prbs_stats()
 
     @click.command()
@@ -483,6 +486,7 @@ class PortPrbsCli:
     @fboss2_deprecate("clear interface prbs stats", DeprecationLevel.WARN)
     def _clear(obj, ports):  # noqa: B902
         """Clear stats of prbs for given [port(s)]"""
+        # pyrefly: ignore [missing-attribute]
         port.PortPrbsCmd(obj, obj.component, ports).clear_prbs_stats()
 
 
@@ -800,6 +804,7 @@ class ListHwObjectsCli:
     def _list(cli_opts, hw_object, cached, phy_only, switch_asic_only):
         """List Hw objects"""
         hw_obj_types = [HwObjectType[_hw_obj_type].value for _hw_obj_type in hw_object]
+        # pyrefly: ignore [missing-attribute]
         cli_opts.options["hw_obj_types"] = hw_obj_types
         list_hw_objects.ListHwObjectsCmd(cli_opts).run(
             hw_obj_types, cached, phy_only, switch_asic_only

@@ -995,4 +995,106 @@ TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+/*
+ * Test that warmboot succeeds when an ACL references a mirror that has become
+ * unresolved (e.g., because the route to the mirror destination was withdrawn).
+ *
+ * When a mirror is unresolved, BcmMirror removes the mirror action from the
+ * HW ACL entry. But the SwitchState ACL still references the mirror by name.
+ * Without the fix in BcmFieldProcessorUtils::isActionStateSame(), this would
+ * cause a CHECK failure during warmboot because the SW expected action count
+ * (which incorrectly included the unresolved mirror) wouldn't match the HW
+ * actual action count.
+ */
+template <typename AddrT>
+class AgentAclMirrorWarmbootOnUnresolvedTest
+    : public AgentMirroringTest<AddrT> {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::INGRESS_MIRRORING,
+        ProductionFeature::INGRESS_ACL_MIRRORING};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kIngressErspan, false /* truncate */);
+    this->addAclMirrorConfig(&cfg, ensemble, utility::kIngressErspan);
+    return cfg;
+  }
+
+  bool isIngress() const override {
+    return true;
+  }
+};
+
+TYPED_TEST_SUITE(
+    AgentAclMirrorWarmbootOnUnresolvedTest,
+    TestTypes,
+    IPAddressNameGenerator);
+
+TYPED_TEST(
+    AgentAclMirrorWarmbootOnUnresolvedTest,
+    WarmbootWithUnresolvedAclMirror) {
+  auto setup = [=, this]() {
+    // First resolve the mirror so it gets programmed in HW
+    this->resolveMirror(utility::kIngressErspan);
+
+    // Verify mirror is resolved
+    WITH_RETRIES({
+      auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(
+          utility::kIngressErspan);
+      ASSERT_NE(mirror, nullptr);
+      EXPECT_EVENTUALLY_TRUE(mirror->isResolved());
+    });
+
+    // Now unresolve the mirror by removing the route to its destination.
+    // This causes BcmMirror to remove the mirror action from the HW ACL
+    // entry, but the SwitchState ACL still references the mirror by name.
+    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(
+        utility::kIngressErspan);
+    ASSERT_NE(mirror, nullptr);
+    auto dip = mirror->getDestinationIp();
+    ASSERT_TRUE(dip.has_value());
+    auto prefix = this->getMirrorRoutePrefix(dip.value());
+
+    std::set<cfg::PortType> ecmpPortTypes;
+    if (FLAGS_hyper_port) {
+      ecmpPortTypes = {cfg::PortType::HYPER_PORT};
+    } else {
+      ecmpPortTypes = {cfg::PortType::INTERFACE_PORT};
+    }
+    utility::EcmpSetupAnyNPorts<TypeParam> ecmpHelper(
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        RouterID(0),
+        ecmpPortTypes);
+    auto wrapper = this->getSw()->getRouteUpdater();
+    ecmpHelper.unprogramRoutes(&wrapper, {prefix});
+
+    // Verify mirror is now unresolved
+    WITH_RETRIES({
+      auto m = this->getProgrammedState()->getMirrors()->getNodeIf(
+          utility::kIngressErspan);
+      ASSERT_NE(m, nullptr);
+      EXPECT_EVENTUALLY_FALSE(m->isResolved());
+    });
+  };
+
+  auto verify = [=, this]() {
+    // If we get here without crashing, the fix works. The agent survived
+    // warmboot with an unresolved mirror referenced by an ACL.
+    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(
+        utility::kIngressErspan);
+    EXPECT_NE(mirror, nullptr);
+    // Mirror should still be unresolved after warmboot
+    EXPECT_FALSE(mirror->isResolved());
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

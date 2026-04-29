@@ -2824,7 +2824,7 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
         saiSwitchId_, restartIssu);
 #endif
   }
-#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001)
+#if defined(TAJO_SAI_SDK)
   checkAndSetSdkDowngradeVersion();
 #endif
   folly::dynamic follySwitchState = folly::dynamic::object;
@@ -5663,6 +5663,11 @@ void SaiSwitch::injectSwitchReachabilityChangeNotification() {
 HwResourceStats SaiSwitch::getResourceStats() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return hwResourceStats_;
+}
+
+HwSwitchCounterStats SaiSwitch::getHwSwitchCounterStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return managerTable_->counterManager().getHwSwitchCounterStats();
 }
 
 // TODO: add support in SAI

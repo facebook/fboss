@@ -79,6 +79,7 @@ static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
     k8PortProfilesInGroup = {
         {0,
          {
+             cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
              cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
              cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
              cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
@@ -105,7 +106,9 @@ static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
          }},
         {4,
          {
+             cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
              cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
+             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
              cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
              cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
              cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
@@ -139,6 +142,14 @@ static const std::unordered_map<
         phy::InterfaceMode,
         phy::InterfaceType>>
     kProfiles = {
+        {cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
+         std::make_tuple(
+             cfg::PortSpeed::FOURHUNDREDG,
+             4,
+             phy::FecMode::RS544_2N,
+             TransmitterTechnology::OPTICAL,
+             phy::InterfaceMode::CAUI,
+             phy::InterfaceType::CAUI)},
         {cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
          std::make_tuple(
              cfg::PortSpeed::HUNDREDG,

@@ -44,12 +44,15 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD0(getModuleStateChanged, bool());
   MOCK_METHOD1(ensureTransceiverReadyLocked, bool(bool));
 
+  using CmisModule::disableTxRxSquelchForTunableOptics;
+  using CmisModule::enableRxLfInsertionForTunableOptics;
   using CmisModule::frequencyGridToGridSelection;
   using CmisModule::getApplicationField;
   using CmisModule::getChannelNumFromFrequency;
   using CmisModule::getCurrentAppSelCode;
   using CmisModule::getInterfaceCodeForAppSel;
   using CmisModule::getTunableLaserStatus;
+  using CmisModule::isRxConsActImplSupported;
   using CmisModule::isTunableOptics;
 
  private:
@@ -1313,6 +1316,45 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
       static_cast<uint8_t>(SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G));
   EXPECT_EQ(xcvr->getCurrentAppSelCode(1), 0x1);
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
+}
+
+// Verify TX and RX squelch disable behavior for tunable optics (ZR modules).
+// Squelch is only disabled when the module advertises rxConsActImpl
+// (Page 45h, Byte 129, Bit 1). When not advertised, squelch remains enabled.
+TEST_F(CmisTest, cmis800GZrSquelchDisableWithMacLfCheck) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_TRUE(xcvr->isTunableOptics());
+
+  // Fake ZR transceiver has rxConsActImpl bit set in Page 45h
+  EXPECT_TRUE(xcvr->isRxConsActImplSupported());
+
+  // Call disableTxRxSquelchForTunableOptics and verify squelch is disabled
+  xcvr->disableTxRxSquelchForTunableOptics();
+
+  // Refresh cached data to pick up the squelch register writes
+  transceiverManager_->refreshStateMachines();
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto settings = *info.tcvrState()->settings();
+
+  // Verify TX squelch disable is set on media lanes
+  for (auto& mediaLane :
+       apache::thrift::can_throw(*settings.mediaLaneSettings())) {
+    EXPECT_TRUE(*mediaLane.txSquelch())
+        << "Lane " << *mediaLane.lane()
+        << ": TX squelch disable should be set for ZR with MAC LF support";
+  }
+
+  // Verify RX squelch disable is set on host lanes
+  for (auto& hostLane :
+       apache::thrift::can_throw(*settings.hostLaneSettings())) {
+    EXPECT_TRUE(*hostLane.rxSquelch())
+        << "Lane " << *hostLane.lane()
+        << ": RX squelch disable should be set for ZR with MAC LF support";
+  }
 }
 
 // Test coherent FEC Performance Monitoring stats from C-CMIS page 34h

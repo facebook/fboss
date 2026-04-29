@@ -5,6 +5,11 @@
 
 namespace facebook::fboss {
 
+bool YubaAsic::isSrv6Supported() const {
+  auto srv6MinSdk = getAsicSdkVersion(kSrv6MinSdkRequired);
+  return currentSdkVersion_.has_value() && currentSdkVersion_ >= srv6MinSdk;
+}
+
 bool YubaAsic::isSupportedNonFabric(Feature feature) const {
   switch (feature) {
     /*
@@ -93,7 +98,12 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
+    case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
+    case HwAsic::Feature::ROUTE_COUNTERS:
       return true;
+    case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
+    case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
+      return isSrv6Supported();
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
@@ -214,7 +224,6 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
-    case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
@@ -237,8 +246,6 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
-    case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
-    case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
       return false;
   }
   return false;

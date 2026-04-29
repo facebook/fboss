@@ -3919,6 +3919,12 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToPerPacket"
+        },
+        {
+          "test_name_regex": "cold_boot.SaiPortAdminStateTest.assertAdminState"
+        },
+        {
+          "test_name_regex": "warm_boot.HwSflowTest.SflowSamplingEnabled"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/jericho3": [
@@ -4435,6 +4441,12 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToPerPacket"
+        },
+        {
+          "test_name_regex": "cold_boot.SaiPortAdminStateTest.assertAdminState"
+        },
+        {
+          "test_name_regex": "warm_boot.HwSflowTest.SflowSamplingEnabled"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk": [
@@ -8058,7 +8070,7 @@
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf$"
         }
     ],
-    "leaba/25.11.5210/25.11.5210/graphene202x": [
+    "leaba/25.11.4210/25.11.4210/graphene202x": [
         {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
@@ -8412,9 +8424,6 @@
         },
         {
           "test_name_regex": "HwTrunkLoadBalancerTest.*"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE*"
         },
         {
           "test_name_regex": "SaiAclTableRecreateTests.AclEntryCount"

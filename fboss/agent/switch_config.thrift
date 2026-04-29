@@ -192,6 +192,7 @@ enum PortProfileID {
   PROFILE_100G_1_PAM4_RS544X2N_COPPER = 60,
   PROFILE_200G_2_PAM4_RS544X2N_OPTICAL = 61,
   PROFILE_25G_1_NRZ_RS528_OPTICAL = 62,
+  PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL = 63,
 }
 
 enum Scope {
@@ -653,6 +654,8 @@ struct AclEntry {
   34: optional list<byte> roceMask;
 
   35: optional list<AclUdfEntry> udfTable;
+
+  36: optional Range l4DstPortRange;
 }
 
 enum AclTableActionType {
@@ -696,6 +699,7 @@ enum AclTableQualifier {
   UDF = 24,
   BTH_OPCODE = 25,
   IPV6_NEXT_HEADER = 26,
+  L4_DST_PORT_RANGE = 27,
 }
 
 struct AclTable {

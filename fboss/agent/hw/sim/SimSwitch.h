@@ -101,6 +101,10 @@ class SimSwitch : public HwSwitch {
     return HwResourceStats{};
   }
 
+  HwSwitchCounterStats getHwSwitchCounterStats() const override {
+    return HwSwitchCounterStats{};
+  }
+
   std::vector<EcmpDetails> getAllEcmpDetails() const override {
     return {};
   }

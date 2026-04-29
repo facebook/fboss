@@ -469,6 +469,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_ACL_TABLE, "aclTable_"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "aclTableGroup_"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "aclTableGroupMember_"},
+      {SAI_OBJECT_TYPE_ACL_RANGE, "aclRange_"},
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       {SAI_OBJECT_TYPE_ARS, "ars_"},
       {SAI_OBJECT_TYPE_ARS_PROFILE, "arsProfile_"},
@@ -545,6 +546,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_ACL_TABLE, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "acl_api->"},
+      {SAI_OBJECT_TYPE_ACL_RANGE, "acl_api->"},
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       {SAI_OBJECT_TYPE_ARS, "ars_api->"},
       {SAI_OBJECT_TYPE_ARS_PROFILE, "ars_profile_api->"},

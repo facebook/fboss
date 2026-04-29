@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include <folly/IPAddress.h>
 #include <gtest/gtest_prod.h>
 #include <cstdint>
 #include <optional>
+#include <set>
 #include <unordered_map>
 #include <vector>
 #include "fboss/agent/state/FibInfoMap.h"
@@ -204,6 +206,14 @@ class NextHopIDManager {
   // Returns std::nullopt if the NextHopSetID is not found
   std::optional<RouteNextHopSet> getNextHopsIf(NextHopSetID nextHopSetID) const;
 
+  // True iff the next-hop set identified by `nextHopSetID` contains a
+  // next-hop whose address equals `ip`. Avoids materializing the full
+  // RouteNextHopSet (which getNextHopsIf rebuilds via per-element
+  // lookups) — used by the MySid neighbor-removal hot path.
+  bool nextHopSetContainsAddr(
+      NextHopSetID nextHopSetID,
+      const folly::IPAddress& ip) const;
+
   // Get all named next-hop groups
   const std::unordered_map<std::string, RouteNextHopSet>&
   getNameToNextHopSetMap() const {
@@ -220,6 +230,24 @@ class NextHopIDManager {
   bool hasNamedNextHopGroup(const std::string& name) const {
     return nameToNextHopSet_.find(name) != nameToNextHopSet_.end();
   }
+
+  // Reverse mapping: track which routes reference a named NHG
+  using RoutePrefixKey = std::pair<RouterID, folly::CIDRNetwork>;
+  using RouteSet = std::set<RoutePrefixKey>;
+
+  void addRouteForNamedNhg(
+      const std::string& name,
+      const RouterID& rid,
+      const folly::CIDRNetwork& prefix);
+
+  void removeRouteForNamedNhg(
+      const std::string& name,
+      const RouterID& rid,
+      const folly::CIDRNetwork& prefix);
+
+  const RouteSet& getRoutesForNamedNhg(const std::string& name) const;
+
+  bool hasRoutesForNamedNhg(const std::string& name) const;
 
   /**
    * Reconstruct the NextHopIDManager for two main scenarios:
@@ -281,6 +309,8 @@ class NextHopIDManager {
   std::unordered_map<std::string, RouteNextHopSet> nameToNextHopSet_;
   // Map from name to NextHopSetID for quick lookup
   std::unordered_map<std::string, NextHopSetID> nameToNextHopSetID_;
+  // Reverse mapping: named NHG name to routes referencing it
+  std::unordered_map<std::string, RouteSet> nameToRoutes_;
 
   // Get the ref count for a given NextHop
   uint32_t getNextHopRefCount(const NextHop& nextHop);
@@ -325,12 +355,17 @@ class NextHopIDManager {
   FRIEND_TEST(NextHopIDManagerTest, namedNextHopGroupWarmBoot);
   FRIEND_TEST(NextHopIDManagerTest, namedNextHopGroupSharesSetIdWithRoutes);
   FRIEND_TEST(NextHopIDManagerTest, routeReusesNamedNextHopGroupSetId);
+  FRIEND_TEST(NextHopIDManagerTest, namedNhgRouteReverseMapping);
+  FRIEND_TEST(NextHopIDManagerTest, namedNhgRouteReverseMappingWarmBoot);
   FRIEND_TEST(
       RibMySidUpdaterTest,
       nhopRefCountBumped_afterResolvingNhopWithIntfId);
   FRIEND_TEST(
       RibMySidUpdaterTest,
       twoEntriesSameNhops_resolvedSetIdSharedAndRefCountIsTwo);
+  FRIEND_TEST(
+      RibMySidNextHopTest,
+      replaceNodeMySidWithDecapReleasesBothUnresolvedAndResolvedIds);
 };
 
 } // namespace facebook::fboss

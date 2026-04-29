@@ -117,6 +117,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
     case HwAsic::Feature::RX_SERDES_PARAMETERS:
+    case HwAsic::Feature::LINK_TRAINING:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -152,7 +153,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     case HwAsic::Feature::EXTENDED_FEC:
-    case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
@@ -238,6 +238,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
+    case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
       return false;
   }
   return false;

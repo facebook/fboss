@@ -4,6 +4,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
 #include <boost/functional/hash.hpp>
@@ -250,6 +251,7 @@ void NextHopIDManager::clearNhopIdManagerState() {
   idToNextHopIdSet_.clear();
   nameToNextHopSet_.clear();
   nameToNextHopSetID_.clear();
+  nameToRoutes_.clear();
 }
 
 // Allocate or update a named next-hop group.
@@ -390,6 +392,25 @@ std::optional<RouteNextHopSet> NextHopIDManager::getNextHopsIf(
   return RouteNextHopSet(nextHopVec.begin(), nextHopVec.end());
 }
 
+bool NextHopIDManager::nextHopSetContainsAddr(
+    NextHopSetID nextHopSetID,
+    const folly::IPAddress& ip) const {
+  auto nextHopIdSetIt = idToNextHopIdSet_.find(nextHopSetID);
+  if (nextHopIdSetIt == idToNextHopIdSet_.end()) {
+    return false;
+  }
+  for (const auto& nextHopID : nextHopIdSetIt->second) {
+    auto nextHopIt = idToNextHop_.find(nextHopID);
+    CHECK(nextHopIt != idToNextHop_.end())
+        << "NextHopId " << nextHopID
+        << " not found in idToNextHop_ for NextHopSetID " << nextHopSetID;
+    if (nextHopIt->second.addr() == ip) {
+      return true;
+    }
+  }
+  return false;
+}
+
 namespace {
 
 // Verifies that the idToNextHopMap and idToNextHopIdSetMap are identical
@@ -515,7 +536,7 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
       }
 
       // process routes from a FIB
-      auto processRoutes = [&](const auto& fib) {
+      auto processRoutes = [&](const auto& fib, RouterID rid) {
         for (const auto& [prefix, route] : std::as_const(*fib)) {
           const auto& fwdInfo = route->getForwardInfo();
 
@@ -533,13 +554,24 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
                 id2NhopMapInFib,
                 id2NhopIdSetMapInFib);
           }
+
+          // Reconstruct named NHG reverse mapping from per-client entries
+          const auto& nhopsMulti = route->getEntryForClients();
+          for (const auto& entry : nhopsMulti) {
+            auto nhgName = entry.second->getNamedNextHopGroup();
+            if (nhgName.has_value()) {
+              auto cidr = route->prefix().toCidrNetwork();
+              nameToRoutes_[*nhgName].emplace(rid, cidr);
+            }
+          }
         }
       };
 
       // Iterate over all VRFs in this FibInfo
       for (const auto& [routerId, fibContainer] : std::as_const(*fibsMap)) {
-        processRoutes(fibContainer->getFibV4());
-        processRoutes(fibContainer->getFibV6());
+        RouterID rid(routerId);
+        processRoutes(fibContainer->getFibV4(), rid);
+        processRoutes(fibContainer->getFibV6(), rid);
       }
 
       // Reconstruct named next-hop groups from FibInfo
@@ -624,6 +656,41 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
   // Set next available IDs
   nextAvailableNextHopID_ = NextHopID(maxNextHopId + 1);
   nextAvailableNextHopSetID_ = NextHopSetID(maxNextHopSetId + 1);
+}
+
+void NextHopIDManager::addRouteForNamedNhg(
+    const std::string& name,
+    const RouterID& rid,
+    const folly::CIDRNetwork& prefix) {
+  nameToRoutes_[name].emplace(rid, prefix);
+}
+
+void NextHopIDManager::removeRouteForNamedNhg(
+    const std::string& name,
+    const RouterID& rid,
+    const folly::CIDRNetwork& prefix) {
+  auto it = nameToRoutes_.find(name);
+  if (it != nameToRoutes_.end()) {
+    it->second.erase({rid, prefix});
+    if (it->second.empty()) {
+      nameToRoutes_.erase(it);
+    }
+  }
+}
+
+const NextHopIDManager::RouteSet& NextHopIDManager::getRoutesForNamedNhg(
+    const std::string& name) const {
+  static const RouteSet kEmpty;
+  auto it = nameToRoutes_.find(name);
+  if (it != nameToRoutes_.end()) {
+    return it->second;
+  }
+  return kEmpty;
+}
+
+bool NextHopIDManager::hasRoutesForNamedNhg(const std::string& name) const {
+  auto it = nameToRoutes_.find(name);
+  return it != nameToRoutes_.end() && !it->second.empty();
 }
 
 } // namespace facebook::fboss

@@ -1212,8 +1212,9 @@ bool LookupClassRouteUpdater::isSubnetCachedByLookupClasses(
       }
 
       // port is member of vlan for addressToSearch i.e. blocked IP
-      auto it = port.second->getVlans().find(vlanID);
-      if (it == port.second->getVlans().end()) {
+      auto vlans = port.second->getVlans();
+      auto it = vlans.find(vlanID);
+      if (it == vlans.end()) {
         continue;
       }
 

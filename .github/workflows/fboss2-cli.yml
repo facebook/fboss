@@ -78,7 +78,7 @@ jobs:
           retention-days: 14
   fboss2-CLI-Test:
     if: github.repository_owner == 'facebook'
-    runs-on: ubuntu-latest
+    runs-on: 4-core-ubuntu
     needs: fboss2-CLI-Build
     steps:
       - name: Check out repository code

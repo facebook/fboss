@@ -91,6 +91,8 @@ if ($ENV{SAI_BRCM_PAI_IMPL})
   set(SAI_BRCM_PAI_IMPL_INC_DIR "/var/FBOSS/pai_impl/include")
   # macsec headers
   include_directories("${SAI_BRCM_PAI_IMPL_INC_DIR}/pai_macsec")
+  # epdm headers
+  include_directories("${SAI_BRCM_PAI_IMPL_INC_DIR}/epdm")
 
   # SDK artifacts directory which hosts libpai.a, EPDM SW artifact, PHY Driver
   # SW artifact
@@ -1246,7 +1248,6 @@ endif()
 
 if (BUILD_SAI_FAKE_LINK_TEST)
 add_dependencies(fboss_fake_agent_test_targets
-  sai_link_test-fake
   sai_mono_link_test-fake
   sai_multi_link_test-fake
 )

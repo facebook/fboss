@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include <folly/io/async/ScopedEventBaseThread.h>
 #include "fboss/fsdb/server/ServiceHandler.h"
 
 namespace facebook::fboss::fsdb::test {
@@ -19,7 +20,10 @@ class FsdbTestServerImpl {
   virtual void startServer(uint16_t& fsdbPort) = 0;
   virtual void stopServer() = 0;
 
-  std::unique_ptr<apache::thrift::Client<FsdbService>> getClient();
+  // Returns a client whose socket lives on a dedicated IO thread.
+  // The shared_ptr custom deleter ensures the client is destroyed on
+  // the IO thread so that socket teardown runs on the correct EventBase.
+  std::shared_ptr<apache::thrift::Client<FsdbService>> getClient();
 
  protected:
   std::shared_ptr<apache::thrift::ThriftServer> createServer(
@@ -31,6 +35,8 @@ class FsdbTestServerImpl {
   std::shared_ptr<ServiceHandler> handler_;
   std::shared_ptr<apache::thrift::ThriftServer> server_;
   uint16_t port_;
+  std::shared_ptr<folly::ScopedEventBaseThread> clientEvbThread_{
+      std::make_shared<folly::ScopedEventBaseThread>("FsdbTestClientIO")};
 };
 
 class FsdbTestServer {
@@ -57,7 +63,7 @@ class FsdbTestServer {
     return fsdbPort_;
   }
 
-  std::unique_ptr<apache::thrift::Client<FsdbService>> getClient();
+  std::shared_ptr<apache::thrift::Client<FsdbService>> getClient();
 
   const ServiceHandler& serviceHandler() const {
     CHECK(handler_);

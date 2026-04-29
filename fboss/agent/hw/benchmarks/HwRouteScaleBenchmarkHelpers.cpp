@@ -77,11 +77,11 @@ std::vector<RoutePrefixV6> getVoqRoutePrefixes(uint32_t numRoutes) {
   return prefixes;
 }
 
-std::vector<flat_set<PortDescriptor>> getVoqRouteNextHopSets(
+std::vector<boost::container::flat_set<PortDescriptor>> getVoqRouteNextHopSets(
     const boost::container::flat_set<PortDescriptor>& remoteNhops,
     uint32_t ecmpGroup,
     uint32_t ecmpWidth) {
-  std::vector<flat_set<PortDescriptor>> nhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> nhopSets;
   CHECK_GE(remoteNhops.size(), ecmpWidth + ecmpGroup - 1);
   auto kNhopOffset = 4;
   for (int i = 0; i < ecmpGroup; i++) {

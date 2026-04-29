@@ -70,7 +70,7 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
     auto routeUpdater = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(
         &routeUpdater,
-        flat_set<PortDescriptor>(
+        boost::container::flat_set<PortDescriptor>(
             std::make_move_iterator(sysPortDescs.begin()),
             std::make_move_iterator(sysPortDescs.end())),
         {prefix});

@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <boost/container/flat_set.hpp>
 #include <list>
+#include <set>
 
 #include <folly/IPAddress.h>
 #include <memory>
@@ -19,8 +19,6 @@
 #include "folly/MacAddress.h"
 
 namespace facebook::fboss {
-
-using boost::container::flat_set;
 
 enum class MirrorDirection { INGRESS = 1, EGRESS = 2 };
 enum class MirrorAction { START = 1, STOP = 2 };

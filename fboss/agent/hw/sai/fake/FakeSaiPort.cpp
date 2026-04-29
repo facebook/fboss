@@ -1130,6 +1130,9 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
         attr->value.booldata = port.linkTrainingEnable;
         break;
+      case SAI_PORT_ATTR_LINK_TRAINING_RX_STATUS:
+        attr->value.s32 = port.linkTrainingRxStatus;
+        break;
       case SAI_PORT_ATTR_FDR_ENABLE:
         attr->value.booldata = port.fdrEnable;
         break;

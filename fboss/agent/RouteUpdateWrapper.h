@@ -52,6 +52,7 @@ class RouteUpdateWrapper {
     std::vector<cfg::StaticMplsRouteWithNextHops> staticMplsRoutesWithNextHops;
     std::vector<cfg::StaticMplsRouteNoNextHops> staticMplsRoutesToNull;
     std::vector<cfg::StaticMplsRouteNoNextHops> staticMplsRoutesToCpu;
+    std::vector<MySidWithNextHops> staticMySids;
   };
   using RouterIDAndClient = std::pair<RouterID, ClientID>;
   using SyncFibFor = std::unordered_set<RouterIDAndClient>;
@@ -99,8 +100,8 @@ class RouteUpdateWrapper {
           _staticMplsRoutesWithNextHops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>&
           _staticMplsRoutesToNull,
-      const std::vector<cfg::StaticMplsRouteNoNextHops>&
-          _staticMplsRoutesToCpu);
+      const std::vector<cfg::StaticMplsRouteNoNextHops>& _staticMplsRoutesToCpu,
+      std::vector<MySidWithNextHops> _staticMySids = {});
   void setRemoteLoopbackInterfaceRoutesToConfig(
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
       const RouterIDToPrefixes& toDel);

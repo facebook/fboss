@@ -42,7 +42,7 @@ else
       ;;
     *)
       if [[ $1 != "" ]]; then
-        echo "Error: Unrecognized arst command option: '${1}'"
+        echo "Error: Unrecognized command option: '${1}'"
         help
         exit 1
       fi
@@ -60,7 +60,12 @@ fi
 
 v4_ip=$(ip -4 addr show dev "$INTERFACE" | awk -F '[[:space:]/]+' '/inet/{print $3}')
 v6_ip=$(ip -6 addr show dev "$INTERFACE" scope global | awk -F '[[:space:]/]+' '/inet6/{print $3; exit}')
-echo "Listening on ${INTERFACE} - ${v4_ip} & ${v6_ip}"
+
+if [[ -z $v6_ip ]]; then
+  echo "Listening on ${INTERFACE} - ${v4_ip} (IPv6 not available)"
+else
+  echo "Listening on ${INTERFACE} - ${v4_ip} & ${v6_ip}"
+fi
 
 mkdir -m 777 /distro_infra/persistent/cache 2>/dev/null
 cp /distro_infra/ipxev4.efi /distro_infra/persistent/cache
@@ -68,7 +73,11 @@ cp /distro_infra/ipxev6.efi /distro_infra/persistent/cache
 cp /distro_infra/autoexec.ipxe /distro_infra/persistent/cache
 
 sed -i "s/V4IP/${v4_ip}/" /distro_infra/nginx.conf
-sed -i "s/V6IP/${v6_ip}/" /distro_infra/nginx.conf
+if [[ -n $v6_ip ]]; then
+  sed -i "s/V6IP/${v6_ip}/" /distro_infra/nginx.conf
+else
+  sed -i '/\[V6IP\]/d' /distro_infra/nginx.conf
+fi
 nginx -c /distro_infra/nginx.conf -p /distro_infra/persistent
 
 # Minimize responding to other devices

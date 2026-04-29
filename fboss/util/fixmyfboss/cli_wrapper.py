@@ -15,6 +15,7 @@ class CliWrapper:
                 prog=self.name,
                 description=self.description,
             )
+            # pyrefly: ignore [missing-attribute]
             for option, (desc, _) in self.options.items():
                 parser.add_argument(f"--{option}", help=desc, action="store_true")
             args = dict(vars(parser.parse_args()))
@@ -23,6 +24,7 @@ class CliWrapper:
                 if not value:
                     continue
                 key = key.replace("_", "-")
+                # pyrefly: ignore [unsupported-operation]
                 self.options[key][1]()
             return func()
 

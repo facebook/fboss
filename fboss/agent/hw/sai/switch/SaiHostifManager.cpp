@@ -164,9 +164,16 @@ SaiHostifManager::packetReasonToHostifTrap(
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       return std::make_pair(
           SAI_HOSTIF_TRAP_TYPE_PORT_MTU_ERROR, SAI_PACKET_ACTION_TRAP);
+#else
+      break;
+#endif
+    case cfg::PacketRxReason::BPDU:
+#if defined(CHENAB_SAI_SDK)
+      return std::make_pair(SAI_HOSTIF_TRAP_TYPE_STP, SAI_PACKET_ACTION_TRAP);
+#else
+      break;
 #endif
     case cfg::PacketRxReason::MPLS_UNKNOWN_LABEL:
-    case cfg::PacketRxReason::BPDU:
     case cfg::PacketRxReason::L3_SLOW_PATH:
     case cfg::PacketRxReason::L3_DEST_MISS:
     case cfg::PacketRxReason::UNMATCHED:

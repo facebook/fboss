@@ -4,6 +4,12 @@
 
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 
+#if !defined(TAJO_SDK_VERSION_1_42_8)
+extern "C" {
+#include <experimental/sai_attr_ext.h>
+}
+#endif
+
 namespace facebook::fboss {
 
 void fillHwSwitchDramStats(
@@ -14,8 +20,13 @@ void fillHwSwitchDramStats(
 
 void fillHwSwitchWatermarkStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
-    HwSwitchWatermarkStats& /*hwSwitchWatermarkStats*/) {
-  CHECK_EQ(counterId2Value.size(), 0);
+    HwSwitchWatermarkStats& hwSwitchWatermarkStats) {
+#if !defined(TAJO_SDK_VERSION_1_42_8)
+  auto it = counterId2Value.find(SAI_SWITCH_STAT_DEVICE_WATERMARK_BYTES);
+  if (it != counterId2Value.end()) {
+    hwSwitchWatermarkStats.deviceWatermarkBytes() = it->second;
+  }
+#endif
 }
 
 void fillHwSwitchCreditStats(

@@ -36,7 +36,6 @@ completed.
 
 ### Add BSP Support
 
-- the BSP repository is setup and accessible by Meta
 - the BSP abides by the API specification and development requirements
 - the BSP is compiled as out-of-tree kernel modules and deployed in FBOSS to
 unblock FBOSS development
@@ -102,13 +101,13 @@ lowercase.
 
 ## Add BSP Support
 
-Adding BSP support involves creating a new repository, implementing the BSP,
+Adding BSP support involves implementing the BSP to support your platforms
 and then running tests to ensure adherence to guidelines.
 
-### Step 1: Create a BSP Repository
+### Step 1: Clone the BSP Repository
 
-Please work with your Meta POC to initialize a private repository where your BSP
-implementation will be hosted.
+```bash file=./static/code_snips/clone_bsp.sh
+```
 
 ### Step 2: Implement the BSP
 
@@ -116,6 +115,10 @@ Implement the BSP to support the platforms under development. When implementing
 the BSP, you need to ensure it abides by the
 [API specifications](/docs/platform/bsp_api_specification/) and
 [development requirements](/docs/platform/bsp_development_requirements/).
+
+You should only need to add support for your platform by implementing CPLD and
+FPGA drivers. The core functionality of the BSP is already implemented and all
+platforms adhering to the Meta Switch Architecture should be compatible with it.
 
 ### Step 3: Install the KMODS on the Switch
 

@@ -16,15 +16,15 @@ namespace {
 int32_t getMediaInterfaceUnionValue(const MediaInterfaceUnion& u) {
   switch (u.getType()) {
     case MediaInterfaceUnion::Type::smfCode:
-      return static_cast<int32_t>(*u.smfCode_ref());
+      return static_cast<int32_t>(*u.smfCode());
     case MediaInterfaceUnion::Type::activeCuCode:
-      return static_cast<int32_t>(*u.activeCuCode_ref());
+      return static_cast<int32_t>(*u.activeCuCode());
     case MediaInterfaceUnion::Type::passiveCuCode:
-      return static_cast<int32_t>(*u.passiveCuCode_ref());
+      return static_cast<int32_t>(*u.passiveCuCode());
     case MediaInterfaceUnion::Type::extendedSpecificationComplianceCode:
-      return static_cast<int32_t>(*u.extendedSpecificationComplianceCode_ref());
+      return static_cast<int32_t>(*u.extendedSpecificationComplianceCode());
     case MediaInterfaceUnion::Type::ethernet10GComplianceCode:
-      return static_cast<int32_t>(*u.ethernet10GComplianceCode_ref());
+      return static_cast<int32_t>(*u.ethernet10GComplianceCode());
     case MediaInterfaceUnion::Type::__EMPTY__:
       return 0;
     default:

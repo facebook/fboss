@@ -185,6 +185,7 @@ class ConfigParser:
 
         return CommonTestSpec(
             test_team=data["testTeam"],
+            # pyrefly: ignore [bad-argument-type]
             asic_test_options=asic_test_options,
             test_round_trip=data.get("test_round_trip", False),
         )

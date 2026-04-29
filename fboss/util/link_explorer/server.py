@@ -11,8 +11,6 @@ Health check at /health returns "__OK__" for TW monitoring.
 import argparse
 import os
 import re
-import socket
-import ssl
 
 from fboss.util.link_explorer.link_explorer_app import query_switch
 from flask import Flask, jsonify, render_template, request
@@ -48,32 +46,6 @@ def api_query():
     return jsonify(data)
 
 
-# ── SSL Context ──────────────────────────────────────────────────────────────
-
-TW_CERT = "/var/facebook/tupperware/tls/x509_identities/server.pem"
-DEV_CERT = "/var/facebook/x509_identities/server.pem"
-
-
-def get_ssl_context():
-    """Get SSL context for Tupperware deployment."""
-    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    ctx.load_cert_chain(TW_CERT, TW_CERT)
-    return ctx
-
-
-def get_dev_ssl_context():
-    """Get SSL context for devserver."""
-    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    ctx.load_cert_chain(DEV_CERT, DEV_CERT)
-    return ctx
-
-
-def is_dev_server():
-    """Detect if running on a devserver (not Tupperware)."""
-    hostname = socket.gethostname()
-    return bool(re.match(r"dev", hostname))
-
-
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 
@@ -86,17 +58,11 @@ def main():
     port = args.port
     debug = args.debug.lower() == "true"
 
-    if is_dev_server():
-        ssl_ctx = get_dev_ssl_context()
-        print(f"[Link Explorer] Dev mode on port {port}")
-    else:
-        ssl_ctx = get_ssl_context()
-        print(f"[Link Explorer] Production mode on port {port}")
+    print(f"[Link Explorer] Starting on port {port}")
 
     app.run(
         host="::",
         port=port,
-        ssl_context=ssl_ctx,
         debug=debug,
         use_reloader=False,
     )

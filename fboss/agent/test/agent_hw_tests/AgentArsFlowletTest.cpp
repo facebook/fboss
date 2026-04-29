@@ -86,13 +86,13 @@ class AgentArsFlowletTest : public AgentArsBase {
 
   void generateTestPrefixes(
       std::vector<RoutePrefixV6>& testPrefixes,
-      std::vector<flat_set<PortDescriptor>>& testNhopSets,
+      std::vector<boost::container::flat_set<PortDescriptor>>& testNhopSets,
       int kTotalPrefixesNeeded) {
     generatePrefixes();
 
     testPrefixes = std::vector<RoutePrefixV6>{
         prefixes.begin(), prefixes.begin() + kTotalPrefixesNeeded};
-    testNhopSets = std::vector<flat_set<PortDescriptor>>{
+    testNhopSets = std::vector<boost::container::flat_set<PortDescriptor>>{
         nhopSets.begin(), nhopSets.begin() + kTotalPrefixesNeeded};
   }
 
@@ -201,7 +201,7 @@ class AgentArsFlowletTest : public AgentArsBase {
 
   void verifyEcmpGroups(
       std::vector<RoutePrefixV6> testPrefixes,
-      std::vector<flat_set<PortDescriptor>> testNhopSets,
+      std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets,
       const cfg::SwitchConfig& cfg,
       int numEcmp) {
     for (int i = 0; i < numEcmp; i++) {
@@ -216,7 +216,7 @@ class AgentArsFlowletTest : public AgentArsBase {
 
   void setupEcmpGroups(
       std::vector<RoutePrefixV6>& testPrefixes,
-      std::vector<flat_set<PortDescriptor>>& testNhopSets,
+      std::vector<boost::container::flat_set<PortDescriptor>>& testNhopSets,
       int numEcmp) {
     auto wrapper = getSw()->getRouteUpdater();
     generateTestPrefixes(testPrefixes, testNhopSets, numEcmp);
@@ -224,7 +224,7 @@ class AgentArsFlowletTest : public AgentArsBase {
   }
   void flowletSwitchingWBHelper(
       std::vector<RoutePrefixV6>& testPrefixes,
-      std::vector<flat_set<PortDescriptor>>& testNhopSets,
+      std::vector<boost::container::flat_set<PortDescriptor>>& testNhopSets,
       const cfg::SwitchingMode preMode,
       int preMaxFlows,
       int preEcmpScale,
@@ -300,7 +300,7 @@ class AgentArsFlowletTest : public AgentArsBase {
  */
 TEST_F(AgentArsFlowletTest, ValidateFlowsetExceedForceFix) {
   std::vector<RoutePrefixV6> testPrefixes;
-  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets;
 
   generateTestPrefixes(testPrefixes, testNhopSets, 17);
 
@@ -338,7 +338,7 @@ TEST_F(AgentArsFlowletTest, ValidateFlowsetExceedForceFix) {
  */
 TEST_F(AgentArsFlowletTest, ValidateFlowsetExceed) {
   std::vector<RoutePrefixV6> testPrefixes;
-  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets;
   generateTestPrefixes(testPrefixes, testNhopSets, kMaxLinks);
 
   auto setup = [=, this]() {
@@ -392,7 +392,7 @@ TEST_F(AgentArsFlowletTest, ValidateFlowsetExceed) {
 
 TEST_F(AgentArsFlowletTest, ValidateFlowsetTableFull) {
   std::vector<RoutePrefixV6> testPrefixes;
-  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets;
   generateTestPrefixes(testPrefixes, testNhopSets, 16);
 
   auto setup = [=, this]() {
@@ -411,7 +411,7 @@ TEST_F(AgentArsFlowletTest, ValidateFlowsetTableFull) {
 
 TEST_F(AgentArsFlowletTest, VerifyFlowletConfigChange) {
   std::vector<RoutePrefixV6> testPrefixes;
-  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets;
   generateTestPrefixes(testPrefixes, testNhopSets, kMaxLinks);
 
   auto setup = [=, this]() {
@@ -446,7 +446,7 @@ TEST_F(AgentArsFlowletTest, VerifyFlowletConfigChange) {
 
 TEST_F(AgentArsFlowletTest, VerifyFlowletConfigRemoval) {
   std::vector<RoutePrefixV6> testPrefixes;
-  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets;
   generateTestPrefixes(testPrefixes, testNhopSets, kMaxLinks);
 
   auto setup = [=, this]() {
@@ -491,7 +491,7 @@ TEST_F(AgentArsFlowletTest, VerifyFlowletConfigRemoval) {
  */
 TEST_F(AgentArsFlowletTest, VerifyEcmpFlowletSwitchingEnable) {
   std::vector<RoutePrefixV6> testPrefixes;
-  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets;
   generateTestPrefixes(testPrefixes, testNhopSets, kMaxLinks);
 
   auto setup = [=, this]() {
@@ -536,7 +536,7 @@ TEST_F(AgentArsFlowletTest, VerifyEcmpFlowletSwitchingEnable) {
 
 TEST_F(AgentArsFlowletTest, VerifySkipEcmpFlowletSwitchingEnable) {
   std::vector<RoutePrefixV6> testPrefixes;
-  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets;
   generateTestPrefixes(testPrefixes, testNhopSets, kMaxLinks);
 
   auto setup = [=, this]() {

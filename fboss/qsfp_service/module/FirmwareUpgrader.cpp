@@ -399,17 +399,17 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   // low power don't work when certain modules (like xdr4) are still in the CDB
   // mode which is the mode that's activated when the msa password is written
   // during firmware upgrade
-  std::array<uint8_t, 4> msaPassword_;
-  msaPassword_[0] = 0;
-  msaPassword_[1] = 0;
-  msaPassword_[2] = 0;
-  msaPassword_[3] = 0;
+  std::array<uint8_t, 4> resetPassword;
+  resetPassword[0] = 0;
+  resetPassword[1] = 0;
+  resetPassword[2] = 0;
+  resetPassword[3] = 0;
   bus_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP,
        kModulePasswordEntryReg,
        4,
        kLowerPage},
-      msaPassword_.data(),
+      resetPassword.data(),
       POST_I2C_WRITE_NO_DELAY_US,
       kFwUpgrade);
   if (!result) {

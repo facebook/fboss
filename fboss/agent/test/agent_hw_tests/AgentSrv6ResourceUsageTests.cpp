@@ -67,7 +67,7 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
         createRibMySidToSwitchStateFunction(std::nullopt);
     rib->update(
         sw->getScopeResolver(),
-        {} /* toAdd */,
+        std::vector<MySidEntry>{} /* toAdd */,
         {ipPrefix},
         "removeDecapMySidEntry",
         ribMySidToSwitchStateFunc,
@@ -111,7 +111,7 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
         createRibMySidToSwitchStateFunction(std::nullopt);
     rib->update(
         sw->getScopeResolver(),
-        {} /* toAdd */,
+        std::vector<MySidEntry>{} /* toAdd */,
         {ipPrefix},
         "removeAdjacencyMySidEntry",
         ribMySidToSwitchStateFunc,

@@ -350,6 +350,10 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_LINK_TRAINING_ENABLE,
         bool,
         SaiBoolDefaultTrue>;
+    using LinkTrainingRxStatus = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LINK_TRAINING_RX_STATUS,
+        sai_int32_t>;
     using FabricAttached =
         SaiAttribute<EnumType, SAI_PORT_ATTR_FABRIC_ATTACHED, bool>;
     using FabricAttachedPortIndex = SaiAttribute<
@@ -572,6 +576,20 @@ struct SaiPortTraits {
         bool,
         AttributeCablePropagationDelayMeasure,
         SaiBoolDefaultFalse>;
+    struct AttributeLinkUpDebouncePeriodMs {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkUpDebouncePeriodMs = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeLinkUpDebouncePeriodMs,
+        SaiIntDefault<sai_uint32_t>>;
+    struct AttributeLinkDownDebouncePeriodMs {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkDownDebouncePeriodMs = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeLinkDownDebouncePeriodMs,
+        SaiIntDefault<sai_uint32_t>>;
   };
   using AdapterKey = PortSaiId;
 
@@ -830,6 +848,7 @@ SAI_ATTRIBUTE_NAME(Port, RxFrequencyPPM)
 SAI_ATTRIBUTE_NAME(Port, RxSNR)
 #endif
 SAI_ATTRIBUTE_NAME(Port, LinkTrainingEnable)
+SAI_ATTRIBUTE_NAME(Port, LinkTrainingRxStatus)
 SAI_ATTRIBUTE_NAME(Port, SerdesLaneList)
 SAI_ATTRIBUTE_NAME(Port, DiagModeEnable)
 SAI_ATTRIBUTE_NAME(Port, FdrEnable)
@@ -880,6 +899,8 @@ SAI_ATTRIBUTE_NAME(Port, PfcMonitorDirection)
 SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMediaType)
 SAI_ATTRIBUTE_NAME(Port, PfcPauseDurationOverride)
 SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMeasure)
+SAI_ATTRIBUTE_NAME(Port, LinkUpDebouncePeriodMs)
+SAI_ATTRIBUTE_NAME(Port, LinkDownDebouncePeriodMs)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)

@@ -13,12 +13,42 @@
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/cli/fboss2/utils/SafetyPromptUtils.h"
+
+#include <folly/String.h>
 
 namespace facebook::fboss {
+
+namespace {
+constexpr auto kBounceInterfaceWarning = R"WARN(
+================================================================================
+WARNING: `fboss2 bounce interface` directly toggles port admin state on the
+switch (disable -> sleep 5s -> re-enable). This can cause IMMEDIATE TRAFFIC
+IMPACT.
+
+Running this on a production device WITHOUT the device/circuit being drained
+is a violation of the Safer Human Touch (SHT) Policy. Every invocation of
+`fboss2 bounce interface` is logged and reviewed.
+
+Prefer:  cableguy_cli bounce_interface --circuit "<a:intf|z:intf>" --task <T#>
+         (validates circuit/device drain state before bouncing)
+================================================================================
+)WARN";
+} // namespace
 
 CmdBounceInterface::RetType CmdBounceInterface::queryClient(
     const HostInfo& hostInfo,
     const std::vector<std::string>& queriedIfs) {
+  const auto target = fmt::format(
+      "bounce interface(s) [{}] on {}",
+      folly::join(", ", queriedIfs),
+      hostInfo.getName());
+  utils::requireConfirmation(
+      kBounceInterfaceCommandName,
+      kBounceInterfaceYesFlag,
+      kBounceInterfaceWarning,
+      target);
+
   /* Interface flap stats are stored as a FB303 counter.  Will call
      getRegexCounters so we can filter out just the interface counters and
      ignore the multitude of other counters we don't need.

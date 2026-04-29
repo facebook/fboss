@@ -1468,14 +1468,15 @@ void QsfpModule::programTransceiver(
       // Here we ensure that Rx output squelch is always enabled.
       // Skip doing this for 200G-FR4 modules configured in 2x50G mode. For this
       // mode, we need all 4 lanes to operate independently.
-      // Also skip for tunable optics modules where squelch is intentionally
-      // disabled.
+      // Also skip for tunable optics modules that advertise rxConsActImpl
+      // (Page 45h, Byte 129, Bit 1) where squelch is intentionally disabled
+      // and Rx Consequent Action (LF insertion) is programmed instead.
       for (auto portIt : programTcvrState.ports) {
         auto speed = portIt.second.speed;
         bool skipSquelchEnforce =
             (getModuleMediaInterface() == MediaInterfaceCode::FR4_200G &&
              speed == cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) ||
-            isTunableOptics();
+            (isTunableOptics() && isRxConsActImplSupported());
         if (!skipSquelchEnforce) {
           if (auto hostLaneSettings = settings.hostLaneSettings()) {
             ensureRxOutputSquelchEnabled(*hostLaneSettings);

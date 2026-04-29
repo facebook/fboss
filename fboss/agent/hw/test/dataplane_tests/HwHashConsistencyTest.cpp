@@ -83,7 +83,7 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
   }
 
   void resolveNhops(const std::vector<PortID>& ports) {
-    flat_set<PortDescriptor> portDescriptors{};
+    boost::container::flat_set<PortDescriptor> portDescriptors{};
     std::for_each(
         std::begin(ports), std::end(ports), [&portDescriptors](auto port) {
           portDescriptors.insert(PortDescriptor(port));
@@ -93,7 +93,7 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
   }
 
   void unresolveNhops(const std::vector<PortID>& ports) {
-    flat_set<PortDescriptor> portDescriptors{};
+    boost::container::flat_set<PortDescriptor> portDescriptors{};
     std::for_each(
         std::begin(ports), std::end(ports), [&portDescriptors](auto port) {
           portDescriptors.insert(PortDescriptor(port));

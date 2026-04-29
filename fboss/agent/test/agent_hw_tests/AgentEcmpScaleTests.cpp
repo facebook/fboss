@@ -51,7 +51,7 @@ class AgentEcmpTest : public AgentHwTest {
     std::vector<RoutePrefixV6> prefixes;
     std::vector<std::vector<PortDescriptor>> allCombinations =
         generateScale(portDescriptorIds, maxElements);
-    std::vector<flat_set<PortDescriptor>> nhopSets;
+    std::vector<boost::container::flat_set<PortDescriptor>> nhopSets;
     for (const auto& combination : allCombinations) {
       nhopSets.emplace_back(combination.begin(), combination.end());
     }
@@ -59,7 +59,7 @@ class AgentEcmpTest : public AgentHwTest {
                    &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
       return ecmpHelper.resolveNextHops(
           in,
-          flat_set<PortDescriptor>(
+          boost::container::flat_set<PortDescriptor>(
               std::make_move_iterator(portDescriptorIds.begin()),
               std::make_move_iterator(portDescriptorIds.end())));
     });
@@ -138,7 +138,7 @@ TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
                    &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
       return ecmpHelper.resolveNextHops(
           in,
-          flat_set<PortDescriptor>(
+          boost::container::flat_set<PortDescriptor>(
               std::make_move_iterator(portDescriptorIds.begin()),
               std::make_move_iterator(portDescriptorIds.end())));
     });
@@ -154,7 +154,7 @@ TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
           allCombinations, swWeights, kMaxUcmpMembers, kMaxVariableEcmpWidth);
     }
 
-    std::vector<flat_set<PortDescriptor>> nhopSets;
+    std::vector<boost::container::flat_set<PortDescriptor>> nhopSets;
     for (const auto& combination : allCombinations) {
       nhopSets.emplace_back(combination.begin(), combination.end());
     }
@@ -187,7 +187,7 @@ TEST_F(AgentEcmpTest, CreateMaxUcmpGroups) {
                    &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
       return ecmpHelper.resolveNextHops(
           in,
-          flat_set<PortDescriptor>(
+          boost::container::flat_set<PortDescriptor>(
               std::make_move_iterator(portDescriptorIds.begin()),
               std::make_move_iterator(portDescriptorIds.end())));
     });
@@ -195,7 +195,7 @@ TEST_F(AgentEcmpTest, CreateMaxUcmpGroups) {
         portDescriptorIds, kMaxEcmpGroup, portDescriptorIds.size());
     utility::assignUcmpWeights(allCombinations, swWeights);
 
-    std::vector<flat_set<PortDescriptor>> nhopSets;
+    std::vector<boost::container::flat_set<PortDescriptor>> nhopSets;
     for (const auto& combination : allCombinations) {
       nhopSets.emplace_back(combination.begin(), combination.end());
     }

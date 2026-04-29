@@ -22,8 +22,10 @@
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
+#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Transceiver.h"
 #include "fboss/agent/test/CounterCache.h"
@@ -3181,7 +3183,7 @@ TEST_F(ThriftTest, addMySidEntryRejectsDecapTypeWithNamedNextHops) {
   auto entry = makeMySidEntry("2001:db8::1", 64);
   // DECAP type with namedNextHops set — should be rejected
   NamedRouteDestination named;
-  named.nextHopGroups() = {"group1"};
+  named.nextHopGroup() = "group1";
   entry.namedNextHops() = named;
   entries->push_back(entry);
   EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
@@ -3248,17 +3250,42 @@ TEST_F(ThriftTestWithNhopIdMgr, getMySidEntriesNodeAndAdjacencyTypesViaRib) {
   // configured in testConfigA().
   auto ribMySidToSwitchStateFunc =
       createRibMySidToSwitchStateFunction(std::nullopt);
-  std::vector<MySidEntry> toAdd = {
+
+  std::vector<MySidEntry> nodeToAdd = {
       makeMySidEntryWithNextHops(
           "2001:db8::1", 64, MySidType::NODE_MICRO_SID, {kNhopAddrA}),
-      makeMySidEntryWithNextHops(
-          "2001:db8::2", 64, MySidType::ADJACENCY_MICRO_SID, {kNhopAddrB}),
   };
   sw_->getRib()->update(
       sw_->getScopeResolver(),
-      toAdd,
+      nodeToAdd,
       {} /* toDelete */,
-      "add node/adjacency mysids via rib",
+      "add node mysid via rib",
+      ribMySidToSwitchStateFunc,
+      sw_);
+
+  // ADJACENCY_MICRO_SID — must be added via the `MySidWithNextHops`
+  // overload so we can populate `adjacencyInterfaceId` + `isV6` and
+  // pass a `ResolvedNextHop(neighborIP, intf)`.
+  state::MySidFields adjFields;
+  adjFields.type() = MySidType::ADJACENCY_MICRO_SID;
+  facebook::network::thrift::IPPrefix adjPrefix;
+  adjPrefix.prefixAddress() =
+      facebook::network::toBinaryAddress(folly::IPAddress("2001:db8::2"));
+  adjPrefix.prefixLength() = 64;
+  adjFields.mySid() = adjPrefix;
+  adjFields.adjacencyInterfaceId() = static_cast<int32_t>(kInterfaceB);
+  adjFields.isV6() = true;
+  adjFields.clientId() = ClientID::STATIC_ROUTE;
+  auto adjMySid = std::make_shared<MySid>(adjFields);
+  RouteNextHopSet adjNhops{
+      ResolvedNextHop(folly::IPAddress(kNhopAddrB), kInterfaceB, ECMP_WEIGHT)};
+  std::vector<MySidWithNextHops> adjToAdd = {{adjMySid, adjNhops}};
+  sw_->getRib()->update(
+      sw_->getScopeResolver(),
+      std::move(adjToAdd),
+      {} /* toUnresolveIfMatch */,
+      {} /* toDelete */,
+      "add adjacency mysid via rib",
       ribMySidToSwitchStateFunc,
       sw_);
 

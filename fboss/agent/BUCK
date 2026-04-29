@@ -878,12 +878,31 @@ cpp_library(
 )
 
 cpp_library(
+    name = "cpu_latency_manager",
+    headers = [
+        "CpuLatencyManager.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest_headers",
+        ":fboss-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//folly:network_address",
+        "//folly:synchronized",
+        "//folly/io/async:async_base",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
         "ApplyThriftConfig.cpp",
         "ArpCache.cpp",
         "ArpHandler.cpp",
+        "CpuLatencyManager.cpp",
         "DHCPv4Handler.cpp",
         "DHCPv6Handler.cpp",
         "DsfSession.cpp",
@@ -919,6 +938,7 @@ cpp_library(
         "MultiHwSwitchHandler.cpp",
         "MultiSwitchFb303Stats.cpp",
         "MultiSwitchPacketStreamMap.cpp",
+        "MySidNeighborObserver.cpp",
         "NdpCache.cpp",
         "NeighborUpdater.cpp",
         "NeighborUpdaterImpl.cpp",
@@ -973,6 +993,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/googletest:gtest_headers",
         "fbsource//third-party/re2:re2",
         ":address_utils",
         ":agent_dir_util",
@@ -1199,6 +1220,7 @@ cpp_library(
     exported_deps = [
         ":core",
         ":handler",
+        ":load_agent_config",
         ":utils",
         "//fboss/agent/if:test_ctrl-cpp2-services",
     ],
@@ -2153,12 +2175,15 @@ ci_sandcastle(
         "fbcode/fboss/agent/**",
     ],
     command = "SandcastleUniversalCommand",
+    labels = [ci.overwrite()] + ci.for_schedules(
+        [
+            ci.diff,
+            ci.continuous,
+        ],
+        [ci.linux(ci.dev())],
+    ),
     metadata = {"brr_disable_reason": "NOT_YET_IMPLEMENTED"},  # auto-derived, may be wrong
     oncall = "fboss_agent",
-    schedules = [
-        ci.diff,
-        ci.continuous,
-    ],
 )
 
 cpp_library(

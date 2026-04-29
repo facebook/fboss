@@ -937,4 +937,26 @@ std::vector<PortID> PlatformMapping::getPlatformPorts(
   return portIds;
 }
 
+PortID PlatformMapping::getFirstFabricPortForVirtualDevice(
+    int32_t virtualDeviceId) const {
+  std::optional<PortID> minPortId;
+  for (const auto& [id, entry] : platformPorts_) {
+    if (entry.mapping()->portType() != cfg::PortType::FABRIC_PORT) {
+      continue;
+    }
+    auto vd = entry.mapping()->virtualDeviceId();
+    if (vd.has_value() && *vd == virtualDeviceId) {
+      auto portId = PortID(id);
+      if (!minPortId.has_value() || portId < *minPortId) {
+        minPortId = portId;
+      }
+    }
+  }
+  if (!minPortId.has_value()) {
+    throw FbossError(
+        "No fabric port found for virtualDeviceId: ", virtualDeviceId);
+  }
+  return *minPortId;
+}
+
 } // namespace facebook::fboss

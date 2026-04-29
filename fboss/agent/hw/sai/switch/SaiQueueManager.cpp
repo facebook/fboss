@@ -348,12 +348,12 @@ void SaiQueueManager::changeQueue(
       (queueType != SAI_QUEUE_TYPE_FABRIC_TX)) {
     if (portType && (*portType == cfg::PortType::CPU_PORT) &&
         (platform_->getAsic()->isSupported(
-             HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL) ||
-         (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_TOMAHAWK6)
+             HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL)
 #if defined(SAI_VERSION_15_4_EA_ODP)
          || (platform_->getAsic()->getAsicType() ==
-             cfg::AsicType::ASIC_TYPE_TOMAHAWK5)
+             cfg::AsicType::ASIC_TYPE_TOMAHAWK5) ||
+         (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK6)
 #endif
              )) {
       // Skip configuring a buffer pool on CPU queues for platforms like
@@ -366,11 +366,6 @@ void SaiQueueManager::changeQueue(
       // or configs on CPU queues for such platforms, need to provide an
       // option to use a dedicated CPU queue config with buffer pool
       // specified explicitly as the reserved buffer pool.
-      //
-      //
-      // TODO(ruinanhu): Avoid applying buffer profile as buffer profile
-      // application on CPU queues is failing for TH5/TH6 on SAI 15.4.
-      // Working with Broadcom in CS00012418940 to address the same.
     } else if (!swPort) {
       changeQueueBufferProfile(queueHandle, newPortQueue, *portType);
     } else if (

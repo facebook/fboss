@@ -33,6 +33,7 @@ cpp_binary(
         "//fboss/agent/if:ctrl-cpp2-clients",
         "//fboss/cli/fboss2:cmd-common-utils",
         "//fboss/cli/fboss2:cmd-init-utils",
+        "//fboss/cli/fboss2:cmd-subcommands",
         "//fboss/cli/fboss2:fboss2-config-lib",  # @manual
         "//fboss/cli/fboss2:fboss2-lib",  # @manual
         "//folly:dynamic",

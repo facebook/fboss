@@ -120,6 +120,10 @@ enum ProductionFeature {
   SRV6_DECAP = 102,
   CUT_THROUGH = 103,
   SRV6_MIDPOINT = 104,
+  L4_DST_PORT_RANGE = 105,
+  MPLS_HEADEND = 106,
+  MPLS_MIDPOINT = 107,
+  MPLS_TAILEND = 108,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

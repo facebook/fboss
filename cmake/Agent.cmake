@@ -277,6 +277,7 @@ add_library(core
   fboss/agent/ArpCache.cpp
   fboss/agent/ArpHandler.cpp
   fboss/agent/BufferUtils.cpp
+  fboss/agent/CpuLatencyManager.cpp
   fboss/agent/DHCPv4Handler.cpp
   fboss/agent/DHCPv6Handler.cpp
   fboss/agent/DsfSession.cpp
@@ -333,6 +334,7 @@ add_library(core
   fboss/agent/SwitchInfoTable.cpp
   fboss/agent/SwitchStatsObserver.cpp
   fboss/agent/SwSwitch.cpp
+  fboss/agent/MySidNeighborObserver.cpp
   fboss/agent/SwSwitchMySidUpdater.cpp
   fboss/agent/SwSwitchRouteUpdateWrapper.cpp
   fboss/agent/TamManager.cpp

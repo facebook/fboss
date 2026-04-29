@@ -40,7 +40,9 @@ enum class CmisPages : int {
   PAGE2C = 0x2C,
   PAGE2F = 0x2F,
   PAGE34 = 0x34,
-  PAGE35 = 0x35
+  PAGE35 = 0x35,
+  PAGE38 = 0x38,
+  PAGE45 = 0x45
 };
 
 enum VdmConfigType {
@@ -249,6 +251,10 @@ class CmisModule : public QsfpModule {
   // C-CMIS Performance Monitoring pages (coherent optics)
   uint8_t page34_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page35_[MAX_QSFP_PAGE_SIZE]{};
+  // Page 38h - Data Path Host Interface Configuration (Consequent Action)
+  uint8_t page38_[MAX_QSFP_PAGE_SIZE]{};
+  // Page 45h - Host Lane Provisioning Advertisement
+  uint8_t page45_[MAX_QSFP_PAGE_SIZE]{};
 
   // Some of the pages are static and they need not be read every refresh cycle
   bool staticPagesCached_{false};
@@ -644,6 +650,27 @@ class CmisModule : public QsfpModule {
   bool isTunableOptics() const override;
 
   /*
+   * Disable TX and RX squelch on all lanes for tunable optics modules.
+   * Squelch is only disabled if the module advertises rxConsActImpl
+   * (Page 45h, Byte 129, Bit 1). Programs Rx/Tx Consequent Action
+   * (LF insertion) via Page 38h before disabling squelch.
+   */
+  void disableTxRxSquelchForTunableOptics();
+
+  /*
+   * Check if the module advertises Rx Consequent Action support.
+   * Reads Page 45h (Host Lane Provisioning Advertisement),
+   * Byte 129, Bit 1 (rxConsActImpl).
+   */
+  bool isRxConsActImplSupported() const override;
+
+  /*
+   * Enable Rx Consequent Action (LF insertion) for tunable optics.
+   * Writes to Page 38h, Byte 137, Bits 7-4 (rxConsAct): 0001 = insert LF.
+   */
+  void enableRxLfInsertionForTunableOptics();
+
+  /*
    * returns the tunable optics laser status and laser frequency
    */
   std::optional<TunableLaserStatus> getTunableLaserStatus() override;
@@ -734,11 +761,6 @@ class CmisModule : public QsfpModule {
    */
   void ensureRxOutputSquelchEnabled(
       const std::vector<HostLaneSettings>& hostLaneSettings) override;
-
-  /*
-   * Disable TX and RX squelch on all lanes for tunable optics modules.
-   */
-  void disableTxRxSquelchForTunableOptics();
 
   /*
    * Check if the module has accepted the lane configuration specified by

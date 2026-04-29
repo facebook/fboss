@@ -89,7 +89,9 @@ SaiPortManager::getSaiRxReach(
 
 void SaiPortManager::fillInSupportedVendorExtStats(
     std::vector<sai_stat_id_t>& counterIds) {
+#if !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_8_ea)
   counterIds.emplace_back(SAI_PORT_STAT_IF_OUT_DISCARDS_SLL);
   counterIds.emplace_back(SAI_PORT_STAT_IF_OUT_DISCARDS_HLL);
+#endif
 }
 } // namespace facebook::fboss
