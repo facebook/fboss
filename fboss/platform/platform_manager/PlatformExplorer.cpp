@@ -829,6 +829,14 @@ void PlatformExplorer::createDeviceSymLink(
           fmt::format("Symbolic link {} is not supported.", linkPath));
     }
   } catch (const std::exception& ex) {
+    if (isSymlinkDeviceVersionedMiss(devicePath)) {
+      XLOG(INFO) << fmt::format(
+          "Skipping symlink {} for DevicePath {}. Device not present in "
+          "resolved PmUnit config for current hardware version.",
+          linkPath,
+          devicePath);
+      return;
+    }
     auto errMsg = fmt::format(
         "Failed to create symlink {} for DevicePath {}. Reason: {}",
         linkPath,
@@ -849,6 +857,62 @@ void PlatformExplorer::createDeviceSymLink(
   if (exitStatus != 0) {
     XLOG(ERR) << fmt::format("Failed to run command ({})", cmd);
     return;
+  }
+}
+
+bool PlatformExplorer::isSymlinkDeviceVersionedMiss(
+    const std::string& devicePath) const noexcept {
+  try {
+    const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
+    const auto& pmUnitInfoMap = dataStore_.getSlotPathToPmUnitInfo();
+    auto it = pmUnitInfoMap.find(slotPath);
+    if (it == pmUnitInfoMap.end()) {
+      return false;
+    }
+    const auto& pmUnitName = *it->second.name();
+    if (!platformConfig_.versionedPmUnitConfigs()->contains(pmUnitName)) {
+      return false;
+    }
+
+    auto isInConfig = [&deviceName](const PmUnitConfig& cfg) {
+      for (const auto& d : *cfg.i2cDeviceConfigs()) {
+        if (*d.pmUnitScopedName() == deviceName) {
+          return true;
+        }
+      }
+      for (const auto& d : *cfg.pciDeviceConfigs()) {
+        if (*d.pmUnitScopedName() == deviceName) {
+          return true;
+        }
+      }
+      for (const auto& d : *cfg.embeddedSensorConfigs()) {
+        if (*d.pmUnitScopedName() == deviceName) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // Device must exist in at least one version (default or any versioned)
+    bool existsInSomeVersion =
+        isInConfig(platformConfig_.pmUnitConfigs()->at(pmUnitName));
+    if (!existsInSomeVersion) {
+      for (const auto& vc :
+           platformConfig_.versionedPmUnitConfigs()->at(pmUnitName)) {
+        if (isInConfig(*vc.pmUnitConfig())) {
+          existsInSomeVersion = true;
+          break;
+        }
+      }
+    }
+    if (!existsInSomeVersion) {
+      return false;
+    }
+
+    // Skip gracefully if device is absent from the currently-resolved config.
+    return !isInConfig(dataStore_.resolvePmUnitConfig(slotPath));
+  } catch (const std::exception&) {
+    return false;
   }
 }
 

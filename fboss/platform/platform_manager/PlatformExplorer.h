@@ -125,6 +125,9 @@ class PlatformExplorer {
 
   std::optional<DataStore> getDataStore() const;
 
+  bool isSymlinkDeviceVersionedMiss(
+      const std::string& devicePath) const noexcept;
+
  protected:
   virtual void updatePmStatus(const PlatformManagerStatus& newStatus);
   // A thrift struct which contains the status of PM exploration.

@@ -934,12 +934,6 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
-  // Validate chassisEepromDevicePath
-  if (!isValidChassisEepromDevicePath(
-          config, *config.chassisEepromDevicePath())) {
-    return false;
-  }
-
   // Validate SlotTypeConfigs.
   for (const auto& [slotName, slotTypeConfig] : *config.slotTypeConfigs()) {
     XLOG(INFO) << fmt::format(
@@ -1038,6 +1032,12 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
             *config.slotTypeConfigs())) {
       return false;
     }
+  }
+
+  // Validate chassisEepromDevicePath
+  if (!isValidChassisEepromDevicePath(
+          config, *config.chassisEepromDevicePath())) {
+    return false;
   }
 
   XLOG(INFO) << "Validating Symbolic links...";
@@ -1391,7 +1391,20 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
   }
 
   for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
-    if (*versionedPmUnitConfig.productSubVersion() < 0) {
+    if (const auto& pmUv = versionedPmUnitConfig.pmUnitVersion(); pmUv &&
+        (*pmUv->productProductionState() < 0 || *pmUv->productVersion() < 0 ||
+         *pmUv->productSubVersion() < 0)) {
+      XLOG(ERR) << fmt::format(
+          "PmUnit {}'s VersionedPmUnitConfig has invalid pmUnitVersion "
+          "{}.{}.{}: all fields must be >= 0",
+          pmUnitName,
+          *pmUv->productProductionState(),
+          *pmUv->productVersion(),
+          *pmUv->productSubVersion());
+      return false;
+    } else if (
+        versionedPmUnitConfig.productSubVersion() &&
+        *versionedPmUnitConfig.productSubVersion() < 0) {
       XLOG(ERR) << fmt::format(
           "One of PmUnit {}'s VersionedPmUnitConfig has a negative ProductSubVersion",
           pmUnitName);
@@ -1400,10 +1413,18 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
 
     bool fieldMismatch = false;
     apache::thrift::op::for_each_field_id<PmUnitConfig>([&]<class Id>(Id) {
-      // i2cDeviceConfigs are allowed to differ between versioned and default
-      if constexpr (std::is_same_v<
-                        apache::thrift::op::get_ident<PmUnitConfig, Id>,
-                        ident::i2cDeviceConfigs>) {
+      // i2cDeviceConfigs, embeddedSensorConfigs and pciDeviceConfigs are
+      // allowed to differ between versioned and default configs
+      if constexpr (
+          std::is_same_v<
+              apache::thrift::op::get_ident<PmUnitConfig, Id>,
+              ident::i2cDeviceConfigs> ||
+          std::is_same_v<
+              apache::thrift::op::get_ident<PmUnitConfig, Id>,
+              ident::embeddedSensorConfigs> ||
+          std::is_same_v<
+              apache::thrift::op::get_ident<PmUnitConfig, Id>,
+              ident::pciDeviceConfigs>) {
         return;
       }
 
@@ -1711,6 +1732,76 @@ void ConfigValidator::buildDeviceNameCache(
 
       for (const auto& mdioBusConfig : Utils::createMdioBusConfigs(pciConfig)) {
         cache[slotType].insert(*mdioBusConfig.pmUnitScopedName());
+      }
+    }
+  }
+
+  // Also add device names from versionedPmUnitConfigs. Only i2cDeviceConfigs,
+  // pciDeviceConfigs, and embeddedSensorConfigs may differ between versions;
+  // pluggedInSlotType cannot differ, so we inherit it from the default config.
+  for (const auto& [pmUnitName, versionedConfigs] :
+       *platformConfig.versionedPmUnitConfigs()) {
+    const auto& slotType =
+        *platformConfig.pmUnitConfigs()->at(pmUnitName).pluggedInSlotType();
+    for (const auto& versionedPmUnitConfig : versionedConfigs) {
+      const auto& pmUnitConfig = *versionedPmUnitConfig.pmUnitConfig();
+      for (const auto& i2cConfig : *pmUnitConfig.i2cDeviceConfigs()) {
+        cache[slotType].insert(*i2cConfig.pmUnitScopedName());
+      }
+      for (const auto& sensorConfig : *pmUnitConfig.embeddedSensorConfigs()) {
+        cache[slotType].insert(*sensorConfig.pmUnitScopedName());
+      }
+      for (const auto& pciConfig : *pmUnitConfig.pciDeviceConfigs()) {
+        cache[slotType].insert(*pciConfig.pmUnitScopedName());
+        for (const auto& adapterConfig : *pciConfig.i2cAdapterConfigs()) {
+          addI2cAdapterNames(slotType, adapterConfig);
+        }
+        for (const auto& spiMaster : *pciConfig.spiMasterConfigs()) {
+          addFromFpgaIpBlock(slotType, *spiMaster.fpgaIpBlockConfig());
+          for (const auto& spiDevice : *spiMaster.spiDeviceConfigs()) {
+            cache[slotType].insert(*spiDevice.pmUnitScopedName());
+          }
+        }
+        for (const auto& fanConfig : *pciConfig.fanTachoPwmConfigs()) {
+          addFromFpgaIpBlock(slotType, *fanConfig.fpgaIpBlockConfig());
+        }
+        for (const auto& ledConfig : *pciConfig.ledCtrlConfigs()) {
+          addFromFpgaIpBlock(slotType, *ledConfig.fpgaIpBlockConfig());
+        }
+        for (const auto& xcvrConfig : *pciConfig.xcvrCtrlConfigs()) {
+          addFromFpgaIpBlock(slotType, *xcvrConfig.fpgaIpBlockConfig());
+        }
+        for (const auto& gpioConfig : *pciConfig.gpioChipConfigs()) {
+          cache[slotType].insert(*gpioConfig.pmUnitScopedName());
+        }
+        for (const auto& watchdogConfig : *pciConfig.watchdogConfigs()) {
+          cache[slotType].insert(*watchdogConfig.pmUnitScopedName());
+        }
+        for (const auto& infoRomConfig : *pciConfig.infoRomConfigs()) {
+          cache[slotType].insert(*infoRomConfig.pmUnitScopedName());
+        }
+        for (const auto& miscConfig : *pciConfig.miscCtrlConfigs()) {
+          cache[slotType].insert(*miscConfig.pmUnitScopedName());
+        }
+        for (const auto& sysLedConfig : *pciConfig.sysLedCtrlConfigs()) {
+          cache[slotType].insert(*sysLedConfig.pmUnitScopedName());
+        }
+        for (const auto& ledCtrlConfig :
+             Utils::createLedCtrlConfigs(pciConfig)) {
+          addFromFpgaIpBlock(slotType, *ledCtrlConfig.fpgaIpBlockConfig());
+        }
+        for (const auto& xcvrCtrlConfig :
+             Utils::createXcvrCtrlConfigs(pciConfig)) {
+          addFromFpgaIpBlock(slotType, *xcvrCtrlConfig.fpgaIpBlockConfig());
+        }
+        for (const auto& i2cAdapterConfig :
+             Utils::createI2cAdapterConfigs(pciConfig)) {
+          addI2cAdapterNames(slotType, i2cAdapterConfig);
+        }
+        for (const auto& mdioBusConfig :
+             Utils::createMdioBusConfigs(pciConfig)) {
+          cache[slotType].insert(*mdioBusConfig.pmUnitScopedName());
+        }
       }
     }
   }
