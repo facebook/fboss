@@ -455,6 +455,10 @@ class CmdGlobalOptions {
     return dataCorralServiceThriftPort_;
   }
 
+  int getRebootCauseServiceThriftPort() const {
+    return rebootCauseServiceThriftPort_;
+  }
+
   int getBmcHttpPort() const {
     return bmcHttpPort_;
   }
@@ -557,6 +561,7 @@ class CmdGlobalOptions {
   int fanServiceThriftPort_{5972};
   int teAgentThriftPort_{2022};
   int dataCorralServiceThriftPort_{5971};
+  int rebootCauseServiceThriftPort_{5974};
   int vipInjectorThriftPort_{3333};
   std::string color_{"yes"};
   std::string filter_;
