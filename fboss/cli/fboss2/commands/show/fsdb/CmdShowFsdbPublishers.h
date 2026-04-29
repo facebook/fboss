@@ -13,7 +13,9 @@
 #include <fboss/fsdb/if/gen-cpp2/fsdb_common_types.h>
 #include <thrift/lib/cpp2/gen/module_types_h.h>
 
+#include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
