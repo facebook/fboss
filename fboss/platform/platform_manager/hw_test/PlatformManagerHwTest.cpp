@@ -173,6 +173,9 @@ TEST_F(PlatformManagerHwTest, Symlinks) {
             devicePath)) {
       continue;
     }
+    if (platformExplorer_.isSymlinkDeviceVersionedMiss(devicePath)) {
+      continue;
+    }
     EXPECT_TRUE(fs::exists(symlink))
         << fmt::format("{} doesn't exist", symlink);
     EXPECT_TRUE(fs::is_symlink(symlink))

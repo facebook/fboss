@@ -338,6 +338,35 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
+TEST(ConfigValidatorTest, VersionedPmUnitConfigSymlinks) {
+  auto config = getBasicConfig();
+
+  I2cDeviceConfig versionedDevice;
+  versionedDevice.pmUnitScopedName() = "SCM_VERSIONED_SENSOR";
+  versionedDevice.address() = "0x48";
+  auto versionedCfg = VersionedPmUnitConfig();
+  versionedCfg.productSubVersion() = 1;
+  versionedCfg.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  versionedCfg.pmUnitConfig()->i2cDeviceConfigs() = {versionedDevice};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedCfg}}};
+
+  // Test 1: Symlink to a device that only exists in a versioned pmunit
+  config.symbolicLinkToDevicePath() = {
+      {"/run/devmap/sensors/SCM_VERSIONED_SENSOR", "/[SCM_VERSIONED_SENSOR]"}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 2: Symlink to a device present only in default pmunit
+  I2cDeviceConfig defaultDevice;
+  defaultDevice.pmUnitScopedName() = "SCM_DEFAULT_SENSOR";
+  defaultDevice.address() = "0x49";
+  auto pmUnitConfig = config.pmUnitConfigs()->at("SCM");
+  pmUnitConfig.i2cDeviceConfigs()->push_back(defaultDevice);
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.symbolicLinkToDevicePath() = {
+      {"/run/devmap/sensors/SCM_DEFAULT_SENSOR", "/[SCM_DEFAULT_SENSOR]"}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
 TEST(ConfigValidatorTest, PmUnitNameReferentialIntegrity) {
   auto config = getBasicConfig();
 
