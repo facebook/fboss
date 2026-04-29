@@ -353,6 +353,22 @@ CLI::App* CmdSubcommands::addCommand(
               "<port-list> [<attr> <value> ...] where <attr> is one "
               "of: description, mtu");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_TUNNEL_IP_IN_IP_ID:
+          subCmd->add_option(
+              "tunnel_config",
+              args,
+              "<tunnel-id> [<attr> <value> ...] where <attr> is one of: "
+              "destination, source, ttl-mode, dscp-mode, ecn-mode, "
+              "termination-type, underlay-intf-id");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_TUNNEL_IP_IN_IP_DELETE_ID:
+          subCmd->add_option(
+              "tunnel_delete_args",
+              args,
+              "<tunnel-id> [<attr> ...] — with no attrs, deletes the entire "
+              "tunnel; otherwise resets the listed attrs. Resettable attrs: "
+              "source, ttl-mode, dscp-mode, ecn-mode, termination-type");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;

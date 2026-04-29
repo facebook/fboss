@@ -339,6 +339,10 @@ void ConfigSession::setInstance(std::unique_ptr<ConfigSession> newInstance) {
   getInstancePtr() = std::move(newInstance);
 }
 
+void ConfigSession::resetInstance() {
+  setInstance(nullptr);
+}
+
 // Static path getters - can be called without creating a session instance
 std::string ConfigSession::getSessionDir() {
   return getHomeDirectory() + "/.fboss2";
@@ -745,27 +749,30 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
     return CommitResult{"", {}, {}};
   }
 
-  // Copy the metadata file alongside the config revision
-  // This is required for rollback functionality
+  // Write the metadata file alongside the config revision.
+  // This is required for rollback functionality.
+  // Use folly::writeFileAtomic instead of fs::copy_file so that we only write
+  // file content without calling fchmod() on the destination — fchmod fails
+  // with EPERM when the target is owned by a different user (e.g. root) even
+  // if the caller has group-write permission on the file.
   std::string metadataPath = getMetadataPath();
   std::string targetMetadataPath =
       fmt::format("{}/cli_metadata.json", cliConfigDir);
-  std::error_code ec;
-  fs::copy_file(
-      metadataPath,
-      targetMetadataPath,
-      fs::copy_options::overwrite_existing,
-      ec);
-  if (ec) {
+  std::string metadataContent;
+  if (!folly::readFile(metadataPath.c_str(), metadataContent)) {
+    metadataContent = "{}";
+  }
+  try {
+    folly::writeFileAtomic(
+        targetMetadataPath, metadataContent, 0664, folly::SyncType::WITH_SYNC);
+  } catch (const std::exception& e) {
     if (!oldConfigData.empty()) {
       folly::writeFileAtomic(
           cliConfigPath, oldConfigData, 0644, folly::SyncType::WITH_SYNC);
     }
     throw std::runtime_error(
         fmt::format(
-            "Failed to copy metadata to {}: {}",
-            targetMetadataPath,
-            ec.message()));
+            "Failed to copy metadata to {}: {}", targetMetadataPath, e.what()));
   }
 
   // Atomically write the session config to the CLI config path
@@ -821,7 +828,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   }
 
   // Only remove the session config after everything succeeded
-  ec = std::error_code{};
+  std::error_code ec;
   fs::remove(sessionConfigPath, ec);
   if (ec) {
     // Log warning but don't fail - the commit succeeded

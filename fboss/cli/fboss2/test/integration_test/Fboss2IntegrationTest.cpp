@@ -27,7 +27,11 @@
 #include <thread>
 #include <vector>
 
+#include <folly/IPAddressV6.h>
+#include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/CmdArgsLists.h"
+#include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
+#include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdInitUtils.h"
 
 namespace fs = std::filesystem;
@@ -73,6 +77,10 @@ void Fboss2IntegrationTest::discardSession() const {
       XLOG(WARN) << "Failed to remove session metadata: " << ec.message();
     }
   }
+
+  // Reset the in-memory singleton so the next CLI command starts a fresh
+  // session from the current system config, not stale in-process state.
+  ConfigSession::resetInstance();
 }
 
 Fboss2IntegrationTest::Result Fboss2IntegrationTest::executeCliCommand(
@@ -184,8 +192,19 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::parseInterfaceJson(
 
 std::map<std::string, Fboss2IntegrationTest::Interface>
 Fboss2IntegrationTest::getAllInterfaces() const {
-  auto json = runCliJson({"show", "interface"});
+  auto result = runCli({"show", "interface"});
+  XLOG(DBG2) << "getAllInterfaces: exitCode=" << result.exitCode
+             << " stdout.size=" << result.stdout.size()
+             << " stderr=" << result.stderr;
+
+  if (result.exitCode != 0 || result.stdout.empty()) {
+    return {};
+  }
+
+  auto json = folly::parseJson(result.stdout);
   std::map<std::string, Fboss2IntegrationTest::Interface> interfaces;
+  int totalIntfs = 0;
+  int withVlan = 0;
 
   // JSON has a host key containing the interfaces
   for (const auto& [host, hostData] : json.items()) {
@@ -193,10 +212,17 @@ Fboss2IntegrationTest::getAllInterfaces() const {
       continue;
     }
     for (const auto& intfData : hostData["interfaces"]) {
+      ++totalIntfs;
       auto intf = parseInterfaceJson(intfData);
+      if (intf.vlan.has_value() && *intf.vlan > 1) {
+        ++withVlan;
+      }
       interfaces[intf.name] = intf;
     }
   }
+
+  XLOG(DBG2) << "getAllInterfaces: total=" << totalIntfs
+             << " withVlan>1=" << withVlan;
 
   return interfaces;
 }
@@ -227,11 +253,25 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::getInterfaceInfo(
 
 Fboss2IntegrationTest::Interface Fboss2IntegrationTest::findFirstEthInterface()
     const {
-  auto interfaces = getAllInterfaces();
+  // Retry with backoff to handle the window where the agent is processing a
+  // config reload after a preceding commit. Agent reloads can take up to ~30s.
+  constexpr int kMaxRetries = 60;
+  constexpr auto kRetryDelay = std::chrono::milliseconds(1000);
 
-  for (const auto& [name, intf] : interfaces) {
-    if (name.rfind("eth", 0) == 0 && intf.vlan.has_value() && *intf.vlan > 1) {
-      return intf;
+  for (int attempt = 0; attempt < kMaxRetries; ++attempt) {
+    auto interfaces = getAllInterfaces();
+    for (const auto& [name, intf] : interfaces) {
+      if (name.rfind("eth", 0) == 0 && intf.vlan.has_value() &&
+          *intf.vlan > 1) {
+        return intf;
+      }
+    }
+    if (attempt + 1 < kMaxRetries) {
+      XLOG(WARN) << "findFirstEthInterface: no suitable interface found "
+                    "(attempt "
+                 << (attempt + 1) << "/" << kMaxRetries
+                 << "), retrying in 1s...";
+      std::this_thread::sleep_for(kRetryDelay);
     }
   }
 
@@ -241,7 +281,9 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::findFirstEthInterface()
 
 void Fboss2IntegrationTest::commitConfig() const {
   auto result = runCli({"config", "session", "commit"});
-  ASSERT_EQ(result.exitCode, 0) << "Failed to commit config: " << result.stderr;
+  if (result.exitCode != 0) {
+    FAIL() << "Failed to commit config: " << result.stderr;
+  }
 }
 
 void Fboss2IntegrationTest::waitForAgentReady(
@@ -293,6 +335,55 @@ int Fboss2IntegrationTest::getKernelInterfaceMtu(int vlanId) const {
   }
 
   return static_cast<int>(json[0]["mtu"].asInt());
+}
+
+int Fboss2IntegrationTest::ensureUnderlayIntfId(int vlanId) const {
+  auto& session = ConfigSession::getInstance();
+  auto& swConfig = *session.getAgentConfig().sw();
+  auto [created, vlan] = VlanManager::createVlan(swConfig, VlanID(vlanId));
+  // Pointer into swConfig.vlans() — do not hold across further mutations.
+  (void)vlan;
+
+  // VlanManager either created a new cfg::Interface for this VLAN or left
+  // an existing one in place. Either way, look it up by vlanID.
+  for (const auto& intf : *swConfig.interfaces()) {
+    if (*intf.vlanID() == vlanId) {
+      if (created) {
+        XLOG(INFO) << "Created VLAN " << vlanId << " with interface "
+                   << *intf.intfID() << " for tunnel underlay";
+        session.saveConfig();
+      }
+      return *intf.intfID();
+    }
+  }
+  throw std::runtime_error(
+      fmt::format(
+          "VlanManager did not produce a backing interface for VLAN {}",
+          vlanId));
+}
+
+std::string Fboss2IntegrationTest::findIpv6OnIntf(int intfId) const {
+  auto& session = ConfigSession::getInstance();
+  auto& swConfig = *session.getAgentConfig().sw();
+  for (const auto& intf : *swConfig.interfaces()) {
+    if (*intf.intfID() != intfId) {
+      continue;
+    }
+    for (const auto& addr : *intf.ipAddresses()) {
+      auto slashPos = addr.find('/');
+      std::string ip =
+          (slashPos != std::string::npos) ? addr.substr(0, slashPos) : addr;
+      if (folly::IPAddressV6::validate(ip)) {
+        return ip;
+      }
+    }
+    break;
+  }
+  // Test devices (e.g. NH-4010-F lab units) may have a virtual interface with
+  // no configured addresses. Fall back to a documentation IPv6 (RFC 3849) so
+  // tests still exercise the CLI path; the agent does not validate that dstIp
+  // exists on the underlay interface.
+  return "2001:db8::1";
 }
 
 } // namespace facebook::fboss

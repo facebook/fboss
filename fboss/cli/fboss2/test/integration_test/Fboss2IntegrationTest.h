@@ -125,6 +125,28 @@ class Fboss2IntegrationTest : public ::testing::Test {
   void waitForAgentReady(
       std::chrono::seconds timeout = std::chrono::seconds(300)) const;
 
+  /**
+   * Ensure a VLAN + backing cfg::Interface exists in the staged config, then
+   * return that interface's intfID for use as the IP-in-IP tunnel underlay.
+   *
+   * If the VLAN is already present, the existing interface's intfID is
+   * returned and the staged config is left unchanged. Otherwise the VLAN and
+   * a barebone interface are inserted via VlanManager, the staged config is
+   * persisted, and the new intfID is returned.
+   *
+   * The VLAN ID 3998 is reserved for tunnel-test use.
+   */
+  int ensureUnderlayIntfId(int vlanId = 3998) const;
+
+  /**
+   * Return the first IPv6 address (without prefix length) configured on the
+   * interface with the given intfID. If the interface has no IPv6 address
+   * (e.g. one freshly created by ensureUnderlayIntfId), a documentation IPv6
+   * (RFC 3849) is returned as a safe stand-in — the agent does not validate
+   * that dstIp exists on the underlay interface.
+   */
+  std::string findIpv6OnIntf(int intfId) const;
+
  private:
   Interface parseInterfaceJson(const folly::dynamic& data) const;
 

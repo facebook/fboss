@@ -92,6 +92,9 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_PORT_AND_TAGGING_MODE,
   OBJECT_ARG_TYPE_L2_LEARNING_MODE,
   OBJECT_ARG_TYPE_ID_INTERFACES_CONFIG,
+  // Tunnel IP-in-IP argument type
+  OBJECT_ARG_TYPE_TUNNEL_IP_IN_IP_ID, // <id> [<attr> <value> ...]
+  OBJECT_ARG_TYPE_TUNNEL_IP_IN_IP_DELETE_ID, // <id> [<attr> ...]
 };
 
 template <typename T>
