@@ -1,0 +1,16 @@
+{
+  "rebootCauseProviderConfigs": {
+    "MERU800BIA_SMB_CPLD": {
+      "type": 0,
+      "priority": 1,
+      "sysfsReadPath": "/run/devmap/cplds/MERU800BIA_SMB_CPLD/reboot_causes",
+      "sysfsClearPath": "/run/devmap/cplds/MERU800BIA_SMB_CPLD/clear_reboot_causes"
+    },
+    "MERU_SCM_CPLD": {
+      "type": 0,
+      "priority": 2,
+      "sysfsReadPath": "/run/devmap/fpgas/MERU_SCM_CPLD/reboot_causes",
+      "sysfsClearPath": "/run/devmap/fpgas/MERU_SCM_CPLD/clear_reboot_causes"
+    }
+  }
+}
