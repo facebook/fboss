@@ -21,7 +21,11 @@ class MockSystemInterface : public package_manager::SystemInterface {
       (const std::string&),
       (const));
   MOCK_METHOD(int, removeRpms, (const std::vector<std::string>&), (const));
-  MOCK_METHOD(int, installRpm, (const std::string&), (const));
+  MOCK_METHOD(
+      int,
+      installRpm,
+      (const std::string&, const std::string&),
+      (const));
   MOCK_METHOD(int, depmod, (), (const));
   MOCK_METHOD(std::set<std::string>, lsmod, (), (const));
   MOCK_METHOD(bool, unloadKmod, (const std::string&), (const));
@@ -186,7 +190,8 @@ TEST_F(PkgManagerTest, processRpms) {
           fmt::format(
               "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
               *platformConfig_.bspKmodsRpmName(),
-              *platformConfig_.bspKmodsRpmVersion())))
+              *platformConfig_.bspKmodsRpmVersion()),
+          _))
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(0));
   EXPECT_NO_THROW(pkgManager_.processRpms());
@@ -214,7 +219,8 @@ TEST_F(PkgManagerTest, processRpms) {
           fmt::format(
               "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
               *platformConfig_.bspKmodsRpmName(),
-              *platformConfig_.bspKmodsRpmVersion())))
+              *platformConfig_.bspKmodsRpmVersion()),
+          _))
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(0));
   EXPECT_NO_THROW(pkgManager_.processRpms());
@@ -259,7 +265,8 @@ TEST_F(PkgManagerTest, processRpms) {
           fmt::format(
               "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
               *platformConfig_.bspKmodsRpmName(),
-              *platformConfig_.bspKmodsRpmVersion())))
+              *platformConfig_.bspKmodsRpmVersion()),
+          _))
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(1));
   EXPECT_NO_THROW(pkgManager_.processRpms());
@@ -285,7 +292,8 @@ TEST_F(PkgManagerTest, processRpms) {
           fmt::format(
               "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
               *platformConfig_.bspKmodsRpmName(),
-              *platformConfig_.bspKmodsRpmVersion())))
+              *platformConfig_.bspKmodsRpmVersion()),
+          _))
       .Times(3)
       .WillRepeatedly(Return(1));
   EXPECT_THROW(pkgManager_.processRpms(), std::runtime_error);

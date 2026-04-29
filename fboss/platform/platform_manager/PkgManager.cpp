@@ -68,10 +68,15 @@ bool SystemInterface::unloadKmod(const std::string& moduleName) const {
   return exitStatus == 0;
 }
 
-int SystemInterface::installRpm(const std::string& rpmFullName) const {
+int SystemInterface::installRpm(
+    const std::string& rpmFullName,
+    const std::string& repoName) const {
   int exitStatus{0};
   std::string standardOut{};
-  auto cmd = fmt::format("dnf install {} --assumeyes", rpmFullName);
+  auto cmd = fmt::format(
+      "dnf install {} --assumeyes {}",
+      rpmFullName,
+      repoName.empty() ? "" : "--repo " + repoName);
   VLOG(1) << fmt::format("Running command ({})", cmd);
   std::tie(exitStatus, standardOut) = platformUtils_->execCommand(cmd);
   return exitStatus;
@@ -267,7 +272,8 @@ void PkgManager::processRpms() const {
        attempt++) {
     XLOG(INFO) << fmt::format(
         "Installing BSP {}, Attempt #{}", bspKmodsRpmName, attempt);
-    exitStatus = systemInterface_->installRpm(bspKmodsRpmName);
+    exitStatus = systemInterface_->installRpm(
+        bspKmodsRpmName, attempt == 0 ? "kernel" : "");
     success = exitStatus == 0;
   }
   if (exitStatus != 0) {
