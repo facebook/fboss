@@ -100,15 +100,15 @@ enum PacketType {
 }
 
 typedef map<byte, ForwardingClass> DscpToForwardingClassMap
-typedef map<ForwardingClass, list<NamedNextHopGroup>> ForwardingClassToNamedNhgs
+typedef map<ForwardingClass, NamedNextHopGroup> ForwardingClassToNamedNhg
 
 /*
  * Class based traffic forwarding policy
  */
 struct ClassBasedPolicy {
   1: string name;
-  2: list<string> defaultNexthopGroups;
-  3: ForwardingClassToNamedNhgs class2NextHopGroups;
+  2: string defaultNexthopGroup;
+  3: ForwardingClassToNamedNhg class2NextHopGroup;
 }
 
 /*
@@ -120,7 +120,7 @@ union Policy {
 
 union NamedRouteDestination {
   // list of named next hop groups
-  1: list<string> nextHopGroups;
+  1: string nextHopGroup;
   // traffic redirection policy name
   2: string policyName;
 }

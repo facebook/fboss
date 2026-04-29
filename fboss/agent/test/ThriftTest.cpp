@@ -3183,7 +3183,7 @@ TEST_F(ThriftTest, addMySidEntryRejectsDecapTypeWithNamedNextHops) {
   auto entry = makeMySidEntry("2001:db8::1", 64);
   // DECAP type with namedNextHops set — should be rejected
   NamedRouteDestination named;
-  named.nextHopGroups() = {"group1"};
+  named.nextHopGroup() = "group1";
   entry.namedNextHops() = named;
   entries->push_back(entry);
   EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);

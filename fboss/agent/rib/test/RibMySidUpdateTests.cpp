@@ -523,7 +523,7 @@ TEST(RibMySidUpdate, rejectBothNextHopsAndNamedNextHops) {
       facebook::network::toBinaryAddress(folly::IPAddressV6("2::2"));
   entry.nextHops() = {nhop};
   NamedRouteDestination named;
-  named.nextHopGroups() = {"group1"};
+  named.nextHopGroup() = "group1";
   entry.namedNextHops() = named;
 
   EXPECT_THROW(
@@ -548,7 +548,7 @@ TEST(RibMySidUpdate, rejectDecapsulateTypeWithNamedNextHops) {
 
   auto entry = makeMySidEntry("fc00:100::1", 48);
   NamedRouteDestination named;
-  named.nextHopGroups() = {"group1"};
+  named.nextHopGroup() = "group1";
   entry.namedNextHops() = named;
 
   EXPECT_THROW(
