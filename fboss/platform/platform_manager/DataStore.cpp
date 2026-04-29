@@ -157,32 +157,46 @@ PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
   const auto& version = pmUnitInfo.version();
   if (!version) {
     XLOG(INFO) << fmt::format(
-        "Resolved {} to default PmUnitConfig of {}. No ProductSubversion was "
+        "Resolved {} to default PmUnitConfig of {}. No version was "
         "read from IDPROM at the slotPath.",
         slotPath,
         pmUnitName);
     return platformConfig_.pmUnitConfigs()->at(pmUnitName);
   }
-  auto productSubVersion = *version->productSubVersion();
   if (platformConfig_.versionedPmUnitConfigs()->contains(pmUnitName)) {
     for (const auto& versionedPmUnitConfig :
          platformConfig_.versionedPmUnitConfigs()->at(pmUnitName)) {
-      if (*versionedPmUnitConfig.productSubVersion() == productSubVersion) {
+      bool matches;
+      if (const auto& pmUv = versionedPmUnitConfig.pmUnitVersion(); pmUv) {
+        matches = *pmUv->productProductionState() ==
+                *version->productProductionState() &&
+            *pmUv->productVersion() == *version->productVersion() &&
+            *pmUv->productSubVersion() == *version->productSubVersion();
+      } else {
+        matches = versionedPmUnitConfig.productSubVersion() &&
+            *versionedPmUnitConfig.productSubVersion() ==
+                *version->productSubVersion();
+      }
+      if (matches) {
         XLOG(INFO) << fmt::format(
-            "Resolved {} to PmUnitConfig of {} with ProductSubVersion {}",
+            "Resolved {} to versioned PmUnitConfig of {} with version {}.{}.{}",
             slotPath,
             pmUnitName,
-            productSubVersion);
+            *version->productProductionState(),
+            *version->productVersion(),
+            *version->productSubVersion());
         return *versionedPmUnitConfig.pmUnitConfig();
       }
     }
   }
   XLOG(INFO) << fmt::format(
-      "Resolved {} to default PmUnitConfig of {}. No versioned config for "
-      "ProductSubVersion {}",
+      "Resolved {} to default PmUnitConfig of {}. No versioned config matches "
+      "version {}.{}.{}",
       slotPath,
       pmUnitName,
-      productSubVersion);
+      *version->productProductionState(),
+      *version->productVersion(),
+      *version->productSubVersion());
   return platformConfig_.pmUnitConfigs()->at(pmUnitName);
 }
 

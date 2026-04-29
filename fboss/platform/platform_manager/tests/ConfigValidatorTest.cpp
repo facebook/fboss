@@ -189,13 +189,24 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 3: Mismatched pluggedInSlotType
+  // Test 3: Negative field in pmUnitVersion
+  auto versionedPmUnitConfigNegPmUv = VersionedPmUnitConfig();
+  PmUnitVersion negPmUv;
+  negPmUv.productProductionState() = 0;
+  negPmUv.productVersion() = -1;
+  negPmUv.productSubVersion() = 0;
+  versionedPmUnitConfigNegPmUv.pmUnitVersion() = negPmUv;
+  versionedPmUnitConfigNegPmUv.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfigNegPmUv}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 4: Mismatched pluggedInSlotType
   versionedPmUnitConfig.productSubVersion() = 1;
   versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "PIM_SLOT";
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 4: Mismatched outgoingSlotConfigs
+  // Test 5: Mismatched outgoingSlotConfigs
   versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
   auto slotConfig = SlotConfig();
   slotConfig.slotType() = "EXTRA_SLOT";
@@ -204,14 +215,14 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 5: Mismatched pciDeviceConfigs
+  // Test 6: Mismatched pciDeviceConfigs
   versionedPmUnitConfig.pmUnitConfig()->outgoingSlotConfigs() = {};
   versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {
       getValidPciDeviceConfig()};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 6: Mismatched embeddedSensorConfigs
+  // Test 7: Mismatched embeddedSensorConfigs
   versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {};
   auto sensorConfig = EmbeddedSensorConfig();
   sensorConfig.pmUnitScopedName() = "SENSOR_1";

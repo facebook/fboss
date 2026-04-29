@@ -177,6 +177,14 @@ void ConfigDiffer::compareVersionedConfigs(
   for (const auto& versionedConfig : versionedConfigs) {
     auto versionInfo = fmt::format(
         "default{}v{}", kArrow, *versionedConfig.productSubVersion());
+    if (const auto& pmUv = versionedConfig.pmUnitVersion(); pmUv) {
+      versionInfo = fmt::format(
+          "default{}v{}.{}.{}",
+          kArrow,
+          *pmUv->productProductionState(),
+          *pmUv->productVersion(),
+          *pmUv->productSubVersion());
+    }
 
     comparePmUnitConfigs(
         defaultConfig,

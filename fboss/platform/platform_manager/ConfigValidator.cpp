@@ -1391,7 +1391,20 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
   }
 
   for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
-    if (*versionedPmUnitConfig.productSubVersion() < 0) {
+    if (const auto& pmUv = versionedPmUnitConfig.pmUnitVersion(); pmUv &&
+        (*pmUv->productProductionState() < 0 || *pmUv->productVersion() < 0 ||
+         *pmUv->productSubVersion() < 0)) {
+      XLOG(ERR) << fmt::format(
+          "PmUnit {}'s VersionedPmUnitConfig has invalid pmUnitVersion "
+          "{}.{}.{}: all fields must be >= 0",
+          pmUnitName,
+          *pmUv->productProductionState(),
+          *pmUv->productVersion(),
+          *pmUv->productSubVersion());
+      return false;
+    } else if (
+        versionedPmUnitConfig.productSubVersion() &&
+        *versionedPmUnitConfig.productSubVersion() < 0) {
       XLOG(ERR) << fmt::format(
           "One of PmUnit {}'s VersionedPmUnitConfig has a negative ProductSubVersion",
           pmUnitName);
