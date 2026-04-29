@@ -23,7 +23,8 @@ package;
   attributes = [
     "Oncalls('fboss_platform')",
     "JSEnum(shape('flow_enum' => false))",
-    "GraphQLEnum('SensorType')",
+    "GraphQLEnum('XFBSensorType')",
+    "GraphQLUnprefixedNamingScheme",
     "SelfDescriptive",
     "RelayFlowEnum",
   ],
