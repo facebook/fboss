@@ -184,8 +184,19 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::parseInterfaceJson(
 
 std::map<std::string, Fboss2IntegrationTest::Interface>
 Fboss2IntegrationTest::getAllInterfaces() const {
-  auto json = runCliJson({"show", "interface"});
+  auto result = runCli({"show", "interface"});
+  XLOG(DBG2) << "getAllInterfaces: exitCode=" << result.exitCode
+             << " stdout.size=" << result.stdout.size()
+             << " stderr=" << result.stderr;
+
+  if (result.exitCode != 0 || result.stdout.empty()) {
+    return {};
+  }
+
+  auto json = folly::parseJson(result.stdout);
   std::map<std::string, Fboss2IntegrationTest::Interface> interfaces;
+  int totalIntfs = 0;
+  int withVlan = 0;
 
   // JSON has a host key containing the interfaces
   for (const auto& [host, hostData] : json.items()) {
@@ -193,10 +204,17 @@ Fboss2IntegrationTest::getAllInterfaces() const {
       continue;
     }
     for (const auto& intfData : hostData["interfaces"]) {
+      ++totalIntfs;
       auto intf = parseInterfaceJson(intfData);
+      if (intf.vlan.has_value() && *intf.vlan > 1) {
+        ++withVlan;
+      }
       interfaces[intf.name] = intf;
     }
   }
+
+  XLOG(DBG2) << "getAllInterfaces: total=" << totalIntfs
+             << " withVlan>1=" << withVlan;
 
   return interfaces;
 }
@@ -227,11 +245,25 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::getInterfaceInfo(
 
 Fboss2IntegrationTest::Interface Fboss2IntegrationTest::findFirstEthInterface()
     const {
-  auto interfaces = getAllInterfaces();
+  // Retry with backoff to handle the window where the agent is processing a
+  // config reload after a preceding commit. Agent reloads can take up to ~30s.
+  constexpr int kMaxRetries = 60;
+  constexpr auto kRetryDelay = std::chrono::milliseconds(1000);
 
-  for (const auto& [name, intf] : interfaces) {
-    if (name.rfind("eth", 0) == 0 && intf.vlan.has_value() && *intf.vlan > 1) {
-      return intf;
+  for (int attempt = 0; attempt < kMaxRetries; ++attempt) {
+    auto interfaces = getAllInterfaces();
+    for (const auto& [name, intf] : interfaces) {
+      if (name.rfind("eth", 0) == 0 && intf.vlan.has_value() &&
+          *intf.vlan > 1) {
+        return intf;
+      }
+    }
+    if (attempt + 1 < kMaxRetries) {
+      XLOG(WARN) << "findFirstEthInterface: no suitable interface found "
+                    "(attempt "
+                 << (attempt + 1) << "/" << kMaxRetries
+                 << "), retrying in 1s...";
+      std::this_thread::sleep_for(kRetryDelay);
     }
   }
 
