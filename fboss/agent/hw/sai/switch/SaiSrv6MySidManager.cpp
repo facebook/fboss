@@ -73,7 +73,7 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
 
   return SaiMySidEntryTraits::CreateAttributes{
       endpointBehavior,
-      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_PSP_AND_USP,
+      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_NONE,
       nextHopId,
       vrId,
       packetAction};
