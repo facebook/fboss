@@ -44,6 +44,7 @@ cpp_library(
     name = "led_manager",
     srcs = [
         "BspLedManager.cpp",
+        "Blackwolf800banwLedManager.cpp",
         "FsdbSwitchStateSubscriber.cpp",
         "Icecube800banwLedManager.cpp",
         "Icecube800bcLedManager.cpp",
@@ -74,6 +75,7 @@ cpp_library(
         "facebook/YampLedManager.cpp",
     ],
     headers = [
+        "Blackwolf800banwLedManager.h",
         "BspLedManager.h",
         "DarwinLedManager.h",
         "ElbertLedManager.h",
@@ -114,6 +116,7 @@ cpp_library(
         "//fboss/agent/platforms/common/darwin:darwin_platform_mapping",
         "//fboss/agent/platforms/common/elbert:elbert_platform_mapping",
         "//fboss/agent/platforms/common/fuji:fuji_platform_mapping",
+        "//fboss/agent/platforms/common/blackwolf800banw:blackwolf800banw_platform_mapping",
         "//fboss/agent/platforms/common/icecube800banw:icecube800banw_platform_mapping",
         "//fboss/agent/platforms/common/icecube800bc:icecube800bc_platform_mapping",
         "//fboss/agent/platforms/common/icetea800bc:icetea800bc_platform_mapping",
@@ -140,6 +143,7 @@ cpp_library(
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_port_utils",
         "//fboss/lib/bsp:bsp_core",
+        "//fboss/lib/bsp/blackwolf800banw:blackwolf800banw_bsp",
         "//fboss/lib/bsp/icecube800banw:icecube800banw_bsp",
         "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
         "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
