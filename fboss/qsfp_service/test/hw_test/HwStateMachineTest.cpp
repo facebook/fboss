@@ -750,9 +750,21 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
       // Due to some platforms are easy to have i2c issue which causes the
       // current refresh not work as expected. Adding enough retries to make
       // sure that we at least can meet all `expectedStates` after 10 times.
+      // ZR optics need more retries as datapath programming takes longer.
+      bool hasTunableOptics = false;
+      for (auto id : getPresentTransceivers()) {
+        auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
+        if (tcvrInfo.tcvrState()->moduleTechnology().has_value() &&
+            tcvrInfo.tcvrState()->moduleTechnology().value() ==
+                ModuleTechnology::TUNABLE) {
+          hasTunableOptics = true;
+          break;
+        }
+      }
+      int numRetries = hasTunableOptics ? 30 : 10;
 
       WITH_RETRIES_N_TIMED(
-          10 /* retries */,
+          numRetries,
           std::chrono::milliseconds(10000) /* msBetweenRetry */,
           EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
               expectedStates,
