@@ -630,11 +630,6 @@ class SaiAclTableGroupTest : public HwTest {
  * table 2 with ttl on warmboot, add DSCP qualifier and dscp acl entries to
  * table 1. Verify that all entries are present.
  */
-// only ACL entry removed, no change to table
-TEST_F(SaiAclTableGroupTest, RemoveAclEntriesFromAclTablesPostWarmboot) {
-  verifyAclEntryModificationTestHelper(false, false);
-}
-
 // ACL entry is removed and table is modified
 TEST_F(
     SaiAclTableGroupTest,
