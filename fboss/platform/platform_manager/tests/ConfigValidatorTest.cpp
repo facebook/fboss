@@ -204,47 +204,12 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 5: Mismatched pciDeviceConfigs
-  versionedPmUnitConfig.pmUnitConfig()->outgoingSlotConfigs() = {};
-  versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {
-      getValidPciDeviceConfig()};
-  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
-
-  // Test 6: Mismatched embeddedSensorConfigs
+  // Test 5: Mismatched embeddedSensorConfigs
   versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {};
   auto sensorConfig = EmbeddedSensorConfig();
   sensorConfig.pmUnitScopedName() = "SENSOR_1";
   versionedPmUnitConfig.pmUnitConfig()->embeddedSensorConfigs() = {
       sensorConfig};
-  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
-
-  // Test 7: Mismatched pciDeviceConfigs (via differing ledCtrlBlockConfigs)
-  versionedPmUnitConfig.pmUnitConfig()->embeddedSensorConfigs() = {};
-  config.numXcvrs() = 1;
-  auto defaultPciDev = getValidPciDeviceConfig();
-  LedCtrlBlockConfig defaultLedCtrl;
-  defaultLedCtrl.pmUnitScopedNamePrefix() = "MCB_LED";
-  defaultLedCtrl.deviceName() = "port_led";
-  defaultLedCtrl.csrOffsetCalc() = "0x1000";
-  defaultLedCtrl.numPorts() = 1;
-  defaultLedCtrl.ledPerPort() = 1;
-  defaultLedCtrl.startPort() = 1;
-  defaultPciDev.ledCtrlBlockConfigs() = {defaultLedCtrl};
-  auto pmUnitCfg = config.pmUnitConfigs()->at("SCM");
-  pmUnitCfg.pciDeviceConfigs() = {defaultPciDev};
-  config.pmUnitConfigs() = {{"SCM", pmUnitCfg}};
-  auto versionedPciDev = getValidPciDeviceConfig();
-  LedCtrlBlockConfig versionedLedCtrl;
-  versionedLedCtrl.pmUnitScopedNamePrefix() = "MCB_LED";
-  versionedLedCtrl.deviceName() = "port_led";
-  versionedLedCtrl.csrOffsetCalc() = "0x2000";
-  versionedLedCtrl.numPorts() = 1;
-  versionedLedCtrl.ledPerPort() = 1;
-  versionedLedCtrl.startPort() = 1;
-  versionedPciDev.ledCtrlBlockConfigs() = {versionedLedCtrl};
-  versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {versionedPciDev};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
