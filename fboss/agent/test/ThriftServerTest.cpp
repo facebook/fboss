@@ -643,3 +643,44 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
   handler.getAllCpuPortStats(cpuPortStats);
   EXPECT_EQ(cpuPortStats[0], getTestStatUpdate().cpuPortStats().value());
 }
+
+TEST_F(ThriftServerTest, counterStatsAccumulation) {
+  // Populate counterStats on switch 0
+  multiswitch::HwSwitchStats stats0;
+  HwSwitchCounter counter0;
+  counter0.bytes() = 100;
+  counter0.packets() = 10;
+  stats0.counterStats()->routeCounters()["foo"] = counter0;
+  HwSwitchCounter counter0bar;
+  counter0bar.bytes() = 50;
+  stats0.counterStats()->routeCounters()["bar"] = counter0bar;
+  sw_->updateHwSwitchStats(0, stats0);
+
+  // Populate counterStats on switch 1 with overlapping counter name
+  multiswitch::HwSwitchStats stats1;
+  HwSwitchCounter counter1;
+  counter1.bytes() = 200;
+  counter1.packets() = 20;
+  stats1.counterStats()->routeCounters()["foo"] = counter1;
+  HwSwitchCounter counter1baz;
+  counter1baz.bytes() = 75;
+  counter1baz.packets() = 5;
+  stats1.counterStats()->routeCounters()["baz"] = counter1baz;
+  sw_->updateHwSwitchStats(1, stats1);
+
+  auto agentStats = sw_->fillFsdbStats();
+  auto& routeCounters = *agentStats.counterStats()->routeCounters();
+
+  // "foo" exists on both switches — values should be summed
+  EXPECT_EQ(routeCounters.size(), 3);
+  EXPECT_EQ(*routeCounters.at("foo").bytes(), 300);
+  EXPECT_EQ(*routeCounters.at("foo").packets(), 30);
+
+  // "bar" only on switch 0
+  EXPECT_EQ(*routeCounters.at("bar").bytes(), 50);
+  EXPECT_FALSE(routeCounters.at("bar").packets().has_value());
+
+  // "baz" only on switch 1
+  EXPECT_EQ(*routeCounters.at("baz").bytes(), 75);
+  EXPECT_EQ(*routeCounters.at("baz").packets(), 5);
+}
