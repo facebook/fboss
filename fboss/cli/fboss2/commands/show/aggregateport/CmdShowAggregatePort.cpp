@@ -9,12 +9,23 @@
  */
 
 #include "CmdShowAggregatePort.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
+#include <cstdint>
+#include <map>
+#include <ostream>
+#include <string>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fmt/format.h"
-#include "folly/Conv.h"
+#include "folly/Utility.h"
 
 namespace facebook::fboss {
 

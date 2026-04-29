@@ -13,6 +13,7 @@
 
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
+#include "fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
@@ -110,6 +111,26 @@ const CommandTree& kConfigCommandTree() {
        "Show config applied information",
        commandHandler<CmdConfigAppliedInfo>,
        argTypeHandler<CmdConfigAppliedInfoTraits>},
+
+      {
+          "config",
+          "copp",
+          "Configure CoPP (control-plane policing) settings",
+          commandHandler<CmdConfigCopp>,
+          argTypeHandler<CmdConfigCoppTraits>,
+          {{
+               "cpu-queue",
+               "Configure a CPU queue (bandwidth shaping)",
+               commandHandler<CmdConfigCoppCpuQueue>,
+               argTypeHandler<CmdConfigCoppCpuQueueTraits>,
+           },
+           {
+               "reason",
+               "Map a packet-rx reason to a CPU queue",
+               commandHandler<CmdConfigCoppReason>,
+               argTypeHandler<CmdConfigCoppReasonTraits>,
+           }},
+      },
 
       {"config",
        "history",
