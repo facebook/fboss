@@ -75,23 +75,10 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_MTU,
   OBJECT_ARG_TYPE_ID_INTERFACE_LIST,
   OBJECT_ARG_TYPE_ID_REVISION_LIST,
-  OBJECT_ARG_TYPE_ID_BUFFER_POOL_NAME,
   OBJECT_ARG_TYPE_VLAN_ID,
-  OBJECT_ARG_TYPE_MAC_AND_PORT,
-  OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_POLICY_NAME,
-  OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_ID,
-  OBJECT_ARG_TYPE_ID_SCALING_FACTOR,
-  // PFC config argument types
-  OBJECT_ARG_TYPE_ID_PFC_CONFIG_ATTRS,
-  // Queuing policy argument types
-  OBJECT_ARG_TYPE_ID_QUEUING_POLICY_NAME,
-  OBJECT_ARG_TYPE_ID_QUEUE_ID,
-  // QoS policy argument types
-  OBJECT_ARG_TYPE_ID_QOS_POLICY_NAME,
-  OBJECT_ARG_TYPE_ID_QOS_MAP_ENTRY,
-  OBJECT_ARG_TYPE_PORT_AND_TAGGING_MODE,
-  OBJECT_ARG_TYPE_L2_LEARNING_MODE,
-  OBJECT_ARG_TYPE_ID_INTERFACES_CONFIG,
+  // Don't add new values here. Use Traits::addCliArg() instead (see
+  // args-validation.mdx). This enum is legacy and will be removed once
+  // all existing commands are migrated.
 };
 
 template <typename T>

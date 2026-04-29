@@ -11,28 +11,122 @@ In this article, we will look at how argument parsing of subcommand works and ho
 
 ## Add a New Type of Argument
 
-The below shows a step-by-step instruction on how to add a new type of argument.
+There are two approaches for registering positional arguments. **New commands should use the `addCliArg` approach** (Option A). Many existing non-config commands still use the legacy `ObjectArgTypeId` approach (Option B). The FBOSS team is gradually migrating all commands to `addCliArg`.
 
-1. Define a new type of argument id in [CmdCommonUtils.h::ObjectArgTypeId](https://www.internalfb.com/code/fbsource/[e5984a8d19eebbaac834e47b5372e9a6a39bd41b]/fbcode/fboss/cli/fboss2/utils/CmdCommonUtils.h?lines=33).
+### Option A: `addCliArg` (recommended for new commands)
 
-2. Subclass [BaseObjectArgType](https://www.internalfb.com/code/fbsource/[e5984a8d19eebbaac834e47b5372e9a6a39bd41b]/fbcode/fboss/cli/fboss2/utils/CmdCommonUtils.h?lines=60) with the argument id defined in step 1 and implement validation rules in the class constructor.
+1. Subclass `utils::BaseObjectArgType` and implement validation rules in the class constructor.
 
-3. Add unit test for the newly created argument type in `CmdArgsTest.cpp` (For example [D37385960](https://www.internalfb.com/diff/D37385960)/[D37329534](https://www.internalfb.com/diff/D37329534)).
+2. Add unit test for the newly created argument type in `CmdArgsTest.cpp`.
 
-4. Register your command in `fboss/cli/fboss2/CmdList.cpp`.
+3. Register your command in `fboss/cli/fboss2/CmdList.cpp` using `argRegistrar<Traits>`.
 
-5. Use the newly created type in your command file (For example [D37411284](https://www.internalfb.com/diff/D37411284)). Be sure to specify ObjectArgTypeId in the command traits class with the new argument type.
-Although the `BaseObjectArgType` has implemented interface including `empty()`, `size()`, iterator and indexing, you could also access the original data and utilize the feature of `std::vector` by calling `.data()`.
-For old type migration, you will need to modify `ObjectArgType` under `CmdXXXTraits` and adjust the argument type in `queryClient`.
+4. In the command's traits struct, set `ObjectArgType` to the new class and
+   add a `static void addCliArg(CLI::App& cmd, std::vector<std::string>& args)`
+   method that registers the positional option with CLI11 (e.g.
+   `cmd.add_option("ports", args, "Port(s)")`). There is no central enum or
+   switch — each command owns its argument registration.
 
-6. Add a subcommand option to process the new argument type in [CmdSubcommands.cpp](https://www.internalfb.com/code/fbsource/[29256fef57b039281881805f7698decb12d688a3]/fbcode/fboss/cli/fboss2/CmdSubcommands.cpp?lines=49).
+### Option B: `ObjectArgTypeId` (legacy, existing non-config commands)
+
+Many existing commands (show, clear, set, bounce, get, etc.) still use this pattern:
+
+1. Define a new argument id in `CmdUtilsCommon.h::ObjectArgTypeId`.
+
+2. Subclass `utils::BaseObjectArgType` with the argument id and implement validation rules in the class constructor.
+
+3. Add unit test for the newly created argument type in `CmdArgsTest.cpp`.
+
+4. Register your command in `fboss/cli/fboss2/CmdList.cpp` using `argTypeHandler<Traits>`.
+
+5. In the command's traits struct, set both `ObjectArgType` and `ObjectArgTypeId`.
+
+6. Add a case in `CmdSubcommands.cpp` to handle the new `ObjectArgTypeId`.
+
+:::note
+If you are adding a **new** command, prefer Option A. The legacy `ObjectArgTypeId` enum and central switch in `CmdSubcommands.cpp` are merge-conflict magnets and will be removed once all existing commands are migrated.
+:::
 
 
 ## How Subcommand Arg Parsing Works
 
-In this section, we will use the command`fboss2 set interface prbs state [OPTIONS] [state…]` as an example
+`ObjectArgType` defines the expected type of argument (Notice that they used to be `std::vector<std::string>` before we implement the feature argument validation).
 
-`CommandTree& kCommandTree()` in file `fboss/cli/fboss2/CmdList.cpp` could demonstrate the hierarchical relationship between the three arguments.
+By specifying `ParentCmd`, the subcommands are able to inherit the argument from their parent commands and construct a typed array of arguments during compilation time. The command tree (`kCommandTree()`) is a runtime concept that deals with user input from command line, while the actual type of each argument is determined in the `CmdXXXTrait` during compilation time.
+
+Both the new and legacy patterns share the same runtime behavior for argument type conversion and validation (described at the end of this section). They differ only in how the CLI11 positional option is registered.
+
+### New pattern (`addCliArg`)
+
+This example uses `fboss2 config vlan [vlan_id] port [ports] taggingMode [mode]`.
+
+Commands using the new pattern define a `static void addCliArg(...)` method directly in their traits struct. The command tree uses `argRegistrar<Traits>` to dispatch to this method. No central enum or switch is needed.
+
+**Command tree** in `fboss/cli/fboss2/CmdListConfig.cpp`:
+
+```
+{
+  "config",
+  "vlan",
+  "Configure VLAN settings",
+  commandHandler<CmdConfigVlan>,
+  argRegistrar<CmdConfigVlanTraits>,
+  {{
+    "port",
+    "Configure VLAN port settings",
+    commandHandler<CmdConfigVlanPort>,
+    argRegistrar<CmdConfigVlanPortTraits>,
+    {{"taggingMode",
+      "Set VLAN port tagging mode (tagged, untagged, priority-tagged)",
+      commandHandler<CmdConfigVlanPortTaggingMode>,
+      argRegistrar<CmdConfigVlanPortTaggingModeTraits>}},
+  }},
+}
+```
+
+**Traits structs:**
+
+```
+// fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h
+struct CmdConfigVlanTraits : public WriteCommandTraits {
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("vlan_id", args, "VLAN ID (1-4094)");
+  }
+  using ObjectArgType = VlanId;
+  using RetType = std::string;
+};
+// fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h
+struct CmdConfigVlanPortTraits : public WriteCommandTraits {
+  using ParentCmd = CmdConfigVlan;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("ports", args, "Port(s)");
+  }
+  using ObjectArgType = utils::PortList;
+  using RetType = std::string;
+};
+// fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h
+struct CmdConfigVlanPortTaggingModeTraits : public WriteCommandTraits {
+  using ParentCmd = CmdConfigVlanPort;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "port_and_tagging_mode",
+        args,
+        "Port name and tagging mode (e.g., eth1/1/1 tagged|untagged|priority-tagged)");
+  }
+  using ObjectArgType = TaggingModeArg;
+  using RetType = std::string;
+};
+```
+
+**Runtime:** The three arguments produce `std::tuple<VlanId, utils::PortList, TaggingModeArg>`. Therefore `CmdConfigVlan::queryClient` receives `VlanId`, `CmdConfigVlanPort::queryClient` receives `VlanId` and `utils::PortList`, and `CmdConfigVlanPortTaggingMode::queryClient` receives all three.
+
+### Legacy pattern (`ObjectArgTypeId`)
+
+This example uses `fboss2 set interface [ports] prbs [component] state [state]`.
+
+Existing non-config commands use a central `ObjectArgTypeId` enum. The command tree uses `argTypeHandler<Traits>` and the central switch in `CmdSubcommands.cpp` handles CLI11 registration.
+
+**Command tree** in `fboss/cli/fboss2/CmdList.cpp`:
 
 ```
 {
@@ -53,18 +147,15 @@ In this section, we will use the command`fboss2 set interface prbs state [OPTION
   }},
 }
 ```
-However, `kCommandTree()` is a runtime concept that deals with user input from command line. The actual type of each argument is determined in the `CmdXXXTrait` during compilation time.
 
-`ObjectArgType` defines the expected type of argument (Notice that they used to be `std::vector<std::string>` before we implement the feature argument validation).
-
-By specifying `ParentCmd`, the subcommands are able to inherit the argument from their parent commands and construct a typed array of arguments (will be covered below) during compilation time.
+**Traits structs:**
 
 ```
 // fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h
 struct CmdSetInterfaceTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
-  using ObjectArgType = utils::PortList; // used to be std::vector<std::string>;
+  using ObjectArgType = utils::PortList;
   using RetType = std::string;
 };
 // fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h
@@ -72,7 +163,7 @@ struct CmdSetInterfacePrbsTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT;
   using ParentCmd = CmdSetInterface;
-  using ObjectArgType = utils::PrbsComponent; // used to be std::vector<std::string>
+  using ObjectArgType = utils::PrbsComponent;
   using RetType = std::string;
 };
 // fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbsState.h
@@ -80,22 +171,17 @@ struct CmdSetInterfacePrbsStateTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_STATE;
   using ParentCmd = CmdSetInterfacePrbs;
-  using ObjectArgType = utils::PrbsState; // used to be std::vector<std::string>
+  using ObjectArgType = utils::PrbsState;
   using RetType = std::string;
 };
 ```
-Here describes what happens at run-time:
 
-Each type of argument will be parsed as `std::vector<std::string>` from the command line interface. Since there are three arguments, the corresponding argument type of the whole command is `std::tuple<std::vector<std::string>, std::vector<std::string>, std::vector<std::string>>`
+**Runtime:** The three arguments produce `std::tuple<utils::PortList, utils::PrbsComponent, utils::PrbsState>`. Therefore `CmdSetInterface::queryClient` receives `utils::PortList`, `CmdSetInterfacePrbs::queryClient` receives `utils::PortList` and `utils::PrbsComponent`, and `CmdSetInterfacePrbsState::queryClient` receives all three.
 
-An implicit type conversion takes place in `fboss/cli/fboss2/CmdArgsLists.h::getTypedArgs`:
+:::note
+The legacy pattern is being gradually migrated to `addCliArg`. New commands should always use the new pattern.
+:::
 
-It will convert the `UnfilteredTypes`(`std::tuple<std::vector<std::string>, std::vector<std::string>, std::vector<std::string>>`) to `Types`(`std::tuple<utils::PortList, utils::PrbsComponent, utils::PrbsState>`)
+### Runtime type conversion (shared by both patterns)
 
-During this conversion, the constructor of each type of argument is called. Validation will be applied automatically.
-
-Therefore, in the file `CmdSetInterface.h` for command `fboss2 set interface [ports...]`, the second input parameter of `queryClient` is `utils::PortList ports`.
-
-The second layer command `fboss2 set interface [ports...] prbs` inherts the argument from the upper layer, so the second and third parameters of `queryClient` in file `CmdSetInterfacePrbs.h` are `utils::PortList` and `utils::PrbsComponent`.
-
-Accordingly, the input parameters for `fboss2 set interface [ports...] prbs [component...] state [states...]` become `utils::PortList`, `utils::PrbsComponent` and `utils::PrbsState`
+Regardless of which pattern is used, each argument is parsed as `std::vector<std::string>` from the command line. An implicit type conversion takes place in `fboss/cli/fboss2/CmdArgsLists.h::getTypedArgs` which converts the raw string tuples into the typed argument tuples (e.g. `std::tuple<VlanId, utils::PortList, TaggingModeArg>`). During this conversion, the constructor of each argument type is called, and validation is applied automatically.

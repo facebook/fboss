@@ -17,6 +17,8 @@
 
 #include <folly/String.h>
 
+#include <fmt/color.h>
+
 namespace facebook::fboss {
 
 namespace {

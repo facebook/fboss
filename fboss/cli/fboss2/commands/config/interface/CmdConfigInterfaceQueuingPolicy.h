@@ -22,8 +22,9 @@ namespace facebook::fboss {
 
 struct CmdConfigInterfaceQueuingPolicyTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigInterface;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("msg", args, "Message");
+  }
   using ObjectArgType = utils::Message;
   using RetType = std::string;
 };

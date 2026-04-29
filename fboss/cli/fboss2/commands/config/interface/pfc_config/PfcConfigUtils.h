@@ -33,9 +33,6 @@ class PfcConfigAttrs : public BaseObjectArgType<std::string> {
     return attributes_;
   }
 
-  const static ObjectArgTypeId id =
-      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PFC_CONFIG_ATTRS;
-
  private:
   std::vector<std::pair<std::string, std::string>> attributes_;
 };

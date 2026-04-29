@@ -44,9 +44,6 @@ class PriorityGroupConfig : public utils::BaseObjectArgType<std::string> {
     return attributes_;
   }
 
-  const static utils::ObjectArgTypeId id =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_ID;
-
  private:
   int16_t groupId_{0};
   std::vector<std::pair<std::string, std::string>> attributes_;
@@ -55,8 +52,14 @@ class PriorityGroupConfig : public utils::BaseObjectArgType<std::string> {
 struct CmdConfigQosPriorityGroupPolicyGroupIdTraits
     : public WriteCommandTraits {
   using ParentCmd = CmdConfigQosPriorityGroupPolicy;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_ID;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "group_config",
+        args,
+        "<group-id> [min-limit-bytes <bytes>] [headroom-limit-bytes <bytes>] "
+        "[resume-offset-bytes <bytes>] [static-limit-bytes <bytes>] "
+        "[scaling-factor <factor>] [buffer-pool-name <name>]");
+  }
   using ObjectArgType = PriorityGroupConfig;
   using RetType = std::string;
 };

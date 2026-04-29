@@ -22,8 +22,15 @@ namespace facebook::fboss {
 
 struct CmdConfigInterfacePfcConfigTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigInterface;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PFC_CONFIG_ATTRS;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "pfc_config_attrs",
+        args,
+        "<attr> <value> [<attr> <value> ...] where <attr> is one of: "
+        "rx, tx, rx-duration, tx-duration, priority-group-policy, "
+        "watchdog-detection-time, watchdog-recovery-action, "
+        "watchdog-recovery-time");
+  }
   using ObjectArgType = utils::PfcConfigAttrs;
   using RetType = std::string;
 };
