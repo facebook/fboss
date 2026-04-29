@@ -272,6 +272,21 @@ std::string getDrainThresholdStr(
   }
 }
 
+void accumulateCounterStats(
+    facebook::fboss::HwSwitchCounterStats& accumulated,
+    const facebook::fboss::HwSwitchCounterStats& toAdd) {
+  for (const auto& [name, counter] : *toAdd.routeCounters()) {
+    auto& accCounter = accumulated.routeCounters()[name];
+    if (counter.bytes().has_value()) {
+      accCounter.bytes() = accCounter.bytes().value_or(0) + *counter.bytes();
+    }
+    if (counter.packets().has_value()) {
+      accCounter.packets() =
+          accCounter.packets().value_or(0) + *counter.packets();
+    }
+  }
+}
+
 void accumulateHwAsicErrorStats(
     facebook::fboss::HwAsicErrors& accumulated,
     const facebook::fboss::HwAsicErrors& toAdd) {
@@ -945,6 +960,8 @@ AgentStats SwSwitch::fillFsdbStats() {
       // accumulate error stats from all switches in global values
       accumulateHwAsicErrorStats(
           *agentStats.hwAsicErrors(), *hwSwitchStats.hwAsicErrors());
+      accumulateCounterStats(
+          *agentStats.counterStats(), *hwSwitchStats.counterStats());
 
       for (auto&& statEntry : *hwSwitchStats.hwPortStats()) {
         agentStats.hwPortStats()->insert(statEntry);
