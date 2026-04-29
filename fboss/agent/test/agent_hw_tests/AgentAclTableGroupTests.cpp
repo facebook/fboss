@@ -857,4 +857,10 @@ TEST_F(AgentAclTableGroupTest, RemoveAclEntriesFromAclTablesPostWarmboot) {
   verifyAclEntryModificationTestHelper(false, false);
 }
 
+TEST_F(
+    AgentAclTableGroupTest,
+    RemoveAclEntriesAndQualifiersFromAclTablesPostWarmboot) {
+  verifyAclEntryModificationTestHelper(false, true);
+}
+
 } // namespace facebook::fboss

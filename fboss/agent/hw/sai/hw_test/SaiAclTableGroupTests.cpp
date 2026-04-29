@@ -631,9 +631,4 @@ class SaiAclTableGroupTest : public HwTest {
  * table 1. Verify that all entries are present.
  */
 // ACL entry is removed and table is modified
-TEST_F(
-    SaiAclTableGroupTest,
-    RemoveAclEntriesAndQualifiersFromAclTablesPostWarmboot) {
-  verifyAclEntryModificationTestHelper(false, true);
-}
 } // namespace facebook::fboss
