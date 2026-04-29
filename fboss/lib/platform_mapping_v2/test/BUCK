@@ -24,3 +24,12 @@ python_unittest(
         "//fboss/lib/platform_mapping_v2:gen-library",
     ],
 )
+
+python_unittest(
+    name = "test_continuous_schedule",
+    srcs = ["test_continuous_schedule.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/lib/platform_mapping_v2/facebook:gen-library",
+    ],
+)
