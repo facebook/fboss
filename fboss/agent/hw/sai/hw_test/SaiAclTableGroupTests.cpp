@@ -624,10 +624,6 @@ class SaiAclTableGroupTest : public HwTest {
  * and acl table 2 with ttl. On warmboot, add dscp acl entries to table 1.
  * Verify that all entries are present.
  */
-TEST_F(SaiAclTableGroupTest, AddAclEntriesToAclTablesPostWarmboot) {
-  verifyAclEntryModificationTestHelper(true, false);
-}
-
 /*
  * This tests the ability to change acl table properties and adding acl entries
  * post warmboot. Add Acl table 1 with qph qualifiers and acl entries and acl
