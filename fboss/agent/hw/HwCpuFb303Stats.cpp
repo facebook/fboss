@@ -16,9 +16,9 @@
 
 namespace facebook::fboss {
 
-std::array<folly::StringPiece, 2>
+std::array<folly::StringPiece, 3>
 HwCpuFb303Stats::kQueueMonotonicCounterStatKeys() {
-  return {kInPkts(), kInDroppedPkts()};
+  return {kInPkts(), kInDroppedPkts(), kInBytes()};
 }
 
 std::string HwCpuFb303Stats::statName(
@@ -100,6 +100,8 @@ void HwCpuFb303Stats::updateStats(
         *curPortStats.queueOutDiscardPackets_());
     updateQueueStat(
         kInPkts(), queueIdAndName.first, *curPortStats.queueOutPackets_());
+    updateQueueStat(
+        kInBytes(), queueIdAndName.first, *curPortStats.queueOutBytes_());
   }
 }
 
@@ -140,6 +142,16 @@ void HwCpuFb303Stats::updateStats(const CpuPortStats& curPortStats) {
         timeRetrieved_,
         statName(kInPkts(), queueId, queueId2Name_[queueId]),
         curPortStats.queueInPackets_()->at(queueId));
+    {
+      auto bytesItr =
+          curPortStats.portStats_()->queueOutBytes_()->find(queueId);
+      if (bytesItr != curPortStats.portStats_()->queueOutBytes_()->end()) {
+        queueCounters_.updateStat(
+            timeRetrieved_,
+            statName(kInBytes(), queueId, queueId2Name_[queueId]),
+            bytesItr->second);
+      }
+    }
   }
   for (auto iter = queueId2Name_.cbegin(); iter != queueId2Name_.cend();) {
     if (curPortStats.queueToName_()->find(iter->first) ==
