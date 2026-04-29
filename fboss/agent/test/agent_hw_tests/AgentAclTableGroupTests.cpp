@@ -791,4 +791,56 @@ TEST_F(AgentAclTableGroupTest, TestAclTableGroupRoundtrip) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentAclTableGroupTest, RepositionAclEntriesPostWarmboot) {
+  ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
+
+  auto setup = [this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
+    addAclTable1(newCfg);
+    addAclTable2(newCfg);
+    addDefaultCounterAclsToTable(newCfg, false);
+  };
+
+  auto verify = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto switchId = scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
+    auto client = ensemble.getHwAgentTestClient(switchId);
+
+    EXPECT_EQ(
+        client->sync_getAclTableNumAclEntries(kAclTable1()), kMaxDefaultAcls);
+    EXPECT_EQ(
+        client->sync_getAclTableNumAclEntries(kAclTable2()), kMaxDefaultAcls);
+
+    for (int num = 1; num <= kMaxDefaultAcls; num++) {
+      auto table1AclName = folly::to<std::string>("table1_counter_acl", num);
+      auto table1CounterName = folly::to<std::string>("table1_counter", num);
+      auto table2AclName = folly::to<std::string>("table2_counter_acl", num);
+      auto table2CounterName = folly::to<std::string>("table2_counter", num);
+      EXPECT_TRUE(client->sync_isStatProgrammedInAclTable(
+          {table1AclName},
+          table1CounterName,
+          {cfg::CounterType::PACKETS},
+          kAclTable1()));
+      EXPECT_TRUE(client->sync_isStatProgrammedInAclTable(
+          {table2AclName},
+          table2CounterName,
+          {cfg::CounterType::PACKETS},
+          kAclTable2()));
+    }
+  };
+
+  auto setupPostWarmboot = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
+    addAclTable1(newCfg);
+    addAclTable2(newCfg);
+    addDefaultCounterAclsToTable(newCfg, true);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verify);
+}
+
 } // namespace facebook::fboss

@@ -618,49 +618,6 @@ class SaiAclTableGroupTest : public HwTest {
  * and DSCP ACLs in the Table 1 and TTL ACL in Table 2 (production use case) and
  * then tests deletion and addition of these tables in the config
  */
-TEST_F(SaiAclTableGroupTest, RepositionAclEntriesPostWarmboot) {
-  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
-
-  auto setup = [this]() {
-    auto newCfg = initialConfig();
-
-    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
-    addAclTable1(newCfg);
-    addAclTable2(newCfg);
-    addDefaultCounterAclsToTable(newCfg, false);
-  };
-
-  auto verify = [=, this]() {
-    verifyAclStatCount(
-        kAclTable1(),
-        /*ACLs*/ kMaxDefaultAcls,
-        /*stats*/ kMaxDefaultAcls,
-        /*counters*/ kMaxDefaultAcls);
-    verifyAclStatCount(
-        kAclTable2(), kMaxDefaultAcls, kMaxDefaultAcls, kMaxDefaultAcls);
-  };
-
-  auto setupPostWarmboot = [=, this]() {
-    auto newCfg = initialConfig();
-
-    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
-    addAclTable1(newCfg);
-    addAclTable2(newCfg);
-    addDefaultCounterAclsToTable(newCfg, true);
-  };
-
-  auto verifyPostWarmboot = [=, this]() {
-    verifyAclStatCount(
-        kAclTable1(),
-        /*ACLs*/ kMaxDefaultAcls, // 5
-        /*stats*/ kMaxDefaultAcls,
-        /*counters*/ kMaxDefaultAcls);
-    verifyAclStatCount(
-        kAclTable2(), kMaxDefaultAcls, kMaxDefaultAcls, kMaxDefaultAcls);
-  };
-  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
-}
-
 /*
  * This tests the ability to change acl table properties and adding acl entries
  * post warmboot. Add Acl table 1 with all the qualifiers, qph acl entries
