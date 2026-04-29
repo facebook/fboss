@@ -12,6 +12,8 @@
 
 namespace facebook::fboss {
 
-void CmdGlobalOptions::initAdditional(CLI::App& app) {}
+void CmdGlobalOptions::initAdditional(CLI::App& app) {
+  app.add_flag("--detail", detail_, "Print detailed output");
+}
 
 } // namespace facebook::fboss
