@@ -10,8 +10,8 @@
 
 #include "fboss/cli/fboss2/CmdList.h"
 
-#include <fboss/cli/fboss2/utils/CmdUtils.h>
-#include "fboss/cli/fboss2/CmdHandler.h"
+#include <fboss/cli/fboss2/utils/CmdUtils.h> // NOLINT(misc-include-cleaner)
+#include "fboss/cli/fboss2/CmdHandler.h" // NOLINT(misc-include-cleaner)
 #include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
@@ -99,6 +99,36 @@
 #include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h"
 #include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperStats.h"
 
+// BGP show commands
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.h"
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.h"
+#include "fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h"
+#include "fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedDryRun.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPostPolicy.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPrePolicy.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedRejected.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedPostPolicy.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedPrePolicy.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedRejected.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h"
+#include "fboss/cli/fboss2/commands/show/bgp/shadowrib/CmdShowBgpShadowRib.h"
+#include "fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsAttrs.h"
+#include "fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsEntries.h"
+#include "fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsPolicy.h"
+#include "fboss/cli/fboss2/commands/show/bgp/stream/CmdShowBgpStreamSubscriber.h"
+#include "fboss/cli/fboss2/commands/show/bgp/stream/CmdShowBgpStreamSummary.h"
+#include "fboss/cli/fboss2/commands/show/bgp/stream/subscriber/CmdShowBgpStreamSubscriberPostPolicy.h"
+#include "fboss/cli/fboss2/commands/show/bgp/stream/subscriber/CmdShowBgpStreamSubscriberPrePolicy.h"
+#include "fboss/cli/fboss2/commands/show/bgp/summary/CmdShowBgpSummary.h"
+#include "fboss/cli/fboss2/commands/show/bgp/summary/egress/CmdShowBgpSummaryEgress.h"
+#include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTable.h"
+#include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableCommunity.h"
+#include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.h"
+#include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.h"
+#include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.h"
+
 namespace facebook::fboss {
 
 const CommandTree& kCommandTree() {
@@ -137,6 +167,141 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdShowArp>,
        validFilterHandler<CmdShowArp>,
        argTypeHandler<CmdShowArpTraits>},
+
+      {"show",
+       "bgp",
+       "Show BGP information",
+       {{"changelist",
+         "Show BGP changelist",
+         commandHandler<CmdShowBgpChangelist>,
+         argTypeHandler<CmdShowBgpChangelistTraits>},
+
+        {"config",
+         "Show BGP configuration",
+         {{"running",
+           "Show running BGP configuration",
+           commandHandler<CmdShowConfigRunningBgp>,
+           argTypeHandler<CmdShowConfigRunningBgpTraits>}}},
+
+        {"neighbors",
+         "Show BGP neighbors",
+         commandHandler<CmdShowBgpNeighbors>,
+         argTypeHandler<CmdShowBgpNeighborsTraits>,
+         {{"advertised",
+           "Show BGP advertised routes",
+           {{"dry-run",
+             "Show BGP advertised routes (dry-run)",
+             commandHandler<BgpNeighborsAdvertisedDryRun>,
+             argTypeHandler<BgpNeighborsAdvertisedDryRunTraits>},
+            {"post-policy",
+             "Show BGP advertised routes (post-policy)",
+             commandHandler<BgpNeighborsAdvertisedPostPolicy>,
+             argTypeHandler<BgpNeighborsAdvertisedPostPolicyTraits>},
+            {"pre-policy",
+             "Show BGP advertised routes (pre-policy)",
+             commandHandler<BgpNeighborsAdvertisedPrePolicy>,
+             argTypeHandler<BgpNeighborsAdvertisedPrePolicyTraits>},
+            {"rejected",
+             "Show BGP advertised rejected routes",
+             commandHandler<BgpNeighborsAdvertisedRejected>,
+             argTypeHandler<BgpNeighborsAdvertisedRejectedTraits>}}},
+          {"received",
+           "Show BGP received routes",
+           {{"post-policy",
+             "Show BGP received routes (post-policy)",
+             commandHandler<BgpNeighborsReceivedPostPolicy>,
+             argTypeHandler<BgpNeighborsReceivedPostPolicyTraits>},
+            {"pre-policy",
+             "Show BGP received routes (pre-policy)",
+             commandHandler<BgpNeighborsReceivedPrePolicy>,
+             argTypeHandler<BgpNeighborsReceivedPrePolicyTraits>},
+            {"rejected",
+             "Show BGP received rejected routes",
+             commandHandler<BgpNeighborsReceivedRejected>,
+             argTypeHandler<BgpNeighborsReceivedRejectedTraits>}}},
+          {"session-id",
+           "Show BGP neighbor by session ID",
+           commandHandler<CmdBgpNeighborsSessionId>,
+           argTypeHandler<CmdBgpNeighborsSessionIdTraits>}}},
+
+        {"originated-routes",
+         "Show BGP originated routes",
+         commandHandler<CmdShowBgpOriginatedRoutes>,
+         argTypeHandler<CmdShowBgpOriginatedRoutesTraits>},
+
+        {"shadowrib",
+         "Show BGP shadow RIB",
+         commandHandler<CmdShowBgpShadowRib>,
+         argTypeHandler<CmdShowBgpShadowRibTraits>},
+
+        {"stats",
+         "Show BGP statistics",
+         {{"attrs",
+           "Show BGP attribute statistics",
+           commandHandler<CmdShowBgpStatsAttrs>,
+           argTypeHandler<CmdShowBgpStatsAttrsTraits>},
+          {"entries",
+           "Show BGP entry statistics",
+           commandHandler<CmdShowBgpStatsEntries>,
+           argTypeHandler<CmdShowBgpStatsEntriesTraits>},
+          {"policy",
+           "Show BGP policy statistics",
+           commandHandler<CmdShowBgpStatsPolicy>,
+           argTypeHandler<CmdShowBgpStatsPolicyTraits>}}},
+
+        {"stream",
+         "Show BGP stream information",
+         {{"subscriber",
+           "Show BGP stream subscribers",
+           commandHandler<CmdShowBgpStreamSubscriber>,
+           argTypeHandler<CmdShowBgpStreamSubscriberTraits>,
+           {{"post-policy",
+             "Show BGP stream subscribers (post-policy)",
+             commandHandler<CmdShowBgpStreamSubscriberPostPolicy>,
+             argTypeHandler<CmdShowBgpStreamSubscriberPostPolicyTraits>},
+            {"pre-policy",
+             "Show BGP stream subscribers (pre-policy)",
+             commandHandler<CmdShowBgpStreamSubscriberPrePolicy>,
+             argTypeHandler<CmdShowBgpStreamSubscriberPrePolicyTraits>}}},
+          {"summary",
+           "Show BGP stream summary",
+           commandHandler<CmdShowBgpStreamSummary>,
+           argTypeHandler<CmdShowBgpStreamSummaryTraits>}}},
+
+        {"summary",
+         "Show BGP summary",
+         commandHandler<CmdShowBgpSummary>,
+         argTypeHandler<CmdShowBgpSummaryTraits>,
+         {{"egress",
+           "Show BGP summary egress",
+           commandHandler<CmdShowBgpSummaryEgress>,
+           argTypeHandler<CmdShowBgpSummaryEgressTraits>}}},
+
+        {"table",
+         "Show BGP routing table",
+         commandHandler<CmdShowBgpTable>,
+         argTypeHandler<CmdShowBgpTableTraits>,
+         {{"community",
+           "Show BGP routes by community",
+           commandHandler<CmdShowBgpTableCommunity>,
+           argTypeHandler<CmdShowBgpTableCommunityTraits>},
+          {"detail",
+           "Show BGP table details",
+           commandHandler<CmdShowBgpTableDetail>,
+           argTypeHandler<CmdShowBgpTableDetailTraits>},
+          {"more-specifics",
+           "Show BGP more specific routes",
+           commandHandler<CmdShowBgpTableMoreSpecifics>,
+           argTypeHandler<CmdShowBgpTableMoreSpecificsTraits>},
+          {"prefix",
+           "Show BGP routes by prefix",
+           commandHandler<CmdShowBgpTablePrefix>,
+           argTypeHandler<CmdShowBgpTablePrefixTraits>}}},
+
+        {"version",
+         "Show BGP version",
+         commandHandler<CmdShowVersionBgp>,
+         argTypeHandler<CmdShowVersionTraits>}}},
 
       {"show",
        "fabric",

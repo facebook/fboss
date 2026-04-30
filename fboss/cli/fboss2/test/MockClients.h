@@ -55,7 +55,7 @@ class MockAgentCounters : public AgentCountersIf {
   MOCK_METHOD(void, getAgentCounters, (hostInfo, int, FbSwHwAgentCounters&));
 };
 
-class MockFbossCtrlAgent : public FbossCtrlSvIf {
+class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
  public:
   MOCK_METHOD(void, reloadConfig, ());
   MOCK_METHOD(void, getAclTableGroup, (AclTableThrift&));
@@ -143,7 +143,8 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
   MOCK_METHOD(void, getConfigAppliedInfo, (ConfigAppliedInfo&));
 };
 
-class MockFbossQsfpService : public QsfpServiceSvIf {
+class MockFbossQsfpService
+    : public apache::thrift::ServiceHandler<QsfpService> {
  public:
   using transceiverEntries =
       std::map<int32_t, facebook::fboss::TransceiverInfo>&;

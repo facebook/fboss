@@ -1,0 +1,74 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#pragma once
+
+#include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
+#include "fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
+#include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
+#include "folly/String.h"
+
+namespace facebook::fboss {
+using neteng::fboss::bgp::thrift::TBgpPath;
+using neteng::fboss::bgp_attr::TIpPrefix;
+
+struct BgpNeighborsAdvertisedPrePolicyTraits : public ReadCommandTraits {
+  using ParentCmd = CmdShowBgpNeighbors;
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;
+  using ObjectArgType = std::vector<std::string>;
+  using RetType = NetworkPathWithHost;
+};
+
+class BgpNeighborsAdvertisedPrePolicy
+    : public CmdHandler<
+          BgpNeighborsAdvertisedPrePolicy,
+          BgpNeighborsAdvertisedPrePolicyTraits> {
+ public:
+  using RetType = BgpNeighborsAdvertisedPrePolicyTraits::RetType;
+  using ObjectArgType = BgpNeighborsAdvertisedPrePolicy::ObjectArgType;
+
+  RetType queryClient(
+      const HostInfo& hostInfo,
+      const std::vector<std::string>& queriedIps,
+      const ObjectArgType& prefixes) {
+    NetworkPathWithHost result;
+    if (queriedIps.empty()) {
+      std::cout
+          << "This command must have an IP address as argument: fboss2 show bgp neighbors [ADDR] pre-policy [PREFIX]"
+          << std::endl;
+      return result;
+    }
+    auto client = utils::createClient<apache::thrift::Client<
+        facebook::neteng::fboss::bgp::thrift::TBgpService>>(hostInfo);
+    std::map<TIpPrefix, std::vector<TBgpPath>> advertisedNetworks;
+    client->sync_getPrefilterAdvertisedNetworks2(
+        advertisedNetworks, queriedIps[0]);
+
+    if (!prefixes.empty()) {
+      advertisedNetworks = filterNetworks(advertisedNetworks, prefixes);
+    }
+    result.networkPath() = std::move(advertisedNetworks);
+    result.host() = hostInfo.getName();
+    result.oobName() = hostInfo.getOobName();
+    result.ip() = hostInfo.getIpStr();
+    return result;
+  }
+
+  void printOutput(
+      const RetType& routesWithHost,
+      std::ostream& out = std::cout) {
+    const HostInfo hostInfo(
+        *routesWithHost.host(),
+        *routesWithHost.oobName(),
+        folly::IPAddress(*routesWithHost.ip()));
+    std::vector<std::string> output = printRoutesInformation(
+        *routesWithHost.networkPath(), hostInfo, /*showPolicy=*/false);
+    out << folly::join('\n', output) << std::endl;
+  }
+};
+} // namespace facebook::fboss

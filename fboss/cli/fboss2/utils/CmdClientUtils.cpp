@@ -64,6 +64,13 @@ createClient(const HostInfo& hostInfo) {
   return utils::createFanServiceClient(hostInfo);
 }
 
+template <>
+std::unique_ptr<
+    apache::thrift::Client<facebook::neteng::fboss::bgp::thrift::TBgpService>>
+createClient(const HostInfo& hostInfo) {
+  return utils::createBgpClient(hostInfo);
+}
+
 int getNumHwSwitches(const HostInfo& hostInfo) {
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);

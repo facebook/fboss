@@ -406,6 +406,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/CmdStreamHandler.h
   fboss/cli/fboss2/CmdStreamHandler.cpp
   fboss/cli/fboss2/CmdStreamHandlerImpl.cpp
+  fboss/cli/fboss2/CmdHandlerImplBgp.cpp
   fboss/cli/fboss2/CmdArgsLists.cpp
   fboss/cli/fboss2/CmdList.cpp
   fboss/cli/fboss2/CmdLocalOptions.cpp
@@ -572,6 +573,46 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.cpp
   fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h
   fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.cpp
+  fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h
+  fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.cpp
+  fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.h
+  fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.cpp
+  fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.h
+  fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.cpp
+  fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h
+  fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.cpp
+  fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.h
+  fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.cpp
+  fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigTraits.h
+  fboss/cli/fboss2/commands/show/bgp/shadowrib/CmdShowBgpShadowRib.h
+  fboss/cli/fboss2/commands/show/bgp/shadowrib/CmdShowBgpShadowRib.cpp
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsAttrs.h
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsEntries.h
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsEntries.cpp
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsPolicy.h
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsPolicy.cpp
+  fboss/cli/fboss2/commands/show/bgp/summary/CmdShowBgpSummary.h
+  fboss/cli/fboss2/commands/show/bgp/summary/egress/CmdShowBgpSummaryEgress.h
+  fboss/cli/fboss2/commands/show/bgp/summary/egress/CmdShowBgpSummaryEgress.cpp
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTable.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTable.cpp
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableCommunity.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedDryRun.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPostPolicy.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPrePolicy.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedRejected.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedPostPolicy.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedPrePolicy.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedRejected.h
+  fboss/cli/fboss2/commands/show/bgp/stream/CmdShowBgpStreamSummary.h
+  fboss/cli/fboss2/commands/show/bgp/stream/CmdShowBgpStreamSubscriber.h
+  fboss/cli/fboss2/commands/show/bgp/stream/subscriber/CmdShowBgpStreamSubscriberPrePolicy.h
+  fboss/cli/fboss2/commands/show/bgp/stream/subscriber/CmdShowBgpStreamSubscriberPostPolicy.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.cpp
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
@@ -623,6 +664,14 @@ target_link_libraries(fboss2_lib
   Folly::folly
   input_balance_util
   cli_model
+  cfgr_bgp_attr_cpp2
+  cfgr_bgp_policy_cpp2
+  cfgr_rib_policy_cpp2
+  cfgr_routing_policy_cpp2
+  cfgr_nsf_policy_cpp2
+  policy_thrift_cpp2
+  bgp_thrift_cpp2
+  bgp_summary_cpp2
   show_acl_model
   show_agent_model
   show_aggregateport_model
