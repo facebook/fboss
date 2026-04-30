@@ -4142,4 +4142,22 @@ void SaiPortManager::resetFabricLinkMonitoringSystemPortId(
   getPortHandle(portId)->port->setOptionalAttribute(
       SaiPortTraits::Attributes::FabricSystemPort{SAI_NULL_OBJECT_ID});
 }
+
+phy::LinkTrainingStatus SaiPortManager::getLinkTrainingStatus(
+    const PortSaiId& saiPortId,
+    PortID portID,
+    bool linkTrainingEnabled) const {
+  phy::LinkTrainingStatus status;
+  status.linkTrainingEnabled() = linkTrainingEnabled;
+
+  try {
+    auto rxStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPortId, SaiPortTraits::Attributes::LinkTrainingRxStatus{});
+    status.rxStatus() = static_cast<phy::LinkTrainingRxStatus>(rxStatus);
+  } catch (const SaiApiError& e) {
+    XLOG(DBG2) << "Failed to get link training rx status for port " << portID
+               << ": " << e.what();
+  }
+  return status;
+}
 } // namespace facebook::fboss

@@ -317,6 +317,10 @@ class SaiPortManager {
   bool rxFrequencyRPMSupported() const;
   bool rxSerdesParametersSupported() const;
   bool rxSNRSupported() const;
+  phy::LinkTrainingStatus getLinkTrainingStatus(
+      const PortSaiId& saiPortId,
+      PortID portID,
+      bool linkTrainingEnabled) const;
   bool fecCodewordsStatsSupported(PortID portID) const;
   void addPortShelEnable(const std::shared_ptr<Port>& swPort) const;
   void changePortShelEnable(

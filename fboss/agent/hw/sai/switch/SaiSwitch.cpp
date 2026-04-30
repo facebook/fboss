@@ -2606,6 +2606,16 @@ void SaiSwitch::updatePmdInfo(
   for (const auto& laneState : laneStates) {
     sideState.pmd()->lanes()[laneState.first] = laneState.second;
   }
+  auto swPort = getProgrammedState()->getPorts()->getNodeIf(portID);
+  bool linkTrainingEnabled =
+      swPort ? swPort->getLinkTraining().value_or(false) : false;
+  if (linkTrainingEnabled) {
+    sideState.pmd()->linkTrainingStatus() =
+        managerTable_->portManager().getLinkTrainingStatus(
+            port->adapterKey(), portID, linkTrainingEnabled);
+  } else {
+    sideState.pmd()->linkTrainingStatus()->linkTrainingEnabled() = false;
+  }
 }
 
 void SaiSwitch::updatePcsInfo(
