@@ -11,6 +11,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace facebook::fboss {
@@ -72,6 +73,21 @@ class Fboss2IntegrationTest : public ::testing::Test {
   folly::dynamic runCliJson(const std::vector<std::string>& args) const;
 
   /**
+   * Fetch the agent's running config via thrift and return it parsed.
+   */
+  folly::dynamic getRunningConfig() const;
+
+  /**
+   * Find a (vlanId, portName) pair where vlanId appears in sw.vlans and the
+   * port is a member of that VLAN via sw.vlanPorts. Returns nullopt on
+   * switches configured in a port-based / L3-routed style with no L2 VLAN
+   * memberships — tests that need L2-VLAN commands (e.g. 'config vlan <id>
+   * port <name> taggingMode', 'config vlan <id> static-mac ...') should
+   * GTEST_SKIP when this returns nullopt.
+   */
+  std::optional<std::pair<int, std::string>> findConfiguredVlanPort() const;
+
+  /**
    * Run a shell command and return the result.
    * @param args Command and arguments
    * @return Result with exit code, stdout, and stderr
@@ -92,9 +108,16 @@ class Fboss2IntegrationTest : public ::testing::Test {
   std::map<std::string, Interface> getAllInterfaces() const;
 
   /**
-   * Find the first suitable ethernet interface for testing.
-   * Only returns ethernet interfaces (starting with 'eth') with a valid VLAN.
-   * @return Interface object
+   * Pick an ethernet interface for testing.
+   *
+   * Interfaces whose status indicates they are up are strongly preferred — if
+   * at least one matches, a random one is returned. If none are up, a random
+   * interface from all ethernet candidates is returned. An "ethernet
+   * candidate" is any interface whose name starts with "eth" and has
+   * VLAN > 1. Throws if no candidates exist.
+   *
+   * The selection is randomized (thread-local mt19937) to reduce the chance
+   * of piling test load onto the same port across back-to-back runs.
    */
   Interface findFirstEthInterface() const;
 

@@ -178,6 +178,54 @@
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {
+      "CAC812321A1BC1MT": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.7"
+            }
+          ]
+      },
+      "CAC815321A1AC1HW": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.7"
+            }
+          ]
+      },
+      "CAC81X321A1AC1HW": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.7"
+            }
+          ]
+      },
+      "CAC81X321A1BC1MT": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.7"
+            }
+          ]
+      },
+      "CAC822321A1BC1MT": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.7"
+            }
+          ]
+      },
+      "CAC82X321A1BC1MT": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.7"
+            }
+          ]
+      },
       "DP08SFP8-ZRB-29B": {
           "versions": [
             {
@@ -650,7 +698,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "86.147"
+              "version": "86.247"
             }
           ]
       },
@@ -658,7 +706,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "86.147"
+              "version": "86.247"
             }
           ]
       }

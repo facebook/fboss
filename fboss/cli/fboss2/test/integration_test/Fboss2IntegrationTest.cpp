@@ -13,22 +13,30 @@
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+#include <algorithm>
+#include <cctype>
 #include <chrono>
+#include <cstddef>
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
 #include <iostream>
 #include <map>
+#include <optional>
+#include <random>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <streambuf>
 #include <string>
 #include <system_error>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/CmdInitUtils.h"
@@ -42,6 +50,9 @@ void Fboss2IntegrationTest::SetUp() {
   XLOG(INFO) << "Fboss2IntegrationTest::SetUp - starting CLI test";
   // Discard any stale session from previous runs to ensure we start fresh
   discardSession();
+  // Prior tests may have triggered a warm/coldboot; wait out any residual
+  // agent-initializing state before the test body starts talking to it.
+  waitForAgentReady();
 }
 
 void Fboss2IntegrationTest::TearDown() {
@@ -145,6 +156,58 @@ folly::dynamic Fboss2IntegrationTest::runCliJson(
   return folly::parseJson(result.stdout);
 }
 
+folly::dynamic Fboss2IntegrationTest::getRunningConfig() const {
+  HostInfo hostInfo("localhost");
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+  std::string configStr;
+  client->sync_getRunningConfig(configStr);
+  return folly::parseJson(configStr);
+}
+
+std::optional<std::pair<int, std::string>>
+Fboss2IntegrationTest::findConfiguredVlanPort() const {
+  auto config = getRunningConfig();
+  const auto& sw = config["sw"];
+  std::set<int> knownVlans;
+  if (sw.count("vlans")) {
+    for (const auto& v : sw["vlans"]) {
+      if (v.count("id")) {
+        knownVlans.insert(v["id"].asInt());
+      }
+    }
+  }
+  if (!sw.count("vlanPorts") || knownVlans.empty()) {
+    return std::nullopt;
+  }
+  std::map<int, std::string> logicalToName;
+  if (sw.count("ports")) {
+    for (const auto& p : sw["ports"]) {
+      if (p.count("logicalID") && p.count("name")) {
+        logicalToName[p["logicalID"].asInt()] = p["name"].asString();
+      }
+    }
+  }
+  for (const auto& vp : sw["vlanPorts"]) {
+    if (!vp.count("vlanID") || !vp.count("logicalPort")) {
+      continue;
+    }
+    int vlanId = vp["vlanID"].asInt();
+    if (!knownVlans.count(vlanId)) {
+      continue;
+    }
+    auto it = logicalToName.find(vp["logicalPort"].asInt());
+    if (it == logicalToName.end()) {
+      continue;
+    }
+    // Prefer ports whose names start with "eth" (skip loopback/fabric).
+    if (it->second.rfind("eth", 0) == 0) {
+      return std::make_pair(vlanId, it->second);
+    }
+  }
+  return std::nullopt;
+}
+
 Fboss2IntegrationTest::Result Fboss2IntegrationTest::runCmd(
     const std::vector<std::string>& args) const {
   XLOG(INFO) << "Running command: " << folly::join(" ", args);
@@ -233,14 +296,35 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::findFirstEthInterface()
     const {
   auto interfaces = getAllInterfaces();
 
+  std::vector<Interface> upCandidates;
+  std::vector<Interface> allCandidates;
   for (const auto& [name, intf] : interfaces) {
-    if (name.rfind("eth", 0) == 0 && intf.vlan.has_value() && *intf.vlan > 1) {
-      return intf;
+    if (name.rfind("eth", 0) != 0 || !intf.vlan.has_value() ||
+        *intf.vlan <= 1) {
+      continue;
+    }
+    allCandidates.push_back(intf);
+    std::string status = intf.status;
+    std::transform(status.begin(), status.end(), status.begin(), ::tolower);
+    if (status == "up") {
+      upCandidates.push_back(intf);
     }
   }
 
-  throw std::runtime_error(
-      "No suitable ethernet interface found with VLAN > 1");
+  const auto& pool = !upCandidates.empty() ? upCandidates : allCandidates;
+  if (pool.empty()) {
+    throw std::runtime_error(
+        "No suitable ethernet interface found with VLAN > 1");
+  }
+
+  thread_local std::mt19937 rng{std::random_device{}()};
+  std::uniform_int_distribution<size_t> dist(0, pool.size() - 1);
+  const auto& chosen = pool[dist(rng)];
+  XLOG(INFO) << "Selected test interface " << chosen.name
+             << " (status=" << chosen.status
+             << ", pool=" << (!upCandidates.empty() ? "up" : "all")
+             << ", size=" << pool.size() << ")";
+  return chosen;
 }
 
 void Fboss2IntegrationTest::commitConfig() const {
@@ -250,6 +334,14 @@ void Fboss2IntegrationTest::commitConfig() const {
 
 void Fboss2IntegrationTest::waitForAgentReady(
     std::chrono::seconds timeout) const {
+  // Fast path — if the agent is already responsive, skip the 5s grace.
+  {
+    auto quick = executeCliCommand({"show", "interface"});
+    if (quick.exitCode == 0) {
+      XLOG(DBG1) << "Agent already ready; skipping wait";
+      return;
+    }
+  }
   XLOG(INFO) << "Waiting for agent to become ready (timeout: "
              << timeout.count() << "s)...";
   // Wait 5s before the first poll to give the agent time to shut down and
