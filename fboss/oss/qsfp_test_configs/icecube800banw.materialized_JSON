@@ -5,7 +5,7 @@
     "firmware_upgrade_on_link_down": "false",
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
-    "mode": "icecube800bc",
+    "mode": "icecube800banw",
     "port_manager_mode": "true",
     "remediation_enabled": "false"
   },
