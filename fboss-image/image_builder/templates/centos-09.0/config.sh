@@ -73,7 +73,7 @@ process_kernel() {
   return 0
 }
 
-process_hw_agent_sai_tarball() {
+process_npu_sai_tarball() {
   local component_dir=$1
   local component_name
   component_name=$(basename "$component_dir")
@@ -153,8 +153,8 @@ for component_dir in /repos/*; do
     rm -rf "$component_tmp"
     ;;
 
-  hw_agent_sai)
-    process_hw_agent_sai_tarball "$component_dir"
+  npu_sai)
+    process_npu_sai_tarball "$component_dir"
     handler_rc=$?
     ;;
 

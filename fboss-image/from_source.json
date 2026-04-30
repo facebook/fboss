@@ -18,8 +18,10 @@
   },
   "bsps": [
   ],
-  "sai": {
+  "npu_sai": {
     "download": "file:../fboss/oss/scripts/fake-sai-devel.tar.zstd"
+  },
+  "phy_sai": {
   },
   "fboss-forwarding-stack": {
     "execute": ["../fboss/oss/scripts/build_fboss_stack.sh", "forwarding"],
