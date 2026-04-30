@@ -2919,7 +2919,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -2928,7 +2928,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -2937,7 +2937,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp3_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -3219,7 +3219,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -3228,7 +3228,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
