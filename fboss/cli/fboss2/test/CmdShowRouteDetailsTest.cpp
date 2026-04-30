@@ -70,6 +70,8 @@ std::vector<RouteDetails> createRouteEntries() {
   nextHop1_2.mplsAction() = mplsAction1_2;
   routeEntry1.nextHops()->emplace_back(nextHop1_2);
   routeEntry1.classID() = cfg::AclLookupClass::DST_CLASS_L3_DPR;
+  routeEntry1.resolvedNextHopSetID() = 100;
+  routeEntry1.normalizedResolvedNextHopSetID() = 200;
 
   // routeEntry2
   folly::IPAddressV4 ip2_1("176.161.6.0");
@@ -179,6 +181,8 @@ cli::ShowRouteDetailsModel createRouteModel() {
   entry1.counterID() = "None";
   entry1.classID() = "DST_CLASS_L3_DPR(20)";
   entry1.overridenEcmpMode() = "None";
+  entry1.resolvedNextHopSetID() = 100;
+  entry1.normalizedResolvedNextHopSetID() = 200;
 
   // entry 2
   entry2.ip() = "176.161.6.0";
@@ -324,6 +328,8 @@ Network Address: 2401:db00::/32
   Counter Id: None
   Class Id: DST_CLASS_L3_DPR(20)
   Overridden ECMP mode: None
+  Resolved NextHop Set ID: 100
+  Normalized Resolved NextHop Set ID: 200
 
 Network Address: 176.161.6.0/32 (connected)
   Nexthops from client STATIC_ROUTE

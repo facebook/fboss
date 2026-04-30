@@ -62,4 +62,6 @@ struct RouteDetailEntry {
   11: optional list<NextHopInfo> overridenNextHops;
   12: i32 nhopsLostDueToOverride = 0;
   13: map<string, common.NetworkTopologyInformation> nhAddressToTopologyInfo;
+  14: optional i64 resolvedNextHopSetID;
+  15: optional i64 normalizedResolvedNextHopSetID;
 }

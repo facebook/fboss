@@ -82,6 +82,13 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
                                                : *fwd().getOverrideNextHops();
     rd.overridenNextHops() = fillNextHops(nhops, rd);
   }
+  // Add nexthop IDs if present
+  if (auto setId = fwd().getResolvedNextHopSetID()) {
+    rd.resolvedNextHopSetID() = static_cast<int64_t>(*setId);
+  }
+  if (auto setId = fwd().getNormalizedResolvedNextHopSetID()) {
+    rd.normalizedResolvedNextHopSetID() = static_cast<int64_t>(*setId);
+  }
   return rd;
 }
 

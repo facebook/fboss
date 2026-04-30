@@ -189,6 +189,16 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
     out << fmt::format("  Class Id: {}\n", entry.classID().value());
     out << fmt::format(
         "  Overridden ECMP mode: {}\n", entry.overridenEcmpMode().value());
+    if (entry.resolvedNextHopSetID().has_value()) {
+      out << fmt::format(
+          "  Resolved NextHop Set ID: {}\n",
+          entry.resolvedNextHopSetID().value());
+    }
+    if (entry.normalizedResolvedNextHopSetID().has_value()) {
+      out << fmt::format(
+          "  Normalized Resolved NextHop Set ID: {}\n",
+          entry.normalizedResolvedNextHopSetID().value());
+    }
   }
 }
 
@@ -292,6 +302,13 @@ CmdShowRouteDetails::RetType CmdShowRouteDetails::createModel(
       routeDetails.overridenEcmpMode() = overrideEcmpModePtr == nullptr
           ? "None"
           : apache::thrift::util::enumNameSafe(*overrideEcmpModePtr);
+      if (entry.resolvedNextHopSetID().has_value()) {
+        routeDetails.resolvedNextHopSetID() = *entry.resolvedNextHopSetID();
+      }
+      if (entry.normalizedResolvedNextHopSetID().has_value()) {
+        routeDetails.normalizedResolvedNextHopSetID() =
+            *entry.normalizedResolvedNextHopSetID();
+      }
       model.routeEntries()->push_back(routeDetails);
     }
   }
