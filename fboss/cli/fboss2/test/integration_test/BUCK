@@ -19,6 +19,7 @@ cpp_binary(
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigInterfaceDescriptionTest.cpp",
         "ConfigInterfaceMtuTest.cpp",
+        "ConfigInterfaceProfileTest.cpp",
         "ConfigL2LearningModeTest.cpp",
         "ConfigPfcTest.cpp",
         "ConfigPortQueueConfigTest.cpp",
