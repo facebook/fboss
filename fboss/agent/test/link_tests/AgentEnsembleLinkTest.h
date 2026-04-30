@@ -157,6 +157,19 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
 
   void printProductionFeatures() const;
 
+  void updateCablePorts() {
+    cabledPorts_.clear();
+    auto swConfig = getSw()->getConfig();
+
+    for (const auto& port : *swConfig.ports()) {
+      if (!(*port.expectedLLDPValues()).empty() ||
+          !(*port.expectedNeighborReachability()).empty()) {
+        auto portID = *port.logicalID();
+        cabledPorts_.emplace_back(portID);
+      }
+    }
+  }
+
  private:
   void initializeCabledPorts();
   void logLinkDbgMessage(std::vector<PortID>& portIDs) const override;
