@@ -15,7 +15,11 @@ void fillHwSwitchDramStats(
 void fillHwSwitchWatermarkStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchWatermarkStats& /*hwSwitchWatermarkStats*/) {
-  CHECK_EQ(counterId2Value.size(), 0);
+  if (!counterId2Value.empty()) {
+    // Some SDK combinations can return watermark stats unexpectedly.
+    // Ignore to avoid aborting the agent on unsupported counters.
+    return;
+  }
 }
 
 void fillHwSwitchCreditStats(

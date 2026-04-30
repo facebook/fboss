@@ -15,7 +15,11 @@ namespace facebook::fboss {
 void fillHwSwitchDramStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchDramStats& /*hwSwitchDramStats*/) {
-  CHECK_EQ(counterId2Value.size(), 0);
+  if (!counterId2Value.empty()) {
+    XLOG_EVERY_MS(WARNING, 5000)
+        << "Ignoring unsupported TAJO DRAM counters, count="
+        << counterId2Value.size();
+  }
 }
 
 void fillHwSwitchWatermarkStats(
