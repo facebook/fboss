@@ -61,12 +61,19 @@ generate_fruid() {
 
   mkdir -p "$(dirname "$FRUID_FILE")"
 
-  if /opt/fboss/bin/weutil --json >"$FRUID_FILE" 2>/dev/null; then
-    log "Generated fruid.json: $FRUID_FILE"
-  else
-    error "Failed to generate fruid.json"
-    rm -f "$FRUID_FILE"
-  fi
+  local retries=3
+  local delay=1
+  for ((i = 1; i <= retries; i++)); do
+    if /opt/fboss/bin/weutil --json >"$FRUID_FILE"; then
+      log "Generated fruid.json: $FRUID_FILE"
+      return
+    fi
+    log "Attempt $i/$retries failed. Retrying in ${delay}s..."
+    sleep "$delay"
+  done
+
+  error "Failed to generate fruid.json after $retries attempts"
+  rm -f "$FRUID_FILE"
 }
 
 setup_coop_configs() {

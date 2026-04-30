@@ -60,6 +60,7 @@ rpmbuild -ba "$CONTAINER_SPECS_DIR/kernel.spec" \
   echo "$(date) Kernel build failed with rv=$rv" >&2
   exit 1
 }
+chmod -R a+r "${CONTAINER_DIST_DIR}"
 echo "$(date) Kernel build completed successfully"
 
 # Copy RPMs to output directory
@@ -76,6 +77,8 @@ tar -cf $OUT_DIR/kernel-$KERNEL_VERSION.rpms.tar \
   --transform 's|.*/||' \
   --transform 's|^\(kernel-[^-]\+\)-.*\.\(x86_64\)\.rpm$|\1-\2.rpm|' \
   $(find RPMS -name "*.rpm")
+
+rm -rf "${CONTAINER_DIST_DIR}/build-"*
 
 echo 'Kernel RPM build complete!'
 echo 'Output files:'

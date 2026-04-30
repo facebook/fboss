@@ -29,7 +29,8 @@ logger = logging.getLogger(__name__)
 # try both uncompressed (.tar) and zstd-compressed (.tar.zst) variants
 COMPONENT_ARTIFACT_PATTERNS = {
     "kernel": "kernel-*.rpms.tar",
-    "sai": "sai-*.tar",
+    "npu_sai": "sai-*.tar",
+    "phy_sai": "phy_sai-*.tar",
     "fboss-platform-stack": "fboss-platform-stack-*.tar",
     "fboss-forwarding-stack": "fboss-forwarding-stack-*.tar",
     "bsps": "bsp-*.tar",
@@ -48,8 +49,12 @@ class ImageBuilder:
         "other_dependencies": [],
         "fboss-platform-stack": [],
         "bsps": ["kernel"],  # Each BSP needs kernel headers/modules
-        "sai": ["kernel"],  # SAI needs kernel headers/RPMs
-        "fboss-forwarding-stack": ["sai"],  # Forwarding stack needs SAI library
+        "npu_sai": ["kernel"],  # HW SAI needs kernel headers/RPMs
+        "phy_sai": ["kernel"],  # PHY SAI needs kernel headers/RPMs
+        "fboss-forwarding-stack": [
+            "npu_sai",
+            "phy_sai",
+        ],  # Forwarding stack needs both
         "image_build_hooks": [],
     }
 
@@ -75,7 +80,7 @@ class ImageBuilder:
         if not self.compress_artifacts:
             return artifact_path
 
-        if artifact_path.name.endswith(".tar.zst"):
+        if artifact_path.name.endswith((".tar.zst", ".rpm")):
             return artifact_path
 
         compressed_path = artifact_path.with_suffix(".tar.zst")
@@ -172,7 +177,6 @@ class ImageBuilder:
             component_name="Base image",
         )
         image = Path(dist_formats[format_name])
-        logger.info(f"Moving {format_name} artifact: {output} -> {image.resolve()}")
         shutil.move(str(output), str(image))
 
     def _stage_component_artifacts(self) -> Path:

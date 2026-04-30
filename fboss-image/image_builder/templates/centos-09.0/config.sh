@@ -73,7 +73,7 @@ process_kernel() {
   return 0
 }
 
-process_hw_agent_sai_tarball() {
+process_npu_sai_tarball() {
   local component_dir=$1
   local component_name
   component_name=$(basename "$component_dir")
@@ -153,8 +153,8 @@ for component_dir in /repos/*; do
     rm -rf "$component_tmp"
     ;;
 
-  hw_agent_sai)
-    process_hw_agent_sai_tarball "$component_dir"
+  npu_sai)
+    process_npu_sai_tarball "$component_dir"
     handler_rc=$?
     ;;
 
@@ -236,11 +236,18 @@ env -i \
   kernel-install add "${KERNEL_VERSION}" "${VMLINUZ_PATH}" --initrd-file "${INITRD_PATH}"
 echo "Custom kernel ${KERNEL_VERSION} install complete."
 
-# 5. Generate a fix-nvme script that "may" need to be run
+# 5. Configure SSH to allow password authentication and root login
+echo "Configuring SSH..."
+sed -i 's/^[# \t]*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sed -i 's/^[# \t]*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# 6. Generate a fix-nvme script that "may" need to be run
+# --- Install Custom NVMe Fix Module (Inline Method) ---
+
 MODULE_DIR="/usr/lib/dracut/modules.d/99nvme-fix"
 mkdir -p "$MODULE_DIR"
 
-# 5a. Generate the script directly in the target directory
+# 6a. Generate the script directly in the target directory
 cat >"$MODULE_DIR/fix-nvme.sh" <<'EOF'
 #!/bin/bash
 # Force all NVMe drives to 512e mode for KIWI compatibility if they are
@@ -282,14 +289,16 @@ if [ -b "$DEV" ]; then
     else
       echo "NVMe-Fix: ERROR - No 512-byte format supported by this drive." >&2
     fi
+  else
+    echo "NVMe-Fix: Device ${DEV} already at 512-byte block size." >&2
   fi
 fi
 EOF
 
-# 5b. Make the hook executable
+# 6b. Make the hook executable
 chmod +x "$MODULE_DIR/fix-nvme.sh"
 
-# 5c. Generate the module-setup.sh
+# 6c. Generate the module-setup.sh
 cat >"$MODULE_DIR/module-setup.sh" <<'EOF'
 #!/bin/bash
 
@@ -313,9 +322,10 @@ install() {
 }
 EOF
 
-# 5d. Make the setup script executable
+# 6d. Make the setup script executable
 chmod +x "$MODULE_DIR/module-setup.sh"
 
+#-------------------------------------------------------
 # 6. Use system GRUB 2.06 from packages
 # The grub2-efi-x64 package already provides grubx64.efi with all necessary modules
 # We just need to make sure the btrfs module is accessible on the EFI partition

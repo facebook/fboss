@@ -25,7 +25,6 @@ select = [
 ignore = [
     "E501",    # Line too long - handled by formatter
     "B904",    # Allow raising exceptions without 'from' for cleaner error messages
-    "PLR0913", # Allow more than 5 arguments
     "PLR2004", # Allow magic values in comparisons
     "PLW0603", # Allow global statement usage
 ]

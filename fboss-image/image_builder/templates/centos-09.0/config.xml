@@ -151,6 +151,7 @@
         <package name="basesystem"/>
         <package name="pv"/>
         <package name="shim-x64" arch="x86_64"/>
+        <package name="busybox"/>
         <package name="libdb-utils"/>
         <package name="dracut-live"/>
         <package name="dracut-kiwi-live"/>

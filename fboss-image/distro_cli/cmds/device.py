@@ -19,11 +19,11 @@ from pathlib import Path
 from distro_cli.lib.cli import validate_path
 from distro_cli.lib.device_update import DeviceUpdateError, DeviceUpdater
 from distro_cli.lib.distro_infra import (
-    deploy_image_to_device,
     DISTRO_INFRA_CONTAINER,
+    GETIP_SCRIPT_CONTAINER_PATH,
+    deploy_image_to_device,
     find_persistent_dir,
     get_interface_name,
-    GETIP_SCRIPT_CONTAINER_PATH,
 )
 from distro_cli.lib.docker import container
 from distro_cli.lib.exceptions import DistroInfraError
@@ -114,9 +114,9 @@ def image_upstream_command(args):
     image_repo = "https://facebook.github.io/fboss/images/latest"
 
     filename = "fboss"
-    filename += f"_{args.hw_agent_sai}"
-    if args.qsfp_service_sai != "":
-        filename += f"_{args.qsfp_service_sai}"
+    filename += f"_{args.npu_sai}"
+    if args.phy_sai != "":
+        filename += f"_{args.phy_sai}"
     filename += f"_{args.kernel}"
     filename += f"_{args.bsps}"
     filename += ".tar"
@@ -333,7 +333,7 @@ def setup_device_commands(cli):
         help_text="Download and set upstream Distro Image to be loaded onto device",
         arguments=[
             (
-                "--hw_agent_sai",
+                "--npu_sai",
                 {
                     "required": True,
                     "help": "hw_agent ASIC SAI version to use, decides ASIC support",
@@ -356,7 +356,7 @@ def setup_device_commands(cli):
                 },
             ),
             (
-                "--qsfp_service_sai",
+                "--phy_sai",
                 {
                     "default": "",
                     "help": "qsfp_service Phy SAI version to use",

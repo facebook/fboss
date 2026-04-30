@@ -16,6 +16,7 @@ Start the container by running the 'distro_infra.sh' script which will start the
 arguments:
 
 - interface: The interface to attach to. This must have L2 adjacency with the management port of the FBOSS duts
+  - Nexthop Specific: Right now it's always `f"vlan{1000 + testbed ID}"` and you can get the testbed ID from `nh tb details`
 - persistent directory: The directory to use for persistent storage, primarily of images to load
 
 For example, `mkdir images; ./distro_infra.sh --intf vlan1033 --persist-dir images`.
