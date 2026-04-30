@@ -88,8 +88,8 @@ struct Sensor {
   6: string pwmCalcType;
   8: TempToPwmMap normalUpTable;
   9: TempToPwmMap normalDownTable;
-  10: TempToPwmMap failUpTable;
-  11: TempToPwmMap failDownTable;
+  10: optional TempToPwmMap failUpTable;
+  11: optional TempToPwmMap failDownTable;
   12: PidSetting pidSetting;
   13: optional TempToPwmMap twoRotorsFailUpTable;
   14: optional TempToPwmMap twoRotorsFailDownTable;
@@ -111,6 +111,9 @@ struct ShutdownCondition {
   2: list<OvertempEntry> conditions;
 }
 
+# If the number of failed fans exceeds pwmSpecialModeNumDeadFan,
+# all fan PWMs will be set to pwmSpecialModeValue.
+# and system will enter special mode, will shutdown the COMe and ASIC.
 struct FanServiceConfig {
   1: optional ControlInterval controlInterval;
   2: string shutdownCmd;
@@ -127,4 +130,7 @@ struct FanServiceConfig {
   16: i16 pwmUpperThreshold;
   17: i16 pwmLowerThreshold;
   18: optional ShutdownCondition shutdownCondition;
+  19: optional i16 pwmSpecialModeNumDeadFan;
+  20: optional i16 pwmSpecialModeValue;
+  21: optional string shutdownCOMeCmd;
 }

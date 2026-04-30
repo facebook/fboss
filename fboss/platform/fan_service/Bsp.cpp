@@ -136,6 +136,24 @@ int Bsp::emergencyShutdown(bool enable) {
         PlatformUtils().execCommand(*config_.shutdownCmd());
     rc = exitStatus;
     setEmergencyState(enable);
+    XLOG(INFO) << "ASIC has been shutdown!";
+  }
+  return rc;
+}
+
+int Bsp::COMeShutdown(bool enable) {
+  int rc = 0;
+  if (enable) {
+    if (config_.shutdownCOMeCmd()->empty()) {
+      XLOG(ERR)
+          << "Emergency shutdown COMe called but shutdownCOMeCmd is empty!";
+      return -1;
+    }
+    auto [exitStatus, standardOut] =
+        PlatformUtils().execCommand(*config_.shutdownCOMeCmd());
+    rc = exitStatus;
+    setEmergencyState(enable);
+    XLOG(INFO) << "In special mode, COMe has been shutdown!";
   }
   return rc;
 }

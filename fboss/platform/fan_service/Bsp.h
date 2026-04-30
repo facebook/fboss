@@ -31,6 +31,7 @@ class Bsp {
   virtual void getOpticsData(std::shared_ptr<SensorData> pSensorData);
   virtual void getAsicTempData(const std::shared_ptr<SensorData>& pSensorData);
   virtual int emergencyShutdown(bool enable);
+  virtual int COMeShutdown(bool enable);
   void kickWatchdog();
   void closeWatchdog();
   virtual bool setFanPwmSysfs(const std::string& path, int pwm);
