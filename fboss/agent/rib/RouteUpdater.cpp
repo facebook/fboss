@@ -981,7 +981,24 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
                << " route " << updatedRoute->str();
   };
   if (fwd && !fwd->empty()) {
-    if (route->getForwardInfo().getNextHopSet() != *fwd ||
+    if (nextHopIDManager_ &&
+        !route->getForwardInfo().getResolvedNextHopSetID().has_value()) {
+      CHECK(!route->getForwardInfo()
+                 .getNormalizedResolvedNextHopSetID()
+                 .has_value())
+          << "If resolvedNextHopSetID is empty, "
+          << "normalizedResolvedNextHopSetID must also be empty; route="
+          << route->str();
+      // Re-resolve to assign IDs for the first time. UpdateRoute will
+      // allocate IDs since NextHopSetId is nullopt.
+      XLOG(DBG3) << "[NextHop ID Manager] assigning IDs for"
+                 << " first time route=" << route->str();
+      updateRoute(
+          ritr,
+          std::make_optional<RouteNextHopEntry>(
+              *fwd, bestEntry->getAdminDistance(), counterID, classID));
+    } else if (
+        route->getForwardInfo().getNextHopSet() != *fwd ||
         route->getForwardInfo().getCounterID() != counterID ||
         route->getForwardInfo().getClassID() != classID) {
       updateRoute(
