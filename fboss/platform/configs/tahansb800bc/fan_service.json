@@ -6,6 +6,7 @@
   "pwmTransitionValue": 50,
   "pwmLowerThreshold": 30,
   "pwmUpperThreshold": 100,
+  "shutdownCmd": "echo 0 > /run/devmap/cplds/SMB_CPLD/th6_pwr_en",
   "watchdog": {
     "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",
     "value": 0
@@ -13,6 +14,16 @@
   "controlInterval": {
     "sensorReadInterval": 5,
     "pwmUpdateInterval": 5
+  },
+  "shutdownCondition": {
+    "numOvertempSensorForShutdown": 1,
+    "conditions": [
+      {
+        "sensorName": "SMB_U2_TH6_TEMP",
+        "overtempThreshold": 103,
+        "slidingWindowSize": 1
+      }
+    ]
   },
   "sensors": [
     {
