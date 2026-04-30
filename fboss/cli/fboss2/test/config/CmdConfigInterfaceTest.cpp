@@ -612,12 +612,6 @@ TEST_F(CmdConfigInterfaceTestFixture, parseProfileValidLowercase) {
   EXPECT_EQ(result, cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER);
 }
 
-// Test PROFILE_DEFAULT
-TEST_F(CmdConfigInterfaceTestFixture, parseProfileDefault) {
-  auto result = ProfileValidator::parseProfile("PROFILE_DEFAULT");
-  EXPECT_EQ(result, cfg::PortProfileID::PROFILE_DEFAULT);
-}
-
 // Test unknown profile string throws
 TEST_F(CmdConfigInterfaceTestFixture, parseProfileUnknown) {
   try {
@@ -661,17 +655,6 @@ TEST_F(CmdConfigInterfaceTestFixture, validateProfileSupported) {
   auto result =
       validator.validateProfile("eth1/1/1", "PROFILE_100G_4_NRZ_CL91");
   EXPECT_EQ(result, cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91);
-}
-
-// Test PROFILE_DEFAULT is always accepted
-TEST_F(CmdConfigInterfaceTestFixture, validateProfileDefault) {
-  cfg::PlatformMapping platformMapping;
-  std::map<std::string, std::vector<cfg::PortProfileID>> emptyProfiles;
-  ProfileValidator validator(platformMapping, emptyProfiles);
-
-  // Even with no port in mapping, PROFILE_DEFAULT should not throw
-  auto result = validator.validateProfile("eth1/1/1", "PROFILE_DEFAULT");
-  EXPECT_EQ(result, cfg::PortProfileID::PROFILE_DEFAULT);
 }
 
 // Test unsupported profile throws std::invalid_argument
@@ -812,31 +795,6 @@ TEST_F(CmdConfigInterfaceTestFixture, queryClientSetsProfile) {
   for (const auto& port : ports) {
     if (*port.name() == "eth1/1/1") {
       EXPECT_EQ(*port.profileID(), cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91);
-    }
-  }
-}
-
-// Test setting PROFILE_DEFAULT resets both fields
-TEST_F(CmdConfigInterfaceTestFixture, queryClientSetsProfileDefault) {
-  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 profile PROFILE_DEFAULT");
-  auto cmd = CmdConfigInterface();
-  InterfacesConfig config({"eth1/1/1", "profile", "PROFILE_DEFAULT"});
-
-  auto result = cmd.queryClient(localhost(), config);
-
-  EXPECT_THAT(result, HasSubstr("Successfully configured"));
-  EXPECT_THAT(result, HasSubstr("profile=PROFILE_DEFAULT"));
-  EXPECT_THAT(result, HasSubstr("speed=auto"));
-
-  // Verify both fields were reset
-  auto& session = ConfigSession::getInstance();
-  auto& agentConfig = session.getAgentConfig();
-  auto& switchConfig = *agentConfig.sw();
-  auto& ports = *switchConfig.ports();
-  for (const auto& port : ports) {
-    if (*port.name() == "eth1/1/1") {
-      EXPECT_EQ(*port.profileID(), cfg::PortProfileID::PROFILE_DEFAULT);
-      EXPECT_EQ(*port.speed(), cfg::PortSpeed::DEFAULT);
     }
   }
 }

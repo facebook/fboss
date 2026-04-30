@@ -65,9 +65,9 @@ cfg::PortProfileID ProfileValidator::parseProfile(
     throw std::invalid_argument(
         fmt::format(
             "Invalid profile value '{}': not a valid PortProfileID. "
-            "Valid values include: PROFILE_DEFAULT, PROFILE_10G_1_NRZ_NOFEC, "
+            "Valid values include: PROFILE_10G_1_NRZ_NOFEC, "
             "PROFILE_100G_4_NRZ_RS528_COPPER, PROFILE_400G_8_PAM4_RS544X2N_OPTICAL, "
-            "... (61 values total, see PortProfileID enum in switch_config.thrift)",
+            "... (see PortProfileID enum in switch_config.thrift)",
             profileStr));
   }
   return result;
@@ -119,11 +119,6 @@ cfg::PortProfileID ProfileValidator::validateProfile(
     const std::string& profileStr) {
   // Parse first — throws std::invalid_argument on bad string
   cfg::PortProfileID requestedProfile = parseProfile(profileStr);
-
-  // PROFILE_DEFAULT always passes — skip hardware check
-  if (requestedProfile == cfg::PortProfileID::PROFILE_DEFAULT) {
-    return requestedProfile;
-  }
 
   // Get supported profiles for this port
   auto supportedProfiles = getSupportedProfiles(portName);

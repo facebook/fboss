@@ -41,7 +41,6 @@ class ProfileValidator {
 
   // Validate that portName supports profileStr.
   // Returns the validated PortProfileID.
-  // PROFILE_DEFAULT always passes (no hardware check).
   // Throws std::invalid_argument if not supported.
   // Throws std::runtime_error if port not found.
   cfg::PortProfileID validateProfile(

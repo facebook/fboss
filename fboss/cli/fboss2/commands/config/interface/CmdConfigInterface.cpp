@@ -122,19 +122,7 @@ std::string applyProfile(
   // Parse first — fast error for completely invalid strings
   cfg::PortProfileID requestedProfile = ProfileValidator::parseProfile(value);
 
-  // PROFILE_DEFAULT: skip hardware validation, reset both fields to defaults
-  if (requestedProfile == cfg::PortProfileID::PROFILE_DEFAULT) {
-    for (const utils::Intf& intf : interfaces) {
-      cfg::Port* port = intf.getPort();
-      if (port) {
-        port->profileID() = cfg::PortProfileID::PROFILE_DEFAULT;
-        port->speed() = cfg::PortSpeed::DEFAULT;
-      }
-    }
-    return "profile=PROFILE_DEFAULT, speed=auto";
-  }
-
-  // Non-default: validate against hardware + optics.
+  // Validate against hardware + optics.
   // Build validator once (queries Agent + QSFP); reuse across all ports.
   ProfileValidator validator(hostInfo);
 
