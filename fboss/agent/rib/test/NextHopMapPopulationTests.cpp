@@ -16,9 +16,12 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
+#include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/rib/SwitchStateNextHopIdUpdater.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
@@ -717,6 +720,105 @@ TEST_F(NextHopMapPopulationTest, UpdaterIncrementalRemoveViaRouteUpdater) {
   updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
+}
+
+// Simulates a warmboot transition from FLAGS_enable_nexthop_id_manager=false to
+// =true: routes exist in the FIB but have no IDs assigned, and the manager is
+// empty. The fix in RouteUpdater::resolveOne should backfill both
+// resolvedNextHopSetID and normalizedResolvedNextHopSetID on the next update.
+TEST_F(NextHopMapPopulationTest, ResolveOneBackfillsMissingIdsFromWarmBoot) {
+  // 1. Allocate IDs normally via the live RIB.
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // 2. Snapshot the rib thrift and strip both IDs from every route's fwd to
+  // mirror a state where IDs were never assigned.
+  auto ribThrift = sw_->getRib()->toThrift();
+  for (auto& [_, routeTable] : ribThrift) {
+    for (auto& [__, v4Route] : *routeTable.v4NetworkToRoute()) {
+      v4Route.fwd()->resolvedNextHopSetID().reset();
+      v4Route.fwd()->normalizedResolvedNextHopSetID().reset();
+    }
+    for (auto& [__, v6Route] : *routeTable.v6NetworkToRoute()) {
+      v6Route.fwd()->resolvedNextHopSetID().reset();
+      v6Route.fwd()->normalizedResolvedNextHopSetID().reset();
+    }
+  }
+
+  // 3. Reconstruct a fresh RIB from the stripped thrift with empty FIB inputs
+  // so the new RIB's NextHopIDManager is also empty.
+  auto reconstructedRib = RoutingInformationBase::fromThrift(
+      ribThrift,
+      std::make_shared<MultiSwitchFibInfoMap>(),
+      std::make_shared<MultiLabelForwardingInformationBase>(),
+      std::make_shared<MultiSwitchMySidMap>());
+
+  // Pre-condition: every NEXTHOPS route in the reconstructed RIB lacks both
+  // IDs, and the manager is empty.
+  auto preDetails = reconstructedRib->getRouteTableDetails(kRid0);
+  ASSERT_FALSE(preDetails.empty());
+  size_t preNexthopRoutes = 0;
+  for (const auto& details : preDetails) {
+    if (*details.action() != "Nexthops") {
+      continue;
+    }
+    ++preNexthopRoutes;
+    EXPECT_FALSE(details.resolvedNextHopSetID().has_value())
+        << "Pre-condition failed: route should have nullopt "
+        << "resolvedNextHopSetID";
+    EXPECT_FALSE(details.normalizedResolvedNextHopSetID().has_value())
+        << "Pre-condition failed: route should have nullopt "
+        << "normalizedResolvedNextHopSetID";
+  }
+  EXPECT_GT(preNexthopRoutes, 0u);
+  auto preManager = reconstructedRib->getNextHopIDManagerCopy();
+  ASSERT_NE(preManager, nullptr);
+  EXPECT_TRUE(preManager->getIdToNextHop().empty());
+  EXPECT_TRUE(preManager->getIdToNextHopIdSet().empty());
+
+  // 4. Drive an empty update on the reconstructed RIB. updateDone() will mark
+  // every route for resolution, and resolveOne will hit the backfill branch
+  // for each NEXTHOPS route since nextHopIDManager_ is non-null and the
+  // route's resolvedNextHopSetID is nullopt.
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+  reconstructedRib->update(
+      sw_->getScopeResolver(),
+      kRid0,
+      kClientA,
+      DISTANCE,
+      std::vector<UnicastRoute>{},
+      std::vector<IpPrefix>{},
+      false /* resetClientsRoutes */,
+      "warmboot backfill test",
+      ribToSwitchStateUpdate,
+      &switchState);
+
+  // 5. Post-condition: every NEXTHOPS route now has BOTH IDs populated.
+  auto postDetails = reconstructedRib->getRouteTableDetails(kRid0);
+  size_t postNexthopRoutes = 0;
+  for (const auto& details : postDetails) {
+    if (*details.action() != "Nexthops") {
+      continue;
+    }
+    ++postNexthopRoutes;
+    EXPECT_TRUE(details.resolvedNextHopSetID().has_value())
+        << "Post-condition failed: NEXTHOPS route missing "
+        << "resolvedNextHopSetID after backfill";
+    EXPECT_TRUE(details.normalizedResolvedNextHopSetID().has_value())
+        << "Post-condition failed: NEXTHOPS route missing "
+        << "normalizedResolvedNextHopSetID after backfill";
+  }
+  EXPECT_EQ(postNexthopRoutes, preNexthopRoutes);
+
+  // The manager should now hold the backfilled allocations.
+  auto postManager = reconstructedRib->getNextHopIDManagerCopy();
+  ASSERT_NE(postManager, nullptr);
+  EXPECT_FALSE(postManager->getIdToNextHop().empty());
+  EXPECT_FALSE(postManager->getIdToNextHopIdSet().empty());
 }
 
 TEST_F(NextHopMapPopulationTest, UpdaterAddAndRemoveInSingleUpdate) {
