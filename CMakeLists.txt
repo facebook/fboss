@@ -871,6 +871,111 @@ add_fbthrift_cpp_library(
   fboss/lib/i2c/i2c_controller_stats.thrift
 )
 
+# BGP thrift files
+# Configerator BGP policy thrift files
+add_fbthrift_cpp_library(
+  cfgr_bgp_attr_cpp2
+  configerator/structs/neteng/fboss/bgp/if/bgp_attr.thrift
+  OPTIONS
+    json
+    reflection
+)
+
+add_fbthrift_cpp_library(
+  cfgr_nsf_policy_cpp2
+  configerator/structs/neteng/bgp_policy/thrift/nsf_policy.thrift
+  OPTIONS
+    json
+    reflection
+)
+
+add_fbthrift_cpp_library(
+  cfgr_routing_policy_cpp2
+  configerator/structs/neteng/bgp_policy/thrift/routing_policy.thrift
+  OPTIONS
+    json
+    reflection
+)
+
+add_fbthrift_cpp_library(
+  cfgr_bgp_policy_cpp2
+  configerator/structs/neteng/bgp_policy/thrift/bgp_policy.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    cfgr_nsf_policy_cpp2
+    cfgr_routing_policy_cpp2
+)
+
+add_fbthrift_cpp_library(
+  cfgr_rib_policy_cpp2
+  configerator/structs/neteng/bgp_policy/thrift/rib_policy.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    cfgr_bgp_attr_cpp2
+    cfgr_bgp_policy_cpp2
+    cfgr_routing_policy_cpp2
+)
+
+add_fbthrift_cpp_library(
+  bgp_config_cpp2
+  fboss/bgp/if/bgp_config.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    cfgr_bgp_attr_cpp2
+    cfgr_bgp_policy_cpp2
+    vip_service_config_cpp2
+)
+
+add_fbthrift_cpp_library(
+  vip_service_config_cpp2
+  fboss/routing/if/vip_service_config.thrift
+  OPTIONS
+    json
+    reflection
+)
+
+add_fbthrift_cpp_library(
+  policy_thrift_cpp2
+  fboss/routing/policy/if/policy_thrift.thrift
+  OPTIONS
+    json
+    reflection
+)
+
+add_fbthrift_cpp_library(
+  bgp_thrift_cpp2
+  fboss/bgp/if/bgp_thrift.thrift
+  SERVICES
+    TBgpService
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    cfgr_bgp_attr_cpp2
+    bgp_config_cpp2
+    cfgr_bgp_policy_cpp2
+    cfgr_rib_policy_cpp2
+    cfgr_routing_policy_cpp2
+    policy_thrift_cpp2
+    fb303_cpp2
+)
+
+add_fbthrift_cpp_library(
+  bgp_summary_cpp2
+  fboss/cli/fboss2/commands/show/bgp/summary/bgp_summary.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    bgp_thrift_cpp2
+)
+
 add_fbthrift_cpp_library(
   io_stats_cpp2
   fboss/lib/if/io_stats.thrift
