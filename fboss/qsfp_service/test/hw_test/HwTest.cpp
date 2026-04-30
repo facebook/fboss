@@ -18,6 +18,8 @@
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/QsfpServer.h"
+#include "fboss/qsfp_service/module/CdbCommandBlock.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
@@ -335,4 +337,62 @@ TEST_F(HwTest, CheckTcvrNameAndInterfaces) {
     EXPECT_EQ(*tcvr.tcvrStats()->interfaces(), ports);
   }
 }
+TEST_F(HwTest, checkCmisModuleFirmwareUpgradeCdbTimeout) {
+  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  refreshTransceiversWithRetry();
+
+  auto cabledTransceivers = utility::legacyTransceiverIds(
+      utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+  std::map<int32_t, TransceiverInfo> transceiversInfo;
+  wedgeManager->getTransceiversInfo(
+      transceiversInfo,
+      std::make_unique<std::vector<int32_t>>(cabledTransceivers));
+
+  int cmisCount = 0;
+  for (auto tcvrId : cabledTransceivers) {
+    auto it = transceiversInfo.find(tcvrId);
+    if (it == transceiversInfo.end()) {
+      continue;
+    }
+    auto& tcvrState = *it->second.tcvrState();
+    auto mgmtInterface = tcvrState.transceiverManagementInterface().value_or(
+        TransceiverManagementInterface::NONE);
+    if (mgmtInterface != TransceiverManagementInterface::CMIS) {
+      continue;
+    }
+    if (!TransceiverManager::opticalOrActiveCable(tcvrState)) {
+      XLOG(INFO) << "Skipping flat memory transceiver " << tcvrId;
+      continue;
+    }
+
+    XLOG(INFO) << "Checking CDB MaxDurationWrite for transceiver " << tcvrId;
+
+    auto* transceiverImpl = wedgeManager->getTransceiverImplForTesting(tcvrId);
+    ASSERT_NE(transceiverImpl, nullptr)
+        << "TransceiverImpl is null for transceiver " << tcvrId;
+
+    CdbCommandBlock cdb;
+    cdb.selectCdbPage(transceiverImpl);
+    cdb.createCdbCmdGetFwFeatureInfo();
+    ASSERT_TRUE(cdb.cmisRunCdbCommand(transceiverImpl))
+        << "CDB command 0x0041 failed for transceiver " << tcvrId;
+
+    auto maxDurationWriteUsec = cdb.getMaxDurationWriteUsec();
+    XLOG(INFO) << "Transceiver " << tcvrId
+               << ": MaxDurationWrite = " << maxDurationWriteUsec << " usec";
+
+    EXPECT_GT(maxDurationWriteUsec, 0)
+        << "Transceiver " << tcvrId
+        << " MaxDurationWrite is 0 (not advertised or insufficient response)";
+
+    EXPECT_LE(maxDurationWriteUsec, kMaxCdbTimeoutUsec)
+        << "Transceiver " << tcvrId << " MaxDurationWrite ("
+        << maxDurationWriteUsec << " usec) exceeds kMaxCdbTimeoutUsec ("
+        << kMaxCdbTimeoutUsec << " usec = 120s)";
+    cmisCount++;
+  }
+  XLOG(INFO) << "Checked " << cmisCount << " CMIS transceivers";
+  EXPECT_GT(cmisCount, 0) << "No CMIS transceivers found to test";
+}
+
 } // namespace facebook::fboss
