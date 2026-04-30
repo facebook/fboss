@@ -47,6 +47,9 @@ ProfileValidator::ProfileValidator(const HostInfo& hostInfo) {
     // QsfpService unavailable — fall back to PlatformMapping in
     // getSupportedProfiles()
   }
+
+  platformMappingObj_ = std::make_unique<PlatformMapping>(platformMapping_);
+  allPortProfiles_ = platformMappingObj_->getAllPortProfiles();
 }
 
 ProfileValidator::ProfileValidator(
@@ -54,7 +57,11 @@ ProfileValidator::ProfileValidator(
     std::map<std::string, std::vector<cfg::PortProfileID>>
         qsfpSupportedProfiles)
     : platformMapping_(std::move(platformMapping)),
-      qsfpSupportedProfiles_(std::move(qsfpSupportedProfiles)) {}
+      qsfpSupportedProfiles_(std::move(qsfpSupportedProfiles)),
+      platformMappingObj_(std::make_unique<PlatformMapping>(platformMapping_)),
+      allPortProfiles_(platformMappingObj_->getAllPortProfiles()) {}
+
+ProfileValidator::~ProfileValidator() = default;
 
 // static
 cfg::PortProfileID ProfileValidator::parseProfile(
@@ -82,36 +89,15 @@ std::vector<cfg::PortProfileID> ProfileValidator::getSupportedProfiles(
   }
 
   // Fall back to platform mapping (hardware capabilities)
-  const auto& portMap = *platformMapping_.ports();
-  bool found = false;
-  int32_t foundId = 0;
-  for (const auto& [id, portEntry] : portMap) {
-    if (*portEntry.mapping()->name() == portName) {
-      foundId = id;
-      found = true;
-      break;
-    }
-  }
-
-  if (!found) {
+  auto it = allPortProfiles_.find(portName);
+  if (it == allPortProfiles_.end()) {
     throw std::runtime_error(fmt::format("Port {} not found", portName));
   }
-
-  const auto& portConfig = portMap.at(foundId);
-  if (portConfig.supportedProfiles()->empty()) {
+  if (it->second.empty()) {
     throw std::invalid_argument(
         fmt::format("No supported profiles found for port {}", portName));
   }
-
-  // Extract profile IDs from the map (keys only)
-  const auto& profileMap = portConfig.supportedProfiles().value();
-  std::vector<cfg::PortProfileID> profiles;
-  profiles.reserve(profileMap.size());
-  for (const auto& [profileId, _] : profileMap) {
-    profiles.push_back(profileId);
-  }
-
-  return profiles;
+  return it->second;
 }
 
 cfg::PortProfileID ProfileValidator::validateProfile(
@@ -148,8 +134,7 @@ cfg::PortProfileID ProfileValidator::validateProfile(
 cfg::PortSpeed ProfileValidator::getProfileSpeed(
     PortID portId,
     cfg::PortProfileID profile) {
-  PlatformMapping pm(platformMapping_);
-  auto profileConfig = pm.getPortProfileConfig(
+  auto profileConfig = platformMappingObj_->getPortProfileConfig(
       PlatformPortProfileConfigMatcher(profile, portId));
   if (profileConfig.has_value()) {
     return static_cast<cfg::PortSpeed>(

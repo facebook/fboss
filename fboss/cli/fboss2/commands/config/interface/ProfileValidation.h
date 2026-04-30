@@ -10,6 +10,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
@@ -17,6 +18,8 @@
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss {
+
+class PlatformMapping;
 
 /**
  * ProfileValidator provides profile validation logic for port configuration.
@@ -34,6 +37,8 @@ class ProfileValidator {
       cfg::PlatformMapping platformMapping,
       std::map<std::string, std::vector<cfg::PortProfileID>>
           qsfpSupportedProfiles);
+
+  ~ProfileValidator();
 
   // Parse profile string (case-insensitive) to cfg::PortProfileID enum.
   // Throws std::invalid_argument on unrecognized string.
@@ -54,6 +59,8 @@ class ProfileValidator {
  private:
   cfg::PlatformMapping platformMapping_;
   std::map<std::string, std::vector<cfg::PortProfileID>> qsfpSupportedProfiles_;
+  std::unique_ptr<PlatformMapping> platformMappingObj_;
+  std::map<std::string, std::vector<cfg::PortProfileID>> allPortProfiles_;
 
   std::vector<cfg::PortProfileID> getSupportedProfiles(
       const std::string& portName);
