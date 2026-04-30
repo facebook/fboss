@@ -112,6 +112,7 @@ OPT_ARG_FBOSS_LOGGING = "--fboss_logging"
 OPT_ARG_PRODUCTION_FEATURES = "--production-features"
 OPT_ARG_ENABLE_PRODUCTION_FEATURES = "--enable-production-features"
 OPT_ARG_LIST_TESTS_FOR_FEATURE = "--list-tests-for-features"
+OPT_ARG_LINK_STRESS_DURATION = "--link_stress_duration"
 OPT_KNOWN_BAD_TESTS_FILE = "--known-bad-tests-file"
 OPT_UNSUPPORTED_TESTS_FILE = "--unsupported-tests-file"
 OPT_ARG_SETUP_CB = "--setup-for-coldboot"
@@ -748,7 +749,7 @@ class TestRunner(abc.ABC):
                 args.sai_logging,
                 args.fboss_logging,
                 sai_replayer_log_path,
-                args.test_run_timeout,
+                args.test_run_timeout + args.link_stress_duration * 60,
             )
             output = test_output.decode("utf-8")
             print(
@@ -1104,6 +1105,12 @@ class LinkTestRunner(TestRunner):
             type=int,
             help="Specify number of npus to run in multi switch mode. Default is 1.",
         )
+        sub_parser.add_argument(
+            OPT_ARG_LINK_STRESS_DURATION,
+            type=int,
+            default=0,
+            help="Specify link stress test run duration in minutes.",
+        )
 
     def _get_config_path(self):
         return ""
@@ -1151,6 +1158,13 @@ class LinkTestRunner(TestRunner):
             )
 
         arg_list.extend(["--fsdb_client_ssl_preferred=false"])
+        if args.link_stress_duration is not None:
+            arg_list.extend(
+                [
+                    "--link_stress_duration",
+                    str(args.link_stress_duration),
+                ]
+            )
 
         return arg_list
 

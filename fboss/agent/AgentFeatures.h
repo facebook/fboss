@@ -91,6 +91,7 @@ DECLARE_int32(max_mac_address_to_block);
 DECLARE_int32(max_neighbors_to_block);
 
 DECLARE_bool(link_stress_test);
+DECLARE_uint32(link_stress_duration);
 DECLARE_int32(ecmp_resource_percentage);
 DECLARE_int32(ars_resource_percentage);
 DECLARE_bool(enable_mysid_resource_protection);

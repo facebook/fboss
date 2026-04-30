@@ -270,6 +270,11 @@ DEFINE_bool(
     false,
     "enable to run stress tests (longer duration + more iterations)");
 
+DEFINE_uint32(
+    link_stress_duration,
+    0,
+    "run link stress tests for a given time in minutes, default 0 means no stress tests.");
+
 DEFINE_int32(
     ecmp_resource_percentage,
     75,
