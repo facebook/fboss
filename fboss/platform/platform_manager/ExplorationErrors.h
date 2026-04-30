@@ -30,6 +30,7 @@ enum class ExplorationErrorType {
   SLOT_PM_UNIT_ABSENCE,
   SLOT_PRESENCE_CHECK,
   CPLD_SYSFS_ATTR_CREATE,
+  I2C_CONFIG_FAILED,
   // Need this for ExplorationErrorType size at compile time.
   SIZE
 };
@@ -84,6 +85,8 @@ constexpr const char* toExplorationErrorTypeStr(
       return "slot_presence_check";
     case ExplorationErrorType::CPLD_SYSFS_ATTR_CREATE:
       return "cpld_sysfs_attr_create";
+    case ExplorationErrorType::I2C_CONFIG_FAILED:
+      return "i2c_config_failed";
     case ExplorationErrorType::SIZE:
       throw std::invalid_argument("Do not use ExplorationErrorType::SIZE");
   }
