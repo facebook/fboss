@@ -130,8 +130,8 @@ if (BUILD_SAI_FAKE_LINK_TEST)
   message(STATUS "Configured to build SAI Fake Link Test binaries")
 endif()
 
-if (SAI_BRCM_IMPL)
-    # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL
+if (SAI_BRCM_IMPL OR SAI_TAJO_IMPL)
+    # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL or SAI_TAJO_IMPL
   if ("$ENV{SAI_SDK_VERSION}" STREQUAL "")
     message(FATAL_ERROR
       "SAI_SDK_VERSION environment variable is required when SAI_BRCM_IMPL is enabled.\n"
@@ -288,6 +288,11 @@ message(STATUS "Found SAI Include dir: ${SAI_INCLUDE_DIR}")
 
 if (SAI_BRCM_IMPL)
   find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES brcm_sai_extensions.h)
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")
+elseif(SAI_TAJO_IMPL)
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES experimental/sai_attr_ext.h)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
   message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")
