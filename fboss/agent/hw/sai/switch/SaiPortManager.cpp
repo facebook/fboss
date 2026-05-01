@@ -40,11 +40,7 @@
 #include <fmt/ranges.h>
 
 #if defined(BRCM_SAI_SDK_DNX) || defined(BRCM_SAI_SDK_XGS)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiportextensions.h>
-#else
-#include <saiportextensions.h>
-#endif
 #endif
 
 #if defined(CHENAB_SAI_SDK)

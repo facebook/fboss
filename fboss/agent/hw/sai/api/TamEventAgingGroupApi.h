@@ -11,13 +11,9 @@
 #include "fboss/agent/hw/sai/api/Types.h"
 
 extern "C" {
+#include <experimental/saiexperimentaltameventaginggroup.h>
 #include <sai.h>
 #include <saiextensions.h>
-#ifndef IS_OSS_BRCM_SAI
-#include <experimental/saiexperimentaltameventaginggroup.h>
-#else
-#include <saiexperimentaltameventaginggroup.h>
-#endif
 }
 
 namespace facebook::fboss {

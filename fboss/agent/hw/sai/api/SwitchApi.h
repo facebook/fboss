@@ -28,11 +28,7 @@
 extern "C" {
 #include <sai.h>
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiexperimentalvendorswitch.h>
-#else
-#include <saiexperimentalvendorswitch.h>
-#endif
 #endif
 }
 

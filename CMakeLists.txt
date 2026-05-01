@@ -131,11 +131,7 @@ if (BUILD_SAI_FAKE_LINK_TEST)
 endif()
 
 if (SAI_BRCM_IMPL)
-  # TODO (skhare) IS_OSS_BRCM_SAI is only a short-term change to unblock.
-  # Refactor/fix the code and then remove this flag.
-  add_definitions (-DIS_OSS_BRCM_SAI=true)
-
-  # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL
+    # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL
   if ("$ENV{SAI_SDK_VERSION}" STREQUAL "")
     message(FATAL_ERROR
       "SAI_SDK_VERSION environment variable is required when SAI_BRCM_IMPL is enabled.\n"

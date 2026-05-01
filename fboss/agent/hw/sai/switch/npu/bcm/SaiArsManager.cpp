@@ -17,11 +17,7 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #if defined(BRCM_SAI_SDK_GTE_14_0)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiarsextensions.h>
-#else
-#include <saiarsextensions.h>
-#endif
 #endif
 
 namespace facebook::fboss {
