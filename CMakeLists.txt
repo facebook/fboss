@@ -287,9 +287,10 @@ include_directories(${SAI_INCLUDE_DIR})
 message(STATUS "Found SAI Include dir: ${SAI_INCLUDE_DIR}")
 
 if (SAI_BRCM_IMPL)
-  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES saiswitchextensions.h)
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES brcm_sai_extensions.h)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
-  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")
 elseif(CHENAB_SAI_SDK)
   # Chenab-TODO: set experimental directories appropriately
   set(SAI_EXPERIMENTAL_INCLUDE_DIR "/var/FBOSS/sai_impl_output/include")
