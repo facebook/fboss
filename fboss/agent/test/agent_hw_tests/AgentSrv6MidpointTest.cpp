@@ -9,6 +9,7 @@
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -112,21 +113,29 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     }
     auto ecmpHelper = makeEcmpHelper();
     this->resolveNeighbors(ecmpHelper, 1);
-    addAdjacencyMySidEntry(ecmpHelper.nhop(0).ip);
+    addAdjacencyMySidEntry(ecmpHelper.nhop(0).ip, ecmpHelper.nhop(0).intf);
   }
 
-  void addAdjacencyMySidEntry(const folly::IPAddress& nexthopIp) {
-    MySidEntry entry;
-    entry.type() = MySidType::ADJACENCY_MICRO_SID;
+  void addAdjacencyMySidEntry(
+      const folly::IPAddress& nexthopIp,
+      InterfaceID intf) {
+    state::MySidFields fields;
+    fields.type() = MySidType::ADJACENCY_MICRO_SID;
+    fields.clientId() = ClientID::STATIC_ROUTE;
+    fields.adjacencyInterfaceId() = static_cast<int32_t>(intf);
+    fields.isV6() = nexthopIp.isV6();
     facebook::network::thrift::IPPrefix prefix;
     prefix.prefixAddress() =
         facebook::network::toBinaryAddress(folly::IPAddress(kMySidPrefix));
     prefix.prefixLength() = kMySidPrefixLen;
-    entry.mySid() = prefix;
+    fields.mySid() = prefix;
 
-    NextHopThrift nhop;
-    nhop.address() = facebook::network::toBinaryAddress(nexthopIp);
-    entry.nextHops()->push_back(nhop);
+    auto mySid = std::make_shared<MySid>(fields);
+    // Match config-path semantics for adjacency uA MySid:
+    // the entry carries adjacency metadata (intf/family), while initial
+    // unresolved next-hop set is empty. MySidNeighborObserver binds/unbinds
+    // via neighbor events.
+    RouteNextHopSet unresolvedNhops{};
 
     auto sw = this->getSw();
     auto rib = sw->getRib();
@@ -134,7 +143,9 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         createRibMySidToSwitchStateFunction(std::nullopt);
     rib->update(
         sw->getScopeResolver(),
-        {entry},
+        std::vector<MySidWithNextHops>{
+            std::make_pair(std::move(mySid), std::move(unresolvedNhops))},
+        {} /* toUnresolveIfMatch */,
         {} /* toDelete */,
         "addAdjacencyMySidEntry",
         ribMySidToSwitchStateFunc,
@@ -353,13 +364,24 @@ TYPED_TEST_SUITE(AgentSrv6MidpointTest, Srv6MidpointPortTypes);
 TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASid) {
   auto setup = [this]() { this->setupHelper(); };
 
-  auto verify = [this]() {
+  auto verifyMidpoint = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     this->verifyMidpointCpuAndFrontPanel(egressPort);
   };
 
-  this->verifyAcrossWarmBoots(setup, verify);
+  auto verify = [this, verifyMidpoint]() {
+    if (this->getSw()->getBootType() == BootType::WARM_BOOT) {
+      // On warm boot runs, verify after setupPostWarmboot re-primes state.
+      return;
+    }
+    verifyMidpoint();
+  };
+  auto setupPostWarmboot = [this]() { this->setupHelper(); };
+  auto verifyPostWarmboot = [verifyMidpoint]() { verifyMidpoint(); };
+
+  this->verifyAcrossWarmBoots(
+      setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
 TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASidUnresolvedDropped) {
@@ -370,18 +392,34 @@ TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASidUnresolvedDropped) {
     this->unresolveNeighbors(ecmpHelper, 1);
   };
 
-  auto verify = [this]() {
+  auto verifyUnresolvedDrop = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     this->verifyMidpointDropFrontPanel(egressPort);
   };
-  this->verifyAcrossWarmBoots(setup, verify);
+  auto verify = [this, verifyUnresolvedDrop]() {
+    if (this->getSw()->getBootType() == BootType::WARM_BOOT) {
+      // On warm boot runs, verify after setupPostWarmboot re-primes state.
+      return;
+    }
+    verifyUnresolvedDrop();
+  };
+  auto setupPostWarmboot = [this]() {
+    this->setupHelper();
+    auto ecmpHelper = this->makeEcmpHelper();
+    this->unresolveNeighbors(ecmpHelper, 1);
+  };
+  auto verifyPostWarmboot = [verifyUnresolvedDrop]() {
+    verifyUnresolvedDrop();
+  };
+  this->verifyAcrossWarmBoots(
+      setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
 TYPED_TEST(AgentSrv6MidpointTest, dropPacketUASidIsLastSid) {
   auto setup = [this]() { this->setupHelper(); };
 
-  auto verify = [this]() {
+  auto verifyLastSidDrop = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     // Outer dst is the mySid prefix itself (3001:db8:1::) with no next uSID.
@@ -389,7 +427,17 @@ TYPED_TEST(AgentSrv6MidpointTest, dropPacketUASidIsLastSid) {
     // packet should be dropped.
     this->verifyMidpointDropFrontPanel(egressPort, this->kMySidPrefix);
   };
-  this->verifyAcrossWarmBoots(setup, verify);
+  auto verify = [this, verifyLastSidDrop]() {
+    if (this->getSw()->getBootType() == BootType::WARM_BOOT) {
+      // On warm boot runs, verify after setupPostWarmboot re-primes state.
+      return;
+    }
+    verifyLastSidDrop();
+  };
+  auto setupPostWarmboot = [this]() { this->setupHelper(); };
+  auto verifyPostWarmboot = [verifyLastSidDrop]() { verifyLastSidDrop(); };
+  this->verifyAcrossWarmBoots(
+      setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
 } // namespace facebook::fboss
