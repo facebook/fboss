@@ -10,7 +10,7 @@ time ./fboss/oss/scripts/run-getdeps.py \
   --npu-sai-impl SAI_BRCM_IMPL \
   --npu-sai-sdk-version SAI_VERSION_14_0_EA_ODP \
   --npu-sai-version 1.16.1 \
-  --npu-libsai-impl-path /opt/sdk/libsai_impl.a \
+  --npu-libsai-impl-path /opt/sdk \
   --npu-experiments-path /opt/sdk/experimental \
   build \
   --allow-system-packages \

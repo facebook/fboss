@@ -122,9 +122,8 @@ def parse_args():
     parser.add_argument(
         ARG_NPU_LIBSAI_IMPL_PATH,
         required=False,
-        # TODO: can we also specify a directory of dynamic libs, or should
-        # we add this to a diff flag
-        help="Full path to libsai_impl.a.",
+        help="Path to a directory containing libsai_impl.a (and optionally "
+        "sai_dependencies.txt and any other SDK libs to stage alongside it).",
     )
     parser.add_argument(
         ARG_NPU_EXPERIMENTS_PATH,
@@ -417,9 +416,11 @@ def _edit_libsai_manifest(version):
 def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
     """Validate SDK artifact paths, stage them, and prepend to CMAKE_PREFIX_PATH.
 
-    Both paths must be provided together. When present, the artifacts are
-    staged into a temporary directory with the lib/ and include/ structure
-    that CMake expects, and that directory is prepended to CMAKE_PREFIX_PATH.
+    Both paths must be provided together. ``libsai_impl_path`` is a directory
+    that contains libsai_impl.a (and may contain sai_dependencies.txt or
+    additional SDK libs). When present, the artifacts are staged into a
+    temporary directory with the lib/ and include/ structure that CMake
+    expects, and that directory is prepended to CMAKE_PREFIX_PATH.
     """
     if (libsai_impl_path is None) and (experiments_path is None):
         print_info(
@@ -434,16 +435,21 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
         sys.exit(1)
 
     # Validate paths exist and are non-empty
-    if not os.path.isfile(libsai_impl_path):
+    if not os.path.isdir(libsai_impl_path):
         print_error(
             f"Error: {ARG_NPU_LIBSAI_IMPL_PATH} path does not exist "
-            f"or is not a file: {libsai_impl_path}"
+            f"or is not a directory: {libsai_impl_path}"
         )
         sys.exit(1)
-    if os.path.getsize(libsai_impl_path) == 0:
+    libsai_impl_a = os.path.join(libsai_impl_path, "libsai_impl.a")
+    if not os.path.isfile(libsai_impl_a):
         print_error(
-            f"Error: {ARG_NPU_LIBSAI_IMPL_PATH} file is empty: {libsai_impl_path}"
+            f"Error: {ARG_NPU_LIBSAI_IMPL_PATH} directory does not contain "
+            f"libsai_impl.a: {libsai_impl_path}"
         )
+        sys.exit(1)
+    if os.path.getsize(libsai_impl_a) == 0:
+        print_error(f"Error: libsai_impl.a is empty: {libsai_impl_a}")
         sys.exit(1)
     if not os.path.isdir(experiments_path):
         print_error(
@@ -457,17 +463,16 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
         )
         sys.exit(1)
 
-    # Stage artifacts into a prefix directory with lib/ and include/ subdirs
-    # using symlinks to avoid copying potentially large files.
+    # Stage artifacts into a prefix directory with lib/ and include/ subdirs.
+    # The lib/ symlink points at the source directory so libsai_impl.a and
+    # any siblings (sai_dependencies.txt, extra SDK libs) are visible to CMake.
     staging_dir = tempfile.mkdtemp(prefix="fboss_sdk_")
-    lib_dir = os.path.join(staging_dir, "lib")
-    os.makedirs(lib_dir)
-    os.symlink(
-        os.path.abspath(libsai_impl_path),
-        os.path.join(lib_dir, os.path.basename(libsai_impl_path)),
-    )
+    abs_libsai_impl_path = os.path.abspath(libsai_impl_path)
+    os.symlink(abs_libsai_impl_path, os.path.join(staging_dir, "lib"))
     os.symlink(os.path.abspath(experiments_path), os.path.join(staging_dir, "include"))
-    print_info(f"Symlinked {libsai_impl_path} -> {lib_dir}")
+    print_info(
+        f"Symlinked {abs_libsai_impl_path} -> {os.path.join(staging_dir, 'lib')}"
+    )
     print_info(
         f"Symlinked {experiments_path} -> {os.path.join(staging_dir, 'include')}"
     )
