@@ -4,7 +4,6 @@
     "counter_refresh_interval": "0",
     "disable_neighbor_updates": "true",
     "ecmp_width": "128",
-    "enable_acl_table_group": "true",
     "enable_nexthop_id_manager": "true",
     "enable_replayer": "true",
     "intf_nbr_tables": "true",
@@ -27,7 +26,7 @@
         "name": "eth1/3/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -40,12 +39,12 @@
           "2": "eth1/4/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -63,7 +62,7 @@
         "name": "eth1/4/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -76,12 +75,12 @@
           "2": "eth1/3/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -99,7 +98,7 @@
         "name": "eth1/7/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -112,12 +111,12 @@
           "2": "eth1/8/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 45,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -135,7 +134,7 @@
         "name": "eth1/7/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -148,12 +147,12 @@
           "2": "eth1/8/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 45,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -171,7 +170,7 @@
         "name": "eth1/8/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -184,12 +183,12 @@
           "2": "eth1/7/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 45,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -207,7 +206,7 @@
         "name": "eth1/8/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -220,12 +219,12 @@
           "2": "eth1/7/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 45,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -243,7 +242,7 @@
         "name": "eth1/11/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -256,12 +255,12 @@
           "2": "eth1/12/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -279,7 +278,7 @@
         "name": "eth1/11/3",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -292,12 +291,12 @@
           "2": "eth1/12/3"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -315,7 +314,7 @@
         "name": "eth1/11/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -328,12 +327,12 @@
           "2": "eth1/12/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -351,7 +350,7 @@
         "name": "eth1/11/7",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -364,12 +363,12 @@
           "2": "eth1/12/7"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -387,7 +386,7 @@
         "name": "eth1/12/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -400,12 +399,12 @@
           "2": "eth1/11/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -423,7 +422,7 @@
         "name": "eth1/12/3",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -436,12 +435,12 @@
           "2": "eth1/11/3"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -459,7 +458,7 @@
         "name": "eth1/12/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -472,12 +471,12 @@
           "2": "eth1/11/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -495,7 +494,7 @@
         "name": "eth1/12/7",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -508,12 +507,12 @@
           "2": "eth1/11/7"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -531,7 +530,7 @@
         "name": "eth1/15/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -544,12 +543,12 @@
           "2": "eth1/16/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 24,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -567,7 +566,7 @@
         "name": "eth1/15/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -580,12 +579,12 @@
           "2": "eth1/16/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 24,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -603,7 +602,7 @@
         "name": "eth1/16/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -616,12 +615,12 @@
           "2": "eth1/15/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 24,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -639,7 +638,7 @@
         "name": "eth1/16/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -652,12 +651,12 @@
           "2": "eth1/15/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 24,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -675,7 +674,7 @@
         "name": "eth1/19/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -688,12 +687,12 @@
           "2": "eth1/20/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -711,7 +710,7 @@
         "name": "eth1/19/3",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -724,12 +723,12 @@
           "2": "eth1/20/3"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -747,7 +746,7 @@
         "name": "eth1/19/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -760,12 +759,12 @@
           "2": "eth1/20/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -783,7 +782,7 @@
         "name": "eth1/19/7",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -796,12 +795,12 @@
           "2": "eth1/20/7"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -819,7 +818,7 @@
         "name": "eth1/20/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -832,12 +831,12 @@
           "2": "eth1/19/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -855,7 +854,7 @@
         "name": "eth1/20/3",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -868,12 +867,12 @@
           "2": "eth1/19/3"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -891,7 +890,7 @@
         "name": "eth1/20/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -904,12 +903,12 @@
           "2": "eth1/19/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -927,7 +926,7 @@
         "name": "eth1/20/7",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -940,12 +939,12 @@
           "2": "eth1/19/7"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -963,7 +962,7 @@
         "name": "eth1/23/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -976,12 +975,12 @@
           "2": "eth1/27/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -999,7 +998,7 @@
         "name": "eth1/23/2",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1012,12 +1011,12 @@
           "2": "eth1/27/2"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1035,7 +1034,7 @@
         "name": "eth1/23/3",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1048,12 +1047,12 @@
           "2": "eth1/27/3"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1071,7 +1070,7 @@
         "name": "eth1/23/4",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1084,12 +1083,12 @@
           "2": "eth1/27/4"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1107,7 +1106,7 @@
         "name": "eth1/23/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1120,12 +1119,12 @@
           "2": "eth1/27/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1143,7 +1142,7 @@
         "name": "eth1/23/6",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1156,12 +1155,12 @@
           "2": "eth1/27/6"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1179,7 +1178,7 @@
         "name": "eth1/23/7",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1192,12 +1191,12 @@
           "2": "eth1/27/7"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1215,7 +1214,7 @@
         "name": "eth1/23/8",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1228,12 +1227,12 @@
           "2": "eth1/27/8"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1251,7 +1250,7 @@
         "name": "eth1/24/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1264,12 +1263,12 @@
           "2": "eth1/28/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1287,7 +1286,7 @@
         "name": "eth1/27/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1300,12 +1299,12 @@
           "2": "eth1/23/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1323,7 +1322,7 @@
         "name": "eth1/27/2",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1336,12 +1335,12 @@
           "2": "eth1/23/2"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1359,7 +1358,7 @@
         "name": "eth1/27/3",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1372,12 +1371,12 @@
           "2": "eth1/23/3"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1395,7 +1394,7 @@
         "name": "eth1/27/4",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1408,12 +1407,12 @@
           "2": "eth1/23/4"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1431,7 +1430,7 @@
         "name": "eth1/27/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1444,12 +1443,12 @@
           "2": "eth1/23/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1467,7 +1466,7 @@
         "name": "eth1/27/6",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1480,12 +1479,12 @@
           "2": "eth1/23/6"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1503,7 +1502,7 @@
         "name": "eth1/27/7",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1516,12 +1515,12 @@
           "2": "eth1/23/7"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1539,7 +1538,7 @@
         "name": "eth1/27/8",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1552,12 +1551,12 @@
           "2": "eth1/23/8"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1575,7 +1574,7 @@
         "name": "eth1/28/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1588,12 +1587,12 @@
           "2": "eth1/24/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1611,7 +1610,7 @@
         "name": "eth1/31/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1624,12 +1623,12 @@
           "2": "eth1/32/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 22,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1647,7 +1646,7 @@
         "name": "eth1/31/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1660,12 +1659,12 @@
           "2": "eth1/32/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 22,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1683,7 +1682,7 @@
         "name": "eth1/32/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1696,12 +1695,12 @@
           "2": "eth1/31/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 22,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1719,7 +1718,7 @@
         "name": "eth1/32/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1732,12 +1731,12 @@
           "2": "eth1/31/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 22,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1755,7 +1754,7 @@
         "name": "eth1/33/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1768,12 +1767,12 @@
           "2": "eth1/33/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 23,
         "portType": 4,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1791,7 +1790,7 @@
         "name": "eth1/1/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1804,12 +1803,12 @@
           "2": "eth1/2/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1827,7 +1826,7 @@
         "name": "eth1/1/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1840,12 +1839,12 @@
           "2": "eth1/2/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1863,7 +1862,7 @@
         "name": "eth1/2/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1876,12 +1875,12 @@
           "2": "eth1/1/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1899,7 +1898,7 @@
         "name": "eth1/2/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1912,12 +1911,12 @@
           "2": "eth1/1/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1935,7 +1934,7 @@
         "name": "eth1/5/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1948,12 +1947,12 @@
           "2": "eth1/6/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1971,7 +1970,7 @@
         "name": "eth1/5/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1984,12 +1983,12 @@
           "2": "eth1/6/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2007,7 +2006,7 @@
         "name": "eth1/6/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2020,12 +2019,12 @@
           "2": "eth1/5/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2043,7 +2042,7 @@
         "name": "eth1/6/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2056,12 +2055,12 @@
           "2": "eth1/5/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2079,7 +2078,7 @@
         "name": "eth1/9/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2092,12 +2091,12 @@
           "2": "eth1/10/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2115,7 +2114,7 @@
         "name": "eth1/9/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2128,12 +2127,12 @@
           "2": "eth1/10/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2151,7 +2150,7 @@
         "name": "eth1/10/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2164,12 +2163,12 @@
           "2": "eth1/9/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2187,7 +2186,7 @@
         "name": "eth1/10/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2200,12 +2199,12 @@
           "2": "eth1/9/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2223,7 +2222,7 @@
         "name": "eth1/13/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2236,12 +2235,12 @@
           "2": "eth1/14/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 23,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2259,7 +2258,7 @@
         "name": "eth1/13/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2272,12 +2271,12 @@
           "2": "eth1/14/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 23,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2295,7 +2294,7 @@
         "name": "eth1/14/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2308,12 +2307,12 @@
           "2": "eth1/13/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 23,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2331,7 +2330,7 @@
         "name": "eth1/14/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2344,12 +2343,12 @@
           "2": "eth1/13/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 23,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2367,7 +2366,7 @@
         "name": "eth1/17/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2380,12 +2379,12 @@
           "2": "eth1/18/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2403,7 +2402,7 @@
         "name": "eth1/17/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2416,12 +2415,12 @@
           "2": "eth1/18/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2439,7 +2438,7 @@
         "name": "eth1/18/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2452,12 +2451,12 @@
           "2": "eth1/17/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2475,7 +2474,7 @@
         "name": "eth1/18/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2488,12 +2487,12 @@
           "2": "eth1/17/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2511,7 +2510,7 @@
         "name": "eth1/21/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2524,12 +2523,12 @@
           "2": "eth1/22/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2547,7 +2546,7 @@
         "name": "eth1/21/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2560,12 +2559,12 @@
           "2": "eth1/22/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2583,7 +2582,7 @@
         "name": "eth1/22/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2596,12 +2595,12 @@
           "2": "eth1/21/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2619,7 +2618,7 @@
         "name": "eth1/22/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2632,12 +2631,12 @@
           "2": "eth1/21/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2655,7 +2654,7 @@
         "name": "eth1/25/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2668,12 +2667,12 @@
           "2": "eth1/26/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2691,7 +2690,7 @@
         "name": "eth1/26/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2704,12 +2703,12 @@
           "2": "eth1/25/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2727,7 +2726,7 @@
         "name": "eth1/29/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2740,12 +2739,12 @@
           "2": "eth1/30/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2763,7 +2762,7 @@
         "name": "eth1/30/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2776,12 +2775,12 @@
           "2": "eth1/29/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2795,7 +2794,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2804,7 +2803,7 @@
         "recordStats": true,
         "routable": false,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2813,7 +2812,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2822,7 +2821,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2831,7 +2830,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2840,7 +2839,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2849,7 +2848,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2858,7 +2857,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2867,7 +2866,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2876,7 +2875,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2885,7 +2884,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2894,7 +2893,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2903,7 +2902,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2912,7 +2911,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2921,7 +2920,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2930,7 +2929,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2939,7 +2938,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2948,7 +2947,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2957,7 +2956,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2966,7 +2965,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2975,7 +2974,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2984,7 +2983,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2993,7 +2992,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3002,7 +3001,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3011,7 +3010,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3020,7 +3019,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3029,7 +3028,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3038,7 +3037,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3047,7 +3046,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3056,7 +3055,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3065,7 +3064,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3074,7 +3073,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3083,7 +3082,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3092,7 +3091,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3101,7 +3100,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3110,7 +3109,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3119,7 +3118,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3128,7 +3127,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3137,7 +3136,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3146,7 +3145,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3155,7 +3154,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3164,7 +3163,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3173,7 +3172,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3182,7 +3181,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3191,7 +3190,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3200,7 +3199,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3209,7 +3208,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3218,7 +3217,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3227,7 +3226,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3236,7 +3235,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3245,7 +3244,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3254,7 +3253,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3263,7 +3262,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3272,7 +3271,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3281,7 +3280,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3290,7 +3289,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3299,7 +3298,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3308,7 +3307,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3317,7 +3316,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3326,7 +3325,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3335,7 +3334,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3344,7 +3343,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3353,7 +3352,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3362,7 +3361,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3371,7 +3370,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3380,7 +3379,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3389,7 +3388,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3398,7 +3397,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3407,7 +3406,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3416,7 +3415,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3425,7 +3424,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3434,7 +3433,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3443,7 +3442,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3452,7 +3451,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3461,7 +3460,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3470,7 +3469,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3479,7 +3478,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3488,7 +3487,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3497,7 +3496,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       }
     ],
@@ -5065,13 +5064,13 @@
     "arpAgerInterval": 5,
     "proactiveArp": false,
     "staticRoutesWithNhops": [
-      
+
     ],
     "staticRoutesToNull": [
-      
+
     ],
     "staticRoutesToCPU": [
-      
+
     ],
     "acls": [
       {
@@ -5173,7 +5172,7 @@
     "maxNeighborProbes": 300,
     "staleEntryInterval": 10,
     "aggregatePorts": [
-      
+
     ],
     "clientIdToAdminDistance": {
       "0": 20,
@@ -5185,7 +5184,7 @@
       "786": 10
     },
     "sFlowCollectors": [
-      
+
     ],
     "cpuQueues": [
       {
@@ -5397,10 +5396,10 @@
             2
           ],
           "mplsFields": [
-            
+
           ],
           "udfGroups": [
-            
+
           ]
         },
         "algorithm": 1
@@ -5417,13 +5416,13 @@
             2
           ],
           "transportFields": [
-            
+
           ],
           "mplsFields": [
-            
+
           ],
           "udfGroups": [
-            
+
           ]
         },
         "algorithm": 1
@@ -5464,7 +5463,7 @@
       ]
     },
     "mirrors": [
-      
+
     ],
     "trafficCounters": [
       {
@@ -5504,25 +5503,25 @@
       }
     ],
     "qosPolicies": [
-      
+
     ],
     "defaultPortQueues": [
-      
+
     ],
     "staticMplsRoutesWithNhops": [
-      
+
     ],
     "staticMplsRoutesToNull": [
-      
+
     ],
     "staticMplsRoutesToCPU": [
-      
+
     ],
     "staticIp2MplsRoutes": [
-      
+
     ],
     "portQueueConfigs": {
-      
+
     },
     "switchSettings": {
       "l2LearningMode": 0,
@@ -5531,17 +5530,17 @@
       "l2AgeTimerSeconds": 300,
       "maxRouteCounterIDs_DEPRECATED": 0,
       "blockNeighbors": [
-        
+
       ],
       "macAddrsToBlock": [
-        
+
       ],
       "switchType": 0,
       "exactMatchTableConfigs": [
-        
+
       ],
       "switchIdToSwitchType_DEPRECATED": {
-        
+
       },
       "switchDrainState": 0,
       "switchIdToSwitchInfo": {
@@ -5554,15 +5553,15 @@
               "maximum": 2047
             },
             "firmwareNameToFirmwareInfo": {
-              
+
             }
         }
       },
       "vendorMacOuis": [
-        
+
       ],
       "metaMacOuis": [
-        
+
       ]
     },
     "sdkVersion": {
@@ -5570,13 +5569,13 @@
       "saiSdk": "sai"
     },
     "dsfNodes": {
-      
+
     },
     "defaultVoqConfig": [
-      
+
     ],
     "mirrorOnDropReports": [
-      
+
     ]
   },
   "platform": {
@@ -5589,6 +5588,6 @@
     }
   },
   "thriftApiToRateLimitInQps": {
-    
+
   }
 }
