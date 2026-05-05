@@ -817,6 +817,13 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         SaiAclEntryTraits::Attributes::FieldOutPort{AclEntryFieldSaiObjectIdT(
             std::make_pair(portHandle->port->adapterKey(), kMaskDontCare))};
   }
+  if (fieldOutPort.has_value() &&
+      !isQualifierSupported(aclTableName, cfg::AclTableQualifier::OUT_PORT)) {
+    XLOG(WARNING)
+        << "Skipping unsupported ACL qualifier OUT_PORT for aclEntry: "
+        << addedAclEntry->getID();
+    fieldOutPort.reset();
+  }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldL4SrcPort> fieldL4SrcPort{
       std::nullopt};
@@ -893,6 +900,13 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             std::make_pair(
                 addedAclEntry->getTcpFlagsBitMap().value(), kTcpFlagsMask))};
   }
+  if (fieldTcpFlags.has_value() &&
+      !isQualifierSupported(aclTableName, cfg::AclTableQualifier::TCP_FLAGS)) {
+    XLOG(WARNING)
+        << "Skipping unsupported ACL qualifier TCP_FLAGS for aclEntry: "
+        << addedAclEntry->getID();
+    fieldTcpFlags.reset();
+  }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldIpFrag> fieldIpFrag{
       std::nullopt};
@@ -945,6 +959,38 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
           "proto or etherType not sepcified in ACL when matching icmp type/code");
     }
   }
+  if (fieldIcmpV4Type.has_value() &&
+      !isQualifierSupported(
+          aclTableName, cfg::AclTableQualifier::ICMPV4_TYPE)) {
+    XLOG(WARNING)
+        << "Skipping unsupported ACL qualifier ICMPV4_TYPE for aclEntry: "
+        << addedAclEntry->getID();
+    fieldIcmpV4Type.reset();
+  }
+  if (fieldIcmpV4Code.has_value() &&
+      !isQualifierSupported(
+          aclTableName, cfg::AclTableQualifier::ICMPV4_CODE)) {
+    XLOG(WARNING)
+        << "Skipping unsupported ACL qualifier ICMPV4_CODE for aclEntry: "
+        << addedAclEntry->getID();
+    fieldIcmpV4Code.reset();
+  }
+  if (fieldIcmpV6Type.has_value() &&
+      !isQualifierSupported(
+          aclTableName, cfg::AclTableQualifier::ICMPV6_TYPE)) {
+    XLOG(WARNING)
+        << "Skipping unsupported ACL qualifier ICMPV6_TYPE for aclEntry: "
+        << addedAclEntry->getID();
+    fieldIcmpV6Type.reset();
+  }
+  if (fieldIcmpV6Code.has_value() &&
+      !isQualifierSupported(
+          aclTableName, cfg::AclTableQualifier::ICMPV6_CODE)) {
+    XLOG(WARNING)
+        << "Skipping unsupported ACL qualifier ICMPV6_CODE for aclEntry: "
+        << addedAclEntry->getID();
+    fieldIcmpV6Code.reset();
+  }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldDscp> fieldDscp{
       std::nullopt};
@@ -975,6 +1021,12 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getTtl().value().getValue(),
             addedAclEntry->getTtl().value().getMask()))};
   }
+  if (fieldTtl.has_value() &&
+      !isQualifierSupported(aclTableName, cfg::AclTableQualifier::TTL)) {
+    XLOG(WARNING) << "Skipping unsupported ACL qualifier TTL for aclEntry: "
+                  << addedAclEntry->getID();
+    fieldTtl.reset();
+  }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta>
       fieldRouteDstUserMeta{std::nullopt};
@@ -984,6 +1036,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             AclEntryFieldU32(cfgLookupClassToSaiRouteMetaDataAndMask(
                 addedAclEntry->getLookupClassRoute().value()))};
   }
+  if (fieldRouteDstUserMeta.has_value() &&
+      !isQualifierSupported(
+          aclTableName, cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE)) {
+    XLOG(WARNING)
+        << "Skipping unsupported ACL qualifier LOOKUP_CLASS_ROUTE for aclEntry: "
+        << addedAclEntry->getID();
+    fieldRouteDstUserMeta.reset();
+  }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta>
       fieldNeighborDstUserMeta{std::nullopt};
@@ -992,6 +1052,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta{
             AclEntryFieldU32(cfgLookupClassToSaiNeighborMetaDataAndMask(
                 addedAclEntry->getLookupClassNeighbor().value()))};
+  }
+  if (fieldNeighborDstUserMeta.has_value() &&
+      !isQualifierSupported(
+          aclTableName, cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR)) {
+    XLOG(WARNING)
+        << "Skipping unsupported ACL qualifier LOOKUP_CLASS_NEIGHBOR for aclEntry: "
+        << addedAclEntry->getID();
+    fieldNeighborDstUserMeta.reset();
   }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldEthertype> fieldEtherType{
@@ -1029,6 +1097,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     fieldFdbDstUserMeta = SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta{
         AclEntryFieldU32(cfgLookupClassToSaiFdbMetaDataAndMask(
             addedAclEntry->getLookupClassL2().value()))};
+  }
+  if (fieldFdbDstUserMeta.has_value() &&
+      !isQualifierSupported(
+          aclTableName, cfg::AclTableQualifier::LOOKUP_CLASS_L2)) {
+    XLOG(WARNING)
+        << "Skipping unsupported ACL qualifier LOOKUP_CLASS_L2 for aclEntry: "
+        << addedAclEntry->getID();
+    fieldFdbDstUserMeta.reset();
   }
 
 #if (                                                                  \
@@ -1183,6 +1259,25 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         setCopyOrTrap(matchAction);
         aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
             AclEntryActionU8(tc.value())};
+      }
+    }
+    if (aclActionSetTC.has_value()) {
+      bool setTcActionSupported = true;
+      auto aclTableActionTypeList = std::get<
+          std::optional<SaiAclTableTraits::Attributes::ActionTypeList>>(
+          aclTableHandle->aclTable->attributes());
+      if (aclTableActionTypeList.has_value()) {
+        const auto& actionTypeList = aclTableActionTypeList->value();
+        setTcActionSupported =
+            std::find(
+                actionTypeList.begin(),
+                actionTypeList.end(),
+                SAI_ACL_ACTION_TYPE_SET_TC) != actionTypeList.end();
+      }
+      if (!setTcActionSupported) {
+        XLOG(WARNING) << "Skipping unsupported ACL action SET_TC for aclEntry: "
+                      << addedAclEntry->getID();
+        aclActionSetTC.reset();
       }
     }
 
@@ -1729,6 +1824,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
   bool isTomahawk6 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6;
+  bool isTomahawkUltra1 = platform_->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1;
   bool isChenab = platform_->getAsic()->getAsicVendor() ==
       HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
 
@@ -1880,6 +1977,18 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     // ETHER_TYPE required for Aifm controller packets using 0x88B6
     if (isTomahawk6) {
       bcmQualifiers.insert(cfg::AclTableQualifier::ETHER_TYPE);
+    }
+    if (isTomahawkUltra1) {
+      bcmQualifiers.erase(cfg::AclTableQualifier::TCP_FLAGS);
+      bcmQualifiers.erase(cfg::AclTableQualifier::OUT_PORT);
+      bcmQualifiers.erase(cfg::AclTableQualifier::ICMPV4_TYPE);
+      bcmQualifiers.erase(cfg::AclTableQualifier::ICMPV4_CODE);
+      bcmQualifiers.erase(cfg::AclTableQualifier::ICMPV6_TYPE);
+      bcmQualifiers.erase(cfg::AclTableQualifier::ICMPV6_CODE);
+      bcmQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_L2);
+      bcmQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR);
+      bcmQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE);
+      bcmQualifiers.erase(cfg::AclTableQualifier::TTL);
     }
     if (isFake) {
       bcmQualifiers.insert(cfg::AclTableQualifier::L4_DST_PORT_RANGE);

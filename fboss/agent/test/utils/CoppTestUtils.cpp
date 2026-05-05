@@ -1336,11 +1336,15 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForBcm(
           std::pair(cfg::PacketRxReason::ARP, coppHighPriQueueId),
           std::pair(cfg::PacketRxReason::DHCP, coppMidPriQueueId),
           std::pair(cfg::PacketRxReason::BPDU, coppMidPriQueueId),
-          std::pair(cfg::PacketRxReason::L3_MTU_ERROR, kCoppLowPriQueueId),
+          // std::pair(cfg::PacketRxReason::L3_MTU_ERROR, kCoppLowPriQueueId),
           std::pair(cfg::PacketRxReason::L3_SLOW_PATH, kCoppLowPriQueueId),
           std::pair(cfg::PacketRxReason::L3_DEST_MISS, kCoppLowPriQueueId),
           std::pair(cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
           std::pair(cfg::PacketRxReason::CPU_IS_NHOP, kCoppLowPriQueueId)};
+  if (hwAsic->isSupported(HwAsic::Feature::L3_MTU_ERROR_TRAP)) {
+    rxReasonToQueueMappings.push_back(
+        std::pair(cfg::PacketRxReason::L3_MTU_ERROR, kCoppLowPriQueueId));
+  }
   for (auto rxEntry : rxReasonToQueueMappings) {
     auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
     rxReasonToQueue.rxReason() = rxEntry.first;

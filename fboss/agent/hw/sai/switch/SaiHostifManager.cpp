@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/VoqUtils.h"
+#include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -373,16 +374,25 @@ void SaiHostifManager::processRxReasonToQueueDelta(
    */
   for (auto index = 0; index < newRxReasonToQueue->size(); index++) {
     const auto& newRxReasonEntry = newRxReasonToQueue->cref(index);
+    auto newRxReason =
+        newRxReasonEntry->cref<switch_config_tags::rxReason>()->cref();
     // We'll need to skip for unmatched reason because
     // (1) we're not programming hostif trap for that, and
     // (2) If newly added rx reason entries are above the unmatched reason,
     // we'll try to call changeHostifTrap() for the unmatched reason.
     // TODO(zecheng): Fix the below logic of comparing index (instead we should
     // compare priority)
-    if (newRxReasonEntry->cref<switch_config_tags::rxReason>()->toThrift() ==
-        cfg::PacketRxReason::UNMATCHED) {
+    if (newRxReason == cfg::PacketRxReason::UNMATCHED) {
       // what is the trap for unmatched?
       XLOG(WARN) << "ignoring UNMATCHED packet rx reason";
+      continue;
+    }
+    if (newRxReason == cfg::PacketRxReason::L3_MTU_ERROR &&
+        !platform_->getAsic()->isSupported(
+            HwAsic::Feature::L3_MTU_ERROR_TRAP)) {
+      XLOG(WARN) << "Skipping " << apache::thrift::util::enumName(newRxReason)
+                 << " packet reason since corresponding trap feature is not "
+                    "supported on this ASIC";
       continue;
     }
     auto oldRxReasonEntryIter = std::find_if(
@@ -435,10 +445,19 @@ void SaiHostifManager::processRxReasonToQueueDelta(
 
   for (auto index = 0; index < oldRxReasonToQueue->size(); index++) {
     const auto& oldRxReasonEntry = oldRxReasonToQueue->cref(index);
-    if (oldRxReasonEntry->cref<switch_config_tags::rxReason>()->toThrift() ==
-        cfg::PacketRxReason::UNMATCHED) {
+    auto oldRxReason =
+        oldRxReasonEntry->cref<switch_config_tags::rxReason>()->cref();
+    if (oldRxReason == cfg::PacketRxReason::UNMATCHED) {
       // UNMATCHED was never added in the first place, so ignoring here
       XLOG(WARN) << "ignoring UNMATCHED packet rx reason";
+      continue;
+    }
+    if (oldRxReason == cfg::PacketRxReason::L3_MTU_ERROR &&
+        !platform_->getAsic()->isSupported(
+            HwAsic::Feature::L3_MTU_ERROR_TRAP)) {
+      XLOG(WARN) << "Skipping " << apache::thrift::util::enumName(oldRxReason)
+                 << " packet reason since corresponding trap feature is not "
+                    "supported on this ASIC";
       continue;
     }
     auto newRxReasonEntry = std::find_if(
