@@ -12,6 +12,7 @@
  */
 
 #include <fmt/format.h>
+#include <folly/String.h>
 #include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
@@ -52,11 +53,36 @@ class ConfigPfcTest : public Fboss2IntegrationTest {
  protected:
   std::string bufferPoolName_ = kBufferPoolName;
   std::string policyName_ = kPolicyName;
+  static constexpr auto kSnapshot = "/tmp/cli_e2e_pfc_snapshot.conf";
 
   void SetUp() override {
     Fboss2IntegrationTest::SetUp();
+    auto r = runCmd({"/usr/bin/cp", "/etc/coop/cli/agent.conf", kSnapshot});
+    ASSERT_EQ(r.exitCode, 0) << "snapshot failed: " << r.stderr;
     XLOG(INFO) << "Using buffer-pool: " << bufferPoolName_;
     XLOG(INFO) << "Using pg-policy:  " << policyName_;
+  }
+
+  // Restore the pre-test agent.conf and bounce both agents so polluted PFC
+  // config does not crash the HW agent on a subsequent warm/cold boot via
+  // SaiPortManager::changePfcBuffers (Bug 1 in
+  // fboss2-integration-test-root-cause.md). File-level restore + systemctl
+  // restart bypasses fboss2's `config rollback`, which requires a live
+  // thrift connection that may not be available mid-warmboot.
+  void TearDown() override {
+    runCmd({"/usr/bin/cp", kSnapshot, "/etc/coop/cli/agent.conf"});
+    runCmd(
+        {"/usr/bin/systemctl",
+         "restart",
+         "fboss_hw_agent@0",
+         "fboss_sw_agent"});
+    try {
+      waitForAgentReady();
+    } catch (const std::exception& e) {
+      XLOG(WARN) << "Agent did not recover after restore: " << e.what();
+    }
+    runCmd({"/usr/bin/rm", "-f", kSnapshot});
+    Fboss2IntegrationTest::TearDown();
   }
 
   void configureBufferPool(int sharedBytes, int headroomBytes) {

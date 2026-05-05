@@ -104,8 +104,7 @@ Fboss2IntegrationTest::Result Fboss2IntegrationTest::executeCliCommand(
 
   // Build argv-style argument list
   // Prepend program name and --fmt json
-  std::vector<std::string> fullArgs = {
-      "fboss2_integration_test", "--fmt", "json"};
+  std::vector<std::string> fullArgs = {"fboss2", "--fmt", "json"};
   fullArgs.insert(fullArgs.end(), args.begin(), args.end());
 
   // Convert to argc/argv format

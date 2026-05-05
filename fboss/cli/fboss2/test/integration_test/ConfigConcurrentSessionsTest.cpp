@@ -9,10 +9,8 @@
  * in-process-CLI limitation where a single process can only track one active
  * session.
  *
- * The path to the fboss2-dev binary is taken from FBOSS2_DEV_PATH (falling
- * back to "fboss2-dev" in PATH). The test is skipped if no such binary is
- * runnable — when the suite is deployed alongside fboss2-dev on the DUT,
- * the caller sets FBOSS2_DEV_PATH explicitly.
+ * The path to the fboss2-dev binary is taken from FBOSS2_DEV_PATH, falling
+ * back to /opt/fboss/bin/fboss2-dev (the deployed location on the DUT).
  *
  * Verifies:
  *   1. User1 opens a session and commits successfully.
@@ -47,7 +45,12 @@ std::string toLower(std::string s) {
 std::string fboss2DevPath() {
   // NOLINTNEXTLINE(concurrency-mt-unsafe)
   const char* env = std::getenv("FBOSS2_DEV_PATH");
-  return env ? env : "fboss2-dev";
+  if (env) {
+    return env;
+  }
+  // folly::Subprocess does not search PATH, so a bare name like "fboss2-dev"
+  // would always fail to exec. Fall back to the deployed location on the DUT.
+  return "/opt/fboss/bin/fboss2-dev";
 }
 } // namespace
 
@@ -108,14 +111,8 @@ class ConfigConcurrentSessionsTest : public Fboss2IntegrationTest {
 };
 
 TEST_F(ConfigConcurrentSessionsTest, ConflictAndRebase) {
-  // Quick sanity check — skip if fboss2-dev is not invokable.
-  {
-    auto probe = runAsUser(user1Home_, {"--help"});
-    if (probe.exitCode != 0) {
-      GTEST_SKIP() << "Cannot exec fboss2-dev (set FBOSS2_DEV_PATH). stderr="
-                   << probe.stderr;
-    }
-  }
+  auto probe = runAsUser(user1Home_, {"--help"});
+  ASSERT_EQ(probe.exitCode, 0) << probe.stderr;
 
   XLOG(INFO) << "[Step 1] Finding test interface...";
   Interface intf = findFirstEthInterface();

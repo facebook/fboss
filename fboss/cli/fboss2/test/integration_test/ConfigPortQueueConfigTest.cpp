@@ -16,6 +16,7 @@
  * then assigns the policy to an interface and verifies the running config.
  */
 
+#include <folly/String.h>
 #include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
@@ -45,11 +46,32 @@ class ConfigPortQueueConfigTest : public Fboss2IntegrationTest {
  protected:
   std::string bufferPoolName_ = kBufferPoolName;
   std::string policyName_ = kQueuingPolicyName;
+  static constexpr auto kSnapshot = "/tmp/cli_e2e_queue_snapshot.conf";
 
   void SetUp() override {
     Fboss2IntegrationTest::SetUp();
+    auto r = runCmd({"/usr/bin/cp", "/etc/coop/cli/agent.conf", kSnapshot});
+    ASSERT_EQ(r.exitCode, 0) << "snapshot failed: " << r.stderr;
     XLOG(INFO) << "Using buffer-pool: " << bufferPoolName_;
     XLOG(INFO) << "Using queuing-policy: " << policyName_;
+  }
+
+  // File-level restore + systemctl restart. See ConfigPfcTest for
+  // rationale.
+  void TearDown() override {
+    runCmd({"/usr/bin/cp", kSnapshot, "/etc/coop/cli/agent.conf"});
+    runCmd(
+        {"/usr/bin/systemctl",
+         "restart",
+         "fboss_hw_agent@0",
+         "fboss_sw_agent"});
+    try {
+      waitForAgentReady();
+    } catch (const std::exception& e) {
+      XLOG(WARN) << "Agent did not recover after restore: " << e.what();
+    }
+    runCmd({"/usr/bin/rm", "-f", kSnapshot});
+    Fboss2IntegrationTest::TearDown();
   }
 
   void configureBufferPool(int sharedBytes, int headroomBytes) {

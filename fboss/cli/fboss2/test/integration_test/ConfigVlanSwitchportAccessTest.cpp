@@ -17,6 +17,7 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <optional>
+#include <set>
 #include <string>
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
 
@@ -52,7 +53,40 @@ TEST_F(ConfigVlanSwitchportAccessTest, SetAndVerifyAccessVlan) {
   ASSERT_TRUE(originalOpt.has_value())
       << "Port " << intf.name << " has no ingressVlan in running config";
   int originalVlan = *originalOpt;
-  int testVlan = (originalVlan == 4094) ? originalVlan - 1 : originalVlan + 1;
+
+  // Pick a testVlan that is both a real VLAN (sw.vlans[].id) and has an
+  // L3 interface configured (sw.interfaces[].vlanID). Filtering on
+  // sw.interfaces alone is unsafe: non-VLAN-typed interfaces (e.g.
+  // system-port interfaces) appear there with vlanID=0, which the CLI
+  // rejects. Using `originalVlan ± 1` blindly is also unsafe: if that ID
+  // does not exist in sw.vlans / sw.interfaces, the agent's config
+  // validator (`VLAN <id> has no interface, even when corresp port is
+  // enabled`) SIGABRTs on the next warmboot.
+  auto config = getRunningConfig();
+  const auto& sw = config["sw"];
+  std::set<int> realVlans;
+  if (sw.count("vlans")) {
+    for (const auto& v : sw["vlans"]) {
+      if (v.count("id") && !v["id"].isNull()) {
+        realVlans.insert(static_cast<int>(v["id"].asInt()));
+      }
+    }
+  }
+  std::set<int> candidateVlans;
+  if (sw.count("interfaces")) {
+    for (const auto& i : sw["interfaces"]) {
+      if (i.count("vlanID") && !i["vlanID"].isNull()) {
+        int id = static_cast<int>(i["vlanID"].asInt());
+        if (realVlans.count(id)) {
+          candidateVlans.insert(id);
+        }
+      }
+    }
+  }
+  candidateVlans.erase(originalVlan);
+  ASSERT_FALSE(candidateVlans.empty())
+      << "Need at least 2 VLANs with L3 interfaces to test transition";
+  int testVlan = *candidateVlans.begin();
   XLOG(INFO) << "  Using " << intf.name << " (ingressVlan: " << originalVlan
              << " -> " << testVlan << ")";
 
