@@ -74,18 +74,22 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
         sw);
   }
 
-  void addAdjacencyMySidEntry(const folly::IPAddress& nexthopIp) {
-    MySidEntry entry;
-    entry.type() = MySidType::ADJACENCY_MICRO_SID;
+  void addAdjacencyMySidEntry(
+      const folly::IPAddress& nexthopIp,
+      InterfaceID nexthopIntf) {
+    state::MySidFields fields;
+    fields.type() = MySidType::ADJACENCY_MICRO_SID;
+    fields.adjacencyInterfaceId() = static_cast<int32_t>(nexthopIntf);
+    fields.isV6() = nexthopIp.isV6();
+    fields.clientId() = ClientID::STATIC_ROUTE;
     facebook::network::thrift::IPPrefix prefix;
     prefix.prefixAddress() = facebook::network::toBinaryAddress(
         folly::IPAddress(kMidpointMySidPrefix));
     prefix.prefixLength() = kMidpointMySidPrefixLen;
-    entry.mySid() = prefix;
-
-    NextHopThrift nhop;
-    nhop.address() = facebook::network::toBinaryAddress(nexthopIp);
-    entry.nextHops()->push_back(nhop);
+    fields.mySid() = prefix;
+    auto mySid = std::make_shared<MySid>(fields);
+    RouteNextHopSet nhops{ResolvedNextHop(nexthopIp, nexthopIntf, ECMP_WEIGHT)};
+    std::vector<MySidWithNextHops> toAdd = {{mySid, nhops}};
 
     auto sw = getSw();
     auto rib = sw->getRib();
@@ -93,7 +97,8 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
         createRibMySidToSwitchStateFunction(std::nullopt);
     rib->update(
         sw->getScopeResolver(),
-        {entry},
+        std::move(toAdd),
+        {} /* toUnresolveIfMatch */,
         {} /* toDelete */,
         "addAdjacencyMySidEntry",
         ribMySidToSwitchStateFunc,
@@ -139,8 +144,12 @@ TEST_F(AgentSrv6ResourceUsageTest, verifyMySidResourceUsage) {
 
     // Add adjacency mySid, verify counter decreases by 2 total.
     auto ecmpHelper = makeEcmpHelper();
-    resolveNeighbors(ecmpHelper, 1);
-    addAdjacencyMySidEntry(ecmpHelper.nhop(0).ip);
+    applyNewState([&ecmpHelper](std::shared_ptr<SwitchState> in) {
+      return ecmpHelper.resolveNextHops(in, 1);
+    });
+    const auto ecmpNhop = ecmpHelper.nhop(0);
+    const folly::IPAddress nexthopIp = folly::IPAddress(ecmpNhop.ip);
+    addAdjacencyMySidEntry(nexthopIp, ecmpNhop.intf);
     WITH_RETRIES(
         { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBefore - 2); });
 
