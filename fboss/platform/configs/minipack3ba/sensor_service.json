@@ -915,7 +915,7 @@
           "compute": "@/1000000"
         },
         {
-          "name": "COME_PU41_TDA38640_P1V05_STBY_POUT",
+          "name": "COME_PU41_TDA38640_PVDDQ_ABC_CPU_POUT",
           "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR3/power2_input",
           "type": 0,
           "thresholds": {
@@ -979,7 +979,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "COME_PU42_TDA38640_P1V05_STBY_POUT",
+          "name": "COME_PU42_TDA38640_PVCCANCPU_POUT",
           "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR4/power2_input",
           "type": 0,
           "thresholds": {
@@ -1433,12 +1433,24 @@
         {
           "name": "PSU1_FAN_F_RPM",
           "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/fan1_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 33000,
+            "maxAlarmVal": 29500,
+            "minAlarmVal": 4000,
+            "lowerCriticalVal": 3600
+          }
         },
         {
           "name": "PSU1_FAN_R_RPM",
           "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/fan2_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 32670,
+            "maxAlarmVal": 28350,
+            "minAlarmVal": 4000,
+            "lowerCriticalVal": 3600
+          }
         },
         {
           "name": "PSU1_TEMP1",
@@ -1597,12 +1609,24 @@
         {
           "name": "PSU2_FAN_F_RPM",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/fan1_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 33000,
+            "maxAlarmVal": 29500,
+            "minAlarmVal": 4000,
+            "lowerCriticalVal": 3600
+          }
         },
         {
           "name": "PSU2_FAN_R_RPM",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/fan2_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 32670,
+            "maxAlarmVal": 28350,
+            "minAlarmVal": 4000,
+            "lowerCriticalVal": 3600
+          }
         },
         {
           "name": "PSU2_TEMP1",
@@ -2088,6 +2112,10 @@
           "name": "SMB_VDDC_VRM_PIN",
           "sysfsPath": "/run/devmap/sensors/SMB_VRM1/power1_input",
           "type": 0,
+          "thresholds": {
+            "upperCriticalVal": 660,
+            "maxAlarmVal": 580
+          },
           "compute": "@/1000000"
         },
         {
@@ -2127,6 +2155,10 @@
           "name": "SMB_0V75_0V9_R_VRM1_PIN",
           "sysfsPath": "/run/devmap/sensors/SMB_VRM2/power1_input",
           "type": 0,
+          "thresholds": {
+            "upperCriticalVal": 99,
+            "maxAlarmVal": 91.7
+          },
           "compute": "@/1000000"
         },
         {
@@ -2145,6 +2177,10 @@
           "name": "SMB_0V75_0V9_R_VRM1_IIN",
           "sysfsPath": "/run/devmap/sensors/SMB_VRM2/curr1_input",
           "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 8.3,
+            "maxAlarmVal": 7.6
+          },
           "compute": "@/1000"
         },
         {
@@ -2163,6 +2199,10 @@
           "name": "SMB_0V75_0V9_L_VRM0_PIN",
           "sysfsPath": "/run/devmap/sensors/SMB_VRM3/power1_input",
           "type": 0,
+          "thresholds": {
+            "upperCriticalVal": 99,
+            "maxAlarmVal": 91.7
+          },
           "compute": "@/1000000"
         },
         {
@@ -2181,6 +2221,10 @@
           "name": "SMB_0V75_0V9_L_VRM0_IIN",
           "sysfsPath": "/run/devmap/sensors/SMB_VRM3/curr1_input",
           "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 8.3,
+            "maxAlarmVal": 7.6
+          },
           "compute": "@/1000"
         },
         {
