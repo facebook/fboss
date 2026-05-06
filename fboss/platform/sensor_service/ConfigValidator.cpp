@@ -15,7 +15,6 @@ const std::unordered_set<std::string> kTempThresholdViolators = {
     "LEH800BCLS",
     "MONTBLANC",
     "MINIPACK3BAM",
-    "WEDGE800BACT",
 };
 
 bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
