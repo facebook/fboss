@@ -90,6 +90,51 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentPfcTest, verifyPfcDoesNotIncrementPauseCounter) {
+  std::vector<PortID> portIds = {
+      masterLogicalPortIds(
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0],
+      masterLogicalPortIds(
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[1]};
+  std::vector<int> losslessPgIds = {2};
+  std::vector<int> lossyPgIds = {0};
+
+  auto setup = [&]() {
+    auto cfg = getAgentEnsemble()->getCurrentConfig();
+    utility::setupPfcBuffers(
+        getAgentEnsemble(), cfg, portIds, losslessPgIds, lossyPgIds);
+    applyNewConfig(cfg);
+  };
+
+  auto verify = [&]() {
+    std::map<PortID, int64_t> inPauseBefore;
+    std::map<PortID, std::map<int, int64_t>> inPfcBefore;
+    for (auto portId : portIds) {
+      auto stats = getLatestPortStats(portId);
+      inPauseBefore[portId] = *stats.inPause_();
+      auto inPfc = folly::copy(*stats.inPfc_());
+      for (int pgId : losslessPgIds) {
+        inPfcBefore[portId][pgId] = inPfc[pgId];
+      }
+    }
+
+    sendPfcFrame(portIds, 0xFF);
+
+    WITH_RETRIES({
+      for (auto portId : portIds) {
+        auto stats = getLatestPortStats(portId);
+        auto inPfc = stats.get_inPfc_();
+        for (int pgId : losslessPgIds) {
+          EXPECT_EVENTUALLY_EQ(inPfc[pgId], inPfcBefore[portId][pgId] + 1);
+        }
+        EXPECT_EVENTUALLY_EQ(*stats.inPause_(), inPauseBefore[portId]);
+      }
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class AgentPfcWatchdogGranularityTest : public AgentPfcTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()

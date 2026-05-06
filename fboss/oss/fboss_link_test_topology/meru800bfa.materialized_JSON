@@ -85,46 +85,6 @@
             "profileID": 42,
             "hasTransceiver": true
         },
-        "fab1/13/1": {
-            "neighbor": "fab1/3/1",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/13/2": {
-            "neighbor": "fab1/3/2",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/13/3": {
-            "neighbor": "fab1/3/3",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/13/4": {
-            "neighbor": "fab1/3/4",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/13/5": {
-            "neighbor": "fab1/3/5",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/13/6": {
-            "neighbor": "fab1/3/6",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/13/7": {
-            "neighbor": "fab1/3/7",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/13/8": {
-            "neighbor": "fab1/3/8",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
         "fab1/14/1": {
             "neighbor": "fab1/4/1",
             "profileID": 42,
@@ -242,46 +202,6 @@
         },
         "fab1/29/8": {
             "neighbor": "fab1/32/8",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/3/1": {
-            "neighbor": "fab1/13/1",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/3/2": {
-            "neighbor": "fab1/13/2",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/3/3": {
-            "neighbor": "fab1/13/3",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/3/4": {
-            "neighbor": "fab1/13/4",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/3/5": {
-            "neighbor": "fab1/13/5",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/3/6": {
-            "neighbor": "fab1/13/6",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/3/7": {
-            "neighbor": "fab1/13/7",
-            "profileID": 42,
-            "hasTransceiver": true
-        },
-        "fab1/3/8": {
-            "neighbor": "fab1/13/8",
             "profileID": 42,
             "hasTransceiver": true
         },

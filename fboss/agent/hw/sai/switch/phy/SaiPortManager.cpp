@@ -229,6 +229,17 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     laneList.push_back(*pinCfg.id()->lane());
   }
 
+  // Per-port link debounce timers apply to NPU ports only; PHY ports do not
+  // expose this control. Fail loudly if cfg is set on a PHY port.
+  if (swPort->getPortUpHoldoffTimeMs().has_value() ||
+      swPort->getPortDownHoldoffTimeMs().has_value()) {
+    throw FbossError(
+        "Per-port link debounce timers (portUpHoldoffTimeMs / "
+        "portDownHoldoffTimeMs) are not supported on PHY ports; cannot apply "
+        "to port ",
+        swPort->getID());
+  }
+
   std::string dbgOutput;
   dbgOutput.append(
       folly::sformat(
@@ -332,6 +343,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
       std::nullopt, // CablePropagationDelayMediaType
+#if defined(TAJO_SDK_GTE_26_2)
+      std::nullopt, // LinkUpDebouncePeriodMs
+      std::nullopt, // LinkDownDebouncePeriodMs
+#endif
       std::nullopt, // PfcPauseDurationOverride
   };
 }

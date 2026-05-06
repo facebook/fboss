@@ -26,17 +26,16 @@ class L2LearningModeArg : public utils::BaseObjectArgType<std::string> {
     return l2LearningMode_;
   }
 
-  const static utils::ObjectArgTypeId id =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_L2_LEARNING_MODE;
-
  private:
   cfg::L2LearningMode l2LearningMode_ = cfg::L2LearningMode::HARDWARE;
 };
 
 struct CmdConfigL2LearningModeTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigL2;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_L2_LEARNING_MODE;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "learning_mode", args, "L2 learning mode (hardware|software|disabled)");
+  }
   using ObjectArgType = L2LearningModeArg;
   using RetType = std::string;
 };

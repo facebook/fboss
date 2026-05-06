@@ -70,15 +70,26 @@ TEST_F(MySidManagerTest, addDuplicateThrows) {
       FbossError);
 }
 
-TEST_F(MySidManagerTest, addUnresolvedSkips) {
+TEST_F(MySidManagerTest, addUnresolvedUASidProgramsWithDropAction) {
   auto mySid = makeMySid("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
   auto state = getProgrammedState();
-  // No resolvedNextHopsId set and type is not DECAPSULATE_AND_LOOKUP
+  // uA / uN unresolved entries are programmed in SAI with PacketAction=DROP
+  // so a midpoint packet hits the SRv6 lookup and increments the discard
+  // counter rather than silently falling through to regular IP routing.
   saiManagerTable->srv6MySidManager().addMySidEntry(mySid, state);
 
   auto key = getMySidAdapterHostKey(*mySid, saiManagerTable);
   auto saiEntry = saiManagerTable->srv6MySidManager().getMySidObject(key);
-  EXPECT_EQ(saiEntry, nullptr);
+  EXPECT_NE(saiEntry, nullptr);
+
+  auto& srv6Api = saiApiTable->srv6Api();
+  auto gotAction = srv6Api.getAttribute(
+      key, SaiMySidEntryTraits::Attributes::PacketAction{});
+  EXPECT_EQ(gotAction, SAI_PACKET_ACTION_DROP);
+
+  auto gotNextHopId =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  EXPECT_EQ(gotNextHopId, SAI_NULL_OBJECT_ID);
 }
 
 TEST_F(MySidManagerTest, removeDecapsulateAndLookup) {
@@ -101,12 +112,18 @@ TEST_F(MySidManagerTest, removeNonexistentThrows) {
       FbossError);
 }
 
-TEST_F(MySidManagerTest, removeUnresolvedReturnsEarly) {
+TEST_F(MySidManagerTest, removeUnresolvedUASidErasesHandle) {
   auto mySid = makeMySid("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
   auto state = getProgrammedState();
-  // Should not throw even though entry doesn't exist — returns early
-  EXPECT_NO_THROW(
-      saiManagerTable->srv6MySidManager().removeMySidEntry(mySid, state));
+  // uA / uN unresolved entries ARE programmed (with PacketAction=DROP), so
+  // removeMySidEntry must erase the SAI handle.
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid, state);
+
+  auto key = getMySidAdapterHostKey(*mySid, saiManagerTable);
+  EXPECT_NE(saiManagerTable->srv6MySidManager().getMySidObject(key), nullptr);
+
+  saiManagerTable->srv6MySidManager().removeMySidEntry(mySid, state);
+  EXPECT_EQ(saiManagerTable->srv6MySidManager().getMySidObject(key), nullptr);
 }
 
 TEST_F(MySidManagerTest, changeType) {
@@ -227,8 +244,14 @@ TEST_F(MySidManagerWithNextHopIdTest, changeUnresolvedToResolved) {
   saiManagerTable->srv6MySidManager().addMySidEntry(oldMySid, state);
 
   auto key = getMySidAdapterHostKey(*oldMySid, saiManagerTable);
-  // Unresolved entry should not be programmed
-  EXPECT_EQ(saiManagerTable->srv6MySidManager().getMySidObject(key), nullptr);
+  // Unresolved uA entry is programmed with PacketAction=DROP.
+  EXPECT_NE(saiManagerTable->srv6MySidManager().getMySidObject(key), nullptr);
+  {
+    auto& srv6Api = saiApiTable->srv6Api();
+    auto gotAction = srv6Api.getAttribute(
+        key, SaiMySidEntryTraits::Attributes::PacketAction{});
+    EXPECT_EQ(gotAction, SAI_PACKET_ACTION_DROP);
+  }
 
   // Now resolve it with a next hop
   RouteNextHopSet nhopSet;

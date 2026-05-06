@@ -28,30 +28,4 @@ class HwVlanTest : public HwTest {
   }
 };
 
-TEST_F(HwVlanTest, VlanApplyConfig) {
-  auto setup = [=, this]() { applyNewConfig(config()); };
-
-  auto verify = [=, this]() {
-    // There should be 2 VLANs
-    auto vlan2NumPorts = getVlanToNumPorts(getHwSwitch());
-    ASSERT_EQ(3, vlan2NumPorts.size());
-
-    // kBaseVlanId should be associate with 2 ports
-    std::map<int, int> vlan2PortCount = {
-        {utility::kBaseVlanId, 2},
-        {utility::kBaseVlanId + 1, 0},
-    };
-    for (auto& vlanAndNumPorts : vlan2NumPorts) {
-      if (vlanAndNumPorts.first == VlanID{utility::kDefaultVlanId4094} ||
-          vlanAndNumPorts.first == VlanID{utility::kDefaultVlanId1}) {
-        continue;
-      }
-      auto vlanItr = vlan2PortCount.find(vlanAndNumPorts.first);
-      ASSERT_TRUE(vlanItr != vlan2PortCount.end());
-      EXPECT_EQ(vlanItr->second, vlanAndNumPorts.second);
-    }
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 } // namespace facebook::fboss

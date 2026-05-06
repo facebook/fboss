@@ -519,6 +519,36 @@ void fillHwPortStats(
   }
   hwPortStats.inDiscardsRaw_() = hwPortStats.inDiscardsRaw_().value() +
       hwPortStats.inDstNullDiscards_().value();
+
+  // PAUSE_RX_PKTS / PAUSE_TX_PKTS also count PFC frames; PFC_*_{RX,TX}_PKTS
+  // hold the L3 per-priority counts. Subtract those so inPause_/outPause_ are
+  // IEEE 802.3 classic pause only.
+  auto sumPfcPktMap = [](const auto& m) -> uint64_t {
+    uint64_t sum = 0;
+    for (const auto& entry : m) {
+      const int64_t v = entry.second;
+      if (v > 0) {
+        sum += static_cast<uint64_t>(v);
+      }
+    }
+    return sum;
+  };
+  const uint64_t rxPfcPktsSum = sumPfcPktMap(*hwPortStats.inPfc_());
+  const uint64_t txPfcPktsSum = sumPfcPktMap(*hwPortStats.outPfc_());
+  auto subtractPfcFromPause = [](int64_t pause, uint64_t pfcPkts) -> int64_t {
+    if (pause == hardware_stats_constants::STAT_UNINITIALIZED()) {
+      return pause;
+    }
+    const uint64_t pauseU = static_cast<uint64_t>(pause);
+    if (pauseU >= pfcPkts) {
+      return static_cast<int64_t>(pauseU - pfcPkts);
+    }
+    return 0;
+  };
+  hwPortStats.inPause_() =
+      subtractPfcFromPause(*hwPortStats.inPause_(), rxPfcPktsSum);
+  hwPortStats.outPause_() =
+      subtractPfcFromPause(*hwPortStats.outPause_(), txPfcPktsSum);
 #endif
 }
 
@@ -4111,5 +4141,23 @@ void SaiPortManager::resetFabricLinkMonitoringSystemPortId(
     const PortID& portId) {
   getPortHandle(portId)->port->setOptionalAttribute(
       SaiPortTraits::Attributes::FabricSystemPort{SAI_NULL_OBJECT_ID});
+}
+
+phy::LinkTrainingStatus SaiPortManager::getLinkTrainingStatus(
+    const PortSaiId& saiPortId,
+    PortID portID,
+    bool linkTrainingEnabled) const {
+  phy::LinkTrainingStatus status;
+  status.linkTrainingEnabled() = linkTrainingEnabled;
+
+  try {
+    auto rxStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPortId, SaiPortTraits::Attributes::LinkTrainingRxStatus{});
+    status.rxStatus() = static_cast<phy::LinkTrainingRxStatus>(rxStatus);
+  } catch (const SaiApiError& e) {
+    XLOG(DBG2) << "Failed to get link training rx status for port " << portID
+               << ": " << e.what();
+  }
+  return status;
 }
 } // namespace facebook::fboss

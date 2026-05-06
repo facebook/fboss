@@ -16,9 +16,13 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
+#include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/rib/SwitchStateNextHopIdUpdater.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
@@ -273,13 +277,14 @@ class NextHopMapPopulationTest : public ::testing::Test {
     }
 
     // Verify each NextHop in manager exists in state with same value
-    for (const auto& [id, nextHop] : managerIdToNextHop) {
+    for (const auto& [id, nextHopEntry] : managerIdToNextHop) {
       auto stateNextHop = stateIdToNextHopMap->getNextHopIf(id);
       ASSERT_NE(stateNextHop, nullptr)
           << "NextHop id " << id << " not in state";
       auto stateNextHopThrift = stateNextHop->toThrift();
       EXPECT_EQ(
-          network::toIPAddress(*stateNextHopThrift.address()), nextHop.addr())
+          network::toIPAddress(*stateNextHopThrift.address()),
+          nextHopEntry.nextHop.addr())
           << "NextHop address mismatch for id " << id;
     }
 
@@ -642,6 +647,203 @@ TEST_F(NextHopMapPopulationTest, PopAndLookupWithNormalRouteAddition) {
       << "POP_AND_LOOKUP MPLS route should NOT have "
       << "normalizedResolvedNextHopSetID";
 
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+}
+
+// --- SwitchStateNextHopIdUpdater incremental diff tests ---
+// These verify the updater correctly diffs RIB vs FIB maps and only
+// applies the delta (adds missing entries, removes stale entries).
+
+TEST_F(NextHopMapPopulationTest, UpdaterNoChangesReturnsSameState) {
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Run the updater again with no RIB changes — should return same state
+  auto stateBefore = sw_->getState();
+  auto managerCopy = sw_->getRib()->getNextHopIDManagerCopy();
+  SwitchStateNextHopIdUpdater ribUpdater(managerCopy.get());
+  auto stateAfter = ribUpdater(stateBefore);
+  EXPECT_EQ(stateAfter.get(), stateBefore.get());
+}
+
+TEST_F(NextHopMapPopulationTest, UpdaterIncrementalAddViaRouteUpdater) {
+  // Start with standard routes (shared ECMP, single nhop, overlapping, etc.)
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Incrementally add routes with both new and existing nexthops
+  updater = sw_->getRouteUpdater();
+  // These reuse existing nexthops — only new set IDs
+  addV4Route(updater, "10.10.0.0/24", {"3.3.3.10"});
+  addV4Route(updater, "10.10.1.0/24", {"1.1.1.10", "4.4.4.10"});
+  addV6Route(updater, "2001:db8:100::/64", {"3::10", "4::10"});
+  // These use brand new nexthops — new nhop IDs + set IDs
+  addV4Route(updater, "10.10.4.0/24", {"1.1.1.30", "2.2.2.30"});
+  addV6Route(updater, "2001:db8:101::/64", {"1::30"});
+  // DROP/TO_CPU don't allocate IDs
+  addV4DropRoute(updater, "10.10.2.0/24");
+  addV4ToCpuRoute(updater, "10.10.3.0/24");
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+}
+
+TEST_F(NextHopMapPopulationTest, UpdaterIncrementalRemoveViaRouteUpdater) {
+  // Start with standard routes
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Delete several routes: one from shared ECMP pair, overlapping groups, etc.
+  updater = sw_->getRouteUpdater();
+  delV4Route(updater, "10.0.0.0/24");
+  delV4Route(updater, "10.3.0.0/24");
+  delV4Route(updater, "10.3.1.0/24");
+  delV6Route(updater, "2001:db8:1::/64");
+  delV6Route(updater, "2001:db8:30::/64");
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Delete remaining routes that used unique nexthops
+  updater = sw_->getRouteUpdater();
+  delV4Route(updater, "10.1.0.0/24");
+  delV6Route(updater, "2001:db8:10::/64");
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+}
+
+// Simulates a warmboot transition from FLAGS_enable_nexthop_id_manager=false to
+// =true: routes exist in the FIB but have no IDs assigned, and the manager is
+// empty. The fix in RouteUpdater::resolveOne should backfill both
+// resolvedNextHopSetID and normalizedResolvedNextHopSetID on the next update.
+TEST_F(NextHopMapPopulationTest, ResolveOneBackfillsMissingIdsFromWarmBoot) {
+  // 1. Allocate IDs normally via the live RIB.
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // 2. Snapshot the rib thrift and strip both IDs from every route's fwd to
+  // mirror a state where IDs were never assigned.
+  auto ribThrift = sw_->getRib()->toThrift();
+  for (auto& [_, routeTable] : ribThrift) {
+    for (auto& [__, v4Route] : *routeTable.v4NetworkToRoute()) {
+      v4Route.fwd()->resolvedNextHopSetID().reset();
+      v4Route.fwd()->normalizedResolvedNextHopSetID().reset();
+    }
+    for (auto& [__, v6Route] : *routeTable.v6NetworkToRoute()) {
+      v6Route.fwd()->resolvedNextHopSetID().reset();
+      v6Route.fwd()->normalizedResolvedNextHopSetID().reset();
+    }
+  }
+
+  // 3. Reconstruct a fresh RIB from the stripped thrift with empty FIB inputs
+  // so the new RIB's NextHopIDManager is also empty.
+  auto reconstructedRib = RoutingInformationBase::fromThrift(
+      ribThrift,
+      std::make_shared<MultiSwitchFibInfoMap>(),
+      std::make_shared<MultiLabelForwardingInformationBase>(),
+      std::make_shared<MultiSwitchMySidMap>());
+
+  // Pre-condition: every NEXTHOPS route in the reconstructed RIB lacks both
+  // IDs, and the manager is empty.
+  auto preDetails = reconstructedRib->getRouteTableDetails(kRid0);
+  ASSERT_FALSE(preDetails.empty());
+  size_t preNexthopRoutes = 0;
+  for (const auto& details : preDetails) {
+    if (*details.action() != "Nexthops") {
+      continue;
+    }
+    ++preNexthopRoutes;
+    EXPECT_FALSE(details.resolvedNextHopSetID().has_value())
+        << "Pre-condition failed: route should have nullopt "
+        << "resolvedNextHopSetID";
+    EXPECT_FALSE(details.normalizedResolvedNextHopSetID().has_value())
+        << "Pre-condition failed: route should have nullopt "
+        << "normalizedResolvedNextHopSetID";
+  }
+  EXPECT_GT(preNexthopRoutes, 0u);
+  auto preManager = reconstructedRib->getNextHopIDManagerCopy();
+  ASSERT_NE(preManager, nullptr);
+  EXPECT_TRUE(preManager->getIdToNextHop().empty());
+  EXPECT_TRUE(preManager->getIdToNextHopIdSet().empty());
+
+  // 4. Drive an empty update on the reconstructed RIB. updateDone() will mark
+  // every route for resolution, and resolveOne will hit the backfill branch
+  // for each NEXTHOPS route since nextHopIDManager_ is non-null and the
+  // route's resolvedNextHopSetID is nullopt.
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+  reconstructedRib->update(
+      sw_->getScopeResolver(),
+      kRid0,
+      kClientA,
+      DISTANCE,
+      std::vector<UnicastRoute>{},
+      std::vector<IpPrefix>{},
+      false /* resetClientsRoutes */,
+      "warmboot backfill test",
+      ribToSwitchStateUpdate,
+      &switchState);
+
+  // 5. Post-condition: every NEXTHOPS route now has BOTH IDs populated.
+  auto postDetails = reconstructedRib->getRouteTableDetails(kRid0);
+  size_t postNexthopRoutes = 0;
+  for (const auto& details : postDetails) {
+    if (*details.action() != "Nexthops") {
+      continue;
+    }
+    ++postNexthopRoutes;
+    EXPECT_TRUE(details.resolvedNextHopSetID().has_value())
+        << "Post-condition failed: NEXTHOPS route missing "
+        << "resolvedNextHopSetID after backfill";
+    EXPECT_TRUE(details.normalizedResolvedNextHopSetID().has_value())
+        << "Post-condition failed: NEXTHOPS route missing "
+        << "normalizedResolvedNextHopSetID after backfill";
+  }
+  EXPECT_EQ(postNexthopRoutes, preNexthopRoutes);
+
+  // The manager should now hold the backfilled allocations.
+  auto postManager = reconstructedRib->getNextHopIDManagerCopy();
+  ASSERT_NE(postManager, nullptr);
+  EXPECT_FALSE(postManager->getIdToNextHop().empty());
+  EXPECT_FALSE(postManager->getIdToNextHopIdSet().empty());
+}
+
+TEST_F(NextHopMapPopulationTest, UpdaterAddAndRemoveInSingleUpdate) {
+  // Start with standard routes
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
+  verifyIdMapsMatchIdManager();
+  verifyIDMapsConsistency();
+
+  // Simultaneously delete some routes and add new ones
+  updater = sw_->getRouteUpdater();
+  // Delete shared ECMP pair and overlapping group
+  delV4Route(updater, "10.0.0.0/24");
+  delV4Route(updater, "10.0.1.0/24");
+  delV4Route(updater, "10.3.0.0/24");
+  delV6Route(updater, "2001:db8:1::/64");
+  delV6Route(updater, "2001:db8:2::/64");
+  // Add new routes with mix of existing and new nexthops
+  addV4Route(updater, "10.20.0.0/24", {"1.1.1.10", "3.3.3.10"});
+  addV4Route(updater, "10.20.1.0/24", {"4.4.4.10"});
+  addV6Route(updater, "2001:db8:200::/64", {"1::10", "2::10", "3::10"});
+  addV4DropRoute(updater, "10.20.2.0/24");
+  updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
 }

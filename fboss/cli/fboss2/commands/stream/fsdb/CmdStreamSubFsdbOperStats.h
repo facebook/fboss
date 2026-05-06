@@ -56,7 +56,15 @@ class CmdStreamSubFsdbOperStats : public CmdStreamHandler<
     req.subscriberId() = "fboss2-cli";
     auto gen = client->sync_subscribeOperStatsPath(req);
 
-    return std::move(gen).stream.toAsyncGenerator();
+    auto streamGen = std::move(gen).stream.toAsyncGenerator();
+
+    return folly::coro::co_invoke(
+        [client = std::move(client),
+         streamGen = std::move(streamGen)]() mutable -> StreamRetType {
+          while (auto val = co_await streamGen.next()) {
+            co_yield std::move(*val);
+          }
+        });
   }
 
   void printOutput(const RetType& result, std::ostream& out = std::cout) {

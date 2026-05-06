@@ -3,15 +3,11 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/VoqConstants.h"
 
+DEFINE_bool(enable_lacp, false, "Run LACP in agent");
+
 DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
 
 DEFINE_bool(test_fixture, false, "Enable test fixture platform mapping");
-
-// TODO: Remove once proper link training support is added
-DEFINE_bool(
-    tahan800sb_link_training,
-    false,
-    "Enable link training platform mapping for tahansb800bc");
 
 DEFINE_bool(dsf_4k, false, "Enable DSF Scale Test config");
 
@@ -282,7 +278,7 @@ DEFINE_int32(
 
 DEFINE_bool(
     enable_mysid_resource_protection,
-    false,
+    true,
     "Enable MySID resource protection in ResourceAccountant");
 
 DEFINE_int32(
@@ -292,13 +288,23 @@ DEFINE_int32(
 
 DEFINE_bool(
     enable_srv6_nexthop_resource_protection,
-    false,
+    true,
     "Enable SRv6 next hop resource protection in ResourceAccountant");
 
 DEFINE_int32(
     srv6_nexthop_resource_percentage,
     75,
     "Percentage of SRv6 next hop resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
+DEFINE_bool(
+    enable_route_counter_resource_protection,
+    true,
+    "Enable route counter resource protection in ResourceAccountant");
+
+DEFINE_int32(
+    route_counter_resource_percentage,
+    75,
+    "Percentage of route counter resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
 
 DEFINE_int32(
     switch_index_for_testing,
@@ -523,3 +529,8 @@ DEFINE_int32(
     max_tx_packets,
     100000, // 1 gb / 10 kb
     "the point at which we start dropping tx packets");
+
+DEFINE_bool(
+    enable_route_counters_for_named_nhg,
+    false,
+    "Implicitly associate a route counter for routes using named NHG");

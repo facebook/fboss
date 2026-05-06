@@ -4,6 +4,7 @@
     "classid_for_unresolved_routes": "true",
     "counter_refresh_interval": "0",
     "enable_acl_table_group": "true",
+    "enable_nexthop_id_manager": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "skip_transceiver_programming": "true",
@@ -95,7 +96,7 @@
       "qcmEnable": false,
       "ptpTcEnable": false,
       "l2AgeTimerSeconds": 300,
-      "maxRouteCounterIDs": 0,
+      "maxRouteCounterIDs_DEPRECATED": 0,
       "blockNeighbors": [
         
       ],

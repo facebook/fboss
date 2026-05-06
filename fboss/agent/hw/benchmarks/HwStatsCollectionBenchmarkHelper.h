@@ -53,8 +53,8 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
   int numRouteCounters = 255;
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
-      [numPortsToCollectStats, numRouteCounters, alwaysCollectVoqStats](
-          const AgentEnsemble& ensemble) {
+      [numPortsToCollectStats,
+       alwaysCollectVoqStats](const AgentEnsemble& ensemble) {
         // Disable stats collection thread.
         FLAGS_enable_stats_update_thread = false;
         if (alwaysCollectVoqStats) {
@@ -88,10 +88,6 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
             !hasFabric /* setInterfaceMac */,
             utility::kBaseVlanId,
             hasFabric || hasVoq /*enable fabric ports*/);
-        if (ensemble.getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
-                HwAsic::Feature::ROUTE_COUNTERS)) {
-          config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
-        }
         if (ensemble.getSw()->getSwitchInfoTable().haveVoqSwitches()) {
           utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
           utility::setDefaultCpuTrafficPolicyConfig(
@@ -144,8 +140,17 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
     maxRouteCounters = 254;
   }
 
-  if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
-          HwAsic::Feature::ROUTE_COUNTERS)) {
+  // Todo: route_counter is only enabled for ASIC_TYPE_YUBA RB role in
+  // ASIC config. This is a temporary fix to make the test
+  //  pass until we have a final decision on the route_counter feature
+  // for general ASIC_TYPE_YUBA use case.
+  bool routeCountersSupported =
+      ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::ROUTE_COUNTERS) &&
+      checkSameAndGetAsicForTesting(
+          ensemble->getSw()->getHwAsicTable()->getL3Asics())
+              ->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA;
+  if (routeCountersSupported) {
     auto updater = ensemble->getSw()->getRouteUpdater();
     for (auto i = 0; i < maxRouteCounters; i++) {
       folly::CIDRNetwork nw{

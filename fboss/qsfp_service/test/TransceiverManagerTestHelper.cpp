@@ -20,7 +20,7 @@ void TransceiverManagerTestHelper::SetUp() {
   cfg::TransceiverFirmware fwVersions;
   cfg::Firmware fw;
   cfg::FirmwareVersion fwVersionApp, fwVersionDsp;
-  fwVersionApp.version() = getFakeAppFwVersion();
+  fwVersionApp.version() = getFakeAppFwVersionFull();
   fwVersionApp.fwType() = cfg::FirmwareType::APPLICATION;
   fwVersionDsp.version() = getFakeDspFwVersion();
   fwVersionDsp.fwType() = cfg::FirmwareType::DSP;

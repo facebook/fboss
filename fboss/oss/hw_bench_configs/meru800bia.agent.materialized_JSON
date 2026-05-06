@@ -1,6 +1,7 @@
 {
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
+    "enable_nexthop_id_manager": "true",
     "enable_route_resource_protection": "false",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
@@ -132,7 +133,7 @@
       "qcmEnable": false,
       "ptpTcEnable": false,
       "l2AgeTimerSeconds": 300,
-      "maxRouteCounterIDs": 0,
+      "maxRouteCounterIDs_DEPRECATED": 0,
       "blockNeighbors": [
         
       ],

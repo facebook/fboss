@@ -59,9 +59,6 @@ class InterfacesConfig : public utils::BaseObjectArgType<std::string> {
     return !attributes_.empty();
   }
 
-  const static utils::ObjectArgTypeId id =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_INTERFACES_CONFIG;
-
  private:
   utils::InterfaceList interfaces_;
   std::vector<std::pair<std::string, std::string>> attributes_;
@@ -71,8 +68,13 @@ class InterfacesConfig : public utils::BaseObjectArgType<std::string> {
 };
 
 struct CmdConfigInterfaceTraits : public WriteCommandTraits {
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_INTERFACES_CONFIG;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "interface_config",
+        args,
+        "<port-list> [<attr> <value> ...] where <attr> is one "
+        "of: description, mtu");
+  }
   using ObjectArgType = InterfacesConfig;
   using RetType = std::string;
 };

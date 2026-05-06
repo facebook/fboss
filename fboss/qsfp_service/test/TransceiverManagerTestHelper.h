@@ -40,6 +40,14 @@ class TransceiverManagerTestHelper : public ::testing::Test {
     return "1.2";
   }
 
+  int getFakeAppFwBuildNumber() const {
+    return 2289;
+  }
+
+  std::string getFakeAppFwVersionFull() const {
+    return "1.2.2289";
+  }
+
   std::string getFakeDspFwVersion() const {
     return "2.3";
   }

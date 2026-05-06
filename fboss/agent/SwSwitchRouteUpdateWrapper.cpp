@@ -23,12 +23,6 @@
 
 namespace facebook::fboss {
 
-namespace {
-
-// Creates a RibToSwitchStateFunction that captures the useRollback flag to
-// determine which SwSwitch update method to call:
-// - useRollback=true:  calls updateStateWithForcedRollback (for testing)
-// - useRollback=false: calls updateStateWithHwFailureProtection (production)
 RibToSwitchStateFunction createRibToSwitchStateFunction(
     const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   return [deltaApplicationBehavior](
@@ -40,10 +34,6 @@ RibToSwitchStateFunction createRibToSwitchStateFunction(
              const NextHopIDManager* nextHopIDManager,
              const MySidTable& mySidTable,
              void* cookie) -> StateDelta {
-    // Since RIB to switch state updater will be accessed in swSwitch's update
-    // event base protect with a lock. This is even though we know the update is
-    // synchronous and we will call getLastDelta only after the update is done.
-    // Its cleaner to protect variables accessed from multiple threads.
     folly::Synchronized<facebook::fboss::RibToSwitchStateUpdater>
         ribToSwitchStateUpdater(
             std::in_place,
@@ -73,8 +63,6 @@ RibToSwitchStateFunction createRibToSwitchStateFunction(
     return StateDelta(oldState, sw->getState());
   };
 }
-
-} // namespace
 
 SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(
     SwSwitch* sw,

@@ -367,7 +367,7 @@ filterReachabilityByDst(
     }
 
     for (const auto& port : reachabilityIter->second) {
-      if (portToDstSwitch.find(port) != portToDstSwitch.end()) {
+      if (portToDstSwitch.contains(port)) {
         filteredReachability[dstSwitch].push_back(port);
       }
     }

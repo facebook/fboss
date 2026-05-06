@@ -4,13 +4,12 @@
 # This script builds the specified stack binaries inside a container.
 #
 # Prerequisites (handled by build_entrypoint.py):
-#   - SAI SDK extracted to /opt/sdk (from /deps/sai tarball)
+#   - SAI SDK extracted to /deps/npu_sai or /deps/phy_sai
 #   - Kernel RPMs installed (from /deps/kernel tarball, optional)
 #
 # This script:
 #   - Parses the requested stack type (forwarding or platform)
 #   - For forwarding, enables SAI/SDK handling via need_sai=1
-#   - Detects SAI location at /opt/sdk (when need_sai=1)
 #   - Configures SAI environment variables (when need_sai=1)
 #   - Builds FBOSS dependencies
 #   - Builds the appropriate FBOSS CMake target
@@ -18,12 +17,9 @@
 #
 set -euxo pipefail
 
-# Helper function to log with timestamps
 log() {
-  echo "$(date -Iseconds) $*"
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
 }
-
-log "build_fboss_stack.sh START"
 
 if [ "$#" -lt 1 ]; then
   echo "Usage: $0 forwarding|platform" >&2
@@ -37,7 +33,6 @@ need_sai=0
 stack_label=""
 cmake_target=""
 package_target=""
-common_options=""
 build_with_phy_sai="no"
 
 case "$stack_type" in
@@ -67,52 +62,37 @@ if [ "$num_cores" -gt "$gb_per_core" ]; then
 else
   num_jobs="$num_cores"
 fi
+export num_jobs # Export so it's available in subshells
 
 BUILD_TYPE="${BUILD_TYPE:-MinSizeRel}"
 
 # Setup FBOSS build environment compatibility:
 #    build_entrypoint provides: /src (repo), /deps/*-extracted (dependencies)
-#    FBOSS build expects: /var/FBOSS/fboss (repo), /opt/sdk (SAI)
-log "Setting up symlinks"
+#    FBOSS build expects: /var/FBOSS/fboss (repo)
+if [ -d "/src" ]; then
+  log "Setting up symlinks"
 
-# Link /var/FBOSS/fboss -> /src (the worktree root)
-mkdir -p /var/FBOSS
-rm -rf /var/FBOSS/fboss # Remove any stale symlink or directory
-ln -sf /src /var/FBOSS/fboss
-echo "  Created: /var/FBOSS/fboss -> /src"
-
-if [ "$need_sai" -eq 1 ]; then
-  # Link /opt/sdk -> extracted SAI dependency
-  # build_entrypoint extracts /deps/npu_sai to /deps/npu_sai-extracted
-  if [ ! -e "/opt/sdk" ]; then
-    ln -sf /deps/npu_sai-extracted /opt/sdk
-    echo "  Created: /opt/sdk -> /deps/npu_sai-extracted"
-  fi
-
-  if [ ! -e "/opt/qsfp-sdk" ]; then
-    ln -sf /deps/phy_sai-extracted /opt/qsfp-sdk
-    echo "  Created: /opt/qsfp-sdk -> /deps/phy_sai-extracted"
-  fi
+  # Link /var/FBOSS/fboss -> /src (the worktree root)
+  mkdir -p /var/FBOSS
+  rm -rf /var/FBOSS/fboss # Remove any stale symlink or directory
+  ln -sf /src /var/FBOSS/fboss
+  echo "  Created: /var/FBOSS/fboss -> /src"
 fi
 
 SAI_DIR=""
-
 if [ "$need_sai" -eq 1 ]; then
-  # Look for SAI installation at /opt/sdk
-  if [ -d "/opt/sdk" ]; then
-    SAI_DIR="/opt/sdk"
-  else
-    echo "ERROR: No SAI found at /opt/sdk"
-    exit 1
+  if [ -d "/deps/npu_sai-extracted" ]; then
+    SAI_DIR="/deps/npu_sai-extracted"
   fi
-  echo "Found SAI at $SAI_DIR (installed by build_entrypoint.py)"
 
   # Check if phy_sai build environment exists (will be sourced in subshell later)
   if [ -f "/deps/phy_sai-extracted/phy_sai_build.env" ]; then
+    SAI_DIR="/deps/phy_sai-extracted"
     build_with_phy_sai="yes"
-    SAI_DIR="/opt/qsfp-sdk"
   fi
+  echo "Found SAI at $SAI_DIR (installed by build_entrypoint.py)"
 fi
+export SAI_DIR
 
 # Function to perform complete build with given suffix, called in a subshell
 # to isolate environments
@@ -122,21 +102,21 @@ perform_build() {
   local sai_env_file="$3"
   local -a npu_flags=()
 
-  echo "----- perform_build Command: $0, ARGS: $build_suffix $output_suffix $sai_env_file --------"
+  log "perform_build Command: $0, ARGS: $build_suffix $output_suffix $sai_env_file"
 
   # Source SAI build environment if provided
   if [ -n "$sai_env_file" ] && [ -f "$sai_env_file" ]; then
     # shellcheck disable=SC1090
     source "$sai_env_file"
-    echo "SAI environment loaded from $sai_env_file"
+    log "SAI environment loaded from $sai_env_file"
   fi
 
   # Determine SAI implementation name based on environment variables
   local sai_name=""
   if [ "$need_sai" -eq 1 ]; then
-    echo "Using SAI_SDK_VERSION=${SAI_SDK_VERSION:-N/A} for SAI_VERSION=${SAI_VERSION:-Unknown}"
+    log "Using SAI_SDK_VERSION=${SAI_SDK_VERSION:-N/A} for SAI_VERSION=${SAI_VERSION:-Unknown}"
 
-    npu_flags+=("--npu-libsai-impl-path" "$SAI_DIR/lib/libsai_impl.a")
+    npu_flags+=("--npu-libsai-impl-path" "$SAI_DIR/lib")
     npu_flags+=("--npu-experiments-path" "$SAI_DIR/include")
 
     if [ -n "${BUILD_SAI_FAKE:-}" ]; then
@@ -155,7 +135,7 @@ perform_build() {
     else
       sai_name="sai-unknown-${SAI_SDK_VERSION}"
     fi
-    echo "Using SAI implementation: $sai_name"
+    log "Using SAI implementation: $sai_name"
 
     if [ -n "${SAI_VERSION:-}" ]; then
       npu_flags+=("--npu-sai-version" "$SAI_VERSION")
@@ -165,6 +145,7 @@ perform_build() {
     fi
   fi
 
+  scratch_root="/build"
   # Setup build directories based on scratch_root
   if [ "$need_sai" -eq 1 ]; then
     build_dir="${scratch_root}/forwarding-stack/${sai_name}${build_suffix}"
@@ -202,9 +183,6 @@ perform_build() {
   # Navigate to FBOSS source root
   cd /var/FBOSS/fboss
 
-  # Return to FBOSS source root as nhfboss-common.sh may have changed it
-  cd /var/FBOSS/fboss
-
   log "Building FBOSS ${stack_label} stack${build_suffix}"
 
   # Save the manifests because we must modify them
@@ -221,21 +199,23 @@ perform_build() {
       sed '/^[[:space:]]*sai_impl[[:space:]]*$/d' \
         build/fbcode_builder/manifests/fboss >"$tmp_manifest"
       mv "$tmp_manifest" build/fbcode_builder/manifests/fboss
-      echo "Temporarily removed sai_impl from fboss manifest for platform-only build"
+      log "Temporarily removed sai_impl from fboss manifest for platform-only build"
     fi
   fi
 
   # Install system dependencies
   log "Installing system dependencies..."
-  time nice -n 10 ./fboss/oss/scripts/run-getdeps.py install-system-deps \
+  time nice -n 10 ./fboss/oss/scripts/run-getdeps.py \
     "${npu_flags[@]}" \
+    install-system-deps \
     --recursive \
     $common_options
 
   # Build dependencies
   log "Building FBOSS dependencies..."
-  time nice -n 10 ./fboss/oss/scripts/run-getdeps.py build \
+  time nice -n 10 ./fboss/oss/scripts/run-getdeps.py \
     "${npu_flags[@]}" \
+    build \
     --build-type $BUILD_TYPE \
     --only-deps \
     $common_options
@@ -245,8 +225,9 @@ perform_build() {
   # Build FBOSS stack
   log "Building FBOSS ${stack_label} stack..."
 
-  time nice -n 10 ./fboss/oss/scripts/run-getdeps.py build \
+  time nice -n 10 ./fboss/oss/scripts/run-getdeps.py \
     "${npu_flags[@]}" \
+    build \
     --num-jobs "${num_jobs}" \
     --build-type "${BUILD_TYPE}" \
     --no-deps \
@@ -270,8 +251,8 @@ perform_build() {
   mkdir -p "$OUT_DIR"
   mv "${package_target}.tar" "$OUT_DIR/${package_target}${output_suffix}.tar"
 
-  echo "FBOSS ${stack_label} stack build complete!"
-  echo "Production artifact:"
+  log "FBOSS ${stack_label} stack build complete!"
+  log "Production artifact:"
   ls -lh "$OUT_DIR/${package_target}${output_suffix}.tar"
 
   # Restore modified manifests if we took a snapshot earlier.
@@ -284,18 +265,18 @@ perform_build() {
 # First build: standard build with current settings
 if [ "$need_sai" -eq 1 ]; then
   (
-    log "Building with hw_agent SAI settings"
+    log "Building with npu_sai SAI settings"
     perform_build "" "" "$SAI_DIR/sai_build.env"
   )
   if [ "$build_with_phy_sai" = "yes" ]; then
     (
       log "Building with phy_sai settings"
-      perform_build "-qsfp" "-qsfp" "$SAI_DIR/phy_sai_build.env"
+      perform_build "-phy-sai" "-phy-sai" "$SAI_DIR/phy_sai_build.env"
     )
   fi
 else
-  log "Building without any SAI settings"
-  perform_build "" "" ""
+  (
+    log "Building platform stack"
+    perform_build "" "" ""
+  )
 fi
-
-log "build_fboss_stack.sh END"

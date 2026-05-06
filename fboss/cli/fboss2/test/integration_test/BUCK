@@ -6,7 +6,6 @@ oncall("fboss_oss")
 #
 # These tests run against a live FBOSS agent and execute actual CLI commands.
 # Unlike unit tests, they require the agent to be running with valid config.
-# They are equivalent to the Python tests in fboss/oss/cli_tests/.
 #
 # CLI tests are platform/SAI independent - they test the CLI binary which
 # communicates with the agent via Thrift, regardless of the underlying
@@ -17,11 +16,19 @@ oncall("fboss_oss")
 cpp_binary(
     name = "fboss2_integration_test",
     srcs = [
+        "ConfigConcurrentSessionsTest.cpp",
         "ConfigInterfaceDescriptionTest.cpp",
         "ConfigInterfaceMtuTest.cpp",
+        "ConfigInterfaceProfileTest.cpp",
+        "ConfigL2LearningModeTest.cpp",
+        "ConfigPfcTest.cpp",
+        "ConfigPortQueueConfigTest.cpp",
         "ConfigQosPolicyMapTest.cpp",
         "ConfigSessionClearTest.cpp",
         "ConfigSessionRestartTest.cpp",
+        "ConfigVlanPortTaggingModeTest.cpp",
+        "ConfigVlanStaticMacTest.cpp",
+        "ConfigVlanSwitchportAccessTest.cpp",
         "Fboss2IntegrationTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
@@ -30,6 +37,8 @@ cpp_binary(
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent/if:ctrl-cpp2-clients",
+        "//fboss/agent/if:ctrl-cpp2-services",
+        "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/cli/fboss2:cmd-common-utils",
         "//fboss/cli/fboss2:cmd-init-utils",
         "//fboss/cli/fboss2:cmd-subcommands",

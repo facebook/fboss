@@ -23,20 +23,15 @@
 
 #include <fmt/format.h>
 #include <folly/json/dynamic.h>
-#include <folly/json/json.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <chrono>
-#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <optional>
 #include <string>
 #include <vector>
-#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
-#include "fboss/cli/fboss2/utils/HostInfo.h"
 
 using namespace facebook::fboss;
 
@@ -132,19 +127,6 @@ class ConfigQosPolicyMapTest : public Fboss2IntegrationTest {
     ASSERT_EQ(result.exitCode, 0)
         << "Failed to set simple map " << mapType << " " << key << " " << value
         << ": " << result.stderr;
-  }
-
-  /**
-   * Get the running config from the agent and return it as a parsed JSON
-   * object.
-   */
-  folly::dynamic getRunningConfig() const {
-    HostInfo hostInfo("localhost");
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    std::string configStr;
-    client->sync_getRunningConfig(configStr);
-    return folly::parseJson(configStr);
   }
 
   /**
@@ -344,6 +326,56 @@ TEST_F(ConfigQosPolicyMapTest, CreateSamplePolicy) {
         << "TC " << tc << " has wrong queue mapping";
   }
   XLOG(INFO) << "  trafficClassToQueueId verified";
+
+  XLOG(INFO) << "TEST PASSED";
+}
+
+TEST_F(ConfigQosPolicyMapTest, IdentityMappingsAcrossAllMapTypes) {
+  XLOG(INFO) << "========================================";
+  XLOG(INFO) << "ConfigQosPolicyMapTest::IdentityMappingsAcrossAllMapTypes";
+  XLOG(INFO) << "========================================";
+
+  // Configure identity mapping 0->0, 1->1, ..., 7->7 for all four simple-map
+  // types. Mirrors the coverage of the Python test_config_qos.py test.
+  constexpr int kMaxIdx = 8;
+  const std::vector<std::string> kMapTypes = {
+      "tc-to-queue", "pfc-pri-to-queue", "tc-to-pg", "pfc-pri-to-pg"};
+
+  XLOG(INFO) << "[Step 1] Configuring identity maps...";
+  for (const auto& mapType : kMapTypes) {
+    for (int i = 0; i < kMaxIdx; ++i) {
+      configureSimpleMap(mapType, i, i);
+    }
+  }
+
+  XLOG(INFO) << "[Step 2] Committing...";
+  commitConfig();
+
+  XLOG(INFO) << "[Step 3] Verifying running config...";
+  auto config = getRunningConfig();
+  const auto* policy = findQosPolicy(config, testPolicyName_);
+  ASSERT_NE(policy, nullptr)
+      << "Test policy '" << testPolicyName_ << "' not found in running config";
+  ASSERT_TRUE(policy->count("qosMap"));
+  const auto& qosMap = (*policy)["qosMap"];
+
+  auto expectIdentityObject = [&](const std::string& field) {
+    ASSERT_TRUE(qosMap.count(field)) << field << " missing in qosMap";
+    const auto& m = qosMap[field];
+    ASSERT_TRUE(m.isObject()) << field << " is not an object";
+    for (int i = 0; i < kMaxIdx; ++i) {
+      auto key = std::to_string(i);
+      ASSERT_TRUE(m.count(key)) << field << " missing key " << key;
+      EXPECT_EQ(m[key].asInt(), i) << field << "[" << key << "]";
+    }
+  };
+
+  // All four maps serialize as {traffic-class: value} objects in running
+  // config.
+  expectIdentityObject("trafficClassToQueueId");
+  expectIdentityObject("pfcPriorityToQueueId");
+  expectIdentityObject("trafficClassToPgId");
+  expectIdentityObject("pfcPriorityToPgId");
 
   XLOG(INFO) << "TEST PASSED";
 }

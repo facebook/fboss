@@ -19,8 +19,9 @@ namespace facebook::fboss {
 using VlanId = utils::VlanIdValue;
 
 struct CmdConfigVlanTraits : public WriteCommandTraits {
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_VLAN_ID;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("vlan_id", args, "VLAN ID (1-4094)");
+  }
   using ObjectArgType = VlanId;
   using RetType = std::string;
 };

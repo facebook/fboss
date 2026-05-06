@@ -192,6 +192,7 @@ enum PortProfileID {
   PROFILE_100G_1_PAM4_RS544X2N_COPPER = 60,
   PROFILE_200G_2_PAM4_RS544X2N_OPTICAL = 61,
   PROFILE_25G_1_NRZ_RS528_OPTICAL = 62,
+  PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL = 63,
 }
 
 enum Scope {
@@ -786,6 +787,8 @@ struct RedirectNextHop {
   // NextHop IP addresses
   1: string ip;
   2: optional i32 intfID;
+  3: optional common.TunnelType tunnelType;
+  4: optional string tunnelId;
 }
 
 // Redirect packet to a different nexthop
@@ -1350,6 +1353,22 @@ struct Port {
    * When not set, the agent uses ASIC-level default behavior (disabled).
    */
   39: optional bool linkTraining;
+
+  /*
+   * Hold timer (in milliseconds) before reporting a port
+   * link-down event. The port stays in its previous state until the new
+   * state has been stable for this duration, debouncing brief flaps.
+   * Unset = leave SDK default untouched.
+   */
+  40: optional i32 portDownHoldoffTimeMs;
+
+  /*
+   * Hold timer (in milliseconds) before reporting a port
+   * link-up event. The port stays in its previous state until the new
+   * state has been stable for this duration, debouncing brief flaps.
+   * Unset = leave SDK default untouched.
+   */
+  41: optional i32 portUpHoldoffTimeMs;
 }
 
 enum LacpPortRate {
@@ -1960,7 +1979,7 @@ struct SwitchSettings {
    * Time to transition L2 from hit -> miss -> removed
    */
   4: i32 l2AgeTimerSeconds = 300;
-  5: i32 maxRouteCounterIDs = 0;
+  5: i32 maxRouteCounterIDs_DEPRECATED = 0;
 
   // neighbors to block egress traffic to
   6: list<Neighbor> blockNeighbors = [];
@@ -2447,6 +2466,7 @@ struct SwitchConfig {
     3: 0, // LINKLOCAL_ROUTE
     4: 0, // REMOTE_INTERFACE_ROUTE
     1: 1, // STATIC_ROUTE
+    800: 2, // TE_AGENT
     786: 10, // OPENR
     0: 20, // BGPD
     700: 255, // STATIC_INTERNAL

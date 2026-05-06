@@ -4,6 +4,7 @@
     "counter_refresh_interval": "0",
     "ecmp_width": "128",
     "enable_acl_table_group": "true",
+    "enable_nexthop_id_manager": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "multi_switch": "true",
@@ -101,7 +102,7 @@
       "qcmEnable": false,
       "ptpTcEnable": false,
       "l2AgeTimerSeconds": 300,
-      "maxRouteCounterIDs": 0,
+      "maxRouteCounterIDs_DEPRECATED": 0,
       "blockNeighbors": [
         
       ],

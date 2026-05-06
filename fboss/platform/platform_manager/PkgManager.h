@@ -20,7 +20,9 @@ class SystemInterface {
   virtual ~SystemInterface() = default;
   virtual bool loadKmod(const std::string& moduleName) const;
   virtual bool unloadKmod(const std::string& moduleName) const;
-  virtual int installRpm(const std::string& rpmFullName) const;
+  virtual int installRpm(
+      const std::string& rpmFullName,
+      const std::string& repoName = "") const;
   virtual int depmod() const;
   virtual std::vector<std::string> getInstalledRpms(
       const std::string& rpmBaseName) const;

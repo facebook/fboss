@@ -39,6 +39,7 @@ struct NextHopInfo {
 struct ClientAndNextHops {
   1: i32 clientId;
   2: list<NextHopInfo> nextHops;
+  3: optional string namedNextHopGroup;
 }
 
 struct RouteEntry {
@@ -62,4 +63,7 @@ struct RouteDetailEntry {
   11: optional list<NextHopInfo> overridenNextHops;
   12: i32 nhopsLostDueToOverride = 0;
   13: map<string, common.NetworkTopologyInformation> nhAddressToTopologyInfo;
+  14: optional i64 resolvedNextHopSetID;
+  15: optional i64 normalizedResolvedNextHopSetID;
+  16: optional string namedNextHopGroup;
 }

@@ -27,16 +27,24 @@ struct TunnelAttributesTypes<SAI_TUNNEL_TYPE_IPINIP> {
   using EnumType = sai_tunnel_attr_t;
   using OverlayInterface =
       SaiAttribute<EnumType, SAI_TUNNEL_ATTR_OVERLAY_INTERFACE, SaiObjectIdT>;
-  using EncapSrcIp = void;
+  using EncapSrcIp =
+      SaiAttribute<EnumType, SAI_TUNNEL_ATTR_ENCAP_SRC_IP, folly::IPAddress>;
+  using EncapDstIp =
+      SaiAttribute<EnumType, SAI_TUNNEL_ATTR_ENCAP_DST_IP, folly::IPAddress>;
+  using PeerMode =
+      SaiAttribute<EnumType, SAI_TUNNEL_ATTR_PEER_MODE, sai_int32_t>;
   using DecapTtlMode =
       SaiAttribute<EnumType, SAI_TUNNEL_ATTR_DECAP_TTL_MODE, sai_int32_t>;
   using DecapDscpMode =
       SaiAttribute<EnumType, SAI_TUNNEL_ATTR_DECAP_DSCP_MODE, sai_int32_t>;
   using DecapEcnMode =
       SaiAttribute<EnumType, SAI_TUNNEL_ATTR_DECAP_ECN_MODE, sai_int32_t>;
-  using EncapTtlMode = void;
-  using EncapDscpMode = void;
-  using EncapEcnMode = void;
+  using EncapTtlMode =
+      SaiAttribute<EnumType, SAI_TUNNEL_ATTR_ENCAP_TTL_MODE, sai_int32_t>;
+  using EncapDscpMode =
+      SaiAttribute<EnumType, SAI_TUNNEL_ATTR_ENCAP_DSCP_MODE, sai_int32_t>;
+  using EncapEcnMode =
+      SaiAttribute<EnumType, SAI_TUNNEL_ATTR_ENCAP_ECN_MODE, sai_int32_t>;
 };
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -46,6 +54,8 @@ struct TunnelAttributesTypes<SAI_TUNNEL_TYPE_SRV6> {
   using OverlayInterface = void;
   using EncapSrcIp =
       SaiAttribute<EnumType, SAI_TUNNEL_ATTR_ENCAP_SRC_IP, folly::IPAddress>;
+  using EncapDstIp = void;
+  using PeerMode = void;
   using DecapTtlMode = void;
   using DecapDscpMode = void;
   using DecapEcnMode = void;
@@ -69,7 +79,20 @@ struct TunnelTraitsAttributes<Attributes, SAI_TUNNEL_TYPE_IPINIP> {
       typename Attributes::OverlayInterface,
       std::optional<typename Attributes::DecapTtlMode>,
       std::optional<typename Attributes::DecapDscpMode>,
-      std::optional<typename Attributes::DecapEcnMode>>;
+      std::optional<typename Attributes::DecapEcnMode>,
+      std::optional<typename Attributes::EncapSrcIp>,
+      std::optional<typename Attributes::EncapTtlMode>,
+      std::optional<typename Attributes::EncapDscpMode>
+  // Todo: PeerMode, EncapDstIp, EncapEcnMode are guarded because:
+  // - Broadcom does not support getAttribute for these attrs
+  // - Leaba returns INVALID_PARAMETER for EncapDstIp on P2MP (decap tunnel)
+#if defined(TAJO_SDK_VERSION_25_11_4210)
+      ,
+      std::optional<typename Attributes::PeerMode>,
+      std::optional<typename Attributes::EncapDstIp>,
+      std::optional<typename Attributes::EncapEcnMode>
+#endif
+      >;
   using AdapterHostKey = CreateAttributes;
 };
 
@@ -103,6 +126,8 @@ struct SaiTunnelTraitsT {
     using OverlayInterface =
         typename detail::TunnelAttributesTypes<type>::OverlayInterface;
     using EncapSrcIp = typename detail::TunnelAttributesTypes<type>::EncapSrcIp;
+    using EncapDstIp = typename detail::TunnelAttributesTypes<type>::EncapDstIp;
+    using PeerMode = typename detail::TunnelAttributesTypes<type>::PeerMode;
     using DecapTtlMode =
         typename detail::TunnelAttributesTypes<type>::DecapTtlMode;
     using DecapDscpMode =
@@ -154,12 +179,12 @@ SAI_ATTRIBUTE_NAME(IpInIpTunnel, OverlayInterface);
 SAI_ATTRIBUTE_NAME(IpInIpTunnel, DecapTtlMode);
 SAI_ATTRIBUTE_NAME(IpInIpTunnel, DecapDscpMode);
 SAI_ATTRIBUTE_NAME(IpInIpTunnel, DecapEcnMode);
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-SAI_ATTRIBUTE_NAME(Srv6Tunnel, EncapSrcIp);
-SAI_ATTRIBUTE_NAME(Srv6Tunnel, EncapTtlMode);
-SAI_ATTRIBUTE_NAME(Srv6Tunnel, EncapEcnMode);
-SAI_ATTRIBUTE_NAME(Srv6Tunnel, EncapDscpMode);
-#endif
+SAI_ATTRIBUTE_NAME(IpInIpTunnel, PeerMode);
+SAI_ATTRIBUTE_NAME(IpInIpTunnel, EncapDstIp);
+SAI_ATTRIBUTE_NAME(IpInIpTunnel, EncapSrcIp);
+SAI_ATTRIBUTE_NAME(IpInIpTunnel, EncapTtlMode);
+SAI_ATTRIBUTE_NAME(IpInIpTunnel, EncapDscpMode);
+SAI_ATTRIBUTE_NAME(IpInIpTunnel, EncapEcnMode);
 
 namespace detail {
 

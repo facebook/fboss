@@ -844,6 +844,27 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   staticModuleId = swPort->getPortSwitchId();
 #endif
 
+#if defined(TAJO_SDK_GTE_26_2)
+  // Hold timers (ms) the SDK applies before reporting link up/down events.
+  // Unset on the swPort maps to the SDK default of "no debounce".
+  constexpr sai_uint32_t kSdkDefaultLinkDebouncePeriodMs = 0;
+  SaiPortTraits::Attributes::LinkUpDebouncePeriodMs linkUpDebounce{
+      static_cast<sai_uint32_t>(swPort->getPortUpHoldoffTimeMs().value_or(
+          kSdkDefaultLinkDebouncePeriodMs))};
+  SaiPortTraits::Attributes::LinkDownDebouncePeriodMs linkDownDebounce{
+      static_cast<sai_uint32_t>(swPort->getPortDownHoldoffTimeMs().value_or(
+          kSdkDefaultLinkDebouncePeriodMs))};
+#else
+  if (swPort->getPortUpHoldoffTimeMs().has_value() ||
+      swPort->getPortDownHoldoffTimeMs().has_value()) {
+    throw FbossError(
+        "Per-port link debounce timers (portUpHoldoffTimeMs / "
+        "portDownHoldoffTimeMs) are only supported on Leaba SAI SDK 26.2 or "
+        "newer; cannot apply to port ",
+        swPort->getID());
+  }
+#endif
+
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -930,6 +951,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
         std::nullopt, // CablePropagationDelayMediaType
+#if defined(TAJO_SDK_GTE_26_2)
+        std::nullopt, // LinkUpDebouncePeriodMs
+        std::nullopt, // LinkDownDebouncePeriodMs
+#endif
         std::nullopt, // PfcPauseDurationOverride
     };
   }
@@ -1028,6 +1053,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
       propagationDelayMediaType, // CablePropagationDelayMediaType
+#if defined(TAJO_SDK_GTE_26_2)
+      linkUpDebounce, // LinkUpDebouncePeriodMs
+      linkDownDebounce, // LinkDownDebouncePeriodMs
+#endif
 #if defined(CHENAB_SAI_SDK)
       0xffff, // PfcPauseDurationOverride
 #else

@@ -52,20 +52,23 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
     StorageParams params,
     std::optional<OperPathToPublisherRoot> pathToRootHelper)
     : params_(std::move(params)),
-      rss_(fmt::format("{}.{}", params_.metricPrefix_, kRss)),
+      // params_.metricPrefix_ is a reference and dangles post-ctor; snapshot
+      // now.
+      metricPrefixOwned_(params_.metricPrefix_),
+      rss_(fmt::format("{}.{}", metricPrefixOwned_, kRss)),
       registeredSubs_(
-          fmt::format("{}.{}", params_.metricPrefix_, kRegisteredSubs)),
-      nPathStores_(fmt::format("{}.{}", params_.metricPrefix_, kPathStoreNum)),
+          fmt::format("{}.{}", metricPrefixOwned_, kRegisteredSubs)),
+      nPathStores_(fmt::format("{}.{}", metricPrefixOwned_, kPathStoreNum)),
       nPathStoreAllocs_(
-          fmt::format("{}.{}", params_.metricPrefix_, kPathStoreAllocs)),
-      serveSubMs_(fmt::format("{}.{}", params_.metricPrefix_, kServeSubMs)),
-      serveSubNum_(fmt::format("{}.{}", params_.metricPrefix_, kServeSubNum)),
+          fmt::format("{}.{}", metricPrefixOwned_, kPathStoreAllocs)),
+      serveSubMs_(fmt::format("{}.{}", metricPrefixOwned_, kServeSubMs)),
+      serveSubNum_(fmt::format("{}.{}", metricPrefixOwned_, kServeSubNum)),
       publishTimePrefix_(
-          fmt::format("{}.{}", params_.metricPrefix_, kPublishTimePrefix)),
+          fmt::format("{}.{}", metricPrefixOwned_, kPublishTimePrefix)),
       subscribeTimePrefix_(
-          fmt::format("{}.{}", params_.metricPrefix_, kSubscribeTimePrefix)),
+          fmt::format("{}.{}", metricPrefixOwned_, kSubscribeTimePrefix)),
       subscriberPrefix_(
-          fmt::format("{}.{}", params_.metricPrefix_, kSubscriberPrefix)) {
+          fmt::format("{}.{}", metricPrefixOwned_, kSubscriberPrefix)) {
   if (params_.trackMetadata_) {
     metadataTracker_ = std::make_unique<FsdbOperTreeMetadataTracker>();
   }
@@ -305,6 +308,15 @@ void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
     // ignore idle cycles, only count busy ones
     fb303::ThreadCachedServiceData::get()->addHistogramValue(
         serveSubMs_, elapsed.count());
+  }
+  // Surface slow serve cycles (>2x interval) for OSS vendors without fb303/ODS.
+  auto intervalMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        params_.subscriptionServeInterval_)
+                        .count();
+  if (intervalMs > 0 && elapsed.count() > 2 * intervalMs) {
+    XLOG_EVERY_MS(WARN, 5000)
+        << "FSDB[" << metricPrefixOwned_ << "] slow serve: " << elapsed.count()
+        << "ms (interval=" << intervalMs << "ms)";
   }
   fb303::ThreadCachedServiceData::get()->addStatValue(
       serveSubNum_, 1, fb303::SUM);

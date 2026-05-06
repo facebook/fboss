@@ -49,7 +49,7 @@ HwPortStats getInitedStats() {
       0, // outCongestionDiscardPkts
       0, // wredDroppedPackets
       {{1, 0}, {2, 0}}, // queueOutDiscards
-      {{1, 0}, {2, 0}}, // queueOutBytes
+      {{1, 3}, {2, 3}}, // queueOutBytes
       0, // outEcnCounter
       {{1, 1}, {2, 1}}, // queueOutPackets
       {{1, 2}, {2, 2}}, // queueOutDiscardPackets
@@ -106,8 +106,8 @@ void updateStats(HwCpuFb303Stats& cpuStats) {
   HwPortStats empty{};
   // Need to populate queue stats, since by default these
   // maps are empty
-  *empty.queueOutDiscardPackets_() =
-      *empty.queueOutPackets_() = {{1, 0}, {2, 0}};
+  *empty.queueOutDiscardPackets_() = *empty.queueOutPackets_() =
+      *empty.queueOutBytes_() = {{1, 0}, {2, 0}};
   cpuStats.updateStats(empty, now);
   cpuStats.updateStats(getInitedStats(), now);
 }
@@ -181,6 +181,7 @@ TEST(HwCpuFb303Stats, UpdateCpuFb303Stats) {
       {2, "low"},
       {3, "mid"},
   };
+  *empty.portStats_()->queueOutBytes_() = {{1, 0}, {2, 0}, {3, 0}};
   CpuPortStats initedStats{};
   *initedStats.queueToName_() = {
       {1, "high"},
@@ -188,6 +189,7 @@ TEST(HwCpuFb303Stats, UpdateCpuFb303Stats) {
   };
   *initedStats.queueDiscardPackets_() = {{1, 2}, {2, 2}};
   *initedStats.queueInPackets_() = {{1, 1}, {2, 1}};
+  *initedStats.portStats_()->queueOutBytes_() = {{1, 3}, {2, 3}};
   cpuStats.updateStats(empty);
   cpuStats.updateStats(initedStats);
   verifyUpdatedStats(cpuStats);

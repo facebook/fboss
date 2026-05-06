@@ -324,6 +324,9 @@ ServiceHandler::ServiceHandler(
         tcData().setCounter(
             kWatchdogThreadHeartbeatMissed,
             watchdogThreadHeartbeatMissedCount_);
+        // Surface liveness loss for OSS vendors without fb303/ODS.
+        XLOG(ERR) << "FSDB storage thread heartbeat missed (count="
+                  << watchdogThreadHeartbeatMissedCount_ << ")";
       });
   heartbeatWatchdog_->startMonitoringHeartbeat(
       operStorage_.getThreadHeartbeat());
@@ -367,6 +370,11 @@ void ServiceHandler::registerPublisher(
   XLOG(DBG2) << "Publisher connected " << *info.publisherId() << " : "
              << folly::join("/", *info.path()->raw());
   if (info.publisherId()->empty()) {
+    // Per-id throttle protects against a buggy client that retries connect
+    // in a tight loop. Watchdog still fires once per second per call site.
+    XLOG(WARN) << "FSDB rejected publisher: EMPTY_PUBLISHER_ID path="
+               << folly::join("/", *info.path()->raw())
+               << " isStats=" << *info.isStats();
     throw Utils::createFsdbException(
         FsdbErrorCode::EMPTY_PUBLISHER_ID, "Publisher Id must not be empty");
   }
@@ -376,6 +384,10 @@ void ServiceHandler::registerPublisher(
   auto resp =
       activePublishers_.wlock()->insert({std::move(key), std::move(entry)});
   if (!resp.second) {
+    XLOG(WARN) << "FSDB rejected publisher: ID_ALREADY_EXISTS publisherId="
+               << *info.publisherId()
+               << " path=" << folly::join("/", *info.path()->raw())
+               << " isStats=" << *info.isStats();
     throw Utils::createFsdbException(
         FsdbErrorCode::ID_ALREADY_EXISTS, "Dup publisher id");
   }
@@ -844,6 +856,8 @@ void ServiceHandler::registerSubscription(
     const OperSubscriberInfo& info,
     bool forceSubscribe) {
   if (info.subscriberId()->empty()) {
+    XLOG(WARN) << "FSDB rejected subscriber: EMPTY_SUBSCRIBER_ID isStats="
+               << *info.isStats();
     throw Utils::createFsdbException(
         FsdbErrorCode::EMPTY_SUBSCRIBER_ID, "Subscriber Id must not be empty");
   }
@@ -882,6 +896,9 @@ void ServiceHandler::registerSubscription(
           auto resp = activeSubscriptions.insert(
               {std::move(key), std::vector<OperSubscriberInfo>({info})});
           if (!resp.second) {
+            XLOG(WARN)
+                << "FSDB rejected subscriber: ID_ALREADY_EXISTS subscriberId="
+                << *info.subscriberId() << " isStats=" << *info.isStats();
             throw Utils::createFsdbException(
                 FsdbErrorCode::ID_ALREADY_EXISTS,
                 "Dup subscriber id: ",
@@ -1432,11 +1449,17 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
   if (!request->extPaths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeState: INVALID_REQUEST (ExtendedPaths) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "Invalid Subscription request with ExtendedPaths from: ",
         clientIdToString(*request->clientId()));
   } else if (request->paths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeState: INVALID_REQUEST (empty Paths) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "Request without Paths from: ",
@@ -1482,11 +1505,17 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
   if (!request->extPaths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeStats: INVALID_REQUEST (ExtendedPaths) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "Invalid Subscription request with ExtendedPaths from: ",
         clientIdToString(*request->clientId()));
   } else if (request->paths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeStats: INVALID_REQUEST (empty Paths) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "Request without Paths from: ",
@@ -1533,11 +1562,17 @@ ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
   if (request->extPaths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeStateExtended: INVALID_REQUEST (no ExtendedPaths) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "subscribeStateExtended request without ExtendedPaths from: ",
         clientIdToString(*request->clientId()));
   } else if (!request->paths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeStateExtended: INVALID_REQUEST (Paths present) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "subscribeStateExtended request with Paths from: ",
@@ -1586,11 +1621,17 @@ ServiceHandler::co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
   if (request->extPaths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeStatsExtended: INVALID_REQUEST (no ExtendedPaths) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "subscribeStatsExtended request without ExtendedPaths from: ",
         clientIdToString(*request->clientId()));
   } else if (!request->paths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeStatsExtended: INVALID_REQUEST (Paths present) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "subscribeStatsExtended request with Paths from: ",
@@ -1927,6 +1968,9 @@ void ServiceHandler::validateSubscriptionPermissions(
   if (!hasRawPath && !hasExtendedPath) {
     // No subscriptions allowed at root. Subscription must be contained within
     // a publisher root.
+    XLOG(WARN)
+        << "FSDB rejected subscription: INVALID_PATH (empty) subscriberId="
+        << id;
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_PATH, "Subscription path cannot be empty");
   }

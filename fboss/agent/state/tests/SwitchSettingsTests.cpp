@@ -228,30 +228,6 @@ TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
   EXPECT_EQ(l2AgeTimerSeconds, switchSettingsV1->getL2AgeTimerSeconds());
 }
 
-TEST(SwitchSettingsTest, applyMaxRouteCounterIDs) {
-  auto platform = createMockPlatform();
-  auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kVoqSwitchIdBegin /* switchId*/);
-
-  // Check default value
-  auto maxRouteCounterIDs = 0;
-  auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
-  ASSERT_NE(nullptr, switchSettingsV0);
-  EXPECT_FALSE(switchSettingsV0->isPublished());
-  EXPECT_EQ(maxRouteCounterIDs, switchSettingsV0->getMaxRouteCounterIDs());
-
-  // Check if value is updated
-  maxRouteCounterIDs = 10;
-  cfg::SwitchConfig config;
-  config.switchSettings()->maxRouteCounterIDs() = maxRouteCounterIDs;
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
-  ASSERT_NE(nullptr, switchSettingsV1);
-  EXPECT_FALSE(switchSettingsV1->isPublished());
-  EXPECT_EQ(maxRouteCounterIDs, switchSettingsV1->getMaxRouteCounterIDs());
-}
-
 TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();

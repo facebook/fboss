@@ -8,8 +8,11 @@
 #include "fboss/fsdb/oper/Subscription.h"
 #include "fboss/fsdb/oper/SubscriptionStore.h"
 
+#include <folly/Demangle.h>
 #include <folly/logging/xlog.h>
+#include <atomic>
 #include <string>
+#include <typeinfo>
 #include <vector>
 
 namespace facebook::fboss::fsdb {
@@ -128,8 +131,11 @@ class SubscriptionManager : public SubscriptionManagerBase {
     if (oldRoot != newRoot) {
       try {
         impl->serveSubscriptions(*store, oldRoot, newRoot, metadataServer);
+        // Reset streak state on a successful cycle.
+        consecutiveServeFailures_.store(0, std::memory_order_relaxed);
+        lastLoggedExceptionType_.store(nullptr, std::memory_order_relaxed);
       } catch (const std::exception& ex) {
-        XLOG(ERR) << "Exception serving subscriptions: " << ex.what();
+        logServeCycleFailure(ex, store->subscriptions().size());
       }
       impl->pruneDeletedPaths(*store, oldRoot, newRoot);
     }
@@ -149,6 +155,37 @@ class SubscriptionManager : public SubscriptionManagerBase {
   // don't let the subclass direct access to the store to simplify locking
   // policy. Instead we'll handle all the locking of the store here
   using SubscriptionManagerBase::store_;
+
+  // Log unconditionally on streak start or exception-type change;
+  // otherwise rate-limit. Per-call-site XLOG_EVERY_MS is message-agnostic,
+  // so without the type-change guard a different exception arriving
+  // inside the throttle window would be dropped.
+  void logServeCycleFailure(const std::exception& ex, size_t subscriberCount) {
+    const auto consecutive =
+        consecutiveServeFailures_.fetch_add(1, std::memory_order_relaxed) + 1;
+    const auto* currentType = &typeid(ex);
+    const auto* lastType =
+        lastLoggedExceptionType_.load(std::memory_order_relaxed);
+    const bool typeChanged = (currentType != lastType);
+    if (consecutive == 1 || typeChanged) {
+      lastLoggedExceptionType_.store(currentType, std::memory_order_relaxed);
+      XLOG(ERR) << "FSDB serve cycle failed: subs=" << subscriberCount
+                << " ex=" << folly::demangle(currentType->name())
+                << " what=" << ex.what()
+                << " consecutiveFailures=" << consecutive;
+    } else {
+      XLOG_EVERY_MS(ERR, 1000)
+          << "FSDB serve cycle failed: subs=" << subscriberCount
+          << " ex=" << folly::demangle(currentType->name())
+          << " what=" << ex.what() << " consecutiveFailures=" << consecutive;
+    }
+  }
+
+  // Streak length of consecutive serve-cycle failures. Reset on success.
+  std::atomic<uint64_t> consecutiveServeFailures_{0};
+  // Type of the most recently logged exception in the current streak.
+  // Used to bypass the rate limit on type change. Reset on success.
+  std::atomic<const std::type_info*> lastLoggedExceptionType_{nullptr};
 };
 
 } // namespace facebook::fboss::fsdb

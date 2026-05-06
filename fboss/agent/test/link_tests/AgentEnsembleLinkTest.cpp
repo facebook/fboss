@@ -732,6 +732,12 @@ AgentEnsembleLinkTest::getPortPairsForFecErrInj() const {
       phy::FecMode::RS528, phy::FecMode::RS544, phy::FecMode::RS544_2N};
   std::vector<std::pair<PortID, PortID>> supportedPorts;
   for (const auto& [port1, port2] : connectedPairs) {
+    if (getProgrammedState()->getPorts()->getNodeIf(port1)->getPortType() ==
+            cfg::PortType::MANAGEMENT_PORT ||
+        getProgrammedState()->getPorts()->getNodeIf(port2)->getPortType() ==
+            cfg::PortType::MANAGEMENT_PORT) {
+      continue;
+    }
     auto fecPort1 = getPortFECMode(port1);
     auto fecPort2 = getPortFECMode(port2);
     if (fecPort1 != fecPort2) {

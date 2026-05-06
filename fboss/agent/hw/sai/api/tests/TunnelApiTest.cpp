@@ -37,7 +37,22 @@ class TunnelApiTest : public ::testing::Test {
         SAI_TUNNEL_DECAP_ECN_MODE_STANDARD};
 
     SaiIpInIpTunnelTraits::CreateAttributes a{
-        type, underlay, overlay, ttlMode, dscpMode, ecnMode};
+        type,
+        underlay,
+        overlay,
+        ttlMode,
+        dscpMode,
+        ecnMode,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt
+#if defined(TAJO_SDK_VERSION_25_11_4210)
+        ,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt
+#endif
+    };
     return tunnelApi->create<SaiIpInIpTunnelTraits>(a, 0);
   }
 
@@ -229,6 +244,55 @@ TEST_F(TunnelApiTest, setTunnelAttributes) {
       tunnelApi->getAttribute(
           saiTunnelId, SaiIpInIpTunnelTraits::Attributes::DecapEcnMode{}),
       SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER);
+}
+
+// IP-in-IP Encap Tunnel Tests
+
+TEST_F(TunnelApiTest, createTunnelWithEncapAttrs) {
+  SaiIpInIpTunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_IPINIP};
+  SaiIpInIpTunnelTraits::Attributes::UnderlayInterface underlay{42};
+  SaiIpInIpTunnelTraits::Attributes::OverlayInterface overlay{42};
+  SaiIpInIpTunnelTraits::Attributes::EncapSrcIp encapSrcIp{
+      folly::IPAddress(sip)};
+  SaiIpInIpTunnelTraits::Attributes::EncapTtlMode encapTtlMode{
+      SAI_TUNNEL_TTL_MODE_PIPE_MODEL};
+  SaiIpInIpTunnelTraits::Attributes::EncapDscpMode encapDscpMode{
+      SAI_TUNNEL_DSCP_MODE_PIPE_MODEL};
+
+  SaiIpInIpTunnelTraits::CreateAttributes a{
+      type,
+      underlay,
+      overlay,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      encapSrcIp,
+      encapTtlMode,
+      encapDscpMode
+#if defined(TAJO_SDK_VERSION_25_11_4210)
+      ,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt
+#endif
+  };
+  auto id = tunnelApi->create<SaiIpInIpTunnelTraits>(a, 0);
+
+  EXPECT_EQ(
+      tunnelApi->getAttribute(id, SaiIpInIpTunnelTraits::Attributes::Type{}),
+      SAI_TUNNEL_TYPE_IPINIP);
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          id, SaiIpInIpTunnelTraits::Attributes::EncapSrcIp{}),
+      folly::IPAddress(sip));
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          id, SaiIpInIpTunnelTraits::Attributes::EncapTtlMode{}),
+      SAI_TUNNEL_TTL_MODE_PIPE_MODEL);
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          id, SaiIpInIpTunnelTraits::Attributes::EncapDscpMode{}),
+      SAI_TUNNEL_DSCP_MODE_PIPE_MODEL);
 }
 
 // SRv6 Tunnel Tests

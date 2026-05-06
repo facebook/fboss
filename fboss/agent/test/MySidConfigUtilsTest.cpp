@@ -27,7 +27,67 @@ TEST(MySidConfigUtilsTest, BuildSidAddressInvalidFunctionId) {
   EXPECT_THROW(buildSidAddress(locatorAddr, 32, "zzz"), FbossError);
 }
 
-TEST(MySidConfigUtilsTest, BuildPortNameMapPhysicalPort) {
+TEST(MySidConfigUtilsTest, BuildPortNameMapPhysicalPortVlanInterface) {
+  cfg::SwitchConfig config;
+  cfg::Port port;
+  port.logicalID() = 1;
+  port.name() = "eth2/5/1";
+  port.ingressVlan() = 2001;
+  config.ports()->push_back(port);
+
+  cfg::Interface intf;
+  intf.intfID() = 5001;
+  intf.type() = cfg::InterfaceType::VLAN;
+  intf.vlanID() = 2001;
+  config.interfaces()->push_back(intf);
+
+  auto portMap = buildPortNameToInterfaceIdMap(config);
+  ASSERT_EQ(portMap.count("eth2/5/1"), 1);
+  EXPECT_EQ(portMap.at("eth2/5/1"), InterfaceID(5001));
+}
+
+TEST(MySidConfigUtilsTest, BuildPortNameMapPhysicalPortPortInterface) {
+  // Port-routed (e.g. Chenab) — Interface has type=PORT and portID matches
+  // the physical port's logicalID; ingressVlan does not map to an interface.
+  cfg::SwitchConfig config;
+  cfg::Port port;
+  port.logicalID() = 42;
+  port.name() = "eth1/1/1";
+  port.ingressVlan() = 0;
+  config.ports()->push_back(port);
+
+  cfg::Interface intf;
+  intf.intfID() = 6000;
+  intf.type() = cfg::InterfaceType::PORT;
+  intf.portID() = 42;
+  config.interfaces()->push_back(intf);
+
+  auto portMap = buildPortNameToInterfaceIdMap(config);
+  ASSERT_EQ(portMap.count("eth1/1/1"), 1);
+  EXPECT_EQ(portMap.at("eth1/1/1"), InterfaceID(6000));
+}
+
+TEST(MySidConfigUtilsTest, BuildPortNameMapPhysicalPortMissingNameThrows) {
+  // A resolvable physical port with no name set is a config bug — throw
+  // (config errors must be recoverable; CHECK would crash the agent on
+  // config reload).
+  cfg::SwitchConfig config;
+  cfg::Port port;
+  port.logicalID() = 7;
+  port.ingressVlan() = 1234;
+  config.ports()->push_back(port);
+
+  cfg::Interface intf;
+  intf.intfID() = 5500;
+  intf.type() = cfg::InterfaceType::VLAN;
+  intf.vlanID() = 1234;
+  config.interfaces()->push_back(intf);
+
+  EXPECT_THROW(buildPortNameToInterfaceIdMap(config), FbossError);
+}
+
+TEST(MySidConfigUtilsTest, BuildPortNameMapPhysicalPortNoInterface) {
+  // Physical port with no matching L3 Interface — should be omitted.
   cfg::SwitchConfig config;
   cfg::Port port;
   port.logicalID() = 1;
@@ -36,34 +96,182 @@ TEST(MySidConfigUtilsTest, BuildPortNameMapPhysicalPort) {
   config.ports()->push_back(port);
 
   auto portMap = buildPortNameToInterfaceIdMap(config);
-  ASSERT_EQ(portMap.count("eth2/5/1"), 1);
-  EXPECT_EQ(portMap.at("eth2/5/1"), InterfaceID(2001));
+  EXPECT_EQ(portMap.count("eth2/5/1"), 0);
 }
 
-TEST(MySidConfigUtilsTest, BuildPortNameMapPhysicalPortDefaultName) {
-  // When the port has no name set in cfg, fall back to "port-<logicalID>".
+TEST(MySidConfigUtilsTest, BuildPortNameMapPhysicalPortPrefersPortOverVlan) {
+  // Both a PORT-typed Interface (matching logicalID) and a VLAN-typed
+  // Interface (matching ingressVlan) are configured for the same port.
+  // PORT-typed must win — it is the more specific binding.
   cfg::SwitchConfig config;
   cfg::Port port;
-  port.logicalID() = 7;
-  port.ingressVlan() = 1234;
+  port.logicalID() = 1;
+  port.name() = "eth2/5/1";
+  port.ingressVlan() = 2001;
   config.ports()->push_back(port);
 
+  cfg::Interface vlanIntf;
+  vlanIntf.intfID() = 2001;
+  vlanIntf.type() = cfg::InterfaceType::VLAN;
+  vlanIntf.vlanID() = 2001;
+  config.interfaces()->push_back(vlanIntf);
+
+  cfg::Interface portIntf;
+  portIntf.intfID() = 6000;
+  portIntf.type() = cfg::InterfaceType::PORT;
+  portIntf.portID() = 1;
+  config.interfaces()->push_back(portIntf);
+
   auto portMap = buildPortNameToInterfaceIdMap(config);
-  ASSERT_EQ(portMap.count("port-7"), 1);
-  EXPECT_EQ(portMap.at("port-7"), InterfaceID(1234));
+  ASSERT_EQ(portMap.count("eth2/5/1"), 1);
+  EXPECT_EQ(portMap.at("eth2/5/1"), InterfaceID(6000));
 }
 
-TEST(MySidConfigUtilsTest, BuildPortNameMapAggregatePort) {
+TEST(MySidConfigUtilsTest, BuildPortNameMapAggregatePortNoInterface) {
+  // Aggregate port with no member ports — should be omitted (nothing to
+  // inherit from).
   cfg::SwitchConfig config;
   cfg::AggregatePort aggPort;
   aggPort.key() = 301;
   aggPort.name() = "Port-Channel301";
-  aggPort.description() = "test lag";
   config.aggregatePorts()->push_back(aggPort);
 
   auto portMap = buildPortNameToInterfaceIdMap(config);
-  ASSERT_EQ(portMap.count("Port-Channel301"), 1);
-  EXPECT_EQ(portMap.at("Port-Channel301"), InterfaceID(301));
+  EXPECT_EQ(portMap.count("Port-Channel301"), 0);
+}
+
+TEST(
+    MySidConfigUtilsTest,
+    BuildPortNameMapAggregatePortIgnoresInterfacePortIdMatchingKey) {
+  // Even if a PORT-typed Interface happens to share a portID equal to the
+  // aggregate's key, that is NOT a valid binding — Interface.portID always
+  // refers to a physical Port.logicalID, never to an AggregatePort.key.
+  // The aggregate must inherit from an actual member port.
+  cfg::SwitchConfig config;
+  cfg::AggregatePort aggPort;
+  aggPort.key() = 301;
+  aggPort.name() = "Port-Channel301";
+  // No member ports → nothing to inherit from.
+  config.aggregatePorts()->push_back(aggPort);
+
+  cfg::Interface intf;
+  intf.intfID() = 4001;
+  intf.type() = cfg::InterfaceType::PORT;
+  intf.portID() = 301;
+  config.interfaces()->push_back(intf);
+
+  auto portMap = buildPortNameToInterfaceIdMap(config);
+  EXPECT_EQ(portMap.count("Port-Channel301"), 0);
+}
+
+TEST(MySidConfigUtilsTest, BuildPortNameMapAggregatePortViaMemberVlan) {
+  // Production setup: aggregate port has no dedicated Interface and
+  // inherits the L3 interface from its member port's VLAN.
+  cfg::SwitchConfig config;
+  cfg::Port memberPort;
+  memberPort.logicalID() = 1;
+  memberPort.name() = "eth1/1/1";
+  memberPort.ingressVlan() = 2001;
+  config.ports()->push_back(memberPort);
+
+  cfg::AggregatePort aggPort;
+  aggPort.key() = 1707;
+  aggPort.name() = "Port-Channel100011";
+  cfg::AggregatePortMember member;
+  member.memberPortID() = 1;
+  aggPort.memberPorts()->push_back(member);
+  config.aggregatePorts()->push_back(aggPort);
+
+  cfg::Interface intf;
+  intf.intfID() = 2001;
+  intf.type() = cfg::InterfaceType::VLAN;
+  intf.vlanID() = 2001;
+  config.interfaces()->push_back(intf);
+
+  auto portMap = buildPortNameToInterfaceIdMap(config);
+  ASSERT_EQ(portMap.count("Port-Channel100011"), 1);
+  EXPECT_EQ(portMap.at("Port-Channel100011"), InterfaceID(2001));
+  // Member port itself is also resolved.
+  EXPECT_EQ(portMap.at("eth1/1/1"), InterfaceID(2001));
+}
+
+TEST(
+    MySidConfigUtilsTest,
+    BuildPortNameMapAggregatePortMultipleMembersSameInterface) {
+  // Multiple member ports sharing the same VLAN-typed L3 Interface — the
+  // aggregate inherits that interface.
+  cfg::SwitchConfig config;
+  for (int32_t logicalID : {1, 2, 3}) {
+    cfg::Port memberPort;
+    memberPort.logicalID() = logicalID;
+    memberPort.name() = folly::to<std::string>("eth1/", logicalID, "/1");
+    memberPort.ingressVlan() = 2001;
+    config.ports()->push_back(memberPort);
+  }
+
+  cfg::AggregatePort aggPort;
+  aggPort.key() = 1707;
+  aggPort.name() = "Port-Channel100011";
+  for (int32_t memberId : {1, 2, 3}) {
+    cfg::AggregatePortMember member;
+    member.memberPortID() = memberId;
+    aggPort.memberPorts()->push_back(member);
+  }
+  config.aggregatePorts()->push_back(aggPort);
+
+  cfg::Interface intf;
+  intf.intfID() = 2001;
+  intf.type() = cfg::InterfaceType::VLAN;
+  intf.vlanID() = 2001;
+  config.interfaces()->push_back(intf);
+
+  auto portMap = buildPortNameToInterfaceIdMap(config);
+  ASSERT_EQ(portMap.count("Port-Channel100011"), 1);
+  EXPECT_EQ(portMap.at("Port-Channel100011"), InterfaceID(2001));
+}
+
+TEST(
+    MySidConfigUtilsTest,
+    BuildPortNameMapAggregatePortMembersOnDifferentInterfacesThrows) {
+  // Misconfigured aggregate: members resolve to different L3 interfaces.
+  // Throws (config errors must be recoverable; silently picking one would
+  // mask the bug).
+  cfg::SwitchConfig config;
+  cfg::Port port1;
+  port1.logicalID() = 1;
+  port1.name() = "eth1/1/1";
+  port1.ingressVlan() = 2001;
+  config.ports()->push_back(port1);
+
+  cfg::Port port2;
+  port2.logicalID() = 2;
+  port2.name() = "eth1/2/1";
+  port2.ingressVlan() = 2002;
+  config.ports()->push_back(port2);
+
+  cfg::AggregatePort aggPort;
+  aggPort.key() = 1707;
+  aggPort.name() = "Port-Channel100011";
+  for (int32_t memberId : {1, 2}) {
+    cfg::AggregatePortMember member;
+    member.memberPortID() = memberId;
+    aggPort.memberPorts()->push_back(member);
+  }
+  config.aggregatePorts()->push_back(aggPort);
+
+  cfg::Interface intf1;
+  intf1.intfID() = 2001;
+  intf1.type() = cfg::InterfaceType::VLAN;
+  intf1.vlanID() = 2001;
+  config.interfaces()->push_back(intf1);
+
+  cfg::Interface intf2;
+  intf2.intfID() = 2002;
+  intf2.type() = cfg::InterfaceType::VLAN;
+  intf2.vlanID() = 2002;
+  config.interfaces()->push_back(intf2);
+
+  EXPECT_THROW(buildPortNameToInterfaceIdMap(config), FbossError);
 }
 
 TEST(MySidConfigUtilsTest, BuildPortNameMapEmpty) {

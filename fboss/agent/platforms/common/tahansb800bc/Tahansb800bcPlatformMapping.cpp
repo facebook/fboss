@@ -11,7 +11,6 @@
 #include "fboss/agent/platforms/common/tahansb800bc/Tahansb800bcPlatformMapping.h"
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/platforms/common/tahansb800bc/Tahansb800bcLinkTrainingPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahansb800bc/Tahansb800bcProdPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahansb800bc/Tahansb800bcTestPlatformMapping.h"
 
@@ -21,10 +20,6 @@ static const std::string getPlatformMappingStr() {
   if (FLAGS_test_fixture) {
     XLOG(INFO) << "Using Test Fixture Platform Mapping";
     return kJsonTestPlatformMappingStr;
-  }
-  if (FLAGS_tahan800sb_link_training) {
-    XLOG(INFO) << "Using Link Training Platform Mapping";
-    return kJsonLinkTrainingPlatformMappingStr;
   }
   XLOG(INFO) << "Using Prod Platform Mapping";
   return kJsonProdPlatformMappingStr;

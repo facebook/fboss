@@ -12,33 +12,13 @@
 
 #include <folly/init/Init.h>
 #include <folly/logging/Init.h>
+#include <folly/logging/LoggerDB.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+#include <cstdlib>
+#include <iostream>
 
-/*
- * The filename provided to logger uses the string "fboss/agent/.cpp".
- * LoggerDB recursively finds the parent by stripping the filename using
- * the separator and finally ends with "fboss" in the string and the
- * corresponding LogLevel is picked to print the log.
- *
- * In OSS, the file name provided to logger uses the string
- * "/var/FBOSS/tmp_build_dir/fboss-git/fboss/agent*.cpp". When LoggerDB
- * recursively finds the parent by stripping the filename using the separator,
- * it never finds "fboss" string in its DB and ends up setting the default
- * logging level which is INFO.
- *
- * The stripping is different internally and in OSS because when buck2 is used
- * to build, there is an additional processing done to the filenames which
- * removes few strings from the beginning of the path.
- *
- * To fix this issue, we are adding a flag for OSS builds to set the logging
- * without the category.
- */
-#ifdef IS_OSS
-FOLLY_INIT_LOGGING_CONFIG("DBG2; default:async=true");
-#else
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=true");
-#endif
 
 int main(int argc, char* argv[]) {
   // Parse command line flags
@@ -47,5 +27,13 @@ int main(int argc, char* argv[]) {
   facebook::fboss::fbossInit(argc, argv);
 
   // Run the tests
-  return RUN_ALL_TESTS();
+  int ret = RUN_ALL_TESTS();
+  // Use std::_Exit() to skip static destructors. initFacebook() spawns
+  // background threads (async_trace, scribe) that may still be running;
+  // normal exit() destroys globals (e.g. boost::regex mem_block_cache) while
+  // those threads still reference them, causing heap-use-after-free under ASan.
+  folly::LoggerDB::get().flushAllHandlers();
+  std::cout.flush();
+  std::cerr.flush();
+  std::_Exit(ret);
 }

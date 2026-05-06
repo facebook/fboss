@@ -54,6 +54,7 @@ cpp_library(
 cpp_library(
     name = "agent_voq_test_src",
     srcs = [
+        "AgentFabricSwitchFabricLinkMonitoringTests.cpp",
         "AgentFabricSwitchTests.cpp",
         "AgentVoqConditionalEntropyTests.cpp",
         "AgentVoqSwitchFabricLinkMonitoringTests.cpp",
@@ -66,6 +67,7 @@ cpp_library(
         "AgentVoqSwitchWithMultipleDsfNodesTests.cpp",
     ],
     headers = [
+        "AgentFabricSwitchFabricLinkMonitoringTests.h",
         "AgentVoqSwitchFabricLinkMonitoringTests.h",
         "AgentVoqSwitchFullScaleDsfTests.h",
         "AgentVoqSwitchTests.h",
@@ -83,6 +85,7 @@ cpp_library(
         "//fboss/agent:load_agent_config",
         "//fboss/agent:packet",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:utils",
         "//fboss/agent/hw:hw_resource_stats_publisher",
         "//fboss/agent/hw:hw_switch_fb303_stats",
         "//fboss/agent/hw/test:config_factory",
@@ -165,6 +168,8 @@ cpp_library(
         "AgentAclCounterTests.cpp",
         "AgentAclInDiscardCounterTests.cpp",
         "AgentAclPriorityTests.cpp",
+        "AgentAclTableGroupTests.cpp",
+        "AgentAclTableTests.cpp",
         "AgentAmIdlesTests.cpp",
         "AgentAqmTests.cpp",
         "AgentConfigSetupTest.cpp",
@@ -194,13 +199,17 @@ cpp_library(
         "AgentJumboFramesTests.cpp",
         "AgentL3ForwardingTests.cpp",
         "AgentL4PortBlackholingTests.cpp",
+        "AgentLinkLocalForwardingTests.cpp",
         "AgentLoadBalancerTests.cpp",
         "AgentLoopBackTests.cpp",
+        "AgentMPLSMidpointTests.cpp",
         "AgentMPLSTests.cpp",
         "AgentMacLearningAndNeighborResolutionTests.cpp",
         "AgentMacLearningTests.cpp",
         "AgentMemoryUsageTests.cpp",
-        "AgentMirrorOnDropTests.cpp",
+        "AgentMirrorOnDropDnxTests.cpp",
+        "AgentMirrorOnDropTestBase.cpp",
+        "AgentMirrorOnDropXgsTests.cpp",
         "AgentMirroringTests.cpp",
         "AgentMmuTuningTests.cpp",
         "AgentNeighborTests.cpp",
@@ -218,6 +227,7 @@ cpp_library(
         "AgentRouteOverDifferentAddressFamilyNhopTests.cpp",
         "AgentRouteOverflowTests.cpp",
         "AgentRouteRollbackTests.cpp",
+        "AgentRouteStatTests.cpp",
         "AgentRouteTests.cpp",
         "AgentRouterInterfaceCounterTest.cpp",
         "AgentRxReasonTests.cpp",
@@ -239,6 +249,7 @@ cpp_library(
     ],
     headers = [
         "AgentArsBase.h",
+        "AgentMirrorOnDropTestBase.h",
         "AgentRollbackTests.h",
         "AgentTestAddressConstants.h",
         "AgentTestEcmpConstants.h",
@@ -294,6 +305,8 @@ cpp_library(
         "//fboss/agent/packet:pktutil",
         "//fboss/agent/packet:sflow_structs",
         "//fboss/agent/packet/bcm:xgs_psamp_mod",
+        "//fboss/agent/rib:nexthop_id_manager",
+        "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:label_forwarding_action",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
@@ -361,6 +374,7 @@ cpp_library(
         "//thrift/lib/cpp2/test:matcher",
     ],
     exported_external_deps = [
+        "gflags",
         ("boost", None, "boost_container"),
         ("boost", None, "boost_range"),
     ],
@@ -457,6 +471,7 @@ cpp_binary(
         ],
         versions = to_versions(sdk),
         deps = [
+            "fbsource//third-party/glog:glog",
             "fbsource//third-party/googletest:gtest",
             ":agent_hw_test_src",
             "//fboss/agent:main-bcm",
@@ -473,7 +488,6 @@ cpp_binary(
         ],
         external_deps = [
             "gflags",
-            "glog",
         ],
     )
     for sdk in BCM_SDKS

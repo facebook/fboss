@@ -112,7 +112,17 @@ class AgentPreStartExecTests : public ::testing::Test {
       bool drain = false,
       bool fdsw = false,
       bool voq = false) {
+    runWithSwitchIndex(0, coldBoot, drain, fdsw, voq);
+  }
+
+  void runWithSwitchIndex(
+      int switchIndex,
+      bool coldBoot = false,
+      bool drain = false,
+      bool fdsw = false,
+      bool voq = false) {
     using ::testing::Return;
+    const auto isNetOsSecondary = TestAttr::kNetOS && switchIndex > 0;
 
     MockAgentCommandExecutor executor;
     AgentPreStartExec exec;
@@ -131,6 +141,8 @@ class AgentPreStartExecTests : public ::testing::Test {
     ON_CALL(*netwhoami, isBcmPlatform()).WillByDefault(Return(TestAttr::kBrcm));
     ON_CALL(*netwhoami, isTajoPlatform())
         .WillByDefault(Return(!TestAttr::kBrcm));
+    ON_CALL(*netwhoami, isSdsw()).WillByDefault(Return(false));
+    ON_CALL(*netwhoami, isChenabPlatform()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, isBcmVoqPlatform()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, isFdsw()).WillByDefault(Return(fdsw));
     ON_CALL(*netwhoami, isNotDrainable()).WillByDefault(Return(false));
@@ -153,38 +165,18 @@ class AgentPreStartExecTests : public ::testing::Test {
       touchFile(util_->getAgentDrainConfig());
     }
     if (TestAttr::kCppRefactor) {
-      ::testing::InSequence seq;
-      EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
-      EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
-      EXPECT_CALL(*netwhoami, isBcmPlatform())
-          .WillOnce(Return(TestAttr::kBrcm));
-      if (!TestAttr::kBrcm) {
-        EXPECT_CALL(*netwhoami, isTajoPlatform()).WillOnce(Return(true));
-      }
-
       std::string kmodsInstaller = (TestAttr::kBrcm)
           ? "/usr/local/bin/fboss_bcm_kmods"
           : "/usr/local/bin/fboss_leaba_kmods";
       std::string kmodVersion = getAsicSdkVersion(getSdkVersion());
       std::vector<std::string> installKmod{
           kmodsInstaller, "install", "--sdk-upgrade", kmodVersion};
-      EXPECT_CALL(executor, runCommand(installKmod, true)).Times(1);
-      if (!TestAttr::kNetOS) {
-        // wedge agent binaries not included in netOS
-        EXPECT_CALL(*netwhoami, isBcmSaiPlatform())
-            .WillOnce(Return(TestAttr::kSai && TestAttr::kBrcm));
+      if (isNetOsSecondary) {
+        EXPECT_CALL(executor, runCommand(installKmod, true)).Times(0);
+      } else {
+        EXPECT_CALL(executor, runCommand(installKmod, true)).Times(1);
       }
-      if (TestAttr::kMultiSwitch) {
-        // once again for hw agent
-        EXPECT_CALL(*netwhoami, isBcmSaiPlatform())
-            .WillOnce(Return(TestAttr::kSai && TestAttr::kBrcm));
-      }
-      EXPECT_CALL(*netwhoami, isBcmVoqPlatform()).WillOnce(Return(voq));
-      if (voq) {
-        EXPECT_CALL(*netwhoami, isBcmSaiPlatform())
-            .WillOnce(Return(TestAttr::kSai && TestAttr::kBrcm));
-      }
-      if (!TestAttr::kNetOS) {
+      if (!TestAttr::kNetOS && !isNetOsSecondary) {
         if (TestAttr::kMultiSwitch) {
           EXPECT_CALL(
               executor,
@@ -254,7 +246,7 @@ class AgentPreStartExecTests : public ::testing::Test {
         std::make_unique<AgentConfig>(getConfig()),
         TestAttr::kCppRefactor,
         TestAttr::kNetOS,
-        0);
+        switchIndex);
 
     if (TestAttr::kCppRefactor) {
       auto verifySymLink = [&](const std::string& name,
@@ -265,6 +257,14 @@ class AgentPreStartExecTests : public ::testing::Test {
             util_->getPackageDirectory() + "/" + sdk + "/" + name;
         EXPECT_EQ(actualTarget.string(), expectedTarget);
       };
+      if (isNetOsSecondary) {
+        verifySymLink(
+            "fboss_hw_agent",
+            TestAttr::kSai && TestAttr::kBrcm
+                ? getSaiSdkVersion(getSdkVersion())
+                : getAsicSdkVersion(getSdkVersion()));
+        return;
+      }
       if (!TestAttr::kNetOS) {
         verifySymLink(
             "wedge_agent",
@@ -491,6 +491,12 @@ TestFixtureName(MultiSwitchCppRefactorSaiNoBrcm);
 TestFixtureName(MultiSwitchCppRefactorNetOsNoSaiBrcm);
 TestFixtureName(MultiSwitchCppRefactorNetOsSaiBrcm);
 TestFixtureName(MultiSwitchCppRefactorNetOsSaiNoBrcm);
+
+TEST_F(
+    MultiSwitchCppRefactorNetOsSaiBrcm,
+    PreStartExecSecondarySwitchPreparesBinary) {
+  runWithSwitchIndex(1);
+}
 
 TestFixtureNameFdsw(NoMultiSwitchCppRefactorSaiBrcm);
 TestFixtureNameFdsw(NoMultiSwitchCppRefactorNoSaiBrcm);

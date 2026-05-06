@@ -39,6 +39,10 @@ class CmdShowInterfacePhy
       phy::PhySideState& sideState,
       phy::PhySideStats& sideStats,
       const std::string& prefix);
+  void printLinkTrainingInfo(
+      std::ostream& out,
+      phy::PmdState& pmdState,
+      const std::string& prefix);
   void printPmdLaneRxInfo(
       std::ostream& out,
       phy::PhySideState& sideState,

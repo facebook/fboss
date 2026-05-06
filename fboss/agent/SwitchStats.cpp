@@ -133,7 +133,10 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "dsf_subscription_serve_delay_watermark_ms",
           facebook::fb303::ExportTypeConsts::kNone,
           kP100),
-      cpuLatencyMs_(map, kCounterPrefix + "cpu_latency.ms", 100, 0, 1000, AVG),
+      cpuLatencyUs_(
+          kCounterPrefix + "cpu_latency.us",
+          facebook::fb303::ExportTypeConsts::kCountAvg,
+          facebook::fb303::QuantileConsts::kP50_P95_P99_P100),
       bgHeartbeatDelay_(
           map,
           kCounterPrefix + "bg_heartbeat_delay.ms",

@@ -3,11 +3,13 @@
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
     "disable_neighbor_updates": "true",
+    "enable_nexthop_id_manager": "true",
     "enable_replayer": "true",
     "intf_nbr_tables": "true",
     "janga_test": "true",
     "log_variable_name": "true",
-    "sai_configure_six_tap": "true"
+    "sai_configure_six_tap": "true",
+    "verify_fib_nexthop_id_consistency": "true"
   },
   "sw": {
     "version": 0,
@@ -7607,7 +7609,7 @@
       "qcmEnable": false,
       "ptpTcEnable": false,
       "l2AgeTimerSeconds": 300,
-      "maxRouteCounterIDs": 0,
+      "maxRouteCounterIDs_DEPRECATED": 0,
       "blockNeighbors": [
         
       ],

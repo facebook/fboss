@@ -221,6 +221,15 @@ TEST_F(SensorServiceImplTest, publishAggStats) {
           fmt::format(
               SensorServiceImpl::kAggHasAlarmThresholdViolation, "voltage")),
       1);
+
+  // SENSOR2 has critical violation, SENSOR3 has alarm violation.
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          SensorServiceImpl::kHasCriticalThresholdViolation),
+      1);
+  EXPECT_EQ(
+      fb303::fbData->getCounter(SensorServiceImpl::kHasAlarmThresholdViolation),
+      1);
 }
 
 } // namespace facebook::fboss

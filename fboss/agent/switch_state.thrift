@@ -178,6 +178,12 @@ struct PortFields {
   65: optional bool clmEnable;
   // Link Training (IEEE 802.3 Cl.72/93/162) enable configuration for this port
   66: optional bool linkTraining;
+  // Hold timer (ms) the SDK applies before reporting a link-down event.
+  // Unset = leave SDK default untouched.
+  67: optional i32 portDownHoldoffTimeMs;
+  // Hold timer (ms) the SDK applies before reporting a link-up event.
+  // Unset = leave SDK default untouched.
+  68: optional i32 portUpHoldoffTimeMs;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -424,7 +430,7 @@ struct SwitchSettingsFields {
   2: bool qcmEnable = false;
   3: bool ptpTcEnable = false;
   4: i32 l2AgeTimerSeconds = 300;
-  5: i32 maxRouteCounterIDs = 0;
+  5: i32 maxRouteCounterIDs_DEPRECATED = 0;
   6: list<BlockedNeighbor> blockNeighbors;
   7: list<BlockedMacAddress> macAddrsToBlock;
   // Switch type
@@ -521,6 +527,7 @@ struct RouteNextHopEntry {
   7: optional list<common.NextHopThrift> overrideNextHops;
   8: optional i64 normalizedResolvedNextHopSetID;
   9: optional i64 resolvedNextHopSetID;
+  10: optional string namedNextHopGroup;
 }
 
 struct RouteNextHopsMulti {

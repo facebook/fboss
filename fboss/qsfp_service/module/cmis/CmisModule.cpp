@@ -411,6 +411,8 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Page 38h, Byte 137 - Consequent Action control
     // Bits 7-4 (rxConsAct), Bits 3-0 (txConsAct)
     {CmisField::CONS_ACT_CONTROL, {CmisPages::PAGE38, 137, 1}},
+    // Page 38h, Bytes 141-142 - Rx Consequent Action Hold-off Timer
+    {CmisField::CONS_ACT_HOLD_OFF_TMR, {CmisPages::PAGE38, 141, 2}},
     // Page 45h - Host Lane Provisioning Advertisement
     {CmisField::PAGE_UPPER45H, {CmisPages::PAGE45, 128, 128}},
     // Page 45h, Byte 129 - Host Lane Provisioning Advertisement

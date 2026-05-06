@@ -15,16 +15,20 @@ To keep the CLI syntax tree consistent, review requests that extend the CLI synt
 
 See CmdShowExample (D30268450) for end-to-end implementation of a subcommand. You can copy and edit this sample subcommand when adding new commands.
 
-Other examples: 
+Other examples:
 
-- Sample subcommand implementation (open source): [P407640625](https://www.internalfb.com/phabricator/paste/view/P407640625) 
+- Sample subcommand implementation (open source): [P407640625](https://www.internalfb.com/phabricator/paste/view/P407640625)
 - Sample subcommand implementation (FB-internal): [P407649437](https://www.internalfb.com/phabricator/paste/view/P407649437)
 
 ## What to Edit?
 
 **Define Traits and Command**
 
-Define a traits class deriving BaseCommandTraits and specify argument and return types. To specify argument types, define both ObjectArgType and ObjectArgTypeId.
+Define a traits class deriving BaseCommandTraits and specify argument and return types.
+
+**New commands (recommended):** To declare a positional argument, set `ObjectArgType` to the argument class and provide a `static void addCliArg(CLI::App& cmd, std::vector<std::string>& args)` method that calls `cmd.add_option(...)` with the positional name and help text. This approach keeps argument registration local to the command — no central enum or switch to touch. Use `argRegistrar<Traits>` in the command tree.
+
+**Existing commands (legacy):** Many non-config commands still use the older `ObjectArgTypeId` enum approach, where the traits struct declares a `static constexpr utils::ObjectArgTypeId ObjectArgTypeId = ...` and the central switch in `CmdSubcommands.cpp` handles CLI11 registration. These commands use `argTypeHandler<Traits>` in the command tree. The FBOSS team is gradually migrating these to the new `addCliArg` pattern.
 
 In the traits class, you can specify ParentCmd which lets you “inherit” parameters from the parent. As an example: CmdShowInterfaceCountersTraits has ParentCmd = CmdShowInterface, which enables the syntax `fboss2 interface [infIDs...] counters`. If CmdShowInterfaceCountersTraits defines its own param as well then we can get `fboss2 interace [intfIDs...] counters [counterIDs...]`. queryClient will get all paramenters in the parent command heirarchy in order.
 
@@ -119,4 +123,3 @@ If the subcommand talks with an agent not available in the open source e.g. show
 * [Building FBOSS2 CLI](/Features/FBOSS2_CLI/building.mdx)
 
 * [FBOSS2 CLI Design](Features/FBOSS2_CLI/design.mdx)
-

@@ -417,11 +417,7 @@ TYPED_TEST(AgentWrapperTest, StartStopRemoveHwSwitchWarmBoot) {
 }
 } // namespace facebook::fboss
 
-#ifdef IS_OSS
-FOLLY_INIT_LOGGING_CONFIG("DBG2; default:async=true");
-#else
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=true");
-#endif
 
 int main(int argc, char* argv[]) {
   // Parse command line flags

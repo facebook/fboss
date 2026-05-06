@@ -91,6 +91,8 @@ if ($ENV{SAI_BRCM_PAI_IMPL})
   set(SAI_BRCM_PAI_IMPL_INC_DIR "/var/FBOSS/pai_impl/include")
   # macsec headers
   include_directories("${SAI_BRCM_PAI_IMPL_INC_DIR}/pai_macsec")
+  # epdm headers
+  include_directories("${SAI_BRCM_PAI_IMPL_INC_DIR}/epdm")
 
   # SDK artifacts directory which hosts libpai.a, EPDM SW artifact, PHY Driver
   # SW artifact
@@ -1054,6 +1056,18 @@ find_package(tabulate CONFIG REQUIRED)
 
 # Unit Testing
 add_definitions (-DIS_OSS=true)
+
+# Strip build directory prefixes from __FILE__ so folly's LoggerDB resolves
+# log categories like "fboss=DBG2" correctly in OSS builds. Without this,
+# __FILE__ is an absolute path and the "fboss" category is never matched.
+set_property(
+  DIRECTORY
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  APPEND
+  PROPERTY
+  COMPILE_DEFINITIONS
+  "FOLLY_XLOG_STRIP_PREFIXES=\"${CMAKE_SOURCE_DIR}:${CMAKE_BINARY_DIR}\""
+)
 find_package(Threads REQUIRED)
 enable_testing()
 
@@ -1125,6 +1139,9 @@ add_dependencies(qsfp_targets
   qsfp_hw_test
   qsfp_hal_test
   wedge_qsfp_util
+  cmis_test
+  transceiver_manager_test
+  transceiver_state_machine_test
 )
 
 add_custom_target(led_targets)

@@ -5,6 +5,7 @@
     "disable_neighbor_updates": "true",
     "ecmp_width": "128",
     "enable_acl_table_group": "true",
+    "enable_nexthop_id_manager": "true",
     "enable_replayer": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
@@ -12,7 +13,8 @@
     "sai_configure_six_tap": "true",
     "sai_user_defined_trap": "true",
     "set_classid_for_my_subnet_and_ip_routes": "true",
-    "thrift_ssl_policy": "permitted"
+    "thrift_ssl_policy": "permitted",
+    "verify_fib_nexthop_id_consistency": "true"
   },
   "sw": {
     "version": 0,
@@ -4508,7 +4510,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 30,
+        "profileID": 62,
         "portType": 4,
         "expectedNeighborReachability": [
           
@@ -4544,7 +4546,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 30,
+        "profileID": 62,
         "portType": 4,
         "expectedNeighborReachability": [
           
@@ -6682,6 +6684,10 @@
           "queueId": 0
         },
         {
+          "rxReason": 3,
+          "queueId": 0
+        },
+        {
           "rxReason": 0,
           "queueId": 1
         }
@@ -6773,7 +6779,7 @@
       "qcmEnable": false,
       "ptpTcEnable": true,
       "l2AgeTimerSeconds": 300,
-      "maxRouteCounterIDs": 0,
+      "maxRouteCounterIDs_DEPRECATED": 0,
       "blockNeighbors": [
         
       ],

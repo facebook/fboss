@@ -58,9 +58,10 @@ if (SAI_TAJO_IMPL)
     fboss/agent/hw/sai/switch/npu/tajo/SaiPortManager.cpp
     fboss/agent/hw/sai/switch/npu/tajo/SaiAclTableManager.cpp
     fboss/agent/hw/sai/switch/npu/tajo/SaiBufferManager.cpp
+    fboss/agent/hw/sai/switch/npu/tajo/SaiSwitchManager.cpp
+    fboss/agent/hw/sai/switch/npu/tajo/oss/SaiSwitchManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiArsProfileManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiArsManager.cpp
-    fboss/agent/hw/sai/switch/oss/SaiSwitchManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiQueueManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiVendorSwitchManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiFirmwareManager.cpp

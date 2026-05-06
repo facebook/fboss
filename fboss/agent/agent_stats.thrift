@@ -72,4 +72,5 @@ struct AgentStats {
   30: map<i16, map<i32, switch_config.PortState>> sysPortShelStateMap;
   31: map<string, hardware_stats.HwRouterInterfaceStats> hwRouterInterfaceStats;
   32: i16 ecmpOverShelDisabledPort;
+  33: hardware_stats.HwSwitchCounterStats counterStats;
 }

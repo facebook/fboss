@@ -4,12 +4,14 @@
     "counter_refresh_interval": "0",
     "disable_looped_fabric_ports": "false",
     "disable_neighbor_updates": "true",
+    "enable_nexthop_id_manager": "true",
     "enable_replayer": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "multi_npu_platform_mapping": "True",
     "multi_switch": "True",
-    "sai_configure_six_tap": "true"
+    "sai_configure_six_tap": "true",
+    "verify_fib_nexthop_id_consistency": "true"
   },
   "sw": {
     "version": 0,
@@ -53,7 +55,7 @@
       },
       {
         "logicalID": 1,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -73,7 +75,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/13/8"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -82,10 +84,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/13/8"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -204,7 +203,7 @@
       },
       {
         "logicalID": 5,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -224,7 +223,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/13/4"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -233,10 +232,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/13/4"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -694,7 +690,7 @@
       },
       {
         "logicalID": 18,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -714,7 +710,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/3/6"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -723,10 +719,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/3/6"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -845,7 +838,7 @@
       },
       {
         "logicalID": 22,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -865,7 +858,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/3/2"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -874,10 +867,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/3/2"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -9683,7 +9673,7 @@
       },
       {
         "logicalID": 259,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9703,7 +9693,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/13/6"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -9712,10 +9702,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/13/6"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -9834,7 +9821,7 @@
       },
       {
         "logicalID": 263,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9854,7 +9841,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/13/2"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -9863,10 +9850,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/13/2"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -10250,7 +10234,7 @@
       },
       {
         "logicalID": 274,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -10270,7 +10254,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/3/8"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -10279,10 +10263,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/3/8"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -10401,7 +10382,7 @@
       },
       {
         "logicalID": 278,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -10421,7 +10402,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/3/4"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -10430,10 +10411,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/3/4"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -27852,7 +27830,7 @@
       },
       {
         "logicalID": 2282,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -27872,7 +27850,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/3/1"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -27881,10 +27859,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/3/1"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -28003,7 +27978,7 @@
       },
       {
         "logicalID": 2286,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -28023,7 +27998,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/3/5"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -28032,10 +28007,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/3/5"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -28419,7 +28391,7 @@
       },
       {
         "logicalID": 2297,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -28439,7 +28411,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/13/3"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -28448,10 +28420,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/13/3"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -28570,7 +28539,7 @@
       },
       {
         "logicalID": 2301,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -28590,7 +28559,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/13/7"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -28599,10 +28568,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/13/7"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -37408,7 +37374,7 @@
       },
       {
         "logicalID": 2538,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -37428,7 +37394,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/3/3"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -37437,10 +37403,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/3/3"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -37559,7 +37522,7 @@
       },
       {
         "logicalID": 2542,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -37579,7 +37542,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/3/7"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -37588,10 +37551,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/3/7"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -38049,7 +38009,7 @@
       },
       {
         "logicalID": 2555,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -38069,7 +38029,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/13/1"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -38078,10 +38038,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/13/1"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -38200,7 +38157,7 @@
       },
       {
         "logicalID": 2559,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -38220,7 +38177,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "fab1/13/5"
+          
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -38229,10 +38186,7 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          {
-            "remoteSystem": "fabricNode0",
-            "remotePort": "fab1/13/5"
-          }
+          
         ],
         "drainState": 0,
         "scope": 0,
@@ -38327,7 +38281,7 @@
       "qcmEnable": false,
       "ptpTcEnable": false,
       "l2AgeTimerSeconds": 300,
-      "maxRouteCounterIDs": 0,
+      "maxRouteCounterIDs_DEPRECATED": 0,
       "blockNeighbors": [
         
       ],
@@ -38454,8 +38408,8 @@
             "serdes_fabric_clk_freq_out.BCM8892X": "bypass",
             "soc_family.BCM8892X": "BCM8892X",
             "stable_location.BCM8892X": "4",
-            "stable_size.BCM8892X": "6600000",
-            "sw_state_max_size.BCM8892X": "6500000",
+            "stable_size.BCM8892X": "9600000",
+            "sw_state_max_size.BCM8892X": "9500000",
             "system_contains_multiple_pipe_device.BCM8892X": "0",
             "tdma_intr_enable.BCM8892X": "0",
             "tdma_timeout_usec.BCM8892X": "5000000",

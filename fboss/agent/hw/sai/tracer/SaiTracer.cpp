@@ -2451,6 +2451,9 @@ void SaiTracer::setupGlobals() {
   globalVar.emplace_back("[[maybe_unused]] sai_neighbor_entry_t n_e");
   globalVar.emplace_back("[[maybe_unused]] sai_fdb_entry_t f_e");
   globalVar.emplace_back("[[maybe_unused]] sai_inseg_entry_t i_e");
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  globalVar.emplace_back("[[maybe_unused]] sai_my_sid_entry_t ms_e");
+#endif
   globalVar.emplace_back("[[maybe_unused]] uint32_t expected_object_count");
   globalVar.emplace_back("[[maybe_unused]] uint32_t object_count");
   globalVar.emplace_back(

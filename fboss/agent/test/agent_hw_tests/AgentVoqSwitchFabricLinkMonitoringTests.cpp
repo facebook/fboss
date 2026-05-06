@@ -5,10 +5,9 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FabricConnectivityManager.h"
-#include "fboss/agent/FabricLinkMonitoringManager.h"
 #include "fboss/agent/HwSwitchThriftClientTable.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/test/utils/FabricTestUtils.h"
+#include "fboss/agent/test/utils/DsfConfigUtils.h"
 
 namespace facebook::fboss {
 
@@ -24,23 +23,12 @@ constexpr int kTotalFabricPorts = kNumFabricSwitches * kFabricPortsPerSwitch;
 constexpr int kFabricLinkMonitoringSystemPortOffsetSingleStage = -480;
 constexpr int kFabricLinkMonitoringSystemPortOffsetDualStage = -1015;
 constexpr int64_t kFabricSwitchIdStart = 512;
-constexpr int64_t kMinCounterIncrement = 3;
-// Switch IDs are spaced 4 apart (e.g., 512, 516, 520, ...)
-constexpr int kSwitchIdIncrement = 4;
 
 // In dual stage mode, we also need L2 fabric nodes to make the config
 // recognized as dual stage by numFabricLevels().
 // L2 fabric switch IDs start after L1 switches.
 constexpr int kNumL2FabricSwitches = 4;
 constexpr int64_t kL2FabricSwitchIdStart = 1024;
-
-// Get the fabric level for L1 DSF nodes (the ones VOQ switch connects to).
-// In both single stage and dual stage mode, VOQ switches connect to
-// L1 fabric switches which have fabricLevel = 1.
-constexpr int kL1FabricLevel = 1;
-
-// L2 fabric switches have fabricLevel = 2
-constexpr int kL2FabricLevel = 2;
 
 // Get the system port offset based on dual stage mode
 int getFabricLinkMonitoringSystemPortOffset() {
@@ -51,87 +39,12 @@ int getFabricLinkMonitoringSystemPortOffset() {
 }
 
 int64_t getFabricSwitchId(int fabricSwitchIndex) {
-  return kFabricSwitchIdStart + (fabricSwitchIndex * kSwitchIdIncrement);
+  return kFabricSwitchIdStart +
+      (fabricSwitchIndex * utility::kSwitchIdIncrement);
 }
 
 std::string getFabricSwitchName(int64_t fabricSwitchId) {
   return "fabric" + std::to_string(fabricSwitchId);
-}
-
-void addFabricDsfNode(
-    cfg::SwitchConfig& config,
-    int64_t switchId,
-    int fabricLevel,
-    PlatformType platformType,
-    cfg::AsicType asicType) {
-  cfg::DsfNode node;
-  node.switchId() = switchId;
-  node.name() = getFabricSwitchName(switchId);
-  node.type() = cfg::DsfNodeType::FABRIC_NODE;
-  node.fabricLevel() = fabricLevel;
-  node.platformType() = platformType;
-  node.asicType() = asicType;
-  (*config.dsfNodes())[switchId] = node;
-}
-
-// Collect initial fabric link monitoring stats from PortStats
-// Returns a map of portID -> {txCount, rxCount}
-std::map<PortID, std::pair<int64_t, int64_t>> collectInitialStats(
-    SwSwitch* sw,
-    const std::vector<PortID>& fabricPorts,
-    size_t numPortsToCheck) {
-  std::map<PortID, std::pair<int64_t, int64_t>> initialStats;
-
-  for (size_t i = 0; i < numPortsToCheck; i++) {
-    const auto& portId = fabricPorts[i];
-    auto* portStat = sw->portStats(portId);
-    CHECK(portStat) << "PortStats should exist for port " << portId;
-
-    int64_t txCount = portStat->getFabricLinkMonitoringTxPackets();
-    int64_t rxCount = portStat->getFabricLinkMonitoringRxPackets();
-
-    initialStats[portId] = {txCount, rxCount};
-  }
-  return initialStats;
-}
-
-bool allPortsHaveIncrementedCounters(
-    SwSwitch* sw,
-    const std::vector<PortID>& fabricPorts,
-    const std::map<PortID, std::pair<int64_t, int64_t>>& initialStats,
-    size_t numPortsToCheck) {
-  auto state = sw->getState();
-
-  for (size_t i = 0; i < numPortsToCheck; i++) {
-    auto portId = fabricPorts[i];
-    auto port = state->getPorts()->getNodeIf(portId);
-    CHECK(port) << "Port " << portId << " should exist in state";
-    auto portName = port->getName();
-
-    auto it = initialStats.find(portId);
-    CHECK(it != initialStats.end())
-        << "Port " << portId << " should exist in initialStats";
-    auto [initialTx, initialRx] = it->second;
-
-    // Get current fabric link monitoring counters from PortStats
-    auto* portStat = sw->portStats(portId);
-    CHECK(portStat) << "PortStats should exist for port " << portId;
-
-    int64_t currentTx = portStat->getFabricLinkMonitoringTxPackets();
-    int64_t currentRx = portStat->getFabricLinkMonitoringRxPackets();
-
-    int64_t txIncrement = currentTx - initialTx;
-    int64_t rxIncrement = currentRx - initialRx;
-
-    XLOG(DBG3) << "Port " << portName << ": TX increment=" << txIncrement
-               << ", RX increment=" << rxIncrement;
-
-    if (txIncrement < kMinCounterIncrement ||
-        rxIncrement < kMinCounterIncrement) {
-      return false;
-    }
-  }
-  return true;
 }
 
 } // namespace
@@ -182,10 +95,11 @@ void AgentVoqSwitchFabricLinkMonitoringTest::addFabricLinkMonitoringDsfNodes(
   // Fabric switch IDs are 4 apart: 512, 516, 520, ..., 668
   // These are the fabric switches that the VOQ switch directly connects to.
   for (int i = 0; i < kNumFabricSwitches; i++) {
-    addFabricDsfNode(
+    utility::addFabricDsfNode(
         config,
         getFabricSwitchId(i),
-        kL1FabricLevel,
+        getFabricSwitchName(getFabricSwitchId(i)),
+        utility::kL1FabricLevel,
         fabricPlatformType,
         asicType);
   }
@@ -195,9 +109,15 @@ void AgentVoqSwitchFabricLinkMonitoringTest::addFabricLinkMonitoringDsfNodes(
   // configuration.
   if (isDualStage3Q2QMode()) {
     for (int i = 0; i < kNumL2FabricSwitches; i++) {
-      int64_t l2SwitchId = kL2FabricSwitchIdStart + (i * kSwitchIdIncrement);
-      addFabricDsfNode(
-          config, l2SwitchId, kL2FabricLevel, fabricPlatformType, asicType);
+      int64_t l2SwitchId =
+          kL2FabricSwitchIdStart + (i * utility::kSwitchIdIncrement);
+      utility::addFabricDsfNode(
+          config,
+          l2SwitchId,
+          getFabricSwitchName(l2SwitchId),
+          utility::kL2FabricLevel,
+          fabricPlatformType,
+          asicType);
     }
   }
 
@@ -245,16 +165,19 @@ TEST_F(AgentVoqSwitchFabricLinkMonitoringTest, validateFabricLinkMonitoring) {
 
     // Collect initial stats from PortStats fb303 counters
     // (fabric_link_monitoring_tx_packets and fabric_link_monitoring_rx_packets)
-    auto initialStats =
-        collectInitialStats(getSw(), fabricPorts, numPortsToCheck);
+    auto* fabricLinkMonMgr = getSw()->getFabricLinkMonitoringManager();
+    auto initialStats = utility::collectFabricLinkMonitoringStats(
+        fabricLinkMonMgr, fabricPorts, numPortsToCheck);
 
     WITH_RETRIES({
       getSw()->updateStats();
-      EXPECT_EVENTUALLY_TRUE(allPortsHaveIncrementedCounters(
-          getSw(), fabricPorts, initialStats, numPortsToCheck))
+      EXPECT_EVENTUALLY_TRUE(
+          utility::allPortsHaveFabricLinkMonitoringCounterIncrements(
+              fabricLinkMonMgr, fabricPorts, initialStats, numPortsToCheck))
           << "Waiting for fabric_link_monitoring_tx_packets/rx_packets "
-          << "counters to increment by at least " << kMinCounterIncrement
-          << " on all " << numPortsToCheck << " fabric ports";
+          << "counters to increment by at least "
+          << utility::kFabricLinkMonitoringMinCounterIncrement << " on all "
+          << numPortsToCheck << " fabric ports";
     });
   };
   verifyAcrossWarmBoots(setup, verify);

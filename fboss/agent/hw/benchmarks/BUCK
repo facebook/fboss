@@ -30,29 +30,22 @@ agent_benchmark_lib(
 
 cpp_library(
     name = "hw_cpu_latency_benchmark_helper",
+    srcs = ["HwCpuLatencyBenchmarkHelper.cpp"],
     headers = ["HwCpuLatencyBenchmarkHelper.h"],
+    undefined_symbols = True,
     exported_deps = [
-        "//fboss/agent:asic_utils",
-        "//fboss/agent:packet",
+        "//fboss/agent:agent_features",
+        "//fboss/agent:core",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
-        "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:config_utils",
         "//fboss/agent/test/utils:copp_test_utils",
-        "//fboss/agent/test/utils:olympic_qos_utils",
-        "//fboss/agent/test/utils:packet_snooper",
-        "//fboss/agent/test/utils:qos_test_utils",
-        "//fboss/agent/test/utils:trap_packet_utils",
+        "//fboss/lib:common_utils",
         "//folly:benchmark",
         "//folly:conv",
-        "//folly:network_address",
-        "//folly/io:iobuf",
         "//folly/json:dynamic",
         "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-        ("boost", None, "boost_container"),
     ],
 )
 
@@ -165,6 +158,7 @@ cpp_library(
         "//fboss/agent:sw_agent_initializer",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:copp_test_utils",
         "//fboss/agent/test/utils:dsf_config_utils",
         "//fboss/agent/test/utils:load_balancer_test_utils",

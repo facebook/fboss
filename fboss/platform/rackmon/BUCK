@@ -44,6 +44,7 @@ custom_rule(
     ],
     add_install_dir = True,
     build_script_dep = ":generate_rackmon_config.sh",
+    has_content_based_path = False,
     output_gen_files = [
         "GeneratedRackmonInterfaceConfig.cpp",
         "GeneratedRackmonPlsConfig.cpp",

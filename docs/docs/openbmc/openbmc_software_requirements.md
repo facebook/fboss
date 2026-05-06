@@ -55,7 +55,8 @@ Guidelines](/docs/openbmc/openbmc_pr_guidelines) document when submitting Pull R
 
 ### 2.2 Linux
 
-- Always adopt the latest Linux kernel when starting a new platform.
+- Always adopt the latest Linux kernel when starting a new platform. The latest
+  Linux version is v6.18 as of May 2026.
 - Enable the primary watchdog in device tree, but do not install additional
   services to kick the primary watchdog: use the default kthread spawned by watchdog driver.
 - Make sure the 2nd watchdog is disabled at the end of Linux boot up

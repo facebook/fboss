@@ -19,6 +19,7 @@ namespace {
 sai_tunnel_type_t getSaiTunnelType(TunnelType type) {
   switch (type) {
     case TunnelType::IP_IN_IP:
+    case TunnelType::IP_IN_IP_ENCAP:
       return SAI_TUNNEL_TYPE_IPINIP;
     case TunnelType::SRV6_ENCAP:
       break;
@@ -128,7 +129,17 @@ TunnelSaiId SaiTunnelManager::addTunnel(
       saiIntfId,
       getSaiTtlMode(swTunnel->getTTLMode()),
       getSaiDscpMode(swTunnel->getDscpMode()),
-      getSaiDecapEcnMode(swTunnel->getEcnMode())};
+      getSaiDecapEcnMode(swTunnel->getEcnMode()),
+      folly::IPAddress("0.0.0.0"),
+      SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
+      SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL
+#if defined(TAJO_SDK_VERSION_25_11_4210)
+      ,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt
+#endif
+  };
 
   std::shared_ptr<SaiTunnel> tunnelObj = tunnelStore.setObject(k1, k1);
   auto tunnelHandle = std::make_unique<SaiTunnelHandle>();

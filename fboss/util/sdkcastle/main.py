@@ -51,6 +51,12 @@ def main():
         default="INFO",
         help="Set the logging level (default: INFO)",
     )
+    parser.add_argument(
+        "--remote",
+        action="store_true",
+        default=False,
+        help="Run tests remotely via Sandcastle jobs instead of locally on devserver",
+    )
 
     args = parser.parse_args()
 
@@ -67,6 +73,7 @@ def main():
 
         config_parser = ConfigParser()
         config = config_parser.parse_from_file(str(config_path))
+        config.remote = args.remote
 
         logger.info(f"Loaded configuration from: {config_path}")
         logger.debug(f"SDK Version: {config.test_sdk_version}")

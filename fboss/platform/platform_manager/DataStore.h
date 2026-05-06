@@ -69,6 +69,11 @@ class DataStore {
       const std::string& slotPath,
       const PmUnitVersion& version);
 
+  // Update eepromProductName for a given slotPath.
+  void updatePmUnitEepromProductName(
+      const std::string& slotPath,
+      const std::string& eepromProductName);
+
   void updatePmUnitSuccessfullyExplored(
       const std::string& slotPath,
       bool successfullyExplored);

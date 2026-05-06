@@ -17,12 +17,12 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _TunnelMap{
     SAI_ATTR_MAP(IpInIpTunnel, DecapTtlMode),
     SAI_ATTR_MAP(IpInIpTunnel, DecapDscpMode),
     SAI_ATTR_MAP(IpInIpTunnel, DecapEcnMode),
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-    SAI_ATTR_MAP(Srv6Tunnel, EncapSrcIp),
-    SAI_ATTR_MAP(Srv6Tunnel, EncapTtlMode),
-    SAI_ATTR_MAP(Srv6Tunnel, EncapEcnMode),
-    SAI_ATTR_MAP(Srv6Tunnel, EncapDscpMode),
-#endif
+    SAI_ATTR_MAP(IpInIpTunnel, PeerMode),
+    SAI_ATTR_MAP(IpInIpTunnel, EncapDstIp),
+    SAI_ATTR_MAP(IpInIpTunnel, EncapSrcIp),
+    SAI_ATTR_MAP(IpInIpTunnel, EncapTtlMode),
+    SAI_ATTR_MAP(IpInIpTunnel, EncapDscpMode),
+    SAI_ATTR_MAP(IpInIpTunnel, EncapEcnMode),
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _TunnelTermMap{

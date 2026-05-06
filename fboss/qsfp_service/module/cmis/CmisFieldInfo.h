@@ -72,6 +72,8 @@ enum FieldMasks : uint8_t {
   RX_CONS_ACT_INSERT_LF = 0x10,
   // Page 45h, Byte 129, Bit 1: rxConsActImpl
   RX_CONS_ACT_IMPL_MASK = 0x02,
+  // Page 45h, Byte 129, Bit 2: rxConsActHoldOffTmrImpl
+  RX_CONS_ACT_HOLD_OFF_TMR_IMPL_MASK = 0x04,
 };
 
 enum FieldBitShift : uint8_t {

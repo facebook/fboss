@@ -193,10 +193,26 @@ void CmdShowInterfacePhy::printSideStateAndStat(
   for (auto it : *sideStats.pmd()->lanes()) {
     pmdLanes.insert(it.first);
   }
+  printLinkTrainingInfo(out, *sideState.pmd(), prefix);
   if (!pmdLanes.empty()) {
     printPmdLaneRxInfo(out, sideState, sideStats, pmdLanes, prefix);
     printPmdLaneTxInfo(out, sideState, pmdLanes, prefix);
     printSerdesParametersInfo(out, *sideState.pmd(), prefix);
+  }
+}
+
+void CmdShowInterfacePhy::printLinkTrainingInfo(
+    std::ostream& out,
+    phy::PmdState& pmdState,
+    const std::string& prefix) {
+  auto ltStatus = *pmdState.linkTrainingStatus();
+  out << prefix << "Link Training" << std::endl;
+  out << "  " << prefix << "Enabled                  "
+      << (*ltStatus.linkTrainingEnabled() ? "True" : "False") << std::endl;
+  if (ltStatus.rxStatus().has_value()) {
+    out << "  " << prefix << "RX Trained Status        "
+        << apache::thrift::util::enumNameSafe(*ltStatus.rxStatus())
+        << std::endl;
   }
 }
 

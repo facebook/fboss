@@ -58,9 +58,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   void async_tm_getStatus(ThriftCallback<fb303::cpp2::fb_status> cb) override;
 
-  void async_eb_registerForNeighborChanged(
-      ThriftCallback<void> callback) override;
-
   void flushCountersNow() override;
 
   void addUnicastRoute(int16_t client, std::unique_ptr<UnicastRoute> route)
@@ -126,12 +123,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getMplsRouteDetails(
       MplsRouteDetails& mplsRouteDetail,
       MplsLabel topLabel) override;
-
-  void addTeFlows(
-      std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) override;
-  void deleteTeFlows(std::unique_ptr<std::vector<TeFlow>> teFlows) override;
-  void syncTeFlows(
-      std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) override;
 
   void addOrUpdateNamedNextHopGroups(
       std::unique_ptr<std::vector<NamedNextHopGroup>> nextHopGroups) override;

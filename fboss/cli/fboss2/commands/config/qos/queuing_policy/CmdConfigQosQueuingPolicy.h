@@ -51,15 +51,13 @@ class QueuingPolicyName : public utils::BaseObjectArgType<std::string> {
   const std::string& getName() const {
     return data_[0];
   }
-
-  const static utils::ObjectArgTypeId id =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QUEUING_POLICY_NAME;
 };
 
 struct CmdConfigQosQueuingPolicyTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigQos;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QUEUING_POLICY_NAME;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("queuing_policy_name", args, "Queuing policy name");
+  }
   using ObjectArgType = QueuingPolicyName;
   using RetType = std::string;
 };

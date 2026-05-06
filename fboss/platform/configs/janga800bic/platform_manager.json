@@ -1150,6 +1150,7 @@
     "spidev",
     "fboss_iob_pci",
     "fboss_iob_i2c",
+    "fboss_iob_spi",
     "ledtrig_timer"
   ]
 }

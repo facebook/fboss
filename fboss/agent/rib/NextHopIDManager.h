@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include <folly/IPAddress.h>
 #include <gtest/gtest_prod.h>
 #include <cstdint>
 #include <optional>
+#include <set>
 #include <unordered_map>
 #include <vector>
 #include "fboss/agent/state/FibInfoMap.h"
@@ -40,12 +42,15 @@ namespace facebook::fboss {
  */
 class NextHopIDManager {
  public:
-  // Structure to hold ID and reference count for NextHops
-  struct NextHopIDInfo {
-    NextHopID id;
-    uint32_t count = 0;
+  // Structure to hold NextHop and its reference count (maps NextHopID → NextHop
+  // + refcount). This enables O(1) refcount decrement by NextHopID without
+  // hashing the NextHop object.
+  struct NextHopEntry {
+    NextHop nextHop;
+    uint32_t refCount{0};
 
-    NextHopIDInfo(NextHopID id_, uint32_t count_) : id(id_), count(count_) {}
+    NextHopEntry(NextHop nh, uint32_t rc)
+        : nextHop(std::move(nh)), refCount(rc) {}
   };
 
   // Structure to hold ID and reference count for NextHopSets
@@ -58,9 +63,9 @@ class NextHopIDManager {
         : id(id_), count(count_) {}
   };
 
-  // Type alias for the NextHop to NextHopIDInfo map iterator
-  using NextHopInfoIter =
-      std::unordered_map<NextHop, NextHopIDInfo>::const_iterator;
+  // Type alias for the NextHop to NextHopID map iterator
+  using NextHopToIDIter =
+      std::unordered_map<NextHop, NextHopID>::const_iterator;
 
   // Type alias for the NextHopIDSet to NextHopSetIDInfo map iterator
   using NextHopIdSetIter =
@@ -113,8 +118,8 @@ class NextHopIDManager {
   NextHopIDManager() = default;
 
   // Get or allocate a NextHopID for the given NextHop
-  // Returns const iterator to the NextHop -> NextHopIDInfo entry
-  NextHopInfoIter getOrAllocateNextHopID(const NextHop& nextHop);
+  // Returns const iterator to the NextHop -> NextHopID entry
+  NextHopToIDIter getOrAllocateNextHopID(const NextHop& nextHop);
 
   // Get or allocate a NextHopSetID for the given set of NextHopIDs
   // Returns const iterator to the NextHopIDSet -> NextHopSetIDInfo entry
@@ -128,8 +133,9 @@ class NextHopIDManager {
   // reaches 0. Returns true if deallocated, false otherwise
   bool decrOrDeallocateNextHopIDSet(const NextHopIDSet& nextHopIDSet);
 
-  // Get the reverse lookup map from NextHopID to NextHop
-  const std::unordered_map<NextHopID, NextHop>& getIdToNextHop() const {
+  // Get the reverse lookup map from NextHopID to NextHopEntry (NextHop +
+  // refCount)
+  const std::unordered_map<NextHopID, NextHopEntry>& getIdToNextHop() const {
     return idToNextHop_;
   }
 
@@ -204,6 +210,14 @@ class NextHopIDManager {
   // Returns std::nullopt if the NextHopSetID is not found
   std::optional<RouteNextHopSet> getNextHopsIf(NextHopSetID nextHopSetID) const;
 
+  // True iff the next-hop set identified by `nextHopSetID` contains a
+  // next-hop whose address equals `ip`. Avoids materializing the full
+  // RouteNextHopSet (which getNextHopsIf rebuilds via per-element
+  // lookups) — used by the MySid neighbor-removal hot path.
+  bool nextHopSetContainsAddr(
+      NextHopSetID nextHopSetID,
+      const folly::IPAddress& ip) const;
+
   // Get all named next-hop groups
   const std::unordered_map<std::string, RouteNextHopSet>&
   getNameToNextHopSetMap() const {
@@ -220,6 +234,24 @@ class NextHopIDManager {
   bool hasNamedNextHopGroup(const std::string& name) const {
     return nameToNextHopSet_.find(name) != nameToNextHopSet_.end();
   }
+
+  // Reverse mapping: track which routes reference a named NHG
+  using RoutePrefixKey = std::pair<RouterID, folly::CIDRNetwork>;
+  using RouteSet = std::set<RoutePrefixKey>;
+
+  void addRouteForNamedNhg(
+      const std::string& name,
+      const RouterID& rid,
+      const folly::CIDRNetwork& prefix);
+
+  void removeRouteForNamedNhg(
+      const std::string& name,
+      const RouterID& rid,
+      const folly::CIDRNetwork& prefix);
+
+  const RouteSet& getRoutesForNamedNhg(const std::string& name) const;
+
+  bool hasRoutesForNamedNhg(const std::string& name) const;
 
   /**
    * Reconstruct the NextHopIDManager for two main scenarios:
@@ -253,6 +285,10 @@ class NextHopIDManager {
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
 
  private:
+  // Decrement reference count for a NextHopID and deallocate if count reaches 0
+  // Returns true if deallocated, false otherwise.
+  bool decrOrDeallocateNextHopByID(const NextHopID& nextHopID);
+
   static constexpr int64_t kNextHopIDStart = 1;
   static constexpr int64_t kNextHopSetIDStart = 1LL << 62;
 
@@ -264,14 +300,14 @@ class NextHopIDManager {
   // Allocate 2^62 - INT64_MAX IDs for NextHopIDSets.
   NextHopSetID nextAvailableNextHopSetID_{kNextHopSetIDStart};
 
-  // Mapping from NextHop to its ID and reference count
-  std::unordered_map<NextHop, NextHopIDInfo> nextHopToIDInfo_;
+  // Mapping from NextHop to its assigned NextHopID
+  std::unordered_map<NextHop, NextHopID> nextHopToID_;
 
   // Mapping from set of NextHopIDs to its NextHopSetID and reference count
   std::unordered_map<NextHopIDSet, NextHopSetIDInfo> nextHopIdSetToIDInfo_;
 
-  // Reverse lookup maps for clients to convert IDs back to NextHops
-  std::unordered_map<NextHopID, NextHop> idToNextHop_;
+  // Reverse lookup map: NextHopID → {NextHop, refCount}
+  std::unordered_map<NextHopID, NextHopEntry> idToNextHop_;
 
   // Map from NextHopSetID to set of NextHopIDs
   std::unordered_map<NextHopSetID, NextHopIDSet> idToNextHopIdSet_;
@@ -281,6 +317,8 @@ class NextHopIDManager {
   std::unordered_map<std::string, RouteNextHopSet> nameToNextHopSet_;
   // Map from name to NextHopSetID for quick lookup
   std::unordered_map<std::string, NextHopSetID> nameToNextHopSetID_;
+  // Reverse mapping: named NHG name to routes referencing it
+  std::unordered_map<std::string, RouteSet> nameToRoutes_;
 
   // Get the ref count for a given NextHop
   uint32_t getNextHopRefCount(const NextHop& nextHop);
@@ -304,6 +342,7 @@ class NextHopIDManager {
   FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopSetIDOrderIndependence);
   FRIEND_TEST(NextHopIDManagerTest, decrOrDeallocateNextHop);
+  FRIEND_TEST(NextHopIDManagerTest, decrOrDeallocateNextHopByID);
   FRIEND_TEST(NextHopIDManagerTest, decrOrDeallocateNextHopIDSet);
   FRIEND_TEST(NextHopIDManagerTest, getOrAllocRouteNextHopSetIDWithEmptySet);
   FRIEND_TEST(
@@ -325,6 +364,8 @@ class NextHopIDManager {
   FRIEND_TEST(NextHopIDManagerTest, namedNextHopGroupWarmBoot);
   FRIEND_TEST(NextHopIDManagerTest, namedNextHopGroupSharesSetIdWithRoutes);
   FRIEND_TEST(NextHopIDManagerTest, routeReusesNamedNextHopGroupSetId);
+  FRIEND_TEST(NextHopIDManagerTest, namedNhgRouteReverseMapping);
+  FRIEND_TEST(NextHopIDManagerTest, namedNhgRouteReverseMappingWarmBoot);
   FRIEND_TEST(
       RibMySidUpdaterTest,
       nhopRefCountBumped_afterResolvingNhopWithIntfId);

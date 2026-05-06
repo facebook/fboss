@@ -7,6 +7,7 @@
     "dsf_single_stage_r128_f40_e16_8k_sys_ports": "true",
     "dsf_single_stage_r128_f40_e16_uniform_local_offset": "true",
     "enable_acl_table_group": "true",
+    "enable_nexthop_id_manager": "true",
     "hyper_port": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
@@ -139,7 +140,7 @@
       "qcmEnable": false,
       "ptpTcEnable": false,
       "l2AgeTimerSeconds": 300,
-      "maxRouteCounterIDs": 0,
+      "maxRouteCounterIDs_DEPRECATED": 0,
       "blockNeighbors": [
         
       ],

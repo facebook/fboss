@@ -156,7 +156,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
         std::unique_ptr<FakeTransceiverImpl> xcvrImpl;
         if (multiPort) {
           qsfpImpls_.push_back(
-              std::make_unique<Cmis400GFr4MultiPortTransceiver>(
+              std::make_unique<Cmis2x400GFr4Transceiver>(
                   tcvrId, transceiverManager_.get()));
         } else {
           qsfpImpls_.push_back(

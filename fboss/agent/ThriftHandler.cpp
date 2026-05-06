@@ -913,6 +913,11 @@ void ThriftHandler::updateUnicastRoutesImpl(
         }
       }
     }
+    if (FLAGS_enable_route_counters_for_named_nhg &&
+        route.namedRouteDestination()->getType() ==
+            NamedRouteDestination::Type::nextHopGroup) {
+      route.counterID() = *route.namedRouteDestination()->nextHopGroup_ref();
+    }
     updater.addRoute(routerID, clientID, route);
   }
   RouteUpdateWrapper::SyncFibFor syncFibs;
@@ -2243,11 +2248,6 @@ void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
   }
 }
 
-void ThriftHandler::async_eb_registerForNeighborChanged(
-    ThriftCallback<void> cb) {
-  throw FbossError("ThriftDuplex Neighbor Listener is no longer supported");
-}
-
 void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
@@ -3234,24 +3234,6 @@ void ThriftHandler::getActualSwitchDrainState(
   }
 }
 
-void ThriftHandler::addTeFlows(
-    std::unique_ptr<std::vector<FlowEntry>> /*teFlowEntries*/) {
-  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
-  throw FbossError("addTeFlows is deprecated");
-}
-
-void ThriftHandler::deleteTeFlows(
-    std::unique_ptr<std::vector<TeFlow>> /*teFlows*/) {
-  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
-  throw FbossError("deleteTeFlows is deprecated");
-}
-
-void ThriftHandler::syncTeFlows(
-    std::unique_ptr<std::vector<FlowEntry>> /*teFlowEntries*/) {
-  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
-  throw FbossError("syncTeFlows is deprecated");
-}
-
 void ThriftHandler::getTeFlowTableDetails(
     std::vector<TeFlowDetails>& /*flowTable*/) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
@@ -3268,24 +3250,32 @@ void ThriftHandler::addOrUpdateNamedNextHopGroups(
     throw FbossError("RIB not initialized");
   }
 
+  /*
+   * Named NHG are associated with counters in HW. SAI impls
+   * reject counters with label length > 31 characters. So
+   * restrict it here.
+   */
+  static constexpr size_t kMaxGroupNameLen = 31;
   std::vector<std::pair<std::string, RouteNextHopSet>> groups;
   for (const auto& group : *nextHopGroups) {
+    if (group.name()->size() > kMaxGroupNameLen) {
+      throw FbossError(
+          "Named next-hop group name exceeds max length of ",
+          kMaxGroupNameLen,
+          " characters: ",
+          *group.name());
+    }
     groups.emplace_back(
         *group.name(),
         util::toRouteNextHopSet(
             *group.nexthops(), true /* allowV6NonLinkLocal */));
   }
 
-  // RIB handles allocation + state update atomically on the RIB thread
+  // RIB handles allocation + route reprogramming on the RIB thread.
+  // RibToSwitchStateUpdater syncs FIB routes, mySids, and NHG ID maps
+  // to switch state in a single pass.
   rib->addOrUpdateNamedNextHopGroups(
-      groups, [this](const NextHopIDManager* mgr) {
-        SwitchStateNextHopIdUpdater updater(mgr);
-        sw_->updateStateBlocking(
-            "addOrUpdateNamedNextHopGroups",
-            [&updater](const std::shared_ptr<SwitchState>& state) {
-              return updater(state);
-            });
-      });
+      sw_->getScopeResolver(), groups, createRibToSwitchStateFunction(), sw_);
 }
 
 void ThriftHandler::deleteNamedNextHopGroups(

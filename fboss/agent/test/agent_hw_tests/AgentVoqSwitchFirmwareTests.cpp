@@ -2,6 +2,8 @@
 //
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 
+#include <unistd.h>
+
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
@@ -18,6 +20,27 @@ DEFINE_string(
     "Path where isolation FW is placed");
 
 namespace facebook::fboss {
+
+constexpr auto kLinkDisableFirmwarePath =
+    "/tmp/db/jericho3ai_a0/fi-2.4.13-GA.elf";
+constexpr auto kLinkDisableFirmwarePathSdk14 =
+    "/tmp/db/jericho3ai_a0/fi-2.6.6-GA.elf";
+
+// For SDK >= 14.0, use fi-2.6.6-GA.elf instead of fi-2.4.13-GA.elf as the
+// link disable isolation firmware. Since this test file is compiled once for
+// all SDK versions (agent_voq_test_src is a shared library), compile-time
+// SDK version checks via SaiVersion.h are not possible. Instead, use a
+// filesystem-based approach: netcastle copies firmware files from the SDK
+// directory to /tmp/db/jericho3ai_a0/ before launching the test binary, so
+// file presence correctly indicates the SDK version. For SDK >= 14
+// (6.5.34_dnx, 6.5.35_dnx), fi-2.6.6-GA.elf is present and gets selected.
+// For older SDKs, only fi-2.4.13-GA.elf exists and is used as fallback.
+std::string getLinkDisableFirmwarePath() {
+  if (access(kLinkDisableFirmwarePathSdk14, F_OK) == 0) {
+    return kLinkDisableFirmwarePathSdk14;
+  }
+  return kLinkDisableFirmwarePath;
+}
 
 template <bool enableLinkDisableFirmware>
 struct EnableLinkDisableFirmware {
@@ -264,7 +287,7 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     FLAGS_sdk_reg_dump_path_prefix = sdkRegDumpPathPrefix_;
 
     if (isLinkDisableFirmware()) {
-      FLAGS_isolation_firmware_path = "/tmp/db/jericho3ai_a0/fi-2.4.11-GA.elf";
+      FLAGS_isolation_firmware_path = getLinkDisableFirmwarePath();
     } else {
       FLAGS_isolation_firmware_path = "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf";
     }
@@ -553,12 +576,12 @@ class AgentVoqSwitchIsolationFirmwareUpgradeDownGrade
     config = this->clearFWConfig(config);
 
     // AgentVoqSwitchIsolationFirmwareUpgradeDownGrade/0.* run tests warmboot
-    // transition from fw version 2.4.0.1 to 2.4.11.
+    // transition from fw version 2.4.0.1 to link disable fw.
     // AgentVoqSwitchIsolationFirmwareUpgradeDownGrade/1.* tests the reverse
     // transition.
     std::string fwPath;
     if (this->isLinkDisableFirmware()) {
-      fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.11-GA.elf";
+      fwPath = getLinkDisableFirmwarePath();
     } else {
       fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf";
     }
@@ -576,11 +599,11 @@ class AgentVoqSwitchIsolationFirmwareUpgradeDownGrade
       const auto& configFileName = this->getAgentEnsemble()->configFileName();
       agentConfig.sw() = this->clearFWConfig(*agentConfig.sw());
 
-      // To test firmware transition on warmboot, if we chose 2.4.11 during cb,
-      // configure 2.4.0.1 post wb and vice-versa.
+      // To test firmware transition on warmboot, if we chose link disable fw
+      // during cb, configure 2.4.0.1 post wb and vice-versa.
       std::string fwPath;
       if (!this->isLinkDisableFirmware()) {
-        fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.11-GA.elf";
+        fwPath = getLinkDisableFirmwarePath();
       } else {
         fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf";
       }

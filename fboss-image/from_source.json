@@ -30,11 +30,13 @@
     ],
     "artifact": "platform-stack.tar"
   },
-  "bsps": [],
+  "bsps": [
+  ],
   "npu_sai": {
     "download": "file:../fboss/oss/scripts/fake-sai-devel.tar.zstd"
   },
-  "phy_sai": {},
+  "phy_sai": {
+  },
   "fboss-forwarding-stack": {
     "execute": [
       "../fboss/oss/scripts/build_fboss_stack.sh",

@@ -334,6 +334,7 @@ add_library(core
   fboss/agent/SwitchInfoTable.cpp
   fboss/agent/SwitchStatsObserver.cpp
   fboss/agent/SwSwitch.cpp
+  fboss/agent/MySidNeighborObserver.cpp
   fboss/agent/SwSwitchMySidUpdater.cpp
   fboss/agent/SwSwitchRouteUpdateWrapper.cpp
   fboss/agent/TamManager.cpp

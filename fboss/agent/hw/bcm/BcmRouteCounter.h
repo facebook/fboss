@@ -134,9 +134,6 @@ class BcmRouteCounterTableBase {
   BcmRouteCounterTableBase& operator=(const BcmRouteCounterTableBase&) = delete;
   BcmRouteCounterTableBase(BcmRouteCounterTableBase&&) = default;
   BcmRouteCounterTableBase& operator=(BcmRouteCounterTableBase&&) = default;
-  void setMaxRouteCounterIDs(uint32_t count) {
-    maxRouteCounterIDs_ = count;
-  }
   virtual std::shared_ptr<BcmRouteCounterBase> referenceOrEmplaceCounterID(
       RouteCounterID id) = 0;
   // used for testing purpose
@@ -149,7 +146,6 @@ class BcmRouteCounterTableBase {
 
  protected:
   BcmSwitch* hw_;
-  uint32_t maxRouteCounterIDs_{0};
 };
 
 class BcmRouteFlexCounterTable : public folly::MoveOnly,

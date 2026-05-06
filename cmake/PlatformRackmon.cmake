@@ -44,6 +44,7 @@ target_link_libraries(rackmon_lib
   rackmon_cpp2
   Folly::folly
   ${NLOHMANN_JSON_LIBRARIES}
+  ${LIBGPIOD}
 )
 target_include_directories(rackmon_lib PRIVATE
   fboss/platform/rackmon

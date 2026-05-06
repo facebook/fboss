@@ -166,7 +166,7 @@ std::unique_ptr<RxPacket> makeCpuLatencyRxPacket(
 
 } // namespace
 
-// After one send + one matching RX, latencyMs must be > 0.
+// After one send + one matching RX, latencyUs must be > 0.
 TEST_F(CpuLatencyManagerTest, HandlePacket_LatencyUpdated) {
   auto mgr = std::make_unique<CpuLatencyManager>(sw_);
   mgr->start();
@@ -181,7 +181,7 @@ TEST_F(CpuLatencyManagerTest, HandlePacket_LatencyUpdated) {
   mgr->handlePacket(std::move(rxPkt));
 
   const auto stats = mgr->getCpuLatencyPortStats(PortID(1));
-  EXPECT_GT(*stats.latencyMs(), 0.0);
+  EXPECT_GT(*stats.latencyUs(), 0.0);
   mgr->stop();
 }
 
@@ -234,7 +234,7 @@ TEST_F(CpuLatencyManagerTest, HandlePacket_NoVlanLatencyUpdated) {
   mgr->handlePacket(std::move(rxPkt));
 
   const auto stats = mgr->getCpuLatencyPortStats(PortID(1));
-  EXPECT_GT(*stats.latencyMs(), 0.0);
+  EXPECT_GT(*stats.latencyUs(), 0.0);
   mgr->stop();
 }
 

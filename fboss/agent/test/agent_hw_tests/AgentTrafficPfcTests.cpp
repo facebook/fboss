@@ -759,23 +759,6 @@ class AgentTrafficPfcGenTest : public AgentTrafficPfcTest {
     ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
   }
 
-  // Wait for p100.60 watermark counters to decay after cleanup,
-  // to avoid stale values bleeding into subsequent warm boot runs.
-  // Since these are p100.60 stats (60-second window), we wait up to
-  // 70 seconds total (14 iterations x 5 seconds) to ensure the window
-  // has fully elapsed. We poll every 5 seconds to exit early if the
-  // counters have already reached zero.
-  template <typename Fn>
-  void waitForWatermarkDecay(Fn&& countersNonZero) {
-    for (int i = 0; i < 14; i++) {
-      /* sleep override */ std::this_thread::sleep_for(std::chrono::seconds(5));
-      getAgentEnsemble()->getSw()->updateStats();
-      if (!countersNonZero()) {
-        break;
-      }
-    }
-  }
-
   void setupTxVlanForChenab(
       cfg::SwitchConfig& cfg,
       const PortID& portId,
@@ -957,33 +940,10 @@ TEST_F(AgentTrafficPfcGenTest, verifyBufferPoolWatermarks) {
         getAgentEnsemble(), kLosslessPriority, {portId});
     utility::cleanupPfcGeneration(getAgentEnsemble(), txOffPortId);
 
-    waitForWatermarkDecay([&]() {
-      uint64_t globalSharedWatermark{0};
-      uint64_t globalHeadroomWatermark{0};
-      for (const auto& switchAsic : getAgentEnsemble()->getL3Asics()) {
-        facebook::fboss::SwitchID switchId(*switchAsic->getSwitchId());
-        for (const auto& [_, val] : getAgentEnsemble()->getFb303RegexCounters(
-                 "buffer_watermark_global_shared(.itm.*)?.p100.60", switchId)) {
-          globalSharedWatermark += val;
-        }
-        if (getAgentEnsemble()
-                ->getSw()
-                ->getHwAsicTable()
-                ->isFeatureSupportedOnAllAsic(
-                    facebook::fboss::HwAsic::Feature::
-                        BUFFER_POOL_HEADROOM_WATERMARK)) {
-          for (const auto& [_, val] : getAgentEnsemble()->getFb303RegexCounters(
-                   "buffer_watermark_global_headroom(.itm.*)?.p100.60",
-                   switchId)) {
-            globalHeadroomWatermark += val;
-          }
-        }
-      }
-      XLOG(DBG0) << "Post-cleanup global headroom watermark: "
-                 << globalHeadroomWatermark
-                 << ", global shared watermark: " << globalSharedWatermark;
-      return globalSharedWatermark != 0 || globalHeadroomWatermark != 0;
-    });
+    // Force a HW stats read so that watermark registers (clear-on-read) are
+    // drained before warm boot, guaranteeing the post-warm-boot iteration
+    // observes zeroed counters.
+    getAgentEnsemble()->getSw()->updateStats();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1025,35 +985,10 @@ TEST_F(AgentTrafficPfcGenTest, verifyIngressPriorityGroupWatermarks) {
         getAgentEnsemble(), kLosslessPriority, {portId});
     utility::cleanupPfcGeneration(getAgentEnsemble(), txOffPortId);
 
-    waitForWatermarkDecay([&]() {
-      uint64_t totalWatermark{0};
-      const auto& portName = getAgentEnsemble()
-                                 ->getProgrammedState()
-                                 ->getPorts()
-                                 ->getNodeIf(portId)
-                                 ->getName();
-      std::string pg = getAgentEnsemble()->isSai()
-          ? folly::sformat(".pg{}", kLosslessPriority)
-          : "";
-      std::string watermarkKeys = "shared";
-      if (getAgentEnsemble()
-              ->getSw()
-              ->getHwAsicTable()
-              ->isFeatureSupportedOnAllAsic(
-                  facebook::fboss::HwAsic::Feature::
-                      INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
-        watermarkKeys.append("|headroom");
-      }
-      auto regex = folly::sformat(
-          "buffer_watermark_pg_({}).{}{}.p100.60", watermarkKeys, portName, pg);
-      auto counters =
-          getAgentEnsemble()->getFb303CountersByRegex(portId, regex);
-      for (const auto& [_, val] : counters) {
-        totalWatermark += val;
-      }
-      XLOG(DBG0) << "Post-cleanup PG watermark total: " << totalWatermark;
-      return totalWatermark != 0;
-    });
+    // Force a HW stats read so that PG watermark registers (clear-on-read)
+    // are drained before warm boot, guaranteeing the post-warm-boot iteration
+    // observes zeroed counters.
+    getAgentEnsemble()->getSw()->updateStats();
   };
 
   verifyAcrossWarmBoots(setup, verify);

@@ -142,7 +142,7 @@ struct SaiMySidEntryTraits {
       Attributes::EndpointBehavior,
       Attributes::EndpointBehaviorFlavor,
       Attributes::NextHopId,
-      Attributes::Vrf,
+      std::optional<Attributes::Vrf>,
       Attributes::PacketAction>;
 };
 template <>

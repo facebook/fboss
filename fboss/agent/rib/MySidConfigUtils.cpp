@@ -47,16 +47,69 @@ folly::IPAddressV6 buildSidAddress(
 
 std::unordered_map<std::string, InterfaceID> buildPortNameToInterfaceIdMap(
     const cfg::SwitchConfig& config) {
+  // Build vlanID → intfID and portID → intfID lookups from the configured
+  // routed Interfaces.
+  std::unordered_map<int32_t, InterfaceID> vlanIdToIntfId;
+  std::unordered_map<int32_t, InterfaceID> portIdToIntfId;
+  for (const auto& intf : *config.interfaces()) {
+    auto intfId = InterfaceID(static_cast<int>(*intf.intfID()));
+    if (*intf.type() == cfg::InterfaceType::VLAN) {
+      vlanIdToIntfId[*intf.vlanID()] = intfId;
+    } else if (
+        *intf.type() == cfg::InterfaceType::PORT && intf.portID().has_value()) {
+      portIdToIntfId[*intf.portID()] = intfId;
+    }
+  }
+
+  // Resolve every physical port's L3 InterfaceID once so aggregate ports
+  // can inherit their member ports' interfaces. Prefer PORT-typed Interface
+  // matching logicalID (the more specific binding), else VLAN-typed
+  // Interface matching ingressVlan.
+  std::unordered_map<int32_t, InterfaceID> portIdToResolvedIntfId;
+  for (const auto& port : *config.ports()) {
+    if (auto pit = portIdToIntfId.find(*port.logicalID());
+        pit != portIdToIntfId.end()) {
+      portIdToResolvedIntfId[*port.logicalID()] = pit->second;
+    } else if (auto vit = vlanIdToIntfId.find(*port.ingressVlan());
+               vit != vlanIdToIntfId.end()) {
+      portIdToResolvedIntfId[*port.logicalID()] = vit->second;
+    }
+  }
+
   std::unordered_map<std::string, InterfaceID> portNameToIntfId;
   for (const auto& port : *config.ports()) {
-    auto name = port.name().has_value() && !port.name()->empty()
-        ? *port.name()
-        : folly::to<std::string>("port-", *port.logicalID());
-    portNameToIntfId[name] = InterfaceID(static_cast<int>(*port.ingressVlan()));
+    auto it = portIdToResolvedIntfId.find(*port.logicalID());
+    if (it == portIdToResolvedIntfId.end()) {
+      continue;
+    }
+    if (!port.name().has_value() || port.name()->empty()) {
+      throw FbossError(
+          "Port logicalID=", *port.logicalID(), " has no name set");
+    }
+    portNameToIntfId[*port.name()] = it->second;
   }
   for (const auto& aggPort : *config.aggregatePorts()) {
-    portNameToIntfId[*aggPort.name()] =
-        InterfaceID(static_cast<int>(*aggPort.key()));
+    std::optional<InterfaceID> sharedIntf;
+    for (const auto& member : *aggPort.memberPorts()) {
+      auto rit = portIdToResolvedIntfId.find(*member.memberPortID());
+      if (rit == portIdToResolvedIntfId.end()) {
+        continue;
+      }
+      if (!sharedIntf.has_value()) {
+        sharedIntf = rit->second;
+      } else if (*sharedIntf != rit->second) {
+        throw FbossError(
+            "Aggregate port '",
+            *aggPort.name(),
+            "' has members on different L3 interfaces: ",
+            static_cast<int32_t>(*sharedIntf),
+            " vs ",
+            static_cast<int32_t>(rit->second));
+      }
+    }
+    if (sharedIntf.has_value()) {
+      portNameToIntfId[*aggPort.name()] = *sharedIntf;
+    }
   }
   return portNameToIntfId;
 }

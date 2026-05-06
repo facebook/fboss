@@ -116,6 +116,19 @@ The picture below shows the high level system architecture.
   * The SCM IDPROM must contain the X86 MAC address.
   * Two copies of SCM IDPROM are a must, since both BMC and x86 need access to
     the SCM IDPROM.
+* IDPROM Write-Protection:
+  * The CPLD/FPGA firmware must ensure that IDPROM write-protection is enabled
+    (write-protected) by default at power-on or reset. No software intervention
+    should be required to achieve the write-protected state.
+  * None of the FBOSS platform services (such as `platform_manager`,
+    `sensor_service`, `fan_service`, `data_corral_service`, `weutil`, etc.)
+    shall change the IDPROM write-protection bits in their configurations or at
+    runtime. The services must treat IDPROMs as read-only devices during normal
+    operation.
+  * There must be a mechanism for Meta to disable IDPROM write-protection when
+    needed (e.g., during manufacturing or field re-provisioning). This is
+    typically achieved by modifying the corresponding FPGA/CPLD register bits
+    that control the write-protection.
 
 ### 2.3 Console
 

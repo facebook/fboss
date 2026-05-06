@@ -18,10 +18,22 @@
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 
+#include <boost/algorithm/string.hpp>
+#include <functional>
+
 namespace facebook::fboss {
 
 using facebook::network::NetworkUtil;
 using utils::Table;
+
+// Type alias for DNS resolver function: takes IP address string, returns
+// hostname
+using DnsResolver = std::function<std::string(const std::string&)>;
+
+// Default DNS resolver using the real NetworkUtil
+inline std::string defaultDnsResolver(const std::string& ipAddr) {
+  return NetworkUtil::getHostByAddr(ipAddr);
+}
 
 struct CmdShowHostTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
@@ -37,12 +49,14 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const ObjectArgType& queriedPorts);
+      const ObjectArgType& queriedPorts,
+      const DnsResolver& resolver = defaultDnsResolver);
   RetType createModel(
       const std::vector<NdpEntryThrift>& ndpEntries,
       const std::map<int32_t, PortInfoThrift>& portInfoEntries,
       const std::map<int32_t, PortStatus>& portStatusEntries,
-      const ObjectArgType& queriedPorts);
+      const ObjectArgType& queriedPorts,
+      const DnsResolver& resolver = defaultDnsResolver);
   void printOutput(const RetType& model, std::ostream& out = std::cout);
 };
 

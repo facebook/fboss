@@ -51,12 +51,15 @@ class StressRouteInsertion:
             setattr(self, kw, arg)
         self.routes = {}
         self.generation = 1
+        # pyrefly: ignore [missing-attribute]
         if (self.host is None) or (self.port is None):
             raise Exception("Test needs to specify 'host' and 'port' options")
+        # pyrefly: ignore [missing-attribute]
         if self.maxprefix > 120:
             raise Exception(
                 "Error: this tool is not yet smart" + " enough to do maxprefix > 120"
             )
+        # pyrefly: ignore [missing-attribute]
         random.seed(self.randseed)
         self.client = PlainTextFbossAgentClient(host=self.host, port=self.port)
         # a list of next hops; all routes point to same one: DROP
@@ -66,6 +69,7 @@ class StressRouteInsertion:
     def generate_random_routes(self, n=None):
         # store routes as a dict to prevent duplications
         if n is None:
+            # pyrefly: ignore [missing-attribute]
             n = self.entries
         routes = {}
         while len(routes) < n:
@@ -76,6 +80,7 @@ class StressRouteInsertion:
         """Generate a random IPv6 route as a string
 
         @NOTE: doesn't work for prefix > 120 bits"""
+        # pyrefly: ignore [missing-attribute]
         prefix = random.randint(self.minprefix, self.maxprefix)  # inclusive
         r = ""
         for i in range(0, int(prefix / 4)):
@@ -94,6 +99,7 @@ class StressRouteInsertion:
             addr = utils.ip_to_binary(ip)
             ipRoute = IpPrefix(ip=addr, prefixLength=prefix)
             uniRoutes.append(UnicastRoute(dest=ipRoute, nextHopAddrs=self.nexthops))
+        # pyrefly: ignore [bad-argument-type]
         self.client.addUnicastRoutes(self.client_id, uniRoutes)
 
     def delete_routes(self, routes):
@@ -102,6 +108,7 @@ class StressRouteInsertion:
             ip, prefix = route.split("/")
             addr = utils.ip_to_binary(ip)
             uniRoutes.append(IpPrefix(ip=addr, prefixLength=prefix))
+        # pyrefly: ignore [bad-argument-type]
         self.client.deleteUnicastRoutes(self.client_id, uniRoutes)
 
     def clean_up(self):
@@ -114,21 +121,31 @@ class StressRouteInsertion:
         """Run actual test"""
         print(
             "Generating {} random routes with prefix between {} and {}".format(
-                self.entries, self.minprefix, self.maxprefix
+                # pyrefly: ignore [missing-attribute]
+                self.entries,
+                # pyrefly: ignore [missing-attribute]
+                self.minprefix,
+                # pyrefly: ignore [missing-attribute]
+                self.maxprefix,
             )
         )
         self.routes = self.generate_random_routes()
         print("... done.")
 
         print("Inserting initial routes into the switch...")
+        # pyrefly: ignore [missing-attribute]
         start = time.clock()
         self.insert_routes(self.routes)
+        # pyrefly: ignore [missing-attribute]
         stop = time.clock()
         print(f" ... done : {stop - start} seconds - not the real test, but FYI")
 
+        # pyrefly: ignore [missing-attribute]
         target = (1 - (self.percent / 100)) * self.entries
+        # pyrefly: ignore [missing-attribute]
         for loop in range(0, self.loops):
             print(f"--- Starting loop {loop}...")
+            # pyrefly: ignore [missing-attribute]
             print(f"Deleting {self.entries - target} routes")
             delete_routes = []
             while len(self.routes) > target:
@@ -136,19 +153,27 @@ class StressRouteInsertion:
                 delete_routes.append(route)
                 del self.routes[route]
             self.delete_routes(delete_routes)
+            # pyrefly: ignore [missing-attribute]
             print(f"Picking {self.entries - target} new routes")
+            # pyrefly: ignore [missing-attribute]
             new_routes = self.generate_random_routes(n=self.entries - target)
             print("Adding new routes")
+            # pyrefly: ignore [missing-attribute]
             start = time.clock()
             for route in new_routes:
                 self.routes[route] = loop
             self.insert_routes(new_routes)
+            # pyrefly: ignore [missing-attribute]
             stop = time.clock()
             print(
                 "RESULT: {} seconds to add {} new routes".format(
-                    stop - start, self.entries - target
+                    # pyrefly: ignore [missing-attribute]
+                    stop - start,
+                    # pyrefly: ignore [missing-attribute]
+                    self.entries - target,
                 )
             )
+        # pyrefly: ignore [missing-attribute]
         if self.pause_on_exit:
             input("\n\n\nTest Done -- press return to cleanup: ")
 

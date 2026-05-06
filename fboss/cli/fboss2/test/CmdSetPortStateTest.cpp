@@ -8,6 +8,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
+#include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
@@ -49,6 +50,19 @@ class CmdSetPortStateTestFixture : public CmdHandlerTestBase {
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
     portEntries = createEntriesSetPortState();
+    // The unit-test environment is not a TTY, so the SHT confirmation prompt
+    // would refuse the call. Bypass it for the happy-path tests; the
+    // dedicated `noTtyAndNoYesFlag_throws` test below clears this flag to
+    // exercise the refusal path.
+    CmdLocalOptions::getInstance()->setLocalOption(
+        kSetPortStateCommandName, kSetPortStateYesFlag, "true");
+  }
+
+  void TearDown() override {
+    // Singleton survives across tests — reset the flag.
+    CmdLocalOptions::getInstance()->setLocalOption(
+        kSetPortStateCommandName, kSetPortStateYesFlag, "false");
+    CmdHandlerTestBase::TearDown();
   }
 };
 
@@ -179,6 +193,24 @@ TEST_F(CmdSetPortStateTestFixture, disableEnablePort) {
   state = {"enable"};
   cmd.queryClient(localhost(), queriedPortNames, state);
   EXPECT_EQ(portEntries[2].adminState(), PortAdminState::ENABLED);
+}
+
+TEST_F(CmdSetPortStateTestFixture, noTtyAndNoYesFlag_throws) {
+  // Clear the bypass set up by SetUp() so we exercise the SHT refusal path.
+  CmdLocalOptions::getInstance()->setLocalOption(
+      kSetPortStateCommandName, kSetPortStateYesFlag, "false");
+
+  // No mock expectations: the Thrift agent must NOT be hit.
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_)).Times(0);
+  EXPECT_CALL(getMockAgent(), setPortState(_, _)).Times(0);
+
+  std::vector<std::string> queriedPortNames = {"eth1/5/1"};
+  std::vector<std::string> state = {"disable"};
+
+  auto cmd = CmdSetPortState();
+  EXPECT_THROW(
+      cmd.queryClient(localhost(), queriedPortNames, state),
+      std::invalid_argument);
 }
 
 } // namespace facebook::fboss

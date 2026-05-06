@@ -11,8 +11,11 @@
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/FabricLinkMonitoringManager.h"
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss::utility {
 
@@ -170,4 +173,92 @@ std::pair<int, cfg::DsfNode> getRemoteFabricNodeCfg(
   fabricNode.fabricLevel() = fabricLevel;
   return {remoteSwitchId, fabricNode};
 }
+
+cfg::DsfNode makeFabricDsfNode(
+    int64_t switchId,
+    const std::string& name,
+    int fabricLevel,
+    PlatformType platformType,
+    cfg::AsicType asicType) {
+  cfg::DsfNode node;
+  node.switchId() = switchId;
+  node.name() = name;
+  node.type() = cfg::DsfNodeType::FABRIC_NODE;
+  node.fabricLevel() = fabricLevel;
+  node.platformType() = platformType;
+  node.asicType() = asicType;
+  return node;
+}
+
+void addFabricDsfNode(
+    cfg::SwitchConfig& config,
+    int64_t switchId,
+    const std::string& name,
+    int fabricLevel,
+    PlatformType platformType,
+    cfg::AsicType asicType) {
+  (*config.dsfNodes())[switchId] =
+      makeFabricDsfNode(switchId, name, fabricLevel, platformType, asicType);
+}
+
+std::map<PortID, std::pair<int64_t, int64_t>> collectFabricLinkMonitoringStats(
+    FabricLinkMonitoringManager* mgr,
+    const std::vector<PortID>& fabricPorts,
+    size_t numPortsToCheck) {
+  std::map<PortID, std::pair<int64_t, int64_t>> stats;
+  if (!mgr) {
+    return stats;
+  }
+  auto allPortStats = mgr->getAllFabricLinkMonPortStats();
+
+  for (size_t i = 0; i < numPortsToCheck && i < fabricPorts.size(); i++) {
+    const auto& portId = fabricPorts[i];
+    auto it = allPortStats.find(portId);
+    if (it != allPortStats.end()) {
+      stats[portId] = {*it->second.txCount(), *it->second.rxCount()};
+    } else {
+      stats[portId] = {0, 0};
+    }
+  }
+  return stats;
+}
+
+bool allPortsHaveFabricLinkMonitoringCounterIncrements(
+    FabricLinkMonitoringManager* mgr,
+    const std::vector<PortID>& fabricPorts,
+    const std::map<PortID, std::pair<int64_t, int64_t>>& initialStats,
+    size_t numPortsToCheck,
+    int64_t minIncrement) {
+  if (!mgr) {
+    return false;
+  }
+  auto allPortStats = mgr->getAllFabricLinkMonPortStats();
+
+  for (size_t i = 0; i < numPortsToCheck && i < fabricPorts.size(); i++) {
+    auto portId = fabricPorts[i];
+    auto it = initialStats.find(portId);
+    CHECK(it != initialStats.end())
+        << "Port " << portId << " should exist in initialStats";
+    auto [initialTx, initialRx] = it->second;
+
+    int64_t currentTx = 0, currentRx = 0;
+    auto statsIt = allPortStats.find(portId);
+    if (statsIt != allPortStats.end()) {
+      currentTx = *statsIt->second.txCount();
+      currentRx = *statsIt->second.rxCount();
+    }
+
+    int64_t txIncrement = currentTx - initialTx;
+    int64_t rxIncrement = currentRx - initialRx;
+
+    XLOG(DBG3) << "Port " << portId << ": TX increment=" << txIncrement
+               << ", RX increment=" << rxIncrement;
+
+    if (txIncrement < minIncrement || rxIncrement < minIncrement) {
+      return false;
+    }
+  }
+  return true;
+}
+
 } // namespace facebook::fboss::utility

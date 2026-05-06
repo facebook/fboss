@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <memory>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -26,6 +27,20 @@ constexpr int kCdbFwInfoImageBBuildHiOffset = 40;
 constexpr int kCdbFwInfoImageBBuildLoOffset = 41;
 // Minimum reply length needed to read Image B build number
 constexpr int kCdbFwInfoMinRlplLength = 42;
+
+// CDB command 0x0041 (Firmware Management Features) LPL offsets
+// MaxDurationCoding at byte 137, bit 3 (LPL offset 1)
+constexpr int kCdbFwFeatureMaxDurationCodingOffset = 1;
+constexpr uint8_t kCdbFwFeatureMaxDurationCodingMask = 0x08;
+// MaxDurationWrite at bytes 148-149 (LPL offset 12-13, U16 big-endian)
+constexpr int kCdbFwFeatureMaxDurationWriteHiOffset = 12;
+constexpr int kCdbFwFeatureMaxDurationWriteLoOffset = 13;
+// Minimum reply length needed to read MaxDurationWrite
+constexpr int kCdbFwFeatureMinRlplLength = 14;
+
+// Maximum CDB command timeout guardrail (120 seconds in microseconds).
+// Prevents indefinite waits even if a module misreports MaxDurationWrite.
+constexpr uint64_t kMaxCdbTimeoutUsec = 120000000;
 
 // CMIS page numbers for I2C transaction logging
 constexpr int kCdbPage = 0x9f;
@@ -86,8 +101,12 @@ class CdbCommandBlock {
   // Create generic command structure
   void createCdbCmdGeneric(uint16_t commandCode, std::vector<uint8_t>& lplData);
 
-  // Public function to run the CDB command on the module
-  bool cmisRunCdbCommand(TransceiverImpl* bus);
+  // Public function to run the CDB command on the module. An optional
+  // timeout can be passed to override the default
+  // FLAGS_cdb_command_timeout_usec.
+  bool cmisRunCdbCommand(
+      TransceiverImpl* bus,
+      std::optional<uint64_t> overrideTimeoutUsec = std::nullopt);
   // Provide response data to caller
   uint8_t getResponseData(uint8_t** pResponse);
 
@@ -110,6 +129,36 @@ class CdbCommandBlock {
   // CDB block access functions for LPL memory (120 Bytes)
   const uint8_t* getCdbLplFlatMemory() const {
     return cdbFields_.cdbLplMemory.cdbLplFlatMemory;
+  }
+
+  // Parse MaxDurationWrite from CDB command 0x0041 response
+  // Returns the timeout in microseconds derived from MaxDurationWrite (bytes
+  // 148-149) and MaxDurationCoding (byte 137, bit 3) per OIF-CMIS-05.3
+  // specification. Returns 0 if the response doesn't contain sufficient data.
+  uint64_t getMaxDurationWriteUsec() const {
+    if (cdbFields_.cdbRlplLength < kCdbFwFeatureMinRlplLength) {
+      return 0;
+    }
+
+    // MaxDurationCoding bit 3: 0 = 1ms multiplier, 1 = 10ms multiplier
+    uint8_t maxDurationCoding =
+        cdbFields_.cdbLplMemory
+            .cdbLplFlatMemory[kCdbFwFeatureMaxDurationCodingOffset];
+    uint32_t multiplierMs =
+        (maxDurationCoding & kCdbFwFeatureMaxDurationCodingMask) ? 10 : 1;
+
+    // MaxDurationWrite U16 big-endian
+    uint16_t maxDurationWrite =
+        (static_cast<uint16_t>(
+             cdbFields_.cdbLplMemory
+                 .cdbLplFlatMemory[kCdbFwFeatureMaxDurationWriteHiOffset])
+         << 8) |
+        static_cast<uint16_t>(
+            cdbFields_.cdbLplMemory
+                .cdbLplFlatMemory[kCdbFwFeatureMaxDurationWriteLoOffset]);
+
+    // Convert to microseconds: maxDurationWrite * multiplierMs * 1000
+    return static_cast<uint64_t>(maxDurationWrite) * multiplierMs * 1000;
   }
 
   uint64_t getCdbWaitTimeMsec() {

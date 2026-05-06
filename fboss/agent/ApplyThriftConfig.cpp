@@ -880,12 +880,12 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticIp2MplsRoutes(),
         *cfg_->staticMplsRoutesWithNhops(),
         *cfg_->staticMplsRoutesToNull(),
-        *cfg_->staticMplsRoutesToCPU());
+        *cfg_->staticMplsRoutesToCPU(),
+        std::move(staticMySids));
   } else if (rib_) {
     auto newFibInfo = updateForwardingInformationBaseInfo();
     if (newFibInfo) {
       auto newFibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
-      // Get the scope for the FibInfo using the new scope resolver
       newFibInfoMap->updateFibInfo(
           newFibInfo, scopeResolver_.scope(newFibInfo));
       new_->resetFibsInfoMap(newFibInfoMap);
@@ -2992,6 +2992,14 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getLinkTraining().value_or(false) &&
       portConf->linkTraining().has_value() ==
           orig->getLinkTraining().has_value() &&
+      portConf->portDownHoldoffTimeMs().value_or(0) ==
+          orig->getPortDownHoldoffTimeMs().value_or(0) &&
+      portConf->portDownHoldoffTimeMs().has_value() ==
+          orig->getPortDownHoldoffTimeMs().has_value() &&
+      portConf->portUpHoldoffTimeMs().value_or(0) ==
+          orig->getPortUpHoldoffTimeMs().value_or(0) &&
+      portConf->portUpHoldoffTimeMs().has_value() ==
+          orig->getPortUpHoldoffTimeMs().has_value() &&
       newFabricLinkMonSwitchId == orig->getPortSwitchId()) {
     return nullptr;
   }
@@ -3088,6 +3096,32 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setLinkTraining(portConf->linkTraining().value());
   } else {
     newPort->setLinkTraining(std::nullopt);
+  }
+  if (portConf->portDownHoldoffTimeMs().has_value()) {
+    auto v = portConf->portDownHoldoffTimeMs().value();
+    if (v < 0) {
+      throw FbossError(
+          "portDownHoldoffTimeMs must be non-negative, got ",
+          v,
+          " on port ",
+          orig->getID());
+    }
+    newPort->setPortDownHoldoffTimeMs(v);
+  } else {
+    newPort->setPortDownHoldoffTimeMs(std::nullopt);
+  }
+  if (portConf->portUpHoldoffTimeMs().has_value()) {
+    auto v = portConf->portUpHoldoffTimeMs().value();
+    if (v < 0) {
+      throw FbossError(
+          "portUpHoldoffTimeMs must be non-negative, got ",
+          v,
+          " on port ",
+          orig->getID());
+    }
+    newPort->setPortUpHoldoffTimeMs(v);
+  } else {
+    newPort->setPortUpHoldoffTimeMs(std::nullopt);
   }
   return newPort;
 }
@@ -5123,13 +5157,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     switchSettingsChange = true;
   }
 
-  if (origSwitchSettings->getMaxRouteCounterIDs() !=
-      *cfg_->switchSettings()->maxRouteCounterIDs()) {
-    newSwitchSettings->setMaxRouteCounterIDs(
-        *cfg_->switchSettings()->maxRouteCounterIDs());
-    switchSettingsChange = true;
-  }
-
   std::vector<state::BlockedNeighbor> cfgBlockNeighbors;
   for (const auto& blockNeighbor : *cfg_->switchSettings()->blockNeighbors()) {
     state::BlockedNeighbor neighbor{};
@@ -6420,17 +6447,31 @@ shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
   } else {
     tunnel->setEcnMode(cfg::TunnelMode::UNIFORM);
   }
-  // IP in IP tunnel decap: dst ip is the src of Tunnel state
-  // (state default: encap)
-  tunnel->setSrcIP(folly::IPAddressV6(*config.dstIp()));
-  if (config.srcIp().has_value()) {
-    tunnel->setDstIP(folly::IPAddressV6(*config.srcIp()));
-  }
-  if (config.dstIpMask().has_value()) {
-    tunnel->setSrcIPMask(folly::IPAddressV6(*config.dstIpMask()));
-  }
-  if (config.srcIpMask().has_value()) {
-    tunnel->setDstIPMask(folly::IPAddressV6(*config.srcIpMask()));
+  if (tunnel->getType() == TunnelType::IP_IN_IP_ENCAP) {
+    // Encap: src/dst IPs map directly to tunnel state
+    if (config.srcIp().has_value()) {
+      tunnel->setSrcIP(folly::IPAddressV6(*config.srcIp()));
+    }
+    tunnel->setDstIP(folly::IPAddressV6(*config.dstIp()));
+    if (config.srcIpMask().has_value()) {
+      tunnel->setSrcIPMask(folly::IPAddressV6(*config.srcIpMask()));
+    }
+    if (config.dstIpMask().has_value()) {
+      tunnel->setDstIPMask(folly::IPAddressV6(*config.dstIpMask()));
+    }
+  } else {
+    // Decap: config dstIp is the tunnel term match (stored as srcIP in state),
+    // config srcIp is the outer src filter (stored as dstIP in state)
+    tunnel->setSrcIP(folly::IPAddressV6(*config.dstIp()));
+    if (config.srcIp().has_value()) {
+      tunnel->setDstIP(folly::IPAddressV6(*config.srcIp()));
+    }
+    if (config.dstIpMask().has_value()) {
+      tunnel->setSrcIPMask(folly::IPAddressV6(*config.dstIpMask()));
+    }
+    if (config.srcIpMask().has_value()) {
+      tunnel->setDstIPMask(folly::IPAddressV6(*config.srcIpMask()));
+    }
   }
 
   return tunnel;

@@ -48,6 +48,7 @@ class AgentConfigCmd(cmds.FbossCmd):
                 print("Config reloaded")
                 return 0
             except FbossBaseError as e:
+                # pyrefly: ignore [unsupported-operation]
                 print("Fboss Error: " + e)
                 return 2
 

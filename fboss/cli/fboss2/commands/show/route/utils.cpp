@@ -192,9 +192,9 @@ std::string getViaStr(
     if (vlanId.rfind(fbossStr, 0) == 0) {
       vlanId = vlanId.substr(fbossStr.length());
     }
-    if (vlanAggregatePortMap.find(vlanId) != vlanAggregatePortMap.end()) {
+    if (vlanAggregatePortMap.contains(vlanId)) {
       viaStr = fmt::format(" dev {}", vlanAggregatePortMap.at(vlanId));
-    } else if (vlanPortMap.find(vlanId) != vlanPortMap.end()) {
+    } else if (vlanPortMap.contains(vlanId)) {
       std::vector<std::string> port_names;
       for (const auto& ports : vlanPortMap.at(vlanId)) {
         for (const auto& port : ports.second) {

@@ -4,8 +4,28 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
+#include "fboss/cli/fboss2/utils/SafetyPromptUtils.h"
+
+#include <fmt/format.h>
+#include <folly/String.h>
 
 namespace facebook::fboss {
+
+namespace {
+constexpr auto kSetPortStateWarning = R"WARN(
+================================================================================
+WARNING: `fboss2 set port state` directly toggles port admin state on the
+switch. This can cause IMMEDIATE TRAFFIC IMPACT.
+
+Running this on a production device WITHOUT the device/circuit being drained
+is a violation of the Safer Human Touch (SHT) Policy. Every invocation of
+`fboss2 set port state` is logged and reviewed.
+
+Prefer:  cableguy_cli bounce_interface --circuit "<a:intf|z:intf>" --task <T#>
+         (validates circuit/device drain state before bouncing)
+================================================================================
+)WARN";
+} // namespace
 
 std::map<std::string, int32_t> getQueriedPortIds(
     const std::map<int32_t, facebook::fboss::PortInfoThrift>& entries,
@@ -38,6 +58,17 @@ CmdSetPortState::RetType CmdSetPortState::queryClient(
     const HostInfo& hostInfo,
     const utils::PortList& queriedPorts,
     const utils::PortState& state) {
+  const auto target = fmt::format(
+      "{} port(s) [{}] on {}",
+      state.portState ? "ENABLE" : "DISABLE",
+      folly::join(", ", queriedPorts.data()),
+      hostInfo.getName());
+  utils::requireConfirmation(
+      kSetPortStateCommandName,
+      kSetPortStateYesFlag,
+      kSetPortStateWarning,
+      target);
+
   std::string stateStr = (state.portState) ? "Enabling" : "Disabling";
 
   std::map<int32_t, facebook::fboss::PortInfoThrift> entries;

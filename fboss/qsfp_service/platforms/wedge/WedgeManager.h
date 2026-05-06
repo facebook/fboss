@@ -156,6 +156,11 @@ class WedgeManager : public TransceiverManager {
 
   void triggerVdmStatsCapture(std::vector<int32_t>& ids) override;
 
+  WedgeQsfp* getTransceiverImplForTesting(int idx) {
+    CHECK_LT(idx, qsfpImpls_.size());
+    return qsfpImpls_[idx].get();
+  }
+
   void setOverrideTcvrToPortAndProfileForTesting(
       std::optional<OverrideTcvrToPortAndProfile> overrideTcvrToPortAndProfile =
           std::nullopt) override;

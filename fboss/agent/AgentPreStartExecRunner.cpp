@@ -10,11 +10,7 @@
 #include <gflags/gflags.h>
 #include <thread>
 
-#ifdef IS_OSS
-FOLLY_INIT_LOGGING_CONFIG("DBG2; default:async=true");
-#else
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
-#endif
 
 int main(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, false);

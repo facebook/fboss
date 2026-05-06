@@ -310,7 +310,8 @@ bool ResourceAccountant::shouldCheckRouteUpdate() const {
   for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
     if (hwAsic->getMaxEcmpGroups().has_value() ||
         hwAsic->getMaxEcmpMembers().has_value() ||
-        hwAsic->getMaxRoutes().has_value()) {
+        hwAsic->getMaxRoutes().has_value() ||
+        hwAsic->getMaxRouteCounters().has_value()) {
       return true;
     }
   }
@@ -337,6 +338,52 @@ bool ResourceAccountant::checkAndUpdateRouteResource(bool add) {
   return true;
 }
 
+template <typename AddrT>
+bool ResourceAccountant::checkAndUpdateRouteCounterResource(
+    const std::shared_ptr<Route<AddrT>>& route,
+    bool add) {
+  auto counterID = route->getForwardInfo().getCounterID();
+  if (!counterID.has_value()) {
+    return true;
+  }
+  if (add) {
+    auto& refCount = routeCounterRefMap_[*counterID];
+    refCount++;
+    if (refCount == 1) {
+      return checkRouteCounterResource(true /* intermediateState */);
+    }
+    return true;
+  }
+  auto it = routeCounterRefMap_.find(*counterID);
+  CHECK(it != routeCounterRefMap_.end());
+  if (--it->second == 0) {
+    routeCounterRefMap_.erase(it);
+  }
+  return true;
+}
+
+bool ResourceAccountant::checkRouteCounterResource(
+    bool intermediateState) const {
+  uint32_t resourcePercentage = intermediateState
+      ? kHundredPercentage
+      : FLAGS_route_counter_resource_percentage;
+
+  for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
+    const auto routeCounterLimit = hwAsic->getMaxRouteCounters();
+    if (routeCounterLimit.has_value()) {
+      uint32_t enforcedLimit =
+          (routeCounterLimit.value() * resourcePercentage) / kHundredPercentage;
+      if (routeCounterRefMap_.size() > enforcedLimit) {
+        XLOG(DBG2)
+            << "Route counter resource limit exceeded. Unique route counters: "
+            << routeCounterRefMap_.size() << " ASIC limit: " << enforcedLimit;
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
   if (!checkRouteUpdate_ || !FLAGS_enable_route_resource_protection) {
     return true;
@@ -355,12 +402,16 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
           validRouteUpdate &=
               checkAndUpdateEcmpResource(oldRoute, false /* add */, oldState);
           validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
+          validRouteUpdate &=
+              checkAndUpdateRouteCounterResource(oldRoute, false /* add */);
           return;
         }
         if (!oldRoute->isResolved() && newRoute->isResolved()) {
           validRouteUpdate &=
               checkAndUpdateEcmpResource(newRoute, true /* add */, newState);
           validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
+          validRouteUpdate &=
+              checkAndUpdateRouteCounterResource(newRoute, true /* add */);
           return;
         }
         // Both old and new are resolved
@@ -369,12 +420,16 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
             checkAndUpdateEcmpResource(newRoute, true, newState);
         validRouteUpdate &=
             checkAndUpdateEcmpResource(oldRoute, false, oldState);
+        validRouteUpdate &= checkAndUpdateRouteCounterResource(newRoute, true);
+        validRouteUpdate &= checkAndUpdateRouteCounterResource(oldRoute, false);
       },
       [&](RouterID /*rid*/, const auto& newRoute) {
         if (newRoute->isResolved()) {
           validRouteUpdate &=
               checkAndUpdateEcmpResource(newRoute, true /* add */, newState);
           validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
+          validRouteUpdate &=
+              checkAndUpdateRouteCounterResource(newRoute, true /* add */);
         }
       },
       [&](RouterID /*rid*/, const auto& delRoute) {
@@ -382,6 +437,8 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
           validRouteUpdate &=
               checkAndUpdateEcmpResource(delRoute, false /* add */, oldState);
           validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
+          validRouteUpdate &=
+              checkAndUpdateRouteCounterResource(delRoute, false /* add */);
         }
       });
 
@@ -390,6 +447,10 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
   validRouteUpdate &= checkArsResource(false /* intermediateState */);
   if (FLAGS_enable_srv6_nexthop_resource_protection) {
     validRouteUpdate &= checkSrv6NextHopResource(false /* intermediateState */);
+  }
+  if (FLAGS_enable_route_counter_resource_protection) {
+    validRouteUpdate &=
+        checkRouteCounterResource(false /* intermediateState */);
   }
   return validRouteUpdate;
 }

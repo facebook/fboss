@@ -90,6 +90,7 @@ class RouteNextHopEntry
   }
 
   NextHopSet getNextHopSet() const;
+  void setNextHops(const NextHopSet& nhops);
 
   const std::optional<RouteCounterID> getCounterID() const {
     if (auto counter = safe_cref<switch_state_tags::counterID>()) {
@@ -129,6 +130,21 @@ class RouteNextHopEntry
           static_cast<int64_t>(*nhopSetID);
     } else {
       ref<switch_state_tags::resolvedNextHopSetID>().reset();
+    }
+  }
+
+  std::optional<std::string> getNamedNextHopGroup() const {
+    if (auto name = safe_cref<switch_state_tags::namedNextHopGroup>()) {
+      return name->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setNamedNextHopGroup(const std::optional<std::string>& name) {
+    if (name) {
+      ref<switch_state_tags::namedNextHopGroup>() = *name;
+    } else {
+      ref<switch_state_tags::namedNextHopGroup>().reset();
     }
   }
 

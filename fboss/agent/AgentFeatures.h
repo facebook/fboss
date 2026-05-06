@@ -29,6 +29,8 @@
  * TODO: move existing flags to this file.
  */
 
+DECLARE_bool(enable_lacp);
+
 DECLARE_bool(dsf_4k);
 DECLARE_bool(dsf_100g_nif_breakout);
 DECLARE_bool(enable_acl_table_chain_group);
@@ -75,7 +77,6 @@ DECLARE_bool(dual_stage_edsw_3q_2q);
 DECLARE_bool(dual_stage_3q_2q_qos);
 DECLARE_bool(janga_test);
 DECLARE_bool(test_fixture);
-DECLARE_bool(tahan800sb_link_training);
 
 bool isDualStage3Q2QMode();
 bool isDualStage3Q2QQos();
@@ -97,6 +98,9 @@ DECLARE_bool(enable_mysid_resource_protection);
 DECLARE_int32(mysid_resource_percentage);
 DECLARE_bool(enable_srv6_nexthop_resource_protection);
 DECLARE_int32(srv6_nexthop_resource_percentage);
+DECLARE_bool(enable_route_counter_resource_protection);
+DECLARE_int32(route_counter_resource_percentage);
+DECLARE_bool(enable_route_counters_for_named_nhg);
 DECLARE_int32(switch_index_for_testing);
 DECLARE_int32(switch_id_for_testing);
 DECLARE_uint32(counter_refresh_interval);

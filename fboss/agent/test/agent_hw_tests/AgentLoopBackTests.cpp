@@ -43,18 +43,23 @@ class AgentLoopBackTest : public AgentHwTest {
     return masterLogicalInterfacePortIds()[0];
   }
 
-  void sendPkt(bool frontPanel, uint8_t ttl, bool srcEqualDstMac) {
+  void sendPkt(
+      bool frontPanel,
+      uint8_t ttl,
+      bool srcEqualDstMac,
+      bool srcEqualDstIp = false) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    auto dstIp = folly::IPAddressV6(kTestDstIpV6);
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
         vlanId,
         srcEqualDstMac ? intfMac : srcMac,
         intfMac,
-        folly::IPAddressV6(kTestSrcIpV6),
-        folly::IPAddressV6(kTestDstIpV6),
+        srcEqualDstIp ? dstIp : folly::IPAddressV6(kTestSrcIpV6),
+        dstIp,
         kTestSrcPort,
         kTestDstPort,
         0,
@@ -71,7 +76,7 @@ class AgentLoopBackTest : public AgentHwTest {
   static inline constexpr auto pktTtl = 255;
 
  protected:
-  void runTest(bool srcEqualDstMac) {
+  void runTest(bool srcEqualDstMac, bool srcEqualDstIp = false) {
     auto setup = [=, this]() {
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
@@ -86,7 +91,7 @@ class AgentLoopBackTest : public AgentHwTest {
               ->getSwitchType();
       for (auto frontPanel : {true, false}) {
         auto beforePortStats = getLatestPortStats(this->portIdToTest());
-        sendPkt(frontPanel, pktTtl, srcEqualDstMac);
+        sendPkt(frontPanel, pktTtl, srcEqualDstMac, srcEqualDstIp);
         WITH_RETRIES({
           auto afterPortStats = getLatestPortStats(this->portIdToTest());
           // For packets going out to front panel, they would not go through the
@@ -125,6 +130,12 @@ TEST_F(AgentLoopBackTest, VerifyLoopBack) {
 
 TEST_F(AgentLoopBackTest, VerifyLoopBackSrcEqualDstMac) {
   runTest(true /* srcEqualDstMac */);
+}
+
+// T269303598: Verify L3 hairpin forwarding when SIP==DIP.
+// Requires SAI_KEY_NOT_DROP_SIP_DIP_EQUAL to be enabled.
+TEST_F(AgentLoopBackTest, VerifyLoopBackSrcEqualDstIp) {
+  runTest(false /* srcEqualDstMac */, true /* srcEqualDstIp */);
 }
 
 } // namespace facebook::fboss

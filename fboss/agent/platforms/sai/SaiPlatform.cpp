@@ -892,6 +892,42 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     }
   }
 
+  //
+  // J4
+  //   Local Ports
+  //   -----------
+  //   - [0-8]: CPU ports (one per datapath)
+  //   - [9-16]: Recycle ports
+  //   - 17: Eventor port
+  //   - [18-161]: 144 Fabric link monitoring ports
+  //
+  //   TODO: Above numbers are for a single NPU.
+  //   - What is the scheme for multi NPU (2xJ4)?
+  //   - Worst case scale is 162 * 2 local sysports
+  //   - First Global SystemPort = 325
+  //   - 32xJ4 in chassis, 32x800G + 1x100G (MGMT)
+  //   - 2K 400G ports per chassis, 32x100G QSFP MGMT
+  //   - Total sysport scale: 2405 (2048+325+32)
+  //   - Local CPU systemPort is always 0 per NPU
+  //   TODO: confirm adjustLocalPortOffset.
+  //
+  // Q4D
+  //   Local Ports (single FAP system)
+  //   -----------
+  //   - 32 800G per die, 64x800G per Q4D
+  //   - 128x400G per Q4D (breakout)
+  //   - 2x100G QSFP Talon ports (MGMT)
+  //   - Total ports per Q4D = 130
+  //
+  //   Port Allocation:
+  //   - [0-16]: CPU ports (one per datapath)
+  //   - [17-32]: Recycle ports (local, 2 per core)
+  //   - 33(core0), 34(core4): Eventor ports
+  //   - 35: Global recycle port (scope=GLOBAL)
+  //   - No Fabric link monitoring (no fabric)
+  //   - MaxSystemPorts: 1024
+  //
+
   // Q4D standalone box configuration
   if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D) {
     maxSystemPorts = 1024;
@@ -899,7 +935,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     maxSystemPortId = 1024 - 1;
     localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
   }
-  // J4 SIM configuraion
+  // J4 SIM configuration
   if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
     maxSystemPorts = 8192;
     maxVoqs = 8192 * 8;

@@ -1159,6 +1159,9 @@
           "test_name_regex": "HwIngressBufferTest.validatePGHeadroomLimitChange"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.HwRouteStatTest.RouteEntryTest"
+        },
+        {
           "test_name_regex": "HwWideEcmpTest.WideUcmp.*"
         }
     ],
@@ -1702,6 +1705,9 @@
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcRx.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.HwRouteStatTest.RouteEntryTest"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3": [
@@ -3915,6 +3921,9 @@
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile"
         },
         {
+          "test_name_regex": "HwArsTest.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToFixed"
         },
         {
@@ -4435,6 +4444,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile"
+        },
+        {
+          "test_name_regex": "HwArsTest.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToFixed"
@@ -5606,6 +5618,9 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGHeadroomLimitChange"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.HwRouteStatTest.RouteEntryTest"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4": [
@@ -7844,9 +7859,6 @@
         },
         {
           "test_name_regex": "HwResourceStatsTest.l3Stats$"
-        },
-        {
-          "test_name_regex": "SaiAclTableRecreateTests.AclEntryCount$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/graphene200": [
@@ -8062,9 +8074,6 @@
         },
         {
           "test_name_regex": "SaiRouteRollbackTest.rollbackManyTimesWithTrunk$"
-        },
-        {
-          "test_name_regex": "warm_boot.SaiAclTableRecreateTests.AclEntryCount$"
         },
         {
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf$"
@@ -8424,9 +8433,6 @@
         },
         {
           "test_name_regex": "HwTrunkLoadBalancerTest.*"
-        },
-        {
-          "test_name_regex": "SaiAclTableRecreateTests.AclEntryCount"
         }
     ],
     "leaba/25.5.4210/25.5.4210/gibraltar": [
@@ -8789,9 +8795,6 @@
         },
         {
           "test_name_regex": "HwResourceStatsTest.l3Stats$"
-        },
-        {
-          "test_name_regex": "SaiAclTableRecreateTests.AclEntryCount$"
         }
     ],
     "leaba/25.5.4210/25.5.4210/graphene200": [
@@ -9007,9 +9010,6 @@
         },
         {
           "test_name_regex": "SaiRouteRollbackTest.rollbackManyTimesWithTrunk$"
-        },
-        {
-          "test_name_regex": "warm_boot.SaiAclTableRecreateTests.AclEntryCount$"
         },
         {
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf$"
@@ -9228,9 +9228,6 @@
         },
         {
           "test_name_regex": "SaiRouteRollbackTest.rollbackManyTimesWithTrunk$"
-        },
-        {
-          "test_name_regex": "warm_boot.SaiAclTableRecreateTests.AclEntryCount$"
         },
         {
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf$"

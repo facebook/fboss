@@ -75,7 +75,7 @@ jobs:
           # Explicitly set the retention at the object level
           retention-days: 14
   FSDB-Test:
-    runs-on: ubuntu-latest
+    runs-on: 4-core-ubuntu
     needs: FSDB-Build
     steps:
       - name: Check out repository code

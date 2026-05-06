@@ -191,6 +191,12 @@ class CowSubscriptionManager
         auto& subscription = *it;
         CHECK(subscription);
         if (!metadataServer.ready(subscription->publisherTreeRoot())) {
+          // Publisher root not yet seen (initial sync in progress).
+          XLOG_EVERY_MS(DBG1, 30000)
+              << "subscriber " << subscription->subscriberId()
+              << " waiting on publisher root "
+              << subscription->publisherTreeRoot()
+              << " (initial sync in progress)";
           ++it;
           continue;
         }

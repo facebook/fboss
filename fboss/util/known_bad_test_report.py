@@ -966,6 +966,7 @@ def main() -> Optional[int]:
 
             known_bad_jobs = {}
             for _i, (job_id, job_name, instance_id) in enumerate(
+                # pyrefly: ignore [unsupported-operation]
                 zip(df["jobId"], df["jobname"], df["job_instance_id"])
             ):
                 logger.info(

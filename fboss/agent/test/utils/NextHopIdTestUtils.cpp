@@ -47,8 +47,8 @@ void populateFibInfoIdMaps(
   auto* fibInfoPtr = fibInfo->modify(&state);
 
   auto id2Nhop = std::make_shared<IdToNextHopMap>();
-  for (const auto& [id, nhop] : idManager->getIdToNextHop()) {
-    id2Nhop->addNextHop(id, nhop.toThrift());
+  for (const auto& [id, nhopEntry] : idManager->getIdToNextHop()) {
+    id2Nhop->addNextHop(id, nhopEntry.nextHop.toThrift());
   }
   auto id2NhopSetIds = std::make_shared<IdToNextHopIdSetMap>();
   for (const auto& [id, nhopIdSet] : idManager->getIdToNextHopIdSet()) {

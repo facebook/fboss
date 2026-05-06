@@ -49,7 +49,6 @@ TeFlow config are part of switch settings configuration of agent config. The exa
  "qcmEnable": false,
  "ptpTcEnable": false,
  "l2AgeTimerSeconds": 300,
- "maxRouteCounterIDs": 0,
  "blockNeighbors": [
  ],
  "macAddrsToBlock": [
@@ -63,12 +62,6 @@ TeFlow config are part of switch settings configuration of agent config. The exa
  ]
 },
 ```
-# Build and test
-
-HW tests: fboss/agent/hw/test/HwTeFlowTests.cpp
-
-HW Dataplane tests: fboss/agent/hw/test/dataplane_tests/HwTeFlowTrafficTests.cpp
-
 # Debug
 
 Use fboss2 show teflow command to display all the telfows information On BCM shell, fp show displays the hardware objects

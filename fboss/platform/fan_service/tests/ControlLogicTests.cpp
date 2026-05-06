@@ -143,6 +143,9 @@ TEST_F(ControlLogicTests, UpdateControlSuccess) {
         fb303::fbData->getCounter(fmt::format("{}.rpm_read.failure", fanName)),
         0);
   }
+  EXPECT_EQ(fb303::fbData->getCounter("has.fan_rpm_read_failure"), 0);
+  EXPECT_EQ(fb303::fbData->getCounter("has.fan_pwm_write_failure"), 0);
+  EXPECT_EQ(fb303::fbData->getCounter("has.fan_absent"), 0);
   const auto& sensorCaches = controlLogic_->getSensorCaches();
   for (const auto& [sensorName, sensorCache] : sensorCaches) {
     EXPECT_EQ(sensorCache.sensorFailed, false);
@@ -182,6 +185,9 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToMissingFans) {
         fb303::fbData->getCounter(fmt::format("{}.rpm_read.failure", fanName)),
         1);
   }
+  EXPECT_EQ(fb303::fbData->getCounter("has.fan_rpm_read_failure"), 1);
+  EXPECT_EQ(fb303::fbData->getCounter("has.fan_pwm_write_failure"), 0);
+  EXPECT_EQ(fb303::fbData->getCounter("has.fan_absent"), 1);
 }
 
 TEST_F(ControlLogicTests, UpdateControlFailureDueToFanInaccessible) {
@@ -215,6 +221,9 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToFanInaccessible) {
         fb303::fbData->getCounter(fmt::format("{}.rpm_read.failure", fanName)),
         1);
   }
+  EXPECT_EQ(fb303::fbData->getCounter("has.fan_rpm_read_failure"), 1);
+  EXPECT_EQ(fb303::fbData->getCounter("has.fan_pwm_write_failure"), 0);
+  EXPECT_EQ(fb303::fbData->getCounter("has.fan_absent"), 0);
 }
 
 TEST_F(

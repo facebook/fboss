@@ -56,14 +56,16 @@ class RibRouteUpdater {
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
       NextHopIDManager* nextHopIDManager,
-      MySidTable* mySidTable);
+      MySidTable* mySidTable,
+      RouterID routerID = RouterID(0));
 
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
       LabelToRouteMap* mplsRoutes,
       NextHopIDManager* nextHopIDManager,
-      MySidTable* mySidTable);
+      MySidTable* mySidTable,
+      RouterID routerID = RouterID(0));
 
   struct RouteEntry {
     folly::CIDRNetwork prefix;
@@ -186,6 +188,11 @@ class RibRouteUpdater {
       RouteNextHopSet& fwd);
 
   template <typename AddressT>
+  void maybeRemoveNamedNhgMapping(
+      const std::shared_ptr<Route<AddressT>>& route,
+      const RouteNextHopEntry& clientEntry);
+
+  template <typename AddressT>
   bool needResolve(const std::shared_ptr<Route<AddressT>>& route) const;
 
   using NextHopIpToForwardInfo =
@@ -196,7 +203,9 @@ class RibRouteUpdater {
   LabelToRouteMap* mplsRoutes_{nullptr};
   NextHopIDManager* nextHopIDManager_{nullptr};
   MySidTable* mySidTable_{nullptr};
+  RouterID routerID_{0};
   std::unordered_set<void*> needsResolution_;
+  std::unordered_set<void*> resolving_;
   /*
    * Cache for next hop to FWD information. For our use case
    * its pretty common for the same next hops to repeat, so

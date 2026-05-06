@@ -1,8 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <gtest/gtest.h>
+#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/state/IpTunnel.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "folly/IPAddressV6.h"
 
 using namespace facebook::fboss;
@@ -67,4 +69,64 @@ TEST(Tunnel, AddRemove) {
   tunnels->removeNode("tunnel0");
   EXPECT_EQ(state->getTunnels()->getNodeIf("tunnel0"), nullptr);
   EXPECT_NE(state->getTunnels()->getNodeIf("tunnel1"), nullptr);
+}
+
+TEST(Tunnel, ApplyConfigDecapSwapsIps) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0);
+
+  auto config = testConfigA();
+
+  cfg::IpInIpTunnel tunnelCfg;
+  tunnelCfg.ipInIpTunnelId() = "decapTunnel";
+  tunnelCfg.underlayIntfID() = 1;
+  tunnelCfg.dstIp() = "2401:db00::1";
+  tunnelCfg.srcIp() = "2401:db00::2";
+  tunnelCfg.tunnelType() = TunnelType::IP_IN_IP;
+  tunnelCfg.tunnelTermType() = cfg::TunnelTerminationType::P2P;
+  tunnelCfg.ttlMode() = cfg::TunnelMode::PIPE;
+  tunnelCfg.dscpMode() = cfg::TunnelMode::PIPE;
+  tunnelCfg.ecnMode() = cfg::TunnelMode::PIPE;
+  config.ipInIpTunnels() = {tunnelCfg};
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  auto tunnel = stateV1->getTunnels()->getNodeIf("decapTunnel");
+  ASSERT_NE(nullptr, tunnel);
+  // Decap swaps: config dstIp -> state srcIP, config srcIp -> state dstIP
+  EXPECT_EQ(tunnel->getSrcIP(), folly::IPAddressV6("2401:db00::1"));
+  EXPECT_EQ(tunnel->getDstIP(), folly::IPAddressV6("2401:db00::2"));
+}
+
+TEST(Tunnel, ApplyConfigEncapNoSwap) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0);
+
+  auto config = testConfigA();
+
+  cfg::IpInIpTunnel tunnelCfg;
+  tunnelCfg.ipInIpTunnelId() = "encapTunnel";
+  tunnelCfg.underlayIntfID() = 1;
+  tunnelCfg.srcIp() = "2401:db00::1";
+  tunnelCfg.dstIp() = "2401:db00::2";
+  tunnelCfg.tunnelType() = TunnelType::IP_IN_IP_ENCAP;
+  tunnelCfg.tunnelTermType() = cfg::TunnelTerminationType::P2P;
+  tunnelCfg.ttlMode() = cfg::TunnelMode::PIPE;
+  tunnelCfg.dscpMode() = cfg::TunnelMode::PIPE;
+  tunnelCfg.ecnMode() = cfg::TunnelMode::UNIFORM;
+  config.ipInIpTunnels() = {tunnelCfg};
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  auto tunnel = stateV1->getTunnels()->getNodeIf("encapTunnel");
+  ASSERT_NE(nullptr, tunnel);
+  // Encap: no swap, config srcIp -> state srcIP, config dstIp -> state dstIP
+  EXPECT_EQ(tunnel->getSrcIP(), folly::IPAddressV6("2401:db00::1"));
+  EXPECT_EQ(tunnel->getDstIP(), folly::IPAddressV6("2401:db00::2"));
+  EXPECT_EQ(tunnel->getType(), TunnelType::IP_IN_IP_ENCAP);
+  EXPECT_EQ(tunnel->getEcnMode(), cfg::TunnelMode::UNIFORM);
 }

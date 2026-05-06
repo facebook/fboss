@@ -81,14 +81,6 @@ class SwitchSettings
     set<switch_state_tags::l2AgeTimerSeconds>(val);
   }
 
-  uint32_t getMaxRouteCounterIDs() const {
-    return cref<switch_state_tags::maxRouteCounterIDs>()->toThrift();
-  }
-
-  void setMaxRouteCounterIDs(uint32_t numCounterIDs) {
-    set<switch_state_tags::maxRouteCounterIDs>(numCounterIDs);
-  }
-
   auto getMacAddrsToBlock() const {
     return safe_cref<switch_state_tags::macAddrsToBlock>();
   }

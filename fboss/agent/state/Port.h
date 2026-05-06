@@ -897,6 +897,41 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  /** @brief Get hold timer (ms) before reporting a link-down event */
+  std::optional<int32_t> getPortDownHoldoffTimeMs() const {
+    if (auto v = cref<switch_state_tags::portDownHoldoffTimeMs>()) {
+      return v->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set hold timer (ms) before reporting a link-down event */
+  void setPortDownHoldoffTimeMs(std::optional<int32_t> portDownHoldoffTimeMs) {
+    if (!portDownHoldoffTimeMs.has_value()) {
+      ref<switch_state_tags::portDownHoldoffTimeMs>().reset();
+    } else {
+      set<switch_state_tags::portDownHoldoffTimeMs>(
+          portDownHoldoffTimeMs.value());
+    }
+  }
+
+  /** @brief Get hold timer (ms) before reporting a link-up event */
+  std::optional<int32_t> getPortUpHoldoffTimeMs() const {
+    if (auto v = cref<switch_state_tags::portUpHoldoffTimeMs>()) {
+      return v->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set hold timer (ms) before reporting a link-up event */
+  void setPortUpHoldoffTimeMs(std::optional<int32_t> portUpHoldoffTimeMs) {
+    if (!portUpHoldoffTimeMs.has_value()) {
+      ref<switch_state_tags::portUpHoldoffTimeMs>().reset();
+    } else {
+      set<switch_state_tags::portUpHoldoffTimeMs>(portUpHoldoffTimeMs.value());
+    }
+  }
+
  private:
   auto getRxSaks() const {
     return safe_cref<switch_state_tags::rxSecureAssociationKeys>();

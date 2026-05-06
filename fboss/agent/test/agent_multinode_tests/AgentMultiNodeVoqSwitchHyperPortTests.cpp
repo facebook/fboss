@@ -13,9 +13,27 @@ namespace facebook::fboss {
 
 class AgentMultiNodeVoqSwitchHyperPortTest : public AgentMultiNodeTest {
  private:
+  struct PrimarySwitchFlapSnapshot {
+    std::map<std::string, int64_t> hyperPortFlapCounts;
+    std::map<std::string, int64_t> memberLinkStateFlapCounts;
+    std::map<std::string, std::optional<int64_t>>
+        remoteHyperPortNdpResolvedSince;
+  };
+
   std::pair<folly::IPAddressV6, int16_t> kGetRoutePrefixAndPrefixLength()
       const {
     return std::make_pair(folly::IPAddressV6("2001:0db8:85a3::"), 64);
+  }
+
+  std::string getRemoteEdsw(
+      const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
+    auto myHostname = topologyInfo->getMyHostname();
+    for (const auto& edsw : topologyInfo->getEdsws()) {
+      if (edsw != myHostname) {
+        return edsw;
+      }
+    }
+    throw FbossError("No remote EDSW found for ", myHostname);
   }
 
   // Get non-link-local IPv6 IPs for hyper port interfaces on the given EDSW.
@@ -67,6 +85,82 @@ class AgentMultiNodeVoqSwitchHyperPortTest : public AgentMultiNodeTest {
     }
 
     return result;
+  }
+
+  PrimarySwitchFlapSnapshot getPrimarySwitchFlapSnapshot(
+      const std::string& primaryEdsw,
+      const std::vector<std::pair<int32_t, folly::IPAddressV6>>& remoteIPs)
+      const {
+    PrimarySwitchFlapSnapshot snapshot;
+
+    std::vector<AggregatePortThrift> aggregatePorts;
+    auto swAgentClient = utility::getSwAgentThriftClient(primaryEdsw);
+    swAgentClient->sync_getAggregatePortTable(aggregatePorts);
+    auto portIdToPortInfo = utility::getPortIdToPortInfo(primaryEdsw);
+    auto counters = utility::getCounterNameToCount(primaryEdsw);
+
+    for (const auto& aggPort : aggregatePorts) {
+      auto aggName = aggPort.name().value();
+      snapshot.hyperPortFlapCounts[aggName] =
+          utility::getFb303CounterValue(counters, aggName, "flaps");
+
+      for (const auto& member : aggPort.memberPorts().value()) {
+        auto portId = member.memberPortID().value();
+        auto portInfoIt = portIdToPortInfo.find(portId);
+        CHECK(portInfoIt != portIdToPortInfo.end())
+            << "Port " << portId << " not found on " << primaryEdsw;
+        auto portName = portInfoIt->second.name().value();
+        snapshot.memberLinkStateFlapCounts[portName] =
+            utility::getFb303CounterValue(
+                counters, portName, "link_state.flap");
+      }
+    }
+
+    auto ndpEntries = utility::getNdpEntries(primaryEdsw);
+    for (const auto& [_, remoteIP] : remoteIPs) {
+      auto remoteIpStr = remoteIP.str();
+      auto ndpEntryIt = std::find_if(
+          ndpEntries.begin(), ndpEntries.end(), [&remoteIP](const auto& entry) {
+            auto entryIP = folly::IPAddress::fromBinary(
+                folly::ByteRange(
+                    folly::StringPiece(entry.ip().value().addr().value())));
+            return entryIP == remoteIP;
+          });
+      CHECK(ndpEntryIt != ndpEntries.end())
+          << "Missing NDP entry for remote hyper port IP " << remoteIpStr
+          << " on " << primaryEdsw;
+
+      snapshot.remoteHyperPortNdpResolvedSince[remoteIpStr] =
+          ndpEntryIt->resolvedSince().has_value()
+          ? std::make_optional(*ndpEntryIt->resolvedSince())
+          : std::nullopt;
+    }
+
+    return snapshot;
+  }
+
+  bool verifyPrimarySwitchFlapSnapshotUnchanged(
+      const std::string& primaryEdsw,
+      const PrimarySwitchFlapSnapshot& baselineSnapshot,
+      const PrimarySwitchFlapSnapshot& currentSnapshot) const {
+    if (currentSnapshot.hyperPortFlapCounts !=
+        baselineSnapshot.hyperPortFlapCounts) {
+      XLOG(DBG2) << "Hyper port flap counters changed on " << primaryEdsw;
+      return false;
+    }
+    if (currentSnapshot.memberLinkStateFlapCounts !=
+        baselineSnapshot.memberLinkStateFlapCounts) {
+      XLOG(DBG2) << "Hyper port member link_state.flap counters changed on "
+                 << primaryEdsw;
+      return false;
+    }
+    if (currentSnapshot.remoteHyperPortNdpResolvedSince !=
+        baselineSnapshot.remoteHyperPortNdpResolvedSince) {
+      XLOG(DBG2) << "Hyper port NDP resolvedSince changed on " << primaryEdsw;
+      return false;
+    }
+
+    return true;
   }
 
   // Compute one neighbor per hyper port (aggregate port) on the given EDSW.
@@ -441,6 +535,100 @@ class AgentMultiNodeVoqSwitchHyperPortTest : public AgentMultiNodeTest {
 
     return true;
   }
+
+  bool verifyNdpAfterHyperPortMemberFlap(
+      const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
+    XLOG(DBG2) << "Verifying NDP after stress flapping hyper port members";
+
+    auto myHostname = topologyInfo->getMyHostname();
+
+    std::vector<AggregatePortThrift> aggregatePorts;
+    {
+      auto swAgentClient = utility::getSwAgentThriftClient(myHostname);
+      swAgentClient->sync_getAggregatePortTable(aggregatePorts);
+    }
+    CHECK(!aggregatePorts.empty()) << "No aggregate ports on " << myHostname;
+
+    constexpr int kNumFlaps = 5;
+
+    for (const auto& aggPort : aggregatePorts) {
+      for (const auto& member : aggPort.memberPorts().value()) {
+        auto memberPortID = member.memberPortID().value();
+        XLOG(DBG2) << "Flapping member port " << memberPortID
+                   << " of hyper port " << aggPort.name().value() << " "
+                   << kNumFlaps << " times";
+        for (int i = 0; i < kNumFlaps; i++) {
+          XLOG(DBG2) << "  Flap " << (i + 1) << "/" << kNumFlaps;
+          utility::adminDisablePort(myHostname, memberPortID);
+          utility::adminEnablePort(myHostname, memberPortID);
+        }
+      }
+    }
+
+    auto verifyHyperPortsUp = [&myHostname]() {
+      std::vector<AggregatePortThrift> aggPorts;
+      auto swAgentClient = utility::getSwAgentThriftClient(myHostname);
+      swAgentClient->sync_getAggregatePortTable(aggPorts);
+      for (const auto& aggPort : aggPorts) {
+        if (!aggPort.isUp().value()) {
+          XLOG(DBG2) << "Hyper port " << aggPort.name().value()
+                     << " is not up on " << myHostname;
+          return false;
+        }
+        for (const auto& member : aggPort.memberPorts().value()) {
+          if (!member.isForwarding().value()) {
+            XLOG(DBG2) << "Member port " << member.memberPortID().value()
+                       << " of hyper port " << aggPort.name().value()
+                       << " is not forwarding on " << myHostname;
+            return false;
+          }
+        }
+      }
+      return true;
+    };
+
+    if (!checkWithRetryErrorReturn(
+            verifyHyperPortsUp, 180, std::chrono::milliseconds(1000), true)) {
+      XLOG(DBG2) << "Hyper ports did not recover after flapping on "
+                 << myHostname;
+      return false;
+    }
+
+    XLOG(DBG2) << "All hyper ports recovered after stress flapping, "
+               << "verifying NDP/ping";
+    return verifyNdpBehindHyperPorts(topologyInfo);
+  }
+
+  bool verifyNoControlPlaneFlapOnRemoteWarmboot(
+      const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
+    XLOG(DBG2) << "Verifying no hyper-port control plane flap on remote "
+               << "warmboot restart";
+
+    auto myHostname = topologyInfo->getMyHostname();
+    auto remoteEdsw = getRemoteEdsw(topologyInfo);
+    auto remoteIPs = getHyperPortInterfaceIPs(remoteEdsw);
+    CHECK(!remoteIPs.empty())
+        << "No hyper port IPs on remote EDSW " << remoteEdsw;
+
+    auto baselineSnapshot = getPrimarySwitchFlapSnapshot(myHostname, remoteIPs);
+    if (!utility::restartServiceForSwitches(
+            {remoteEdsw},
+            utility::triggerGracefulAgentRestart,
+            utility::getAgentAliveSinceEpoch,
+            utility::verifySwSwitchRunState,
+            SwitchRunState::CONFIGURED)) {
+      XLOG(DBG2) << "Failed to gracefully restart remote switch " << remoteEdsw;
+      return false;
+    }
+
+    auto currentSnapshot = getPrimarySwitchFlapSnapshot(myHostname, remoteIPs);
+    if (!verifyPrimarySwitchFlapSnapshotUnchanged(
+            myHostname, baselineSnapshot, currentSnapshot)) {
+      return false;
+    }
+
+    return verifyNdpBehindHyperPorts(topologyInfo);
+  }
 };
 
 TEST_F(AgentMultiNodeVoqSwitchHyperPortTest, verifyNdpBehindHyperPorts) {
@@ -467,6 +655,34 @@ TEST_F(
         return this->verifyHyperPortTrafficDistribution(topologyInfo);
     }
   });
+}
+
+TEST_F(
+    AgentMultiNodeVoqSwitchHyperPortTest,
+    verifyNdpAfterHyperPortMemberFlap) {
+  if (!FLAGS_hyper_port) {
+    GTEST_SKIP() << "Skipping: hyper_port flag is not set";
+  }
+  ASSERT_TRUE(checkWithRetryErrorReturn(
+      [this]() { return verifyNdpBehindHyperPorts(topologyInfo_); },
+      120,
+      std::chrono::milliseconds(5000),
+      true));
+  ASSERT_TRUE(verifyNdpAfterHyperPortMemberFlap(topologyInfo_));
+}
+
+TEST_F(
+    AgentMultiNodeVoqSwitchHyperPortTest,
+    verifyNoControlPlaneFlapOnRemoteWarmboot) {
+  if (!FLAGS_hyper_port) {
+    GTEST_SKIP() << "Skipping: hyper_port flag is not set";
+  }
+  ASSERT_TRUE(checkWithRetryErrorReturn(
+      [this]() { return verifyNdpBehindHyperPorts(topologyInfo_); },
+      120,
+      std::chrono::milliseconds(5000),
+      true));
+  ASSERT_TRUE(verifyNoControlPlaneFlapOnRemoteWarmboot(topologyInfo_));
 }
 
 } // namespace facebook::fboss

@@ -58,9 +58,6 @@ class TaggingModeArg : public utils::BaseObjectArgType<std::string> {
     return emitPriorityTags_;
   }
 
-  const static utils::ObjectArgTypeId id =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_AND_TAGGING_MODE;
-
  private:
   bool emitTags_ = false;
   bool emitPriorityTags_ = false;
@@ -68,8 +65,12 @@ class TaggingModeArg : public utils::BaseObjectArgType<std::string> {
 
 struct CmdConfigVlanPortTaggingModeTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigVlanPort;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_AND_TAGGING_MODE;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "port_and_tagging_mode",
+        args,
+        "Port name and tagging mode (e.g., eth1/1/1 tagged|untagged|priority-tagged)");
+  }
   using ObjectArgType = TaggingModeArg;
   using RetType = std::string;
 };

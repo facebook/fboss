@@ -53,7 +53,6 @@ cfg::SwitchConfig AgentIntegrationTest::initialConfig(
       asic->desiredLoopbackModes() // enable all loopback modes
   );
 
-  cfg.switchSettings()->maxRouteCounterIDs() = 1;
   return cfg;
 }
 

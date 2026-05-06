@@ -34,6 +34,7 @@ cpp_library(
         ],
         versions = to_versions(sdk),
         deps = [
+            "fbsource//third-party/glog:glog",
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:main-bcm",
             "//fboss/agent:setup_thrift_prod",
@@ -44,7 +45,6 @@ cpp_library(
         ],
         external_deps = [
             "gflags",
-            "glog",
         ],
     )
     for sdk in BCM_SDKS

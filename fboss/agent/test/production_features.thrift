@@ -121,6 +121,13 @@ enum ProductionFeature {
   CUT_THROUGH = 103,
   SRV6_MIDPOINT = 104,
   L4_DST_PORT_RANGE = 105,
+  MPLS_HEADEND = 106,
+  MPLS_MIDPOINT = 107,
+  MPLS_TAILEND = 108,
+  SAVE_SDK_STATE = 109,
+  IP_IN_IP_ENCAP = 110,
+  MIRROR_ON_DROP_STATELESS = 111,
+  PORT_DEBOUNCE = 112,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

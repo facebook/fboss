@@ -7,9 +7,11 @@
 #include <folly/json/dynamic.h>
 #include <gtest/gtest.h>
 #include <chrono>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace facebook::fboss {
@@ -71,6 +73,21 @@ class Fboss2IntegrationTest : public ::testing::Test {
   folly::dynamic runCliJson(const std::vector<std::string>& args) const;
 
   /**
+   * Fetch the agent's running config via thrift and return it parsed.
+   */
+  folly::dynamic getRunningConfig() const;
+
+  /**
+   * Find a (vlanId, portName) pair where vlanId appears in sw.vlans and the
+   * port is a member of that VLAN via sw.vlanPorts. Returns nullopt on
+   * switches configured in a port-based / L3-routed style with no L2 VLAN
+   * memberships — tests that need L2-VLAN commands (e.g. 'config vlan <id>
+   * port <name> taggingMode', 'config vlan <id> static-mac ...') should
+   * GTEST_SKIP when this returns nullopt.
+   */
+  std::optional<std::pair<int, std::string>> findConfiguredVlanPort() const;
+
+  /**
    * Run a shell command and return the result.
    * @param args Command and arguments
    * @return Result with exit code, stdout, and stderr
@@ -91,9 +108,16 @@ class Fboss2IntegrationTest : public ::testing::Test {
   std::map<std::string, Interface> getAllInterfaces() const;
 
   /**
-   * Find the first suitable ethernet interface for testing.
-   * Only returns ethernet interfaces (starting with 'eth') with a valid VLAN.
-   * @return Interface object
+   * Pick an ethernet interface for testing.
+   *
+   * Interfaces whose status indicates they are up are strongly preferred — if
+   * at least one matches, a random one is returned. If none are up, a random
+   * interface from all ethernet candidates is returned. An "ethernet
+   * candidate" is any interface whose name starts with "eth" and has
+   * VLAN > 1. Throws if no candidates exist.
+   *
+   * The selection is randomized (thread-local mt19937) to reduce the chance
+   * of piling test load onto the same port across back-to-back runs.
    */
   Interface findFirstEthInterface() const;
 
@@ -109,6 +133,57 @@ class Fboss2IntegrationTest : public ::testing::Test {
    * @throws std::runtime_error if interface not found
    */
   int getKernelInterfaceMtu(int vlanId) const;
+
+  /**
+   * Running port info returned from a direct Thrift call to the agent.
+   */
+  struct PortRunningInfo {
+    int64_t speedMbps{0};
+    std::string profileId;
+  };
+
+  /**
+   * Poll getInterfaceInfo() until condition(info) is true or timeout expires.
+   * Returns the last observed Interface so callers can assert on the value.
+   */
+  Interface waitForInterfaceInfo(
+      const std::string& interfaceName,
+      const std::function<bool(const Interface&)>& condition,
+      std::chrono::seconds timeout = std::chrono::seconds(30),
+      std::chrono::seconds interval = std::chrono::seconds(2)) const;
+
+  /**
+   * Poll getKernelInterfaceMtu() until condition(mtu) is true or timeout
+   * expires. Returns the last observed MTU value.
+   */
+  int waitForKernelMtu(
+      int vlanId,
+      const std::function<bool(int)>& condition,
+      std::chrono::seconds timeout = std::chrono::seconds(30),
+      std::chrono::seconds interval = std::chrono::seconds(2)) const;
+
+  /**
+   * Query the agent directly via getAllPortInfo() and return the running
+   * speed and profileID for the named port.
+   * @param portName The port name (e.g., "eth1/1/1")
+   * @throws std::runtime_error if the port is not found
+   */
+  PortRunningInfo getPortRunningInfo(const std::string& portName) const;
+
+  /**
+   * Poll getPortRunningInfo() until condition(info) returns true or timeout
+   * expires. Returns the last observed PortRunningInfo so callers can assert
+   * on the final value even when the condition is not met.
+   * @param portName  The port name (e.g., "eth1/1/1")
+   * @param condition Predicate evaluated on each poll result
+   * @param timeout   Max time to wait (default: 30 s)
+   * @param interval  Sleep between polls (default: 2 s)
+   */
+  PortRunningInfo waitForPortRunningInfo(
+      const std::string& portName,
+      const std::function<bool(const PortRunningInfo&)>& condition,
+      std::chrono::seconds timeout = std::chrono::seconds(30),
+      std::chrono::seconds interval = std::chrono::seconds(2)) const;
 
   /**
    * Discard any pending config session by deleting session files.

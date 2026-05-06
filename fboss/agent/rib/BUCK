@@ -8,6 +8,7 @@ cpp_library(
     headers = glob(["*.h"]),
     exported_deps = [
         "fbsource//third-party/googletest:gtest_headers",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fboss_event_base",
         "//fboss/agent:switch_config-cpp2-types",
@@ -50,6 +51,7 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
+        "//folly:conv",
         "//folly:network_address",
         "//folly:range",
         "//folly:scope_guard",
@@ -98,6 +100,7 @@ cpp_unittest(
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:utils",
         "//fboss/agent/hw/mock:mock",
+        "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/if:mpls-cpp2-types",
@@ -175,6 +178,7 @@ cpp_library(
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent/state:state",
+        "//folly:network_address",
     ],
     exported_external_deps = [
         "boost",

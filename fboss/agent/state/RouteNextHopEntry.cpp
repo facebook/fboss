@@ -841,6 +841,14 @@ RouteNextHopSet RouteNextHopEntry::getNextHopSet() const {
       safe_cref<switch_state_tags::nexthops>()->toThrift(), true);
 }
 
+void RouteNextHopEntry::setNextHops(const NextHopSet& nhops) {
+  if (nhops.empty()) {
+    throw FbossError("Empty nexthop set is passed to setNextHops");
+  }
+  ref<switch_state_tags::action>() = Action::NEXTHOPS;
+  set<switch_state_tags::nexthops>(util::fromRouteNextHopSet(nhops));
+}
+
 bool RouteNextHopEntry::hasOverrideSwitchingModeOrNhops() const {
   return hasOverrideSwitchingMode() || hasOverrideNextHops();
 }

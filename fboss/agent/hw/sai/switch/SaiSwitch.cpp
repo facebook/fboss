@@ -1933,12 +1933,6 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
     }
   }
 
-  if (oldSwitchSettings->getMaxRouteCounterIDs() !=
-      newSwitchSettings->getMaxRouteCounterIDs()) {
-    managerTable_->counterManager().setMaxRouteCounterIDs(
-        newSwitchSettings->getMaxRouteCounterIDs());
-  }
-
   {
     const auto oldVal = oldSwitchSettings->getForceTrafficOverFabric();
     const auto newVal = newSwitchSettings->getForceTrafficOverFabric();
@@ -2606,6 +2600,16 @@ void SaiSwitch::updatePmdInfo(
   for (const auto& laneState : laneStates) {
     sideState.pmd()->lanes()[laneState.first] = laneState.second;
   }
+  auto swPort = getProgrammedState()->getPorts()->getNodeIf(portID);
+  bool linkTrainingEnabled =
+      swPort ? swPort->getLinkTraining().value_or(false) : false;
+  if (linkTrainingEnabled) {
+    sideState.pmd()->linkTrainingStatus() =
+        managerTable_->portManager().getLinkTrainingStatus(
+            port->adapterKey(), portID, linkTrainingEnabled);
+  } else {
+    sideState.pmd()->linkTrainingStatus()->linkTrainingEnabled() = false;
+  }
 }
 
 void SaiSwitch::updatePcsInfo(
@@ -2824,7 +2828,7 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
         saiSwitchId_, restartIssu);
 #endif
   }
-#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001)
+#if defined(TAJO_SAI_SDK)
   checkAndSetSdkDowngradeVersion();
 #endif
   folly::dynamic follySwitchState = folly::dynamic::object;

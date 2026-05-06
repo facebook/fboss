@@ -2,10 +2,12 @@
 
 #include "fboss/qsfp_service/module/CdbCommandBlock.h"
 
+#include <algorithm>
 #include <chrono>
 
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
+#include <gflags/gflags.h>
 
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 
@@ -20,7 +22,9 @@
 DEFINE_int32(
     cdb_command_timeout_usec,
     20000000,
-    "Timeout (usec) for CDB command completion.");
+    "Timeout (usec) for CDB command completion. When explicitly set, overrides "
+    "MaxDurationWrite from CDB command 0x0041. When not set, "
+    "MaxDurationWrite is used (capped at 120s).");
 
 namespace facebook::fboss {
 
@@ -105,8 +109,13 @@ void CdbCommandBlock::i2cWriteAndContinue(
  * written first. The command op-code gets written at offset 128, 128. The
  * write to 129 causes command to run. After this wait for command status to
  * become successful. For some command the result is returned in CDB LPL memory
+ *
+ * An optional timeout can be passed to override the default
+ * FLAGS_cdb_command_timeout_usec (e.g. for firmware upgrade commands).
  */
-bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
+bool CdbCommandBlock::cmisRunCdbCommand(
+    TransceiverImpl* bus,
+    std::optional<uint64_t> overrideTimeoutUsec) {
   // Command block length is 8 plus lpl memory length
   int len = this->cdbFields_.cdbLplLength + 8;
 
@@ -189,12 +198,14 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
     usleep(delayAfterFwCommitUsec);
   }
 
+  uint64_t timeoutUsec =
+      overrideTimeoutUsec.value_or(FLAGS_cdb_command_timeout_usec);
+
   // Now read the CDB command status register till the status becomes success
   // or fail
   uint8_t status = 0;
   auto startTime = std::chrono::steady_clock::now();
-  auto finishTime =
-      startTime + std::chrono::microseconds(FLAGS_cdb_command_timeout_usec);
+  auto finishTime = startTime + std::chrono::microseconds(timeoutUsec);
   /* sleep override */
   usleep(cdbCommandStatusPollIntervalUsec);
   while (true) {

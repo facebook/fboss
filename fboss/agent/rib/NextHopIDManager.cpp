@@ -4,6 +4,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
 #include <boost/functional/hash.hpp>
@@ -23,48 +24,45 @@ size_t hash<facebook::fboss::NextHopIDSet>::operator()(
 
 namespace facebook::fboss {
 
-NextHopIDManager::NextHopInfoIter NextHopIDManager::getOrAllocateNextHopID(
+NextHopIDManager::NextHopToIDIter NextHopIDManager::getOrAllocateNextHopID(
     const NextHop& nextHop) {
-  auto it = nextHopToIDInfo_.find(nextHop);
-  if (it != nextHopToIDInfo_.end()) {
-    // Existing NextHop found, increment reference count and return iterator
-    it->second.count++;
+  auto it = nextHopToID_.find(nextHop);
+  if (it != nextHopToID_.end()) {
+    idToNextHop_.at(it->second).refCount++;
+    XLOG(DBG3) << "[NextHop ID Manager] refCount++ nhId=" << it->second
+               << " nh=" << nextHop.addr().str();
     return it;
   }
 
-  // New NextHop, allocate a new ID
   NextHopID newID = nextAvailableNextHopID_;
   nextAvailableNextHopID_ = NextHopID(nextAvailableNextHopID_ + 1);
 
-  // Check if the NextHopID is within the range [0, 2^62-1]
-  // This is the range assigned to NextHopID
   CHECK(static_cast<int64_t>(newID) > 0 && newID < kNextHopSetIDStart)
       << "Next Hop ID is in the range of [0, 2^62 - 1], the id space has been exhausted! It does not support wrap around!";
 
-  auto [idInfoItr, idInfoInserted] =
-      nextHopToIDInfo_.emplace(nextHop, NextHopIDInfo(newID, 1));
-  CHECK(idInfoInserted);
-  auto [idMapItr, idMapInserted] = idToNextHop_.insert({newID, nextHop});
-  CHECK(idMapInserted);
-  return idInfoItr;
+  auto [nhItr, nhInserted] = nextHopToID_.emplace(nextHop, newID);
+  CHECK(nhInserted);
+  auto [idItr, idInserted] =
+      idToNextHop_.emplace(newID, NextHopEntry(nextHop, 1));
+  CHECK(idInserted);
+  XLOG(DBG3) << "[NextHop ID Manager] allocated nhId=" << newID
+             << " nh=" << nextHop.addr().str();
+  return nhItr;
 }
 
 NextHopIDManager::NextHopIdSetIter NextHopIDManager::getOrAllocateNextHopSetID(
     const NextHopIDSet& nextHopIDSet) {
   auto it = nextHopIdSetToIDInfo_.find(nextHopIDSet);
   if (it != nextHopIdSetToIDInfo_.end()) {
-    // Existing NextHopIDSet found, increment reference count and return
-    // iterator
     it->second.count++;
+    XLOG(DBG3) << "[NextHop ID Manager] refCount++ setId=" << it->second.id
+               << " setSize=" << nextHopIDSet.size();
     return it;
   }
 
-  // New NextHopIDSet, allocate a new ID
   NextHopSetID newID = nextAvailableNextHopSetID_;
   nextAvailableNextHopSetID_ = NextHopSetID(nextAvailableNextHopSetID_ + 1);
 
-  // Check if the NextHopSetID is within the range [2^62, INT64_MAX]
-  // This is the range assigned to NextHopSetID
   CHECK(
       static_cast<int64_t>(newID) >= kNextHopSetIDStart &&
       static_cast<int64_t>(newID) < std::numeric_limits<int64_t>::max())
@@ -75,13 +73,22 @@ NextHopIDManager::NextHopIdSetIter NextHopIDManager::getOrAllocateNextHopSetID(
   auto [idSetMapItr, idSetMapInserted] =
       idToNextHopIdSet_.insert({newID, nextHopIDSet});
   CHECK(idSetMapInserted);
+  XLOG(DBG3) << "[NextHop ID Manager] allocated setId=" << newID
+             << " setSize=" << nextHopIDSet.size();
   return idSetInfoItr;
 }
 
 uint32_t NextHopIDManager::getNextHopRefCount(const NextHop& nextHop) {
-  auto it = nextHopToIDInfo_.find(nextHop);
-  if (it != nextHopToIDInfo_.end()) {
-    return it->second.count;
+  auto it = nextHopToID_.find(nextHop);
+  if (it != nextHopToID_.end()) {
+    auto idIt = idToNextHop_.find(it->second);
+    if (idIt != idToNextHop_.end()) {
+      return idIt->second.refCount;
+    }
+    throw FbossError(
+        "NextHopID ",
+        it->second,
+        " in nextHopToIDInfo_ but missing from idToNextHop_");
   }
   return 0;
 }
@@ -96,21 +103,32 @@ uint32_t NextHopIDManager::getNextHopIDSetRefCount(
 }
 
 bool NextHopIDManager::decrOrDeallocateNextHop(const NextHop& nextHop) {
-  auto it = nextHopToIDInfo_.find(nextHop);
-  if (it == nextHopToIDInfo_.end()) {
+  auto it = nextHopToID_.find(nextHop);
+  if (it == nextHopToID_.end()) {
     throw FbossError(
         "Cannot decrement reference count or deallocate for non-existent NextHop");
   }
-  CHECK_GT(it->second.count, 0);
-  it->second.count--;
-  if (it->second.count == 0) {
-    // Reference count reached 0, deallocate
-    auto erasedIdMap = idToNextHop_.erase(it->second.id);
-    CHECK_EQ(erasedIdMap, 1);
-    auto erasedIdInfo = nextHopToIDInfo_.erase(it->first);
-    CHECK_EQ(erasedIdInfo, 1);
+  return decrOrDeallocateNextHopByID(it->second);
+}
+
+bool NextHopIDManager::decrOrDeallocateNextHopByID(const NextHopID& nextHopID) {
+  auto idIt = idToNextHop_.find(nextHopID);
+  if (idIt == idToNextHop_.end()) {
+    throw FbossError(
+        "Cannot decrement reference count or deallocate for non-existent NextHopID ",
+        nextHopID);
+  }
+  CHECK_GT(idIt->second.refCount, 0);
+  idIt->second.refCount--;
+  if (idIt->second.refCount == 0) {
+    XLOG(DBG3) << "[NextHop ID Manager] deallocated nhId=" << nextHopID
+               << " nh=" << idIt->second.nextHop.addr().str();
+    auto erasedNh = nextHopToID_.erase(idIt->second.nextHop);
+    CHECK_EQ(erasedNh, 1);
+    idToNextHop_.erase(idIt);
     return true;
   }
+  XLOG(DBG3) << "[NextHop ID Manager] refCount-- nhId=" << nextHopID;
   return false;
 }
 
@@ -124,13 +142,14 @@ bool NextHopIDManager::decrOrDeallocateNextHopIDSet(
   CHECK_GT(it->second.count, 0);
   it->second.count--;
   if (it->second.count == 0) {
-    // Reference count reached 0, deallocate
+    XLOG(DBG3) << "[NextHop ID Manager] deallocated setId=" << it->second.id;
     auto erasedIdMap = idToNextHopIdSet_.erase(it->second.id);
     CHECK_EQ(erasedIdMap, 1);
     auto erasedIdInfo = nextHopIdSetToIDInfo_.erase(it->first);
     CHECK_EQ(erasedIdInfo, 1);
     return true;
   }
+  XLOG(DBG3) << "[NextHop ID Manager] refCount-- setId=" << it->second.id;
   return false;
 }
 
@@ -145,9 +164,9 @@ std::optional<NextHopSetID> NextHopIDManager::getNextHopSetID(
 
 std::optional<NextHopID> NextHopIDManager::getNextHopID(
     const NextHop& nextHop) const {
-  auto it = nextHopToIDInfo_.find(nextHop);
-  if (it != nextHopToIDInfo_.end()) {
-    return it->second.id;
+  auto it = nextHopToID_.find(nextHop);
+  if (it != nextHopToID_.end()) {
+    return it->second;
   }
   return std::nullopt;
 }
@@ -178,12 +197,10 @@ NextHopIDManager::getOrAllocRouteNextHopSetID(
   NextHopIDSet nextHopIDSet;
   for (const auto& nextHop : nextHopSet) {
     auto nhIter = getOrAllocateNextHopID(nextHop);
-    nextHopIDSet.insert(nhIter->second.id);
-    // Check if this was a new allocation (count == 1 means newly allocated)
-    if (nhIter->second.count == 1) {
-      // Track newly allocated NextHopID for the caller to update FibInfo
-      // Caller can retrieve NextHop from idToNextHop_ map using this ID
-      result.addedNextHopIds.push_back(nhIter->second.id);
+    auto nhId = nhIter->second;
+    nextHopIDSet.insert(nhId);
+    if (idToNextHop_.at(nhId).refCount == 1) {
+      result.addedNextHopIds.push_back(nhId);
     }
   }
 
@@ -205,12 +222,9 @@ NextHopIDManager::decrOrDeallocRouteNextHopSetID(NextHopSetID nextHopSetID) {
   const NextHopIDSet& nextHopIDSet = it->second;
 
   // Decrement the reference count for each NextHopID in the NextHopIDSet
+  // Uses ID-based lookup to avoid hashing the NextHop object
   for (const auto& nextHopID : nextHopIDSet) {
-    auto nextHopIt = idToNextHop_.find(nextHopID);
-    CHECK(nextHopIt != idToNextHop_.end())
-        << "NextHopID " << nextHopID << " in NextHopIDSet doesn't exist!!";
-
-    auto derefNextHop = decrOrDeallocateNextHop(nextHopIt->second);
+    auto derefNextHop = decrOrDeallocateNextHopByID(nextHopID);
     if (derefNextHop) {
       XLOG(DBG3) << "NextHopID " << nextHopID << " deallocated";
       // Track deallocated NextHops for the caller to update FibInfo
@@ -244,12 +258,13 @@ NextHopIDManager::NextHopUpdateResult NextHopIDManager::updateRouteNextHopSetID(
 }
 
 void NextHopIDManager::clearNhopIdManagerState() {
-  nextHopToIDInfo_.clear();
+  nextHopToID_.clear();
   idToNextHop_.clear();
   nextHopIdSetToIDInfo_.clear();
   idToNextHopIdSet_.clear();
   nameToNextHopSet_.clear();
   nameToNextHopSetID_.clear();
+  nameToRoutes_.clear();
 }
 
 // Allocate or update a named next-hop group.
@@ -330,6 +345,13 @@ NextHopIDManager::deallocateNamedNextHopGroup(const std::string& name) {
         "Cannot deallocate non-existent named next-hop group: ", name);
   }
 
+  if (hasRoutesForNamedNhg(name)) {
+    throw FbossError(
+        "Cannot delete named next-hop group '",
+        name,
+        "' because it is referenced by routes");
+  }
+
   auto setIdIt = nameToNextHopSetID_.find(name);
   CHECK(setIdIt != nameToNextHopSetID_.end())
       << "Named next-hop group " << name
@@ -385,9 +407,28 @@ std::optional<RouteNextHopSet> NextHopIDManager::getNextHopsIf(
     CHECK(nextHopIt != idToNextHop_.end())
         << "NextHopId " << nextHopID
         << " not found in idToNextHop_ for NextHopSetID " << nextHopSetID;
-    nextHopVec.push_back(nextHopIt->second);
+    nextHopVec.push_back(nextHopIt->second.nextHop);
   }
   return RouteNextHopSet(nextHopVec.begin(), nextHopVec.end());
+}
+
+bool NextHopIDManager::nextHopSetContainsAddr(
+    NextHopSetID nextHopSetID,
+    const folly::IPAddress& ip) const {
+  auto nextHopIdSetIt = idToNextHopIdSet_.find(nextHopSetID);
+  if (nextHopIdSetIt == idToNextHopIdSet_.end()) {
+    return false;
+  }
+  for (const auto& nextHopID : nextHopIdSetIt->second) {
+    auto nextHopIt = idToNextHop_.find(nextHopID);
+    CHECK(nextHopIt != idToNextHop_.end())
+        << "NextHopId " << nextHopID
+        << " not found in idToNextHop_ for NextHopSetID " << nextHopSetID;
+    if (nextHopIt->second.nextHop.addr() == ip) {
+      return true;
+    }
+  }
+  return false;
 }
 
 namespace {
@@ -471,12 +512,12 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
           util::fromThrift(nhNode->toThrift(), true /* allowV6NonLinkLocal */);
 
       // Update NextHop maps and refcounts
-      auto nhInfoIt = nextHopToIDInfo_.find(nextHop);
-      if (nhInfoIt == nextHopToIDInfo_.end()) {
-        nextHopToIDInfo_.emplace(nextHop, NextHopIDInfo(nextHopID, 1));
-        idToNextHop_[nextHopID] = nextHop;
+      auto nhIt = nextHopToID_.find(nextHop);
+      if (nhIt == nextHopToID_.end()) {
+        nextHopToID_.emplace(nextHop, nextHopID);
+        idToNextHop_.emplace(nextHopID, NextHopEntry(nextHop, 1));
       } else {
-        nhInfoIt->second.count++;
+        idToNextHop_.at(nhIt->second).refCount++;
       }
       maxNextHopId = std::max(maxNextHopId, nextHopID);
     }
@@ -515,7 +556,7 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
       }
 
       // process routes from a FIB
-      auto processRoutes = [&](const auto& fib) {
+      auto processRoutes = [&](const auto& fib, RouterID rid) {
         for (const auto& [prefix, route] : std::as_const(*fib)) {
           const auto& fwdInfo = route->getForwardInfo();
 
@@ -533,13 +574,24 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
                 id2NhopMapInFib,
                 id2NhopIdSetMapInFib);
           }
+
+          // Reconstruct named NHG reverse mapping from per-client entries
+          const auto& nhopsMulti = route->getEntryForClients();
+          for (const auto& entry : nhopsMulti) {
+            auto nhgName = entry.second->getNamedNextHopGroup();
+            if (nhgName.has_value()) {
+              auto cidr = route->prefix().toCidrNetwork();
+              nameToRoutes_[*nhgName].emplace(rid, cidr);
+            }
+          }
         }
       };
 
       // Iterate over all VRFs in this FibInfo
       for (const auto& [routerId, fibContainer] : std::as_const(*fibsMap)) {
-        processRoutes(fibContainer->getFibV4());
-        processRoutes(fibContainer->getFibV6());
+        RouterID rid(routerId);
+        processRoutes(fibContainer->getFibV4(), rid);
+        processRoutes(fibContainer->getFibV6(), rid);
       }
 
       // Reconstruct named next-hop groups from FibInfo
@@ -571,7 +623,7 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
             CHECK(nextHopIt != idToNextHop_.end())
                 << "NextHopId " << nextHopID
                 << " not found in idToNextHop_ after processNhopSetId";
-            nextHopVec.push_back(nextHopIt->second);
+            nextHopVec.push_back(nextHopIt->second.nextHop);
           }
           RouteNextHopSet nextHopSet(nextHopVec.begin(), nextHopVec.end());
 
@@ -624,6 +676,64 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
   // Set next available IDs
   nextAvailableNextHopID_ = NextHopID(maxNextHopId + 1);
   nextAvailableNextHopSetID_ = NextHopSetID(maxNextHopSetId + 1);
+
+  XLOG(INFO) << "[NextHop ID Manager] reconstruction done:"
+             << " nhopCount=" << idToNextHop_.size()
+             << " setCount=" << idToNextHopIdSet_.size()
+             << " nextNhopId=" << nextAvailableNextHopID_
+             << " nextSetId=" << nextAvailableNextHopSetID_;
+  if (XLOG_IS_ON(DBG3)) {
+    for (const auto& [id, entry] : idToNextHop_) {
+      XLOG(DBG3) << "[NextHop ID Manager] reconstructed nhId=" << id
+                 << " nh=" << entry.nextHop.addr().str();
+    }
+    for (const auto& [setId, nhopIdSet] : idToNextHopIdSet_) {
+      std::string ids;
+      for (const auto& nhId : nhopIdSet) {
+        if (!ids.empty()) {
+          ids += ",";
+        }
+        ids += folly::to<std::string>(static_cast<int64_t>(nhId));
+      }
+      XLOG(DBG3) << "[NextHop ID Manager] reconstructed setId=" << setId
+                 << " nhIds={" << ids << "}";
+    }
+  }
+}
+
+void NextHopIDManager::addRouteForNamedNhg(
+    const std::string& name,
+    const RouterID& rid,
+    const folly::CIDRNetwork& prefix) {
+  nameToRoutes_[name].emplace(rid, prefix);
+}
+
+void NextHopIDManager::removeRouteForNamedNhg(
+    const std::string& name,
+    const RouterID& rid,
+    const folly::CIDRNetwork& prefix) {
+  auto it = nameToRoutes_.find(name);
+  if (it != nameToRoutes_.end()) {
+    it->second.erase({rid, prefix});
+    if (it->second.empty()) {
+      nameToRoutes_.erase(it);
+    }
+  }
+}
+
+const NextHopIDManager::RouteSet& NextHopIDManager::getRoutesForNamedNhg(
+    const std::string& name) const {
+  static const RouteSet kEmpty;
+  auto it = nameToRoutes_.find(name);
+  if (it != nameToRoutes_.end()) {
+    return it->second;
+  }
+  return kEmpty;
+}
+
+bool NextHopIDManager::hasRoutesForNamedNhg(const std::string& name) const {
+  auto it = nameToRoutes_.find(name);
+  return it != nameToRoutes_.end() && !it->second.empty();
 }
 
 } // namespace facebook::fboss

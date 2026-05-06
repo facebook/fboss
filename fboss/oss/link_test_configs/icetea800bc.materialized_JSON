@@ -5,11 +5,13 @@
     "disable_neighbor_updates": "true",
     "ecmp_width": "512",
     "enable_1to1_intf_route_table_mapping": "true",
+    "enable_nexthop_id_manager": "true",
     "enable_replayer": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "qsfp_port_manager_mode": "true",
-    "sai_configure_six_tap": "true"
+    "sai_configure_six_tap": "true",
+    "verify_fib_nexthop_id_consistency": "true"
   },
   "sw": {
     "version": 0,
@@ -29708,7 +29710,7 @@
       "qcmEnable": false,
       "ptpTcEnable": false,
       "l2AgeTimerSeconds": 300,
-      "maxRouteCounterIDs": 0,
+      "maxRouteCounterIDs_DEPRECATED": 0,
       "blockNeighbors": [
         
       ],

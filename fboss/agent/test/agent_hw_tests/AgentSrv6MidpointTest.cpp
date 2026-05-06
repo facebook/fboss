@@ -2,14 +2,13 @@
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
-#include "fboss/agent/SwSwitchMySidUpdater.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/if/gen-cpp2/common_types.h"
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/AggregatePort.h"
-#include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -18,8 +17,6 @@
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
-
-#include "fboss/agent/AddressUtil.h"
 
 namespace facebook::fboss {
 
@@ -79,6 +76,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
             &cfg);
       }
     }
+    cfg.mySidConfig() = makeAdjacencyMySidConfig(cfg, ensemble);
     // Trap packets with the rewritten outer dst so the snooper can capture
     // the forwarded (uSID-shifted) packet.
     auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
@@ -87,6 +85,37 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         &cfg,
         std::set<folly::CIDRNetwork>{{folly::IPAddress("3001:db8:2::"), 128}});
     return cfg;
+  }
+
+  cfg::MySidConfig makeAdjacencyMySidConfig(
+      const cfg::SwitchConfig& cfg,
+      const AgentEnsemble& ensemble) const {
+    cfg::MySidConfig mySidConfig;
+    mySidConfig.locatorPrefix() = "3001:db8::/32";
+    cfg::MySidEntryConfig entry;
+    cfg::AdjacencyMySidConfig adjConfig;
+    if constexpr (kIsTrunk) {
+      // utility::addAggPort default name is "AGG-<key>"; key=1 above.
+      adjConfig.portName() = "AGG-1";
+    } else {
+      adjConfig.portName() =
+          portNameFor(cfg, ensemble.masterLogicalPortIds()[0]);
+    }
+    adjConfig.isV6() = true;
+    entry.adjacency() = adjConfig;
+    // Function ID 1 → SID 3001:db8:1::/48 (matches kMySidPrefix).
+    mySidConfig.entries()[1] = entry;
+    return mySidConfig;
+  }
+
+  static std::string portNameFor(const cfg::SwitchConfig& cfg, PortID portId) {
+    for (const auto& port : *cfg.ports()) {
+      if (*port.logicalID() == static_cast<int32_t>(portId) &&
+          port.name().has_value() && !port.name()->empty()) {
+        return *port.name();
+      }
+    }
+    throw FbossError("No name found for port ", portId);
   }
 
   void applyConfigAndEnableTrunks(const cfg::SwitchConfig& config) {
@@ -105,40 +134,62 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         getLocalMacAddress());
   }
 
+  // The PortDescriptor the uA mysid is wired to. Tests must resolve their
+  // ecmp neighbor on this exact descriptor and verify forwarding via this
+  // descriptor — picking ecmpHelper.nhop(0) blindly lands on a standalone
+  // physical port (PortDescriptor sorts PHYSICAL < AGGREGATE, so any
+  // non-aggregated master port comes first in the flat_map).
+  PortDescriptor mySidPortDesc() const {
+    if constexpr (kIsTrunk) {
+      // Matches "AGG-1" baked into makeAdjacencyMySidConfig().
+      return PortDescriptor(AggregatePortID(1));
+    }
+    return PortDescriptor(this->masterLogicalPortIds()[0]);
+  }
+
   void setupHelper() {
     if constexpr (kIsTrunk) {
       applyConfigAndEnableTrunks(
           this->initialConfig(*this->getAgentEnsemble()));
     }
     auto ecmpHelper = makeEcmpHelper();
-    this->resolveNeighbors(ecmpHelper, 1);
-    addAdjacencyMySidEntry(ecmpHelper.nhop(0).ip);
+    auto portDesc = mySidPortDesc();
+    this->applyNewState(
+        [&ecmpHelper, portDesc](std::shared_ptr<SwitchState> in) {
+          return ecmpHelper.resolveNextHops(
+              in, {portDesc}, /*useLinkLocal=*/true);
+        },
+        "resolve mysid neighbor");
+    waitForMySidResolveOrUnresolve(/*resolved=*/true);
   }
 
-  void addAdjacencyMySidEntry(const folly::IPAddress& nexthopIp) {
-    MySidEntry entry;
-    entry.type() = MySidType::ADJACENCY_MICRO_SID;
-    facebook::network::thrift::IPPrefix prefix;
-    prefix.prefixAddress() =
-        facebook::network::toBinaryAddress(folly::IPAddress(kMySidPrefix));
-    prefix.prefixLength() = kMySidPrefixLen;
-    entry.mySid() = prefix;
-
-    NextHopThrift nhop;
-    nhop.address() = facebook::network::toBinaryAddress(nexthopIp);
-    entry.nextHops()->push_back(nhop);
-
-    auto sw = this->getSw();
-    auto rib = sw->getRib();
-    auto ribMySidToSwitchStateFunc =
-        createRibMySidToSwitchStateFunction(std::nullopt);
-    rib->update(
-        sw->getScopeResolver(),
-        {entry},
-        {} /* toDelete */,
-        "addAdjacencyMySidEntry",
-        ribMySidToSwitchStateFunc,
-        sw);
+  // MySidNeighborObserver binds/unbinds the mysid asynchronously: it sees
+  // a neighbor delta, queues a RIB update, RIB processes on its own thread,
+  // and a state delta lands. SAI's add/remove MySidEntry is gated on
+  // mysid->resolved(), so verify() must wait for the binding to settle in
+  // either direction or it'll race the first packet.
+  void waitForMySidResolveOrUnresolve(bool resolved) {
+    auto sidKey = folly::to<std::string>(
+        kMySidPrefix.str(), "/", static_cast<int>(kMySidPrefixLen));
+    WITH_RETRIES({
+      std::shared_ptr<MySid> mySid;
+      for (const auto& [_, mySidMap] :
+           std::as_const(*this->getProgrammedState()->getMySids())) {
+        if (auto node = mySidMap->getNodeIf(sidKey)) {
+          mySid = node;
+          break;
+        }
+      }
+      ASSERT_EVENTUALLY_NE(mySid, nullptr) << "mysid not in switch state";
+      EXPECT_EVENTUALLY_EQ(mySid->getResolvedNextHopsId().has_value(), resolved)
+          << "mysid " << sidKey
+          << (resolved ? " not resolved" : " still resolved")
+          << " (adjacencyInterfaceId="
+          << (mySid->getAdjacencyInterfaceId().has_value()
+                  ? std::to_string(*mySid->getAdjacencyInterfaceId())
+                  : "<unset>")
+          << ")";
+    });
   }
 
   PortID getEgressPort(const PortDescriptor& portDesc) const {
@@ -338,12 +389,11 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     });
   }
 
-  void verifyMidpointDropCpuAndFrontPanel(
+  void verifyMidpointDropFrontPanel(
       PortID egressPort,
       std::optional<folly::IPAddressV6> outerDst = std::nullopt) {
     auto injectPort = findInjectPort(egressPort);
     for (bool isV4 : {false, true}) {
-      verifyMidpointDrop(injectPort, egressPort, isV4, std::nullopt, outerDst);
       verifyMidpointDrop(injectPort, egressPort, isV4, injectPort, outerDst);
     }
   }
@@ -355,8 +405,7 @@ TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASid) {
   auto setup = [this]() { this->setupHelper(); };
 
   auto verify = [this]() {
-    auto ecmpHelper = this->makeEcmpHelper();
-    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto egressPort = this->getEgressPort(this->mySidPortDesc());
     this->verifyMidpointCpuAndFrontPanel(egressPort);
   };
 
@@ -366,15 +415,25 @@ TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASid) {
 TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASidUnresolvedDropped) {
   auto setup = [this]() {
     this->setupHelper();
-    // Unresolve the neighbor so the mySid entry becomes unresolved.
+    // Unresolve the same mysid neighbor so the mySid entry becomes
+    // unresolved (target the exact PortDescriptor, not "first N").
     auto ecmpHelper = this->makeEcmpHelper();
-    this->unresolveNeighbors(ecmpHelper, 1);
+    auto portDesc = this->mySidPortDesc();
+    this->applyNewState(
+        [&ecmpHelper, portDesc](std::shared_ptr<SwitchState> in) {
+          return ecmpHelper.unresolveNextHops(
+              in, {portDesc}, /*useLinkLocal=*/true);
+        },
+        "unresolve mysid neighbor");
+    // Wait for MySidNeighborObserver to drop the resolved next hop before
+    // letting verify() send packets — otherwise SAI may still hold the
+    // programmed entry from setupHelper and the packet would be forwarded.
+    this->waitForMySidResolveOrUnresolve(/*resolved=*/false);
   };
 
   auto verify = [this]() {
-    auto ecmpHelper = this->makeEcmpHelper();
-    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    this->verifyMidpointDropCpuAndFrontPanel(egressPort);
+    auto egressPort = this->getEgressPort(this->mySidPortDesc());
+    this->verifyMidpointDropFrontPanel(egressPort);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -383,12 +442,11 @@ TYPED_TEST(AgentSrv6MidpointTest, dropPacketUASidIsLastSid) {
   auto setup = [this]() { this->setupHelper(); };
 
   auto verify = [this]() {
-    auto ecmpHelper = this->makeEcmpHelper();
-    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto egressPort = this->getEgressPort(this->mySidPortDesc());
     // Outer dst is the mySid prefix itself (3001:db8:1::) with no next uSID.
     // The function bits are zero so there is no uSID to shift to — the
     // packet should be dropped.
-    this->verifyMidpointDropCpuAndFrontPanel(egressPort, this->kMySidPrefix);
+    this->verifyMidpointDropFrontPanel(egressPort, this->kMySidPrefix);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

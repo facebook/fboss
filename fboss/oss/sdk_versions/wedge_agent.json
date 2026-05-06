@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<b3c88c2868502746a5bdf20b82c54492>>"
+        "@generated SignedSource<<edec55da8b13502c2234579614eed752>>"
     ],
     "MINIPACK": [
         {
@@ -200,6 +200,20 @@
         }
     ],
     "JANGA800BIC": [
+        {
+            "rolloutType": "PRODUCTION",
+            "asicSdk": "6.5.30",
+            "saiSdk": "11.7.0.0_dnx_odp",
+            "saiVersion": "1.14.0"
+        },
+        {
+            "rolloutType": "RELEASE_CANDIDATE",
+            "asicSdk": "6.5.31",
+            "saiSdk": "12.2.0.0_dnx_odp",
+            "saiVersion": "1.15.0"
+        }
+    ],
+    "MERU800BIAC": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.30",

@@ -76,6 +76,14 @@ class CmisFirmwareUpgrader {
   // Private function to finally download firmware image on module using cdb
   // process
   bool cmisModuleFirmwareDownload(const uint8_t* imageBuf, int imageLen);
+
+  // Resolve effective CDB command timeout for firmware upgrade.
+  // Priority: explicit gflag > MaxDurationWrite (tunable only, capped) > gflag
+  // default.
+  uint64_t resolveFwUpgradeCdbTimeout(CdbCommandBlock& commandBlock);
+
+  // Check if module is tunable by reading MEDIA_INTERFACE_TECHNOLOGY register
+  bool isTunableModule() const;
 };
 
 } // namespace facebook::fboss

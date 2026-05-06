@@ -646,19 +646,16 @@ std::shared_ptr<SaiCounterHandle> SaiRouteManager::getCounterHandleForRoute(
     const std::shared_ptr<Route<AddrT>>& oldRoute,
     std::optional<SaiRouteTraits::Attributes::CounterID>& counterID) {
   std::shared_ptr<SaiCounterHandle> counterHandle;
-  // Counters are supported only with IPv6 prefixes
-  if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-    const auto& fwd = newRoute->getForwardInfo();
-    if (fwd.getCounterID().has_value()) {
-      counterHandle = managerTable_->counterManager().incRefOrAddRouteCounter(
-          fwd.getCounterID().value());
-      if (counterHandle) {
-        counterID.emplace(counterHandle->adapterKey());
-      }
-    } else if (
-        oldRoute && oldRoute->getForwardInfo().getCounterID().has_value()) {
-      counterID = 0;
+  const auto& fwd = newRoute->getForwardInfo();
+  if (fwd.getCounterID().has_value()) {
+    counterHandle = managerTable_->counterManager().incRefOrAddRouteCounter(
+        fwd.getCounterID().value());
+    if (counterHandle) {
+      counterID.emplace(counterHandle->adapterKey());
     }
+  } else if (
+      oldRoute && oldRoute->getForwardInfo().getCounterID().has_value()) {
+    counterID = 0;
   }
   return counterHandle;
 }

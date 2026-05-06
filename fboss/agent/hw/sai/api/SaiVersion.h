@@ -206,6 +206,10 @@
 #define TAJO_SDK_GTE_25_5
 #endif
 
+#if defined(TAJO_SDK_VERSION_26_2_5210)
+#define TAJO_SDK_GTE_26_2
+#endif
+
 #if defined(TAJO_SDK_EBRO) || defined(TAJO_SDK_MORGAN)
 #define TAJO_SAI_SDK
 #endif

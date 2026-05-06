@@ -237,10 +237,10 @@ class FakeAsic : public HwAsic {
     return 0;
   }
   int getMidPriCpuQueueId() const override {
-    throw FbossError("Fake ASIC does not support cpu queue");
+    return 2;
   }
   int getHiPriCpuQueueId() const override {
-    throw FbossError("Fake ASIC does not support cpu queue");
+    return 9;
   }
   std::optional<uint32_t> getMaxArsGroups() const override {
     return 4;

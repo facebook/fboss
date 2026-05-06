@@ -71,9 +71,6 @@
           "test_name_regex": "HwRouteScaleTest.hgrid*$"
         },
         {
-          "test_name_regex": "HwRouteStatTest*$"
-        },
-        {
           "test_name_regex": "HwWideEcmpTest*$"
         },
         {
@@ -276,9 +273,6 @@
         },
         {
           "test_name_regex": "HwRouteCounterOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest.*"
         },
         {
           "test_name_regex": "HwPortBandwidthTest.*"
@@ -500,9 +494,6 @@
         },
         {
           "test_name_regex": "HwRouteCounterOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest.*"
         },
         {
           "test_name_regex": "HwPortBandwidthTest.*"
@@ -782,9 +773,6 @@
           "test_name_regex": "HwRouteCounterOverflowTest.*"
         },
         {
-          "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
           "test_name_regex": "HwPortBandwidthTest.*"
         },
         {
@@ -1004,9 +992,6 @@
         },
         {
           "test_name_regex": "HwRouteCounterOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest.*"
         },
         {
           "test_name_regex": "HwPortBandwidthTest.*"
@@ -1277,9 +1262,6 @@
           "test_name_regex": "HwRouteCounterOverflowTest.*"
         },
         {
-          "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
           "test_name_regex": "HwPortBandwidthTest.*"
         },
         {
@@ -1499,9 +1481,6 @@
         },
         {
           "test_name_regex": "HwRouteCounterOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest.*"
         },
         {
           "test_name_regex": "HwPortBandwidthTest.*"
@@ -1772,9 +1751,6 @@
           "test_name_regex": "HwRouteCounterOverflowTest.*"
         },
         {
-          "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
           "test_name_regex": "HwPortBandwidthTest.*"
         },
         {
@@ -1994,9 +1970,6 @@
         },
         {
           "test_name_regex": "HwRouteCounterOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest.*"
         },
         {
           "test_name_regex": "HwPortBandwidthTest.*"
@@ -2267,9 +2240,6 @@
           "test_name_regex": "HwRouteCounterOverflowTest.*"
         },
         {
-          "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
           "test_name_regex": "HwPortBandwidthTest.*"
         },
         {
@@ -2489,9 +2459,6 @@
         },
         {
           "test_name_regex": "HwRouteCounterOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest.*"
         },
         {
           "test_name_regex": "HwPortBandwidthTest.*"
@@ -2763,9 +2730,6 @@
         },
         {
           "test_name_regex": "HwRouteScaleTest.hgrid*$"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest*$"
         },
         {
           "test_name_regex": "HwWideEcmpTest*$"
@@ -3405,7 +3369,7 @@
           "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
-    "leaba/25.11.5210/25.11.5210/graphene202x": [
+    "leaba/25.11.4210/25.11.4210/graphene202x": [
         {
           "test_name_regex": "HwTeFlowTest.*$"
         },

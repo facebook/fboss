@@ -62,6 +62,7 @@ class LldpManager : private folly::AsyncTimeout {
   explicit LldpManager(SwSwitch* sw);
   ~LldpManager() override;
   static const folly::MacAddress LLDP_DEST_MAC;
+  static const folly::MacAddress LLDP_CUSTOMER_BRIDGE_MAC;
 
   /*
    * Start the timer to send LLDP packets.
@@ -117,7 +118,18 @@ class LldpManager : private folly::AsyncTimeout {
       const std::string& portdesc,
       const uint16_t ttl,
       const uint16_t capabilities,
-      const std::optional<bool> portDrainState = std::nullopt);
+      const std::optional<bool> portDrainState = std::nullopt,
+      const std::optional<folly::MacAddress> dstMac = std::nullopt);
+
+  static std::unique_ptr<TxPacket> createLldpPktCustomBridge(
+      const facebook::fboss::utility::AllocatePktFn& allocate,
+      const folly::MacAddress macaddr,
+      const std::optional<VlanID>& vlanID,
+      const std::string& hostname,
+      const std::string& portname,
+      const std::string& portdesc,
+      const uint16_t ttl,
+      const uint16_t capabilities);
 
   // This function is internal.  It is only public for use in unit tests.
   void sendLldpOnAllPorts();

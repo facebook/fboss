@@ -19,8 +19,7 @@ namespace facebook::fboss {
 std::shared_ptr<SaiCounterHandle> SaiCounterManager::incRefOrAddRouteCounter(
     std::string counterID) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-  auto [entry, emplaced] =
-      routeCounters_.refOrEmplace(counterID, counterID, getRouteStatsMapRef());
+  auto [entry, emplaced] = routeCounters_.refOrEmplace(counterID, counterID);
   if (emplaced) {
     SaiCharArray32 labelValue{};
     if (counterID.size() > 32) {
@@ -31,18 +30,8 @@ std::shared_ptr<SaiCounterHandle> SaiCounterManager::incRefOrAddRouteCounter(
 
     SaiCounterTraits::CreateAttributes attrs{
         labelValue, SAI_COUNTER_TYPE_REGULAR};
-    if (routeCounters_.size() > maxRouteCounterIDs_) {
-      XLOG(ERR) << "RouteCounterIDs in use " << routeCounters_.size()
-                << " exceed max count " << maxRouteCounterIDs_;
-      throw FbossError(
-          fmt::format(
-              "CounterIDs in use: {} exceeds max: {}",
-              routeCounters_.size(),
-              maxRouteCounterIDs_));
-    }
     auto& counterStore = saiStore_->get<SaiCounterTraits>();
     entry->counter = counterStore.setObject(attrs, attrs);
-    routeStats_->reinitStat(counterID, std::nullopt);
   }
   return entry;
 #else
@@ -51,19 +40,17 @@ std::shared_ptr<SaiCounterHandle> SaiCounterManager::incRefOrAddRouteCounter(
 }
 
 void SaiCounterManager::updateStats() {
-  auto now = std::chrono::duration_cast<std::chrono::seconds>(
-      std::chrono::system_clock::now().time_since_epoch());
   for (const auto& counter : routeCounters_) {
-    auto counterName = counter.first;
     auto counterHandle = counter.second.lock();
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     counterHandle->counter->updateStats(
-        {SAI_COUNTER_STAT_BYTES}, SAI_STATS_MODE_READ);
+        {SAI_COUNTER_STAT_BYTES, SAI_COUNTER_STAT_PACKETS},
+        SAI_STATS_MODE_READ);
 #endif
     auto& stats = counterHandle->counter->getStats();
-    auto bytes = stats.begin()->second;
-    routeStats_->updateStat(now, counterName, bytes);
-    counterHandle->hwSwitchCounter.bytes() = bytes;
+    counterHandle->hwSwitchCounter.packets() =
+        stats.at(SAI_COUNTER_STAT_PACKETS);
+    counterHandle->hwSwitchCounter.bytes() = stats.at(SAI_COUNTER_STAT_BYTES);
   }
 }
 
@@ -71,7 +58,8 @@ HwSwitchCounterStats SaiCounterManager::getHwSwitchCounterStats() const {
   HwSwitchCounterStats counterStats;
   for (const auto& counter : routeCounters_) {
     auto counterHandle = counter.second.lock();
-    counterStats.hwCounters()[counter.first] = counterHandle->hwSwitchCounter;
+    counterStats.routeCounters()[counter.first] =
+        counterHandle->hwSwitchCounter;
   }
   return counterStats;
 }

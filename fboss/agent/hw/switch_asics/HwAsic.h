@@ -741,6 +741,10 @@ class HwAsic {
     return std::nullopt;
   }
 
+  virtual std::optional<uint32_t> getMaxRouteCounters() const {
+    return std::nullopt;
+  }
+
   // SRv6 next hops used as ECMP group members (NextHopSet size > 1)
   virtual std::optional<uint32_t> getMaxSrv6EcmpNextHops() const {
     return std::nullopt;

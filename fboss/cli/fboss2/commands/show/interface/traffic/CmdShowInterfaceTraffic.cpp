@@ -13,7 +13,8 @@
 
 #include "fboss/cli/fboss2/utils/Table.h"
 
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <fmt/color.h>
 #include <re2/re2.h>
 
 namespace facebook::fboss {

@@ -28,7 +28,7 @@ class SaiBcmTahansb800bcPlatform : public SaiBcmPlatform {
   }
 
   uint32_t numCellsAvailable() const override {
-    return 610000;
+    return 616994;
   }
 
   bool isSerdesApiSupported() const override {

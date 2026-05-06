@@ -1,16 +1,9 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "RackmonPlsManager.h"
 #include <glog/logging.h>
+#include <gpiod.h>
 #include <nlohmann/json.hpp>
 #include <filesystem>
-
-#ifdef IS_OSS
-#include <fcntl.h>
-#include <linux/gpio.h>
-#include <sys/ioctl.h>
-#else // !IS_OSS
-#include <gpiod.h>
-#endif // IS_OSS
 
 using nlohmann::json;
 
@@ -23,47 +16,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
         {RackmonPlsLineType::REDUNDANCY, "redundancy"},
     })
 
-// FIXME: we failed to enable "libgpiod" in FBOSS OSS build environment
-// due to compilation errors. In order to unblock rackmon deployment,
-// below workaround (#ifdef IS_OSS) is applied, and the workaround should
-// be removed when "libgpiod" is added to FBOSS OSS dependencies list.
-// Check T126740581 for details.
-#ifdef IS_OSS
-void GpioLine::parseOffset() {
-  int fd = ::open(gpioChip.c_str(), O_RDWR | O_CLOEXEC);
-  if (fd < 0) {
-    throw std::runtime_error(gpioChip + ": open failed");
-  }
-
-  struct gpiochip_info info = {};
-  int rv = ::ioctl(fd, GPIO_GET_CHIPINFO_IOCTL, &info);
-  close(fd);
-
-  if (rv < 0) {
-    throw std::runtime_error(gpioChip + ": GPIO_GET_CHIPINFO_IOCTL failed");
-  }
-  if (offset >= info.lines) {
-    throw std::invalid_argument(name + ": gpio offset exceeds limits");
-  }
-}
-
-int GpioLine::getValue() {
-  std::string cmd = "gpioget " + gpioChip + " " + std::to_string(offset);
-  std::unique_ptr<FILE, decltype(&pclose)> pipe(
-      popen(cmd.c_str(), "r"), pclose);
-  if (!pipe) {
-    throw std::runtime_error("popen() failed: " + cmd);
-  }
-
-  char buf[128] = {};
-  std::string output;
-  while (fgets(buf, sizeof(buf), pipe.get()) != nullptr) {
-    output += buf;
-  }
-
-  return std::stoi(output);
-}
-#else // !IS_OSS
 void GpioLine::parseOffset() {
   struct gpiod_chip* chip = gpiod_chip_open(gpioChip.c_str());
   if (!chip) {
@@ -87,7 +39,6 @@ int GpioLine::getValue() {
 
   return val;
 }
-#endif // IS_OSS
 
 void GpioLine::open(const std::string& gpioConsumer) {
   if (gpioChip.empty()) {

@@ -17,8 +17,12 @@
 namespace facebook::fboss {
 
 struct CmdConfigSessionDiffTraits : public WriteCommandTraits {
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_REVISION_LIST;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "revisions",
+        args,
+        "Git revision(s) as sha1 or other git ref, or 'current'");
+  }
   using ObjectArgType = utils::RevisionList;
   using RetType = std::string;
 };

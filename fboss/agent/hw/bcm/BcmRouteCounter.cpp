@@ -168,20 +168,7 @@ BcmRouteCounterTable::referenceOrEmplaceCounterID(RouteCounterID id) {
                  << globalIngressModeId_;
     }
   }
-  std::shared_ptr<BcmRouteCounterBase> counterRef =
-      counterIDs_.refOrEmplace(id, hw_, id, globalIngressModeId_).first;
-  if (counterIDs_.size() > maxRouteCounterIDs_) {
-    XLOG(ERR) << "RouteCounterIDs in use " << counterIDs_.size()
-              << " exceed max count " << maxRouteCounterIDs_;
-    // throw Bcm full error so that overflow error handling kicks in
-    throw BcmError(
-        BCM_E_FULL,
-        "RouteCounterIDs in use ",
-        counterIDs_.size(),
-        " exceed max count ",
-        maxRouteCounterIDs_);
-  }
-  return counterRef;
+  return counterIDs_.refOrEmplace(id, hw_, id, globalIngressModeId_).first;
 }
 
 folly::dynamic BcmRouteCounterTable::toFollyDynamic() const {
@@ -236,20 +223,7 @@ BcmRouteFlexCounterTable::referenceOrEmplaceCounterID(RouteCounterID id) {
                  << v6FlexCounterAction->getActionId();
     }
   }
-  std::shared_ptr<BcmRouteCounterBase> counterRef =
-      counterIDs_.refOrEmplace(id, hw_, id, v6FlexCounterAction).first;
-  if (counterIDs_.size() > maxRouteCounterIDs_) {
-    XLOG(ERR) << "RouteCounterIDs in use " << counterIDs_.size()
-              << " exceed max count " << maxRouteCounterIDs_;
-    // throw Bcm full error so that overflow error handling kicks in
-    throw BcmError(
-        BCM_E_FULL,
-        "RouteCounterIDs in use ",
-        counterIDs_.size(),
-        " exceed max count ",
-        maxRouteCounterIDs_);
-  }
-  return counterRef;
+  return counterIDs_.refOrEmplace(id, hw_, id, v6FlexCounterAction).first;
 }
 
 // used for testing purpose
@@ -305,10 +279,8 @@ BcmRouteFlexCounterTable::BcmRouteFlexCounterTable(BcmSwitch* hw)
  *      - deallocate counter action
  *      - create new counter action with max counter
  *      - reattach all counters
- * 3) V6 and V4 prefixes cannot share counters
  * Due to this limitation, we are pre allocating kMaxFlexRouteCounters(1k)
- * counters regardless of maxRouteCounterID value. This allows us to
- * avoid complexity of maintaing counter to route mapping.
+ * This allows us to avoid complexity of maintaing counter to route mapping.
  * If kMaxFlexRouteCounters were to change in future, the route counters
  * needs to be withdrawn and readded from application.
  */

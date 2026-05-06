@@ -57,6 +57,7 @@
 #include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/MultiSwitchPacketStreamMap.h"
+#include "fboss/agent/MySidNeighborObserver.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PacketObserver.h"
@@ -271,6 +272,21 @@ std::string getDrainThresholdStr(
   }
 }
 
+void accumulateCounterStats(
+    facebook::fboss::HwSwitchCounterStats& accumulated,
+    const facebook::fboss::HwSwitchCounterStats& toAdd) {
+  for (const auto& [name, counter] : *toAdd.routeCounters()) {
+    auto& accCounter = accumulated.routeCounters()[name];
+    if (counter.bytes().has_value()) {
+      accCounter.bytes() = accCounter.bytes().value_or(0) + *counter.bytes();
+    }
+    if (counter.packets().has_value()) {
+      accCounter.packets() =
+          accCounter.packets().value_or(0) + *counter.packets();
+    }
+  }
+}
+
 void accumulateHwAsicErrorStats(
     facebook::fboss::HwAsicErrors& accumulated,
     const facebook::fboss::HwAsicErrors& toAdd) {
@@ -471,6 +487,7 @@ SwSwitch::SwSwitch(
       lookupClassUpdater_(new LookupClassUpdater(this)),
       lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
       staticL2ForNeighborObserver_(new StaticL2ForNeighborObserver(this)),
+      mySidNeighborObserver_(new MySidNeighborObserver(this)),
       macTableManager_(new MacTableManager(this)),
       phySnapshotManager_(new PhySnapshotManager(
           kIphySnapshotIntervalSeconds,
@@ -641,6 +658,7 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   packetTxThreadHeartbeat_.reset();
   lacpThreadHeartbeat_.reset();
   neighborCacheThreadHeartbeat_.reset();
+  mySidNeighborObserver_.reset();
   if (rib_) {
     rib_->stop();
   }
@@ -942,6 +960,8 @@ AgentStats SwSwitch::fillFsdbStats() {
       // accumulate error stats from all switches in global values
       accumulateHwAsicErrorStats(
           *agentStats.hwAsicErrors(), *hwSwitchStats.hwAsicErrors());
+      accumulateCounterStats(
+          *agentStats.counterStats(), *hwSwitchStats.counterStats());
 
       for (auto&& statEntry : *hwSwitchStats.hwPortStats()) {
         agentStats.hwPortStats()->insert(statEntry);

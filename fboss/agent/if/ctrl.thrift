@@ -20,7 +20,6 @@ include "fboss/lib/phy/phy.thrift"
 include "fboss/lib/phy/prbs.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
 include "thrift/annotation/python.thrift"
-include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
 
 @thrift.AllowLegacyMissingUris
@@ -38,6 +37,7 @@ const i32 NO_VLAN = -1;
 enum AdminDistance {
   DIRECTLY_CONNECTED = 0,
   STATIC_ROUTE = 1,
+  TE_AGENT = 2,
   OPENR = 10,
   EBGP = 20,
   IBGP = 200,
@@ -151,6 +151,8 @@ struct RouteDetails {
   10: optional switch_config.AclLookupClass classID;
   11: optional switch_config.SwitchingMode overridenEcmpMode;
   12: optional list<common.NextHopThrift> overridenNextHops;
+  13: optional i64 resolvedNextHopSetID;
+  14: optional i64 normalizedResolvedNextHopSetID;
 }
 
 struct MplsRouteDetails {
@@ -312,7 +314,7 @@ struct FabricLinkMonPortStats {
  * ports and received back via the IP2ME (CPU_IS_NHOP) trap mechanism.
  */
 struct CpuLatencyPortStats {
-  1: double latencyMs;
+  1: double latencyUs;
 }
 
 /*
@@ -1078,9 +1080,6 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   map<i32, InterfaceDetail> getAllInterfaces() throws (
     1: fboss.FbossBaseError error,
   );
-  // DEPRECATED: API will no longer work in agent
-  @cpp.ProcessInEbThreadUnsafe
-  void registerForNeighborChanged() throws (1: fboss.FbossBaseError error);
   list<string> getInterfaceList() throws (1: fboss.FbossBaseError error);
   /*
    * TODO (allwync): get rid of getRouteTable after agent code with thrift
@@ -1541,24 +1540,6 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   void setMacAddrsToBlock(
     1: list<switch_config.MacAndVlan> macAddrsToblock,
   ) throws (1: fboss.FbossBaseError error);
-
-  # Deprecated
-  void addTeFlows(1: list<FlowEntry> teFlowEntries) throws (
-    1: fboss.FbossBaseError error,
-    2: FbossTeUpdateError teFlowError,
-  );
-
-  # Deprecated
-  void deleteTeFlows(1: list<TeFlow> teFlows) throws (
-    1: fboss.FbossBaseError error,
-    2: FbossTeUpdateError teFlowError,
-  );
-
-  # Deprecated
-  void syncTeFlows(1: list<FlowEntry> teFlowEntries) throws (
-    1: fboss.FbossBaseError error,
-    2: FbossTeUpdateError teFlowError,
-  );
 
   # Deprecated
   list<TeFlowDetails> getTeFlowTableDetails() throws (

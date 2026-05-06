@@ -1176,12 +1176,6 @@ void BcmSwitch::processSwitchSettingsEntryChanged(
     switchSettings_->setL2AgeTimerSeconds(newVal);
   }
 
-  if (oldSwitchSettings->getMaxRouteCounterIDs() !=
-      newSwitchSettings->getMaxRouteCounterIDs()) {
-    routeCounterTable_->setMaxRouteCounterIDs(
-        newSwitchSettings->getMaxRouteCounterIDs());
-  }
-
   // THRIFT_COPY
   if (oldSwitchSettings->getExactMatchTableConfig()->toThrift() !=
       newSwitchSettings->getExactMatchTableConfig()->toThrift()) {
@@ -4365,7 +4359,7 @@ HwResourceStats BcmSwitch::getResourceStats() const {
 }
 
 HwSwitchCounterStats BcmSwitch::getHwSwitchCounterStats() const {
-  return HwSwitchCounterStats{};
+  return getStatUpdater()->getHwSwitchCounterStats();
 }
 
 HwHighFrequencyStats BcmSwitch::zeroHighFrequencyStatsTimestamp(

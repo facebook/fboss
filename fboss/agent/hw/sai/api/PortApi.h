@@ -576,6 +576,20 @@ struct SaiPortTraits {
         bool,
         AttributeCablePropagationDelayMeasure,
         SaiBoolDefaultFalse>;
+    struct AttributeLinkUpDebouncePeriodMs {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkUpDebouncePeriodMs = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeLinkUpDebouncePeriodMs,
+        SaiIntDefault<sai_uint32_t>>;
+    struct AttributeLinkDownDebouncePeriodMs {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkDownDebouncePeriodMs = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeLinkDownDebouncePeriodMs,
+        SaiIntDefault<sai_uint32_t>>;
   };
   using AdapterKey = PortSaiId;
 
@@ -704,6 +718,10 @@ struct SaiPortTraits {
       std::optional<Attributes::QosIngressBufferProfileList>,
       std::optional<Attributes::QosEgressBufferProfileList>,
       std::optional<Attributes::CablePropagationDelayMediaType>,
+#if defined(TAJO_SDK_GTE_26_2)
+      std::optional<Attributes::LinkUpDebouncePeriodMs>,
+      std::optional<Attributes::LinkDownDebouncePeriodMs>,
+#endif
       std::optional<Attributes::PfcPauseDurationOverride>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
@@ -885,6 +903,8 @@ SAI_ATTRIBUTE_NAME(Port, PfcMonitorDirection)
 SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMediaType)
 SAI_ATTRIBUTE_NAME(Port, PfcPauseDurationOverride)
 SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMeasure)
+SAI_ATTRIBUTE_NAME(Port, LinkUpDebouncePeriodMs)
+SAI_ATTRIBUTE_NAME(Port, LinkDownDebouncePeriodMs)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)

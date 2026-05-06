@@ -30,6 +30,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NdpResponseTable.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Route.h"
 
 #include "fboss/agent/state/StateDelta.h"
@@ -932,12 +933,40 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
     return;
   }
 
-  auto interfaceMap = sw->getState()->getInterfaces();
+  auto state = sw->getState();
+  auto interfaceMap = state->getInterfaces();
   for (const auto& [_, intfMap] : std::as_const(*interfaceMap)) {
     for (const auto& intfIter : std::as_const(*intfMap)) {
       const auto& interface = intfIter.second;
       if (interface->getRouterID() == RouterID(0) &&
           interface->canReachAddress(targetIP)) {
+        // Skip interfaces whose port is admin-disabled to avoid injecting
+        // multicast packets that the ASIC will replicate to inactive-MAC
+        // ports, causing Pool 3 buffer leaks on GR2 (S652884).
+        // Default to sending (portEnabled=true) so lookup failures don't
+        // suppress legitimate NDP resolution.
+        if (interface->getType() == cfg::InterfaceType::VLAN) {
+          auto vlanID = interface->getVlanID();
+          bool portEnabled = true;
+          if (auto vlanMap = state->getVlans()) {
+            if (auto vlan = vlanMap->getNodeIf(vlanID)) {
+              portEnabled = false;
+              for (const auto& memberPort : vlan->getPortsInfo()) {
+                auto port =
+                    state->getPorts()->getNodeIf(PortID(memberPort.first));
+                if (port && port->isEnabled()) {
+                  portEnabled = true;
+                  break;
+                }
+              }
+            }
+          }
+          if (!portEnabled) {
+            XLOG(DBG4) << "Skipping multicast NS for " << targetIP
+                       << " on vlan " << vlanID << " — port not enabled";
+            continue;
+          }
+        }
         sendMulticastNeighborSolicitation(
             sw, targetIP, interface->getMac(), sw->getVlanIDForTx(interface));
       }

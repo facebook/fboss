@@ -4844,6 +4844,12 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
             .get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);
+  } else if (mode == PlatformType::PLATFORM_MONTBLANC) {
+    auto systemContainer =
+        BspGenericSystemContainer<MontblancBspPlatformMapping>::getInstance()
+            .get();
+    return std::make_pair(
+        std::make_unique<BspTransceiverApi>(systemContainer), 0);
   } else if (
       mode == PlatformType::PLATFORM_MERU800BFA ||
       mode == PlatformType::PLATFORM_MERU800BFA_P1) {

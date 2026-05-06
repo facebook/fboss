@@ -173,11 +173,6 @@ TEST_F(AgentRollbackTest, rollbackLinkUpAndDown) {
 }
 
 TEST_F(AgentRollbackTest, rollbackWithQPHConfig) {
-  if (!isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
-    GTEST_SKIP();
-    return;
-  }
-
   auto setup = [this] {
     auto cfg = initialConfig(*getAgentEnsemble());
     utility::addQueuePerHostQueueConfig(&cfg);

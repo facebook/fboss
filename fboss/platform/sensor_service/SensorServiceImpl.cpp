@@ -333,6 +333,8 @@ void SensorServiceImpl::publishAggStats(
     const std::map<std::string, SensorData>& polledData) {
   std::map<SensorType, std::pair<bool, bool>> violationsBySensorType;
   int totalReadFailures{0};
+  bool hasAnyCriticalViolation{false};
+  bool hasAnyAlarmViolation{false};
 
   for (const auto& [_, sensorData] : polledData) {
     auto stats = computeSensorStats(sensorData);
@@ -340,6 +342,9 @@ void SensorServiceImpl::publishAggStats(
         violationsBySensorType[*sensorData.sensorType()];
     hasCritical = hasCritical || stats.criticalViolation;
     hasAlarm = hasAlarm || stats.alarmViolation;
+    hasAnyCriticalViolation =
+        hasAnyCriticalViolation || stats.criticalViolation;
+    hasAnyAlarmViolation = hasAnyAlarmViolation || stats.alarmViolation;
     totalReadFailures += stats.readFailure;
   }
 
@@ -356,6 +361,10 @@ void SensorServiceImpl::publishAggStats(
   fb303::fbData->setCounter(kReadTotal, polledData.size());
   fb303::fbData->setCounter(kTotalReadFailure, totalReadFailures);
   fb303::fbData->setCounter(kHasReadFailure, totalReadFailures > 0 ? 1 : 0);
+  fb303::fbData->setCounter(
+      kHasCriticalThresholdViolation, hasAnyCriticalViolation ? 1 : 0);
+  fb303::fbData->setCounter(
+      kHasAlarmThresholdViolation, hasAnyAlarmViolation ? 1 : 0);
   XLOG(INFO) << fmt::format(
       "Summary: Processed {} Sensors. {} Failures.",
       polledData.size(),

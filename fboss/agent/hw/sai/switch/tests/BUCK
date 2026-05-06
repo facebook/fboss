@@ -34,6 +34,13 @@ switch_manager_unittest(
 )
 
 switch_manager_unittest(
+    name = "counter_manager_test",
+    srcs = [
+        "CounterManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
     name = "ars_manager_test",
     srcs = [
         "ArsManagerTest.cpp",

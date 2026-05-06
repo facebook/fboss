@@ -2,6 +2,7 @@
 
 #include "fboss/qsfp_service/module/FirmwareUpgrader.h"
 
+#include <algorithm>
 #include <chrono>
 #include <utility>
 
@@ -12,6 +13,7 @@
 #include <folly/init/Init.h>
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
+#include <gflags/gflags.h>
 #include <glog/logging.h>
 
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
@@ -26,11 +28,20 @@ using std::chrono::seconds;
 using std::chrono::steady_clock;
 using namespace facebook::fboss;
 
+DECLARE_int32(cdb_command_timeout_usec);
+
 namespace facebook::fboss {
 
 // CMIS firmware related register offsets
 constexpr uint8_t kfirmwareVersionReg = 39;
 constexpr uint8_t kModulePasswordEntryReg = 122;
+constexpr uint8_t kPageSelectReg = 127;
+
+// MEDIA_INTERFACE_TECHNOLOGY register (Page 00h, Byte 212)
+constexpr uint8_t kMediaInterfaceTechnologyReg = 212;
+constexpr uint8_t kPage0 = 0x00;
+constexpr uint8_t kCBandTunableLaser = 0x10;
+constexpr uint8_t kLBandTunableLaser = 0x11;
 
 constexpr int moduleDatapathInitDurationUsec = 5000000;
 
@@ -83,6 +94,80 @@ CmisFirmwareUpgrader::CmisFirmwareUpgrader(
   // Get the image type
   std::string imageTypeStr = fbossFirmware_->getProperty("image_type");
   appImage_ = (imageTypeStr == "application") ? true : false;
+}
+
+/*
+ * resolveFwUpgradeCdbTimeout
+ *
+ * Resolves the effective CDB command timeout for firmware upgrade commands.
+ * Priority: explicit gflag > MaxDurationWrite (capped) > gflag default.
+ * commandBlock must contain a valid 0x0041 response (call after
+ * createCdbCmdGetFwFeatureInfo() + cmisRunCdbCommand()).
+ */
+uint64_t CmisFirmwareUpgrader::resolveFwUpgradeCdbTimeout(
+    CdbCommandBlock& commandBlock) {
+  gflags::CommandLineFlagInfo flagInfo;
+  bool flagExplicitlySet =
+      gflags::GetCommandLineFlagInfo("cdb_command_timeout_usec", &flagInfo) &&
+      !flagInfo.is_default;
+
+  if (flagExplicitlySet) {
+    XLOG(INFO) << folly::sformat(
+        "resolveFwUpgradeCdbTimeout: Mod{:d}: Using explicit gflag timeout of {:d} usec",
+        moduleId_,
+        FLAGS_cdb_command_timeout_usec);
+    return FLAGS_cdb_command_timeout_usec;
+  }
+
+  uint64_t maxDurationWriteUsec = commandBlock.getMaxDurationWriteUsec();
+  if (maxDurationWriteUsec > 0 && isTunableModule()) {
+    uint64_t timeoutUsec = std::min(maxDurationWriteUsec, kMaxCdbTimeoutUsec);
+    if (maxDurationWriteUsec > kMaxCdbTimeoutUsec) {
+      XLOG(INFO) << folly::sformat(
+          "resolveFwUpgradeCdbTimeout: Mod{:d}: MaxDurationWrite {:d} usec exceeds max, capped to {:d} usec",
+          moduleId_,
+          maxDurationWriteUsec,
+          kMaxCdbTimeoutUsec);
+    } else {
+      XLOG(INFO) << folly::sformat(
+          "resolveFwUpgradeCdbTimeout: Mod{:d}: Using MaxDurationWrite timeout of {:d} usec",
+          moduleId_,
+          timeoutUsec);
+    }
+    return timeoutUsec;
+  }
+
+  XLOG(INFO) << folly::sformat(
+      "resolveFwUpgradeCdbTimeout: Mod{:d}: MaxDurationWrite not available, using default timeout of {:d} usec",
+      moduleId_,
+      FLAGS_cdb_command_timeout_usec);
+  return FLAGS_cdb_command_timeout_usec;
+}
+
+bool CmisFirmwareUpgrader::isTunableModule() const {
+  try {
+    uint8_t page = kPage0;
+    bus_->writeTransceiver(
+        {TransceiverAccessParameter::ADDR_QSFP, kPageSelectReg, 1, kLowerPage},
+        &page,
+        POST_I2C_WRITE_NO_DELAY_US,
+        kFwUpgrade);
+    uint8_t techValue = 0;
+    bus_->readTransceiver(
+        {TransceiverAccessParameter::ADDR_QSFP,
+         kMediaInterfaceTechnologyReg,
+         1,
+         kPage0},
+        &techValue,
+        kFwUpgrade);
+    return techValue == kCBandTunableLaser || techValue == kLBandTunableLaser;
+  } catch (const std::exception& e) {
+    XLOG(INFO) << folly::sformat(
+        "isTunableModule: Mod{:d}: Failed to read MEDIA_INTERFACE_TECHNOLOGY: {}",
+        moduleId_,
+        e.what());
+    return false;
+  }
 }
 
 /*
@@ -199,6 +284,11 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
       moduleId_,
       startCommandPayloadSize);
 
+  // Resolve effective CDB command timeout from gflag override,
+  // MaxDurationWrite, or default. Pass this to all subsequent cmisRunCdbCommand
+  // calls during firmware download.
+  auto fwUpgradeCdbTimeoutUsec = resolveFwUpgradeCdbTimeout(*commandBlock);
+
   // Validate if the image length is greater than this. If not then our new
   // image is bad
   if (imageLen < startCommandPayloadSize) {
@@ -216,7 +306,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
       startCommandPayloadSize, imageLen, imageOffset, imageBuf);
 
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_);
+  status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
   if (!status) {
     // DOWNLOAD_START command failed
     XLOG(INFO) << folly::sformat(
@@ -255,7 +345,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
     }
 
     // Run the CDB command
-    status = commandBlock->cmisRunCdbCommand(bus_);
+    status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
     if (!status) {
       // DOWNLOAD_IMAGE command failed
       XLOG(INFO) << folly::sformat(
@@ -279,7 +369,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   commandBlock->createCdbCmdFwDownloadComplete();
 
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_);
+  status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
   if (!status) {
     // DOWNLOAD_COMPLETE command failed
     XLOG(INFO) << folly::sformat(
@@ -305,7 +395,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Run the CDB command
   // No need to check status because RUN command issues soft reset to CDB
   // so we can't check status here
-  status = commandBlock->cmisRunCdbCommand(bus_);
+  status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
 
   XLOG(INFO) << folly::sformat(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 4: Issued Firmware download Run command successfully",
@@ -333,7 +423,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   commandBlock->createCdbCmdFwCommit();
 
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_);
+  status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
 
   if (!status) {
     XLOG(INFO) << folly::sformat(

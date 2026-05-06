@@ -73,6 +73,13 @@ class ResourceAccountant {
 
   bool checkAndUpdateRouteResource(bool add);
 
+  template <typename AddrT>
+  bool checkAndUpdateRouteCounterResource(
+      const std::shared_ptr<Route<AddrT>>& route,
+      bool add);
+
+  bool checkRouteCounterResource(bool intermediateState) const;
+
   void mySidStateChangedImpl(const StateDelta& delta);
   bool checkMySidResource(bool intermediateState);
 
@@ -143,6 +150,7 @@ class ResourceAccountant {
   std::optional<int32_t> maxArsVirtualGroupWidth_;
   std::unordered_map<SwitchID, uint32_t> ndpEntriesMap_;
   std::unordered_map<SwitchID, uint32_t> arpEntriesMap_;
+  std::unordered_map<RouteCounterID, uint32_t> routeCounterRefMap_;
 
   FRIEND_TEST(ResourceAccountantTest, getMemberCountForEcmpGroup);
   FRIEND_TEST(ResourceAccountantTest, checkArsResource);
@@ -164,6 +172,8 @@ class ResourceAccountant {
   FRIEND_TEST(ResourceAccountantTest, mySidResourceExceeded);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateSrv6NextHopResource);
   FRIEND_TEST(ResourceAccountantTest, srv6NextHopResourceExceeded);
+  FRIEND_TEST(ResourceAccountantTest, checkAndUpdateRouteCounterResource);
+  FRIEND_TEST(ResourceAccountantTest, routeCounterResourceExceeded);
   FRIEND_TEST(MacTableManagerTest, MacLearnedBulkCb);
 };
 } // namespace facebook::fboss

@@ -139,7 +139,6 @@ add_library(icecube800bc_bsp
 
 target_link_libraries(icecube800bc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -254,6 +253,7 @@ add_library(qsfp_bsp_core
   fboss/lib/bsp/BspTransceiverAccess.cpp
   fboss/lib/bsp/BspTransceiverAccessImpl.cpp
   fboss/lib/bsp/BspTransceiverCpldAccess.cpp
+  fboss/lib/bsp/BspTransceiverGpioAccess.cpp
   fboss/lib/bsp/BspTransceiverApi.cpp
   fboss/lib/bsp/BspTransceiverContainer.cpp
   fboss/lib/bsp/BspTransceiverIO.cpp
@@ -291,6 +291,7 @@ target_link_libraries(qsfp_bsp_core
   ledIO
   led_mapping_cpp2
   build_from_xcvr_lib
+  ${LIBGPIOD}
 )
 
 add_library(transceiver_validator

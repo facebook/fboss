@@ -137,6 +137,7 @@ def image_upstream_command(args):
 
     # Deploy the image to the device
     try:
+        # pyrefly: ignore [bad-argument-type]
         deploy_image_to_device(args.mac, artifact_path)
         logger.info(
             f"Successfully configured device {args.mac} with image {artifact_path}"
