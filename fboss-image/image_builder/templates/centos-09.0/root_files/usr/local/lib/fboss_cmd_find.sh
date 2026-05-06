@@ -40,8 +40,10 @@ if [ -x "$update_path" ]; then
   exec "$update_path" "$@"
 else
   if [ -f /opt/fboss/bin/setup_fboss_env ]; then
+    pushd /opt/fboss >/dev/null
     # shellcheck source=/opt/fboss/bin/setup_fboss_env
-    source /opt/fboss/bin/setup_fboss_env
+    source ./bin/setup_fboss_env
+    popd >/dev/null
   fi
   exec "/opt/fboss/bin/${cmd}" "$@"
 fi

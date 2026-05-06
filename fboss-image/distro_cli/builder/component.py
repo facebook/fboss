@@ -34,8 +34,8 @@ def _get_component_directory(component_name: str, script_path: str) -> str:
             script_path="fboss-image/kernel/scripts/build_kernel.sh"
             returns: "fboss-image/kernel" (component_name found in path)
 
-        npu_sai component:
-            component_name="npu_sai"
+        sai component:
+            component_name="sai"
             script_path="broadcom-sai-sdk/build_fboss_sai.sh"
             returns: "broadcom-sai-sdk" (fallback to script's parent)
 
