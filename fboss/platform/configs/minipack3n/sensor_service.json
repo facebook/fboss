@@ -1433,12 +1433,24 @@
         {
           "name": "PSU1_FAN_F_RPM",
           "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/fan1_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 33000,
+            "maxAlarmVal": 29500,
+            "minAlarmVal": 4000,
+            "lowerCriticalVal": 3600
+          }
         },
         {
           "name": "PSU1_FAN_R_RPM",
           "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/fan2_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 32670,
+            "maxAlarmVal": 28350,
+            "minAlarmVal": 4000,
+            "lowerCriticalVal": 3600
+          }
         },
         {
           "name": "PSU1_TEMP1",
@@ -1597,12 +1609,24 @@
         {
           "name": "PSU2_FAN_F_RPM",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/fan1_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 33000,
+            "maxAlarmVal": 29500,
+            "minAlarmVal": 4000,
+            "lowerCriticalVal": 3600
+          }
         },
         {
           "name": "PSU2_FAN_R_RPM",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/fan2_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 32670,
+            "maxAlarmVal": 28350,
+            "minAlarmVal": 4000,
+            "lowerCriticalVal": 3600
+          }
         },
         {
           "name": "PSU2_TEMP1",
