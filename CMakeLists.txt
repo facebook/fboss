@@ -306,6 +306,46 @@ elseif(SAI_BRCM_PAI_IMPL)
   )
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
   message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+elseif(SAI_TAJO_IMPL)
+  # Support run-getdeps include-based staging layouts:
+  # 1) <prefix>/*
+  # 2) <prefix>/experimental/*
+  # Use only Cisco-specific headers (sai_attr_ext.h) as NAMES.
+  # Do NOT use saiswitchextensions.h: it is a standard SAI header that also
+  # exists in the getdeps-installed libsai package, which would cause
+  # find_path to return the libsai prefix instead of the staging dir.
+  find_path(
+    SAI_EXPERIMENTAL_INCLUDE_DIR
+    NAMES
+    sai_attr_ext.h
+    experimental/sai_attr_ext.h
+  )
+  if(SAI_EXPERIMENTAL_INCLUDE_DIR)
+    # If only include/ exists, create experimental -> include so includes
+    # written as <experimental/...> stay valid.
+    if(
+      EXISTS "${SAI_EXPERIMENTAL_INCLUDE_DIR}/include/sai_attr_ext.h"
+      AND NOT EXISTS "${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental"
+    )
+      execute_process(
+        COMMAND ${CMAKE_COMMAND} -E create_symlink
+        "${SAI_EXPERIMENTAL_INCLUDE_DIR}/include"
+        "${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental"
+      )
+    endif()
+
+    # Root path supports includes like <experimental/sai_attr_ext.h>.
+    # /include supports bare includes like <sai_attr_ext.h>.
+    include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+    include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/include)
+    message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+  else()
+    message(
+      FATAL_ERROR
+      "Could not find SAI experimental header for TAJO. Expected one of: "
+      "include/sai_attr_ext.h, include/experimental/sai_attr_ext.h"
+    )
+  endif()
 else()
   find_path(SAI_EXPERIMENTAL_INCLUDE_DIR
     NAMES
