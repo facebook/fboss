@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
+#include <algorithm>
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -102,6 +103,8 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
         cfg::AsicType::ASIC_TYPE_JERICHO4;
     bool isChenab = platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
+    bool isTomahawkUltra1 = platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1;
 
     std::vector<sai_int32_t> actionTypeList{
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,
@@ -109,6 +112,15 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
         SAI_ACL_ACTION_TYPE_SET_TC,
         SAI_ACL_ACTION_TYPE_SET_DSCP,
         SAI_ACL_ACTION_TYPE_MIRROR_INGRESS};
+
+    if (isTomahawkUltra1) {
+      actionTypeList.erase(
+          std::remove(
+              actionTypeList.begin(),
+              actionTypeList.end(),
+              SAI_ACL_ACTION_TYPE_SET_TC),
+          actionTypeList.end());
+    }
 
     if (!(isTajo || isJericho2 || isJericho3 || isJericho4 || isChenab)) {
       // Chenab supports egress mirror action in egress table
