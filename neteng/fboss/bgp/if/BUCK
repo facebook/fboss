@@ -1,0 +1,177 @@
+load("@fbcode//common/automock:automock.bzl", "thrift_plugin_automock")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("routing_protocol")
+
+thrift_library(
+    name = "bgp-structs",
+    go_thrift_namespaces = {
+        "BgpStructs.thrift": "nettools.bgplib.if.BgpStructs",
+    },
+    languages = [
+        "cpp2",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
+        "go",
+        "rust",
+        "java-swift",
+        "python",
+        "py-deprecated",
+        "erlang",
+    ],
+    plugins = [thrift_plugin_automock],
+    py3_namespace = "nettools.bgplib",
+    py_asyncio_base_module = "nettools.bgplib_asyncio",
+    py_base_module = "nettools.bgplib",
+    thrift_cpp2_options = "json",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"BgpStructs.thrift": None},
+    deps = [
+        "//common/network/if:if",
+    ],
+)
+
+thrift_library(
+    name = "bmp-structs",
+    go_thrift_namespaces = {
+        "BmpStructs.thrift": "nettools.bgplib.if.BmpStructs",
+    },
+    languages = [
+        "cpp2",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
+        "go",
+        "python",
+        "py-deprecated",
+    ],
+    py3_namespace = "nettools.bgplib",
+    py_asyncio_base_module = "nettools.bgplib_asyncio",
+    py_base_module = "nettools.bgplib",
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"BmpStructs.thrift": None},
+    deps = [
+        ":bgp-structs",
+        "//common/network/if:if",
+    ],
+)
+
+thrift_library(
+    name = "policy_thrift",
+    go_thrift_namespaces = {
+        "policy_thrift.thrift": "neteng.routing.policy_thrift",
+    },
+    languages = [
+        "py3-deprecated",
+        "py-deprecated-asyncio",
+        "cpp2",
+        "rust",
+        "go",
+        "python",
+        "py-deprecated",
+    ],
+    py3_namespace = "neteng.routing",
+    py_asyncio_base_module = "neteng.routing.asyncio",
+    py_base_module = "neteng.routing",
+    thrift_cpp2_options = "json",
+    thrift_rust_options = ["serde"],
+    thrift_srcs = {
+        "policy_thrift.thrift": [],
+    },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
+)
+
+thrift_library(
+    name = "bgp_thrift",
+    cpp2_deps = [
+        "//folly/container:f14_hash",
+    ],
+    go_thrift_namespaces = {
+        "bgp_thrift.thrift": "neteng.fboss.bgp_thrift",
+    },
+    languages = [
+        "py-deprecated",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
+        "cpp2",
+        "go",
+        "rust",
+        "python",
+    ],
+    no_plugin_deps = [
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:java",
+        "//thrift/annotation:python",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {
+        "bgp_thrift.thrift": ["TBgpService"],
+    },
+    deps = [
+        ":policy_thrift",
+        "//common/fb303/if:fb303",
+        "//configerator/structs/neteng/bgp_policy/thrift:bgp_policy",
+        "//configerator/structs/neteng/bgp_policy/thrift:rib_policy",
+        "//configerator/structs/neteng/fboss/bgp:bgp_config",
+        "//configerator/structs/neteng/fboss/bgp/if:bgp_attr",
+        "//thrift/annotation:thrift",
+    ],
+)
+
+thrift_library(
+    name = "bgp_stream",
+    languages = [
+        "cpp2",
+        "py3-deprecated",
+        "python",
+    ],
+    no_plugin_deps = [
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:go",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:java",
+        "//thrift/annotation:python",
+        "//thrift/annotation:thrift",
+    ],
+    py3_namespace = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "bgp_stream.thrift": ["TBgpServiceStream"],
+    },
+    deps = [
+        ":bgp-structs",
+        "//common/fb303/if:fb303",
+        "//common/network/if:if",
+    ],
+)
+
+thrift_library(
+    name = "bgp",
+    languages = [
+        "cpp2",
+        "python",
+    ],
+    no_plugin_deps = [
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:go",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:java",
+        "//thrift/annotation:python",
+        "//thrift/annotation:thrift",
+    ],
+    py3_namespace = "neteng",
+    py_base_module = "neteng",
+    thrift_srcs = {"bgp.thrift": []},
+)
