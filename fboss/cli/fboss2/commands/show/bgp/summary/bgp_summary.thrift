@@ -1,4 +1,4 @@
-include "fboss/bgp/if/bgp_thrift.thrift"
+include "neteng/fboss/bgp/if/bgp_thrift.thrift"
 
 package "facebook.com/fboss/cli"
 

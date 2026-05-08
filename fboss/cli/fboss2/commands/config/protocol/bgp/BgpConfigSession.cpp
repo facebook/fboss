@@ -133,6 +133,8 @@ void BgpConfigSession::clearSession() {
   if (stubMode_) {
     std::cout << "[STUB MODE] Would clear session file: " << sessionConfigPath_
               << std::endl;
+    bgpConfig_ = getDefaultBgpConfig();
+    configLoaded_ = false;
     return;
   }
 

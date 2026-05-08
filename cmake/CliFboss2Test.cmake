@@ -71,6 +71,32 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowRouteSummaryTest.cpp
   fboss/cli/fboss2/test/CmdShowTeFlowTest.cpp
   # fboss/cli/fboss2/test/CmdShowTransceiverTest.cpp - excluded (depends on configerator bgp namespace)
+  fboss/cli/fboss2/test/CmdBgpTestUtils.cpp
+  fboss/cli/fboss2/test/CmdShowBgpChangelistTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedPostPolicyTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedPrePolicyTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedRejectedTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsReceivedPostPolicyTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsReceivedPrePolicyTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsReceivedRejectedTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpOriginatedRoutesTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpShadowRibTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpStatsAttrsTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpStatsEntriesTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpStatsPolicyTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpStreamSubscriberTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpStreamSummaryTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpSummaryEgressTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpSummaryTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpTableCommunityTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpTableDetailTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpTableMoreSpecificsTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpTablePrefixTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpTableTest.cpp
+  fboss/cli/fboss2/test/CmdShowConfigTestUtils.cpp
+  fboss/cli/fboss2/test/config/CmdConfigTestBase.cpp
+  fboss/cli/fboss2/test/config/BgpConfigSessionTest.cpp
   fboss/cli/fboss2/test/CmdStartPcapTest.cpp
   fboss/cli/fboss2/test/CmdStopPcapTest.cpp
   fboss/cli/fboss2/test/GitTest.cpp

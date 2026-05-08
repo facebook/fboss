@@ -10,8 +10,8 @@
 
 #include "fboss/cli/fboss2/CmdList.h"
 
-#include <fboss/cli/fboss2/utils/CmdUtils.h>
-#include "fboss/cli/fboss2/CmdHandler.h"
+#include <fboss/cli/fboss2/utils/CmdUtils.h> // NOLINT(misc-include-cleaner)
+#include "fboss/cli/fboss2/CmdHandler.h" // NOLINT(misc-include-cleaner)
 #include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"

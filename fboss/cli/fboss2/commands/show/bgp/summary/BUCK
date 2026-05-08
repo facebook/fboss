@@ -10,6 +10,6 @@ thrift_library(
     thrift_cpp2_options = "json",
     thrift_srcs = {"bgp_summary.thrift": []},
     deps = [
-        "//fboss/bgp/if:bgp_thrift",
+        "//neteng/fboss/bgp/if:bgp_thrift",
     ],
 )
