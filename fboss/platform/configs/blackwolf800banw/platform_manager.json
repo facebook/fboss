@@ -14,9 +14,9 @@
       "pmUnitName": "SCM"
     },
     "SMB_SLOT": {
-      "numOutgoingI2cBuses": 5,
+      "numOutgoingI2cBuses": 4,
       "idpromConfig": {
-        "busName": "INCOMING@1",
+        "busName": "INCOMING@0",
         "address": "0x50",
         "kernelDeviceName": "24c512",
         "offset": 15872
@@ -41,13 +41,18 @@
           "address": "0x40",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "SCM_MPS_PMBUS"
+        },
+        {
+          "busName": "SCM_I2C_MASTER_0@0",
+          "address": "0x48",
+          "kernelDeviceName": "lm75",
+          "pmUnitScopedName": "SCM_INLET"
         }
       ],
       "outgoingSlotConfigs": {
         "SMB_SLOT@0": {
           "slotType": "SMB_SLOT",
           "outgoingI2cBusNames": [
-            "SCM_I2C_MASTER_0@0",
             "SCM_I2C_MASTER_1@0",
             "SCM_I2C_MASTER_1@1",
             "SCM_I2C_MASTER_1@2",
@@ -121,14 +126,14 @@
       "pluggedInSlotType": "SMB_SLOT",
       "i2cDeviceConfigs": [
         {
-          "busName": "INCOMING@1",
+          "busName": "INCOMING@0",
           "address": "0x74",
           "kernelDeviceName": "pca9539",
           "pmUnitScopedName": "SMB_PCA",
           "isGpioChip": true
         },
         {
-          "busName": "INCOMING@1",
+          "busName": "INCOMING@0",
           "address": "0x23",
           "kernelDeviceName": "fbg_smbcpld",
           "pmUnitScopedName": "SMB_CPLD",
@@ -152,20 +157,11 @@
                 "show_notes"
               ],
               "description": "0: switch card power bad\n1: switch card power good"
-            },
-            {
-              "name": "idprom_wp",
-              "mode": "rw",
-              "regAddr": "0x22",
-              "flags": [
-                "show_notes"
-              ],
-              "description": "0: IDPROM write-protect disabled\n1: IDPROM write-protect enabled (default)"
             }
           ]
         },
         {
-          "busName": "INCOMING@1",
+          "busName": "INCOMING@0",
           "address": "0x24",
           "kernelDeviceName": "fbcpld_generic",
           "pmUnitScopedName": "CHASSIS_CPLD",
@@ -327,7 +323,7 @@
           ]
         },
         {
-          "busName": "INCOMING@1",
+          "busName": "INCOMING@0",
           "address": "0x50",
           "kernelDeviceName": "24c512",
           "pmUnitScopedName": "CHASSIS_EEPROM",
@@ -335,44 +331,44 @@
           "eepromOffset": 15360
         },
         {
-          "busName": "INCOMING@2",
+          "busName": "INCOMING@1",
           "address": "0x40",
           "kernelDeviceName": "aadm1266",
           "pmUnitScopedName": "SMB_ADM1"
         },
         {
-          "busName": "INCOMING@2",
+          "busName": "INCOMING@1",
           "address": "0x42",
           "kernelDeviceName": "aadm1266",
           "pmUnitScopedName": "SMB_ADM2"
         },
         {
-          "busName": "INCOMING@2",
+          "busName": "INCOMING@1",
           "address": "0x44",
           "kernelDeviceName": "aadm1266",
           "pmUnitScopedName": "SMB_ADM3"
         },
         {
-          "busName": "INCOMING@2",
+          "busName": "INCOMING@1",
           "address": "0x46",
           "kernelDeviceName": "aadm1266",
           "pmUnitScopedName": "SMB_ADM4"
         },
         {
-          "busName": "INCOMING@3",
+          "busName": "INCOMING@2",
           "address": "0x75",
           "kernelDeviceName": "pca9548",
           "pmUnitScopedName": "PSU_MUX",
           "numOutgoingChannels": 8
         },
         {
-          "busName": "INCOMING@4",
+          "busName": "INCOMING@3",
           "address": "0x48",
           "kernelDeviceName": "lm75",
           "pmUnitScopedName": "FAN_BOARD"
         },
         {
-          "busName": "INCOMING@4",
+          "busName": "INCOMING@3",
           "address": "0x60",
           "kernelDeviceName": "bwp_fan_cpld",
           "pmUnitScopedName": "FAN_CPLD"
@@ -1090,12 +1086,6 @@
           "address": "0x6a",
           "kernelDeviceName": "axdpe1b2c4b",
           "pmUnitScopedName": "SMB_OPTICS_CD"
-        },
-        {
-          "busName": "INCOMING@0",
-          "address": "0x48",
-          "kernelDeviceName": "lm75",
-          "pmUnitScopedName": "SCM_INLET"
         }
       ],
       "outgoingSlotConfigs": {
@@ -1264,7 +1254,8 @@
               "csrOffsetCalc": "0x6900 + ({portNum} - {startPort})*0x10 + ({ledNum} - 1)*0x10",
               "numPorts": 4,
               "ledPerPort": 1,
-              "startPort": 65
+              "startPort": 65,
+              "lanesPerPort": 4
             }
           ],
           "xcvrCtrlBlockConfigs": [
@@ -1338,6 +1329,7 @@
     "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS1_CH7": "/[SCM_I2C_MASTER_1@7]",
     "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/CPU_MPS_PMBUS": "/[SCM_MPS_PMBUS]",
+    "/run/devmap/sensors/SCM_INLET": "/[SCM_INLET]",
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/sensors/NVME_TEMP": "/[NVME_TEMP]",
     "/run/devmap/fpgas/SMB_FPGA": "/SMB_SLOT@0/[SMB_FPGA]",
@@ -1457,7 +1449,6 @@
     "/run/devmap/sensors/SMB_Q4D_NIF03_VDDA": "/SMB_SLOT@0/[SMB_Q4D_NIF03_VDDA]",
     "/run/devmap/sensors/SMB_Q4D_NIF03_PB": "/SMB_SLOT@0/[SMB_Q4D_NIF03_PB]",
     "/run/devmap/sensors/SMB_OPTICS_CD": "/SMB_SLOT@0/[SMB_OPTICS_CD]",
-    "/run/devmap/sensors/SCM_INLET": "/SMB_SLOT@0/[SCM_INLET]",
     "/run/devmap/flashes/SMB_SPI_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI_MASTER0_DEVICE1]",
     "/run/devmap/xcvrs/xcvr_io_1": "/SMB_SLOT@0/[SMB_I2C_MASTER_2@0]",
     "/run/devmap/xcvrs/xcvr_ctrl_1": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_1]",
