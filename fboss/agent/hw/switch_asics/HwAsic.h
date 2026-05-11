@@ -573,6 +573,12 @@ class HwAsic {
       std::optional<HwAsic::FabricNodeRole> fabricNodeRole);
 
   virtual bool isSupported(Feature) const = 0;
+
+ protected:
+  std::optional<bool> getFeatureSupportOverride(Feature feature) const;
+  void logFeatureSupportOverrides() const;
+
+ public:
   virtual cfg::AsicType getAsicType() const = 0;
   std::string getAsicTypeStr() const;
   virtual AsicVendor getAsicVendor() const = 0;

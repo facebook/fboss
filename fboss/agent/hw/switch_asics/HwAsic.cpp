@@ -8,7 +8,12 @@
  *
  */
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
+#include <sstream>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/Agera3PhyAsic.h"
 #include "fboss/agent/hw/switch_asics/Chenab2Asic.h"
@@ -35,6 +40,10 @@
 
 DEFINE_int32(acl_gid, -1, "Content aware processor group ID for ACLs");
 DEFINE_int32(teFlow_gid, -1, "Exact Match group ID for TeFlows");
+DEFINE_string(
+    asic_feature_support_overrides,
+    "",
+    "Comma-separated feature overrides in the format FEATURE_ID=true|false");
 
 namespace {
 constexpr auto kDefaultACLGroupID = 128;
@@ -199,6 +208,82 @@ int HwAsic::getStationID(int intfID) const {
 
 int HwAsic::getDefaultDropEgressID() const {
   return kDefaultDropEgressID;
+}
+
+void HwAsic::logFeatureSupportOverrides() const {
+  if (FLAGS_asic_feature_support_overrides.empty()) {
+    return;
+  }
+  XLOG(WARNING) << "[FeatureOverride] Active overrides: "
+                << FLAGS_asic_feature_support_overrides;
+  XLOG(WARNING) << "[FeatureOverride] AsicType: " << getAsicTypeStr();
+
+  std::stringstream ss(FLAGS_asic_feature_support_overrides);
+  std::string token;
+  while (std::getline(ss, token, ',')) {
+    token.erase(
+        std::remove_if(
+            token.begin(),
+            token.end(),
+            [](unsigned char c) { return std::isspace(c); }),
+        token.end());
+    if (token.empty()) {
+      continue;
+    }
+    auto sep = token.find('=');
+    if (sep == std::string::npos) {
+      continue;
+    }
+    auto featureId = token.substr(0, sep);
+    auto value = token.substr(sep + 1);
+    XLOG(WARNING) << "[FeatureOverride]   Feature ID=" << featureId << " -> "
+                  << value;
+  }
+}
+
+std::optional<bool> HwAsic::getFeatureSupportOverride(Feature feature) const {
+  if (FLAGS_asic_feature_support_overrides.empty()) {
+    return std::nullopt;
+  }
+
+  std::stringstream ss(FLAGS_asic_feature_support_overrides);
+  std::string token;
+  while (std::getline(ss, token, ',')) {
+    token.erase(
+        std::remove_if(
+            token.begin(),
+            token.end(),
+            [](unsigned char c) { return std::isspace(c); }),
+        token.end());
+    if (token.empty()) {
+      continue;
+    }
+    auto sep = token.find('=');
+    if (sep == std::string::npos || sep == 0 || sep + 1 >= token.size()) {
+      continue;
+    }
+
+    auto featureName = token.substr(0, sep);
+    auto value = token.substr(sep + 1);
+    char* end = nullptr;
+    auto parsedFeatureId = std::strtol(featureName.c_str(), &end, 10);
+    if (end == nullptr || *end != '\0' ||
+        static_cast<Feature>(parsedFeatureId) != feature) {
+      continue;
+    }
+
+    std::transform(
+        value.begin(), value.end(), value.begin(), [](unsigned char c) {
+          return std::tolower(c);
+        });
+    if (value == "true" || value == "1") {
+      return true;
+    }
+    if (value == "false" || value == "0") {
+      return false;
+    }
+  }
+  return std::nullopt;
 }
 
 std::vector<cfg::AsicType> HwAsic::getAllHwAsicList() {

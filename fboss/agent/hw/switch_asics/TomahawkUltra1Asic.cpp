@@ -6,6 +6,15 @@
 namespace facebook::fboss {
 
 bool TomahawkUltra1Asic::isSupported(Feature feature) const {
+  static bool loggedOverrides = [this]() {
+    logFeatureSupportOverrides();
+    return true;
+  }();
+  (void)loggedOverrides;
+  if (auto featureOverride = getFeatureSupportOverride(feature);
+      featureOverride.has_value()) {
+    return *featureOverride;
+  }
   switch (feature) {
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:
