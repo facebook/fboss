@@ -717,6 +717,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h
   fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.cpp
   fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h
+  fboss/cli/fboss2/commands/config/mac/CmdConfigMac.cpp
+  fboss/cli/fboss2/commands/config/mac/CmdConfigMac.h
+  fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.cpp
+  fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.h
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.cpp
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h
   fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.cpp

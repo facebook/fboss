@@ -11,6 +11,7 @@ cpp_unittest(
         "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
         "CmdConfigInterfaceTest.cpp",
         "CmdConfigL2LearningModeTest.cpp",
+        "CmdConfigMacAgingTimeTest.cpp",
         "CmdConfigQosBufferPoolTest.cpp",
         "CmdConfigReloadTest.cpp",
         "CmdConfigSessionCommitTest.cpp",
