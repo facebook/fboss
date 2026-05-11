@@ -20,6 +20,7 @@ const list<string> ALLOWED_PMUNIT_NAMES = [
   "JUMPER",
   "MCB",
   "NETLAKE",
+  "NETLAKE20",
   "PDB",
   "PDB_L",
   "PDB_R",
@@ -60,6 +61,7 @@ const list<string> ALLOWED_PMUNIT_NAMES = [
   "MINIPACK3BAM_MCB",
   "MINIPACK3N_MCB",
   "TAHANSB800BC_MCB",
+  "TAHANSB800BCM_MCB",
   // The whole board is a PmUnit for these
   "TAHAN",
   "JANGA",
