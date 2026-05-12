@@ -1103,7 +1103,7 @@
               "__comment__": "Local temperature high limit for high byte.",
               "regOffset": 11,
               "ioBuf": [
-                90
+                92
               ]
             },
             {
@@ -1117,7 +1117,7 @@
               "__comment__": "Remote temp1 high limit setting for high byte.",
               "regOffset": 13,
               "ioBuf": [
-                90
+                92
               ]
             },
             {
@@ -1131,7 +1131,7 @@
               "__comment__": "Remote temp2 high limit setting for high byte.",
               "regOffset": 21,
               "ioBuf": [
-                90
+                92
               ]
             },
             {
@@ -1185,7 +1185,7 @@
               "__comment__": "Local temperature high limit for high byte.",
               "regOffset": 11,
               "ioBuf": [
-                90
+                92
               ]
             },
             {
@@ -1199,7 +1199,7 @@
               "__comment__": "Remote temp1 high limit setting for high byte.",
               "regOffset": 13,
               "ioBuf": [
-                90
+                92
               ]
             },
             {
@@ -1375,7 +1375,7 @@
               "__comment__": "Local temperature high limit for high byte.",
               "regOffset": 11,
               "ioBuf": [
-                92
+                94
               ]
             },
             {
@@ -1389,7 +1389,7 @@
               "__comment__": "Remote temp1 high limit setting for high byte.",
               "regOffset": 13,
               "ioBuf": [
-                92
+                94
               ]
             },
             {
@@ -1403,7 +1403,7 @@
               "__comment__": "Remote temp2 high limit setting for high byte.",
               "regOffset": 21,
               "ioBuf": [
-                92
+                94
               ]
             },
             {
@@ -1457,7 +1457,7 @@
               "__comment__": "Local temperature high limit for high byte.",
               "regOffset": 11,
               "ioBuf": [
-                92
+                94
               ]
             },
             {
@@ -1471,7 +1471,7 @@
               "__comment__": "Remote temp1 high limit setting for high byte.",
               "regOffset": 13,
               "ioBuf": [
-                92
+                94
               ]
             },
             {
