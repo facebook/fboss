@@ -266,6 +266,15 @@ class TestRunner(abc.ABC):
         self._known_bad_test_regexes = None
         self._unsupported_test_regexes = None
 
+    def _get_common_gflags(self) -> list[str]:
+        """
+        Return pass-through gflags appended to every test binary invocation.
+        No parsing or validation - just forward whatever the user provides.
+        """
+        if hasattr(args, "extra_gflags") and args.extra_gflags:
+            return args.extra_gflags.split()
+        return []
+
     @abc.abstractmethod
     def _get_config_path(self):
         pass
@@ -342,6 +351,7 @@ class TestRunner(abc.ABC):
         if args.fruid_path is not None:
             run_cmd.append("--fruid_filepath=" + args.fruid_path)
         run_cmd += self._get_test_run_args(conf_file)
+        run_cmd += self._get_common_gflags()
 
         return run_cmd + flags if flags else run_cmd
 
@@ -2405,6 +2415,17 @@ if __name__ == "__main__":
             + "=/opt/fboss/share/fsdb_test_configs/meru800bia.materialized_JSON"
         ),
         default=None,
+    )
+    # --- Pass-through gflags for test binaries ---
+    ap.add_argument(
+        "--extra-gflags",
+        type=str,
+        default=None,
+        help=(
+            "Pass-through flags appended to every test binary invocation. "
+            "Use = to attach value (required when value starts with --). "
+            "Example: --extra-gflags='--asic_feature_support_overrides=73=false --v=2'"
+        ),
     )
     # Add subparsers for different test types
     subparsers = ap.add_subparsers()
