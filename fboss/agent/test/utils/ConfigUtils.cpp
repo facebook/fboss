@@ -896,7 +896,8 @@ cfg::SwitchConfig genPortVlanCfg(
     }
 
     if (platformType.has_value() &&
-        platformType.value() == PlatformType::PLATFORM_LADAKH800BCLS) {
+        (platformType.value() == PlatformType::PLATFORM_LADAKH800BCLS ||
+         platformType.value() == PlatformType::PLATFORM_LEH800BCLS)) {
       portIdRange.maximum() =
           cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
       defaultSwitchIdToSwitchInfo.insert(

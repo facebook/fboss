@@ -8,8 +8,8 @@ import unittest
 from typing import Dict, List
 
 from fboss.lib.platform_mapping_v2.gen import (
-    generate_platform_mappings,
     INPUT_DIR as input_dir,
+    generate_platform_mappings,
 )
 
 
@@ -59,6 +59,8 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "ladakh800bcls",
             "ladakh800bcls_rack",
             "ladakh800bcls_test_fixture",
+            "leh800bcls",
+            "leh800bcls_test_fixture",
         ],
     }
     _FBCODE_GENERATED_DIR: str = (
