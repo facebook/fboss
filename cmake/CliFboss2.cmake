@@ -766,6 +766,7 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
+  fboss/cli/fboss2/commands/config/interface/InterfaceAttrUtils.h
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.cpp
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp

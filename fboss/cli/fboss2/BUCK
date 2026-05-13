@@ -1147,6 +1147,7 @@ cpp_library(
         "commands/config/arp/CmdConfigArp.h",
         "commands/config/history/CmdConfigHistory.h",
         "commands/config/interface/CmdConfigInterface.h",
+        "commands/config/interface/InterfaceAttrUtils.h",
         "commands/config/interface/CmdConfigInterfaceQueuingPolicy.h",
         "commands/config/interface/ProfileValidation.h",
         "commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h",
