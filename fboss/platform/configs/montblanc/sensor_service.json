@@ -1657,24 +1657,148 @@
           "name": "PSU1_FAN_R_RPM",
           "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/fan2_input",
           "type": 4
+        }
+      ],
+      "versionedSensors": [
+        {
+          "productName": "AC3K12V_M_D",
+          "sensors": [
+            {
+              "name": "PSU1_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 73,
+                "maxAlarmVal": 68
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 102,
+                "maxAlarmVal": 97
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 125,
+                "maxAlarmVal": 120
+              },
+              "compute": "@/1000"
+            }
+          ]
         },
         {
-          "name": "PSU1_TEMP1",
-          "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp1_input",
-          "type": 3,
-          "compute": "@/1000"
+          "productName": "DC3K12V_M_D",
+          "sensors": [
+            {
+              "name": "PSU1_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 70,
+                "maxAlarmVal": 65
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 130,
+                "maxAlarmVal": 125
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 125,
+                "maxAlarmVal": 120
+              },
+              "compute": "@/1000"
+            }
+          ]
         },
         {
-          "name": "PSU1_TEMP2",
-          "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp2_input",
-          "type": 3,
-          "compute": "@/1000"
+          "productName": "AC3K12V_M_L",
+          "sensors": [
+            {
+              "name": "PSU1_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 80,
+                "maxAlarmVal": 70
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 120,
+                "maxAlarmVal": 115
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 112,
+                "maxAlarmVal": 107
+              },
+              "compute": "@/1000"
+            }
+          ]
         },
         {
-          "name": "PSU1_TEMP3",
-          "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp3_input",
-          "type": 3,
-          "compute": "@/1000"
+          "productName": "DC3K12V_M_L",
+          "sensors": [
+            {
+              "name": "PSU1_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 65,
+                "maxAlarmVal": 60
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 130,
+                "maxAlarmVal": 125
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 120,
+                "maxAlarmVal": 115
+              },
+              "compute": "@/1000"
+            }
+          ]
         }
       ]
     },
@@ -1794,24 +1918,148 @@
           "name": "PSU2_FAN_R_RPM",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/fan2_input",
           "type": 4
+        }
+      ],
+      "versionedSensors": [
+        {
+          "productName": "AC3K12V_M_D",
+          "sensors": [
+            {
+              "name": "PSU2_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 73,
+                "maxAlarmVal": 68
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 102,
+                "maxAlarmVal": 97
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 125,
+                "maxAlarmVal": 120
+              },
+              "compute": "@/1000"
+            }
+          ]
         },
         {
-          "name": "PSU2_TEMP1",
-          "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp1_input",
-          "type": 3,
-          "compute": "@/1000"
+          "productName": "DC3K12V_M_D",
+          "sensors": [
+            {
+              "name": "PSU2_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 70,
+                "maxAlarmVal": 65
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 130,
+                "maxAlarmVal": 125
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 125,
+                "maxAlarmVal": 120
+              },
+              "compute": "@/1000"
+            }
+          ]
         },
         {
-          "name": "PSU2_TEMP2",
-          "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp2_input",
-          "type": 3,
-          "compute": "@/1000"
+          "productName": "AC3K12V_M_L",
+          "sensors": [
+            {
+              "name": "PSU2_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 80,
+                "maxAlarmVal": 70
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 120,
+                "maxAlarmVal": 115
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 112,
+                "maxAlarmVal": 107
+              },
+              "compute": "@/1000"
+            }
+          ]
         },
         {
-          "name": "PSU2_TEMP3",
-          "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp3_input",
-          "type": 3,
-          "compute": "@/1000"
+          "productName": "DC3K12V_M_L",
+          "sensors": [
+            {
+              "name": "PSU2_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 65,
+                "maxAlarmVal": 60
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 130,
+                "maxAlarmVal": 125
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 120,
+                "maxAlarmVal": 115
+              },
+              "compute": "@/1000"
+            }
+          ]
         }
       ]
     },
