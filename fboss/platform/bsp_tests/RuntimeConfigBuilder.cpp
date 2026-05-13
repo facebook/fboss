@@ -102,6 +102,12 @@ fbiob::AuxData RuntimeConfigBuilder::createSpiAuxData(
   return auxData;
 }
 
+fbiob::AuxData RuntimeConfigBuilder::createMdioAuxData(
+    const FpgaIpBlockConfig& mdioBus) {
+  auto auxData = createBaseAuxData(mdioBus, fbiob::AuxDeviceType::MDIO_BUS);
+  return auxData;
+}
+
 facebook::fboss::platform::bsp_tests::I2CAdapter*
 RuntimeConfigBuilder::findAdapter(
     std::map<std::string, facebook::fboss::platform::bsp_tests::I2CAdapter>&
@@ -284,6 +290,9 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
       }
       for (const auto& spiMaster : *dev.spiMasterConfigs()) {
         pciDevice.auxDevices()->push_back(createSpiAuxData(spiMaster));
+      }
+      for (const auto& mdioBusConfig : Utils::createMdioBusConfigs(dev)) {
+        pciDevice.auxDevices()->push_back(createMdioAuxData(mdioBusConfig));
       }
       devices.push_back(pciDevice);
     }
