@@ -164,6 +164,7 @@ target_link_libraries(utils
   j4sim_platform_mapping
   saintpaul_platform_mapping
   blackwolf800banw_platform_mapping
+  m4062nhp_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
