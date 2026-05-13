@@ -13,6 +13,7 @@ add_executable(fboss2_integration_test
   fboss/cli/fboss2/test/integration_test/ConfigCoppTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceDescriptionTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceIpv6NdpTest.cpp
+  fboss/cli/fboss2/test/integration_test/DeleteInterfaceTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceMtuTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceProfileTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigL2LearningModeTest.cpp
@@ -20,6 +21,10 @@ add_executable(fboss2_integration_test
   fboss/cli/fboss2/test/integration_test/ConfigPfcTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigPortQueueConfigTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigPtpTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigInterfaceFlowControlTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigInterfaceLldpExpectedValueTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigInterfaceLoopbackModeTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigInterfaceTypeTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigQosPolicyMapTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigSessionClearTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanCreateTest.cpp
