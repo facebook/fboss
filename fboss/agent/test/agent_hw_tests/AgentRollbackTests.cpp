@@ -172,7 +172,7 @@ TEST_F(AgentRollbackTest, rollbackLinkUpAndDown) {
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
-TEST_F(AgentRollbackTest, rollbackWithQPHConfig) {
+TEST_F(AgentQphRollbackTest, rollbackWithQPHConfig) {
   auto setup = [this] {
     auto cfg = initialConfig(*getAgentEnsemble());
     utility::addQueuePerHostQueueConfig(&cfg);

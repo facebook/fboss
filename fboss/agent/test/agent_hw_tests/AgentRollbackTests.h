@@ -29,4 +29,12 @@ class AgentRollbackTest : public AgentHwTest {
   void SetUp() override;
 };
 
+struct AgentQphRollbackTest : public AgentRollbackTest {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::L3_FORWARDING, ProductionFeature::QUEUE_PER_HOST};
+  }
+};
+
 } // namespace facebook::fboss
