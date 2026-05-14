@@ -22,6 +22,8 @@
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 
+DECLARE_bool(enable_acl_table_group);
+
 namespace facebook::fboss {
 
 class AgentIpInIpTunnelTest : public AgentHwTest {
@@ -246,6 +248,12 @@ TEST_F(AgentIpInIpTunnelTest, DecapPacketParsing) {
   verifyAcrossWarmBoots(setup, verify);
 }
 class AgentIpInIpEncapTunnelTest : public AgentHwTest {
+ public:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_acl_table_group = true;
+  }
+
  protected:
   std::string kEncapSrcIp = "2401:db00::1";
   std::string kEncapDstIp = "2401:db00:ffff::1";
@@ -286,10 +294,31 @@ class AgentIpInIpEncapTunnelTest : public AgentHwTest {
     cfg.ipInIpTunnels() = {tunnel};
   }
 
+  void addRedirectActionToDefaultAclTable(cfg::SwitchConfig& cfg) const {
+    if (!FLAGS_enable_acl_table_group) {
+      return;
+    }
+    auto* aclTableGroup =
+        utility::getAclTableGroup(cfg, cfg::AclStage::INGRESS);
+    if (aclTableGroup) {
+      for (auto& table : *aclTableGroup->aclTables()) {
+        if (table.actionTypes()->empty()) {
+          *table.actionTypes() = {
+              cfg::AclTableActionType::PACKET_ACTION,
+              cfg::AclTableActionType::COUNTER,
+          };
+        }
+        table.actionTypes()->push_back(cfg::AclTableActionType::REDIRECT);
+      }
+    }
+  }
+
   void addEncapAclConfig(
       cfg::SwitchConfig& cfg,
       const HwAsic* asic,
       const AgentEnsemble& ensemble) const {
+    addRedirectActionToDefaultAclTable(cfg);
+
     cfg::AclEntry acl;
     acl.name() = "acl_encap";
     acl.dstIp() = kTargetPrefix + "/" + std::to_string(kTargetPrefixLen);
@@ -396,7 +425,8 @@ TEST_F(AgentIpInIpEncapTunnelTest, EncapNoTunnelConfigured) {
         ensemble->masterLogicalPortIds()[1],
         ensemble->getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes());
-    applyNewConfig(cfg);
+    addRedirectActionToDefaultAclTable(cfg); // keep ACL table schema consistent
+    applyNewConfig(cfg); // removes tunnel + ACL entries
     setupHelper();
   };
 
