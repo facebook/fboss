@@ -156,12 +156,16 @@ TEST_F(MySidApplyConfigTest, DynamicEntriesPreservedOnConfigChange) {
   ThriftHandler handler(sw_);
   auto entries = std::make_unique<std::vector<MySidEntry>>();
   MySidEntry dynamicEntry;
-  dynamicEntry.type() = MySidType::DECAPSULATE_AND_LOOKUP;
+  dynamicEntry.type() = MySidType::BINDING_MICRO_SID;
   facebook::network::thrift::IPPrefix prefix;
   prefix.prefixAddress() =
       facebook::network::toBinaryAddress(folly::IPAddress("2001:db8::1"));
   prefix.prefixLength() = 64;
   dynamicEntry.mySid() = prefix;
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  dynamicEntry.nextHops() = {nhop};
   entries->push_back(dynamicEntry);
   handler.addMySidEntries(std::move(entries));
 

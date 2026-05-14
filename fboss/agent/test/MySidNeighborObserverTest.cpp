@@ -206,12 +206,16 @@ TEST_F(MySidNeighborObserverTest, RpcMySidNotAffectedByNeighbor) {
   ThriftHandler handler(sw_);
   auto entries = std::make_unique<std::vector<MySidEntry>>();
   MySidEntry entry;
-  entry.type() = MySidType::DECAPSULATE_AND_LOOKUP;
+  entry.type() = MySidType::BINDING_MICRO_SID;
   facebook::network::thrift::IPPrefix prefix;
   prefix.prefixAddress() =
       facebook::network::toBinaryAddress(folly::IPAddress("2001:db8::1"));
   prefix.prefixLength() = 64;
   entry.mySid() = prefix;
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  entry.nextHops() = {nhop};
   entries->push_back(entry);
   handler.addMySidEntries(std::move(entries));
 

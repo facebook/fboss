@@ -951,10 +951,14 @@ void ThriftHandler::addMySidEntries(
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   for (const auto& entry : *mySidEntries) {
-    if (*entry.type() == MySidType::ADJACENCY_MICRO_SID ||
-        *entry.type() == MySidType::NODE_MICRO_SID) {
-      throw FbossError(
-          "ADJACENCY_MICRO_SID and NODE_MICRO_SID MySid types are not supported via ThriftHandler");
+    switch (*entry.type()) {
+      case MySidType::BINDING_MICRO_SID:
+        break;
+      case MySidType::ADJACENCY_MICRO_SID:
+      case MySidType::NODE_MICRO_SID:
+      case MySidType::DECAPSULATE_AND_LOOKUP:
+        throw FbossError(
+            "Only BINDING_MICRO_SID MySid type is supported via ThriftHandler");
     }
   }
   auto rib = sw_->getRib();

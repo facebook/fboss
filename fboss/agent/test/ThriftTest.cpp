@@ -3072,8 +3072,10 @@ TEST_F(ThriftTest, addMySidEntries) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  entries->push_back(makeMySidEntry("2001:db8::1", 64));
-  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::1", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::2", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
   handler.addMySidEntries(std::move(entries));
 
   auto state = sw_->getState();
@@ -3088,8 +3090,10 @@ TEST_F(ThriftTest, deleteMySidEntries) {
 
   // First add entries
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  entries->push_back(makeMySidEntry("2001:db8::1", 64));
-  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::1", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::2", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
   handler.addMySidEntries(std::move(entries));
 
   // Delete one
@@ -3121,16 +3125,11 @@ TEST_F(ThriftTest, addMySidEntryRejectsAdjacencyType) {
   EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
 }
 
-TEST_F(ThriftTest, addMySidEntryRejectsDecapsulateTypeWithNextHops) {
+TEST_F(ThriftTest, addMySidEntryRejectsDecapsulateType) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  auto entry = makeMySidEntry("2001:db8::1", 64);
-  NextHopThrift nhop;
-  nhop.address() =
-      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
-  entry.nextHops()->push_back(nhop);
-  entries->push_back(entry);
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
   EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
 }
 
@@ -3139,7 +3138,8 @@ TEST_F(ThriftTest, addAndDeleteMySidEntriesInSequence) {
 
   // Add
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::1", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
   handler.addMySidEntries(std::move(entries));
 
   auto state = sw_->getState();
@@ -3175,7 +3175,8 @@ TEST_F(ThriftTest, mySidEntryReflectedInRib) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::1", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
   handler.addMySidEntries(std::move(entries));
 
   // Verify RIB has the entry
@@ -3193,8 +3194,8 @@ TEST_F(ThriftTest, addMySidEntryRejectsDecapTypeWithNamedNextHops) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  auto entry = makeMySidEntry("2001:db8::1", 64);
-  // DECAP type with namedNextHops set — should be rejected
+  auto entry =
+      makeMySidEntry("2001:db8::1", 64, MySidType::DECAPSULATE_AND_LOOKUP);
   NamedRouteDestination named;
   named.nextHopGroup() = "group1";
   entry.namedNextHops() = named;
@@ -3214,8 +3215,10 @@ TEST_F(ThriftTest, getMySidEntriesReturnsAddedEntries) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  entries->push_back(makeMySidEntry("2001:db8::1", 64));
-  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::1", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::2", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
   handler.addMySidEntries(std::move(entries));
 
   std::vector<MySidEntry> result;
@@ -3224,7 +3227,7 @@ TEST_F(ThriftTest, getMySidEntriesReturnsAddedEntries) {
 
   std::set<std::string> prefixes;
   for (const auto& e : result) {
-    EXPECT_EQ(*e.type(), MySidType::DECAPSULATE_AND_LOOKUP);
+    EXPECT_EQ(*e.type(), MySidType::BINDING_MICRO_SID);
     auto ip = facebook::network::toIPAddress(*e.mySid()->prefixAddress());
     prefixes.insert(
         folly::IPAddress::networkToString(
@@ -3239,8 +3242,10 @@ TEST_F(ThriftTest, getMySidEntriesReflectsDelete) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  entries->push_back(makeMySidEntry("2001:db8::1", 64));
-  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::1", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::2", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
   handler.addMySidEntries(std::move(entries));
 
   auto prefixes = std::make_unique<std::vector<IpPrefix>>();
