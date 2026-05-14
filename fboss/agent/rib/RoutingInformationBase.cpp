@@ -158,11 +158,23 @@ std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
   bool handled = false;
   switch (type) {
     case MySidType::ADJACENCY_MICRO_SID:
+      // Adjacency SIDs can have at most one nexthop. Named next hop groups
+      // are not supported.
+      if (entry.namedNextHops().has_value()) {
+        throw FbossError(
+            "NamedNextHops are not supported for ADJACENCY_MICRO_SID MySid type");
+      }
+      if (entry.nextHops()->size() > 1) {
+        throw FbossError(
+            "At most one NextHop can be specified for ADJACENCY_MICRO_SID MySid type");
+      }
+      handled = true;
+      break;
     case MySidType::NODE_MICRO_SID:
       // TODO Support named nhop groups
       if (entry.nextHops()->empty()) {
         throw FbossError(
-            "NextHops must be specified for ADJACENCY_MICRO_SID and NODE_MICRO_SID MySid types");
+            "NextHops must be specified for NODE_MICRO_SID MySid type");
       }
       handled = true;
       break;
