@@ -2,10 +2,14 @@
 
 #include "fboss/fsdb/client/cgo/FsdbCgoPubSubWrapper.h"
 
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <atomic>
 #include <chrono>
+#include <cstdint>
+#include <set>
+#include <string>
 #include <thread>
 
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
@@ -131,11 +135,13 @@ TEST_F(FsdbCgoPubSubWrapperTest, SubscribeToOperStatePortMaps) {
 TEST_F(FsdbCgoPubSubWrapperTest, SubscribeToStatsPath) {
   auto wrapper = std::make_unique<FsdbCgoPubSubWrapper>("test-client");
 
-  EXPECT_NO_THROW(wrapper->subscribeStatsPath(fsdbTestServer_->getFsdbPort()));
+  EXPECT_NO_THROW(
+      wrapper->subscribeStatsPath({"agent"}, fsdbTestServer_->getFsdbPort()));
   EXPECT_TRUE(wrapper->hasStatsSubscription());
 
   // Second subscription should log warning but not throw
-  EXPECT_NO_THROW(wrapper->subscribeStatsPath(fsdbTestServer_->getFsdbPort()));
+  EXPECT_NO_THROW(
+      wrapper->subscribeStatsPath({"agent"}, fsdbTestServer_->getFsdbPort()));
   EXPECT_TRUE(wrapper->hasStatsSubscription());
 }
 
@@ -153,7 +159,8 @@ TEST_F(FsdbCgoPubSubWrapperTest, StateAndStatsSubscriptions) {
       wrapper->subscribeToOperState_portMaps(fsdbTestServer_->getFsdbPort()));
   EXPECT_TRUE(wrapper->hasStateSubscription());
 
-  EXPECT_NO_THROW(wrapper->subscribeStatsPath(fsdbTestServer_->getFsdbPort()));
+  EXPECT_NO_THROW(
+      wrapper->subscribeStatsPath({"agent"}, fsdbTestServer_->getFsdbPort()));
   EXPECT_TRUE(wrapper->hasStatsSubscription());
 }
 
@@ -233,7 +240,7 @@ TEST_F(FsdbCgoPubSubWrapperTest, ReceiveStatsUpdate) {
 
   // Create wrapper and subscribe
   auto wrapper = std::make_unique<FsdbCgoPubSubWrapper>("test-client");
-  wrapper->subscribeStatsPath(fsdbTestServer_->getFsdbPort());
+  wrapper->subscribeStatsPath({"agent"}, fsdbTestServer_->getFsdbPort());
 
   // Give subscription time to establish
   std::this_thread::sleep_for(500ms);
@@ -278,7 +285,7 @@ TEST_F(FsdbCgoPubSubWrapperTest, BothStateAndStatsUpdates) {
   auto wrapper = std::make_unique<FsdbCgoPubSubWrapper>("test-client");
   wrapper->subscribeToOperState_portMaps(fsdbTestServer_->getFsdbPort());
 
-  wrapper->subscribeStatsPath(fsdbTestServer_->getFsdbPort());
+  wrapper->subscribeStatsPath({"agent"}, fsdbTestServer_->getFsdbPort());
 
   // Give subscriptions time to establish
   std::this_thread::sleep_for(500ms);
@@ -341,6 +348,108 @@ TEST_F(FsdbCgoPubSubWrapperTest, BothStateAndStatsUpdates) {
 
   EXPECT_TRUE(receivedState.load()) << "Failed to receive state update";
   EXPECT_TRUE(receivedStats.load()) << "Failed to receive stats update";
+}
+
+// ============================================================================
+// Integration tests for the extern "C" CGO surface (the actual API AMD calls).
+// ============================================================================
+
+// Helper: build a SwitchState with N ports (all ENABLED, oper UP).
+state::SwitchState makeSwitchStateWithPorts(int numPorts) {
+  state::SwitchState switchState;
+  std::map<int16_t, state::PortFields> portMap;
+  for (int i = 1; i <= numPorts; ++i) {
+    state::PortFields p;
+    p.portId() = i;
+    p.portName() = fmt::format("eth1/{}/1", i);
+    p.portState() = "ENABLED";
+    p.portOperState() = true;
+    portMap[i] = std::move(p);
+  }
+  switchState.portMaps()["0"] = std::move(portMap);
+  return switchState;
+}
+
+TEST_F(FsdbCgoPubSubWrapperTest, ExternCRoundTrip) {
+  // Publish-before-subscribe: FSDB delivers the latest state to the new
+  // subscriber via initial sync. Avoids racing the publish against subscriber
+  // connect (which can take seconds under CI load).
+  createStatePublisher();
+  publishState(makeSwitchStateWithPorts(/*numPorts=*/1));
+
+  FsdbInit(FSDB_CGO_ABI_VERSION);
+  FsdbWrapperHandle handle = CreateFsdbWrapper("extern-c-roundtrip");
+  ASSERT_NE(handle, nullptr);
+  SubscribeToPortMapsWithPort(handle, fsdbTestServer_->getFsdbPort());
+  ASSERT_EQ(HasStateSubscription(handle), 1);
+
+  FsdbPortStateUpdate out[16];
+  int32_t count = WaitForStateUpdates(handle, out, 16);
+  ASSERT_GE(count, 1);
+  EXPECT_STREQ(out[0].port_name, "eth1/1/1");
+  EXPECT_EQ(out[0].oper_state, 1);
+
+  ShutdownFsdbWrapper(handle);
+  DestroyFsdbWrapper(handle);
+}
+
+TEST_F(FsdbCgoPubSubWrapperTest, ExternCShutdownWakesBlockedWaiter) {
+  FsdbInit(FSDB_CGO_ABI_VERSION);
+  FsdbWrapperHandle handle = CreateFsdbWrapper("extern-c-shutdown");
+  ASSERT_NE(handle, nullptr);
+  SubscribeToPortMapsWithPort(handle, fsdbTestServer_->getFsdbPort());
+  ASSERT_EQ(HasStateSubscription(handle), 1);
+
+  // Condition-based: waiter posts when WaitForStateUpdates returns. Allows up
+  // to ~5x the wrapper's 100ms internal poll interval to wake on Shutdown.
+  std::atomic<int32_t> waiterResult{-2};
+  folly::Baton<> waiterDone;
+  std::thread waiter([&] {
+    FsdbPortStateUpdate out[16];
+    waiterResult.store(WaitForStateUpdates(handle, out, 16));
+    waiterDone.post();
+  });
+
+  ShutdownFsdbWrapper(handle);
+  ASSERT_TRUE(waiterDone.try_wait_for(500ms))
+      << "waiter did not return within 500ms of ShutdownFsdbWrapper";
+  EXPECT_EQ(waiterResult.load(), 0);
+
+  waiter.join();
+  DestroyFsdbWrapper(handle);
+}
+
+TEST_F(FsdbCgoPubSubWrapperTest, ExternCOverflowStaysQueued) {
+  // Asserts the no-data-loss property of WaitFor*'s no-over-drain semantic:
+  // if FSDB delivers N port updates and we ask for them with max_count=2 at
+  // a time, we receive all N across however many WaitFor* calls it takes.
+  // Stronger atomicity (all-on-queue-at-once → first call returns 2, second
+  // returns 1) cannot be reliably tested against FSDB because subscriber
+  // CONNECTED handshake is non-deterministic under CI load — so we test the
+  // weaker "no data loss" property instead.
+  createStatePublisher();
+  publishState(makeSwitchStateWithPorts(/*numPorts=*/3));
+
+  FsdbInit(FSDB_CGO_ABI_VERSION);
+  FsdbWrapperHandle handle = CreateFsdbWrapper("extern-c-overflow");
+  ASSERT_NE(handle, nullptr);
+  SubscribeToPortMapsWithPort(handle, fsdbTestServer_->getFsdbPort());
+
+  std::set<std::string> received;
+  const auto deadline = std::chrono::steady_clock::now() + 30s;
+  while (received.size() < 3 && std::chrono::steady_clock::now() < deadline) {
+    FsdbPortStateUpdate out[2];
+    int32_t n = WaitForStateUpdates(handle, out, 2);
+    ASSERT_GE(n, 0); // never -1 (no error) and never panics
+    for (int32_t i = 0; i < n; ++i) {
+      received.insert(out[i].port_name);
+    }
+  }
+  EXPECT_EQ(received.size(), 3u)
+      << "Expected all 3 ports to be received; got " << received.size();
+
+  ShutdownFsdbWrapper(handle);
+  DestroyFsdbWrapper(handle);
 }
 
 } // namespace facebook::fboss::fsdb::test

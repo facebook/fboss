@@ -6,7 +6,7 @@ include_directories(
 )
 
 # FsdbCgoPubSubWrapper library
-add_library(fsdb_cgo_pub_sub_wrapper
+add_library(fsdb_cgo_pub_sub_wrapper STATIC
   fboss/fsdb/client/cgo/FsdbCgoPubSubWrapper.cpp
 )
 

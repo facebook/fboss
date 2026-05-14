@@ -8,11 +8,23 @@ cpp_unittest(
         "FsdbCgoWrapperTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/fsdb/client:fsdb_pub_sub",
         "//fboss/fsdb/client/cgo:fsdb_cgo_pub_sub_wrapper",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/fsdb/tests/client:fsdb_test_clients",
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//folly/logging:logging",
+    ],
+)
+
+cpp_unittest(
+    name = "fsdb_cgo_wrapper_api_test",
+    srcs = [
+        "FsdbCgoWrapperApiTest.cpp",
+    ],
+    deps = [
+        "//fboss/fsdb/client/cgo:fsdb_cgo_pub_sub_wrapper",
+        "//folly/init:phase",
     ],
 )
