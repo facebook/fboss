@@ -71,7 +71,7 @@ class MySidRibUpdateTest : public ::testing::Test {
     auto ribMySidFunc = createRibMySidToSwitchStateFunction(std::nullopt);
     rib->update(
         sw_->getScopeResolver(),
-        std::vector<MySidWithNextHops>{{mySid, std::move(nhops)}},
+        std::vector<MySidWithNextHops>{{mySid, std::move(nhops), std::nullopt}},
         std::vector<MySidNeighborRemoved>{} /* toUnresolveIfMatch */,
         std::vector<IpPrefix>{} /* toDelete */,
         "addConfigMySid",

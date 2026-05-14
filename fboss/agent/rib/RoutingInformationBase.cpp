@@ -1252,8 +1252,10 @@ void RibRouteTables::update(
   // unresolvedNextHopsId). Keep the parallel next-hop set as-is.
   std::vector<MySidWithNextHops> cloned;
   cloned.reserve(toAdd.size());
-  for (const auto& [mySid, nhops] : toAdd) {
-    cloned.emplace_back(mySid->clone(), nhops);
+  for (const auto& entry : toAdd) {
+    cloned.emplace_back(
+        MySidWithNextHops{
+            entry.mySid->clone(), entry.nextHopSet, entry.nextHopGroupName});
   }
   updateMySidsImpl(
       resolver,
@@ -1314,8 +1316,8 @@ void RibRouteTables::updateMySidsImpl(
       }
     }
     std::set<folly::CIDRNetwork> addedPrefixes;
-    for (const auto& [mySidIn, unresolvedNextHops] : toAdd) {
-      auto mySid = mySidIn;
+    for (const auto& entry : toAdd) {
+      auto mySid = entry.mySid;
       const auto cidr = mySid->getMySid();
       addedPrefixes.emplace(cidr.first, cidr.second);
       const folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
@@ -1324,9 +1326,9 @@ void RibRouteTables::updateMySidsImpl(
         // that a same-set alloc+release on a refcounted entry is a no-op
         // (rather than a deallocate/reallocate cycle).
         std::optional<NextHopSetID> newUnresolvedId;
-        if (!unresolvedNextHops.empty()) {
+        if (!entry.nextHopSet.empty()) {
           newUnresolvedId =
-              nextHopIDManager->getOrAllocRouteNextHopSetID(unresolvedNextHops)
+              nextHopIDManager->getOrAllocRouteNextHopSetID(entry.nextHopSet)
                   .nextHopIdSetIter->second.id;
         }
         mySid->setUnresolveNextHopsId(newUnresolvedId);

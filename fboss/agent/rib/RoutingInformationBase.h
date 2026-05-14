@@ -66,9 +66,14 @@ using RibMySidToSwitchStateFunction = std::function<StateDelta(
 // Each pair is (MySid state object, its unresolved next-hop set). The
 // next-hop set is empty for DECAPSULATE_AND_LOOKUP / ADJACENCY_MICRO_SID
 // entries; populated for NODE_MICRO_SID. Bundling them in a pair keeps the
-// two pieces of data inseparable across all RIB / ConfigApplier call sites
-// that consume config-derived MySid state.
-using MySidWithNextHops = std::pair<std::shared_ptr<MySid>, RouteNextHopSet>;
+// MySid with its associated next hops and optional next hop group name.
+// These three pieces of data are inseparable across all RIB / ConfigApplier
+// call sites that consume config-derived MySid state.
+struct MySidWithNextHops {
+  std::shared_ptr<MySid> mySid;
+  RouteNextHopSet nextHopSet;
+  std::optional<std::string> nextHopGroupName;
+};
 
 // (prefix-key for the MySid, IP of the removed neighbor). Used by the
 // observer-driven neighbor-removal path: RIB clears unresolveNextHopsId

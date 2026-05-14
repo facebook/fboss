@@ -2192,7 +2192,7 @@ class RibMySidWithNextHopsUpdateTest : public ::testing::Test {
       RouteNextHopSet nhops = {}) {
     auto mySid = makeMySid(makeSidPrefix(addr, len), type);
     mySid->setClientId(ClientID::STATIC_ROUTE);
-    return {{std::move(mySid), std::move(nhops)}};
+    return {{std::move(mySid), std::move(nhops), std::nullopt}};
   }
 
   std::unique_ptr<RoutingInformationBase> rib_;

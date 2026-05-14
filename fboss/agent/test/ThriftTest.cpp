@@ -3292,7 +3292,8 @@ TEST_F(ThriftTestWithNhopIdMgr, getMySidEntriesNodeAndAdjacencyTypesViaRib) {
   auto adjMySid = std::make_shared<MySid>(adjFields);
   RouteNextHopSet adjNhops{
       ResolvedNextHop(folly::IPAddress(kNhopAddrB), kInterfaceB, ECMP_WEIGHT)};
-  std::vector<MySidWithNextHops> adjToAdd = {{adjMySid, adjNhops}};
+  std::vector<MySidWithNextHops> adjToAdd = {
+      {adjMySid, adjNhops, std::nullopt}};
   sw_->getRib()->update(
       sw_->getScopeResolver(),
       std::move(adjToAdd),

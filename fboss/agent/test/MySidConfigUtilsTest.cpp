@@ -290,14 +290,14 @@ TEST(MySidConfigUtilsTest, ConvertDecapConfig) {
 
   auto result = convertMySidConfig(config, /*portNameToInterfaceId*/ {});
   ASSERT_EQ(result.size(), 1);
-  const auto& [mySid, nhops] = result[0];
-  EXPECT_EQ(mySid->getType(), MySidType::DECAPSULATE_AND_LOOKUP);
-  EXPECT_TRUE(nhops.empty());
-  EXPECT_EQ(mySid->getClientId(), ClientID::STATIC_ROUTE);
-  EXPECT_FALSE(mySid->getAdjacencyInterfaceId().has_value());
+  const auto& entry = result[0];
+  EXPECT_EQ(entry.mySid->getType(), MySidType::DECAPSULATE_AND_LOOKUP);
+  EXPECT_TRUE(entry.nextHopSet.empty());
+  EXPECT_EQ(entry.mySid->getClientId(), ClientID::STATIC_ROUTE);
+  EXPECT_FALSE(entry.mySid->getAdjacencyInterfaceId().has_value());
 
   // Verify SID address
-  auto cidr = mySid->getMySid();
+  auto cidr = entry.mySid->getMySid();
   EXPECT_EQ(cidr.first, folly::IPAddress("3001:db8:7fff::"));
   EXPECT_EQ(cidr.second, 48);
 }
@@ -313,14 +313,14 @@ TEST(MySidConfigUtilsTest, ConvertNodeConfig) {
 
   auto result = convertMySidConfig(config, /*portNameToInterfaceId*/ {});
   ASSERT_EQ(result.size(), 1);
-  const auto& [mySid, nhops] = result[0];
-  EXPECT_EQ(mySid->getType(), MySidType::NODE_MICRO_SID);
-  EXPECT_EQ(mySid->getClientId(), ClientID::STATIC_ROUTE);
-  EXPECT_FALSE(mySid->getAdjacencyInterfaceId().has_value());
+  const auto& entry = result[0];
+  EXPECT_EQ(entry.mySid->getType(), MySidType::NODE_MICRO_SID);
+  EXPECT_EQ(entry.mySid->getClientId(), ClientID::STATIC_ROUTE);
+  EXPECT_FALSE(entry.mySid->getAdjacencyInterfaceId().has_value());
 
   // Verify unresolved next hops contain the node address
-  ASSERT_EQ(nhops.size(), 1);
-  auto nhop = *nhops.begin();
+  ASSERT_EQ(entry.nextHopSet.size(), 1);
+  auto nhop = *entry.nextHopSet.begin();
   EXPECT_EQ(nhop.addr(), folly::IPAddress("fc00:100::1"));
 }
 
@@ -338,14 +338,14 @@ TEST(MySidConfigUtilsTest, ConvertAdjacencyConfig) {
 
   auto result = convertMySidConfig(config, portNameToIntfId);
   ASSERT_EQ(result.size(), 1);
-  const auto& [mySid, nhops] = result[0];
-  EXPECT_EQ(mySid->getType(), MySidType::ADJACENCY_MICRO_SID);
-  EXPECT_EQ(mySid->getClientId(), ClientID::STATIC_ROUTE);
+  const auto& entry = result[0];
+  EXPECT_EQ(entry.mySid->getType(), MySidType::ADJACENCY_MICRO_SID);
+  EXPECT_EQ(entry.mySid->getClientId(), ClientID::STATIC_ROUTE);
   // No unresolved next hops — resolved later via adjacencyInterfaceId
-  EXPECT_TRUE(nhops.empty());
+  EXPECT_TRUE(entry.nextHopSet.empty());
   // InterfaceID should be stored on the MySid object
-  ASSERT_TRUE(mySid->getAdjacencyInterfaceId().has_value());
-  EXPECT_EQ(mySid->getAdjacencyInterfaceId().value(), 2001);
+  ASSERT_TRUE(entry.mySid->getAdjacencyInterfaceId().has_value());
+  EXPECT_EQ(entry.mySid->getAdjacencyInterfaceId().value(), 2001);
 }
 
 TEST(MySidConfigUtilsTest, ConvertAdjacencyConfigUnknownPortThrows) {
@@ -400,8 +400,8 @@ TEST(MySidConfigUtilsTest, ConvertMixedConfig) {
 
   // Find entries by ID and verify properties
   std::unordered_map<std::string, std::shared_ptr<MySid>> byId;
-  for (const auto& [mySid, _nhops] : result) {
-    byId[mySid->getID()] = mySid;
+  for (const auto& entry : result) {
+    byId[entry.mySid->getID()] = entry.mySid;
   }
   // Adjacency entries should have interface IDs
   ASSERT_NE(byId.find("3001:db8:1::/48"), byId.end());
@@ -409,7 +409,7 @@ TEST(MySidConfigUtilsTest, ConvertMixedConfig) {
   ASSERT_NE(byId.find("3001:db8:2::/48"), byId.end());
   EXPECT_EQ(byId["3001:db8:2::/48"]->getAdjacencyInterfaceId().value(), 301);
   // All entries should have STATIC_ROUTE clientId
-  for (const auto& [mySid, _nhops] : result) {
-    EXPECT_EQ(mySid->getClientId(), ClientID::STATIC_ROUTE);
+  for (const auto& entry : result) {
+    EXPECT_EQ(entry.mySid->getClientId(), ClientID::STATIC_ROUTE);
   }
 }

@@ -237,7 +237,7 @@ void ConfigApplier::applyStaticMySids() {
   std::unordered_map<folly::CIDRNetworkV6, const MySidWithNextHops*> incoming;
   incoming.reserve(staticMySidRange_.size());
   for (const auto& pair : staticMySidRange_) {
-    const auto cidr = pair.first->getMySid();
+    const auto cidr = pair.mySid->getMySid();
     incoming.emplace(
         folly::CIDRNetworkV6{cidr.first.asV6(), cidr.second}, &pair);
   }
@@ -259,14 +259,14 @@ void ConfigApplier::applyStaticMySids() {
       it = mySidTable_->erase(it);
       continue;
     }
-    const auto& [newMySid, newUnresolvedNhops] = *incomingIt->second;
+    const auto& entry = *incomingIt->second;
     if (mySidEntryUnchanged(
-            *it->second, *newMySid, newUnresolvedNhops, nextHopIDManager_)) {
+            *it->second, *entry.mySid, entry.nextHopSet, nextHopIDManager_)) {
       handledIncomingCidrs.insert(it->first);
       ++it;
       continue;
     }
-    auto newEntry = buildAndAllocateEntry(newMySid, newUnresolvedNhops);
+    auto newEntry = buildAndAllocateEntry(entry.mySid, entry.nextHopSet);
     releaseEntryNextHopIds(it->second);
     it->second = std::move(newEntry);
     handledIncomingCidrs.insert(it->first);
@@ -277,13 +277,13 @@ void ConfigApplier::applyStaticMySids() {
   // STATIC_ROUTE entry. If a non-STATIC_ROUTE entry sits at the same
   // prefix (e.g., a TE_AGENT RPC entry), release its nhop ids before
   // overwriting to avoid a leak — config-driven STATIC_ROUTE wins.
-  for (const auto& [mySidIn, unresolvedNextHops] : staticMySidRange_) {
-    const auto cidr = mySidIn->getMySid();
+  for (const auto& entry : staticMySidRange_) {
+    const auto cidr = entry.mySid->getMySid();
     const folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
     if (handledIncomingCidrs.contains(cidrV6)) {
       continue;
     }
-    auto newEntry = buildAndAllocateEntry(mySidIn, unresolvedNextHops);
+    auto newEntry = buildAndAllocateEntry(entry.mySid, entry.nextHopSet);
     if (auto it = mySidTable_->find(cidrV6); it != mySidTable_->end()) {
       // Non-STATIC_ROUTE entry was at this prefix (Pass 1 filtered those out
       // and left them in the table). Surface the takeover so the operator/
