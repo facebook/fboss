@@ -1,0 +1,267 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Platform Config",
+    "description": "Per-platform configuration declaring the vendor, ASIC, port layout, and one or more configuration variants for the asic_config_v3 generator.",
+    "type": "object",
+    "required": ["platform_name", "vendor", "asic", "variants"],
+    "additionalProperties": true,
+    "properties": {
+        "platform_name": {
+            "type": "string",
+            "description": "Platform identifier. Must match the directory name under platforms/."
+        },
+        "vendor": {
+            "type": "string",
+            "description": "ASIC vendor identifier. Must match a directory name under vendors/."
+        },
+        "asic": {
+            "type": "string",
+            "description": "ASIC chip identifier. Must match the basename of a JSON file under vendors/<vendor>/asics/."
+        },
+        "num_ports_per_core": {
+            "type": "integer",
+            "description": "Number of front-panel ports per ASIC core. Combined with num_lanes_per_core to derive the number of lanes per port, unless num_lanes_per_port is set explicitly."
+        },
+        "num_lanes_per_port": {
+            "type": "integer",
+            "description": "Optional. Explicit override of the lanes-per-port value derived from num_lanes_per_core / num_ports_per_core. Used by platforms that wire only a subset of the ASIC lanes per port."
+        },
+        "defaults": {
+            "$ref": "#/$defs/variant",
+            "description": "Shared variant fields inherited by every variant via deep merge. Values declared inside a specific variant override the corresponding entries in this block."
+        },
+        "variants": {
+            "type": "object",
+            "description": "Named configuration variants for this platform. Each variant produces a separate output config file.",
+            "minProperties": 1,
+            "additionalProperties": {
+                "$ref": "#/$defs/variant"
+            }
+        }
+    },
+    "$defs": {
+        "variant": {
+            "type": "object",
+            "description": "A single configuration variant. Fields may be omitted when their value is inherited from the platform-level defaults block.",
+            "additionalProperties": true,
+            "properties": {
+                "asic_config_params": {
+                    "type": "object",
+                    "description": "Parameters controlling generator behavior for this variant.",
+                    "additionalProperties": true,
+                    "properties": {
+                        "config_type": {
+                            "type": "string",
+                            "enum": ["YAML_CONFIG", "JSON_CONFIG"],
+                            "description": "Output configuration format."
+                        },
+                        "exact_match": {
+                            "type": "boolean",
+                            "description": "When true, enables exact-match forwarding table entries."
+                        },
+                        "mmu_lossless": {
+                            "type": "boolean",
+                            "description": "When true, enables MMU lossless mode for PFC / RDMA workloads."
+                        },
+                        "config_gen_type": {
+                            "type": "string",
+                            "enum": ["DEFAULT", "HW_TEST"],
+                            "description": "Configuration generation profile. Controls which vendor configuration profile is applied."
+                        }
+                    }
+                },
+                "port_config": {
+                    "type": "object",
+                    "description": "Front-panel port settings. Fields may be omitted in a variant when inherited from the platform defaults.",
+                    "additionalProperties": false,
+                    "properties": {
+                        "default_speed": {
+                            "type": "integer",
+                            "description": "Default port speed in Mbps (e.g. 400000 for 400 GbE)."
+                        },
+                        "speed_to_fec": {
+                            "type": "object",
+                            "description": "Mapping from port speed (encoded as a decimal string) to FEC mode.",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        },
+                        "enable": {
+                            "type": "integer",
+                            "description": "Optional. Value emitted as PC_PORT.ENABLE for front-panel ports. Defaults to 0."
+                        },
+                        "link_training": {
+                            "type": "integer",
+                            "description": "Optional. When set, emits LINK_TRAINING: <value> on front-panel PC_PORT entries."
+                        }
+                    }
+                },
+                "cpu_port": {
+                    "type": "object",
+                    "description": "CPU port (logical port 0) settings.",
+                    "required": ["speed", "num_lanes"],
+                    "additionalProperties": false,
+                    "properties": {
+                        "speed": {
+                            "type": "integer",
+                            "description": "CPU port speed in Mbps."
+                        },
+                        "num_lanes": {
+                            "type": "integer",
+                            "description": "Number of lanes used by the CPU port."
+                        }
+                    }
+                },
+                "mgmt_port": {
+                    "type": "object",
+                    "description": "Management port settings. Fields may be omitted in a variant when inherited from the platform defaults.",
+                    "additionalProperties": false,
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "description": "Whether the management port is emitted in the generated config."
+                        },
+                        "enable": {
+                            "type": "integer",
+                            "description": "Optional. Value emitted as PC_PORT.ENABLE for the management port. Defaults to 0."
+                        },
+                        "in_port_block": {
+                            "type": "boolean",
+                            "description": "Optional. When true, includes the management port in the PORT (MTU) range alongside the front-panel ports."
+                        },
+                        "speed_variants": {
+                            "type": "object",
+                            "description": "Per-speed management port settings, keyed by port speed (encoded as a decimal string).",
+                            "additionalProperties": {
+                                "$ref": "#/$defs/mgmt_speed_config"
+                            }
+                        }
+                    }
+                },
+                "device_config_overrides": {
+                    "type": "object",
+                    "description": "Optional. Key / value pairs written to the DEVICE_CONFIG output table (for example, clock frequencies).",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "port_mapping_overrides": {
+                    "type": "object",
+                    "description": "Optional. Overrides for the logical-to-physical port mapping formula.",
+                    "additionalProperties": false,
+                    "properties": {
+                        "core_range": {
+                            "type": "string",
+                            "description": "Comma-separated list of inclusive core ranges to include in the port mapping (e.g. \"0-15,48-63\"). Defaults to all cores on the ASIC."
+                        },
+                        "num_lp_ports_on_even_core": {
+                            "type": "integer",
+                            "description": "Override for the number of logical ports placed on even-numbered cores."
+                        },
+                        "num_logical_ports_per_datapath": {
+                            "type": "integer",
+                            "description": "Override for the ASIC-level num_logical_ports_per_datapath value."
+                        },
+                        "lp_start_step_offset": {
+                            "type": "integer",
+                            "description": "Offset added to num_logical_ports_per_datapath when computing the per-datapath logical-port start. Defaults to 1."
+                        },
+                        "lp_offset_simple": {
+                            "type": "boolean",
+                            "description": "When true, computes the per-port logical-port offset as i * lanes_per_port on all cores rather than using the default even / odd conditional."
+                        },
+                        "core_offset_apply_all": {
+                            "type": "boolean",
+                            "description": "When true, applies the +1 core offset to every core rather than only cores 0 and 1. Required for platforms with a linear-stride port layout."
+                        }
+                    }
+                },
+                "mgmt_port_overrides": {
+                    "type": "object",
+                    "description": "Optional. Per-platform overrides of the ASIC-level mgmt_port_defaults.",
+                    "additionalProperties": false,
+                    "properties": {
+                        "logical_id": {"type": "integer"},
+                        "physical_id": {"type": "integer"},
+                        "speed": {"type": "integer"},
+                        "num_lanes": {"type": "integer"},
+                        "fec": {"type": "string"}
+                    }
+                },
+                "platform_sai_overrides": {
+                    "type": "object",
+                    "description": "Optional. Platform-level SAI settings layered on top of the ASIC sai_overrides. These take precedence within the global-table layering.",
+                    "additionalProperties": {
+                        "type": ["integer", "string"]
+                    }
+                },
+                "conditional_settings": {
+                    "type": "array",
+                    "description": "Optional. Platform-level conditional settings, evaluated after the ASIC-level conditional_settings so that platform values take precedence.",
+                    "items": {"type": "object"}
+                },
+                "features": {
+                    "type": "object",
+                    "description": "Boolean feature toggles enabling optional config sections. All fields are optional; absent flags default to disabled.",
+                    "additionalProperties": false,
+                    "properties": {
+                        "generate_dlb_config": {
+                            "type": "boolean",
+                            "description": "When true, includes Dynamic Load Balancing settings from the ASIC dlb_defaults block."
+                        },
+                        "generate_low_clock_freq_settings": {
+                            "type": "boolean",
+                            "description": "When true, includes low-clock-frequency device settings."
+                        },
+                        "generate_autoload_board_settings": {
+                            "type": "boolean",
+                            "description": "When true, emits AUTOLOAD_BOARD_SETTINGS: 0 in the DEVICE_CONFIG output table."
+                        },
+                        "generate_dlb_ecmp_config": {
+                            "type": "boolean",
+                            "description": "When true, emits the DLB_ECMP_CONFIG output table from the ASIC dlb_ecmp_config_defaults block."
+                        }
+                    }
+                },
+                "preamble_file": {
+                    "type": "string",
+                    "description": "Optional. Path (relative to the asic_config_v3 module root) of a preamble file prepended to the generated YAML. Honored only when the ASIC declares preamble_support: true."
+                },
+                "platform_mapping_name": {
+                    "type": "string",
+                    "description": "Optional. Overrides the platform_mapping_v2 directory consulted for lane-map and polarity data. Defaults to platform_name. Used when multiple variants share an asic_config but consume sibling platform_mapping_v2 directories."
+                },
+                "ctr_eflex_config": {
+                    "type": "object",
+                    "description": "Optional. Variant-level override of the ASIC ctr_eflex_config pass-through block. When present, replaces the ASIC-level value in its entirety.",
+                    "additionalProperties": {
+                        "type": ["integer", "string"]
+                    }
+                }
+            }
+        },
+        "mgmt_speed_config": {
+            "type": "object",
+            "description": "Per-speed management port configuration.",
+            "required": ["num_lanes", "fec"],
+            "additionalProperties": false,
+            "properties": {
+                "num_lanes": {
+                    "type": "integer",
+                    "description": "Number of physical lanes used at this speed."
+                },
+                "fec": {
+                    "type": "string",
+                    "description": "FEC mode applied at this speed."
+                },
+                "pmd_firmware": {
+                    "type": "object",
+                    "description": "Optional. PMD firmware overrides applied at this speed.",
+                    "additionalProperties": {
+                        "type": ["integer", "string"]
+                    }
+                }
+            }
+        }
+    }
+}
