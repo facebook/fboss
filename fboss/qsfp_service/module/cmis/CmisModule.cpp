@@ -866,22 +866,38 @@ std::optional<uint16_t> CmisModule::fetchFwBuildNumberFromCdb() {
     return std::nullopt;
   }
 
-  CdbCommandBlock commandBlockBuf;
-  commandBlockBuf.createCdbCmdGetFirmwareInfo();
-  auto ret = commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
-  if (ret && commandBlockBuf.getCdbRlplLength() >= kCdbFwInfoMinRlplLength) {
-    const uint8_t* response = commandBlockBuf.getCdbLplFlatMemory();
-    uint8_t firmwareStatusByte = response[kCdbFwInfoFwStatusOffset];
-    bool bankARunning = (firmwareStatusByte & kCdbFwInfoBankARunningMask) != 0;
-    bool bankBRunning = (firmwareStatusByte & kCdbFwInfoBankBRunningMask) != 0;
+  constexpr int kRetryPollIntervalUsec = 100000;
+  constexpr int kMaxRetries = 3;
+  const int maxAttempts = shouldRetryCdbFwInfo() ? kMaxRetries : 1;
 
-    if (bankARunning) {
-      return (response[kCdbFwInfoImageABuildHiOffset] << 8) |
-          response[kCdbFwInfoImageABuildLoOffset];
-    } else if (bankBRunning) {
-      return (response[kCdbFwInfoImageBBuildHiOffset] << 8) |
-          response[kCdbFwInfoImageBBuildLoOffset];
+  for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+    CdbCommandBlock commandBlockBuf;
+    commandBlockBuf.createCdbCmdGetFirmwareInfo();
+    auto ret = commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
+
+    if (ret) {
+      auto buildNumber = commandBlockBuf.getFwBuildNumber();
+      if (buildNumber.has_value()) {
+        QSFP_LOG(DBG1, this)
+            << "fetchFwBuildNumberFromCdb: build number " << buildNumber.value()
+            << " (attempt " << attempt << ")";
+      }
+      return buildNumber;
     }
+
+    auto cdbStatus = commandBlockBuf.getLastCdbStatus();
+    if (cdbStatus != kCdbCommandStatusFailed || attempt == maxAttempts) {
+      QSFP_LOG(ERR, this) << "fetchFwBuildNumberFromCdb: CDB command failed"
+                          << " cdbStatus=0x" << std::hex << (int)cdbStatus
+                          << std::dec << " after " << attempt << " attempt(s)";
+      return std::nullopt;
+    }
+
+    QSFP_LOG(WARN, this)
+        << "fetchFwBuildNumberFromCdb: CDB returned 0x40 (attempt " << attempt
+        << "/" << maxAttempts << "), retrying";
+    /* sleep override */
+    usleep(kRetryPollIntervalUsec);
   }
   return std::nullopt;
 }

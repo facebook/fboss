@@ -41,8 +41,6 @@ static constexpr uint16_t kCdbCommandModuleQuery = 0x0000;
 static constexpr uint16_t kCdbCommandSymbolErrorHistogram = 0x9000;
 static constexpr uint16_t kCdbCommandRxErrorHistogram = 0x9001;
 
-// CDB command status values
-static constexpr uint8_t kCdbCommandStatusSuccess = 0x01;
 static constexpr uint8_t kCdbCommandStatusBusyUnknown = 0x80;
 static constexpr uint8_t kCdbCommandStatusBusyCmdCaptured = 0x81;
 static constexpr uint8_t kCdbCommandStatusBusyCmdCheck = 0x82;
@@ -246,6 +244,8 @@ bool CdbCommandBlock::cmisRunCdbCommand(
   auto cdbWaitTime = std::chrono::steady_clock::now() - startTime;
   commandBlockCdbWaitTime_ +=
       std::chrono::duration_cast<std::chrono::milliseconds>(cdbWaitTime);
+
+  lastCdbStatus_ = status;
 
   if (status != kCdbCommandStatusSuccess) {
     auto modId = bus->getNum();
