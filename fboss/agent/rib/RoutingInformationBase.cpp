@@ -155,6 +155,12 @@ std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
     throw FbossError(
         "Only one of nextHops or namedNextHops must be set in MySidEntry");
   }
+  if (entry.namedNextHops().has_value() &&
+      entry.namedNextHops()->getType() !=
+          NamedRouteDestination::Type::nextHopGroup) {
+    throw FbossError(
+        "Only nextHopGroup is supported in namedNextHops for MySidEntry");
+  }
   bool handled = false;
   switch (type) {
     case MySidType::ADJACENCY_MICRO_SID:
@@ -1238,7 +1244,13 @@ void RibRouteTables::update(
     auto nhops = entry.nextHops()->empty()
         ? RouteNextHopSet{}
         : util::toRouteNextHopSet(*entry.nextHops(), true);
-    mySidsWithNextHops.emplace_back(std::move(mySid), std::move(nhops));
+    std::optional<std::string> nhgName;
+    if (entry.namedNextHops().has_value()) {
+      nhgName = *entry.namedNextHops()->nextHopGroup();
+    }
+    mySidsWithNextHops.emplace_back(
+        MySidWithNextHops{
+            std::move(mySid), std::move(nhops), std::move(nhgName)});
   }
   updateMySidsImpl(
       resolver,

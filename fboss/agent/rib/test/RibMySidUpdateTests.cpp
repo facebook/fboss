@@ -565,6 +565,30 @@ TEST(RibMySidUpdate, rejectDecapsulateTypeWithNamedNextHops) {
   EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
 }
 
+TEST(RibMySidUpdate, rejectNamedNextHopsWithPolicyName) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination named;
+  named.policyName() = "policy1";
+  entry.namedNextHops() = named;
+
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "mysid with policyName in namedNextHops",
+          mySidToSwitchStateUpdate,
+          &switchState),
+      FbossError);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+}
+
 TEST(RibMySidUpdate, rejectBindingSidWithoutNextHopsOrNamedNhg) {
   RoutingInformationBase rib;
   rib.ensureVrf(kRid);
