@@ -6274,6 +6274,9 @@
         },
         {
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHwLinkDebounceTest.*$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/graphene200/multi_switch": [
@@ -6399,6 +6402,9 @@
         },
         {
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHwLinkDebounceTest.*$"
         }
     ],
     "leaba/25.11.4210/25.11.4210/graphene202x/mono": [
@@ -6838,6 +6844,9 @@
         },
         {
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHwLinkDebounceTest.*$"
         }
     ],
     "leaba/25.5.4210/25.5.4210/graphene200/multi_switch": [
@@ -6963,6 +6972,9 @@
         },
         {
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHwLinkDebounceTest.*$"
         }
     ],
     "leaba/26.2.5210/26.2.5210/graphene200/mono": [
