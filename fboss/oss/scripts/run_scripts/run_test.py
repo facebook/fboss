@@ -541,6 +541,7 @@ class TestRunner(abc.ABC):
             if self._is_known_bad_test(test_name) or self._is_unsupported_test(
                 test_name
             ):
+                print(f"  >> SKIPPING (known bad/unsupported): {test_name}")
                 continue
             test_filter += f"{test_name}:"
         if not test_filter:
@@ -790,18 +791,28 @@ class TestRunner(abc.ABC):
         self._end_run()
         return test_outputs
 
+    _GTEST_STATUS_MAP: ClassVar[dict[str, str]] = {
+        "OK": "PASSED",
+        "FAILED": "FAILED",
+        "SKIPPED": "SKIPPED",
+        "TIMEOUT": "TIMEOUT",
+    }
+
     def _print_output_summary(self, test_outputs):
         test_summaries = []
-        test_summary_count = {"OK": 0, "FAILED": 0, "SKIPPED": 0, "TIMEOUT": 0}
+        test_summary_count = {"PASSED": 0, "FAILED": 0, "SKIPPED": 0, "TIMEOUT": 0}
         for test_output in test_outputs:
             test_summaries += self._parse_gtest_run_output(test_output)
         # Print test results and update test result counts
         for test_summary in test_summaries:
-            print(test_summary)
-            m = re.search(r"[.*[A-Z]{2,10}", test_summary)
-            if m is not None:
-                test_summary_count[m.group()] += 1
-        # Print test result counts
+            m = re.search(r"\[\s*(OK|FAILED|SKIPPED|TIMEOUT)\s*\]", test_summary)
+            if m is None:
+                print(test_summary)
+                continue
+            mapped_status = self._GTEST_STATUS_MAP[m.group(1)]
+            line = test_summary.replace(m.group(0), f"[ {mapped_status} ]")
+            print(line)
+            test_summary_count[mapped_status] += 1
         print("Summary:")
         for test_result, value in test_summary_count.items():
             print("  ", test_result, ":", value)
@@ -820,7 +831,10 @@ class TestRunner(abc.ABC):
             writer = csv.writer(f)
             writer.writerow(["Test Name", "Result"])
             for line in output:
-                test_result = line.split("]")[0].strip("[ ")
+                raw_result = line.split("]")[0].strip("[ ")
+                # Map gtest tokens so CSV matches the console summary
+                # (OK -> PASSED, etc.).
+                test_result = self._GTEST_STATUS_MAP.get(raw_result, raw_result)
                 test_name = line.split("]")[1].split("(")[0].strip()
                 writer.writerow([test_name, test_result])
 
