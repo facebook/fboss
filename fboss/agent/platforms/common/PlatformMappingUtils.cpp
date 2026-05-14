@@ -35,6 +35,7 @@
 #include "fboss/agent/platforms/common/minipack3n/Minipack3NPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
+#include "fboss/agent/platforms/common/saintpaul/SaintpaulPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahansb800bc/Tahansb800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
@@ -211,6 +212,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<J4SimPlatformMapping>()
           : std::make_unique<J4SimPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_SAINTPAUL:
+      return platformMappingStr.empty()
+          ? std::make_unique<SaintpaulPlatformMapping>()
+          : std::make_unique<SaintpaulPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_BLACKWOLF800BANW:
       return platformMappingStr.empty()
           ? std::make_unique<Blackwolf800banwPlatformMapping>()

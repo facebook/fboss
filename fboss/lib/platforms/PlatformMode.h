@@ -114,6 +114,8 @@ inline std::string toString(PlatformType mode) {
       return "BLACKWOLF800BANW";
     case PlatformType::PLATFORM_YANGRA2:
       return "YANGRA2";
+    case PlatformType::PLATFORM_SAINTPAUL:
+      return "SAINTPAUL";
     case PlatformType::PLATFORM_MERU400BIU_DEPRECATED:
       return "MERU400BIU";
     case PlatformType::PLATFORM_MERU400BFU_DEPRECATED:

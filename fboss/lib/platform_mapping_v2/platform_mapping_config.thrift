@@ -36,6 +36,8 @@ enum CoreType {
   TH6_NIF = 9, // TH6
   Q4D_NIF = 10, // Q4D
   J4SIM_NIF = 11, // J4Sim
+  J4_NIF = 12, // J4 NIF
+  J4_FE = 13, // J4 Fabric
 
   // Transceivers
   OSFP = 100,

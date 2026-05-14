@@ -215,6 +215,9 @@ void PlatformProductInfo::initMode() {
         modelName.find("Blackwolf800banw") == 0 ||
         modelName.find("BLACKWOLF800BANW") == 0) {
       type_ = PlatformType::PLATFORM_BLACKWOLF800BANW;
+    } else if (
+        modelName.find("Saintpaul") == 0 || modelName.find("SAINTPAUL") == 0) {
+      type_ = PlatformType::PLATFORM_SAINTPAUL;
     } else {
       throw FbossError("invalid model name " + modelName);
     }
@@ -295,6 +298,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_BLACKWOLF800BANW;
     } else if (FLAGS_mode == "yangra2") {
       type_ = PlatformType::PLATFORM_YANGRA2;
+    } else if (FLAGS_mode == "saintpaul") {
+      type_ = PlatformType::PLATFORM_SAINTPAUL;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
