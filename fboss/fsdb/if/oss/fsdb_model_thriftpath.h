@@ -6838,7 +6838,8 @@ std::pair<apache::thrift::ident::unresolveNextHopsId, Child<::std::int64_t, ::ap
 std::pair<apache::thrift::ident::resolvedNextHopsId, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<apache::thrift::ident::adjacencyInterfaceId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::clientId, Child<::facebook::fboss::ClientID, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::ClientID>>>,
-std::pair<apache::thrift::ident::isV6, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+std::pair<apache::thrift::ident::isV6, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<apache::thrift::ident::namedNextHopGroup, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -6851,6 +6852,7 @@ std::pair<apache::thrift::ident::isV6, Child<bool, ::apache::thrift::type_class:
     STRUCT_CHILD_GETTERS(adjacencyInterfaceId, 5);
     STRUCT_CHILD_GETTERS(clientId, 6);
     STRUCT_CHILD_GETTERS(isV6, 7);
+    STRUCT_CHILD_GETTERS(namedNextHopGroup, 8);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -6861,6 +6863,7 @@ std::pair<apache::thrift::ident::isV6, Child<bool, ::apache::thrift::type_class:
     else if constexpr (__id == apache::thrift::FieldId{5}) { return adjacencyInterfaceId(); }
     else if constexpr (__id == apache::thrift::FieldId{6}) { return clientId(); }
     else if constexpr (__id == apache::thrift::FieldId{7}) { return isV6(); }
+    else if constexpr (__id == apache::thrift::FieldId{8}) { return namedNextHopGroup(); }
   }
 };
 

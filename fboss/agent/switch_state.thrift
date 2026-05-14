@@ -636,6 +636,8 @@ struct MySidFields {
   # For ADJACENCY_MICRO_SID: whether to resolve IPv6 (NDP) or IPv4 (ARP)
   # neighbors. Only applicable to uA entries.
   7: optional bool isV6;
+  # Optional named next hop group for the MySid entry.
+  8: optional string namedNextHopGroup;
 }
 
 struct QosPolicyFields {
