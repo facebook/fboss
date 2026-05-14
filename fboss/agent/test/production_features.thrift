@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
 
+include "configerator/structs/neteng/fboss/thrift/sdk.thrift"
 include "thrift/annotation/thrift.thrift"
 
 @thrift.AllowLegacyMissingUris
@@ -132,7 +133,20 @@ enum ProductionFeature {
   HW_SWITCH = 65536,
 }
 
+struct FeatureSdkSupport {
+  1: list<string> asics;
+  2: sdk.ProductLine productLine;
+  3: string minSdkVersion;
+  4: optional string note;
+}
+
+struct FeatureSupportSpec {
+  1: ProductionFeature feature;
+  2: list<FeatureSdkSupport> supportedFrom;
+}
+
 struct AsicToProductionFeatures {
   1: map<string, list<ProductionFeature>> asicToFeatures;
   2: map<string, list<string>> asicToFeatureNames;
+  3: list<FeatureSupportSpec> featureSupportSpecs = [];
 }

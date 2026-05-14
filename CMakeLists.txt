@@ -394,6 +394,13 @@ add_fbthrift_cpp_library(
     reflection
 )
 add_fbthrift_cpp_library(
+  sdk_cpp2
+  configerator/structs/neteng/fboss/thrift/sdk.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   fboss_common_cpp2
   fboss/lib/if/fboss_common.thrift
   OPTIONS
@@ -851,6 +858,8 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
+  DEPENDS
+    sdk_cpp2
 )
 add_fbthrift_cpp_library(
   qsfp_production_features_cpp2
