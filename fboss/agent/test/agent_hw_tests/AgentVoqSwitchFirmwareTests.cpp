@@ -159,27 +159,41 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
         getAgentEnsemble(), masterLogicalFabricPortIds(), !expectDrained);
   }
   void forceIsolate(int delay = 1) {
-    std::stringstream ss;
-    ss << "edk -c fi force_isolate 0 5 1 " << delay << std::endl;
-    XLOG(INFO) << "Running force_isolate command: ";
     auto switchId = this->getCurrentSwitchIdForTesting();
+    std::stringstream ss;
+    if (std::stoi(getSdkMajorVersion(switchId)) >= 14) {
+      ss << "fabric firmware auto_isolate force enable=1 delay=" << delay
+         << std::endl;
+    } else {
+      ss << "edk -c fi force_isolate 0 5 1 " << delay << std::endl;
+    }
+    XLOG(INFO) << "Running force_isolate command: ";
     std::string out;
     getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
     XLOG(INFO) << "force_isolate output: " << out;
   }
   void getIsolate() {
-    std::stringstream ss;
-    ss << "edk -c fi dump 0 5" << std::endl;
-    XLOG(INFO) << "Running get_isolate command: ";
     auto switchId = this->getCurrentSwitchIdForTesting();
+    std::stringstream ss;
+    if (std::stoi(getSdkMajorVersion(switchId)) >= 14) {
+      ss << "fabric firmware auto_isolate dump" << std::endl;
+    } else {
+      ss << "edk -c fi dump 0 5" << std::endl;
+    }
+    XLOG(INFO) << "Running get_isolate command: ";
     std::string out;
     getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
     XLOG(INFO) << "get_isolate output: " << out;
   }
   void forceCrash(int delay = 1) {
-    std::stringstream ss;
-    ss << "edk -c fi crash 0 5 " << delay << std::endl;
     auto switchId = this->getCurrentSwitchIdForTesting();
+    std::stringstream ss;
+    if (std::stoi(getSdkMajorVersion(switchId)) >= 14) {
+      ss << "fabric firmware auto_isolate fw_crash delay=" << delay
+         << std::endl;
+    } else {
+      ss << "edk -c fi crash 0 5 " << delay << std::endl;
+    }
     std::string out;
     getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
   }
@@ -202,12 +216,17 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     constexpr int kFabricLanesPerCore = 8;
     auto portToDisable = coreIndex * kFabricLanesPerCore + iphyLane;
 
+    auto switchId = this->getCurrentSwitchIdForTesting();
     std::stringstream ss;
-    ss << "edk -c fi force_link_down 0 5 " << portToDisable << " 1"
-       << std::endl;
+    if (std::stoi(getSdkMajorVersion(switchId)) >= 14) {
+      ss << "fabric firmware auto_link_disable force " << (1024 + portToDisable)
+         << " enable=1" << std::endl;
+    } else {
+      ss << "edk -c fi force_link_down 0 5 " << portToDisable << " 1"
+         << std::endl;
+    }
     XLOG(INFO) << "Running force link Admin Disable command to disable port: "
                << portId << " asic port index: " << portToDisable;
-    auto switchId = this->getCurrentSwitchIdForTesting();
     std::string out;
     getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
     XLOG(INFO) << "force link admin disable output: " << out;
