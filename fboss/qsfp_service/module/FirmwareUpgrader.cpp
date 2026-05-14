@@ -6,10 +6,10 @@
 #include <chrono>
 #include <utility>
 
+#include <fmt/core.h>
 #include <folly/Conv.h>
 #include <folly/File.h>
 #include <folly/FileUtil.h>
-#include <folly/Format.h>
 #include <folly/init/Init.h>
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
@@ -112,7 +112,7 @@ uint64_t CmisFirmwareUpgrader::resolveFwUpgradeCdbTimeout(
       !flagInfo.is_default;
 
   if (flagExplicitlySet) {
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "resolveFwUpgradeCdbTimeout: Mod{:d}: Using explicit gflag timeout of {:d} usec",
         moduleId_,
         FLAGS_cdb_command_timeout_usec);
@@ -123,13 +123,13 @@ uint64_t CmisFirmwareUpgrader::resolveFwUpgradeCdbTimeout(
   if (maxDurationWriteUsec > 0 && isTunableModule()) {
     uint64_t timeoutUsec = std::min(maxDurationWriteUsec, kMaxCdbTimeoutUsec);
     if (maxDurationWriteUsec > kMaxCdbTimeoutUsec) {
-      XLOG(INFO) << folly::sformat(
+      XLOG(INFO) << fmt::format(
           "resolveFwUpgradeCdbTimeout: Mod{:d}: MaxDurationWrite {:d} usec exceeds max, capped to {:d} usec",
           moduleId_,
           maxDurationWriteUsec,
           kMaxCdbTimeoutUsec);
     } else {
-      XLOG(INFO) << folly::sformat(
+      XLOG(INFO) << fmt::format(
           "resolveFwUpgradeCdbTimeout: Mod{:d}: Using MaxDurationWrite timeout of {:d} usec",
           moduleId_,
           timeoutUsec);
@@ -137,7 +137,7 @@ uint64_t CmisFirmwareUpgrader::resolveFwUpgradeCdbTimeout(
     return timeoutUsec;
   }
 
-  XLOG(INFO) << folly::sformat(
+  XLOG(INFO) << fmt::format(
       "resolveFwUpgradeCdbTimeout: Mod{:d}: MaxDurationWrite not available, using default timeout of {:d} usec",
       moduleId_,
       FLAGS_cdb_command_timeout_usec);
@@ -162,7 +162,7 @@ bool CmisFirmwareUpgrader::isTunableModule() const {
         kFwUpgrade);
     return techValue == kCBandTunableLaser || techValue == kLBandTunableLaser;
   } catch (const std::exception& e) {
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "isTunableModule: Mod{:d}: Failed to read MEDIA_INTERFACE_TECHNOLOGY: {}",
         moduleId_,
         e.what());
@@ -185,7 +185,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   int imageOffset, imageChunkLen;
   bool eplSupported = false;
 
-  XLOG(INFO) << folly::sformat(
+  XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Starting to download the image with length {:d}",
       moduleId_,
       imageLen);
@@ -219,7 +219,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
         // we supply the password to module to allow privileged
         // operation. But still download feature is not available here
         // so return false here
-        XLOG(INFO) << folly::sformat(
+        XLOG(INFO) << fmt::format(
             "cmisModuleFirmwareDownload: Mod{:d}: The firmware download feature is locked by vendor",
             moduleId_);
         return false;
@@ -228,7 +228,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   } else {
     // The QUERY command can fail if the module is in bootloader mode
     // Not able to determine CDB module status but don't return from here
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "cmisModuleFirmwareDownload: Mod{:d}: Could not get result from CDB Query command",
         moduleId_);
   }
@@ -260,12 +260,12 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
        * this additional check as a workaround for this vendor
        */
       eplSupported = true;
-      XLOG(INFO) << folly::sformat(
+      XLOG(INFO) << fmt::format(
           "cmisModuleFirmwareDownload: Mod{:d} will use EPL memory for firmware download",
           moduleId_);
     }
   } else {
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "cmisModuleFirmwareDownload: Mod{:d}: Could not get result from CDB Firmware Update Feature command",
         moduleId_);
 
@@ -273,13 +273,13 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
     // fails. So fill in the header size if it is a known optics otherwise
     // return false
     startCommandPayloadSize = imageHeaderLen_;
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "cmisModuleFirmwareDownload: Mod{:d}: Setting the module startCommandPayloadSize as {:d}",
         moduleId_,
         startCommandPayloadSize);
   }
 
-  XLOG(INFO) << folly::sformat(
+  XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 0: Got Start Command Payload Size as {:d}",
       moduleId_,
       startCommandPayloadSize);
@@ -292,7 +292,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Validate if the image length is greater than this. If not then our new
   // image is bad
   if (imageLen < startCommandPayloadSize) {
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "cmisModuleFirmwareDownload: Mod{:d}: The image length {:d} is smaller than startCommandPayloadSize {:d}",
         moduleId_,
         imageLen,
@@ -309,19 +309,19 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
   if (!status) {
     // DOWNLOAD_START command failed
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "cmisModuleFirmwareDownload: Mod{:d}: Could not run the CDB Firmware Download Start command",
         moduleId_);
     return false;
   }
 
-  XLOG(INFO) << folly::sformat(
+  XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 1: Issued Firmware download start command successfully",
       moduleId_);
 
   // Step 2: Issue CDB command: Firmware Download image
 
-  XLOG(INFO) << folly::sformat(
+  XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 2: Issuing Firmware Download Image command. Starting offset: {:d}",
       moduleId_,
       imageOffset);
@@ -348,19 +348,19 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
     status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
     if (!status) {
       // DOWNLOAD_IMAGE command failed
-      XLOG(INFO) << folly::sformat(
+      XLOG(INFO) << fmt::format(
           "cmisModuleFirmwareDownload: Mod{:d}: Could not run the CDB Firmware Download Image command",
           moduleId_);
       return false;
     }
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "cmisModuleFirmwareDownload: Mod{:d}: Image wrote, offset: {:d} .. {:d}. Progress: {:d} %",
         moduleId_,
         imageOffset - imageChunkLen,
         imageOffset,
         (imageOffset * 100) / imageLen);
   }
-  XLOG(INFO) << folly::sformat(
+  XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 2: Issued Firmware Download Image successfully. Downloaded file size {:d}",
       moduleId_,
       imageOffset);
@@ -372,14 +372,14 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
   if (!status) {
     // DOWNLOAD_COMPLETE command failed
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "cmisModuleFirmwareDownload: Mod{:d}: Could not run the CDB Firmware Download Complete command",
         moduleId_);
     // Send the DOWNLOAD_ABORT command to CDB and return.
     return false;
   }
 
-  XLOG(INFO) << folly::sformat(
+  XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 3: Issued Firmware download complete command successfully",
       moduleId_);
 
@@ -397,7 +397,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // so we can't check status here
   status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
 
-  XLOG(INFO) << folly::sformat(
+  XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 4: Issued Firmware download Run command successfully",
       moduleId_);
 
@@ -426,16 +426,16 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
 
   if (!status) {
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "cmisModuleFirmwareDownload: Mod{:d}: Step 5: Issued Firmware commit command failed",
         moduleId_);
   } else {
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "cmisModuleFirmwareDownload: Mod{:d}: Step 5: Issued Firmware commit command successful",
         moduleId_);
   }
 
-  XLOG(INFO) << folly::sformat(
+  XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: CDB wait time = {:d} ms, Memory write time = {:d} ms",
       moduleId_,
       commandBlock->getCdbWaitTimeMsec(),
@@ -455,7 +455,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
 
   // Print IO profiling info
   auto ioTiming = bus_->getI2cTimeProfileMsec();
-  XLOG(INFO) << folly::sformat(
+  XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Total IO access - Read time = {:d} ms, Write time = {:d} ms",
       moduleId_,
       ioTiming.first,
@@ -477,7 +477,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   std::array<uint8_t, 2> versionNumber;
   bool result;
 
-  XLOG(INFO) << folly::sformat(
+  XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareUpgrade: Mod{:d}: Called for port {:d}",
       moduleId_,
       moduleId_);
@@ -505,7 +505,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   if (!result) {
     // If the download failed then print the message and return. No need
     // to do any recovery here
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "cmisModuleFirmwareUpgrade: Mod{:d}: Firmware download function failed for the module",
         moduleId_);
 
@@ -520,7 +520,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
        kLowerPage},
       versionNumber.data(),
       kFwUpgrade);
-  XLOG(INFO) << folly::sformat(
+  XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareUpgrade: Mod{:d}: Module Active Firmware Revision now: {:d}.{:d}",
       moduleId_,
       versionNumber[0],

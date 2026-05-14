@@ -33,6 +33,7 @@ cpp_library(
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/re2:re2",
         ":firmware_upgrader",
         "//common/strings/icu:icu_string",
@@ -55,7 +56,6 @@ cpp_library(
         "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
         "//fboss/qsfp_service/module/sff:sff-cpp2-types",
         "//fboss/qsfp_service/module/sff:sff8472-cpp2-types",
-        "//folly:format",
         "//folly:synchronized",
         "//folly/executors:function_scheduler",
         "//folly/futures:core",
@@ -85,6 +85,7 @@ cpp_library(
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/glog:glog",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -101,13 +102,15 @@ cpp_library(
         "//folly:conv",
         "//folly:file",
         "//folly:file_util",
-        "//folly:format",
         "//folly:string",
         "//folly/futures:core",
         "//folly/init:init",
         "//folly/io:iobuf",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "gflags",
     ],
 )
 
