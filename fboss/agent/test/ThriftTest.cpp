@@ -3060,6 +3060,12 @@ MySidEntry makeMySidEntryWithNextHops(
     NextHopThrift nh;
     nh.address() =
         facebook::network::toBinaryAddress(folly::IPAddressV6(nhAddr));
+    if (type == MySidType::BINDING_MICRO_SID) {
+      nh.srv6SegmentList() = {facebook::network::toBinaryAddress(
+          folly::IPAddressV6("2001:db8::10"))};
+      nh.tunnelType() = TunnelType::SRV6_ENCAP;
+      nh.tunnelId() = "tunnel1";
+    }
     nextHops.push_back(std::move(nh));
   }
   entry.nextHops() = std::move(nextHops);

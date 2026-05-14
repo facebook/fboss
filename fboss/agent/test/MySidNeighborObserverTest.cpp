@@ -215,6 +215,10 @@ TEST_F(MySidNeighborObserverTest, RpcMySidNotAffectedByNeighbor) {
   NextHopThrift nhop;
   nhop.address() =
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
   entry.nextHops() = {nhop};
   entries->push_back(entry);
   handler.addMySidEntries(std::move(entries));

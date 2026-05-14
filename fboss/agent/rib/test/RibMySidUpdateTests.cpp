@@ -618,8 +618,15 @@ TEST(RibMySidUpdate, acceptBindingSidWithNextHops) {
   auto switchState = std::make_shared<SwitchState>();
   switchState->publish();
 
-  auto entry = makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"});
-  entry.type() = MySidType::BINDING_MICRO_SID;
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop};
 
   rib.update(
       scopeResolver(),
@@ -630,6 +637,90 @@ TEST(RibMySidUpdate, acceptBindingSidWithNextHops) {
       &switchState);
 
   EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+}
+
+TEST(RibMySidUpdate, rejectBindingSidWithoutSidList) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop};
+
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "binding sid without sid list",
+          mySidToSwitchStateUpdate,
+          &switchState),
+      FbossError);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+}
+
+TEST(RibMySidUpdate, rejectBindingSidWithoutTunnelId) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  entry.nextHops() = {nhop};
+
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "binding sid without tunnel id",
+          mySidToSwitchStateUpdate,
+          &switchState),
+      FbossError);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+}
+
+TEST(RibMySidUpdate, rejectBindingSidWithWrongTunnelType) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::IP_IN_IP_DECAP;
+  nhop.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop};
+
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "binding sid with wrong tunnel type",
+          mySidToSwitchStateUpdate,
+          &switchState),
+      FbossError);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
 }
 
 TEST(RibMySidUpdate, acceptBindingSidWithNamedNhg) {

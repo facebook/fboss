@@ -208,6 +208,28 @@ std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
   return mySid;
 }
 
+void validateMySidNextHops(
+    MySidType type,
+    const RouteNextHopEntry::NextHopSet& nextHops) {
+  if (type == MySidType::BINDING_MICRO_SID) {
+    for (const auto& nhop : nextHops) {
+      if (nhop.srv6SegmentList().empty()) {
+        throw FbossError(
+            "All nexthops must have a SID list for BINDING_MICRO_SID MySid type");
+      }
+      if (!nhop.tunnelId().has_value() || nhop.tunnelId()->empty()) {
+        throw FbossError(
+            "All nexthops must have a tunnelId for BINDING_MICRO_SID MySid type");
+      }
+      if (!nhop.tunnelType().has_value() ||
+          *nhop.tunnelType() != TunnelType::SRV6_ENCAP) {
+        throw FbossError(
+            "All nexthops must have tunnelType SRV6_ENCAP for BINDING_MICRO_SID MySid type");
+      }
+    }
+  }
+}
+
 } // namespace
 
 template <typename AddressT, typename FibType>
@@ -1338,6 +1360,7 @@ void RibRouteTables::updateMySidsImpl(
     std::set<folly::CIDRNetwork> addedPrefixes;
     for (const auto& entry : toAdd) {
       auto mySid = entry.mySid;
+      validateMySidNextHops(mySid->getType(), entry.nextHopSet);
       const auto cidr = mySid->getMySid();
       addedPrefixes.emplace(cidr.first, cidr.second);
       const folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);

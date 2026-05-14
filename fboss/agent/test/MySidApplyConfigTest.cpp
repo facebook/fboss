@@ -165,6 +165,10 @@ TEST_F(MySidApplyConfigTest, DynamicEntriesPreservedOnConfigChange) {
   NextHopThrift nhop;
   nhop.address() =
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
   dynamicEntry.nextHops() = {nhop};
   entries->push_back(dynamicEntry);
   handler.addMySidEntries(std::move(entries));
