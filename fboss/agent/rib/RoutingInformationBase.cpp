@@ -171,10 +171,10 @@ std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
       handled = true;
       break;
     case MySidType::NODE_MICRO_SID:
-      // TODO Support named nhop groups
-      if (entry.nextHops()->empty()) {
+    case MySidType::BINDING_MICRO_SID:
+      if (entry.nextHops()->empty() && !entry.namedNextHops().has_value()) {
         throw FbossError(
-            "NextHops must be specified for NODE_MICRO_SID MySid type");
+            "One of named NHG or NextHops must be specified for (BINDING|NODE)_MICRO_SID MySid type");
       }
       handled = true;
       break;
@@ -187,10 +187,6 @@ std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
         throw FbossError(
             "NamedNextHops are not supported for DECAPSULATE_AND_LOOKUP MySid type");
       }
-      handled = true;
-      break;
-    case MySidType::BINDING_MICRO_SID:
-      // TODO: Add validation for BINDING_MICRO_SID
       handled = true;
       break;
   }

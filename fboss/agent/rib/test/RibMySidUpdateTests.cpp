@@ -565,6 +565,171 @@ TEST(RibMySidUpdate, rejectDecapsulateTypeWithNamedNextHops) {
   EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
 }
 
+TEST(RibMySidUpdate, rejectBindingSidWithoutNextHopsOrNamedNhg) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  std::vector<MySidEntry> toAdd = {
+      makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID),
+  };
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          toAdd,
+          {},
+          "binding sid without nexthops",
+          mySidToSwitchStateUpdate,
+          &switchState),
+      FbossError);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+}
+
+TEST(RibMySidUpdate, acceptBindingSidWithNextHops) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry = makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"});
+  entry.type() = MySidType::BINDING_MICRO_SID;
+
+  rib.update(
+      scopeResolver(),
+      {entry},
+      {},
+      "binding sid with nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+}
+
+TEST(RibMySidUpdate, acceptBindingSidWithNamedNhg) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "group1";
+  entry.namedNextHops() = named;
+
+  rib.update(
+      scopeResolver(),
+      {entry},
+      {},
+      "binding sid with named nhg",
+      mySidToSwitchStateUpdate,
+      &switchState);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+}
+
+TEST(RibMySidUpdate, acceptNodeSidWithNamedNhg) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::NODE_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "group1";
+  entry.namedNextHops() = named;
+
+  rib.update(
+      scopeResolver(),
+      {entry},
+      {},
+      "node sid with named nhg",
+      mySidToSwitchStateUpdate,
+      &switchState);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+}
+
+TEST(RibMySidUpdate, rejectAdjacencySidWithNamedNhg) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "group1";
+  entry.namedNextHops() = named;
+
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "adjacency sid with named nhg",
+          mySidToSwitchStateUpdate,
+          &switchState),
+      FbossError);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+}
+
+TEST(RibMySidUpdate, rejectAdjacencySidWithMultipleNextHops) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
+  NextHopThrift nhop1;
+  nhop1.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  NextHopThrift nhop2;
+  nhop2.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::2"));
+  entry.nextHops() = {nhop1, nhop2};
+
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "adjacency sid with multiple nexthops",
+          mySidToSwitchStateUpdate,
+          &switchState),
+      FbossError);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+}
+
+TEST(RibMySidUpdate, acceptAdjacencySidWithSingleNextHop) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  entry.nextHops() = {nhop};
+
+  rib.update(
+      scopeResolver(),
+      {entry},
+      {},
+      "adjacency sid with single nexthop",
+      mySidToSwitchStateUpdate,
+      &switchState);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+}
+
 TEST(RibMySidUpdate, invalidEntryInBatchDoesNotPartiallyMutateMySidTable) {
   // Verify that if any entry in toAdd is invalid, mySidFromEntry throws before
   // updateRibMySids is called, leaving mySidTable completely unmodified.
