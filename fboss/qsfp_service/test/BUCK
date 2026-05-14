@@ -74,7 +74,6 @@ cpp_unittest(
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
-        "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
         "//fboss/lib/bsp/janga800bic:janga800bic_bsp",
         "//fboss/lib/bsp/ladakh800bcls:ladakh800bcls_bsp",
         "//fboss/lib/bsp/meru800bfa:meru800bfa_bsp",
