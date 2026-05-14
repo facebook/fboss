@@ -291,8 +291,9 @@ class AgentSrv6EncapTest : public AgentHwTest {
     for (auto i = 0; i < sidLists.size(); ++i) {
       auto nhop = ecmpHelper.nhop(i);
       CHECK(nhop.linkLocalNhopIp.has_value());
-      nhops.insert(UnresolvedNextHop(
+      nhops.insert(ResolvedNextHop(
           folly::IPAddress(*nhop.linkLocalNhopIp),
+          nhop.intf,
           ECMP_WEIGHT,
           std::nullopt,
           std::nullopt,
