@@ -141,6 +141,7 @@ TEST_F(FsdbCgoWrapperApiTest, FullLifecycleNoSubscription) {
   // No subscription yet
   EXPECT_EQ(HasStateSubscription(handle), 0);
   EXPECT_EQ(HasStatsSubscription(handle), 0);
+  EXPECT_EQ(HasStatePathSubscription(handle), 0);
 
   // GetClientId should work
   const char* clientId = GetClientId(handle);
@@ -154,12 +155,70 @@ TEST_F(FsdbCgoWrapperApiTest, FullLifecycleNoSubscription) {
   FsdbStatsUpdate statsOut[10];
   EXPECT_EQ(WaitForStatsUpdates(handle, statsOut, 10), -1);
 
+  FsdbStatePathUpdate spOut[10];
+  EXPECT_EQ(WaitForStatePathUpdates(handle, spOut, 10), -1);
+
   // Free should be safe even without prior WaitFor
   FreeStateUpdates(handle);
   FreeStatsUpdates(handle);
+  FreeStatePathUpdates(handle);
 
   // Destroy
   DestroyFsdbWrapper(handle);
+}
+
+// New state-path API: null safety
+TEST_F(FsdbCgoWrapperApiTest, SubscribeToStatePathNullHandle) {
+  const char* tokens[] = {"agent"};
+  EXPECT_NO_THROW(SubscribeToStatePath(nullptr, tokens, 1));
+}
+
+TEST_F(FsdbCgoWrapperApiTest, SubscribeToStatePathWithPortNullHandle) {
+  const char* tokens[] = {"agent"};
+  EXPECT_NO_THROW(SubscribeToStatePathWithPort(nullptr, tokens, 1, 5908));
+}
+
+TEST_F(FsdbCgoWrapperApiTest, SubscribeToStatePathNullTokens) {
+  ASSERT_EQ(FsdbInit(FSDB_CGO_ABI_VERSION), 0);
+  FsdbWrapperHandle handle = CreateFsdbWrapper("state-path-null-tokens");
+  ASSERT_NE(handle, nullptr);
+  EXPECT_NO_THROW(SubscribeToStatePath(handle, nullptr, 1));
+  EXPECT_EQ(HasStatePathSubscription(handle), 0);
+  DestroyFsdbWrapper(handle);
+}
+
+TEST_F(FsdbCgoWrapperApiTest, SubscribeToStatePathZeroTokens) {
+  ASSERT_EQ(FsdbInit(FSDB_CGO_ABI_VERSION), 0);
+  FsdbWrapperHandle handle = CreateFsdbWrapper("state-path-zero-tokens");
+  ASSERT_NE(handle, nullptr);
+  const char* tokens[] = {"agent"};
+  EXPECT_NO_THROW(SubscribeToStatePath(handle, tokens, 0));
+  EXPECT_EQ(HasStatePathSubscription(handle), 0);
+  DestroyFsdbWrapper(handle);
+}
+
+TEST_F(FsdbCgoWrapperApiTest, WaitForStatePathUpdatesNullHandle) {
+  FsdbStatePathUpdate out[10];
+  EXPECT_EQ(WaitForStatePathUpdates(nullptr, out, 10), -1);
+}
+
+TEST_F(FsdbCgoWrapperApiTest, WaitForStatePathUpdatesNullOut) {
+  int dummy = 0;
+  EXPECT_EQ(WaitForStatePathUpdates(&dummy, nullptr, 10), -1);
+}
+
+TEST_F(FsdbCgoWrapperApiTest, WaitForStatePathUpdatesZeroMaxCount) {
+  int dummy = 0;
+  FsdbStatePathUpdate out[1];
+  EXPECT_EQ(WaitForStatePathUpdates(&dummy, out, 0), -1);
+}
+
+TEST_F(FsdbCgoWrapperApiTest, FreeStatePathUpdatesNullHandle) {
+  EXPECT_NO_THROW(FreeStatePathUpdates(nullptr));
+}
+
+TEST_F(FsdbCgoWrapperApiTest, HasStatePathSubscriptionNullHandle) {
+  EXPECT_EQ(HasStatePathSubscription(nullptr), 0);
 }
 
 // Existing C API functions with null handles

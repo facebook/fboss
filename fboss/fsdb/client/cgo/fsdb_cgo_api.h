@@ -40,6 +40,13 @@ typedef struct {
   int32_t data_len;
   int32_t protocol;
 } FsdbStatsUpdate;
+
+typedef struct {
+  const char* key;
+  const uint8_t* data;
+  int32_t data_len;
+  int32_t protocol;
+} FsdbStatePathUpdate;
 // NOLINTEND(modernize-use-using)
 
 // One-time process-wide initialization of the C++ runtime (Folly singletons,
@@ -76,8 +83,19 @@ FSDB_CGO_API void SubscribeToStatsPathWithPort(
     int32_t num_tokens,
     int32_t server_port);
 
+FSDB_CGO_API void SubscribeToStatePath(
+    FsdbWrapperHandle handle,
+    const char** path_tokens,
+    int32_t num_tokens);
+FSDB_CGO_API void SubscribeToStatePathWithPort(
+    FsdbWrapperHandle handle,
+    const char** path_tokens,
+    int32_t num_tokens,
+    int32_t server_port);
+
 FSDB_CGO_API int32_t HasStateSubscription(FsdbWrapperHandle handle);
 FSDB_CGO_API int32_t HasStatsSubscription(FsdbWrapperHandle handle);
+FSDB_CGO_API int32_t HasStatePathSubscription(FsdbWrapperHandle handle);
 FSDB_CGO_API const char* GetClientId(FsdbWrapperHandle handle);
 
 FSDB_CGO_API int32_t WaitForStateUpdates(
@@ -88,8 +106,13 @@ FSDB_CGO_API int32_t WaitForStatsUpdates(
     FsdbWrapperHandle handle,
     FsdbStatsUpdate* out,
     int32_t max_count);
+FSDB_CGO_API int32_t WaitForStatePathUpdates(
+    FsdbWrapperHandle handle,
+    FsdbStatePathUpdate* out,
+    int32_t max_count);
 
 FSDB_CGO_API void FreeStateUpdates(FsdbWrapperHandle handle);
 FSDB_CGO_API void FreeStatsUpdates(FsdbWrapperHandle handle);
+FSDB_CGO_API void FreeStatePathUpdates(FsdbWrapperHandle handle);
 
 #endif // FBOSS_FSDB_CLIENT_CGO_FSDB_CGO_API_H

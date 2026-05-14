@@ -38,6 +38,10 @@ class FsdbCgoPubSubWrapper {
       const std::vector<std::string>& path,
       std::optional<int> serverPort = std::nullopt);
 
+  void subscribeStatePath(
+      const std::vector<std::string>& path,
+      std::optional<int> serverPort = std::nullopt);
+
   // Blocks for >=1 update, then non-blocking-drains up to maxCount.
   // Throws if no subscription. Empty on shutdown.
   std::vector<std::tuple<std::string, bool>> waitForStateUpdates(
@@ -45,6 +49,9 @@ class FsdbCgoPubSubWrapper {
 
   std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
   waitForStatsUpdates(int maxCount = std::numeric_limits<int>::max());
+
+  std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
+  waitForStatePathUpdates(int maxCount = std::numeric_limits<int>::max());
 
   // Wakes any in-flight waitFor* within ~kPollInterval. SPSC-safe (flag only).
   void shutdown() noexcept {
@@ -63,14 +70,24 @@ class FsdbCgoPubSubWrapper {
     return statsSubscribed_.load();
   }
 
+  bool hasStatePathSubscription() const {
+    return statePathSubscribed_.load();
+  }
+
   // Public so extern-C wrappers can hold borrowed pointers across calls.
   std::vector<std::tuple<std::string, bool>> lastStateUpdates_;
   std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
       lastStatsUpdates_;
+  std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
+      lastStatePathUpdates_;
 
  private:
   void enqueueState(const std::string& key, bool portOperState);
   void enqueueStats(
+      const std::string& key,
+      folly::fbstring&& contents,
+      int32_t protocol);
+  void enqueueStatePath(
       const std::string& key,
       folly::fbstring&& contents,
       int32_t protocol);
@@ -97,8 +114,17 @@ class FsdbCgoPubSubWrapper {
       true /*may block*/>
       statsQueue_{100};
 
+  folly::DSPSCQueue<
+      std::tuple<
+          std::string /*key*/,
+          folly::fbstring /*contents*/,
+          int32_t /*protocol*/>,
+      true /*may block*/>
+      statePathQueue_{100};
+
   std::atomic<bool> stateSubscribed_{false};
   std::atomic<bool> statsSubscribed_{false};
+  std::atomic<bool> statePathSubscribed_{false};
   std::atomic<bool> shuttingDown_{false};
 
   std::map<std::string, bool> portName2OperState_{};

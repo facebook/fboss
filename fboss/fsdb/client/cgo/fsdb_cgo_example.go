@@ -37,6 +37,12 @@ type StatsUpdate struct {
 	Protocol int32  // OperProtocol: BINARY=1, COMPACT=2, SIMPLE_JSON=3
 }
 
+type StatePathUpdate struct {
+	Key      string
+	Data     []byte
+	Protocol int32
+}
+
 type FsdbCgoClient struct {
 	handle     C.FsdbWrapperHandle
 	serverPort int
@@ -119,12 +125,36 @@ func (c *FsdbCgoClient) SubscribeStatsPath(path []string) {
 	}
 }
 
+// SubscribeStatePath subscribes to an arbitrary FSDB state path. Distinct
+// from SubscribePortState (which is the typed PortMaps subscription). Single
+// subscription per client.
+func (c *FsdbCgoClient) SubscribeStatePath(path []string) {
+	if len(path) == 0 {
+		return
+	}
+	cTokens := make([]*C.char, len(path))
+	for i, tok := range path {
+		cTokens[i] = C.CString(tok)
+		defer C.free(unsafe.Pointer(cTokens[i]))
+	}
+	if c.serverPort > 0 {
+		C.SubscribeToStatePathWithPort(
+			c.handle, &cTokens[0], C.int32_t(len(path)), C.int32_t(c.serverPort))
+	} else {
+		C.SubscribeToStatePath(c.handle, &cTokens[0], C.int32_t(len(path)))
+	}
+}
+
 func (c *FsdbCgoClient) HasStateSubscription() bool {
 	return int(C.HasStateSubscription(c.handle)) != 0
 }
 
 func (c *FsdbCgoClient) HasStatsSubscription() bool {
 	return int(C.HasStatsSubscription(c.handle)) != 0
+}
+
+func (c *FsdbCgoClient) HasStatePathSubscription() bool {
+	return int(C.HasStatePathSubscription(c.handle)) != 0
 }
 
 func (c *FsdbCgoClient) GetClientID() string {
@@ -180,6 +210,27 @@ func (c *FsdbCgoClient) WaitForStatsUpdates(maxUpdates int) ([]StatsUpdate, erro
 	return updates, nil
 }
 
+func (c *FsdbCgoClient) WaitForStatePathUpdates(maxUpdates int) ([]StatePathUpdate, error) {
+	if maxUpdates <= 0 {
+		return nil, fmt.Errorf("maxUpdates must be positive, got %d", maxUpdates)
+	}
+	out := make([]C.FsdbStatePathUpdate, maxUpdates)
+	count := int(C.WaitForStatePathUpdates(c.handle, &out[0], C.int32_t(maxUpdates)))
+	defer C.FreeStatePathUpdates(c.handle)
+	if count < 0 {
+		return nil, fmt.Errorf("WaitForStatePathUpdates failed (returned %d)", count)
+	}
+	updates := make([]StatePathUpdate, count)
+	for i := range count {
+		updates[i] = StatePathUpdate{
+			Key:      C.GoString(out[i].key),
+			Data:     C.GoBytes(unsafe.Pointer(out[i].data), out[i].data_len),
+			Protocol: int32(out[i].protocol),
+		}
+	}
+	return updates, nil
+}
+
 const maxUpdatesPerBatch = 128
 
 func subscribeToPortState(client *FsdbCgoClient, done <-chan struct{}) {
@@ -224,12 +275,33 @@ func subscribeToStats(client *FsdbCgoClient, done <-chan struct{}) {
 	}
 }
 
+func subscribeToStatePath(client *FsdbCgoClient, done <-chan struct{}) {
+	log.Println("[subscribeToStatePath] waiting for state-path updates …")
+	for {
+		select {
+		case <-done:
+			return
+		default:
+		}
+		updates, err := client.WaitForStatePathUpdates(maxUpdatesPerBatch)
+		if err != nil {
+			log.Printf("[subscribeToStatePath] error: %v", err)
+			return
+		}
+		for _, u := range updates {
+			log.Printf("[subscribeToStatePath] key=%s  data_len=%d bytes  protocol=%d",
+				u.Key, len(u.Data), u.Protocol)
+		}
+	}
+}
+
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s [flags] <subcommand>\n\n", os.Args[0])
 	fmt.Fprintln(os.Stderr, "Subcommands:")
-	fmt.Fprintln(os.Stderr, "  subscribeToPortState   Subscribe to port-state changes and print updates")
-	fmt.Fprintln(os.Stderr, "  subscribeToStats       Subscribe to stats and print update keys + sizes")
-	fmt.Fprintln(os.Stderr, "  subscribeToPortStateAndStats   Subscribe to port-state and stats concurrently")
+	fmt.Fprintln(os.Stderr, "  subscribeToPortState           Subscribe to port-state changes (typed)")
+	fmt.Fprintln(os.Stderr, "  subscribeToStats               Subscribe to stats path ['agent']")
+	fmt.Fprintln(os.Stderr, "  subscribeToStatePath           Subscribe to state path ['agent','switchState','interfaceMap']")
+	fmt.Fprintln(os.Stderr, "  subscribeToAll                 All three subscriptions concurrently")
 	fmt.Fprintln(os.Stderr, "\nFlags:")
 	flag.PrintDefaults()
 }
@@ -272,8 +344,8 @@ func main() {
 		closeDone()
 	}()
 
-	subscribe := func(state, stats bool) {
-		if state {
+	subscribe := func(portState, stats, statePath bool) {
+		if portState {
 			client.SubscribePortState()
 			log.Println("Subscribed to port-state (portMaps)")
 		}
@@ -282,23 +354,33 @@ func main() {
 			client.SubscribeStatsPath([]string{"agent"})
 			log.Println("Subscribed to stats path agent")
 		}
+		if statePath {
+			// Example: any state path. Vendors decode the raw bytes themselves.
+			client.SubscribeStatePath([]string{"agent", "switchState", "interfaceMap"})
+			log.Println("Subscribed to state path agent.switchState.interfaceMap")
+		}
 	}
 
 	var wg sync.WaitGroup
 
 	switch subcmd {
 	case "subscribeToPortState":
-		subscribe(true, false)
+		subscribe(true, false, false)
 		wg.Go(func() { subscribeToPortState(client, done) })
 
 	case "subscribeToStats":
-		subscribe(false, true)
+		subscribe(false, true, false)
 		wg.Go(func() { subscribeToStats(client, done) })
 
-	case "subscribeToPortStateAndStats":
-		subscribe(true, true)
+	case "subscribeToStatePath":
+		subscribe(false, false, true)
+		wg.Go(func() { subscribeToStatePath(client, done) })
+
+	case "subscribeToAll":
+		subscribe(true, true, true)
 		wg.Go(func() { subscribeToPortState(client, done) })
 		wg.Go(func() { subscribeToStats(client, done) })
+		wg.Go(func() { subscribeToStatePath(client, done) })
 
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcmd)

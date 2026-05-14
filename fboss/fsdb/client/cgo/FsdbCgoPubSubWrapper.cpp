@@ -231,6 +231,93 @@ void FsdbCgoPubSubWrapper::enqueueStats(
   }
 }
 
+void FsdbCgoPubSubWrapper::subscribeStatePath(
+    const std::vector<std::string>& path,
+    std::optional<int> serverPort) {
+  if (statePathSubscribed_) {
+    XLOG(WARNING) << "Already subscribed to a state path; ignoring";
+    return;
+  }
+  if (path.empty()) {
+    throw std::runtime_error("subscribeStatePath: empty path");
+  }
+
+  const std::string pathStr = folly::join(".", path);
+
+  auto subscriptionStateCb = [pathStr](
+                                 fsdb::SubscriptionState oldState,
+                                 fsdb::SubscriptionState newState,
+                                 std::optional<bool> /*initialSyncHasData*/) {
+    XLOG(INFO) << "FSDB state-path subscription (path=" << pathStr
+               << ") changed from " << subscriptionStateToString(oldState)
+               << " to " << subscriptionStateToString(newState);
+  };
+
+  auto operStateCb = [this, pathStr](fsdb::OperState&& operState) {
+    if (!operState.contents()) {
+      XLOG(WARNING) << "Empty OperState for state path " << pathStr;
+      return;
+    }
+    const int32_t protocol = static_cast<int32_t>(*operState.protocol());
+    enqueueStatePath(pathStr, std::move(*operState.contents()), protocol);
+  };
+
+  try {
+    if (serverPort.has_value()) {
+      utils::ConnectionOptions connOptions("::1", *serverPort);
+      pubSubMgr_->addStatePathSubscription(
+          path,
+          std::move(subscriptionStateCb),
+          std::move(operStateCb),
+          std::move(connOptions));
+
+      XLOG(INFO) << "Successfully subscribed to state path " << pathStr
+                 << " on port " << *serverPort;
+    } else {
+      pubSubMgr_->addStatePathSubscription(
+          path, std::move(subscriptionStateCb), std::move(operStateCb));
+
+      XLOG(INFO) << "Successfully subscribed to state path " << pathStr
+                 << " (default port)";
+    }
+
+    statePathSubscribed_ = true;
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "Failed to subscribe to state path " << pathStr << ": "
+              << e.what();
+    throw std::runtime_error(
+        std::string("Failed to subscribe to state path: ") + e.what());
+  }
+}
+
+std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
+FsdbCgoPubSubWrapper::waitForStatePathUpdates(int maxCount) {
+  if (!statePathSubscribed_.load()) {
+    throw std::runtime_error("No active state-path subscription");
+  }
+  constexpr size_t kStatePathBatchHint = 128;
+  auto updates =
+      waitAndDrain<std::tuple<std::string, folly::fbstring, int32_t>>(
+          statePathQueue_, shuttingDown_, maxCount, kStatePathBatchHint);
+  XLOG(DBG2) << "Returning " << updates.size() << " state-path updates";
+  return updates;
+}
+
+void FsdbCgoPubSubWrapper::enqueueStatePath(
+    const std::string& key,
+    folly::fbstring&& contents,
+    int32_t protocol) {
+  XLOG(DBG2) << "Received state-path update for key: " << key << " ("
+             << contents.size() << " bytes, protocol=" << protocol << ")";
+
+  if (!statePathQueue_.try_enqueue_for(
+          std::make_tuple(key, std::move(contents), protocol),
+          kEnqueueTimeout)) {
+    XLOG(ERR) << "statePathQueue_ full after " << kEnqueueTimeout.count()
+              << "ms; dropping update for key: " << key;
+  }
+}
+
 void FsdbCgoPubSubWrapper::processPortMapsUpdate(fsdb::OperState&& operState) {
   if (!operState.contents()) {
     XLOG(WARNING) << "Received empty OperState for portMaps";
@@ -364,6 +451,21 @@ void SubscribeToStatsPath(
   }
 }
 
+void SubscribeToStatePath(
+    FsdbWrapperHandle handle,
+    const char** path_tokens,
+    int32_t num_tokens) {
+  if (!handle || !path_tokens || num_tokens <= 0) {
+    return;
+  }
+  try {
+    auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
+    wrapper->subscribeStatePath(tokensToPath(path_tokens, num_tokens));
+  } catch (const std::exception&) {
+    // Subscription failed - error already logged
+  }
+}
+
 /**
  * Check if state subscription is active
  * @param handle Opaque handle to the wrapper
@@ -395,6 +497,18 @@ int32_t HasStatsSubscription(FsdbWrapperHandle handle) {
   try {
     auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
     return wrapper->hasStatsSubscription() ? 1 : 0;
+  } catch (const std::exception&) {
+    return 0;
+  }
+}
+
+int32_t HasStatePathSubscription(FsdbWrapperHandle handle) {
+  if (!handle) {
+    return 0;
+  }
+  try {
+    auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
+    return wrapper->hasStatePathSubscription() ? 1 : 0;
   } catch (const std::exception&) {
     return 0;
   }
@@ -551,6 +665,52 @@ void FreeStatsUpdates(FsdbWrapperHandle handle) {
   wrapper->lastStatsUpdates_.clear();
 }
 
+int32_t WaitForStatePathUpdates(
+    FsdbWrapperHandle handle,
+    FsdbStatePathUpdate* out,
+    int32_t max_count) {
+  if (!handle || !out || max_count <= 0) {
+    return -1;
+  }
+  try {
+    auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
+    if (!wrapper->hasStatePathSubscription()) {
+      return -1;
+    }
+
+    wrapper->lastStatePathUpdates_ =
+        wrapper->waitForStatePathUpdates(max_count);
+
+    int32_t i = 0;
+    for (const auto& [key, contents, protocol] :
+         wrapper->lastStatePathUpdates_) {
+      if (contents.size() >
+          static_cast<size_t>(std::numeric_limits<int32_t>::max())) {
+        XLOG(ERR) << "State-path update for key '" << key << "' is "
+                  << contents.size() << " bytes (>INT32_MAX); dropping";
+        continue;
+      }
+      out[i].key = key.c_str();
+      out[i].data = reinterpret_cast<const uint8_t*>(contents.data());
+      out[i].data_len = static_cast<int32_t>(contents.size());
+      out[i].protocol = protocol;
+      ++i;
+    }
+    return i;
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "WaitForStatePathUpdates error: " << e.what();
+    return -1;
+  }
+}
+
+void FreeStatePathUpdates(FsdbWrapperHandle handle) {
+  if (!handle) {
+    return;
+  }
+  auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
+  wrapper->lastStatePathUpdates_.clear();
+}
+
 /**
  * Subscribe to portMaps state with an explicit server port
  * @param handle Opaque handle to the wrapper
@@ -590,6 +750,27 @@ void SubscribeToStatsPathWithPort(
       wrapper->subscribeStatsPath(path, server_port);
     } else {
       wrapper->subscribeStatsPath(path, std::nullopt);
+    }
+  } catch (const std::exception&) {
+    // Subscription failed - error already logged
+  }
+}
+
+void SubscribeToStatePathWithPort(
+    FsdbWrapperHandle handle,
+    const char** path_tokens,
+    int32_t num_tokens,
+    int32_t server_port) {
+  if (!handle || !path_tokens || num_tokens <= 0) {
+    return;
+  }
+  try {
+    auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
+    auto path = tokensToPath(path_tokens, num_tokens);
+    if (server_port >= 0) {
+      wrapper->subscribeStatePath(path, server_port);
+    } else {
+      wrapper->subscribeStatePath(path, std::nullopt);
     }
   } catch (const std::exception&) {
     // Subscription failed - error already logged
