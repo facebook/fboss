@@ -177,6 +177,10 @@ std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
       }
       handled = true;
       break;
+    case MySidType::BINDING_MICRO_SID:
+      // TODO: Add validation for BINDING_MICRO_SID
+      handled = true;
+      break;
   }
   if (!handled) {
     throw FbossError("Unsupported MySid type: ", static_cast<int>(type));

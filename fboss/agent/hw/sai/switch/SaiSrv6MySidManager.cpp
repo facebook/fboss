@@ -52,6 +52,9 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
       throw FbossError("Decapsulate with uSids requires SAI >= 1.16.0");
 #endif
     } break;
+    case MySidType::BINDING_MICRO_SID:
+      endpointBehavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_B6_ENCAPS_RED;
+      break;
   }
 
   sai_object_id_t nextHopId = SAI_NULL_OBJECT_ID;
@@ -99,6 +102,7 @@ SaiMySidEntryTraits::AdapterHostKey getMySidAdapterHostKey(
   switch (mySid.getType()) {
     case MySidType::ADJACENCY_MICRO_SID:
     case MySidType::DECAPSULATE_AND_LOOKUP:
+    case MySidType::BINDING_MICRO_SID:
       functionLen = nonLocatorMaskLen;
       break;
     case MySidType::NODE_MICRO_SID:

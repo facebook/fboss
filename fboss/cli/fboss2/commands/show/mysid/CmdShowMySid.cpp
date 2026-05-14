@@ -159,9 +159,10 @@ CmdShowMySid::RetType CmdShowMySid::createModel(
     entryModel.type() =
         apache::thrift::util::enumNameSafe(entry.type().value());
 
-    // Only show nexthop for NODE type mysid
+    // Only show nexthop for NODE and BINDING type mysids
     switch (entry.type().value()) {
       case MySidType::NODE_MICRO_SID:
+      case MySidType::BINDING_MICRO_SID:
         for (const auto& nh : entry.nextHops().value()) {
           entryModel.nextHops()->push_back(
               network::toIPAddress(nh.address().value()).str());
