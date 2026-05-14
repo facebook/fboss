@@ -14,25 +14,20 @@ struct IpIntfKey {
   std::string ip;
   int32_t intfId;
 
-  bool operator==(const IpIntfKey& other) const {
-    return ip == other.ip && intfId == other.intfId;
-  }
-};
-
-struct IpIntfHash {
-  size_t operator()(const IpIntfKey& k) const {
-    return std::hash<std::string>()(k.ip) ^ std::hash<int32_t>()(k.intfId);
+  bool operator<(const IpIntfKey& other) const {
+    if (ip != other.ip) {
+      return ip < other.ip;
+    }
+    return intfId < other.intfId;
   }
 };
 
 // Helper function to build IP+Interface to PortDescriptor map from ARP/NDP
 // tables
-std::unordered_map<IpIntfKey, cfg::PortDescriptor, IpIntfHash>
-buildIpIntfToPortDescMap(
+std::map<IpIntfKey, cfg::PortDescriptor> buildIpIntfToPortDescMap(
     const std::vector<ArpEntryThrift>& arpTable,
     const std::vector<NdpEntryThrift>& ndpTable) {
-  std::unordered_map<IpIntfKey, cfg::PortDescriptor, IpIntfHash>
-      ipIntfToPortDesc;
+  std::map<IpIntfKey, cfg::PortDescriptor> ipIntfToPortDesc;
 
   // Lambda to process entries from both ARP and NDP tables
   auto processEntries = [&](const auto& table) {
@@ -105,7 +100,7 @@ std::string getPortNameFromDescriptor(
 
   // Append interface name in parentheses if available
   if (!ifName.empty()) {
-    portName += fmt::format(", {} ", ifName);
+    portName += fmt::format(", {}", ifName);
   }
 
   return portName;

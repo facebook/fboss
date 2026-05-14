@@ -64,8 +64,8 @@ using RibMySidToSwitchStateFunction = std::function<StateDelta(
     void* cookie)>;
 
 // Each pair is (MySid state object, its unresolved next-hop set). The
-// next-hop set is empty for DECAPSULATE_AND_LOOKUP / ADJACENCY_MICRO_SID
-// entries; populated for NODE_MICRO_SID. Bundling them in a pair keeps the
+// next-hop set is empty for DECAPSULATE_AND_LOOKUP and populated for
+// others. Bundling them in a pair keeps the
 // MySid with its associated next hops and optional next hop group name.
 // These three pieces of data are inseparable across all RIB / ConfigApplier
 // call sites that consume config-derived MySid state.
@@ -421,8 +421,8 @@ class RoutingInformationBase {
    * Update mySids in RIB and switchState from pre-built MySid state objects.
    * Used by the config-driven path (SwSwitch::applyMySidConfig).
    * Each entry in toAdd is (MySid state object, its unresolved next-hop set).
-   * The next-hop set is empty for DECAPSULATE_AND_LOOKUP / ADJACENCY_MICRO_SID
-   * entries; populated for NODE_MICRO_SID.
+   * The next-hop set is empty for DECAPSULATE_AND_LOOKUP entries;
+   * populated for others.
    *
    * The synchronous overload blocks until the rib event-base thread finishes
    * applying the update and rethrows any exception on the caller's thread.
