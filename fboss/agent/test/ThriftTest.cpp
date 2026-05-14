@@ -3571,6 +3571,103 @@ TEST_F(NamedNextHopGroupThriftTest, rejectGroupNameExceedingMaxLength) {
       handler.addOrUpdateNamedNextHopGroups(std::move(groups2)), FbossError);
 }
 
+TEST_F(NamedNextHopGroupThriftTest, rejectsMplsAndSrv6) {
+  ThriftHandler handler(sw_);
+
+  NamedNextHopGroup group;
+  group.name() = "grp1";
+  NextHopThrift nh;
+  nh.address() = toBinaryAddress(folly::IPAddress("2401:db00:2110:3001::2"));
+  MplsAction mplsAction;
+  mplsAction.action() = MplsActionCode::PUSH;
+  mplsAction.pushLabels() = {101};
+  nh.mplsAction() = mplsAction;
+  nh.srv6SegmentList() = {toBinaryAddress(folly::IPAddress("2001:db8::1"))};
+  nh.tunnelType() = TunnelType::SRV6_ENCAP;
+  nh.tunnelId() = "tunnel1";
+  group.nexthops() = {nh};
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(group);
+  EXPECT_THROW(
+      handler.addOrUpdateNamedNextHopGroups(std::move(groups)), FbossError);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, rejectsSrv6WithInvalidTunnelType) {
+  ThriftHandler handler(sw_);
+
+  NamedNextHopGroup group;
+  group.name() = "grp1";
+  NextHopThrift nh;
+  nh.address() = toBinaryAddress(folly::IPAddress("2401:db00:2110:3001::2"));
+  nh.srv6SegmentList() = {toBinaryAddress(folly::IPAddress("2001:db8::1"))};
+  nh.tunnelId() = "tunnel1";
+  nh.tunnelType() = TunnelType::IP_IN_IP_DECAP;
+  group.nexthops() = {nh};
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(group);
+  EXPECT_THROW(
+      handler.addOrUpdateNamedNextHopGroups(std::move(groups)), FbossError);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, acceptsSrv6WithValidTunnelType) {
+  ThriftHandler handler(sw_);
+
+  NamedNextHopGroup group;
+  group.name() = "grp1";
+  NextHopThrift nh;
+  nh.address() = toBinaryAddress(folly::IPAddress("2401:db00:2110:3001::2"));
+  nh.srv6SegmentList() = {toBinaryAddress(folly::IPAddress("2001:db8::1"))};
+  nh.tunnelType() = TunnelType::SRV6_ENCAP;
+  nh.tunnelId() = "tunnel1";
+  group.nexthops() = {nh};
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(group);
+  EXPECT_NO_THROW(handler.addOrUpdateNamedNextHopGroups(std::move(groups)));
+}
+
+TEST_F(NamedNextHopGroupThriftTest, rejectsSrv6WithoutTunnelIdAndNoConfig) {
+  ThriftHandler handler(sw_);
+
+  NamedNextHopGroup group;
+  group.name() = "grp1";
+  NextHopThrift nh;
+  nh.address() = toBinaryAddress(folly::IPAddress("2401:db00:2110:3001::2"));
+  nh.srv6SegmentList() = {toBinaryAddress(folly::IPAddress("2001:db8::1"))};
+  group.nexthops() = {nh};
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(group);
+  EXPECT_THROW(
+      handler.addOrUpdateNamedNextHopGroups(std::move(groups)), FbossError);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, defaultsSrv6TunnelIdFromConfig) {
+  ThriftHandler handler(sw_);
+
+  auto config = sw_->getConfig();
+  cfg::Srv6Tunnel srv6Tunnel;
+  srv6Tunnel.srv6TunnelId() = "srv6Tunnel0";
+  srv6Tunnel.underlayIntfID() = 1;
+  srv6Tunnel.tunnelType() = TunnelType::SRV6_ENCAP;
+  srv6Tunnel.srcIp() = "2001:db8::100";
+  config.srv6Tunnels() = {srv6Tunnel};
+  sw_->applyConfig("Add SRv6 tunnel", config);
+
+  NamedNextHopGroup group;
+  group.name() = "grp1";
+  NextHopThrift nh;
+  nh.address() = toBinaryAddress(folly::IPAddress("2401:db00:2110:3001::2"));
+  nh.srv6SegmentList() = {toBinaryAddress(folly::IPAddress("2001:db8::1"))};
+  group.nexthops() = {nh};
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(group);
+  EXPECT_NO_THROW(handler.addOrUpdateNamedNextHopGroups(std::move(groups)));
+}
+
 TEST_F(ThriftTest, routeCounterSetForNamedNhg) {
   FLAGS_enable_route_counters_for_named_nhg = true;
   SCOPE_EXIT {

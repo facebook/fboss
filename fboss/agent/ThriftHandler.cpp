@@ -683,6 +683,46 @@ void addRecylePortRifNeighbors(
     }
   }
 }
+
+void validateAndDefaultSrv6NextHops(
+    std::vector<NextHopThrift>& nextHops,
+    const std::optional<std::string>& defaultSrv6TunnelId) {
+  for (auto& nhop : nextHops) {
+    if (nhop.mplsAction().has_value() && !nhop.srv6SegmentList()->empty()) {
+      throw facebook::fboss::FbossError(
+          "Next hop cannot have both mplsAction (label stack) and srv6SegmentList");
+    }
+    if (!nhop.srv6SegmentList()->empty()) {
+      if (!nhop.tunnelType().has_value()) {
+        nhop.tunnelType() = facebook::fboss::TunnelType::SRV6_ENCAP;
+      } else if (
+          *nhop.tunnelType() != facebook::fboss::TunnelType::SRV6_ENCAP) {
+        throw facebook::fboss::FbossError(
+            "Next hop with srv6SegmentList must have tunnelType SRV6_ENCAP");
+      }
+      if (!nhop.tunnelId().has_value()) {
+        if (!defaultSrv6TunnelId.has_value()) {
+          throw facebook::fboss::FbossError(
+              "Next hop with srv6SegmentList requires a tunnelId, but no SRV6_ENCAP tunnel found in config");
+        }
+        nhop.tunnelId() = defaultSrv6TunnelId.value();
+      }
+    }
+  }
+}
+
+std::optional<std::string> getDefaultSrv6TunnelId(
+    const facebook::fboss::cfg::SwitchConfig& config) {
+  if (config.srv6Tunnels().has_value()) {
+    for (const auto& tunnel : config.srv6Tunnels().value()) {
+      if (*tunnel.tunnelType() == facebook::fboss::TunnelType::SRV6_ENCAP) {
+        return *tunnel.srv6TunnelId();
+      }
+    }
+  }
+  return std::nullopt;
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -874,45 +914,14 @@ void ThriftHandler::updateUnicastRoutesImpl(
   auto updater = sw_->getRouteUpdater();
   auto routerID = RouterID(vrf);
   auto clientID = ClientID(client);
-  // Pre-compute the first SRV6_ENCAP tunnel name from config for defaulting
-  // tunnelId on next hops with non-empty srv6SegmentList
-  std::optional<std::string> defaultSrv6TunnelId;
-  auto config = sw_->getConfig();
-  if (config.srv6Tunnels().has_value()) {
-    for (const auto& tunnel : config.srv6Tunnels().value()) {
-      if (*tunnel.tunnelType() == TunnelType::SRV6_ENCAP) {
-        defaultSrv6TunnelId = *tunnel.srv6TunnelId();
-        break;
-      }
-    }
-  }
+  auto defaultSrv6TunnelId = getDefaultSrv6TunnelId(sw_->getConfig());
   for (auto& route : *routes) {
     if (route.overrideEcmpSwitchingMode().has_value() ||
         route.overrideNextHops().has_value()) {
       throw FbossError(
           "Override nhops or switching mode cannot be set by clients");
     }
-    for (auto& nhop : *route.nextHops()) {
-      if (nhop.mplsAction().has_value() && !nhop.srv6SegmentList()->empty()) {
-        throw FbossError(
-            "Next hop cannot have both mplsAction (label stack) and srv6SegmentList");
-      }
-      if (!nhop.srv6SegmentList()->empty()) {
-        if (!nhop.tunnelType().has_value()) {
-          nhop.tunnelType() = TunnelType::SRV6_ENCAP;
-        } else if (*nhop.tunnelType() != TunnelType::SRV6_ENCAP) {
-          throw FbossError(
-              "Next hop with srv6SegmentList must have tunnelType SRV6_ENCAP");
-        }
-        if (!nhop.tunnelId().has_value()) {
-          if (!defaultSrv6TunnelId.has_value()) {
-            throw FbossError(
-                "Next hop with srv6SegmentList requires a tunnelId, but no SRV6_ENCAP tunnel found in config");
-          }
-          nhop.tunnelId() = defaultSrv6TunnelId.value();
-        }
-      }
-    }
+    validateAndDefaultSrv6NextHops(*route.nextHops(), defaultSrv6TunnelId);
     if (FLAGS_enable_route_counters_for_named_nhg &&
         route.namedRouteDestination()->getType() ==
             NamedRouteDestination::Type::nextHopGroup) {
@@ -3256,8 +3265,9 @@ void ThriftHandler::addOrUpdateNamedNextHopGroups(
    * restrict it here.
    */
   static constexpr size_t kMaxGroupNameLen = 31;
+  auto defaultSrv6TunnelId = getDefaultSrv6TunnelId(sw_->getConfig());
   std::vector<std::pair<std::string, RouteNextHopSet>> groups;
-  for (const auto& group : *nextHopGroups) {
+  for (auto& group : *nextHopGroups) {
     if (group.name()->size() > kMaxGroupNameLen) {
       throw FbossError(
           "Named next-hop group name exceeds max length of ",
@@ -3265,6 +3275,7 @@ void ThriftHandler::addOrUpdateNamedNextHopGroups(
           " characters: ",
           *group.name());
     }
+    validateAndDefaultSrv6NextHops(*group.nexthops(), defaultSrv6TunnelId);
     groups.emplace_back(
         *group.name(),
         util::toRouteNextHopSet(
