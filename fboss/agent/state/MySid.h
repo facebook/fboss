@@ -113,6 +113,21 @@ class MySid : public ThriftStructNode<MySid, state::MySidFields> {
     }
   }
 
+  std::optional<std::string> getNamedNextHopGroup() const {
+    if (auto val = safe_cref<switch_state_tags::namedNextHopGroup>()) {
+      return val->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setNamedNextHopGroup(const std::optional<std::string>& name) {
+    if (name) {
+      set<switch_state_tags::namedNextHopGroup>(*name);
+    } else {
+      ref<switch_state_tags::namedNextHopGroup>().reset();
+    }
+  }
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
