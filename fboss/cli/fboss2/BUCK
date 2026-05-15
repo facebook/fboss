@@ -217,6 +217,7 @@ cpp_library(
         "utils/HostInfo.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":cmd-global-options",
         "//common/time:time_core",
         "//fboss/agent/if:ctrl-cpp2-services",
