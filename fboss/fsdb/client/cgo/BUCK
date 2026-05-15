@@ -11,6 +11,14 @@ cpp_library(
         "FsdbCgoPubSubWrapper.h",
         "fsdb_cgo_api.h",
     ],
+    # Vendor-shipped archive exports only FSDB_CGO_API entry points. Force
+    # static linkage so test binaries (which use the C++ class directly) can
+    # still see the hidden symbols inside the same archive.
+    compiler_flags = [
+        "-fvisibility=hidden",
+        "-fvisibility-inlines-hidden",
+    ],
+    preferred_linkage = "static",
     exported_deps = [
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/fsdb/client:fsdb_pub_sub",
