@@ -90,7 +90,23 @@ RouteNextHopSet RibMySidUpdater::resolveNhop(const NextHop& nh) const {
           nh.tunnelId(),
           nh.cost()));
     } else {
-      resolved.insert(fwdNhops.begin(), fwdNhops.end());
+      std::vector<ResolvedNextHop> nhops;
+      nhops.reserve(fwdNhops.size());
+      for (const auto& fwdNh : fwdNhops) {
+        nhops.emplace_back(
+            fwdNh.addr(),
+            fwdNh.intf(),
+            fwdNh.weight(),
+            nh.labelForwardingAction(),
+            nh.disableTTLDecrement(),
+            nh.topologyInfo(),
+            nh.adjustedWeight(),
+            nh.srv6SegmentList(),
+            nh.tunnelType(),
+            nh.tunnelId(),
+            nh.cost());
+      }
+      resolved.insert(nhops.begin(), nhops.end());
     }
     return true;
   };

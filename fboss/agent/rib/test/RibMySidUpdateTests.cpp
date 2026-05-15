@@ -2446,6 +2446,523 @@ TEST_F(RibMySidNextHopTest, reconfigureOverwritesTeAgentAtSamePrefix) {
       << "Pass 2 silently leaked the overwritten TE_AGENT entry's nhop id";
 }
 
+TEST_F(RibMySidNextHopTest, bindingSidResolvesOverOpenrRouteRetainsSrv6Fields) {
+  // Step 1: Inject interface routes for the link-local subnet so link-local
+  // nexthops are valid.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("fe80::"), 64}] = {
+      InterfaceID(1), folly::IPAddress("fe80::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  // Step 2: Add an OpenR route for 2001:db8::/32 with a link-local nexthop.
+  // This simulates how OpenR programs routes — the nexthop is link-local
+  // with an interface scope.
+  UnicastRoute openrRoute;
+  IpPrefix routePrefix;
+  routePrefix.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::"));
+  routePrefix.prefixLength() = 32;
+  openrRoute.dest() = routePrefix;
+  NextHopThrift llNhop;
+  auto llAddr =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::1"));
+  llAddr.ifName() = "fboss1";
+  llNhop.address() = llAddr;
+  openrRoute.nextHops() = {llNhop};
+
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      std::vector<UnicastRoute>{openrRoute},
+      std::vector<IpPrefix>{},
+      false,
+      "add openr route with link-local nexthop",
+      noopFibUpdate,
+      &switchState_);
+
+  // Step 3: Add a BINDING_MICRO_SID with a gateway nexthop carrying SRV6
+  // fields. The gateway 2001:db8::1 resolves recursively through the OpenR
+  // route above, whose link-local nexthop fe80::1 is already resolved.
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10")),
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::20"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop};
+
+  rib_->update(
+      scopeResolver(),
+      {entry},
+      {},
+      "add binding sid with srv6 nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  // Verify both unresolved and resolved IDs are set.
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto mySidEntry = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySidEntry.unresolveNextHopsId().has_value());
+  ASSERT_TRUE(mySidEntry.resolvedNextHopsId().has_value());
+
+  // Verify the resolved nexthop is the link-local address from the OpenR
+  // route but retains the SRV6 fields from the binding SID's original nexthop.
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  const auto resolvedNhops =
+      manager->getNextHopsIf(NextHopSetID(*mySidEntry.resolvedNextHopsId()));
+  ASSERT_TRUE(resolvedNhops.has_value());
+  ASSERT_EQ(resolvedNhops->size(), 1);
+
+  const auto& resolvedNh = *resolvedNhops->begin();
+  EXPECT_TRUE(resolvedNh.intfID().has_value());
+  EXPECT_EQ(resolvedNh.addr(), folly::IPAddress("fe80::1"));
+
+  const std::vector<folly::IPAddressV6> expectedSidList = {
+      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  EXPECT_EQ(resolvedNh.srv6SegmentList(), expectedSidList);
+  ASSERT_TRUE(resolvedNh.tunnelType().has_value());
+  EXPECT_EQ(*resolvedNh.tunnelType(), TunnelType::SRV6_ENCAP);
+  ASSERT_TRUE(resolvedNh.tunnelId().has_value());
+  EXPECT_EQ(*resolvedNh.tunnelId(), "tunnel1");
+}
+
+TEST_F(
+    RibMySidNextHopTest,
+    bindingSidTwoNextHopsEachResolveOverTwoLinkLocalNextHops) {
+  // Set up interface routes for two link-local subnets on two interfaces.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("fe80::"), 64}] = {
+      InterfaceID(1), folly::IPAddress("fe80::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  // Add an OpenR route for 2001:db8:1::/48 with two link-local nexthops.
+  UnicastRoute openrRoute1;
+  IpPrefix prefix1;
+  prefix1.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:1::"));
+  prefix1.prefixLength() = 48;
+  openrRoute1.dest() = prefix1;
+  NextHopThrift llNhop1a;
+  auto llAddr1a =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::1"));
+  llAddr1a.ifName() = "fboss1";
+  llNhop1a.address() = llAddr1a;
+  NextHopThrift llNhop1b;
+  auto llAddr1b =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::2"));
+  llAddr1b.ifName() = "fboss2";
+  llNhop1b.address() = llAddr1b;
+  openrRoute1.nextHops() = {llNhop1a, llNhop1b};
+
+  // Add an OpenR route for 2001:db8:2::/48 with two link-local nexthops.
+  UnicastRoute openrRoute2;
+  IpPrefix prefix2;
+  prefix2.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:2::"));
+  prefix2.prefixLength() = 48;
+  openrRoute2.dest() = prefix2;
+  NextHopThrift llNhop2a;
+  auto llAddr2a =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::3"));
+  llAddr2a.ifName() = "fboss3";
+  llNhop2a.address() = llAddr2a;
+  NextHopThrift llNhop2b;
+  auto llAddr2b =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::4"));
+  llAddr2b.ifName() = "fboss4";
+  llNhop2b.address() = llAddr2b;
+  openrRoute2.nextHops() = {llNhop2a, llNhop2b};
+
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      std::vector<UnicastRoute>{openrRoute1, openrRoute2},
+      std::vector<IpPrefix>{},
+      false,
+      "add openr routes with link-local nexthops",
+      noopFibUpdate,
+      &switchState_);
+
+  // Add a BINDING_MICRO_SID with two gateway nexthops, each with its own
+  // SID list and tunnel ID. Each gateway resolves through one of the OpenR
+  // routes above, each of which has 2 link-local nexthops → 4 total.
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop1;
+  nhop1.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:1::1"));
+  nhop1.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop1.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop1.tunnelId() = "tunnel1";
+  NextHopThrift nhop2;
+  nhop2.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:2::1"));
+  nhop2.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::20"))};
+  nhop2.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop2.tunnelId() = "tunnel2";
+  entry.nextHops() = {nhop1, nhop2};
+
+  rib_->update(
+      scopeResolver(),
+      {entry},
+      {},
+      "add binding sid with two srv6 nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto sidPrefix = makeSidPrefix("fc00:100::1", 48);
+  const auto mySidEntry = rib_->getMySidTableCopy().at(sidPrefix);
+  ASSERT_TRUE(mySidEntry.unresolveNextHopsId().has_value());
+  ASSERT_TRUE(mySidEntry.resolvedNextHopsId().has_value());
+
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  const auto resolvedNhops =
+      manager->getNextHopsIf(NextHopSetID(*mySidEntry.resolvedNextHopsId()));
+  ASSERT_TRUE(resolvedNhops.has_value());
+  ASSERT_EQ(resolvedNhops->size(), 4);
+
+  // Build expected: each of the 2 original nexthops fans out to 2 link-local
+  // nexthops, each retaining the parent's SRV6 fields.
+  const std::vector<folly::IPAddressV6> sidList1 = {
+      folly::IPAddressV6("2001:db8::10")};
+  const std::vector<folly::IPAddressV6> sidList2 = {
+      folly::IPAddressV6("2001:db8::20")};
+
+  std::map<
+      folly::IPAddress,
+      std::pair<std::vector<folly::IPAddressV6>, std::string>>
+      expectedByAddr;
+  expectedByAddr[folly::IPAddress("fe80::1")] = {sidList1, "tunnel1"};
+  expectedByAddr[folly::IPAddress("fe80::2")] = {sidList1, "tunnel1"};
+  expectedByAddr[folly::IPAddress("fe80::3")] = {sidList2, "tunnel2"};
+  expectedByAddr[folly::IPAddress("fe80::4")] = {sidList2, "tunnel2"};
+
+  for (const auto& nh : *resolvedNhops) {
+    EXPECT_TRUE(nh.intfID().has_value());
+    auto it = expectedByAddr.find(nh.addr());
+    ASSERT_NE(it, expectedByAddr.end()) << "Unexpected nexthop: " << nh.addr();
+    EXPECT_EQ(nh.srv6SegmentList(), it->second.first);
+    ASSERT_TRUE(nh.tunnelType().has_value());
+    EXPECT_EQ(*nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    ASSERT_TRUE(nh.tunnelId().has_value());
+    EXPECT_EQ(*nh.tunnelId(), it->second.second);
+    expectedByAddr.erase(it);
+  }
+  EXPECT_TRUE(expectedByAddr.empty());
+}
+
+TEST_F(RibMySidNextHopTest, bindingSidReResolvesWhenOpenrRouteNextHopsChange) {
+  // Step 1: Interface routes for link-local subnets.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("fe80::"), 64}] = {
+      InterfaceID(1), folly::IPAddress("fe80::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  // Step 2: OpenR route for 2001:db8::/32 with two link-local nexthops.
+  UnicastRoute openrRoute;
+  IpPrefix routePrefix;
+  routePrefix.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::"));
+  routePrefix.prefixLength() = 32;
+  openrRoute.dest() = routePrefix;
+  NextHopThrift llNhop1;
+  auto llAddr1 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::1"));
+  llAddr1.ifName() = "fboss1";
+  llNhop1.address() = llAddr1;
+  NextHopThrift llNhop2;
+  auto llAddr2 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::2"));
+  llAddr2.ifName() = "fboss2";
+  llNhop2.address() = llAddr2;
+  openrRoute.nextHops() = {llNhop1, llNhop2};
+
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      std::vector<UnicastRoute>{openrRoute},
+      std::vector<IpPrefix>{},
+      false,
+      "add openr route",
+      noopFibUpdate,
+      &switchState_);
+
+  // Step 3: Add a BINDING_MICRO_SID with a gateway nexthop carrying SRV6
+  // fields. Resolves through the OpenR route → 2 link-local nexthops.
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop};
+
+  rib_->update(
+      scopeResolver(),
+      {entry},
+      {},
+      "add binding sid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  // Verify initial resolution: 2 nexthops (fe80::1, fe80::2).
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  {
+    const auto mySidEntry = rib_->getMySidTableCopy().at(prefix);
+    ASSERT_TRUE(mySidEntry.resolvedNextHopsId().has_value());
+    auto manager = rib_->getNextHopIDManagerCopy();
+    const auto resolved =
+        manager->getNextHopsIf(NextHopSetID(*mySidEntry.resolvedNextHopsId()));
+    ASSERT_TRUE(resolved.has_value());
+    ASSERT_EQ(resolved->size(), 2);
+    std::set<folly::IPAddress> addrs;
+    for (const auto& nh : *resolved) {
+      addrs.insert(nh.addr());
+    }
+    EXPECT_TRUE(addrs.count(folly::IPAddress("fe80::1")));
+    EXPECT_TRUE(addrs.count(folly::IPAddress("fe80::2")));
+  }
+
+  // Step 4: Update the OpenR route — change link-local nexthops to different
+  // addresses on different interfaces.
+  UnicastRoute updatedRoute;
+  updatedRoute.dest() = routePrefix;
+  NextHopThrift llNhop3;
+  auto llAddr3 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::3"));
+  llAddr3.ifName() = "fboss3";
+  llNhop3.address() = llAddr3;
+  NextHopThrift llNhop4;
+  auto llAddr4 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::4"));
+  llAddr4.ifName() = "fboss4";
+  llNhop4.address() = llAddr4;
+  updatedRoute.nextHops() = {llNhop3, llNhop4};
+
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      std::vector<UnicastRoute>{updatedRoute},
+      std::vector<IpPrefix>{},
+      false,
+      "update openr route nexthops",
+      noopFibUpdate,
+      &switchState_);
+
+  // Verify re-resolution: nexthops should now be fe80::3 and fe80::4,
+  // still retaining the SRV6 fields from the binding SID's original nexthop.
+  const auto mySidEntry = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySidEntry.resolvedNextHopsId().has_value());
+
+  auto manager = rib_->getNextHopIDManagerCopy();
+  const auto resolvedNhops =
+      manager->getNextHopsIf(NextHopSetID(*mySidEntry.resolvedNextHopsId()));
+  ASSERT_TRUE(resolvedNhops.has_value());
+  ASSERT_EQ(resolvedNhops->size(), 2);
+
+  const std::vector<folly::IPAddressV6> expectedSidList = {
+      folly::IPAddressV6("2001:db8::10")};
+  for (const auto& nh : *resolvedNhops) {
+    EXPECT_TRUE(nh.intfID().has_value());
+    EXPECT_TRUE(
+        nh.addr() == folly::IPAddress("fe80::3") ||
+        nh.addr() == folly::IPAddress("fe80::4"));
+    EXPECT_EQ(nh.srv6SegmentList(), expectedSidList);
+    ASSERT_TRUE(nh.tunnelType().has_value());
+    EXPECT_EQ(*nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    ASSERT_TRUE(nh.tunnelId().has_value());
+    EXPECT_EQ(*nh.tunnelId(), "tunnel1");
+  }
+}
+
+TEST_F(RibMySidNextHopTest, bindingSidUpdatedToNewNextHopsResolvesRecursively) {
+  // Step 1: Interface routes for link-local subnets.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("fe80::"), 64}] = {
+      InterfaceID(1), folly::IPAddress("fe80::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  // Step 2: Two OpenR routes with link-local nexthops.
+  UnicastRoute openrRoute1;
+  IpPrefix prefix1;
+  prefix1.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:1::"));
+  prefix1.prefixLength() = 48;
+  openrRoute1.dest() = prefix1;
+  NextHopThrift llNhop1;
+  auto llAddr1 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::1"));
+  llAddr1.ifName() = "fboss1";
+  llNhop1.address() = llAddr1;
+  openrRoute1.nextHops() = {llNhop1};
+
+  UnicastRoute openrRoute2;
+  IpPrefix prefix2;
+  prefix2.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:2::"));
+  prefix2.prefixLength() = 48;
+  openrRoute2.dest() = prefix2;
+  NextHopThrift llNhop2;
+  auto llAddr2 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::2"));
+  llAddr2.ifName() = "fboss2";
+  llNhop2.address() = llAddr2;
+  openrRoute2.nextHops() = {llNhop2};
+
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      std::vector<UnicastRoute>{openrRoute1, openrRoute2},
+      std::vector<IpPrefix>{},
+      false,
+      "add openr routes",
+      noopFibUpdate,
+      &switchState_);
+
+  // Step 3: Add BINDING_MICRO_SID pointing to 2001:db8:1::1 with SRV6 fields.
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop1;
+  nhop1.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:1::1"));
+  nhop1.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop1.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop1.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop1};
+
+  rib_->update(
+      scopeResolver(),
+      {entry},
+      {},
+      "add binding sid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  // Verify initial resolution: resolves to fe80::1.
+  const auto sidPrefix = makeSidPrefix("fc00:100::1", 48);
+  {
+    const auto mySidEntry = rib_->getMySidTableCopy().at(sidPrefix);
+    ASSERT_TRUE(mySidEntry.resolvedNextHopsId().has_value());
+    auto manager = rib_->getNextHopIDManagerCopy();
+    const auto resolved =
+        manager->getNextHopsIf(NextHopSetID(*mySidEntry.resolvedNextHopsId()));
+    ASSERT_TRUE(resolved.has_value());
+    ASSERT_EQ(resolved->size(), 1);
+    EXPECT_EQ(resolved->begin()->addr(), folly::IPAddress("fe80::1"));
+    EXPECT_EQ(*resolved->begin()->tunnelId(), "tunnel1");
+  }
+
+  // Step 4: Update the binding SID to point to a different gateway with
+  // different SRV6 fields. The new gateway resolves through openrRoute2.
+  auto updatedEntry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop2;
+  nhop2.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:2::1"));
+  nhop2.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::20")),
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::30"))};
+  nhop2.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop2.tunnelId() = "tunnel2";
+  updatedEntry.nextHops() = {nhop2};
+
+  rib_->update(
+      scopeResolver(),
+      {updatedEntry},
+      {},
+      "update binding sid nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  // Verify re-resolution: now resolves to fe80::2 with the new SRV6 fields.
+  const auto mySidEntry = rib_->getMySidTableCopy().at(sidPrefix);
+  ASSERT_TRUE(mySidEntry.resolvedNextHopsId().has_value());
+
+  auto manager = rib_->getNextHopIDManagerCopy();
+  const auto resolvedNhops =
+      manager->getNextHopsIf(NextHopSetID(*mySidEntry.resolvedNextHopsId()));
+  ASSERT_TRUE(resolvedNhops.has_value());
+  ASSERT_EQ(resolvedNhops->size(), 1);
+
+  const auto& resolvedNh = *resolvedNhops->begin();
+  EXPECT_TRUE(resolvedNh.intfID().has_value());
+  EXPECT_EQ(resolvedNh.addr(), folly::IPAddress("fe80::2"));
+
+  const std::vector<folly::IPAddressV6> expectedSidList = {
+      folly::IPAddressV6("2001:db8::20"), folly::IPAddressV6("2001:db8::30")};
+  EXPECT_EQ(resolvedNh.srv6SegmentList(), expectedSidList);
+  ASSERT_TRUE(resolvedNh.tunnelType().has_value());
+  EXPECT_EQ(*resolvedNh.tunnelType(), TunnelType::SRV6_ENCAP);
+  ASSERT_TRUE(resolvedNh.tunnelId().has_value());
+  EXPECT_EQ(*resolvedNh.tunnelId(), "tunnel2");
+}
+
 // Tests for the update(MySidWithNextHops) / updateAsync(MySidWithNextHops)
 // overloads — pre-built MySid state objects + parallel next-hop sets, used by
 // the config + neighbor-observer paths.
