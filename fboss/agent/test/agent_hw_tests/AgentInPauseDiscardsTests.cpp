@@ -106,4 +106,8 @@ TEST_F(AgentInPauseDiscardsCounterTest, rxPauseDisabled) {
   runTest(false);
 }
 
+TEST_F(AgentInPauseDiscardsCounterTest, rxPauseEnabled) {
+  runTest(true);
+}
+
 } // namespace facebook::fboss
