@@ -112,17 +112,17 @@ struct SaiTamReportTraits {
         EnumType,
         SAI_TAM_REPORT_ATTR_SAMPLE_RATE,
         sai_uint32_t,
-        SaiIntDefault<sai_uint32_t>>;
+        StdNullOptDefault<sai_uint32_t>>;
     using MaxReportRate = SaiAttribute<
         EnumType,
         SAI_TAM_REPORT_ATTR_MAX_REPORT_RATE,
         sai_uint64_t,
-        SaiIntDefault<sai_uint64_t>>;
+        StdNullOptDefault<sai_uint64_t>>;
     using MaxReportBurst = SaiAttribute<
         EnumType,
         SAI_TAM_REPORT_ATTR_MAX_REPORT_BURST,
         sai_uint64_t,
-        SaiIntDefault<sai_uint64_t>>;
+        StdNullOptDefault<sai_uint64_t>>;
 #endif
   };
   using AdapterKey = TamReportSaiId;
@@ -241,8 +241,7 @@ struct SaiTamEventTraits {
       std::optional<Attributes::ExtensionsCollectorList>,
       std::optional<Attributes::PacketDropTypeMmu>,
       std::optional<Attributes::PacketDropTypeIngress>,
-      std::optional<Attributes::AgingGroup>,
-      std::optional<Attributes::Threshold>>;
+      std::optional<Attributes::AgingGroup>>;
   using CreateAttributes = std::tuple<
       Attributes::Type,
       Attributes::ActionList,
