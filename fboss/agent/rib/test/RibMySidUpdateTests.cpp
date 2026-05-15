@@ -1155,10 +1155,10 @@ class RibMySidNextHopTest : public ::testing::Test {
     rib_->ensureVrf(kRid);
   }
 
-  // Materialize the unresolveNextHopsId for `prefix` into a value to dodge
-  // the thrift `field_ref` lifetime trap: getMySidTableCopy() returns a
-  // temporary, and the field_ref returned by unresolveNextHopsId() points
-  // into it.
+  void TearDown() override {
+    FLAGS_enable_nexthop_id_manager = false;
+  }
+
   std::optional<int64_t> getUnresolveId(
       const folly::CIDRNetworkV6& prefix) const {
     const auto table = rib_->getMySidTableCopy();
@@ -1170,6 +1170,16 @@ class RibMySidNextHopTest : public ::testing::Test {
       return *v;
     }
     return std::nullopt;
+  }
+
+  std::vector<MySidWithNextHops> makePair(
+      const std::string& addr,
+      uint8_t len,
+      MySidType type = MySidType::DECAPSULATE_AND_LOOKUP,
+      RouteNextHopSet nhops = {}) {
+    auto mySid = makeMySid(makeSidPrefix(addr, len), type);
+    mySid->setClientId(ClientID::STATIC_ROUTE);
+    return {{std::move(mySid), std::move(nhops), std::nullopt}};
   }
 
   std::unique_ptr<RoutingInformationBase> rib_;
@@ -2963,40 +2973,7 @@ TEST_F(RibMySidNextHopTest, bindingSidUpdatedToNewNextHopsResolvesRecursively) {
   EXPECT_EQ(*resolvedNh.tunnelId(), "tunnel2");
 }
 
-// Tests for the update(MySidWithNextHops) / updateAsync(MySidWithNextHops)
-// overloads — pre-built MySid state objects + parallel next-hop sets, used by
-// the config + neighbor-observer paths.
-class RibMySidWithNextHopsUpdateTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    FLAGS_enable_nexthop_id_manager = true;
-    rib_ = std::make_unique<RoutingInformationBase>();
-    switchState_ = std::make_shared<SwitchState>();
-    switchState_->publish();
-    rib_->ensureVrf(kRid);
-  }
-
-  void TearDown() override {
-    // Reset the global gflag we toggled in SetUp so it doesn't leak into
-    // tests that follow in the same binary.
-    FLAGS_enable_nexthop_id_manager = false;
-  }
-
-  std::vector<MySidWithNextHops> makePair(
-      const std::string& addr,
-      uint8_t len,
-      MySidType type = MySidType::DECAPSULATE_AND_LOOKUP,
-      RouteNextHopSet nhops = {}) {
-    auto mySid = makeMySid(makeSidPrefix(addr, len), type);
-    mySid->setClientId(ClientID::STATIC_ROUTE);
-    return {{std::move(mySid), std::move(nhops), std::nullopt}};
-  }
-
-  std::unique_ptr<RoutingInformationBase> rib_;
-  std::shared_ptr<SwitchState> switchState_;
-};
-
-TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateAddsEntry) {
+TEST_F(RibMySidNextHopTest, syncUpdateAddsEntry) {
   rib_->update(
       scopeResolver(),
       makePair("3001:db8:1::", 48),
@@ -3011,7 +2988,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateAddsEntry) {
   EXPECT_NE(table.find(makeSidPrefix("3001:db8:1::", 48)), table.end());
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateAllocatesNextHopSetId) {
+TEST_F(RibMySidNextHopTest, syncUpdateAllocatesNextHopSetId) {
   RouteNextHopSet nhops{
       UnresolvedNextHop(folly::IPAddress("2001:db8::1"), ECMP_WEIGHT)};
   rib_->update(
@@ -3029,7 +3006,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateAllocatesNextHopSetId) {
   EXPECT_TRUE(table.at(p).unresolveNextHopsId().has_value());
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateDeletesEntry) {
+TEST_F(RibMySidNextHopTest, syncUpdateDeletesEntry) {
   rib_->update(
       scopeResolver(),
       makePair("3001:db8:1::", 48),
@@ -3051,7 +3028,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateDeletesEntry) {
   EXPECT_EQ(rib_->getMySidTableCopy().size(), 0);
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdatePropagatesException) {
+TEST_F(RibMySidNextHopTest, syncUpdatePropagatesException) {
   // Sync update must rethrow exceptions raised on the rib event-base thread —
   // captured via std::exception_ptr since folly's runInFbossEventBaseThread-
   // AndWait does not propagate.
@@ -3068,7 +3045,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdatePropagatesException) {
       FbossHwUpdateError);
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateAddsEntryAfterDrain) {
+TEST_F(RibMySidNextHopTest, asyncUpdateAddsEntryAfterDrain) {
   rib_->updateAsync(
       scopeResolver(),
       makePair("3001:db8:1::", 48),
@@ -3087,7 +3064,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateAddsEntryAfterDrain) {
   EXPECT_NE(table.find(makeSidPrefix("3001:db8:1::", 48)), table.end());
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateDeletesEntryAfterDrain) {
+TEST_F(RibMySidNextHopTest, asyncUpdateDeletesEntryAfterDrain) {
   // Seed an entry synchronously
   rib_->update(
       scopeResolver(),
@@ -3118,7 +3095,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateDeletesEntryAfterDrain) {
 // actually contains the removed neighbor's IP — observer can't do this
 // match itself because it only sees a NextHopSetID.
 
-TEST_F(RibMySidWithNextHopsUpdateTest, unresolveIfMatchClearsWhenIpMatches) {
+TEST_F(RibMySidNextHopTest, unresolveIfMatchClearsWhenIpMatches) {
   const folly::IPAddress neigh1("2001:db8::1");
   RouteNextHopSet nhops{UnresolvedNextHop(neigh1, ECMP_WEIGHT)};
   rib_->update(
@@ -3145,9 +3122,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, unresolveIfMatchClearsWhenIpMatches) {
       rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
 }
 
-TEST_F(
-    RibMySidWithNextHopsUpdateTest,
-    unresolveIfMatchSkipsWhenIpDoesNotMatch) {
+TEST_F(RibMySidNextHopTest, unresolveIfMatchSkipsWhenIpDoesNotMatch) {
   // Materialize the unresolveNextHopsId into a value — the field_ref
   // returned by unresolveNextHopsId() points into the temporary table,
   // so it can't outlive a single statement.
@@ -3192,7 +3167,7 @@ TEST_F(
   EXPECT_EQ(materializeId(prefix), idBefore);
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, unresolveIfMatchUnknownPrefixIsNoOp) {
+TEST_F(RibMySidNextHopTest, unresolveIfMatchUnknownPrefixIsNoOp) {
   // No entries at all — match-and-clear must not crash.
   const folly::IPAddress neigh1("2001:db8::1");
   rib_->update(
@@ -3206,9 +3181,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, unresolveIfMatchUnknownPrefixIsNoOp) {
   EXPECT_EQ(rib_->getMySidTableCopy().size(), 0);
 }
 
-TEST_F(
-    RibMySidWithNextHopsUpdateTest,
-    unresolveIfMatchOnEntryWithNoUnresolvedIdIsNoOp) {
+TEST_F(RibMySidNextHopTest, unresolveIfMatchOnEntryWithNoUnresolvedIdIsNoOp) {
   // DECAP entry has no unresolveNextHopsId. Match-and-clear must skip.
   rib_->update(
       scopeResolver(),
@@ -3234,7 +3207,7 @@ TEST_F(
       rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdatesAreSerialized) {
+TEST_F(RibMySidNextHopTest, asyncUpdatesAreSerialized) {
   // Multiple async updates run sequentially on the same event-base thread and
   // are observable after a single drain.
   for (int i = 1; i <= 3; ++i) {
