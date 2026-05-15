@@ -493,7 +493,8 @@ void RibRouteTables::update(
     bool resetClientsRoutes,
     folly::StringPiece updateType,
     const RibToSwitchStateFunction& ribToSwitchStateFunc,
-    void* cookie) {
+    void* cookie,
+    std::size_t* cyclesDetectedOut) {
   updateRib(
       routerID,
       [&](auto& routeTable, auto* mySidTable, auto* nextHopIDManager) {
@@ -553,6 +554,9 @@ void RibRouteTables::update(
             routerID);
         updater.update(
             clientID, resolvedRoutes, toDelPrefixes, resetClientsRoutes);
+        if (cyclesDetectedOut) {
+          *cyclesDetectedOut += updater.cyclesDetected();
+        }
       });
   updateFib(resolver, routerID, ribToSwitchStateFunc, cookie);
 }
@@ -1061,7 +1065,8 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
           resetClientsRoutes,
           updateType,
           ribToSwitchStateFunc,
-          cookie);
+          cookie,
+          &stats.resolutionCyclesDetected);
     } catch (const std::exception&) {
       updateException = std::current_exception();
     }

@@ -126,7 +126,8 @@ class RibRouteTables {
       bool resetClientsRoutes,
       folly::StringPiece updateType,
       const RibToSwitchStateFunction& ribToSwitchStateFunc,
-      void* cookie);
+      void* cookie,
+      std::size_t* cyclesDetectedOut = nullptr);
 
   void update(
       const SwitchIdScopeResolver* resolver,
@@ -359,6 +360,7 @@ class RoutingInformationBase {
     std::size_t mplsRoutesAdded{0};
     std::size_t mplsRoutesDeleted{0};
     std::chrono::microseconds duration{0};
+    std::size_t resolutionCyclesDetected{0};
   };
 
   /*

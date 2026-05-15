@@ -253,6 +253,10 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
     delRouteV6_.addValue(routeCount);
   }
 
+  void ribResolutionCyclesDetected(uint64_t count) {
+    ribResolutionCyclesDetected_.addValue(count);
+  }
+
   void ipv4DstLookupFailure() {
     dstLookupFailureV4_.addValue(1);
     dstLookupFailure_.addValue(1);
@@ -958,6 +962,11 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
   TLTimeseries addRouteV6_;
   TLTimeseries delRouteV4_;
   TLTimeseries delRouteV6_;
+
+  /**
+   * Number of cycles detected during recursive RIB route resolution.
+   */
+  TLTimeseries ribResolutionCyclesDetected_;
 
   /**
    * Number of route programming attempts

@@ -110,6 +110,10 @@ class RibRouteUpdater {
       const std::map<ClientID, std::vector<folly::CIDRNetwork>>& toDel,
       const std::set<ClientID>& resetClientsRoutesFor);
 
+  std::size_t cyclesDetected() const {
+    return cyclesDetected_;
+  }
+
  private:
   void updateImpl(
       ClientID client,
@@ -207,6 +211,7 @@ class RibRouteUpdater {
   RouterID routerID_{0};
   std::unordered_set<void*> needsResolution_;
   std::unordered_set<void*> resolving_;
+  std::size_t cyclesDetected_{0};
   /*
    * Cache for next hop to FWD information. For our use case
    * its pretty common for the same next hops to repeat, so

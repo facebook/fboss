@@ -747,6 +747,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
   if (resolving_.find(route.get()) != resolving_.end()) {
     XLOG(DBG2) << "Cycle detected resolving nexthop " << nh
                << " — route is already being resolved";
+    ++cyclesDetected_;
     return;
   }
 
