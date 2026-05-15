@@ -10,6 +10,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -1639,6 +1640,64 @@ TEST(RibRouteTables, getVrfList) {
   rib.ensureVrf(RouterID(1));
   vrfList = rib.getVrfList();
   EXPECT_EQ(vrfList.size(), 3);
+}
+
+TEST(Route, cycleDetectionPopulatesUpdateStatistics) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(RouterID(0));
+
+  // One v4 cycle: 10.0.0.0/24 -> 20.0.0.1, 20.0.0.0/24 -> 10.0.0.1
+  // One v6 cycle: 2001::/64  -> 3001::1,  3001::/64  -> 2001::1
+  auto stats = rib.update(
+      nullptr,
+      RouterID(0),
+      ClientID::BGPD,
+      AdminDistance::EBGP,
+      {
+          makeUnicastRoute(
+              {IPAddress("10.0.0.0"), 24}, {IPAddress("20.0.0.1")}),
+          makeUnicastRoute(
+              {IPAddress("20.0.0.0"), 24}, {IPAddress("10.0.0.1")}),
+          makeUnicastRoute({IPAddress("2001::"), 64}, {IPAddress("3001::1")}),
+          makeUnicastRoute({IPAddress("3001::"), 64}, {IPAddress("2001::1")}),
+      },
+      {},
+      false,
+      "cycle detection test",
+      noopFibUpdate,
+      nullptr);
+
+  EXPECT_EQ(stats.resolutionCyclesDetected, 2u);
+}
+
+TEST(Route, noCycleDetectedForNonCyclicRoutes) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(RouterID(0));
+
+  // Non-cyclic routes that still exercise the recursive resolution path:
+  //   v4: 10.0.0.0/24 -> 1.1.1.5  (resolves via 1.1.1.0/24)
+  //       1.1.1.0/24  -> 2.2.2.1  (leaf with no covering route)
+  //   v6: 2001::/64   -> 3001::5  (resolves via 3001::/64)
+  //       3001::/64   -> 4001::1  (leaf with no covering route)
+  // No nexthop chain loops back, so the cycle counter must stay 0.
+  auto stats = rib.update(
+      nullptr,
+      RouterID(0),
+      ClientID::BGPD,
+      AdminDistance::EBGP,
+      {
+          makeUnicastRoute({IPAddress("10.0.0.0"), 24}, {IPAddress("1.1.1.5")}),
+          makeUnicastRoute({IPAddress("1.1.1.0"), 24}, {IPAddress("2.2.2.1")}),
+          makeUnicastRoute({IPAddress("2001::"), 64}, {IPAddress("3001::5")}),
+          makeUnicastRoute({IPAddress("3001::"), 64}, {IPAddress("4001::1")}),
+      },
+      {},
+      false,
+      "no cycle test",
+      noopFibUpdate,
+      nullptr);
+
+  EXPECT_EQ(stats.resolutionCyclesDetected, 0u);
 }
 
 } // namespace facebook::fboss
