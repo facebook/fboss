@@ -15,6 +15,7 @@
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/Srv6TestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -77,6 +78,11 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       }
     }
     cfg.mySidConfig() = makeAdjacencyMySidConfig(cfg, ensemble);
+    std::vector<cfg::Srv6Tunnel> tunnelList;
+    tunnelList.push_back(
+        utility::makeSrv6TunnelConfig(
+            "srv6Tunnel0", InterfaceID(cfg.interfaces()[0].intfID().value())));
+    cfg.srv6Tunnels() = tunnelList;
     // Trap packets with the rewritten outer dst so the snooper can capture
     // the forwarded (uSID-shifted) packet.
     auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
