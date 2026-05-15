@@ -2,7 +2,6 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
 
-include "configerator/structs/neteng/fboss/thrift/sdk.thrift"
 include "thrift/annotation/thrift.thrift"
 
 @thrift.AllowLegacyMissingUris
@@ -133,20 +132,30 @@ enum ProductionFeature {
   HW_SWITCH = 65536,
 }
 
+enum VendorSdk {
+  BCM_NATIVE = 0,
+  BRCM_SAI = 1,
+  LEABA = 2,
+  NVDA = 3,
+}
+
 struct FeatureSdkSupport {
   1: list<string> asics;
-  2: sdk.ProductLine productLine;
+  // @lint-ignore FBTHRIFTCOMPAT FBTHRIFTCOMPAT2 THRIFTRENAME
+  2: VendorSdk sdk;
   3: string minSdkVersion;
   4: optional string note;
 }
 
 struct FeatureSupportSpec {
   1: ProductionFeature feature;
+  // @lint-ignore FBTHRIFTCOMPAT FBTHRIFTCOMPAT2
   2: list<FeatureSdkSupport> supportedFrom;
 }
 
 struct AsicToProductionFeatures {
   1: map<string, list<ProductionFeature>> asicToFeatures;
   2: map<string, list<string>> asicToFeatureNames;
+  // @lint-ignore FBTHRIFTCOMPAT FBTHRIFTCOMPAT2 FBTHRIFTCOMPAT6
   3: list<FeatureSupportSpec> featureSupportSpecs = [];
 }

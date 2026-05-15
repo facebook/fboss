@@ -1024,7 +1024,6 @@ thrift_library(
     ],
     thrift_srcs = {"production_features.thrift": []},
     deps = [
-        "//configerator/structs/neteng/fboss/thrift:sdk",
         "//thrift/annotation:thrift",
     ],
 )
