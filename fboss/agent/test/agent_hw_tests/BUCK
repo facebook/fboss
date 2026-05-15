@@ -193,6 +193,7 @@ cpp_library(
         "AgentHwResourceStatsTests.cpp",
         "AgentHwUdfTests.cpp",
         "AgentInNullRouteDiscardsTest.cpp",
+        "AgentInPauseDiscardsTests.cpp",
         "AgentInTrapDiscardsTest.cpp",
         "AgentIngressBufferTests.cpp",
         "AgentInterPacketGapTests.cpp",
