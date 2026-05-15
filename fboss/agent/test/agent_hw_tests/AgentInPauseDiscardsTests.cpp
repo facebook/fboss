@@ -110,4 +110,32 @@ TEST_F(AgentInPauseDiscardsCounterTest, rxPauseEnabled) {
   runTest(true);
 }
 
+class AgentInPauseFloodTest : public AgentInPauseDiscardsCounterTest {
+ protected:
+  void runFloodTest(bool enableRxPause) {
+    auto setup = [=, this]() {
+      std::vector<PortID> ports = {
+          PortID(this->masterLogicalInterfacePortIds()[0]),
+          PortID(this->masterLogicalInterfacePortIds()[1])};
+      this->commonSetup(enableRxPause, ports);
+    };
+    auto verify = [=, this]() {
+      auto portStatsBefore =
+          getLatestPortStats(this->masterLogicalInterfacePortIds()[1]);
+      pumpTraffic();
+      auto portStatsAfter =
+          getLatestPortStats(this->masterLogicalInterfacePortIds()[1]);
+      XLOG(DBG0) << "Port " << PortID(this->masterLogicalInterfacePortIds()[1])
+                 << ", outBytes, before: " << *portStatsBefore.outBytes_()
+                 << ", after: " << *portStatsAfter.outBytes_();
+      EXPECT_EQ(*portStatsAfter.outBytes_(), *portStatsBefore.outBytes_());
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
+
+TEST_F(AgentInPauseFloodTest, rxPauseDisabledValidateFlooding) {
+  runFloodTest(false);
+}
+
 } // namespace facebook::fboss
