@@ -22,7 +22,9 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=true");
 int main(int argc, char* argv[]) {
   testing::InitGoogleTest(&argc, argv);
 
-  facebook::fboss::fbossInit(argc, argv);
+  if (!GTEST_FLAG_GET(list_tests)) {
+    facebook::fboss::fbossInit(argc, argv);
+  }
 
   int rc = RUN_ALL_TESTS();
 
