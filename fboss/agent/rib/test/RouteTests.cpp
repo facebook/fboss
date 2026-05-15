@@ -1418,13 +1418,14 @@ TEST(Route, resolveRecursiveSrv6WithIntermediateLinkLocalCost) {
       std::nullopt,
       int64_t(400)));
 
+  // OpenR routes (covering routes) with link-local nexthops carrying cost
   u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
-      kClientA,
+      ClientID::OPENR,
       {
           {{IPAddress("fdad:ff02:10b::d:0"), 112},
-           RouteNextHopEntry(coverNhopsD, kDistance)},
+           RouteNextHopEntry(coverNhopsD, AdminDistance::OPENR)},
           {{IPAddress("fdad:ff02:10b::c:0"), 112},
-           RouteNextHopEntry(coverNhopsC, kDistance)},
+           RouteNextHopEntry(coverNhopsC, AdminDistance::OPENR)},
       },
       {},
       false);
@@ -1445,7 +1446,7 @@ TEST(Route, resolveRecursiveSrv6WithIntermediateLinkLocalCost) {
   }
 
   // BGP route 2001::/64 with 2 next hops, each with distinct SID lists
-  // but no cost
+  // but no cost — resolves recursively over the OpenR covering routes
   RouteNextHopSet bgpNhops;
   bgpNhops.emplace(UnresolvedNextHop(
       IPAddress("fdad:ff02:10b::d:0"),
@@ -1471,10 +1472,10 @@ TEST(Route, resolveRecursiveSrv6WithIntermediateLinkLocalCost) {
   RouteV6::Prefix bgpPrefix{IPAddressV6("2001::"), 64};
 
   u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
-      kClientA,
+      ClientID::BGPD,
       {
           {{bgpPrefix.network(), bgpPrefix.mask()},
-           RouteNextHopEntry(bgpNhops, kDistance)},
+           RouteNextHopEntry(bgpNhops, AdminDistance::EBGP)},
       },
       {},
       false);
@@ -1509,6 +1510,105 @@ TEST(Route, resolveRecursiveSrv6WithIntermediateLinkLocalCost) {
   }
   EXPECT_EQ(segListACount, 2);
   EXPECT_EQ(segListBCount, 2);
+}
+
+TEST(Route, resolveRecursiveSrv6OpenrRouteChange) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  const std::vector<folly::IPAddressV6> segListA{
+      folly::IPAddressV6("2001:db8::1"), folly::IPAddressV6("2001:db8::2")};
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr);
+
+  // OpenR covering route with link-local nexthops on interfaces 1 and 2.
+  RouteNextHopSet openrNhops{
+      ResolvedNextHop(IPAddress("fe80::1"), InterfaceID(1), ECMP_WEIGHT),
+      ResolvedNextHop(IPAddress("fe80::2"), InterfaceID(2), ECMP_WEIGHT)};
+
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::OPENR,
+      {
+          {{IPAddress("fdad:ff02:10b::d:0"), 112},
+           RouteNextHopEntry(openrNhops, AdminDistance::OPENR)},
+      },
+      {},
+      false);
+
+  // BGP route resolving over the OpenR route with SRV6 fields.
+  RouteNextHopSet bgpNhops{UnresolvedNextHop(
+      IPAddress("fdad:ff02:10b::d:0"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      segListA,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_A"))};
+
+  RouteV6::Prefix bgpPrefix{IPAddressV6("2001::"), 64};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::BGPD,
+      {
+          {{bgpPrefix.network(), bgpPrefix.mask()},
+           RouteNextHopEntry(bgpNhops, AdminDistance::EBGP)},
+      },
+      {},
+      false);
+
+  // Verify initial resolution: 2 nexthops on interfaces 1 and 2.
+  {
+    auto it = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
+    ASSERT_NE(v6Routes.end(), it);
+    EXPECT_TRUE(it->value()->isResolved());
+    const auto& resolved = it->value()->getForwardInfo().getNextHopSet();
+    ASSERT_EQ(resolved.size(), 2);
+    std::set<InterfaceID> intfs;
+    for (const auto& nh : resolved) {
+      EXPECT_EQ(nh.srv6SegmentList(), segListA);
+      EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+      EXPECT_EQ(nh.tunnelId(), "tunnel_A");
+      intfs.insert(nh.intf());
+    }
+    EXPECT_TRUE(intfs.count(InterfaceID(1)));
+    EXPECT_TRUE(intfs.count(InterfaceID(2)));
+  }
+
+  // Update the OpenR route to use different link-local nexthops on
+  // interfaces 3 and 4.
+  RouteNextHopSet updatedOpenrNhops{
+      ResolvedNextHop(IPAddress("fe80::3"), InterfaceID(3), ECMP_WEIGHT),
+      ResolvedNextHop(IPAddress("fe80::4"), InterfaceID(4), ECMP_WEIGHT)};
+
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::OPENR,
+      {
+          {{IPAddress("fdad:ff02:10b::d:0"), 112},
+           RouteNextHopEntry(updatedOpenrNhops, AdminDistance::OPENR)},
+      },
+      {},
+      false);
+
+  // Verify re-resolution: BGP route now resolves to fe80::3 and fe80::4
+  // on interfaces 3 and 4, while retaining SRV6 fields from the BGP nhop.
+  auto it = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
+  ASSERT_NE(v6Routes.end(), it);
+  EXPECT_TRUE(it->value()->isResolved());
+  const auto& resolvedNhops = it->value()->getForwardInfo().getNextHopSet();
+  ASSERT_EQ(resolvedNhops.size(), 2);
+
+  std::set<InterfaceID> intfs;
+  for (const auto& nh : resolvedNhops) {
+    EXPECT_TRUE(nh.isResolved());
+    EXPECT_EQ(nh.srv6SegmentList(), segListA);
+    EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    EXPECT_EQ(nh.tunnelId(), "tunnel_A");
+    intfs.insert(nh.intf());
+  }
+  EXPECT_TRUE(intfs.count(InterfaceID(3)));
+  EXPECT_TRUE(intfs.count(InterfaceID(4)));
 }
 
 TEST(RibRouteTables, getVrfList) {
