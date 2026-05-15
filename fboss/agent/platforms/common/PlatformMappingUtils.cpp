@@ -230,6 +230,7 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
     case PlatformType::PLATFORM_CLOUDRIPPER_VOQ_DEPRECATED:
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
     case PlatformType::PLATFORM_WEDGE400C_VOQ:
+    case PlatformType::PLATFORM_SAINTPAUL:
     case PlatformType::PLATFORM_SANDIA:
     case PlatformType::PLATFORM_MERU400BIU_DEPRECATED:
     case PlatformType::PLATFORM_MERU400BFU_DEPRECATED:
