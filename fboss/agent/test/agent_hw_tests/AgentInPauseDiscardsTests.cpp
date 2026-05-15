@@ -138,4 +138,8 @@ TEST_F(AgentInPauseFloodTest, rxPauseDisabledValidateFlooding) {
   runFloodTest(false);
 }
 
+TEST_F(AgentInPauseFloodTest, rxPauseEnabledValidateFlooding) {
+  runFloodTest(true);
+}
+
 } // namespace facebook::fboss
