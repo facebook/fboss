@@ -200,7 +200,13 @@ void AgentMirrorOnDropStatelessTest::testDefaultRouteDrop() {
     auto config = getAgentEnsemble()->getCurrentConfig();
     config.mirrorOnDropReports()->push_back(
         makeMirrorOnDropReport("mod-default-route-drop"));
-    utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
+    auto* asic =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+    utility::addTrapPacketAcl(
+        asic,
+        &config,
+        folly::CIDRNetwork(folly::IPAddress(kCollectorIp_), 128),
+        cfg::ToCpuAction::TRAP);
     applyNewConfig(config);
     setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
     waitForStateUpdates(getSw());
@@ -245,7 +251,13 @@ void AgentMirrorOnDropStatelessTest::testAclDrop() {
     aclEntry.actionType() = cfg::AclActionType::DENY;
     utility::addAclEntry(&config, aclEntry, utility::kDefaultAclTable());
 
-    utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
+    auto* asic =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+    utility::addTrapPacketAcl(
+        asic,
+        &config,
+        folly::CIDRNetwork(folly::IPAddress(kCollectorIp_), 128),
+        cfg::ToCpuAction::TRAP);
     applyNewConfig(config);
     setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
     waitForStateUpdates(getSw());
@@ -289,7 +301,13 @@ void AgentMirrorOnDropStatelessTest::testMmuDrop() {
     config.mirrorOnDropReports()->push_back(
         makeMirrorOnDropReport("mod-mmu-drop"));
     configureMmuDropBuffers(config, injectionPortId, kPriority);
-    utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
+    auto* asic =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+    utility::addTrapPacketAcl(
+        asic,
+        &config,
+        folly::CIDRNetwork(folly::IPAddress(kCollectorIp_), 128),
+        cfg::ToCpuAction::TRAP);
     applyNewConfig(config);
     setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
     setupEcmpTraffic(
