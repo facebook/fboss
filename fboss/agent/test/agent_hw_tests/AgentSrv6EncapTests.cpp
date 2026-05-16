@@ -131,18 +131,14 @@ class AgentSrv6EncapTest : public AgentHwTest {
         this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
   }
 
-  void resolveV4AndV6NextHops(int numNextHops) {
-    auto ecmpHelper6 = makeEcmpHelper<folly::IPAddressV6>();
-    this->resolveNeighbors(ecmpHelper6, numNextHops, true /* useLinkLocal */);
-    auto ecmpHelper4 = makeEcmpHelper<folly::IPAddressV4>();
-    this->resolveNeighbors(ecmpHelper4, numNextHops);
+  void resolveNextHops(int numNextHops) {
+    auto ecmpHelper = makeEcmpHelper<folly::IPAddressV6>();
+    this->resolveNeighbors(ecmpHelper, numNextHops, true /* useLinkLocal */);
   }
 
-  void unresolveV4AndV6NextHops(int numNextHops) {
-    auto ecmpHelper6 = makeEcmpHelper<folly::IPAddressV6>();
-    this->unresolveNeighbors(ecmpHelper6, numNextHops, true /* useLinkLocal*/);
-    auto ecmpHelper4 = makeEcmpHelper<folly::IPAddressV4>();
-    this->unresolveNeighbors(ecmpHelper4, numNextHops);
+  void unresolveNextHops(int numNextHops) {
+    auto ecmpHelper = makeEcmpHelper<folly::IPAddressV6>();
+    this->unresolveNeighbors(ecmpHelper, numNextHops, true /* useLinkLocal */);
   }
   void setupHelper(
       bool resolveNeighbors = true,
@@ -152,7 +148,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
           this->initialConfig(*this->getAgentEnsemble()));
     }
     if (resolveNeighbors) {
-      resolveV4AndV6NextHops(kNumNextHops);
+      resolveNextHops(kNumNextHops);
     }
     if (programEncapRoutes) {
       // IPv6 encap routes (v6 next hops)
@@ -562,7 +558,7 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRouteAfterLinkFlap) {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     this->bringDownPort(egressPort);
-    this->unresolveV4AndV6NextHops(2);
+    this->unresolveNextHops(2);
     this->bringUpPort(egressPort);
     // For aggregate ports, the SAI fast-path link down handler disables
     // the LAG member (EgressDisable=true). Since LACP is not running in
@@ -584,7 +580,7 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRouteAfterLinkFlap) {
           },
           "re-enable trunk ports after link flap");
     }
-    this->resolveV4AndV6NextHops(2);
+    this->resolveNextHops(2);
   };
 
   auto verify = [this]() {
@@ -626,7 +622,7 @@ TYPED_TEST(AgentSrv6EncapTest, resolveNeighborsAfterRouteProgram) {
   auto setup = [this]() {
     this->setupHelper(false /*resolveNeighbors*/);
     // Resolve neighbors after route programming
-    this->resolveV4AndV6NextHops(2);
+    this->resolveNextHops(2);
   };
 
   auto verify = [this]() {
@@ -777,7 +773,7 @@ TYPED_TEST(AgentSrv6EncapTest, verifySrv6EncapEcnMarking) {
       this->applyConfigAndEnableTrunks(
           this->initialConfig(*this->getAgentEnsemble()));
     }
-    this->resolveV4AndV6NextHops(2);
+    this->resolveNextHops(2);
     this->template addEncapRoute<folly::CIDRNetworkV6>(
         {this->kEncapRoutePrefix, this->kEncapRoutePrefixLen},
         {{this->kSid0}},
@@ -834,7 +830,7 @@ TYPED_TEST(AgentSrv6EncapTest, VerifyDscpQueueMapping) {
       this->applyConfigAndEnableTrunks(
           this->initialConfig(*this->getAgentEnsemble()));
     }
-    this->resolveV4AndV6NextHops(this->kNumNextHops);
+    this->resolveNextHops(this->kNumNextHops);
     this->template addEncapRoute<folly::CIDRNetworkV6>(
         {this->kEncapRoutePrefix, this->kEncapRoutePrefixLen},
         {{this->kSid0}},
