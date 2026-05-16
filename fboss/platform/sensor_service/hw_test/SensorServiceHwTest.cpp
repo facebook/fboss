@@ -16,6 +16,7 @@
 #include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/sensor_service/Utils.h"
+#include "fboss/platform/sensor_service/utilities/PowerConfigUtils.h"
 
 using namespace apache::thrift;
 
@@ -202,6 +203,38 @@ TEST_F(SensorServiceHwTest, CheckAllSensors) {
         0);
   }
 }
+
+TEST_F(SensorServiceHwTest, MinPsuCountMatchesPowerType) {
+  // HSC/PWRBRK-only platforms are filtered out by ConfigValidator
+  // (D98824972 rejects non-zero min counts when no PSU/PEM slots
+  // exist), so this test focuses on the runtime contract that can't
+  // be checked at config time: the min count for the detected power
+  // type must be > 0 on PSU/PEM platforms.
+  if (!hasPsuOrPem(*sensorConfig_.powerConfig())) {
+    return;
+  }
+
+  sensorServiceImpl_->fetchSensorData();
+  const auto& powerConfig = *sensorConfig_.powerConfig();
+
+  auto inputPowerType = fb303::fbData->getCounter(
+      fmt::format(
+          SensorServiceImpl::kDerivedValue,
+          SensorServiceImpl::kInputPowerType));
+  ASSERT_NE(inputPowerType, SensorServiceImpl::kInputPowerTypeUnknown)
+      << "Power type was not determined; check INPUT_POWER_TYPE counter";
+
+  if (inputPowerType == SensorServiceImpl::kInputPowerTypeAC) {
+    EXPECT_GT(*powerConfig.minAcPsuCount(), 0)
+        << "AC power detected but minAcPsuCount is 0";
+  } else if (inputPowerType == SensorServiceImpl::kInputPowerTypeDC) {
+    EXPECT_GT(*powerConfig.minDcPsuCount(), 0)
+        << "DC power detected but minDcPsuCount is 0";
+  } else {
+    FAIL() << "Unexpected inputPowerType: " << inputPowerType;
+  }
+}
+
 } // namespace facebook::fboss::platform::sensor_service
 
 int main(int argc, char* argv[]) {
