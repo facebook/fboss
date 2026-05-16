@@ -146,7 +146,7 @@ std::string getTcvrNameFromPortName(const std::string& portName) {
         "Can't figure out transceiver name for port:", portName);
   }
 
-  return folly::sformat("{}{}/{}", portType, pimID, transceiverID);
+  return fmt::format("{}{}/{}", portType, pimID, transceiverID);
 }
 
 bool isTransceiverComponent(
@@ -3546,7 +3546,7 @@ void TransceiverManager::setPortLoopbackState(
   auto swPort = getPortIDByPortName(portName);
   if (!swPort.has_value()) {
     throw FbossError(
-        folly::sformat("setPortLoopbackState: Invalid port {}", portName));
+        fmt::format("setPortLoopbackState: Invalid port {}", portName));
   }
   if (component != phy::PortComponent::GB_SYSTEM &&
       component != phy::PortComponent::GB_LINE &&
@@ -3580,7 +3580,7 @@ void TransceiverManager::setPortLoopbackStateTransceiver(
   auto tcvrId = getTransceiverID(portId);
   if (!tcvrId.has_value()) {
     throw FbossError(
-        folly::sformat(
+        fmt::format(
             "setInterfaceTxRx: Transceiver not found for port {}", portName));
   }
 
@@ -3604,7 +3604,7 @@ void TransceiverManager::setPortAdminState(
   auto swPort = getPortIDByPortName(portName);
   if (!swPort.has_value()) {
     throw FbossError(
-        folly::sformat("setPortAdminState: Invalid port {}", portName));
+        fmt::format("setPortAdminState: Invalid port {}", portName));
   }
   if (component != phy::PortComponent::GB_SYSTEM &&
       component != phy::PortComponent::GB_LINE) {
@@ -3642,30 +3642,30 @@ std::vector<phy::TxRxEnableResponse> TransceiverManager::setInterfaceTxRx(
     auto swPort = getPortIDByPortName(portName);
     if (!swPort.has_value()) {
       throw FbossError(
-          folly::sformat("setInterfaceTxRx: Invalid port {}", portName));
+          fmt::format("setInterfaceTxRx: Invalid port {}", portName));
     }
     if (component != phy::PortComponent::TRANSCEIVER_LINE &&
         component != phy::PortComponent::TRANSCEIVER_SYSTEM) {
       throw FbossError(
-          folly::sformat(
+          fmt::format(
               "TransceiverManager::setInterfaceTxRx - component not supported {}",
               apache::thrift::util::enumNameSafe(component)));
     }
     if (direction == phy::Direction::RECEIVE) {
       throw FbossError(
-          folly::sformat(
+          fmt::format(
               "setInterfaceTxRx: Transceiver Rx lane control not implemented for {}",
               portName));
     }
 
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "TransceiverManager::setInterfaceTxRx Port {:s}", portName);
 
     // Get Transceiver ID for this SW Port
     auto tcvrId = getTransceiverID(swPort.value());
     if (!tcvrId.has_value()) {
       throw FbossError(
-          folly::sformat(
+          fmt::format(
               "setInterfaceTxRx: Transceiver not found for port {}", portName));
     }
 
@@ -3708,14 +3708,14 @@ void TransceiverManager::getSymbolErrorHistogram(
   auto swPort = getPortIDByPortName(portName);
   if (!swPort.has_value()) {
     throw FbossError(
-        folly::sformat("getSymbolErrorHistogram: Invalid port {}", portName));
+        fmt::format("getSymbolErrorHistogram: Invalid port {}", portName));
   }
 
   // Get Transceiver ID for this SW Port
   auto tcvrId = getTransceiverID(swPort.value());
   if (!tcvrId.has_value()) {
     throw FbossError(
-        folly::sformat(
+        fmt::format(
             "getSymbolErrorHistogram: Transceiver not found for port {}",
             portName));
   }
@@ -3773,7 +3773,7 @@ std::map<uint32_t, phy::PhyIDInfo> TransceiverManager::getAllPortPhyInfo() {
 phy::PhyInfo TransceiverManager::getPhyInfo(const std::string& portName) {
   auto swPort = getPortIDByPortName(portName);
   if (!swPort.has_value()) {
-    throw FbossError(folly::sformat("getPhyInfo: Invalid port {}", portName));
+    throw FbossError(fmt::format("getPhyInfo: Invalid port {}", portName));
   }
   return getPhyManager()->getPhyInfo(PortID(swPort.value()));
 }
@@ -3781,7 +3781,7 @@ phy::PhyInfo TransceiverManager::getPhyInfo(const std::string& portName) {
 std::string TransceiverManager::getPortInfo(std::string portName) {
   auto swPort = getPortIDByPortName(portName);
   if (!swPort.has_value()) {
-    throw FbossError(folly::sformat("getPortInfo: Invalid port {}", portName));
+    throw FbossError(fmt::format("getPortInfo: Invalid port {}", portName));
   }
   return getPhyManager()->getPortInfoStr(PortID(swPort.value()));
 }

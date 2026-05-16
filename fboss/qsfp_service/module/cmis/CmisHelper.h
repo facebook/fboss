@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -318,7 +318,7 @@ class CmisHelper final {
       if (combolValid) {
         XLOG(INFO)
             << "Transceiver " << tcvrName << ": "
-            << folly::sformat(
+            << fmt::format(
                    "Found the valid speed combo of media intf id {:s} for lanemask {:#x}",
                    apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
                    laneMask);
@@ -327,7 +327,7 @@ class CmisHelper final {
     }
     XLOG(ERR)
         << "Transceiver " << tcvrName << ": "
-        << folly::sformat(
+        << fmt::format(
                "Could not find the valid speed combo of media intf id {:s} for lanemask {:#x}",
                apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
                laneMask);
@@ -397,7 +397,7 @@ class CmisHelper final {
         }
         XLOG(INFO)
             << "Transceiver " << tcvrName << ": "
-            << folly::sformat(
+            << fmt::format(
                    "Returning the valid speed combo of media intf id {:s} for lanemask {:#x} = {:s}",
                    apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
                    laneMask,
@@ -407,7 +407,7 @@ class CmisHelper final {
     }
     XLOG(ERR)
         << "Transceiver " << tcvrName << ": "
-        << folly::sformat(
+        << fmt::format(
                "No valid speed combo found for speed {:s} and lanemask {:#x}",
                apache::thrift::util::enumNameSafe(speed),
                laneMask);
