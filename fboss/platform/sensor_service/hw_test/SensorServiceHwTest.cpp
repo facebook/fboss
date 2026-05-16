@@ -260,6 +260,31 @@ TEST_F(SensorServiceHwTest, MinPsuCountMatchesPowerType) {
   }
 }
 
+TEST_F(SensorServiceHwTest, PowerAndInputVoltageAboveZero) {
+  sensorServiceImpl_->fetchSensorData();
+
+  const auto& powerConfig = *sensorConfig_.powerConfig();
+
+  if (!hasPsuOrPem(powerConfig)) {
+    GTEST_SKIP() << "No PSU/PEM slots on this platform";
+  }
+
+  auto totalPower = fb303::fbData->getCounter(
+      fmt::format(
+          SensorServiceImpl::kDerivedValue, SensorServiceImpl::kTotalPower));
+  EXPECT_GT(totalPower, 0)
+      << "Calculated TOTAL_POWER must be above zero for a platform with "
+         "present PSUs/PEMs";
+
+  auto maxInputVoltage = fb303::fbData->getCounter(
+      fmt::format(
+          SensorServiceImpl::kDerivedValue,
+          SensorServiceImpl::kMaxInputVoltage));
+  EXPECT_GT(maxInputVoltage, 0)
+      << "MAX_INPUT_VOLTAGE must be above zero for a platform with "
+         "present PSUs/PEMs";
+}
+
 } // namespace facebook::fboss::platform::sensor_service
 
 int main(int argc, char* argv[]) {
