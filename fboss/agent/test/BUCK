@@ -1024,7 +1024,6 @@ thrift_library(
     ],
     thrift_srcs = {"production_features.thrift": []},
     deps = [
-        "//thrift/annotation:thrift",
     ],
 )
 

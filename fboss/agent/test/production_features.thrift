@@ -2,10 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
 
-include "thrift/annotation/thrift.thrift"
-
-@thrift.AllowLegacyMissingUris
-package;
+package "facebook.com/fboss/agent/test/production_features"
 
 namespace py neteng.fboss.test.production_features
 namespace py3 neteng.fboss.test
@@ -128,6 +125,7 @@ enum ProductionFeature {
   IP_IN_IP_ENCAP = 110,
   MIRROR_ON_DROP_STATELESS = 111,
   PORT_DEBOUNCE = 112,
+  SRV6_BINDING_SID = 113,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
