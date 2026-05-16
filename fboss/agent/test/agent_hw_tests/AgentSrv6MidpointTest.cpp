@@ -35,18 +35,18 @@ class AgentSrv6MidpointTest : public AgentHwTest {
  protected:
   static constexpr bool kIsTrunk = PortType::isTrunk;
 
-  // MySid prefix: 3001:db8:1:: /48
-  // Locator block: 3001:db8:: (32 bits), function: 1 (16 bits)
-  const folly::IPAddressV6 kMySidPrefix{"3001:db8:1::"};
+  // MySid prefix: fdad:ffff:1:: /48
+  // Locator block: fdad:ffff:: (32 bits), function: 1 (16 bits)
+  const folly::IPAddressV6 kMySidPrefix{"fdad:ffff:1::"};
   static constexpr uint8_t kMySidPrefixLen{48};
 
   // Input outer dst: the SID being processed at this midpoint node.
-  // uSID format: [locator 3001:db8:][active uSID 1:][next uSIDs e002::]
-  const folly::IPAddressV6 kPktOuterDst{"3001:db8:1:2::"};
+  // uSID format: [locator fdad:ffff:][active uSID 1:][next uSIDs e002::]
+  const folly::IPAddressV6 kPktOuterDst{"fdad:ffff:1:2::"};
 
   // After the active uSID 1 is processed and shifted out,
   // the rewritten outer dst forwarded to the next hop.
-  const folly::IPAddressV6 kExpectedOuterDst{"3001:db8:2::"};
+  const folly::IPAddressV6 kExpectedOuterDst{"fdad:ffff:2::"};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -89,7 +89,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     utility::addTrapPacketAcl(
         asic,
         &cfg,
-        std::set<folly::CIDRNetwork>{{folly::IPAddress("3001:db8:2::"), 128}});
+        std::set<folly::CIDRNetwork>{{folly::IPAddress("fdad:ffff:2::"), 128}});
     return cfg;
   }
 
@@ -97,7 +97,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       const cfg::SwitchConfig& cfg,
       const AgentEnsemble& ensemble) const {
     cfg::MySidConfig mySidConfig;
-    mySidConfig.locatorPrefix() = "3001:db8::/32";
+    mySidConfig.locatorPrefix() = "fdad:ffff::/32";
     cfg::MySidEntryConfig entry;
     cfg::AdjacencyMySidConfig adjConfig;
     if constexpr (kIsTrunk) {
@@ -109,7 +109,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     }
     adjConfig.isV6() = true;
     entry.adjacency() = adjConfig;
-    // Function ID 1 → SID 3001:db8:1::/48 (matches kMySidPrefix).
+    // Function ID 1 → SID fdad:ffff:1::/48 (matches kMySidPrefix).
     mySidConfig.entries()[1] = entry;
     return mySidConfig;
   }
@@ -449,7 +449,7 @@ TYPED_TEST(AgentSrv6MidpointTest, dropPacketUASidIsLastSid) {
 
   auto verify = [this]() {
     auto egressPort = this->getEgressPort(this->mySidPortDesc());
-    // Outer dst is the mySid prefix itself (3001:db8:1::) with no next uSID.
+    // Outer dst is the mySid prefix itself (fdad:ffff:1::) with no next uSID.
     // The function bits are zero so there is no uSID to shift to — the
     // packet should be dropped.
     this->verifyMidpointDropFrontPanel(egressPort, this->kMySidPrefix);
