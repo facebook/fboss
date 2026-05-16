@@ -8,7 +8,8 @@
     "log_variable_name": "true",
     "mode": "meru400biu",
     "skip_transceiver_programming": "true",
-    "use_full_dlb_scale": "true"
+    "use_full_dlb_scale": "true",
+    "verify_fib_nexthop_id_consistency": "true"
   },
   "sw": {
     "version": 0,
