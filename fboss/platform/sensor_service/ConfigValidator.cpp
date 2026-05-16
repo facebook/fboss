@@ -7,6 +7,8 @@
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/FieldRef.h>
 
+#include "fboss/platform/sensor_service/utilities/PowerConfigUtils.h"
+
 namespace facebook::fboss::platform::sensor_service {
 using namespace sensor_config;
 
@@ -141,6 +143,22 @@ bool ConfigValidator::isValidPowerConfig(
   auto universalSensorNames = getAllUniversalSensorNames(sensorConfig);
   std::unordered_set<std::string> perSlotPowerConfigNames;
 
+  // sensorName → slotPath of its declaring PmUnitSensors entry. Used to
+  // validate that any sensor referenced from a PerSlotPowerConfig with an
+  // explicit slotPath actually lives at that same slot path.
+  std::unordered_map<std::string, std::string> sensorNameToSlotPath;
+  for (const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
+    const auto& slotPath = *pmUnitSensors.slotPath();
+    for (const auto& sensor : *pmUnitSensors.sensors()) {
+      sensorNameToSlotPath[*sensor.name()] = slotPath;
+    }
+    for (const auto& versionedPmSensor : *pmUnitSensors.versionedSensors()) {
+      for (const auto& sensor : *versionedPmSensor.sensors()) {
+        sensorNameToSlotPath[*sensor.name()] = slotPath;
+      }
+    }
+  }
+
   // perSlotPowerConfigs is mandatory and must not be empty
   if (powerConfig.perSlotPowerConfigs()->empty()) {
     XLOG(ERR) << "perSlotPowerConfigs must be defined and non-empty";
@@ -208,6 +226,52 @@ bool ConfigValidator::isValidPowerConfig(
           *perSlotConfig.name());
       return false;
     }
+
+    // PSU/PEM PerSlotPowerConfigs MUST set a non-empty slotPath: presence
+    // counting and absent-PSU sensor suppression both look up the slot path
+    // in platform_manager. HSC/PWRBRK are not field-replaceable and may
+    // omit slotPath.
+    if (isPsuOrPem(perSlotConfig) &&
+        (!perSlotConfig.slotPath().has_value() ||
+         perSlotConfig.slotPath()->empty())) {
+      XLOG(ERR) << fmt::format(
+          "perSlotPowerConfig {} (PSU/PEM) must set a non-empty slotPath",
+          *perSlotConfig.name());
+      return false;
+    }
+
+    // When slotPath is set on this PerSlotPowerConfig, every referenced
+    // sensor must live at that same slot path — otherwise the runtime
+    // presence check (sensor_service queries platform_manager at the
+    // configured slotPath) would be reading presence for a different
+    // PmUnit than the sensor it pairs with.
+    if (perSlotConfig.slotPath().has_value()) {
+      const auto& declaredSlotPath = *perSlotConfig.slotPath();
+      for (const auto& sensorNameRef :
+           {perSlotConfig.powerSensorName(),
+            perSlotConfig.voltageSensorName(),
+            perSlotConfig.currentSensorName()}) {
+        auto sensorName = sensorNameRef.to_optional();
+        if (!sensorName) {
+          continue;
+        }
+        auto it = sensorNameToSlotPath.find(*sensorName);
+        if (it == sensorNameToSlotPath.end()) {
+          // Already caught by the universalSensorNames checks above; skip.
+          continue;
+        }
+        if (it->second != declaredSlotPath) {
+          XLOG(ERR) << fmt::format(
+              "perSlotPowerConfig {} declares slotPath {} but its sensor"
+              " {} is defined under PmUnitSensors slotPath {}",
+              *perSlotConfig.name(),
+              declaredSlotPath,
+              *sensorName,
+              it->second);
+          return false;
+        }
+      }
+    }
   }
 
   // Validate otherPowerSensorNames
@@ -226,12 +290,36 @@ bool ConfigValidator::isValidPowerConfig(
     return false;
   }
 
+  if (*powerConfig.minAcPsuCount() < 0 || *powerConfig.minDcPsuCount() < 0) {
+    XLOG(ERR) << "minAcPsuCount and minDcPsuCount must be non-negative";
+    return false;
+  }
+
   for (const auto& sensorName : *powerConfig.inputVoltageSensors()) {
     if (universalSensorNames.count(sensorName) == 0) {
       XLOG(ERR) << fmt::format(
           "inputVoltageSensor {} is not defined in SensorConfig", sensorName);
       return false;
     }
+  }
+
+  if (hasPsuOrPem(powerConfig) && *powerConfig.minAcPsuCount() == 0 &&
+      *powerConfig.minDcPsuCount() == 0) {
+    XLOG(ERR) << "Platform has PSU/PEM slots but both minAcPsuCount and"
+              << " minDcPsuCount are 0. At least one must be set.";
+    return false;
+  }
+
+  // If no PSU/PEM slots exist (only HSC/PWRBRK), minAcPsuCount and
+  // minDcPsuCount must both be 0.
+  if (!hasPsuOrPem(powerConfig) &&
+      (*powerConfig.minAcPsuCount() != 0 ||
+       *powerConfig.minDcPsuCount() != 0)) {
+    XLOG(ERR)
+        << "Platform has no PSU/PEM slots but minAcPsuCount or minDcPsuCount"
+        << " is non-zero. Min PSU counts only apply to platforms with"
+        << " field-replaceable PSU/PEM.";
+    return false;
   }
 
   return true;
