@@ -240,59 +240,97 @@ StateDelta mySidToSwitchStateUpdateViaRibUpdater(
 
 } // namespace
 
-TEST(RibMySidUpdate, addMySidEntry) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
+class RibMySidCrudTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rib_.ensureVrf(kRid);
+    switchState_ = std::make_shared<SwitchState>();
+    switchState_->publish();
+  }
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  RoutingInformationBase rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+class RibMySidValidationTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rib_.ensureVrf(kRid);
+    switchState_ = std::make_shared<SwitchState>();
+    switchState_->publish();
+  }
+
+  RoutingInformationBase rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+class RibMySidSwitchStateTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rib_.ensureVrf(kRid);
+    switchState_ = std::make_shared<SwitchState>();
+    switchState_->publish();
+  }
+
+  RoutingInformationBase rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+class RibMySidRollbackTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rib_.ensureVrf(kRid);
+    switchState_ = std::make_shared<SwitchState>();
+    switchState_->publish();
+  }
+
+  RoutingInformationBase rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+TEST_F(RibMySidCrudTest, addMySidEntry) {
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 
   std::vector<MySidEntry> toAdd = {
       makeMySidEntry("fc00:100::1", 48),
   };
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Verify RIB mySidTable
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   auto prefix = makeSidPrefix("fc00:100::1", 48);
   EXPECT_NE(mySidTable.find(prefix), mySidTable.end());
   EXPECT_EQ(*mySidTable[prefix].type(), MySidType::DECAPSULATE_AND_LOOKUP);
 
   // Verify switchState reflects the MySid
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
   EXPECT_EQ(
-      switchState->getMySids()->getNodeIf("fc00:100::1/48")->getType(),
+      switchState_->getMySids()->getNodeIf("fc00:100::1/48")->getType(),
       MySidType::DECAPSULATE_AND_LOOKUP);
 }
 
-TEST(RibMySidUpdate, addMultipleMySidEntries) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidCrudTest, addMultipleMySidEntries) {
   std::vector<MySidEntry> toAdd = {
       makeMySidEntry("fc00:100::1", 48),
       makeMySidEntry("fc00:200::1", 64),
   };
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add multiple mysids",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Verify RIB mySidTable
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 2);
   EXPECT_NE(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
@@ -300,42 +338,37 @@ TEST(RibMySidUpdate, addMultipleMySidEntries) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 
   // Verify switchState reflects both MySids
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
 }
 
-TEST(RibMySidUpdate, deleteMySidEntry) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidCrudTest, deleteMySidEntry) {
   // Add first
   std::vector<MySidEntry> toAdd = {
       makeMySidEntry("fc00:100::1", 48),
       makeMySidEntry("fc00:200::1", 64),
   };
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysids",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 2);
+      &switchState_);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 2);
 
   // Delete one
   std::vector<IpPrefix> toDelete = {toIpPrefix("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       std::vector<MySidEntry>{},
       toDelete,
       "delete mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Verify RIB mySidTable
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   EXPECT_EQ(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
@@ -343,75 +376,65 @@ TEST(RibMySidUpdate, deleteMySidEntry) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 
   // Verify switchState: deleted entry gone, remaining entry present
-  EXPECT_EQ(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
+  EXPECT_EQ(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
 }
 
-TEST(RibMySidUpdate, deleteNonExistentMySidEntry) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidCrudTest, deleteNonExistentMySidEntry) {
   // Add one entry
   std::vector<MySidEntry> toAdd = {makeMySidEntry("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
-  auto mySidTableBefore = rib.getMySidTableCopy();
+  auto mySidTableBefore = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTableBefore.size(), 1);
 
   // Delete a non-existent entry — should be a no-op for that prefix
   std::vector<IpPrefix> toDelete = {toIpPrefix("fc00:999::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       std::vector<MySidEntry>{},
       toDelete,
       "delete nonexistent mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Verify RIB mySidTable is unchanged
-  auto mySidTableAfter = rib.getMySidTableCopy();
+  auto mySidTableAfter = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTableBefore, mySidTableAfter);
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
 }
 
-TEST(RibMySidUpdate, addAndDeleteInSameUpdate) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidCrudTest, addAndDeleteInSameUpdate) {
   // Add initial entry
   std::vector<MySidEntry> toAdd = {makeMySidEntry("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+      &switchState_);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
 
   // Add a new entry and delete the old one in the same update
   std::vector<MySidEntry> toAdd2 = {makeMySidEntry("fc00:200::1", 64)};
   std::vector<IpPrefix> toDelete = {toIpPrefix("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd2,
       toDelete,
       "add and delete mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Verify RIB mySidTable
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   EXPECT_EQ(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
@@ -419,77 +442,62 @@ TEST(RibMySidUpdate, addAndDeleteInSameUpdate) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 
   // Verify switchState reflects the swap
-  EXPECT_EQ(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
+  EXPECT_EQ(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
 }
 
-TEST(RibMySidUpdate, replaceMySidEntry) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidCrudTest, replaceMySidEntry) {
   // Add entry
   std::vector<MySidEntry> toAdd = {makeMySidEntry("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+      &switchState_);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
 
   // Add same prefix again (replace)
   std::vector<MySidEntry> toAdd2 = {makeMySidEntry("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd2,
       {},
       "replace mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Verify RIB mySidTable
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   EXPECT_NE(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
 
   // Verify switchState still has the entry
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
 }
 
-TEST(RibMySidUpdate, rejectNonDecapsulateType) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectNonDecapsulateType) {
   std::vector<MySidEntry> toAdd = {
       makeMySidEntry("fc00:100::1", 48, MySidType::NODE_MICRO_SID),
   };
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           toAdd,
           {},
           "add unsupported mysid type",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
   // Verify RIB and switchState remain empty
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
 }
 
-TEST(RibMySidUpdate, rejectEntryWithNextHops) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectEntryWithNextHops) {
   auto entry = makeMySidEntry("fc00:100::1", 48);
   NextHopThrift nhop;
   nhop.address() =
@@ -497,26 +505,21 @@ TEST(RibMySidUpdate, rejectEntryWithNextHops) {
   entry.nextHops() = {nhop};
 
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {entry},
           {},
           "add mysid with nexthops",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
   // Verify RIB and switchState remain empty
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
 }
 
-TEST(RibMySidUpdate, rejectBothNextHopsAndNamedNextHops) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectBothNextHopsAndNamedNextHops) {
   auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::NODE_MICRO_SID);
   NextHopThrift nhop;
   nhop.address() =
@@ -527,97 +530,77 @@ TEST(RibMySidUpdate, rejectBothNextHopsAndNamedNextHops) {
   entry.namedNextHops() = named;
 
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {entry},
           {},
           "add mysid with both nexthops and named nexthops",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
 }
 
-TEST(RibMySidUpdate, rejectDecapsulateTypeWithNamedNextHops) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectDecapsulateTypeWithNamedNextHops) {
   auto entry = makeMySidEntry("fc00:100::1", 48);
   NamedRouteDestination named;
   named.nextHopGroup() = "group1";
   entry.namedNextHops() = named;
 
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {entry},
           {},
           "add decap mysid with named nexthops",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
 }
 
-TEST(RibMySidUpdate, rejectNamedNextHopsWithPolicyName) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectNamedNextHopsWithPolicyName) {
   auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
   NamedRouteDestination named;
   named.policyName() = "policy1";
   entry.namedNextHops() = named;
 
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {entry},
           {},
           "mysid with policyName in namedNextHops",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 }
 
-TEST(RibMySidUpdate, rejectBindingSidWithoutNextHopsOrNamedNhg) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectBindingSidWithoutNextHopsOrNamedNhg) {
   std::vector<MySidEntry> toAdd = {
       makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID),
   };
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           toAdd,
           {},
           "binding sid without nexthops",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
 }
 
-TEST(RibMySidUpdate, acceptBindingSidWithNextHops) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, acceptBindingSidWithNextHops) {
   auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
   NextHopThrift nhop;
   nhop.address() =
@@ -628,23 +611,18 @@ TEST(RibMySidUpdate, acceptBindingSidWithNextHops) {
   nhop.tunnelId() = "tunnel1";
   entry.nextHops() = {nhop};
 
-  rib.update(
+  rib_.update(
       scopeResolver(),
       {entry},
       {},
       "binding sid with nexthops",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
 }
 
-TEST(RibMySidUpdate, rejectBindingSidWithoutSidList) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectBindingSidWithoutSidList) {
   auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
   NextHopThrift nhop;
   nhop.address() =
@@ -654,24 +632,19 @@ TEST(RibMySidUpdate, rejectBindingSidWithoutSidList) {
   entry.nextHops() = {nhop};
 
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {entry},
           {},
           "binding sid without sid list",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 }
 
-TEST(RibMySidUpdate, rejectBindingSidWithoutTunnelId) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectBindingSidWithoutTunnelId) {
   auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
   NextHopThrift nhop;
   nhop.address() =
@@ -682,24 +655,19 @@ TEST(RibMySidUpdate, rejectBindingSidWithoutTunnelId) {
   entry.nextHops() = {nhop};
 
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {entry},
           {},
           "binding sid without tunnel id",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 }
 
-TEST(RibMySidUpdate, rejectBindingSidWithWrongTunnelType) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectBindingSidWithWrongTunnelType) {
   auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
   NextHopThrift nhop;
   nhop.address() =
@@ -711,68 +679,53 @@ TEST(RibMySidUpdate, rejectBindingSidWithWrongTunnelType) {
   entry.nextHops() = {nhop};
 
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {entry},
           {},
           "binding sid with wrong tunnel type",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 }
 
-TEST(RibMySidUpdate, acceptBindingSidWithNamedNhg) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, acceptBindingSidWithNamedNhg) {
   auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
   NamedRouteDestination named;
   named.nextHopGroup() = "group1";
   entry.namedNextHops() = named;
 
-  rib.update(
+  rib_.update(
       scopeResolver(),
       {entry},
       {},
       "binding sid with named nhg",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
 }
 
-TEST(RibMySidUpdate, acceptNodeSidWithNamedNhg) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, acceptNodeSidWithNamedNhg) {
   auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::NODE_MICRO_SID);
   NamedRouteDestination named;
   named.nextHopGroup() = "group1";
   entry.namedNextHops() = named;
 
-  rib.update(
+  rib_.update(
       scopeResolver(),
       {entry},
       {},
       "node sid with named nhg",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
 }
 
-TEST(RibMySidUpdate, rejectAdjacencySidWithNamedNhg) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectAdjacencySidWithNamedNhg) {
   auto entry =
       makeMySidEntry("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
   NamedRouteDestination named;
@@ -780,24 +733,19 @@ TEST(RibMySidUpdate, rejectAdjacencySidWithNamedNhg) {
   entry.namedNextHops() = named;
 
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {entry},
           {},
           "adjacency sid with named nhg",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 }
 
-TEST(RibMySidUpdate, rejectAdjacencySidWithMultipleNextHops) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectAdjacencySidWithMultipleNextHops) {
   auto entry =
       makeMySidEntry("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
   NextHopThrift nhop1;
@@ -809,24 +757,19 @@ TEST(RibMySidUpdate, rejectAdjacencySidWithMultipleNextHops) {
   entry.nextHops() = {nhop1, nhop2};
 
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {entry},
           {},
           "adjacency sid with multiple nexthops",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 }
 
-TEST(RibMySidUpdate, acceptAdjacencySidWithSingleNextHop) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, acceptAdjacencySidWithSingleNextHop) {
   auto entry =
       makeMySidEntry("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
   NextHopThrift nhop;
@@ -834,37 +777,35 @@ TEST(RibMySidUpdate, acceptAdjacencySidWithSingleNextHop) {
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
   entry.nextHops() = {nhop};
 
-  rib.update(
+  rib_.update(
       scopeResolver(),
       {entry},
       {},
       "adjacency sid with single nexthop",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
 }
 
-TEST(RibMySidUpdate, invalidEntryInBatchDoesNotPartiallyMutateMySidTable) {
+TEST_F(
+    RibMySidValidationTest,
+    invalidEntryInBatchDoesNotPartiallyMutateMySidTable) {
   // Verify that if any entry in toAdd is invalid, mySidFromEntry throws before
   // updateRibMySids is called, leaving mySidTable completely unmodified.
   // Without the pre-build fix, the valid entry (first in the vector) would be
   // written to mySidTable before the invalid entry throws. With the fix,
   // neither entry is written.
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
 
   // Add an initial valid entry so the table is non-empty going in
-  rib.update(
+  rib_.update(
       scopeResolver(),
       {makeMySidEntry("fc00:100::1", 48)},
       {},
       "add initial mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+      &switchState_);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
 
   // Batch: valid entry first, then invalid (NODE_MICRO_SID with no nexthops)
   std::vector<MySidEntry> toAdd = {
@@ -873,18 +814,18 @@ TEST(RibMySidUpdate, invalidEntryInBatchDoesNotPartiallyMutateMySidTable) {
           "fc00:300::1", 48, MySidType::NODE_MICRO_SID), // invalid: no nexthops
   };
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           toAdd,
           {},
           "batch with invalid entry",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
   // mySidTable must contain only the original entry — the valid entry from
   // the failed batch must not have been inserted
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   EXPECT_NE(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
@@ -892,104 +833,86 @@ TEST(RibMySidUpdate, invalidEntryInBatchDoesNotPartiallyMutateMySidTable) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 }
 
-TEST(RibMySidUpdate, switchStateUpdatedOnAdd) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-  auto origState = switchState;
+TEST_F(RibMySidSwitchStateTest, switchStateUpdatedOnAdd) {
+  auto origState = switchState_;
 
   std::vector<MySidEntry> toAdd = {makeMySidEntry("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Switch state should have changed
-  EXPECT_NE(switchState, origState);
+  EXPECT_NE(switchState_, origState);
   // MySid should be in switch state with correct type
-  auto mySidNode = switchState->getMySids()->getNodeIf("fc00:100::1/48");
+  auto mySidNode = switchState_->getMySids()->getNodeIf("fc00:100::1/48");
   ASSERT_NE(mySidNode, nullptr);
   EXPECT_EQ(mySidNode->getType(), MySidType::DECAPSULATE_AND_LOOKUP);
 }
 
-TEST(RibMySidUpdate, switchStateUpdatedOnDelete) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidSwitchStateTest, switchStateUpdatedOnDelete) {
   // Add two entries
   std::vector<MySidEntry> toAdd = {
       makeMySidEntry("fc00:100::1", 48),
       makeMySidEntry("fc00:200::1", 64),
   };
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysids",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 2);
+      &switchState_);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 2);
 
-  auto stateBeforeDelete = switchState;
+  auto stateBeforeDelete = switchState_;
 
   // Delete one
-  rib.update(
+  rib_.update(
       scopeResolver(),
       std::vector<MySidEntry>{},
       {toIpPrefix("fc00:100::1", 48)},
       "delete mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Switch state should have changed
-  EXPECT_NE(switchState, stateBeforeDelete);
+  EXPECT_NE(switchState_, stateBeforeDelete);
   // Only one MySid should remain in switch state
-  EXPECT_EQ(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
+  EXPECT_EQ(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
 }
 
-TEST(RibMySidUpdate, rollbackOnFailedUpdate) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+TEST_F(RibMySidRollbackTest, rollbackOnFailedUpdate) {
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 
   // Try to add a MySid entry but fail the HW update
   std::vector<MySidEntry> toAdd = {makeMySidEntry("fc00:100::1", 48)};
   FailMySidUpdate failUpdate;
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           toAdd,
           {},
           "fail mysid update",
           failUpdate,
-          &switchState),
+          &switchState_),
       FbossHwUpdateError);
 
   // After rollback, mySidTable should be reconstructed from applied state
   // (which is the original empty state), so it should remain empty
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 }
 
-TEST(RibMySidUpdate, rollbackPreservesAppliedStateMySids) {
+TEST_F(RibMySidRollbackTest, rollbackPreservesAppliedStateMySids) {
   // Verify that after a failed update, the RIB mySidTable is reconstructed
   // from the applied state's MySidMap (which may contain MySid entries
   // that were partially programmed to HW).
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 
   // Inject a MySid entry into the applied state during failure
   auto injectedPrefix = makeSidPrefix("fc00:999::1", 48);
@@ -998,60 +921,56 @@ TEST(RibMySidUpdate, rollbackPreservesAppliedStateMySids) {
 
   FailWithMySidInAppliedState failWithInjected(injectedMySids);
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {makeMySidEntry("fc00:100::1", 48)},
           {},
           "fail with injected mysid",
           failWithInjected,
-          &switchState),
+          &switchState_),
       FbossHwUpdateError);
 
   // RIB mySidTable should be reconstructed from applied state,
   // which has the injected entry (not the entry we tried to add)
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   EXPECT_NE(mySidTable.find(injectedPrefix), mySidTable.end());
   EXPECT_EQ(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
 }
 
-TEST(RibMySidUpdate, rollbackWithPreExistingEntries) {
+TEST_F(RibMySidRollbackTest, rollbackWithPreExistingEntries) {
   // Verify rollback when the RIB already has MySid entries.
   // After a failed add, the RIB should reflect the applied state's MySids,
   // not the pre-update RIB state.
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
 
   // Successfully add an initial MySid entry
-  rib.update(
+  rib_.update(
       scopeResolver(),
       {makeMySidEntry("fc00:100::1", 48)},
       {},
       "add initial mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+      &switchState_);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
 
   // Now fail an update that tries to add a second entry.
   // The applied state contains the original entry (fc00:100::1/48).
   FailMySidUpdate failUpdate;
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {makeMySidEntry("fc00:200::1", 64)},
           {},
           "fail second add",
           failUpdate,
-          &switchState),
+          &switchState_),
       FbossHwUpdateError);
 
   // RIB mySidTable should be reconstructed from applied state,
   // which still has only the original entry
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   EXPECT_NE(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
@@ -1059,40 +978,36 @@ TEST(RibMySidUpdate, rollbackWithPreExistingEntries) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 }
 
-TEST(RibMySidUpdate, rollbackDeleteRestoresEntries) {
+TEST_F(RibMySidRollbackTest, rollbackDeleteRestoresEntries) {
   // Verify rollback when a delete fails.
   // The applied state still has the entry we tried to delete.
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
 
   // Successfully add two MySid entries
-  rib.update(
+  rib_.update(
       scopeResolver(),
       {makeMySidEntry("fc00:100::1", 48), makeMySidEntry("fc00:200::1", 64)},
       {},
       "add mysids",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 2);
+      &switchState_);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 2);
 
   // Fail an update that tries to delete one entry.
   // The applied state still has both entries.
   FailMySidUpdate failUpdate;
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           std::vector<MySidEntry>{},
           {toIpPrefix("fc00:100::1", 48)},
           "fail delete",
           failUpdate,
-          &switchState),
+          &switchState_),
       FbossHwUpdateError);
 
   // RIB mySidTable should be reconstructed from applied state,
   // which still has both entries (delete was not applied to HW)
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 2);
   EXPECT_NE(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
@@ -1100,13 +1015,11 @@ TEST(RibMySidUpdate, rollbackDeleteRestoresEntries) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 }
 
-TEST(RibMySidUpdate, updaterClonesPublishedState) {
+TEST_F(RibMySidSwitchStateTest, updaterClonesPublishedState) {
   // Verify that MySidMapUpdater clones the state before mutating it.
   // A previous bug had MySidMapUpdater returning a shared_ptr copy (not a
   // clone), which mutated the already-published input state and caused an
   // assertion failure.
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
 
   // Build a RIB MySidTable with one entry
   MySidTable mySidTable;
@@ -1114,35 +1027,31 @@ TEST(RibMySidUpdate, updaterClonesPublishedState) {
   mySidTable[prefix] = makeMySid(prefix);
 
   MySidMapUpdater updater(scopeResolver(), mySidTable);
-  auto newState = updater(switchState);
+  auto newState = updater(switchState_);
 
   // Returned state must be a different object (cloned, not aliased)
-  EXPECT_NE(newState.get(), switchState.get());
+  EXPECT_NE(newState.get(), switchState_.get());
   // Original published state must not have been mutated
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
   // New state should have the entry
   EXPECT_NE(newState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
 }
 
-TEST(RibMySidUpdate, emptyUpdate) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-  auto origState = switchState;
+TEST_F(RibMySidCrudTest, emptyUpdate) {
+  auto origState = switchState_;
 
   // Empty update should be a no-op
-  rib.update(
+  rib_.update(
       scopeResolver(),
       std::vector<MySidEntry>{},
       std::vector<IpPrefix>{},
       "empty mysid update",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
   // switchState should not change on empty update
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
 }
 
 class RibMySidNextHopTest : public ::testing::Test {
