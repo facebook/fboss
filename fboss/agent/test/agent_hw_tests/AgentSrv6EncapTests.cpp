@@ -187,40 +187,6 @@ class AgentSrv6EncapTest : public AgentHwTest {
     auto ecmpHelper = makeEcmpHelper();
     auto routeUpdater = this->getSw()->getRouteUpdater();
 
-    auto makeUnresolvedSrv6Nhop =
-        [](const folly::IPAddress& ip,
-           const std::vector<folly::IPAddressV6>& sidList,
-           const std::string& tunnelId) {
-          // Unresolved nhop  - to be resolved by recursive resolution
-          return UnresolvedNextHop(
-              ip,
-              ECMP_WEIGHT,
-              std::nullopt,
-              std::nullopt,
-              std::nullopt,
-              std::nullopt,
-              sidList,
-              TunnelType::SRV6_ENCAP,
-              tunnelId);
-        };
-    auto makeSrv6Nhop = [](const folly::IPAddress& ip,
-                           InterfaceID intf,
-                           const std::vector<folly::IPAddressV6>& sidList,
-                           const std::string& tunnelId) {
-      // Directly connected resolved nhop
-      return ResolvedNextHop(
-          ip,
-          intf,
-          ECMP_WEIGHT,
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          sidList,
-          TunnelType::SRV6_ENCAP,
-          tunnelId);
-    };
-
     // Helper to get link-local IP for IPv6 next hops
     auto getNhopIp = [&ecmpHelper](int idx) {
       auto nhop = ecmpHelper.nhop(idx);
@@ -230,42 +196,52 @@ class AgentSrv6EncapTest : public AgentHwTest {
       return folly::IPAddress(nhop.ip);
     };
 
-    // IGP route A (2901::/48) -> nhop(0), nhop(1) with igpSidListA
-    const std::vector<folly::IPAddressV6> igpSidListA{
-        folly::IPAddressV6("4001:db8:a1::")};
-    RouteNextHopSet igpNhopsA{
-        makeSrv6Nhop(
-            getNhopIp(0), ecmpHelper.nhop(0).intf, igpSidListA, "srv6Tunnel0"),
-        makeSrv6Nhop(
-            getNhopIp(1), ecmpHelper.nhop(1).intf, igpSidListA, "srv6Tunnel0")};
+    // OpenR route A (2901::/48) -> nhop(0), nhop(1) with link-local nexthops
+    RouteNextHopSet openrNhopsA{
+        ResolvedNextHop(getNhopIp(0), ecmpHelper.nhop(0).intf, ECMP_WEIGHT),
+        ResolvedNextHop(getNhopIp(1), ecmpHelper.nhop(1).intf, ECMP_WEIGHT)};
     routeUpdater.addRoute(
         RouterID(0),
         folly::IPAddressV6("2901::"),
         48,
         ClientID::OPENR,
-        RouteNextHopEntry(igpNhopsA, AdminDistance::OPENR));
+        RouteNextHopEntry(openrNhopsA, AdminDistance::OPENR));
 
-    // IGP route B (2902::/48) -> nhop(2), nhop(3) with igpSidListB
-    const std::vector<folly::IPAddressV6> igpSidListB{
-        folly::IPAddressV6("4001:db8:b1::")};
-    RouteNextHopSet igpNhopsB{
-        makeSrv6Nhop(
-            getNhopIp(2), ecmpHelper.nhop(0).intf, igpSidListB, "srv6Tunnel0"),
-        makeSrv6Nhop(
-            getNhopIp(3), ecmpHelper.nhop(1).intf, igpSidListB, "srv6Tunnel0")};
+    // OpenR route B (2902::/48) -> nhop(2), nhop(3) with link-local nexthops
+    RouteNextHopSet openrNhopsB{
+        ResolvedNextHop(getNhopIp(2), ecmpHelper.nhop(0).intf, ECMP_WEIGHT),
+        ResolvedNextHop(getNhopIp(3), ecmpHelper.nhop(1).intf, ECMP_WEIGHT)};
     routeUpdater.addRoute(
         RouterID(0),
         folly::IPAddressV6("2902::"),
         48,
         ClientID::OPENR,
-        RouteNextHopEntry(igpNhopsB, AdminDistance::OPENR));
+        RouteNextHopEntry(openrNhopsB, AdminDistance::OPENR));
 
     // SRv6 route -> 2901::1 (kSid0), 2902::1 (kSid1)
+    // These unresolved nexthops carry SRV6 fields and resolve recursively
+    // over the OpenR routes above, which have plain link-local nexthops.
     RouteNextHopSet srv6Nhops{
-        makeUnresolvedSrv6Nhop(
-            folly::IPAddress("2901::1"), {kSid0}, "srv6Tunnel0"),
-        makeUnresolvedSrv6Nhop(
-            folly::IPAddress("2902::1"), {kSid1}, "srv6Tunnel0")};
+        UnresolvedNextHop(
+            folly::IPAddress("2901::1"),
+            ECMP_WEIGHT,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::vector<folly::IPAddressV6>{kSid0},
+            TunnelType::SRV6_ENCAP,
+            std::string("srv6Tunnel0")),
+        UnresolvedNextHop(
+            folly::IPAddress("2902::1"),
+            ECMP_WEIGHT,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::vector<folly::IPAddressV6>{kSid1},
+            TunnelType::SRV6_ENCAP,
+            std::string("srv6Tunnel0"))};
     routeUpdater.addRoute(
         RouterID(0),
         routePrefix,
