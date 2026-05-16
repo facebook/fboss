@@ -173,6 +173,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentTrafficPfcTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPfcConfigTest.cpp
   fboss/agent/test/agent_hw_tests/AgentIpInIpTunnelTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentSrv6BindingSidTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSrv6EncapTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSrv6DecapTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSrv6MidpointTest.cpp
