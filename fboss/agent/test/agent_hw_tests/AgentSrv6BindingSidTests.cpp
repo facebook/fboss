@@ -189,7 +189,7 @@ TYPED_TEST(AgentSrv6BindingSidTest, recursiveResolutionPreservesSidList) {
     bindingEntry.type() = MySidType::BINDING_MICRO_SID;
     facebook::network::thrift::IPPrefix mySidPrefix;
     mySidPrefix.prefixAddress() =
-        facebook::network::toBinaryAddress(folly::IPAddressV6("fc00:100::1"));
+        facebook::network::toBinaryAddress(folly::IPAddressV6("fc00:100:1::"));
     mySidPrefix.prefixLength() = 48;
     bindingEntry.mySid() = mySidPrefix;
 
@@ -235,7 +235,7 @@ TYPED_TEST(AgentSrv6BindingSidTest, recursiveResolutionPreservesSidList) {
         intfMac,
         intfMac,
         folly::IPAddressV6("100::1"),
-        folly::IPAddressV6("fc00:100::1"),
+        folly::IPAddressV6("fc00:100:1::"),
         folly::IPAddressV6("2001:db8::1"),
         folly::IPAddressV6("2001:db8::2"),
         8000,
