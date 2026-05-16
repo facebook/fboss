@@ -4,6 +4,7 @@
     "counter_refresh_interval": "0",
     "disable_neighbor_updates": "true",
     "ecmp_width": "320",
+    "enable_1to1_intf_route_table_mapping": "true",
     "enable_nexthop_id_manager": "true",
     "enable_replayer": "true",
     "intf_nbr_tables": "true",
