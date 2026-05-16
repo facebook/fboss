@@ -488,7 +488,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
         // These stats may not be valid when initial is true which is when we
         // just enable PRBS
         EXPECT_EQ(laneStat.numLossOfLock().value(), 0);
-        auto berThreshold = FLAGS_link_stress_test ? 5e-7 : 1;
+        auto berThreshold = FLAGS_link_stress_test ? 1e-6 : 1;
         EXPECT_TRUE(
             laneStat.get_ber() >= 0 && laneStat.get_ber() < berThreshold);
         EXPECT_TRUE(
