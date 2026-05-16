@@ -59,6 +59,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "ladakh800bcls",
             "ladakh800bcls_rack",
             "ladakh800bcls_test_fixture",
+            "saintpaul",
         ],
     }
     _FBCODE_GENERATED_DIR: str = (
