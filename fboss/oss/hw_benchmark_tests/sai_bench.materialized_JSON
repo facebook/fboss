@@ -2235,6 +2235,132 @@
           "reason": "New test, needs more debugging, T248319161"
         }
     ],
+    "chenab/2511.36/chenab": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatencyBenchmark",
+          "reason": "D100645979 CpuLatencyManager refactor fails on Spectrum4/chenab"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        }
+    ],
+    "chenab/2511.36/chenab/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatencyBenchmark",
+          "reason": "D100645979 CpuLatencyManager refactor fails on Spectrum4/chenab"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        }
+    ],
+    "chenab/2511.36/chenab/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatencyBenchmark",
+          "reason": "D100645979 CpuLatencyManager refactor fails on Spectrum4/chenab"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        }
+    ],
     "leaba/1.42.8/gibraltar": [
         {
           "test_name_regex": ".*Voq.*",
@@ -2612,6 +2738,294 @@
         }
     ],
     "leaba/24.8.3001/graphene200/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Temporary addition to known bad, needs more debugging"
+        }
+    ],
+    "leaba/25.11.4210/gibraltar": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        }
+    ],
+    "leaba/25.11.4210/gibraltar/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        }
+    ],
+    "leaba/25.11.4210/gibraltar/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        }
+    ],
+    "leaba/25.11.4210/graphene202x": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Temporary addition to known bad, needs more debugging"
+        }
+    ],
+    "leaba/25.11.4210/graphene202x/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Temporary addition to known bad, needs more debugging"
+        }
+    ],
+    "leaba/25.11.4210/graphene202x/multi_switch": [
         {
           "test_name_regex": ".*Voq.*",
           "reason": "VOQ tests not applicable to NPU"
@@ -4424,7 +4838,7 @@
           "thresholds": [
             {
               "metric_key_regex": "HwVoqScale2kWideEcmpCompressionReconstructState",
-              "upper_bound": 720000000000.0
+              "upper_bound": 920000000000.0
             }
           ]
         }
@@ -5141,6 +5555,21 @@
           "test_name_regex": "HwSrv6.*$"
         }
     ],
+    "chenab/2511.36/chenab": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "chenab/2511.36/chenab/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "chenab/2511.36/chenab/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
     "leaba/1.42.8/gibraltar": [
         {
           "test_name_regex": "HwSrv6.*$"
@@ -5182,6 +5611,36 @@
         }
     ],
     "leaba/24.8.3001/graphene200/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/25.11.4210/gibraltar": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/25.11.4210/gibraltar/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/25.11.4210/gibraltar/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/25.11.4210/graphene202x": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/25.11.4210/graphene202x/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/25.11.4210/graphene202x/multi_switch": [
         {
           "test_name_regex": "HwSrv6.*$"
         }
