@@ -3162,17 +3162,21 @@
     "perSlotPowerConfigs": [
       {
         "name": "PSU1",
-        "powerSensorName": "PSU1_L_PIN"
+        "powerSensorName": "PSU1_L_PIN",
+        "slotPath": "/PDBLEFT_SLOT@0/PSU_SLOT@0"
       },
       {
         "name": "PSU2",
-        "powerSensorName": "PSU2_R_PIN"
+        "powerSensorName": "PSU2_R_PIN",
+        "slotPath": "/PDBRIGHT_SLOT@0/PSU_SLOT@0"
       }
     ],
     "inputVoltageSensors": [
       "PSU1_L_VIN",
       "PSU2_R_VIN"
-    ]
+    ],
+    "minAcPsuCount": 1,
+    "minDcPsuCount": 1
   },
   "temperatureConfigs": [
     {
