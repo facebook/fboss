@@ -753,6 +753,7 @@ enum HwObjectType {
   IPTUNNEL = 24,
   SYSTEM_PORT = 25,
   FIRMWARE = 26,
+  SRV6 = 27,
 }
 
 exception FbossFibUpdateError {

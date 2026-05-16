@@ -5147,6 +5147,12 @@ std::string SaiSwitch::listObjects(
             static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_FIRMWARE));
 #endif
         break;
+      case HwObjectType::SRV6:
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+        objTypes.push_back(SAI_OBJECT_TYPE_SRV6_SIDLIST);
+        objTypes.push_back(SAI_OBJECT_TYPE_MY_SID_ENTRY);
+#endif
+        break;
     }
   }
   FineGrainedLockPolicy policy(saiSwitchMutex_);
