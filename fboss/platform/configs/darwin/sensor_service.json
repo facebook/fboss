@@ -530,7 +530,8 @@
         ],
         "name": "PEM1",
         "voltageSensorName": "PEM_ADC_VIN",
-        "currentSensorName": "PEM_ECB_IOUT_CH1"
+        "currentSensorName": "PEM_ECB_IOUT_CH1",
+        "slotPath": "/PEM_SLOT@0"
       },
       {
         "__comment__": [
@@ -542,12 +543,15 @@
         ],
         "name": "PEM2",
         "voltageSensorName": "PEM_ADC_VIN",
-        "currentSensorName": "PEM_ECB_IOUT_CH2"
+        "currentSensorName": "PEM_ECB_IOUT_CH2",
+        "slotPath": "/PEM_SLOT@0"
       }
     ],
     "inputVoltageSensors": [
       "PEM_ADC_VIN"
-    ]
+    ],
+    "minAcPsuCount": 1,
+    "minDcPsuCount": 1
   },
   "temperatureConfigs": [
     {
