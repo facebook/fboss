@@ -15,6 +15,9 @@
 
 namespace facebook::fboss {
 
+constexpr double kTolerance = 0.10;
+constexpr int32_t kHoldoffLongMs = 15000;
+
 class AgentHwLinkDebounceTest : public AgentHwTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -78,5 +81,48 @@ class AgentHwLinkDebounceTest : public AgentHwTest {
         .value_or(0);
   }
 };
+
+TEST_F(AgentHwLinkDebounceTest, DebounceTimerWithinTolerance) {
+  auto port = portForTest();
+  auto setup = [&]() { bringUpPort(port); };
+  auto verify = [&]() {
+    // First measure the no-debounce baseline so we can subtract it from each
+    // holdoff measurement and isolate the SDK's hold-timer contribution.
+    applyDebounceConfig(std::nullopt, std::nullopt);
+    auto baselineDownMs = measureBringUpDownLatency(false);
+    auto baselineUpMs = measureBringUpDownLatency(true);
+    XLOG(INFO) << "Baseline (no debounce) down=" << baselineDownMs.count()
+               << "ms up=" << baselineUpMs.count() << "ms";
+
+    auto verifyHoldoff = [&](int32_t holdoffMs) {
+      applyDebounceConfig(holdoffMs, holdoffMs);
+      auto downMs = measureBringUpDownLatency(false);
+      auto upMs = measureBringUpDownLatency(true);
+      XLOG(INFO) << "Debounce(" << holdoffMs << "ms) down=" << downMs.count()
+                 << "ms up=" << upMs.count() << "ms";
+
+      auto downHoldoff = (downMs - baselineDownMs).count();
+      auto upHoldoff = (upMs - baselineUpMs).count();
+      auto loBound = static_cast<int64_t>(holdoffMs * (1 - kTolerance));
+      auto hiBound = static_cast<int64_t>(holdoffMs * (1 + kTolerance));
+
+      EXPECT_GE(downHoldoff, loBound)
+          << "down holdoff " << downHoldoff << "ms below " << loBound
+          << "ms (configured " << holdoffMs << "ms)";
+      EXPECT_LE(downHoldoff, hiBound)
+          << "down holdoff " << downHoldoff << "ms above " << hiBound
+          << "ms (configured " << holdoffMs << "ms)";
+      EXPECT_GE(upHoldoff, loBound)
+          << "up holdoff " << upHoldoff << "ms below " << loBound
+          << "ms (configured " << holdoffMs << "ms)";
+      EXPECT_LE(upHoldoff, hiBound)
+          << "up holdoff " << upHoldoff << "ms above " << hiBound
+          << "ms (configured " << holdoffMs << "ms)";
+    };
+
+    verifyHoldoff(kHoldoffLongMs);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 } // namespace facebook::fboss
