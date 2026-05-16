@@ -33,7 +33,11 @@ void SensorServiceHwTest::SetUp() {
 
 SensorReadResponse SensorServiceHwTest::getSensors(
     const std::vector<std::string>& sensors) {
-  sensorServiceImpl_->fetchSensorData();
+  // Caller invokes fetchSensorData() so the expected sensor set
+  // (built via allSensorNamesFromConfig / someSensorNamesFromConfig)
+  // and the response returned here are derived from the same fetch
+  // cycle. Otherwise a PSU/PEM presence change between two fetches
+  // could make the expected set and the actual response disagree.
   SensorReadResponse response;
   sensorServiceHandler_->getSensorValuesByNames(
       response, std::make_unique<std::vector<std::string>>(sensors));
@@ -49,32 +53,46 @@ bool sensorReadOk(const std::string& sensorName) {
 }
 
 std::vector<std::string> SensorServiceHwTest::allSensorNamesFromConfig() {
+  // Caller must invoke fetchSensorData() first. Read directly from the
+  // post-collection polledData_ — that's exactly the set the same-cycle
+  // Thrift response will contain (sensors for absent PSUs/PEMs are
+  // already excluded by fetchSensorData's skip-at-collection).
   std::vector<std::string> sensors;
-  for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
-    for (const auto& sensor :
-         sensorServiceImpl_->resolveSensors(pmUnitSensors)) {
-      sensors.push_back(*sensor.name());
-    }
-  }
-  if (sensorConfig_.asicCommand()) {
-    sensors.emplace_back(*sensorConfig_.asicCommand()->sensorName());
+  for (const auto& [name, _] : sensorServiceImpl_->getAllSensorData()) {
+    sensors.push_back(name);
   }
   return sensors;
 }
 
 std::vector<std::string> SensorServiceHwTest::someSensorNamesFromConfig() {
+  // Caller must invoke fetchSensorData() first. Sample one present
+  // sensor per PmUnitSensors slot so we exercise each slot at least once.
+  // Skip slots whose sensors weren't collected (absent PSU/PEM).
+  auto polledData = sensorServiceImpl_->getAllSensorData();
   std::vector<std::string> sensors;
   for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
-    auto resolvedSensors = sensorServiceImpl_->resolveSensors(pmUnitSensors);
+    std::vector<PmSensor> presentSensors;
+    for (const auto& sensor :
+         sensorServiceImpl_->resolveSensors(pmUnitSensors)) {
+      if (polledData.contains(*sensor.name())) {
+        presentSensors.push_back(sensor);
+      }
+    }
+    if (presentSensors.empty()) {
+      continue;
+    }
     sensors.push_back(
-        *resolvedSensors[folly::Random::rand32(resolvedSensors.size())].name());
+        *presentSensors[folly::Random::rand32(presentSensors.size())].name());
   }
   return sensors;
 }
 
 TEST_F(SensorServiceHwTest, GetAllSensors) {
-  auto res = getSensors(std::vector<std::string>{});
+  // Single fetch drives both the expected sensor set and the response so
+  // a PSU/PEM presence change between fetches cannot make them diverge.
+  sensorServiceImpl_->fetchSensorData();
   std::vector<std::string> allSensorNames = allSensorNamesFromConfig();
+  auto res = getSensors(std::vector<std::string>{});
   EXPECT_EQ(allSensorNames.size(), res.sensorData()->size());
   for (const auto& sensorName : allSensorNames) {
     auto it = std::find_if(
@@ -92,10 +110,13 @@ TEST_F(SensorServiceHwTest, GetAllSensors) {
 }
 
 TEST_F(SensorServiceHwTest, GetBogusSensor) {
+  sensorServiceImpl_->fetchSensorData();
   EXPECT_EQ(getSensors({"bogusSensor_foo"}).sensorData()->size(), 0);
 }
 
 TEST_F(SensorServiceHwTest, GetSomeSensors) {
+  // Fetch #1: drives someSensorNames AND response1 from the same cycle.
+  sensorServiceImpl_->fetchSensorData();
   std::vector<std::string> someSensorNames = someSensorNamesFromConfig();
   auto response1 = getSensors(someSensorNames);
   EXPECT_EQ(response1.sensorData()->size(), someSensorNames.size());
@@ -108,6 +129,10 @@ TEST_F(SensorServiceHwTest, GetSomeSensors) {
   // Burn a second
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
+  // Fetch #2: intentional, to verify timestamps progress. Reuse the
+  // someSensorNames built from fetch #1 since presence is assumed
+  // stable for the duration of the test.
+  sensorServiceImpl_->fetchSensorData();
   auto response2 = getSensors(someSensorNames);
   EXPECT_EQ(response2.sensorData()->size(), someSensorNames.size());
   for (const auto& sensorData : *response2.sensorData()) {
@@ -141,9 +166,9 @@ TEST_F(SensorServiceHwTest, GetSomeSensors) {
 }
 
 TEST_F(SensorServiceHwTest, GetSomeSensorsViaThrift) {
-  std::vector<std::string> someSensorNames = someSensorNamesFromConfig();
-  // Trigger a fetch before the thrift request hits the server.
+  // Single fetch drives both someSensorNames and the thrift response below.
   sensorServiceImpl_->fetchSensorData();
+  std::vector<std::string> someSensorNames = someSensorNamesFromConfig();
   apache::thrift::ScopedServerInterfaceThread server(
       sensorServiceHandler_,
       facebook::fboss::ThriftServiceUtils::createThriftServerConfig());

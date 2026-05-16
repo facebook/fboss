@@ -61,6 +61,18 @@ std::string sensorTypeName(
   return name;
 }
 
+// nullopt = presence unknown (no PmUnitInfo, or no presenceInfo);
+// platform_manager fetch failed or hasn't reported. Callers must
+// treat unknown as fail-safe (do not suppress).
+std::optional<bool> isSlotPresent(
+    const std::optional<
+        facebook::fboss::platform::platform_manager::PmUnitInfo>& info) {
+  if (!info || !info->presenceInfo()) {
+    return std::nullopt;
+  }
+  return *info->presenceInfo()->isPresent();
+}
+
 } // namespace
 
 namespace facebook::fboss::platform::sensor_service {
@@ -104,9 +116,15 @@ std::map<std::string, std::optional<platform_manager::PmUnitInfo>>
 SensorServiceImpl::prefetchPmUnitInfos() {
   std::map<std::string, std::optional<platform_manager::PmUnitInfo>>
       pmUnitInfoMap;
-  XLOG(INFO) << "Getting versions of PmUnits from PlatformManager";
+  XLOG(INFO) << "Fetching PmUnitInfos from PlatformManager";
   for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
-    if (pmUnitSensors.versionedSensors()->empty()) {
+    const auto& pmUnitName = *pmUnitSensors.pmUnitName();
+    bool isPsuOrPem = (pmUnitName == "PSU" || pmUnitName == "PEM");
+    // Fetch when versioned-sensor resolution needs a PmUnitInfo, OR the
+    // slot is a field-replaceable PSU/PEM (we use presence info from
+    // the same map to skip absent-slot sensor collection, processPower
+    // skip, and publishPsuPemCounters).
+    if (pmUnitSensors.versionedSensors()->empty() && !isPsuOrPem) {
       continue;
     }
     const auto& slotPath = *pmUnitSensors.slotPath();
@@ -143,10 +161,25 @@ void SensorServiceImpl::fetchSensorData() {
       sensorConfig_.pmUnitSensorsList()->size());
   for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
     const auto& slotPath = *pmUnitSensors.slotPath();
+    const auto& pmUnitName = *pmUnitSensors.pmUnitName();
     auto it = pmUnitInfoMap.find(slotPath);
     const auto& pmUnitInfo = (it != pmUnitInfoMap.end())
         ? it->second
         : std::optional<platform_manager::PmUnitInfo>{};
+
+    // Skip sensor collection entirely for confirmed-absent PSU/PEM
+    // slots. Avoids ~all sysfs read failures (and the resulting
+    // FBOSS_ALERT sensor_sysfs_read_failure events) for hardware that
+    // platform_manager reports physically not present. Unknown
+    // presence (RPC failed, no presenceInfo) → fall through and
+    // collect, preserving fail-safe semantics.
+    if ((pmUnitName == "PSU" || pmUnitName == "PEM") &&
+        isSlotPresent(pmUnitInfo) == false) {
+      XLOG(INFO) << fmt::format(
+          "PSU/PEM at {} reported absent; skipping sensor collection",
+          slotPath);
+      continue;
+    }
 
     // Resolve versioned sensors and merge with base sensors
     auto pmSensors = *pmUnitSensors.sensors();
@@ -215,11 +248,14 @@ void SensorServiceImpl::fetchSensorData() {
     publishPerSensorStats(sensorData);
   }
 
-  processPower(polledData, *sensorConfig_.powerConfig());
+  processPower(polledData, *sensorConfig_.powerConfig(), pmUnitInfoMap);
 
   processTemperature(polledData, *sensorConfig_.temperatureConfigs());
 
   processInputVoltage(polledData, *sensorConfig_.powerConfig());
+
+  // Must run after processInputVoltage so inputPowerType_ is resolved.
+  publishPsuPemCounters(pmUnitInfoMap, *sensorConfig_.powerConfig());
 
   publishAggStats(polledData);
 
@@ -426,7 +462,9 @@ SensorData SensorServiceImpl::processAsicCmd(const AsicCommand& asicCommand) {
 
 void SensorServiceImpl::processPower(
     const std::map<std::string, SensorData>& polledData,
-    const PowerConfig& powerConfig) {
+    const PowerConfig& powerConfig,
+    const std::map<std::string, std::optional<platform_manager::PmUnitInfo>>&
+        pmUnitInfoMap) {
   auto getSensorValue = [&](const std::string& sensorName) {
     auto it = polledData.find(sensorName);
     if (it != polledData.end()) {
@@ -439,6 +477,19 @@ void SensorServiceImpl::processPower(
 
   // Process per-slot power configs (PSU/PEM/HSC)
   for (const auto& perSlotConfig : *powerConfig.perSlotPowerConfigs()) {
+    // Skip per-slot _POWER publication for PSU/PEM slots that
+    // platform_manager confirms absent. The validator (D98824972)
+    // requires PSU/PEM PerSlotPowerConfigs to set a non-empty slotPath
+    // for production configs; the has_value() guard keeps unit tests
+    // that bypass the validator (e.g. SensorServiceImplPowerConsumption-
+    // Test) safe. Unknown presence (RPC failed, missing presenceInfo)
+    // → fall through and process (fail-safe).
+    if (isPsuOrPem(perSlotConfig) && perSlotConfig.slotPath().has_value()) {
+      auto it = pmUnitInfoMap.find(*perSlotConfig.slotPath());
+      if (it != pmUnitInfoMap.end() && isSlotPresent(it->second) == false) {
+        continue;
+      }
+    }
     std::optional<float> slotPower{std::nullopt};
     std::string calcMethod{};
     if (perSlotConfig.powerSensorName()) {
@@ -541,6 +592,45 @@ void SensorServiceImpl::processTemperature(
   }
 }
 
+void SensorServiceImpl::publishPsuPemCounters(
+    const std::map<std::string, std::optional<platform_manager::PmUnitInfo>>&
+        pmUnitInfoMap,
+    const PowerConfig& powerConfig) {
+  // Count physical PSU/PEM slots present, by iterating pmUnitSensorsList
+  // (one entry per physical slot). NOT perSlotPowerConfigs — that can
+  // have multiple logical entries per physical slot (e.g. Darwin's
+  // PEM1 + PEM2 both at /PEM_SLOT@0 for PIN = VIN×CH1 + VIN×CH2).
+  bool hasAnyPsuOrPemSlot = false;
+  int presentCount = 0;
+  for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
+    const auto& pmUnitName = *pmUnitSensors.pmUnitName();
+    if (pmUnitName != "PSU" && pmUnitName != "PEM") {
+      continue;
+    }
+    hasAnyPsuOrPemSlot = true;
+    auto it = pmUnitInfoMap.find(*pmUnitSensors.slotPath());
+    if (it != pmUnitInfoMap.end() && isSlotPresent(it->second) == true) {
+      ++presentCount;
+    }
+  }
+  if (!hasAnyPsuOrPemSlot) {
+    return;
+  }
+  fb303::fbData->setCounter(kTotalNumPresentPsu, presentCount);
+
+  // Skip the boolean alert when we can't pick a threshold (unknown power
+  // type or no min configured for the detected type).
+  if (inputPowerType_ != kInputPowerTypeUnknown) {
+    int expectedMin = (inputPowerType_ == kInputPowerTypeAC)
+        ? *powerConfig.minAcPsuCount()
+        : *powerConfig.minDcPsuCount();
+    if (expectedMin > 0) {
+      fb303::fbData->setCounter(
+          kUnexpectedNumPresentPsu, presentCount < expectedMin ? 1 : 0);
+    }
+  }
+}
+
 void SensorServiceImpl::processInputVoltage(
     std::map<std::string, SensorData>& polledData,
     const PowerConfig& powerConfig) {
@@ -608,40 +698,6 @@ void SensorServiceImpl::processInputVoltage(
     }
   }
   publishDerivedStats(kInputPowerType, inputPowerType_);
-
-  if (hasPsuOrPem(powerConfig)) {
-    int presentCount = 0;
-    for (const auto& slot : *powerConfig.perSlotPowerConfigs()) {
-      if (!isPsuOrPem(slot)) {
-        continue;
-      }
-      auto slotPath = slot.slotPath().to_optional();
-      if (!slotPath) {
-        XLOG(WARN) << fmt::format(
-            "PSU/PEM {} has no slotPath configured; skipping presence check",
-            *slot.name());
-        continue;
-      }
-      auto pmUnitInfo = pmUnitInfoFetcher_->fetch(*slotPath);
-      if (pmUnitInfo && pmUnitInfo->presenceInfo() &&
-          *pmUnitInfo->presenceInfo()->isPresent()) {
-        ++presentCount;
-      }
-    }
-    fb303::fbData->setCounter(kTotalNumPresentPsu, presentCount);
-
-    // Skip alert when we can't pick a threshold (unknown power type or
-    // no min configured).
-    if (inputPowerType_ != kInputPowerTypeUnknown) {
-      int expectedMin = (inputPowerType_ == kInputPowerTypeAC)
-          ? *powerConfig.minAcPsuCount()
-          : *powerConfig.minDcPsuCount();
-      if (expectedMin > 0) {
-        fb303::fbData->setCounter(
-            kUnexpectedNumPresentPsu, presentCount < expectedMin ? 1 : 0);
-      }
-    }
-  }
 
   XLOG(INFO) << fmt::format(
       "Max Input Voltage: {}V (Based on {}).  Processed: {}/{}.  Power Type: {}",

@@ -9,6 +9,9 @@
  */
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include <gtest/gtest.h>
 
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"

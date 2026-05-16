@@ -85,9 +85,17 @@ class SensorServiceImpl {
     return fsdbSyncer_.get();
   }
 
+  // pmUnitInfoMap (default empty): per-slot PmUnitInfo from
+  // prefetchPmUnitInfos. processPower consults it to skip per-slot _POWER
+  // publication when platform_manager reports a PSU/PEM slot absent. The
+  // amended D98824972 validator guarantees PSU/PEM PerSlotPowerConfigs
+  // always have a non-empty slotPath that resolves to a known
+  // PmUnitSensors.slotPath, so the lookup is well-defined.
   void processPower(
       const std::map<std::string, SensorData>& polledData,
-      const PowerConfig& powerConfig);
+      const PowerConfig& powerConfig,
+      const std::map<std::string, std::optional<platform_manager::PmUnitInfo>>&
+          pmUnitInfoMap = {});
 
   void processTemperature(
       const std::map<std::string, SensorData>& polledData,
@@ -95,6 +103,17 @@ class SensorServiceImpl {
 
   void processInputVoltage(
       std::map<std::string, SensorData>& polledData,
+      const PowerConfig& powerConfig);
+
+  // Publishes psu.total_num_present + psu.unexpected_num_present_psu by
+  // counting physical PSU/PEM slots from pmUnitSensorsList (one entry per
+  // physical slot) — NOT perSlotPowerConfigs (which can have multiple
+  // logical entries per physical slot, e.g. Darwin's PEM1/PEM2 →
+  // /PEM_SLOT@0). Must be called after processInputVoltage so
+  // inputPowerType_ is resolved.
+  void publishPsuPemCounters(
+      const std::map<std::string, std::optional<platform_manager::PmUnitInfo>>&
+          pmUnitInfoMap,
       const PowerConfig& powerConfig);
 
   SensorData processAsicCmd(const AsicCommand& asicCommand);
@@ -122,7 +141,9 @@ class SensorServiceImpl {
       int16_t productSubVersion);
 
   // Pre-fetches PmUnitInfo for every PmUnitSensors entry that declares
-  // versionedSensors so the version resolver gets one RPC per slot.
+  // versionedSensors OR is a field-replaceable PSU/PEM slot, so the
+  // version resolver, fetchSensorData's skip-absent check, processPower,
+  // and publishPsuPemCounters all share one RPC per slot per cycle.
   std::map<std::string, std::optional<platform_manager::PmUnitInfo>>
   prefetchPmUnitInfos();
 
