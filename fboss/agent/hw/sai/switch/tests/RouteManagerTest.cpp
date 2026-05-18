@@ -1143,6 +1143,76 @@ TEST_F(Srv6RouteTest, addV4AndV6RoutesWithSameLinkLocalSrv6NextHopGroup) {
       v6Handle1, swNextHops, expectedNextHopGroupId);
 }
 
+TEST_F(Srv6RouteTest, addV4AndV6RoutesWithDifferentLinkLocalSrv6NextHopGroup) {
+  auto swTunnel0 = makeSrv6Tunnel("srv6tunnel0", intf0.id);
+  auto swTunnel1 = makeSrv6Tunnel("srv6tunnel1", intf1.id);
+  auto swTunnel2 = makeSrv6Tunnel("srv6tunnel2", intf2.id);
+  saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel0);
+  saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel1);
+  saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel2);
+
+  const folly::IPAddressV6 linkLocalNextHop0{"fe80::1"};
+  const folly::IPAddressV6 linkLocalNextHop1{"fe80::2"};
+  const folly::IPAddressV6 linkLocalNextHop2{"fe80::3"};
+  resolveNdp(intf0, linkLocalNextHop0, folly::MacAddress{"10:10:10:10:10:aa"});
+  resolveNdp(intf1, linkLocalNextHop1, folly::MacAddress{"10:10:10:10:10:aa"});
+  resolveNdp(intf2, linkLocalNextHop2, folly::MacAddress{"10:10:10:10:10:bb"});
+  std::vector<ResolvedNextHop> swNextHops{
+      makeSrv6NextHop(
+          intf0, folly::IPAddress(linkLocalNextHop0), "srv6tunnel0"),
+      makeSrv6NextHop(
+          intf1, folly::IPAddress(linkLocalNextHop1), "srv6tunnel1"),
+      makeSrv6NextHop(
+          intf2, folly::IPAddress(linkLocalNextHop2), "srv6tunnel2")};
+
+  auto v4Route0 =
+      makeSrv6EcmpRoute({folly::IPAddress("42.42.42.42"), 24}, swNextHops);
+  auto v4Route1 =
+      makeSrv6EcmpRoute({folly::IPAddress("43.43.43.43"), 24}, swNextHops);
+  auto v6Route0 =
+      makeSrv6EcmpRouteV6({folly::IPAddress("2401:db8::"), 64}, swNextHops);
+  auto v6Route1 =
+      makeSrv6EcmpRouteV6({folly::IPAddress("2401:db8:1::"), 64}, swNextHops);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      v4Route0, RouterID(0), getProgrammedState());
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      v4Route1, RouterID(0), getProgrammedState());
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV6>(
+      v6Route0, RouterID(0), getProgrammedState());
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV6>(
+      v6Route1, RouterID(0), getProgrammedState());
+
+  auto* v4Handle0 = saiManagerTable->routeManager().getRouteHandle(
+      saiManagerTable->routeManager().routeEntryFromSwRoute(
+          RouterID(0), v4Route0));
+  auto* v4Handle1 = saiManagerTable->routeManager().getRouteHandle(
+      saiManagerTable->routeManager().routeEntryFromSwRoute(
+          RouterID(0), v4Route1));
+  auto* v6Handle0 = saiManagerTable->routeManager().getRouteHandle(
+      saiManagerTable->routeManager().routeEntryFromSwRoute(
+          RouterID(0), v6Route0));
+  auto* v6Handle1 = saiManagerTable->routeManager().getRouteHandle(
+      saiManagerTable->routeManager().routeEntryFromSwRoute(
+          RouterID(0), v6Route1));
+  ASSERT_NE(v4Handle0, nullptr);
+  ASSERT_NE(v4Handle1, nullptr);
+  ASSERT_NE(v6Handle0, nullptr);
+  ASSERT_NE(v6Handle1, nullptr);
+
+  const auto expectedNextHopGroupId = v4Handle0->nextHopAdapterKey();
+  EXPECT_EQ(v4Handle1->nextHopAdapterKey(), expectedNextHopGroupId);
+  EXPECT_EQ(v6Handle0->nextHopAdapterKey(), expectedNextHopGroupId);
+  EXPECT_EQ(v6Handle1->nextHopAdapterKey(), expectedNextHopGroupId);
+  verifySrv6NextHopGroupAndSidLists(
+      v4Handle0, swNextHops, expectedNextHopGroupId);
+  verifySrv6NextHopGroupAndSidLists(
+      v4Handle1, swNextHops, expectedNextHopGroupId);
+  verifySrv6NextHopGroupAndSidLists(
+      v6Handle0, swNextHops, expectedNextHopGroupId);
+  verifySrv6NextHopGroupAndSidLists(
+      v6Handle1, swNextHops, expectedNextHopGroupId);
+}
+
 TEST_F(Srv6RouteTest, removeRouteWithSrv6NextHopGroup) {
   auto swTunnel0 = makeSrv6Tunnel("srv6tunnel0", intf0.id);
   auto swTunnel1 = makeSrv6Tunnel("srv6tunnel1", intf1.id);
