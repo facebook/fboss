@@ -7,6 +7,7 @@ extern "C" {
 }
 
 #include <folly/logging/xlog.h>
+#include <limits>
 
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -104,28 +105,41 @@ void rebuildAndRebindTam(
              << " port(s)";
 }
 
-// Build a TAM_EVENT_THRESHOLD object whose UNIT is packets and RATE is the
-// configured packet-per-second cap. Returns nullptr if no rate is configured
-// or the configured value is non-positive — SAI_TAM_EVENT_ATTR_THRESHOLD
-// will then be left unset on the TAM_EVENT, which is the most permissive
-// default (no rate limiting).
+// Build a TAM_EVENT_THRESHOLD object for PACKET_DROP events.
+// On this SDK path, SAI_TAM_EVENT_ATTR_THRESHOLD is mandatory for
+// SAI_TAM_EVENT_TYPE_PACKET_DROP, so we always create and attach a threshold
+// object. When dropPacketRateThreshold is configured with a positive value,
+// program UNIT=PACKETS and RATE=<value>; otherwise leave threshold fields
+// unset to keep the most permissive behavior (no explicit rate limiting).
 std::shared_ptr<SaiTamEventThreshold> createTamEventThreshold(
     SaiStore* saiStore,
     std::optional<int32_t> rateThreshold) {
-  if (!rateThreshold.has_value() || *rateThreshold <= 0) {
-    if (rateThreshold.has_value()) {
-      XLOG(WARN) << "MirrorOnDropReport dropPacketRateThreshold="
-                 << *rateThreshold
-                 << " is non-positive; ignoring (no rate limiting will apply)";
-    }
-    return nullptr;
-  }
   SaiTamEventThresholdTraits::CreateAttributes thresholdTraits;
-  std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Unit>>(
-      thresholdTraits) =
-      static_cast<sai_int32_t>(SAI_TAM_EVENT_THRESHOLD_UNIT_PACKETS);
-  std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Rate>>(
-      thresholdTraits) = static_cast<sai_uint32_t>(*rateThreshold);
+  if (rateThreshold.has_value() && *rateThreshold > 0) {
+    std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Unit>>(
+        thresholdTraits) =
+        static_cast<sai_int32_t>(SAI_TAM_EVENT_THRESHOLD_UNIT_PACKETS);
+    std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Rate>>(
+        thresholdTraits) = static_cast<sai_uint32_t>(*rateThreshold);
+  } else if (rateThreshold.has_value()) {
+    XLOG(WARN) << "MirrorOnDropReport dropPacketRateThreshold="
+               << *rateThreshold
+               << " is non-positive; using threshold object without explicit "
+               << "rate limit";
+    std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Unit>>(
+        thresholdTraits) =
+        static_cast<sai_int32_t>(SAI_TAM_EVENT_THRESHOLD_UNIT_PACKETS);
+    std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Rate>>(
+        thresholdTraits) = std::numeric_limits<sai_uint32_t>::max();
+  } else {
+    // MoD default behavior when no threshold is configured: keep reporting
+    // enabled by using a permissive packet-rate cap.
+    std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Unit>>(
+        thresholdTraits) =
+        static_cast<sai_int32_t>(SAI_TAM_EVENT_THRESHOLD_UNIT_PACKETS);
+    std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Rate>>(
+        thresholdTraits) = std::numeric_limits<sai_uint32_t>::max();
+  }
   auto& store = saiStore->get<SaiTamEventThresholdTraits>();
   return store.setObject(thresholdTraits, thresholdTraits);
 }
@@ -220,13 +234,39 @@ std::shared_ptr<SaiTamTransport> SaiTamManager::createTamTransport(
     sai_int32_t transportType,
     std::optional<folly::MacAddress> dstMac) {
   auto& transportStore = saiStore_->get<SaiTamTransportTraits>();
+  std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress> srcMacAttr =
+      std::nullopt;
+  if (SaiTamTransportTraits::Attributes::SrcMacAddress::
+          optionalExtensionAttributeId()
+              .has_value()) {
+    srcMacAttr = SaiTamTransportTraits::Attributes::SrcMacAddress(
+        folly::MacAddress(report->getSwitchMac()));
+  } else {
+    XLOG(INFO) << "Skipping TAM transport srcMac extension attribute "
+               << "(unsupported on this SAI implementation)";
+  }
+
+  std::optional<SaiTamTransportTraits::Attributes::DstMacAddress> dstMacAttr =
+      std::nullopt;
+  if (dstMac.has_value()) {
+    if (SaiTamTransportTraits::Attributes::DstMacAddress::
+            optionalExtensionAttributeId()
+                .has_value()) {
+      dstMacAttr =
+          SaiTamTransportTraits::Attributes::DstMacAddress(dstMac.value());
+    } else {
+      XLOG(INFO) << "Skipping TAM transport dstMac extension attribute "
+                 << "(unsupported on this SAI implementation)";
+    }
+  }
+
   auto transportTraits = SaiTamTransportTraits::AdapterHostKey{
       transportType,
       report->getLocalSrcPort(),
       report->getCollectorPort(),
       report->getMtu(),
-      folly::MacAddress(report->getSwitchMac()),
-      dstMac,
+      srcMacAttr,
+      dstMacAttr,
   };
   return transportStore.setObject(transportTraits, transportTraits);
 }
