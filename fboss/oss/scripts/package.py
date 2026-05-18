@@ -288,6 +288,7 @@ def parse_args(argv):
 def main(argv=None) -> None:
     args = parse_args(sys.argv[1:] if argv is None else argv)
     target_mappings = _build_target(args.target, args.build_dir)
+    # pyrefly: ignore [bad-argument-type]
     package_fboss(args.target, target_mappings)
 
 

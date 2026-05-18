@@ -73,12 +73,17 @@ def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping
             # Skip the header
             continue
         row = line.split(",")
+        # pyrefly: ignore [missing-attribute]
         if row[Column.A_PHYSICAL_TX_LANE]:
             # If there this a physical tx lane, there should be information
             # about its and the corresponding rx lane
+            # pyrefly: ignore [missing-attribute]
             a_tx_physical_lane = int(row[Column.A_PHYSICAL_TX_LANE])
+            # pyrefly: ignore [missing-attribute]
             a_rx_physical_lane = int(row[Column.A_PHYSICAL_RX_LANE])
+            # pyrefly: ignore [missing-attribute]
             a_tx_polarity_swap = bool(row[Column.A_TX_POLARITY_SWAP] == "Y")
+            # pyrefly: ignore [missing-attribute]
             a_rx_polarity_swap = bool(row[Column.A_RX_POLARITY_SWAP] == "Y")
         else:
             a_tx_physical_lane = None
@@ -86,6 +91,7 @@ def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping
             a_tx_polarity_swap = None
             a_rx_polarity_swap = None
         a_lane = Lane(
+            # pyrefly: ignore [missing-attribute]
             logical_id=int(row[Column.A_CORE_LANE]),
             tx_physical_lane=a_tx_physical_lane,
             rx_physical_lane=a_rx_physical_lane,
@@ -93,10 +99,15 @@ def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping
             rx_polarity_swap=a_rx_polarity_swap,
         )
         a_chip = Chip(
+            # pyrefly: ignore [missing-attribute]
             slot_id=int(row[Column.A_SLOT_ID]),
+            # pyrefly: ignore [missing-attribute]
             chip_id=int(row[Column.A_CHIP_ID]),
+            # pyrefly: ignore [missing-attribute]
             chip_type=ChipType[row[Column.A_CHIP_TYPE]],
+            # pyrefly: ignore [missing-attribute]
             core_id=int(row[Column.A_CORE_ID]),
+            # pyrefly: ignore [missing-attribute]
             core_type=CoreType[row[Column.A_CORE_TYPE]],
         )
         a_connection_end = ConnectionEnd(
@@ -104,19 +115,30 @@ def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping
             lane=a_lane,
         )
         # Z end is optional for ports like recycle ports
+        # pyrefly: ignore [missing-attribute]
         if row[Column.Z_SLOT_ID]:
             z_chip = Chip(
+                # pyrefly: ignore [missing-attribute]
                 slot_id=int(row[Column.Z_SLOT_ID]),
+                # pyrefly: ignore [missing-attribute]
                 chip_id=int(row[Column.Z_CHIP_ID]),
+                # pyrefly: ignore [missing-attribute]
                 chip_type=ChipType[row[Column.Z_CHIP_TYPE]],
+                # pyrefly: ignore [missing-attribute]
                 core_id=int(row[Column.Z_CORE_ID]),
+                # pyrefly: ignore [missing-attribute]
                 core_type=CoreType[row[Column.Z_CORE_TYPE]],
             )
             z_lane = Lane(
+                # pyrefly: ignore [missing-attribute]
                 logical_id=int(row[Column.Z_CORE_LANE]),
+                # pyrefly: ignore [missing-attribute]
                 tx_physical_lane=int(row[Column.Z_PHYSICAL_TX_LANE]),
+                # pyrefly: ignore [missing-attribute]
                 rx_physical_lane=int(row[Column.Z_PHYSICAL_RX_LANE]),
+                # pyrefly: ignore [missing-attribute]
                 tx_polarity_swap=bool(row[Column.Z_TX_POLARITY_SWAP] == "Y"),
+                # pyrefly: ignore [missing-attribute]
                 rx_polarity_swap=bool(row[Column.Z_RX_POLARITY_SWAP] == "Y"),
             )
             z_connection_end = ConnectionEnd(
@@ -146,7 +168,9 @@ def read_port_profile_mapping(
             # Skip the header
             continue
         row = line.split(",")
+        # pyrefly: ignore [missing-attribute]
         global_port_id = int(row[Column.GLOBAL_PORT_ID])
+        # pyrefly: ignore [missing-attribute]
         logical_port_id = int(row[Column.LOGICAL_PORT_ID])
 
         # If global_port_id is not the same as logical_port_id then this is a multi_npu system.
@@ -154,29 +178,43 @@ def read_port_profile_mapping(
         if not multi_npu and global_port_id != logical_port_id:
             continue
 
+        # pyrefly: ignore [missing-attribute]
         port_name = row[Column.PORT_NAME]
+        # pyrefly: ignore [missing-attribute]
         if row[Column.ATTACHED_COREID]:
+            # pyrefly: ignore [missing-attribute]
             attached_coreid = int(row[Column.ATTACHED_COREID])
         else:
             attached_coreid = None
+        # pyrefly: ignore [missing-attribute]
         if row[Column.ATTACHED_CORE_PORTID]:
+            # pyrefly: ignore [missing-attribute]
             attached_core_portid = int(row[Column.ATTACHED_CORE_PORTID])
         else:
             attached_core_portid = None
+        # pyrefly: ignore [missing-attribute]
         if row[Column.VIRTUAL_DEVICE_ID]:
+            # pyrefly: ignore [missing-attribute]
             virtual_device_id = int(row[Column.VIRTUAL_DEVICE_ID])
         else:
             virtual_device_id = None
         supported_profiles = []
+        # pyrefly: ignore [missing-attribute]
         for profile in row[Column.SUPPORTED_PROFILES].split("-"):
             supported_profiles.append(PortProfileID(int(profile)))
+        # pyrefly: ignore [missing-attribute]
         port_type = PortType(int(row[Column.PORT_TYPE]))
+        # pyrefly: ignore [missing-attribute]
         scope = Scope(int(row[Column.SCOPE]))
+        # pyrefly: ignore [missing-attribute]
         if Column.PARENT_PORT < len(row) and row[Column.PARENT_PORT]:
+            # pyrefly: ignore [missing-attribute]
             parent_port_id = int(row[Column.PARENT_PORT])
         else:
             parent_port_id = None
+        # pyrefly: ignore [missing-attribute]
         if Column.CONTROLLING_PORT < len(row) and row[Column.CONTROLLING_PORT]:
+            # pyrefly: ignore [missing-attribute]
             controlling_port = int(row[Column.CONTROLLING_PORT])
         else:
             controlling_port = None
@@ -210,29 +248,42 @@ def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSett
             # Skip the header
             continue
         row = line.split(",")
+        # pyrefly: ignore [missing-attribute]
         speed = int(row[Column.PORT_SPEED_MBPS])
         try:
             PortSpeed(speed)
         except ValueError:
             raise Exception("Invalid speed ", speed)
+        # pyrefly: ignore [missing-attribute]
         a_chip_type = ChipType[row[Column.A_CHIP_TYPE]]
+        # pyrefly: ignore [missing-attribute]
         if row[Column.Z_CHIP_TYPE]:
+            # pyrefly: ignore [missing-attribute]
             z_chip_type = ChipType[row[Column.Z_CHIP_TYPE]]
         else:
             z_chip_type = None
+        # pyrefly: ignore [missing-attribute]
         num_lanes = int(row[Column.NUM_LANES])
+        # pyrefly: ignore [missing-attribute]
         modulation = IpModulation[row[Column.MODULATION]]
+        # pyrefly: ignore [missing-attribute]
         a_fec = FecMode[row[Column.A_FEC]]
         #  if empty, Z_FEC default to None
+        # pyrefly: ignore [missing-attribute]
         z_fec = FecMode[row[Column.Z_FEC]] if row[Column.Z_FEC] else None
+        # pyrefly: ignore [missing-attribute]
         media_type = TransmitterTechnology[row[Column.MEDIA_TYPE]]
         a_interface_type = (
+            # pyrefly: ignore [missing-attribute]
             InterfaceType[row[Column.A_INTERFACE_TYPE]]
+            # pyrefly: ignore [missing-attribute]
             if row[Column.A_INTERFACE_TYPE]
             else InterfaceType.NONE
         )
         z_interface_type = (
+            # pyrefly: ignore [missing-attribute]
             InterfaceType[row[Column.Z_INTERFACE_TYPE]]
+            # pyrefly: ignore [missing-attribute]
             if row[Column.Z_INTERFACE_TYPE]
             else InterfaceType.NONE
         )

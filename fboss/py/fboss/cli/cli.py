@@ -426,6 +426,7 @@ class PortPrbsCli:
         pass
 
     @click.group(cls=AliasedGroup)  # noqa: B902
+    # pyrefly: ignore [bad-argument-type]
     @click.pass_context
     def system(ctx):  # noqa: B902
         """Port prbs gearbox system commands"""
@@ -433,6 +434,7 @@ class PortPrbsCli:
         pass
 
     @click.group(cls=AliasedGroup)  # noqa: B902
+    # pyrefly: ignore [bad-argument-type]
     @click.pass_context
     def line(ctx):  # noqa: B902
         """Port prbs gearbox system commands"""
@@ -440,6 +442,7 @@ class PortPrbsCli:
         pass
 
     @click.group(cls=AliasedGroup)  # noqa: B902
+    # pyrefly: ignore [bad-argument-type]
     @click.pass_context
     def asic(ctx):  # noqa: B902
         """Port prbs asic commands"""
