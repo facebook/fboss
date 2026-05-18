@@ -850,4 +850,59 @@ TEST_F(MySidBindingSidTest, distinctNextHopWhenRouterInterfaceDiffers) {
   EXPECT_NE(nhId0, nhId1);
 }
 
+TEST_F(MySidBindingSidTest, singleSrv6NextHopTracksResolutionAndLink) {
+  addSrv6Tunnel();
+
+  const std::vector<folly::IPAddressV6> sidList{
+      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  const auto srv6NextHop = makeSrv6NextHop(
+      testInterfaces[0], folly::IPAddressV6("fe80::10"), sidList);
+
+  RouteNextHopSet nhopSet{srv6NextHop};
+  auto allocResult = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet);
+  auto nextHopSetId = allocResult.nextHopIdSetIter->second.id;
+
+  auto state = makeStateWithNextHopIdMaps();
+  auto mySid = makeMySid("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  mySid->setResolvedNextHopsId(nextHopSetId);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid, state);
+
+  auto key = getMySidAdapterHostKey(*mySid, saiManagerTable);
+  auto& srv6Api = saiApiTable->srv6Api();
+
+  // Next hop unresolved — packet action should be DROP
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key, SaiMySidEntryTraits::Attributes::PacketAction{}),
+      SAI_PACKET_ACTION_DROP);
+
+  // Resolve NDP — packet action should become FORWARD
+  auto ndpEntry = resolveNdp(
+      testInterfaces[0],
+      srv6NextHop.addr().asV6(),
+      folly::MacAddress{"10:10:10:10:10:a0"});
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key, SaiMySidEntryTraits::Attributes::PacketAction{}),
+      SAI_PACKET_ACTION_FORWARD);
+
+  // Link down — packet action should go back to DROP
+  bringLinkDown(testInterfaces[0]);
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key, SaiMySidEntryTraits::Attributes::PacketAction{}),
+      SAI_PACKET_ACTION_DROP);
+
+  // Unresolve and re-resolve NDP — packet action should return to FORWARD
+  unresolveNdp(ndpEntry);
+  resolveNdp(
+      testInterfaces[0],
+      srv6NextHop.addr().asV6(),
+      folly::MacAddress{"10:10:10:10:10:a0"});
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key, SaiMySidEntryTraits::Attributes::PacketAction{}),
+      SAI_PACKET_ACTION_FORWARD);
+}
+
 #endif
