@@ -251,6 +251,91 @@ class AgentSrv6EncapTest : public AgentHwTest {
     routeUpdater.program();
   }
 
+  void addRecursiveSrv6RoutesSameSidListSameRif() {
+    utility::EcmpSetupTargetedPorts<folly::IPAddressV6> ecmpHelper(
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
+
+    auto makeLinkLocalNhop = [](utility::EcmpNextHop<folly::IPAddressV6> nhop,
+                                const folly::IPAddressV6& linkLocalIp) {
+      nhop.linkLocalNhopIp = linkLocalIp;
+      return nhop;
+    };
+
+    const auto rif0Nhop = ecmpHelper.getNextHops()[0];
+    const folly::IPAddressV6 linkLocalIp0{"fe80:face:b11c::1"};
+    const folly::IPAddressV6 linkLocalIp1{"fe80:face:b11c::2"};
+    const auto rif0Ip0 = makeLinkLocalNhop(rif0Nhop, linkLocalIp0);
+    const auto rif0Ip1 = makeLinkLocalNhop(rif0Nhop, linkLocalIp1);
+
+    this->applyNewState(
+        [&ecmpHelper, &rif0Ip0, &rif0Ip1](
+            const std::shared_ptr<SwitchState> state) {
+          auto newState = ecmpHelper.resolveNextHop(
+              state, rif0Ip0, true /* useLinkLocal */);
+          return ecmpHelper.resolveNextHop(
+              newState, rif0Ip1, true /* useLinkLocal */);
+        },
+        "resolve recursive SRv6 link-local next hops");
+
+    auto makeResolvedNhop = [](const auto& nhop) {
+      return ResolvedNextHop(
+          folly::IPAddress(nhop.linkLocalNhopIp.value()),
+          nhop.intf,
+          ECMP_WEIGHT);
+    };
+
+    auto routeUpdater = this->getSw()->getRouteUpdater();
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2901::"),
+        48,
+        ClientID::OPENR,
+        RouteNextHopEntry(
+            RouteNextHopSet{
+                makeResolvedNhop(rif0Ip0), makeResolvedNhop(rif0Ip1)},
+            AdminDistance::OPENR));
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2902::"),
+        48,
+        ClientID::OPENR,
+        RouteNextHopEntry(
+            RouteNextHopSet{
+                makeResolvedNhop(rif0Ip0), makeResolvedNhop(rif0Ip1)},
+            AdminDistance::OPENR));
+
+    auto makeSrv6Nhop = [this](const folly::IPAddress& ip) {
+      return UnresolvedNextHop(
+          ip,
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::vector<folly::IPAddressV6>{kSid0},
+          TunnelType::SRV6_ENCAP,
+          std::string("srv6Tunnel0"));
+    };
+
+    routeUpdater.addRoute(
+        RouterID(0),
+        kEncapRoutePrefix,
+        kEncapRoutePrefixLen,
+        ClientID::TE_AGENT,
+        RouteNextHopEntry(
+            RouteNextHopSet{makeSrv6Nhop(folly::IPAddress("2901::1"))},
+            AdminDistance::TE_AGENT));
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2800:3::"),
+        kEncapRoutePrefixLen,
+        ClientID::TE_AGENT,
+        RouteNextHopEntry(
+            RouteNextHopSet{makeSrv6Nhop(folly::IPAddress("2902::1"))},
+            AdminDistance::TE_AGENT));
+    routeUpdater.program();
+  }
+
   template <typename CIDRNetworkT>
   void addEncapRoute(
       const CIDRNetworkT& prefix,
@@ -590,6 +675,31 @@ TYPED_TEST(AgentSrv6EncapTest, recursiveResolutionPreservesSidList) {
         false /*ecnMarked*/,
         false /*isV4*/,
         {this->kSid0, this->kSid1});
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6EncapTest, recursiveResolutionSameSidListSameRif) {
+  auto setup = [this]() {
+    // Skip programming direct encap routes to avoid colliding
+    // SRv6 managed next hop keys with recursive resolution.
+    this->setupHelper(false /*resolveNeighbors*/, false /*programEncapRoutes*/);
+    this->addRecursiveSrv6RoutesSameSidListSameRif();
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto rif0EgressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+
+    this->verifyEncapPacket(
+        {rif0EgressPort}, false /*ecnMarked*/, false /*isV4*/, {this->kSid0});
+    this->verifyEncapPacket(
+        {rif0EgressPort},
+        false /*ecnMarked*/,
+        false /*isV4*/,
+        {this->kSid0},
+        std::nullopt,
+        folly::IPAddress("2800:3::1"));
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
