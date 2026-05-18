@@ -345,17 +345,25 @@ class MySidBindingSidTest : public MySidManagerWithNextHopIdTest {
         kSrv6TunnelId};
   }
 
-  void resolveNdp(
+  std::shared_ptr<NdpEntry> makeNdpEntry(
       const TestInterface& testInterface,
       const folly::IPAddressV6& ip,
       const folly::MacAddress& mac) const {
     const auto& remote = testInterface.remoteHosts.at(0);
-    auto ndpEntry = std::make_shared<NdpEntry>(
+    return std::make_shared<NdpEntry>(
         ip,
         mac,
         PortDescriptor(PortID(remote.port.id)),
         InterfaceID(testInterface.id),
         state::NeighborEntryType::DYNAMIC_ENTRY);
+  }
+
+  std::shared_ptr<NdpEntry> resolveNdp(
+      const TestInterface& testInterface,
+      const folly::IPAddressV6& ip,
+      const folly::MacAddress& mac) const {
+    const auto& remote = testInterface.remoteHosts.at(0);
+    auto ndpEntry = makeNdpEntry(testInterface, ip, mac);
     saiManagerTable->neighborManager().addNeighbor(ndpEntry);
     saiManagerTable->fdbManager().addFdbEntry(
         SaiPortDescriptor(PortID(remote.port.id)),
@@ -363,6 +371,17 @@ class MySidBindingSidTest : public MySidManagerWithNextHopIdTest {
         mac,
         SAI_FDB_ENTRY_TYPE_STATIC,
         std::nullopt);
+    return ndpEntry;
+  }
+
+  void unresolveNdp(const std::shared_ptr<NdpEntry>& ndpEntry) const {
+    saiManagerTable->neighborManager().removeNeighbor(ndpEntry);
+  }
+
+  void bringLinkDown(const TestInterface& testInterface) const {
+    const auto& remote = testInterface.remoteHosts.at(0);
+    saiManagerTable->fdbManager().handleLinkDown(
+        SaiPortDescriptor(PortID(remote.port.id)));
   }
 
   std::shared_ptr<SwitchState> makeStateWithNextHopIdMaps() {
@@ -478,6 +497,58 @@ TEST_F(MySidBindingSidTest, addWithResolvedSrv6NextHopGroup) {
   nextHopIds.insert(verifySrv6SidListAndNextHop(srv6NextHop0));
   nextHopIds.insert(verifySrv6SidListAndNextHop(srv6NextHop1));
   EXPECT_EQ(nextHopIds.size(), 2);
+}
+
+TEST_F(MySidBindingSidTest, resolvedSrv6NextHopGroupTracksResolutionAndLink) {
+  addSrv6Tunnel();
+
+  const std::vector<folly::IPAddressV6> sidList0{
+      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  const std::vector<folly::IPAddressV6> sidList1{
+      folly::IPAddressV6("2001:db8::30"), folly::IPAddressV6("2001:db8::40")};
+  const auto srv6NextHop0 = makeSrv6NextHop(
+      testInterfaces[0], folly::IPAddressV6("fe80::10"), sidList0);
+  const auto srv6NextHop1 = makeSrv6NextHop(
+      testInterfaces[1], folly::IPAddressV6("fe80::11"), sidList1);
+
+  RouteNextHopSet nhopSet{srv6NextHop0, srv6NextHop1};
+  auto allocResult = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet);
+  auto nextHopSetId = allocResult.nextHopIdSetIter->second.id;
+
+  auto state = makeStateWithNextHopIdMaps();
+  auto mySid = makeMySid("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  mySid->setResolvedNextHopsId(nextHopSetId);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid, state);
+
+  auto nhgHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(nhopSet, std::nullopt));
+  ASSERT_NE(nhgHandle, nullptr);
+  EXPECT_EQ(nhgHandle->nextHopGroupSize(), 0);
+
+  resolveNdp(
+      testInterfaces[0],
+      srv6NextHop0.addr().asV6(),
+      folly::MacAddress{"10:10:10:10:10:a0"});
+  EXPECT_EQ(nhgHandle->nextHopGroupSize(), 1);
+
+  auto ndpEntry1 = resolveNdp(
+      testInterfaces[1],
+      srv6NextHop1.addr().asV6(),
+      folly::MacAddress{"10:10:10:10:10:a1"});
+  EXPECT_EQ(nhgHandle->nextHopGroupSize(), 2);
+
+  bringLinkDown(testInterfaces[1]);
+  EXPECT_EQ(nhgHandle->nextHopGroupSize(), 1);
+
+  unresolveNdp(ndpEntry1);
+  EXPECT_EQ(nhgHandle->nextHopGroupSize(), 1);
+
+  resolveNdp(
+      testInterfaces[1],
+      srv6NextHop1.addr().asV6(),
+      folly::MacAddress{"10:10:10:10:10:a1"});
+  EXPECT_EQ(nhgHandle->nextHopGroupSize(), 2);
 }
 
 TEST_F(MySidBindingSidTest, addWithDistinctResolvedSrv6NextHopsAndSameSidList) {
