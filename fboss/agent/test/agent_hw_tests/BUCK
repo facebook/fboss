@@ -181,6 +181,7 @@ cpp_library(
         "AgentDot1qMappingTest.cpp",
         "AgentDscpMarkingTests.cpp",
         "AgentEcmpTests.cpp",
+        "AgentEcmpTrunkTests.cpp",
         "AgentEgressForwardingDiscardCounterTests.cpp",
         "AgentEmptyTests.cpp",
         "AgentHighFrequencyStatsTests.cpp",

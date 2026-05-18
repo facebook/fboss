@@ -1,0 +1,118 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/state/RouteTypes.h"
+#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/EcmpTestUtils.h"
+#include "fboss/agent/test/utils/TrunkTestUtils.h"
+
+namespace facebook::fboss {
+
+using utility::addAggPort;
+using utility::disableTrunkPort;
+using utility::EcmpSetupTargetedPorts6;
+using utility::enableTrunkPorts;
+
+class AgentEcmpTrunkTest : public AgentHwTest {
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = utility::oneL3IntfNPortConfig(
+        ensemble.getPlatformMapping(),
+        ensemble.getL3Asics().front(),
+        ensemble.masterLogicalPortIds(),
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        ensemble.getL3Asics().front()->desiredLoopbackModes());
+    addAggPort(kAggId, getTrunkMemberPorts(ensemble), &config);
+    return config;
+  }
+
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::LAG};
+  }
+
+  std::vector<int32_t> getTrunkMemberPorts() const {
+    return getTrunkMemberPorts(*getAgentEnsemble());
+  }
+
+  static std::vector<int32_t> getTrunkMemberPorts(
+      const AgentEnsemble& ensemble) {
+    return {
+        (ensemble.masterLogicalPortIds()[kEcmpWidth - 1]),
+        (ensemble.masterLogicalPortIds()[kEcmpWidth])};
+  }
+
+  boost::container::flat_set<PortDescriptor> getEcmpPorts() const {
+    boost::container::flat_set<PortDescriptor> ports;
+    for (auto i = 0; i < kEcmpWidth - 1; ++i) {
+      ports.insert(PortDescriptor(PortID(masterLogicalPortIds()[i])));
+    }
+    ports.insert(PortDescriptor(kAggId));
+    return ports;
+  }
+
+  void ensureHelper() {
+    ecmpHelper_ = std::make_unique<EcmpSetupTargetedPorts6>(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), RouterID(0));
+  }
+
+  int getEcmpSizeInHw() {
+    facebook::fboss::utility::CIDRNetwork cidr;
+    cidr.IPAddress() = "::";
+    cidr.mask() = 0;
+    return utility::getEcmpSizeInHw(getAgentEnsemble(), cidr);
+  }
+
+  void runEcmpWithTrunkMinLinks(uint8_t minlinks) {
+    auto setup = [=, this]() {
+      ensureHelper();
+      auto state = enableTrunkPorts(getProgrammedState());
+      applyNewState(
+          [&](const std::shared_ptr<SwitchState>&) {
+            return utility::setTrunkMinLinkCount(state, minlinks);
+          },
+          "set trunk min links");
+      applyNewState(
+          [&](const std::shared_ptr<SwitchState>& in) {
+            return ecmpHelper_->resolveNextHops(in, getEcmpPorts());
+          },
+          "resolve next hops");
+      auto wrapper = getSw()->getRouteUpdater();
+      ecmpHelper_->programRoutes(&wrapper, getEcmpPorts());
+    };
+
+    auto verify = [=, this]() {
+      ensureHelper();
+      WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(kEcmpWidth, getEcmpSizeInHw()); });
+      // Disable one trunk member via LACP path (disableTrunkPort) instead
+      // of bringDownPort to avoid triggering neighbor purging in the agent.
+      auto state = disableTrunkPort(
+          getProgrammedState(), kAggId, PortID(getTrunkMemberPorts()[0]));
+      applyNewState(
+          [&](const std::shared_ptr<SwitchState>&) { return state; },
+          "disable trunk member");
+      auto numEcmpMembersToExclude = minlinks >= 2 ? 1 : 0;
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_EQ(
+            kEcmpWidth - numEcmpMembersToExclude, getEcmpSizeInHw());
+      });
+
+      state = enableTrunkPorts(getProgrammedState());
+      applyNewState(
+          [&](const std::shared_ptr<SwitchState>&) { return state; },
+          "re-enable trunk ports");
+      WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(kEcmpWidth, getEcmpSizeInHw()); });
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  static const int kEcmpWidth = 7;
+  const AggregatePortID kAggId{1};
+  std::unique_ptr<EcmpSetupTargetedPorts6> ecmpHelper_;
+};
+
+} // namespace facebook::fboss
