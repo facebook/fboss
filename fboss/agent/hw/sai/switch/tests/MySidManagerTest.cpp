@@ -599,4 +599,255 @@ TEST_F(MySidBindingSidTest, addWithDistinctResolvedSrv6NextHopsAndSameSidList) {
   EXPECT_EQ(nextHopIds.size(), 2);
 }
 
+TEST_F(MySidBindingSidTest, addWithSameLinkLocalNextHopDistinctSidLists) {
+  addSrv6Tunnel();
+
+  const std::vector<folly::IPAddressV6> sidList0{
+      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  const std::vector<folly::IPAddressV6> sidList1{
+      folly::IPAddressV6("2001:db8::30"), folly::IPAddressV6("2001:db8::40")};
+  const auto srv6NextHop0 = makeSrv6NextHop(
+      testInterfaces[0], folly::IPAddressV6("fe80::10"), sidList0);
+  const auto srv6NextHop1 = makeSrv6NextHop(
+      testInterfaces[0], folly::IPAddressV6("fe80::10"), sidList1);
+  resolveNdp(
+      testInterfaces[0],
+      folly::IPAddressV6("fe80::10"),
+      folly::MacAddress{"10:10:10:10:10:a0"});
+
+  RouteNextHopSet nhopSet0{srv6NextHop0};
+  auto allocResult0 = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet0);
+  auto nextHopSetId0 = allocResult0.nextHopIdSetIter->second.id;
+
+  RouteNextHopSet nhopSet1{srv6NextHop1};
+  auto allocResult1 = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet1);
+  auto nextHopSetId1 = allocResult1.nextHopIdSetIter->second.id;
+
+  auto state = makeStateWithNextHopIdMaps();
+
+  auto mySid0 = makeMySid("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  mySid0->setResolvedNextHopsId(nextHopSetId0);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid0, state);
+
+  auto mySid1 = makeMySid("fc00:100::2", 48, MySidType::BINDING_MICRO_SID);
+  mySid1->setResolvedNextHopsId(nextHopSetId1);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid1, state);
+
+  auto key0 = getMySidAdapterHostKey(*mySid0, saiManagerTable);
+  auto key1 = getMySidAdapterHostKey(*mySid1, saiManagerTable);
+  ASSERT_NE(saiManagerTable->srv6MySidManager().getMySidObject(key0), nullptr);
+  ASSERT_NE(saiManagerTable->srv6MySidManager().getMySidObject(key1), nullptr);
+
+  auto& srv6Api = saiApiTable->srv6Api();
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key0, SaiMySidEntryTraits::Attributes::EndpointBehavior{}),
+      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_B6_ENCAPS_RED);
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key1, SaiMySidEntryTraits::Attributes::EndpointBehavior{}),
+      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_B6_ENCAPS_RED);
+
+  std::set<sai_object_id_t> nextHopIds;
+  nextHopIds.insert(verifySrv6SidListAndNextHop(srv6NextHop0));
+  nextHopIds.insert(verifySrv6SidListAndNextHop(srv6NextHop1));
+  EXPECT_EQ(nextHopIds.size(), 2);
+}
+
+TEST_F(
+    MySidBindingSidTest,
+    addWithDistinctLinkLocalNextHopsAndDistinctSidLists) {
+  addSrv6Tunnel();
+
+  const std::vector<folly::IPAddressV6> sidList0{
+      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  const std::vector<folly::IPAddressV6> sidList1{
+      folly::IPAddressV6("2001:db8::30"), folly::IPAddressV6("2001:db8::40")};
+  const auto srv6NextHop0 = makeSrv6NextHop(
+      testInterfaces[0], folly::IPAddressV6("fe80::10"), sidList0);
+  const auto srv6NextHop1 = makeSrv6NextHop(
+      testInterfaces[1], folly::IPAddressV6("fe80::11"), sidList1);
+  resolveNdp(
+      testInterfaces[0],
+      srv6NextHop0.addr().asV6(),
+      folly::MacAddress{"10:10:10:10:10:a0"});
+  resolveNdp(
+      testInterfaces[1],
+      srv6NextHop1.addr().asV6(),
+      folly::MacAddress{"10:10:10:10:10:a1"});
+
+  RouteNextHopSet nhopSet0{srv6NextHop0};
+  auto allocResult0 = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet0);
+  auto nextHopSetId0 = allocResult0.nextHopIdSetIter->second.id;
+
+  RouteNextHopSet nhopSet1{srv6NextHop1};
+  auto allocResult1 = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet1);
+  auto nextHopSetId1 = allocResult1.nextHopIdSetIter->second.id;
+
+  auto state = makeStateWithNextHopIdMaps();
+
+  auto mySid0 = makeMySid("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  mySid0->setResolvedNextHopsId(nextHopSetId0);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid0, state);
+
+  auto mySid1 = makeMySid("fc00:100::2", 48, MySidType::BINDING_MICRO_SID);
+  mySid1->setResolvedNextHopsId(nextHopSetId1);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid1, state);
+
+  auto key0 = getMySidAdapterHostKey(*mySid0, saiManagerTable);
+  auto key1 = getMySidAdapterHostKey(*mySid1, saiManagerTable);
+  ASSERT_NE(saiManagerTable->srv6MySidManager().getMySidObject(key0), nullptr);
+  ASSERT_NE(saiManagerTable->srv6MySidManager().getMySidObject(key1), nullptr);
+
+  auto& srv6Api = saiApiTable->srv6Api();
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key0, SaiMySidEntryTraits::Attributes::EndpointBehavior{}),
+      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_B6_ENCAPS_RED);
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key1, SaiMySidEntryTraits::Attributes::EndpointBehavior{}),
+      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_B6_ENCAPS_RED);
+
+  std::set<sai_object_id_t> nextHopIds;
+  nextHopIds.insert(verifySrv6SidListAndNextHop(srv6NextHop0));
+  nextHopIds.insert(verifySrv6SidListAndNextHop(srv6NextHop1));
+  EXPECT_EQ(nextHopIds.size(), 2);
+}
+
+TEST_F(MySidBindingSidTest, addWithDistinctLinkLocalNextHopsAndSameSidList) {
+  addSrv6Tunnel();
+
+  const std::vector<folly::IPAddressV6> sidList{
+      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  const auto srv6NextHop0 = makeSrv6NextHop(
+      testInterfaces[0], folly::IPAddressV6("fe80::10"), sidList);
+  const auto srv6NextHop1 = makeSrv6NextHop(
+      testInterfaces[1], folly::IPAddressV6("fe80::11"), sidList);
+  resolveNdp(
+      testInterfaces[0],
+      srv6NextHop0.addr().asV6(),
+      folly::MacAddress{"10:10:10:10:10:a0"});
+  resolveNdp(
+      testInterfaces[1],
+      srv6NextHop1.addr().asV6(),
+      folly::MacAddress{"10:10:10:10:10:a1"});
+
+  RouteNextHopSet nhopSet0{srv6NextHop0};
+  auto allocResult0 = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet0);
+  auto nextHopSetId0 = allocResult0.nextHopIdSetIter->second.id;
+
+  RouteNextHopSet nhopSet1{srv6NextHop1};
+  auto allocResult1 = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet1);
+  auto nextHopSetId1 = allocResult1.nextHopIdSetIter->second.id;
+
+  auto state = makeStateWithNextHopIdMaps();
+
+  auto mySid0 = makeMySid("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  mySid0->setResolvedNextHopsId(nextHopSetId0);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid0, state);
+
+  auto mySid1 = makeMySid("fc00:100::2", 48, MySidType::BINDING_MICRO_SID);
+  mySid1->setResolvedNextHopsId(nextHopSetId1);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid1, state);
+
+  auto key0 = getMySidAdapterHostKey(*mySid0, saiManagerTable);
+  auto key1 = getMySidAdapterHostKey(*mySid1, saiManagerTable);
+  ASSERT_NE(saiManagerTable->srv6MySidManager().getMySidObject(key0), nullptr);
+  ASSERT_NE(saiManagerTable->srv6MySidManager().getMySidObject(key1), nullptr);
+
+  auto& srv6Api = saiApiTable->srv6Api();
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key0, SaiMySidEntryTraits::Attributes::EndpointBehavior{}),
+      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_B6_ENCAPS_RED);
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key1, SaiMySidEntryTraits::Attributes::EndpointBehavior{}),
+      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_B6_ENCAPS_RED);
+
+  std::set<sai_object_id_t> nextHopIds;
+  nextHopIds.insert(verifySrv6SidListAndNextHop(srv6NextHop0));
+  nextHopIds.insert(verifySrv6SidListAndNextHop(srv6NextHop1));
+  EXPECT_EQ(nextHopIds.size(), 2);
+}
+
+TEST_F(MySidBindingSidTest, sharedNextHopWhenAllFieldsMatch) {
+  addSrv6Tunnel();
+
+  const std::vector<folly::IPAddressV6> sidList{
+      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  const auto srv6NextHop0 = makeSrv6NextHop(
+      testInterfaces[0], folly::IPAddressV6("fe80::10"), sidList);
+  const auto srv6NextHop1 = makeSrv6NextHop(
+      testInterfaces[0], folly::IPAddressV6("fe80::10"), sidList);
+  resolveNdp(
+      testInterfaces[0],
+      folly::IPAddressV6("fe80::10"),
+      folly::MacAddress{"10:10:10:10:10:a0"});
+
+  RouteNextHopSet nhopSet0{srv6NextHop0};
+  auto allocResult0 = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet0);
+  auto nextHopSetId0 = allocResult0.nextHopIdSetIter->second.id;
+
+  RouteNextHopSet nhopSet1{srv6NextHop1};
+  auto allocResult1 = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet1);
+  auto nextHopSetId1 = allocResult1.nextHopIdSetIter->second.id;
+
+  auto state = makeStateWithNextHopIdMaps();
+
+  auto mySid0 = makeMySid("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  mySid0->setResolvedNextHopsId(nextHopSetId0);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid0, state);
+
+  auto mySid1 = makeMySid("fc00:100::2", 48, MySidType::BINDING_MICRO_SID);
+  mySid1->setResolvedNextHopsId(nextHopSetId1);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid1, state);
+
+  auto nhId0 = verifySrv6SidListAndNextHop(srv6NextHop0);
+  auto nhId1 = verifySrv6SidListAndNextHop(srv6NextHop1);
+  EXPECT_EQ(nhId0, nhId1);
+}
+
+TEST_F(MySidBindingSidTest, distinctNextHopWhenRouterInterfaceDiffers) {
+  addSrv6Tunnel();
+
+  const std::vector<folly::IPAddressV6> sidList{
+      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  const auto srv6NextHop0 = makeSrv6NextHop(
+      testInterfaces[0], folly::IPAddressV6("fe80::10"), sidList);
+  const auto srv6NextHop1 = makeSrv6NextHop(
+      testInterfaces[1], folly::IPAddressV6("fe80::10"), sidList);
+  resolveNdp(
+      testInterfaces[0],
+      folly::IPAddressV6("fe80::10"),
+      folly::MacAddress{"10:10:10:10:10:a0"});
+  resolveNdp(
+      testInterfaces[1],
+      folly::IPAddressV6("fe80::10"),
+      folly::MacAddress{"10:10:10:10:10:a1"});
+
+  RouteNextHopSet nhopSet0{srv6NextHop0};
+  auto allocResult0 = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet0);
+  auto nextHopSetId0 = allocResult0.nextHopIdSetIter->second.id;
+
+  RouteNextHopSet nhopSet1{srv6NextHop1};
+  auto allocResult1 = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet1);
+  auto nextHopSetId1 = allocResult1.nextHopIdSetIter->second.id;
+
+  auto state = makeStateWithNextHopIdMaps();
+
+  auto mySid0 = makeMySid("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  mySid0->setResolvedNextHopsId(nextHopSetId0);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid0, state);
+
+  auto mySid1 = makeMySid("fc00:100::2", 48, MySidType::BINDING_MICRO_SID);
+  mySid1->setResolvedNextHopsId(nextHopSetId1);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid1, state);
+
+  auto nhId0 = verifySrv6SidListAndNextHop(srv6NextHop0);
+  auto nhId1 = verifySrv6SidListAndNextHop(srv6NextHop1);
+  EXPECT_NE(nhId0, nhId1);
+}
+
 #endif
