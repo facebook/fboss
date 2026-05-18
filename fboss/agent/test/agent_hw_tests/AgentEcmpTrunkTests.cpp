@@ -120,4 +120,62 @@ TEST_F(AgentEcmpTrunkTest, TrunkNotRemovedFromEcmpWithMinLinks) {
   runEcmpWithTrunkMinLinks(1);
 }
 
+TEST_F(AgentEcmpTrunkTest, TrunkMemberRemoveWithRouteTest) {
+  uint8_t minlinks = 2;
+  auto setup = [=, this]() {
+    ensureHelper();
+    auto state = enableTrunkPorts(getProgrammedState());
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>&) {
+          return utility::setTrunkMinLinkCount(state, minlinks);
+        },
+        "set trunk min links");
+
+    std::vector<RoutePrefixV6> v6Prefixes = {
+        RoutePrefixV6{folly::IPAddressV6("1000::1"), 48},
+        RoutePrefixV6{folly::IPAddressV6("1001::1"), 48},
+        RoutePrefixV6{folly::IPAddressV6("1002::1"), 48},
+        RoutePrefixV6{folly::IPAddressV6("1003::1"), 48},
+        RoutePrefixV6{folly::IPAddressV6("1004::1"), 64},
+        RoutePrefixV6{folly::IPAddressV6("1005::1"), 64},
+        RoutePrefixV6{folly::IPAddressV6("1006::1"), 64},
+        RoutePrefixV6{folly::IPAddressV6("1007::1"), 128},
+        RoutePrefixV6{folly::IPAddressV6("1008::1"), 128},
+        RoutePrefixV6{folly::IPAddressV6("1009::1"), 128},
+    };
+
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>& in) {
+          return ecmpHelper_->resolveNextHops(in, getEcmpPorts());
+        },
+        "resolve next hops");
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper_->programRoutes(&wrapper, getEcmpPorts(), v6Prefixes);
+  };
+
+  auto verify = [=, this]() {
+    auto trunkMembers = getTrunkMemberPorts();
+    auto trunkMemberCount = trunkMembers.size();
+    auto activeMemberCount = trunkMemberCount;
+    for (const auto& member : trunkMembers) {
+      utility::verifyPktFromAggregatePort(*getAgentEnsemble(), kAggId);
+      auto state =
+          disableTrunkPort(getProgrammedState(), kAggId, PortID(member));
+      applyNewState(
+          [&](const std::shared_ptr<SwitchState>&) { return state; },
+          "disable trunk port");
+      activeMemberCount--;
+      utility::verifyAggregatePortMemberCount(
+          *getAgentEnsemble(), kAggId, activeMemberCount);
+    }
+    auto state = enableTrunkPorts(getProgrammedState());
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>&) { return state; },
+        "enable trunk ports");
+    utility::verifyAggregatePortMemberCount(
+        *getAgentEnsemble(), kAggId, trunkMemberCount);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
