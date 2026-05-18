@@ -682,17 +682,17 @@
           "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_1",
           "initRegSettings": [
             {
-              "__comment__": "Local temp(temp1) high limit setting for high byte. PR:1001",
+              "__comment__": "Local temp(temp1) high limit setting for high byte. PR:1092",
               "regOffset": 11,
               "ioBuf": [
-                95
+                90
               ]
             },
             {
-              "__comment__": "Remote temp1(temp2) high limit setting for high byte. PR:1001",
+              "__comment__": "Remote temp1(temp2) high limit setting for high byte. PR:1092",
               "regOffset": 13,
               "ioBuf": [
-                95
+                90
               ]
             },
             {
@@ -703,10 +703,10 @@
               ]
             },
             {
-              "__comment__": "Remote temp2(temp3) high limit setting for high byte. PR:1001",
+              "__comment__": "Remote temp2(temp3) high limit setting for high byte. PR:1092",
               "regOffset": 21,
               "ioBuf": [
-                95
+                90
               ]
             },
             {
@@ -764,17 +764,17 @@
           "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_2",
           "initRegSettings": [
             {
-              "__comment__": "Local temp(temp1) high limit setting for high byte. PR:1001",
+              "__comment__": "Local temp(temp1) high limit setting for high byte. PR:1092",
               "regOffset": 11,
               "ioBuf": [
-                95
+                90
               ]
             },
             {
-              "__comment__": "Remote temp1(temp2) high limit setting for high byte. PR:1001",
+              "__comment__": "Remote temp1(temp2) high limit setting for high byte. PR:1092",
               "regOffset": 13,
               "ioBuf": [
-                95
+                90
               ]
             },
             {
