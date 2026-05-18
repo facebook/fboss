@@ -2921,7 +2921,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_VRM1/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 115
+            "upperCriticalVal": 95,
+            "maxAlarmVal": 90
           },
           "compute": "@/1000"
         },
@@ -2953,6 +2954,10 @@
           "name": "SMB_0V75_0V9_R_VRM1_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_VRM2/temp1_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 95,
+            "maxAlarmVal": 90
+          },
           "compute": "@/1000"
         },
         {
@@ -2983,6 +2988,10 @@
           "name": "SMB_0V75_0V9_L_VRM0_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_VRM3/temp1_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 95,
+            "maxAlarmVal": 90
+          },
           "compute": "@/1000"
         }
       ],
@@ -5974,6 +5983,10 @@
           "name": "SMB_3V3_L_VRM_TEMP",
           "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 85,
+            "maxAlarmVal": 80
+          },
           "compute": "@/1000"
         }
       ],
@@ -6722,6 +6735,10 @@
           "name": "SMB_3V3_R_VRM_TEMP",
           "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 85,
+            "maxAlarmVal": 80
+          },
           "compute": "@/1000"
         }
       ],
