@@ -95,6 +95,7 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
 #include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h"
+#include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlanDefault.h"
 #include "fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h"
 #include "fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h"
@@ -772,6 +773,23 @@ const CommandTree& kConfigCommandTree() {
                     argRegistrar<CmdConfigVlanStaticMacDeleteTraits>,
                 }},
            }},
+      },
+
+      // Registered separately (merged into the existing "config vlan" by
+      // CmdSubcommands::addCommandBranch) so "default" lands at depth 0 and
+      // owns data_[0] for its own VLAN ID arg, independent of the
+      // "config vlan <id>" context (whose arg also lives at data_[0] but is
+      // not populated when the "default" subcommand is matched).
+      {
+          "config",
+          "vlan",
+          "Configure VLAN settings",
+          {{
+              "default",
+              "Set global default VLAN ID for untagged traffic",
+              commandHandler<CmdConfigVlanDefault>,
+              argRegistrar<CmdConfigVlanDefaultTraits>,
+          }},
       },
 
       {"delete",
