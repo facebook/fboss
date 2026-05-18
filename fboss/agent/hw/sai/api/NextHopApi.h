@@ -98,6 +98,47 @@ struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_TUNNEL_ENCAP> {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 template <typename Attributes>
 struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_SRV6_SIDLIST> {
+  /*
+   * SAI_NEXT_HOP_TYPE_SRV6_SIDLIST next hops are keyed by the SRv6 tunnel and
+   * the SAI object id of the SID list. The SID-list id is intentionally used
+   * here because SAI_NEXT_HOP_ATTR_SRV6_SIDLIST_ID is the attribute programmed
+   * on the next-hop object.
+   *
+   * To reason about the full logical host key, recurse through
+   * SaiSrv6SidListTraits::AdapterHostKey for the SID-list id. That key is:
+   *
+   *   (SAI_SRV6_SIDLIST_ATTR_TYPE,
+   *    SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST,
+   *    RouterInterfaceSaiId,
+   *    underlay next-hop IP)
+   *
+   * This matters because SAI_NEXT_HOP_ATTR_SRV6_SIDLIST_ID collapses the
+   * SID-list object's full host key into an object id. The SID-list id is
+   * different whenever any component of SaiSrv6SidListTraits::AdapterHostKey is
+   * different. That disambiguates cases such as:
+   *
+   *   - same underlay IP and same RouterInterfaceSaiId, but different
+   *     SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST
+   *   - different underlay IP, but same RouterInterfaceSaiId and same
+   *     SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST
+   *
+   * For example, with a fixed tunnel id T, SID-list type ENCAPS_RED, underlay
+   * IPs IP0/IP1, router interfaces RIF0/RIF1, and segment lists SIDLIST0 and
+   * SIDLIST1, the expanded logical key for this next hop is:
+   *
+   *   (T, sidListId(type, SIDLIST0, RIF0, IP0))
+   *   (T, sidListId(type, SIDLIST0, RIF0, IP1))
+   *   (T, sidListId(type, SIDLIST0, RIF1, IP0))
+   *   (T, sidListId(type, SIDLIST0, RIF1, IP1))
+   *   (T, sidListId(type, SIDLIST1, RIF0, IP0))
+   *   (T, sidListId(type, SIDLIST1, RIF0, IP1))
+   *   (T, sidListId(type, SIDLIST1, RIF1, IP0))
+   *   (T, sidListId(type, SIDLIST1, RIF1, IP1))
+   *
+   * Those eight combinations all produce distinct SID-list object ids, so the
+   * SRv6 SID-list next-hop AdapterHostKey remains distinct even though it only
+   * stores (TunnelId, Srv6SidlistId) directly.
+   */
   using AdapterHostKey = std::
       tuple<typename Attributes::TunnelId, typename Attributes::Srv6SidlistId>;
   using CreateAttributes = std::tuple<
