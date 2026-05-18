@@ -395,4 +395,49 @@ TEST_F(
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
+TEST_F(AgentEcmpTrunkTest, TrunkL2ResolveNhopThenLinkUpDownUpBeforeReinit) {
+  uint8_t minlinks = 2;
+  uint8_t numEcmpMembersToExclude = 1;
+  auto setup = [=, this]() {
+    ensureHelper();
+    auto state = enableTrunkPorts(getProgrammedState());
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>&) {
+          return utility::setTrunkMinLinkCount(state, minlinks);
+        },
+        "set trunk min links");
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>& in) {
+          return ecmpHelper_->resolveNextHops(in, getEcmpPorts());
+        },
+        "resolve next hops");
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper_->programRoutes(&wrapper, getEcmpPorts());
+    ASSERT_EQ(kEcmpWidth, getEcmpSizeInHw());
+
+    utility::verifyPktFromAggregatePort(*getAgentEnsemble(), kAggId);
+    utility::verifyAggregatePortMemberCount(
+        *getAgentEnsemble(), kAggId, minlinks);
+
+    bringDownPort(PortID(getTrunkMemberPorts()[0]));
+    utility::verifyAggregatePortMemberCount(*getAgentEnsemble(), kAggId, 1);
+    bringUpPort(PortID(getTrunkMemberPorts()[0]));
+    ASSERT_EQ(kEcmpWidth - numEcmpMembersToExclude, getEcmpSizeInHw());
+    utility::verifyAggregatePortMemberCount(*getAgentEnsemble(), kAggId, 1);
+  };
+
+  auto verify = [=]() {};
+
+  auto setupPostWarmboot = [=]() {};
+
+  auto verifyPostWarmboot = [=, this]() {
+    ASSERT_EQ(kEcmpWidth, getEcmpSizeInHw());
+    utility::verifyPktFromAggregatePort(*getAgentEnsemble(), kAggId);
+    utility::verifyAggregatePortMemberCount(
+        *getAgentEnsemble(), kAggId, minlinks);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
 } // namespace facebook::fboss
