@@ -575,6 +575,15 @@ class Srv6RouteTest : public ManagerTestBase {
       const TestInterface& testInterface,
       const folly::IPAddress& nextHopIp,
       const std::string& tunnelId) const {
+    return makeSrv6NextHop(
+        testInterface, nextHopIp, tunnelId, srv6SegmentList());
+  }
+
+  ResolvedNextHop makeSrv6NextHop(
+      const TestInterface& testInterface,
+      const folly::IPAddress& nextHopIp,
+      const std::string& tunnelId,
+      const std::vector<folly::IPAddressV6>& segmentList) const {
     return ResolvedNextHop{
         nextHopIp,
         InterfaceID(testInterface.id),
@@ -583,7 +592,7 @@ class Srv6RouteTest : public ManagerTestBase {
         std::nullopt, // disableTTLDecrement
         std::nullopt, // topologyInfo
         std::nullopt, // adjustedWeight
-        srv6SegmentList(),
+        segmentList,
         TunnelType::SRV6_ENCAP,
         tunnelId};
   }
@@ -591,6 +600,11 @@ class Srv6RouteTest : public ManagerTestBase {
   std::vector<folly::IPAddressV6> srv6SegmentList() const {
     return {
         folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  }
+
+  std::vector<folly::IPAddressV6> alternateSrv6SegmentList() const {
+    return {
+        folly::IPAddressV6("2001:db8::30"), folly::IPAddressV6("2001:db8::40")};
   }
 
   std::shared_ptr<Route<folly::IPAddressV4>> makeSrv6Route(
@@ -715,7 +729,7 @@ class Srv6RouteTest : public ManagerTestBase {
       return SAI_NULL_OBJECT_ID;
     }
 
-    const auto expectedSegments = toSaiIp6List(srv6SegmentList());
+    const auto expectedSegments = toSaiIp6List(swNextHop.srv6SegmentList());
     SaiSrv6SidListTraits::AdapterHostKey sidListKey{
         SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
         expectedSegments,
@@ -1211,6 +1225,51 @@ TEST_F(Srv6RouteTest, addV4AndV6RoutesWithDifferentLinkLocalSrv6NextHopGroup) {
       v6Handle0, swNextHops, expectedNextHopGroupId);
   verifySrv6NextHopGroupAndSidLists(
       v6Handle1, swNextHops, expectedNextHopGroupId);
+}
+
+TEST_F(Srv6RouteTest, addRouteWithAllSrv6SidListKeyCombinations) {
+  auto swTunnel = makeSrv6Tunnel("srv6tunnel0", intf0.id);
+  saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
+
+  const folly::IPAddressV6 linkLocalNextHop0{"fe80::1"};
+  const folly::IPAddressV6 linkLocalNextHop1{"fe80::2"};
+  resolveNdp(intf0, linkLocalNextHop0, folly::MacAddress{"10:10:10:10:10:aa"});
+  resolveNdp(intf0, linkLocalNextHop1, folly::MacAddress{"10:10:10:10:10:ab"});
+  resolveNdp(intf1, linkLocalNextHop0, folly::MacAddress{"10:10:10:10:10:ba"});
+  resolveNdp(intf1, linkLocalNextHop1, folly::MacAddress{"10:10:10:10:10:bb"});
+
+  const std::vector<std::vector<folly::IPAddressV6>> segmentLists{
+      srv6SegmentList(), alternateSrv6SegmentList()};
+  const std::vector<std::reference_wrapper<const TestInterface>> interfaces{
+      std::cref(intf0), std::cref(intf1)};
+  const std::vector<folly::IPAddressV6> linkLocalNextHops{
+      linkLocalNextHop0, linkLocalNextHop1};
+
+  std::vector<ResolvedNextHop> swNextHops;
+  for (const auto& segmentList : segmentLists) {
+    for (const auto& intf : interfaces) {
+      for (const auto& linkLocalNextHop : linkLocalNextHops) {
+        swNextHops.push_back(makeSrv6NextHop(
+            intf.get(),
+            folly::IPAddress(linkLocalNextHop),
+            "srv6tunnel0",
+            segmentList));
+      }
+    }
+  }
+  ASSERT_EQ(swNextHops.size(), 8);
+
+  auto route =
+      makeSrv6EcmpRoute({folly::IPAddress("42.42.42.42"), 24}, swNextHops);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      route, RouterID(0), getProgrammedState());
+
+  auto* handle = saiManagerTable->routeManager().getRouteHandle(
+      saiManagerTable->routeManager().routeEntryFromSwRoute(
+          RouterID(0), route));
+  ASSERT_NE(handle, nullptr);
+  verifySrv6NextHopGroupAndSidLists(
+      handle, swNextHops, handle->nextHopAdapterKey());
 }
 
 TEST_F(Srv6RouteTest, removeRouteWithSrv6NextHopGroup) {
