@@ -49,6 +49,23 @@ typedef struct {
 } FsdbStatePathUpdate;
 // NOLINTEND(modernize-use-using)
 
+// Set a folly/gflags flag value. Call before FsdbInit for the value to be
+// observed by Folly bootstrap; calls after FsdbInit still update gflags but
+// folly singletons may already have captured the old value.
+//
+// Vendors should use this instead of fabricating an argv array. Common flags:
+//   "logging"             — folly logging spec, e.g. "DBG2", "fboss.fsdb=DBG4"
+//   "fsdb_reconnect_ms"   — FSDB stream reconnect interval (default ~1000)
+//   "logtostderr"         — "1" to mirror glog output to stderr
+//
+// Both name and value are copied; caller can free them after the call returns.
+//
+// Returns:
+//   0 — success: flag exists and the new value was applied
+//   1 — failure: null args, unknown flag, value couldn't be parsed, or
+//       internal error (logged to stderr)
+FSDB_CGO_API int32_t FsdbSetFlag(const char* name, const char* value);
+
 // One-time process-wide initialization of the C++ runtime (Folly singletons,
 // gflags). Idempotent across calls. Consumers MUST pass FSDB_CGO_ABI_VERSION
 // from the header they compiled against; the library compares it against its

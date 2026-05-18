@@ -39,6 +39,24 @@ TEST_F(FsdbCgoWrapperApiTest, FsdbInitIsIdempotent) {
   EXPECT_NE(folly::get_process_phase(), folly::ProcessPhase::Init);
 }
 
+// FsdbSetFlag tests
+TEST_F(FsdbCgoWrapperApiTest, FsdbSetFlagNullName) {
+  EXPECT_EQ(FsdbSetFlag(nullptr, "1"), 1);
+}
+
+TEST_F(FsdbCgoWrapperApiTest, FsdbSetFlagNullValue) {
+  EXPECT_EQ(FsdbSetFlag("logtostderr", nullptr), 1);
+}
+
+TEST_F(FsdbCgoWrapperApiTest, FsdbSetFlagUnknownFlag) {
+  EXPECT_EQ(FsdbSetFlag("this_flag_does_not_exist_anywhere", "x"), 1);
+}
+
+TEST_F(FsdbCgoWrapperApiTest, FsdbSetFlagKnownFlag) {
+  // logtostderr is a glog flag, always defined when glog is linked in.
+  EXPECT_EQ(FsdbSetFlag("logtostderr", "1"), 0);
+}
+
 // WaitForStateUpdates null-handle tests
 TEST_F(FsdbCgoWrapperApiTest, WaitForStateUpdatesNullHandle) {
   FsdbPortStateUpdate out[10];

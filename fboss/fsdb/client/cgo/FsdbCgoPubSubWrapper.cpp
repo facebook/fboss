@@ -7,6 +7,7 @@
 #include <folly/init/Phase.h>
 #include <folly/logging/xlog.h>
 #include <folly/synchronization/CallOnce.h>
+#include <gflags/gflags.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <chrono>
 #include <limits>
@@ -536,6 +537,27 @@ const char* FOLLY_NULLABLE GetClientId(FsdbWrapperHandle handle) {
 
 int32_t FsdbCgoAbiVersion() {
   return FSDB_CGO_ABI_VERSION;
+}
+
+int32_t FsdbSetFlag(const char* name, const char* value) {
+  if (!name || !value) {
+    return 1;
+  }
+  try {
+    // SetCommandLineOption returns the new value on success, empty on failure
+    // (unknown flag name OR value couldn't be parsed for the flag's type).
+    const std::string result = gflags::SetCommandLineOption(name, value);
+    if (result.empty()) {
+      XLOG(ERR) << "FsdbSetFlag: failed to set flag '" << name << "' = '"
+                << value << "' (unknown flag or invalid value)";
+      return 1;
+    }
+    return 0;
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "FsdbSetFlag: exception setting '" << name
+              << "': " << e.what();
+    return 1;
+  }
 }
 
 // ABI-checked folly::Init bootstrap. Idempotent. 0=ok, 1=caught exception,
