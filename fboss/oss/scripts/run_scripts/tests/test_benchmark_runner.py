@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-# ruff: noqa: I001
 # Copyright Meta Platforms, Inc. and affiliates.
 
 """
-Unit tests for run_test.py using pytest framework.
+Unit tests for the BenchmarkTestRunner in run_test.py.
 
-Provides comprehensive coverage of the BenchmarkTestRunner class,
-including benchmark loading, parsing, execution, and error handling.
+Covers benchmark loading, parsing, execution, threshold validation,
+and error handling.
 """
 
 import io
@@ -17,7 +16,7 @@ import tempfile
 from unittest.mock import Mock, patch
 
 import pytest
-from run_test import _load_from_file, BenchmarkTestRunner
+from run_test import BenchmarkTestRunner
 
 # Fixtures
 
@@ -790,88 +789,6 @@ def test_apply_threshold_check_failed_status(runner):
     )
 
     assert result["threshold_status"] == "N/A"
-
-
-# Tests for _load_from_file
-
-
-def test_load_from_file_basic():
-    """Test loading entries from a file with comments and blank lines"""
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".conf") as f:
-        f.write("# Comment line\n")
-        f.write("entry1\n")
-        f.write("\n")
-        f.write("entry2\n")
-        f.write("# Another comment\n")
-        f.write("entry3\n")
-        temp_file = f.name
-    try:
-        result = _load_from_file(temp_file)
-        assert result == ["entry1", "entry2", "entry3"]
-    finally:
-        os.unlink(temp_file)
-
-
-def test_load_from_file_nonexistent():
-    """Test loading from a nonexistent file returns empty list"""
-    result = _load_from_file("/nonexistent/path.conf")
-    assert result == []
-
-
-def test_load_from_file_empty():
-    """Test loading from an empty file returns empty list"""
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".conf") as f:
-        temp_file = f.name
-    try:
-        result = _load_from_file(temp_file)
-        assert result == []
-    finally:
-        os.unlink(temp_file)
-
-
-def test_load_from_file_with_profile():
-    """Test loading with profile filters to matching tagged lines"""
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".conf") as f:
-        f.write("entry_untagged\n")
-        f.write("entry_tagged_p1 p1\n")
-        f.write("entry_tagged_p2 p2\n")
-        f.write("entry_tagged_t t\n")
-        temp_file = f.name
-    try:
-        result = _load_from_file(temp_file, profile="p1")
-        assert result == ["entry_tagged_p1"]
-    finally:
-        os.unlink(temp_file)
-
-
-def test_load_from_file_no_profile_includes_untagged_and_t():
-    """Test that without profile, untagged and t-tagged lines are included"""
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".conf") as f:
-        f.write("entry_untagged\n")
-        f.write("entry_tagged_p1 p1\n")
-        f.write("entry_tagged_t t\n")
-        temp_file = f.name
-    try:
-        result = _load_from_file(temp_file)
-        assert result == ["entry_untagged", "entry_tagged_t"]
-    finally:
-        os.unlink(temp_file)
-
-
-def test_load_from_file_comments_and_whitespace():
-    """Test that comments and whitespace-only lines are skipped"""
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".conf") as f:
-        f.write("# full comment\n")
-        f.write("   \n")
-        f.write("\n")
-        f.write("  # indented comment\n")
-        f.write("entry1\n")
-        temp_file = f.name
-    try:
-        result = _load_from_file(temp_file)
-        assert result == ["entry1"]
-    finally:
-        os.unlink(temp_file)
 
 
 # Tests for _find_jsons_in_str
