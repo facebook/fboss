@@ -8,6 +8,7 @@
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/EcmpTestUtils.h"
 #include "fboss/agent/test/utils/TrunkTestUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
 
@@ -110,9 +111,13 @@ class AgentEcmpTrunkTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  static const int kEcmpWidth = 7;
+  static constexpr int kEcmpWidth = 7;
   const AggregatePortID kAggId{1};
   std::unique_ptr<EcmpSetupTargetedPorts6> ecmpHelper_;
 };
+
+TEST_F(AgentEcmpTrunkTest, TrunkNotRemovedFromEcmpWithMinLinks) {
+  runEcmpWithTrunkMinLinks(1);
+}
 
 } // namespace facebook::fboss
