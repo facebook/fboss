@@ -372,7 +372,12 @@ TEST_F(AgentFabricSwitchTest, reachDiscard) {
     auto switchIndex =
         getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
     auto beforeSwitchDrops = *getHwSwitchStats(switchIndex).switchDropStats();
+    // Two packets needed starting from SDK 14.x
     std::string out;
+    getAgentEnsemble()->runDiagCommand(
+        "TX 1 destination=-1 destinationModid=-1 flags=0x8000\n",
+        out,
+        switchId);
     getAgentEnsemble()->runDiagCommand(
         "TX 1 destination=-1 destinationModid=-1 flags=0x8000\n",
         out,
@@ -386,9 +391,9 @@ TEST_F(AgentFabricSwitchTest, reachDiscard) {
                  << " Before global drops: " << *beforeSwitchDrops.globalDrops()
                  << " After global drops: : "
                  << *afterSwitchDrops.globalDrops();
-      EXPECT_EVENTUALLY_EQ(
+      EXPECT_EVENTUALLY_GT(
           *afterSwitchDrops.globalReachabilityDrops(),
-          *beforeSwitchDrops.globalReachabilityDrops() + 1);
+          *beforeSwitchDrops.globalReachabilityDrops());
       // Global drops are in bytes
       EXPECT_EVENTUALLY_GT(
           *afterSwitchDrops.globalDrops(), *beforeSwitchDrops.globalDrops());
