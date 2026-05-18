@@ -178,4 +178,84 @@ TEST_F(AgentEcmpTrunkTest, TrunkMemberRemoveWithRouteTest) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(
+    AgentEcmpTrunkTest,
+    TrunkL2ResolveNhopThenLinkAndLACPDownThenUpThenStateUp) {
+  uint8_t minlinks = 2;
+  uint8_t numEcmpMembersToExclude = 1;
+  auto setup = [=, this]() {
+    ensureHelper();
+    auto state = enableTrunkPorts(getProgrammedState());
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>&) {
+          return utility::setTrunkMinLinkCount(state, minlinks);
+        },
+        "set trunk min links");
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>& in) {
+          return ecmpHelper_->resolveNextHops(in, getEcmpPorts());
+        },
+        "resolve next hops");
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper_->programRoutes(&wrapper, getEcmpPorts());
+    WITH_RETRIES(ASSERT_EVENTUALLY_EQ(kEcmpWidth, getEcmpSizeInHw()));
+
+    utility::verifyPktFromAggregatePort(*getAgentEnsemble(), kAggId);
+    utility::verifyAggregatePortMemberCount(
+        *getAgentEnsemble(), kAggId, minlinks);
+
+    bringDownPort(PortID(getTrunkMemberPorts()[0]));
+    utility::verifyAggregatePortMemberCount(
+        *getAgentEnsemble(), kAggId, minlinks - numEcmpMembersToExclude);
+
+    state = disableTrunkPort(
+        getProgrammedState(), kAggId, PortID(getTrunkMemberPorts()[0]));
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>&) { return state; },
+        "disable trunk port");
+  };
+
+  auto verify = [=, this]() {
+    WITH_RETRIES(ASSERT_EVENTUALLY_EQ(
+        kEcmpWidth - numEcmpMembersToExclude, getEcmpSizeInHw()));
+    utility::verifyPktFromAggregatePort(*getAgentEnsemble(), kAggId);
+    utility::verifyAggregatePortMemberCount(
+        *getAgentEnsemble(), kAggId, minlinks - numEcmpMembersToExclude);
+  };
+
+  auto setupPostWarmboot = [=, this]() {
+    ensureHelper();
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>& in) {
+          return ecmpHelper_->unresolveNextHops(in, {PortDescriptor(kAggId)});
+        },
+        "unresolve next hops");
+    bringUpPort(PortID(getTrunkMemberPorts()[0]));
+    WITH_RETRIES(ASSERT_EVENTUALLY_EQ(
+        kEcmpWidth - numEcmpMembersToExclude, getEcmpSizeInHw()));
+    utility::verifyPktFromAggregatePort(*getAgentEnsemble(), kAggId);
+    utility::verifyAggregatePortMemberCount(
+        *getAgentEnsemble(), kAggId, minlinks - numEcmpMembersToExclude);
+  };
+
+  auto verifyPostWarmboot = [=, this]() {
+    ensureHelper();
+    auto state = enableTrunkPorts(getProgrammedState());
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>&) { return state; },
+        "enable trunk ports");
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>& in) {
+          return ecmpHelper_->resolveNextHops(in, getEcmpPorts());
+        },
+        "resolve next hops");
+    WITH_RETRIES(ASSERT_EVENTUALLY_EQ(kEcmpWidth, getEcmpSizeInHw()));
+    utility::verifyPktFromAggregatePort(*getAgentEnsemble(), kAggId);
+    utility::verifyAggregatePortMemberCount(
+        *getAgentEnsemble(), kAggId, minlinks);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
 } // namespace facebook::fboss
