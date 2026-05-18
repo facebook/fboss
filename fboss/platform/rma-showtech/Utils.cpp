@@ -464,8 +464,9 @@ void Utils::printGpio(const Gpio& gpio) {
     std::cout << fmt::format(
         "line {:>3}:   {:<15} -> ", *line.lineIndex(), *line.name());
     try {
-      std::cout << GpiodLine(chip, *line.lineIndex(), *line.name()).getValue()
-                << std::endl;
+      std::cout
+          << GpiodLine(chip, *line.lineIndex(), *line.name()).getLineValue()
+          << std::endl;
     } catch (const std::exception& e) {
       std::cout << fmt::format("Error: failed to read gpio line: {}", e.what())
                 << std::endl;
