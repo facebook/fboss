@@ -227,8 +227,7 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
                             AgentEnsemble* ensemble,
                             const folly::IPAddressV6& dstIpv6Addr) {
         auto vlanId = getVlanIDForTx();
-        auto intfMac =
-            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+        auto intfMac = getMacForFirstInterfaceWithPorts(getProgrammedState());
         auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
         constexpr auto kPayLoadLen{1000};
         int dscpVal = 0;
@@ -423,7 +422,7 @@ TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
     static auto payload = std::vector<uint8_t>(payLoadSize, 0xff);
     payload[0] = 0x1; // sub-version of lacp packet
     auto expectedNumPktsReceived = 1;
-    for (auto port :
+    for (const auto& port :
          {masterLogicalPortIds(
               {cfg::PortType::INTERFACE_PORT,
                cfg::PortType::HYPER_PORT_MEMBER})[0],
@@ -486,7 +485,11 @@ class AgentPacketFloodTest : public AgentHwTest {
         true /*interfaceHasSubnet*/,
         true /*setInterfaceMac*/,
         utility::kBaseVlanId, /*baseVlanId*/
-        2 /*portsPerVlan - both ports in same VLAN*/);
+        2 /*portsPerVlan - both ports in same VLAN*/,
+        false /*enableFabricPorts*/,
+        std::nullopt /*switchIdToSwitchInfo*/,
+        std::nullopt /*hwAsicTable*/,
+        ensemble.getSw()->getPlatformType());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, l3Asics, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, l3Asics, ensemble.isSai());
     return cfg;

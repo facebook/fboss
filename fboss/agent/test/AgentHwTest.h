@@ -296,6 +296,11 @@ class AgentHwTest : public ::testing::Test {
 
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt);
 
+  folly::MacAddress getMacForFirstInterfaceWithPorts(
+      const std::shared_ptr<SwitchState>& state);
+  InterfaceID firstInterfaceIDWithPorts(
+      const std::shared_ptr<SwitchState>& state);
+
   std::optional<VlanID> getVlanIDForTx() const {
     return agentEnsemble_->getVlanIDForTx();
   }

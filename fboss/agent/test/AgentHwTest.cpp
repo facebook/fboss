@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/utils/StatsTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -195,6 +196,18 @@ SwitchID AgentHwTest::getSwitchIdUnderTest(const AgentEnsemble& ensemble) {
 bool AgentHwTest::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) {
   return getSw()->sendPacketSwitchedAsync(
       std::move(pkt), {getSwitchIdUnderTest(*getAgentEnsemble())});
+}
+
+folly::MacAddress AgentHwTest::getMacForFirstInterfaceWithPorts(
+    const std::shared_ptr<SwitchState>& state) {
+  return utility::getMacForFirstInterfaceWithPorts(
+      state, getSwitchIdUnderTest(*getAgentEnsemble()));
+}
+
+InterfaceID AgentHwTest::firstInterfaceIDWithPorts(
+    const std::shared_ptr<SwitchState>& state) {
+  return utility::firstInterfaceIDWithPorts(
+      state, getSwitchIdUnderTest(*getAgentEnsemble()));
 }
 
 const std::map<SwitchID, const HwAsic*> AgentHwTest::getAsics() const {
