@@ -87,10 +87,13 @@ uint32_t IPv6Hdr::addrPartialCsum(const IPAddressV6& addr) {
 
 string IPv6Hdr::toString() const {
   stringstream ss;
-  ss << "IPv6Hdr { srcAddr: " << srcAddr.str() << " dstAddr: " << dstAddr.str()
-     << " payloadLength: " << static_cast<int>(payloadLength)
+  ss << "IPv6Hdr {"
+     << " version: " << static_cast<int>(version)
+     << " trafficClass: " << static_cast<int>(trafficClass)
+     << " flowLabel: " << flowLabel << " payloadLength: " << payloadLength
      << " nextHeader: " << static_cast<int>(nextHeader)
-     << " hopLimit:  " << static_cast<int>(hopLimit) << " }";
+     << " hopLimit: " << static_cast<int>(hopLimit)
+     << " srcAddr: " << srcAddr.str() << " dstAddr: " << dstAddr.str() << " }";
   return ss.str();
 }
 

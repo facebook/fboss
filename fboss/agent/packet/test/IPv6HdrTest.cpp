@@ -355,11 +355,11 @@ TEST(IPv6HdrTest, decrementTTL0) {
 
 TEST(IPv6HdrTest, toString) {
   uint8_t version = IPV6_VERSION;
-  uint8_t trafficClass = 0;
-  uint32_t flowLabel = 0;
-  uint16_t payloadLength = 0;
+  uint8_t trafficClass = 0xAB;
+  uint32_t flowLabel = 12345;
+  uint16_t payloadLength = 100;
   uint8_t nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_NONXT);
-  uint8_t hopLimit = 0;
+  uint8_t hopLimit = 64;
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
   IPv6Hdr hdr(
@@ -371,5 +371,13 @@ TEST(IPv6HdrTest, toString) {
       hopLimit,
       srcAddr,
       dstAddr);
-  std::cout << hdr;
+  auto str = hdr.toString();
+  EXPECT_FALSE(str.empty());
+  EXPECT_NE(str.find("version: 6"), std::string::npos);
+  EXPECT_NE(str.find("trafficClass: 171"), std::string::npos);
+  EXPECT_NE(str.find("flowLabel: 12345"), std::string::npos);
+  EXPECT_NE(str.find("payloadLength: 100"), std::string::npos);
+  EXPECT_NE(str.find("hopLimit: 64"), std::string::npos);
+  EXPECT_NE(str.find("srcAddr: 2620:0:1cfe:face:b00c::3"), std::string::npos);
+  EXPECT_NE(str.find("dstAddr: 2620:0:1cfe:face:b00c::4"), std::string::npos);
 }
