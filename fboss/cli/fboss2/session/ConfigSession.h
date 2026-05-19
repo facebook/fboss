@@ -212,6 +212,10 @@ class ConfigSession {
       const std::map<cli::ServiceType, cli::ConfigActionLevel>& actions,
       const HostInfo& hostInfo);
 
+ protected:
+  // Service orchestration for systemd operations
+  std::unique_ptr<FbossServiceUtil> fbossServiceUtil_;
+
  private:
   std::string sessionConfigDir_; // Typically ~/.fboss2
   std::string systemConfigDir_; // Typically /etc/coop
@@ -219,9 +223,6 @@ class ConfigSession {
 
   // Git instance for version control operations
   std::unique_ptr<Git> git_;
-
-  // Service orchestration for systemd operations
-  std::unique_ptr<FbossServiceUtil> fbossServiceUtil_;
 
   // Lazy-initialized configuration and port map
   cfg::AgentConfig agentConfig_;
@@ -251,8 +252,9 @@ class ConfigSession {
   void loadMetadata();
   void saveMetadata();
 
-  // Lazily initialize fbossServiceUtil_ from the loaded agent config.
-  void ensureFbossServiceUtil();
+  // Lazily initialize fbossServiceUtil_ by querying the running agent's
+  // multi-switch state via Thrift, rather than reading the config file.
+  virtual void ensureFbossServiceUtil(const HostInfo& hostInfo);
 
   // Initialize the session (creates session config file if it doesn't exist)
   void initializeSession();

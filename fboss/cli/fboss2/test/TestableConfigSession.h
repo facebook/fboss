@@ -10,10 +10,13 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/session/SystemdInterface.h"
 
 namespace facebook::fboss {
 
@@ -43,6 +46,32 @@ class TestableConfigSession : public ConfigSession {
   // Expose protected applyServiceActions() for testing
   using ConfigSession::applyServiceActions;
 
+  void setMultiSwitchOverride(
+      bool multiSwitch,
+      std::vector<int> switchIndexes = {0}) {
+    multiSwitchOverride_ = multiSwitch;
+    switchIndexesOverride_ = std::move(switchIndexes);
+  }
+
+  void setMockSystemdFactory(
+      std::function<std::unique_ptr<SystemdInterface>()> factory) {
+    mockSystemdFactory_ = std::move(factory);
+  }
+
+  void ensureFbossServiceUtil(const HostInfo& /*hostInfo*/) override {
+    if (!fbossServiceUtil_) {
+      if (mockSystemdFactory_) {
+        fbossServiceUtil_ = std::make_unique<FbossServiceUtil>(
+            switchIndexesOverride_,
+            multiSwitchOverride_,
+            mockSystemdFactory_());
+      } else {
+        fbossServiceUtil_ = std::make_unique<FbossServiceUtil>(
+            switchIndexesOverride_, multiSwitchOverride_);
+      }
+    }
+  }
+
   // Set the command line to return from readCommandLineFromProc().
   // This allows tests to simulate CLI commands without /proc/self/cmdline.
   void setCommandLine(const std::string& commandLine) {
@@ -56,6 +85,9 @@ class TestableConfigSession : public ConfigSession {
 
  private:
   std::string commandLine_;
+  bool multiSwitchOverride_{false};
+  std::vector<int> switchIndexesOverride_{0};
+  std::function<std::unique_ptr<SystemdInterface>()> mockSystemdFactory_;
 };
 
 } // namespace facebook::fboss

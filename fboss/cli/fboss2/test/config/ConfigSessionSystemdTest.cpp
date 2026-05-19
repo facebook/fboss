@@ -11,7 +11,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include <folly/FileUtil.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <filesystem>
+#include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/cli/fboss2/session/FbossServiceUtil.h"
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
 #include "fboss/cli/fboss2/test/config/MockFbossServiceUtil.h"
@@ -25,28 +28,12 @@ using ::testing::Throw;
 
 namespace facebook::fboss {
 
-namespace {
-
-// Build a switch info map with a single switch at index 0
-std::map<int64_t, cfg::SwitchInfo> makeSingleSwitchInfoMap() {
-  cfg::SwitchInfo info;
-  info.switchIndex() = 0;
-  return {{0, info}};
-}
-
-// Build an empty switch info map (monolithic mode has no split switch info)
-std::map<int64_t, cfg::SwitchInfo> makeEmptySwitchInfoMap() {
-  return {};
-}
-
-} // namespace
-
 // Test: isSplitMode() returns true when multi_switch flag is set
 TEST(FbossServiceUtilTest, IsSplitMode_ReturnsTrueWhenMultiSwitchSet) {
   auto mockSystemd = std::make_unique<MockSystemdInterface>();
 
   FbossServiceUtil util(
-      makeSingleSwitchInfoMap(), /*multiSwitch=*/true, std::move(mockSystemd));
+      std::vector<int>{0}, /*multiSwitch=*/true, std::move(mockSystemd));
   EXPECT_TRUE(util.isSplitMode());
 }
 
@@ -55,7 +42,7 @@ TEST(FbossServiceUtilTest, IsSplitMode_ReturnsFalseWhenMultiSwitchNotSet) {
   auto mockSystemd = std::make_unique<MockSystemdInterface>();
 
   FbossServiceUtil util(
-      makeEmptySwitchInfoMap(), /*multiSwitch=*/false, std::move(mockSystemd));
+      std::vector<int>{}, /*multiSwitch=*/false, std::move(mockSystemd));
   EXPECT_FALSE(util.isSplitMode());
 }
 
@@ -67,7 +54,7 @@ TEST(FbossServiceUtilTest, RestartService_MonolithicMode_Warmboot) {
   EXPECT_CALL(*mockSystemd, waitForServiceActive("wedge_agent", _, _)).Times(1);
 
   FbossServiceUtil util(
-      makeEmptySwitchInfoMap(), /*multiSwitch=*/false, std::move(mockSystemd));
+      std::vector<int>{}, /*multiSwitch=*/false, std::move(mockSystemd));
 
   auto services = util.restartService(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
@@ -86,7 +73,7 @@ TEST(FbossServiceUtilTest, RestartService_MonolithicMode_Coldboot) {
   EXPECT_CALL(*mockSystemd, waitForServiceActive("wedge_agent", _, _)).Times(1);
 
   FbossServiceUtil util(
-      makeEmptySwitchInfoMap(), /*multiSwitch=*/false, std::move(mockSystemd));
+      std::vector<int>{}, /*multiSwitch=*/false, std::move(mockSystemd));
 
   auto services = util.restartService(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_COLDBOOT);
@@ -110,7 +97,7 @@ TEST(FbossServiceUtilTest, RestartService_SplitMode_Warmboot_SingleHwAgent) {
       .Times(1);
 
   FbossServiceUtil util(
-      makeSingleSwitchInfoMap(), /*multiSwitch=*/true, std::move(mockSystemd));
+      std::vector<int>{0}, /*multiSwitch=*/true, std::move(mockSystemd));
 
   auto services = util.restartService(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
@@ -136,7 +123,7 @@ TEST(FbossServiceUtilTest, RestartService_SplitMode_Coldboot_SingleHwAgent) {
       .Times(1);
 
   FbossServiceUtil util(
-      makeSingleSwitchInfoMap(), /*multiSwitch=*/true, std::move(mockSystemd));
+      std::vector<int>{0}, /*multiSwitch=*/true, std::move(mockSystemd));
 
   auto services = util.restartService(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_COLDBOOT);
@@ -163,14 +150,8 @@ TEST(FbossServiceUtilTest, RestartService_SplitMode_Warmboot_MultipleHwAgents) {
   EXPECT_CALL(*mockSystemd, waitForServiceActive("fboss_sw_agent", _, _))
       .Times(1);
 
-  cfg::SwitchInfo info0;
-  info0.switchIndex() = 0;
-  cfg::SwitchInfo info1;
-  info1.switchIndex() = 1;
-  std::map<int64_t, cfg::SwitchInfo> switchInfoMap = {{0, info0}, {1, info1}};
-
   FbossServiceUtil util(
-      std::move(switchInfoMap), /*multiSwitch=*/true, std::move(mockSystemd));
+      std::vector<int>{0, 1}, /*multiSwitch=*/true, std::move(mockSystemd));
 
   auto services = util.restartService(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
@@ -189,7 +170,7 @@ TEST(FbossServiceUtilTest, RestartService_PropagatesFailure) {
       .WillOnce(Throw(std::runtime_error("Failed to restart wedge_agent")));
 
   FbossServiceUtil util(
-      makeEmptySwitchInfoMap(), /*multiSwitch=*/false, std::move(mockSystemd));
+      std::vector<int>{}, /*multiSwitch=*/false, std::move(mockSystemd));
 
   EXPECT_THROW(
       util.restartService(
@@ -208,7 +189,7 @@ TEST(FbossServiceUtilTest, RestartService_ServiceFailsToStart) {
               "wedge_agent did not become active within 60 seconds")));
 
   FbossServiceUtil util(
-      makeEmptySwitchInfoMap(), /*multiSwitch=*/false, std::move(mockSystemd));
+      std::vector<int>{}, /*multiSwitch=*/false, std::move(mockSystemd));
 
   EXPECT_THROW(
       util.restartService(
@@ -333,6 +314,54 @@ TEST(
   ASSERT_EQ(serviceNames.size(), 1);
   ASSERT_EQ(serviceNames[cli::ServiceType::AGENT].size(), 1);
   EXPECT_EQ(serviceNames[cli::ServiceType::AGENT][0], "fboss_sw_agent");
+}
+
+// ============================================================
+// Tests for ensureFbossServiceUtil Thrift-based detection
+// Verify that multi-switch mode is detected via Thrift RPC (runtime state),
+// not from the config file's defaultCommandLineArgs.
+// ============================================================
+
+// Test: Config file has no multi_switch flag, but agent is running in
+// multi-switch mode. ensureFbossServiceUtil should detect multi-switch
+// via Thrift and restart fboss_sw_agent + fboss_hw_agent@N.
+TEST(
+    ConfigSessionServiceTest,
+    EnsureFbossServiceUtil_DetectsMultiSwitchViaThrift) {
+  // Write a minimal config so initializeSession() succeeds.
+  // ensureFbossServiceUtil no longer reads the config — it gets everything
+  // from the Thrift RPC (simulated via overrides here).
+  cfg::AgentConfig agentConfig;
+  auto configJson =
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(agentConfig);
+
+  std::filesystem::create_directories("/tmp/test_system_thrift");
+  std::filesystem::create_directories("/tmp/test_session_thrift");
+  folly::writeFile(configJson, "/tmp/test_system_thrift/agent.conf");
+
+  TestableConfigSession session(
+      "/tmp/test_session_thrift", "/tmp/test_system_thrift");
+
+  // Simulate Thrift RPC reporting multi-switch with 1 hw_agent at index 0
+  session.setMultiSwitchOverride(true, {0});
+  session.setMockSystemdFactory(
+      [] { return std::make_unique<MockSystemdInterface>(); });
+
+  HostInfo hostInfo(
+      "localhost", "localhost-oob", folly::IPAddress("127.0.0.1"));
+
+  std::map<cli::ServiceType, cli::ConfigActionLevel> actions = {
+      {cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_COLDBOOT}};
+
+  auto serviceNames = session.applyServiceActions(actions, hostInfo);
+
+  // Should restart multi-switch services, not wedge_agent
+  ASSERT_EQ(serviceNames[cli::ServiceType::AGENT].size(), 2);
+  EXPECT_EQ(serviceNames[cli::ServiceType::AGENT][0], "fboss_hw_agent@0");
+  EXPECT_EQ(serviceNames[cli::ServiceType::AGENT][1], "fboss_sw_agent");
+
+  std::filesystem::remove_all("/tmp/test_session_thrift");
+  std::filesystem::remove_all("/tmp/test_system_thrift");
 }
 
 } // namespace facebook::fboss

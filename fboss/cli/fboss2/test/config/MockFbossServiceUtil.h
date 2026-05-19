@@ -26,7 +26,7 @@ class MockFbossServiceUtil : public FbossServiceUtil {
   // Uses a MockSystemdInterface so the base class never calls real systemctl.
   MockFbossServiceUtil()
       : FbossServiceUtil(
-            {},
+            std::vector<int>{},
             /*multiSwitch=*/false,
             std::make_unique<MockSystemdInterface>()) {}
 

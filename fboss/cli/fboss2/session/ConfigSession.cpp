@@ -37,7 +37,6 @@
 #include <utility>
 #include <vector>
 #include "fboss/agent/AgentDirectoryUtil.h"
-#include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
@@ -45,6 +44,7 @@
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/session/FbossServiceUtil.h"
 #include "fboss/cli/fboss2/session/Git.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
@@ -311,11 +311,11 @@ ConfigSession::ConfigSession(
     std::string sessionConfigDir,
     std::string systemConfigDir,
     std::unique_ptr<FbossServiceUtil> fbossServiceUtil)
-    : sessionConfigDir_(std::move(sessionConfigDir)),
+    : fbossServiceUtil_(std::move(fbossServiceUtil)),
+      sessionConfigDir_(std::move(sessionConfigDir)),
       systemConfigDir_(std::move(systemConfigDir)),
       username_(getUsername()),
-      git_(std::make_unique<Git>(systemConfigDir_)),
-      fbossServiceUtil_(std::move(fbossServiceUtil)) {
+      git_(std::make_unique<Git>(systemConfigDir_)) {
   // Don't call initializeSession() - this constructor is for testing only
   // and tests don't need git initialization or config file copying
 }
@@ -579,14 +579,28 @@ const std::vector<std::string>& ConfigSession::getCommands() const {
   return commands_;
 }
 
-void ConfigSession::ensureFbossServiceUtil() {
+void ConfigSession::ensureFbossServiceUtil(const HostInfo& hostInfo) {
   if (!fbossServiceUtil_) {
-    auto& config = getAgentConfig();
-    const auto& args = *config.defaultCommandLineArgs();
-    bool multiSwitch =
-        args.count("multi_switch") && args.at("multi_switch") == "true";
+    MultiSwitchRunState runState;
+    try {
+      runState = utils::getMultiSwitchRunState(hostInfo);
+    } catch (const std::exception& e) {
+      throw std::runtime_error(
+          fmt::format(
+              "Failed to query agent run state from {}. "
+              "Is the agent running? Error: {}",
+              hostInfo.getName(),
+              e.what()));
+    }
+
+    std::vector<int> switchIndexes;
+    for (const auto& [idx, _] : *runState.hwIndexToRunState()) {
+      switchIndexes.push_back(idx);
+    }
+    std::sort(switchIndexes.begin(), switchIndexes.end());
+
     fbossServiceUtil_ = std::make_unique<FbossServiceUtil>(
-        getSwitchInfoFromConfig(&(*config.sw())), multiSwitch);
+        std::move(switchIndexes), *runState.multiSwitchEnabled());
   }
 }
 
@@ -594,7 +608,7 @@ std::map<cli::ServiceType, std::vector<std::string>>
 ConfigSession::applyServiceActions(
     const std::map<cli::ServiceType, cli::ConfigActionLevel>& actions,
     const HostInfo& hostInfo) {
-  ensureFbossServiceUtil();
+  ensureFbossServiceUtil(hostInfo);
   std::map<cli::ServiceType, std::vector<std::string>> serviceNames;
   for (const auto& [service, level] : actions) {
     switch (level) {
