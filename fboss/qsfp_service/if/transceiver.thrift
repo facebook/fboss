@@ -156,6 +156,10 @@ struct Channel {
 enum TransceiverType {
   SFP = 0,
   QSFP = 1,
+  ELSFP = 2,
+  CPO_OE = 3,
+  OSFP = 4,
+  SFP_DD = 5,
 }
 
 enum TransceiverManagementInterface {
@@ -735,6 +739,65 @@ enum PagingSupport {
   PAGED = 2,
 }
 
+enum LaserSourceType {
+  UNKNOWN = 0,
+  INTERNAL = 1,
+  EXTERNAL = 2,
+}
+
+enum CpoInterleaveMode {
+  NONE = 0,
+  MODE1 = 1,
+  MODE2 = 2,
+}
+
+enum CpoJointMode {
+  DISABLED = 0,
+  HARDWARE = 1,
+  SOFTWARE = 2,
+}
+
+struct OpticalEngineDomData {
+  1: double temperature,
+  2: list<double> txPowers,
+  3: list<double> rxPowers,
+  4: double voltage,
+  5: list<double> snr,
+  6: list<MediaLaneSignals> laneAlarmFlags,
+}
+
+struct ElsfpDomData {
+  1: double temperature,
+  2: double laserBiasCurrent,
+  3: double opticalOutputPower,
+  4: bool laserReady,
+  5: bool laserFault,
+}
+
+struct CpoDomData {
+  1: OpticalEngineDomData oeDom,
+  2: ElsfpDomData elsfpDom,
+  3: TransceiverType transceiverType,
+  4: LaserSourceType laserSourceType,
+}
+
+struct CpoPortConfig {
+  1: i32 portId,
+  2: list<i32> laneIds,
+  3: CpoInterleaveMode interleaveMode,
+  4: bool isCpoPort,
+  5: bool isElsfpPort,
+}
+
+struct CpoConfig {
+  1: bool enabled,
+  2: CpoInterleaveMode interleaveMode,
+  3: string oeType,
+  4: string elsfpType,
+  5: CpoJointMode jointModeDefault,
+  6: i32 domPollingIntervalMs,
+}
+
 struct TcvrState {
   1: bool present;
   2: TransceiverType transceiver;
@@ -968,6 +1031,7 @@ struct TransceiverIOParameters {
   1: i32 offset; // should range from 0 - 255
   2: optional i32 page; // can be used to access bytes 128-255 from a different page than page0
   3: optional i32 length; // Number of bytes to read. Also can represent number of bytes to write for multi-byte writes.
+  4: optional i32 bank; // Bank index for banked CMIS pages (CMIS 5.3+). Used with page selection for upper memory bank access.
 }
 
 struct ReadRequest {

@@ -256,6 +256,27 @@ class CmisModule : public QsfpModule {
   // Page 45h - Host Lane Provisioning Advertisement
   uint8_t page45_[MAX_QSFP_PAGE_SIZE]{};
 
+  // CMIS 5.3 Banking: banked page caches for multi-lane modules
+  // Each bank corresponds to a single media lane for banked pages like 34h, 35h
+  std::map<uint8_t, std::array<uint8_t, MAX_QSFP_PAGE_SIZE>> page34Banks_;
+  std::map<uint8_t, std::array<uint8_t, MAX_QSFP_PAGE_SIZE>> page35Banks_;
+
+  // ELSFP (External Laser SFP) cached DOM data
+  bool elsfpConnected_{false};
+  double elsfpTemperature_{0.0};
+  double elsfpLaserBiasCurrent_{0.0};
+  double elsfpOpticalOutputPower_{0.0};
+  bool elsfpLaserReady_{false};
+  bool elsfpLaserFault_{false};
+
+  // CPO (Co-Packaged Optics) configuration
+  bool isCpoModule_{false};
+  LaserSourceType laserSourceType_{LaserSourceType::UNKNOWN};
+
+  // Banking state
+  uint8_t currentBank_{0};
+  uint8_t numBanksSupported_{0};
+
   // Some of the pages are static and they need not be read every refresh cycle
   bool staticPagesCached_{false};
 
@@ -743,6 +764,63 @@ class CmisModule : public QsfpModule {
   readCmisField(CmisField field, uint8_t* data, bool skipPageChange = false);
   void
   writeCmisField(CmisField field, uint8_t* data, bool skipPageChange = false);
+
+  /*
+   * CMIS 5.3 Banking support: read/write with explicit bank selection.
+   * For banked pages (e.g., Page 34h, 35h), the bank index must be written
+   * to Lower Page byte 126 before the page selection (byte 127).
+   */
+  void readCmisField(
+      CmisField field,
+      uint8_t* data,
+      uint8_t bank,
+      bool skipPageChange = false);
+  void writeCmisField(
+      CmisField field,
+      uint8_t* data,
+      uint8_t bank,
+      bool skipPageChange = false);
+
+  /*
+   * ELSFP (External Laser SFP) support methods
+   */
+  bool isElsfpConnected() const;
+  double readElsfpLaserTemperature() const;
+  double readElsfpLaserBiasCurrent() const;
+  double readElsfpOpticalOutputPower() const;
+  bool isElsfpLaserReady() const;
+  bool isElsfpLaserFault() const;
+  void setElsfpLaserControl(bool enable);
+
+  bool getElsfpStatus() const override {
+    return isElsfpConnected();
+  }
+
+  std::vector<uint8_t> readElsfpMemory(
+      uint8_t page, uint8_t offset, uint8_t length) override;
+
+  /*
+   * CPO DOM data collection
+   */
+  OpticalEngineDomData getOpticalEngineDomData() const;
+  ElsfpDomData getElsfpDomData() const override;
+  CpoDomData getCpoDomData() const override;
+
+  /*
+   * Banking helpers
+   */
+  uint8_t getNumBanksSupported() const;
+  void selectBank(uint8_t bank);
+  uint8_t getCurrentBank() const;
+  bool isBankSupported(uint8_t bank) const;
+
+  void selectElsfpBank(uint8_t bank) override {
+    selectBank(bank);
+  }
+
+  uint8_t getCurrentElsfpBank() override {
+    return getCurrentBank();
+  }
 
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*

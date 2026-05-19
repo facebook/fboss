@@ -91,6 +91,9 @@ void WedgeManager::loadConfig() {
   tcvrConfig_ = std::make_shared<TransceiverConfig>(
       *qsfpCfg.transceiverConfigOverrides());
 
+  // Load CPO/ELSFP platform configuration
+  loadCpoConfig(qsfpCfg);
+
   qsfpConfig_->writePhyConfigToFile();
 
   if (FLAGS_publish_state_to_fsdb) {

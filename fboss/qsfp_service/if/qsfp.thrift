@@ -333,4 +333,59 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   map<string, list<i32>> getPortTransceiverIDs() throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * NEW: CPO DOM methods
+   */
+  transceiver.CpoDomData getCpoDomData(1: i32 portId) throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  list<transceiver.CpoDomData> getAllCpoDomData() throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
+   * NEW: CPO Joint Mode methods
+   */
+  void setCpoJointMode(
+    1: i32 portId,
+    2: transceiver.CpoJointMode mode,
+  ) throws (1: fboss.FbossBaseError error);
+
+  transceiver.CpoJointMode getCpoJointMode(1: i32 portId) throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
+   * NEW: CPO Port Lane Map methods
+   */
+  list<transceiver.CpoPortConfig> getCpoPortLaneMap() throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
+   * NEW: ELSFP methods
+   */
+  transceiver.ElsfpDomData getElsfpDomData(1: i32 portId) throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  bool getElsfpStatus(1: i32 portId) throws (1: fboss.FbossBaseError error);
+
+  list<byte> readElsfpMemory(
+    1: i32 portId,
+    2: byte page,
+    3: byte offset,
+    4: byte length,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * NEW: ELSFP Banking methods
+   */
+  void selectElsfpBank(1: i32 portId, 2: byte bank) throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  byte getCurrentElsfpBank(1: i32 portId) throws (1: fboss.FbossBaseError error);
 }

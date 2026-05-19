@@ -288,6 +288,24 @@ class Transceiver {
   virtual bool tcvrPortStateSupported(
       TransceiverPortState& portState) const = 0;
 
+  /*
+   * CPO (Co-Packaged Optics) and ELSFP (External Laser SFP) support.
+   * These are only meaningful for CMIS modules; other module types
+   * will return empty/default values.
+   */
+  virtual CpoDomData getCpoDomData() const = 0;
+
+  virtual ElsfpDomData getElsfpDomData() const = 0;
+
+  virtual bool getElsfpStatus() const = 0;
+
+  virtual std::vector<uint8_t> readElsfpMemory(
+      uint8_t page, uint8_t offset, uint8_t length) = 0;
+
+  virtual void selectElsfpBank(uint8_t bank) = 0;
+
+  virtual uint8_t getCurrentElsfpBank() = 0;
+
   // Derived classes will override this function.
   virtual portstate::PortState getPortState() {
     return portstate::PortState();

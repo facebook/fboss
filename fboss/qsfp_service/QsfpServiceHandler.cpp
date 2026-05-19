@@ -870,5 +870,103 @@ QsfpServiceHandler::co_getMacsecPortStats(
 }
 #endif
 
+/*
+ * CPO (Co-Packaged Optics) and ELSFP (External Laser SFP) Thrift methods.
+ */
+
+CpoDomData QsfpServiceHandler::getCpoDomData(int32_t portId) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  auto portName = getPortNameByPortId(PortID(portId));
+  if (!portName.has_value()) {
+    throw FbossError(fmt::format("Invalid portId {}", portId));
+  }
+  return tcvrManager_->getCpoDomData(portName.value());
+}
+
+std::vector<CpoDomData> QsfpServiceHandler::getAllCpoDomData() {
+  auto log = LOG_THRIFT_CALL(INFO);
+  return tcvrManager_->getAllCpoDomData();
+}
+
+void QsfpServiceHandler::setCpoJointMode(
+    int32_t portId,
+    CpoJointMode mode) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  auto portName = getPortNameByPortId(PortID(portId));
+  if (!portName.has_value()) {
+    throw FbossError(fmt::format("Invalid portId {}", portId));
+  }
+  tcvrManager_->setCpoJointMode(portName.value(), mode);
+}
+
+CpoJointMode QsfpServiceHandler::getCpoJointMode(int32_t portId) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  auto portName = getPortNameByPortId(PortID(portId));
+  if (!portName.has_value()) {
+    throw FbossError(fmt::format("Invalid portId {}", portId));
+  }
+  return tcvrManager_->getCpoJointMode(portName.value());
+}
+
+std::vector<CpoPortConfig> QsfpServiceHandler::getCpoPortLaneMap() {
+  auto log = LOG_THRIFT_CALL(INFO);
+  return tcvrManager_->getCpoPortLaneMap();
+}
+
+ElsfpDomData QsfpServiceHandler::getElsfpDomData(int32_t portId) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  auto portName = getPortNameByPortId(PortID(portId));
+  if (!portName.has_value()) {
+    throw FbossError(fmt::format("Invalid portId {}", portId));
+  }
+  return tcvrManager_->getElsfpDomData(portName.value());
+}
+
+bool QsfpServiceHandler::getElsfpStatus(int32_t portId) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  auto portName = getPortNameByPortId(PortID(portId));
+  if (!portName.has_value()) {
+    throw FbossError(fmt::format("Invalid portId {}", portId));
+  }
+  return tcvrManager_->getElsfpStatus(portName.value());
+}
+
+std::vector<int8_t> QsfpServiceHandler::readElsfpMemory(
+    int32_t portId,
+    int8_t page,
+    int8_t offset,
+    int8_t length) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  auto portName = getPortNameByPortId(PortID(portId));
+  if (!portName.has_value()) {
+    throw FbossError(fmt::format("Invalid portId {}", portId));
+  }
+  auto data = tcvrManager_->readElsfpMemory(
+      portName.value(),
+      static_cast<uint8_t>(page),
+      static_cast<uint8_t>(offset),
+      static_cast<uint8_t>(length));
+  return std::vector<int8_t>(data.begin(), data.end());
+}
+
+void QsfpServiceHandler::selectElsfpBank(int32_t portId, int8_t bank) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  auto portName = getPortNameByPortId(PortID(portId));
+  if (!portName.has_value()) {
+    throw FbossError(fmt::format("Invalid portId {}", portId));
+  }
+  tcvrManager_->selectElsfpBank(portName.value(), static_cast<uint8_t>(bank));
+}
+
+int8_t QsfpServiceHandler::getCurrentElsfpBank(int32_t portId) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  auto portName = getPortNameByPortId(PortID(portId));
+  if (!portName.has_value()) {
+    throw FbossError(fmt::format("Invalid portId {}", portId));
+  }
+  return static_cast<int8_t>(
+      tcvrManager_->getCurrentElsfpBank(portName.value()));
+}
+
 } // namespace fboss
 } // namespace facebook

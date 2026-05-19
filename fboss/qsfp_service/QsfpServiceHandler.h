@@ -392,6 +392,24 @@ class QsfpServiceHandler
 
   QsfpServiceRunState getQsfpServiceRunState() override;
 
+  /*
+   * CPO (Co-Packaged Optics) and ELSFP (External Laser SFP) methods.
+   */
+  CpoDomData getCpoDomData(int32_t portId) override;
+  std::vector<CpoDomData> getAllCpoDomData() override;
+  void setCpoJointMode(int32_t portId, CpoJointMode mode) override;
+  CpoJointMode getCpoJointMode(int32_t portId) override;
+  std::vector<CpoPortConfig> getCpoPortLaneMap() override;
+  ElsfpDomData getElsfpDomData(int32_t portId) override;
+  bool getElsfpStatus(int32_t portId) override;
+  std::vector<int8_t> readElsfpMemory(
+      int32_t portId,
+      int8_t page,
+      int8_t offset,
+      int8_t length) override;
+  void selectElsfpBank(int32_t portId, int8_t bank) override;
+  int8_t getCurrentElsfpBank(int32_t portId) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   QsfpServiceHandler(QsfpServiceHandler const&) = delete;

@@ -355,6 +355,41 @@ class TransceiverManager {
       CdbDatapathSymErrHistogram& symErr,
       const std::string& portName);
 
+  /*
+   * CPO (Co-Packaged Optics) and ELSFP (External Laser SFP) support.
+   */
+  CpoDomData getCpoDomData(const std::string& portName);
+  std::vector<CpoDomData> getAllCpoDomData();
+
+  void setCpoJointMode(const std::string& portName, CpoJointMode mode);
+  CpoJointMode getCpoJointMode(const std::string& portName);
+
+  std::vector<CpoPortConfig> getCpoPortLaneMap() const;
+
+  // Load CPO configuration from QsfpServiceConfig
+  void loadCpoConfig(const cfg::QsfpServiceConfig& qsfpCfg);
+
+  // Get CPO platform config (if available)
+  std::optional<CpoConfig> getCpoConfig() const {
+    return cpoConfig_;
+  }
+
+  // Check if a port is configured as a CPO port
+  bool isCpoPort(const std::string& portName) const;
+
+  // Check if a port is configured as an ELSFP port
+  bool isElsfpPort(const std::string& portName) const;
+
+  ElsfpDomData getElsfpDomData(const std::string& portName);
+  bool getElsfpStatus(const std::string& portName);
+  std::vector<uint8_t> readElsfpMemory(
+      const std::string& portName,
+      uint8_t page,
+      uint8_t offset,
+      uint8_t length);
+  void selectElsfpBank(const std::string& portName, uint8_t bank);
+  uint8_t getCurrentElsfpBank(const std::string& portName);
+
   virtual std::string saiPhyRegisterAccess(
       std::string /* portName */,
       bool /* opRead */,
@@ -969,6 +1004,15 @@ class TransceiverManager {
     std::string name;
   };
   std::unordered_map<PortID, SwPortInfo> portToSwPortInfo_;
+
+  // CPO joint mode state per port name (software-managed until HW control)
+  folly::Synchronized<std::map<std::string, CpoJointMode>> cpoJointModeMap_;
+
+  // CPO platform configuration (loaded from qsfp service config)
+  std::optional<CpoConfig> cpoConfig_;
+
+  // CPO port configuration map: port name -> CpoPortConfig
+  std::map<std::string, CpoPortConfig> cpoPortConfigMap_;
 
   virtual void updateTcvrStateInFsdb(
       TransceiverID /* tcvrID */,

@@ -342,4 +342,22 @@ enum CmisField {
   // Page 38h, Bytes 141-142: Rx Consequent Action Hold-off Timer
   // 16-bit value in 10ms increments. 0 = disabled.
   CONS_ACT_HOLD_OFF_TMR = 467,
+
+  // ELSFP (External Laser SFP) specific fields
+  // Page 01h, ELSFP Status and Control registers
+  ELSFP_STATUS = 500,
+  ELSFP_LASER_TEMP_HIGH = 501,
+  ELSFP_LASER_TEMP_LOW = 502,
+  ELSFP_LASER_BIAS_HIGH = 503,
+  ELSFP_LASER_BIAS_LOW = 504,
+  ELSFP_OPTICAL_OUTPUT_HIGH = 505,
+  ELSFP_OPTICAL_OUTPUT_LOW = 506,
+  ELSFP_LASER_CONTROL = 507,
+  ELSFP_LASER_READY = 508,
+  ELSFP_LASER_FAULT = 509,
+  ELSFP_CONNECTED = 510,
+
+  // Banking support fields (CMIS 5.3)
+  NUM_BANKS_SUPPORTED = 520,
+  BANK_PAGE_CHANGE_TIME = 521,
 }

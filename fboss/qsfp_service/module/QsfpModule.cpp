@@ -1724,5 +1724,35 @@ TransceiverInfo QsfpModule::updateFwUpgradeStatusInTcvrInfoLocked(
   return getTransceiverInfo();
 }
 
+/*
+ * CPO/ELSFP default implementations for non-CMIS modules.
+ */
+CpoDomData QsfpModule::getCpoDomData() const {
+  return CpoDomData{};
+}
+
+ElsfpDomData QsfpModule::getElsfpDomData() const {
+  return ElsfpDomData{};
+}
+
+bool QsfpModule::getElsfpStatus() const {
+  return false;
+}
+
+std::vector<uint8_t> QsfpModule::readElsfpMemory(
+    uint8_t /* page */,
+    uint8_t /* offset */,
+    uint8_t /* length */) {
+  return {};
+}
+
+void QsfpModule::selectElsfpBank(uint8_t /* bank */) {
+  // No-op for non-CMIS modules
+}
+
+uint8_t QsfpModule::getCurrentElsfpBank() {
+  return 0;
+}
+
 } // namespace fboss
 } // namespace facebook

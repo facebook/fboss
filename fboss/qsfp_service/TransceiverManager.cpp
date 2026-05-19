@@ -3934,4 +3934,221 @@ void TransceiverManager::updateSnapshots() {
     it->second.addSnapshot(snapshot);
   }
 }
+
+/*
+ * CPO/ELSFP helper: resolve port name to transceiver id.
+ */
+namespace {
+std::optional<TransceiverID> getTransceiverIdForPort(
+    TransceiverManager* mgr, const std::string& portName) {
+  auto swPort = mgr->getPortIDByPortName(portName);
+  if (!swPort.has_value()) {
+    throw FbossError(fmt::format("Invalid port {}", portName));
+  }
+  return mgr->getTransceiverID(swPort.value());
+}
+} // namespace
+
+CpoDomData TransceiverManager::getCpoDomData(const std::string& portName) {
+  // If CPO is enabled and the port is not a CPO port, return empty data
+  if (cpoConfig_.has_value() && cpoConfig_->enabled() && !isCpoPort(portName)) {
+    return CpoDomData{};
+  }
+  auto tcvrId = getTransceiverIdForPort(this, portName);
+  if (!tcvrId.has_value()) {
+    throw FbossError(
+        fmt::format("Transceiver not found for port {}", portName));
+  }
+  auto lockedTransceivers = transceivers_.rlock();
+  auto it = lockedTransceivers->find(tcvrId.value());
+  if (it == lockedTransceivers->end()) {
+    throw FbossError(
+        fmt::format("Transceiver not present for port {}", portName));
+  }
+  return it->second->getCpoDomData();
+}
+
+std::vector<CpoDomData> TransceiverManager::getAllCpoDomData() {
+  std::vector<CpoDomData> result;
+  auto lockedTransceivers = transceivers_.rlock();
+  for (const auto& [tcvrId, tcvr] : *lockedTransceivers) {
+    // Only include CPO modules when CPO config is enabled
+    if (cpoConfig_.has_value() && cpoConfig_->enabled()) {
+      auto cpoDom = tcvr->getCpoDomData();
+      // Filter to only include actual CPO/ELSFP transceivers
+      if (cpoDom.transceiverType() == TransceiverType::CPO_OE ||
+          cpoDom.transceiverType() == TransceiverType::ELSFP) {
+        result.push_back(std::move(cpoDom));
+      }
+    } else {
+      result.push_back(tcvr->getCpoDomData());
+    }
+  }
+  return result;
+}
+
+bool TransceiverManager::isCpoPort(const std::string& portName) const {
+  auto it = cpoPortConfigMap_.find(portName);
+  if (it != cpoPortConfigMap_.end()) {
+    return it->second.isCpoPort();
+  }
+  return false;
+}
+
+bool TransceiverManager::isElsfpPort(const std::string& portName) const {
+  auto it = cpoPortConfigMap_.find(portName);
+  if (it != cpoPortConfigMap_.end()) {
+    return it->second.isElsfpPort();
+  }
+  return false;
+}
+
+void TransceiverManager::setCpoJointMode(
+    const std::string& portName,
+    CpoJointMode mode) {
+  // Only allow setting joint mode on CPO ports when CPO is enabled
+  if (cpoConfig_.has_value() && cpoConfig_->enabled() && !isCpoPort(portName)) {
+    throw FbossError(
+        fmt::format("Port {} is not a CPO port", portName));
+  }
+  // Validate port exists
+  auto swPort = getPortIDByPortName(portName);
+  if (!swPort.has_value()) {
+    throw FbossError(fmt::format("Invalid port {}", portName));
+  }
+  auto tcvrId = getTransceiverID(swPort.value());
+  if (!tcvrId.has_value()) {
+    throw FbossError(
+        fmt::format("Transceiver not found for port {}", portName));
+  }
+  auto lockedMap = cpoJointModeMap_.wlock();
+  (*lockedMap)[portName] = mode;
+}
+
+CpoJointMode TransceiverManager::getCpoJointMode(
+    const std::string& portName) {
+  auto lockedMap = cpoJointModeMap_.rlock();
+  auto it = lockedMap->find(portName);
+  if (it != lockedMap->end()) {
+    return it->second;
+  }
+  // Return default from CPO platform config if available
+  if (cpoConfig_.has_value()) {
+    return cpoConfig_->jointModeDefault();
+  }
+  return CpoJointMode::DISABLED;
+}
+
+void TransceiverManager::loadCpoConfig(
+    const cfg::QsfpServiceConfig& qsfpCfg) {
+  if (auto cpoConfig = qsfpCfg.cpoConfig()) {
+    cpoConfig_ = *cpoConfig;
+    XLOG(INFO) << "Loaded CPO platform config. enabled="
+               << cpoConfig_->enabled()
+               << ", interleaveMode="
+               << static_cast<int>(cpoConfig_->interleaveMode())
+               << ", oeType=" << cpoConfig_->oeType()
+               << ", elsfpType=" << cpoConfig_->elsfpType();
+  }
+
+  if (auto cpoPortMap = qsfpCfg.cpoPortConfigMap()) {
+    for (const auto& [portName, portCfg] : *cpoPortMap) {
+      cpoPortConfigMap_[portName] = portCfg;
+    }
+    XLOG(INFO) << "Loaded CPO port config for " << cpoPortConfigMap_.size()
+               << " ports";
+  }
+}
+
+std::vector<CpoPortConfig> TransceiverManager::getCpoPortLaneMap() const {
+  std::vector<CpoPortConfig> result;
+  for (const auto& [portName, portCfg] : cpoPortConfigMap_) {
+    result.push_back(portCfg);
+  }
+  return result;
+}
+
+ElsfpDomData TransceiverManager::getElsfpDomData(
+    const std::string& portName) {
+  auto tcvrId = getTransceiverIdForPort(this, portName);
+  if (!tcvrId.has_value()) {
+    throw FbossError(
+        fmt::format("Transceiver not found for port {}", portName));
+  }
+  auto lockedTransceivers = transceivers_.rlock();
+  auto it = lockedTransceivers->find(tcvrId.value());
+  if (it == lockedTransceivers->end()) {
+    throw FbossError(
+        fmt::format("Transceiver not present for port {}", portName));
+  }
+  return it->second->getElsfpDomData();
+}
+
+bool TransceiverManager::getElsfpStatus(const std::string& portName) {
+  auto tcvrId = getTransceiverIdForPort(this, portName);
+  if (!tcvrId.has_value()) {
+    throw FbossError(
+        fmt::format("Transceiver not found for port {}", portName));
+  }
+  auto lockedTransceivers = transceivers_.rlock();
+  auto it = lockedTransceivers->find(tcvrId.value());
+  if (it == lockedTransceivers->end()) {
+    throw FbossError(
+        fmt::format("Transceiver not present for port {}", portName));
+  }
+  return it->second->getElsfpStatus();
+}
+
+std::vector<uint8_t> TransceiverManager::readElsfpMemory(
+    const std::string& portName,
+    uint8_t page,
+    uint8_t offset,
+    uint8_t length) {
+  auto tcvrId = getTransceiverIdForPort(this, portName);
+  if (!tcvrId.has_value()) {
+    throw FbossError(
+        fmt::format("Transceiver not found for port {}", portName));
+  }
+  auto lockedTransceivers = transceivers_.rlock();
+  auto it = lockedTransceivers->find(tcvrId.value());
+  if (it == lockedTransceivers->end()) {
+    throw FbossError(
+        fmt::format("Transceiver not present for port {}", portName));
+  }
+  return it->second->readElsfpMemory(page, offset, length);
+}
+
+void TransceiverManager::selectElsfpBank(
+    const std::string& portName,
+    uint8_t bank) {
+  auto tcvrId = getTransceiverIdForPort(this, portName);
+  if (!tcvrId.has_value()) {
+    throw FbossError(
+        fmt::format("Transceiver not found for port {}", portName));
+  }
+  auto lockedTransceivers = transceivers_.rlock();
+  auto it = lockedTransceivers->find(tcvrId.value());
+  if (it == lockedTransceivers->end()) {
+    throw FbossError(
+        fmt::format("Transceiver not present for port {}", portName));
+  }
+  it->second->selectElsfpBank(bank);
+}
+
+uint8_t TransceiverManager::getCurrentElsfpBank(
+    const std::string& portName) {
+  auto tcvrId = getTransceiverIdForPort(this, portName);
+  if (!tcvrId.has_value()) {
+    throw FbossError(
+        fmt::format("Transceiver not found for port {}", portName));
+  }
+  auto lockedTransceivers = transceivers_.rlock();
+  auto it = lockedTransceivers->find(tcvrId.value());
+  if (it == lockedTransceivers->end()) {
+    throw FbossError(
+        fmt::format("Transceiver not present for port {}", portName));
+  }
+  return it->second->getCurrentElsfpBank();
+}
+
 } // namespace facebook::fboss

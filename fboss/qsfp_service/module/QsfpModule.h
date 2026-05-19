@@ -688,6 +688,22 @@ class QsfpModule : public Transceiver {
   }
 
   /*
+   * CPO/ELSFP support: default no-op implementations for non-CMIS modules.
+   */
+  CpoDomData getCpoDomData() const override;
+
+  ElsfpDomData getElsfpDomData() const override;
+
+  bool getElsfpStatus() const override;
+
+  std::vector<uint8_t> readElsfpMemory(
+      uint8_t page, uint8_t offset, uint8_t length) override;
+
+  void selectElsfpBank(uint8_t bank) override;
+
+  uint8_t getCurrentElsfpBank() override;
+
+  /*
    * Returns a set of Transceiver lanes for a given SW port for a given side
    */
   std::set<uint8_t> getTcvrLanesForPort(

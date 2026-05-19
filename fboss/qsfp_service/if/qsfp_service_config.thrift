@@ -149,4 +149,10 @@ struct QsfpServiceConfig {
   // NOTE: This field is MANDATORY for Ladakh platform - QSFP service will
   // fail to start if this field is missing
   9: optional string phyConfig;
+
+  // CPO (Co-Packaged Optics) platform configuration
+  10: optional transceiver.CpoConfig cpoConfig;
+
+  // CPO port lane mapping configuration: port name -> CpoPortConfig
+  11: optional map<string, transceiver.CpoPortConfig> cpoPortConfigMap;
 }

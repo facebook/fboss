@@ -418,6 +418,24 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::PAGE_UPPER45H, {CmisPages::PAGE45, 128, 128}},
     // Page 45h, Byte 129 - Host Lane Provisioning Advertisement
     {CmisField::HOST_LANE_PROV_AD, {CmisPages::PAGE45, 129, 1}},
+
+    // ELSFP (External Laser SFP) specific fields
+    // These fields are mapped to Page 01h per CMIS-ELSFP specification
+    {CmisField::ELSFP_STATUS, {CmisPages::PAGE01, 128, 1}},
+    {CmisField::ELSFP_LASER_TEMP_HIGH, {CmisPages::PAGE01, 130, 1}},
+    {CmisField::ELSFP_LASER_TEMP_LOW, {CmisPages::PAGE01, 131, 1}},
+    {CmisField::ELSFP_LASER_BIAS_HIGH, {CmisPages::PAGE01, 132, 1}},
+    {CmisField::ELSFP_LASER_BIAS_LOW, {CmisPages::PAGE01, 133, 1}},
+    {CmisField::ELSFP_OPTICAL_OUTPUT_HIGH, {CmisPages::PAGE01, 134, 1}},
+    {CmisField::ELSFP_OPTICAL_OUTPUT_LOW, {CmisPages::PAGE01, 135, 1}},
+    {CmisField::ELSFP_LASER_CONTROL, {CmisPages::PAGE01, 136, 1}},
+    {CmisField::ELSFP_LASER_READY, {CmisPages::PAGE01, 137, 1}},
+    {CmisField::ELSFP_LASER_FAULT, {CmisPages::PAGE01, 138, 1}},
+    {CmisField::ELSFP_CONNECTED, {CmisPages::PAGE01, 139, 1}},
+
+    // Banking support fields (CMIS 5.3)
+    {CmisField::NUM_BANKS_SUPPORTED, {CmisPages::PAGE01, 140, 1}},
+    {CmisField::BANK_PAGE_CHANGE_TIME, {CmisPages::PAGE01, 141, 1}},
 };
 
 CmisField laneToAppSelField(const std::set<uint8_t>& lanes) {
@@ -716,6 +734,74 @@ void CmisModule::writeCmisField(
   }
   qsfpImpl_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
+      data,
+      POST_I2C_WRITE_DELAY_US,
+      CAST_TO_INT(field));
+}
+
+/*
+ * CMIS 5.3 Banking support implementation.
+ * For banked pages, we must write both BankSelect (byte 126) and
+ * PageSelect (byte 127) in a single write transaction when changing banks.
+ */
+void CmisModule::readCmisField(
+    CmisField field,
+    uint8_t* data,
+    uint8_t bank,
+    bool skipPageChange) {
+  int dataLength, dataPage, dataOffset;
+  getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
+  if (static_cast<CmisPages>(dataPage) != CmisPages::LOWER && !flatMem_ &&
+      !skipPageChange) {
+    uint8_t page = static_cast<uint8_t>(dataPage);
+    // CMIS 5.3: For bank change, write both BankSelect and PageSelect
+    // Lower Page bytes 126-127
+    uint8_t bankPageSelect[2] = {bank, page};
+    qsfpImpl_->writeTransceiver(
+        {TransceiverAccessParameter::ADDR_QSFP,
+         126,
+         sizeof(bankPageSelect),
+         static_cast<int>(CmisPages::LOWER)},
+        bankPageSelect,
+        POST_I2C_WRITE_DELAY_US,
+        CAST_TO_INT(CmisField::PAGE_CHANGE));
+  }
+  qsfpImpl_->readTransceiver(
+      {TransceiverAccessParameter::ADDR_QSFP,
+       dataOffset,
+       dataLength,
+       dataPage,
+       bank},
+      data,
+      CAST_TO_INT(field));
+}
+
+void CmisModule::writeCmisField(
+    CmisField field,
+    uint8_t* data,
+    uint8_t bank,
+    bool skipPageChange) {
+  int dataLength, dataPage, dataOffset;
+  getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
+  if (static_cast<CmisPages>(dataPage) != CmisPages::LOWER && !flatMem_ &&
+      !skipPageChange) {
+    uint8_t page = static_cast<uint8_t>(dataPage);
+    uint8_t bankPageSelect[2] = {bank, page};
+    qsfpImpl_->writeTransceiver(
+        {TransceiverAccessParameter::ADDR_QSFP,
+         126,
+         sizeof(bankPageSelect),
+         static_cast<int>(CmisPages::LOWER)},
+        bankPageSelect,
+        POST_I2C_WRITE_DELAY_US,
+        CAST_TO_INT(CmisField::PAGE_CHANGE));
+  }
+  qsfpImpl_->writeTransceiver(
+      {TransceiverAccessParameter::ADDR_QSFP,
+       dataOffset,
+       dataLength,
+       dataPage,
+       bank},
       data,
       POST_I2C_WRITE_DELAY_US,
       CAST_TO_INT(field));
@@ -2517,6 +2603,62 @@ void CmisModule::updateQsfpData(bool allPages) {
 
       // Cache firmware build number from CDB Get Firmware Info command
       cachedFwBuildNumber_ = fetchFwBuildNumberFromCdb();
+
+      // ELSFP (External Laser SFP) support: read ELSFP status from Page 01h
+      uint8_t elsfpStatus = 0;
+      try {
+        readCmisField(CmisField::ELSFP_STATUS, &elsfpStatus);
+        elsfpConnected_ = (elsfpStatus & 0x01) != 0;
+        if (elsfpConnected_) {
+          uint8_t tempHigh = 0, tempLow = 0;
+          uint8_t biasHigh = 0, biasLow = 0;
+          uint8_t outHigh = 0, outLow = 0;
+          uint8_t ready = 0, fault = 0;
+          readCmisField(CmisField::ELSFP_LASER_TEMP_HIGH, &tempHigh);
+          readCmisField(CmisField::ELSFP_LASER_TEMP_LOW, &tempLow);
+          readCmisField(CmisField::ELSFP_LASER_BIAS_HIGH, &biasHigh);
+          readCmisField(CmisField::ELSFP_LASER_BIAS_LOW, &biasLow);
+          readCmisField(CmisField::ELSFP_OPTICAL_OUTPUT_HIGH, &outHigh);
+          readCmisField(CmisField::ELSFP_OPTICAL_OUTPUT_LOW, &outLow);
+          readCmisField(CmisField::ELSFP_LASER_READY, &ready);
+          readCmisField(CmisField::ELSFP_LASER_FAULT, &fault);
+
+          // Convert raw values to engineering units
+          // Temperature: signed 8-bit integer in degrees C
+          elsfpTemperature_ = static_cast<int8_t>(tempHigh);
+          // Laser bias current: unsigned 16-bit in 0.1 mA units
+          elsfpLaserBiasCurrent_ = ((tempHigh << 8) | tempLow) * 0.1;
+          // Optical output power: unsigned 16-bit in 0.01 dBm units
+          elsfpOpticalOutputPower_ = ((outHigh << 8) | outLow) * 0.01;
+          elsfpLaserReady_ = (ready & 0x01) != 0;
+          elsfpLaserFault_ = (fault & 0x01) != 0;
+
+          laserSourceType_ = LaserSourceType::EXTERNAL;
+          QSFP_LOG(INFO, this) << "ELSFP connected. Temp: " << elsfpTemperature_
+                               << "C, Bias: " << elsfpLaserBiasCurrent_
+                               << "mA, Output: " << elsfpOpticalOutputPower_
+                               << "dBm";
+        } else {
+          laserSourceType_ = LaserSourceType::INTERNAL;
+        }
+      } catch (const std::exception& ex) {
+        // ELSFP fields may not be present on all modules
+        elsfpConnected_ = false;
+        laserSourceType_ = LaserSourceType::UNKNOWN;
+      }
+
+      // CMIS 5.3 Banking support: read number of banks supported
+      try {
+        uint8_t numBanks = 0;
+        readCmisField(CmisField::NUM_BANKS_SUPPORTED, &numBanks);
+        if (numBanks != numBanksSupported_) {
+          numBanksSupported_ = numBanks;
+          QSFP_LOG(INFO, this) << "Module supports " << (int)numBanksSupported_
+                               << " banks";
+        }
+      } catch (const std::exception& ex) {
+        numBanksSupported_ = 0;
+      }
     }
 
     // Update the application capabilities once we have read from eeprom
@@ -5135,8 +5277,20 @@ void CmisModule::updateVdmCacheLocked() {
   // Read C-CMIS PM pages, Rx Consequent Action control, and Host Lane
   // Provisioning Advertisement for coherent optics
   if (isTunableOptics()) {
-    readCmisField(CmisField::PAGE_UPPER34H, page34_);
-    readCmisField(CmisField::PAGE_UPPER35H, page35_);
+    // CMIS 5.3 Banking support: Page 34h/35h are banked pages.
+    // Each bank corresponds to a single media lane.
+    if (numBanksSupported_ > 1) {
+      for (uint8_t bank = 0; bank < numBanksSupported_; ++bank) {
+        page34Banks_[bank] = {};
+        page35Banks_[bank] = {};
+        readCmisField(CmisField::PAGE_UPPER34H, page34Banks_[bank].data(), bank);
+        readCmisField(CmisField::PAGE_UPPER35H, page35Banks_[bank].data(), bank);
+      }
+    } else {
+      // Legacy single-bank module (e.g., ZR with one media lane)
+      readCmisField(CmisField::PAGE_UPPER34H, page34_);
+      readCmisField(CmisField::PAGE_UPPER35H, page35_);
+    }
     readCmisField(CmisField::PAGE_UPPER38H, page38_);
     readCmisField(CmisField::PAGE_UPPER45H, page45_);
   }
@@ -6095,6 +6249,189 @@ bool CmisModule::fillVdmPerfMonitorLinkPm(VdmPerfMonitorStats& vdmStats) {
         .linkPm() = linkPm;
   }
   return true;
+}
+
+/*
+ * Banking support helpers (CMIS 5.3)
+ */
+uint8_t CmisModule::getNumBanksSupported() const {
+  if (!cacheIsValid()) {
+    return 0;
+  }
+  uint8_t numBanks = 0;
+  try {
+    getFieldValue(CmisField::NUM_BANKS_SUPPORTED, &numBanks);
+  } catch (const FbossError& e) {
+    QSFP_LOG(DBG3, this) << "Failed to read num banks supported: " << e.what();
+  }
+  return numBanks;
+}
+
+void CmisModule::selectBank(uint8_t bank) {
+  if (!present_) {
+    return;
+  }
+  writeCmisField(CmisField::BANK_SELECT, &bank);
+  currentBank_ = bank;
+}
+
+uint8_t CmisModule::getCurrentBank() const {
+  return currentBank_;
+}
+
+bool CmisModule::isBankSupported(uint8_t bank) const {
+  return bank < numBanksSupported_;
+}
+
+/*
+ * ELSFP (External Laser SFP) support implementation
+ */
+bool CmisModule::isElsfpConnected() const {
+  return elsfpConnected_;
+}
+
+double CmisModule::readElsfpLaserTemperature() const {
+  return elsfpTemperature_;
+}
+
+double CmisModule::readElsfpLaserBiasCurrent() const {
+  return elsfpLaserBiasCurrent_;
+}
+
+double CmisModule::readElsfpOpticalOutputPower() const {
+  return elsfpOpticalOutputPower_;
+}
+
+bool CmisModule::isElsfpLaserReady() const {
+  return elsfpLaserReady_;
+}
+
+bool CmisModule::isElsfpLaserFault() const {
+  return elsfpLaserFault_;
+}
+
+void CmisModule::setElsfpLaserControl(bool enable) {
+  if (!present_) {
+    return;
+  }
+  std::lock_guard<std::mutex> g(qsfpModuleMutex_);
+  uint8_t control = enable ? 0x01 : 0x00;
+  writeCmisField(CmisField::ELSFP_LASER_CONTROL, &control);
+}
+
+/*
+ * CPO DOM data collection
+ */
+OpticalEngineDomData CmisModule::getOpticalEngineDomData() const {
+  OpticalEngineDomData oeDom;
+  if (!cacheIsValid()) {
+    return oeDom;
+  }
+
+  oeDom.temperature() = getQsfpSensor(CmisField::TEMPERATURE, CmisFieldInfo::getTemp);
+  oeDom.voltage() = getQsfpSensor(CmisField::VCC, CmisFieldInfo::getVcc);
+
+  auto txPowers = getSensorsPerChanInfo(
+      CmisField::CHANNEL_TX_PWR, CmisFieldInfo::getPwr, [](double val) {
+        return val;
+      });
+  auto rxPowers = getSensorsPerChanInfo(
+      CmisField::CHANNEL_RX_PWR, CmisFieldInfo::getPwr, [](double val) {
+        return val;
+      });
+
+  for (const auto& tx : txPowers) {
+    if (tx.second.hasValue()) {
+      oeDom.txPowers()->push_back(tx.second.value());
+    }
+  }
+  for (const auto& rx : rxPowers) {
+    if (rx.second.hasValue()) {
+      oeDom.rxPowers()->push_back(rx.second.value());
+    }
+  }
+
+  // SNR values from VDM diagnostics
+  auto vdmStatsOpt = getVdmPerfMonitorStats();
+  if (vdmStatsOpt.has_value()) {
+    for (const auto& [portName, portStats] : vdmStatsOpt->mediaPortVdmStats()) {
+      if (auto snr = portStats.snr()) {
+        oeDom.snr()->push_back(*snr);
+      }
+    }
+  }
+
+  // Lane alarm flags from media lane signals
+  std::vector<MediaLaneSignals> mediaSignals(numMediaLanes());
+  if (getSignalsPerMediaLane(mediaSignals)) {
+    // Also read TX LOS and TX LOL per lane from module flags
+    auto txLos = getSettingsValue(CmisField::TX_LOS_FLAG);
+    auto txLol = getSettingsValue(CmisField::TX_LOL_FLAG);
+    for (int lane = 0; lane < mediaSignals.size(); lane++) {
+      auto laneMask = (1 << lane);
+      mediaSignals[lane].txLos() = txLos & laneMask;
+      mediaSignals[lane].txLol() = txLol & laneMask;
+      oeDom.laneAlarmFlags()->push_back(std::move(mediaSignals[lane]));
+    }
+  }
+
+  return oeDom;
+}
+
+ElsfpDomData CmisModule::getElsfpDomData() const {
+  ElsfpDomData elsfpDom;
+  elsfpDom.temperature() = elsfpTemperature_;
+  elsfpDom.laserBiasCurrent() = elsfpLaserBiasCurrent_;
+  elsfpDom.opticalOutputPower() = elsfpOpticalOutputPower_;
+  elsfpDom.laserReady() = elsfpLaserReady_;
+  elsfpDom.laserFault() = elsfpLaserFault_;
+  return elsfpDom;
+}
+
+CpoDomData CmisModule::getCpoDomData() const {
+  CpoDomData cpoDom;
+  cpoDom.oeDom() = getOpticalEngineDomData();
+  cpoDom.elsfpDom() = getElsfpDomData();
+  cpoDom.transceiverType() = type();
+  cpoDom.laserSourceType() = laserSourceType_;
+  return cpoDom;
+}
+
+std::vector<uint8_t> CmisModule::readElsfpMemory(
+    uint8_t page,
+    uint8_t offset,
+    uint8_t length) {
+  // Validate bounds: offset + length must fit within a 128-byte page
+  if (offset + length > MAX_QSFP_PAGE_SIZE) {
+    throw FbossError(fmt::format(
+        "readElsfpMemory: offset({}) + length({}) exceeds page size",
+        offset,
+        length));
+  }
+
+  std::vector<uint8_t> data(length);
+
+  // Change page if necessary (not lower page and not flat memory)
+  if (page != static_cast<uint8_t>(CmisPages::LOWER) && !flatMem_) {
+    qsfpImpl_->writeTransceiver(
+        {TransceiverAccessParameter::ADDR_QSFP,
+         127,
+         sizeof(page),
+         static_cast<int>(CmisPages::LOWER)},
+        &page,
+        POST_I2C_WRITE_DELAY_US,
+        CAST_TO_INT(CmisField::PAGE_CHANGE));
+  }
+
+  qsfpImpl_->readTransceiver(
+      {TransceiverAccessParameter::ADDR_QSFP,
+       offset,
+       length,
+       static_cast<int>(page)},
+      data.data(),
+      CAST_TO_INT(CmisField::RAW));
+
+  return data;
 }
 
 } // namespace fboss
