@@ -66,6 +66,7 @@ struct OperSubscriberInfo {
   17: optional i64 lastEnqueuedUpdatePublishedAt; // epoch ms, publisher timestamp of last enqueued update
   // Counts
   18: optional i64 numUpdatesServed; // cumulative count of updates served
+  19: optional fsdb_common.SubscriberId configKey; // server-only
 }
 
 @cpp.Type{template = "folly::F14FastMap"}
