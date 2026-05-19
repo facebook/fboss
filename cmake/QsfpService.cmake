@@ -445,3 +445,25 @@ else()
     "qsfp_service" QSFP_SERVICE_SRCS QSFP_SERVICE_DEPS "" ""
   )
 endif()
+
+# Interactive REPL CLI client for the PAI diag shell — connects to a running
+# qsfp_service over thrift's startPaiDiagShell + producePaiDiagShellInput
+# streaming endpoints and gives the user a bcmsh-style prompt.
+#
+# Mirrors the agent's diag_shell_client (fboss/agent/hw/sai/diag/) which is
+# the production-vetted pattern for the BCM NPU diag shell. The OSS variant
+# uses a raw AsyncSocket + RocketClientChannel; the FB-internal variant
+# (built via BUCK with facebook/) uses ServiceRouter.
+add_executable(fboss_pai_diag_shell_client
+  fboss/qsfp_service/diag/PaiDiagShellClient.cpp
+  fboss/qsfp_service/diag/oss/PaiDiagShellClient.cpp
+)
+
+target_link_libraries(fboss_pai_diag_shell_client
+  qsfp_cpp2
+  ctrl_cpp2
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
+install(TARGETS fboss_pai_diag_shell_client)

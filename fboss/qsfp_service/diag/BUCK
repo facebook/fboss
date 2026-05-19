@@ -1,3 +1,4 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("//fboss/qsfp_service/diag:pai_diag_shell.bzl", "all_pai_diag_shell_libs")
 
@@ -52,3 +53,46 @@ cpp_library(
 # qsfp_service binaries to provide bcmsh-style interactive shell access to
 # Agera3 retimers.
 all_pai_diag_shell_libs()
+
+# Interactive REPL CLI client for the PAI diag shell. Connects to a running
+# qsfp_service over thrift's startPaiDiagShell + producePaiDiagShellInput
+# streaming endpoints and gives the user a bcmsh-style prompt.
+#
+# Mirrors fboss/agent/hw/sai/diag:diag_shell_client. The OSS counterpart
+# (oss/PaiDiagShellClient.cpp) is used by the cmake build instead of the
+# facebook/ variant.
+cpp_binary(
+    name = "fboss_pai_diag_shell_client",
+    srcs = [
+        "PaiDiagShellClient.cpp",
+        "facebook/PaiDiagShellClient.cpp",
+    ],
+    headers = [
+        "PaiDiagShellClient.h",
+    ],
+    deps = [
+        "//fboss/agent/if:common-cpp2-types",
+        "//fboss/qsfp_service/if:qsfp-cpp2-clients",
+        "//fboss/qsfp_service/if:qsfp-cpp2-services",
+        "//folly:exception",
+        "//folly:file_util",
+        "//folly:memory",
+        "//folly:network_address",
+        "//folly:range",
+        "//folly:scope_guard",
+        "//folly:string",
+        "//folly/init:init",
+        "//folly/io/async:async_base",
+        "//folly/io/async:async_signal_handler",
+        "//folly/io/async:async_socket",
+        "//folly/io/async:ssl_context",
+        "//folly/logging:logging",
+        "//security/ca/lib:cert_path_picker",
+        "//servicerouter/client/cpp2:cpp2",
+        "//thrift/lib/cpp2/async:header_client_channel",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
