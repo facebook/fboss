@@ -242,6 +242,9 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
 
+    constexpr uint8_t kDscp{42};
+    auto outerTc = static_cast<uint8_t>(kDscp << 2);
+
     std::unique_ptr<TxPacket> txPacket;
     if (isV4) {
       txPacket = utility::makeIpInIpTxPacket(
@@ -255,7 +258,7 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
           folly::IPAddressV4("10.0.0.2"),
           8000,
           8001,
-          0,
+          outerTc,
           0,
           64,
           64);
@@ -271,7 +274,7 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
           folly::IPAddressV6("2001:db8::2"),
           8000,
           8001,
-          0,
+          outerTc,
           0,
           64,
           64);
@@ -338,6 +341,8 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
 
     auto origOuterV6 = originalFrame.v6PayLoad();
     ASSERT_TRUE(origOuterV6.has_value());
+    EXPECT_EQ(v6Hdr.trafficClass, origOuterV6->header().trafficClass);
+
     if (isV4) {
       auto expectedInnerV4 = origOuterV6->v4PayLoad();
       auto rxInnerV4 = v6Payload->v4PayLoad();
