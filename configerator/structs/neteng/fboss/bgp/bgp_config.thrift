@@ -117,6 +117,12 @@ struct PeerGroup {
    * checked for TTL >= (256 - ttl_security_hops).
    */
   38: optional i32 ttl_security_hops;
+
+  /* Enable Enhanced Route Refresh capability advertisement (RFC 7313, cap 70) */
+  39: optional bool enhanced_route_refresh;
+
+  /* Enable Route Refresh capability advertisement (RFC 2918, cap 2) */
+  40: optional bool route_refresh;
 }
 
 /**
@@ -265,6 +271,12 @@ struct BgpPeer {
    * Typical value: 1 for directly connected eBGP peers.
    */
   102: optional i32 ttl_security_hops;
+
+  /* Enable Enhanced Route Refresh capability advertisement (RFC 7313, cap 70) */
+  103: optional bool enhanced_route_refresh;
+
+  /* Enable Route Refresh capability advertisement (RFC 2918, cap 2) */
+  104: optional bool route_refresh;
 }
 
 /**
@@ -539,6 +551,11 @@ struct BgpSettingConfig {
    * Configuration for update group slow peer detection and detachment.
    */
   15: optional UpdateGroupConfig update_group_config;
+
+  /**
+  * Enable BGP++ to use policy default action config
+  */
+  16: optional bool enable_policy_default_action;
 }
 
 /**
