@@ -1,0 +1,54 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss/qsfp_service/diag:pai_diag_shell.bzl", "all_pai_diag_shell_libs")
+
+oncall("fboss_optics_phy")
+
+# Header-only library exposing PaiDiagShell.h types (impl-agnostic).
+# Handler library depends on this so it can declare members of
+# StreamingPaiDiagShell / PaiDiagCmdServer.
+# The actual .cpp implementations live in per-impl pai-diag-shell-{impl}
+# libraries (see pai_diag_shell.bzl), which are linked in via the per-impl
+# core-{impl} chain in qsfp_service.bzl.
+cpp_library(
+    name = "pai-diag-shell-headers",
+    headers = [
+        "PaiDiagShell.h",
+    ],
+    labels = ["noautodeps"],
+    exported_deps = [
+        # Provides Repl.h (header-only, used by PaiDiagShell.h)
+        "//fboss/agent/hw/sai/diag:diag_lib",
+        # ClientInformation type (forward-declared in header; full type needed
+        # in .cpp consumers like QsfpServiceHandler.cpp)
+        "//fboss/agent/if:common-cpp2-types",
+        "//folly:file",
+        "//folly:synchronized",
+        "//thrift/lib/cpp2/async:server_stream",
+    ],
+)
+
+# Stub implementation of PaiDiagShell.h symbols for non-BRCM-PAI builds
+# (e.g. Credo-only or native-PHY qsfp_service binaries). Every method
+# throws FbossError("not supported on this platform"). Linked into
+# core-{impl} for non-BRCM-PAI impls so handler.so's PaiDiagShell symbols
+# are resolved at the final binary link stage.
+cpp_library(
+    name = "pai-diag-shell-stub",
+    srcs = [
+        "PaiDiagShellStub.cpp",
+    ],
+    exported_deps = [
+        # @manual — autodeps wants to swap this for ":pai-diag-shell-brcm_pai-3.15",
+        # but we intentionally use the headers-only library here so this stub is
+        # impl-agnostic. The actual per-impl (brcm_pai-{ver}) PaiDiagShell library
+        # is selected per binary via qsfp_service.bzl's _qsfp_core_lib(); this
+        # stub is linked into non-BRCM-PAI binaries (Credo, native, OSS).
+        ":pai-diag-shell-headers",
+        "//fboss/agent:fboss-error",
+    ],
+)
+
+# Per-impl PaiDiagShell libraries (one per BRCM PAI/SAI impl). Used by
+# qsfp_service binaries to provide bcmsh-style interactive shell access to
+# Agera3 retimers.
+all_pai_diag_shell_libs()

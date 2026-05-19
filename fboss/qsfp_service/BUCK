@@ -37,6 +37,11 @@ cpp_library(
         "QsfpServiceHandler.cpp",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    # PaiDiagShell symbols come from per-impl pai-diag-shell-{impl} libraries
+    # that are linked at the final qsfp_service binary stage (via core-{impl}
+    # in qsfp_service.bzl). Same trick as core (impl-agnostic, per-impl link
+    # closure at binary stage).
+    undefined_symbols = True,
     exported_deps = [
         ":port-manager",
         ":transceiver-manager",
@@ -50,6 +55,7 @@ cpp_library(
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",
         "//fboss/mka_service/handlers:macsec_handler",
+        "//fboss/qsfp_service/diag:pai-diag-shell-headers",
         "//fboss/qsfp_service/fsdb:fsdb-subscriber",
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//folly/futures:core",

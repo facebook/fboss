@@ -5,6 +5,7 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.qsfp
 
 include "fboss/agent/if/ctrl.thrift"
+include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/fboss.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
@@ -216,6 +217,30 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     4: i32 devId,
     5: i32 regOffset,
     6: i32 data,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * PAI Diag Shell access for Broadcom Agera3 retimer chips.
+   *
+   * Provides bcmsh-style interactive access to the PAI library's built-in
+   * diag shell (brcm_pai_diag.c). Mirrors the SaiCtrl service's startDiagShell
+   * /produceDiagShellInput/diagCmd pattern used by wedge_agent for ASIC NPU.
+   *
+   * The PAI shell's `s <switch_id>` command lets you switch chip context at
+   * runtime, so a single shell session can hop across all 32 retimers.
+   */
+  string, stream<string> startPaiDiagShell() throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  void producePaiDiagShellInput(
+    1: string input,
+    2: common.ClientInformation client,
+  ) throws (1: fboss.FbossBaseError error);
+
+  string paiDiagCmd(
+    1: string input,
+    2: common.ClientInformation client,
   ) throws (1: fboss.FbossBaseError error);
 
   string saiPhySerdesRegisterAccess(
