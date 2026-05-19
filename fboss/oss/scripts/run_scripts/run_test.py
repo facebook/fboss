@@ -19,7 +19,13 @@ from typing import ClassVar
 from fboss_agent_utils import (
     agent_can_warm_boot_file_path,
     cleanup_hw_agent_service,
+    cleanup_sw_agent_service,
+    cold_boot_agents,
+    HW_AGENT_SERVICE_PROD,
+    is_agent_running,
     setup_and_start_hw_agent_service,
+    setup_and_start_sw_agent_service,
+    SW_AGENT_SERVICE_PROD,
 )
 from fsdb_service_utils import cleanup_fsdb_service, setup_and_start_fsdb_service
 from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_service
@@ -298,6 +304,10 @@ class TestRunner(abc.ABC):
 
     @abc.abstractmethod
     def _get_test_run_args(self, conf_file):
+        pass
+
+    @abc.abstractmethod
+    def _setup_run(self, conf_file: str) -> None:
         pass
 
     @abc.abstractmethod
@@ -628,13 +638,19 @@ class TestRunner(abc.ABC):
             ).encode("utf-8")
         except subprocess.CalledProcessError as e:
             # Test aborted, mark it as FAILED
+            elapsed_ms = int((time.time() - start_time) * 1000)
             print(f"Test aborted with return code {e.returncode}!", flush=True)
             output = e.output.decode("utf-8") if e.output else None
             print(f"Test output {output}", flush=True)
             stderr = e.stderr.decode("utf-8") if e.stderr else None
             print(f"Test error {stderr}", flush=True)
             run_test_result = (
-                "[   FAILED ] " + test_prefix + test_to_run + " (0 ms)"
+                "[   FAILED ] "
+                + test_prefix
+                + test_to_run
+                + " ("
+                + str(elapsed_ms)
+                + " ms)"
             ).encode("utf-8")
         return run_test_result
 
@@ -733,50 +749,24 @@ class TestRunner(abc.ABC):
             return []
 
         test_outputs = []
-        num_tests = len(tests_to_run)
-        for idx, test_to_run in enumerate(tests_to_run):
-            test_prefix = self.COLDBOOT_PREFIX
-            sai_replayer_log_path = self._get_sai_replayer_log_path(
-                test_prefix, test_to_run, args.sai_replayer_logging
-            )
-            # Run the test for coldboot verification
-            self._setup_coldboot_test(sai_replayer_log_path)
-            print("########## Running test: " + test_to_run, flush=True)
-            if args.simulator:
-                self._restart_bcmsim(args.simulator)
-            test_output = self._run_test(
-                conf_file,
-                test_prefix,
-                test_to_run,
-                warmboot,  # setup_warmboot
-                args.sai_logging,
-                args.fboss_logging,
-                sai_replayer_log_path,
-                args.test_run_timeout,
-            )
-            output = test_output.decode("utf-8")
-            print(
-                f"########## Coldboot test results ({idx + 1}/{num_tests}): {output}",
-                flush=True,
-            )
-            test_outputs.append(test_output)
-
-            # Run the test again for warmboot verification if the test supports it
-            if warmboot and os.path.isfile(self._get_warmboot_check_file()):
-                test_prefix = self.WARMBOOT_PREFIX
+        try:
+            self._setup_run(conf_file)
+            num_tests = len(tests_to_run)
+            for idx, test_to_run in enumerate(tests_to_run):
+                test_prefix = self.COLDBOOT_PREFIX
                 sai_replayer_log_path = self._get_sai_replayer_log_path(
                     test_prefix, test_to_run, args.sai_replayer_logging
                 )
-                self._setup_warmboot_test(sai_replayer_log_path)
-                print(
-                    "########## Verifying test with warmboot: " + test_to_run,
-                    flush=True,
-                )
+                # Run the test for coldboot verification
+                self._setup_coldboot_test(sai_replayer_log_path)
+                print("########## Running test: " + test_to_run, flush=True)
+                if args.simulator:
+                    self._restart_bcmsim(args.simulator)
                 test_output = self._run_test(
                     conf_file,
                     test_prefix,
                     test_to_run,
-                    False,  # setup_warmboot
+                    warmboot,  # setup_warmboot
                     args.sai_logging,
                     args.fboss_logging,
                     sai_replayer_log_path,
@@ -784,11 +774,40 @@ class TestRunner(abc.ABC):
                 )
                 output = test_output.decode("utf-8")
                 print(
-                    f"########## Warmboot test results ({idx + 1}/{num_tests}): {output}",
+                    f"########## Coldboot test results ({idx + 1}/{num_tests}): {output}",
                     flush=True,
                 )
                 test_outputs.append(test_output)
-        self._end_run()
+
+                # Run the test again for warmboot verification if the test supports it
+                if warmboot and os.path.isfile(self._get_warmboot_check_file()):
+                    test_prefix = self.WARMBOOT_PREFIX
+                    sai_replayer_log_path = self._get_sai_replayer_log_path(
+                        test_prefix, test_to_run, args.sai_replayer_logging
+                    )
+                    self._setup_warmboot_test(sai_replayer_log_path)
+                    print(
+                        "########## Verifying test with warmboot: " + test_to_run,
+                        flush=True,
+                    )
+                    test_output = self._run_test(
+                        conf_file,
+                        test_prefix,
+                        test_to_run,
+                        False,  # setup_warmboot
+                        args.sai_logging,
+                        args.fboss_logging,
+                        sai_replayer_log_path,
+                        args.test_run_timeout,
+                    )
+                    output = test_output.decode("utf-8")
+                    print(
+                        f"########## Warmboot test results ({idx + 1}/{num_tests}): {output}",
+                        flush=True,
+                    )
+                    test_outputs.append(test_output)
+        finally:
+            self._end_run()
         return test_outputs
 
     _GTEST_STATUS_MAP: ClassVar[dict[str, str]] = {
@@ -910,6 +929,9 @@ class BcmTestRunner(TestRunner):
     def _get_test_run_args(self, conf_file):
         return []
 
+    def _setup_run(self, conf_file: str) -> None:
+        pass
+
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         return
 
@@ -979,6 +1001,9 @@ class SaiTestRunner(TestRunner):
                 ]
             )
         return args_list
+
+    def _setup_run(self, conf_file: str) -> None:
+        pass
 
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         if args.setup_for_coldboot:
@@ -1056,6 +1081,9 @@ class QsfpTestRunner(TestRunner):
                 ]
             )
         return arg_list
+
+    def _setup_run(self, conf_file: str) -> None:
+        pass
 
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         subprocess.Popen(
@@ -1170,6 +1198,9 @@ class LinkTestRunner(TestRunner):
         arg_list.extend(["--fsdb_client_ssl_preferred=false"])
 
         return arg_list
+
+    def _setup_run(self, conf_file: str) -> None:
+        pass
 
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         # Start FSDB service if not disabled
@@ -1348,6 +1379,9 @@ class SaiAgentTestRunner(TestRunner):
             )
         return args_list
 
+    def _setup_run(self, conf_file: str) -> None:
+        pass
+
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         if args.setup_for_coldboot:
             run_script(args.setup_for_coldboot)
@@ -1503,6 +1537,9 @@ class PlatformServicesTestRunner(TestRunner):
     def _get_test_run_args(self, conf_file):
         return []
 
+    def _setup_run(self, conf_file: str) -> None:
+        pass
+
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         return
 
@@ -1596,17 +1633,36 @@ class Fboss2IntegrationTestRunner(TestRunner):
     fboss2 integration tests are platform/SAI independent - they test the CLI binary which
     communicates with the agent via Thrift, regardless of the underlying
     hardware abstraction layer.
+
+    Agent lifecycle: uses production service names (fboss_sw_agent, fboss_hw_agent@N)
+    because fboss2-dev may restart agents during config commits. Detects whether the
+    device has production multi-switch services running or needs service setup from scratch.
+    Cold boots both agents before each test for isolation.
     """
+
+    _AGENT_CONFIG_PATH = "/etc/coop/agent.conf"
+    _CONFIG_SNAPSHOT_PATH = "/tmp/agent.conf.fboss2_test_snapshot"
+
+    def __init__(self):
+        super().__init__()
+        # Whether fboss_sw_agent and fboss_hw_agent@N are already running
+        self._is_prod_multi_switch: bool = False
+        self._switch_indexes: list[int] = []
+        self._test_config_source: str = self._AGENT_CONFIG_PATH
 
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
         """Add CLI test-specific command line arguments"""
-        # Override defaults for CLI tests:
-        # - fruid_path: CLI tests don't use fruid files
-        # - coldboot_only: Some CLI tests use warmboot/coldboot but the test binary doesn't support the --setup-for-warmboot flag.
         sub_parser.set_defaults(fruid_path=None, coldboot_only=True)
+        sub_parser.add_argument(
+            "--num-npus",
+            type=int,
+            choices=[1, 2],
+            default=1,
+            help="Number of NPUs (switch indexes). Default is 1.",
+        )
 
     def _get_config_path(self):
-        return "/etc/coop/agent.conf"
+        return self._AGENT_CONFIG_PATH
 
     def _get_known_bad_tests_file(self):
         return ""
@@ -1623,24 +1679,93 @@ class Fboss2IntegrationTestRunner(TestRunner):
         return []
 
     def _get_sai_logging_flags(self, sai_logging):
-        # CLI tests don't use SAI logging
         return []
 
     def _get_warmboot_check_file(self):
         return ""
 
     def _get_test_run_args(self, conf_file):
-        # CLI tests don't need any additional args
         return []
 
+    def _setup_run(self, conf_file: str) -> None:
+        self._switch_indexes = list(range(args.num_npus))
+        self._is_prod_multi_switch = all(
+            is_agent_running(
+                self._switch_indexes,
+                hw_agent_service_name=HW_AGENT_SERVICE_PROD,
+                sw_agent_service_name=SW_AGENT_SERVICE_PROD,
+            )
+        )
+        self._test_config_source = conf_file
+
+        if self._is_prod_multi_switch:
+            print(
+                "Production multi-switch detected — "
+                f"{SW_AGENT_SERVICE_PROD} and "
+                f"{HW_AGENT_SERVICE_PROD}N already running. "
+                "Snapshotting agent config."
+            )
+            subprocess.run(
+                ["cp", self._AGENT_CONFIG_PATH, self._CONFIG_SNAPSHOT_PATH],
+                check=True,
+            )
+        else:
+            print("No running agents detected — setting up agent services.")
+
+        if conf_file != self._AGENT_CONFIG_PATH:
+            print(f"Copying test config {conf_file} to {self._AGENT_CONFIG_PATH}")
+            subprocess.run(["cp", conf_file, self._AGENT_CONFIG_PATH], check=True)
+
+        if not self._is_prod_multi_switch:
+            setup_and_start_hw_agent_service(
+                switch_indexes=self._switch_indexes,
+                fboss_agent_config_path=self._AGENT_CONFIG_PATH,
+                is_warm_boot=False,
+                hw_agent_service_name=HW_AGENT_SERVICE_PROD,
+                hw_agent_for_testing=False,
+            )
+            setup_and_start_sw_agent_service(
+                fboss_agent_config_path=self._AGENT_CONFIG_PATH,
+                is_warm_boot=False,
+                sw_agent_service_name=SW_AGENT_SERVICE_PROD,
+            )
+
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
-        pass
+        if self._test_config_source != self._AGENT_CONFIG_PATH:
+            subprocess.run(
+                ["cp", self._test_config_source, self._AGENT_CONFIG_PATH], check=True
+            )
+        cold_boot_agents(
+            self._switch_indexes,
+            hw_agent_service_name=HW_AGENT_SERVICE_PROD,
+            sw_agent_service_name=SW_AGENT_SERVICE_PROD,
+        )
 
     def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         pass
 
     def _end_run(self):
-        pass
+        if self._is_prod_multi_switch:
+            print("Restoring original agent config and restarting agents.")
+            subprocess.run(
+                ["cp", self._CONFIG_SNAPSHOT_PATH, self._AGENT_CONFIG_PATH],
+                check=False,
+            )
+            try:
+                cold_boot_agents(
+                    self._switch_indexes,
+                    hw_agent_service_name=HW_AGENT_SERVICE_PROD,
+                    sw_agent_service_name=SW_AGENT_SERVICE_PROD,
+                )
+            except Exception as e:
+                # Broad catch: cold_boot_agents raises generic Exception;
+                # cleanup must not prevent config restoration below.
+                print(f"Warning: error restarting agents during cleanup: {e}")
+            subprocess.run(["rm", "-f", self._CONFIG_SNAPSHOT_PATH], check=False)
+        else:
+            print("Cleaning up agent services.")
+            cleanup_sw_agent_service(SW_AGENT_SERVICE_PROD)
+            cleanup_hw_agent_service(self._switch_indexes)
 
     def _filter_tests(self, tests: list[str]) -> list[str]:
         return tests

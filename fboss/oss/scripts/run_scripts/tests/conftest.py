@@ -44,6 +44,9 @@ class StubTestRunner(TestRunner):
     def _get_test_run_args(self, conf_file):
         return ["--config", conf_file]
 
+    def _setup_run(self, conf_file):
+        pass
+
     def _setup_coldboot_test(self, sai_replayer_log_path=None):
         pass
 
