@@ -43,6 +43,7 @@ ignore = [
 known-first-party = ["fboss"]
 force-single-line = false
 combine-as-imports = true
+order-by-type = false
 
 [lint.pylint]
 max-args = 8
