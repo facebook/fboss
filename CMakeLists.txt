@@ -887,6 +887,17 @@ add_fbthrift_python_library(
 )
 
 add_fbthrift_cpp_library(
+  platform_descriptor_cpp2
+  fboss/lib/platforms/platform_descriptor.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    fboss_common_cpp2
+    switch_config_cpp2
+)
+
+add_fbthrift_cpp_library(
   led_mapping_cpp2
   fboss/lib/led/led_mapping.thrift
   OPTIONS

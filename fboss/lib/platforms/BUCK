@@ -1,6 +1,21 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
 oncall("fboss_agent_push")
+
+thrift_library(
+    name = "platform_descriptor_thrift",
+    languages = [
+        "cpp2",
+        "py3-deprecated",
+        "python",
+    ],
+    thrift_srcs = {"platform_descriptor.thrift": []},
+    deps = [
+        "//fboss/agent:switch_config",
+        "//fboss/lib/if:fboss_common",
+    ],
+)
 
 cpp_library(
     name = "fruid_fields",
