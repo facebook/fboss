@@ -3679,6 +3679,43 @@ TEST_F(NamedNextHopGroupThriftTest, defaultsSrv6TunnelIdFromConfig) {
   EXPECT_NO_THROW(handler.addOrUpdateNamedNextHopGroups(std::move(groups)));
 }
 
+TEST_F(
+    NamedNextHopGroupThriftTest,
+    getRouteTableByClientVerifyNamedRouteDestination) {
+  ThriftHandler handler(sw_);
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(makeGroup(
+      "nhg_foo", {"2401:db00:2110:3001::2", "2401:db00:2110:3001::3"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  UnicastRoute route;
+  route.dest()->ip() = toBinaryAddress(IPAddress("2401::1"));
+  route.dest()->prefixLength() = 128;
+  NamedRouteDestination namedDest;
+  namedDest.nextHopGroup() = "nhg_foo";
+  route.namedRouteDestination() = namedDest;
+
+  auto updater = sw_->getRouteUpdater();
+  updater.addRoute(RouterID(0), ClientID::BGPD, route);
+  updater.program();
+
+  // Verify via getRouteTableByClient
+  std::vector<UnicastRoute> routeTable;
+  bool found = false;
+  handler.getRouteTableByClient(routeTable, bgpClient);
+  for (const auto& rt : routeTable) {
+    if (rt.dest()->ip() == toBinaryAddress(IPAddress("2401::1"))) {
+      ASSERT_TRUE(rt.namedRouteDestination()->nextHopGroup().has_value());
+      EXPECT_EQ(*rt.namedRouteDestination()->nextHopGroup(), "nhg_foo");
+      found = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(found);
+}
+
 TEST_F(ThriftTest, routeCounterSetForNamedNhg) {
   FLAGS_enable_route_counters_for_named_nhg = true;
   SCOPE_EXIT {

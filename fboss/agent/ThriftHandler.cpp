@@ -142,6 +142,37 @@ std::vector<network::thrift::BinaryAddress> fromFwdNextHops(
 
 namespace {
 
+template <typename RouteT>
+UnicastRoute toUnicastRoute(
+    const std::shared_ptr<RouteT>& route,
+    const RouteNextHopEntry& entry,
+    std::vector<NextHopThrift> nextHops,
+    std::vector<facebook::network::thrift::BinaryAddress> nextHopAddrs,
+    std::optional<std::vector<NextHopThrift>> overrideNextHops = std::nullopt) {
+  UnicastRoute tempRoute;
+  tempRoute.dest()->ip() =
+      facebook::network::toBinaryAddress(route->prefix().network());
+  tempRoute.dest()->prefixLength() = route->prefix().mask();
+  tempRoute.nextHops() = std::move(nextHops);
+  tempRoute.nextHopAddrs() = std::move(nextHopAddrs);
+  if (entry.getCounterID()) {
+    tempRoute.counterID() = *entry.getCounterID();
+  }
+  if (auto classID = entry.getClassID()) {
+    tempRoute.classID() = *classID;
+  }
+  if (auto overrideEcmpSwitchingMode = entry.getOverrideEcmpSwitchingMode()) {
+    tempRoute.overrideEcmpSwitchingMode() = *overrideEcmpSwitchingMode;
+  }
+  if (auto namedDest = entry.getNamedRouteDestination()) {
+    tempRoute.namedRouteDestination() = *namedDest;
+  }
+  if (overrideNextHops) {
+    tempRoute.overrideNextHops() = std::move(*overrideNextHops);
+  }
+  return tempRoute;
+}
+
 void fillPortStats(
     const SwSwitch& sw,
     PortInfoThrift& portInfo,
@@ -2022,36 +2053,24 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   auto state = sw_->getState();
   forAllRoutes(
       state, [&routes, &state](const RouterID& /*rid*/, const auto& route) {
-        UnicastRoute tempRoute;
         if (!route->isResolved()) {
           XLOG(DBG2) << "Skipping unresolved route: "
                      << route->toFollyDynamic();
           return;
         }
         const auto& fwdInfo = route->getForwardInfo();
-        tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network());
-        tempRoute.dest()->prefixLength() = route->prefix().mask();
-        tempRoute.nextHopAddrs() =
-            util::fromFwdNextHops(getNextHops(state, fwdInfo));
-        // If there are no overrides, nonOverrideNormalizedNextHops ==
-        // normalizedNextHops
-        tempRoute.nextHops() = util::fromRouteNextHopSet(
-            getNonOverrideNormalizedNextHops(state, fwdInfo));
-        if (fwdInfo.getCounterID().has_value()) {
-          tempRoute.counterID() = *fwdInfo.getCounterID();
-        }
-        if (fwdInfo.getClassID().has_value()) {
-          tempRoute.classID() = *fwdInfo.getClassID();
-        }
-        if (fwdInfo.getOverrideEcmpSwitchingMode().has_value()) {
-          tempRoute.overrideEcmpSwitchingMode() =
-              *fwdInfo.getOverrideEcmpSwitchingMode();
-        }
+        std::optional<std::vector<NextHopThrift>> overrideNextHops;
         if (fwdInfo.getOverrideNextHops().has_value()) {
-          tempRoute.overrideNextHops() =
+          overrideNextHops =
               util::fromRouteNextHopSet(getNormalizedNextHops(state, fwdInfo));
         }
-        routes.emplace_back(std::move(tempRoute));
+        routes.emplace_back(toUnicastRoute(
+            route,
+            fwdInfo,
+            util::fromRouteNextHopSet(
+                getNonOverrideNormalizedNextHops(state, fwdInfo)),
+            util::fromFwdNextHops(getNextHops(state, fwdInfo)),
+            std::move(overrideNextHops)));
       });
 }
 
@@ -2067,25 +2086,13 @@ void ThriftHandler::getRouteTableByClient(
         if (!entry) {
           return;
         }
-        UnicastRoute tempRoute;
-        tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network());
-        tempRoute.dest()->prefixLength() = route->prefix().mask();
-        tempRoute.nextHops() =
-            util::fromRouteNextHopSet(entry->getNextHopSet());
-        if (entry->getCounterID()) {
-          tempRoute.counterID() = *entry->getCounterID();
+        auto nextHops = util::fromRouteNextHopSet(entry->getNextHopSet());
+        std::vector<network::thrift::BinaryAddress> nextHopAddrs;
+        for (const auto& nh : nextHops) {
+          nextHopAddrs.emplace_back(*nh.address());
         }
-        if (auto classID = entry->getClassID()) {
-          tempRoute.classID() = *classID;
-        }
-        if (auto overrideEcmpSwitchingMode =
-                entry->getOverrideEcmpSwitchingMode()) {
-          tempRoute.overrideEcmpSwitchingMode() = *overrideEcmpSwitchingMode;
-        }
-        for (const auto& nh : *tempRoute.nextHops()) {
-          tempRoute.nextHopAddrs()->emplace_back(*nh.address());
-        }
-        routes.emplace_back(std::move(tempRoute));
+        routes.emplace_back(toUnicastRoute(
+            route, *entry, std::move(nextHops), std::move(nextHopAddrs)));
       });
 }
 
@@ -2127,21 +2134,12 @@ void ThriftHandler::getIpRoute(
       return;
     }
     const auto& fwdInfo = match->getForwardInfo();
-    *route.dest()->ip() = toBinaryAddress(match->prefix().network());
-    *route.dest()->prefixLength() = match->prefix().mask();
-    *route.nextHopAddrs() = util::fromFwdNextHops(getNextHops(state, fwdInfo));
-    auto counterID = fwdInfo.getCounterID();
-    if (counterID.has_value()) {
-      route.counterID() = *counterID;
-    }
-    auto classID = fwdInfo.getClassID();
-    if (classID.has_value()) {
-      route.classID() = *classID;
-    }
-    auto overrideEcmpSwitchingMode = fwdInfo.getOverrideEcmpSwitchingMode();
-    if (overrideEcmpSwitchingMode.has_value()) {
-      route.overrideEcmpSwitchingMode() = *overrideEcmpSwitchingMode;
-    }
+    route = toUnicastRoute(
+        match,
+        fwdInfo,
+        util::fromRouteNextHopSet(
+            getNonOverrideNormalizedNextHops(state, fwdInfo)),
+        util::fromFwdNextHops(getNextHops(state, fwdInfo)));
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (!match || !match->isResolved()) {
@@ -2150,21 +2148,12 @@ void ThriftHandler::getIpRoute(
       return;
     }
     const auto& fwdInfo = match->getForwardInfo();
-    *route.dest()->ip() = toBinaryAddress(match->prefix().network());
-    *route.dest()->prefixLength() = match->prefix().mask();
-    *route.nextHopAddrs() = util::fromFwdNextHops(getNextHops(state, fwdInfo));
-    auto counterID = fwdInfo.getCounterID();
-    if (counterID.has_value()) {
-      route.counterID() = *counterID;
-    }
-    auto classID = fwdInfo.getClassID();
-    if (classID.has_value()) {
-      route.classID() = *classID;
-    }
-    auto overrideEcmpSwitchingMode = fwdInfo.getOverrideEcmpSwitchingMode();
-    if (overrideEcmpSwitchingMode.has_value()) {
-      route.overrideEcmpSwitchingMode() = *overrideEcmpSwitchingMode;
-    }
+    route = toUnicastRoute(
+        match,
+        fwdInfo,
+        util::fromRouteNextHopSet(
+            getNonOverrideNormalizedNextHops(state, fwdInfo)),
+        util::fromFwdNextHops(getNextHops(state, fwdInfo)));
   }
 }
 

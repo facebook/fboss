@@ -15,6 +15,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/Thrifty.h"
@@ -155,6 +156,15 @@ class RouteNextHopEntry
   std::optional<std::string> getNamedNextHopGroup() const {
     if (auto name = safe_cref<switch_state_tags::namedNextHopGroup>()) {
       return name->cref();
+    }
+    return std::nullopt;
+  }
+
+  std::optional<NamedRouteDestination> getNamedRouteDestination() const {
+    if (auto nhgName = getNamedNextHopGroup()) {
+      NamedRouteDestination namedDest;
+      namedDest.nextHopGroup() = *nhgName;
+      return namedDest;
     }
     return std::nullopt;
   }
