@@ -45,9 +45,14 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
   static inline const folly::IPAddressV6 kSid0{"3001:db8:1:2:3:4:5:6"};
   static inline const folly::IPAddressV6 kSid1{"3001:db8:4:5:6::"};
 
+  static inline const folly::IPAddressV6 kBgpRoute0{"2001::1"};
+  static inline const folly::IPAddressV6 kBgpRoute1{"3001::1"};
+  static inline const folly::IPAddressV6 kOpenrPrefix0{"fdad::1:0"};
+  static inline const folly::IPAddressV6 kOpenrPrefix1{"fdad::2:0"};
+
   const folly::IPAddressV6 kMySidPrefix{"fdad:ffff:1::"};
   static constexpr uint8_t kMySidPrefixLen{48};
-  static constexpr int kNumNextHops{4};
+  static constexpr int kNumNextHops{2};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -119,6 +124,66 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     if (resolveNeighbors) {
       resolveNextHops(kNumNextHops);
     }
+    programRoutes();
+  }
+
+  void programRoutes() {
+    auto ecmpHelper = makeEcmpHelper();
+    auto routeUpdater = this->getSw()->getRouteUpdater();
+
+    auto getNhopIp = [&ecmpHelper](int idx) {
+      auto nhop = ecmpHelper.nhop(idx);
+      if (nhop.linkLocalNhopIp.has_value()) {
+        return folly::IPAddress(nhop.linkLocalNhopIp.value());
+      }
+      return folly::IPAddress(nhop.ip);
+    };
+
+    // OpenR route 0 (fdad::1:0/112) -> nhop(0) link-local
+    RouteNextHopSet openrNhops0{
+        ResolvedNextHop(getNhopIp(0), ecmpHelper.nhop(0).intf, ECMP_WEIGHT)};
+    routeUpdater.addRoute(
+        RouterID(0),
+        kOpenrPrefix0,
+        112,
+        ClientID::OPENR,
+        RouteNextHopEntry(openrNhops0, AdminDistance::OPENR));
+
+    // OpenR route 1 (fdad::2:0/112) -> nhop(1) link-local
+    RouteNextHopSet openrNhops1{
+        ResolvedNextHop(getNhopIp(1), ecmpHelper.nhop(1).intf, ECMP_WEIGHT)};
+    routeUpdater.addRoute(
+        RouterID(0),
+        kOpenrPrefix1,
+        112,
+        ClientID::OPENR,
+        RouteNextHopEntry(openrNhops1, AdminDistance::OPENR));
+
+    // BGP route 0 (2001::1/128) -> fdad::1:1 (resolves via OpenR route 0)
+    routeUpdater.addRoute(
+        RouterID(0),
+        kBgpRoute0,
+        128,
+        ClientID::BGPD,
+        RouteNextHopEntry(
+            RouteNextHopSet{UnresolvedNextHop(
+                folly::IPAddress(folly::IPAddressV6("fdad::1:1")),
+                ECMP_WEIGHT)},
+            AdminDistance::EBGP));
+
+    // BGP route 1 (3001::1/128) -> fdad::2:1 (resolves via OpenR route 1)
+    routeUpdater.addRoute(
+        RouterID(0),
+        kBgpRoute1,
+        128,
+        ClientID::BGPD,
+        RouteNextHopEntry(
+            RouteNextHopSet{UnresolvedNextHop(
+                folly::IPAddress(folly::IPAddressV6("fdad::2:1")),
+                ECMP_WEIGHT)},
+            AdminDistance::EBGP));
+
+    routeUpdater.program();
   }
 
   PortID getEgressPort(PortDescriptor portDesc) {
@@ -232,57 +297,20 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
 
 TYPED_TEST_SUITE(AgentSrv6BindingSidTest, Srv6BindingSidPortTypes);
 
-TYPED_TEST(AgentSrv6BindingSidTest, recursiveResolutionPreservesSidList) {
+TYPED_TEST(AgentSrv6BindingSidTest, multipleNextHops) {
   auto setup = [this]() {
     this->setupHelper();
-
-    auto ecmpHelper = this->makeEcmpHelper();
-    auto routeUpdater = this->getSw()->getRouteUpdater();
-
-    auto getNhopIp = [&ecmpHelper](int idx) {
-      auto nhop = ecmpHelper.nhop(idx);
-      if (nhop.linkLocalNhopIp.has_value()) {
-        return folly::IPAddress(nhop.linkLocalNhopIp.value());
-      }
-      return folly::IPAddress(nhop.ip);
-    };
-
-    RouteNextHopSet openrNhopsA{
-        ResolvedNextHop(getNhopIp(0), ecmpHelper.nhop(0).intf, ECMP_WEIGHT),
-        ResolvedNextHop(getNhopIp(1), ecmpHelper.nhop(1).intf, ECMP_WEIGHT)};
-    routeUpdater.addRoute(
-        RouterID(0),
-        folly::IPAddressV6("2901::"),
-        48,
-        ClientID::OPENR,
-        RouteNextHopEntry(openrNhopsA, AdminDistance::OPENR));
-
-    RouteNextHopSet openrNhopsB{
-        ResolvedNextHop(getNhopIp(2), ecmpHelper.nhop(2).intf, ECMP_WEIGHT),
-        ResolvedNextHop(getNhopIp(3), ecmpHelper.nhop(3).intf, ECMP_WEIGHT)};
-    routeUpdater.addRoute(
-        RouterID(0),
-        folly::IPAddressV6("2902::"),
-        48,
-        ClientID::OPENR,
-        RouteNextHopEntry(openrNhopsB, AdminDistance::OPENR));
-    routeUpdater.program();
-
     this->addBindingSidEntry(
         folly::IPAddressV6("fc00:100:1::"),
-        {this->makeSrv6NextHopThrift(
-             folly::IPAddressV6("2901::1"), this->kSid0),
-         this->makeSrv6NextHopThrift(
-             folly::IPAddressV6("2902::1"), this->kSid1)});
+        {this->makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0),
+         this->makeSrv6NextHopThrift(this->kBgpRoute1, this->kSid1)});
   };
 
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
-    std::vector<PortID> egressPorts;
-    egressPorts.reserve(this->kNumNextHops);
-    for (int i = 0; i < this->kNumNextHops; ++i) {
-      egressPorts.push_back(this->getEgressPort(ecmpHelper.nhop(i).portDesc));
-    }
+    std::vector<PortID> egressPorts{
+        this->getEgressPort(ecmpHelper.nhop(0).portDesc),
+        this->getEgressPort(ecmpHelper.nhop(1).portDesc)};
     this->sendBindingSidPacketAndVerify(
         folly::IPAddressV6("fc00:100:1::"),
         egressPorts,
@@ -292,20 +320,12 @@ TYPED_TEST(AgentSrv6BindingSidTest, recursiveResolutionPreservesSidList) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(AgentSrv6BindingSidTest, singleLinkLocalSrv6NextHop) {
+TYPED_TEST(AgentSrv6BindingSidTest, singleNextHop) {
   auto setup = [this]() {
     this->setupHelper();
-
-    auto ecmpHelper = this->makeEcmpHelper();
-    auto nhop = ecmpHelper.nhop(0);
-    auto nhopIp = nhop.linkLocalNhopIp.has_value()
-        ? folly::IPAddressV6(nhop.linkLocalNhopIp.value().str())
-        : nhop.ip;
-
-    auto srv6Nhop = this->makeSrv6NextHopThrift(nhopIp, this->kSid0);
-    srv6Nhop.address()->ifName() =
-        folly::to<std::string>("fboss", static_cast<int>(nhop.intf));
-    this->addBindingSidEntry(folly::IPAddressV6("fc00:100:1::"), {srv6Nhop});
+    this->addBindingSidEntry(
+        folly::IPAddressV6("fc00:100:1::"),
+        {this->makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
   };
 
   auto verify = [this]() {
