@@ -50,7 +50,7 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
   static inline const folly::IPAddressV6 kOpenrPrefix0{"fdad::1:0"};
   static inline const folly::IPAddressV6 kOpenrPrefix1{"fdad::2:0"};
 
-  const folly::IPAddressV6 kMySidPrefix{"fdad:ffff:1::"};
+  static inline const folly::IPAddressV6 kMySidPrefix{"fc00:100:1::"};
   static constexpr uint8_t kMySidPrefixLen{48};
   static constexpr int kNumNextHops{2};
 
@@ -222,36 +222,87 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     return nhop;
   }
 
-  void sendBindingSidPacketAndVerify(
-      const folly::IPAddressV6& mySidDst,
+  PortID findInjectPort(const std::vector<PortID>& egressPorts) {
+    for (const auto& portMap :
+         std::as_const(*this->getProgrammedState()->getPorts())) {
+      for (const auto& [_, port] : std::as_const(*portMap.second)) {
+        if (std::find(egressPorts.begin(), egressPorts.end(), port->getID()) ==
+                egressPorts.end() &&
+            port->isPortUp()) {
+          return port->getID();
+        }
+      }
+    }
+    throw FbossError("No UP port found besides egress ports");
+  }
+
+  utility::EthFrame sendBindingSidPacket(
+      bool isV4,
+      std::optional<PortID> injectPort = std::nullopt) {
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
+
+    std::unique_ptr<TxPacket> txPacket;
+    if (isV4) {
+      txPacket = utility::makeIpInIpTxPacket(
+          this->getSw(),
+          this->getVlanIDForTx().value(),
+          intfMac,
+          intfMac,
+          folly::IPAddressV6("100::1"),
+          kMySidPrefix,
+          folly::IPAddressV4("10.0.0.1"),
+          folly::IPAddressV4("10.0.0.2"),
+          8000,
+          8001,
+          0,
+          0,
+          64,
+          64);
+    } else {
+      txPacket = utility::makeIpInIpTxPacket(
+          this->getSw(),
+          this->getVlanIDForTx().value(),
+          intfMac,
+          intfMac,
+          folly::IPAddressV6("100::1"),
+          kMySidPrefix,
+          folly::IPAddressV6("2001:db8::1"),
+          folly::IPAddressV6("2001:db8::2"),
+          8000,
+          8001,
+          0,
+          0,
+          64,
+          64);
+    }
+
+    auto originalFrame = utility::makeEthFrame(*txPacket);
+    if (injectPort.has_value()) {
+      XLOG(DBG2) << "sendBindingSidPacket: inner=" << (isV4 ? "v4" : "v6")
+                 << " front-panel inject on port " << injectPort.value();
+      this->getSw()->sendPacketOutOfPortAsync(
+          std::move(txPacket), injectPort.value());
+    } else {
+      XLOG(DBG2) << "sendBindingSidPacket: inner=" << (isV4 ? "v4" : "v6")
+                 << " CPU inject";
+      this->sendPacketSwitchedAsync(std::move(txPacket));
+    }
+    return originalFrame;
+  }
+
+  void assertBindingSidForwarding(
       const std::vector<PortID>& egressPorts,
-      const std::vector<folly::IPAddressV6>& expectedSids) {
+      const std::vector<folly::IPAddressV6>& expectedSids,
+      bool isV4,
+      std::optional<PortID> injectPort = std::nullopt) {
     std::map<PortID, int64_t> bytesBefore;
     for (auto port : egressPorts) {
       bytesBefore[port] = *this->getLatestPortStats(port).outBytes_();
     }
 
-    auto intfMac =
-        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
-
-    auto txPacket = utility::makeIpInIpTxPacket(
-        this->getSw(),
-        this->getVlanIDForTx().value(),
-        intfMac,
-        intfMac,
-        folly::IPAddressV6("100::1"),
-        mySidDst,
-        folly::IPAddressV6("2001:db8::1"),
-        folly::IPAddressV6("2001:db8::2"),
-        8000,
-        8001,
-        0,
-        0,
-        64,
-        64);
-
     utility::SwSwitchPacketSnooper snooper(this->getSw(), "bindingSidSnooper");
-    this->sendPacketSwitchedAsync(std::move(txPacket));
+    auto originalFrame = sendBindingSidPacket(isV4, injectPort);
 
     auto frameRx = snooper.waitForPacket(1);
     WITH_RETRIES({
@@ -274,6 +325,7 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     auto v6Payload = frame.v6PayLoad();
     ASSERT_TRUE(v6Payload.has_value());
     auto v6Hdr = v6Payload->header();
+
     bool sidMatch = false;
     for (const auto& sid : expectedSids) {
       if (v6Hdr.dstAddr == sid) {
@@ -283,6 +335,32 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     }
     EXPECT_TRUE(sidMatch) << "Outer DA " << v6Hdr.dstAddr
                           << " does not match any expected SID";
+
+    auto origOuterV6 = originalFrame.v6PayLoad();
+    ASSERT_TRUE(origOuterV6.has_value());
+    if (isV4) {
+      auto expectedInnerV4 = origOuterV6->v4PayLoad();
+      auto rxInnerV4 = v6Payload->v4PayLoad();
+      ASSERT_NE(expectedInnerV4, nullptr);
+      ASSERT_NE(rxInnerV4, nullptr);
+      EXPECT_EQ(*rxInnerV4, *expectedInnerV4);
+    } else {
+      auto expectedInnerV6 = origOuterV6->v6PayLoad();
+      auto rxInnerV6 = v6Payload->v6PayLoad();
+      ASSERT_NE(expectedInnerV6, nullptr);
+      ASSERT_NE(rxInnerV6, nullptr);
+      EXPECT_EQ(*rxInnerV6, *expectedInnerV6);
+    }
+  }
+
+  void verifyBindingSidCpuAndFrontPanel(
+      const std::vector<PortID>& egressPorts,
+      const std::vector<folly::IPAddressV6>& expectedSids) {
+    auto injectPort = findInjectPort(egressPorts);
+    for (bool isV4 : {false, true}) {
+      assertBindingSidForwarding(egressPorts, expectedSids, isV4);
+      assertBindingSidForwarding(egressPorts, expectedSids, isV4, injectPort);
+    }
   }
 
  private:
@@ -301,7 +379,7 @@ TYPED_TEST(AgentSrv6BindingSidTest, multipleNextHops) {
   auto setup = [this]() {
     this->setupHelper();
     this->addBindingSidEntry(
-        folly::IPAddressV6("fc00:100:1::"),
+        this->kMySidPrefix,
         {this->makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0),
          this->makeSrv6NextHopThrift(this->kBgpRoute1, this->kSid1)});
   };
@@ -311,10 +389,8 @@ TYPED_TEST(AgentSrv6BindingSidTest, multipleNextHops) {
     std::vector<PortID> egressPorts{
         this->getEgressPort(ecmpHelper.nhop(0).portDesc),
         this->getEgressPort(ecmpHelper.nhop(1).portDesc)};
-    this->sendBindingSidPacketAndVerify(
-        folly::IPAddressV6("fc00:100:1::"),
-        egressPorts,
-        {this->kSid0, this->kSid1});
+    this->verifyBindingSidCpuAndFrontPanel(
+        egressPorts, {this->kSid0, this->kSid1});
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -324,7 +400,7 @@ TYPED_TEST(AgentSrv6BindingSidTest, singleNextHop) {
   auto setup = [this]() {
     this->setupHelper();
     this->addBindingSidEntry(
-        folly::IPAddressV6("fc00:100:1::"),
+        this->kMySidPrefix,
         {this->makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
   };
 
@@ -332,8 +408,7 @@ TYPED_TEST(AgentSrv6BindingSidTest, singleNextHop) {
     auto ecmpHelper = this->makeEcmpHelper();
     std::vector<PortID> egressPorts{
         this->getEgressPort(ecmpHelper.nhop(0).portDesc)};
-    this->sendBindingSidPacketAndVerify(
-        folly::IPAddressV6("fc00:100:1::"), egressPorts, {this->kSid0});
+    this->verifyBindingSidCpuAndFrontPanel(egressPorts, {this->kSid0});
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
