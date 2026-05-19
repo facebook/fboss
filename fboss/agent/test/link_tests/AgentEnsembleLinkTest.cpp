@@ -417,6 +417,7 @@ void AgentEnsembleLinkTest::programDefaultRouteWithDisableTTLDecrement(
 }
 
 void AgentEnsembleLinkTest::createL3DataplaneFlood(
+    uint32_t duration,
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   auto switchId = scope(ecmpPorts);
   utility::EcmpSetupTargetedPorts6 ecmp6(
@@ -436,12 +437,26 @@ void AgentEnsembleLinkTest::createL3DataplaneFlood(
     utility::disableTTLDecrements(getSw(), ecmpPorts);
   }
   auto vlanID = getAgentEnsemble()->getVlanIDForTx();
-  utility::pumpTraffic(
-      true,
-      utility::getAllocatePktFn(getSw()),
-      utility::getSendPktFunc(getSw()),
-      getSw()->getLocalMac(switchId),
-      vlanID);
+
+  auto timeForTest = duration * 60s;
+  XLOG(DBG2) << "Test duration:" << timeForTest.count();
+
+  auto startTime = std::time(nullptr);
+  auto timeNow = std::time(nullptr);
+
+  do {
+    utility::pumpTraffic(
+        true,
+        utility::getAllocatePktFn(getSw()),
+        utility::getSendPktFunc(getSw()),
+        getSw()->getLocalMac(switchId),
+        vlanID);
+    timeNow = std::time(nullptr);
+    if (duration) {
+      std::this_thread::sleep_for(10s);
+    }
+  } while (duration && (timeNow < timeForTest.count() + startTime));
+
   // TODO: Assert that traffic reached a certain rate
   XLOG(DBG2) << "Created L3 Data Plane Flood";
 }

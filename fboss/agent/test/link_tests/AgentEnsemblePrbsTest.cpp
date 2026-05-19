@@ -176,14 +176,22 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
 
     // 6. Let PRBS run for 10 seconds for regular link test or 10 mins for a
     // stress test so that we can check the BER later
-    auto timeForTest = FLAGS_link_stress_test ? 600s : 10s;
+    auto timeForTest = FLAGS_link_stress_test
+        ? 600s
+        : (FLAGS_link_stress_duration ? FLAGS_link_stress_duration * 60s : 10s);
+    XLOG(DBG2) << "PRBS timeForTest:" << timeForTest.count();
+    auto sleep_time = 10s;
+    // if stress test more than 10 minutes, check every 3 minutes.
+    if (timeForTest.count() > 600) {
+      sleep_time = 180s;
+    }
 
     // 7. Check PRBS stats, expect no loss of lock
     XLOG(DBG2) << "Verifying PRBS stats";
     auto startTime = std::time(nullptr);
     auto timeNow = std::time(nullptr);
     while (timeNow < timeForTest.count() + startTime) {
-      /* sleep override */ std::this_thread::sleep_for(10s);
+      /* sleep override */ std::this_thread::sleep_for(sleep_time);
       checkPrbsStatsOnAllInterfaces(false, testStartTime);
       timeNow = std::time(nullptr);
     }
@@ -218,7 +226,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
 
     // 12. Link and traffic should come back up now
     XLOG(DBG2) << "Waiting for links and traffic to come back up";
-    EXPECT_NO_THROW(waitForAllCabledPorts(true));
+    EXPECT_NO_THROW(waitForAllCabledPorts(true, 60, 5s));
     waitForLldpOnCabledPorts();
   }
 
@@ -876,6 +884,7 @@ class AsicToAsicPrbsTest : public AgentEnsemblePrbsTest {
       PRBS_TRANSCEIVER_TEST_NAME(                                      \
           MEDIA, TCVR_L, TCVR_L, POLYNOMIAL, POLYNOMIAL),              \
       prbsSanity) {                                                    \
+    FLAGS_link_stress_duration = 0;                                    \
     runTest();                                                         \
   }
 
@@ -892,6 +901,7 @@ class AsicToAsicPrbsTest : public AgentEnsemblePrbsTest {
       PRBS_TRANSCEIVER_TEST_NAME(                               \
           MEDIA, COMPONENTA, TCVR_S, POLYNOMIALA, POLYNOMIALB), \
       prbsSanity) {                                             \
+    FLAGS_link_stress_duration = 0;                             \
     runTest();                                                  \
   }
 
