@@ -242,7 +242,9 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
   utility::EthFrame sendBindingSidPacket(
       bool ecnMarked,
       bool isV4,
-      std::optional<PortID> injectPort = std::nullopt) {
+      std::optional<PortID> injectPort = std::nullopt,
+      std::optional<folly::IPAddressV6> outerDst = std::nullopt) {
+    auto dstAddr = outerDst.value_or(kMySidPrefix);
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
 
@@ -257,7 +259,7 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
           intfMac,
           intfMac,
           folly::IPAddressV6("100::1"),
-          kMySidPrefix,
+          dstAddr,
           folly::IPAddressV4("10.0.0.1"),
           folly::IPAddressV4("10.0.0.2"),
           8000,
@@ -273,7 +275,7 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
           intfMac,
           intfMac,
           folly::IPAddressV6("100::1"),
-          kMySidPrefix,
+          dstAddr,
           folly::IPAddressV6("2001:db8::1"),
           folly::IPAddressV6("2001:db8::2"),
           8000,
@@ -388,16 +390,18 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
   void assertBindingSidDrop(
       PortID injectPort,
       const std::vector<PortID>& egressPorts,
-      bool isV4) {
+      bool isV4,
+      std::optional<folly::IPAddressV6> outerDst = std::nullopt) {
     XLOG(DBG2) << "assertBindingSidDrop: inner=" << (isV4 ? "v4" : "v6")
-               << " inject port " << injectPort;
+               << " inject port " << injectPort << " outerDst="
+               << (outerDst.has_value() ? outerDst->str() : "default");
     auto injectStatsBefore = this->getLatestPortStats(injectPort);
     std::map<PortID, int64_t> egressBytesBefore;
     for (auto port : egressPorts) {
       egressBytesBefore[port] = *this->getLatestPortStats(port).outBytes_();
     }
 
-    sendBindingSidPacket(false, isV4, injectPort);
+    sendBindingSidPacket(false, isV4, injectPort, outerDst);
 
     WITH_RETRIES({
       auto injectStatsAfter = this->getLatestPortStats(injectPort);
@@ -415,10 +419,12 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     });
   }
 
-  void verifyBindingSidDropFrontPanel(const std::vector<PortID>& egressPorts) {
+  void verifyBindingSidDropFrontPanel(
+      const std::vector<PortID>& egressPorts,
+      std::optional<folly::IPAddressV6> outerDst = std::nullopt) {
     auto injectPort = findInjectPort(egressPorts);
     for (bool isV4 : {false, true}) {
-      assertBindingSidDrop(injectPort, egressPorts, isV4);
+      assertBindingSidDrop(injectPort, egressPorts, isV4, outerDst);
     }
   }
 
@@ -519,6 +525,25 @@ TYPED_TEST(AgentSrv6BindingSidTest, bindingSidTracksNeighborResolutionAndLink) {
 
     // Forwarding should work again
     this->verifyBindingSidCpuAndFrontPanel(egressPorts, {this->kSid0});
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6BindingSidTest, dropPacketBindingSidIsNotLastSid) {
+  auto setup = [this]() {
+    this->setupHelper();
+    this->addBindingSidEntry(
+        this->kMySidPrefix,
+        {this->makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    std::vector<PortID> egressPorts{
+        this->getEgressPort(ecmpHelper.nhop(0).portDesc)};
+    this->verifyBindingSidDropFrontPanel(
+        egressPorts, folly::IPAddressV6("fc00:100:1:2::"));
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
