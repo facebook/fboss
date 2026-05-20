@@ -206,8 +206,14 @@ class AgentFlexPortTest : public AgentHwTest {
   void flexPortApplyConfigTest(
       FlexPortMode flexMode,
       const std::string& configName) {
-    if (getAgentEnsemble()->getL3Asics().front()->getAsicVendor() !=
-        HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
+    auto asicVendor = getAgentEnsemble()->getL3Asics().front()->getAsicVendor();
+    if (flexMode == FlexPortMode::ONEX400G) {
+      if (asicVendor == HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
+        XLOG(DBG2)
+            << "ONEX400G flex port not supported on BCM platforms, skipping";
+        return;
+      }
+    } else if (asicVendor != HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
       XLOG(DBG2) << "Flex port tests only supported on BCM platforms, skipping";
       return;
     }
@@ -297,6 +303,10 @@ TEST_F(AgentFlexPortTest, FlexPortONEX40G) {
 
 TEST_F(AgentFlexPortTest, FlexPortONEX100G) {
   flexPortApplyConfigTest(FlexPortMode::ONEX100G, "ONEX100G");
+}
+
+TEST_F(AgentFlexPortTest, FlexPortONEX400G) {
+  flexPortApplyConfigTest(FlexPortMode::ONEX400G, "ONEX400G");
 }
 
 } // namespace facebook::fboss
