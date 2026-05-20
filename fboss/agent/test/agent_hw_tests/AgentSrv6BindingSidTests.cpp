@@ -385,6 +385,43 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     }
   }
 
+  void assertBindingSidDrop(
+      PortID injectPort,
+      const std::vector<PortID>& egressPorts,
+      bool isV4) {
+    XLOG(DBG2) << "assertBindingSidDrop: inner=" << (isV4 ? "v4" : "v6")
+               << " inject port " << injectPort;
+    auto injectStatsBefore = this->getLatestPortStats(injectPort);
+    std::map<PortID, int64_t> egressBytesBefore;
+    for (auto port : egressPorts) {
+      egressBytesBefore[port] = *this->getLatestPortStats(port).outBytes_();
+    }
+
+    sendBindingSidPacket(false, isV4, injectPort);
+
+    WITH_RETRIES({
+      auto injectStatsAfter = this->getLatestPortStats(injectPort);
+      EXPECT_EVENTUALLY_GT(
+          *injectStatsAfter.inDiscards_(), *injectStatsBefore.inDiscards_());
+      EXPECT_EVENTUALLY_TRUE(
+          injectStatsAfter.inSrv6MySidDiscards_().has_value());
+      EXPECT_EVENTUALLY_GT(
+          injectStatsAfter.inSrv6MySidDiscards_().value_or(0),
+          injectStatsBefore.inSrv6MySidDiscards_().value_or(0));
+      for (auto port : egressPorts) {
+        auto egressBytesAfter = *this->getLatestPortStats(port).outBytes_();
+        EXPECT_EVENTUALLY_EQ(egressBytesAfter, egressBytesBefore[port]);
+      }
+    });
+  }
+
+  void verifyBindingSidDropFrontPanel(const std::vector<PortID>& egressPorts) {
+    auto injectPort = findInjectPort(egressPorts);
+    for (bool isV4 : {false, true}) {
+      assertBindingSidDrop(injectPort, egressPorts, isV4);
+    }
+  }
+
  private:
   void addSrv6TunnelConfig(cfg::SwitchConfig& cfg) const {
     std::vector<cfg::Srv6Tunnel> tunnelList;
@@ -430,6 +467,57 @@ TYPED_TEST(AgentSrv6BindingSidTest, singleNextHop) {
     auto ecmpHelper = this->makeEcmpHelper();
     std::vector<PortID> egressPorts{
         this->getEgressPort(ecmpHelper.nhop(0).portDesc)};
+    this->verifyBindingSidCpuAndFrontPanel(egressPorts, {this->kSid0});
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6BindingSidTest, bindingSidTracksNeighborResolutionAndLink) {
+  auto setup = [this]() {
+    this->setupHelper(false /* resolveNeighbors */);
+    this->addBindingSidEntry(
+        this->kMySidPrefix,
+        {this->makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
+
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto portDesc = ecmpHelper.nhop(0).portDesc;
+    std::vector<PortID> egressPorts{this->getEgressPort(portDesc)};
+
+    // Neighbors unresolved — packets should be dropped
+    this->verifyBindingSidDropFrontPanel(egressPorts);
+
+    // Resolve neighbors — forwarding should work
+    this->resolveNextHops(this->kNumNextHops);
+    this->verifyBindingSidCpuAndFrontPanel(egressPorts, {this->kSid0});
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto portDesc = ecmpHelper.nhop(0).portDesc;
+    auto egressPort = this->getEgressPort(portDesc);
+    std::vector<PortID> egressPorts{egressPort};
+
+    // Bring down the link — packets should be dropped
+    this->bringDownPort(egressPort);
+    this->verifyBindingSidDropFrontPanel(egressPorts);
+
+    // Unresolve neighbor, bring link back up, re-resolve
+    this->applyNewState(
+        [&ecmpHelper, portDesc](std::shared_ptr<SwitchState> in) {
+          return ecmpHelper.unresolveNextHops(
+              in, {portDesc}, /*useLinkLocal=*/true);
+        },
+        "unresolve binding sid neighbor");
+    this->bringUpPort(egressPort);
+    this->applyNewState(
+        [&ecmpHelper, portDesc](std::shared_ptr<SwitchState> in) {
+          return ecmpHelper.resolveNextHops(
+              in, {portDesc}, /*useLinkLocal=*/true);
+        },
+        "re-resolve binding sid neighbor");
+
+    // Forwarding should work again
     this->verifyBindingSidCpuAndFrontPanel(egressPorts, {this->kSid0});
   };
 
