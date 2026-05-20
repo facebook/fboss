@@ -295,4 +295,8 @@ TEST_F(AgentFlexPortTest, FlexPortONEX40G) {
   flexPortApplyConfigTest(FlexPortMode::ONEX40G, "ONEX40G");
 }
 
+TEST_F(AgentFlexPortTest, FlexPortONEX100G) {
+  flexPortApplyConfigTest(FlexPortMode::ONEX100G, "ONEX100G");
+}
+
 } // namespace facebook::fboss
