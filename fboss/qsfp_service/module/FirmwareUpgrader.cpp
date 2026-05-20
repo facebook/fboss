@@ -520,11 +520,33 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
        kLowerPage},
       versionNumber.data(),
       kFwUpgrade);
-  XLOG(INFO) << fmt::format(
-      "cmisModuleFirmwareUpgrade: Mod{:d}: Module Active Firmware Revision now: {:d}.{:d}",
-      moduleId_,
-      versionNumber[0],
-      versionNumber[1]);
+  // Fetch build number via CDB now that the new firmware is running.
+  std::optional<uint16_t> buildNumber;
+  try {
+    CdbCommandBlock fwInfoBlock;
+    fwInfoBlock.createCdbCmdGetFirmwareInfo();
+    auto fwInfoRet = fwInfoBlock.cmisRunCdbCommand(bus_);
+    buildNumber = fwInfoRet ? fwInfoBlock.getFwBuildNumber() : std::nullopt;
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << fmt::format(
+        "cmisModuleFirmwareUpgrade: Mod{:d}: Failed to fetch build number: {}",
+        moduleId_,
+        ex.what());
+  }
+  if (buildNumber.has_value()) {
+    XLOG(INFO) << fmt::format(
+        "cmisModuleFirmwareUpgrade: Mod{:d}: Module Active Firmware Revision now: {:d}.{:d}.{:d}",
+        moduleId_,
+        versionNumber[0],
+        versionNumber[1],
+        buildNumber.value());
+  } else {
+    XLOG(INFO) << fmt::format(
+        "cmisModuleFirmwareUpgrade: Mod{:d}: Module Active Firmware Revision now: {:d}.{:d} (build number unavailable)",
+        moduleId_,
+        versionNumber[0],
+        versionNumber[1]);
+  }
 
   return true;
 }
