@@ -1,0 +1,12 @@
+{
+  "known_bad_tests": {
+    "montblanc/brcm-13.3.0.0_odp": [
+        {
+          "test_name_regex": "ConfigPfcTest\\.BufferPoolPriorityGroupAndPortPfc$"
+        },
+        {
+          "test_name_regex": "ConfigInterfaceProfileTest\\.SetValidProfileVerifiedViaThrift$"
+        }
+    ]
+  }
+}
