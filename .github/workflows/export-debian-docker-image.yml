@@ -20,7 +20,7 @@ jobs:
       - name: Build & Save debian docker image
         run: ./fboss/oss/docker/prefetch/build_image.sh ${{ github.workspace }}/fboss_debian_docker_image.tar.zst debian
       - name: Upload docker image
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: fboss_debian_docker_image.tar.zst
           path: ${{ github.workspace }}/fboss_debian_docker_image.tar.zst
