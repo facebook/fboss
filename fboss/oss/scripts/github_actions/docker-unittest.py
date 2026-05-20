@@ -82,6 +82,9 @@ def use_stable_hashes():
         "tar",
         "xvzf",
         "fboss/oss/stable_commits/latest_stable_hashes.tar.gz",
+        "--wildcards",
+        "build/deps/github_hashes/*",
+        "build/fbcode_builder/manifests/*",
     ]
     subprocess.run(extract_cmd, check=False)
 
