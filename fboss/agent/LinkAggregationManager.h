@@ -78,6 +78,8 @@ class LinkAggregationManager : public StateObserver, public LacpServicerIf {
   explicit LinkAggregationManager(SwSwitch* sw);
   ~LinkAggregationManager() override;
 
+  void stopProcessing();
+
   void stateUpdated(const StateDelta& delta) override;
   void handlePacket(std::unique_ptr<RxPacket> pkt, folly::io::Cursor c);
 
@@ -139,6 +141,7 @@ class LinkAggregationManager : public StateObserver, public LacpServicerIf {
   PortIDToController portToController_;
   mutable folly::SharedMutexWritePriority controllersLock_;
   SwSwitch* sw_{nullptr};
+  bool stopped_{false};
 };
 
 } // namespace facebook::fboss

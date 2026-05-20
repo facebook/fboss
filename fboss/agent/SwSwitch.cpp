@@ -636,6 +636,13 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
     cpuLatencyManager_->stop();
   }
 
+  // Stop LACP machines while the LACP event base is still alive.
+  // The actual lagManager_ pointer is reset after stopThreads()
+  // to prevent use-after-free on the RX path.
+  if (lagManager_) {
+    lagManager_->stopProcessing();
+  }
+
   // Need to destroy IPv6Handler as it is a state observer,
   // but we must do it after we've stopped TunManager.
   // Otherwise, we might attempt to call sendL3Packet which
