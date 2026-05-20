@@ -62,6 +62,7 @@ enum PlatformType {
   PLATFORM_J4SIM = 49,
   PLATFORM_YANGRA2 = 50,
   PLATFORM_SAINTPAUL = 51,
+  PLATFORM_LEH800BCLS = 52,
   PLATFORM_UNKNOWN = 1000, # Placeholder for unknown platform type
 }
 

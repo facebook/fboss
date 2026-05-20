@@ -59,6 +59,8 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "ladakh800bcls",
             "ladakh800bcls_rack",
             "ladakh800bcls_test_fixture",
+            "leh800bcls",
+            "leh800bcls_test_fixture",
             "saintpaul",
         ],
     }

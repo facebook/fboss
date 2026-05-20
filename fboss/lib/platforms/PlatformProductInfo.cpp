@@ -204,6 +204,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_ICETEA800BC;
     } else if (modelName.find("LADAKH800BCLS") == 0) {
       type_ = PlatformType::PLATFORM_LADAKH800BCLS;
+    } else if (modelName.find("LEH800BCLS") == 0) {
+      type_ = PlatformType::PLATFORM_LEH800BCLS;
     } else if (
         modelName.find("Icecube800banw") == 0 ||
         modelName.find("ICECUBE800BANW") == 0 ||
@@ -292,6 +294,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_J4SIM;
     } else if (FLAGS_mode == "ladakh800bcls") {
       type_ = PlatformType::PLATFORM_LADAKH800BCLS;
+    } else if (FLAGS_mode == "leh800bcls") {
+      type_ = PlatformType::PLATFORM_LEH800BCLS;
     } else if (FLAGS_mode == "icecube800banw") {
       type_ = PlatformType::PLATFORM_ICECUBE800BANW;
     } else if (FLAGS_mode == "blackwolf800banw") {
