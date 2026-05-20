@@ -287,4 +287,8 @@ TEST_F(AgentFlexPortTest, FlexPortFOURX10G) {
   flexPortApplyConfigTest(FlexPortMode::FOURX10G, "FOURX10G");
 }
 
+TEST_F(AgentFlexPortTest, FlexPortFOURX25G) {
+  flexPortApplyConfigTest(FlexPortMode::FOURX25G, "FOURX25G");
+}
+
 } // namespace facebook::fboss
