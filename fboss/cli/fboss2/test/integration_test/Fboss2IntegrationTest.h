@@ -198,7 +198,7 @@ class Fboss2IntegrationTest : public ::testing::Test {
    * @param timeout Maximum time to wait (default: 120 seconds)
    */
   void waitForAgentReady(
-      std::chrono::seconds timeout = std::chrono::seconds(300)) const;
+      std::chrono::seconds timeout = std::chrono::seconds(120)) const;
 
  private:
   Interface parseInterfaceJson(const folly::dynamic& data) const;
