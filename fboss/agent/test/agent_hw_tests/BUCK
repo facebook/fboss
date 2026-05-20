@@ -242,6 +242,7 @@ cpp_library(
         "AgentRouteTests.cpp",
         "AgentRouterInterfaceCounterTest.cpp",
         "AgentRxReasonTests.cpp",
+        "AgentSaiPortAdminStateTests.cpp",
         "AgentSendPacketToQueueTests.cpp",
         "AgentSflowMirrorTest.cpp",
         "AgentSrv6BindingSidTests.cpp",
