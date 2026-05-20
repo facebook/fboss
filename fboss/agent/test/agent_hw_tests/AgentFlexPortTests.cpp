@@ -279,4 +279,8 @@ class AgentFlexPortTest : public AgentHwTest {
   }
 };
 
+TEST_F(AgentFlexPortTest, FlexPortTWOX50G) {
+  flexPortApplyConfigTest(FlexPortMode::TWOX50G, "TWOX50G");
+}
+
 } // namespace facebook::fboss
