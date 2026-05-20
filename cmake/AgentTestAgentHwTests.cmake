@@ -111,6 +111,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentDiagShellStressTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEcmpTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEmptyTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentFlexPortTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEgressForwardingDiscardCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteOverDifferentAddressFamilyNhopTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclInDiscardCounterTests.cpp
@@ -255,6 +256,7 @@ target_link_libraries(agent_hw_test_src
   neighbor_test_utils
   system_scale_test_utils
   hyper_port_test_utils
+  platform_mapping
 )
 
 add_executable(multi_switch_agent_hw_test
