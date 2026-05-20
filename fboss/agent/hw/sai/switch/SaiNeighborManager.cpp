@@ -94,7 +94,7 @@ void SaiNeighborManager::addNeighbor(
   }
   XLOG(DBG2) << "addNeighbor " << swEntry->getIP();
   auto subscriberKey = saiEntryFromSwEntry(swEntry);
-  if (neighbors_.find(subscriberKey) != neighbors_.end()) {
+  if (neighbors_.contains(subscriberKey)) {
     throw FbossError(
         "Attempted to add duplicate neighbor: ", swEntry->getIP().str());
   }
@@ -154,7 +154,7 @@ void SaiNeighborManager::removeNeighbor(
   }
   XLOG(DBG2) << "removeNeighbor " << swEntry->getIP();
   auto subscriberKey = saiEntryFromSwEntry(swEntry);
-  if (neighbors_.find(subscriberKey) == neighbors_.end()) {
+  if (!neighbors_.contains(subscriberKey)) {
     throw FbossError(
         "Attempted to remove non-existent neighbor: ", swEntry->getIP());
   }
