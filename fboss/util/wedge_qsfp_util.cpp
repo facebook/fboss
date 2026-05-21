@@ -2585,11 +2585,11 @@ std::optional<PortInfoSummary> getPortInfoSummary(
   std::string vendorPN;
 
   if (domDataUnion.getType() == DOMDataUnion::Type::sff8636) {
-    auto page0Buf = can_throw(*domDataUnion.sff8636_ref()).page0()->data();
+    auto page0Buf = can_throw(*domDataUnion.sff8636()).page0()->data();
     vendor = sfpString(page0Buf, 20, 16).str();
     vendorPN = sfpString(page0Buf, 40, 16).str();
   } else if (domDataUnion.getType() == DOMDataUnion::Type::cmis) {
-    auto page0Buf = can_throw(*domDataUnion.cmis_ref()).page0()->data();
+    auto page0Buf = can_throw(*domDataUnion.cmis()).page0()->data();
     vendor = sfpString(page0Buf, 1, 16).str();
     vendorPN = sfpString(page0Buf, 20, 16).str();
   } else {
