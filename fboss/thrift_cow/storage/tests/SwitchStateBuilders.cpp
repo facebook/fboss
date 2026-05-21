@@ -29,55 +29,17 @@ state::PortFields createPortFields(int portId, const std::string& portName) {
   return port;
 }
 
-// Helper function to create vlan fields
-state::VlanFields createVlanFields(int vlanId, int arpEntries, int ndpEntries) {
+state::VlanFields createVlanFields(int vlanId) {
   state::VlanFields vlan;
   vlan.vlanId() = vlanId;
   vlan.vlanName() = fmt::format("vlan{}", vlanId);
   vlan.intfID() = vlanId % 65536;
   vlan.dhcpV4Relay() = "0.0.0.0";
   vlan.dhcpV6Relay() = "::";
-
-  // Add ARP entries
-  std::map<std::string, state::NeighborEntryFields> arpTable;
-  for (int i = 0; i < arpEntries; ++i) {
-    state::NeighborEntryFields entry;
-    std::string ip = fmt::format("10.{}.{}.{}", vlanId % 256, i / 256, i % 256);
-    entry.ipaddress() = ip;
-    entry.mac() = fmt::format(
-        "02:00:00:{:02x}:{:02x}:{:02x}", vlanId % 256, i / 256, i % 256);
-    entry.interfaceId() = vlanId % 65536;
-    entry.state() = state::NeighborState::Reachable;
-    entry.isLocal() = true;
-    arpTable[ip] = entry;
-  }
-  vlan.arpTable() = arpTable;
-
-  // Add NDP entries
-  std::map<std::string, state::NeighborEntryFields> ndpTable;
-  for (int i = 0; i < ndpEntries; ++i) {
-    state::NeighborEntryFields entry;
-    std::string ip =
-        fmt::format("2401:db00:e206:{:x}::{:x}", vlanId % 65536, i);
-    entry.ipaddress() = ip;
-    entry.mac() = fmt::format(
-        "02:00:00:{:02x}:{:02x}:{:02x}", vlanId % 256, i / 256, i % 256);
-    entry.interfaceId() = vlanId % 65536;
-    entry.state() = state::NeighborState::Reachable;
-    entry.isLocal() = true;
-    ndpTable[ip] = entry;
-  }
-  vlan.ndpTable() = ndpTable;
-
   return vlan;
 }
 
-// Helper function to create interface fields
-state::InterfaceFields createInterfaceFields(
-    int ifId,
-    int addressCount,
-    int arpEntries,
-    int ndpEntries) {
+state::InterfaceFields createInterfaceFields(int ifId, int addressCount) {
   state::InterfaceFields intf;
   intf.interfaceId() = ifId;
   intf.routerId() = 0;
@@ -99,38 +61,6 @@ state::InterfaceFields createInterfaceFields(
     addresses[fmt::format("2401:db00:{:x}:{:x}::1", ifId % 65536, i)] = 64;
   }
   intf.addresses() = addresses;
-
-  // Add ARP table
-  std::map<std::string, state::NeighborEntryFields> arpTable;
-  for (int i = 0; i < arpEntries; ++i) {
-    state::NeighborEntryFields entry;
-    std::string ip =
-        fmt::format("10.{}.{}.{}", ifId % 256, i / 256, (i % 256) + 2);
-    entry.ipaddress() = ip;
-    entry.mac() = fmt::format(
-        "02:00:00:{:02x}:{:02x}:{:02x}", ifId % 256, i / 256, i % 256);
-    entry.interfaceId() = ifId % 65536;
-    entry.state() = state::NeighborState::Reachable;
-    entry.isLocal() = false;
-    arpTable[ip] = entry;
-  }
-  intf.arpTable() = arpTable;
-
-  // Add NDP table
-  std::map<std::string, state::NeighborEntryFields> ndpTable;
-  for (int i = 0; i < ndpEntries; ++i) {
-    state::NeighborEntryFields entry;
-    std::string ip = fmt::format(
-        "2401:db00:{:x}:{:x}::{:x}", ifId % 65536, i / 256, (i % 256) + 2);
-    entry.ipaddress() = ip;
-    entry.mac() = fmt::format(
-        "02:00:00:{:02x}:{:02x}:{:02x}", ifId % 256, i / 256, i % 256);
-    entry.interfaceId() = ifId % 65536;
-    entry.state() = state::NeighborState::Reachable;
-    entry.isLocal() = false;
-    ndpTable[ip] = entry;
-  }
-  intf.ndpTable() = ndpTable;
 
   return intf;
 }
@@ -393,7 +323,7 @@ void populateVlans(state::SwitchState& state, const SwitchStateScale& scale) {
 
   for (int i = 0; i < scale.vlanCount; ++i) {
     int vlanId = 1000 + i;
-    vlanMap[vlanId] = createVlanFields(vlanId, 5, 5);
+    vlanMap[vlanId] = createVlanFields(vlanId);
   }
 
   state.vlanMaps()[switchIdList] = std::move(vlanMap);
@@ -410,7 +340,7 @@ void populateInterfaces(
   std::map<int32_t, state::InterfaceFields> interfaceMap;
 
   for (int i = 0; i < scale.interfaceCount; ++i) {
-    interfaceMap[i] = createInterfaceFields(i, 2, 5, 5);
+    interfaceMap[i] = createInterfaceFields(i, 2);
   }
 
   state.interfaceMaps()[switchIdList] = std::move(interfaceMap);
