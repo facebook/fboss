@@ -50,6 +50,7 @@ cpp_library(
         "FsdbStateSubscriber.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest_headers",
         ":fsdb_stream_client",
         "//fboss/fsdb/common:flags",
@@ -59,7 +60,6 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/fsdb/oper:delta_value",
         "//fboss/lib/thrift_service_client:thrift-service-client",
-        "//folly:format",
         "//folly:string",
         "//folly:synchronized",
         "//folly/concurrency:dynamic_bounded_queue",

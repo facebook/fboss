@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/String.h>
 #include <folly/concurrency/DynamicBoundedQueue.h>
 #include <folly/coro/AsyncGenerator.h>
@@ -47,7 +47,7 @@ class FsdbPublisher : public FsdbStreamClient {
             clientId,
             streamEvb,
             connRetryEvb,
-            folly::sformat(
+            fmt::format(
                 "fsdb{}{}Publisher_{}",
                 typeStr(),
                 (publishStats ? "Stat" : "State"),

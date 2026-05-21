@@ -7,7 +7,7 @@
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/String.h>
 #include <folly/coro/AsyncGenerator.h>
 
@@ -179,7 +179,7 @@ class FsdbSubscriber : public FsdbSubscriberBase {
             options.clientId_,
             streamEvb,
             connRetryEvb,
-            folly::sformat(
+            fmt::format(
                 "fsdb{}{}Subscriber_{}",
                 typeStr(),
                 (options.subscribeStats_ ? "Stat" : "State"),
@@ -190,12 +190,9 @@ class FsdbSubscriber : public FsdbSubscriberBase {
             }),
         operSubUnitUpdate_(operSubUnitUpdate),
         subscribeLatencyMetric_(
-            folly::sformat(
-                "{}.{}",
-                getCounterPrefix(),
-                kSubscribeLatencyMetric)),
+            fmt::format("{}.{}", getCounterPrefix(), kSubscribeLatencyMetric)),
         clientPubsubLatencyMetric_(
-            folly::sformat(
+            fmt::format(
                 "FsdbClient.{}.{}",
                 (options.subscribeStats_ ? "stats" : "state"),
                 kSubscribeLatencyMetric)),
