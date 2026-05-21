@@ -89,12 +89,16 @@ void printPublisherDetail(
                        publisher.lastUpdatePublishedAt().value())
                  : "--")
       << std::endl;
+  int64_t lastLiveAtMillis = std::max(
+      publisher.lastUpdatePublishedAt().has_value()
+          ? publisher.lastUpdatePublishedAt().value()
+          : int64_t{0},
+      publisher.lastHeartbeatReceivedAt().has_value()
+          ? publisher.lastHeartbeatReceivedAt().value()
+          : int64_t{0});
   out << fmt::format(
-             "Staleness (vs lastReceived):    {}",
-             publisher.lastUpdateReceivedAt().has_value()
-                 ? fsdb_cli_format::stalenessFromMillis(
-                       publisher.lastUpdateReceivedAt().value())
-                 : "--")
+             "Staleness (last live at):       {}",
+             fsdb_cli_format::stalenessFromMillis(lastLiveAtMillis))
       << std::endl;
   out << fmt::format(
              "Num Updates Received:           {}",
