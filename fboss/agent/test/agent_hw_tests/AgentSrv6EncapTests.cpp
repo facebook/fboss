@@ -21,6 +21,7 @@
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
@@ -100,6 +101,9 @@ class AgentSrv6EncapTest : public AgentHwTest {
       }
     }
     addSrv6TunnelConfig(cfg);
+    cfg.loadBalancers() =
+        utility::getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
+            ensemble.getL3Asics());
     auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     utility::addTrapPacketAcl(
         asic,
