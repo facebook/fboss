@@ -95,6 +95,13 @@ state::PortFields createPortFields(int portId, const std::string& portName) {
   port.txPause() = false;
   port.rxPause() = false;
   port.portType() = cfg::PortType::INTERFACE_PORT;
+  port.maxFrameSize() = cfg::switch_config_constants::DEFAULT_PORT_MTU();
+  port.portProfileID() = apache::thrift::util::enumNameSafe(
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL);
+  state::VlanInfo membership;
+  membership.tagged() = false;
+  membership.priorityTagged() = false;
+  port.vlanMemberShips() = {{"4001", membership}};
   populatePortQueues(port);
   populatePortPinConfigs(port, portId);
   populatePortProfileConfig(port);
