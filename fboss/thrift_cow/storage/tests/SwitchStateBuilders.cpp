@@ -8,6 +8,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 namespace facebook::fboss::fsdb::test {
 
@@ -48,6 +49,27 @@ void populatePortQueues(state::PortFields& port) {
   port.queues() = std::move(queues);
 }
 
+void populatePortPinConfigs(state::PortFields& port, int portId) {
+  constexpr int kLaneCount = 4; // 100G port = 4 lanes
+  const auto chip = fmt::format("BC{}", portId / 4);
+  std::vector<phy::PinConfig> pinConfigs;
+  pinConfigs.reserve(kLaneCount);
+  for (int lane = 0; lane < kLaneCount; ++lane) {
+    phy::PinConfig pc;
+    phy::PinID id;
+    id.chip() = chip;
+    id.lane() = lane;
+    pc.id() = id;
+    phy::TxSettings tx;
+    tx.pre() = -8;
+    tx.main() = 132;
+    tx.post() = -16;
+    pc.tx() = tx;
+    pinConfigs.push_back(std::move(pc));
+  }
+  port.pinConfigs() = std::move(pinConfigs);
+}
+
 // Helper function to create port fields
 state::PortFields createPortFields(int portId, const std::string& portName) {
   state::PortFields port;
@@ -63,6 +85,7 @@ state::PortFields createPortFields(int portId, const std::string& portName) {
   port.rxPause() = false;
   port.portType() = cfg::PortType::INTERFACE_PORT;
   populatePortQueues(port);
+  populatePortPinConfigs(port, portId);
   return port;
 }
 
