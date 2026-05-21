@@ -558,6 +558,46 @@ def test_run_test_basic_flow(
 
 
 @patch.object(BenchmarkTestRunner, "_write_results_and_summary")
+@patch.object(BenchmarkTestRunner, "_apply_threshold_check")
+@patch.object(BenchmarkTestRunner, "_load_benchmark_thresholds")
+@patch.object(BenchmarkTestRunner, "_load_known_bad_test_regexes")
+@patch.object(BenchmarkTestRunner, "_run_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_list_benchmarks")
+@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+def test_run_test_passes_is_multi_switch_to_threshold_check(
+    mock_get_bin,
+    mock_list,
+    mock_run,
+    mock_known_bad,
+    mock_load_thresh,
+    mock_apply,
+    mock_write,
+    runner,
+    mock_args,
+):
+    """args.agent_run_mode='multi_switch' propagates as is_multi_switch=True
+    to _apply_threshold_check; default mono propagates as False."""
+    mock_get_bin.return_value = (
+        "/opt/fboss/bin/sai_multi_switch_all_benchmarks-sai_impl"
+    )
+    mock_list.return_value = ["BenchA"]
+    mock_run.return_value = _make_ok_result("BenchA")
+    mock_known_bad.return_value = []
+    mock_load_thresh.return_value = {"some.key": [{"thresholds": []}]}
+    mock_args.skip_known_bad_tests = "brcm/10.2.0.0_odp/tomahawk4"
+
+    mock_args.agent_run_mode = "multi_switch"
+    runner.run_test(mock_args)
+    assert mock_apply.call_args[0][1] is True
+
+    mock_apply.reset_mock()
+    mock_args.agent_run_mode = "mono"
+    runner.run_test(mock_args)
+    assert mock_apply.call_args[0][1] is False
+    assert mock_write.call_count == 2
+
+
+@patch.object(BenchmarkTestRunner, "_write_results_and_summary")
 @patch.object(BenchmarkTestRunner, "_run_benchmark_binary")
 @patch.object(BenchmarkTestRunner, "_load_requested_benchmarks")
 @patch.object(BenchmarkTestRunner, "_list_benchmarks")
@@ -755,6 +795,8 @@ def test_write_results_and_summary_csv_and_counts(runner, capsys, tmp_path):
     assert "Skipped (known bad, pre-filtered): 1" in captured.out
     assert "BENCHMARK RESULTS SUMMARY" in captured.out
     assert "BenchA: OK [THRESHOLD PASS]" in captured.out
+    assert "BenchB: OK [NO_THRESHOLD]" in captured.out
+    assert "Threshold: 1 pass, 0 exceeded, 1 not configured" in captured.out
 
     csv_files = list(tmp_path.glob("benchmark_results_*.csv"))
     assert len(csv_files) == 1
@@ -800,7 +842,7 @@ def test_apply_threshold_check_pass(runner):
 
     runner._apply_threshold_check(
         result,
-        "/opt/fboss/bin/sai_all_benchmarks-sai_impl",
+        False,
         "brcm/10.2.0.0_odp/tomahawk4",
         thresholds,
     )
@@ -828,7 +870,7 @@ def test_apply_threshold_check_exceeded(runner):
 
     runner._apply_threshold_check(
         result,
-        "/opt/fboss/bin/sai_all_benchmarks-sai_impl",
+        False,
         "brcm/10.2.0.0_odp/tomahawk4",
         thresholds,
     )
@@ -840,9 +882,7 @@ def test_apply_threshold_check_no_platform_key(runner):
     """Test threshold check is N/A when no platform key"""
     result = _make_ok_result("BenchA")
 
-    runner._apply_threshold_check(
-        result, "/opt/fboss/bin/sai_all_benchmarks-sai_impl", None, {}
-    )
+    runner._apply_threshold_check(result, False, None, {})
 
     assert result["threshold_status"] == "N/A"
 
@@ -854,12 +894,71 @@ def test_apply_threshold_check_failed_status(runner):
 
     runner._apply_threshold_check(
         result,
-        "/opt/fboss/bin/sai_all_benchmarks-sai_impl",
+        False,
         "brcm/10.2.0.0_odp/tomahawk4",
         {"some": "thresholds"},
     )
 
     assert result["threshold_status"] == "N/A"
+
+
+def test_apply_threshold_check_no_threshold_warns(runner, capsys):
+    """When no threshold matches, marks NO_THRESHOLD and warns operator."""
+    result = _make_ok_result("UnconfiguredBenchmark")
+    thresholds = {
+        "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwEcmpGroupShrink": [
+            {
+                "test_config_regex": ".*/tomahawk4.*",
+                "thresholds": [
+                    {"metric_key_regex": "HwEcmpGroupShrink", "upper_bound": 1}
+                ],
+            }
+        ]
+    }
+
+    runner._apply_threshold_check(
+        result,
+        False,
+        "brcm/10.2.0.0_odp/tomahawk4",
+        thresholds,
+    )
+
+    assert result["threshold_status"] == "NO_THRESHOLD"
+    captured = capsys.readouterr()
+    assert "WILL ALWAYS PASS" in captured.out
+    assert "UnconfiguredBenchmark" in captured.out
+
+
+def test_apply_threshold_check_multi_switch_picks_multi_threshold(runner):
+    """is_multi_switch=True selects the multi_switch-keyed threshold over the mono one."""
+    result = _make_ok_result("HwStatsCollection")
+    result["metrics"]["HwStatsCollection"] = 5000
+    thresholds = {
+        "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwStatsCollection": [
+            {
+                "test_config_regex": ".*/tomahawk4.*",
+                "thresholds": [
+                    {"metric_key_regex": "HwStatsCollection", "upper_bound": 1000}
+                ],
+            }
+        ],
+        "fboss.agent.hw.sai.benchmarks.multi_switch.HwStatsCollection": [
+            {
+                "test_config_regex": ".*/tomahawk4.*",
+                "thresholds": [
+                    {"metric_key_regex": "HwStatsCollection", "upper_bound": 9999}
+                ],
+            }
+        ],
+    }
+
+    runner._apply_threshold_check(
+        result, True, "brcm/10.2.0.0_odp/tomahawk4", thresholds
+    )
+
+    # 5000 is over the mono bound (1000) but under the multi_switch bound (9999).
+    # PASS proves the multi_switch threshold was picked.
+    assert result["threshold_status"] == "PASS"
 
 
 # Tests for _find_jsons_in_str
@@ -963,47 +1062,101 @@ def test_load_known_bad_test_regexes_no_match(runner, temp_sai_bench_config):
 
 
 def test_find_thresholds_mono_match(runner, temp_sai_bench_config):
-    """Test finding thresholds for a mono benchmark"""
+    """Mono binary picks the mono-keyed threshold by benchmark name"""
     with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
         all_thresholds = runner._load_benchmark_thresholds()
-    metrics = {"HwEcmpGroupShrink": 10000000000000, "cpu_time_usec": 123}
     thresholds = runner._find_thresholds_for_benchmark(
-        metrics, False, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
+        "HwEcmpGroupShrink", False, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
     )
     assert len(thresholds) == 1
     assert thresholds[0]["metric_key_regex"] == "HwEcmpGroupShrink"
 
 
 def test_find_thresholds_multi_switch_match(runner, temp_sai_bench_config):
-    """Test finding thresholds for a multi-switch benchmark"""
+    """Multi-switch binary picks the multi_switch-keyed threshold"""
     with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
         all_thresholds = runner._load_benchmark_thresholds()
-    metrics = {"RxSlowPathBenchmark": 1460000000000, "cpu_rx_pps": 200000}
     thresholds = runner._find_thresholds_for_benchmark(
-        metrics, True, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
+        "RxSlowPathBenchmark", True, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
     )
     assert len(thresholds) == 1
     assert thresholds[0]["metric_key_regex"] == "cpu_rx_pps"
 
 
-def test_find_thresholds_no_match(runner, temp_sai_bench_config):
-    """Test finding thresholds when no metric matches"""
+def test_find_thresholds_mono_falls_back_to_multi_switch(runner, temp_sai_bench_config):
+    """If only a multi-switch threshold exists, mono falls back to it."""
     with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
         all_thresholds = runner._load_benchmark_thresholds()
-    metrics = {"NonExistentBenchmark": 100, "cpu_time_usec": 123}
     thresholds = runner._find_thresholds_for_benchmark(
-        metrics, False, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
+        "RxSlowPathBenchmark", False, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
+    )
+    assert len(thresholds) == 1
+    assert thresholds[0]["metric_key_regex"] == "cpu_rx_pps"
+
+
+def test_find_thresholds_multi_switch_prefers_multi_over_mono(runner):
+    """When both mono and multi_switch entries exist, the matching mode wins."""
+    all_thresholds = {
+        "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwStatsCollection": [
+            {
+                "test_config_regex": ".*/tomahawk4.*",
+                "thresholds": [
+                    {"metric_key_regex": "HwStatsCollection", "upper_bound": 1000}
+                ],
+            }
+        ],
+        "fboss.agent.hw.sai.benchmarks.multi_switch.HwStatsCollection": [
+            {
+                "test_config_regex": ".*/tomahawk4.*",
+                "thresholds": [
+                    {"metric_key_regex": "HwStatsCollection", "upper_bound": 9999}
+                ],
+            }
+        ],
+    }
+    thresholds = runner._find_thresholds_for_benchmark(
+        "HwStatsCollection", True, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
+    )
+    assert thresholds[0]["upper_bound"] == 9999
+
+    thresholds = runner._find_thresholds_for_benchmark(
+        "HwStatsCollection", False, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
+    )
+    assert thresholds[0]["upper_bound"] == 1000
+
+
+def test_find_thresholds_no_match(runner, temp_sai_bench_config):
+    """Unknown benchmark name returns no thresholds"""
+    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+        all_thresholds = runner._load_benchmark_thresholds()
+    thresholds = runner._find_thresholds_for_benchmark(
+        "NonExistentBenchmark", False, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
     )
     assert thresholds == []
 
 
 def test_find_thresholds_platform_mismatch(runner, temp_sai_bench_config):
-    """Test that platform regex mismatch returns empty"""
+    """Benchmark name matches but platform regex doesn't"""
     with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
         all_thresholds = runner._load_benchmark_thresholds()
-    metrics = {"HwEcmpGroupShrink": 10000000000000}
     thresholds = runner._find_thresholds_for_benchmark(
-        metrics, False, "brcm/10.2.0.0_odp/tomahawk5", all_thresholds
+        "HwEcmpGroupShrink", False, "brcm/10.2.0.0_odp/tomahawk5", all_thresholds
+    )
+    assert thresholds == []
+
+
+def test_find_thresholds_skips_warmboot(runner):
+    """Warmboot threshold entries are ignored"""
+    all_thresholds = {
+        "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwInitAndExit.warmboot": [
+            {
+                "test_config_regex": ".*/tomahawk4.*",
+                "thresholds": [{"metric_key_regex": "HwInitAndExit", "upper_bound": 1}],
+            }
+        ],
+    }
+    thresholds = runner._find_thresholds_for_benchmark(
+        "HwInitAndExit", False, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
     )
     assert thresholds == []
 

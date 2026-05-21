@@ -1912,40 +1912,39 @@ class BenchmarkTestRunner:
         return config.get("buck_rule_or_test_id_to_benchmark_thres", {})
 
     def _find_thresholds_for_benchmark(
-        self, metrics, is_multi_switch, platform_key, all_thresholds
+        self, benchmark_name, is_multi_switch, platform_key, all_thresholds
     ):
-        """Find matching thresholds for a benchmark using its output metrics.
+        """Find matching thresholds for a benchmark.
 
-        Matches metric keys from the output against threshold entries by
-        comparing against the last dot-segment of each config key.
+        Lookup:
+          1. Collect threshold entries whose key's last dot-segment equals the
+             benchmark name (warmboot keys are skipped).
+          2. Sort so the entry matching the binary's mode comes first; if only
+             the other-mode entry exists we still fall back to it rather than
+             returning nothing.
+          3. Pick the first entry whose test_config_regex matches platform_key
+             and return its `thresholds` list.
 
         Args:
-            metrics: Dict of all metrics from benchmark output
-            is_multi_switch: Whether binary is a multi-switch variant
-            platform_key: Platform key for test_config_regex matching
+            benchmark_name: BENCHMARK() registered name (e.g. HwEcmpGroupShrink)
+            is_multi_switch: True if the binary is the multi-switch variant
+            platform_key: Platform key string for test_config_regex matching
             all_thresholds: Dict from _load_benchmark_thresholds()
 
         Returns:
-            List of MetricThreshold dicts, or empty list
+            List of MetricThreshold dicts (each with metric_key_regex,
+            optional lower_bound/upper_bound), or empty list when no match.
         """
-        metric_keys = set(metrics.keys())
-
         candidates = []
         for key, threshold_configs in all_thresholds.items():
             if ".warmboot" in key:
                 continue
-
-            last_segment = key.rsplit(".", 1)[-1]
-            # Match if any output metric key matches the last segment of the config key
-            if last_segment not in metric_keys:
+            if key.rsplit(".", 1)[-1] != benchmark_name:
                 continue
-
             is_multi_key = ".multi_switch." in key
             candidates.append((key, threshold_configs, is_multi_key))
 
-        if not candidates:
-            return []
-
+        # Matching-mode entries first; fall back to the other mode otherwise.
         candidates.sort(key=lambda c: c[2] != is_multi_switch)
 
         for _key, threshold_configs, _is_multi in candidates:
@@ -2232,34 +2231,45 @@ class BenchmarkTestRunner:
         return names
 
     def _apply_threshold_check(
-        self, result, benchmark_path, platform_key, all_thresholds
+        self, result, is_multi_switch, platform_key, all_thresholds
     ):
-        """Apply threshold validation to a benchmark result."""
+        """Apply threshold validation to a benchmark result.
+
+        Looks up thresholds by benchmark name, preferring entries that match
+        the caller-provided mode. When no threshold is found, prints a
+        "WILL ALWAYS PASS" warning so silent regressions are visible.
+        """
         test_name = result.get("benchmark_test_name", "")
-        if result["test_status"] == "OK" and all_thresholds and platform_key:
-            thresholds = self._find_thresholds_for_benchmark(
-                result.get("metrics", {}),
-                False,
-                platform_key,
-                all_thresholds,
-            )
-            if thresholds:
-                violations = self._check_thresholds(result, thresholds)
-                if violations:
-                    result["threshold_status"] = "EXCEEDED"
-                    result["threshold_details"] = "; ".join(violations)
-                    print(
-                        f"  >> THRESHOLD EXCEEDED: {test_name}: "
-                        f"{result['threshold_details']}"
-                    )
-                else:
-                    result["threshold_status"] = "PASS"
-                    result["threshold_details"] = ""
-            else:
-                result["threshold_status"] = "NO_THRESHOLD"
-                result["threshold_details"] = ""
-        else:
+        if not (result["test_status"] == "OK" and all_thresholds and platform_key):
             result["threshold_status"] = "N/A"
+            result["threshold_details"] = ""
+            return
+
+        thresholds = self._find_thresholds_for_benchmark(
+            test_name,
+            is_multi_switch,
+            platform_key,
+            all_thresholds,
+        )
+        if not thresholds:
+            print(
+                f"  >> WARNING: no benchmark threshold defined for "
+                f"{test_name} on {platform_key}; this benchmark WILL "
+                f"ALWAYS PASS until thresholds are added."
+            )
+            result["threshold_status"] = "NO_THRESHOLD"
+            result["threshold_details"] = ""
+            return
+
+        violations = self._check_thresholds(result, thresholds)
+        if violations:
+            result["threshold_status"] = "EXCEEDED"
+            result["threshold_details"] = "; ".join(violations)
+            print(
+                f"  >> THRESHOLD EXCEEDED: {test_name}: {result['threshold_details']}"
+            )
+        else:
+            result["threshold_status"] = "PASS"
             result["threshold_details"] = ""
 
     def _write_results_and_summary(self, results, skipped_count=0):
@@ -2303,21 +2313,29 @@ class BenchmarkTestRunner:
                 suffix = f" [THRESHOLD EXCEEDED: {result['threshold_details']}]"
             elif threshold == "PASS":
                 suffix = " [THRESHOLD PASS]"
+            elif threshold == "NO_THRESHOLD":
+                suffix = " [NO_THRESHOLD]"
             print(f"{name}: {status}{suffix}")
         print("=" * 80)
 
         ok = sum(1 for r in results if r["test_status"] == "OK")
         failed = sum(1 for r in results if r["test_status"] == "FAILED")
         timed_out = sum(1 for r in results if r["test_status"] == "TIMEOUT")
+        threshold_pass = sum(1 for r in results if r.get("threshold_status") == "PASS")
         threshold_exceeded = sum(
             1 for r in results if r.get("threshold_status") == "EXCEEDED"
+        )
+        no_threshold = sum(
+            1 for r in results if r.get("threshold_status") == "NO_THRESHOLD"
         )
         print(f"\nTotal: {len(results)} benchmarks")
         print(f"OK: {ok}")
         print(f"Failed: {failed}")
         print(f"Timed Out: {timed_out}")
         print(f"Skipped (known bad, pre-filtered): {skipped_count}")
-        print(f"Threshold Exceeded: {threshold_exceeded}")
+        print(
+            f"Threshold: {threshold_pass} pass, {threshold_exceeded} exceeded, {no_threshold} not configured"
+        )
 
         if failed > 0 or timed_out > 0 or threshold_exceeded > 0:
             sys.exit(1)
@@ -2486,7 +2504,7 @@ class BenchmarkTestRunner:
                     binary_path, args, benchmark_name=name
                 )
                 self._apply_threshold_check(
-                    result, binary_path, platform_key, all_thresholds
+                    result, is_multi_switch, platform_key, all_thresholds
                 )
                 results.append(result)
 
