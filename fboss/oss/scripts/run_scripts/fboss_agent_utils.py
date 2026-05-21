@@ -175,6 +175,7 @@ def _setup_hw_agent_service(
     is_fsdb_disabled: bool = False,
     hw_agent_service_name: str = _HW_AGENT_SERVICE_OSS,
     hw_agent_for_testing: bool = True,
+    additional_args: t.Optional[t.List[str]] = None,
 ) -> None:
     if not hw_agent_service_bin_path:
         hw_agent_service_bin_path = _DEFAULT_OSS_HW_AGENT_SERVICE_PATH
@@ -206,6 +207,9 @@ def _setup_hw_agent_service(
 
         if not is_fsdb_disabled:
             extra_args += " --fsdb_client_ssl_preferred=false"
+
+        if additional_args:
+            extra_args += " " + " ".join(additional_args)
 
         hw_agent_service_cmd = f"{hw_agent_service_bin_path} --config {fboss_agent_config_path} --switchIndex {switch_index} {extra_args}"
         unit_file_path = f"/tmp/{service_full_name}.service"
@@ -246,6 +250,7 @@ def setup_and_start_hw_agent_service(
     is_warm_boot: bool = False,
     hw_agent_service_name: str = _HW_AGENT_SERVICE_OSS,
     hw_agent_for_testing: bool = True,
+    additional_args: t.Optional[t.List[str]] = None,
 ) -> None:
     _setup_hw_agent_service(
         switch_indexes,
@@ -256,6 +261,7 @@ def setup_and_start_hw_agent_service(
         is_fsdb_disabled,
         hw_agent_service_name=hw_agent_service_name,
         hw_agent_for_testing=hw_agent_for_testing,
+        additional_args=additional_args,
     )
 
     return_codes = (

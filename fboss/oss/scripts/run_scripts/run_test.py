@@ -1781,8 +1781,14 @@ class BenchmarkTestRunner:
     for full setup/run/teardown isolation.
     """
 
-    def _get_benchmark_binary(self):
-        benchmark_binary = "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
+    def _get_benchmark_binary(self, args):
+        if (
+            getattr(args, "agent_run_mode", SUB_ARG_AGENT_RUN_MODE_MONO)
+            == SUB_ARG_AGENT_RUN_MODE_MULTI
+        ):
+            benchmark_binary = "/opt/fboss/bin/sai_multi_switch_all_benchmarks-sai_impl"
+        else:
+            benchmark_binary = "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
         if os.path.exists(benchmark_binary) and os.path.isfile(benchmark_binary):
             return benchmark_binary
         return None
@@ -1817,6 +1823,12 @@ class BenchmarkTestRunner:
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
         """Add benchmark-specific command line arguments"""
         sub_parser.add_argument(
+            OPT_ARG_FILTER,
+            type=str,
+            help="Regex to filter benchmarks by name (e.g. --filter HwEcmp.*)",
+            default=None,
+        )
+        sub_parser.add_argument(
             OPT_ARG_FILTER_FILE,
             type=str,
             help="File containing list of benchmark test names to run (one per line).",
@@ -1828,6 +1840,22 @@ class BenchmarkTestRunner:
             type=str,
             help="A file path to a platform mapping JSON file to be used.",
             default=None,
+        )
+        sub_parser.add_argument(
+            SUB_ARG_AGENT_RUN_MODE,
+            choices=[
+                SUB_ARG_AGENT_RUN_MODE_MONO,
+                SUB_ARG_AGENT_RUN_MODE_MULTI,
+            ],
+            default=SUB_ARG_AGENT_RUN_MODE_MONO,
+            help="Specify agent run mode. Default is mono mode.",
+        )
+        sub_parser.add_argument(
+            SUB_ARG_NUM_NPUS,
+            choices=[1, 2],
+            default=1,
+            type=int,
+            help="Number of NPUs for multi-switch mode. Default is 1.",
         )
 
     def _build_keys_to_try(self, platform_key):
@@ -2051,6 +2079,43 @@ class BenchmarkTestRunner:
             print(f"{prefix}{line}", end="", flush=True)
             lines_list.append(line)
 
+    def _build_benchmark_cmd(self, binary_name, args, benchmark_name=None):
+        """Build the command line for running a benchmark binary."""
+        is_multi_switch = (
+            getattr(args, "agent_run_mode", SUB_ARG_AGENT_RUN_MODE_MONO)
+            == SUB_ARG_AGENT_RUN_MODE_MULTI
+        )
+
+        run_cmd = [binary_name, "--json"]
+        if benchmark_name:
+            run_cmd.extend(["--bm_regex", f"^{re.escape(benchmark_name)}$"])
+
+        if args.config:
+            run_cmd.extend(["--config", args.config, "--mgmt-if", args.mgmt_if])
+
+        if is_multi_switch:
+            run_cmd.extend(["--multi_switch", "--hw_agent_for_testing"])
+            num_npus = getattr(args, "num_npus", 1)
+            if num_npus > 1:
+                run_cmd.append("--multi_npu_platform_mapping")
+        else:
+            run_cmd.append("--flexports")
+            if args.platform_mapping_override_path is not None:
+                run_cmd.extend(
+                    [
+                        "--platform_mapping_override_path",
+                        args.platform_mapping_override_path,
+                    ]
+                )
+
+        if args.fruid_path is not None:
+            run_cmd.extend(["--fruid_filepath=" + args.fruid_path])
+
+        if not is_multi_switch:
+            run_cmd.extend(["--enable_sai_log", args.sai_logging])
+        run_cmd.extend(["--logging", "WARN"])
+        return run_cmd
+
     def _run_benchmark_binary(self, binary_name, args, benchmark_name=None):
         """Run a single benchmark and return parsed results.
 
@@ -2061,24 +2126,7 @@ class BenchmarkTestRunner:
         display_name = benchmark_name or os.path.basename(binary_name)
         print(f"########## Running benchmark: {display_name}", flush=True)
 
-        run_cmd = [binary_name, "--json"]
-        if benchmark_name:
-            run_cmd.extend(["--bm_regex", f"^{re.escape(benchmark_name)}$"])
-
-        if args.config:
-            run_cmd.extend(["--config", args.config, "--mgmt-if", args.mgmt_if])
-        if args.platform_mapping_override_path is not None:
-            run_cmd.extend(
-                [
-                    "--platform_mapping_override_path",
-                    args.platform_mapping_override_path,
-                ]
-            )
-        if args.fruid_path is not None:
-            run_cmd.extend(["--fruid_filepath=" + args.fruid_path])
-
-        run_cmd.extend(["--enable_sai_log", args.sai_logging])
-        run_cmd.extend(["--logging", "WARN"])
+        run_cmd = self._build_benchmark_cmd(binary_name, args, benchmark_name)
 
         print(f"Running command: {' '.join(run_cmd)}", flush=True)
 
@@ -2352,8 +2400,33 @@ class BenchmarkTestRunner:
             print(f"Pre-filtered {skipped_count} unsupported benchmarks")
         return filtered, skipped_count
 
+    def _start_hw_agent_service(self, args):
+        """Start hw_agent service for multi-switch benchmarks."""
+        num_npus = getattr(args, "num_npus", 1)
+        switch_indexes = list(range(num_npus))
+        additional_args = []
+        if num_npus > 1:
+            additional_args.append("--multi_npu_platform_mapping")
+        setup_and_start_hw_agent_service(
+            switch_indexes=switch_indexes,
+            fboss_agent_config_path=args.config,
+            platform_mapping_override_path=args.platform_mapping_override_path,
+            is_warm_boot=False,
+            additional_args=additional_args or None,
+        )
+
+    def _stop_hw_agent_service(self, args):
+        """Stop hw_agent service after multi-switch benchmarks."""
+        switch_indexes = list(range(getattr(args, "num_npus", 1)))
+        cleanup_hw_agent_service(switch_indexes)
+
     def run_test(self, args):
         """Run benchmark tests."""
+        is_multi_switch = (
+            getattr(args, "agent_run_mode", SUB_ARG_AGENT_RUN_MODE_MONO)
+            == SUB_ARG_AGENT_RUN_MODE_MULTI
+        )
+
         known_bad_regexes = []
         unsupported_regexes = []
         all_thresholds = {}
@@ -2368,7 +2441,7 @@ class BenchmarkTestRunner:
                 f"and {len(all_thresholds)} threshold configs for '{platform_key}'"
             )
 
-        binary_path = self._get_benchmark_binary()
+        binary_path = self._get_benchmark_binary(args)
         if not binary_path:
             print("Error: Could not find benchmark binary")
             return
@@ -2404,15 +2477,25 @@ class BenchmarkTestRunner:
 
         print(f"\nRunning {len(benchmarks_to_run)} benchmarks")
 
-        results = []
-        for name in benchmarks_to_run:
-            result = self._run_benchmark_binary(binary_path, args, benchmark_name=name)
-            self._apply_threshold_check(
-                result, binary_path, platform_key, all_thresholds
-            )
-            results.append(result)
+        try:
+            if is_multi_switch and args.config:
+                self._start_hw_agent_service(args)
+            results = []
+            for name in benchmarks_to_run:
+                result = self._run_benchmark_binary(
+                    binary_path, args, benchmark_name=name
+                )
+                self._apply_threshold_check(
+                    result, binary_path, platform_key, all_thresholds
+                )
+                results.append(result)
 
-        self._write_results_and_summary(results, skipped_count + unsupported_skipped)
+            self._write_results_and_summary(
+                results, skipped_count + unsupported_skipped
+            )
+        finally:
+            if is_multi_switch:
+                self._stop_hw_agent_service(args)
 
 
 if __name__ == "__main__":

@@ -42,6 +42,8 @@ def mock_args():
     args.fboss_logging = "WARN"
     args.test_run_timeout = 300
     args.skip_known_bad_tests = None
+    args.agent_run_mode = "mono"
+    args.num_npus = 1
     return args
 
 
@@ -99,21 +101,48 @@ def test_load_requested_with_empty_file(runner, capsys):
 # Tests for _get_benchmark_binary
 
 
-def test_get_benchmark_binary_exists(runner):
-    """Test finding benchmark binary when it exists"""
+def test_get_benchmark_binary_mono(runner, mock_args):
+    """Default agent_run_mode (mono) returns the mono binary"""
+    mock_args.agent_run_mode = "mono"
     with (
         patch("os.path.exists", return_value=True),
         patch("os.path.isfile", return_value=True),
     ):
-        path = runner._get_benchmark_binary()
-    assert path is not None
-    assert "sai_all_benchmarks" in path
+        path = runner._get_benchmark_binary(mock_args)
+    assert path == "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
 
 
-def test_get_benchmark_binary_missing(runner):
-    """Test returning None when binary doesn't exist"""
+def test_get_benchmark_binary_multi_switch(runner, mock_args):
+    """agent_run_mode=multi_switch returns the multi-switch binary"""
+    mock_args.agent_run_mode = "multi_switch"
+    with (
+        patch("os.path.exists", return_value=True),
+        patch("os.path.isfile", return_value=True),
+    ):
+        path = runner._get_benchmark_binary(mock_args)
+    assert path == "/opt/fboss/bin/sai_multi_switch_all_benchmarks-sai_impl"
+
+
+def test_get_benchmark_binary_missing(runner, mock_args):
+    """Returns None when binary doesn't exist"""
+    mock_args.agent_run_mode = "mono"
     with patch("os.path.exists", return_value=False):
-        assert runner._get_benchmark_binary() is None
+        assert runner._get_benchmark_binary(mock_args) is None
+
+
+def test_get_benchmark_binary_defaults_to_mono_when_attr_missing(runner):
+    """Callers without agent_run_mode (e.g., older Namespaces) get the mono binary."""
+
+    class _NoAgentRunMode:
+        pass
+
+    args = _NoAgentRunMode()
+    with (
+        patch("os.path.exists", return_value=True),
+        patch("os.path.isfile", return_value=True),
+    ):
+        path = runner._get_benchmark_binary(args)
+    assert path == "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
 
 
 # Tests for _list_benchmarks
@@ -436,6 +465,48 @@ def test_run_benchmark_binary_with_config(mock_popen_cls, runner, mock_args):
     assert "/path/to/config.conf" in call_args
     assert "--mgmt-if" in call_args
     assert "eth1" in call_args
+
+
+# Tests for _build_benchmark_cmd
+
+
+def test_build_benchmark_cmd_mono(runner, mock_args):
+    """Mono mode includes --flexports and --enable_sai_log, no --multi_switch"""
+    cmd = runner._build_benchmark_cmd("/opt/fboss/bin/bench", mock_args)
+    assert "--flexports" in cmd
+    assert "--enable_sai_log" in cmd
+    assert "--multi_switch" not in cmd
+    assert "--hw_agent_for_testing" not in cmd
+
+
+def test_build_benchmark_cmd_multi_switch(runner, mock_args):
+    """Multi-switch mode includes --multi_switch and --hw_agent_for_testing"""
+    mock_args.agent_run_mode = "multi_switch"
+    mock_args.num_npus = 1
+    cmd = runner._build_benchmark_cmd("/opt/fboss/bin/bench", mock_args)
+    assert "--multi_switch" in cmd
+    assert "--hw_agent_for_testing" in cmd
+    assert "--flexports" not in cmd
+    assert "--enable_sai_log" not in cmd
+    assert "--multi_npu_platform_mapping" not in cmd
+
+
+def test_build_benchmark_cmd_multi_switch_multi_npu(runner, mock_args):
+    """Multi-switch with num_npus > 1 includes --multi_npu_platform_mapping"""
+    mock_args.agent_run_mode = "multi_switch"
+    mock_args.num_npus = 2
+    cmd = runner._build_benchmark_cmd("/opt/fboss/bin/bench", mock_args)
+    assert "--multi_switch" in cmd
+    assert "--multi_npu_platform_mapping" in cmd
+
+
+def test_build_benchmark_cmd_with_bm_regex(runner, mock_args):
+    """Benchmark name adds --bm_regex with escaped name"""
+    cmd = runner._build_benchmark_cmd(
+        "/opt/fboss/bin/bench", mock_args, benchmark_name="HwEcmpGroupShrink"
+    )
+    assert "--bm_regex" in cmd
+    assert "^HwEcmpGroupShrink$" in cmd
 
 
 # Tests for run_test
