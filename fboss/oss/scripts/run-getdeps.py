@@ -42,6 +42,7 @@ ARG_SKIP_INSTALL = "--skip-install"
 ARG_ASAN = "--asan"
 ARG_GETDEPS_HELP = "--getdeps-help"
 ARG_GETDEPS = "getdeps_args"
+ARG_USE_GCC = "--use-gcc"
 
 SUPPORTED_SAI_IMPLS = {
     "SAI_BRCM_IMPL",
@@ -171,6 +172,12 @@ def parse_args():
         ARG_GETDEPS,
         nargs=argparse.REMAINDER,
         help="Arguments to be passed to getdeps.py.",
+    )
+    parser.add_argument(
+        ARG_USE_GCC,
+        required=False,
+        action="store_true",
+        help="Stay on GCC instead of auto-switching to Clang.",
     )
     return parser.parse_args()
 
@@ -578,12 +585,43 @@ def main():
     # Detect which toolchain is active and set up environment accordingly
     toolchain_info = detect_toolchain()
 
+    set_clang_cmd = [
+        "update-alternatives",
+        "--set",
+        "gcc",
+        "/usr/local/llvm/bin/clang",
+    ]
+    set_gcc_cmd = [
+        "update-alternatives",
+        "--set",
+        "gcc",
+        "/opt/rh/gcc-toolset-12/root/usr/bin/gcc",
+    ]
     if toolchain_info:
         print_info(f"Detected toolchain: {toolchain_info}")
-        if toolchain_info["type"] == "clang":
+        if args.use_gcc:
+            print_info(f"{ARG_USE_GCC} set, proceeding with GCC")
+            subprocess.run(set_gcc_cmd, check=False)
+        elif toolchain_info["type"] == "clang":
             setup_clang_environment(toolchain_info)
         elif toolchain_info["type"] == "gcc":
-            print_info("Detected GCC compiler, no additional flags needed")
+            print_info("Switching to Clang via update-alternatives...")
+            result = subprocess.run(set_clang_cmd, check=False)
+            if result.returncode != 0:
+                print_error(
+                    "Failed to switch to Clang via update-alternatives. "
+                    f"Please run manually: {' '.join(set_clang_cmd)}"
+                )
+                sys.exit(1)
+            toolchain_info = detect_toolchain()
+            if toolchain_info and toolchain_info["type"] == "clang":
+                setup_clang_environment(toolchain_info)
+            else:
+                print_error(
+                    "Failed to detect Clang after switching. "
+                    f"Please run manually: {' '.join(set_clang_cmd)}"
+                )
+                sys.exit(1)
     # If toolchain_info is None, detect_toolchain() already printed a warning
     # and we'll proceed without environment setup
 
