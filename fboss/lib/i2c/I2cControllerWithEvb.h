@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/system/ThreadName.h>
 
@@ -18,7 +18,7 @@ class I2cControllerWithEvb {
 
   void start(uint32_t pim) {
     th_.reset(new std::thread([&, pim]() {
-      folly::setThreadName(folly::format("I2c_pim{:d}_ctrl0", pim).str());
+      folly::setThreadName(fmt::format("I2c_pim{:d}_ctrl0", pim));
       evb_.loopForever();
     }));
   }

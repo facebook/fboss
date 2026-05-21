@@ -193,11 +193,11 @@ cpp_unittest(
         "CommonThriftUtilsTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/glog:glog",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_port_utils",
         "//fboss/lib:common_thrift_utils",
-        "//folly:format",
         "//folly:singleton",
         "//folly/logging:logging",
         "//folly/testing:test_util",

@@ -17,7 +17,7 @@
 #include "fboss/lib/usb/BaseWedgeI2CBus.h"
 #include "fboss/lib/usb/PCA9548.h"
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/String.h>
 
 namespace facebook::fboss {
@@ -28,7 +28,7 @@ struct MuxChannel {
   MuxChannel(QsfpMux* mux_, uint8_t channel_) : mux(mux_), channel(channel_) {}
 
   std::string str() const {
-    return folly::sformat("(mux={},channel={})", mux, channel);
+    return fmt::format("(mux={},channel={})", fmt::ptr(mux), channel);
   }
 
   QsfpMux* mux{nullptr};
