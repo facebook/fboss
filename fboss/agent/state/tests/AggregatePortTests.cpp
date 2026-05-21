@@ -1135,3 +1135,121 @@ TEST(AggregatePort, computeCapacityHyperPortDefaultSpeed) {
   EXPECT_EQ(result.activeCapacityMbps, std::nullopt);
   EXPECT_EQ(result.status, state::AggregatePortStatus::UP);
 }
+
+namespace {
+
+std::pair<std::shared_ptr<SwitchState>, cfg::SwitchConfig>
+makeTwoPortAggPortConfig() {
+  auto startState = make_shared<SwitchState>();
+  registerPort(startState, PortID(1), "port1", scope());
+  registerPort(startState, PortID(2), "port2", scope());
+
+  cfg::SwitchConfig config;
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
+  config.ports()->resize(2);
+  preparedMockPortConfig(config.ports()[0], 1);
+  preparedMockPortConfig(config.ports()[1], 2);
+
+  config.vlans()->resize(1);
+  *config.vlans()[0].id() = 1000;
+  *config.vlans()[0].name() = "vlan1000";
+  *config.vlans()[0].routable() = true;
+
+  config.interfaces()->resize(1);
+  *config.interfaces()[0].intfID() = 1000;
+  *config.interfaces()[0].vlanID() = 1000;
+  config.interfaces()[0].ipAddresses()->resize(2);
+  config.interfaces()[0].ipAddresses()[0] = "1.2.3.4/24";
+  config.interfaces()[0].ipAddresses()[1] =
+      "2a03:2880:10:1f07:face:b00c:0:0/96";
+
+  config.vlanPorts()->resize(2);
+  *config.vlanPorts()[0].logicalPort() = 1;
+  *config.vlanPorts()[0].vlanID() = 1000;
+  *config.vlanPorts()[0].emitTags() = false;
+  *config.vlanPorts()[1].logicalPort() = 2;
+  *config.vlanPorts()[1].vlanID() = 1000;
+  *config.vlanPorts()[1].emitTags() = false;
+
+  config.aggregatePorts()->resize(1);
+  *config.aggregatePorts()[0].key() = 1;
+  *config.aggregatePorts()[0].name() = "port-channel";
+  *config.aggregatePorts()[0].description() = "test bundle";
+  config.aggregatePorts()[0].memberPorts()->resize(2);
+  *config.aggregatePorts()[0].memberPorts()[0].memberPortID() = 1;
+  *config.aggregatePorts()[0].memberPorts()[1].memberPortID() = 2;
+
+  return {startState, config};
+}
+
+} // namespace
+
+TEST(AggregatePort, configTimeCapacityComputation) {
+  auto platform = createMockPlatform();
+  auto [startState, config] = makeTwoPortAggPortConfig();
+
+  auto endState = publishAndApplyConfig(startState, &config, platform.get());
+  ASSERT_NE(nullptr, endState);
+  auto aggPort = endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
+  ASSERT_NE(nullptr, aggPort);
+
+  // preparedMockPortConfig sets speed to XG (10000 Mbps)
+  EXPECT_EQ(aggPort->getConfiguredCapacityMbps(), 20000);
+  EXPECT_EQ(aggPort->getActiveCapacityMbps(), 0);
+  EXPECT_EQ(aggPort->getStatus(), state::AggregatePortStatus::DOWN);
+}
+
+TEST(AggregatePort, configTimeCapacityRecomputesOnSpeedChange) {
+  auto platform = createMockPlatform();
+  auto [startState, config] = makeTwoPortAggPortConfig();
+
+  auto midState = publishAndApplyConfig(startState, &config, platform.get());
+  ASSERT_NE(nullptr, midState);
+  EXPECT_EQ(
+      midState->getAggregatePorts()
+          ->getNodeIf(AggregatePortID(1))
+          ->getConfiguredCapacityMbps(),
+      20000);
+
+  // Change port 1 speed from XG (10G) to HUNDREDG (100G)
+  config.ports()[0].speed() = cfg::PortSpeed::HUNDREDG;
+  config.ports()[0].profileID() =
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER;
+  auto endState = publishAndApplyConfig(midState, &config, platform.get());
+  ASSERT_NE(nullptr, endState);
+  auto aggPort = endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
+  ASSERT_NE(nullptr, aggPort);
+
+  // 100000 (port1) + 10000 (port2) = 110000
+  EXPECT_EQ(aggPort->getConfiguredCapacityMbps(), 110000);
+  EXPECT_EQ(aggPort->getActiveCapacityMbps(), 0);
+  EXPECT_EQ(aggPort->getStatus(), state::AggregatePortStatus::DOWN);
+}
+
+TEST(AggregatePort, configTimeCapacityWithForwardingPorts) {
+  auto platform = createMockPlatform();
+  auto [startState, config] = makeTwoPortAggPortConfig();
+  config.aggregatePorts()[0].minimumCapacity()->linkCount_ref() = 1;
+
+  auto midState = publishAndApplyConfig(startState, &config, platform.get());
+  ASSERT_NE(nullptr, midState);
+
+  // Enable forwarding on both member ports to simulate LACP convergence
+  auto aggPort = midState->getAggregatePorts()
+                     ->getNodeIf(AggregatePortID(1))
+                     ->modify(&midState);
+  aggPort->setForwardingState(PortID(1), AggregatePort::Forwarding::ENABLED);
+  aggPort->setForwardingState(PortID(2), AggregatePort::Forwarding::ENABLED);
+
+  // Reapply same config — capacity recomputation should see forwarding ports
+  auto endState = publishAndApplyConfig(midState, &config, platform.get());
+  ASSERT_NE(nullptr, endState);
+  auto finalAggPort =
+      endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
+  ASSERT_NE(nullptr, finalAggPort);
+
+  EXPECT_EQ(finalAggPort->getConfiguredCapacityMbps(), 20000);
+  EXPECT_EQ(finalAggPort->getActiveCapacityMbps(), 20000);
+  EXPECT_EQ(finalAggPort->getStatus(), state::AggregatePortStatus::UP);
+}

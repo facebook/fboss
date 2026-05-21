@@ -784,6 +784,46 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
               newAggPorts, scopeResolver_));
       changed = true;
     }
+
+    // Collect IDs before modifying to avoid iterator invalidation:
+    // modify(&new_) can clone the map being iterated.
+    std::vector<AggregatePortID> aggPortIds;
+    for (const auto& idAndAggPorts :
+         std::as_const(*new_->getAggregatePorts())) {
+      for (const auto& idAndAggPort : std::as_const(*idAndAggPorts.second)) {
+        aggPortIds.emplace_back(idAndAggPort.first);
+      }
+    }
+    for (auto aggPortId : aggPortIds) {
+      auto aggPort = new_->getAggregatePorts()->getNodeIf(aggPortId);
+      if (!aggPort) {
+        continue;
+      }
+      auto capacityResult =
+          computeAggregatePortCapacityAndStatus(aggPort, new_);
+
+      if (aggPort->getConfiguredCapacityMbps() !=
+              capacityResult.configuredCapacityMbps ||
+          aggPort->getActiveCapacityMbps() !=
+              capacityResult.activeCapacityMbps ||
+          aggPort->getStatus() != capacityResult.status) {
+        auto* writableAggPort = aggPort->modify(&new_);
+        if (capacityResult.configuredCapacityMbps.has_value()) {
+          writableAggPort->setConfiguredCapacityMbps(
+              *capacityResult.configuredCapacityMbps);
+        } else {
+          writableAggPort->clearConfiguredCapacityMbps();
+        }
+        if (capacityResult.activeCapacityMbps.has_value()) {
+          writableAggPort->setActiveCapacityMbps(
+              *capacityResult.activeCapacityMbps);
+        } else {
+          writableAggPort->clearActiveCapacityMbps();
+        }
+        writableAggPort->setStatus(capacityResult.status);
+        changed = true;
+      }
+    }
   }
 
   // updateMirrors must be called after updatePorts, mirror needs ports!
