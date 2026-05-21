@@ -761,6 +761,36 @@ SwitchStateScale FsdbStateDataFactory::getRoleScale(RoleSelector role) {
            true,
            true,
            false)},
+      // RGSW - Regional gateway switch (small FE role)
+      // Numbers from prn3 cross-DC observation:
+      // ~/debug/fsdb/memory_bench/claude/prn3/aggregate.json (RGSW row)
+      // 48 ports, 19 vlans, 18 interfaces, 0 FIBs (RGSW prod fibsMap empty).
+      {RGSW,
+       makeScale(
+           0, // fibV4Size — RGSW prod fibsMap is empty
+           0, // fibV6Size
+           0, // v4Nexthops
+           0, // v6Nexthops
+           0, // remoteSystemPortMapSize
+           0, // remoteInterfaceMapSize
+           48, // portCount
+           19, // vlanCount
+           0, // transceiverCount
+           18, // interfaceCount
+           0, // systemPortCount
+           0, // dsfNodeCount
+           0, // aclCount
+           0, // bufferPoolCfgCount
+           0, // mirrorCount
+           0, // qosPolicyCount
+           0, // loadBalancerCount
+           0, // ipTunnelCount
+           0, // aggregatePortCount
+           0, // portFlowletCfgCount
+           0, // mirrorOnDropReportCount
+           true, // hasControlPlane
+           true, // hasSwitchSettings
+           true)}, // hasAclTableGroup
       // Default fallback
       {Minimal,
        makeScale(

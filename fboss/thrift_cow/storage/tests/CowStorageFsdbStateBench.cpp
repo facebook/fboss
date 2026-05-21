@@ -112,6 +112,20 @@ BENCHMARK_COUNTERS_NAME_PARAM(
 BENCHMARK_COUNTERS_NAME_PARAM(
     fsdb_state_storage,
     counters,
+    RGSW_ThriftCow,
+    test_data::RoleSelector::RGSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_state_storage,
+    counters,
+    RGSW_HybridCow,
+    test_data::RoleSelector::RGSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_state_storage,
+    counters,
     RTSW_ThriftCow,
     test_data::RoleSelector::RTSW,
     false);
