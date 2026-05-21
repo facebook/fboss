@@ -31,6 +31,21 @@ CmdConfigInterfaceSwitchportAccessVlan::queryClient(
   // Extract the VLAN ID (validation already done in VlanIdValue constructor)
   int32_t vlanId = vlanIdValue.getVlanId();
 
+  // Validate that the VLAN exists before modifying config
+  auto& config = ConfigSession::getInstance().getAgentConfig();
+  bool vlanExists = false;
+  for (const auto& vlan : *config.sw()->vlans()) {
+    if (*vlan.id() == vlanId) {
+      vlanExists = true;
+      break;
+    }
+  }
+  if (!vlanExists) {
+    throw std::invalid_argument(
+        "VLAN " + std::to_string(vlanId) +
+        " does not exist. Create the VLAN first before assigning ports to it.");
+  }
+
   // Collect the logical port IDs we need to update
   std::unordered_set<int32_t> portIds;
 
@@ -44,7 +59,6 @@ CmdConfigInterfaceSwitchportAccessVlan::queryClient(
   }
 
   // Also update the vlanPorts entries for these ports
-  auto& config = ConfigSession::getInstance().getAgentConfig();
   auto& vlanPorts = *config.sw()->vlanPorts();
   for (auto& vlanPort : vlanPorts) {
     if (portIds.count(*vlanPort.logicalPort())) {
