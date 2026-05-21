@@ -420,4 +420,14 @@ class AggregatePort
   friend class CloneAllocator;
 };
 
+struct AggregatePortCapacityResult {
+  std::optional<int64_t> configuredCapacityMbps;
+  std::optional<int64_t> activeCapacityMbps;
+  state::AggregatePortStatus status{state::AggregatePortStatus::DOWN};
+};
+
+AggregatePortCapacityResult computeAggregatePortCapacityAndStatus(
+    const std::shared_ptr<AggregatePort>& aggPort,
+    const std::shared_ptr<SwitchState>& state);
+
 } // namespace facebook::fboss
