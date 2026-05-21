@@ -153,6 +153,7 @@ cpp_library(
         "HwStatsCollectionBenchmarkHelper.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
         "//fboss/agent:sw_agent_initializer",
@@ -466,6 +467,7 @@ cpp_library(
         "HwVoqRemoteEntityBenchmarkHelper.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/agent:agent_features",
         "//fboss/agent:core",
         "//fboss/agent:fib_helpers",
