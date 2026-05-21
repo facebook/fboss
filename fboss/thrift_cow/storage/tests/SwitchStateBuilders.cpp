@@ -4,6 +4,7 @@
 
 #include <fmt/format.h>
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -11,6 +12,41 @@
 namespace facebook::fboss::fsdb::test {
 
 namespace {
+
+void populatePortQueues(state::PortFields& port) {
+  constexpr int kQueueCount = 10;
+  constexpr int32_t kAqmThreshold = 120000; // bytes; prn3 prod observation
+
+  std::vector<facebook::fboss::PortQueueFields> queues;
+  queues.reserve(kQueueCount);
+  for (int q = 0; q < kQueueCount; ++q) {
+    facebook::fboss::PortQueueFields queue;
+    queue.id() = q;
+    queue.weight() = 0;
+    queue.scheduling() = apache::thrift::util::enumNameSafe(
+        cfg::QueueScheduling::STRICT_PRIORITY);
+    queue.streamType() =
+        apache::thrift::util::enumNameSafe(cfg::StreamType::UNICAST);
+    queue.reserved() = 9984;
+    queue.sharedBytes() = 0;
+    queue.scalingFactor() =
+        apache::thrift::util::enumNameSafe(cfg::MMUScalingFactor::ONE);
+
+    cfg::LinearQueueCongestionDetection linear;
+    linear.minimumLength() = kAqmThreshold;
+    linear.maximumLength() = kAqmThreshold;
+    linear.probability() = 100;
+    cfg::QueueCongestionDetection detection;
+    detection.linear() = linear;
+    cfg::ActiveQueueManagement aqm;
+    aqm.detection() = detection;
+    aqm.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
+    queue.aqms() = {std::move(aqm)};
+
+    queues.push_back(std::move(queue));
+  }
+  port.queues() = std::move(queues);
+}
 
 // Helper function to create port fields
 state::PortFields createPortFields(int portId, const std::string& portName) {
@@ -26,6 +62,7 @@ state::PortFields createPortFields(int portId, const std::string& portName) {
   port.txPause() = false;
   port.rxPause() = false;
   port.portType() = cfg::PortType::INTERFACE_PORT;
+  populatePortQueues(port);
   return port;
 }
 

@@ -60,6 +60,7 @@ cpp_library(
         "//folly:base64",
         "//folly:network_address",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
+        "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
