@@ -458,6 +458,16 @@ add_fbthrift_cpp_library(
     asic_config_v2_cpp2
     phy_cpp2
 )
+add_fbthrift_cpp_library(
+  platform_descriptor_cpp2
+  fboss/lib/platforms/platform_descriptor.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    fboss_common_cpp2
+    switch_config_cpp2
+)
 add_fbthrift_python_library(
   platform_config_python
   fboss/agent/platform_config.thrift
@@ -884,17 +894,6 @@ add_fbthrift_python_library(
   NAMESPACE "neteng.fboss"
   OPTIONS
     json
-)
-
-add_fbthrift_cpp_library(
-  platform_descriptor_cpp2
-  fboss/lib/platforms/platform_descriptor.thrift
-  OPTIONS
-    json
-    reflection
-  DEPENDS
-    fboss_common_cpp2
-    switch_config_cpp2
 )
 
 add_fbthrift_cpp_library(

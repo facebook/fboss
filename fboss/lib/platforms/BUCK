@@ -10,10 +10,35 @@ thrift_library(
         "py3-deprecated",
         "python",
     ],
+    thrift_cpp2_options = [
+        "json",
+    ],
     thrift_srcs = {"platform_descriptor.thrift": []},
     deps = [
         "//fboss/agent:switch_config",
         "//fboss/lib/if:fboss_common",
+    ],
+)
+
+cpp_library(
+    name = "platform_descriptor",
+    srcs = [
+        "PlatformDescriptor.cpp",
+    ],
+    headers = [
+        "PlatformDescriptor.h",
+    ],
+    exported_deps = [
+        ":platform_descriptor_thrift-cpp2-types",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:platform_config-cpp2-types",
+        "//folly:cpp_attributes",
+        "//folly:file_util",
+        "//thrift/lib/cpp2:field_ref",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_algorithm"),
     ],
 )
 
