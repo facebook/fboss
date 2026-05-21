@@ -5,7 +5,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/lib/fpga/FbFpgaRegisters.h"
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/Synchronized.h>
 #include <folly/futures/Future.h>
 #include <folly/logging/xlog.h>
@@ -225,7 +225,7 @@ FbFpgaI2cController::FbFpgaI2cController(
     : syncedFbI2c_(std::in_place, fpga, rtcId, pim, version),
       eventBase_(std::make_unique<folly::EventBase>()),
       thread_(new std::thread([&, pim, rtcId]() {
-        initThread(folly::format("I2c_pim{:d}_rtc{:d}", pim, rtcId).str());
+        initThread(fmt::format("I2c_pim{:d}_rtc{:d}", pim, rtcId));
         eventBase_->loopForever();
       })) {
   pim_ = pim;
@@ -240,7 +240,7 @@ FbFpgaI2cController::FbFpgaI2cController(
     : syncedFbI2c_(std::in_place, std::move(io), rtcId, pim, version),
       eventBase_(std::make_unique<folly::EventBase>()),
       thread_(new std::thread([&, pim, rtcId]() {
-        initThread(folly::format("I2c_pim{:d}_rtc{:d}", pim, rtcId).str());
+        initThread(fmt::format("I2c_pim{:d}_rtc{:d}", pim, rtcId));
         eventBase_->loopForever();
       })) {
   pim_ = pim;
@@ -256,7 +256,7 @@ uint8_t FbFpgaI2cController::readByte(
     uint8_t channel,
     uint8_t offset,
     uint8_t i2cAddress) {
-  XLOG(DBG5) << folly::sformat(
+  XLOG(DBG5) << fmt::format(
       "FbFpgaI2cController::readByte pim {:d} rtc {:d} chan {:d} offset {:d}",
       pim_,
       rtc_,
@@ -273,7 +273,7 @@ void FbFpgaI2cController::read(
     uint8_t offset,
     folly::MutableByteRange buf,
     uint8_t i2cAddress) {
-  XLOG(DBG5) << folly::sformat(
+  XLOG(DBG5) << fmt::format(
       "FbFpgaI2cController::read pim {:d} rtc {:d} chan {:d} offset {:d} i2cAddress {:d}",
       pim_,
       rtc_,
@@ -291,7 +291,7 @@ void FbFpgaI2cController::writeByte(
     uint8_t offset,
     uint8_t val,
     uint8_t i2cAddress) {
-  XLOG(DBG5) << folly::sformat(
+  XLOG(DBG5) << fmt::format(
       "FbFpgaI2cController::writeByte pim {:d} rtc {:d} chan {:d} offset {:d} val {:d}",
       pim_,
       rtc_,
@@ -309,7 +309,7 @@ void FbFpgaI2cController::write(
     uint8_t offset,
     folly::ByteRange buf,
     uint8_t i2cAddress) {
-  XLOG(DBG5) << folly::sformat(
+  XLOG(DBG5) << fmt::format(
       "FbFpgaI2cController::write pim {:d} rtc {:d} chan {:d} offset {:d} i2cAddress {:d}",
       pim_,
       rtc_,

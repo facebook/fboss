@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <fmt/core.h>
 #include "fboss/lib/fpga/FpgaDevice.h"
 
 namespace facebook::fboss {
@@ -19,7 +20,7 @@ class HwMemoryRegion {
       uint32_t start,
       uint32_t size)
       : name_(name), device_(device), start_(start), size_(size) {
-    XLOG(DBG2) << folly::format(
+    XLOG(DBG2) << fmt::format(
         "Creating memory region {} at address={:#x} size={:d}",
         name_,
         start_,
@@ -27,28 +28,28 @@ class HwMemoryRegion {
   }
 
   uint32_t read(uint32_t offset) const {
-    XLOG(DBG5) << folly::format(
+    XLOG(DBG5) << fmt::format(
         "Request to read Memory region {} offset: {:#x}", name_, offset);
-    XLOG(DBG5) << folly::format("start: {:#x} size_: {:#x}", start_, size_);
+    XLOG(DBG5) << fmt::format("start: {:#x} size_: {:#x}", start_, size_);
     CHECK(offset >= 0 && offset < size_ - 3);
     const uint32_t ret = device_->read(start_ + offset);
-    XLOG(DBG5) << folly::format(
+    XLOG(DBG5) << fmt::format(
         "Memory region {} read from {:#x}={:#x}", name_, start_ + offset, ret);
     return ret;
   }
 
   void write(uint32_t offset, uint32_t value) {
-    XLOG(DBG5) << folly::format(
+    XLOG(DBG5) << fmt::format(
         "Request to write Memory region {} offset: {:#x} value: {:#x}",
         name_,
         offset,
         value);
-    XLOG(DBG5) << folly::format("start: {:#x} size_: {:#x}", start_, size_);
+    XLOG(DBG5) << fmt::format("start: {:#x} size_: {:#x}", start_, size_);
     CHECK(offset >= 0 && offset < size_ - 3);
-    XLOG(DBG5) << folly::format(
+    XLOG(DBG5) << fmt::format(
         "Memory region {} write {:#x} to {:#x}", name_, value, offset);
     device_->write(start_ + offset, value);
-    XLOG(DBG5) << folly::format(
+    XLOG(DBG5) << fmt::format(
         "Memory {} wrote to {:#x}={:#x}", name_, start_ + offset, value);
   }
 

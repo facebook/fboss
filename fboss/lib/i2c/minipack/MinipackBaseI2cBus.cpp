@@ -2,6 +2,8 @@
 
 #include "fboss/lib/i2c/minipack/MinipackBaseI2cBus.h"
 
+#include <fmt/core.h>
+
 namespace facebook::fboss {
 
 MinipackBaseI2cBus::MinipackBaseI2cBus() {}
