@@ -98,6 +98,7 @@ FORWARDING_TEST_EXTRA = {
 
 AGENT_BENCHMARK_BINARIES = [
     "sai_all_benchmarks-sai_impl",
+    "sai_multi_switch_all_benchmarks-sai_impl",
 ]
 
 PLATFORM_BINARIES = [

@@ -41,6 +41,11 @@ list(APPEND SAI_BENCHMARKS system_scale_churn_memory_benchmark)
 list(APPEND SAI_BENCHMARKS tun_manager_probe_and_cleanup_speed)
 list(APPEND SAI_BENCHMARKS ecmp_backup_group_spillover)
 list(APPEND SAI_BENCHMARKS ecmp_group_scale_benchmark)
+list(APPEND SAI_BENCHMARKS bgp_rx_slow_path_rate)
+list(APPEND SAI_BENCHMARKS rx_slow_path_arp_rate)
+list(APPEND SAI_BENCHMARKS system_scale_memory_benchmark)
+list(APPEND SAI_BENCHMARKS flowlet_stats_collection_speed)
+list(APPEND SAI_BENCHMARKS clear_interface_counters_phy_benchmark)
 if (SAI_BRCM_IMPL OR BUILD_SAI_FAKE)
   list(APPEND SAI_BENCHMARKS init_and_exit_voq)
   list(APPEND SAI_BENCHMARKS init_and_exit_fabric)
@@ -52,28 +57,50 @@ if (SAI_BRCM_IMPL OR BUILD_SAI_FAKE)
   list(APPEND SAI_BENCHMARKS voq_route_competing_remote_neighbor_benchmark)
 endif()
 
-# Build a single consolidated benchmark binary that contains all benchmark
-# registrations. Use --bm_regex at runtime to select which benchmark to run.
+# Build consolidated benchmark binaries (mono and multi-switch).
+# Use --bm_regex at runtime to select which benchmark to run.
 function(BUILD_ALL_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
-  message(STATUS "Building consolidated SAI benchmark binary: sai_all_benchmarks-${SAI_IMPL_NAME}")
+  message(STATUS "Building consolidated SAI benchmark binaries: sai_all_benchmarks-${SAI_IMPL_NAME}")
 
-  set(_all_hw_libs "")
+  set(_all_mono_hw_libs "")
+  set(_all_ms_hw_libs "")
   foreach(SAI_BENCHMARK IN LISTS SAI_BENCHMARKS)
-    list(APPEND _all_hw_libs hw_${SAI_BENCHMARK})
+    list(APPEND _all_mono_hw_libs hw_${SAI_BENCHMARK})
+    list(APPEND _all_ms_hw_libs multi_switch_hw_${SAI_BENCHMARK})
   endforeach()
 
+  # Mono benchmark binary
   add_executable(sai_all_benchmarks-${SAI_IMPL_NAME} /dev/null)
   add_sai_sdk_dependencies(sai_all_benchmarks-${SAI_IMPL_NAME})
   target_link_libraries(sai_all_benchmarks-${SAI_IMPL_NAME}
     -Wl,--whole-archive
     mono_sai_agent_benchmarks_main
-    ${_all_hw_libs}
+    ${_all_mono_hw_libs}
     route_scale_gen
     setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
   set_target_properties(sai_all_benchmarks-${SAI_IMPL_NAME}
+    PROPERTIES COMPILE_FLAGS
+    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+  )
+
+  # Multi-switch benchmark binary
+  add_executable(sai_multi_switch_all_benchmarks-${SAI_IMPL_NAME} /dev/null)
+  add_sai_sdk_dependencies(sai_multi_switch_all_benchmarks-${SAI_IMPL_NAME})
+  target_link_libraries(sai_multi_switch_all_benchmarks-${SAI_IMPL_NAME}
+    -Wl,--whole-archive
+    multi_switch_sai_agent_benchmarks_main
+    ${_all_ms_hw_libs}
+    route_scale_gen
+    setup_thrift_prod
+    ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
+  )
+  set_target_properties(sai_multi_switch_all_benchmarks-${SAI_IMPL_NAME}
     PROPERTIES COMPILE_FLAGS
     "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
     -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
@@ -92,4 +119,5 @@ message(STATUS "SAI_IMPL: ${SAI_IMPL}")
 if(SAI_IMPL AND BENCHMARK_INSTALL)
   BUILD_ALL_SAI_BENCHMARKS("sai_impl" ${SAI_IMPL})
   install(TARGETS sai_all_benchmarks-sai_impl)
+  install(TARGETS sai_multi_switch_all_benchmarks-sai_impl)
 endif()

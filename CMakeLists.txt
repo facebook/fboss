@@ -1132,8 +1132,6 @@ add_dependencies(fboss_agent_benchmark_libs
   hw_init_and_exit_benchmark_helper
   hw_system_scale_memory_benchmark
 )
-
-
 add_custom_target(fboss_platform_services)
 add_dependencies(fboss_platform_services
   # Services
@@ -1303,7 +1301,10 @@ if(BUILD_SAI_FAKE_BENCHMARKS)
 add_custom_target(fboss_fake_agent_benchmarks)
 
 # SAI_BENCHMARKS defined in cmake/AgentHwSaiBenchmarks.cmake
-add_dependencies(fboss_fake_agent_benchmarks sai_all_benchmarks-fake)
+add_dependencies(fboss_fake_agent_benchmarks
+  sai_all_benchmarks-fake
+  sai_multi_switch_all_benchmarks-fake
+)
 endif()
 
 if (BUILD_SAI_FAKE_LINK_TEST)
