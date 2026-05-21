@@ -1410,6 +1410,46 @@ AgentStatsScale FsdbStatsDataFactory::getRoleScale(RoleSelector role) {
            true,
            false,
            true)},
+      // FSW - Fabric switch
+      // Numbers from prn3 cross-DC observation: hwPortStatsCount=117 (avg of
+      // 116-118 across 5 prn3 FSW samples). Previously absent → fell through
+      // to Minimal default (1,1,1), under-counting FSW stats by ~250 KB/dev.
+      {FSW,
+       makeScale(
+           117, // hwPortStatsCount
+           117, // phyStatsCount
+           1, // sysPortStatsCount (cpu sysport)
+           1, // asicCount
+           0, // sysPortShelStateCount
+           0, // asicTempCount
+           true, // hasHwResourceStats
+           true, // hasHwAsicErrors
+           true, // hasCpuPortStats
+           true, // hasSwitchDropStats
+           true, // hasSwitchWatermarkStats
+           true, // hasFabricReachabilityStats
+           true, // hasSwitchPipelineStats
+           false, // hasFabricOverdrainPct
+           false)}, // hasFlowletStats
+      // RGSW - Regional gateway switch
+      // Numbers from prn3 cross-DC observation: 48 ports.
+      {RGSW,
+       makeScale(
+           48,
+           48,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
       // Default fallback
       {Minimal,
        makeScale(
