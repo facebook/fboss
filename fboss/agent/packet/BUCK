@@ -23,6 +23,7 @@ cpp_library(
         "UDPHeader.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":ether_type",
         ":hdr_parse_error",
         ":ipproto",
@@ -32,7 +33,6 @@ cpp_library(
         "//fboss/agent:stats",
         "//fboss/agent:utils",
         "//folly:conv",
-        "//folly:format",
         "//folly:network_address",
         "//folly:string",
         "//folly/io:iobuf",
@@ -70,8 +70,8 @@ cpp_library(
         "PktUtil.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/agent:fboss-error",
-        "//folly:format",
         "//folly:network_address",
         "//folly/io:iobuf",
     ],

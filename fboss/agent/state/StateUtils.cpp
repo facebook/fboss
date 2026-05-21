@@ -25,7 +25,7 @@ bool isTunIntfName(std::string const& ifName) {
 }
 
 std::string createTunIntfName(InterfaceID ifID) {
-  return folly::sformat("{}{}", kTunIntfPrefix, folly::to<std::string>(ifID));
+  return fmt::format("{}{}", kTunIntfPrefix, folly::to<std::string>(ifID));
 }
 
 InterfaceID getIDFromTunIntfName(std::string const& ifName) {

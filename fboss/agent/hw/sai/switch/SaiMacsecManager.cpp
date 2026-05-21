@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 
@@ -804,7 +805,7 @@ void SaiMacsecManager::setupMacsec(
       std::string byteAsStr = str.substr(i, 2);
       uint8_t byte = (uint8_t)strtol(byteAsStr.c_str(), nullptr, 16);
       if (i / 2 >= dataLen) {
-        XLOG(ERR) << folly::sformat(
+        XLOG(ERR) << fmt::format(
             "Key string (length: {:d}) can't fit in key byte array (length: {:d})",
             str.length(),
             dataLen);
@@ -1187,7 +1188,7 @@ void SaiMacsecManager::setupMacsecState(
   auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
   if (!aclTable) {
     throw FbossError(
-        folly::sformat(
+        fmt::format(
             "For linePort: {}, {:s} ACL table Not Found",
             static_cast<int>(linePort),
             (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
@@ -1698,12 +1699,12 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
                   SaiAclCounterTraits::Attributes::CounterPackets());
           return counterPackets;
         }
-        XLOG(ERR) << folly::sformat(
+        XLOG(ERR) << fmt::format(
             "ACL entry does not exist for priority {:d}", prio);
         return 0;
       };
       auto defaultAclCount = getAclCounter(kMacsecDefaultAclPriority);
-      XLOG(DBG5) << folly::sformat(
+      XLOG(DBG5) << fmt::format(
           "ACL counter Macsec default = {:d}", defaultAclCount);
 
       if (direction == SAI_MACSEC_DIRECTION_INGRESS) {

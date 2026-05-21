@@ -23,6 +23,7 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 
 DEFINE_bool(
@@ -97,7 +98,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   saiLinePort->setOptionalAttribute(
       SaiPortTraits::Attributes::AdminState{true});
 
-  XLOG(DBG3) << folly::sformat(
+  XLOG(DBG3) << fmt::format(
       "Port admin state of lineport {:d} and sysport {:d} made up",
       static_cast<uint64_t>(saiLinePort->adapterKey()),
       static_cast<uint64_t>(saiSysPort->adapterKey()));
@@ -242,23 +243,23 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 
   std::string dbgOutput;
   dbgOutput.append(
-      folly::sformat(
+      fmt::format(
           "Attributes for creating port {:d}, Side {:s}, Lanes: ",
           static_cast<int>(portId),
           (lineSide ? "Line" : "System")));
   for (auto lane : laneList) {
-    dbgOutput.append(folly::sformat("{:d} ", lane));
+    dbgOutput.append(fmt::format("{:d} ", lane));
   }
 
   dbgOutput.append(
-      folly::sformat(
+      fmt::format(
           " Speed {:d} Enabled {:s} Fec {:s} ",
           static_cast<int>(speed),
           (enabled ? "True" : "False"),
           (fecMode ? folly::to<std::string>(fecMode->value()) : "null")));
   if (intfType.has_value()) {
     dbgOutput.append(
-        folly::sformat(
+        fmt::format(
             " Interface Type {:d}",
             static_cast<int>(intfType.value().value())));
   }
@@ -482,14 +483,14 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
 
   std::string dbgOutput;
   dbgOutput.append(
-      folly::sformat(
+      fmt::format(
           "Attributes for creating port {} Serdes (per lane): ",
           static_cast<uint64_t>(portSaiId)));
 
   for (auto lane = 0; lane < numExpectedTxLanes; lane++) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     dbgOutput.append(
-        folly::sformat(
+        fmt::format(
             "[Pre1 {:d} Pre2 {:d} Main {:d} Post1 {:d} Post2 {:d} Post3 {:d}], ",
             (lane < txPre1.size() ? txPre1[lane]
                                   : static_cast<unsigned int>(-1)),
@@ -505,7 +506,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
                                    : static_cast<unsigned int>(-1))));
 #else
     dbgOutput.append(
-        folly::sformat(
+        fmt::format(
             "[Pre1 {:d} Main {:d} Post1 {:d}], ",
             (lane < txPre1.size() ? txPre1[lane]
                                   : static_cast<unsigned int>(-1)),

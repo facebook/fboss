@@ -95,7 +95,7 @@ void BcmMacTable::programMacEntry(const MacEntry* macEntry, VlanID vlan) {
       (mask & programmedL2Addr.flags) == (mask & l2Addr.flags) &&
       l2Addr.group == programmedL2Addr.group &&
       l2Addr.port == programmedL2Addr.port) {
-    auto macAddrStr = folly::sformat(
+    auto macAddrStr = fmt::format(
         "{0:02x}:{1:02x}:{2:02x}:{3:02x}:{4:02x}:{5:02x}",
         l2Addr.mac[0],
         l2Addr.mac[1],

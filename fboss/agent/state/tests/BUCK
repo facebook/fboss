@@ -57,6 +57,7 @@ cpp_unittest(
     ],
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "//common/network/if:if-cpp2-types",
         "//common/stats:monotonic_counter",
         "//fboss/agent:address_utils",
