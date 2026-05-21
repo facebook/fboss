@@ -75,7 +75,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v6
       - name: Download artifact with test binaries
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: fboss
       - run: ls ${{ github.workspace }}
