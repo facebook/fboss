@@ -196,9 +196,13 @@ class PackageFboss:
         link_known_bad_tests_path = os.path.join(
             self.git_path, "fboss/oss/link_known_bad_tests"
         )
+        fboss2_integration_known_bad_tests_path = os.path.join(
+            self.git_path, "fboss/oss/fboss2_integration_known_bad_tests"
+        )
         print(f"Copying {hw_known_bad_tests_path} to {tmp_dir_name}")
         print(f"Copying {qsfp_known_bad_tests_path} to {tmp_dir_name}")
         print(f"Copying {link_known_bad_tests_path} to {tmp_dir_name}")
+        print(f"Copying {fboss2_integration_known_bad_tests_path} to {tmp_dir_name}")
         shutil.copytree(
             "fboss/oss/hw_known_bad_tests",
             os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_known_bad_tests"),
@@ -210,6 +214,14 @@ class PackageFboss:
         shutil.copytree(
             "fboss/oss/link_known_bad_tests",
             os.path.join(tmp_dir_name, PackageFboss.DATA, "link_known_bad_tests"),
+        )
+        shutil.copytree(
+            "fboss/oss/fboss2_integration_known_bad_tests",
+            os.path.join(
+                tmp_dir_name,
+                PackageFboss.DATA,
+                "fboss2_integration_known_bad_tests",
+            ),
         )
 
     def _copy_unsupported_tests(self, tmp_dir_name):

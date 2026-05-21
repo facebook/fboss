@@ -162,6 +162,7 @@ LINK_KNOWN_BAD_TESTS = (
 SAI_AGENT_TEST_KNOWN_BAD_TESTS = (
     "./share/hw_known_bad_tests/sai_agent_known_bad_tests.materialized_JSON"
 )
+FBOSS2_INTEGRATION_KNOWN_BAD_TESTS = "./share/fboss2_integration_known_bad_tests/fboss2_integration_known_bad_tests.materialized_JSON"
 ASIC_PRODUCTION_FEATURES = (
     "./share/production_features/asic_production_features.materialized_JSON"
 )
@@ -1665,6 +1666,21 @@ class Fboss2IntegrationTestRunner(TestRunner):
         return self._AGENT_CONFIG_PATH
 
     def _get_known_bad_tests_file(self):
+        if args.known_bad_tests_file:
+            if os.path.exists(args.known_bad_tests_file):
+                print(
+                    f"Using user-specified known bad tests file: {args.known_bad_tests_file}"
+                )
+                return args.known_bad_tests_file
+            print(
+                f"Warning: User-specified known bad tests file not found: {args.known_bad_tests_file}"
+            )
+        if os.path.exists(FBOSS2_INTEGRATION_KNOWN_BAD_TESTS):
+            print(
+                f"Using default known bad tests file: {FBOSS2_INTEGRATION_KNOWN_BAD_TESTS}"
+            )
+            return FBOSS2_INTEGRATION_KNOWN_BAD_TESTS
+        print("No known bad tests file found, skipping known bad test filtering")
         return ""
 
     def _get_unsupported_tests_file(self):
