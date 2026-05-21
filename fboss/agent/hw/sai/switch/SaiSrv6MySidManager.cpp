@@ -65,15 +65,15 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
             &nexthopHandle.value())) {
       nextHopId = (*nhgHandle)->nextHopGroup->adapterKey();
     } else if (
-        auto* managedNh = std::get_if<
+        auto* managedIpNh = std::get_if<
             std::shared_ptr<ManagedMySidNextHop<SaiIpNextHopTraits>>>(
             &nexthopHandle.value())) {
-      nextHopId = (*managedNh)->adapterKey();
+      nextHopId = (*managedIpNh)->adapterKey();
     } else if (
-        auto* managedNh = std::get_if<
+        auto* managedSrv6Nh = std::get_if<
             std::shared_ptr<ManagedMySidNextHop<SaiSrv6SidlistNextHopTraits>>>(
             &nexthopHandle.value())) {
-      nextHopId = (*managedNh)->adapterKey();
+      nextHopId = (*managedSrv6Nh)->adapterKey();
     }
   }
 
