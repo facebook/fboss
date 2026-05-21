@@ -718,7 +718,7 @@ struct SaiPortTraits {
       std::optional<Attributes::QosIngressBufferProfileList>,
       std::optional<Attributes::QosEgressBufferProfileList>,
       std::optional<Attributes::CablePropagationDelayMediaType>,
-#if defined(TAJO_SDK_GTE_26_2)
+#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
       std::optional<Attributes::LinkUpDebouncePeriodMs>,
       std::optional<Attributes::LinkDownDebouncePeriodMs>,
 #endif

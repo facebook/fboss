@@ -343,7 +343,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
       std::nullopt, // CablePropagationDelayMediaType
-#if defined(TAJO_SDK_GTE_26_2)
+#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
       std::nullopt, // LinkUpDebouncePeriodMs
       std::nullopt, // LinkDownDebouncePeriodMs
 #endif
