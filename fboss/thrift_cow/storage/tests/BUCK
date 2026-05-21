@@ -56,6 +56,7 @@ cpp_library(
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
         "//fboss/lib/if:fboss_io_stats-cpp2-types",
         "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/thrift_cow/nodes:serializer",
         "//folly:base64",
         "//folly:network_address",

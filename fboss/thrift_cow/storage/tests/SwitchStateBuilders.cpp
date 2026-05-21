@@ -9,6 +9,7 @@
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook::fboss::fsdb::test {
 
@@ -70,6 +71,16 @@ void populatePortPinConfigs(state::PortFields& port, int portId) {
   port.pinConfigs() = std::move(pinConfigs);
 }
 
+void populatePortProfileConfig(state::PortFields& port) {
+  phy::ProfileSideConfig profile;
+  profile.numLanes() = 4;
+  profile.modulation() = phy::IpModulation::NRZ;
+  profile.fec() = phy::FecMode::RS528;
+  profile.medium() = TransmitterTechnology::OPTICAL;
+  profile.interfaceType() = phy::InterfaceType::CAUI4;
+  port.profileConfig() = std::move(profile);
+}
+
 // Helper function to create port fields
 state::PortFields createPortFields(int portId, const std::string& portName) {
   state::PortFields port;
@@ -86,6 +97,7 @@ state::PortFields createPortFields(int portId, const std::string& portName) {
   port.portType() = cfg::PortType::INTERFACE_PORT;
   populatePortQueues(port);
   populatePortPinConfigs(port, portId);
+  populatePortProfileConfig(port);
   return port;
 }
 
