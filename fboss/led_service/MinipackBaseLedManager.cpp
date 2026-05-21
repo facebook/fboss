@@ -27,7 +27,7 @@ led::LedState MinipackBaseLedManager::calculateLedState(
     uint32_t portId,
     cfg::PortProfileID /* portProfile */) const {
   if (portDisplayMap_.find(portId) == portDisplayMap_.end()) {
-    XLOG(ERR) << folly::sformat(
+    XLOG(ERR) << fmt::format(
         "Port {:d} LED color undetermined as the port operational info is not available",
         portId);
     return utility::constructLedState(
