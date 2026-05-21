@@ -15,7 +15,9 @@ namespace facebook::fboss::fsdb::test {
 // oss/FsdbTestServer.cpp
 extern std::unique_ptr<FsdbTestServerImpl> createPlatformSpecificImpl(
     std::shared_ptr<ServiceHandler> handler,
-    uint16_t port);
+    uint16_t port,
+    std::optional<size_t> numIOWorkerThreads,
+    std::optional<size_t> numCPUWorkerThreads);
 
 std::shared_ptr<apache::thrift::ThriftServer> FsdbTestServerImpl::createServer(
     std::shared_ptr<ServiceHandler> handler,
@@ -26,6 +28,12 @@ std::shared_ptr<apache::thrift::ThriftServer> FsdbTestServerImpl::createServer(
   server->setPort(port);
   server->setInterface(handler);
   server->setSSLPolicy(apache::thrift::SSLPolicy::PERMITTED);
+  if (numIOWorkerThreads_.has_value()) {
+    server->setNumIOWorkerThreads(*numIOWorkerThreads_);
+  }
+  if (numCPUWorkerThreads_.has_value()) {
+    server->setNumCPUWorkerThreads(*numCPUWorkerThreads_);
+  }
   return server;
 }
 
@@ -74,7 +82,9 @@ FsdbTestServer::FsdbTestServer(
     uint32_t stateSubscriptionServe_ms,
     uint32_t statsSubscriptionServe_ms,
     uint32_t subscriptionServeQueueSize,
-    uint32_t statsSubscriptionServeQueueSize)
+    uint32_t statsSubscriptionServeQueueSize,
+    std::optional<size_t> numIOWorkerThreads,
+    std::optional<size_t> numCPUWorkerThreads)
     : config_(std::move(config)) {
   auto queueSize = std::to_string(subscriptionServeQueueSize);
   gflags::SetCommandLineOptionWithMode(
@@ -103,7 +113,7 @@ FsdbTestServer::FsdbTestServer(
   gflags::SetCommandLineOptionWithMode(
       "checkOperOwnership", "false", gflags::SET_FLAG_IF_DEFAULT);
 
-  startTestServer(port);
+  startTestServer(port, numIOWorkerThreads, numCPUWorkerThreads);
 }
 
 FsdbTestServer::~FsdbTestServer() {
@@ -142,12 +152,16 @@ ServiceHandler::ActiveSubscriptions FsdbTestServer::getActiveSubscriptions()
   return serviceHandler().getActiveSubscriptions();
 }
 
-void FsdbTestServer::startTestServer(uint16_t port) {
+void FsdbTestServer::startTestServer(
+    uint16_t port,
+    std::optional<size_t> numIOWorkerThreads,
+    std::optional<size_t> numCPUWorkerThreads) {
   ServiceHandler::Options options;
   options.serveIdPathSubs = true;
   handler_ = std::make_shared<ServiceHandler>(config_, options);
 
-  impl_ = createPlatformSpecificImpl(handler_, port);
+  impl_ = createPlatformSpecificImpl(
+      handler_, port, numIOWorkerThreads, numCPUWorkerThreads);
   impl_->startServer(fsdbPort_);
 }
 

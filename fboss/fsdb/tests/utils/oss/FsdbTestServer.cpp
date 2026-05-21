@@ -43,8 +43,11 @@ class FsdbTestServerImplOss : public FsdbTestServerImpl {
 
 std::unique_ptr<FsdbTestServerImpl> createPlatformSpecificImpl(
     std::shared_ptr<ServiceHandler> handler,
-    uint16_t port) {
-  return std::make_unique<FsdbTestServerImplOss>(handler, port);
+    uint16_t port,
+    std::optional<size_t> numIOWorkerThreads,
+    std::optional<size_t> numCPUWorkerThreads) {
+  return std::make_unique<FsdbTestServerImplOss>(
+      handler, port, numIOWorkerThreads, numCPUWorkerThreads);
 }
 
 } // namespace facebook::fboss::fsdb::test
