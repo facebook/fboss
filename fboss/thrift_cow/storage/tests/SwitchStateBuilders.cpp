@@ -706,7 +706,7 @@ bool filterSwitchStateScaleForPath(
   filtered.hasSwitchSettings = false;
   filtered.hasAclTableGroup = false;
 
-  if (targetField == "fibsMap") {
+  if (targetField == "fibsInfoMap") {
     filtered.fibV4Size = scale.fibV4Size;
     filtered.fibV6Size = scale.fibV6Size;
     filtered.v4Nexthops = scale.v4Nexthops;

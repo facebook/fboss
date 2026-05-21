@@ -151,14 +151,14 @@ SwitchState FsdbStateDataFactory::buildSwitchState(int version) {
                << targetField << "'";
   }
 
-  // fibsMap and remote port/interface maps use internal scales,
+  // fibsInfoMap and remote port/interface maps use internal scales,
   // so check the filtered scale before calling them.
   if (scale.fibV4Size > 0 || scale.fibV6Size > 0) {
     auto fibsData = buildFibData(version);
     std::string switchIdList = "Id:0";
-    std::map<int16_t, FibContainerFields> FibsMap;
-    FibsMap[0] = std::move(fibsData);
-    switchState.fibsMap()[switchIdList] = std::move(FibsMap);
+    state::FibInfoFields fibInfo;
+    fibInfo.fibsMap()[0] = std::move(fibsData);
+    switchState.fibsInfoMap()[switchIdList] = std::move(fibInfo);
   }
 
   if (scale.remoteSystemPortMapSize > 0 || scale.remoteInterfaceMapSize > 0) {

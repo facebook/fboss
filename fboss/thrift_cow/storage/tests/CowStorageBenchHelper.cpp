@@ -15,7 +15,7 @@ DEFINE_int32(
 DEFINE_string(
     bm_fsdb_path,
     "",
-    "FSDB path to measure memory for a specific subtree (e.g. /agent/switchState/fibsMap)");
+    "FSDB path to measure memory for a specific subtree (e.g. /agent/switchState/fibsInfoMap)");
 namespace facebook::fboss::thrift_cow::test {
 
 // Keep dirty-page decay short so the counter tracks the application's working
