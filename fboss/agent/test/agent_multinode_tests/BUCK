@@ -38,6 +38,7 @@ cpp_library(
         "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:load_agent_config",
         "//fboss/agent:switchinfo_utils",

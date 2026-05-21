@@ -21,6 +21,10 @@ service TestCtrl extends ctrl.FbossCtrl {
   // We avoid it by implementing restartWithDelay API as below:
   //     - Schedule a restart of Agent after delayInSeconds.
   //     - Stop Agent
+  //
+  // Multi-switch: stops sw_agent only (not hw_agent), to trigger
+  // subscriber-side DSF GR via FSDB publisher disconnect. Use
+  // gracefullyRestartService for sw+hw.
   void gracefullyRestartServiceWithDelay(
     1: string serviceName,
     2: i32 delayInSeconds,
