@@ -14,6 +14,7 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/Srv6TestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
@@ -77,6 +78,9 @@ class AgentSrv6MidpointTest : public AgentHwTest {
             &cfg);
       }
     }
+    cfg.loadBalancers() =
+        utility::getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
+            ensemble.getL3Asics());
     cfg.mySidConfig() = makeAdjacencyMySidConfig(cfg, ensemble);
     std::vector<cfg::Srv6Tunnel> tunnelList;
     tunnelList.push_back(

@@ -15,6 +15,7 @@
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
@@ -85,6 +86,9 @@ class AgentSrv6DecapTest : public AgentHwTest {
             &cfg);
       }
     }
+    cfg.loadBalancers() =
+        utility::getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
+            ensemble.getL3Asics());
     // Add trap ACLs for inner packet destinations so snooper can capture
     // the decapped and forwarded packets
     auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());

@@ -20,6 +20,7 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/Srv6TestUtils.h"
@@ -82,6 +83,9 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
             &cfg);
       }
     }
+    cfg.loadBalancers() =
+        utility::getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
+            ensemble.getL3Asics());
     addSrv6TunnelConfig(cfg);
     auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     std::set<folly::CIDRNetwork> trapPrefixes{
