@@ -539,3 +539,8 @@ DEFINE_bool(
     enable_route_counters_for_named_nhg,
     false,
     "Implicitly associate a route counter for routes using named NHG");
+
+DEFINE_bool(
+    enable_acl_table_redirect_action,
+    false,
+    "Add redirect action type to ACL table");

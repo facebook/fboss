@@ -145,6 +145,10 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL);
     }
 #endif
+
+    if (FLAGS_enable_acl_table_redirect_action) {
+      actionTypeList.push_back(SAI_ACL_ACTION_TYPE_REDIRECT);
+    }
     return actionTypeList;
   }
 }
