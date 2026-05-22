@@ -1700,4 +1700,79 @@ TEST(Route, noCycleDetectedForNonCyclicRoutes) {
   EXPECT_EQ(stats.resolutionCyclesDetected, 0u);
 }
 
+// Verify that the RouteUpdater release calls (D5) drop the manager refcount
+// when a route carrying a clientNextHopSetID is deleted.
+TEST(Route, clientIdReleasedOnDelete) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+  NextHopIDManager nhopIds;
+
+  RouteNextHopSet nhop = makeNextHops({"1.1.1.10"});
+  // Pre-allocate ID for the set (refcount 0 -> 1).
+  auto allocResult = nhopIds.getOrAllocRouteNextHopSetID(nhop);
+  auto setId = allocResult.nextHopIdSetIter->second.id;
+  EXPECT_TRUE(nhopIds.getNextHopsIf(setId).has_value());
+
+  // Build entry carrying the pre-allocated ID via the new constructor arg.
+  RouteNextHopEntry entry(
+      nhop,
+      kDistance,
+      std::optional<RouteCounterID>(std::nullopt),
+      std::optional<cfg::AclLookupClass>(std::nullopt),
+      std::optional<cfg::SwitchingMode>(std::nullopt),
+      std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
+      std::optional<NextHopSetID>(std::nullopt),
+      std::optional<NextHopSetID>(std::nullopt),
+      std::optional<NextHopSetID>(setId));
+
+  RouteV4::Prefix prefix{IPAddressV4("10.1.1.0"), 24};
+
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr);
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA, {{{prefix.network(), prefix.mask()}, entry}}, {}, false);
+  // No allocation happened on insert (D8 not yet live); set still tracked.
+  EXPECT_TRUE(nhopIds.getNextHopsIf(setId).has_value());
+
+  // Delete via toDel — exercises delRouteImpl's new release path.
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA, {}, {{prefix.network(), prefix.mask()}}, false);
+  // Refcount went 1 -> 0; set is freed.
+  EXPECT_FALSE(nhopIds.getNextHopsIf(setId).has_value());
+}
+
+// Verify removeAllRoutesFromClient (resetClientsRoutes=true) also releases.
+TEST(Route, clientIdReleasedOnResetAllRoutes) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+  NextHopIDManager nhopIds;
+
+  RouteNextHopSet nhop = makeNextHops({"2.2.2.20"});
+  auto allocResult2 = nhopIds.getOrAllocRouteNextHopSetID(nhop);
+  auto setId2 = allocResult2.nextHopIdSetIter->second.id;
+  EXPECT_TRUE(nhopIds.getNextHopsIf(setId2).has_value());
+
+  RouteNextHopEntry entry(
+      nhop,
+      kDistance,
+      std::optional<RouteCounterID>(std::nullopt),
+      std::optional<cfg::AclLookupClass>(std::nullopt),
+      std::optional<cfg::SwitchingMode>(std::nullopt),
+      std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
+      std::optional<NextHopSetID>(std::nullopt),
+      std::optional<NextHopSetID>(std::nullopt),
+      std::optional<NextHopSetID>(setId2));
+
+  RouteV4::Prefix prefix{IPAddressV4("30.1.1.0"), 24};
+
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr);
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA, {{{prefix.network(), prefix.mask()}, entry}}, {}, false);
+  EXPECT_TRUE(nhopIds.getNextHopsIf(setId2).has_value());
+
+  // resetClientsRoutes=true triggers removeAllRoutesFromClientImpl.
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA, {}, {}, true);
+  EXPECT_FALSE(nhopIds.getNextHopsIf(setId2).has_value());
+}
+
 } // namespace facebook::fboss

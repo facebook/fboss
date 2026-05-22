@@ -289,6 +289,12 @@ void RibRouteUpdater::delRouteImpl(
   if (!clientNhopEntry) {
     return;
   }
+  if (nextHopIDManager_) {
+    auto clientNhopSetId = clientNhopEntry->getClientNextHopSetID();
+    if (clientNhopSetId.has_value()) {
+      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*clientNhopSetId);
+    }
+  }
   maybeRemoveNamedNhgMapping(route, *clientNhopEntry);
   if (route->numClientEntries() == 1) {
     // If this client's the only entry, simply erase
@@ -332,6 +338,14 @@ void RibRouteUpdater::delRoute(const LabelID& label, const ClientID clientID) {
   if (!clientNhopEntry) {
     return;
   }
+  // Release per-client clientNextHopSetID (symmetric with allocation in
+  // addOrReplaceRoute(LabelID, ...)).
+  if (nextHopIDManager_) {
+    auto clientNhopSetId = clientNhopEntry->getClientNextHopSetID();
+    if (clientNhopSetId.has_value()) {
+      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*clientNhopSetId);
+    }
+  }
   if (route->numClientEntries() == 1) {
     // If this client's the only entry, simply erase
     XLOG(DBG3) << "Deleting route: " << route->str();
@@ -357,6 +371,12 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
     auto nhopEntry = route->getEntryForClient(clientID);
     if (!nhopEntry) {
       continue;
+    }
+    if (nextHopIDManager_) {
+      auto clientNhopSetId = nhopEntry->getClientNextHopSetID();
+      if (clientNhopSetId.has_value()) {
+        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*clientNhopSetId);
+      }
     }
     maybeRemoveNamedNhgMapping(route, *nhopEntry);
     if (route->numClientEntries() == 1) {
@@ -396,6 +416,12 @@ void RibRouteUpdater::removeAllUnclaimedRoutesFromClientImpl(
     auto nhopEntry = route->getEntryForClient(clientID);
     if (!nhopEntry) {
       continue;
+    }
+    if (nextHopIDManager_) {
+      auto clientNhopSetId = nhopEntry->getClientNextHopSetID();
+      if (clientNhopSetId.has_value()) {
+        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*clientNhopSetId);
+      }
     }
     maybeRemoveNamedNhgMapping(route, *nhopEntry);
     if (route->numClientEntries() == 1) {
