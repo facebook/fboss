@@ -3180,6 +3180,7 @@ void ThriftHandler::setMacAddrsToBlock(
 void ThriftHandler::publishLinkSnapshots(
     std::unique_ptr<std::vector<std::string>> portNames) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), portNames);
+  ensureConfigured(__func__);
   for (const auto& portName : *portNames) {
     auto portID = sw_->getPlatformMapping()->getPortID(portName);
     sw_->publishPhyInfoSnapshots(portID);
