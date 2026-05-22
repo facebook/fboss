@@ -1546,9 +1546,25 @@ BgpRibMapScale BgpRibMapDataGenerator::getScale(RoleSelector role) {
   return it->second;
 }
 
+BgpRibMapScale BgpRibMapDataGenerator::makeGtswScale(
+    int prefixScale,
+    int paths) {
+  int v4 = prefixScale / 10; // ~10% V4
+  int v6 = prefixScale - v4; // ~90% V6
+  return BgpRibMapScale{
+      v4, // ribV4EntryCount
+      v6, // ribV6EntryCount
+      paths, // bestPathsPerEntry
+      13, // communitiesPerPath (matches production)
+      1, // asPathSegments (matches production)
+      0, // extCommunitiesPerPath (matches production)
+  };
+}
+
 fsdb::BgpData BgpRibMapDataGenerator::buildBgpData(int version) {
   fsdb::BgpData bgpData;
-  BgpRibMapScale scale = getScale(selector_);
+  BgpRibMapScale scale =
+      overrideScale_.has_value() ? *overrideScale_ : getScale(selector_);
 
   std::map<std::string, TRibEntry> ribMap;
 
