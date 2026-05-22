@@ -848,4 +848,75 @@ TEST_F(NextHopMapPopulationTest, UpdaterAddAndRemoveInSingleUpdate) {
   verifyIDMapsConsistency();
 }
 
+// syncFib's bulk-delete path (removeAllUnclaimedRoutesFromClientImpl) must
+// release the resolved + normalized nexthop set IDs when a reclaimed route
+// is erased entirely. Covers both v4 and v6 template instantiations in one
+// syncFib. Without the release the manager refcounts leak on every BGP
+// reconvergence.
+TEST_F(NextHopMapPopulationTest, SyncFibReleasesFwdSideIdsForReclaimedRoutes) {
+  // Two v4 + two v6 routes with distinct nexthop sets so each owns a unique
+  // resolved/normalized setID — no refcount sharing to mask a leak.
+  auto updater = sw_->getRouteUpdater();
+  addV4Route(updater, "10.0.0.0/24", {"1.1.1.10"});
+  addV4Route(updater, "10.1.0.0/24", {"2.2.2.10"});
+  addV6Route(updater, "2001:db8::/64", {"1::10"});
+  addV6Route(updater, "2001:db8:1::/64", {"2::10"});
+  updater.program();
+
+  // Capture the setIDs of the routes that will be reclaimed
+  // (10.0.0.0/24 and 2001:db8::/64).
+  NextHopSetID v4ResolvedId, v4NormalizedId, v6ResolvedId, v6NormalizedId;
+  {
+    auto ribThrift = sw_->getRib()->toThrift();
+    const auto& v4Route =
+        ribThrift.begin()->second.v4NetworkToRoute()->at("10.0.0.0/24");
+    auto v4ResolvedOpt = v4Route.fwd()->resolvedNextHopSetID();
+    auto v4NormalizedOpt = v4Route.fwd()->normalizedResolvedNextHopSetID();
+    ASSERT_TRUE(v4ResolvedOpt.has_value());
+    ASSERT_TRUE(v4NormalizedOpt.has_value());
+    v4ResolvedId = NextHopSetID(*v4ResolvedOpt);
+    v4NormalizedId = NextHopSetID(*v4NormalizedOpt);
+
+    const auto& v6Route =
+        ribThrift.begin()->second.v6NetworkToRoute()->at("2001:db8::/64");
+    auto v6ResolvedOpt = v6Route.fwd()->resolvedNextHopSetID();
+    auto v6NormalizedOpt = v6Route.fwd()->normalizedResolvedNextHopSetID();
+    ASSERT_TRUE(v6ResolvedOpt.has_value());
+    ASSERT_TRUE(v6NormalizedOpt.has_value());
+    v6ResolvedId = NextHopSetID(*v6ResolvedOpt);
+    v6NormalizedId = NextHopSetID(*v6NormalizedOpt);
+  }
+
+  auto preManager = sw_->getRib()->getNextHopIDManagerCopy();
+  ASSERT_NE(preManager, nullptr);
+  ASSERT_TRUE(preManager->getIdToNextHopIdSet().contains(v4ResolvedId));
+  ASSERT_TRUE(preManager->getIdToNextHopIdSet().contains(v4NormalizedId));
+  ASSERT_TRUE(preManager->getIdToNextHopIdSet().contains(v6ResolvedId));
+  ASSERT_TRUE(preManager->getIdToNextHopIdSet().contains(v6NormalizedId));
+
+  // syncFib with only the surviving prefix in each family. The reclaimed
+  // routes (10.0.0.0/24, 2001:db8::/64) go through
+  // removeAllUnclaimedRoutesFromClientImpl<v4> and <v6> respectively. Each
+  // was the only client on its prefix, so the route is erased entirely —
+  // its resolved + normalized IDs must be released.
+  updater = sw_->getRouteUpdater();
+  addV4Route(updater, "10.1.0.0/24", {"2.2.2.10"});
+  addV6Route(updater, "2001:db8:1::/64", {"2::10"});
+  RouteUpdateWrapper::SyncFibInfo syncInfo;
+  syncInfo.ridAndClients.insert({kRid0, kClientA});
+  syncInfo.type = RouteUpdateWrapper::SyncFibInfo::SyncFibType::IP_ONLY;
+  updater.program(syncInfo);
+
+  auto postManager = sw_->getRib()->getNextHopIDManagerCopy();
+  ASSERT_NE(postManager, nullptr);
+  EXPECT_FALSE(postManager->getIdToNextHopIdSet().contains(v4ResolvedId))
+      << "v4 resolvedNextHopSetID leaked in syncFib reclaim path";
+  EXPECT_FALSE(postManager->getIdToNextHopIdSet().contains(v4NormalizedId))
+      << "v4 normalizedResolvedNextHopSetID leaked in syncFib reclaim path";
+  EXPECT_FALSE(postManager->getIdToNextHopIdSet().contains(v6ResolvedId))
+      << "v6 resolvedNextHopSetID leaked in syncFib reclaim path";
+  EXPECT_FALSE(postManager->getIdToNextHopIdSet().contains(v6NormalizedId))
+      << "v6 normalizedResolvedNextHopSetID leaked in syncFib reclaim path";
+}
+
 } // namespace facebook::fboss

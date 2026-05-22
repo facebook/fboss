@@ -182,6 +182,19 @@ void RibRouteUpdater::updateImpl(
   }
 }
 
+void RibRouteUpdater::releaseFwdSideNexthopSetIDs(
+    const RouteNextHopEntry& fwd) {
+  if (!nextHopIDManager_) {
+    return;
+  }
+  if (auto id = fwd.getResolvedNextHopSetID()) {
+    nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
+  }
+  if (auto id = fwd.getNormalizedResolvedNextHopSetID()) {
+    nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
+  }
+}
+
 template <typename AddressT>
 void RibRouteUpdater::addOrReplaceRouteImpl(
     const Prefix<AddressT>& prefix,
@@ -280,16 +293,7 @@ void RibRouteUpdater::delRouteImpl(
   if (route->numClientEntries() == 1) {
     // If this client's the only entry, simply erase
     XLOG(DBG3) << "Deleting route: " << route->str();
-    auto oldNextHopSetID = route->getForwardInfo().getResolvedNextHopSetID();
-    auto oldNormalizedNextHopSetID =
-        route->getForwardInfo().getNormalizedResolvedNextHopSetID();
-    if (nextHopIDManager_ && oldNextHopSetID.has_value()) {
-      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
-    }
-    if (nextHopIDManager_ && oldNormalizedNextHopSetID.has_value()) {
-      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
-          *oldNormalizedNextHopSetID);
-    }
+    releaseFwdSideNexthopSetIDs(route->getForwardInfo());
     routes->erase(it);
   } else {
     route = writableRoute<AddressT>(it);
@@ -331,6 +335,7 @@ void RibRouteUpdater::delRoute(const LabelID& label, const ClientID clientID) {
   if (route->numClientEntries() == 1) {
     // If this client's the only entry, simply erase
     XLOG(DBG3) << "Deleting route: " << route->str();
+    releaseFwdSideNexthopSetIDs(route->getForwardInfo());
     mplsRoutes_->erase(it);
   } else {
     route = writableRoute<LabelID>(route);
@@ -356,13 +361,15 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
     maybeRemoveNamedNhgMapping(route, *nhopEntry);
     if (route->numClientEntries() == 1) {
       // This client's is the only entry avoid unnecessary cloning
-      // we are going to prune the route anyways
+      // we are going to prune the route anyways. Release fwd-side IDs first.
+      releaseFwdSideNexthopSetIDs(route->getForwardInfo());
       toDelete.push_back(it);
     } else {
       route = writableRoute<AddressT>(it);
       route->delEntryForClient(clientID);
       if (route->hasNoEntry()) {
         // The nexthops we removed was the only one.  Delete the route->
+        releaseFwdSideNexthopSetIDs(route->getForwardInfo());
         toDelete.push_back(it);
       }
     }
@@ -393,13 +400,15 @@ void RibRouteUpdater::removeAllUnclaimedRoutesFromClientImpl(
     maybeRemoveNamedNhgMapping(route, *nhopEntry);
     if (route->numClientEntries() == 1) {
       // This client's is the only entry avoid unnecessary cloning
-      // we are going to prune the route anyways
+      // we are going to prune the route anyways. Release fwd-side IDs first.
+      releaseFwdSideNexthopSetIDs(route->getForwardInfo());
       toDelete.push_back(it);
     } else {
       route = writableRoute<AddressT>(it);
       route->delEntryForClient(clientID);
       if (route->hasNoEntry()) {
         // The nexthops we removed was the only one.  Delete the route->
+        releaseFwdSideNexthopSetIDs(route->getForwardInfo());
         toDelete.push_back(it);
       }
     }

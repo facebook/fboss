@@ -170,6 +170,11 @@ class RibRouteUpdater {
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID);
 
+  // Release the resolved + normalized nexthop set IDs carried on `fwd` back
+  // to the manager. Call this right before erasing a route from a route map
+  // so the manager refcounts drop in sync with the route's lifetime.
+  void releaseFwdSideNexthopSetIDs(const RouteNextHopEntry& fwd);
+
   template <typename AddressT>
   void resolve(NetworkToRouteMap<AddressT>* routes);
 
