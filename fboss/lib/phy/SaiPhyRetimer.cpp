@@ -21,6 +21,11 @@
 
 #include <fmt/format.h>
 
+DEFINE_bool(
+    enable_xphy_global_lock,
+    false,
+    "Enable/disable global lock for all XPHY chips");
+
 namespace facebook::fboss::phy {
 
 namespace {
@@ -34,6 +39,44 @@ FecMode getFecMode(sai_port_fec_mode_t fec, cfg::PortSpeed /* speed */) {
       static_cast<int>(fec),
       ". Only SAI_PORT_FEC_MODE_NONE is supported for now");
 }
+
+#if defined(SAI_BRCM_PAI_IMPL)
+// Global mutex for fallback, controlled by environment variable
+std::mutex gPaiGlobalMutex;
+
+sai_status_t pai_lock_callback(uint64_t platform_context) {
+  if (FLAGS_enable_xphy_global_lock) {
+    gPaiGlobalMutex.lock();
+    XLOG(DBG5) << "PAI Sync Lock acquired (GLOBAL)";
+  } else {
+    if (platform_context == 0) {
+      XLOG(ERR) << "PAI lock callback invoked with a null context.";
+      return SAI_STATUS_FAILURE;
+    }
+    auto* retimer = reinterpret_cast<SaiPhyRetimer*>(platform_context);
+    retimer->getPaiMutex().lock();
+    XLOG(DBG5) << "PAI Sync Lock acquired for xphy:" << retimer->getPhyAddr();
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t pai_unlock_callback(uint64_t platform_context) {
+  if (FLAGS_enable_xphy_global_lock) {
+    gPaiGlobalMutex.unlock();
+    XLOG(DBG5) << "PAI Sync Lock released (GLOBAL)";
+  } else {
+    if (platform_context == 0) {
+      // This might happen on a failed lock, so don't log an error
+      return SAI_STATUS_SUCCESS;
+    }
+    auto* retimer = reinterpret_cast<SaiPhyRetimer*>(platform_context);
+    retimer->getPaiMutex().unlock();
+    XLOG(DBG5) << "PAI Sync Lock released for xphy:" << retimer->getPhyAddr();
+  }
+  return SAI_STATUS_SUCCESS;
+}
+#endif
+
 /*
  * This is a static function for reading a Phy register. This function will be
  * passed to the SAI layer. The SAI driver will use this function to read a
@@ -322,6 +365,10 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       std::nullopt, // enable PFC monitoring for the switch
       std::nullopt, // enable cable propagation delay measurement
       std::nullopt, // switching mode
+#if defined(SAI_BRCM_PAI_IMPL)
+      (sai_pointer_t)pai_lock_callback, // user sync_lock for pai
+      (sai_pointer_t)pai_unlock_callback, // user sync_unlock for pai
+#endif
   };
 }
 
