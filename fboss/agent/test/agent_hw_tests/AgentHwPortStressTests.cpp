@@ -20,6 +20,8 @@ using std::shared_ptr;
 using std::string;
 
 namespace facebook::fboss {
+constexpr int kNumAdminToggle = 500;
+constexpr int kNumLinkToggle = 200;
 
 class AgentHwPortStressTest : public AgentHwTest {
  protected:
@@ -42,6 +44,15 @@ class AgentHwPortStressTest : public AgentHwTest {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_hide_fabric_ports = false;
   }
+
+  // Uses type-filtered port lists (INTERFACE_PORT / FABRIC_PORT) so index [0]
+  // is safe — recycle ports are excluded by the type filter.
+  PortID getStressTestPortId() {
+    if (getSw()->getSwitchInfoTable().haveFabricSwitches()) {
+      return PortID(masterLogicalFabricPortIds()[0]);
+    }
+    return PortID(masterLogicalInterfacePortIds()[0]);
+  }
 };
 
 TEST_F(AgentHwPortStressTest, adminStateToggle) {
@@ -49,10 +60,8 @@ TEST_F(AgentHwPortStressTest, adminStateToggle) {
   auto setup = [=, this]() { applyNewConfig(initialConfig(*ensemble)); };
 
   auto verify = [=, this]() {
-    // Use 2nd port as on some platforms, first port is rcy port
-    // which will never flap in practice
-    auto portId = PortID(masterLogicalPortIds()[1]);
-    for (auto i = 0; i < 500; ++i) {
+    auto portId = getStressTestPortId();
+    for (auto i = 0; i < kNumAdminToggle; ++i) {
       this->applyNewState([&](const std::shared_ptr<SwitchState>&) {
         auto newState = ensemble->getProgrammedState();
         auto port = newState->getPorts()->getNodeIf(portId);
@@ -70,12 +79,9 @@ TEST_F(AgentHwPortStressTest, adminStateToggle) {
 TEST_F(AgentHwPortStressTest, linkStateToggle) {
   AgentEnsemble* ensemble = getAgentEnsemble();
   auto setup = [=, this]() { applyNewConfig(initialConfig(*ensemble)); };
-
   auto verify = [=, this]() {
-    // Use 2nd port as on some platforms, first port is rcy port
-    // which will never flap in practice
-    auto portId = PortID(masterLogicalPortIds()[1]);
-    for (auto i = 0; i < 200; ++i) {
+    auto portId = getStressTestPortId();
+    for (auto i = 0; i < kNumLinkToggle; ++i) {
       ensemble->getLinkToggler()->bringDownPorts({portId});
       ensemble->getLinkToggler()->bringUpPorts({portId});
     }
