@@ -459,4 +459,27 @@ TYPED_TEST(AgentHwMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentHwMirrorTest, HwMirrorStat) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->push_back(this->getSpanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
+    this->applyNewConfig(cfg);
+  };
+  auto verify = [=, this]() {
+    WITH_RETRIES({
+      auto mirrorStatsOpt = this->getMirrorStats();
+      EXPECT_EVENTUALLY_TRUE(mirrorStatsOpt.has_value());
+      if (!mirrorStatsOpt) {
+        continue;
+      }
+      auto mirrorStats = mirrorStatsOpt.value();
+      EXPECT_EVENTUALLY_EQ(*mirrorStats.mirrors_used(), 1);
+      EXPECT_EVENTUALLY_EQ(*mirrorStats.mirrors_span(), 1);
+      EXPECT_EVENTUALLY_EQ(*mirrorStats.mirrors_erspan(), 0);
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
