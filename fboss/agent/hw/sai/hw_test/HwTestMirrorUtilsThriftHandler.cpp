@@ -52,85 +52,96 @@ bool verifyResolvedMirror(
     SaiMirrorHandle* mirrorHandle,
     sai_mirror_session_type_t session_type) {
   auto cfgPortDesc = apache::thrift::get_pointer(mirror.egressPortDesc());
+  if (!cfgPortDesc) {
+    XLOG(ERR) << "verifyResolvedMirror: egressPortDesc is null for mirror "
+              << mirror.name().value();
+    return false;
+  }
   auto egressPort =
       PortDescriptor::fromCfgCfgPortDescriptor(*cfgPortDesc).phyPortID();
   auto portHandle =
       saiSwitch->managerTable()->portManager().getPortHandle(egressPort);
   if (!portHandle) {
-    XLOG(ERR) << "Port " << egressPort << " not found";
+    XLOG(ERR) << "verifyResolvedMirror: port handle not found for port "
+              << egressPort;
     return false;
   }
   auto monitorPort = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::MonitorPort());
   if (portHandle->port->adapterKey() != monitorPort) {
-    XLOG(ERR) << "Monitor port mismatch for port " << egressPort;
+    XLOG(ERR) << "verifyResolvedMirror: monitor port mismatch for port "
+              << egressPort << " expected SAI OID "
+              << portHandle->port->adapterKey() << " got " << monitorPort;
     return false;
   }
 
   auto type = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(), SaiLocalMirrorTraits::Attributes::Type());
   if (type != session_type) {
-    XLOG(ERR) << "Mirror type mismatch, expected " << session_type;
+    XLOG(ERR) << "verifyResolvedMirror: session type mismatch, expected "
+              << session_type << " got " << type;
     return false;
   }
 
-  // TODO: add truncate check
-
-  // TOS
   auto tos = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::Tos());
   if (tos != folly::copy(mirror.dscp().value())) {
-    XLOG(ERR) << "TOS mismatch";
+    XLOG(ERR) << "verifyResolvedMirror: TOS mismatch, expected "
+              << (int)mirror.dscp().value() << " got " << (int)tos;
     return false;
   }
 
   const auto& tunnel = apache::thrift::get_pointer(mirror.tunnel());
   if (!tunnel) {
-    XLOG(ERR) << "Tunnel is null";
+    XLOG(ERR) << "verifyResolvedMirror: tunnel is null for mirror "
+              << mirror.name().value();
     return false;
   }
 
-  // src and dst IP
   auto srcIp = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::SrcIpAddress());
   if (srcIp != network::toIPAddress(tunnel->srcIp().value())) {
-    XLOG(ERR) << "Src IP mismatch";
+    XLOG(ERR) << "verifyResolvedMirror: src IP mismatch, expected "
+              << network::toIPAddress(tunnel->srcIp().value()) << " got "
+              << srcIp;
     return false;
   }
   auto dstIp = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::DstIpAddress());
   if (dstIp != network::toIPAddress(tunnel->dstIp().value())) {
-    XLOG(ERR) << "Dst IP mismatch";
+    XLOG(ERR) << "verifyResolvedMirror: dst IP mismatch, expected "
+              << network::toIPAddress(tunnel->dstIp().value()) << " got "
+              << dstIp;
     return false;
   }
 
-  // src and dst MAC
   auto srcMac = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::SrcMacAddress());
   if (srcMac != folly::MacAddress(tunnel->srcMac().value())) {
-    XLOG(ERR) << "Src MAC mismatch";
+    XLOG(ERR) << "verifyResolvedMirror: src MAC mismatch, expected "
+              << tunnel->srcMac().value() << " got " << srcMac;
     return false;
   }
   auto dstMac = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::DstMacAddress());
   if (dstMac != folly::MacAddress(tunnel->dstMac().value())) {
-    XLOG(ERR) << "Dst MAC mismatch";
+    XLOG(ERR) << "verifyResolvedMirror: dst MAC mismatch, expected "
+              << tunnel->dstMac().value() << " got " << dstMac;
     return false;
   }
 
-  // TTL
   auto ttl = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::Ttl());
-
   if (ttl != folly::copy(tunnel->ttl().value())) {
-    XLOG(ERR) << "TTL mismatch";
+    XLOG(ERR) << "verifyResolvedMirror: TTL mismatch, expected "
+              << (int)tunnel->ttl().value() << " got " << (int)ttl;
     return false;
   }
   return true;
@@ -339,14 +350,11 @@ bool HwTestThriftHandler::verifyResolvedMirror(
              << (apache::thrift::get_pointer(mirror->tunnel()) != nullptr);
   auto tunnel = apache::thrift::get_pointer(mirror->tunnel());
   if (!tunnel) {
-    // regular local mirror
     return verifyResolvedLocalMirror(saiSwitch, *mirror, mirrorHandle);
   }
   if (apache::thrift::get_pointer(tunnel->udpSrcPort())) {
-    // sflow mirror
     return verifyResolvedSflowMirror(saiSwitch, *mirror, mirrorHandle);
   }
-  // erspan mirror
   return verifyResolvedErspanMirror(saiSwitch, *mirror, mirrorHandle);
 }
 

@@ -340,4 +340,28 @@ TYPED_TEST(AgentHwMirrorTest, UnresolvedToUnresolvedUpdate) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentHwMirrorTest, ResolvedToResolvedUpdate) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->push_back(this->getErspanMirror());
+    this->applyNewConfig(cfg);
+    this->resolveMirror(kErspan, this->masterLogicalInterfacePortIds()[0]);
+    this->resolveMirror(kErspan, this->masterLogicalInterfacePortIds()[1]);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror =
+          this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
+      EXPECT_EVENTUALLY_TRUE(mirror && mirror->isResolved());
+      if (!mirror || !mirror->isResolved()) {
+        continue;
+      }
+      auto fields = mirror->toThrift();
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
