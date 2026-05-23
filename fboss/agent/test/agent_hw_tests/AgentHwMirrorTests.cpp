@@ -482,4 +482,42 @@ TYPED_TEST(AgentHwMirrorTest, HwMirrorStat) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentHwSflowMirrorTest, HwResolvedMirrorStat) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->resize(3);
+    cfg.mirrors()[0] = this->getSpanMirror();
+    cfg.mirrors()[1] = this->getErspanMirror();
+    cfg.mirrors()[2] = this->getSflowMirror();
+    this->applyNewConfig(cfg);
+    this->resolveAllMirrors(this->masterLogicalInterfacePortIds()[1]);
+  };
+  auto verify = [=, this]() {
+    WITH_RETRIES({
+      auto span = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
+      auto erspan =
+          this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
+      auto sflowMirror =
+          this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      ASSERT_EVENTUALLY_NE(span, nullptr);
+      ASSERT_EVENTUALLY_NE(erspan, nullptr);
+      ASSERT_EVENTUALLY_NE(sflowMirror, nullptr);
+      EXPECT_EVENTUALLY_TRUE(span->isResolved());
+      EXPECT_EVENTUALLY_TRUE(erspan->isResolved());
+      EXPECT_EVENTUALLY_TRUE(sflowMirror->isResolved());
+      auto mirrorStatsOpt = this->getMirrorStats();
+      EXPECT_EVENTUALLY_TRUE(mirrorStatsOpt.has_value());
+      if (!mirrorStatsOpt) {
+        continue;
+      }
+      auto mirrorStats = mirrorStatsOpt.value();
+      EXPECT_EVENTUALLY_EQ(*mirrorStats.mirrors_used(), 3);
+      EXPECT_EVENTUALLY_EQ(*mirrorStats.mirrors_span(), 1);
+      EXPECT_EVENTUALLY_EQ(*mirrorStats.mirrors_erspan(), 1);
+      EXPECT_EVENTUALLY_EQ(*mirrorStats.mirrors_sflow(), 1);
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
