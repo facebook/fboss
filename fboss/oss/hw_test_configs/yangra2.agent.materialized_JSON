@@ -121,7 +121,7 @@
       "switchIdToSwitchInfo": {
         "0": {
             "switchType": 0,
-            "asicType": 17,
+            "asicType": 25,
             "switchIndex": 0,
             "portIdRange": {
               "minimum": 0,
