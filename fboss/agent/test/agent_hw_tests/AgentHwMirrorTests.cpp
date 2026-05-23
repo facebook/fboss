@@ -557,4 +557,18 @@ TYPED_TEST(AgentHwSflowMirrorTest, HwUnresolvedMirrorStat) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentHwMirrorTest, HwMirrorLimitExceeded) {
+  auto cfg = this->initialConfig(*this->getAgentEnsemble());
+  this->applyNewConfig(cfg);
+
+  cfg.mirrors()->resize(5);
+  cfg.mirrors()[0] = this->getErspanMirror("mirror0");
+  cfg.mirrors()[1] = this->getErspanMirror("mirror1");
+  cfg.mirrors()[2] = this->getErspanMirror("mirror2");
+  cfg.mirrors()[3] = this->getErspanMirror("mirror3");
+  cfg.mirrors()[4] = this->getErspanMirror("mirror4");
+
+  EXPECT_THROW(this->applyNewConfig(cfg), FbossError);
+}
+
 } // namespace facebook::fboss
