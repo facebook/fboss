@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/led_service/LedManagerInit.h"
+#include "fboss/led_service/Blackwolf800banwLedManager.h"
 #include "fboss/led_service/DarwinLedManager.h"
 #include "fboss/led_service/ElbertLedManager.h"
 #include "fboss/led_service/FujiLedManager.h"
@@ -86,6 +87,8 @@ std::unique_ptr<LedManager> createLedManager() {
     return std::make_unique<Wedge800CACTLedManager>();
   } else if (mode == PlatformType::PLATFORM_LADAKH800BCLS) {
     return std::make_unique<Ladakh800bclsLedManager>();
+  } else if (mode == PlatformType::PLATFORM_BLACKWOLF800BANW) {
+    return std::make_unique<Blackwolf800banwLedManager>();
   }
   return nullptr;
 }
