@@ -190,6 +190,7 @@ cpp_library(
         "AgentHwAclQualifierTest.cpp",
         "AgentHwAclStatTests.cpp",
         "AgentHwLinkDebounceTests.cpp",
+        "AgentHwMirrorTests.cpp",
         "AgentHwParityErrorTests.cpp",
         "AgentHwPtpTcProvisionTests.cpp",
         "AgentHwPtpTcTests.cpp",

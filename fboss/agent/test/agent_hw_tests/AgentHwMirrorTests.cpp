@@ -1,0 +1,312 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include <folly/IPAddressV4.h>
+#include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
+#include <gtest/gtest.h>
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/lib/CommonUtils.h"
+
+namespace facebook::fboss {
+
+namespace {
+using folly::IPAddressV4;
+using folly::IPAddressV6;
+using folly::MacAddress;
+constexpr auto kSpan = "local";
+constexpr auto kErspan = "mirror0";
+constexpr auto kSflow = "mirror1";
+constexpr auto kDscpDefault =
+    cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_;
+using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
+
+template <typename AddrT>
+struct TestParams {
+  std::array<AddrT, 4> ipAddrs;
+  std::array<MacAddress, 4> macAddrs;
+  TestParams();
+};
+
+template <>
+TestParams<IPAddressV4>::TestParams()
+    : ipAddrs{IPAddressV4("1.1.1.1"), IPAddressV4("1.1.1.10"), IPAddressV4("2.2.2.2"), IPAddressV4("2.2.2.10")},
+      macAddrs{
+          MacAddress("1:1:1:1:1:1"),
+          MacAddress("1:1:1:1:1:10"),
+          MacAddress("2:2:2:2:2:2"),
+          MacAddress("2:2:2:2:2:10")} {}
+
+template <>
+TestParams<IPAddressV6>::TestParams()
+    : ipAddrs{IPAddressV6("1::1"), IPAddressV6("1:1::1:10"), IPAddressV6("2::1"), IPAddressV6("2:2::2:10")},
+      macAddrs{
+          MacAddress("1:1:1:1:1:1"),
+          MacAddress("1:1:1:1:1:10"),
+          MacAddress("2:2:2:2:2:2"),
+          MacAddress("2:2:2:2:2:10")} {}
+
+// Flag values matching the thrift handler in HwTestMirrorUtilsThriftHandler.cpp
+constexpr int32_t kMirrorPortIngress = 0x00000001;
+constexpr int32_t kMirrorPortEgress = 0x00000002;
+constexpr int32_t kMirrorPortSflow = 0x00000004;
+
+} // namespace
+
+template <typename AddrT>
+class AgentHwMirrorTest : public AgentHwTest {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return {
+          ProductionFeature::INGRESS_MIRRORING,
+          ProductionFeature::ERSPANV6_MIRRORING};
+    }
+    return {ProductionFeature::INGRESS_MIRRORING};
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_check_wb_handles = false;
+  }
+
+  void updateMirror(const std::shared_ptr<Mirror>& mirror) {
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto newState = in->clone();
+      auto mnpuMirrors = in->getMirrors()->modify(&newState);
+      mnpuMirrors->updateNode(mirror, scopeResolver().scope(mirror));
+      return newState;
+    });
+  }
+
+  void updateMirrors(const std::vector<std::shared_ptr<Mirror>>& mirrors) {
+    for (const auto& mirror : mirrors) {
+      updateMirror(mirror);
+    }
+  }
+
+  cfg::Mirror getSpanMirror(
+      const std::string& mirrorName = kSpan,
+      const uint8_t dscp = kDscpDefault,
+      const bool truncate = false) const {
+    cfg::MirrorDestination destination;
+    destination.egressPort() = cfg::MirrorEgressPort();
+    destination.egressPort()->logicalID_ref() =
+        masterLogicalInterfacePortIds()[0];
+
+    cfg::Mirror mirrorConfig;
+    mirrorConfig.name() = mirrorName;
+    mirrorConfig.destination() = destination;
+    mirrorConfig.dscp() = dscp;
+    mirrorConfig.truncate() = truncate;
+    return mirrorConfig;
+  }
+
+  cfg::Mirror getErspanMirror(
+      const std::string& mirrorName = kErspan,
+      const uint8_t dscp = kDscpDefault) const {
+    auto params = testParams();
+    auto destinationIp = params.ipAddrs[1];
+
+    cfg::MirrorDestination destination;
+    cfg::MirrorTunnel tunnel;
+    cfg::GreTunnel greTunnel;
+    greTunnel.ip() = destinationIp.str();
+    tunnel.greTunnel() = greTunnel;
+    destination.tunnel() = tunnel;
+
+    cfg::Mirror mirrorConfig;
+    mirrorConfig.name() = mirrorName;
+    mirrorConfig.destination() = destination;
+    mirrorConfig.dscp() = dscp;
+    return mirrorConfig;
+  }
+
+  cfg::Mirror getSflowMirror(
+      const std::string& mirrorName = kSflow,
+      const uint8_t dscp = kDscpDefault) const {
+    auto params = testParams();
+    auto destinationIp = params.ipAddrs[1];
+
+    cfg::MirrorDestination destination;
+    cfg::MirrorTunnel tunnel;
+    cfg::SflowTunnel sflowTunnel;
+    sflowTunnel.ip() = destinationIp.str();
+    sflowTunnel.udpSrcPort() = 6545;
+    sflowTunnel.udpDstPort() = 6343;
+    tunnel.sflowTunnel() = sflowTunnel;
+    destination.tunnel() = tunnel;
+
+    cfg::Mirror mirrorConfig;
+    mirrorConfig.name() = mirrorName;
+    mirrorConfig.destination() = destination;
+    mirrorConfig.dscp() = dscp;
+    mirrorConfig.truncate() = true;
+    return mirrorConfig;
+  }
+
+  TestParams<AddrT> testParams() const {
+    return TestParams<AddrT>();
+  }
+
+  SwitchID getSwitchId() {
+    return scopeResolver().scope(masterLogicalInterfacePortIds()[0]).switchId();
+  }
+
+  auto getClient() {
+    return getAgentEnsemble()->getHwAgentTestClient(getSwitchId());
+  }
+
+  std::optional<HwResourceStats> getMirrorStats() {
+    try {
+      auto stats = getSw()->getHwSwitchStatsExpensive(getSwitchId());
+      return *(stats.hwResourceStats());
+    } catch (const std::exception&) {
+      return std::nullopt;
+    }
+  }
+
+  void programMirrorRoute(
+      utility::EcmpSetupAnyNPorts<AddrT>& ecmpHelper,
+      const folly::IPAddress& dip,
+      PortID mirrorToPort) {
+    auto nhopPorts = boost::container::flat_set<PortDescriptor>{
+        PortDescriptor(mirrorToPort)};
+    auto wrapper = getSw()->getRouteUpdater();
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      ecmpHelper.programRoutes(
+          &wrapper, nhopPorts, {RoutePrefixV4{dip.asV4(), 32}});
+    } else {
+      ecmpHelper.programRoutes(
+          &wrapper, nhopPorts, {RoutePrefixV6{dip.asV6(), 128}});
+    }
+  }
+
+  std::set<cfg::PortType> getEcmpPortTypes() const {
+    if (FLAGS_hyper_port) {
+      return {cfg::PortType::HYPER_PORT};
+    }
+    return {cfg::PortType::INTERFACE_PORT};
+  }
+
+  void resolveMirror(const std::string& mirrorName, PortID mirrorToPort) {
+    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
+        getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
+        RouterID(0),
+        getEcmpPortTypes());
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(
+          in,
+          boost::container::flat_set<PortDescriptor>{
+              PortDescriptor(mirrorToPort)});
+    });
+    auto mirror =
+        this->getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
+    if (mirror && mirror->getDestinationIp().has_value()) {
+      programMirrorRoute(
+          ecmpHelper, mirror->getDestinationIp().value(), mirrorToPort);
+    }
+  }
+
+  void resolveAllMirrors(PortID mirrorToPort) {
+    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
+        getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
+        RouterID(0),
+        getEcmpPortTypes());
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(
+          in,
+          boost::container::flat_set<PortDescriptor>{
+              PortDescriptor(mirrorToPort)});
+    });
+    auto mirrors = this->getProgrammedState()->getMirrors();
+    for (auto mniter = mirrors->cbegin(); mniter != mirrors->cend(); ++mniter) {
+      for (auto iter : std::as_const(*mniter->second)) {
+        auto mirror = iter.second;
+        if (mirror->getDestinationIp().has_value()) {
+          programMirrorRoute(
+              ecmpHelper, mirror->getDestinationIp().value(), mirrorToPort);
+        }
+      }
+    }
+  }
+
+  void unresolveMirror(const std::string& mirrorName) {
+    auto mirror =
+        this->getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
+    if (mirror && mirror->getDestinationIp().has_value()) {
+      utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
+          getProgrammedState(), getSw()->needL2EntryForNeighbor(), RouterID(0));
+      auto wrapper = getSw()->getRouteUpdater();
+      auto dip = mirror->getDestinationIp().value();
+      if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+        ecmpHelper.unprogramRoutes(&wrapper, {RoutePrefixV4{dip.asV4(), 32}});
+      } else {
+        ecmpHelper.unprogramRoutes(&wrapper, {RoutePrefixV6{dip.asV6(), 128}});
+      }
+    }
+  }
+
+  static int32_t getMirrorPortIngressFlags() {
+    return kMirrorPortIngress;
+  }
+
+  static int32_t getMirrorPortEgressFlags() {
+    return kMirrorPortEgress;
+  }
+
+  static int32_t getMirrorPortIngressAndSflowFlags() {
+    return kMirrorPortIngress | kMirrorPortSflow;
+  }
+};
+
+TYPED_TEST_SUITE(AgentHwMirrorTest, TestTypes);
+
+template <typename AddrT>
+class AgentHwSflowMirrorTest : public AgentHwMirrorTest<AddrT> {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return {
+          ProductionFeature::INGRESS_MIRRORING,
+          ProductionFeature::ERSPANV6_MIRRORING,
+          ProductionFeature::SFLOWv6_SAMPLING};
+    }
+    return {
+        ProductionFeature::INGRESS_MIRRORING,
+        ProductionFeature::SFLOWv4_SAMPLING};
+  }
+};
+
+TYPED_TEST_SUITE(AgentHwSflowMirrorTest, TestTypes);
+
+template <typename AddrT>
+class AgentHwMirrorTrunkTest : public AgentHwMirrorTest<AddrT> {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return {
+          ProductionFeature::INGRESS_MIRRORING,
+          ProductionFeature::ERSPANV6_MIRRORING,
+          ProductionFeature::LAG_MIRRORING};
+    }
+    return {
+        ProductionFeature::INGRESS_MIRRORING, ProductionFeature::LAG_MIRRORING};
+  }
+};
+
+TYPED_TEST_SUITE(AgentHwMirrorTrunkTest, TestTypes);
+
+} // namespace facebook::fboss
