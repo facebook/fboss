@@ -419,4 +419,44 @@ TYPED_TEST(AgentHwMirrorTest, NoPortMirroringIfUnResolved) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentHwMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->push_back(this->getErspanMirror());
+    auto portCfg =
+        utility::findCfgPort(cfg, this->masterLogicalInterfacePortIds()[0]);
+    portCfg->ingressMirror() = kErspan;
+    portCfg->egressMirror() = kErspan;
+    this->applyNewConfig(cfg);
+    this->resolveMirror(kErspan, this->masterLogicalInterfacePortIds()[1]);
+    this->resolveMirror(kErspan, this->masterLogicalInterfacePortIds()[1]);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror =
+          this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
+      EXPECT_EVENTUALLY_TRUE(mirror && mirror->isResolved());
+      if (!mirror || !mirror->isResolved()) {
+        continue;
+      }
+      auto fields = mirror->toThrift();
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      ASSERT_EVENTUALLY_EQ(destinations.size(), 1);
+    });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[0]),
+          this->getMirrorPortIngressFlags(),
+          destinations[0]));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
