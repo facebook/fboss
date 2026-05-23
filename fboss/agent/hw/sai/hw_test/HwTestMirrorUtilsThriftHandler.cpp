@@ -3,6 +3,7 @@
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -10,6 +11,10 @@
 namespace facebook::fboss::utility {
 
 namespace {
+
+#define MIRROR_PORT_INGRESS 0x00000001
+#define MIRROR_PORT_EGRESS 0x00000002
+#define MIRROR_PORT_SFLOW 0x00000004
 
 bool verifyResolvedLocalMirror(
     const SaiSwitch* saiSwitch,
@@ -21,18 +26,21 @@ bool verifyResolvedLocalMirror(
   auto portHandle = saiSwitch->managerTable()->portManager().getPortHandle(
       PortID(egressPort));
   if (!portHandle) {
+    XLOG(ERR) << "Port " << egressPort << " not found";
     return false;
   }
   auto monitorPort = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiLocalMirrorTraits::Attributes::MonitorPort());
   if (portHandle->port->adapterKey() != monitorPort) {
+    XLOG(ERR) << "Monitor port mismatch for port " << egressPort;
     return false;
   }
 
   auto type = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(), SaiLocalMirrorTraits::Attributes::Type());
   if (type != SAI_MIRROR_SESSION_TYPE_LOCAL) {
+    XLOG(ERR) << "Mirror type mismatch, expected LOCAL";
     return false;
   }
   return true;
@@ -49,18 +57,21 @@ bool verifyResolvedMirror(
   auto portHandle =
       saiSwitch->managerTable()->portManager().getPortHandle(egressPort);
   if (!portHandle) {
+    XLOG(ERR) << "Port " << egressPort << " not found";
     return false;
   }
   auto monitorPort = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::MonitorPort());
   if (portHandle->port->adapterKey() != monitorPort) {
+    XLOG(ERR) << "Monitor port mismatch for port " << egressPort;
     return false;
   }
 
   auto type = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(), SaiLocalMirrorTraits::Attributes::Type());
   if (type != session_type) {
+    XLOG(ERR) << "Mirror type mismatch, expected " << session_type;
     return false;
   }
 
@@ -71,11 +82,13 @@ bool verifyResolvedMirror(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::Tos());
   if (tos != folly::copy(mirror.dscp().value())) {
+    XLOG(ERR) << "TOS mismatch";
     return false;
   }
 
   const auto& tunnel = apache::thrift::get_pointer(mirror.tunnel());
   if (!tunnel) {
+    XLOG(ERR) << "Tunnel is null";
     return false;
   }
 
@@ -84,12 +97,14 @@ bool verifyResolvedMirror(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::SrcIpAddress());
   if (srcIp != network::toIPAddress(tunnel->srcIp().value())) {
+    XLOG(ERR) << "Src IP mismatch";
     return false;
   }
   auto dstIp = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::DstIpAddress());
   if (dstIp != network::toIPAddress(tunnel->dstIp().value())) {
+    XLOG(ERR) << "Dst IP mismatch";
     return false;
   }
 
@@ -98,12 +113,14 @@ bool verifyResolvedMirror(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::SrcMacAddress());
   if (srcMac != folly::MacAddress(tunnel->srcMac().value())) {
+    XLOG(ERR) << "Src MAC mismatch";
     return false;
   }
   auto dstMac = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::DstMacAddress());
   if (dstMac != folly::MacAddress(tunnel->dstMac().value())) {
+    XLOG(ERR) << "Dst MAC mismatch";
     return false;
   }
 
@@ -113,6 +130,7 @@ bool verifyResolvedMirror(
       SaiEnhancedRemoteMirrorTraits::Attributes::Ttl());
 
   if (ttl != folly::copy(tunnel->ttl().value())) {
+    XLOG(ERR) << "TTL mismatch";
     return false;
   }
   return true;
@@ -132,6 +150,7 @@ bool verifyResolvedSflowMirror(
     SaiMirrorHandle* mirrorHandle) {
   if (!verifyResolvedMirror(
           saiSwitch, mirror, mirrorHandle, SAI_MIRROR_SESSION_TYPE_SFLOW)) {
+    XLOG(ERR) << "verifyResolvedMirror failed";
     return false;
   }
 
@@ -146,12 +165,14 @@ bool verifyResolvedSflowMirror(
       apache::thrift::get_pointer(mirror.tunnel())->udpDstPort());
 
   if (udpSrcPort != *srcPort) {
+    XLOG(ERR) << "Src UDP port mismatch";
     return false;
   }
   auto udpDstPort = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiSflowMirrorTraits::Attributes::UdpDstPort());
   if (udpDstPort != *dstPort) {
+    XLOG(ERR) << "Dst UDP port mismatch";
     return false;
   }
   return true;
@@ -285,5 +306,154 @@ bool HwTestThriftHandler::isAclEntryMirrored(
     auto actualMirror = aclEntryHandle->egressMirror;
     return actualMirror && *actualMirror == expectedMirror;
   }
+}
+
+bool HwTestThriftHandler::verifyResolvedMirror(
+    std::unique_ptr<state::MirrorFields> mirror) {
+  if (!mirror) {
+    XLOG(ERR) << "verifyResolvedMirror: Input MirrorFields is null";
+    return false;
+  }
+  auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
+  auto mirrorName = mirror->name().value();
+  auto mirrorHandle =
+      saiSwitch->managerTable()->mirrorManager().getMirrorHandle(mirrorName);
+  if (!mirrorHandle) {
+    XLOG(ERR) << "verifyResolvedMirror: mirror handle not found for "
+              << mirrorName;
+    return false;
+  }
+  if (!mirror->isResolved().value()) {
+    XLOG(ERR) << "verifyResolvedMirror: mirror " << mirrorName
+              << " is not resolved in SW state";
+    return false;
+  }
+  auto egressPortDesc = apache::thrift::get_pointer(mirror->egressPortDesc());
+  if (!egressPortDesc) {
+    XLOG(ERR) << "verifyResolvedMirror: mirror " << mirrorName
+              << " has no egressPortDesc";
+    return false;
+  }
+  XLOG(DBG2) << "verifyResolvedMirror: mirror=" << mirrorName
+             << " isResolved=1 hasEgressPort=1 hasTunnel="
+             << (apache::thrift::get_pointer(mirror->tunnel()) != nullptr);
+  auto tunnel = apache::thrift::get_pointer(mirror->tunnel());
+  if (!tunnel) {
+    // regular local mirror
+    return verifyResolvedLocalMirror(saiSwitch, *mirror, mirrorHandle);
+  }
+  if (apache::thrift::get_pointer(tunnel->udpSrcPort())) {
+    // sflow mirror
+    return verifyResolvedSflowMirror(saiSwitch, *mirror, mirrorHandle);
+  }
+  // erspan mirror
+  return verifyResolvedErspanMirror(saiSwitch, *mirror, mirrorHandle);
+}
+
+bool HwTestThriftHandler::verifyUnResolvedMirror(
+    std::unique_ptr<state::MirrorFields> mirror) {
+  if (!mirror) {
+    XLOG(ERR) << "verifyUnResolvedMirror: Input MirrorFields is null";
+    return false;
+  }
+  auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
+  auto mirrorHandle =
+      saiSwitch->managerTable()->mirrorManager().getMirrorHandle(
+          mirror->name().value());
+  if (!mirrorHandle) {
+    return true;
+  }
+  return false;
+}
+
+template <typename AttrT>
+static std::vector<sai_object_id_t> getCachedPortMirrorAttr(
+    SaiPortHandle* portHandle) {
+  auto attrOpt = std::get<std::optional<AttrT>>(portHandle->port->attributes());
+  if (attrOpt.has_value()) {
+    return attrOpt.value().value();
+  }
+  return {};
+}
+
+static bool verifyPortMirrorDestinationImpl(
+    SaiSwitch* saiSwitch,
+    const PortID& port,
+    int32_t flags,
+    std::optional<uint64_t> mirrorDestID) {
+  auto portHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(port);
+  std::vector<sai_object_id_t> mirrorSaiOidList;
+  if (flags & MIRROR_PORT_SFLOW) {
+    if (flags & MIRROR_PORT_INGRESS) {
+      mirrorSaiOidList = getCachedPortMirrorAttr<
+          SaiPortTraits::Attributes::IngressSampleMirrorSession>(portHandle);
+    } else {
+      mirrorSaiOidList = getCachedPortMirrorAttr<
+          SaiPortTraits::Attributes::EgressSampleMirrorSession>(portHandle);
+    }
+  } else {
+    if (flags & MIRROR_PORT_INGRESS) {
+      mirrorSaiOidList = getCachedPortMirrorAttr<
+          SaiPortTraits::Attributes::IngressMirrorSession>(portHandle);
+    } else {
+      mirrorSaiOidList = getCachedPortMirrorAttr<
+          SaiPortTraits::Attributes::EgressMirrorSession>(portHandle);
+    }
+  }
+  if (mirrorDestID.has_value()) {
+    if (mirrorSaiOidList.size() == 0) {
+      XLOG(ERR) << "mirrorSaiOidList.size() == 0"
+                << " expected to find mirror dest ID: " << mirrorDestID.value();
+      return false;
+    }
+    if (mirrorSaiOidList[0] != mirrorDestID.value()) {
+      XLOG(ERR) << "mirror dest ID: Actual value:"
+                << (uint64_t)mirrorSaiOidList[0]
+                << " Expected value: " << mirrorDestID.value();
+      return false;
+    }
+  } else {
+    if (mirrorSaiOidList.size() != 0) {
+      XLOG(ERR) << "mirrorSaiOidList.size() != 0";
+      return false;
+    }
+  }
+  return true;
+}
+
+bool HwTestThriftHandler::verifyPortMirrorDestination(
+    int32_t ports,
+    int32_t flags,
+    int64_t mirrorDestID) {
+  auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
+  return verifyPortMirrorDestinationImpl(
+      saiSwitch, PortID(ports), flags, mirrorDestID);
+}
+
+bool HwTestThriftHandler::verifyPortNoMirrorDestination(
+    int32_t ports,
+    int32_t flags) {
+  auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
+  return verifyPortMirrorDestinationImpl(
+      saiSwitch, PortID(ports), flags, std::nullopt);
+}
+
+void HwTestThriftHandler::getAllMirrorDestinations(
+    ::std::vector<int64_t>& destinations) {
+  auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
+  auto mirrorSaiOids =
+      saiSwitch->managerTable()->mirrorManager().getAllMirrorSessionOids();
+  std::transform(
+      mirrorSaiOids.begin(),
+      mirrorSaiOids.end(),
+      std::back_inserter(destinations),
+      [](MirrorSaiId mirrorOid) -> uint64_t { return mirrorOid; });
+}
+
+bool HwTestThriftHandler::isMirrorSflowTunnelEnabled(int64_t destination) {
+  auto type = SaiApiTable::getInstance()->mirrorApi().getAttribute(
+      MirrorSaiId(destination), SaiSflowMirrorTraits::Attributes::Type());
+  return type == SAI_MIRROR_SESSION_TYPE_SFLOW;
 }
 } // namespace facebook::fboss::utility

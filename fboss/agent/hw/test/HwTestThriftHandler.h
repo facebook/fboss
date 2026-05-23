@@ -216,6 +216,20 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   bool isAclTableGroupEnabled(int32_t aclStage) override;
 
+  bool verifyResolvedMirror(
+      std::unique_ptr<state::MirrorFields> mirror) override;
+  bool verifyUnResolvedMirror(
+      std::unique_ptr<state::MirrorFields> mirror) override;
+  bool verifyPortMirrorDestination(
+      int32_t port,
+      int32_t flags,
+      int64_t mirrorDestID) override;
+
+  bool verifyPortNoMirrorDestination(int32_t port, int32_t flags) override;
+  void getAllMirrorDestinations(::std::vector<int64_t>& destinations) override;
+
+  bool isMirrorSflowTunnelEnabled(int64_t destination) override;
+
  private:
   HwSwitch* hwSwitch_;
 };
