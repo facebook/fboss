@@ -364,4 +364,23 @@ TYPED_TEST(AgentHwMirrorTest, ResolvedToResolvedUpdate) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentHwMirrorTest, ResolvedToUnresolvedUpdate) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->push_back(this->getErspanMirror());
+    this->applyNewConfig(cfg);
+    this->resolveMirror(kErspan, this->masterLogicalInterfacePortIds()[0]);
+    this->unresolveMirror(kErspan);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
+    auto fields = mirror->toThrift();
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyUnResolvedMirror(fields));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
