@@ -182,6 +182,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentSrv6ResourceUsageTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwPtpTcTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSwitchingModeTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwPortStressTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwUdfTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouterInterfaceCounterTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwPtpTcProvisionTests.cpp
