@@ -571,4 +571,43 @@ TYPED_TEST(AgentHwMirrorTest, HwMirrorLimitExceeded) {
   EXPECT_THROW(this->applyNewConfig(cfg), FbossError);
 }
 
+TYPED_TEST(AgentHwSflowMirrorTest, SampleOnePort) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    auto portCfg =
+        utility::findCfgPort(cfg, this->masterLogicalInterfacePortIds()[1]);
+    portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+    *portCfg->sFlowIngressRate() = 90000;
+    this->applyNewConfig(cfg);
+    this->resolveMirror(kSflow, this->masterLogicalInterfacePortIds()[0]);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      EXPECT_EVENTUALLY_TRUE(mirror && mirror->isResolved());
+      if (!mirror || !mirror->isResolved()) {
+        continue;
+      }
+      auto fields = mirror->toThrift();
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      ASSERT_EVENTUALLY_EQ(destinations.size(), 1);
+    });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[1]),
+          this->getMirrorPortIngressAndSflowFlags(),
+          destinations[0]));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
