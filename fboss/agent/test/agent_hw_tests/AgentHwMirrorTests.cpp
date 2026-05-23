@@ -5,6 +5,7 @@
 #include <folly/MacAddress.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -308,5 +309,35 @@ class AgentHwMirrorTrunkTest : public AgentHwMirrorTest<AddrT> {
 };
 
 TYPED_TEST_SUITE(AgentHwMirrorTrunkTest, TestTypes);
+
+TYPED_TEST(AgentHwMirrorTest, UnresolvedToUnresolvedUpdate) {
+  auto setup = [=, this]() {
+    auto params = this->testParams();
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->push_back(this->getSpanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
+    this->applyNewConfig(cfg);
+    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
+    auto newMirror = std::make_shared<Mirror>(
+        mirror->getID(),
+        mirror->getEgressPortDesc(),
+        std::optional<folly::IPAddress>(folly::IPAddress(params.ipAddrs[3])));
+    this->updateMirror(newMirror);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    auto local = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
+    auto localFields = local->toThrift();
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(localFields));
+    });
+    auto erspan = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
+    auto erspanFields = erspan->toThrift();
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyUnResolvedMirror(erspanFields));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 
 } // namespace facebook::fboss
