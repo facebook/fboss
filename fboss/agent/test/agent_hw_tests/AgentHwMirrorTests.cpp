@@ -383,4 +383,40 @@ TYPED_TEST(AgentHwMirrorTest, ResolvedToUnresolvedUpdate) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentHwMirrorTest, NoPortMirroringIfUnResolved) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->push_back(this->getErspanMirror());
+    auto portCfg =
+        utility::findCfgPort(cfg, this->masterLogicalInterfacePortIds()[0]);
+    portCfg->ingressMirror() = kErspan;
+    portCfg->egressMirror() = kErspan;
+    this->applyNewConfig(cfg);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror =
+          this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
+      EXPECT_EVENTUALLY_TRUE(mirror != nullptr);
+      if (!mirror) {
+        continue;
+      }
+      auto fields = mirror->toThrift();
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyUnResolvedMirror(fields));
+    });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortNoMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[0]),
+          this->getMirrorPortIngressFlags()));
+    });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortNoMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[0]),
+          this->getMirrorPortEgressFlags()));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
