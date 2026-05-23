@@ -42,7 +42,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FEC:
 
     case HwAsic::Feature::FABRIC_PORTS:
-    case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
@@ -97,6 +96,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
       return true;
+    case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
