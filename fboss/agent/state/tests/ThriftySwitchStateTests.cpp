@@ -460,6 +460,12 @@ TEST(ThriftySwitchState, FromThriftIdMapCleanupOnRollback) {
       RouteNextHopEntry(v4NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
   v4Fields.fwd()->resolvedNextHopSetID() = 100;
   v4Fields.fwd()->normalizedResolvedNextHopSetID() = 100;
+  // Per-client entry carrying a stray clientNextHopSetID — must be wiped.
+  auto v4ClientEntry =
+      RouteNextHopEntry(v4NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
+  v4ClientEntry.clientNextHopSetID() = 100;
+  v4Fields.nexthopsmulti()->client2NextHopEntry()->emplace(
+      ClientID::BGPD, v4ClientEntry);
 
   RouteNextHopSet v6NhSet;
   v6NhSet.insert(ResolvedNextHop(
@@ -472,6 +478,11 @@ TEST(ThriftySwitchState, FromThriftIdMapCleanupOnRollback) {
       RouteNextHopEntry(v6NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
   v6Fields.fwd()->resolvedNextHopSetID() = 200;
   v6Fields.fwd()->normalizedResolvedNextHopSetID() = 200;
+  auto v6ClientEntry =
+      RouteNextHopEntry(v6NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
+  v6ClientEntry.clientNextHopSetID() = 200;
+  v6Fields.nexthopsmulti()->client2NextHopEntry()->emplace(
+      ClientID::BGPD, v6ClientEntry);
 
   state::FibContainerFields fibContainer;
   fibContainer.vrf() = 0;
@@ -537,6 +548,10 @@ TEST(ThriftySwitchState, FromThriftIdMapCleanupOnRollback) {
       EXPECT_FALSE(route->getForwardInfo()
                        .getNormalizedResolvedNextHopSetID()
                        .has_value());
+      for (const auto& [_clientId, entry] :
+           std::as_const(route->getEntryForClients())) {
+        EXPECT_FALSE(entry->getClientNextHopSetID().has_value());
+      }
     }
   };
   ASSERT_EQ(containerOut->getFibV4()->size(), 1);
@@ -600,6 +615,12 @@ TEST(ThriftySwitchState, FromThriftIdMapCleanupOnRollForward) {
       RouteNextHopEntry(v4NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
   v4Fields.fwd()->resolvedNextHopSetID() = 111;
   v4Fields.fwd()->normalizedResolvedNextHopSetID() = 222;
+  // Per-client entry carrying a stray clientNextHopSetID — must be wiped.
+  auto v4ClientEntry =
+      RouteNextHopEntry(v4NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
+  v4ClientEntry.clientNextHopSetID() = 111;
+  v4Fields.nexthopsmulti()->client2NextHopEntry()->emplace(
+      ClientID::BGPD, v4ClientEntry);
 
   RouteNextHopSet v6NhSet;
   v6NhSet.insert(ResolvedNextHop(
@@ -612,6 +633,11 @@ TEST(ThriftySwitchState, FromThriftIdMapCleanupOnRollForward) {
       RouteNextHopEntry(v6NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
   v6Fields.fwd()->resolvedNextHopSetID() = 333;
   v6Fields.fwd()->normalizedResolvedNextHopSetID() = 444;
+  auto v6ClientEntry =
+      RouteNextHopEntry(v6NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
+  v6ClientEntry.clientNextHopSetID() = 333;
+  v6Fields.nexthopsmulti()->client2NextHopEntry()->emplace(
+      ClientID::BGPD, v6ClientEntry);
 
   state::FibContainerFields fibContainer;
   fibContainer.vrf() = 0;
@@ -670,6 +696,10 @@ TEST(ThriftySwitchState, FromThriftIdMapCleanupOnRollForward) {
       EXPECT_FALSE(route->getForwardInfo()
                        .getNormalizedResolvedNextHopSetID()
                        .has_value());
+      for (const auto& [_clientId, entry] :
+           std::as_const(route->getEntryForClients())) {
+        EXPECT_FALSE(entry->getClientNextHopSetID().has_value());
+      }
     }
   };
   ASSERT_EQ(containerOut->getFibV4()->size(), 1);

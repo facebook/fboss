@@ -695,7 +695,27 @@ void clearNextHopIdsForFibInfo(
     route->setResolved(newFwd);
   };
 
-  auto clearRoutesWithIds = [&clearRouteIds](const auto& routeMap) {
+  // Clear stray clientNextHopSetID from each per-client entry in
+  // nexthopsmulti. Snapshot the (clientId, new entry) pairs first so we
+  // never mutate the underlying map while iterating it.
+  auto clearClientIds = [](const auto& route) {
+    std::vector<std::pair<ClientID, RouteNextHopEntry>> updates;
+    for (const auto& [clientId, entry] :
+         std::as_const(route->getEntryForClients())) {
+      if (entry->getClientNextHopSetID().has_value()) {
+        RouteNextHopEntry newEntry(entry->toThrift());
+        std::optional<NextHopSetID> nullId;
+        newEntry.setClientNextHopSetID(nullId);
+        updates.emplace_back(clientId, std::move(newEntry));
+      }
+    }
+    for (auto& [clientId, newEntry] : updates) {
+      route->update(clientId, newEntry);
+    }
+  };
+
+  auto clearRoutesWithIds = [&clearRouteIds,
+                             &clearClientIds](const auto& routeMap) {
     if (!routeMap) {
       return;
     }
@@ -705,6 +725,7 @@ void clearNextHopIdsForFibInfo(
           fwd.getNormalizedResolvedNextHopSetID().has_value()) {
         clearRouteIds(route);
       }
+      clearClientIds(route);
     }
   };
 
