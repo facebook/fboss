@@ -16,6 +16,7 @@ fbthrift = thrift/lib/rust
 [build]
 builder = cmake
 job_weight_mib = 2048
+patchfile = fbthrift-python-sccache-launcher.patch
 
 [build.not(os=linux)]
 builder = nop
