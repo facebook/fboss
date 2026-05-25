@@ -358,7 +358,6 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
     case MediaInterfaceCode::FR1_100G:
-    case MediaInterfaceCode::FR4_200G:
     case MediaInterfaceCode::CR4_200G:
     case MediaInterfaceCode::CR4_400G:
     case MediaInterfaceCode::DR4_800G:
@@ -393,7 +392,6 @@ unsigned int QsfpModule::numMediaLanes() const {
       return 2;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
-    case MediaInterfaceCode::FR4_200G:
     case MediaInterfaceCode::CR4_200G:
     case MediaInterfaceCode::CR4_400G:
     case MediaInterfaceCode::DR4_800G:

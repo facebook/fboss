@@ -11,6 +11,37 @@ namespace facebook::fboss {
 // Note: hex literals (e.g. 0x77) are supported via JSON5 parsing.
 constexpr auto kDefaultTransceiverPropertiesJson = R"({
   "smfTransceivers": {
+    "4": {
+      "firstApplicationAdvertisement": {
+        "mediaInterfaceCode": {"smfCode": 0x18},
+        "hostStartLanes": [0],
+        "hostInterfaceCode": 0x0F
+      },
+      "numHostLanes": 4,
+      "numMediaLanes": 4,
+      "displayName": "FR4_200G",
+      "diagnosticCapabilitiesExceptions": {
+        "doesNotSupportVdm": true,
+        "doesNotSupportRxOutputControl": true
+      },
+      "supportedSpeedCombinations": [
+        {
+          "combinationName": "1x200G-FR4",
+          "ports": [
+            {"speed": 200000, "hostLanes": {"start": 0, "count": 4}, "mediaLanes": {"start": 0, "count": 4}, "mediaLaneCode": {"smfCode": 0x18}, "mediaInterfaceCode": 4}
+          ]
+        },
+        {
+          "combinationName": "1x100G-CWDM4",
+          "ports": [
+            {"speed": 100000, "hostLanes": {"start": 0, "count": 4}, "mediaLanes": {"start": 0, "count": 4}, "mediaLaneCode": {"smfCode": 0x10}, "mediaInterfaceCode": 1}
+          ]
+        }
+      ],
+      "speedChangeTransitions": [
+        ["1x200G-FR4", "1x100G-CWDM4"]
+      ]
+    },
     "5": {
       "firstApplicationAdvertisement": {
         "mediaInterfaceCode": {"smfCode": 0x1D},

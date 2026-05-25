@@ -53,8 +53,6 @@ class CmisHelper final {
          {SMFMediaInterfaceCode::FR4_200G}},
         {facebook::fboss::cfg::PortSpeed::HUNDREDG,
          {SMFMediaInterfaceCode::CWDM4_100G, SMFMediaInterfaceCode::FR1_100G}},
-        {facebook::fboss::cfg::PortSpeed::TWOHUNDREDG,
-         {SMFMediaInterfaceCode::FR4_200G, SMFMediaInterfaceCode::LR4_200G}},
     };
     return smfSpeedApplicationMapping_;
   }

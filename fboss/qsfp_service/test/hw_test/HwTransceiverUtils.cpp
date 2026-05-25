@@ -136,10 +136,6 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
             expectedMediaLanes = {0, 1, 2, 3};
           }
           break;
-        case MediaInterfaceCode::FR4_200G:
-        case MediaInterfaceCode::LR4_200G:
-          expectedMediaLanes = {0, 1, 2, 3};
-          break;
         case MediaInterfaceCode::CR8_800G:
           switch (profile) {
             case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544X2N_COPPER: {
