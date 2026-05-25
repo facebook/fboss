@@ -173,7 +173,7 @@ TEST_F(TransceiverPropertiesManagerTest, DeriveSmfCodeLpoNotInDerivation) {
 TEST_F(TransceiverPropertiesManagerTest, UnknownCodeThrows) {
   initDefault();
 
-  auto code = MediaInterfaceCode::FR4_400G;
+  auto code = MediaInterfaceCode::CR4_100G;
   EXPECT_FALSE(TransceiverPropertiesManager::isKnown(code));
   EXPECT_THROW(TransceiverPropertiesManager::getNumHostLanes(code), FbossError);
   EXPECT_THROW(
@@ -188,7 +188,7 @@ TEST_F(TransceiverPropertiesManagerTest, GetProperties) {
   EXPECT_EQ(*props.displayName(), "DR4_2x800G");
 
   EXPECT_THROW(
-      TransceiverPropertiesManager::getProperties(MediaInterfaceCode::FR4_400G),
+      TransceiverPropertiesManager::getProperties(MediaInterfaceCode::CR4_100G),
       FbossError);
 }
 
@@ -217,7 +217,7 @@ TEST_F(TransceiverPropertiesManagerTest, SpeedCombinations) {
 
   EXPECT_THROW(
       TransceiverPropertiesManager::getSpeedCombinations<SMFMediaInterfaceCode>(
-          MediaInterfaceCode::FR4_400G),
+          MediaInterfaceCode::CR4_100G),
       FbossError);
 }
 

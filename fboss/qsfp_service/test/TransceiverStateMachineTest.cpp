@@ -209,7 +209,13 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     };
     auto setXcvtActiveState = [this, &programIphyAndXcvr](bool portUp) {
       programIphyAndXcvr();
-      // One more refresh() to get to programmed xcvr state
+      // Extra refreshes may be needed if the module requires a power mode
+      // transition (e.g. 2x400G FR4 going from LOW to HIGH power)
+      transceiverManager_->refreshStateMachines();
+      if (transceiverManager_->getCurrentState(id_) !=
+          TransceiverStateMachineState::TRANSCEIVER_READY) {
+        transceiverManager_->refreshStateMachines();
+      }
       transceiverManager_->refreshStateMachines();
       transceiverManager_->setOverrideAgentPortStatusForTesting(
           portUp /* up */, true /* enabled */, false /* clearOnly */);
@@ -244,9 +250,19 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         break;
       case TransceiverStateMachineState::TRANSCEIVER_READY:
         programIphyAndXcvr();
+        // An extra refresh may be needed if the module requires a power mode
+        // transition (e.g. 2x400G FR4 going from LOW to HIGH power)
+        if (transceiverManager_->getCurrentState(id_) !=
+            TransceiverStateMachineState::TRANSCEIVER_READY) {
+          transceiverManager_->refreshStateMachines();
+        }
         break;
       case TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED:
         programIphyAndXcvr();
+        if (transceiverManager_->getCurrentState(id_) !=
+            TransceiverStateMachineState::TRANSCEIVER_READY) {
+          transceiverManager_->refreshStateMachines();
+        }
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::TCVR_EV_PROGRAM_TRANSCEIVER);
         break;

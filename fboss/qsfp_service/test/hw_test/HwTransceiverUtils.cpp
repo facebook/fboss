@@ -138,9 +138,6 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
           break;
         case MediaInterfaceCode::FR4_200G:
         case MediaInterfaceCode::LR4_200G:
-        case MediaInterfaceCode::FR4_400G:
-        case MediaInterfaceCode::DR4_400G:
-        case MediaInterfaceCode::LR4_400G_10KM:
           expectedMediaLanes = {0, 1, 2, 3};
           break;
         case MediaInterfaceCode::CR8_800G:
@@ -732,11 +729,6 @@ void HwTransceiverUtils::verifyDiagsCapability(
               *diagsCapability->vdm(),
               !TransceiverPropertiesManager::getDoesNotSupportVdm(
                   *mediaIntfCode));
-        } else {
-          EXPECT_EQ(
-              *diagsCapability->vdm(),
-              *mediaIntfCode == MediaInterfaceCode::FR4_400G ||
-                  *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM);
         }
         EXPECT_TRUE(*diagsCapability->cdb());
         EXPECT_TRUE(*diagsCapability->prbsLine());
@@ -749,10 +741,6 @@ void HwTransceiverUtils::verifyDiagsCapability(
                   *mediaIntfCode)) {
             EXPECT_TRUE(*diagsCapability->rxOutputControl());
           }
-        } else if (
-            *mediaIntfCode == MediaInterfaceCode::FR4_400G ||
-            *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM) {
-          EXPECT_TRUE(*diagsCapability->rxOutputControl());
         }
       }
       return;
