@@ -450,7 +450,10 @@ device:
       if (asic->isSupported(HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
         sourcePortOffset += 4;
       }
-      expectedSrcPortId = static_cast<PortID>(sflowPayload[sourcePortOffset]);
+      auto sport = sflowPayload[sourcePortOffset];
+      auto smod = sflowPayload[sourcePortOffset + 1];
+      expectedSrcPortId =
+          static_cast<PortID>((static_cast<uint32_t>(smod) << 8) | sport);
     }
     EXPECT_EQ(expectedSrcPortId, srcPortId);
   }
@@ -717,18 +720,73 @@ device:
     }
   }
 
-  void verifySampledPacket(
-      bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>) {
+  PortID getPortWithMaxHwLogicalPortId() const {
     auto ports = getPortsForSampling();
-    getAgentEnsemble()->bringDownPorts(
-        std::vector<PortID>(ports.begin() + 2, ports.end()));
+    PortID bestPort = ports[1];
+    uint32_t maxHwId = 0;
+    for (size_t i = 1; i < ports.size(); ++i) {
+      auto hwId = getHwLogicalPortId(ports[i]);
+      if (hwId && *hwId > maxHwId) {
+        maxHwId = *hwId;
+        bestPort = ports[i];
+      }
+    }
+
+    for (const auto& port : ports) {
+      auto hwId = getHwLogicalPortId(port);
+      if (!hwId) {
+        continue;
+      }
+      auto portObj = getProgrammedState()->getPorts()->getNodeIf(port);
+      auto name = portObj ? portObj->getName() : "unknown";
+      uint8_t smod = static_cast<uint8_t>(*hwId >> 8);
+      uint8_t sport = static_cast<uint8_t>(*hwId & 0xFF);
+      uint32_t reconstructed = (static_cast<uint32_t>(smod) << 8) | sport;
+      XLOG(INFO) << "Port " << name << " (swPortId=" << port
+                 << "): hwLogicalPortId=" << *hwId << " -> smod=" << (int)smod
+                 << ", sport=" << (int)sport
+                 << ", reconstructed=" << reconstructed
+                 << (reconstructed == *hwId ? " [OK]" : " [MISMATCH]");
+    }
+
+    if (maxHwId > 255) {
+      XLOG(INFO) << "Selected port " << bestPort
+                 << " with hwLogicalPortId=" << maxHwId
+                 << " (exceeds 8-bit range, exercises modId path)";
+    } else {
+      XLOG(INFO) << "No port with hwLogicalPortId > 255 on this platform; "
+                 << "using port " << bestPort
+                 << " with hwLogicalPortId=" << maxHwId;
+    }
+    return bestPort;
+  }
+
+  void bringDownOtherPorts(
+      const std::vector<PortID>& ports,
+      const PortID& samplePort) {
+    std::vector<PortID> portsToDown;
+    for (const auto& port : ports) {
+      if (port != ports[0] && port != samplePort) {
+        portsToDown.push_back(port);
+      }
+    }
+    getAgentEnsemble()->bringDownPorts(portsToDown);
+  }
+
+  void verifySampledPacket(
+      bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>,
+      const std::optional<PortID>& samplePortOverride = std::nullopt) {
+    auto ports = getPortsForSampling();
+    auto samplePort = samplePortOverride.value_or(ports[1]);
+    bringDownOtherPorts(ports, samplePort);
+
     auto pkt = genPacket(1, 256);
     auto length = pkt->buf()->length();
 
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
-    XLOG(DBG2) << "Sending packet through port " << ports[1];
+    XLOG(DBG2) << "Sending packet through port " << samplePort;
     getAgentEnsemble()->sendPacketAsync(
-        std::move(pkt), PortDescriptor(ports[1]), std::nullopt);
+        std::move(pkt), PortDescriptor(samplePort), std::nullopt);
 
     std::optional<std::unique_ptr<folly::IOBuf>> capturedPktBuf;
     WITH_RETRIES({
@@ -757,9 +815,9 @@ device:
                            : capturedPkt.v6PayLoad()->udpPayload();
     auto payload = udpPayload->payload();
     EXPECT_EQ(udpPayload->header().csum, 0);
-    auto hwLogicalPortId = getHwLogicalPortId(ports[1]);
+    auto hwLogicalPortId = getHwLogicalPortId(samplePort);
     if (!hwLogicalPortId) {
-      validateSflowPacketHeader(payload, ports[1]);
+      validateSflowPacketHeader(payload, samplePort);
     } else {
       validateSflowPacketHeader(payload, PortID(*hwLogicalPortId));
     }
@@ -781,8 +839,7 @@ device:
       XLOG(DBG2) << fmt::format(
           "srcPort = {}, dstPort = {}", shim.srcPort, shim.dstPort);
       if (!hwLogicalPortId) {
-        EXPECT_EQ(
-            shim.srcPort, static_cast<uint32_t>(getPortsForSampling()[1]));
+        EXPECT_EQ(shim.srcPort, static_cast<uint32_t>(samplePort));
       } else {
         EXPECT_EQ(shim.srcPort, static_cast<uint32_t>(*hwLogicalPortId));
       }
@@ -825,10 +882,12 @@ device:
   }
 
   void verifySampledPacketWithTruncate(
-      bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>) {
-    std::vector<PortID> ports = getPortsForSampling();
-    getAgentEnsemble()->bringDownPorts(
-        std::vector<PortID>(ports.begin() + 2, ports.end()));
+      bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>,
+      const std::optional<PortID>& samplePortOverride = std::nullopt) {
+    auto ports = getPortsForSampling();
+    auto samplePort = samplePortOverride.value_or(ports[1]);
+    bringDownOtherPorts(ports, samplePort);
+
     std::unique_ptr<TxPacket> pkt = genPacket(1, 8000);
     std::size_t length = pkt->buf()->length();
 
@@ -837,7 +896,7 @@ device:
         packetData, packetData + getMirrorTruncateSize());
 
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
-    PortID txPort{ports[1]};
+    PortID txPort{samplePort};
     XLOG(DBG2) << "Sending packet through port " << txPort;
     getAgentEnsemble()->sendPacketAsync(
         std::move(pkt), PortDescriptor(txPort), std::nullopt);
@@ -971,6 +1030,26 @@ device:
         verifySampledPacketWithTruncate();
       } else {
         verifySampledPacket();
+      }
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void testSampledPacketHighPortId() {
+    auto setup = [=, this]() {
+      auto config = initialConfig(*getAgentEnsemble());
+      configureMirrorWithSampling(config, 1 /*sampleRate*/);
+      configureTrapAcl(config);
+      applyNewConfig(config);
+      resolveRouteForMirrorDestination();
+    };
+    auto verify = [=, this]() {
+      auto port = getPortWithMaxHwLogicalPortId();
+      if (enableTruncation()) {
+        verifySampledPacketWithTruncate(
+            std::is_same_v<AddrT, folly::IPAddressV4>, port);
+      } else {
+        verifySampledPacket(std::is_same_v<AddrT, folly::IPAddressV4>, port);
       }
     };
     verifyAcrossWarmBoots(setup, verify);
@@ -1669,7 +1748,7 @@ SFLOW_SAMPLING_UNTRUNCATE_TEST_V4_V6(StressRecreateMirror, {
 })
 
 SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(VerifyTruncate, {
-  this->testSampledPacket();
+  this->testSampledPacketHighPortId();
 })
 SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(VerifySampledPacketRate, {
   this->testSampledPacketRate();

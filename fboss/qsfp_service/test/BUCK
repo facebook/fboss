@@ -74,7 +74,6 @@ cpp_unittest(
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
-        "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
         "//fboss/lib/bsp/janga800bic:janga800bic_bsp",
         "//fboss/lib/bsp/ladakh800bcls:ladakh800bcls_bsp",
         "//fboss/lib/bsp/meru800bfa:meru800bfa_bsp",
@@ -213,6 +212,8 @@ cpp_unittest(
         ":mock_port_manager",
         "//fboss/qsfp_service:port-manager",
         "//fboss/qsfp_service/platforms/wedge/tests:mock-wedge-manager",
+        "//folly:file_util",
+        "//folly/json:dynamic",
         "//folly/testing:test_util",
     ],
 )

@@ -15,6 +15,7 @@
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
@@ -85,6 +86,9 @@ class AgentSrv6DecapTest : public AgentHwTest {
             &cfg);
       }
     }
+    cfg.loadBalancers() =
+        utility::getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
+            ensemble.getL3Asics());
     // Add trap ACLs for inner packet destinations so snooper can capture
     // the decapped and forwarded packets
     auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
@@ -117,11 +121,9 @@ class AgentSrv6DecapTest : public AgentHwTest {
         this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
   }
 
-  void resolveV4AndV6NextHops(int numNextHops) {
+  void resolveNextHops(int numNextHops) {
     auto ecmpHelper6 = makeEcmpHelper<folly::IPAddressV6>();
-    this->resolveNeighbors(ecmpHelper6, numNextHops);
-    auto ecmpHelper4 = makeEcmpHelper<folly::IPAddressV4>();
-    this->resolveNeighbors(ecmpHelper4, numNextHops);
+    this->resolveNeighbors(ecmpHelper6, numNextHops, true /* useLinkLocal */);
   }
 
   void setupHelper(bool resolveNeighbors = true, bool addMySid = true) {
@@ -130,7 +132,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
           this->initialConfig(*this->getAgentEnsemble()));
     }
     if (resolveNeighbors) {
-      resolveV4AndV6NextHops(2);
+      resolveNextHops(2);
     }
     // IPv6 route with regular next hops (no SID lists)
     addRoute<folly::CIDRNetworkV6>(
@@ -145,12 +147,13 @@ class AgentSrv6DecapTest : public AgentHwTest {
 
   template <typename CIDRNetworkT>
   void addRoute(const CIDRNetworkT& prefix, int numNextHops) {
-    using IPAddrT = decltype(prefix.first);
-    auto ecmpHelper = makeEcmpHelper<std::remove_const_t<IPAddrT>>();
     RouteNextHopSet nhops;
+    auto ecmpHelper = makeEcmpHelper<folly::IPAddressV6>();
     for (auto i = 0; i < numNextHops; ++i) {
       auto nhop = ecmpHelper.nhop(i);
-      nhops.insert(ResolvedNextHop(nhop.ip, nhop.intf, ECMP_WEIGHT));
+      CHECK(nhop.linkLocalNhopIp.has_value());
+      nhops.insert(ResolvedNextHop(
+          folly::IPAddress(*nhop.linkLocalNhopIp), nhop.intf, ECMP_WEIGHT));
     }
     auto routeUpdater = this->getSw()->getRouteUpdater();
     routeUpdater.addRoute(

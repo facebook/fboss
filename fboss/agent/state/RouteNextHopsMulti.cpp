@@ -11,6 +11,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateUtils.h"
 
@@ -28,6 +29,12 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy() const {
     *destPair.clientId() = static_cast<int>(srcPair.first);
     for (const auto& nh : srcPair.second->getNextHopSet()) {
       destPair.nextHops()->push_back(nh.toThrift());
+    }
+    auto nhgName = srcPair.second->getNamedNextHopGroup();
+    if (nhgName.has_value()) {
+      NamedRouteDestination namedDest;
+      namedDest.nextHopGroup() = *nhgName;
+      destPair.namedRouteDestination() = namedDest;
     }
     list.push_back(destPair);
   }

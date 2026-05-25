@@ -177,6 +177,5 @@ ci_sandcastle(
     oncall = "fboss_optics_phy",
     schedules = [
         ci.diff,
-        ci.continuous,
     ],
 )

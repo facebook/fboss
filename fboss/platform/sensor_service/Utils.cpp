@@ -84,7 +84,39 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
   if (versionedSensors.empty()) {
     return std::nullopt;
   }
-  // Sort in a descending order.
+
+  // Keep matching product-name-specific entries if any, else fall back to
+  // entries with no productName.
+  auto hwProd = (pmUnitInfo && pmUnitInfo->eepromProductName())
+      ? pmUnitInfo->eepromProductName().to_optional()
+      : std::nullopt;
+  auto match = [&](const auto& vs) {
+    return hwProd && vs.productName().to_optional() == hwProd;
+  };
+  bool hasMatch =
+      std::any_of(versionedSensors.begin(), versionedSensors.end(), match);
+  std::erase_if(versionedSensors, [&](const auto& vs) {
+    return hasMatch ? !match(vs) : vs.productName().has_value();
+  });
+
+  if (hasMatch) {
+    XLOG(DBG1) << fmt::format(
+        "Using product-name-specific VersionedPmSensor for '{}' at {}",
+        *hwProd,
+        slotPath);
+  } else if (hwProd) {
+    XLOG(DBG1) << fmt::format(
+        "No product-name-specific VersionedPmSensor for '{}' at {}. "
+        "Falling back to universal entries.",
+        *hwProd,
+        slotPath);
+  }
+
+  if (versionedSensors.empty()) {
+    return std::nullopt;
+  }
+
+  // Sort in descending order by version.
   std::sort(
       versionedSensors.begin(),
       versionedSensors.end(),
@@ -110,10 +142,11 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
     sensorVersion.productSubVersion() = *versionedSensor.productSubVersion();
     if (!VersionedSensorComparator(sensorVersion, fetchedVersion)) {
       XLOG(DBG1) << fmt::format(
-          "Resolved to VersionedPmSensor of version {}.{}.{}",
+          "Resolved to VersionedPmSensor of version {}.{}.{} (productName: {})",
           *versionedSensor.productProductionState(),
           *versionedSensor.productVersion(),
-          *versionedSensor.productSubVersion());
+          *versionedSensor.productSubVersion(),
+          versionedSensor.productName().value_or("UNSET"));
       return versionedSensor;
     }
   }

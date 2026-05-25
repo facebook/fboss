@@ -43,6 +43,16 @@ target_link_libraries(fw_util
   fw_util_libs
 )
 
+add_executable(fw_util_sw_test
+  fboss/platform/fw_util/tests/ConfigValidatorTest.cpp
+)
+
+target_link_libraries(fw_util_sw_test
+  fw_util_libs
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
 add_executable(fw_util_hw_test
   fboss/platform/fw_util/hw_test/FwUtilHwTest.cpp
 )

@@ -114,7 +114,7 @@ class StressRouteInsertion:
     def clean_up(self):
         print("Removing all routes")
         self.delete_routes(self.routes)
-        self.client._socket.close()
+        self.client.close()
         print("...done.")
 
     def run_test(self):

@@ -490,7 +490,8 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
       // In SAI implementation, PFC and PFC WD are separate attributes
       // and are independently configured, so unconfiguring PFC will not
       // unconfigure PFC WD.
-      if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (getAsic()->getAsicVendor() ==
+          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
         setupPfcWdAndValidateProgramming(
             {200,

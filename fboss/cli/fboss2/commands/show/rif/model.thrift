@@ -18,4 +18,5 @@ struct RifEntry {
   9: string remoteInterfaceLivenessStatus;
   10: string scope;
   11: list<string> portNames;
+  12: string osIfName;
 }

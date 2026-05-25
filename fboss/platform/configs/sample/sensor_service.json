@@ -71,11 +71,14 @@
     "perSlotPowerConfigs": [
       {
         "name": "PSU1",
-        "powerSensorName": "PSU1_PIN"
+        "powerSensorName": "PSU1_PIN",
+        "slotPath": "/SMB_SLOT@0/YOLO_SLOT@0/PSU_SLOT@0"
       }
     ],
     "inputVoltageSensors": [
       "PSU1_VIN"
-    ]
+    ],
+    "minAcPsuCount": 1,
+    "minDcPsuCount": 1
   }
 }

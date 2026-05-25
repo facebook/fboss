@@ -865,12 +865,14 @@
     "perSlotPowerConfigs": [
       {
         "name": "PSU1",
-        "powerSensorName": "PSU_PIN"
+        "powerSensorName": "PSU_PIN",
+        "slotPath": "/PSU_SLOT@0"
       }
     ],
     "inputVoltageSensors": [
       "PSU_VIN"
-    ]
+    ],
+    "minDcPsuCount": 1
   },
   "temperatureConfigs": [
     {

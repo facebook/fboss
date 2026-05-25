@@ -85,6 +85,7 @@ class MockHwSwitch : public HwSwitch {
   MOCK_CONST_METHOD0(
       getPortStats,
       folly::F14FastMap<std::string, HwPortStats>());
+  MOCK_CONST_METHOD0(getTrunkStats, std::map<std::string, HwTrunkStats>());
   MOCK_CONST_METHOD0(
       getRouterInterfaceStats,
       folly::F14FastMap<std::string, HwRouterInterfaceStats>());

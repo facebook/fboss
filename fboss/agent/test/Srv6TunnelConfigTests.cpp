@@ -146,7 +146,7 @@ TEST_F(Srv6TunnelConfigTest, RejectsNonSrv6EncapTunnelType) {
   cfg::Srv6Tunnel tunnelCfg;
   tunnelCfg.srv6TunnelId() = "bad_type";
   tunnelCfg.underlayIntfID() = 1;
-  tunnelCfg.tunnelType() = TunnelType::IP_IN_IP;
+  tunnelCfg.tunnelType() = TunnelType::IP_IN_IP_DECAP;
   config_.srv6Tunnels() = {tunnelCfg};
   EXPECT_THROW(
       publishAndApplyConfig(state_, &config_, platform_.get()), FbossError);

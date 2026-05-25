@@ -240,59 +240,97 @@ StateDelta mySidToSwitchStateUpdateViaRibUpdater(
 
 } // namespace
 
-TEST(RibMySidUpdate, addMySidEntry) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
+class RibMySidCrudTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rib_.ensureVrf(kRid);
+    switchState_ = std::make_shared<SwitchState>();
+    switchState_->publish();
+  }
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  RoutingInformationBase rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+class RibMySidValidationTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rib_.ensureVrf(kRid);
+    switchState_ = std::make_shared<SwitchState>();
+    switchState_->publish();
+  }
+
+  RoutingInformationBase rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+class RibMySidSwitchStateTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rib_.ensureVrf(kRid);
+    switchState_ = std::make_shared<SwitchState>();
+    switchState_->publish();
+  }
+
+  RoutingInformationBase rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+class RibMySidRollbackTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rib_.ensureVrf(kRid);
+    switchState_ = std::make_shared<SwitchState>();
+    switchState_->publish();
+  }
+
+  RoutingInformationBase rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+TEST_F(RibMySidCrudTest, addMySidEntry) {
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 
   std::vector<MySidEntry> toAdd = {
       makeMySidEntry("fc00:100::1", 48),
   };
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Verify RIB mySidTable
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   auto prefix = makeSidPrefix("fc00:100::1", 48);
   EXPECT_NE(mySidTable.find(prefix), mySidTable.end());
   EXPECT_EQ(*mySidTable[prefix].type(), MySidType::DECAPSULATE_AND_LOOKUP);
 
   // Verify switchState reflects the MySid
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
   EXPECT_EQ(
-      switchState->getMySids()->getNodeIf("fc00:100::1/48")->getType(),
+      switchState_->getMySids()->getNodeIf("fc00:100::1/48")->getType(),
       MySidType::DECAPSULATE_AND_LOOKUP);
 }
 
-TEST(RibMySidUpdate, addMultipleMySidEntries) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidCrudTest, addMultipleMySidEntries) {
   std::vector<MySidEntry> toAdd = {
       makeMySidEntry("fc00:100::1", 48),
       makeMySidEntry("fc00:200::1", 64),
   };
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add multiple mysids",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Verify RIB mySidTable
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 2);
   EXPECT_NE(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
@@ -300,42 +338,37 @@ TEST(RibMySidUpdate, addMultipleMySidEntries) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 
   // Verify switchState reflects both MySids
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
 }
 
-TEST(RibMySidUpdate, deleteMySidEntry) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidCrudTest, deleteMySidEntry) {
   // Add first
   std::vector<MySidEntry> toAdd = {
       makeMySidEntry("fc00:100::1", 48),
       makeMySidEntry("fc00:200::1", 64),
   };
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysids",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 2);
+      &switchState_);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 2);
 
   // Delete one
   std::vector<IpPrefix> toDelete = {toIpPrefix("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       std::vector<MySidEntry>{},
       toDelete,
       "delete mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Verify RIB mySidTable
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   EXPECT_EQ(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
@@ -343,75 +376,65 @@ TEST(RibMySidUpdate, deleteMySidEntry) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 
   // Verify switchState: deleted entry gone, remaining entry present
-  EXPECT_EQ(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
+  EXPECT_EQ(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
 }
 
-TEST(RibMySidUpdate, deleteNonExistentMySidEntry) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidCrudTest, deleteNonExistentMySidEntry) {
   // Add one entry
   std::vector<MySidEntry> toAdd = {makeMySidEntry("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
-  auto mySidTableBefore = rib.getMySidTableCopy();
+  auto mySidTableBefore = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTableBefore.size(), 1);
 
   // Delete a non-existent entry — should be a no-op for that prefix
   std::vector<IpPrefix> toDelete = {toIpPrefix("fc00:999::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       std::vector<MySidEntry>{},
       toDelete,
       "delete nonexistent mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Verify RIB mySidTable is unchanged
-  auto mySidTableAfter = rib.getMySidTableCopy();
+  auto mySidTableAfter = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTableBefore, mySidTableAfter);
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
 }
 
-TEST(RibMySidUpdate, addAndDeleteInSameUpdate) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidCrudTest, addAndDeleteInSameUpdate) {
   // Add initial entry
   std::vector<MySidEntry> toAdd = {makeMySidEntry("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+      &switchState_);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
 
   // Add a new entry and delete the old one in the same update
   std::vector<MySidEntry> toAdd2 = {makeMySidEntry("fc00:200::1", 64)};
   std::vector<IpPrefix> toDelete = {toIpPrefix("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd2,
       toDelete,
       "add and delete mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Verify RIB mySidTable
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   EXPECT_EQ(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
@@ -419,77 +442,62 @@ TEST(RibMySidUpdate, addAndDeleteInSameUpdate) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 
   // Verify switchState reflects the swap
-  EXPECT_EQ(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
+  EXPECT_EQ(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
 }
 
-TEST(RibMySidUpdate, replaceMySidEntry) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidCrudTest, replaceMySidEntry) {
   // Add entry
   std::vector<MySidEntry> toAdd = {makeMySidEntry("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+      &switchState_);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
 
   // Add same prefix again (replace)
   std::vector<MySidEntry> toAdd2 = {makeMySidEntry("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd2,
       {},
       "replace mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Verify RIB mySidTable
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   EXPECT_NE(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
 
   // Verify switchState still has the entry
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
 }
 
-TEST(RibMySidUpdate, rejectNonDecapsulateType) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectNonDecapsulateType) {
   std::vector<MySidEntry> toAdd = {
       makeMySidEntry("fc00:100::1", 48, MySidType::NODE_MICRO_SID),
   };
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           toAdd,
           {},
           "add unsupported mysid type",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
   // Verify RIB and switchState remain empty
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
 }
 
-TEST(RibMySidUpdate, rejectEntryWithNextHops) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectEntryWithNextHops) {
   auto entry = makeMySidEntry("fc00:100::1", 48);
   NextHopThrift nhop;
   nhop.address() =
@@ -497,26 +505,21 @@ TEST(RibMySidUpdate, rejectEntryWithNextHops) {
   entry.nextHops() = {nhop};
 
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {entry},
           {},
           "add mysid with nexthops",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
   // Verify RIB and switchState remain empty
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
 }
 
-TEST(RibMySidUpdate, rejectBothNextHopsAndNamedNextHops) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectBothNextHopsAndNamedNextHops) {
   auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::NODE_MICRO_SID);
   NextHopThrift nhop;
   nhop.address() =
@@ -527,64 +530,282 @@ TEST(RibMySidUpdate, rejectBothNextHopsAndNamedNextHops) {
   entry.namedNextHops() = named;
 
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {entry},
           {},
           "add mysid with both nexthops and named nexthops",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
 }
 
-TEST(RibMySidUpdate, rejectDecapsulateTypeWithNamedNextHops) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidValidationTest, rejectDecapsulateTypeWithNamedNextHops) {
   auto entry = makeMySidEntry("fc00:100::1", 48);
   NamedRouteDestination named;
   named.nextHopGroup() = "group1";
   entry.namedNextHops() = named;
 
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {entry},
           {},
           "add decap mysid with named nexthops",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
 }
 
-TEST(RibMySidUpdate, invalidEntryInBatchDoesNotPartiallyMutateMySidTable) {
+TEST_F(RibMySidValidationTest, rejectNamedNextHopsWithPolicyName) {
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination named;
+  named.policyName() = "policy1";
+  entry.namedNextHops() = named;
+
+  EXPECT_THROW(
+      rib_.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "mysid with policyName in namedNextHops",
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+}
+
+TEST_F(RibMySidValidationTest, rejectBindingSidWithoutNextHopsOrNamedNhg) {
+  std::vector<MySidEntry> toAdd = {
+      makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID),
+  };
+  EXPECT_THROW(
+      rib_.update(
+          scopeResolver(),
+          toAdd,
+          {},
+          "binding sid without nexthops",
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
+}
+
+TEST_F(RibMySidValidationTest, acceptBindingSidWithNextHops) {
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop};
+
+  rib_.update(
+      scopeResolver(),
+      {entry},
+      {},
+      "binding sid with nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
+}
+
+TEST_F(RibMySidValidationTest, rejectBindingSidWithoutSidList) {
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop};
+
+  EXPECT_THROW(
+      rib_.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "binding sid without sid list",
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+}
+
+TEST_F(RibMySidValidationTest, rejectBindingSidWithoutTunnelId) {
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  entry.nextHops() = {nhop};
+
+  EXPECT_THROW(
+      rib_.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "binding sid without tunnel id",
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+}
+
+TEST_F(RibMySidValidationTest, rejectBindingSidWithWrongTunnelType) {
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::IP_IN_IP_DECAP;
+  nhop.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop};
+
+  EXPECT_THROW(
+      rib_.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "binding sid with wrong tunnel type",
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+}
+
+TEST_F(RibMySidValidationTest, acceptBindingSidWithNamedNhg) {
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "group1";
+  entry.namedNextHops() = named;
+
+  rib_.update(
+      scopeResolver(),
+      {entry},
+      {},
+      "binding sid with named nhg",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
+}
+
+TEST_F(RibMySidValidationTest, acceptNodeSidWithNamedNhg) {
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::NODE_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "group1";
+  entry.namedNextHops() = named;
+
+  rib_.update(
+      scopeResolver(),
+      {entry},
+      {},
+      "node sid with named nhg",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
+}
+
+TEST_F(RibMySidValidationTest, rejectAdjacencySidWithNamedNhg) {
+  auto entry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "group1";
+  entry.namedNextHops() = named;
+
+  EXPECT_THROW(
+      rib_.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "adjacency sid with named nhg",
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+}
+
+TEST_F(RibMySidValidationTest, rejectAdjacencySidWithMultipleNextHops) {
+  auto entry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
+  NextHopThrift nhop1;
+  nhop1.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  NextHopThrift nhop2;
+  nhop2.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::2"));
+  entry.nextHops() = {nhop1, nhop2};
+
+  EXPECT_THROW(
+      rib_.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "adjacency sid with multiple nexthops",
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+}
+
+TEST_F(RibMySidValidationTest, acceptAdjacencySidWithSingleNextHop) {
+  auto entry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  entry.nextHops() = {nhop};
+
+  rib_.update(
+      scopeResolver(),
+      {entry},
+      {},
+      "adjacency sid with single nexthop",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
+}
+
+TEST_F(
+    RibMySidValidationTest,
+    invalidEntryInBatchDoesNotPartiallyMutateMySidTable) {
   // Verify that if any entry in toAdd is invalid, mySidFromEntry throws before
   // updateRibMySids is called, leaving mySidTable completely unmodified.
   // Without the pre-build fix, the valid entry (first in the vector) would be
   // written to mySidTable before the invalid entry throws. With the fix,
   // neither entry is written.
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
 
   // Add an initial valid entry so the table is non-empty going in
-  rib.update(
+  rib_.update(
       scopeResolver(),
       {makeMySidEntry("fc00:100::1", 48)},
       {},
       "add initial mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+      &switchState_);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
 
   // Batch: valid entry first, then invalid (NODE_MICRO_SID with no nexthops)
   std::vector<MySidEntry> toAdd = {
@@ -593,18 +814,18 @@ TEST(RibMySidUpdate, invalidEntryInBatchDoesNotPartiallyMutateMySidTable) {
           "fc00:300::1", 48, MySidType::NODE_MICRO_SID), // invalid: no nexthops
   };
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           toAdd,
           {},
           "batch with invalid entry",
           mySidToSwitchStateUpdate,
-          &switchState),
+          &switchState_),
       FbossError);
 
   // mySidTable must contain only the original entry — the valid entry from
   // the failed batch must not have been inserted
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   EXPECT_NE(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
@@ -612,104 +833,86 @@ TEST(RibMySidUpdate, invalidEntryInBatchDoesNotPartiallyMutateMySidTable) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 }
 
-TEST(RibMySidUpdate, switchStateUpdatedOnAdd) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-  auto origState = switchState;
+TEST_F(RibMySidSwitchStateTest, switchStateUpdatedOnAdd) {
+  auto origState = switchState_;
 
   std::vector<MySidEntry> toAdd = {makeMySidEntry("fc00:100::1", 48)};
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Switch state should have changed
-  EXPECT_NE(switchState, origState);
+  EXPECT_NE(switchState_, origState);
   // MySid should be in switch state with correct type
-  auto mySidNode = switchState->getMySids()->getNodeIf("fc00:100::1/48");
+  auto mySidNode = switchState_->getMySids()->getNodeIf("fc00:100::1/48");
   ASSERT_NE(mySidNode, nullptr);
   EXPECT_EQ(mySidNode->getType(), MySidType::DECAPSULATE_AND_LOOKUP);
 }
 
-TEST(RibMySidUpdate, switchStateUpdatedOnDelete) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
+TEST_F(RibMySidSwitchStateTest, switchStateUpdatedOnDelete) {
   // Add two entries
   std::vector<MySidEntry> toAdd = {
       makeMySidEntry("fc00:100::1", 48),
       makeMySidEntry("fc00:200::1", 64),
   };
-  rib.update(
+  rib_.update(
       scopeResolver(),
       toAdd,
       {},
       "add mysids",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 2);
+      &switchState_);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 2);
 
-  auto stateBeforeDelete = switchState;
+  auto stateBeforeDelete = switchState_;
 
   // Delete one
-  rib.update(
+  rib_.update(
       scopeResolver(),
       std::vector<MySidEntry>{},
       {toIpPrefix("fc00:100::1", 48)},
       "delete mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
   // Switch state should have changed
-  EXPECT_NE(switchState, stateBeforeDelete);
+  EXPECT_NE(switchState_, stateBeforeDelete);
   // Only one MySid should remain in switch state
-  EXPECT_EQ(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
+  EXPECT_EQ(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
 }
 
-TEST(RibMySidUpdate, rollbackOnFailedUpdate) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+TEST_F(RibMySidRollbackTest, rollbackOnFailedUpdate) {
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 
   // Try to add a MySid entry but fail the HW update
   std::vector<MySidEntry> toAdd = {makeMySidEntry("fc00:100::1", 48)};
   FailMySidUpdate failUpdate;
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           toAdd,
           {},
           "fail mysid update",
           failUpdate,
-          &switchState),
+          &switchState_),
       FbossHwUpdateError);
 
   // After rollback, mySidTable should be reconstructed from applied state
   // (which is the original empty state), so it should remain empty
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 }
 
-TEST(RibMySidUpdate, rollbackPreservesAppliedStateMySids) {
+TEST_F(RibMySidRollbackTest, rollbackPreservesAppliedStateMySids) {
   // Verify that after a failed update, the RIB mySidTable is reconstructed
   // from the applied state's MySidMap (which may contain MySid entries
   // that were partially programmed to HW).
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 
   // Inject a MySid entry into the applied state during failure
   auto injectedPrefix = makeSidPrefix("fc00:999::1", 48);
@@ -718,60 +921,56 @@ TEST(RibMySidUpdate, rollbackPreservesAppliedStateMySids) {
 
   FailWithMySidInAppliedState failWithInjected(injectedMySids);
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {makeMySidEntry("fc00:100::1", 48)},
           {},
           "fail with injected mysid",
           failWithInjected,
-          &switchState),
+          &switchState_),
       FbossHwUpdateError);
 
   // RIB mySidTable should be reconstructed from applied state,
   // which has the injected entry (not the entry we tried to add)
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   EXPECT_NE(mySidTable.find(injectedPrefix), mySidTable.end());
   EXPECT_EQ(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
 }
 
-TEST(RibMySidUpdate, rollbackWithPreExistingEntries) {
+TEST_F(RibMySidRollbackTest, rollbackWithPreExistingEntries) {
   // Verify rollback when the RIB already has MySid entries.
   // After a failed add, the RIB should reflect the applied state's MySids,
   // not the pre-update RIB state.
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
 
   // Successfully add an initial MySid entry
-  rib.update(
+  rib_.update(
       scopeResolver(),
       {makeMySidEntry("fc00:100::1", 48)},
       {},
       "add initial mysid",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
-  EXPECT_NE(switchState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+      &switchState_);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
+  EXPECT_NE(switchState_->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
 
   // Now fail an update that tries to add a second entry.
   // The applied state contains the original entry (fc00:100::1/48).
   FailMySidUpdate failUpdate;
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           {makeMySidEntry("fc00:200::1", 64)},
           {},
           "fail second add",
           failUpdate,
-          &switchState),
+          &switchState_),
       FbossHwUpdateError);
 
   // RIB mySidTable should be reconstructed from applied state,
   // which still has only the original entry
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 1);
   EXPECT_NE(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
@@ -779,40 +978,36 @@ TEST(RibMySidUpdate, rollbackWithPreExistingEntries) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 }
 
-TEST(RibMySidUpdate, rollbackDeleteRestoresEntries) {
+TEST_F(RibMySidRollbackTest, rollbackDeleteRestoresEntries) {
   // Verify rollback when a delete fails.
   // The applied state still has the entry we tried to delete.
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
 
   // Successfully add two MySid entries
-  rib.update(
+  rib_.update(
       scopeResolver(),
       {makeMySidEntry("fc00:100::1", 48), makeMySidEntry("fc00:200::1", 64)},
       {},
       "add mysids",
       mySidToSwitchStateUpdate,
-      &switchState);
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 2);
+      &switchState_);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 2);
 
   // Fail an update that tries to delete one entry.
   // The applied state still has both entries.
   FailMySidUpdate failUpdate;
   EXPECT_THROW(
-      rib.update(
+      rib_.update(
           scopeResolver(),
           std::vector<MySidEntry>{},
           {toIpPrefix("fc00:100::1", 48)},
           "fail delete",
           failUpdate,
-          &switchState),
+          &switchState_),
       FbossHwUpdateError);
 
   // RIB mySidTable should be reconstructed from applied state,
   // which still has both entries (delete was not applied to HW)
-  auto mySidTable = rib.getMySidTableCopy();
+  auto mySidTable = rib_.getMySidTableCopy();
   EXPECT_EQ(mySidTable.size(), 2);
   EXPECT_NE(
       mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
@@ -820,13 +1015,11 @@ TEST(RibMySidUpdate, rollbackDeleteRestoresEntries) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 }
 
-TEST(RibMySidUpdate, updaterClonesPublishedState) {
+TEST_F(RibMySidSwitchStateTest, updaterClonesPublishedState) {
   // Verify that MySidMapUpdater clones the state before mutating it.
   // A previous bug had MySidMapUpdater returning a shared_ptr copy (not a
   // clone), which mutated the already-published input state and caused an
   // assertion failure.
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
 
   // Build a RIB MySidTable with one entry
   MySidTable mySidTable;
@@ -834,35 +1027,31 @@ TEST(RibMySidUpdate, updaterClonesPublishedState) {
   mySidTable[prefix] = makeMySid(prefix);
 
   MySidMapUpdater updater(scopeResolver(), mySidTable);
-  auto newState = updater(switchState);
+  auto newState = updater(switchState_);
 
   // Returned state must be a different object (cloned, not aliased)
-  EXPECT_NE(newState.get(), switchState.get());
+  EXPECT_NE(newState.get(), switchState_.get());
   // Original published state must not have been mutated
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
   // New state should have the entry
   EXPECT_NE(newState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
 }
 
-TEST(RibMySidUpdate, emptyUpdate) {
-  RoutingInformationBase rib;
-  rib.ensureVrf(kRid);
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-  auto origState = switchState;
+TEST_F(RibMySidCrudTest, emptyUpdate) {
+  auto origState = switchState_;
 
   // Empty update should be a no-op
-  rib.update(
+  rib_.update(
       scopeResolver(),
       std::vector<MySidEntry>{},
       std::vector<IpPrefix>{},
       "empty mysid update",
       mySidToSwitchStateUpdate,
-      &switchState);
+      &switchState_);
 
-  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
   // switchState should not change on empty update
-  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  EXPECT_EQ(switchState_->getMySids()->numNodes(), 0);
 }
 
 class RibMySidNextHopTest : public ::testing::Test {
@@ -875,10 +1064,10 @@ class RibMySidNextHopTest : public ::testing::Test {
     rib_->ensureVrf(kRid);
   }
 
-  // Materialize the unresolveNextHopsId for `prefix` into a value to dodge
-  // the thrift `field_ref` lifetime trap: getMySidTableCopy() returns a
-  // temporary, and the field_ref returned by unresolveNextHopsId() points
-  // into it.
+  void TearDown() override {
+    FLAGS_enable_nexthop_id_manager = false;
+  }
+
   std::optional<int64_t> getUnresolveId(
       const folly::CIDRNetworkV6& prefix) const {
     const auto table = rib_->getMySidTableCopy();
@@ -890,6 +1079,16 @@ class RibMySidNextHopTest : public ::testing::Test {
       return *v;
     }
     return std::nullopt;
+  }
+
+  std::vector<MySidWithNextHops> makePair(
+      const std::string& addr,
+      uint8_t len,
+      MySidType type = MySidType::DECAPSULATE_AND_LOOKUP,
+      RouteNextHopSet nhops = {}) {
+    auto mySid = makeMySid(makeSidPrefix(addr, len), type);
+    mySid->setClientId(ClientID::STATIC_ROUTE);
+    return {{std::move(mySid), std::move(nhops), std::nullopt}};
   }
 
   std::unique_ptr<RoutingInformationBase> rib_;
@@ -2166,40 +2365,524 @@ TEST_F(RibMySidNextHopTest, reconfigureOverwritesTeAgentAtSamePrefix) {
       << "Pass 2 silently leaked the overwritten TE_AGENT entry's nhop id";
 }
 
-// Tests for the update(MySidWithNextHops) / updateAsync(MySidWithNextHops)
-// overloads — pre-built MySid state objects + parallel next-hop sets, used by
-// the config + neighbor-observer paths.
-class RibMySidWithNextHopsUpdateTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    FLAGS_enable_nexthop_id_manager = true;
-    rib_ = std::make_unique<RoutingInformationBase>();
-    switchState_ = std::make_shared<SwitchState>();
-    switchState_->publish();
-    rib_->ensureVrf(kRid);
+TEST_F(RibMySidNextHopTest, bindingSidResolvesOverOpenrRouteRetainsSrv6Fields) {
+  // Step 1: Inject interface routes for the link-local subnet so link-local
+  // nexthops are valid.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("fe80::"), 64}] = {
+      InterfaceID(1), folly::IPAddress("fe80::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  // Step 2: Add an OpenR route for 2001:db8::/32 with a link-local nexthop.
+  // This simulates how OpenR programs routes — the nexthop is link-local
+  // with an interface scope.
+  UnicastRoute openrRoute;
+  IpPrefix routePrefix;
+  routePrefix.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::"));
+  routePrefix.prefixLength() = 32;
+  openrRoute.dest() = routePrefix;
+  NextHopThrift llNhop;
+  auto llAddr =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::1"));
+  llAddr.ifName() = "fboss1";
+  llNhop.address() = llAddr;
+  openrRoute.nextHops() = {llNhop};
+
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      std::vector<UnicastRoute>{openrRoute},
+      std::vector<IpPrefix>{},
+      false,
+      "add openr route with link-local nexthop",
+      noopFibUpdate,
+      &switchState_);
+
+  // Step 3: Add a BINDING_MICRO_SID with a gateway nexthop carrying SRV6
+  // fields. The gateway 2001:db8::1 resolves recursively through the OpenR
+  // route above, whose link-local nexthop fe80::1 is already resolved.
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10")),
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::20"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop};
+
+  rib_->update(
+      scopeResolver(),
+      {entry},
+      {},
+      "add binding sid with srv6 nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  // Verify both unresolved and resolved IDs are set.
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto mySidEntry = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySidEntry.unresolveNextHopsId().has_value());
+  ASSERT_TRUE(mySidEntry.resolvedNextHopsId().has_value());
+
+  // Verify the resolved nexthop is the link-local address from the OpenR
+  // route but retains the SRV6 fields from the binding SID's original nexthop.
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  const auto resolvedNhops =
+      manager->getNextHopsIf(NextHopSetID(*mySidEntry.resolvedNextHopsId()));
+  ASSERT_TRUE(resolvedNhops.has_value());
+  ASSERT_EQ(resolvedNhops->size(), 1);
+
+  const auto& resolvedNh = *resolvedNhops->begin();
+  EXPECT_TRUE(resolvedNh.intfID().has_value());
+  EXPECT_EQ(resolvedNh.addr(), folly::IPAddress("fe80::1"));
+
+  const std::vector<folly::IPAddressV6> expectedSidList = {
+      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  EXPECT_EQ(resolvedNh.srv6SegmentList(), expectedSidList);
+  ASSERT_TRUE(resolvedNh.tunnelType().has_value());
+  EXPECT_EQ(*resolvedNh.tunnelType(), TunnelType::SRV6_ENCAP);
+  ASSERT_TRUE(resolvedNh.tunnelId().has_value());
+  EXPECT_EQ(*resolvedNh.tunnelId(), "tunnel1");
+}
+
+TEST_F(
+    RibMySidNextHopTest,
+    bindingSidTwoNextHopsEachResolveOverTwoLinkLocalNextHops) {
+  // Set up interface routes for two link-local subnets on two interfaces.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("fe80::"), 64}] = {
+      InterfaceID(1), folly::IPAddress("fe80::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  // Add an OpenR route for 2001:db8:1::/48 with two link-local nexthops.
+  UnicastRoute openrRoute1;
+  IpPrefix prefix1;
+  prefix1.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:1::"));
+  prefix1.prefixLength() = 48;
+  openrRoute1.dest() = prefix1;
+  NextHopThrift llNhop1a;
+  auto llAddr1a =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::1"));
+  llAddr1a.ifName() = "fboss1";
+  llNhop1a.address() = llAddr1a;
+  NextHopThrift llNhop1b;
+  auto llAddr1b =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::2"));
+  llAddr1b.ifName() = "fboss2";
+  llNhop1b.address() = llAddr1b;
+  openrRoute1.nextHops() = {llNhop1a, llNhop1b};
+
+  // Add an OpenR route for 2001:db8:2::/48 with two link-local nexthops.
+  UnicastRoute openrRoute2;
+  IpPrefix prefix2;
+  prefix2.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:2::"));
+  prefix2.prefixLength() = 48;
+  openrRoute2.dest() = prefix2;
+  NextHopThrift llNhop2a;
+  auto llAddr2a =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::3"));
+  llAddr2a.ifName() = "fboss3";
+  llNhop2a.address() = llAddr2a;
+  NextHopThrift llNhop2b;
+  auto llAddr2b =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::4"));
+  llAddr2b.ifName() = "fboss4";
+  llNhop2b.address() = llAddr2b;
+  openrRoute2.nextHops() = {llNhop2a, llNhop2b};
+
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      std::vector<UnicastRoute>{openrRoute1, openrRoute2},
+      std::vector<IpPrefix>{},
+      false,
+      "add openr routes with link-local nexthops",
+      noopFibUpdate,
+      &switchState_);
+
+  // Add a BINDING_MICRO_SID with two gateway nexthops, each with its own
+  // SID list and tunnel ID. Each gateway resolves through one of the OpenR
+  // routes above, each of which has 2 link-local nexthops → 4 total.
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop1;
+  nhop1.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:1::1"));
+  nhop1.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop1.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop1.tunnelId() = "tunnel1";
+  NextHopThrift nhop2;
+  nhop2.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:2::1"));
+  nhop2.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::20"))};
+  nhop2.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop2.tunnelId() = "tunnel2";
+  entry.nextHops() = {nhop1, nhop2};
+
+  rib_->update(
+      scopeResolver(),
+      {entry},
+      {},
+      "add binding sid with two srv6 nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto sidPrefix = makeSidPrefix("fc00:100::1", 48);
+  const auto mySidEntry = rib_->getMySidTableCopy().at(sidPrefix);
+  ASSERT_TRUE(mySidEntry.unresolveNextHopsId().has_value());
+  ASSERT_TRUE(mySidEntry.resolvedNextHopsId().has_value());
+
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  const auto resolvedNhops =
+      manager->getNextHopsIf(NextHopSetID(*mySidEntry.resolvedNextHopsId()));
+  ASSERT_TRUE(resolvedNhops.has_value());
+  ASSERT_EQ(resolvedNhops->size(), 4);
+
+  // Build expected: each of the 2 original nexthops fans out to 2 link-local
+  // nexthops, each retaining the parent's SRV6 fields.
+  const std::vector<folly::IPAddressV6> sidList1 = {
+      folly::IPAddressV6("2001:db8::10")};
+  const std::vector<folly::IPAddressV6> sidList2 = {
+      folly::IPAddressV6("2001:db8::20")};
+
+  std::map<
+      folly::IPAddress,
+      std::pair<std::vector<folly::IPAddressV6>, std::string>>
+      expectedByAddr;
+  expectedByAddr[folly::IPAddress("fe80::1")] = {sidList1, "tunnel1"};
+  expectedByAddr[folly::IPAddress("fe80::2")] = {sidList1, "tunnel1"};
+  expectedByAddr[folly::IPAddress("fe80::3")] = {sidList2, "tunnel2"};
+  expectedByAddr[folly::IPAddress("fe80::4")] = {sidList2, "tunnel2"};
+
+  for (const auto& nh : *resolvedNhops) {
+    EXPECT_TRUE(nh.intfID().has_value());
+    auto it = expectedByAddr.find(nh.addr());
+    ASSERT_NE(it, expectedByAddr.end()) << "Unexpected nexthop: " << nh.addr();
+    EXPECT_EQ(nh.srv6SegmentList(), it->second.first);
+    ASSERT_TRUE(nh.tunnelType().has_value());
+    EXPECT_EQ(*nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    ASSERT_TRUE(nh.tunnelId().has_value());
+    EXPECT_EQ(*nh.tunnelId(), it->second.second);
+    expectedByAddr.erase(it);
+  }
+  EXPECT_TRUE(expectedByAddr.empty());
+}
+
+TEST_F(RibMySidNextHopTest, bindingSidReResolvesWhenOpenrRouteNextHopsChange) {
+  // Step 1: Interface routes for link-local subnets.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("fe80::"), 64}] = {
+      InterfaceID(1), folly::IPAddress("fe80::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  // Step 2: OpenR route for 2001:db8::/32 with two link-local nexthops.
+  UnicastRoute openrRoute;
+  IpPrefix routePrefix;
+  routePrefix.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::"));
+  routePrefix.prefixLength() = 32;
+  openrRoute.dest() = routePrefix;
+  NextHopThrift llNhop1;
+  auto llAddr1 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::1"));
+  llAddr1.ifName() = "fboss1";
+  llNhop1.address() = llAddr1;
+  NextHopThrift llNhop2;
+  auto llAddr2 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::2"));
+  llAddr2.ifName() = "fboss2";
+  llNhop2.address() = llAddr2;
+  openrRoute.nextHops() = {llNhop1, llNhop2};
+
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      std::vector<UnicastRoute>{openrRoute},
+      std::vector<IpPrefix>{},
+      false,
+      "add openr route",
+      noopFibUpdate,
+      &switchState_);
+
+  // Step 3: Add a BINDING_MICRO_SID with a gateway nexthop carrying SRV6
+  // fields. Resolves through the OpenR route → 2 link-local nexthops.
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop};
+
+  rib_->update(
+      scopeResolver(),
+      {entry},
+      {},
+      "add binding sid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  // Verify initial resolution: 2 nexthops (fe80::1, fe80::2).
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  {
+    const auto mySidEntry = rib_->getMySidTableCopy().at(prefix);
+    ASSERT_TRUE(mySidEntry.resolvedNextHopsId().has_value());
+    auto manager = rib_->getNextHopIDManagerCopy();
+    const auto resolved =
+        manager->getNextHopsIf(NextHopSetID(*mySidEntry.resolvedNextHopsId()));
+    ASSERT_TRUE(resolved.has_value());
+    ASSERT_EQ(resolved->size(), 2);
+    std::set<folly::IPAddress> addrs;
+    for (const auto& nh : *resolved) {
+      addrs.insert(nh.addr());
+    }
+    EXPECT_TRUE(addrs.count(folly::IPAddress("fe80::1")));
+    EXPECT_TRUE(addrs.count(folly::IPAddress("fe80::2")));
   }
 
-  void TearDown() override {
-    // Reset the global gflag we toggled in SetUp so it doesn't leak into
-    // tests that follow in the same binary.
-    FLAGS_enable_nexthop_id_manager = false;
+  // Step 4: Update the OpenR route — change link-local nexthops to different
+  // addresses on different interfaces.
+  UnicastRoute updatedRoute;
+  updatedRoute.dest() = routePrefix;
+  NextHopThrift llNhop3;
+  auto llAddr3 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::3"));
+  llAddr3.ifName() = "fboss3";
+  llNhop3.address() = llAddr3;
+  NextHopThrift llNhop4;
+  auto llAddr4 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::4"));
+  llAddr4.ifName() = "fboss4";
+  llNhop4.address() = llAddr4;
+  updatedRoute.nextHops() = {llNhop3, llNhop4};
+
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      std::vector<UnicastRoute>{updatedRoute},
+      std::vector<IpPrefix>{},
+      false,
+      "update openr route nexthops",
+      noopFibUpdate,
+      &switchState_);
+
+  // Verify re-resolution: nexthops should now be fe80::3 and fe80::4,
+  // still retaining the SRV6 fields from the binding SID's original nexthop.
+  const auto mySidEntry = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySidEntry.resolvedNextHopsId().has_value());
+
+  auto manager = rib_->getNextHopIDManagerCopy();
+  const auto resolvedNhops =
+      manager->getNextHopsIf(NextHopSetID(*mySidEntry.resolvedNextHopsId()));
+  ASSERT_TRUE(resolvedNhops.has_value());
+  ASSERT_EQ(resolvedNhops->size(), 2);
+
+  const std::vector<folly::IPAddressV6> expectedSidList = {
+      folly::IPAddressV6("2001:db8::10")};
+  for (const auto& nh : *resolvedNhops) {
+    EXPECT_TRUE(nh.intfID().has_value());
+    EXPECT_TRUE(
+        nh.addr() == folly::IPAddress("fe80::3") ||
+        nh.addr() == folly::IPAddress("fe80::4"));
+    EXPECT_EQ(nh.srv6SegmentList(), expectedSidList);
+    ASSERT_TRUE(nh.tunnelType().has_value());
+    EXPECT_EQ(*nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    ASSERT_TRUE(nh.tunnelId().has_value());
+    EXPECT_EQ(*nh.tunnelId(), "tunnel1");
+  }
+}
+
+TEST_F(RibMySidNextHopTest, bindingSidUpdatedToNewNextHopsResolvesRecursively) {
+  // Step 1: Interface routes for link-local subnets.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("fe80::"), 64}] = {
+      InterfaceID(1), folly::IPAddress("fe80::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  // Step 2: Two OpenR routes with link-local nexthops.
+  UnicastRoute openrRoute1;
+  IpPrefix prefix1;
+  prefix1.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:1::"));
+  prefix1.prefixLength() = 48;
+  openrRoute1.dest() = prefix1;
+  NextHopThrift llNhop1;
+  auto llAddr1 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::1"));
+  llAddr1.ifName() = "fboss1";
+  llNhop1.address() = llAddr1;
+  openrRoute1.nextHops() = {llNhop1};
+
+  UnicastRoute openrRoute2;
+  IpPrefix prefix2;
+  prefix2.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:2::"));
+  prefix2.prefixLength() = 48;
+  openrRoute2.dest() = prefix2;
+  NextHopThrift llNhop2;
+  auto llAddr2 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::2"));
+  llAddr2.ifName() = "fboss2";
+  llNhop2.address() = llAddr2;
+  openrRoute2.nextHops() = {llNhop2};
+
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      std::vector<UnicastRoute>{openrRoute1, openrRoute2},
+      std::vector<IpPrefix>{},
+      false,
+      "add openr routes",
+      noopFibUpdate,
+      &switchState_);
+
+  // Step 3: Add BINDING_MICRO_SID pointing to 2001:db8:1::1 with SRV6 fields.
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop1;
+  nhop1.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:1::1"));
+  nhop1.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop1.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop1.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop1};
+
+  rib_->update(
+      scopeResolver(),
+      {entry},
+      {},
+      "add binding sid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  // Verify initial resolution: resolves to fe80::1.
+  const auto sidPrefix = makeSidPrefix("fc00:100::1", 48);
+  {
+    const auto mySidEntry = rib_->getMySidTableCopy().at(sidPrefix);
+    ASSERT_TRUE(mySidEntry.resolvedNextHopsId().has_value());
+    auto manager = rib_->getNextHopIDManagerCopy();
+    const auto resolved =
+        manager->getNextHopsIf(NextHopSetID(*mySidEntry.resolvedNextHopsId()));
+    ASSERT_TRUE(resolved.has_value());
+    ASSERT_EQ(resolved->size(), 1);
+    EXPECT_EQ(resolved->begin()->addr(), folly::IPAddress("fe80::1"));
+    EXPECT_EQ(*resolved->begin()->tunnelId(), "tunnel1");
   }
 
-  std::vector<MySidWithNextHops> makePair(
-      const std::string& addr,
-      uint8_t len,
-      MySidType type = MySidType::DECAPSULATE_AND_LOOKUP,
-      RouteNextHopSet nhops = {}) {
-    auto mySid = makeMySid(makeSidPrefix(addr, len), type);
-    mySid->setClientId(ClientID::STATIC_ROUTE);
-    return {{std::move(mySid), std::move(nhops)}};
-  }
+  // Step 4: Update the binding SID to point to a different gateway with
+  // different SRV6 fields. The new gateway resolves through openrRoute2.
+  auto updatedEntry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NextHopThrift nhop2;
+  nhop2.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:2::1"));
+  nhop2.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::20")),
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::30"))};
+  nhop2.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop2.tunnelId() = "tunnel2";
+  updatedEntry.nextHops() = {nhop2};
 
-  std::unique_ptr<RoutingInformationBase> rib_;
-  std::shared_ptr<SwitchState> switchState_;
-};
+  rib_->update(
+      scopeResolver(),
+      {updatedEntry},
+      {},
+      "update binding sid nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
 
-TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateAddsEntry) {
+  // Verify re-resolution: now resolves to fe80::2 with the new SRV6 fields.
+  const auto mySidEntry = rib_->getMySidTableCopy().at(sidPrefix);
+  ASSERT_TRUE(mySidEntry.resolvedNextHopsId().has_value());
+
+  auto manager = rib_->getNextHopIDManagerCopy();
+  const auto resolvedNhops =
+      manager->getNextHopsIf(NextHopSetID(*mySidEntry.resolvedNextHopsId()));
+  ASSERT_TRUE(resolvedNhops.has_value());
+  ASSERT_EQ(resolvedNhops->size(), 1);
+
+  const auto& resolvedNh = *resolvedNhops->begin();
+  EXPECT_TRUE(resolvedNh.intfID().has_value());
+  EXPECT_EQ(resolvedNh.addr(), folly::IPAddress("fe80::2"));
+
+  const std::vector<folly::IPAddressV6> expectedSidList = {
+      folly::IPAddressV6("2001:db8::20"), folly::IPAddressV6("2001:db8::30")};
+  EXPECT_EQ(resolvedNh.srv6SegmentList(), expectedSidList);
+  ASSERT_TRUE(resolvedNh.tunnelType().has_value());
+  EXPECT_EQ(*resolvedNh.tunnelType(), TunnelType::SRV6_ENCAP);
+  ASSERT_TRUE(resolvedNh.tunnelId().has_value());
+  EXPECT_EQ(*resolvedNh.tunnelId(), "tunnel2");
+}
+
+TEST_F(RibMySidNextHopTest, syncUpdateAddsEntry) {
   rib_->update(
       scopeResolver(),
       makePair("3001:db8:1::", 48),
@@ -2214,7 +2897,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateAddsEntry) {
   EXPECT_NE(table.find(makeSidPrefix("3001:db8:1::", 48)), table.end());
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateAllocatesNextHopSetId) {
+TEST_F(RibMySidNextHopTest, syncUpdateAllocatesNextHopSetId) {
   RouteNextHopSet nhops{
       UnresolvedNextHop(folly::IPAddress("2001:db8::1"), ECMP_WEIGHT)};
   rib_->update(
@@ -2232,7 +2915,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateAllocatesNextHopSetId) {
   EXPECT_TRUE(table.at(p).unresolveNextHopsId().has_value());
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateDeletesEntry) {
+TEST_F(RibMySidNextHopTest, syncUpdateDeletesEntry) {
   rib_->update(
       scopeResolver(),
       makePair("3001:db8:1::", 48),
@@ -2254,7 +2937,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateDeletesEntry) {
   EXPECT_EQ(rib_->getMySidTableCopy().size(), 0);
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdatePropagatesException) {
+TEST_F(RibMySidNextHopTest, syncUpdatePropagatesException) {
   // Sync update must rethrow exceptions raised on the rib event-base thread —
   // captured via std::exception_ptr since folly's runInFbossEventBaseThread-
   // AndWait does not propagate.
@@ -2271,7 +2954,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdatePropagatesException) {
       FbossHwUpdateError);
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateAddsEntryAfterDrain) {
+TEST_F(RibMySidNextHopTest, asyncUpdateAddsEntryAfterDrain) {
   rib_->updateAsync(
       scopeResolver(),
       makePair("3001:db8:1::", 48),
@@ -2290,7 +2973,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateAddsEntryAfterDrain) {
   EXPECT_NE(table.find(makeSidPrefix("3001:db8:1::", 48)), table.end());
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateDeletesEntryAfterDrain) {
+TEST_F(RibMySidNextHopTest, asyncUpdateDeletesEntryAfterDrain) {
   // Seed an entry synchronously
   rib_->update(
       scopeResolver(),
@@ -2321,7 +3004,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateDeletesEntryAfterDrain) {
 // actually contains the removed neighbor's IP — observer can't do this
 // match itself because it only sees a NextHopSetID.
 
-TEST_F(RibMySidWithNextHopsUpdateTest, unresolveIfMatchClearsWhenIpMatches) {
+TEST_F(RibMySidNextHopTest, unresolveIfMatchClearsWhenIpMatches) {
   const folly::IPAddress neigh1("2001:db8::1");
   RouteNextHopSet nhops{UnresolvedNextHop(neigh1, ECMP_WEIGHT)};
   rib_->update(
@@ -2348,9 +3031,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, unresolveIfMatchClearsWhenIpMatches) {
       rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
 }
 
-TEST_F(
-    RibMySidWithNextHopsUpdateTest,
-    unresolveIfMatchSkipsWhenIpDoesNotMatch) {
+TEST_F(RibMySidNextHopTest, unresolveIfMatchSkipsWhenIpDoesNotMatch) {
   // Materialize the unresolveNextHopsId into a value — the field_ref
   // returned by unresolveNextHopsId() points into the temporary table,
   // so it can't outlive a single statement.
@@ -2395,7 +3076,7 @@ TEST_F(
   EXPECT_EQ(materializeId(prefix), idBefore);
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, unresolveIfMatchUnknownPrefixIsNoOp) {
+TEST_F(RibMySidNextHopTest, unresolveIfMatchUnknownPrefixIsNoOp) {
   // No entries at all — match-and-clear must not crash.
   const folly::IPAddress neigh1("2001:db8::1");
   rib_->update(
@@ -2409,9 +3090,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, unresolveIfMatchUnknownPrefixIsNoOp) {
   EXPECT_EQ(rib_->getMySidTableCopy().size(), 0);
 }
 
-TEST_F(
-    RibMySidWithNextHopsUpdateTest,
-    unresolveIfMatchOnEntryWithNoUnresolvedIdIsNoOp) {
+TEST_F(RibMySidNextHopTest, unresolveIfMatchOnEntryWithNoUnresolvedIdIsNoOp) {
   // DECAP entry has no unresolveNextHopsId. Match-and-clear must skip.
   rib_->update(
       scopeResolver(),
@@ -2437,7 +3116,7 @@ TEST_F(
       rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
 }
 
-TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdatesAreSerialized) {
+TEST_F(RibMySidNextHopTest, asyncUpdatesAreSerialized) {
   // Multiple async updates run sequentially on the same event-base thread and
   // are observable after a single drain.
   for (int i = 1; i <= 3; ++i) {

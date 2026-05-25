@@ -238,6 +238,9 @@ class NetcastleTestRunner(BaseTestRunner):
         if asic_options.regex:
             cmd.extend(["--regex", asic_options.regex])
 
+        if self.config.remote:
+            cmd.append("--sandcastle")
+
         return cmd, asic_type.value, sdk_project_version, npu_mode, multi_stage
 
     def _generate_log_filename(

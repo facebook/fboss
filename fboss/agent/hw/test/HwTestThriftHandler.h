@@ -154,6 +154,14 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   bool validateUdfIdsInQset(int aclGroupId, bool isSet) override;
 
+  // pfc related APIs
+  bool getPfcEnabled(int32_t portId, bool rx) override;
+  bool pfcWatchdogProgrammingMatchesConfig(
+      int32_t portId,
+      bool watchdogEnabled,
+      std::unique_ptr<cfg::PfcWatchdog> watchdog) override;
+  int32_t getPfcWatchdogRecoveryAction(int32_t portId) override;
+
   int32_t getNumTeFlowEntries() override;
   bool checkSwHwTeFlowMatch(
       std::unique_ptr<::facebook::fboss::state::TeFlowEntryFields>
@@ -207,6 +215,20 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
   void getVlanToNumPorts(std::map<int32_t, int32_t>& vlanToNumPorts) override;
 
   bool isAclTableGroupEnabled(int32_t aclStage) override;
+
+  bool verifyResolvedMirror(
+      std::unique_ptr<state::MirrorFields> mirror) override;
+  bool verifyUnResolvedMirror(
+      std::unique_ptr<state::MirrorFields> mirror) override;
+  bool verifyPortMirrorDestination(
+      int32_t port,
+      int32_t flags,
+      int64_t mirrorDestID) override;
+
+  bool verifyPortNoMirrorDestination(int32_t port, int32_t flags) override;
+  void getAllMirrorDestinations(::std::vector<int64_t>& destinations) override;
+
+  bool isMirrorSflowTunnelEnabled(int64_t destination) override;
 
  private:
   HwSwitch* hwSwitch_;

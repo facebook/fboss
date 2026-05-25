@@ -1017,15 +1017,39 @@ void SaiSwitch::switchEventCallback(
 #if defined(SAI_VERSION_12_2_0_0_DNX_ODP) || \
     defined(SAI_VERSION_14_0_EA_DNX_ODP) ||  \
     defined(SAI_VERSION_14_2_0_0_DNX_ODP)
-    case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_LINK_DISABLE:
-      auto fwDisabledPortId = eventInfo->index;
+    case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_LINK_DISABLE: {
+      auto fwDisabledSdkPortId = eventInfo->index;
       XLOG(ERR) << "Firmware Auto Admin Link Disable callback received: "
                 << " error type: " << errorType(eventInfo->error_type)
                 << " Auto Admin disabled link: "
-                << static_cast<int>(fwDisabledPortId);
+                << static_cast<int>(fwDisabledSdkPortId)
+#if defined(SAI_VERSION_14_2_0_0_DNX_ODP)
+                << " object_id: 0x" << std::hex << eventInfo->object_id
+                << std::dec
+#endif
+          ;
 
       if (eventInfo->error_type ==
           SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_LINK_DISABLE) {
+        int32_t fwDisabledFbossPortId = fwDisabledSdkPortId;
+#if defined(SAI_VERSION_14_2_0_0_DNX_ODP)
+        if (eventInfo->object_id != SAI_NULL_OBJECT_ID) {
+          const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(
+              PortSaiId(eventInfo->object_id));
+          if (portItr != concurrentIndices_->portSaiId2PortInfo.cend()) {
+            fwDisabledFbossPortId = portItr->second.portID;
+            XLOG(DBG2) << "Resolved SAI port OID 0x" << std::hex
+                       << eventInfo->object_id << std::dec
+                       << " to FBOSS PortID " << fwDisabledFbossPortId
+                       << " (raw hw link index: " << fwDisabledSdkPortId << ")";
+          } else {
+            XLOG(FATAL) << "Failed to resolve SAI port OID "
+                        << eventInfo->object_id
+                        << " to FBOSS PortID for fw disabled link "
+                        << fwDisabledSdkPortId;
+          }
+        }
+#endif
         // Link active/inactive callback and Firmware device isolate is
         // processed by txReadyStatusChangeOrFwIsolateCallbackBottomHalf.
         // Schedule Firmware link disable callback Bottom half in the same event
@@ -1035,18 +1059,19 @@ void SaiSwitch::switchEventCallback(
         // want to process Firmare link disable, thus unconditionally queue for
         // processing regardless of txReadyStatusCHangePending_.
         txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
-            [this, fwDisabledPortId]() mutable {
-              fwDisabledLinksCallbackBottomHalf({fwDisabledPortId});
+            [this, fwDisabledFbossPortId]() mutable {
+              fwDisabledLinksCallbackBottomHalf({fwDisabledFbossPortId});
             });
 
       } else {
         XLOG(ERR)
             << "Firmware Auto link disable callback received with invalid info"
             << " error type: " << errorType(eventInfo->error_type)
-            << " Auto Admin disabled link: " << fwDisabledPortId;
+            << " Auto Admin disabled link: " << fwDisabledSdkPortId;
       }
 
       break;
+    }
 #endif
   }
 }

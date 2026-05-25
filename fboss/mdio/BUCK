@@ -49,6 +49,7 @@ cpp_library(
         "FbFpgaMdio.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":mdio",
         "//fboss/lib/fpga:facebook_fpga",
         "//fboss/lib/fpga:fpga_device",

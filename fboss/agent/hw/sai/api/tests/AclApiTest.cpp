@@ -577,6 +577,7 @@ class AclApiTest : public ::testing::Test {
          aclUserDefinedGroup3,
          aclUserDefinedGroup4,
          aclActionPacketAction,
+         std::nullopt, // actionRedirect
          aclActionCounter,
          aclActionSetTC,
          aclActionSetDSCP,
@@ -1733,4 +1734,18 @@ TEST_F(AclApiTest, formatAclTableGroupMemberAttribute) {
   SaiAclTableGroupMemberTraits::Attributes::TableGroupId tableGroupId{0};
   std::string expected("TableGroupId: 0");
   EXPECT_EQ(expected, fmt::format("{}", tableGroupId));
+}
+
+TEST_F(AclApiTest, setAndGetAclEntryActionRedirect) {
+  auto aclTableId = createAclTable();
+  auto aclEntryId = createAclEntry(aclTableId);
+
+  sai_object_id_t redirectTarget = 42;
+  SaiAclEntryTraits::Attributes::ActionRedirect actionRedirect{
+      AclEntryActionSaiObjectIdT(redirectTarget)};
+  aclApi->setAttribute(aclEntryId, actionRedirect);
+
+  auto gotRedirect = aclApi->getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::ActionRedirect());
+  EXPECT_EQ(gotRedirect.getData(), redirectTarget);
 }

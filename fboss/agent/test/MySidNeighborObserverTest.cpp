@@ -7,6 +7,8 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -159,13 +161,32 @@ TEST_F(MySidNeighborObserverTest, NeighborAddedResolvesMySid) {
   waitForMySidResolution("3001:db8:1::/48", true /* resolved */);
 }
 
-TEST_F(MySidNeighborObserverTest, LinkLocalNeighborIgnored) {
+TEST_F(MySidNeighborObserverTest, LinkLocalNeighborResolved) {
   addConfigAdjacencyMySid();
   waitForMySidResolution("3001:db8:1::/48", false /* unresolved */);
 
-  // Add a link-local neighbor — should NOT resolve the MySid
+  // Add a link-local neighbor — observer should resolve the MySid using
+  // the neighbor's link-local IP scoped by the MySid's adjacency intf.
   resolveNdpNeighbor("fe80::1", InterfaceID(1));
-  waitForMySidResolution("3001:db8:1::/48", false /* still unresolved */);
+  waitForMySidResolution("3001:db8:1::/48", true /* resolved */);
+
+  // Deep-verify the resolved nhop carries the expected LL IP scoped by
+  // the MySid's adjacencyInterfaceId. The intf scoping proves the
+  // RouteNextHop link-local-needs-interface invariant (RouteNextHop.cpp)
+  // is satisfied — without it, a bare LL UnresolvedNextHop would throw.
+  auto mySid = getMySid("3001:db8:1::/48");
+  ASSERT_NE(mySid, nullptr);
+  ASSERT_TRUE(mySid->getAdjacencyInterfaceId().has_value());
+  EXPECT_EQ(*mySid->getAdjacencyInterfaceId(), 1);
+  ASSERT_TRUE(mySid->getResolvedNextHopsId().has_value());
+  auto nhopMgr = sw_->getRib()->getNextHopIDManagerCopy();
+  ASSERT_NE(nhopMgr, nullptr);
+  auto resolvedSet = nhopMgr->getNextHops(*mySid->getResolvedNextHopsId());
+  ASSERT_EQ(resolvedSet.size(), 1);
+  const auto& nhop = *resolvedSet.begin();
+  EXPECT_EQ(nhop.addr(), folly::IPAddress("fe80::1"));
+  ASSERT_TRUE(nhop.intfID().has_value());
+  EXPECT_EQ(*nhop.intfID(), InterfaceID(1));
 }
 
 TEST_F(MySidNeighborObserverTest, NeighborRemovedUnresolvesMySid) {
@@ -185,12 +206,20 @@ TEST_F(MySidNeighborObserverTest, RpcMySidNotAffectedByNeighbor) {
   ThriftHandler handler(sw_);
   auto entries = std::make_unique<std::vector<MySidEntry>>();
   MySidEntry entry;
-  entry.type() = MySidType::DECAPSULATE_AND_LOOKUP;
+  entry.type() = MySidType::BINDING_MICRO_SID;
   facebook::network::thrift::IPPrefix prefix;
   prefix.prefixAddress() =
       facebook::network::toBinaryAddress(folly::IPAddress("2001:db8::1"));
   prefix.prefixLength() = 64;
   entry.mySid() = prefix;
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
+  entry.nextHops() = {nhop};
   entries->push_back(entry);
   handler.addMySidEntries(std::move(entries));
 

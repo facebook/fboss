@@ -139,6 +139,11 @@ int main(int argc, char* argv[]) {
     return EX_USAGE;
   }
 
+  if (FLAGS_port_info_summary && !FLAGS_direct_i2c) {
+    fprintf(stderr, "--port_info_summary requires --direct_i2c\n");
+    return EX_USAGE;
+  }
+
   // Verify the select command is working properly with regard to the
   // --direct-i2c option
   if (!verifyDirectI2cCompliance()) {
@@ -335,6 +340,7 @@ int main(int argc, char* argv[]) {
   }
 
   int retcode = EX_OK;
+  std::vector<PortInfoSummary> portInfoSummaries;
   for (unsigned int portNum : ports) {
     if (FLAGS_clear_low_power && overrideLowPower(portNum, false)) {
       printf("QSFP %d: cleared low power flags\n", portNum);
@@ -397,13 +403,19 @@ int main(int argc, char* argv[]) {
 
     if (FLAGS_direct_i2c && printInfo) {
       try {
-        // Get the port details from the direct i2c read and then print out
-        // the i2c info from module
-        auto logicalPorts = folly::join(
-            ", ", getPortNames(portNum - 1, transceiverIdToPortNames));
+        auto portNameList = getPortNames(portNum - 1, transceiverIdToPortNames);
         DOMDataUnion dataUnion;
         fetchDataFromLocalI2CBus(i2cInfo, portNum, dataUnion);
-        printPortDetail(dataUnion, portNum, logicalPorts);
+        if (FLAGS_port_info_summary) {
+          auto firstPort = portNameList.empty() ? "" : *portNameList.begin();
+          auto summary = getPortInfoSummary(dataUnion, portNum, firstPort);
+          if (summary) {
+            portInfoSummaries.push_back(std::move(*summary));
+          }
+        } else {
+          auto logicalPorts = folly::join(", ", portNameList);
+          printPortDetail(dataUnion, portNum, logicalPorts);
+        }
       } catch (const I2cError& ex) {
         // This generally means the QSFP module is not present.
         fprintf(stderr, "Port %d: not present: %s\n", portNum, ex.what());
@@ -465,6 +477,9 @@ int main(int argc, char* argv[]) {
         getModulePrbsStats(i2cInfo, swPortList);
       }
     }
+  }
+  if (FLAGS_port_info_summary) {
+    printPortInfoSummary(portInfoSummaries);
   }
 
   if (FLAGS_qsfp_reset) {

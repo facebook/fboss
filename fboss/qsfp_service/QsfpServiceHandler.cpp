@@ -560,6 +560,54 @@ void QsfpServiceHandler::saiPhySerdesRegisterAccess(
   }
 }
 
+void QsfpServiceHandler::ensurePaiDiagShell() {
+  std::lock_guard<std::mutex> lock(paiDiagInitLock_);
+  if (paiDiagShell_) {
+    return;
+  }
+  PhyManager* phyMgr = FLAGS_port_manager_mode ? portManager_->getPhyManager()
+                                               : tcvrManager_->getPhyManager();
+  if (!phyMgr) {
+    throw FbossError("PaiDiagShell: no PhyManager available");
+  }
+  uint64_t switchId = getFirstSaiSwitchIdForPaiDiagShell(phyMgr);
+  paiDiagShell_ = std::make_unique<StreamingPaiDiagShell>(switchId);
+  paiDiagCmdServer_ = std::make_unique<PaiDiagCmdServer>(paiDiagShell_.get());
+  XLOG(INFO) << "PAI diag shell initialized for switchId=0x" << std::hex
+             << switchId;
+}
+
+apache::thrift::ResponseAndServerStream<std::string, std::string>
+QsfpServiceHandler::startPaiDiagShell() {
+  auto log = LOG_THRIFT_CALL(INFO);
+  ensurePaiDiagShell();
+  paiDiagShell_->tryConnect();
+  auto streamAndPublisher =
+      apache::thrift::ServerStream<std::string>::createPublisher(
+          [this]() { paiDiagShell_->markResetPublisher(); });
+  std::string firstPrompt =
+      paiDiagShell_->start(std::move(streamAndPublisher.second));
+  return {firstPrompt, std::move(streamAndPublisher.first)};
+}
+
+void QsfpServiceHandler::producePaiDiagShellInput(
+    std::unique_ptr<std::string> input,
+    std::unique_ptr<ClientInformation> client) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  ensurePaiDiagShell();
+  paiDiagShell_->consumeInput(std::move(input), std::move(client));
+}
+
+void QsfpServiceHandler::paiDiagCmd(
+    std::string& result,
+    std::unique_ptr<std::string> input,
+    std::unique_ptr<ClientInformation> client) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  ensurePaiDiagShell();
+  std::lock_guard<std::mutex> lock(paiDiagCmdLock_);
+  result = paiDiagCmdServer_->paiDiagCmd(std::move(input), std::move(client));
+}
+
 void QsfpServiceHandler::phyConfigCheckHw(
     std::string& out,
     std::unique_ptr<std::string> portName) {

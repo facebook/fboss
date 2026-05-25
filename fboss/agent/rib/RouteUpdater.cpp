@@ -182,6 +182,19 @@ void RibRouteUpdater::updateImpl(
   }
 }
 
+void RibRouteUpdater::releaseFwdSideNexthopSetIDs(
+    const RouteNextHopEntry& fwd) {
+  if (!nextHopIDManager_) {
+    return;
+  }
+  if (auto id = fwd.getResolvedNextHopSetID()) {
+    nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
+  }
+  if (auto id = fwd.getNormalizedResolvedNextHopSetID()) {
+    nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
+  }
+}
+
 template <typename AddressT>
 void RibRouteUpdater::addOrReplaceRouteImpl(
     const Prefix<AddressT>& prefix,
@@ -276,20 +289,17 @@ void RibRouteUpdater::delRouteImpl(
   if (!clientNhopEntry) {
     return;
   }
+  if (nextHopIDManager_) {
+    auto clientNhopSetId = clientNhopEntry->getClientNextHopSetID();
+    if (clientNhopSetId.has_value()) {
+      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*clientNhopSetId);
+    }
+  }
   maybeRemoveNamedNhgMapping(route, *clientNhopEntry);
   if (route->numClientEntries() == 1) {
     // If this client's the only entry, simply erase
     XLOG(DBG3) << "Deleting route: " << route->str();
-    auto oldNextHopSetID = route->getForwardInfo().getResolvedNextHopSetID();
-    auto oldNormalizedNextHopSetID =
-        route->getForwardInfo().getNormalizedResolvedNextHopSetID();
-    if (nextHopIDManager_ && oldNextHopSetID.has_value()) {
-      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
-    }
-    if (nextHopIDManager_ && oldNormalizedNextHopSetID.has_value()) {
-      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
-          *oldNormalizedNextHopSetID);
-    }
+    releaseFwdSideNexthopSetIDs(route->getForwardInfo());
     routes->erase(it);
   } else {
     route = writableRoute<AddressT>(it);
@@ -328,9 +338,18 @@ void RibRouteUpdater::delRoute(const LabelID& label, const ClientID clientID) {
   if (!clientNhopEntry) {
     return;
   }
+  // Release per-client clientNextHopSetID (symmetric with allocation in
+  // addOrReplaceRoute(LabelID, ...)).
+  if (nextHopIDManager_) {
+    auto clientNhopSetId = clientNhopEntry->getClientNextHopSetID();
+    if (clientNhopSetId.has_value()) {
+      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*clientNhopSetId);
+    }
+  }
   if (route->numClientEntries() == 1) {
     // If this client's the only entry, simply erase
     XLOG(DBG3) << "Deleting route: " << route->str();
+    releaseFwdSideNexthopSetIDs(route->getForwardInfo());
     mplsRoutes_->erase(it);
   } else {
     route = writableRoute<LabelID>(route);
@@ -353,16 +372,24 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
     if (!nhopEntry) {
       continue;
     }
+    if (nextHopIDManager_) {
+      auto clientNhopSetId = nhopEntry->getClientNextHopSetID();
+      if (clientNhopSetId.has_value()) {
+        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*clientNhopSetId);
+      }
+    }
     maybeRemoveNamedNhgMapping(route, *nhopEntry);
     if (route->numClientEntries() == 1) {
       // This client's is the only entry avoid unnecessary cloning
-      // we are going to prune the route anyways
+      // we are going to prune the route anyways. Release fwd-side IDs first.
+      releaseFwdSideNexthopSetIDs(route->getForwardInfo());
       toDelete.push_back(it);
     } else {
       route = writableRoute<AddressT>(it);
       route->delEntryForClient(clientID);
       if (route->hasNoEntry()) {
         // The nexthops we removed was the only one.  Delete the route->
+        releaseFwdSideNexthopSetIDs(route->getForwardInfo());
         toDelete.push_back(it);
       }
     }
@@ -390,16 +417,24 @@ void RibRouteUpdater::removeAllUnclaimedRoutesFromClientImpl(
     if (!nhopEntry) {
       continue;
     }
+    if (nextHopIDManager_) {
+      auto clientNhopSetId = nhopEntry->getClientNextHopSetID();
+      if (clientNhopSetId.has_value()) {
+        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*clientNhopSetId);
+      }
+    }
     maybeRemoveNamedNhgMapping(route, *nhopEntry);
     if (route->numClientEntries() == 1) {
       // This client's is the only entry avoid unnecessary cloning
-      // we are going to prune the route anyways
+      // we are going to prune the route anyways. Release fwd-side IDs first.
+      releaseFwdSideNexthopSetIDs(route->getForwardInfo());
       toDelete.push_back(it);
     } else {
       route = writableRoute<AddressT>(it);
       route->delEntryForClient(clientID);
       if (route->hasNoEntry()) {
         // The nexthops we removed was the only one.  Delete the route->
+        releaseFwdSideNexthopSetIDs(route->getForwardInfo());
         toDelete.push_back(it);
       }
     }
@@ -471,7 +506,8 @@ struct NextHopCombinedWeightsKey {
         topologyInfo(nhop.topologyInfo()),
         srv6SegmentList(nhop.srv6SegmentList()),
         tunnelType(nhop.tunnelType()),
-        tunnelId(nhop.tunnelId()) {
+        tunnelId(nhop.tunnelId()),
+        cost(nhop.cost()) {
     /* "weightless" next hop, consider all attrs of L3 next hop except its
      * weight, this is used in computing number of required paths to next hop,
      * for correct programming of unequal cost multipath */
@@ -485,7 +521,8 @@ struct NextHopCombinedWeightsKey {
                topologyInfo,
                srv6SegmentList,
                tunnelType,
-               tunnelId) <
+               tunnelId,
+               cost) <
         std::tie(
                other.ip,
                other.intfId,
@@ -494,7 +531,8 @@ struct NextHopCombinedWeightsKey {
                other.topologyInfo,
                other.srv6SegmentList,
                other.tunnelType,
-               other.tunnelId);
+               other.tunnelId,
+               other.cost);
   }
   folly::IPAddress ip;
   InterfaceID intfId;
@@ -504,6 +542,7 @@ struct NextHopCombinedWeightsKey {
   std::vector<folly::IPAddressV6> srv6SegmentList;
   std::optional<TunnelType> tunnelType;
   std::optional<std::string> tunnelId;
+  std::optional<int64_t> cost;
 };
 using NextHopCombinedWeights =
     boost::container::flat_map<NextHopCombinedWeightsKey, NextHopWeight>;
@@ -562,7 +601,8 @@ RouteNextHopSet mergeForwardInfosEcmp(
           std::nullopt, /* adjustedWeight */
           fnh.srv6SegmentList(),
           fnh.tunnelType(),
-          fnh.tunnelId()));
+          fnh.tunnelId(),
+          fnh.cost()));
     }
   }
   return fwd;
@@ -645,7 +685,8 @@ RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
         std::nullopt, /* adjustedWeight */
         cw.first.srv6SegmentList,
         cw.first.tunnelType,
-        cw.first.tunnelId));
+        cw.first.tunnelId,
+        cw.first.cost));
   }
   return fwd;
 }
@@ -726,6 +767,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     const std::vector<folly::IPAddressV6>& srv6SegmentList,
     const std::optional<TunnelType>& tunnelType,
     const std::optional<std::string>& tunnelId,
+    const std::optional<int64_t>& cost,
     RouteNextHopSet& fwd) {
   auto it = routes->longestMatch(nh, nh.bitCount());
   if (it == routes->end()) {
@@ -740,6 +782,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
   if (resolving_.find(route.get()) != resolving_.end()) {
     XLOG(DBG2) << "Cycle detected resolving nexthop " << nh
                << " — route is already being resolved";
+    ++cyclesDetected_;
     return;
   }
 
@@ -774,7 +817,8 @@ void RibRouteUpdater::getFwdInfoFromNhop(
             std::nullopt, /* adjustedWeight */
             srv6SegmentList,
             tunnelType,
-            tunnelId));
+            tunnelId,
+            cost));
       } else {
         std::for_each(
             nhops.begin(),
@@ -785,7 +829,8 @@ void RibRouteUpdater::getFwdInfoFromNhop(
              topologyInfo,
              &srv6SegmentList,
              &tunnelType,
-             &tunnelId](const auto& nhop) {
+             &tunnelId,
+             &cost](const auto& nhop) {
               fwd.insert(ResolvedNextHop(
                   nhop.addr(),
                   nhop.intf(),
@@ -798,7 +843,8 @@ void RibRouteUpdater::getFwdInfoFromNhop(
                   std::nullopt, /* adjustedWeight */
                   srv6SegmentList,
                   tunnelType,
-                  tunnelId));
+                  tunnelId,
+                  cost));
             });
       }
     }
@@ -880,6 +926,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.srv6SegmentList(),
               nh.tunnelType(),
               nh.tunnelId(),
+              nh.cost(),
               nhToFwds[nh]);
         } else {
           CHECK(addr.isV6());
@@ -894,6 +941,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.srv6SegmentList(),
               nh.tunnelType(),
               nh.tunnelId(),
+              nh.cost(),
               nhToFwds[nh]);
         }
       }

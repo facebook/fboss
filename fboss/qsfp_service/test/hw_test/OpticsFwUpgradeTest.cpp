@@ -153,16 +153,18 @@ class OpticsFwUpgradeTest : public HwTest {
   // status. It does that by setting setOverrideAgentPortStatusForTesting to
   // true and then refreshing the state machines so that the state can be
   // transitioned to ACTIVE or INACTIVE states.
-  void setPortStatus(bool status) {
+  // Only checks state machine states for the transceivers in tcvrsToCheck.
+  // This avoids false failures from non-upgradeable transceivers that may
+  // be slow to reach the expected state due to hardware issues (e.g. I2C
+  // errors invalidating cache and causing missed PORT_UP events).
+  void setPortStatus(bool status, const std::vector<int32_t>& tcvrsToCheck) {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
     auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
     qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
         status, true /* enabled */);
     qsfpServiceHandler->refreshStateMachines();
 
-    auto cabledTransceivers = utility::legacyTransceiverIds(
-        utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
-    for (auto id : cabledTransceivers) {
+    for (auto id : tcvrsToCheck) {
       auto curState = wedgeMgr->getCurrentState(TransceiverID(id));
       if (status) {
         auto expectedState = FLAGS_port_manager_mode
@@ -246,14 +248,14 @@ TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
           << "No upgrades expected during warm boot";
     }
     // Force link up
-    setPortStatus(true);
+    setPortStatus(true, tcvrsToTest);
     CHECK(verifyUpgrade(
         false /* upgradeExpected */,
         initDoneTimestampSec /* upgradeSinceTsSec */,
         tcvrsToTest /* tcvrs */))
         << "No upgrades expected on port up";
     // Force link down
-    setPortStatus(false);
+    setPortStatus(false, tcvrsToTest);
     CHECK(verifyUpgrade(
         false /* upgradeExpected */,
         initDoneTimestampSec /* upgradeSinceTsSec */,
@@ -354,14 +356,14 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
       // was left on the transceiver at the end of the last test
     }
     // Force link up
-    setPortStatus(true);
+    setPortStatus(true, tcvrsToTest);
     CHECK(verifyUpgrade(
         false /* upgradeExpected */,
         initDoneTimestampSec /* upgradeSinceTsSec */,
         tcvrsToTest /* tcvrs */))
         << "No upgrades expected on port up";
     // Force link down
-    setPortStatus(false);
+    setPortStatus(false, tcvrsToTest);
     WITH_RETRIES_N_TIMED(
         8 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
           qsfpServiceHandler->refreshStateMachines();
@@ -442,9 +444,9 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
   // Lambda to toggle port status to trigger firmware download. It waits till
   // firmware download is complete
   auto togglePortsAndWaitForFwDownload = [&, this]() {
-    setPortStatus(true);
+    setPortStatus(true, tcvrsToTest);
     // Bring the port down, this should trigger firmware download
-    setPortStatus(false);
+    setPortStatus(false, tcvrsToTest);
     // Wait for fwUpgradeInProgress to clear to confirm all
     // upgrades are done
     WITH_RETRIES_N_TIMED(
@@ -606,6 +608,9 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
       for (const auto& portName : interfacesToUpgrade) {
         upgradedTcvrIds.push_back(portNameToModule.at(portName));
       }
+      // One more refresh to ensure TransceiverInfo cache has the
+      // latest lastFwUpgradeEndTime set after upgradeFirmwareLocked
+      qsfpServiceHandler->refreshStateMachines();
       CHECK(verifyUpgrade(
           true /* upgradeExpected */,
           initDoneTimestampSec /* upgradeSinceTsSec */,
@@ -650,6 +655,9 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
         for (const auto& [upgradePortName, _] : upgradedPorts) {
           allUpgradedTcvrIds.push_back(portNameToModule.at(upgradePortName));
         }
+        // One more refresh to ensure TransceiverInfo cache has the
+        // latest lastFwUpgradeEndTime set after upgradeFirmwareLocked
+        qsfpServiceHandler->refreshStateMachines();
         CHECK(verifyUpgrade(
             true /* upgradeExpected */,
             verifyStartTimestampSec,

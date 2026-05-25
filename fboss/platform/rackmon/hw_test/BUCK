@@ -11,7 +11,6 @@ cpp_binary(
     deps = [
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
-        "//common/services/cpp:light",
         "//fboss/lib:thrift_service_utils",
         "//fboss/platform/helpers:init",
         "//fboss/platform/rackmon:core",

@@ -130,6 +130,8 @@ sai_status_t get_tunnel_attribute_fn(
       case SAI_TUNNEL_ATTR_ENCAP_SRC_IP:
         if (tunnel.encapSrcIp.has_value()) {
           attr[i].value.ipaddr = tunnel.encapSrcIp.value();
+        } else {
+          attr[i].value.ipaddr = toSaiIpAddress(folly::IPAddress("0.0.0.0"));
         }
         break;
       case SAI_TUNNEL_ATTR_ENCAP_TTL_MODE:

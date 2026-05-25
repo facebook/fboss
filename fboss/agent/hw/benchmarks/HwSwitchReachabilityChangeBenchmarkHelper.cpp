@@ -1,5 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include <fmt/core.h>
 #include <folly/Benchmark.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentFeatures.h"
@@ -81,11 +82,11 @@ void switchReachabilityChangeBenchmarkHelper(cfg::SwitchType switchType) {
             switchId2SystemPorts,
             switchId2Rifs);
       };
-      ensemble->getSw()->getRib()->updateStateInRibThread([&ensemble,
-                                                           updateDsfStateFn]() {
-        ensemble->getSw()->updateStateWithHwFailureProtection(
-            folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
-      });
+      ensemble->getSw()->getRib()->updateStateInRibThread(
+          [&ensemble, updateDsfStateFn]() {
+            ensemble->getSw()->updateStateWithHwFailureProtection(
+                fmt::format("Update state for node: {}", 0), updateDsfStateFn);
+          });
     } break;
     case cfg::SwitchType::FABRIC:
       ensemble = createAgentEnsemble(

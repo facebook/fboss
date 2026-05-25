@@ -34,11 +34,13 @@ struct NextHopInfo {
   5: optional i32 interfaceID;
   6: optional common.NetworkTopologyInformation topologyInfo;
   7: optional list<string> srv6SegmentList;
+  8: optional i32 cost;
 }
 
 struct ClientAndNextHops {
   1: i32 clientId;
   2: list<NextHopInfo> nextHops;
+  3: optional string namedNextHopGroup;
 }
 
 struct RouteEntry {
@@ -64,4 +66,5 @@ struct RouteDetailEntry {
   13: map<string, common.NetworkTopologyInformation> nhAddressToTopologyInfo;
   14: optional i64 resolvedNextHopSetID;
   15: optional i64 normalizedResolvedNextHopSetID;
+  16: optional string namedNextHopGroup;
 }

@@ -234,10 +234,10 @@ class MockAsic : public HwAsic {
     return 0;
   }
   int getMidPriCpuQueueId() const override {
-    throw FbossError("Mock ASIC does not support cpu queue");
+    return 2;
   }
   int getHiPriCpuQueueId() const override {
-    throw FbossError("Mock ASIC does not support cpu queue");
+    return 9;
   }
   std::optional<uint32_t> getMaxArsGroups() const override {
     return 7;

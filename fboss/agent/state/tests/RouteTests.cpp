@@ -97,6 +97,36 @@ TEST(Route, equality) {
       UnresolvedNextHop(IPAddress("2.2.2.10"), UCMP_DEFAULT_WEIGHT));
   nhm1.update(CLIENT_B, RouteNextHopEntry(nextHopsRev, DISTANCE));
   EXPECT_TRUE(nhm1 == nhm2);
+
+  // Differ only in clientNextHopSetID - should compare unequal.
+  nhm1.update(
+      CLIENT_A,
+      RouteNextHopEntry(
+          newNextHops(3, "1.1.1."),
+          DISTANCE,
+          std::optional<RouteCounterID>(std::nullopt),
+          std::optional<cfg::AclLookupClass>(std::nullopt),
+          std::optional<cfg::SwitchingMode>(std::nullopt),
+          std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(NextHopSetID(77))));
+  EXPECT_FALSE(nhm1 == nhm2);
+
+  // Set the same clientNextHopSetID on the other side - back to equal.
+  nhm2.update(
+      CLIENT_A,
+      RouteNextHopEntry(
+          newNextHops(3, "1.1.1."),
+          DISTANCE,
+          std::optional<RouteCounterID>(std::nullopt),
+          std::optional<cfg::AclLookupClass>(std::nullopt),
+          std::optional<cfg::SwitchingMode>(std::nullopt),
+          std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(NextHopSetID(77))));
+  EXPECT_TRUE(nhm1 == nhm2);
 }
 
 // Test that a copy of a RouteNextHopsMulti is a deep copy, and that the
@@ -210,6 +240,19 @@ TEST(Route, RouteNextHopsMultiThrift) {
           std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
           std::optional<NextHopSetID>(std::nullopt),
           std::optional<NextHopSetID>(NextHopSetID(300))));
+
+  nhm1.update(
+      CLIENT_A,
+      RouteNextHopEntry(
+          newNextHops(4, "4.4.4."),
+          DISTANCE,
+          std::optional<RouteCounterID>(std::nullopt),
+          std::optional<cfg::AclLookupClass>(std::nullopt),
+          std::optional<cfg::SwitchingMode>(std::nullopt),
+          std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(NextHopSetID(400))));
 
   validateThriftStructNodeSerialization<RouteNextHopsMulti>(nhm1);
 }
@@ -327,6 +370,7 @@ TEST(Route, serializeRouteNextHopSetIDs) {
   std::optional<NextHopSetID> normalizedResolvedNextHopSetID(
       NextHopSetID(12345));
   std::optional<NextHopSetID> resolvedNextHopSetID(NextHopSetID(54321));
+  std::optional<NextHopSetID> clientNextHopSetID(NextHopSetID(99999));
   RouteNextHopEntry nhopEntry(
       nxtHops,
       DISTANCE,
@@ -335,7 +379,8 @@ TEST(Route, serializeRouteNextHopSetIDs) {
       std::optional<cfg::SwitchingMode>(),
       std::optional<RouteNextHopEntry::NextHopSet>(),
       normalizedResolvedNextHopSetID,
-      resolvedNextHopSetID);
+      resolvedNextHopSetID,
+      clientNextHopSetID);
   Route<IPAddressV4> rt(
       Route<IPAddressV4>::makeThrift(
           makePrefixV4("1.2.3.4/32"), clientId, nhopEntry));

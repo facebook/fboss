@@ -59,7 +59,7 @@ class RibToSwitchStateUpdater {
   int actions_;
   ForwardingInformationBaseUpdater fibUpdater_;
   MySidMapUpdater mySidUpdater_;
-  SwitchStateNextHopIdUpdater nhopIdUpdater_;
+  SwitchStateNextHopIdUpdater nhopStateUpdater_;
   std::optional<StateDelta> lastDelta_;
 };
 

@@ -39,6 +39,14 @@ void FsdbSubManagerBase::stop() {
   }
 }
 
+void FsdbSubManagerBase::reconnect(bool noGR) {
+  if (subscriber_) {
+    subscriber_->reconnect(noGR);
+  } else if (extSubscriber_) {
+    extSubscriber_->reconnect(noGR);
+  }
+}
+
 const std::string& FsdbSubManagerBase::clientId() const {
   return opts_.clientId_;
 }

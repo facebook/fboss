@@ -150,11 +150,19 @@ struct AsicCommand {
 // `currentSensorName`: Name of the current sensor. This should be set if no
 //                      direct power sensor is available and power needs to be
 //                      calculated from voltage and current.
+//
+// `slotPath`: Optional platform_manager slot path for this PSU/PEM/HSC/PWRBRK
+//             (e.g. "/PSU_SLOT@0"). When set, sensor_service uses it for
+//             presence lookups and ConfigValidator enforces every
+//             referenced sensor lives at the same path. When unset on a
+//             PSU/PEM slot, sensor_service logs a warning and skips
+//             presence counting for that slot.
 struct PerSlotPowerConfig {
   1: string name;
   2: optional string powerSensorName;
   3: optional string voltageSensorName;
   4: optional string currentSensorName;
+  5: optional string slotPath;
 }
 
 // `PowerConfig`: Consolidates all power-related configurations.
@@ -195,6 +203,12 @@ struct PowerConfig {
   6: i32 dcVoltageMax = 64;
   7: i32 acVoltageMin = 90;
   8: i32 acVoltageMax = 305;
+  // Minimum PSU/PEM count expected for AC and DC respectively. Drives
+  // the psu.unexpected_num_present_psu alert; not published when 0
+  // (ConfigValidator warns on PSU/PEM platforms leaving both at 0).
+  // HSC and PWRBRK slots are excluded — not field-replaceable.
+  9: i32 minAcPsuCount = 0;
+  10: i32 minDcPsuCount = 0;
 }
 
 // `TemperatureConfig`: Describes temperature of components.

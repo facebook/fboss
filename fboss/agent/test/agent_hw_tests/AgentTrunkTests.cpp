@@ -184,4 +184,59 @@ TEST_F(AgentTrunkTest, TrunkPortStats) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+TEST_F(AgentTrunkTest, TrunkCapacityUpdatesOnMemberDown) {
+  auto aggId = AggregatePortID(1);
+
+  auto setup = [=, this]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    utility::addAggPort(
+        aggId, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, &cfg);
+    applyConfigAndEnableTrunks(cfg);
+  };
+  auto verify = [=, this]() {
+    const std::string kTrunkName = "AGG-1";
+
+    auto getTrunkCapacity = [&]() -> int64_t {
+      auto hwStats = getAllHwSwitchStats();
+      for (const auto& [_, switchStats] : hwStats) {
+        auto it = switchStats.hwTrunkStats()->find(kTrunkName);
+        if (it != switchStats.hwTrunkStats()->end()) {
+          return *it->second.capacity_();
+        }
+      }
+      return -1;
+    };
+
+    auto state = getProgrammedState();
+    auto port0Speed = static_cast<int64_t>(
+        state->getPorts()->getNodeIf(masterLogicalPortIds()[0])->getSpeed());
+    auto port1Speed = static_cast<int64_t>(
+        state->getPorts()->getNodeIf(masterLogicalPortIds()[1])->getSpeed());
+
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(getTrunkCapacity(), port0Speed + port1Speed); });
+
+    bringDownPort(PortID(masterLogicalPortIds()[0]));
+
+    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(getTrunkCapacity(), port1Speed); });
+    this->applyNewState(
+        [](const std::shared_ptr<SwitchState> state) {
+          return utility::disableTrunkPorts(state);
+        },
+        "disable trunk ports to sync with LACP state");
+
+    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(getTrunkCapacity(), 0); });
+    bringUpPort(PortID(masterLogicalPortIds()[0]));
+    applyNewState(
+        [](const std::shared_ptr<SwitchState>& state) {
+          return utility::enableTrunkPorts(state);
+        },
+        "re-enable trunk member port");
+
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(getTrunkCapacity(), port0Speed + port1Speed); });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

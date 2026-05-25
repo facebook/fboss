@@ -59,9 +59,12 @@ TEST_F(ConfigInterfaceDescriptionTest, SetAndVerifyDescription) {
   setInterfaceDescription(interface.name, testDescription);
   XLOG(INFO) << "  Description set to '" << testDescription << "'";
 
-  // Step 4: Verify description via 'show interface'
-  XLOG(INFO) << "[Step 4] Verifying description via 'show interface'...";
-  Interface updatedInterface = getInterfaceInfo(interface.name);
+  // Step 4: Poll 'show interface' until the description propagates
+  XLOG(INFO) << "[Step 4] Waiting for description to propagate...";
+  Interface updatedInterface = waitForInterfaceInfo(
+      interface.name, [&testDescription](const auto& info) {
+        return info.description == testDescription;
+      });
   EXPECT_EQ(updatedInterface.description, testDescription)
       << "Expected description '" << testDescription << "', got '"
       << updatedInterface.description << "'";
@@ -75,7 +78,10 @@ TEST_F(ConfigInterfaceDescriptionTest, SetAndVerifyDescription) {
   XLOG(INFO) << "  Restored description to '" << originalDescription << "'";
 
   // Verify restoration
-  Interface restoredInterface = getInterfaceInfo(interface.name);
+  Interface restoredInterface = waitForInterfaceInfo(
+      interface.name, [&originalDescription](const auto& info) {
+        return info.description == originalDescription;
+      });
   if (restoredInterface.description != originalDescription) {
     XLOG(WARN) << "  WARNING: Restoration may have failed. Current: '"
                << restoredInterface.description << "'";

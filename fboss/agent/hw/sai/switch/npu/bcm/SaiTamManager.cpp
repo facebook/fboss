@@ -224,7 +224,15 @@ std::string SaiTamManager::getDestMacWithOverride(
 std::shared_ptr<SaiTamReport> SaiTamManager::createTamReport(
     sai_int32_t reportType) {
   auto& reportStore = saiStore_->get<SaiTamReportTraits>();
-  auto reportTraits = SaiTamReportTraits::CreateAttributes{reportType};
+  auto reportTraits = SaiTamReportTraits::CreateAttributes{
+      reportType
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt
+#endif
+  };
   return reportStore.setObject(reportTraits, reportTraits);
 }
 
@@ -237,8 +245,8 @@ std::shared_ptr<SaiTamEventAction> SaiTamManager::createTamAction(
 
 std::shared_ptr<SaiTamTransport> SaiTamManager::createTamTransport(
     const std::shared_ptr<MirrorOnDropReport>& report,
-    const std::string& destMac,
-    sai_int32_t transportType) {
+    sai_int32_t transportType,
+    std::optional<folly::MacAddress> dstMac) {
   auto& transportStore = saiStore_->get<SaiTamTransportTraits>();
   auto transportTraits = SaiTamTransportTraits::AdapterHostKey{
       transportType,
@@ -246,7 +254,7 @@ std::shared_ptr<SaiTamTransport> SaiTamManager::createTamTransport(
       report->getCollectorPort(),
       report->getMtu(),
       folly::MacAddress(report->getSwitchMac()),
-      folly::MacAddress(destMac),
+      dstMac,
   };
   return transportStore.setObject(transportTraits, transportTraits);
 }
@@ -329,8 +337,8 @@ void SaiTamManager::addDnxMirrorOnDropReport(
 
   auto reportObj = createTamReport(SAI_TAM_REPORT_TYPE_MOD_OVER_UDP);
   auto action = createTamAction(reportObj->adapterKey());
-  auto transport =
-      createTamTransport(report, destMac, SAI_TAM_TRANSPORT_TYPE_PORT);
+  auto transport = createTamTransport(
+      report, SAI_TAM_TRANSPORT_TYPE_PORT, folly::MacAddress(destMac));
   auto collector = createTamCollector(
       report, transport->adapterKey(), report->getTruncateSize());
 
@@ -435,8 +443,8 @@ void SaiTamManager::addXgsMirrorOnDropReport(
 
   auto reportObj = createTamReport(SAI_TAM_REPORT_TYPE_IPFIX);
   auto action = createTamAction(reportObj->adapterKey());
-  auto transport =
-      createTamTransport(report, destMac, SAI_TAM_TRANSPORT_TYPE_PORT);
+  auto transport = createTamTransport(
+      report, SAI_TAM_TRANSPORT_TYPE_PORT, folly::MacAddress(destMac));
   auto collector =
       createTamCollector(report, transport->adapterKey(), std::nullopt);
 

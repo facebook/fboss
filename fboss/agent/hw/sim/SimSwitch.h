@@ -54,6 +54,9 @@ class SimSwitch : public HwSwitch {
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const override {
     return {};
   }
+  std::map<std::string, HwTrunkStats> getTrunkStats() const override {
+    return {};
+  }
   folly::F14FastMap<std::string, HwRouterInterfaceStats>
   getRouterInterfaceStats() const override {
     return {};

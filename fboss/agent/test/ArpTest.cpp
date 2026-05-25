@@ -1256,6 +1256,15 @@ TEST_F(ArpTest, PortFlapRecover) {
     EXPECT_TRUE(arpPending->wait());
   }
 
+  // pending entries must have portId=0 so consumers (e.g. BGP) can detect
+  // unresolved neighbors immediately
+  for (const auto& ip : targetIP) {
+    auto pendingEntry = getArpEntry(sw, ip);
+    EXPECT_NE(pendingEntry, nullptr);
+    EXPECT_TRUE(pendingEntry->isPending());
+    EXPECT_EQ(pendingEntry->getPort(), PortDescriptor(PortID(0)));
+  }
+
   // ARP entry related to unflapped port must remain unaffected
   auto unaffectedEntry = getArpEntry(sw, unaffectedIP);
   EXPECT_NE(unaffectedEntry, nullptr);

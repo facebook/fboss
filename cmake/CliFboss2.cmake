@@ -698,8 +698,12 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.cpp
   fboss/cli/fboss2/commands/config/CmdConfigReload.h
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
+  fboss/cli/fboss2/commands/config/arp/CmdConfigArp.cpp
+  fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
+  fboss/cli/fboss2/commands/config/interface/ProfileValidation.cpp
+  fboss/cli/fboss2/commands/config/interface/ProfileValidation.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h
   fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.cpp
@@ -893,6 +897,7 @@ target_link_libraries(fboss2_config_lib
   common_file_utils
   switch_config_cpp2
   switchinfo_utils
+  platform_mapping
   Folly::folly
 )
 

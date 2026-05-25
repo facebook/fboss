@@ -34,6 +34,7 @@ const std::string kHwAgentTestServicePrefix = "fboss_hw_agent_for_testing_";
 const std::set<std::string> kServicesSupportingRestart() {
   static const std::set<std::string> servicesSupportingRestart = {
       kSwAgentTestService,
+      kWedgeAgentTestService,
       "fsdb_service_for_testing",
       "qsfp_service_for_testing",
       "bgp",
@@ -262,14 +263,32 @@ void TestThriftHandler::gracefullyRestartServiceWithDelay(
     int32_t delayInSeconds) {
   XLOG(INFO) << __func__;
 
-  if (*serviceName != "fboss_sw_agent_test") {
+  auto actualServiceName = resolveServiceName(*serviceName);
+  const std::string& expected =
+      FLAGS_multi_switch ? kSwAgentTestService : kWedgeAgentTestService;
+  if (actualServiceName != expected) {
     throw std::runtime_error(
         folly::to<std::string>(
-            "Failed to restart with delay. Unsupported service: ",
-            *serviceName));
+            "Failed to restart with delay. Expected ",
+            expected,
+            " for current mode (multi_switch=",
+            FLAGS_multi_switch,
+            "), got: ",
+            *serviceName,
+            " (resolved to: ",
+            actualServiceName,
+            ")"));
   }
 
-  auto actualServiceName = resolveServiceName(*serviceName);
+  // In multi-switch mode, unlike gracefullyRestartService /
+  // ungracefullyRestartService we only stop sw_agent (not hw_agent). This is
+  // sufficient to trigger DSF GR on remote subscribers: sw_agent owns the
+  // FSDB publisher; when it dies, FSDB sends ALL_PUBLISHERS_GONE to
+  // subscribers, which starts their dsf_gr_hold timer. hw_agent staying alive
+  // is fine for this test since we only validate subscriber-side GR behavior,
+  // not hw_agent warmboot/state-handoff. In mono mode, wedge_agent contains
+  // both SwSwitch (FSDB publisher) and HwSwitch in one process — stopping it
+  // achieves the same publisher-disconnect outcome.
   auto unitName = makeAsyncSystemdUnitName(actualServiceName, "delayed_start");
   // Schedule a delayed start in a separate transient unit, then return after
   // queueing a non-blocking stop for the current service.

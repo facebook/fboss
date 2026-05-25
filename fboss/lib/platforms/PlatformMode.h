@@ -106,6 +106,8 @@ inline std::string toString(PlatformType mode) {
       return "WEDGE800CACT";
     case PlatformType::PLATFORM_LADAKH800BCLS:
       return "LADAKH800BCLS";
+    case PlatformType::PLATFORM_LEH800BCLS:
+      return "LEH800BCLS";
     case PlatformType::PLATFORM_ICECUBE800BANW:
       return "ICECUBE800BANW";
     case PlatformType::PLATFORM_J4SIM:
@@ -114,6 +116,8 @@ inline std::string toString(PlatformType mode) {
       return "BLACKWOLF800BANW";
     case PlatformType::PLATFORM_YANGRA2:
       return "YANGRA2";
+    case PlatformType::PLATFORM_SAINTPAUL:
+      return "SAINTPAUL";
     case PlatformType::PLATFORM_MERU400BIU_DEPRECATED:
       return "MERU400BIU";
     case PlatformType::PLATFORM_MERU400BFU_DEPRECATED:

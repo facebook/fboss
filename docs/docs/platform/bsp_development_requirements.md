@@ -115,10 +115,11 @@ explicitly stated by the chip vendor.
 ## 3. Compatible Kernel Versions
 
 The BSP kernel modules must be compatible with following kernel versions
-(updated in April 2025):
+(updated in May 2026):
 
 * Linux v6.4.3
 * Linux v6.11.1
+* Linux v6.16.1
 
 Being compatible means:
 

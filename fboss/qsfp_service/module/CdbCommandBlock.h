@@ -14,6 +14,11 @@ namespace facebook::fboss {
 
 class TransceiverImpl;
 
+// CDB command status values (from CMIS spec, register 00h:37/38)
+constexpr uint8_t kCdbCommandStatusSuccess = 0x01;
+constexpr uint8_t kCdbCommandStatusFailed =
+    0x40; // 01 000000b: failed, no specific failure
+
 // Definitions for CDB Get Firmware Info (CMD 0x0100) reply data
 // FirmwareStatus byte offset and bitmasks
 constexpr int kCdbFwInfoFwStatusOffset = 0;
@@ -169,6 +174,32 @@ class CdbCommandBlock {
     return memoryWriteTime_.count();
   }
 
+  // Returns the CDB command status from the last cmisRunCdbCommand() call
+  uint8_t getLastCdbStatus() const {
+    return lastCdbStatus_;
+  }
+
+  // Parse firmware build number from CDB command 0x0100 response.
+  // Returns the build number of the running firmware bank, or std::nullopt
+  // if the response is too short or neither bank is marked as running.
+  std::optional<uint16_t> getFwBuildNumber() const {
+    if (cdbFields_.cdbRlplLength < kCdbFwInfoMinRlplLength) {
+      return std::nullopt;
+    }
+    const uint8_t* resp = cdbFields_.cdbLplMemory.cdbLplFlatMemory;
+    uint8_t fwStatus = resp[kCdbFwInfoFwStatusOffset];
+    bool bankARunning = (fwStatus & kCdbFwInfoBankARunningMask) != 0;
+    bool bankBRunning = (fwStatus & kCdbFwInfoBankBRunningMask) != 0;
+    if (bankARunning) {
+      return (resp[kCdbFwInfoImageABuildHiOffset] << 8) |
+          resp[kCdbFwInfoImageABuildLoOffset];
+    } else if (bankBRunning) {
+      return (resp[kCdbFwInfoImageBBuildHiOffset] << 8) |
+          resp[kCdbFwInfoImageBBuildLoOffset];
+    }
+    return std::nullopt;
+  }
+
  private:
   // Data block
   struct __attribute__((__packed__)) {
@@ -195,6 +226,7 @@ class CdbCommandBlock {
 
   std::chrono::duration<uint32_t, std::milli> commandBlockCdbWaitTime_{0};
   std::chrono::duration<uint32_t, std::milli> memoryWriteTime_{0};
+  uint8_t lastCdbStatus_{0};
 
   // Utility function to compute the One's complement sum
   uint8_t onesComplementSum();

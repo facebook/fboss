@@ -313,6 +313,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU8List(this->kUdfGroupData()),
             AclEntryFieldU8List(this->kUdfGroupData()),
             AclEntryActionU32(this->kPacketAction()),
+            std::nullopt, // actionRedirect
             AclEntryActionSaiObjectIdT(this->kCounter()),
             AclEntryActionU8(this->kSetTC()),
             AclEntryActionU8(this->kSetDSCP()),
@@ -515,6 +516,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kUdfGroupData(),
       this->kUdfGroupData(),
       this->kPacketAction(),
+      std::nullopt, // actionRedirect
       this->kCounter(),
       this->kSetTC(),
       this->kSetDSCP(),

@@ -255,6 +255,7 @@ cpp_library(
         "TestUtils.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
         ":hw_test_handle",
@@ -521,6 +522,7 @@ cpp_library(
     ],
     undefined_symbols = True,
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         ":utils",
         "//fboss/agent:agent_features",
@@ -550,6 +552,7 @@ cpp_library(
     ],
     undefined_symbols = True,
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         ":agent_ensemble",
         "//fboss/agent:agent_features",
@@ -633,6 +636,7 @@ cpp_library(
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_copp_utils",
         "//fboss/agent/if:multiswitch_ctrl-cpp2-types",
+        "//fboss/agent/state:state_utils",
         "//fboss/agent/test/utils:agent_hw_test_constants",
         "//fboss/agent/test/utils:stats_test_utils",
         "//fboss/lib:common_utils",
@@ -1007,13 +1011,11 @@ thrift_library(
         "cpp2",
         "go",
         "py3-deprecated",
-        "py-deprecated-asyncio",
         "rust",
         "py-deprecated",
         "python",
     ],
     py3_namespace = "neteng.fboss.test",
-    py_asyncio_base_module = "neteng.fboss.test.asyncio",
     py_base_module = "neteng.fboss.test",
     thrift_cpp2_options = "json",
     thrift_py_options = "json,sort_keys",
@@ -1023,7 +1025,6 @@ thrift_library(
     ],
     thrift_srcs = {"production_features.thrift": []},
     deps = [
-        "//thrift/annotation:thrift",
     ],
 )
 

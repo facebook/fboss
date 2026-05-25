@@ -9,8 +9,18 @@
 
 using namespace facebook::fboss::platform::sensor_service;
 using namespace facebook::fboss::platform::sensor_config;
+namespace pm = facebook::fboss::platform::platform_manager;
 
 namespace facebook::fboss {
+
+inline pm::PmUnitInfo makePmUnitInfo(bool isPresent) {
+  pm::PresenceInfo presenceInfo;
+  presenceInfo.isPresent() = isPresent;
+  pm::PmUnitInfo pmUnitInfo;
+  pmUnitInfo.name() = "FAKE";
+  pmUnitInfo.presenceInfo() = presenceInfo;
+  return pmUnitInfo;
+}
 
 class SensorServiceImplInputVoltageTest : public ::testing::Test {
  protected:
@@ -38,12 +48,42 @@ class SensorServiceImplInputVoltageTest : public ::testing::Test {
     }
   }
 
+  // Append a PmUnitSensors entry. Defaults to a PSU. Pass pmUnitName
+  // explicitly ("PEM", "HSC", etc.) for non-PSU slots. publishPsuPemCounters
+  // counts physical slots from pmUnitSensorsList where pmUnitName ==
+  // "PSU" || "PEM".
+  void addPmUnit(
+      const std::string& slotPath,
+      const std::string& pmUnitName = "PSU") {
+    PmUnitSensors pmUnitSensors;
+    pmUnitSensors.slotPath() = slotPath;
+    pmUnitSensors.pmUnitName() = pmUnitName;
+    config_.pmUnitSensorsList()->push_back(pmUnitSensors);
+  }
+
+  // Build a pmUnitInfoMap from {slotPath → presence}. Uses std::nullopt
+  // for slots whose presence is "unknown" (RPC failed). For "missing
+  // presenceInfo" cases, construct the map manually.
+  std::map<std::string, std::optional<pm::PmUnitInfo>> makePmUnitInfoMap(
+      std::initializer_list<std::pair<std::string, bool>> entries) {
+    std::map<std::string, std::optional<pm::PmUnitInfo>> map;
+    for (const auto& [slotPath, present] : entries) {
+      map[slotPath] = makePmUnitInfo(present);
+    }
+    return map;
+  }
+
   std::map<std::string, SensorData> createPolledData(
-      const std::map<std::string, float>& sensorData) {
+      const std::map<std::string, float>& sensorData,
+      const std::map<std::string, std::string>& slotPaths = {}) {
     std::map<std::string, SensorData> polledData;
     for (const auto& [sensorName, value] : sensorData) {
       SensorData sData;
       sData.value() = value;
+      auto it = slotPaths.find(sensorName);
+      if (it != slotPaths.end()) {
+        sData.slotPath() = it->second;
+      }
       polledData.emplace(sensorName, sData);
     }
     return polledData;
@@ -79,6 +119,30 @@ class SensorServiceImplInputVoltageTest : public ::testing::Test {
                 SensorServiceImpl::kDerivedValue,
                 SensorServiceImpl::kInputPowerType)),
         expectedType);
+  }
+
+  void expectTotalNumPresentPsu(int expectedValue) {
+    EXPECT_EQ(
+        fb303::fbData->getCounter(SensorServiceImpl::kTotalNumPresentPsu),
+        expectedValue);
+  }
+
+  void expectNoTotalNumPresentPsuCounter() {
+    EXPECT_THROW(
+        fb303::fbData->getCounter(SensorServiceImpl::kTotalNumPresentPsu),
+        std::invalid_argument);
+  }
+
+  void expectUnexpectedNumPresentPsu(int expectedValue) {
+    EXPECT_EQ(
+        fb303::fbData->getCounter(SensorServiceImpl::kUnexpectedNumPresentPsu),
+        expectedValue);
+  }
+
+  void expectNoUnexpectedNumPresentPsuCounter() {
+    EXPECT_THROW(
+        fb303::fbData->getCounter(SensorServiceImpl::kUnexpectedNumPresentPsu),
+        std::invalid_argument);
   }
 
   SensorConfig config_;
@@ -231,6 +295,206 @@ TEST_F(
   expectedThresholds.lowerCriticalVal() = 100.0f;
   expectedThresholds.upperCriticalVal() = 300.0f;
   EXPECT_EQ(*polledData["PSU1_VIN"].thresholds(), expectedThresholds);
+}
+
+TEST_F(SensorServiceImplInputVoltageTest, TotalNumPresentPsuAllPresent) {
+  // Both physical PSU slots present → presentCount = 2. minAcPsuCount=2
+  // satisfied → no alert.
+  addInputVoltageSensors({"PSU1_VIN"});
+  config_.powerConfig()->minAcPsuCount() = 2;
+  // Make voltage sensor read so AC power type gets resolved.
+  addPmUnit("/PSU_SLOT@0");
+  addPmUnit("/PSU_SLOT@1");
+  createImpl();
+  auto polledData = createPolledData({{"PSU1_VIN", 220.0}});
+  impl_->processInputVoltage(polledData, *config_.powerConfig());
+  impl_->publishPsuPemCounters(
+      makePmUnitInfoMap({{"/PSU_SLOT@0", true}, {"/PSU_SLOT@1", true}}),
+      *config_.powerConfig());
+
+  expectTotalNumPresentPsu(2);
+  expectUnexpectedNumPresentPsu(0);
+}
+
+TEST_F(
+    SensorServiceImplInputVoltageTest,
+    UnexpectedNumPresentPsuFiresWhenAbsent) {
+  // PSU2 absent → presentCount = 1. minAcPsuCount=2 → alert fires.
+  addInputVoltageSensors({"PSU1_VIN"});
+  config_.powerConfig()->minAcPsuCount() = 2;
+  addPmUnit("/PSU_SLOT@0");
+  addPmUnit("/PSU_SLOT@1");
+  createImpl();
+  auto polledData = createPolledData({{"PSU1_VIN", 220.0}});
+  impl_->processInputVoltage(polledData, *config_.powerConfig());
+  impl_->publishPsuPemCounters(
+      makePmUnitInfoMap({{"/PSU_SLOT@0", true}, {"/PSU_SLOT@1", false}}),
+      *config_.powerConfig());
+
+  expectTotalNumPresentPsu(1);
+  expectUnexpectedNumPresentPsu(1);
+}
+
+TEST_F(SensorServiceImplInputVoltageTest, TotalNumPresentPsuExcludesHsc) {
+  // HSC PmUnitSensors entries (pmUnitName not in {"PSU","PEM"}) must not
+  // count toward psu.total_num_present, even when present.
+  addInputVoltageSensors({"PSU1_VIN"});
+  config_.powerConfig()->minAcPsuCount() = 1;
+  addPmUnit("/PSU_SLOT@0");
+  addPmUnit("/HSC_SLOT@0", "HSC");
+  createImpl();
+  auto polledData = createPolledData({{"PSU1_VIN", 220.0}});
+  impl_->processInputVoltage(polledData, *config_.powerConfig());
+  impl_->publishPsuPemCounters(
+      makePmUnitInfoMap({{"/PSU_SLOT@0", true}, {"/HSC_SLOT@0", true}}),
+      *config_.powerConfig());
+
+  expectTotalNumPresentPsu(1);
+  expectUnexpectedNumPresentPsu(0);
+}
+
+TEST_F(
+    SensorServiceImplInputVoltageTest,
+    TotalNumPresentPsuWhenPresenceUnknown) {
+  // platform_manager fetch returned nullopt for the slot (RPC failure or
+  // absent presenceInfo). Treated as "presence unknown" — slot is not
+  // counted as present, but a transient platform_manager outage must not
+  // silently hide real PSU data: minAcPsuCount=1 → alert still fires from
+  // presentCount=0.
+  addInputVoltageSensors({"PSU1_VIN"});
+  config_.powerConfig()->minAcPsuCount() = 1;
+  addPmUnit("/PSU_SLOT@0");
+  createImpl();
+  auto polledData = createPolledData({{"PSU1_VIN", 220.0}});
+  impl_->processInputVoltage(polledData, *config_.powerConfig());
+  std::map<std::string, std::optional<pm::PmUnitInfo>> map;
+  map["/PSU_SLOT@0"] = std::nullopt;
+  impl_->publishPsuPemCounters(map, *config_.powerConfig());
+
+  expectTotalNumPresentPsu(0);
+  expectUnexpectedNumPresentPsu(1);
+}
+
+TEST_F(
+    SensorServiceImplInputVoltageTest,
+    UnexpectedNumPresentPsuSkippedWhenMinZero) {
+  // PSU slot present but minAcPsuCount/minDcPsuCount left at 0
+  // (defensive — validator should reject this). The count is still
+  // published; the boolean is skipped because no threshold to compare.
+  addInputVoltageSensors({"PSU1_VIN"});
+  addPmUnit("/PSU_SLOT@0");
+  createImpl();
+  auto polledData = createPolledData({{"PSU1_VIN", 220.0}});
+  impl_->processInputVoltage(polledData, *config_.powerConfig());
+  impl_->publishPsuPemCounters(
+      makePmUnitInfoMap({{"/PSU_SLOT@0", true}}), *config_.powerConfig());
+
+  expectTotalNumPresentPsu(1);
+  expectNoUnexpectedNumPresentPsuCounter();
+}
+
+TEST_F(
+    SensorServiceImplInputVoltageTest,
+    UnexpectedNumPresentPsuSkippedWhenPowerTypeUnknown) {
+  // Voltage 75V falls between DC max (64) and AC min (90) → power type
+  // can't be determined → boolean is skipped. Count is still published.
+  addInputVoltageSensors({"PSU1_VIN"});
+  config_.powerConfig()->minAcPsuCount() = 1;
+  config_.powerConfig()->minDcPsuCount() = 1;
+  addPmUnit("/PSU_SLOT@0");
+  createImpl();
+  auto polledData = createPolledData({{"PSU1_VIN", 75.0}});
+  impl_->processInputVoltage(polledData, *config_.powerConfig());
+  impl_->publishPsuPemCounters(
+      makePmUnitInfoMap({{"/PSU_SLOT@0", true}}), *config_.powerConfig());
+
+  expectInputPowerType(SensorServiceImpl::kInputPowerTypeUnknown);
+  expectTotalNumPresentPsu(1);
+  expectNoUnexpectedNumPresentPsuCounter();
+}
+
+TEST_F(SensorServiceImplInputVoltageTest, PresentPsuSkippedForHscOnlyPlatform) {
+  // No PSU/PEM pmUnitSensorsList entries → counters are not published.
+  addInputVoltageSensors({"HSC_VIN"});
+  addPmUnit("/HSC_SLOT@0", "HSC");
+  createImpl();
+  auto polledData = createPolledData({{"HSC_VIN", 220.0}});
+  impl_->processInputVoltage(polledData, *config_.powerConfig());
+  impl_->publishPsuPemCounters(
+      makePmUnitInfoMap({{"/HSC_SLOT@0", true}}), *config_.powerConfig());
+
+  expectNoTotalNumPresentPsuCounter();
+  expectNoUnexpectedNumPresentPsuCounter();
+}
+
+TEST_F(
+    SensorServiceImplInputVoltageTest,
+    DarwinSinglePhysicalPemMultipleLogicalEntries) {
+  // Darwin topology: one physical PEM at /PEM_SLOT@0, but two logical
+  // PerSlotPowerConfig entries (PEM1, PEM2) both at /PEM_SLOT@0 — used for
+  // PIN = VIN×CH1 + VIN×CH2 calculation. Counter must report PHYSICAL = 1,
+  // not logical = 2.
+  addInputVoltageSensors({"PEM_VIN"});
+  config_.powerConfig()->minAcPsuCount() = 1;
+  config_.powerConfig()->minDcPsuCount() = 1;
+  addPmUnit("/PEM_SLOT@0", "PEM"); // 1 physical PEM
+  // 2 logical PerSlotPowerConfigs at the same slot
+  for (const auto& name : {"PEM1", "PEM2"}) {
+    PerSlotPowerConfig pem;
+    pem.name() = name;
+    pem.voltageSensorName() = "PEM_VIN";
+    pem.currentSensorName() = std::string(name) + "_IIN";
+    pem.slotPath() = "/PEM_SLOT@0";
+    config_.powerConfig()->perSlotPowerConfigs()->push_back(pem);
+  }
+  createImpl();
+  auto polledData = createPolledData({{"PEM_VIN", 220.0}});
+  impl_->processInputVoltage(polledData, *config_.powerConfig());
+  impl_->publishPsuPemCounters(
+      makePmUnitInfoMap({{"/PEM_SLOT@0", true}}), *config_.powerConfig());
+
+  expectTotalNumPresentPsu(1); // physical, NOT 2
+  expectUnexpectedNumPresentPsu(0);
+}
+
+TEST_F(SensorServiceImplInputVoltageTest, ProcessPowerHonorsAbsentPsuSlot) {
+  // processPower must skip per-slot _POWER publication for PSU/PEM slots
+  // that pmUnitInfoMap reports as absent. Distinguishes "skipped via
+  // absent" from "processed-but-value-missing" — for skip, neither
+  // .value nor .failure should be published.
+  addInputVoltageSensors({"PSU1_VIN"});
+  config_.powerConfig()->minAcPsuCount() = 1;
+  for (const auto& [name, path] :
+       std::vector<std::pair<std::string, std::string>>{
+           {"PSU1", "/PSU_SLOT@0"}, {"PSU2", "/PSU_SLOT@1"}}) {
+    PerSlotPowerConfig psu;
+    psu.name() = name;
+    psu.powerSensorName() = name + "_PWR";
+    psu.slotPath() = path;
+    config_.powerConfig()->perSlotPowerConfigs()->push_back(psu);
+  }
+  createImpl();
+  auto polledData = createPolledData(
+      {{"PSU1_VIN", 220.0}, {"PSU1_PWR", 500.0}, {"PSU2_PWR", 500.0}});
+  impl_->processInputVoltage(polledData, *config_.powerConfig());
+  impl_->processPower(
+      polledData,
+      *config_.powerConfig(),
+      makePmUnitInfoMap({{"/PSU_SLOT@0", true}, {"/PSU_SLOT@1", false}}));
+
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(SensorServiceImpl::kDerivedValue, "PSU1_POWER")),
+      500.0);
+  // Skipped — neither .value nor .failure should exist.
+  EXPECT_THROW(
+      fb303::fbData->getCounter(
+          fmt::format(SensorServiceImpl::kDerivedValue, "PSU2_POWER")),
+      std::invalid_argument);
+  EXPECT_THROW(
+      fb303::fbData->getCounter(
+          fmt::format(SensorServiceImpl::kDerivedFailure, "PSU2_POWER")),
+      std::invalid_argument);
 }
 
 } // namespace facebook::fboss

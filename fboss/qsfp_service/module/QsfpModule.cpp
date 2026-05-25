@@ -15,7 +15,7 @@
 
 #include <boost/assign.hpp>
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
@@ -236,6 +236,7 @@ bool QsfpModule::upgradeFirmwareLocked(
       // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep
       sleep(5);
       updateQsfpData(true);
+      updateCachedTransceiverInfoLocked({});
     }
 
     // End of Firmware Upgrade
@@ -1201,7 +1202,7 @@ void QsfpModule::customizeTransceiverLocked(
   auto& portName = portState.portName;
   auto speed = portState.speed;
   auto startHostLane = portState.startHostLane;
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}",
       portName,
       apache::thrift::util::enumNameSafe(speed),
@@ -1567,7 +1568,7 @@ bool QsfpModule::readyTransceiver(bool hasTunableOpticsConfig) {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     if (present_) {
       if (!cacheIsValid()) {
-        QSFP_LOG(DBG1, this) << folly::sformat(
+        QSFP_LOG(DBG1, this) << fmt::format(
             "Transceiver {:s} - Cache is not valid, so cannot check the transceiver state",
             getNameString());
         return false;

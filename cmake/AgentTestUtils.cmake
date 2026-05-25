@@ -522,7 +522,6 @@ add_library(stress_test_utils
 
 target_link_libraries(stress_test_utils
   route_scale_gen
-  mono_agent_benchmarks
   agent_ensemble
   function_call_time_reporter
   Folly::folly

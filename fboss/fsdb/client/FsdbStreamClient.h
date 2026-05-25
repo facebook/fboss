@@ -82,6 +82,19 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   }
   void onCancellation() override {}
 
+  /*
+   * Force a transient disconnect of the underlying stream so that the
+   * ReconnectingThriftClient base will reconnect on the next retry tick.
+   * Unlike cancel(), this does NOT transition to CANCELLED -- the subscriber
+   * resumes once the server is reachable.
+   *
+   * noGR is meaningful only at the FsdbSubscriber layer (skip GR
+   * hold and land directly in DISCONNECTED_GR_HOLD_EXPIRED on the next
+   * disconnect transition). At this layer the flag is accepted only so the
+   * signature is uniform across the inheritance chain.
+   */
+  virtual void reconnect(bool noGR = false);
+
   template <typename PubUnit>
   using PubStreamT = apache::thrift::ClientSink<PubUnit, OperPubFinalResponse>;
   template <typename SubUnit>
@@ -155,6 +168,9 @@ class FsdbStreamClient : public ReconnectingThriftClient {
       case fsdb::FsdbErrorCode::CLIENT_TRANSPORT_EXCEPTION:
         disconnectReasonTransportError_.add(1);
         break;
+      case fsdb::FsdbErrorCode::USER_REQUESTED_RECONNECT:
+        disconnectReasonUserRequested_.add(1);
+        break;
       case fsdb::FsdbErrorCode::ID_ALREADY_EXISTS:
         disconnectReasonIdExists_.add(1);
         break;
@@ -184,6 +200,10 @@ class FsdbStreamClient : public ReconnectingThriftClient {
       fb303::RATE};
   fb303::TimeseriesWrapper disconnectReasonTransportError_{
       getCounterPrefix() + ".disconnectReason.transportError",
+      fb303::SUM,
+      fb303::RATE};
+  fb303::TimeseriesWrapper disconnectReasonUserRequested_{
+      getCounterPrefix() + ".disconnectReason.userRequested",
       fb303::SUM,
       fb303::RATE};
   fb303::TimeseriesWrapper disconnectReasonIdExists_{

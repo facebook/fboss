@@ -75,6 +75,7 @@ class SaiLagManager {
   void updateStats(AggregatePortID aggPort);
 
   std::optional<HwTrunkStats> getHwTrunkStats(AggregatePortID aggPort) const;
+  std::map<std::string, HwTrunkStats> getAllHwTrunkStats() const;
 
  private:
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(

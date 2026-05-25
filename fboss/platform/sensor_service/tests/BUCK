@@ -50,6 +50,7 @@ cpp_unittest(
     ],
     deps = [
         "//fboss/platform/sensor_service:config_validator",
+        "//fboss/platform/sensor_service/utilities:power_config_utils",
     ],
 )
 

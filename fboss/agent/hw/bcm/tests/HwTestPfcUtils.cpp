@@ -11,8 +11,8 @@
 #include "fboss/agent/hw/test/HwTestPfcUtils.h"
 #include <gtest/gtest.h>
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
-#include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/types.h"
 
 namespace {
@@ -87,14 +87,18 @@ void getExpectedPfcWatchdogHwConfigParams(
 
 // Verifies if the PFC watchdog config provided matches the one
 // programmed in BCM HW
-void pfcWatchdogProgrammingMatchesConfig(
+bool pfcWatchdogProgrammingMatchesConfig(
     const HwSwitch* hw,
     const PortID& portId,
     const bool watchdogEnabled,
     const cfg::PfcWatchdog& watchdog) {
+  bool match = true;
   auto compareExpectedAndProgrammedPfcWatchdogParams =
       [&](std::map<bcm_cosq_pfc_deadlock_control_t, int>& config1,
           std::map<bcm_cosq_pfc_deadlock_control_t, int>& config2) {
+        if (config1.size() != config2.size()) {
+          match = false;
+        }
         EXPECT_EQ(config1.size(), config2.size());
         for (auto iter = config1.begin(); iter != config1.end(); ++iter) {
           // The same keys are expected in both the maps
@@ -102,6 +106,7 @@ void pfcWatchdogProgrammingMatchesConfig(
             XLOG(DBG0) << "PFC watchdog mismatch: expected[" << iter->first
                        << "]=" << iter->second << ", programmed[" << iter->first
                        << "]=" << config2[iter->first];
+            match = false;
           }
           EXPECT_EQ(iter->second, config2[iter->first]);
         }
@@ -119,6 +124,7 @@ void pfcWatchdogProgrammingMatchesConfig(
     compareExpectedAndProgrammedPfcWatchdogParams(
         expectedHwConfig, readHwConfig);
   }
+  return match;
 }
 
 int getPfcDeadlockDetectionTimerGranularity(int deadlockDetectionTimeMsec) {

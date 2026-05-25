@@ -170,7 +170,7 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
         *ribToSwitchStateFunc_,
         ribToSwitchStateCookie_);
   }
-  for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
+  for (const auto& [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
     auto stats = getRib()->update(
         resolver_,
         ridClientId.first,
@@ -186,7 +186,7 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
     updateStats(stats);
   }
   // update MPLS routes
-  for (auto& [ridClientId, addDelRoutes] : ribMplsRoutesToAddDel_) {
+  for (const auto& [ridClientId, addDelRoutes] : ribMplsRoutesToAddDel_) {
     auto stats = getRib()->update(
         resolver_,
         ridClientId.first,

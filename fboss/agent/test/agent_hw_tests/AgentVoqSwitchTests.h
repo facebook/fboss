@@ -102,7 +102,7 @@ class AgentVoqSwitchTest : public AgentHwTest {
         ports->end(),
         [this, &portDescs, &portTypes](const auto& idAndPort) {
           const auto port = idAndPort.second;
-          if (portTypes.find(port->getPortType()) != portTypes.end()) {
+          if (portTypes.contains(port->getPortType())) {
             portDescs.push_back(PortDescriptor(getSystemPortID(
                 PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
           }

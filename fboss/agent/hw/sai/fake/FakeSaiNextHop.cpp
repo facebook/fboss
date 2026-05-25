@@ -54,10 +54,10 @@ sai_status_t create_next_hop_fn(
       case SAI_NEXT_HOP_ATTR_DISABLE_DECREMENT_TTL:
         disableTtlDecrement = attr_list[i].value.booldata;
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       case SAI_NEXT_HOP_ATTR_TUNNEL_ID:
         tunnelId = attr_list[i].value.oid;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       case SAI_NEXT_HOP_ATTR_SRV6_SIDLIST_ID:
         srv6SidlistId = attr_list[i].value.oid;
         break;
@@ -69,8 +69,18 @@ sai_status_t create_next_hop_fn(
   if (!type) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
+  if (type.value() == SAI_NEXT_HOP_TYPE_TUNNEL_ENCAP) {
+    *next_hop_id = fs->nextHopManager.create(
+        type.value(),
+        ip.value_or(folly::IPAddress("0.0.0.0")),
+        routerInterfaceId.value_or(SAI_NULL_OBJECT_ID),
+        labelStack,
+        disableTtlDecrement);
+    auto& nextHop = fs->nextHopManager.get(*next_hop_id);
+    nextHop.tunnelId = tunnelId;
+  }
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  if (type.value() == SAI_NEXT_HOP_TYPE_SRV6_SIDLIST) {
+  else if (type.value() == SAI_NEXT_HOP_TYPE_SRV6_SIDLIST) {
     *next_hop_id = fs->nextHopManager.create(
         type.value(),
         ip.value_or(folly::IPAddress("0.0.0.0")),
@@ -80,9 +90,9 @@ sai_status_t create_next_hop_fn(
     auto& nextHop = fs->nextHopManager.get(*next_hop_id);
     nextHop.tunnelId = tunnelId;
     nextHop.srv6SidlistId = srv6SidlistId;
-  } else
+  }
 #endif
-  {
+  else {
     if (!ip || !routerInterfaceId) {
       return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -150,10 +160,10 @@ sai_status_t get_next_hop_attribute_fn(
       case SAI_NEXT_HOP_ATTR_DISABLE_DECREMENT_TTL:
         attr[i].value.booldata = nextHop.disableTtlDecrement;
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       case SAI_NEXT_HOP_ATTR_TUNNEL_ID:
         attr[i].value.oid = nextHop.tunnelId;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       case SAI_NEXT_HOP_ATTR_SRV6_SIDLIST_ID:
         attr[i].value.oid = nextHop.srv6SidlistId;
         break;

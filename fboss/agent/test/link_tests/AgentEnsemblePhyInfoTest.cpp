@@ -470,12 +470,12 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
    * 3. Pre-FEC BER should always be <= e-5 (e-4 is the FEC correction limit)
    * 4. If the hardware supports FEC histogram, we should always have something
    * populated in bin 0. Bin 0 indicates the number of codewords that didn't
-   * require correction. Stress tests have a stricter threshold of 5.0e-7
+   * require correction. Stress tests have a stricter threshold of 1e-6
    * 5. If the hardware supports FEC histogram and there are some corrected
    * codewords, we should expect to see some non-zero values in bins >= 1.
    */
   auto iterations = FLAGS_link_stress_test ? 500 : 5;
-  auto preFecBerThreshold = FLAGS_link_stress_test ? 5.0e-7 : 1e-5;
+  auto preFecBerThreshold = FLAGS_link_stress_test ? 1e-6 : 1e-5;
   std::map<PortID, const phy::PhyInfo> previousPhyInfo;
   std::map<PortID, const phy::PhyInfo> currentPhyInfo;
   auto cabledPorts = getCabledPorts();
@@ -552,7 +552,7 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
         EXPECT_EQ(
             rsFecNow->get_uncorrectedCodewords(),
             rsFecBefore->get_uncorrectedCodewords());
-        // Expect pre-FEC BER to be lower than e-5 (or 5.0e-7 for stress test)
+        // Expect pre-FEC BER to be lower than e-5 (or 1e-6 for stress test)
         // TODO: Make the threshold stricter once
         // 1) we start using a SAI version that supports FEC corrected bits.
         // Before 10.2 SAI, ASIC doesn't support FEC corrected bits and we

@@ -27,9 +27,11 @@
 #include "fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmJ4SimPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmLeh800bclsPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmSaintpaulPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.h"
@@ -312,8 +314,10 @@ std::string SaiPlatform::getHwAsicConfig(
 
 void SaiPlatform::initSaiProfileValues() {
   auto platformMode = getType();
-  // LADAKH800BCLS need SAI_CUSTOM_KERNEL_BDE_NAME to support mnpu
-  if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS) {
+  // LADAKH800BCLS and LEH800BCLS need SAI_CUSTOM_KERNEL_BDE_NAME to support
+  // mnpu
+  if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS ||
+      platformMode == PlatformType::PLATFORM_LEH800BCLS) {
     kSaiProfileValues.insert(
         std::make_pair("SAI_CUSTOM_KERNEL_BDE_NAME", "linux_ngbde"));
   }
@@ -415,12 +419,16 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmIcetea800bcPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS) {
       saiPort = std::make_unique<SaiBcmLadakh800bclsPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_LEH800BCLS) {
+      saiPort = std::make_unique<SaiBcmLeh800bclsPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE800BACT) {
       saiPort = std::make_unique<SaiBcmWedge800BACTPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE800CACT) {
       saiPort = std::make_unique<SaiWedge800CACTPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_J4SIM) {
       saiPort = std::make_unique<SaiBcmJ4SimPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_SAINTPAUL) {
+      saiPort = std::make_unique<SaiBcmSaintpaulPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_TAHANSB800BC) {
       saiPort = std::make_unique<SaiBcmTahansb800bcPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_BLACKWOLF800BANW) {

@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fb303/ServiceData.h>
 #include <folly/testing/TestUtil.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -93,6 +94,43 @@ TEST_F(FruPresenceExplorerTests, FrusAllPresent) {
   fruPresenceExplorer_ =
       std::make_shared<FruPresenceExplorer>(fruConfigs_, mockLedManager_);
   fruPresenceExplorer_->detectFruPresence();
+
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru_type.FAN.absence"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru_type.PEM.absence"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru_type.SYSTEM.absence"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.FAN1.absence"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.FAN2.absence"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.PEM1.absence"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.FAN1.detection_failure"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.FAN2.detection_failure"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.PEM1.detection_failure"),
+      0);
 }
 
 TEST_F(FruPresenceExplorerTests, FrusNotAllPresent) {
@@ -124,6 +162,43 @@ TEST_F(FruPresenceExplorerTests, FrusNotAllPresent) {
   fruPresenceExplorer_ =
       std::make_shared<FruPresenceExplorer>(fruConfigs_, mockLedManager_);
   fruPresenceExplorer_->detectFruPresence();
+
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru_type.FAN.absence"),
+      1);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru_type.PEM.absence"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru_type.SYSTEM.absence"),
+      1);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.FAN1.absence"),
+      1);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.FAN2.absence"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.PEM1.absence"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.FAN1.detection_failure"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.FAN2.detection_failure"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.PEM1.detection_failure"),
+      0);
 }
 
 TEST_F(FruPresenceExplorerTests, PresenceDetectionFail) {
@@ -151,6 +226,43 @@ TEST_F(FruPresenceExplorerTests, PresenceDetectionFail) {
   fruPresenceExplorer_ =
       std::make_shared<FruPresenceExplorer>(fruConfigs_, mockLedManager_);
   fruPresenceExplorer_->detectFruPresence();
+
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru_type.FAN.absence"),
+      1);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru_type.PEM.absence"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru_type.SYSTEM.absence"),
+      1);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.FAN1.absence"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.FAN2.absence"),
+      1);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.PEM1.absence"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.FAN1.detection_failure"),
+      0);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.FAN2.detection_failure"),
+      1);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.fru.PEM1.detection_failure"),
+      0);
 }
 
 TEST_F(FruPresenceExplorerTests, PresenceDetectionHexadecimal) {
@@ -214,4 +326,5 @@ TEST_F(FruPresenceExplorerTests, AbsenceDetectionHexadecimal) {
       std::make_shared<FruPresenceExplorer>(fruConfigs_, mockLedManager_);
   fruPresenceExplorer_->detectFruPresence();
 }
+
 } // namespace facebook::fboss::platform::data_corral_service

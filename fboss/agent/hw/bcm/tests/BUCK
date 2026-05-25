@@ -303,6 +303,21 @@ cpp_unittest(
     for sdk in BCM_SDKS
 ]
 
+cpp_library(
+    name = "bcm_pfc_utils",
+    srcs = [
+        "HwTestPfcUtils.cpp",
+    ],
+    undefined_symbols = True,
+    exported_deps = [
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/test:hw_test_pfc_utils",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
 bcm_test_all_hw_common_srcs = [
     "BcmTest.cpp",
     "BcmTestUtils.cpp",
@@ -622,6 +637,7 @@ cpp_library(
         "HwTestFlowletUtilsThriftHandler.cpp",
         "HwTestMirrorUtilsThriftHandler.cpp",
         "HwTestNeighborUtilsThriftHandler.cpp",
+        "HwTestPfcUtilsThriftHandler.cpp",
         "HwTestPortUtilsThriftHandler.cpp",
         "HwTestPtpTcUtilsThriftHandler.cpp",
         "HwTestRouteUtilsThriftHandler.cpp",
@@ -638,6 +654,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":bcm_aqm_utils",  # @manual
+        ":bcm_pfc_utils",
         ":bcm_trunk_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -648,6 +665,7 @@ cpp_library(
         "//fboss/agent/hw/test:hw_test_acl_utils",
         "//fboss/agent/hw/test:hw_test_aqm_utils",
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
+        "//fboss/agent/hw/test:hw_test_pfc_utils",
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/state:state",

@@ -59,6 +59,8 @@ CmdConfigTestBase::CmdConfigTestBase(
 
 void CmdConfigTestBase::SetUp() {
   CmdHandlerTestBase::SetUp();
+  // Setup mock servers for FbossCtrl and QsfpService
+  setupMockedAgentServer();
 }
 
 void CmdConfigTestBase::TearDown() {

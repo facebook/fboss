@@ -167,6 +167,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_TAM:
       *count = fs->tamManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD:
+      *count = static_cast<uint32_t>(fs->tamEventThresholdManager.map().size());
+      break;
     case SAI_OBJECT_TYPE_TUNNEL:
       *count = fs->tunnelManager.map().size();
       break;
@@ -534,6 +537,12 @@ sai_status_t sai_get_object_key(
     }
     case SAI_OBJECT_TYPE_TAM: {
       for (const auto& ob : fs->tamManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD: {
+      for (const auto& ob : fs->tamEventThresholdManager.map()) {
         object_list[i++].key.object_id = ob.second.id;
       }
       break;

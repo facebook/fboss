@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/led_service/BspLedManager.h"
+#include <fmt/core.h>
 #include <optional>
 #include "fboss/agent/EnumUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
@@ -117,7 +118,7 @@ led::LedState BspLedManager::calculateLedState(
     cfg::PortProfileID portProfile) const {
   auto itr = portDisplayMap_.find(portId);
   if (itr == portDisplayMap_.end()) {
-    XLOG(ERR) << folly::sformat(
+    XLOG(ERR) << fmt::format(
         "Port {:d} LED color undetermined as the port operational info is not available",
         portId);
     return utility::constructLedState(

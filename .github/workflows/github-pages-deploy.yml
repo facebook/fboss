@@ -9,8 +9,8 @@ on:
   push:
     branches:
       - main
-    # Review gh actions docs if you want to further define triggers, paths, etc
-    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
+    paths:
+      - 'docs/**'
 
 jobs:
   build:
@@ -23,16 +23,14 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
-          cache: yarn
-          cache-dependency-path: docs/yarn.lock
+          node-version: 22
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install
       - name: Build website
         run: yarn build
 
       - name: Upload Build Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: docs/build
 
@@ -54,4 +52,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

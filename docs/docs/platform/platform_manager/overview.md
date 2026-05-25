@@ -32,10 +32,18 @@ files such that the same generic software can run on all platforms.
 ## Components
 
 - **Platform Specific Configuration (provided by Vendors):** It has information
-  about the FRUs, I2C devices and how they can be accessed. The configuration
-  format is defined in [platform_manager_config.thrift](https://github.com/facebook/fboss/blob/main/fboss/platform/platform_manager/platform_manager_config.thrift). See here for a [sample](https://github.com/facebook/fboss/blob/main/fboss/platform/configs/sample/platform_manager.json) config.
-- **Platform Agnostic Software (developed by Meta):** Meta will write and
-  maintain the software. The [source code is here](https://github.com/facebook/fboss/tree/main/fboss/platform/platform_manager).
+  about the FRUs, I2C devices and how they can be accessed.
+
+  The configuration format is defined in [platform_manager_config.thrift](https://github.com/facebook/fboss/blob/main/fboss/platform/platform_manager/platform_manager_config.thrift).
+
+  See here for a [sample config](https://github.com/facebook/fboss/blob/main/fboss/platform/configs/sample/platform_manager.json) .
+
+
+- **Platform Agnostic Software (developed by Meta):** Meta will write and maintain the software.
+
+
+  See here for the [source code](https://github.com/facebook/fboss/tree/main/fboss/platform/platform_manager).
+
 
 ## Documentation
 
@@ -43,7 +51,6 @@ files such that the same generic software can run on all platforms.
 | ---------------------------------------------------------------------- | ------------------------------------------------ |
 | [Modeling Requirements](/docs/platform/platform_manager/modeling)      | PMUnit, IDPROM, and hardware modeling rules      |
 | [Block Configurations](/docs/platform/platform_manager/block_configs)  | Bulk FPGA sub-device configuration               |
-| [Presence Detection](/docs/platform/platform_manager/presence_detection) | GPIO and sysfs-based FRU presence detection    |
 | [Exploration Process](/docs/platform/platform_manager/exploration)     | How platform discovery works, status and errors  |
 | [Device Map](/docs/platform/platform_manager/devmap)                   | Symbolic link structure for stable device paths  |
 | [Running PlatformManager](/docs/platform/platform_manager/running)     | Command-line flags, run modes, systemd integration |

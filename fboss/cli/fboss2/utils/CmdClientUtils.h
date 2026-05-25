@@ -56,6 +56,7 @@ std::unique_ptr<
     apache::thrift::Client<facebook::fboss::platform::fan_service::FanService>>
 createFanServiceClient(const HostInfo& hostInfo);
 
+MultiSwitchRunState getMultiSwitchRunState(const HostInfo& hostInfo);
 int getNumHwSwitches(const HostInfo& hostInfo);
 bool isMultiSwitchEnabled(const HostInfo& hostInfo);
 

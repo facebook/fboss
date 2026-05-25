@@ -20,10 +20,13 @@ class ConfigValidator {
   bool isValidTemperatureConfig(
       const sensor_config::SensorConfig& sensorConfig);
   bool isValidAsicCommand(const sensor_config::SensorConfig& sensorConfig);
+  // Union of all defined names (base + every versionedSensors entry +
+  // asicCommand). Use for collision checks.
   std::unordered_set<std::string> getAllSensorNames(
       const sensor_config::SensorConfig& sensorConfig);
-  // Returns sensor names that are present in all versions of the platform. In
-  // other words, does not include versionedSensors
+  // Names guaranteed to exist on every hardware version: base + asicCommand +
+  // per-PmUnit intersection of versionedSensors entries. Use for reference
+  // validation.
   std::unordered_set<std::string> getAllUniversalSensorNames(
       const sensor_config::SensorConfig& sensorConfig);
 

@@ -1562,13 +1562,6 @@
       "pmUnitName": "PSU",
       "sensors": [
         {
-          "__comment__": "Removed the thresholds to support both DC and AC PSUs",
-          "name": "PSU1_L_VIN",
-          "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/in1_input",
-          "type": 1,
-          "compute": "@/1000"
-        },
-        {
           "name": "PSU1_L_12V_MAIN_VOUT",
           "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/in2_input",
           "type": 1,
@@ -1657,24 +1650,262 @@
           "name": "PSU1_FAN_R_RPM",
           "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/fan2_input",
           "type": 4
+        }
+      ],
+      "versionedSensors": [
+        {
+          "__comment__": "Delta AC PSU",
+          "productName": "AC3K12V_M_D",
+          "productProductionState": 0,
+          "productVersion": 0,
+          "productSubVersion": 0,
+          "sensors": [
+            {
+              "name": "PSU1_L_VIN",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 305,
+                "maxAlarmVal": 305,
+                "minAlarmVal": 90,
+                "lowerCriticalVal": 90
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 73,
+                "maxAlarmVal": 68
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 102,
+                "maxAlarmVal": 97
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 125,
+                "maxAlarmVal": 120
+              },
+              "compute": "@/1000"
+            }
+          ]
         },
         {
-          "name": "PSU1_TEMP1",
-          "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp1_input",
-          "type": 3,
-          "compute": "@/1000"
+          "__comment__": "Delta DC PSU",
+          "productName": "DC3K12V_M_D",
+          "productProductionState": 0,
+          "productVersion": 0,
+          "productSubVersion": 0,
+          "sensors": [
+            {
+              "name": "PSU1_L_VIN",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 56,
+                "maxAlarmVal": 56,
+                "minAlarmVal": 42,
+                "lowerCriticalVal": 42
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 70,
+                "maxAlarmVal": 65
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 130,
+                "maxAlarmVal": 125
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 125,
+                "maxAlarmVal": 120
+              },
+              "compute": "@/1000"
+            }
+          ]
         },
         {
-          "name": "PSU1_TEMP2",
-          "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp2_input",
-          "type": 3,
-          "compute": "@/1000"
+          "__comment__": "LiteOn AC PSU",
+          "productName": "AC3K12V_M_L",
+          "productProductionState": 0,
+          "productVersion": 0,
+          "productSubVersion": 0,
+          "sensors": [
+            {
+              "name": "PSU1_L_VIN",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 305,
+                "maxAlarmVal": 305,
+                "minAlarmVal": 90,
+                "lowerCriticalVal": 90
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 80,
+                "maxAlarmVal": 70
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 120,
+                "maxAlarmVal": 115
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 112,
+                "maxAlarmVal": 107
+              },
+              "compute": "@/1000"
+            }
+          ]
         },
         {
-          "name": "PSU1_TEMP3",
-          "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp3_input",
-          "type": 3,
-          "compute": "@/1000"
+          "__comment__": "LiteOn DC PSU",
+          "productName": "DC3K12V_M_L",
+          "productProductionState": 0,
+          "productVersion": 0,
+          "productSubVersion": 0,
+          "sensors": [
+            {
+              "name": "PSU1_L_VIN",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 56,
+                "maxAlarmVal": 56,
+                "minAlarmVal": 42,
+                "lowerCriticalVal": 42
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 65,
+                "maxAlarmVal": 60
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 130,
+                "maxAlarmVal": 125
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 120,
+                "maxAlarmVal": 115
+              },
+              "compute": "@/1000"
+            }
+          ]
+        },
+        {
+          "__comment__": "Universal fallback (AC default thresholds)",
+          "productProductionState": 0,
+          "productVersion": 0,
+          "productSubVersion": 0,
+          "sensors": [
+            {
+              "name": "PSU1_L_VIN",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 305,
+                "maxAlarmVal": 305,
+                "minAlarmVal": 90,
+                "lowerCriticalVal": 90
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 73,
+                "maxAlarmVal": 68
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 102,
+                "maxAlarmVal": 97
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU1_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 125,
+                "maxAlarmVal": 120
+              },
+              "compute": "@/1000"
+            }
+          ]
         }
       ]
     },
@@ -1698,13 +1929,6 @@
       "slotPath": "/PDBRIGHT_SLOT@0/PSU_SLOT@0",
       "pmUnitName": "PSU",
       "sensors": [
-        {
-          "__comment__": "Removed the thresholds to support both DC and AC PSUs",
-          "name": "PSU2_R_VIN",
-          "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in1_input",
-          "type": 1,
-          "compute": "@/1000"
-        },
         {
           "name": "PSU2_R_12V_MAIN_VOUT",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in2_input",
@@ -1794,24 +2018,262 @@
           "name": "PSU2_FAN_R_RPM",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/fan2_input",
           "type": 4
+        }
+      ],
+      "versionedSensors": [
+        {
+          "__comment__": "Delta AC PSU",
+          "productName": "AC3K12V_M_D",
+          "productProductionState": 0,
+          "productVersion": 0,
+          "productSubVersion": 0,
+          "sensors": [
+            {
+              "name": "PSU2_R_VIN",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 305,
+                "maxAlarmVal": 305,
+                "minAlarmVal": 90,
+                "lowerCriticalVal": 90
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 73,
+                "maxAlarmVal": 68
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 102,
+                "maxAlarmVal": 97
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 125,
+                "maxAlarmVal": 120
+              },
+              "compute": "@/1000"
+            }
+          ]
         },
         {
-          "name": "PSU2_TEMP1",
-          "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp1_input",
-          "type": 3,
-          "compute": "@/1000"
+          "__comment__": "Delta DC PSU",
+          "productName": "DC3K12V_M_D",
+          "productProductionState": 0,
+          "productVersion": 0,
+          "productSubVersion": 0,
+          "sensors": [
+            {
+              "name": "PSU2_R_VIN",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 56,
+                "maxAlarmVal": 56,
+                "minAlarmVal": 42,
+                "lowerCriticalVal": 42
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 70,
+                "maxAlarmVal": 65
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 130,
+                "maxAlarmVal": 125
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 125,
+                "maxAlarmVal": 120
+              },
+              "compute": "@/1000"
+            }
+          ]
         },
         {
-          "name": "PSU2_TEMP2",
-          "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp2_input",
-          "type": 3,
-          "compute": "@/1000"
+          "__comment__": "LiteOn AC PSU",
+          "productName": "AC3K12V_M_L",
+          "productProductionState": 0,
+          "productVersion": 0,
+          "productSubVersion": 0,
+          "sensors": [
+            {
+              "name": "PSU2_R_VIN",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 305,
+                "maxAlarmVal": 305,
+                "minAlarmVal": 90,
+                "lowerCriticalVal": 90
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 80,
+                "maxAlarmVal": 70
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 120,
+                "maxAlarmVal": 115
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 112,
+                "maxAlarmVal": 107
+              },
+              "compute": "@/1000"
+            }
+          ]
         },
         {
-          "name": "PSU2_TEMP3",
-          "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp3_input",
-          "type": 3,
-          "compute": "@/1000"
+          "__comment__": "LiteOn DC PSU",
+          "productName": "DC3K12V_M_L",
+          "productProductionState": 0,
+          "productVersion": 0,
+          "productSubVersion": 0,
+          "sensors": [
+            {
+              "name": "PSU2_R_VIN",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 56,
+                "maxAlarmVal": 56,
+                "minAlarmVal": 42,
+                "lowerCriticalVal": 42
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 65,
+                "maxAlarmVal": 60
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 130,
+                "maxAlarmVal": 125
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 120,
+                "maxAlarmVal": 115
+              },
+              "compute": "@/1000"
+            }
+          ]
+        },
+        {
+          "__comment__": "Universal fallback (AC default thresholds)",
+          "productProductionState": 0,
+          "productVersion": 0,
+          "productSubVersion": 0,
+          "sensors": [
+            {
+              "name": "PSU2_R_VIN",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 305,
+                "maxAlarmVal": 305,
+                "minAlarmVal": 90,
+                "lowerCriticalVal": 90
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP1",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 73,
+                "maxAlarmVal": 68
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP2",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 102,
+                "maxAlarmVal": 97
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "PSU2_TEMP3",
+              "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "upperCriticalVal": 125,
+                "maxAlarmVal": 120
+              },
+              "compute": "@/1000"
+            }
+          ]
         }
       ]
     },
@@ -2459,7 +2921,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_VRM1/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 115
+            "upperCriticalVal": 95,
+            "maxAlarmVal": 90
           },
           "compute": "@/1000"
         },
@@ -2491,6 +2954,10 @@
           "name": "SMB_0V75_0V9_R_VRM1_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_VRM2/temp1_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 95,
+            "maxAlarmVal": 90
+          },
           "compute": "@/1000"
         },
         {
@@ -2521,6 +2988,10 @@
           "name": "SMB_0V75_0V9_L_VRM0_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_VRM3/temp1_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 95,
+            "maxAlarmVal": 90
+          },
           "compute": "@/1000"
         }
       ],
@@ -5512,6 +5983,10 @@
           "name": "SMB_3V3_L_VRM_TEMP",
           "sysfsPath": "/run/devmap/sensors/3V3_L_MONITOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 85,
+            "maxAlarmVal": 80
+          },
           "compute": "@/1000"
         }
       ],
@@ -6260,6 +6735,10 @@
           "name": "SMB_3V3_R_VRM_TEMP",
           "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 85,
+            "maxAlarmVal": 80
+          },
           "compute": "@/1000"
         }
       ],
@@ -6973,17 +7452,21 @@
     "perSlotPowerConfigs": [
       {
         "name": "PSU1",
-        "powerSensorName": "PSU1_L_PIN"
+        "powerSensorName": "PSU1_L_PIN",
+        "slotPath": "/PDBLEFT_SLOT@0/PSU_SLOT@0"
       },
       {
         "name": "PSU2",
-        "powerSensorName": "PSU2_R_PIN"
+        "powerSensorName": "PSU2_R_PIN",
+        "slotPath": "/PDBRIGHT_SLOT@0/PSU_SLOT@0"
       }
     ],
     "inputVoltageSensors": [
       "PSU1_L_VIN",
       "PSU2_R_VIN"
-    ]
+    ],
+    "minAcPsuCount": 1,
+    "minDcPsuCount": 1
   },
   "temperatureConfigs": [
     {

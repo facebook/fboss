@@ -178,6 +178,12 @@ struct PortFields {
   65: optional bool clmEnable;
   // Link Training (IEEE 802.3 Cl.72/93/162) enable configuration for this port
   66: optional bool linkTraining;
+  // Hold timer (ms) the SDK applies before reporting a link-down event.
+  // Unset = leave SDK default untouched.
+  67: optional i32 portDownHoldoffTimeMs;
+  // Hold timer (ms) the SDK applies before reporting a link-up event.
+  // Unset = leave SDK default untouched.
+  68: optional i32 portUpHoldoffTimeMs;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -393,6 +399,8 @@ struct MirrorOnDropReportFields {
   18: optional switch_config.PortDescriptor resolvedEgressPort;
   // Optional sampling rate for MOD packets
   19: optional i32 samplingRate;
+  // Optional packets-per-second rate cap for drop report generation
+  20: optional i32 dropPacketRateThreshold;
 }
 
 struct ControlPlaneFields {
@@ -424,7 +432,7 @@ struct SwitchSettingsFields {
   2: bool qcmEnable = false;
   3: bool ptpTcEnable = false;
   4: i32 l2AgeTimerSeconds = 300;
-  5: i32 maxRouteCounterIDs = 0;
+  5: i32 maxRouteCounterIDs_DEPRECATED = 0;
   6: list<BlockedNeighbor> blockNeighbors;
   7: list<BlockedMacAddress> macAddrsToBlock;
   // Switch type
@@ -522,6 +530,7 @@ struct RouteNextHopEntry {
   8: optional i64 normalizedResolvedNextHopSetID;
   9: optional i64 resolvedNextHopSetID;
   10: optional string namedNextHopGroup;
+  11: optional i64 clientNextHopSetID;
 }
 
 struct RouteNextHopsMulti {
@@ -627,6 +636,8 @@ struct MySidFields {
   # For ADJACENCY_MICRO_SID: whether to resolve IPv6 (NDP) or IPv4 (ARP)
   # neighbors. Only applicable to uA entries.
   7: optional bool isV6;
+  # Optional named next hop group for the MySid entry.
+  8: optional string namedNextHopGroup;
 }
 
 struct QosPolicyFields {
@@ -723,6 +734,11 @@ struct Subport {
   5: i32 holdTimerMultiplier = switch_config.DEFAULT_LACP_HOLD_TIMER_MULTIPLIER;
 }
 
+enum AggregatePortStatus {
+  UP = 0,
+  DOWN = 1,
+}
+
 struct AggregatePortFields {
   1: i16 id;
   2: string name;
@@ -744,6 +760,9 @@ struct AggregatePortFields {
   // Used as the upper bound to bring up the aggregate port
   11: optional i16 minimumLinkCountToUp;
   12: switch_config.AggregatePortType aggregatePortType = switch_config.AggregatePortType.LAG_PORT;
+  13: optional i64 configuredCapacityMbps;
+  14: optional i64 activeCapacityMbps;
+  15: optional AggregatePortStatus status;
 }
 
 struct TeFlowEntryFields {

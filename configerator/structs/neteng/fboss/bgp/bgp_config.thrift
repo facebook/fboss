@@ -14,7 +14,6 @@ include "configerator/structs/neteng/bgp_policy/thrift/bgp_policy.thrift"
 include "configerator/structs/neteng/fboss/bgp/if/bgp_attr.thrift"
 include "thrift/annotation/thrift.thrift"
 include "thrift/annotation/python.thrift"
-include "configerator/structs/neteng/config/vip_service_config.thrift"
 
 package "facebook.com/neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/bgp_config"
 
@@ -118,6 +117,12 @@ struct PeerGroup {
    * checked for TTL >= (256 - ttl_security_hops).
    */
   38: optional i32 ttl_security_hops;
+
+  /* Enable Enhanced Route Refresh capability advertisement (RFC 7313, cap 70) */
+  39: optional bool enhanced_route_refresh;
+
+  /* Enable Route Refresh capability advertisement (RFC 2918, cap 2) */
+  40: optional bool route_refresh;
 }
 
 /**
@@ -266,6 +271,12 @@ struct BgpPeer {
    * Typical value: 1 for directly connected eBGP peers.
    */
   102: optional i32 ttl_security_hops;
+
+  /* Enable Enhanced Route Refresh capability advertisement (RFC 7313, cap 70) */
+  103: optional bool enhanced_route_refresh;
+
+  /* Enable Route Refresh capability advertisement (RFC 2918, cap 2) */
+  104: optional bool route_refresh;
 }
 
 /**
@@ -540,6 +551,11 @@ struct BgpSettingConfig {
    * Configuration for update group slow peer detection and detachment.
    */
   15: optional UpdateGroupConfig update_group_config;
+
+  /**
+  * Enable BGP++ to use policy default action config
+  */
+  16: optional bool enable_policy_default_action;
 }
 
 /**
@@ -664,10 +680,10 @@ struct BgpConfig {
   20: optional BgpUcmpQuantizerConfig ucmp_quantizer_config;
 
   /**
-  * VipService related configs
+  * VipService related configs (VIP not in OSS scope)
   */
   21: bool enable_vip_service = false;
-  22: optional vip_service_config.VipServiceConfig vip_service_config;
+  // 22: reserved
 
   /**
    * 4-byte ASN definition for local ASN and local confed ASN

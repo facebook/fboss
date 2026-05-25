@@ -793,6 +793,7 @@ cfg::AclTable* addTtldAclTable(
           cfg::AclTableQualifier::SRC_IPV6,
           cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
           cfg::AclTableQualifier::IP_TYPE,
+          cfg::AclTableQualifier::IPV6_NEXT_HEADER,
           cfg::AclTableQualifier::TTL,
       },
       {

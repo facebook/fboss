@@ -2919,7 +2919,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -2928,7 +2928,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -2937,7 +2937,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp3_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -3219,7 +3219,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -3228,7 +3228,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -4080,6 +4080,16 @@
             "minAlarmVal": 1.44,
             "upperCriticalVal": 1.725,
             "lowerCriticalVal": 0
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_U2_TH6_TEMP",
+          "sysfsPath": "/run/devmap/sensors/SMB_CPLD/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 103
           },
           "compute": "@/1000.0"
         }

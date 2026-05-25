@@ -92,6 +92,36 @@ def fetch_owner_nodes(conveyor_id: str, owner: str) -> set[str] | None:
     return None
 
 
+def fetch_pipeline_nodes(conveyor_id: str, pipeline_name: str) -> set[str] | None:
+    """Fetch the set of nodes belonging to a named pipeline from conveyor config.
+
+    Reads `groups[].collapsible_node_group.group.pipeline_node_group` entries
+    and returns the union of `ordered_node_names` for groups whose
+    `pipeline_name` matches `pipeline_name` exactly. Returns None if the
+    pipeline is not found in the config.
+    """
+    cmd = ["conveyor", "info", "--conveyor-id", conveyor_id, "--json"]
+    output = run_conveyor_cmd(cmd)
+    if not output:
+        return None
+    data = json.loads(output)
+    config = (
+        data.get("Conveyor Config", {}).get("config", {}).get("conveyor3_config", {})
+    )
+    groups = config.get("groups", [])
+    nodes: set[str] = set()
+    found = False
+    for g in groups:
+        cng = g.get("collapsible_node_group", {}).get("group", {})
+        png = cng.get("pipeline_node_group", {})
+        if png.get("pipeline_name") == pipeline_name:
+            found = True
+            for n in png.get("ordered_node_names", []):
+                if not n.startswith("Owner:"):
+                    nodes.add(n)
+    return nodes if found else None
+
+
 def determine_blocking_nodes(
     data: list[dict],
 ) -> set[str]:
@@ -245,8 +275,25 @@ def extract_failures(
                 }
             )
 
-    failures.sort(key=lambda x: (x["release"] or 0, x["node"]))
-    return failures
+    # Deduplicate release-instance carry-forward: when a release has multiple
+    # instances (R7203.1, R7203.2, ...) due to node re-runs, the same SC job ID
+    # appears in each instance carrying forward the earlier result. Count it
+    # once. Fall back to (release, node, status) when sc_job is empty.
+    seen: set[tuple] = set()
+    deduped: list[dict] = []
+    for f in failures:
+        key = (
+            ("sc", f["sc_job"])
+            if f["sc_job"]
+            else ("rn", f["release"], f["node"], f["status"])
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(f)
+
+    deduped.sort(key=lambda x: (x["release"] or 0, x["node"]))
+    return deduped
 
 
 def format_elapsed(seconds: int) -> str:
@@ -336,6 +383,14 @@ def categorize_single_failure(f: dict) -> str:
 
     if status == "INFRA_ERROR":
         is_deadline = elapsed >= 21000
+        # No tests ran + short elapsed → likely a Basset device reservation
+        # timeout caused by pool degradation (DEAD devices, stuck-in-provisioning).
+        # See references/device-pool-health.md.
+        no_tests_ran = not f.get("failed_summary") and not f.get("passed_summary")
+        if no_tests_ran and elapsed < 600:
+            if parsed["type"] in ("ensemble_link", "qsfp_pm"):
+                return f"Device reservation / pool issue ({parsed['platform']})"
+            return f"Device reservation / pool issue: {node}"
 
         if parsed["type"] == "ensemble_link":
             platform = parsed["platform"]
@@ -353,6 +408,18 @@ def categorize_single_failure(f: dict) -> str:
         return f"Infra error: {node}"
 
     if status == "NODE_ERROR":
+        # No FAILED summary AND no everpaste URLs means the script could not
+        # extract any test-level signal — the runner crashed before recording
+        # results. Bucket all such failures into one category instead of N
+        # per-node ones; per SKILL.md Step 4, no parallel investigation needed.
+        no_test_signal = (
+            not f.get("failed_summary")
+            and not f.get("passed_summary")
+            and not f.get("everpaste_urls")
+        )
+        if no_test_signal:
+            return "Setup-phase / runner crashes (no FAILED summary)"
+
         if parsed["type"] == "ensemble_link":
             platform = parsed["platform"]
             mode = parsed["mode"]
@@ -594,6 +661,7 @@ def generate_report(
     releases_analyzed: list[int],
     owner: str | None = None,
     num_owner_nodes: int | None = None,
+    pipeline: str | None = None,
 ) -> str:
     """Generate the markdown report."""
     total = len(failures)
@@ -616,7 +684,11 @@ def generate_report(
     lines.append(f"# {conveyor_id}{title_suffix} Failure Analysis")
     lines.append("")
     lines.append(f"**Conveyor**: `{conveyor_id}`")
-    pipeline_desc = "Integration Tests (blocking nodes only)"
+    pipeline_desc = (
+        f"`{pipeline}` (blocking nodes only)"
+        if pipeline
+        else "auto-detected blocking pipeline"
+    )
     if owner:
         node_count = f" ({num_owner_nodes} nodes)" if num_owner_nodes else ""
         pipeline_desc += f", Owner: `{owner}`{node_count}"
@@ -741,18 +813,58 @@ def generate_report(
     # Recommendations
     lines.append("## Recommendations")
     lines.append("")
+    # Suppress duplicate "deadline exceeded → run pool-health playbook" text:
+    # all such categories collapse into one bucket per Step 4a, so emit the
+    # full guidance once and a one-line pointer for subsequent categories.
+    pool_pointer_letter: str | None = None
     for i, cat in enumerate(categories):
         letter = chr(ord("A") + i)
         name = cat["name"]
         count = len(cat["failures"])
         cat_type = cat["type"]
 
-        if "deadline exceeded" in name.lower():
+        if "reservation / pool issue" in name.lower():
             lines.append(
                 f"{i + 1}. **Category {letter} ({name})**: "
-                f"Consistently hitting deadline ({count}x). "
-                f"Consider splitting the test suite or increasing the deadline."
+                f"{count} INFRA_ERROR jobs that did not run any tests — likely a "
+                f"degraded Basset device pool (DEAD devices or stuck-in-provisioning). "
+                f"Follow `references/device-pool-health.md` to identify the dominant "
+                f"failing healthcheck and route to its `get_oncall()` owner. If "
+                f"`PendingProvisionJobCheck` is in the cascade, escalate to "
+                f"`dc_network_provisioning` oncall."
             )
+            if pool_pointer_letter is None:
+                pool_pointer_letter = letter
+        elif "setup-phase / runner crashes" in name.lower():
+            lines.append(
+                f"{i + 1}. **Category {letter} ({name})**: "
+                f"{count} NODE_ERRORs the runner could not record test results "
+                f"for. Per SKILL.md Step 4, do not deep-dive each — let the test "
+                f"owner triage from the node names. Pull one SC stderr per "
+                f"elapsed cluster (typically <15 min init crash and 1h+ runner "
+                f"crash) to characterize the crash class."
+            )
+        elif "deadline exceeded" in name.lower():
+            if pool_pointer_letter is None:
+                lines.append(
+                    f"{i + 1}. **Category {letter} ({name})**: "
+                    f"{count}x deadline-exceeded. **Before recommending test-suite "
+                    f"or deadline changes, verify tests actually ran**: load the SC "
+                    f"job's `Run tests` step stderr and check whether any tests "
+                    f"completed. If the heartbeat shows `0/N tests completed, X in "
+                    f"flight` for the full duration, the workers were stuck waiting "
+                    f"on Basset reservation — this is a pool degradation issue, "
+                    f"not a slow-suite issue. Run the device-pool-health playbook "
+                    f"(see `references/device-pool-health.md`) and escalate per "
+                    f"that playbook's matrix."
+                )
+                pool_pointer_letter = letter
+            else:
+                lines.append(
+                    f"{i + 1}. **Category {letter} ({name})**: "
+                    f"{count}x deadline-exceeded — same root cause as Category "
+                    f"{pool_pointer_letter}; consolidate per SKILL.md Step 4a."
+                )
         elif cat_type == "TEST FAILURE":
             top_tests = Counter()
             for f in cat["failures"]:
@@ -837,8 +949,28 @@ def main() -> None:
     # Determine blocking nodes
     blocking_nodes = None
     if not args.all_nodes:
-        blocking_nodes = determine_blocking_nodes(data)
-        print(f"  Detected {len(blocking_nodes)} blocking pipeline nodes")
+        if args.pipeline:
+            blocking_nodes = fetch_pipeline_nodes(args.conveyor_id, args.pipeline)
+            if blocking_nodes is None:
+                print(
+                    f"  ERROR: pipeline '{args.pipeline}' not found in conveyor config. "
+                    f"Run `conveyor info --conveyor-id {args.conveyor_id} | "
+                    f'grep -o \'"pipeline_name": "[^"]*"\' | sort -u` to list pipelines.'
+                )
+                return
+            print(
+                f"  Loaded {len(blocking_nodes)} nodes from pipeline '{args.pipeline}'"
+            )
+        else:
+            blocking_nodes = determine_blocking_nodes(data)
+            print(f"  Detected {len(blocking_nodes)} blocking pipeline nodes")
+            if not blocking_nodes:
+                print(
+                    "  WARNING: auto-detect found 0 blocking nodes. "
+                    "Pass --pipeline <name> explicitly. Run "
+                    f"`conveyor info --conveyor-id {args.conveyor_id} | "
+                    f'grep -o \'"pipeline_name": "[^"]*"\' | sort -u` to list pipelines.'
+                )
 
     # Apply owner filter
     owner_nodes = None
@@ -909,6 +1041,7 @@ def main() -> None:
         sorted(all_releases),
         owner=args.owner,
         num_owner_nodes=len(owner_nodes) if owner_nodes else None,
+        pipeline=args.pipeline,
     )
 
     with open(args.output, "w") as f:

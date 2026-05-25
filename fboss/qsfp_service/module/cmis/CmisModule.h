@@ -670,6 +670,12 @@ class CmisModule : public QsfpModule {
    */
   void enableRxLfInsertionForTunableOptics();
 
+  bool isRxConsActHoldOffTmrImplSupported() const override;
+
+  void configureRxConsActHoldOffTimer(
+      int32_t timerMs,
+      bool isExplicitlyConfigured);
+
   /*
    * returns the tunable optics laser status and laser frequency
    */
@@ -905,6 +911,9 @@ class CmisModule : public QsfpModule {
 
   // Apply Rx-SNR correction and return the corrected value
   double applyRxSnrCorrection(uint16_t rawValue, double snrValue) const;
+
+  // Check if CDB Get Firmware Info (0x0100) should be retried on status 0x40.
+  bool shouldRetryCdbFwInfo() const;
 
   // Private functions to extract and fill in VDM performance monitoring stats
   bool fillVdmPerfMonitorSnr(VdmPerfMonitorStats& vdmStats);

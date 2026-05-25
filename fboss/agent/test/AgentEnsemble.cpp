@@ -504,9 +504,8 @@ std::map<PortID, FabricEndpoint> AgentEnsemble::getFabricConnectivity(
   std::map<PortID, FabricEndpoint> connectivity;
   auto gotConnectivity =
       getSw()->getHwSwitchThriftClientTable()->getFabricConnectivity(switchId);
-  CHECK(gotConnectivity.has_value());
 
-  for (const auto& [portName, fabricEndpoint] : gotConnectivity.value()) {
+  for (const auto& [portName, fabricEndpoint] : gotConnectivity) {
     auto portID = getSw()->getPlatformMapping()->getPortID(portName);
 
     connectivity.insert({portID, fabricEndpoint});

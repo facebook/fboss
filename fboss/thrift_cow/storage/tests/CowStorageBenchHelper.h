@@ -16,7 +16,6 @@
 #include <gtest/gtest.h>
 #include <sys/resource.h>
 
-#include <common/base/Proc.h>
 #include "fboss/thrift_cow/storage/CowStorage.h"
 #include "fboss/thrift_cow/storage/tests/TestDataFactory.h"
 
@@ -57,34 +56,38 @@ class StorageBenchmarkHelper {
   }
 };
 
+// Reads jemalloc's `stats.allocated` (bytes currently allocated to the
+// application). Requires jemalloc; returns 0 if unavailable so callers can
+// drop the measurement. Defined in CowStorageBenchHelper.cpp.
+int64_t getJemallocAllocatedBytes();
+
 template <typename RootType>
 int64_t bm_storage_helper(
     test_data::IDataGenerator& factory,
     bool enableHybridStorage) {
   folly::BenchmarkSuspender suspender;
   TaggedOperState state = factory.getStateUpdate(0, false);
-  sleep(2); // Sleep to allow memory to be freed
 
-  auto startingMemoryBytes = facebook::Proc::getMemoryUsage();
-  int64_t endingMemoryBytes = 0;
+  auto startingAllocatedBytes = getJemallocAllocatedBytes();
+  int64_t endingAllocatedBytes = 0;
   suspender.dismiss();
 
-  // Measure memory inside each branch to ensure `storage` stays alive during
-  // measurement. Moving these lines outside the braces would measure memory
+  // Measure allocator stats inside each branch to ensure `storage` stays alive
+  // during measurement. Moving these lines outside the braces would measure
   // after storage is destroyed, giving incorrect results.
   if (enableHybridStorage) {
     StorageBenchmarkHelper<true> helper;
     auto storage = helper.initStorage<RootType>(state);
     suspender.rehire();
-    endingMemoryBytes = facebook::Proc::getMemoryUsage();
+    endingAllocatedBytes = getJemallocAllocatedBytes();
   } else {
     StorageBenchmarkHelper<false> helper;
     auto storage = helper.initStorage<RootType>(state);
     suspender.rehire();
-    endingMemoryBytes = facebook::Proc::getMemoryUsage();
+    endingAllocatedBytes = getJemallocAllocatedBytes();
   }
 
-  return (endingMemoryBytes - startingMemoryBytes);
+  return (endingAllocatedBytes - startingAllocatedBytes);
 }
 
 template <typename RootType>
@@ -94,7 +97,7 @@ void bm_storage_metrics_helper(
     unsigned /* iters */,
     test_data::RoleSelector /* selector */,
     bool enableHybridStorage) {
-  std::vector<int64_t> memoryMeasurements;
+  std::vector<int64_t> allocatedMeasurements;
 
   // Set path filter on factory if --bm_fsdb_path is specified
   auto pathTokens = parseFsdbPath(FLAGS_bm_fsdb_path);
@@ -106,43 +109,45 @@ void bm_storage_metrics_helper(
   int iterations = FLAGS_bm_memory_iters;
 
   for (int i = 0; i < iterations; i++) {
-    auto memoryUsage =
+    auto allocatedDelta =
         bm_storage_helper<RootType>(factory, enableHybridStorage);
-    if (memoryUsage > 0) {
-      memoryMeasurements.push_back(memoryUsage);
+    if (allocatedDelta > 0) {
+      allocatedMeasurements.push_back(allocatedDelta);
     }
   }
 
   // Calculate and report metrics via UserCounters
-  if (!memoryMeasurements.empty()) {
+  if (!allocatedMeasurements.empty()) {
     int64_t sum = 0;
-    int64_t maxMem =
-        *std::max_element(memoryMeasurements.begin(), memoryMeasurements.end());
+    int64_t maxAlloc = *std::max_element(
+        allocatedMeasurements.begin(), allocatedMeasurements.end());
 
-    for (int64_t mem : memoryMeasurements) {
-      sum += mem;
+    for (int64_t bytes : allocatedMeasurements) {
+      sum += bytes;
     }
 
-    int64_t avgMem = sum / static_cast<int64_t>(memoryMeasurements.size());
+    int64_t avgAlloc = sum / static_cast<int64_t>(allocatedMeasurements.size());
 
     // Compute standard deviation (sample stddev requires at least 2 points)
     double stddev = 0.0;
-    if (memoryMeasurements.size() > 1) {
+    if (allocatedMeasurements.size() > 1) {
       double variance = 0.0;
-      for (int64_t mem : memoryMeasurements) {
-        double diff = static_cast<double>(mem - avgMem);
+      for (int64_t bytes : allocatedMeasurements) {
+        double diff = static_cast<double>(bytes - avgAlloc);
         variance += diff * diff;
       }
-      variance /= static_cast<double>(memoryMeasurements.size() - 1);
+      variance /= static_cast<double>(allocatedMeasurements.size() - 1);
       stddev = std::sqrt(variance);
     }
 
-    // Report metrics - these will appear as columns in benchmark output
-    counters["avg_memory_KB"] =
-        folly::UserMetric(static_cast<double>(avgMem) / 1024.0);
-    counters["max_memory_KB"] =
-        folly::UserMetric(static_cast<double>(maxMem) / 1024.0);
-    counters["stddev_memory_KB"] = folly::UserMetric(stddev / 1024.0);
+    // Report metrics - these will appear as columns in benchmark output.
+    // Values are deltas of jemalloc `stats.allocated` across building one
+    // storage instance (bytes currently allocated to the application).
+    counters["avg_allocated_KB"] =
+        folly::UserMetric(static_cast<double>(avgAlloc) / 1024.0);
+    counters["max_allocated_KB"] =
+        folly::UserMetric(static_cast<double>(maxAlloc) / 1024.0);
+    counters["stddev_allocated_KB"] = folly::UserMetric(stddev / 1024.0);
   }
 }
 

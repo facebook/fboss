@@ -22,6 +22,7 @@ using SaiTamEventAction = SaiObject<SaiTamEventActionTraits>;
 using SaiTamEventAgingGroup = SaiObject<SaiTamEventAgingGroupTraits>;
 #endif
 using SaiTamEvent = SaiObject<SaiTamEventTraits>;
+using SaiTamEventThreshold = SaiObject<SaiTamEventThresholdTraits>;
 using SaiTam = SaiObject<SaiTamTraits>;
 
 namespace tam {
@@ -42,6 +43,8 @@ struct SaiTamHandle {
 #if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
   std::shared_ptr<SaiSamplePacket> samplePacket;
 #endif
+  // Tajo stateless MoD: optional event-rate threshold object.
+  std::shared_ptr<SaiTamEventThreshold> eventThreshold;
   std::vector<std::shared_ptr<SaiTamEvent>> events;
   std::shared_ptr<SaiTam> tam;
   PortID portId;
@@ -82,8 +85,8 @@ class SaiTamManager {
 
   std::shared_ptr<SaiTamTransport> createTamTransport(
       const std::shared_ptr<MirrorOnDropReport>& report,
-      const std::string& destMac,
-      sai_int32_t transportType);
+      sai_int32_t transportType,
+      std::optional<folly::MacAddress> dstMac = std::nullopt);
 
   std::shared_ptr<SaiTamCollector> createTamCollector(
       const std::shared_ptr<MirrorOnDropReport>& report,

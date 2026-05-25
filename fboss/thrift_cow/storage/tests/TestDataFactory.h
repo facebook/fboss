@@ -3,6 +3,7 @@
 #pragma once
 
 #include <folly/IPAddress.h>
+#include <optional>
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
@@ -75,6 +76,7 @@ enum RoleSelector {
   EDSW = 14,
   RUSW = 15,
   RGSW = 16,
+  GTSW = 17,
 };
 
 struct AgentStatsScale {
@@ -222,7 +224,18 @@ class BgpRibMapDataGenerator : public IDataGenerator {
   explicit BgpRibMapDataGenerator(RoleSelector selector)
       : selector_(selector) {}
 
+  // Construct with an explicit BgpRibMapScale that overrides the per-role
+  // table. Used by callers that want parameterized scales (e.g. GTSW with
+  // configurable prefix count and paths per entry).
+  BgpRibMapDataGenerator(RoleSelector selector, BgpRibMapScale overrideScale)
+      : selector_(selector), overrideScale_(overrideScale) {}
+
   TaggedOperState getStateUpdate(int version, bool minimal) override;
+
+  // Builds a GTSW-shaped scale (V6-heavy, 13 communities, 1 AS segment,
+  // 0 ext communities) sized by `prefixScale` total prefixes and `paths`
+  // best-paths per entry. ~10% V4 / 90% V6 split.
+  static BgpRibMapScale makeGtswScale(int prefixScale, int paths);
 
  protected:
   fsdb::FsdbOperStateRoot buildFsdbOperStateRoot(int version);
@@ -248,6 +261,7 @@ class BgpRibMapDataGenerator : public IDataGenerator {
       const facebook::neteng::fboss::bgp_attr::TIpPrefix& prefix);
 
   RoleSelector selector_;
+  std::optional<BgpRibMapScale> overrideScale_;
   OperProtocol protocol_{OperProtocol::COMPACT};
 };
 

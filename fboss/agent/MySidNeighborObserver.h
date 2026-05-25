@@ -71,10 +71,9 @@ class MySidNeighborObserver : public StateObserver {
   buildIntfToUASidsMap(const std::shared_ptr<SwitchState>& state) const;
 
   // Check if a neighbor entry is relevant for MySid resolution:
-  // must be reachable and non-link-local.
+  // must be reachable.
   template <typename NeighborEntryT>
-  bool isReachableNonLinkLocalNeighbor(
-      const std::shared_ptr<NeighborEntryT>& entry) const;
+  bool isReachableNeighbor(const std::shared_ptr<NeighborEntryT>& entry) const;
 
   // Bind the neighbor's IP to every uA MySid in `mySidsOnIntf` (already
   // filtered to the neighbor's intf) that matches the neighbor's IP

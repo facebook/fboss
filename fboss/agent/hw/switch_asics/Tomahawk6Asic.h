@@ -89,8 +89,7 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
     return 4096;
   }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
-    // CS00012330051
-    return 32000;
+    return 128000;
   }
   uint32_t getStaticQueueLimitBytes() const override {
     return getMMUSizeBytes();

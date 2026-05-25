@@ -2,10 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
 
-include "thrift/annotation/thrift.thrift"
-
-@thrift.AllowLegacyMissingUris
-package;
+package "facebook.com/fboss/agent/test/production_features"
 
 namespace py neteng.fboss.test.production_features
 namespace py3 neteng.fboss.test
@@ -124,11 +121,39 @@ enum ProductionFeature {
   MPLS_HEADEND = 106,
   MPLS_MIDPOINT = 107,
   MPLS_TAILEND = 108,
+  SAVE_SDK_STATE = 109,
+  IP_IN_IP_ENCAP = 110,
+  MIRROR_ON_DROP_STATELESS = 111,
+  PORT_DEBOUNCE = 112,
+  SRV6_BINDING_SID = 113,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
+}
+
+enum VendorSdk {
+  BCM_NATIVE = 0,
+  BRCM_SAI = 1,
+  LEABA = 2,
+  NVDA = 3,
+}
+
+struct FeatureSdkSupport {
+  1: list<string> asics;
+  // @lint-ignore FBTHRIFTCOMPAT FBTHRIFTCOMPAT2 THRIFTRENAME
+  2: VendorSdk sdk;
+  3: string minSdkVersion;
+  4: optional string note;
+}
+
+struct FeatureSupportSpec {
+  1: ProductionFeature feature;
+  // @lint-ignore FBTHRIFTCOMPAT FBTHRIFTCOMPAT2
+  2: list<FeatureSdkSupport> supportedFrom;
 }
 
 struct AsicToProductionFeatures {
   1: map<string, list<ProductionFeature>> asicToFeatures;
   2: map<string, list<string>> asicToFeatureNames;
+  // @lint-ignore FBTHRIFTCOMPAT FBTHRIFTCOMPAT2 FBTHRIFTCOMPAT6
+  3: list<FeatureSupportSpec> featureSupportSpecs = [];
 }

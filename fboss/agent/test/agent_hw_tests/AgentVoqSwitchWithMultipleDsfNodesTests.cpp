@@ -8,6 +8,7 @@
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/StateUtils.h"
@@ -277,7 +278,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
       EXPECT_EVENTUALLY_NE(movedV4, nullptr);
       if (movedV4) {
         EXPECT_TRUE(movedV4->isConnected());
-        auto nhops = movedV4->getForwardInfo().getNextHopSet();
+        auto nhops = getNextHops(state, movedV4->getForwardInfo());
         ASSERT_EQ(nhops.size(), 1);
         EXPECT_EQ(
             utility::createTunIntfName(nhops.begin()->intf()),
@@ -288,7 +289,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
       EXPECT_EVENTUALLY_NE(movedV6, nullptr);
       if (movedV6) {
         EXPECT_TRUE(movedV6->isConnected());
-        auto nhops = movedV6->getForwardInfo().getNextHopSet();
+        auto nhops = getNextHops(state, movedV6->getForwardInfo());
         ASSERT_EQ(nhops.size(), 1);
         EXPECT_EQ(
             utility::createTunIntfName(nhops.begin()->intf()),

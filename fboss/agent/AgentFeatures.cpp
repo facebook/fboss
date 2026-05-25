@@ -3,15 +3,11 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/VoqConstants.h"
 
+DEFINE_bool(enable_lacp, false, "Run LACP in agent");
+
 DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
 
 DEFINE_bool(test_fixture, false, "Enable test fixture platform mapping");
-
-// TODO: Remove once proper link training support is added
-DEFINE_bool(
-    tahan800sb_link_training,
-    false,
-    "Enable link training platform mapping for tahansb800bc");
 
 DEFINE_bool(dsf_4k, false, "Enable DSF Scale Test config");
 
@@ -468,6 +464,11 @@ DEFINE_bool(
     true,
     "Strip vlan tag for packet injected with pipeline bypass");
 
+DEFINE_bool(
+    observe_rx_packets_without_interface,
+    false,
+    "Notify packet observers before dropping RX packets with no interface");
+
 DEFINE_string(
     state_delta_log_protocol,
     "COMPACT",
@@ -533,3 +534,13 @@ DEFINE_int32(
     max_tx_packets,
     100000, // 1 gb / 10 kb
     "the point at which we start dropping tx packets");
+
+DEFINE_bool(
+    enable_route_counters_for_named_nhg,
+    false,
+    "Implicitly associate a route counter for routes using named NHG");
+
+DEFINE_bool(
+    enable_acl_table_redirect_action,
+    false,
+    "Add redirect action type to ACL table");

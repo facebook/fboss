@@ -1,158 +1,406 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-// Package main demonstrates how to use FsdbCgoPubSubWrapper from Go via CGO
+// CGO test client for FsdbCgoPubSubWrapper.
+// CLI: subscribeToPortState | subscribeToStats | subscribeToPortStateAndStats.
+// Build: `go build -o fsdb_cgo_example fsdb_cgo_example.go` (needs the C++ .a alongside).
 package main
 
 /*
 #cgo CXXFLAGS: -std=c++20
-#cgo LDFLAGS: -L${SRCDIR} -lfsdb_cgo_pub_sub_wrapper
+#cgo CFLAGS: -I${SRCDIR}
+#cgo LDFLAGS: -L${SRCDIR} -lfsdb_cgo_pub_sub_wrapper -lstdc++ -lm -lpthread -ldl
 
 #include <stdlib.h>
-
-// C++ wrapper around FsdbCgoPubSubWrapper for CGO
-// This would be implemented in a separate C wrapper file
-
-typedef void* FsdbWrapperHandle;
-
-extern FsdbWrapperHandle CreateFsdbWrapper(const char* clientId);
-extern void DestroyFsdbWrapper(FsdbWrapperHandle handle);
-extern void SubscribeToPortMaps(FsdbWrapperHandle handle);
-extern void SubscribeToStatsPath(FsdbWrapperHandle handle);
-extern int HasStateSubscription(FsdbWrapperHandle handle);
-extern int HasStatsSubscription(FsdbWrapperHandle handle);
-extern const char* GetClientId(FsdbWrapperHandle handle);
+#include "fsdb_cgo_api.h"
 */
 import "C"
+
 import (
+	"flag"
 	"fmt"
 	"log"
-	"time"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"unsafe"
 )
 
-// FsdbWrapper wraps the C++ FsdbCgoPubSubWrapper for use in Go
-type FsdbWrapper struct {
-	handle C.FsdbWrapperHandle
+type PortStateUpdate struct {
+	PortName  string
+	OperState bool
 }
 
-// NewFsdbWrapper creates a new FSDB CGO wrapper
-// Note: This uses default connection settings (no port specified)
-func NewFsdbWrapper(clientID string) (*FsdbWrapper, error) {
+type StatsUpdate struct {
+	Key      string
+	Data     []byte // raw Thrift-serialized OperState contents
+	Protocol int32  // OperProtocol: BINARY=1, COMPACT=2, SIMPLE_JSON=3
+}
+
+type StatePathUpdate struct {
+	Key      string
+	Data     []byte
+	Protocol int32
+}
+
+type FsdbCgoClient struct {
+	handle     C.FsdbWrapperHandle
+	serverPort int
+}
+
+// Idempotent. Returns an error on ABI mismatch or init failure.
+func Init() error {
+	rc := int32(C.FsdbInit(C.int32_t(C.FSDB_CGO_ABI_VERSION)))
+	switch rc {
+	case 0:
+		return nil
+	case 2:
+		return fmt.Errorf(
+			"fsdb_cgo ABI mismatch: header=%d library=%d",
+			int32(C.FSDB_CGO_ABI_VERSION), int32(C.FsdbCgoAbiVersion()))
+	default:
+		return fmt.Errorf("FsdbInit returned %d", rc)
+	}
+}
+
+func NewFsdbCgoClient(clientID string, serverPort int) (*FsdbCgoClient, error) {
 	cClientID := C.CString(clientID)
 	defer C.free(unsafe.Pointer(cClientID))
 
 	handle := C.CreateFsdbWrapper(cClientID)
 	if handle == nil {
-		return nil, fmt.Errorf("failed to create FsdbWrapper")
+		return nil, fmt.Errorf("CreateFsdbWrapper returned nil for clientID=%q", clientID)
 	}
-
-	return &FsdbWrapper{handle: handle}, nil
+	return &FsdbCgoClient{handle: handle, serverPort: serverPort}, nil
 }
 
-// Close destroys the C++ wrapper
-func (w *FsdbWrapper) Close() {
-	if w.handle != nil {
-		C.DestroyFsdbWrapper(w.handle)
-		w.handle = nil
+// Wakes parked WaitFor* within ~100 ms. Call BEFORE Close.
+// Logs a warning if the C side returns non-zero (caught exception); failure
+// here means the watcher goroutines may stay parked and wg.Wait() will hang.
+func (c *FsdbCgoClient) Shutdown() {
+	if c.handle == nil {
+		return
+	}
+	if rc := int32(C.ShutdownFsdbWrapper(c.handle)); rc != 0 {
+		log.Printf("fsdb: ShutdownFsdbWrapper returned %d; watcher goroutines may not unblock", rc)
 	}
 }
 
-// SubscribeToPortMaps subscribes to portMaps state updates
-// Uses default FSDB connection (no port specified)
-func (w *FsdbWrapper) SubscribeToPortMaps() error {
-	C.SubscribeToPortMaps(w.handle)
-	// Check if subscription succeeded by verifying status
-	if !w.HasStateSubscription() {
-		return fmt.Errorf("failed to subscribe to portMaps")
+// Use-after-free if any goroutine is still parked in WaitFor*.
+func (c *FsdbCgoClient) Close() {
+	if c.handle != nil {
+		C.DestroyFsdbWrapper(c.handle)
+		c.handle = nil
 	}
-	return nil
 }
 
-// SubscribeToStatsPath subscribes to stats path (hardcoded to "agent")
-// Uses default FSDB connection (no port specified)
-func (w *FsdbWrapper) SubscribeToStatsPath() error {
-	C.SubscribeToStatsPath(w.handle)
-	// Check if subscription succeeded by verifying status
-	if !w.HasStatsSubscription() {
-		return fmt.Errorf("failed to subscribe to stats path")
+// Subscribes to portMaps on the serverPort the client was created with
+// (uses the FSDB default port when serverPort <= 0).
+func (c *FsdbCgoClient) SubscribePortState() {
+	if c.serverPort > 0 {
+		C.SubscribeToPortMapsWithPort(c.handle, C.int32_t(c.serverPort))
+	} else {
+		C.SubscribeToPortMaps(c.handle)
 	}
-	return nil
 }
 
-// HasStateSubscription checks if state subscription is active
-func (w *FsdbWrapper) HasStateSubscription() bool {
-	return int(C.HasStateSubscription(w.handle)) != 0
+// SubscribeStatsPath subscribes to an arbitrary FSDB stats path on the
+// serverPort the client was created with (uses the FSDB default port when
+// serverPort <= 0). Single subscription per client; further calls log a
+// WARNING on the C++ side and no-op.
+func (c *FsdbCgoClient) SubscribeStatsPath(path []string) {
+	if len(path) == 0 {
+		return
+	}
+	cTokens := make([]*C.char, len(path))
+	for i, tok := range path {
+		cTokens[i] = C.CString(tok)
+		defer C.free(unsafe.Pointer(cTokens[i]))
+	}
+	if c.serverPort > 0 {
+		C.SubscribeToStatsPathWithPort(
+			c.handle, &cTokens[0], C.int32_t(len(path)), C.int32_t(c.serverPort))
+	} else {
+		C.SubscribeToStatsPath(c.handle, &cTokens[0], C.int32_t(len(path)))
+	}
 }
 
-// HasStatsSubscription checks if stats subscription is active
-func (w *FsdbWrapper) HasStatsSubscription() bool {
-	return int(C.HasStatsSubscription(w.handle)) != 0
+// SubscribeStatePath subscribes to an arbitrary FSDB state path. Distinct
+// from SubscribePortState (which is the typed PortMaps subscription). Single
+// subscription per client.
+func (c *FsdbCgoClient) SubscribeStatePath(path []string) {
+	if len(path) == 0 {
+		return
+	}
+	cTokens := make([]*C.char, len(path))
+	for i, tok := range path {
+		cTokens[i] = C.CString(tok)
+		defer C.free(unsafe.Pointer(cTokens[i]))
+	}
+	if c.serverPort > 0 {
+		C.SubscribeToStatePathWithPort(
+			c.handle, &cTokens[0], C.int32_t(len(path)), C.int32_t(c.serverPort))
+	} else {
+		C.SubscribeToStatePath(c.handle, &cTokens[0], C.int32_t(len(path)))
+	}
 }
 
-// GetClientID returns the client ID
-func (w *FsdbWrapper) GetClientID() string {
-	cStr := C.GetClientId(w.handle)
-	return C.GoString(cStr)
+func (c *FsdbCgoClient) HasStateSubscription() bool {
+	return int(C.HasStateSubscription(c.handle)) != 0
 }
 
-// Example usage
+func (c *FsdbCgoClient) HasStatsSubscription() bool {
+	return int(C.HasStatsSubscription(c.handle)) != 0
+}
+
+func (c *FsdbCgoClient) HasStatePathSubscription() bool {
+	return int(C.HasStatePathSubscription(c.handle)) != 0
+}
+
+func (c *FsdbCgoClient) GetClientID() string {
+	return C.GoString(C.GetClientId(c.handle))
+}
+
+// Empty slice (nil error) on Shutdown.
+func (c *FsdbCgoClient) WaitForPortStateUpdates(maxUpdates int) ([]PortStateUpdate, error) {
+	if maxUpdates <= 0 {
+		return nil, fmt.Errorf("maxUpdates must be positive, got %d", maxUpdates)
+	}
+	out := make([]C.FsdbPortStateUpdate, maxUpdates)
+	count := int(C.WaitForStateUpdates(c.handle, &out[0], C.int32_t(maxUpdates)))
+	// Always release any partial buffer the C side may have populated, even on
+	// error returns (count < 0). FreeStateUpdates is a no-op when nothing's
+	// allocated, so the unconditional defer is safe.
+	defer C.FreeStateUpdates(c.handle)
+	if count < 0 {
+		return nil, fmt.Errorf("WaitForStateUpdates failed (returned %d)", count)
+	}
+	updates := make([]PortStateUpdate, count)
+	for i := range count {
+		updates[i] = PortStateUpdate{
+			PortName:  C.GoString(out[i].port_name),
+			OperState: int(out[i].oper_state) != 0,
+		}
+	}
+	return updates, nil
+}
+
+// WaitForStatsUpdates blocks until at least one stats update is available,
+// then returns up to maxUpdates entries with raw Thrift-serialized bytes.
+// Empty slice (nil error) on Shutdown.
+func (c *FsdbCgoClient) WaitForStatsUpdates(maxUpdates int) ([]StatsUpdate, error) {
+	if maxUpdates <= 0 {
+		return nil, fmt.Errorf("maxUpdates must be positive, got %d", maxUpdates)
+	}
+	out := make([]C.FsdbStatsUpdate, maxUpdates)
+	count := int(C.WaitForStatsUpdates(c.handle, &out[0], C.int32_t(maxUpdates)))
+	// Same defer rationale as WaitForPortStateUpdates above.
+	defer C.FreeStatsUpdates(c.handle)
+	if count < 0 {
+		return nil, fmt.Errorf("WaitForStatsUpdates failed (returned %d)", count)
+	}
+	updates := make([]StatsUpdate, count)
+	for i := range count {
+		updates[i] = StatsUpdate{
+			Key:      C.GoString(out[i].key),
+			Data:     C.GoBytes(unsafe.Pointer(out[i].data), out[i].data_len),
+			Protocol: int32(out[i].protocol),
+		}
+	}
+	return updates, nil
+}
+
+func (c *FsdbCgoClient) WaitForStatePathUpdates(maxUpdates int) ([]StatePathUpdate, error) {
+	if maxUpdates <= 0 {
+		return nil, fmt.Errorf("maxUpdates must be positive, got %d", maxUpdates)
+	}
+	out := make([]C.FsdbStatePathUpdate, maxUpdates)
+	count := int(C.WaitForStatePathUpdates(c.handle, &out[0], C.int32_t(maxUpdates)))
+	defer C.FreeStatePathUpdates(c.handle)
+	if count < 0 {
+		return nil, fmt.Errorf("WaitForStatePathUpdates failed (returned %d)", count)
+	}
+	updates := make([]StatePathUpdate, count)
+	for i := range count {
+		updates[i] = StatePathUpdate{
+			Key:      C.GoString(out[i].key),
+			Data:     C.GoBytes(unsafe.Pointer(out[i].data), out[i].data_len),
+			Protocol: int32(out[i].protocol),
+		}
+	}
+	return updates, nil
+}
+
+const maxUpdatesPerBatch = 128
+
+func subscribeToPortState(client *FsdbCgoClient, done <-chan struct{}) {
+	log.Println("[subscribeToPortState] waiting for port-state updates …")
+	for {
+		select {
+		case <-done:
+			return
+		default:
+		}
+		updates, err := client.WaitForPortStateUpdates(maxUpdatesPerBatch)
+		if err != nil {
+			log.Printf("[subscribeToPortState] error: %v", err)
+			return
+		}
+		for _, u := range updates {
+			state := "DOWN"
+			if u.OperState {
+				state = "UP"
+			}
+			log.Printf("[subscribeToPortState] port=%s  oper_state=%s", u.PortName, state)
+		}
+	}
+}
+
+func subscribeToStats(client *FsdbCgoClient, done <-chan struct{}) {
+	log.Println("[subscribeToStats] waiting for stats updates …")
+	for {
+		select {
+		case <-done:
+			return
+		default:
+		}
+		updates, err := client.WaitForStatsUpdates(maxUpdatesPerBatch)
+		if err != nil {
+			log.Printf("[subscribeToStats] error: %v", err)
+			return
+		}
+		for _, u := range updates {
+			log.Printf("[subscribeToStats] key=%s  data_len=%d bytes", u.Key, len(u.Data))
+		}
+	}
+}
+
+func subscribeToStatePath(client *FsdbCgoClient, done <-chan struct{}) {
+	log.Println("[subscribeToStatePath] waiting for state-path updates …")
+	for {
+		select {
+		case <-done:
+			return
+		default:
+		}
+		updates, err := client.WaitForStatePathUpdates(maxUpdatesPerBatch)
+		if err != nil {
+			log.Printf("[subscribeToStatePath] error: %v", err)
+			return
+		}
+		for _, u := range updates {
+			log.Printf("[subscribeToStatePath] key=%s  data_len=%d bytes  protocol=%d",
+				u.Key, len(u.Data), u.Protocol)
+		}
+	}
+}
+
+func usage() {
+	fmt.Fprintf(os.Stderr, "Usage: %s [flags] <subcommand>\n\n", os.Args[0])
+	fmt.Fprintln(os.Stderr, "Subcommands:")
+	fmt.Fprintln(os.Stderr, "  subscribeToPortState           Subscribe to port-state changes (typed)")
+	fmt.Fprintln(os.Stderr, "  subscribeToStats               Subscribe to stats path ['agent']")
+	fmt.Fprintln(os.Stderr, "  subscribeToStatePath           Subscribe to state path ['agent','switchState','interfaceMap']")
+	fmt.Fprintln(os.Stderr, "  subscribeToAll                 All three subscriptions concurrently")
+	fmt.Fprintln(os.Stderr, "\nFlags:")
+	flag.PrintDefaults()
+}
+
 func main() {
-	// Create FSDB wrapper (uses default connection settings)
-	wrapper, err := NewFsdbWrapper("go-example-client")
+	port := flag.Int("port", 5908, "FSDB server port (use -1 for default)")
+	clientID := flag.String("client-id", "go-cgo-test-client", "Client ID for FSDB connection")
+	flag.Usage = usage
+	flag.Parse()
+
+	if flag.NArg() < 1 {
+		usage()
+		os.Exit(1)
+	}
+	subcmd := flag.Arg(0)
+
+	if err := Init(); err != nil {
+		log.Fatalf("FsdbInit failed: %v", err)
+	}
+
+	client, err := NewFsdbCgoClient(*clientID, *port)
 	if err != nil {
-		log.Fatalf("Failed to create wrapper: %v", err)
+		log.Fatalf("Failed to create FSDB client: %v", err)
 	}
-	defer wrapper.Close()
+	log.Printf("Created FSDB client (id=%s, port=%d)", client.GetClientID(), *port)
 
-	log.Printf("Created FSDB wrapper with client ID: %s", wrapper.GetClientID())
+	// `done` is closed by either (a) Ctrl-C / SIGTERM, or (b) all watcher
+	// goroutines exiting on error. Without (b), main would block on <-done
+	// forever even when no watchers remained, and the C++ wrapper would never
+	// be torn down. sync.Once protects against double-close panic.
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	done := make(chan struct{})
+	var doneOnce sync.Once
+	closeDone := func() { doneOnce.Do(func() { close(done) }) }
 
-	// Subscribe to portMaps state (no port specified - uses default)
-	err = wrapper.SubscribeToPortMaps()
-	if err != nil {
-		log.Fatalf("Failed to subscribe to portMaps: %v", err)
+	go func() {
+		sig := <-sigCh
+		log.Printf("Received %v, shutting down …", sig)
+		closeDone()
+	}()
+
+	subscribe := func(portState, stats, statePath bool) {
+		if portState {
+			client.SubscribePortState()
+			log.Println("Subscribed to port-state (portMaps)")
+		}
+		if stats {
+			// Example: ["agent"] gives AgentStats. Vendors can pass any path.
+			client.SubscribeStatsPath([]string{"agent"})
+			log.Println("Subscribed to stats path agent")
+		}
+		if statePath {
+			// Example: any state path. Vendors decode the raw bytes themselves.
+			client.SubscribeStatePath([]string{"agent", "switchState", "interfaceMap"})
+			log.Println("Subscribed to state path agent.switchState.interfaceMap")
+		}
 	}
-	log.Println("Subscribed to portMaps state")
 
-	// Wait a bit for subscription to establish
-	time.Sleep(2 * time.Second)
+	var wg sync.WaitGroup
 
-	// Check subscription status
-	if wrapper.HasStateSubscription() {
-		log.Println("State subscription is active")
+	switch subcmd {
+	case "subscribeToPortState":
+		subscribe(true, false, false)
+		wg.Go(func() { subscribeToPortState(client, done) })
+
+	case "subscribeToStats":
+		subscribe(false, true, false)
+		wg.Go(func() { subscribeToStats(client, done) })
+
+	case "subscribeToStatePath":
+		subscribe(false, false, true)
+		wg.Go(func() { subscribeToStatePath(client, done) })
+
+	case "subscribeToAll":
+		subscribe(true, true, true)
+		wg.Go(func() { subscribeToPortState(client, done) })
+		wg.Go(func() { subscribeToStats(client, done) })
+		wg.Go(func() { subscribeToStatePath(client, done) })
+
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcmd)
+		usage()
+		os.Exit(1)
 	}
 
-	// Subscribe to stats (hardcoded to "agent" path - no parameter needed)
-	err = wrapper.SubscribeToStatsPath()
-	if err != nil {
-		log.Fatalf("Failed to subscribe to stats: %v", err)
-	}
-	log.Println("Subscribed to stats path")
+	// If every watcher exits on its own (e.g. all WaitFor* errored out),
+	// signal main to proceed to teardown instead of hanging on <-done.
+	go func() {
+		wg.Wait()
+		log.Println("All watcher goroutines exited; initiating shutdown …")
+		closeDone()
+	}()
 
-	// Check stats subscription status
-	if wrapper.HasStatsSubscription() {
-		log.Println("Stats subscription is active")
-	}
-
-	// In a real application, you would:
-	// 1. Start goroutines to call WaitForStateUpdates()/WaitForStatsUpdates()
-	// 2. Process each update as it arrives
-	// 3. Handle reconnections and errors gracefully
-
-	// Example pattern:
-	// go func() {
-	//     for {
-	//         updates, err := wrapper.WaitForStateUpdates()
-	//         if err != nil {
-	//             log.Printf("Error getting state update: %v", err)
-	//             continue
-	//         }
-	//         for key, state := range updates {
-	//             processStateUpdate(key, state)
-	//         }
-	//     }
-	// }()
-
-	// Keep running for demo
-	log.Println("Press Ctrl+C to exit")
-	select {}
+	<-done
+	log.Println("Shutting down …")
+	// Order matters: Shutdown wakes parked WaitFor*, wg.Wait drains them,
+	// then Close is safe (else use-after-free).
+	client.Shutdown()
+	wg.Wait()
+	client.Close()
 }

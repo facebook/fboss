@@ -1237,6 +1237,81 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
       [=, this]() { this->verifySameMacDifferentIpsHelper(); });
 }
 
+// Verify that removing a Pending NDP/ARP entry that was never Reachable
+// is handled cleanly by LookupClassUpdater on a QPH-enabled port.
+TYPED_TEST(LookupClassUpdaterNeighborTest, RemovePendingNeighborDoesNotCrash) {
+  using AddrT = typename TypeParam::AddrT;
+  using NeighborTableT = std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
+  auto pendingIp = this->getIpAddress();
+
+  // Step 1: inject a Pending entry with the broadcast-MAC sentinel.
+  this->updateState(
+      "inject Pending neighbor",
+      [this, pendingIp](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        auto intf = newState->getInterfaces()->getNode(this->kInterfaceID());
+        auto neighborTable =
+            intf->template getNeighborTable<NeighborTableT>()->modify(
+                this->kInterfaceID(), &newState);
+        if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+          neighborTable->addEntry(
+              pendingIp.asV4(),
+              folly::MacAddress::BROADCAST,
+              PortDescriptor(this->kPortID()),
+              this->kInterfaceID(),
+              NeighborState::PENDING);
+        } else {
+          neighborTable->addEntry(
+              pendingIp.asV6(),
+              folly::MacAddress::BROADCAST,
+              PortDescriptor(this->kPortID()),
+              this->kInterfaceID(),
+              NeighborState::PENDING);
+        }
+        return newState;
+      });
+  waitForStateUpdates(this->sw_);
+  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(this->sw_);
+  waitForStateUpdates(this->sw_);
+
+  // Step 2: remove the Pending entry. Pre-fix: this triggers CHECK_GT.
+  this->updateState(
+      "remove Pending neighbor",
+      [this, pendingIp](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        auto intf = newState->getInterfaces()->getNode(this->kInterfaceID());
+        auto neighborTable =
+            intf->template getNeighborTable<NeighborTableT>()->modify(
+                this->kInterfaceID(), &newState);
+        if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+          neighborTable->removeEntry(pendingIp.asV4());
+        } else {
+          neighborTable->removeEntry(pendingIp.asV6());
+        }
+        return newState;
+      });
+  waitForStateUpdates(this->sw_);
+  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(this->sw_);
+  waitForStateUpdates(this->sw_);
+
+  this->verifyStateUpdate([=, this]() {
+    auto state = this->sw_->getState();
+    auto intf = state->getInterfaces()->getNode(this->kInterfaceID());
+    auto neighborTable = intf->template getNeighborTable<NeighborTableT>();
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      EXPECT_EQ(neighborTable->getEntryIf(pendingIp.asV4()), nullptr);
+    } else {
+      EXPECT_EQ(neighborTable->getEntryIf(pendingIp.asV6()), nullptr);
+    }
+  });
+}
+
 TYPED_TEST(LookupClassUpdaterNeighborTest, staticL2EntriesForResolvedNeighbor) {
   this->resolveMac(this->kMacAddress());
   this->verifyMacClassIDHelper(

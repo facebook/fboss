@@ -66,6 +66,8 @@ FBOSS_STRONG_TYPE(sai_object_id_t, TamReportSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamEventActionSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamEventAgingGroupSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamEventSaiId);
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
+FBOSS_STRONG_TYPE(sai_object_id_t, TamEventThresholdSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamSaiId);
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 FBOSS_STRONG_TYPE(sai_object_id_t, Srv6SidListSaiId);

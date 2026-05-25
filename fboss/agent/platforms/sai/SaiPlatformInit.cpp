@@ -24,9 +24,11 @@
 #include "fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmJ4SimPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmLeh800bclsPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmMontblancPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmSaintpaulPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400Platform.h"
@@ -124,6 +126,9 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   } else if (productInfo->getType() == PlatformType::PLATFORM_LADAKH800BCLS) {
     return std::make_unique<SaiBcmLadakh800bclsPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
+  } else if (productInfo->getType() == PlatformType::PLATFORM_LEH800BCLS) {
+    return std::make_unique<SaiBcmLeh800bclsPlatform>(
+        std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE800BACT) {
     return std::make_unique<SaiBcmWedge800BACTPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
@@ -139,6 +144,9 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_J4SIM) {
     return std::make_unique<SaiBcmJ4SimPlatform>(
+        std::move(productInfo), localMac, platformMappingStr);
+  } else if (productInfo->getType() == PlatformType::PLATFORM_SAINTPAUL) {
+    return std::make_unique<SaiBcmSaintpaulPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_YANGRA2) {
     return std::make_unique<SaiYangra2Platform>(

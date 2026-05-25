@@ -580,6 +580,20 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     return (asicNdpScale / bulkProgramCount) * bulkProgramCount;
   }
 
+  folly::MacAddress macForIndex(uint32_t index) {
+    // Cisco/Tajo ASICs deduplicate next_hop_host objects by MAC in SDK
+    // 26.2+, so unique MACs are needed to actually overflow the NDP table.
+    // Broadcom ASICs don't deduplicate but have limited FDB table capacity,
+    // so a shared MAC avoids exhausting L2 entries.
+    auto hwAsic =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+    if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+      uint64_t mac = (uint64_t(0x0200) << 32) | uint64_t(index + 1);
+      return folly::MacAddress::fromHBO(mac);
+    }
+    return kNeighborMac;
+  }
+
  private:
   // program neighbor entries with neighbor updater
   template <typename AddrT>
@@ -592,7 +606,7 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
       getSw()->getNeighborUpdater()->receivedNdpMineForIntf(
           kIntfID,
           ipAddresses[i],
-          kNeighborMac,
+          macForIndex(i),
           port,
           ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
           0);
@@ -624,7 +638,7 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     CHECK_LE(startIndex + count, ipAddressesV6.size());
     for (int i = startIndex; i < startIndex + count; i++) {
       state = updateNeighborEntry<AddrT>(
-          state, port, ipAddressesV6[i], kNeighborMac, lookupClass);
+          state, port, ipAddressesV6[i], macForIndex(i), lookupClass);
     }
     return state;
   }

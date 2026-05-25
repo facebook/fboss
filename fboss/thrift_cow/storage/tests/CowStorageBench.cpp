@@ -10,34 +10,33 @@ void bm_storage_test(
     test_data::RoleSelector selector,
     bool enableHybridStorage) {
   auto factory = test_data::TestDataFactory(selector);
-  std::vector<int64_t> memoryMeasurements;
+  std::vector<int64_t> allocatedMeasurements;
 
   for (unsigned i = 0; i < iters; i++) {
-    // Use memory-aware helper that reports via UserCounters
-    auto memoryUsage = bm_storage_helper<test_data::TestDataFactory::RootT>(
+    auto allocatedDelta = bm_storage_helper<test_data::TestDataFactory::RootT>(
         factory, enableHybridStorage);
-    if (memoryUsage > 0) {
-      memoryMeasurements.push_back(memoryUsage);
+    if (allocatedDelta > 0) {
+      allocatedMeasurements.push_back(allocatedDelta);
     }
   }
 
   // Calculate and report metrics via UserCounters
-  if (!memoryMeasurements.empty()) {
+  if (!allocatedMeasurements.empty()) {
     int64_t sum = 0;
-    int64_t maxMem =
-        *std::max_element(memoryMeasurements.begin(), memoryMeasurements.end());
+    int64_t maxAlloc = *std::max_element(
+        allocatedMeasurements.begin(), allocatedMeasurements.end());
 
-    for (int64_t mem : memoryMeasurements) {
-      sum += mem;
+    for (int64_t bytes : allocatedMeasurements) {
+      sum += bytes;
     }
 
-    int64_t avgMem = sum / static_cast<int64_t>(memoryMeasurements.size());
+    int64_t avgAlloc = sum / static_cast<int64_t>(allocatedMeasurements.size());
 
-    // Report metrics - these will appear as columns in benchmark output
-    counters["avg_memory_KB"] =
-        folly::UserMetric(static_cast<double>(avgMem) / 1024.0);
-    counters["max_memory_KB"] =
-        folly::UserMetric(static_cast<double>(maxMem) / 1024.0);
+    // Report metrics - jemalloc `stats.allocated` deltas, in KB.
+    counters["avg_allocated_KB"] =
+        folly::UserMetric(static_cast<double>(avgAlloc) / 1024.0);
+    counters["max_allocated_KB"] =
+        folly::UserMetric(static_cast<double>(maxAlloc) / 1024.0);
   }
 }
 

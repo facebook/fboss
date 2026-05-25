@@ -593,7 +593,7 @@ class ThriftConfigApplier {
   shared_ptr<QcmCfg> updateQcmCfg(bool* changed);
   shared_ptr<QcmCfg> createQcmCfg(const cfg::QcmConfig& config);
   shared_ptr<MultiControlPlane> updateControlPlane();
-  std::shared_ptr<MirrorMap> updateMirrors();
+  std::shared_ptr<MultiSwitchMirrorMap> updateMirrors();
   std::shared_ptr<Mirror> createMirror(const cfg::Mirror* config);
   std::shared_ptr<Mirror> updateMirror(
       const std::shared_ptr<Mirror>& orig,
@@ -784,14 +784,53 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
               newAggPorts, scopeResolver_));
       changed = true;
     }
+
+    // Collect IDs before modifying to avoid iterator invalidation:
+    // modify(&new_) can clone the map being iterated.
+    std::vector<AggregatePortID> aggPortIds;
+    for (const auto& idAndAggPorts :
+         std::as_const(*new_->getAggregatePorts())) {
+      for (const auto& idAndAggPort : std::as_const(*idAndAggPorts.second)) {
+        aggPortIds.emplace_back(idAndAggPort.first);
+      }
+    }
+    for (auto aggPortId : aggPortIds) {
+      auto aggPort = new_->getAggregatePorts()->getNodeIf(aggPortId);
+      if (!aggPort) {
+        continue;
+      }
+      auto capacityResult =
+          computeAggregatePortCapacityAndStatus(aggPort, new_);
+
+      if (aggPort->getConfiguredCapacityMbps() !=
+              capacityResult.configuredCapacityMbps ||
+          aggPort->getActiveCapacityMbps() !=
+              capacityResult.activeCapacityMbps ||
+          aggPort->getStatus() != capacityResult.status) {
+        auto* writableAggPort = aggPort->modify(&new_);
+        if (capacityResult.configuredCapacityMbps.has_value()) {
+          writableAggPort->setConfiguredCapacityMbps(
+              *capacityResult.configuredCapacityMbps);
+        } else {
+          writableAggPort->clearConfiguredCapacityMbps();
+        }
+        if (capacityResult.activeCapacityMbps.has_value()) {
+          writableAggPort->setActiveCapacityMbps(
+              *capacityResult.activeCapacityMbps);
+        } else {
+          writableAggPort->clearActiveCapacityMbps();
+        }
+        writableAggPort->setStatus(capacityResult.status);
+        changed = true;
+      }
+    }
   }
 
   // updateMirrors must be called after updatePorts, mirror needs ports!
   {
     auto newMirrors = updateMirrors();
     if (newMirrors) {
-      new_->resetMirrors(
-          toMultiSwitchMap<MultiSwitchMirrorMap>(newMirrors, scopeResolver_));
+      new_->resetMirrors(newMirrors);
       changed = true;
     }
   }
@@ -2992,6 +3031,14 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getLinkTraining().value_or(false) &&
       portConf->linkTraining().has_value() ==
           orig->getLinkTraining().has_value() &&
+      portConf->portDownHoldoffTimeMs().value_or(0) ==
+          orig->getPortDownHoldoffTimeMs().value_or(0) &&
+      portConf->portDownHoldoffTimeMs().has_value() ==
+          orig->getPortDownHoldoffTimeMs().has_value() &&
+      portConf->portUpHoldoffTimeMs().value_or(0) ==
+          orig->getPortUpHoldoffTimeMs().value_or(0) &&
+      portConf->portUpHoldoffTimeMs().has_value() ==
+          orig->getPortUpHoldoffTimeMs().has_value() &&
       newFabricLinkMonSwitchId == orig->getPortSwitchId()) {
     return nullptr;
   }
@@ -3088,6 +3135,32 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setLinkTraining(portConf->linkTraining().value());
   } else {
     newPort->setLinkTraining(std::nullopt);
+  }
+  if (portConf->portDownHoldoffTimeMs().has_value()) {
+    auto v = portConf->portDownHoldoffTimeMs().value();
+    if (v < 0) {
+      throw FbossError(
+          "portDownHoldoffTimeMs must be non-negative, got ",
+          v,
+          " on port ",
+          orig->getID());
+    }
+    newPort->setPortDownHoldoffTimeMs(v);
+  } else {
+    newPort->setPortDownHoldoffTimeMs(std::nullopt);
+  }
+  if (portConf->portUpHoldoffTimeMs().has_value()) {
+    auto v = portConf->portUpHoldoffTimeMs().value();
+    if (v < 0) {
+      throw FbossError(
+          "portUpHoldoffTimeMs must be non-negative, got ",
+          v,
+          " on port ",
+          orig->getID());
+    }
+    newPort->setPortUpHoldoffTimeMs(v);
+  } else {
+    newPort->setPortUpHoldoffTimeMs(std::nullopt);
   }
   return newPort;
 }
@@ -4006,7 +4079,16 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
           if (aclNexthopHandler_) {
             aclNexthopHandler_->resolveActionNexthops(matchAction);
           }
-          if (!matchAction.getRedirectToNextHop().value().second.size()) {
+          bool hasTunnelRedirect = false;
+          for (const auto& nh : *redirectToNextHop->redirectNextHops()) {
+            if (nh.tunnelType().has_value() &&
+                nh.tunnelType().value() == TunnelType::IP_IN_IP_ENCAP) {
+              hasTunnelRedirect = true;
+              break;
+            }
+          }
+          if (!hasTunnelRedirect &&
+              !matchAction.getRedirectToNextHop().value().second.size()) {
             XLOG(DBG2)
                 << "Setting newly configured ACL as disabled since no nexthops are available";
             enableAcl = false;
@@ -5834,7 +5916,7 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
   return addrs;
 }
 
-std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
+std::shared_ptr<MultiSwitchMirrorMap> ThriftConfigApplier::updateMirrors() {
   const auto& origMirrors = orig_->getMirrors();
   auto newMirrors = std::make_shared<MirrorMap>();
 
@@ -5891,7 +5973,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     return nullptr;
   }
 
-  auto newMirrorWithSwitchIds = std::make_shared<MirrorMap>();
+  auto multiSwitchMirrors = std::make_shared<MultiSwitchMirrorMap>();
   for (auto& switchIdAndSwitchInfo :
        *cfg_->switchSettings()->switchIdToSwitchInfo()) {
     if (switchIdAndSwitchInfo.second.switchType() != cfg::SwitchType::VOQ &&
@@ -5899,17 +5981,23 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
       continue;
     }
     auto switchId = switchIdAndSwitchInfo.first;
+    auto switchMatcher =
+        HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchId)}));
     for (auto& mirrorMapEntry : std::as_const(*newMirrors)) {
-      auto newMirror = mirrorMapEntry.second->clone();
+      auto mirror = mirrorMapEntry.second;
+      if (mirror->getEgressPort().has_value()) {
+        auto portScope = scopeResolver_.scope(mirror->getEgressPort().value());
+        if (!portScope.has(SwitchID(switchId))) {
+          continue;
+        }
+      }
+      auto newMirror = mirror->clone();
       newMirror->setSwitchId(SwitchID(switchId));
-      // TODO: Mirror name is unique per switch, so we need
-      // to append the switchId to the mirror name.
-      newMirrorWithSwitchIds->insert(
-          mirrorMapEntry.first, std::move(newMirror));
+      multiSwitchMirrors->addNode(std::move(newMirror), switchMatcher);
     }
   }
 
-  return newMirrorWithSwitchIds;
+  return multiSwitchMirrors;
 }
 
 std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
@@ -6242,7 +6330,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
       utility::getMacForFirstInterfaceWithPorts(new_, *modSwitchId).toString(),
       *config->modEventToConfigMap(),
       *config->agingGroupAgingIntervalUsecs(),
-      config->samplingRate().to_optional());
+      config->samplingRate().to_optional(),
+      config->dropPacketRateThreshold().to_optional());
 }
 
 std::shared_ptr<MirrorOnDropReport>
@@ -6389,7 +6478,7 @@ shared_ptr<IpTunnel> ThriftConfigApplier::updateIpInIpTunnel(
 shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
     const cfg::IpInIpTunnel& config) {
   auto tunnel = make_shared<IpTunnel>(*config.ipInIpTunnelId());
-  tunnel->setType(TunnelType::IP_IN_IP);
+  tunnel->setType(TunnelType::IP_IN_IP_DECAP);
   if (config.tunnelType().has_value()) {
     tunnel->setType(*config.tunnelType());
   }
@@ -6413,17 +6502,31 @@ shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
   } else {
     tunnel->setEcnMode(cfg::TunnelMode::UNIFORM);
   }
-  // IP in IP tunnel decap: dst ip is the src of Tunnel state
-  // (state default: encap)
-  tunnel->setSrcIP(folly::IPAddressV6(*config.dstIp()));
-  if (config.srcIp().has_value()) {
-    tunnel->setDstIP(folly::IPAddressV6(*config.srcIp()));
-  }
-  if (config.dstIpMask().has_value()) {
-    tunnel->setSrcIPMask(folly::IPAddressV6(*config.dstIpMask()));
-  }
-  if (config.srcIpMask().has_value()) {
-    tunnel->setDstIPMask(folly::IPAddressV6(*config.srcIpMask()));
+  if (tunnel->getType() == TunnelType::IP_IN_IP_ENCAP) {
+    // Encap: src/dst IPs map directly to tunnel state
+    if (config.srcIp().has_value()) {
+      tunnel->setSrcIP(folly::IPAddressV6(*config.srcIp()));
+    }
+    tunnel->setDstIP(folly::IPAddressV6(*config.dstIp()));
+    if (config.srcIpMask().has_value()) {
+      tunnel->setSrcIPMask(folly::IPAddressV6(*config.srcIpMask()));
+    }
+    if (config.dstIpMask().has_value()) {
+      tunnel->setDstIPMask(folly::IPAddressV6(*config.dstIpMask()));
+    }
+  } else {
+    // Decap: config dstIp is the tunnel term match (stored as srcIP in state),
+    // config srcIp is the outer src filter (stored as dstIP in state)
+    tunnel->setSrcIP(folly::IPAddressV6(*config.dstIp()));
+    if (config.srcIp().has_value()) {
+      tunnel->setDstIP(folly::IPAddressV6(*config.srcIp()));
+    }
+    if (config.dstIpMask().has_value()) {
+      tunnel->setSrcIPMask(folly::IPAddressV6(*config.dstIpMask()));
+    }
+    if (config.srcIpMask().has_value()) {
+      tunnel->setDstIPMask(folly::IPAddressV6(*config.srcIpMask()));
+    }
   }
 
   return tunnel;

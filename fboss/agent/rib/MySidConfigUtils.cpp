@@ -172,7 +172,8 @@ std::vector<MySidWithNextHops> convertMySidConfig(
     auto mySid = std::make_shared<MySid>(fields);
     mySid->setUnresolveNextHopsId(std::nullopt);
     mySid->setResolvedNextHopsId(std::nullopt);
-    result.emplace_back(std::move(mySid), std::move(nhops));
+    result.emplace_back(
+        MySidWithNextHops{std::move(mySid), std::move(nhops), std::nullopt});
   }
 
   return result;

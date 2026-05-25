@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/AgentEnsembleTest.h"
+#include <fmt/core.h>
 #include <folly/gen/Base.h>
 #include <optional>
 #include "fboss/agent/AgentConfig.h"
@@ -297,7 +298,7 @@ void AgentEnsembleTest::waitForLinkStatus(
     }
   }
 
-  auto msg = folly::format(
+  auto msg = fmt::format(
       "Unexpected Link status {:d} for {:s}",
       !up,
       folly::join(",", getPortNames(badPorts)));

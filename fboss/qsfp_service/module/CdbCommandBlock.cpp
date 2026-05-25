@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <chrono>
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 
@@ -41,8 +41,6 @@ static constexpr uint16_t kCdbCommandModuleQuery = 0x0000;
 static constexpr uint16_t kCdbCommandSymbolErrorHistogram = 0x9000;
 static constexpr uint16_t kCdbCommandRxErrorHistogram = 0x9001;
 
-// CDB command status values
-static constexpr uint8_t kCdbCommandStatusSuccess = 0x01;
 static constexpr uint8_t kCdbCommandStatusBusyUnknown = 0x80;
 static constexpr uint8_t kCdbCommandStatusBusyCmdCaptured = 0x81;
 static constexpr uint8_t kCdbCommandStatusBusyCmdCheck = 0x82;
@@ -218,7 +216,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(
           &status,
           kCmisCommand);
     } catch (const std::exception&) {
-      XLOG(INFO) << folly::sformat(
+      XLOG(INFO) << fmt::format(
           "cmisRunCdbCommand Mod{:d}: read status raised exception: Sleep for 100ms and continue",
           bus->getNum());
       /* sleep override */
@@ -234,7 +232,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(
 
     auto currTime = std::chrono::steady_clock::now();
     if (currTime > finishTime) {
-      XLOG(INFO) << folly::sformat(
+      XLOG(INFO) << fmt::format(
           "cmisRunCdbCommand Mod{:d}: Command status still busy, breaking out",
           bus->getNum());
       break;
@@ -247,9 +245,11 @@ bool CdbCommandBlock::cmisRunCdbCommand(
   commandBlockCdbWaitTime_ +=
       std::chrono::duration_cast<std::chrono::milliseconds>(cdbWaitTime);
 
+  lastCdbStatus_ = status;
+
   if (status != kCdbCommandStatusSuccess) {
     auto modId = bus->getNum();
-    XLOG(INFO) << folly::sformat(
+    XLOG(INFO) << fmt::format(
         "cmisRunCdbCommand: Mod{:d}: CDB command {:#x}.{:#x} not successful, status {:#x}",
         modId,
         buf[0],
@@ -273,7 +273,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(
       bus->readTransceiver(
           {i2cAddress, offset, length, kCdbPage}, buf, kCmisCommand);
     } catch (const std::exception&) {
-      XLOG(INFO) << folly::sformat(
+      XLOG(INFO) << fmt::format(
           "cmisRunCdbCommand Mod{:d}: read generic raised exception: Sleep for 100ms and retry",
           bus->getNum());
       /* sleep override */

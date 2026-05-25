@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/lib/fpga/FbFpgaPimQsfpController.h"
+#include <fmt/core.h>
 
 #include "fboss/agent/FbossError.h"
 
@@ -40,7 +41,7 @@ bool FbFpgaPimQsfpController::isQsfpPresent(int qsfp) {
       memoryRegion_->read(kFacebookFpgaQsfpPresentRegOffset);
   // From the lower end, each bit of this register represent the presence of a
   // QSFP.
-  XLOG(DBG5) << folly::format("qsfpPresentReg value:{:#x}", qsfpPresentReg);
+  XLOG(DBG5) << fmt::format("qsfpPresentReg value:{:#x}", qsfpPresentReg);
   return (qsfpPresentReg >> qsfp) & 1;
 }
 
@@ -50,7 +51,7 @@ std::vector<bool> FbFpgaPimQsfpController::scanQsfpPresence() {
       memoryRegion_->read(kFacebookFpgaQsfpPresentRegOffset);
   // From the lower end, each bit of this register represent the presence of a
   // QSFP.
-  XLOG(DBG5) << folly::format("qsfpPresentReg value:{:#x}", qsfpPresentReg);
+  XLOG(DBG5) << fmt::format("qsfpPresentReg value:{:#x}", qsfpPresentReg);
   std::vector<bool> qsfpPresence;
   for (int i = 0; i < portsPerPim_; i++) {
     qsfpPresence.push_back((qsfpPresentReg >> i) & 1);
@@ -70,7 +71,7 @@ void FbFpgaPimQsfpController::triggerQsfpHardReset(unsigned int port) {
   // Hold the QSFP in reset state
   uint32_t newResetReg = (0x1 << port) | originalResetReg;
 
-  XLOG(INFO) << folly::format(
+  XLOG(INFO) << fmt::format(
       "For {}, port{:d}, old QsfpResetReg value:{:#x}, new value:{:#x}",
       memoryRegion_->getName(),
       port,
@@ -93,7 +94,7 @@ void FbFpgaPimQsfpController::ensureQsfpOutOfReset(int qsfp) {
   // 1 to hold QSFP reset active. 0 to release QSFP reset.
   uint32_t newResetReg = ~(0x1 << qsfp) & currentResetReg;
   if (currentResetReg != newResetReg) {
-    XLOG(DBG5) << folly::format(
+    XLOG(DBG5) << fmt::format(
         "For {}, port{:d}, old QsfpResetReg value:{:#x}, new value:{:#x}",
         memoryRegion_->getName(),
         qsfp,

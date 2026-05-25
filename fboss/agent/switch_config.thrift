@@ -469,6 +469,13 @@ struct MirrorOnDropReport {
    * are sent (no sampling).
    */
   14: optional i32 samplingRate;
+  /*
+   * Optional packets-per-second rate cap for drop report generation.
+   * When set, the SAI TAM event threshold object limits the rate at
+   * which MoD reports are sent; drops exceeding this rate are silently
+   * discarded. If not set, no rate limiting is applied.
+   */
+  15: optional i32 dropPacketRateThreshold;
 }
 
 /**
@@ -669,6 +676,7 @@ enum AclTableActionType {
   DISABLE_ARS_FORWARDING = 7,
   SET_ARS_OBJECT = 8,
   L3_SWITCH_CANCEL = 9,
+  REDIRECT = 10,
 }
 
 enum AclTableQualifier {
@@ -787,6 +795,8 @@ struct RedirectNextHop {
   // NextHop IP addresses
   1: string ip;
   2: optional i32 intfID;
+  3: optional common.TunnelType tunnelType;
+  4: optional string tunnelId;
 }
 
 // Redirect packet to a different nexthop
@@ -1351,6 +1361,22 @@ struct Port {
    * When not set, the agent uses ASIC-level default behavior (disabled).
    */
   39: optional bool linkTraining;
+
+  /*
+   * Hold timer (in milliseconds) before reporting a port
+   * link-down event. The port stays in its previous state until the new
+   * state has been stable for this duration, debouncing brief flaps.
+   * Unset = leave SDK default untouched.
+   */
+  40: optional i32 portDownHoldoffTimeMs;
+
+  /*
+   * Hold timer (in milliseconds) before reporting a port
+   * link-up event. The port stays in its previous state until the new
+   * state has been stable for this duration, debouncing brief flaps.
+   * Unset = leave SDK default untouched.
+   */
+  41: optional i32 portUpHoldoffTimeMs;
 }
 
 enum LacpPortRate {
@@ -1961,7 +1987,7 @@ struct SwitchSettings {
    * Time to transition L2 from hit -> miss -> removed
    */
   4: i32 l2AgeTimerSeconds = 300;
-  5: i32 maxRouteCounterIDs = 0;
+  5: i32 maxRouteCounterIDs_DEPRECATED = 0;
 
   // neighbors to block egress traffic to
   6: list<Neighbor> blockNeighbors = [];
@@ -2448,6 +2474,7 @@ struct SwitchConfig {
     3: 0, // LINKLOCAL_ROUTE
     4: 0, // REMOTE_INTERFACE_ROUTE
     1: 1, // STATIC_ROUTE
+    800: 2, // TE_AGENT
     786: 10, // OPENR
     0: 20, // BGPD
     700: 255, // STATIC_INTERNAL

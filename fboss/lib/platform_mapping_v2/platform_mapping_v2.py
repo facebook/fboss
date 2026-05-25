@@ -73,13 +73,14 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
         "tahan800bc_test_fixture",
     ],
     "tahansb800bc": [
-        "tahansb800bc_rack",
         "tahansb800bc_test_fixture",
-        "tahansb800bc_link_training",
     ],
     "ladakh800bcls": [
         "ladakh800bcls_rack",
         "ladakh800bcls_test_fixture",
+    ],
+    "leh800bcls": [
+        "leh800bcls_test_fixture",
     ],
     "montblanc": [
         "montblanc_odd_ports_8x100G",
@@ -223,7 +224,7 @@ class PlatformMappingV2:
         """For TH6+ platforms, all subsumed ports use ethX/Y/1 as controlling port."""
         # TODO: will add tahansb800bc once the test passed on tahansb800bc
         base_platform = _PLATFORM_TO_BASE_PLATFORM.get(self.platform, self.platform)
-        if base_platform in ("ladakh800bcls", "tahansb800bc"):
+        if base_platform in ("ladakh800bcls", "leh800bcls", "tahansb800bc"):
             return False
         for chip in self.pm_parser.get_static_mapping().get_chips():
             if chip.chip_type == ChipType.NPU:

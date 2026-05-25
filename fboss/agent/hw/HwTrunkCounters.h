@@ -17,6 +17,9 @@ class HwTrunkCounters {
   HwTrunkStats getHwTrunkStats() const {
     return stats_;
   }
+  const std::string& trunkName() const {
+    return trunkName_;
+  }
 
  private:
   // Helpers which operate on an individual counter

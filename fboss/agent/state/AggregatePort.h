@@ -269,6 +269,47 @@ class AggregatePort
     set<switch_state_tags::aggregatePortType>(aggregatePortType);
   }
 
+  std::optional<int64_t> getConfiguredCapacityMbps() const {
+    if (auto val = safe_cref<switch_state_tags::configuredCapacityMbps>()) {
+      return val->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setConfiguredCapacityMbps(int64_t capacity) {
+    set<switch_state_tags::configuredCapacityMbps>(capacity);
+  }
+
+  void clearConfiguredCapacityMbps() {
+    safe_ref<switch_state_tags::configuredCapacityMbps>().reset();
+  }
+
+  std::optional<int64_t> getActiveCapacityMbps() const {
+    if (auto val = safe_cref<switch_state_tags::activeCapacityMbps>()) {
+      return val->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setActiveCapacityMbps(int64_t capacity) {
+    set<switch_state_tags::activeCapacityMbps>(capacity);
+  }
+
+  void clearActiveCapacityMbps() {
+    safe_ref<switch_state_tags::activeCapacityMbps>().reset();
+  }
+
+  std::optional<state::AggregatePortStatus> getStatus() const {
+    if (auto val = safe_cref<switch_state_tags::status>()) {
+      return val->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setStatus(state::AggregatePortStatus status) {
+    set<switch_state_tags::status>(status);
+  }
+
   AggregatePort::Forwarding getForwardingState(PortID port) {
     const auto& portToFwdState = cref<switch_state_tags::portToFwdState>();
     auto it = std::as_const(*portToFwdState).find(port);
@@ -378,5 +419,15 @@ class AggregatePort
   using Base::Base;
   friend class CloneAllocator;
 };
+
+struct AggregatePortCapacityResult {
+  std::optional<int64_t> configuredCapacityMbps;
+  std::optional<int64_t> activeCapacityMbps;
+  state::AggregatePortStatus status{state::AggregatePortStatus::DOWN};
+};
+
+AggregatePortCapacityResult computeAggregatePortCapacityAndStatus(
+    const std::shared_ptr<AggregatePort>& aggPort,
+    const std::shared_ptr<SwitchState>& state);
 
 } // namespace facebook::fboss

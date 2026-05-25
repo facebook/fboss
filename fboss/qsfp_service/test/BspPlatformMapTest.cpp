@@ -3,7 +3,6 @@
 #include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 #include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
-#include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
@@ -40,10 +39,6 @@ TEST_F(BspPlatformMapTest, checkNumPimTransceivers) {
   auto icecube800bcBspPlatformMap = Icecube800bcBspPlatformMapping();
   EXPECT_EQ(icecube800bcBspPlatformMap.numPims(), 1);
   EXPECT_EQ(icecube800bcBspPlatformMap.numTransceivers(), 65);
-  // Check Icetea800bc
-  auto icetea800bcBspPlatformMap = Icetea800bcBspPlatformMapping();
-  EXPECT_EQ(icetea800bcBspPlatformMap.numPims(), 1);
-  EXPECT_EQ(icetea800bcBspPlatformMap.numTransceivers(), 33);
   // Check Tahansb800bc
   auto tahansb800bcBspPlatformMap = Tahansb800bcBspPlatformMapping();
   EXPECT_EQ(tahansb800bcBspPlatformMap.numPims(), 1);

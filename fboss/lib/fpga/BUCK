@@ -11,10 +11,10 @@ cpp_library(
         "HwMemoryRegister.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/agent:fboss-types",
         "//fboss/lib:pci_device",
         "//fboss/lib:physical_memory",
-        "//folly:format",
         "//folly:shared_mutex",
         "//folly/logging:logging",
     ],
@@ -31,9 +31,9 @@ cpp_library(
         "FbFpgaRegisters.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":fpga_device",
         "//fboss/agent:fboss-error",
-        "//folly:format",
         "//folly/logging:logging",
     ],
 )
@@ -47,11 +47,11 @@ cpp_library(
         "FbFpgaI2c.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":facebook_fpga",
         "//fboss/agent:utils",
         "//fboss/lib/i2c:i2c_ctrl",
         "//fboss/lib/usb:i2-api",
-        "//folly:format",
         "//folly:range",
         "//folly:synchronized",
         "//folly/futures:core",
@@ -69,11 +69,11 @@ cpp_library(
         "FbFpgaSpi.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":facebook_fpga",
         "//fboss/agent:utils",
         "//fboss/lib/i2c:i2c_ctrl",
         "//fboss/lib/usb:i2-api",
-        "//folly:format",
         "//folly:range",
         "//folly:synchronized",
         "//folly/futures:core",
@@ -119,12 +119,12 @@ cpp_library(
         "MinipackPimController.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":fb_fpga_i2c",
         ":fb_fpga_spi",
         ":fpga_device",
         ":multi_pim_container",
         "//fboss/agent:fboss-error",
-        "//folly:format",
         "//folly:shared_mutex",
         "//folly/logging:logging",
     ],
@@ -141,6 +141,7 @@ cpp_library(
         "MinipackSystemContainer.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":minipack_base_container",
         "//fboss/agent:fboss-error",
         "//folly:singleton",
@@ -161,11 +162,11 @@ cpp_library(
         "Wedge400TransceiverApi.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":fb_fpga_i2c",
         ":wedge400_fpga",
         "//fboss/agent:utils",
         "//fboss/lib/usb:i2-api",
-        "//folly:format",
         "//folly/logging:logging",
     ],
 )

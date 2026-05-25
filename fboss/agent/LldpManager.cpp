@@ -72,6 +72,7 @@ LldpValidationResult checkTag(
 namespace facebook::fboss {
 
 const MacAddress LldpManager::LLDP_DEST_MAC("01:80:c2:00:00:0e");
+const MacAddress LldpManager::LLDP_CUSTOMER_BRIDGE_MAC("01:80:c2:00:00:00");
 
 LldpManager::LldpManager(SwSwitch* sw)
     : folly::AsyncTimeout(sw->getBackgroundEvb()),
@@ -340,9 +341,11 @@ void LldpManager::fillLldpTlv(
     const std::string& portdesc,
     const uint16_t ttl,
     const uint16_t capabilities,
-    const std::optional<bool> portDrainState) {
+    const std::optional<bool> portDrainState,
+    const std::optional<folly::MacAddress> dstMac) {
   RWPrivateCursor cursor(pkt->buf());
-  pkt->writeEthHeader(&cursor, LLDP_DEST_MAC, macaddr, vlanID, ETHERTYPE_LLDP);
+  pkt->writeEthHeader(
+      &cursor, dstMac.value_or(LLDP_DEST_MAC), macaddr, vlanID, ETHERTYPE_LLDP);
   // now write chassis ID TLV
   writeTlv(
       LldpTlvType::CHASSIS,
@@ -454,6 +457,35 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
       portDrainState);
   return pkt;
 }
+
+std::unique_ptr<TxPacket> LldpManager::createLldpPktCustomBridge(
+    const facebook::fboss::utility::AllocatePktFn& allocatePacket,
+    const MacAddress macaddr,
+    const std::optional<VlanID>& vlanID,
+    const std::string& hostname,
+    const std::string& portname,
+    const std::string& portdesc,
+    const uint16_t ttl,
+    const uint16_t capabilities) {
+  static std::string lldpSysDescStr("FBOSS");
+  uint32_t frameLen =
+      LldpPktSize(hostname, portname, portdesc, lldpSysDescStr, false);
+  auto pkt = allocatePacket(frameLen);
+  fillLldpTlv(
+      pkt.get(),
+      macaddr,
+      vlanID,
+      lldpSysDescStr,
+      hostname,
+      portname,
+      portdesc,
+      ttl,
+      capabilities,
+      std::nullopt,
+      LLDP_CUSTOMER_BRIDGE_MAC);
+  return pkt;
+}
+
 void LldpManager::sendLldpInfo(const std::shared_ptr<Port>& port) {
   PortID thisPortID = port->getID();
   auto switchId = sw_->getScopeResolver()->scope(thisPortID).switchId();

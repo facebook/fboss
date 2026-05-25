@@ -18,6 +18,7 @@
 using namespace facebook::fboss;
 
 static constexpr folly::StringPiece dip = "42.42.12.34";
+static constexpr folly::StringPiece kEncapSrcIp = "2401:db00::1";
 static constexpr folly::StringPiece srv6SrcIp = "2001:db8::1";
 
 class TunnelStoreTest : public SaiStoreTest {
@@ -32,7 +33,16 @@ class TunnelStoreTest : public SaiStoreTest {
         SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
     SaiIpInIpTunnelTraits::Attributes::DecapEcnMode ecnMode{
         SAI_TUNNEL_DECAP_ECN_MODE_STANDARD};
-    return {type, underlay, overlay, ttlMode, dscpMode, ecnMode};
+    return {
+        type,
+        underlay,
+        overlay,
+        ttlMode,
+        dscpMode,
+        ecnMode,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt};
   }
   TunnelSaiId createTunnel() const {
     auto& tunnelApi = saiApiTable->tunnelApi();
@@ -54,6 +64,32 @@ class TunnelStoreTest : public SaiStoreTest {
     auto& tunnelApi = saiApiTable->tunnelApi();
     return tunnelApi.create<SaiP2MPTunnelTermTraits>(
         createTunnelTermAttrs(_id), 0);
+  }
+
+  SaiIpInIpTunnelTraits::CreateAttributes createEncapTunnelAttrs() const {
+    SaiIpInIpTunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_IPINIP};
+    SaiIpInIpTunnelTraits::Attributes::UnderlayInterface underlay{42};
+    SaiIpInIpTunnelTraits::Attributes::OverlayInterface overlay{42};
+    SaiIpInIpTunnelTraits::Attributes::EncapSrcIp srcIp{
+        folly::IPAddress(kEncapSrcIp)};
+    SaiIpInIpTunnelTraits::Attributes::EncapTtlMode ttlMode{
+        SAI_TUNNEL_TTL_MODE_PIPE_MODEL};
+    SaiIpInIpTunnelTraits::Attributes::EncapDscpMode dscpMode{
+        SAI_TUNNEL_DSCP_MODE_PIPE_MODEL};
+    return {
+        type,
+        underlay,
+        overlay,
+        SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
+        SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL,
+        SAI_TUNNEL_DECAP_ECN_MODE_STANDARD,
+        srcIp,
+        ttlMode,
+        dscpMode};
+  }
+  TunnelSaiId createEncapTunnel() const {
+    auto& tunnelApi = saiApiTable->tunnelApi();
+    return tunnelApi.create<SaiIpInIpTunnelTraits>(createEncapTunnelAttrs(), 0);
   }
 
   SaiSrv6TunnelTraits::CreateAttributes createSrv6TunnelAttrs() const {
@@ -87,7 +123,10 @@ TEST_F(TunnelStoreTest, loadTunnel) {
       42,
       SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
       SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL,
-      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD};
+      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD,
+      folly::IPAddress("0.0.0.0"),
+      0,
+      0};
   auto got = store.get(k);
   EXPECT_EQ(got->adapterKey(), tunnelId);
   EXPECT_EQ(
@@ -132,8 +171,16 @@ TEST_F(TunnelStoreTest, tunnelTermLoadCtor) {
 }
 
 TEST_F(TunnelStoreTest, tunnelCreateCtor) {
-  SaiIpInIpTunnelTraits::AdapterHostKey k{
-      SAI_TUNNEL_TYPE_IPINIP, 42, 42, std::nullopt, std::nullopt, std::nullopt};
+  SaiIpInIpTunnelTraits::CreateAttributes k{
+      SAI_TUNNEL_TYPE_IPINIP,
+      42,
+      42,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt};
   SaiObject<SaiIpInIpTunnelTraits> obj =
       createObj<SaiIpInIpTunnelTraits>(k, k, 0);
   EXPECT_EQ(GET_ATTR(IpInIpTunnel, OverlayInterface, obj.attributes()), 42);
@@ -178,6 +225,49 @@ TEST_F(TunnelStoreTest, toStrTunnelTerm) {
   auto _id = createTunnel();
   std::ignore = createTunnelTerm(_id);
   verifyToStr<SaiP2MPTunnelTermTraits>();
+}
+
+// IP-in-IP Encap Tunnel Store Tests
+
+TEST_F(TunnelStoreTest, loadEncapTunnel) {
+  auto tunnelId = createEncapTunnel();
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiIpInIpTunnelTraits>();
+  auto k = createEncapTunnelAttrs();
+  auto got = store.get(k);
+  EXPECT_EQ(got->adapterKey(), tunnelId);
+  EXPECT_EQ(
+      GET_OPT_ATTR(IpInIpTunnel, EncapSrcIp, got->attributes()),
+      folly::IPAddress(kEncapSrcIp));
+  EXPECT_EQ(
+      GET_OPT_ATTR(IpInIpTunnel, EncapTtlMode, got->attributes()),
+      SAI_TUNNEL_TTL_MODE_PIPE_MODEL);
+  EXPECT_EQ(
+      GET_OPT_ATTR(IpInIpTunnel, EncapDscpMode, got->attributes()),
+      SAI_TUNNEL_DSCP_MODE_PIPE_MODEL);
+}
+
+TEST_F(TunnelStoreTest, encapTunnelCreateCtor) {
+  auto k = createEncapTunnelAttrs();
+  SaiObject<SaiIpInIpTunnelTraits> obj =
+      createObj<SaiIpInIpTunnelTraits>(k, k, 0);
+  EXPECT_EQ(
+      GET_OPT_ATTR(IpInIpTunnel, EncapSrcIp, obj.attributes()),
+      folly::IPAddress(kEncapSrcIp));
+  EXPECT_EQ(
+      GET_OPT_ATTR(IpInIpTunnel, EncapTtlMode, obj.attributes()),
+      SAI_TUNNEL_TTL_MODE_PIPE_MODEL);
+}
+
+TEST_F(TunnelStoreTest, serDeserEncapTunnel) {
+  auto tunnelId = createEncapTunnel();
+  verifyAdapterKeySerDeser<SaiIpInIpTunnelTraits>({tunnelId});
+}
+
+TEST_F(TunnelStoreTest, toStrEncapTunnel) {
+  std::ignore = createEncapTunnel();
+  verifyToStr<SaiIpInIpTunnelTraits>();
 }
 
 // SRv6 Tunnel Store Tests
@@ -268,7 +358,10 @@ TEST_F(TunnelStoreTest, tunnelSetTtl) {
       42,
       SAI_TUNNEL_TTL_MODE_PIPE_MODEL,
       SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL,
-      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD};
+      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt};
   obj.setAttributes(newAttrs);
   EXPECT_EQ(
       GET_OPT_ATTR(IpInIpTunnel, DecapTtlMode, obj.attributes()),

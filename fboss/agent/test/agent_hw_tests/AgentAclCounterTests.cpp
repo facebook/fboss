@@ -489,9 +489,16 @@ class AgentAclCounterTest : public AgentHwTest {
       case AclType::SRC_PORT_DENY:
         acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
         if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
-          // Set the IP type to NON_IP to match all ingress packets in ASIC SRC
-          // port
-          acl->ipType() = cfg::IpType::NON_IP;
+          if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+            // NON_IP traps packets which are neither v4 nor v6 on Chenab. Set
+            // to trap any packet since intention of the test is to verify if
+            // packet ingressing on a specific port is trapped
+            acl->ipType() = cfg::IpType::ANY;
+          } else {
+            // Set the IP type to NON_IP to match all ingress packets in ASIC
+            // SRC port
+            acl->ipType() = cfg::IpType::NON_IP;
+          }
         }
         break;
       case AclType::L4_DST_PORT:

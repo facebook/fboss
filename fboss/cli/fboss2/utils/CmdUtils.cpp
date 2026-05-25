@@ -90,6 +90,8 @@ std::string getAdminDistanceStr(AdminDistance adminDistance) {
       return "DIRECTLY_CONNECTED";
     case AdminDistance::STATIC_ROUTE:
       return "STATIC_ROUTE";
+    case AdminDistance::TE_AGENT:
+      return "TE_AGENT";
     case AdminDistance::OPENR:
       return "OPENR";
     case AdminDistance::EBGP:

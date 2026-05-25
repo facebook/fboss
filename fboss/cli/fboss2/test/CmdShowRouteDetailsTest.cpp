@@ -138,6 +138,43 @@ std::vector<RouteDetails> createRouteEntries() {
   routeEntry3.isConnected() = false;
 
   routeEntries.emplace_back(routeEntry3);
+
+  // routeEntry4 — named NHG route
+  RouteDetails routeEntry4;
+
+  folly::IPAddressV6 ip4_1("2800:2::");
+  network::thrift::BinaryAddress binaryAddr4_1 =
+      facebook::network::toBinaryAddress(ip4_1);
+
+  IpPrefix ipPrefix4;
+  ipPrefix4.ip() = binaryAddr4_1;
+  ipPrefix4.prefixLength() = 64;
+  routeEntry4.dest() = ipPrefix4;
+
+  network::thrift::BinaryAddress binaryAddr4_nh =
+      facebook::network::toBinaryAddress(folly::IPAddress("1.1.1.10"));
+
+  NextHopThrift nextHop4;
+  nextHop4.address() = binaryAddr4_nh;
+  nextHop4.weight() = 1;
+
+  ClientAndNextHops clAndNxthops4;
+  clAndNxthops4.clientId() = 0;
+  clAndNxthops4.nextHops()->emplace_back(nextHop4);
+  NamedRouteDestination namedDest4Client;
+  namedDest4Client.nextHopGroup_ref() = "nhg1";
+  clAndNxthops4.namedRouteDestination() = namedDest4Client;
+  routeEntry4.nextHopMulti()->emplace_back(clAndNxthops4);
+
+  routeEntry4.nextHops()->emplace_back(nextHop4);
+  routeEntry4.action() = "Nexthops";
+  routeEntry4.isConnected() = false;
+
+  NamedRouteDestination namedDest4;
+  namedDest4.nextHopGroup_ref() = "nhg1";
+  routeEntry4.namedRouteDestination() = namedDest4;
+
+  routeEntries.emplace_back(routeEntry4);
   return routeEntries;
 }
 
@@ -228,7 +265,31 @@ cli::ShowRouteDetailsModel createRouteModel() {
 
   entry3.nextHops()->emplace_back(nextHopInfo3);
 
-  model.routeEntries() = {entry1, entry2, entry3};
+  // entry4 — named NHG
+  cli::RouteDetailEntry entry4;
+  entry4.ip() = "2800:2::";
+  entry4.prefixLength() = 64;
+  entry4.action() = "Nexthops";
+  entry4.isConnected() = false;
+  entry4.adminDistance() = "None";
+  entry4.counterID() = "None";
+  entry4.classID() = "None";
+  entry4.overridenEcmpMode() = "None";
+  entry4.namedNextHopGroup() = "nhg1";
+
+  cli::NextHopInfo nextHopInfo4;
+  nextHopInfo4.addr() = "1.1.1.10";
+  nextHopInfo4.weight() = 1;
+
+  cli::ClientAndNextHops clnAndNxtHops4;
+  clnAndNxtHops4.clientId() = 0;
+  clnAndNxtHops4.nextHops()->emplace_back(nextHopInfo4);
+  clnAndNxtHops4.namedNextHopGroup() = "nhg1";
+  entry4.nextHopMulti()->emplace_back(clnAndNxtHops4);
+
+  entry4.nextHops()->emplace_back(nextHopInfo4);
+
+  model.routeEntries() = {entry1, entry2, entry3, entry4};
 
   return model;
 }
@@ -276,7 +337,7 @@ TEST_F(CmdShowRouteDetailsTestFixture, queryNetworkEntries) {
 
   auto cmd = CmdShowRouteDetails();
   std::vector<std::string> entries = {
-      "2401:db00::/32", "176.161.6.0/32", "fc00::/48"};
+      "2401:db00::/32", "176.161.6.0/32", "fc00::/48", "2800:2::/64"};
   CmdShowRouteDetailsTraits::ObjectArgType queriedEntries(entries);
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
@@ -346,6 +407,19 @@ Network Address: fc00::/48
   Action: Nexthops
   Forwarding via:
     2001:db8::1 weight 1 SRv6 SID List [fc00:1::,fc00:2::]
+  Admin Distance: None
+  Counter Id: None
+  Class Id: None
+  Overridden ECMP mode: None
+
+Network Address: 2800:2::/64
+  Nexthops from client BGPD
+    via Named NHG: nhg1
+    1.1.1.10 weight 1
+  Action: Nexthops
+  Named Next Hop Group: nhg1
+  Forwarding via:
+    1.1.1.10 weight 1
   Admin Distance: None
   Counter Id: None
   Class Id: None

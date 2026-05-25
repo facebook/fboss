@@ -223,8 +223,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTestAclUtils.cpp
   fboss/agent/hw/test/HwTestPortUtils.cpp
   fboss/agent/hw/test/HwTestCoppUtils.cpp
-  fboss/agent/hw/test/HwRouteTests.cpp
-  fboss/agent/hw/test/HwSplitAgentTest.cpp
   fboss/agent/hw/test/HwVlanTests.cpp
   fboss/agent/hw/test/HwVerifyPfcConfigInHwTest.cpp
   fboss/agent/hw/test/HwAclStatTests.cpp
@@ -232,37 +230,14 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwPortStressTests.cpp
   fboss/agent/hw/test/HwTestPfcUtils.cpp
   fboss/agent/hw/test/HwEmptyTest.cpp
-  fboss/agent/hw/test/dataplane_tests/HwHashConsistencyTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwInPauseDiscardsTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwL3Tests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.cpp
-  fboss/agent/hw/test/dataplane_tests/HwProdInvariantTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwSflowTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTrunkLoadBalancerTests.cpp
 )
-
-if (NOT BUILD_SAI_FAKE)
-
-# Hash polarization packet utilities consume significant amount of
-# memory and causes on-diff to fail. Skip including Hash
-# polarization files for fake as we do not run these hw tests on fake.
-
-set(hw_switch_test_srcs
-  ${hw_switch_test_srcs}
-  fboss/agent/hw/test/HwHashPolarizationTestUtils.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTrident2.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk3.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk4.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTrident2.cpp
-  fboss/agent/hw/test/dataplane_tests/HwHashPolarizationTests.cpp
-)
-endif()
 
 add_library(hw_switch_test
   ${hw_switch_test_srcs}

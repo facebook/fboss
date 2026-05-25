@@ -97,14 +97,14 @@ struct TPathSelector {
 
   // additional BGP-based path selection criteria
   // withdraws the best path if multipath size < min_nexthop
-  // FIB entry can be purged or kept depending on relax_bgp_native_path_selection_min_nexthop
+  // FIB entry can be purged or kept depending on drain_on_min_nexthop_violation
   2: optional i32 bgp_native_path_selection_min_nexthop;
 
   // only evaluated when bgp_native_path_selection_min_nexthop is specified
   // if native BGP path selector yields fewer nexthops than bgp_native_path_selection_min_nexthop,
-  // instead of dropping the route completely (not programming in FIB),
-  // we keep the FIB warm with the selected nexthops, but we will withdraw the route from neighbors
-  3: optional bool relax_bgp_native_path_selection_min_nexthop;
+  // instead of withdrawing the prefix, retain the bestpath and attach drain community 65446:10
+  // (removing live community 65446:30), allowing peers to deprioritize the path gracefully
+  3: optional bool drain_on_min_nexthop_violation;
 
   //
   // UCMP (mututally exclusive to ECMP)

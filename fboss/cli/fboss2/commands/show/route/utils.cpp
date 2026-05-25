@@ -56,6 +56,10 @@ void getNextHopInfoThrift(
   getNextHopInfoAddr(nextHop.address().value(), nextHopInfo);
   nextHopInfo.weight() = folly::copy(nextHop.weight().value());
 
+  if (nextHop.cost().has_value()) {
+    nextHopInfo.cost() = folly::copy(nextHop.cost().value());
+  }
+
   auto mplsActionPtr = apache::thrift::get_pointer(nextHop.mplsAction());
   if (mplsActionPtr != nullptr) {
     cli::MplsActionInfo mplsActionInfo;
@@ -148,6 +152,14 @@ std::string getWeightStr(const cli::NextHopInfo& nextHopInfo) {
   return weightStr;
 }
 
+std::string getCostStr(const cli::NextHopInfo& nextHopInfo) {
+  std::string costStr;
+  if (nextHopInfo.cost().has_value()) {
+    costStr = fmt::format(" cost {}", nextHopInfo.cost().value());
+  }
+  return costStr;
+}
+
 std::string getSrv6SidListStr(const cli::NextHopInfo& nextHopInfo) {
   auto sidListPtr = apache::thrift::get_pointer(nextHopInfo.srv6SegmentList());
   if (sidListPtr == nullptr || sidListPtr->empty()) {
@@ -165,14 +177,16 @@ std::string getNextHopInfoStr(const cli::NextHopInfo& nextHopInfo) {
   std::string labelStr = getMplsLabelStr(nextHopInfo);
   std::string interfaceIDStr = getInterfaceIDStr(nextHopInfo);
   std::string weightStr = getWeightStr(nextHopInfo);
+  std::string costStr = getCostStr(nextHopInfo);
   std::string topologyStr = getTopologyInfoStr(nextHopInfo);
   std::string srv6SidStr = getSrv6SidListStr(nextHopInfo);
   auto ret = fmt::format(
-      "{}{}{}{}{}{}{}",
+      "{}{}{}{}{}{}{}{}",
       interfaceIDStr,
       nextHopInfo.addr().value(),
       viaStr,
       weightStr,
+      costStr,
       labelStr,
       topologyStr,
       srv6SidStr);
@@ -222,13 +236,15 @@ std::string getNextHopInfoStr(
   std::string labelStr = getMplsLabelStr(nextHopInfo);
   std::string interfaceIDStr = getInterfaceIDStr(nextHopInfo);
   std::string weightStr = getWeightStr(nextHopInfo);
+  std::string costStr = getCostStr(nextHopInfo);
   std::string srv6SidStr = getSrv6SidListStr(nextHopInfo);
   auto ret = fmt::format(
-      "{}{}{}{}{}{}",
+      "{}{}{}{}{}{}{}",
       interfaceIDStr,
       nextHopInfo.addr().value(),
       viaStr,
       weightStr,
+      costStr,
       labelStr,
       srv6SidStr);
   return ret;

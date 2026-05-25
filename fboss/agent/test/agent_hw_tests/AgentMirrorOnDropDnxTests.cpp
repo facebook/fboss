@@ -2,7 +2,6 @@
 
 #include <folly/MacAddress.h>
 #include <gtest/gtest.h>
-#include <algorithm>
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
@@ -21,7 +20,6 @@
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
-#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -513,7 +511,7 @@ TEST_F(AgentMirrorOnDropMtuTest, MtuTrapStillWorks) {
     // We expect all MTU traps to still work.
     WITH_RETRIES_N(5, {
       int pkts = 0;
-      for (const auto switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
         // MTU trap goes to kCoppLowPriQueueId
         pkts += utility::getCpuQueueInPackets(
             getSw(), switchId, utility::kCoppLowPriQueueId);

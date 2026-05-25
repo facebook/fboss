@@ -15,7 +15,8 @@ inline const std::string kSetPortStateCommandName = "set_port_state";
 
 std::map<std::string, int32_t> getQueriedPortIds(
     const std::map<int32_t, facebook::fboss::PortInfoThrift>& entries,
-    const std::vector<std::string>& queriedPorts);
+    const std::vector<std::string>& queriedPorts,
+    const std::vector<facebook::fboss::AggregatePortThrift>& aggregatePorts);
 
 struct CmdSetPortStateTraits : public WriteCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =

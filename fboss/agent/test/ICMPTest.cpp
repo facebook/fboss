@@ -136,7 +136,7 @@ std::string genICMPv6EchoRequest(int hopLimit, size_t payloadSize, bool toMe) {
       "20 04 00 01" + payload);
 }
 
-typedef std::function<void(Cursor* cursor, uint32_t length)> PayloadCheckFn;
+using PayloadCheckFn = std::function<void(Cursor* cursor, uint32_t length)>;
 
 TxMatchFn checkICMPv4Pkt(
     MacAddress srcMac,

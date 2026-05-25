@@ -5,6 +5,7 @@
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -148,23 +149,19 @@ class AgentNeighborTest : public AgentHwTest {
     }
     return cfg;
   }
-  VlanID kVlanID() const {
-    if (checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
-            ->getSwitchType() == cfg::SwitchType::NPU) {
-      auto portId = portIdsForTest()[0];
-      return getProgrammedState()
-          ->getPorts()
-          ->getNodeIf(portId)
-          ->getIngressVlan();
-    }
-    XLOG(FATAL) << " No vlans on non-npu switches";
-  }
+
   InterfaceID kIntfID() const {
     auto switchType =
         checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
             ->getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
-      return InterfaceID(static_cast<int>(kVlanID()));
+      auto portId = portIdsForTest()[0];
+      auto switchId = getAgentEnsemble()
+                          ->getSw()
+                          ->getScopeResolver()
+                          ->scope(portId)
+                          .switchId();
+      return utility::firstInterfaceIDWithPorts(getProgrammedState(), switchId);
     } else if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!programToTrunk) << " Trunks not supported yet on VOQ switches";
       auto portId = this->portDescriptor().phyPortID();

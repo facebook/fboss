@@ -113,4 +113,90 @@ TEST_F(UtilsTests, ResolveVersionedSensors) {
   EXPECT_TRUE(
       isEqual(*resolvedVersionedSensor, createVersionedPmSensor(2, 3, 20)));
 }
+
+TEST_F(UtilsTests, ResolveVersionedSensorsWithProductName) {
+  std::optional<VersionedPmSensor> resolvedVersionedSensor;
+
+  auto createVersionedPmSensorWithProductName =
+      [this](uint pps, uint pv, uint psv, const std::string& productName) {
+        auto vs = createVersionedPmSensor(pps, pv, psv);
+        vs.productName() = productName;
+        return vs;
+      };
+  auto createPmUnitInfoWithEepromProductName =
+      [this](
+          int16_t pps,
+          int16_t pv,
+          int16_t psv,
+          const std::string& eepromProductName) {
+        auto info = createPmUnitInfo(pps, pv, psv);
+        info.eepromProductName() = eepromProductName;
+        return info;
+      };
+
+  // Case-5: productName matches eepromProductName — use matching entry
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(1, 1, 20, "DC3K12V_M_L"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(1, 1, 2, "DC3K12V_M_L"),
+       createVersionedPmSensorWithProductName(1, 1, 2, "AC3K12V_M_L")});
+  ASSERT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_EQ(*resolvedVersionedSensor->productName(), "DC3K12V_M_L");
+
+  // Case-6: productName does not match — no universal fallback → nullopt
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(1, 1, 20, "UNKNOWN_PSU"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(1, 1, 2, "DC3K12V_M_L"),
+       createVersionedPmSensorWithProductName(1, 1, 2, "AC3K12V_M_L")});
+  EXPECT_EQ(resolvedVersionedSensor, std::nullopt);
+
+  // Case-7: productName not set on entry → universal fallback when no match
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(1, 1, 20, "UNKNOWN_PSU"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(1, 1, 2, "DC3K12V_M_L"),
+       createVersionedPmSensor(1, 1, 2)});
+  ASSERT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_FALSE(resolvedVersionedSensor->productName().has_value());
+
+  // Case-8: productName matches — prefer over universal entry
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(1, 1, 20, "DC3K12V_M_L"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(1, 1, 2, "DC3K12V_M_L"),
+       createVersionedPmSensor(1, 1, 4)});
+  ASSERT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_EQ(*resolvedVersionedSensor->productName(), "DC3K12V_M_L");
+
+  // Case-9: No eepromProductName on hardware — use universal entries only
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfo(1, 1, 20),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(1, 1, 2, "DC3K12V_M_L"),
+       createVersionedPmSensor(1, 1, 2)});
+  ASSERT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_FALSE(resolvedVersionedSensor->productName().has_value());
+
+  // Case-10: Multiple matching productName entries — pick highest version
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(2, 4, 10, "AC3K12V_M_L"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(2, 1, 0, "AC3K12V_M_L"),
+       createVersionedPmSensorWithProductName(2, 3, 0, "AC3K12V_M_L"),
+       createVersionedPmSensorWithProductName(2, 4, 0, "DC3K12V_M_L")});
+  ASSERT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_TRUE(
+      isEqual(*resolvedVersionedSensor, createVersionedPmSensor(2, 3, 0)));
+  EXPECT_EQ(*resolvedVersionedSensor->productName(), "AC3K12V_M_L");
+
+  // Case-11: productName-specific candidates were selected → universal entry
+  // is not reconsidered, even when version doesn't satisfy → nullopt.
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(1, 0, 0, "DC3K12V_M_L"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(2, 0, 0, "DC3K12V_M_L"),
+       createVersionedPmSensor(1, 0, 0)});
+  EXPECT_EQ(resolvedVersionedSensor, std::nullopt);
+}
 } // namespace facebook::fboss::platform::sensor_service

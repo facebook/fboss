@@ -13,6 +13,7 @@
 
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
+#include "fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
@@ -110,6 +111,12 @@ const CommandTree& kConfigCommandTree() {
        "Show config applied information",
        commandHandler<CmdConfigAppliedInfo>,
        argRegistrar<CmdConfigAppliedInfoTraits>},
+
+      {"config",
+       "arp",
+       "Configure ARP settings",
+       commandHandler<CmdConfigArp>,
+       argRegistrar<CmdConfigArpTraits>},
 
       {"config",
        "history",

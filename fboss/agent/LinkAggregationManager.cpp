@@ -18,6 +18,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Port.h"
@@ -89,6 +90,21 @@ std::shared_ptr<SwitchState> ProgramForwardingAndPartnerState::operator()(
   aggPort = aggPort->modify(&nextState);
   aggPort->setForwardingState(portID_, forwardingState_);
   aggPort->setPartnerState(portID_, partnerState_);
+
+  auto capacityResult = computeAggregatePortCapacityAndStatus(
+      nextState->getAggregatePorts()->getNodeIf(aggregatePortID_), nextState);
+  if (capacityResult.configuredCapacityMbps.has_value()) {
+    aggPort->setConfiguredCapacityMbps(*capacityResult.configuredCapacityMbps);
+  } else {
+    aggPort->clearConfiguredCapacityMbps();
+  }
+  if (capacityResult.activeCapacityMbps.has_value()) {
+    aggPort->setActiveCapacityMbps(*capacityResult.activeCapacityMbps);
+  } else {
+    aggPort->clearActiveCapacityMbps();
+  }
+  aggPort->setStatus(capacityResult.status);
+
   XLOG(DBG2) << "Updated " << aggPort->getName()
              << " forwardingSubportCount: " << aggPort->forwardingSubportCount()
              << ", minLinkCount: " << aggPort->getMinimumLinkCount()
@@ -492,11 +508,19 @@ LinkAggregationManager::getControllersFor(
   return controllers;
 }
 
-LinkAggregationManager::~LinkAggregationManager() {
+void LinkAggregationManager::stopProcessing() {
+  if (stopped_) {
+    return;
+  }
   for (auto controller : portToController_) {
     controller.second->stopMachines();
   }
   sw_->unregisterStateObserver(this);
+  stopped_ = true;
+}
+
+LinkAggregationManager::~LinkAggregationManager() {
+  stopProcessing();
 }
 
 } // namespace facebook::fboss

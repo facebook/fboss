@@ -292,7 +292,7 @@ void initAndExitBenchmarkHelper(
           ensemble->getSw()->getRib()->updateStateInRibThread(
               [&ensemble, updateDsfStateFn]() {
                 ensemble->getSw()->updateStateWithHwFailureProtection(
-                    folly::sformat("Update state for node: {}", 0),
+                    fmt::format("Update state for node: {}", 0),
                     updateDsfStateFn);
               });
 

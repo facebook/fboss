@@ -90,7 +90,7 @@ MacAddressCheck::getEepromMacAddressList() {
     if (!eepromMacStr.empty()) {
       auto eepromMac = folly::MacAddress::fromString(eepromMacStr);
       if (eepromMac == folly::MacAddress::ZERO) {
-        // For Icetea/Icecube/tahansb800bc/ladakh800bcls, the MAC address is
+        // For Icecube/tahansb800bc/ladakh800bcls, the MAC address is
         // actually in CHASSIS_EEPROM, the x86CpuMac field in COME_EEPROM is
         // zero.
         continue;

@@ -9,7 +9,9 @@ cpp_binary(
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",
+        "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/fw_util:core",
         "//fboss/platform/helpers:init",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

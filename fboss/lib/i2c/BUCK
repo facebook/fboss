@@ -46,6 +46,7 @@ cpp_library(
         "I2cSmbusIo.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":i2c_controller_stats-cpp2-types",
         "//folly:format",
         "//folly:synchronized",

@@ -654,6 +654,46 @@ class AgentCoppTest : public AgentHwTest {
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
   }
 
+  void sendPktAndVerifyStpPacketsCpuQueue(
+      int queueId,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1) {
+    auto vlanId = getVlanIDForTx();
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
+        getSw(),
+        switchIdForPort(portIdsForTest()[0]),
+        queueId,
+        0 /* retryTimes */,
+        0 /* expectedNumPkts */);
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket = LldpManager::createLldpPktCustomBridge(
+          utility::makeAllocator(getSw()),
+          neighborMac,
+          vlanId,
+          "rsw1dx.21.frc3",
+          "eth1/1/1",
+          "fsw001.p023.f01.frc3:eth4/9/1",
+          LldpManager::TTL_TLV_VALUE,
+          LldpManager::SYSTEM_CAPABILITY_ROUTER);
+      getSw()->sendPacketOutOfPortAsync(
+          std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+    }
+    auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
+        getSw(),
+        switchIdForPort(portIdsForTest()[0]),
+        queueId,
+        kGetQueueOutPktsRetryTimes,
+        beforeOutPkts + 1);
+    XLOG(DBG0) << "STP packet dstMac="
+               << LldpManager::LLDP_CUSTOMER_BRIDGE_MAC.toString()
+               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
+
   void
   sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
     auto intfId = firstInterfaceIDWithPortsForTesting(getProgrammedState());
@@ -1338,6 +1378,8 @@ TYPED_TEST(AgentCoppTest, LldpProtocolToMidPriQ) {
 
   auto verify = [=, this]() {
     this->sendPktAndVerifyLldpPacketsCpuQueue(
+        utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()));
+    this->sendPktAndVerifyStpPacketsCpuQueue(
         utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()));
   };
 

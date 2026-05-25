@@ -30,18 +30,18 @@ constexpr std::string_view kHwAgentPrefix = "fboss_hw_agent@";
 namespace facebook::fboss {
 
 FbossServiceUtil::FbossServiceUtil(
-    std::map<int64_t, cfg::SwitchInfo> switchInfoMap,
+    std::vector<int> switchIndexes,
     bool multiSwitch)
     : systemd_(std::make_unique<SystemdInterface>()),
-      switchInfoMap_(std::move(switchInfoMap)),
+      switchIndexes_(std::move(switchIndexes)),
       multiSwitch_(multiSwitch) {}
 
 FbossServiceUtil::FbossServiceUtil(
-    std::map<int64_t, cfg::SwitchInfo> switchInfoMap,
+    std::vector<int> switchIndexes,
     bool multiSwitch,
     std::unique_ptr<SystemdInterface> systemd)
     : systemd_(std::move(systemd)),
-      switchInfoMap_(std::move(switchInfoMap)),
+      switchIndexes_(std::move(switchIndexes)),
       multiSwitch_(multiSwitch) {}
 
 std::string FbossServiceUtil::getServiceName(cli::ServiceType service) {
@@ -111,19 +111,19 @@ std::vector<std::string> FbossServiceUtil::getServicesToRestart(
       std::vector<std::string> services;
       if (isSplitMode()) {
         LOG(INFO)
-            << "Detected split mode (multi_switch flag is set in agent config)";
+            << "Detected split mode (multi-switch enabled on running agent)";
 
-        // Add hw_agent instances first (hw before sw ordering)
-        for (const auto& [switchId, switchInfo] : switchInfoMap_) {
+        for (const auto& switchIndex : switchIndexes_) {
           services.emplace_back(
-              fmt::format("{}{}", kHwAgentPrefix, *switchInfo.switchIndex()));
+              fmt::format("{}{}", kHwAgentPrefix, switchIndex));
         }
         LOG(INFO) << "Found " << services.size() << " hw_agent instances";
 
         // Add sw_agent last so hw_agent restarts first
         services.emplace_back(kSwAgent);
       } else {
-        LOG(INFO) << "Detected monolithic mode (multi_switch flag is not set)";
+        LOG(INFO)
+            << "Detected monolithic mode (multi-switch not enabled on running agent)";
         services.emplace_back(getServiceName(service));
       }
       return services;

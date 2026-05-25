@@ -23,6 +23,7 @@
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
+#include <fmt/core.h>
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
 
@@ -154,7 +155,7 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
     auto updater = ensemble->getSw()->getRouteUpdater();
     for (auto i = 0; i < maxRouteCounters; i++) {
       folly::CIDRNetwork nw{
-          folly::IPAddress(folly::sformat("2401:db00:0021:{:x}::", i)), 64};
+          folly::IPAddress(fmt::format("2401:db00:0021:{:x}::", i)), 64};
       std::optional<RouteCounterID> counterID(std::to_string(i));
       UnicastRoute route = util::toUnicastRoute(
           nw,

@@ -521,6 +521,7 @@ class SaiTracer {
           "tamEventAgingGroup_"},
 #endif
       {SAI_OBJECT_TYPE_TAM_EVENT, "tamEvent_"},
+      {SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD, "tamEventThreshold_"},
       {SAI_OBJECT_TYPE_TAM, "tam_"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_"},
       {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnelTerm_"},
@@ -601,6 +602,7 @@ class SaiTracer {
           "tam_event_aging_group_api->"},
 #endif
       {SAI_OBJECT_TYPE_TAM_EVENT, "tam_api->"},
+      {SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD, "tam_api->"},
       {SAI_OBJECT_TYPE_TAM, "tam_api->"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_api->"},
       {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnel_api->"},

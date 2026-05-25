@@ -682,17 +682,17 @@
           "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_1",
           "initRegSettings": [
             {
-              "__comment__": "Local temp(temp1) high limit setting for high byte. PR:1001",
+              "__comment__": "Local temp(temp1) high limit setting for high byte. PR:1092",
               "regOffset": 11,
               "ioBuf": [
-                95
+                90
               ]
             },
             {
-              "__comment__": "Remote temp1(temp2) high limit setting for high byte. PR:1001",
+              "__comment__": "Remote temp1(temp2) high limit setting for high byte. PR:1092",
               "regOffset": 13,
               "ioBuf": [
-                95
+                90
               ]
             },
             {
@@ -703,10 +703,10 @@
               ]
             },
             {
-              "__comment__": "Remote temp2(temp3) high limit setting for high byte. PR:1001",
+              "__comment__": "Remote temp2(temp3) high limit setting for high byte. PR:1092",
               "regOffset": 21,
               "ioBuf": [
-                95
+                90
               ]
             },
             {
@@ -764,17 +764,17 @@
           "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_2",
           "initRegSettings": [
             {
-              "__comment__": "Local temp(temp1) high limit setting for high byte. PR:1001",
+              "__comment__": "Local temp(temp1) high limit setting for high byte. PR:1092",
               "regOffset": 11,
               "ioBuf": [
-                95
+                90
               ]
             },
             {
-              "__comment__": "Remote temp1(temp2) high limit setting for high byte. PR:1001",
+              "__comment__": "Remote temp1(temp2) high limit setting for high byte. PR:1092",
               "regOffset": 13,
               "ioBuf": [
-                95
+                90
               ]
             },
             {
@@ -943,6 +943,7 @@
     "/run/devmap/sensors/SMB_ADC2_SENSOR": "/SMB_SLOT@0/[SMB_ADC2_SENSOR]",
     "/run/devmap/sensors/SMB_INLET_TH6_TSENSOR": "/SMB_SLOT@0/[SMB_INLET_TH6_TSENSOR]",
     "/run/devmap/sensors/SMB_VDDCORE": "/SMB_SLOT@0/[SMB_VDDCORE]",
+    "/run/devmap/sensors/SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
     "/run/devmap/gpiochips/MCB_GPIO_CHIP_1": "/[MCB_GPIO_CHIP_1]",
     "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1": "/[MCB_SPI_MASTER_1_DEVICE_1]",
     "/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1": "/[MCB_SPI_MASTER_2_DEVICE_1]",

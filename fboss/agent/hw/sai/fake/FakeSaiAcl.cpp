@@ -85,6 +85,7 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return true;
     // Actions
     case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
+    case SAI_ACL_ENTRY_ATTR_ACTION_REDIRECT:
     case SAI_ACL_ENTRY_ATTR_ACTION_COUNTER:
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_TC:
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_DSCP:
@@ -812,6 +813,11 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.actionPacketActionData = attr->value.aclaction.parameter.u32;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_ACTION_REDIRECT:
+      aclEntry.actionRedirectEnable = attr->value.aclaction.enable;
+      aclEntry.actionRedirectData = attr->value.aclaction.parameter.oid;
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_ACTION_COUNTER:
       aclEntry.actionCounterEnable = attr->value.aclaction.enable;
       aclEntry.actionCounterData = attr->value.aclaction.parameter.oid;
@@ -1116,6 +1122,11 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclaction.enable = aclEntry.actionPacketActionEnable;
         attr_list[i].value.aclaction.parameter.u32 =
             aclEntry.actionPacketActionData;
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_REDIRECT:
+        attr_list[i].value.aclaction.enable = aclEntry.actionRedirectEnable;
+        attr_list[i].value.aclaction.parameter.oid =
+            aclEntry.actionRedirectData;
         break;
       case SAI_ACL_ENTRY_ATTR_ACTION_COUNTER:
         attr_list[i].value.aclaction.enable = aclEntry.actionCounterEnable;

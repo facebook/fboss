@@ -22,7 +22,9 @@
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
+#include <folly/dynamic.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/json.h>
 #include <gflags/gflags.h>
 #include <chrono>
 #include "fboss/agent/EnumUtils.h"
@@ -419,6 +421,10 @@ DEFINE_bool(
     dump_tcvr_i2c_log,
     false,
     "Dump the transceiver i2c log to /dev/shm/fboss/qsfp_service");
+DEFINE_bool(
+    port_info_summary,
+    false,
+    "Print a one-line summary per port: port_name vendor part_number. Use with --direct_i2c");
 
 namespace {
 struct ModulePartInfo_s {
@@ -2554,6 +2560,45 @@ void printPortDetail(
   }
 }
 
+void printPortInfoSummary(const std::vector<PortInfoSummary>& summaries) {
+  folly::dynamic arr = folly::dynamic::array;
+  for (const auto& s : summaries) {
+    arr.push_back(
+        folly::dynamic::object("port", s.port)("name", s.name)(
+            "vendor", s.vendor)("part_number", s.partNumber));
+  }
+  folly::json::serialization_opts opts;
+  opts.pretty_formatting = true;
+  opts.sort_keys = true;
+  printf("%s\n", folly::json::serialize(arr, opts).c_str());
+}
+
+std::optional<PortInfoSummary> getPortInfoSummary(
+    const DOMDataUnion& domDataUnion,
+    unsigned int port,
+    const std::string& firstPortName) {
+  if (domDataUnion.getType() == DOMDataUnion::Type::__EMPTY__) {
+    return std::nullopt;
+  }
+
+  std::string vendor;
+  std::string vendorPN;
+
+  if (domDataUnion.getType() == DOMDataUnion::Type::sff8636) {
+    auto page0Buf = can_throw(*domDataUnion.sff8636()).page0()->data();
+    vendor = sfpString(page0Buf, 20, 16).str();
+    vendorPN = sfpString(page0Buf, 40, 16).str();
+  } else if (domDataUnion.getType() == DOMDataUnion::Type::cmis) {
+    auto page0Buf = can_throw(*domDataUnion.cmis()).page0()->data();
+    vendor = sfpString(page0Buf, 1, 16).str();
+    vendorPN = sfpString(page0Buf, 20, 16).str();
+  } else {
+    return std::nullopt;
+  }
+
+  return PortInfoSummary{port, firstPortName, vendor, vendorPN};
+}
+
 void printPortDetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,
@@ -4473,7 +4518,8 @@ bool verifyDirectI2cCompliance() {
       FLAGS_get_remediation_until_time || FLAGS_read_reg || FLAGS_write_reg ||
       FLAGS_update_module_firmware || FLAGS_update_bulk_module_fw ||
       FLAGS_set_40g || FLAGS_set_100g || FLAGS_electrical_loopback ||
-      FLAGS_optical_loopback || FLAGS_clear_loopback || FLAGS_qsfp_reset) {
+      FLAGS_optical_loopback || FLAGS_clear_loopback || FLAGS_qsfp_reset ||
+      FLAGS_port_info_summary) {
     if (FLAGS_direct_i2c) {
       if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
         XLOG(ERR)

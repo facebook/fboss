@@ -311,12 +311,18 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
           break;
       }
     } else if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
-      if (FLAGS_mode == "yangra") {
-        // For yangra pick both profile and speed to be 400G, since that's what
-        // is expected in production and chenab does not support dynamic port
-        // profile change, as it may lead to recreation of ports by delete and
-        // add. the usecase of recreating ports by delete and add is not
-        // supported in chenab. Minipack3n has max port speed of 400G only
+      // Pick both profile and speed to be 400G for interface ports, since
+      // that's what is expected in production and chenab does not support
+      // dynamic port profile change, as it may lead to recreation of ports
+      // by delete and add. the usecase of recreating ports by delete and add
+      // is not supported in chenab. Minipack3n has max port speed of 400G only
+      auto portId = group.first;
+      auto platPortItr = platformMapping->getPlatformPorts().find(portId);
+      if (platPortItr == platformMapping->getPlatformPorts().end()) {
+        throw FbossError("Can't find platform port for:", portId);
+      }
+      if (*platPortItr->second.mapping()->portType() ==
+          cfg::PortType::INTERFACE_PORT) {
         bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
         bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
       }
@@ -896,7 +902,8 @@ cfg::SwitchConfig genPortVlanCfg(
     }
 
     if (platformType.has_value() &&
-        platformType.value() == PlatformType::PLATFORM_LADAKH800BCLS) {
+        (platformType.value() == PlatformType::PLATFORM_LADAKH800BCLS ||
+         platformType.value() == PlatformType::PLATFORM_LEH800BCLS)) {
       portIdRange.maximum() =
           cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
       defaultSwitchIdToSwitchInfo.insert(
@@ -1518,6 +1525,23 @@ void configurePortGroup(
     cfgPort->speed() = speed;
     cfgPort->state() = cfg::PortState::ENABLED;
     removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
+  }
+}
+
+void configurePortGroupsForMaxSpeed(
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
+    cfg::SwitchConfig& config) {
+  auto subsidiaryPortIDs =
+      utility::getSubsidiaryPortIDs(platformMapping->getPlatformPorts());
+  for (const auto& [controllingPort, subsidiaryPorts] : subsidiaryPortIDs) {
+    auto maxSpeed = platformMapping->getPortMaxSpeed(controllingPort);
+    configurePortGroup(
+        platformMapping,
+        supportsAddRemovePort,
+        config,
+        maxSpeed,
+        subsidiaryPorts);
   }
 }
 

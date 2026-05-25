@@ -186,18 +186,23 @@ cfg::PfcWatchdog getExpectedPfcWatchdogProgrammingInHwFromConfig(
 
 // Verifies if the PFC watchdog config provided matches the one
 // programmed in HW
-void pfcWatchdogProgrammingMatchesConfig(
+bool pfcWatchdogProgrammingMatchesConfig(
     const HwSwitch* hw,
     const PortID& portId,
     const bool watchdogEnabled,
     const cfg::PfcWatchdog& watchdog) {
   auto pfcWdProgrammed = getProgrammedPfcDeadlockParams(hw, portId);
   EXPECT_EQ(watchdogEnabled, pfcWdProgrammed.has_value());
+  if (watchdogEnabled != pfcWdProgrammed.has_value()) {
+    return false;
+  }
   if (pfcWdProgrammed.has_value()) {
     auto expectedPfcWdProgramming =
         getExpectedPfcWatchdogProgrammingInHwFromConfig(hw, watchdog);
-    utility::checkPfcWdSwHwCfgMatch(expectedPfcWdProgramming, *pfcWdProgrammed);
+    return utility::checkPfcWdSwHwCfgMatch(
+        expectedPfcWdProgramming, *pfcWdProgrammed);
   }
+  return true;
 }
 
 int getPfcDeadlockDetectionTimerGranularity(int /* unused */) {

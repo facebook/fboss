@@ -42,11 +42,13 @@ void FsdbSubManager<_Storage, _IsCow>::subscribe(
 template <typename _Storage, bool _IsCow>
 folly::Synchronized<typename FsdbSubManager<_Storage, _IsCow>::Data>
 FsdbSubManager<_Storage, _IsCow>::subscribeBound(
-    std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb) {
+    std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb,
+    std::optional<FsdbStreamHeartbeatCb> heartbeatCb) {
   folly::Synchronized<Data> boundData;
   subscribe(
       [&](SubUpdate update) { *boundData.wlock() = update.data; },
-      std::move(subscriptionStateChangeCb));
+      std::move(subscriptionStateChangeCb),
+      std::move(heartbeatCb));
   return boundData;
 }
 

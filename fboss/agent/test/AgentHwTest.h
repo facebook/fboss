@@ -216,16 +216,24 @@ class AgentHwTest : public ::testing::Test {
     ecmp.programRoutes(&wrapper, width, {}, {}, disableTTLDecrement);
   }
   template <typename EcmpHelperT>
-  void resolveNeighbors(const EcmpHelperT& ecmp, int width) {
-    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
-      return ecmp.resolveNextHops(in, width);
-    });
+  void resolveNeighbors(
+      const EcmpHelperT& ecmp,
+      int width,
+      bool useLinkLocal = false) {
+    applyNewState(
+        [this, &ecmp, width, useLinkLocal](std::shared_ptr<SwitchState> in) {
+          return ecmp.resolveNextHops(in, width, useLinkLocal);
+        });
   }
   template <typename EcmpHelperT>
-  void unresolveNeighbors(const EcmpHelperT& ecmp, int width) {
-    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
-      return ecmp.unresolveNextHops(in, width);
-    });
+  void unresolveNeighbors(
+      const EcmpHelperT& ecmp,
+      int width,
+      bool useLinkLocal = false) {
+    applyNewState(
+        [this, &ecmp, width, useLinkLocal](std::shared_ptr<SwitchState> in) {
+          return ecmp.unresolveNextHops(in, width, useLinkLocal);
+        });
   }
   template <typename EcmpHelperT>
   void unprogramRoutes(const EcmpHelperT& ecmp) {
@@ -287,6 +295,11 @@ class AgentHwTest : public ::testing::Test {
   void populateNdpNeighborsToCache(const std::shared_ptr<Interface>& interface);
 
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt);
+
+  folly::MacAddress getMacForFirstInterfaceWithPorts(
+      const std::shared_ptr<SwitchState>& state);
+  InterfaceID firstInterfaceIDWithPorts(
+      const std::shared_ptr<SwitchState>& state);
 
   std::optional<VlanID> getVlanIDForTx() const {
     return agentEnsemble_->getVlanIDForTx();

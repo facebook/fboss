@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import tempfile
+from unittest.mock import Mock
 
 import pytest
 
@@ -34,7 +35,7 @@ class StubTestRunner(TestRunner):
     def _get_sai_replayer_logging_flags(self, sai_replayer_log_path):
         return []
 
-    def _get_sai_logging_flags(self):
+    def _get_sai_logging_flags(self, sai_logging):
         return []
 
     def _get_warmboot_check_file(self):
@@ -42,6 +43,9 @@ class StubTestRunner(TestRunner):
 
     def _get_test_run_args(self, conf_file):
         return ["--config", conf_file]
+
+    def _setup_run(self, conf_file):
+        pass
 
     def _setup_coldboot_test(self, sai_replayer_log_path=None):
         pass
@@ -63,6 +67,23 @@ class StubTestRunner(TestRunner):
 def runner():
     """StubTestRunner instance for testing concrete TestRunner methods."""
     return StubTestRunner()
+
+
+@pytest.fixture
+def mock_args():
+    """Create a mock args object with common attributes used across runners."""
+    args = Mock()
+    args.filter_file = None
+    args.list_tests = False
+    args.config = None
+    args.mgmt_if = "eth0"
+    args.platform_mapping_override_path = None
+    args.fruid_path = None
+    args.sai_logging = "WARN"
+    args.fboss_logging = "WARN"
+    args.test_run_timeout = 300
+    args.skip_known_bad_tests = None
+    return args
 
 
 @pytest.fixture

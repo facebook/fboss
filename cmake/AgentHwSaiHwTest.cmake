@@ -170,6 +170,22 @@ set_target_properties(sai_acl_utils PROPERTIES COMPILE_FLAGS
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
+add_library(sai_pfc_utils
+  fboss/agent/hw/sai/hw_test/HwTestPfcUtils.cpp
+  fboss/agent/hw/test/HwTestPfcUtils.cpp
+)
+
+target_link_libraries(sai_pfc_utils
+  sai_switch # //fboss/agent/hw/sai/switch:sai_switch
+  ${GTEST}
+)
+
+set_target_properties(sai_pfc_utils PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
+
 add_library(sai_packet_trap_helper
   fboss/agent/hw/sai/hw_test/HwTestPacketTrapEntry.cpp
 )
@@ -191,6 +207,7 @@ add_library(agent_hw_test_thrift_handler
   fboss/agent/hw/sai/hw_test/HwTestAqmUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestMirrorUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestNeighborUtilsThriftHandler.cpp
+  fboss/agent/hw/sai/hw_test/HwTestPfcUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestEcmpUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestPortUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestVoqSwitchUtilsThriftHandler.cpp
@@ -212,6 +229,7 @@ target_link_libraries(agent_hw_test_thrift_handler
   agent_hw_test_ctrl_cpp2
   sai_aqm_utils
   sai_ecmp_utils
+  sai_pfc_utils
   sai_port_utils
   diag_shell
   wedge_led_utils
@@ -249,7 +267,6 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/HwTestRouteUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestUdfUtils.cpp
     fboss/agent/hw/sai/hw_test/HwVlanUtils.cpp
-    fboss/agent/hw/sai/hw_test/SaiNextHopGroupTest.cpp
     fboss/agent/hw/sai/hw_test/SaiPortUtils.cpp
     fboss/agent/hw/sai/hw_test/SaiPortAdminStateTests.cpp
   )

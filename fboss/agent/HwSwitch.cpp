@@ -206,6 +206,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
       std::chrono::system_clock::now().time_since_epoch());
   hwSwitchStats.timestamp() = now.count();
   hwSwitchStats.hwPortStats() = getPortStats();
+  hwSwitchStats.hwTrunkStats() = getTrunkStats();
   hwSwitchStats.hwAsicErrors() = getSwitchStats()->getHwAsicErrors();
   hwSwitchStats.teFlowStats() = getTeFlowStats();
   hwSwitchStats.fabricReachabilityStats() = getFabricReachabilityStats();

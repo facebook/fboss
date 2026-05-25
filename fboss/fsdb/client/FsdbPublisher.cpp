@@ -26,6 +26,13 @@ DEFINE_int32(
     5,
     "minimum number of pending updates to trigger FSDB Publisher queue memory limit check");
 
+// Disambiguates state vs stats and Path/Delta/Patch publishers that share a
+// clientId within the same process (e.g., agent has both "agent" state and
+// "agent" stats publishers).
+#define PUB_XLOG(LEVEL)                                                     \
+  XLOG(LEVEL) << "[" << typeStr() << "/" << (isStats() ? "stats" : "state") \
+              << "] "
+
 namespace facebook::fboss::fsdb {
 
 template <typename PubUnit>
@@ -93,7 +100,7 @@ bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
 
   auto pipeUPtr = asyncPipe_.ulock();
   if (!(*pipeUPtr)) {
-    XLOG(ERR) << "Could not enqueue pub unit";
+    PUB_XLOG(ERR) << "Could not enqueue pub unit";
     writeOk = false;
   } else if (publishQueueMemoryLimit_ > 0) {
     pubUnitSize = getPubUnitSize(pubUnit);
@@ -101,7 +108,7 @@ bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
     if (queuedChunks > FLAGS_publish_queue_full_min_updates) {
       size_t queuedSize = enqueuedDataSize_.load() - servedDataSize_.load();
       if ((queuedSize + pubUnitSize) > publishQueueMemoryLimit_) {
-        XLOG(ERR)
+        PUB_XLOG(ERR)
             << "Publish queue at memory limit, resetting stream. Data enqueued: "
             << queuedSize << " new data size: " << pubUnitSize
             << " memory limit: " << publishQueueMemoryLimit_ << " bytes";
@@ -113,7 +120,7 @@ bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
     if (tryWrite((*pipeUPtr)->second, std::move(pubUnit))) {
       enqueuedDataSize_.fetch_add(pubUnitSize);
     } else {
-      XLOG(ERR) << "Queue overflow, reset queue pointer";
+      PUB_XLOG(ERR) << "Queue overflow, reset queue pointer";
       writeOk = false;
     }
   }
@@ -166,7 +173,7 @@ FsdbPublisher<PubUnit>::createGenerator() {
         pubUnit = std::move(*pubElement);
         queueSize_--;
       } else {
-        XLOG(ERR) << "Publish queue is null, unable to dequeue";
+        PUB_XLOG(ERR) << "Publish queue is null, unable to dequeue";
         FsdbException ex;
         ex.errorCode() = FsdbErrorCode::DISCONNECTED;
         ex.message() = "Publisher queue is null, cannot dequeue";
@@ -191,7 +198,7 @@ bool FsdbPublisher<PubUnit>::disconnectForGR() {
   {
     auto pipeUPtr = asyncPipe_.ulock();
     if (!(*pipeUPtr)) {
-      XLOG(ERR) << "asyncPipe_.ulock() failed, nullptr";
+      PUB_XLOG(ERR) << "asyncPipe_.ulock() failed, nullptr";
       return false;
     }
     PubUnit emptyPubUnit;
@@ -219,7 +226,7 @@ void FsdbPublisher<PubUnit>::sendHeartbeat() {
     if (((*pipeUPtr)->second).try_write(std::move(emptyPubUnit))) {
       queueSize_++;
     } else {
-      XLOG(ERR) << "sendHeartbeat: queue full, reset pipe";
+      PUB_XLOG(ERR) << "sendHeartbeat: queue full, reset pipe";
       pipeUPtr.moveFromUpgradeToWrite()->reset();
       queueSize_ = 0;
     }

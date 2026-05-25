@@ -69,24 +69,6 @@
         false);                                                              \
   }
 
-// Adding new load balancer test for DLB since DLB need deviation of ~30%
-// in some runs.
-#define RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(                                 \
-    TEST_FIXTURE, TEST_TYPE, DLB_PRE_WB_MODE, DLB_POST_WB_MODE, DEVIATION) \
-  TEST_F(TEST_FIXTURE, TEST_TYPE) {                                        \
-    static bool kLoopThroughFrontPanelPort =                               \
-        (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != std::string{"Cpu"});          \
-    runDynamicLoadBalanceTest(                                             \
-        8,                                                                 \
-        facebook::fboss::utility::getEcmpFullHashConfig({getHwAsic()}),    \
-        facebook::fboss::utility::kHwTestEcmpWeights(),                    \
-        kLoopThroughFrontPanelPort,                                        \
-        true,                                                              \
-        DLB_PRE_WB_MODE,                                                   \
-        DLB_POST_WB_MODE,                                                  \
-        DEVIATION);                                                        \
-  }
-
 #define RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST(TEST_FIXTURE, HASH_TYPE) \
   TEST_F(TEST_FIXTURE, ECMP_SHRINK_EXPAND_TEST_NAME(HASH_TYPE)) {        \
     runEcmpShrinkExpandLoadBalanceTest(                                  \
@@ -290,94 +272,8 @@ class HwLoadBalancerTestRunner {
     verify();
   }
 
-  void runDynamicLoadBalanceTest(
-      unsigned int ecmpWidth,
-      const cfg::LoadBalancer& loadBalancer,
-      const std::vector<NextHopWeight>& weights,
-      bool loopThroughFrontPanel = false,
-      bool loadBalanceExpected = true,
-      cfg::SwitchingMode preMode = cfg::SwitchingMode::FIXED_ASSIGNMENT,
-      cfg::SwitchingMode postMode = cfg::SwitchingMode::FLOWLET_QUALITY,
-      uint8_t deviation = 25) {
-    if (skipTest()) {
-#if defined(GTEST_SKIP)
-      GTEST_SKIP();
-#endif
-      return;
-    }
-    if constexpr (!kFlowLetSwitching) {
-      return;
-    }
-
-    auto setup = [=, this]() {
-      auto cfg = getEnsemble()->getCurrentConfig();
-      if (preMode != cfg::SwitchingMode::FIXED_ASSIGNMENT) {
-        cfg.udfConfig() =
-            utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
-        utility::addFlowletConfigs(
-            cfg, getMasterLogicalPortIds(), getEnsemble()->isSai(), preMode);
-        utility::addFlowletAcl(
-            cfg,
-            getEnsemble()->isSai(),
-            utility::kFlowletAclName,
-            utility::kFlowletAclCounterName);
-      }
-      getEnsemble()->applyNewConfig(cfg);
-      helper_->programRoutesAndLoadBalancer(ecmpWidth, weights, loadBalancer);
-    };
-
-    auto verify = [=, this]() {
-      setEcmpMemberStatus(getEnsemble());
-      helper_->pumpTrafficPortAndVerifyLoadBalanced(
-          ecmpWidth,
-          loopThroughFrontPanel,
-          weights,
-          deviation,
-          preMode != cfg::SwitchingMode::FIXED_ASSIGNMENT);
-    };
-
-    auto setupPostWB = [&]() {
-      auto cfg = utility::onePortPerInterfaceConfig(
-          getEnsemble(), getMasterLogicalPortIds());
-      if (postMode != cfg::SwitchingMode::FIXED_ASSIGNMENT) {
-        cfg.udfConfig() =
-            utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
-        utility::addFlowletConfigs(
-            cfg, getMasterLogicalPortIds(), getEnsemble()->isSai(), postMode);
-        utility::addFlowletAcl(
-            cfg,
-            getEnsemble()->isSai(),
-            utility::kFlowletAclName,
-            utility::kFlowletAclCounterName);
-      }
-      getEnsemble()->applyNewConfig(cfg);
-    };
-
-    auto verifyPostWB = [&]() {
-      setEcmpMemberStatus(getEnsemble());
-      helper_->pumpTrafficPortAndVerifyLoadBalanced(
-          ecmpWidth,
-          loopThroughFrontPanel,
-          weights,
-          deviation,
-          postMode != cfg::SwitchingMode::FIXED_ASSIGNMENT);
-    };
-
-    runTestAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
-  }
-
   EcmpTestHelperT* getEcmpSetupHelper() const {
     return helper_.get();
-  }
-
-  virtual void setEcmpMemberStatus(const TestEnsembleIf* /*ensemble*/) {
-    XLOG(FATAL) << "setEcmpMemberStatus not implemented out of HwSwitch";
-  }
-
-  virtual int getL3EcmpDlbFailPackets(
-      const TestEnsembleIf* /*ensemble*/) const {
-    XLOG(FATAL) << "getL3EcmpDlbFailPackets not implemented out of HwSwitch";
-    return 0;
   }
 
  private:

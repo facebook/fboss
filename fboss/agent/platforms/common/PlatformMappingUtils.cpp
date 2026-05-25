@@ -27,6 +27,7 @@
 #include "fboss/agent/platforms/common/j4sim/J4SimPlatformMapping.h"
 #include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 #include "fboss/agent/platforms/common/ladakh800bcls/Ladakh800bclsPlatformMapping.h"
+#include "fboss/agent/platforms/common/leh800bcls/Leh800bclsPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
@@ -35,6 +36,7 @@
 #include "fboss/agent/platforms/common/minipack3n/Minipack3NPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
+#include "fboss/agent/platforms/common/saintpaul/SaintpaulPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahansb800bc/Tahansb800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
@@ -207,10 +209,18 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Ladakh800bclsPlatformMapping>()
           : std::make_unique<Ladakh800bclsPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_LEH800BCLS:
+      return platformMappingStr.empty()
+          ? std::make_unique<Leh800bclsPlatformMapping>()
+          : std::make_unique<Leh800bclsPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_J4SIM:
       return platformMappingStr.empty()
           ? std::make_unique<J4SimPlatformMapping>()
           : std::make_unique<J4SimPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_SAINTPAUL:
+      return platformMappingStr.empty()
+          ? std::make_unique<SaintpaulPlatformMapping>()
+          : std::make_unique<SaintpaulPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_BLACKWOLF800BANW:
       return platformMappingStr.empty()
           ? std::make_unique<Blackwolf800banwPlatformMapping>()

@@ -1,0 +1,208 @@
+{
+  "pwmBoostOnNumDeadFan": 3,
+  "pwmBoostOnNumDeadSensor": 0,
+  "pwmBoostOnNoQsfpAfterInSec": 0,
+  "pwmBoostValue": 100,
+  "pwmTransitionValue": 50,
+  "pwmLowerThreshold": 30,
+  "pwmUpperThreshold": 100,
+  "watchdog": {
+    "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",
+    "value": 0
+  },
+  "controlInterval": {
+    "sensorReadInterval": 5,
+    "pwmUpdateInterval": 5
+  },
+  "sensors": [
+    {
+      "sensorName": "COME_U1_CPU_UNCORE_TEMP",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 90,
+        "posHysteresis": 3,
+        "negHysteresis": 3
+      }
+    },
+    {
+      "sensorName": "MCB_PS108_XP12R0V_PB1_TEMPARTURES",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 9,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 104,
+        "posHysteresis": 1,
+        "negHysteresis": 1
+      }
+    },
+    {
+      "sensorName": "MCB_PS109_XP12R0V_PB2_TEMPARTURES",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 8,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 104,
+        "posHysteresis": 1,
+        "negHysteresis": 1
+      }
+    },
+    {
+      "sensorName": "MCB_U62_PB_INLET_TSENSOR",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "23": 30,
+        "28": 35,
+        "33": 40,
+        "38": 45
+      },
+      "normalDownTable": {
+        "21": 30,
+        "26": 35,
+        "31": 40,
+        "36": 45
+      },
+      "failUpTable": {
+        "23": 50,
+        "28": 60,
+        "33": 70,
+        "38": 80
+      },
+      "failDownTable": {
+        "21": 50,
+        "26": 60,
+        "31": 70,
+        "36": 80
+      },
+      "twoRotorsFailUpTable": {
+        "23": 100,
+        "28": 100,
+        "33": 100,
+        "38": 100
+      },
+      "twoRotorsFailDownTable": {
+        "21": 100,
+        "26": 100,
+        "31": 100,
+        "36": 100
+      }
+    }
+  ],
+  "fans": [
+    {
+      "fanName": "FAN_1_F",
+      "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_input",
+      "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm1",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_present",
+      "pwmMin": 0,
+      "pwmMax": 64,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "rpmMin": 3105
+    },
+    {
+      "fanName": "FAN_1_R",
+      "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_input",
+      "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm1",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_present",
+      "pwmMin": 0,
+      "pwmMax": 64,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "rpmMin": 3105
+    },
+    {
+      "fanName": "FAN_2_F",
+      "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_input",
+      "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm2",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_present",
+      "pwmMin": 0,
+      "pwmMax": 64,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "rpmMin": 3105
+    },
+    {
+      "fanName": "FAN_2_R",
+      "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_input",
+      "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm2",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_present",
+      "pwmMin": 0,
+      "pwmMax": 64,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "rpmMin": 3105
+    },
+    {
+      "fanName": "FAN_3_F",
+      "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan5_input",
+      "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm3",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_present",
+      "pwmMin": 0,
+      "pwmMax": 64,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "rpmMin": 3105
+    },
+    {
+      "fanName": "FAN_3_R",
+      "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan6_input",
+      "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm3",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_present",
+      "pwmMin": 0,
+      "pwmMax": 64,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "rpmMin": 3105
+    },
+    {
+      "fanName": "FAN_4_F",
+      "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan7_input",
+      "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm4",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_present",
+      "pwmMin": 0,
+      "pwmMax": 64,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "rpmMin": 3105
+    },
+    {
+      "fanName": "FAN_4_R",
+      "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan8_input",
+      "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm4",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_present",
+      "pwmMin": 0,
+      "pwmMax": 64,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "rpmMin": 3105
+    }
+  ],
+  "zones": [
+    {
+      "zoneType": "ZONE_TYPE_MAX",
+      "zoneName": "zone1",
+      "sensorNames": [
+        "COME_U1_CPU_UNCORE_TEMP",
+        "MCB_PS108_XP12R0V_PB1_TEMPARTURES",
+        "MCB_PS109_XP12R0V_PB2_TEMPARTURES",
+        "MCB_U62_PB_INLET_TSENSOR"
+      ],
+      "fanNames": [
+        "FAN_1_F",
+        "FAN_1_R",
+        "FAN_2_F",
+        "FAN_2_R",
+        "FAN_3_F",
+        "FAN_3_R",
+        "FAN_4_F",
+        "FAN_4_R"
+      ],
+      "slope": 10
+    }
+  ]
+}

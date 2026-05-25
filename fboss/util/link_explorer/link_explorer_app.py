@@ -87,6 +87,7 @@ async def _get_qsfp_client(host: str):
 
 async def _fetch_lldp(host: str) -> t.List[LinkNeighborThrift]:
     async with await _get_agent_client(host) as client:
+        # pyrefly: ignore [bad-return]
         return await client.getLldpNeighbors()
 
 

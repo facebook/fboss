@@ -2208,6 +2208,11 @@ folly::F14FastMap<std::string, HwPortStats> SaiSwitch::getPortStats() const {
   return getPortStatsLocked(lock);
 }
 
+std::map<std::string, HwTrunkStats> SaiSwitch::getTrunkStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return managerTable_->lagManager().getAllHwTrunkStats();
+}
+
 CpuPortStats SaiSwitch::getCpuPortStats() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
@@ -3784,7 +3789,8 @@ void SaiSwitch::initSwitchAsicSdkHealthNotificationLocked(
 
 bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {
   static std::set<facebook::fboss::cfg::PacketRxReason> kAllowedRxReasons = {
-      facebook::fboss::cfg::PacketRxReason::TTL_1};
+      facebook::fboss::cfg::PacketRxReason::TTL_1,
+      facebook::fboss::cfg::PacketRxReason::MPLS_TTL_1};
   const auto hostifTrapItr =
       concurrentIndices_->hostifTrapIds.find(hostifTrapSaiId);
   if (hostifTrapItr == concurrentIndices_->hostifTrapIds.cend()) {
@@ -5108,6 +5114,7 @@ std::string SaiSwitch::listObjects(
                 SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP));
 #endif
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT);
+        objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM);
         break;
       case HwObjectType::LABEL_ENTRY:
@@ -5134,6 +5141,12 @@ std::string SaiSwitch::listObjects(
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
         objTypes.push_back(
             static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_FIRMWARE));
+#endif
+        break;
+      case HwObjectType::SRV6:
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+        objTypes.push_back(SAI_OBJECT_TYPE_SRV6_SIDLIST);
+        objTypes.push_back(SAI_OBJECT_TYPE_MY_SID_ENTRY);
 #endif
         break;
     }

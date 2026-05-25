@@ -339,4 +339,7 @@ enum CmisField {
   //   txRplcSigInsertionImpl, txConsActHoldOffTmrImpl,
   //   rxConsActHoldOffTmrImpl, rxConsActImpl, txConsActImpl
   HOST_LANE_PROV_AD = 466,
+  // Page 38h, Bytes 141-142: Rx Consequent Action Hold-off Timer
+  // 16-bit value in 10ms increments. 0 = disabled.
+  CONS_ACT_HOLD_OFF_TMR = 467,
 }

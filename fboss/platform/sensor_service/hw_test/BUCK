@@ -15,6 +15,7 @@ cpp_binary(
         "//fboss/platform/sensor_service:service",
         "//fboss/platform/sensor_service:utils",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-services",
+        "//fboss/platform/sensor_service/utilities:power_config_utils",
         "//folly/init:init",
         "//thrift/lib/cpp2/util:util",
     ],

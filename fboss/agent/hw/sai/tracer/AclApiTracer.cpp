@@ -144,6 +144,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, UserDefinedFieldGroupMin4),
 #endif
     SAI_ATTR_MAP(AclEntry, ActionPacketAction),
+    SAI_ATTR_MAP(AclEntry, ActionRedirect),
     SAI_ATTR_MAP(AclEntry, ActionCounter),
     SAI_ATTR_MAP(AclEntry, ActionSetTC),
     SAI_ATTR_MAP(AclEntry, ActionSetDSCP),

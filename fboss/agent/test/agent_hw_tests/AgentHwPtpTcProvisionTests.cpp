@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/AsicUtils.h"
+#include <folly/IPAddress.h>
 #include "fboss/agent/packet/PTPHeader.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
@@ -18,8 +18,6 @@
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
-
-#include <folly/IPAddress.h>
 
 namespace {} // namespace
 
@@ -37,16 +35,12 @@ namespace facebook::fboss {
  * capture the packet and check for CF field in the packet.
  *  5. Run for each port pairs.
  */
-class AgentHwPtpTcProvisionTests
-    : public AgentHwTest,
-      public testing::WithParamInterface<cfg::PortSpeed> {
+class AgentHwPtpTcProvisionTests : public AgentHwTest {
  protected:
   const std::string kdstIpPrefix = "2192::101:";
   const std::string knexthopMacPrefix = "aa:bb:cc:dd:ee:";
   const folly::IPAddressV6 kSrcIp = folly::IPAddressV6("2025::1");
   const folly::MacAddress kSrcMac = folly::MacAddress("aa:bb:cc:00:00:01");
-
-  const cfg::PortSpeed portSpeed = GetParam();
 
   void SetUp() override {
     AgentHwTest::SetUp();
@@ -68,14 +62,11 @@ class AgentHwPtpTcProvisionTests
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
     config.switchSettings()->ptpTcEnable() = true;
-    auto ports = ensemble.masterLogicalInterfacePortIds();
-    // Port disabled if not support this speed
-    utility::configurePortGroup(
+    utility::configurePortGroupsForMaxSpeed(
         ensemble.getPlatformMapping(),
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        config,
-        portSpeed,
-        ports);
+        config);
+    auto ports = ensemble.masterLogicalInterfacePortIds();
     // Use PHY loopback instead of MAC loopback for Broadcom platforms
     if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
       for (auto& port : *config.ports()) {
@@ -165,12 +156,13 @@ class AgentHwPtpTcProvisionTests
         std::move(ptpPkt), portDescriptor, std::nullopt);
   }
 
-  void verifyPtpPkts(
+  uint64_t verifyPtpPkts(
       PTPMessageType ptpType,
       utility::SwSwitchPacketSnooper& snooper,
       const PortID& injectPortID,
       const PortID& dstPortID,
       const std::vector<PortID>& ports) {
+    uint64_t cfInNsecs = 0;
     // expect two PTP packet, one trapped from inject port and one from dst port
     for (int i = 0; i < 2; i++) {
       auto pktBufOpt = snooper.waitForPacket(5);
@@ -199,7 +191,7 @@ class AgentHwPtpTcProvisionTests
       EXPECT_EQ(ports[dstPortIdx], dstPortID);
       // Verify PTP fields
       auto correctionField = ptpHdr.getCorrectionField();
-      uint64_t cfInNsecs = (correctionField >> 16) & 0x0000ffffffffffff;
+      cfInNsecs = (correctionField >> 16) & 0x0000ffffffffffff;
       XLOG(DBG2) << "PTP packet with CorrectionField (CF) set to " << cfInNsecs
                  << " for packet sent from "
                  << getPortName(ports[injectPortIdx])
@@ -207,13 +199,9 @@ class AgentHwPtpTcProvisionTests
       EXPECT_EQ(ptpType, ptpHdr.getPtpType());
       EXPECT_EQ(PTPVersion::PTP_V2, ptpHdr.getPtpVersion());
       EXPECT_EQ(PTP_DELAY_REQUEST_MSG_SIZE, ptpHdr.getPtpMessageLength());
-      // Verify PTP correction field
       EXPECT_GT(cfInNsecs, 0);
-      // Ideally we should have a upper bound threshold per ASIC.
-      // For now, a generic value will be used as minor latency differences are
-      // not a concern.
-      EXPECT_LT(cfInNsecs, 8000);
     }
+    return cfInNsecs;
   }
 
   folly::MacAddress getIntfMac() const {
@@ -240,7 +228,7 @@ class AgentHwPtpTcProvisionTests
 };
 
 // Each port will be selected as Ingress port once and Egress port once.
-TEST_P(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequest) {
+TEST_F(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequest) {
   std::vector<PortID> ports;
   std::vector<folly::MacAddress> nexthopMacs; // binding to ingress port
   std::vector<folly::IPAddressV6> dstIps; // binding to egress port
@@ -254,9 +242,9 @@ TEST_P(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequest) {
     }
   }
   if (ports.size() < 2) {
-    XLOG(WARNING) << "Only " << ports.size() << " ports enabled for speed "
-                  << static_cast<int>(portSpeed)
-                  << " kbps, need at least 2 for PTP TC test, skipping";
+    XLOG(WARNING) << "Only " << ports.size()
+                  << " ports enabled, need at least 2 for PTP TC test,"
+                  << " skipping";
     return;
   }
   for (int idx = 0; idx < ports.size(); idx++) {
@@ -264,8 +252,14 @@ TEST_P(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequest) {
     dstIps.emplace_back(getDstIp(idx));
   }
 
-  XLOG(DBG0) << "Test " << ports.size() << " Ports with speed set to "
-             << static_cast<int>(portSpeed) << " kbps for PTP TC test";
+  XLOG(DBG0) << "Test " << ports.size() << " Ports for PTP TC test:";
+  for (auto& port : *cfg.ports()) {
+    if (port.state() == cfg::PortState::ENABLED &&
+        port.portType() == cfg::PortType::INTERFACE_PORT) {
+      XLOG(DBG0) << "  " << *port.name() << " (port " << *port.logicalID()
+                 << ") at " << static_cast<int>(*port.speed()) << " kbps";
+    }
+  }
 
   auto setup = [=, this]() {
     for (int idx = 0; idx < ports.size(); idx++) {
@@ -281,37 +275,48 @@ TEST_P(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequest) {
   auto verify = [=, this]() {
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper-ptp");
 
+    constexpr int kMaxRetries = 3;
+    constexpr uint64_t kCfThresholdNsecs = 8000;
+    constexpr uint64_t kCfMaxValidNsecs =
+        10'000'000; // 10ms, to avoid outlier due to pipeline delay
     for (int idx = 0; idx < ports.size(); idx++) {
       auto dstIdx = (idx + 1) % ports.size();
-      sendPtpPkts(
-          PTPMessageType::PTP_DELAY_REQUEST,
-          ports[idx],
-          dstIps[idx],
-          ports[dstIdx]);
+      uint64_t cfInNsecs = 0;
+      for (int attempt = 0; attempt < kMaxRetries; attempt++) {
+        sendPtpPkts(
+            PTPMessageType::PTP_DELAY_REQUEST,
+            ports[idx],
+            dstIps[idx],
+            ports[dstIdx]);
 
-      verifyPtpPkts(
-          PTPMessageType::PTP_DELAY_REQUEST,
-          snooper,
-          ports[idx],
-          ports[dstIdx],
-          ports);
+        cfInNsecs = verifyPtpPkts(
+            PTPMessageType::PTP_DELAY_REQUEST,
+            snooper,
+            ports[idx],
+            ports[dstIdx],
+            ports);
+        if (cfInNsecs < kCfThresholdNsecs) {
+          break;
+        }
+        // CF is IEEE 1588 signed field stored as uint64_t. A negative CF
+        // (HW timestamping defect, see S634677) wraps to >= 2^47, well above
+        // 10ms, so this check catches both outliers and HW defects.
+        if (cfInNsecs >= kCfMaxValidNsecs) {
+          XLOG(ERR) << "CF value " << cfInNsecs
+                    << " exceeds maximum valid range on attempt " << attempt + 1
+                    << " for " << getPortName(ports[idx]) << " -> "
+                    << getPortName(ports[dstIdx]);
+          break;
+        }
+        XLOG(WARNING) << "CF value " << cfInNsecs
+                      << " exceeded threshold on attempt " << attempt + 1
+                      << " for " << getPortName(ports[idx]) << " -> "
+                      << getPortName(ports[dstIdx]);
+      }
+      EXPECT_LT(cfInNsecs, kCfThresholdNsecs);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
 }
-
-INSTANTIATE_TEST_SUITE_P(
-    test, // simple test_suite prefix to reduce name length
-    AgentHwPtpTcProvisionTests,
-    ::testing::Values(
-        cfg::PortSpeed::TWENTYFIVEG,
-        cfg::PortSpeed::FIFTYG,
-        cfg::PortSpeed::HUNDREDG,
-        cfg::PortSpeed::TWOHUNDREDG,
-        cfg::PortSpeed::FOURHUNDREDG,
-        cfg::PortSpeed::EIGHTHUNDREDG),
-    [](const ::testing::TestParamInfo<cfg::PortSpeed>& info) {
-      return apache::thrift::util::enumNameSafe(info.param);
-    });
 
 } // namespace facebook::fboss

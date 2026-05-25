@@ -451,6 +451,12 @@ class EcmpSetupAnyNPorts {
   IPAddrT ip(PortDescriptor port) const {
     return ecmpSetupTargetedPorts_.ip(port);
   }
+  std::optional<IPAddrT> linkLocalIp(size_t id) const {
+    return getLinkLocalIp<IPAddrT>();
+  }
+  std::optional<IPAddrT> linkLocalIp(PortDescriptor port) const {
+    return getLinkLocalIp<IPAddrT>();
+  }
 
   RouterID getRouterId() const {
     return ecmpSetupTargetedPorts_.getRouterId();

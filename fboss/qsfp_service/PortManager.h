@@ -511,6 +511,8 @@ class PortManager {
    */
   ConfigAppliedInfo configAppliedInfo_;
 
+  std::string qsfpServiceWarmbootState_;
+
   void updateNpuPortStatusCache(
       std::map<int, facebook::fboss::NpuPortStatus>& portStatus);
 

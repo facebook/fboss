@@ -79,11 +79,14 @@ TEST(CmdArgsTest, doTypingTemplating) {
 }
 
 TEST(CmdArgsTest, PortList) {
-  // port name must conform to the required pattern 'moduleNum/port/subport'
+  // PortList accepts any non-empty string. Validation against actual
+  // ports/aggregate ports happens later in the command implementation.
 
   // test valid arguments
   ASSERT_NO_THROW(utils::PortList({"eth1/5/1"}));
   ASSERT_NO_THROW(utils::PortList({"eth1/5/1", "eth1/5/2"}));
+  ASSERT_NO_THROW(utils::PortList({"Port-Channel1"}));
+  ASSERT_NO_THROW(utils::PortList({"eth1/5/1", "Port-Channel1"}));
 
   // test port data
   auto twoPorts = utils::PortList({"eth1/5/1", "eth1/5/2"});
@@ -95,12 +98,17 @@ TEST(CmdArgsTest, PortList) {
   auto multiPorts = utils::PortList({"eth1/5/1", "eth1/5/9", "eth1/5/1"});
   EXPECT_THAT(multiPorts.data(), ElementsAre("eth1/5/1", "eth1/5/9"));
 
-  // test invalid arguments
-  ASSERT_THROW(utils::PortList({"eth1"}), std::invalid_argument);
-  ASSERT_THROW(utils::PortList({"eth1/5"}), std::invalid_argument);
-  ASSERT_THROW(utils::PortList({"eth1/5/"}), std::invalid_argument);
-  ASSERT_THROW(utils::PortList({"eth1//1"}), std::invalid_argument);
-  ASSERT_THROW(utils::PortList({"eth/5/1"}), std::invalid_argument);
+  // test aggregate port
+  auto aggPort = utils::PortList({"Port-Channel1"});
+  EXPECT_THAT(aggPort.data(), ElementsAre("Port-Channel1"));
+
+  // test mixed ports and aggregate ports
+  auto mixedPorts = utils::PortList({"eth1/5/1", "Port-Channel1", "eth1/5/2"});
+  EXPECT_THAT(
+      mixedPorts.data(), ElementsAre("Port-Channel1", "eth1/5/1", "eth1/5/2"));
+
+  // test invalid arguments - empty string should throw
+  ASSERT_THROW(utils::PortList({""}), std::invalid_argument);
 }
 
 TEST(CmdArgsTest, FsdbPath) {

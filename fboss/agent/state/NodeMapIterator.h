@@ -21,7 +21,7 @@ template <typename _Node, typename _Storage>
 class NodeMapIterator
     : public std::iterator<std::forward_iterator_tag, std::shared_ptr<_Node>> {
  private:
-  typedef _Storage NodeContainer;
+  using NodeContainer = _Storage;
 
  public:
   explicit NodeMapIterator(typename NodeContainer::const_iterator it)
@@ -67,7 +67,7 @@ template <typename _Node, typename _Storage>
 class ReverseNodeMapIterator
     : public std::iterator<std::forward_iterator_tag, std::shared_ptr<_Node>> {
  private:
-  typedef _Storage NodeContainer;
+  using NodeContainer = _Storage;
 
  public:
   explicit ReverseNodeMapIterator(

@@ -130,6 +130,31 @@ folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
 }
 #endif
 
+void FsdbStreamClient::reconnect(bool noGR) {
+  STREAM_XLOG(INFO) << "Forced reconnect requested (noGR="
+                    << (noGR ? "true" : "false") << ")";
+  streamEvb_->runInEventBaseThread([this]() {
+    if (getState() == State::CANCELLED) {
+      return;
+    }
+    if (getState() != State::CONNECTED && getState() != State::CONNECTING) {
+      return;
+    }
+    setStateDisconnectedWithReason(FsdbErrorCode::USER_REQUESTED_RECONNECT);
+    resetClient();
+    // Trigger an immediate reconnect attempt instead of waiting for the
+    // next backoff tick.
+    connRetryEvb_->runInEventBaseThread([this]() {
+      if (getState() == State::CANCELLED) {
+        return;
+      }
+      timer_->cancelTimeout();
+      backoff_.reportSuccess();
+      timer_->scheduleTimeout(backoff_.getCurTimeout());
+    });
+  });
+}
+
 void FsdbStreamClient::resetClient() {
   CHECK(streamEvb_->getEventBase()->isInEventBaseThread());
   client_.reset();

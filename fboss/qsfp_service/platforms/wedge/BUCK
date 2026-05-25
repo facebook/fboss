@@ -23,6 +23,7 @@ cpp_library(
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/lib:io_stats_recorder",
         "//fboss/lib/usb:base-i2c-dependencies",
         "//fboss/lib/usb:i2-api",

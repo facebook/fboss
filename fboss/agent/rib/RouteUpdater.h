@@ -110,6 +110,10 @@ class RibRouteUpdater {
       const std::map<ClientID, std::vector<folly::CIDRNetwork>>& toDel,
       const std::set<ClientID>& resetClientsRoutesFor);
 
+  std::size_t cyclesDetected() const {
+    return cyclesDetected_;
+  }
+
  private:
   void updateImpl(
       ClientID client,
@@ -166,6 +170,11 @@ class RibRouteUpdater {
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID);
 
+  // Release the resolved + normalized nexthop set IDs carried on `fwd` back
+  // to the manager. Call this right before erasing a route from a route map
+  // so the manager refcounts drop in sync with the route's lifetime.
+  void releaseFwdSideNexthopSetIDs(const RouteNextHopEntry& fwd);
+
   template <typename AddressT>
   void resolve(NetworkToRouteMap<AddressT>* routes);
 
@@ -185,6 +194,7 @@ class RibRouteUpdater {
       const std::vector<folly::IPAddressV6>& srv6SegmentList,
       const std::optional<TunnelType>& tunnelType,
       const std::optional<std::string>& tunnelId,
+      const std::optional<int64_t>& cost,
       RouteNextHopSet& fwd);
 
   template <typename AddressT>
@@ -206,6 +216,7 @@ class RibRouteUpdater {
   RouterID routerID_{0};
   std::unordered_set<void*> needsResolution_;
   std::unordered_set<void*> resolving_;
+  std::size_t cyclesDetected_{0};
   /*
    * Cache for next hop to FWD information. For our use case
    * its pretty common for the same next hops to repeat, so

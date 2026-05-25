@@ -15,9 +15,14 @@
 
 #include <folly/IPAddress.h>
 #include <folly/json/dynamic.h>
+#include <gflags/gflags.h>
 
 #include <memory>
 #include <type_traits>
+#include <utility>
+#include <vector>
+
+DECLARE_bool(enable_nexthop_id_manager);
 
 namespace facebook::fboss {
 
@@ -114,6 +119,24 @@ class NetworkToRouteMap
     NetworkToRouteMap<AddressT> networkToRouteMap;
     for (auto& obj : routes) {
       auto route = std::make_shared<Route<AddressT>>(obj.second);
+      // TODO: remove once enable_nexthop_id_manager is permanently on.
+      // Flag-OFF means no IDs can be stamped, so any ID here is stale
+      // from a prior flag-ON era. Wipe before a flag-OFF runtime sees it.
+      if (!FLAGS_enable_nexthop_id_manager) {
+        std::vector<std::pair<ClientID, RouteNextHopEntry>> updates;
+        std::optional<NextHopSetID> nullId;
+        for (const auto& [clientId, entry] :
+             std::as_const(route->getEntryForClients())) {
+          if (entry->getClientNextHopSetID().has_value()) {
+            RouteNextHopEntry newEntry(entry->toThrift());
+            newEntry.setClientNextHopSetID(nullId);
+            updates.emplace_back(clientId, std::move(newEntry));
+          }
+        }
+        for (auto& [clientId, newEntry] : updates) {
+          route->update(clientId, newEntry);
+        }
+      }
       auto key = route->prefix();
       networkToRouteMap.insert(key, route);
     }

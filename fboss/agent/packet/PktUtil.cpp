@@ -9,7 +9,7 @@
  */
 #include "fboss/agent/packet/PktUtil.h"
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
@@ -145,9 +145,10 @@ string PktUtil::hexDump(Cursor cursor, uint32_t length) {
     if (n == 0) {
       result.append("0000:");
     } else if ((n & 0xf) == 0) {
-      folly::format(&result, "\n{:04x}:", n);
+      fmt::format_to(std::back_inserter(result), "\n{:04x}:", n);
     }
-    folly::format(&result, " {:02x}", cursor.read<uint8_t>());
+    fmt::format_to(
+        std::back_inserter(result), " {:02x}", cursor.read<uint8_t>());
   }
 
   DCHECK_EQ(result.size() + 1, expectedLength);

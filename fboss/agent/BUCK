@@ -327,6 +327,10 @@ cpp_library(
         "//common/init:init",
         "//common/services/cpp:build_values",
         "//fb303:logging",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        ("openssl", None, "crypto"),
     ],
 )
 

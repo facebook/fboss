@@ -17,6 +17,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
@@ -90,7 +91,7 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
     // in brcm-sai: masks are not supported
     tunnel.dstIp() = dstIp;
     tunnel.tunnelTermType() = cfg::TunnelTerminationType::P2MP;
-    tunnel.tunnelType() = TunnelType::IP_IN_IP;
+    tunnel.tunnelType() = TunnelType::IP_IN_IP_DECAP;
     tunnel.ttlMode() = cfg::TunnelMode::PIPE;
     tunnel.dscpMode() = asic->getTunnelDscpMode();
     tunnel.ecnMode() = cfg::TunnelMode::PIPE;
@@ -244,4 +245,205 @@ TEST_F(AgentIpInIpTunnelTest, DecapPacketParsing) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+class AgentIpInIpEncapTunnelTest : public AgentHwTest {
+ public:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_acl_table_redirect_action = true;
+  }
+
+ protected:
+  std::string kEncapSrcIp = "2401:db00::1";
+  std::string kEncapDstIp = "2401:db00:ffff::1";
+  std::string kTargetPrefix = "2403:300::";
+  int kTargetPrefixLen = 32;
+
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::IP_IN_IP_ENCAP};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
+    auto cfg = utility::oneL3IntfTwoPortConfig(
+        ensemble.getSw()->getPlatformMapping(),
+        asic,
+        ensemble.masterLogicalPortIds()[0],
+        ensemble.masterLogicalPortIds()[1],
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes());
+    addEncapTunnelConfig(cfg);
+    addEncapAclConfig(cfg, asic, ensemble);
+    return cfg;
+  }
+
+  void addEncapTunnelConfig(cfg::SwitchConfig& cfg) const {
+    cfg::IpInIpTunnel tunnel;
+    tunnel.ipInIpTunnelId() = "encapTunnel0";
+    tunnel.underlayIntfID() = *cfg.interfaces()[0].intfID();
+    tunnel.srcIp() = kEncapSrcIp;
+    tunnel.dstIp() = kEncapDstIp;
+    tunnel.tunnelType() = TunnelType::IP_IN_IP_ENCAP;
+    tunnel.ttlMode() = cfg::TunnelMode::UNIFORM;
+    tunnel.dscpMode() = cfg::TunnelMode::UNIFORM;
+    tunnel.ecnMode() = cfg::TunnelMode::UNIFORM;
+    cfg.ipInIpTunnels() = {tunnel};
+  }
+
+  void addEncapAclConfig(
+      cfg::SwitchConfig& cfg,
+      const HwAsic* asic,
+      const AgentEnsemble& ensemble) const {
+    cfg::AclEntry acl;
+    acl.name() = "acl_encap";
+    acl.dstIp() = kTargetPrefix + "/" + std::to_string(kTargetPrefixLen);
+    acl.proto() = 6;
+    acl.l4DstPort() = 443;
+    utility::addAcl(&cfg, acl, cfg::AclStage::INGRESS);
+
+    cfg::MatchAction action;
+    cfg::RedirectToNextHopAction redirectAction;
+    cfg::RedirectNextHop nh;
+    nh.ip() = kEncapDstIp;
+    nh.tunnelType() = TunnelType::IP_IN_IP_ENCAP;
+    nh.tunnelId() = "encapTunnel0";
+    redirectAction.redirectNextHops() = {nh};
+    action.redirectToNextHop() = redirectAction;
+
+    cfg::MatchToAction mta;
+    mta.matcher() = "acl_encap";
+    mta.action() = action;
+    if (!cfg.dataPlaneTrafficPolicy().has_value()) {
+      cfg.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
+    }
+    cfg.dataPlaneTrafficPolicy()->matchToAction()->push_back(mta);
+
+    auto port = ensemble.masterLogicalInterfacePortIds()[0];
+    utility::addTrapPacketAcl(asic, &cfg, port);
+  }
+
+  void setupHelper() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
+        getLocalMacAddress());
+    resolveNeighborAndProgramRoutes(ecmpHelper, 1);
+  }
+
+  std::unique_ptr<TxPacket> makeTcpPacket(
+      std::string dstIp = "2403:300::1",
+      uint16_t dstPort = 443,
+      uint8_t trafficClass = 0) {
+    auto vlanId =
+        VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    return utility::makeTCPTxPacket(
+        getSw(),
+        vlanId,
+        intfMac,
+        folly::IPAddress(dstIp),
+        10000,
+        dstPort,
+        trafficClass);
+  }
+};
+
+TEST_F(AgentIpInIpEncapTunnelTest, EncapTunnelForwarding) {
+  auto setup = [=, this]() { setupHelper(); };
+  auto verify = [=, this]() {
+    auto beforeInBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
+    auto beforeOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[0]).outBytes_().value();
+    getAgentEnsemble()->ensureSendPacketOutOfPort(
+        makeTcpPacket(), masterLogicalPortIds()[1]);
+    auto afterInBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
+    auto afterOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[0]).outBytes_().value();
+    EXPECT_EQ(
+        afterInBytes - beforeInBytes + IPv6Hdr::SIZE,
+        afterOutBytes - beforeOutBytes);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentIpInIpEncapTunnelTest, EncapAclMiss) {
+  auto setup = [=, this]() { setupHelper(); };
+  auto verify = [=, this]() {
+    auto beforeInBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
+    auto beforeOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[0]).outBytes_().value();
+    getAgentEnsemble()->ensureSendPacketOutOfPort(
+        makeTcpPacket("2620:0:1::1"), masterLogicalPortIds()[1]);
+    auto afterInBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
+    auto afterOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[0]).outBytes_().value();
+    EXPECT_NE(afterInBytes, beforeInBytes);
+    EXPECT_NE(afterOutBytes, beforeOutBytes);
+    EXPECT_EQ(afterInBytes - beforeInBytes, afterOutBytes - beforeOutBytes);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentIpInIpEncapTunnelTest, EncapNoTunnelConfigured) {
+  auto setup = [=, this]() {
+    auto ensemble = getAgentEnsemble();
+    auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
+    auto cfg = utility::oneL3IntfTwoPortConfig(
+        ensemble->getSw()->getPlatformMapping(),
+        asic,
+        ensemble->masterLogicalPortIds()[0],
+        ensemble->masterLogicalPortIds()[1],
+        ensemble->getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes());
+    applyNewConfig(cfg); // removes tunnel + ACL entries
+    setupHelper();
+  };
+
+  auto verify = [=, this]() {
+    auto beforeInBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
+    auto beforeOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[0]).outBytes_().value();
+    getAgentEnsemble()->ensureSendPacketOutOfPort(
+        makeTcpPacket(), masterLogicalPortIds()[1]);
+    auto afterInBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
+    auto afterOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[0]).outBytes_().value();
+    EXPECT_NE(afterInBytes, beforeInBytes);
+    EXPECT_NE(afterOutBytes, beforeOutBytes);
+    EXPECT_EQ(afterInBytes - beforeInBytes, afterOutBytes - beforeOutBytes);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentIpInIpEncapTunnelTest, EncapPacketParsing) {
+  auto setup = [=, this]() { setupHelper(); };
+  auto verify = [=, this]() {
+    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
+    getAgentEnsemble()->ensureSendPacketOutOfPort(
+        makeTcpPacket("2403:300::1", 443, 0xCE), masterLogicalPortIds()[1]);
+    auto capturedPktBuf = snooper.waitForPacket(1);
+    ASSERT_TRUE(capturedPktBuf.has_value());
+
+    folly::io::Cursor capturedPktCursor{capturedPktBuf->get()};
+    auto capturedPkt = utility::EthFrame(capturedPktCursor);
+    auto v6Pkt = capturedPkt.v6PayLoad();
+    auto outerHdr = v6Pkt->header();
+
+    EXPECT_EQ(outerHdr.srcAddr, folly::IPAddress(kEncapSrcIp));
+    EXPECT_EQ(outerHdr.dstAddr, folly::IPAddress(kEncapDstIp));
+    EXPECT_EQ(outerHdr.nextHeader, 41);
+    EXPECT_EQ(outerHdr.trafficClass, 0xCE);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

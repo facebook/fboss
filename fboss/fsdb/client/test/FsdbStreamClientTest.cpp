@@ -8,12 +8,14 @@
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <fb303/ServiceData.h>
+#include <folly/Synchronized.h>
 #include <folly/coro/AsyncGenerator.h>
 #include <folly/coro/AsyncPipe.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/logging/xlog.h>
 #include <algorithm>
 #include <atomic>
+#include <vector>
 
 namespace facebook::fboss::fsdb {
 
@@ -29,6 +31,7 @@ class TestFsdbStreamClient : public FsdbStreamClient {
             [this](auto oldState, auto newState) {
               EXPECT_NE(oldState, newState);
               lastStateUpdateSeen_ = newState;
+              stateTransitions_.wlock()->emplace_back(oldState, newState);
             }) {}
 
   ~TestFsdbStreamClient() {
@@ -54,6 +57,14 @@ class TestFsdbStreamClient : public FsdbStreamClient {
   std::optional<FsdbStreamClient::State> lastStateUpdateSeen() const {
     return lastStateUpdateSeen_.load();
   }
+  // Returns the full sequence of (oldState, newState) transitions observed by
+  // the StreamStateChangeCb. Used by reconnect tests that need to assert the
+  // CONNECTED -> DISCONNECTED transition was actually delivered to the
+  // callback (the stored "latest state" is racy for transient transitions).
+  std::vector<std::pair<FsdbStreamClient::State, FsdbStreamClient::State>>
+  stateTransitions() const {
+    return *stateTransitions_.rlock();
+  }
   void markConnecting() {
     setState(State::CONNECTING);
   }
@@ -61,6 +72,9 @@ class TestFsdbStreamClient : public FsdbStreamClient {
  private:
   std::atomic<std::optional<FsdbStreamClient::State>> lastStateUpdateSeen_{
       std::nullopt};
+  folly::Synchronized<
+      std::vector<std::pair<FsdbStreamClient::State, FsdbStreamClient::State>>>
+      stateTransitions_;
 };
 
 class StreamClientTest : public ::testing::Test {
@@ -125,6 +139,64 @@ TEST_F(StreamClientTest, connectAndCancel) {
   verifyServiceLoopRunning(false);
   EXPECT_EQ(
       fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
+}
+
+TEST_F(StreamClientTest, reconnectTransitionsDisconnectedAndBumpsCounter) {
+  streamClient_->setConnectionOptions(
+      utils::ConnectionOptions("::1", FLAGS_fsdbPort));
+  auto counterPrefix = streamClient_->getCounterPrefix();
+  streamClient_->markConnecting();
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_TRUE(streamClient_->isConnectedToServer()); });
+
+  fb303::ThreadCachedServiceData::get()->publishStats();
+  auto userRequestedBefore = fb303::ServiceData::get()->getCounter(
+      counterPrefix + ".disconnectReason.userRequested.sum");
+
+  streamClient_->reconnect();
+
+  // Use the monotonic fb303 counter as the verification signal. The
+  // disconnect reason itself is reset to NONE on the next CONNECTED
+  // transition, so it is racy to read directly.
+  WITH_RETRIES({
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    EXPECT_EVENTUALLY_EQ(
+        fb303::ServiceData::get()->getCounter(
+            counterPrefix + ".disconnectReason.userRequested.sum"),
+        userRequestedBefore + 1);
+  });
+}
+
+TEST_F(StreamClientTest, reconnectInvokesStreamStateChangeCbOnDisconnect) {
+  // Validates the contract that callers depend on: when reconnect() is
+  // invoked on a CONNECTED client, the StreamStateChangeCb is dispatched
+  // with a CONNECTED -> DISCONNECTED transition before the reconnect cycle
+  // re-establishes the stream.
+  streamClient_->setConnectionOptions(
+      utils::ConnectionOptions("::1", FLAGS_fsdbPort));
+  streamClient_->markConnecting();
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_TRUE(streamClient_->isConnectedToServer()); });
+
+  streamClient_->reconnect();
+
+  WITH_RETRIES({
+    auto transitions = streamClient_->stateTransitions();
+    EXPECT_EVENTUALLY_TRUE(
+        std::any_of(transitions.begin(), transitions.end(), [](const auto& t) {
+          return t.first == FsdbStreamClient::State::CONNECTED &&
+              t.second == FsdbStreamClient::State::DISCONNECTED;
+        }));
+  });
+}
+
+TEST_F(StreamClientTest, reconnectBeforeConnectIsNoop) {
+  streamClient_->setConnectionOptions(
+      utils::ConnectionOptions("::1", FLAGS_fsdbPort));
+  // Never markConnecting; client stays DISCONNECTED.
+  streamClient_->reconnect();
+  EXPECT_EQ(streamClient_->getDisconnectReason(), FsdbErrorCode::NONE);
+  EXPECT_FALSE(streamClient_->isConnectedToServer());
 }
 
 TEST_F(StreamClientTest, multipleStreamClientsOnSameEvb) {

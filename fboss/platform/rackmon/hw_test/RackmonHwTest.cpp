@@ -15,9 +15,6 @@
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "fboss/lib/ThriftServiceUtils.h"
 
-#ifndef IS_OSS
-#include "common/services/cpp/ServiceFrameworkLight.h"
-#endif
 #include "fboss/platform/rackmon/RackmonThriftHandler.h"
 
 namespace rackmonsvc {

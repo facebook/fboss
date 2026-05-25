@@ -107,6 +107,12 @@ class TransceiverManager {
       "agentConfigLastColdbootAppliedInMs";
   static constexpr auto kSnapshotIntervalSeconds = 10;
 
+  static void writeWarmBootState(
+      const folly::dynamic* phyWarmbootState,
+      const ConfigAppliedInfo& configInfo,
+      std::string& cachedState,
+      const std::string& fileName);
+
   using TcvrInfoMap = std::map<int32_t, TransceiverInfo>;
 
   explicit TransceiverManager(
@@ -830,10 +836,9 @@ class TransceiverManager {
   // Will also be called during graceful exit for qsfp_service once the state
   // machine stops.
 
-  // phyWarmbootState can be optionally passed in if called by another class (in
-  // our case, this is PortManager).
-  void setWarmBootState(
-      const folly::dynamic& phyWarmbootState = folly::dynamic(nullptr));
+  void setWarmBootState();
+
+  std::string warmBootStateFileName() const;
 
   bool canWarmBoot() const {
     return canWarmBoot_;
@@ -1056,8 +1061,6 @@ class TransceiverManager {
   // Update the cached PortStatus of TransceiverToPortInfo using wedge_agent
   // getPortStatus() results
   void updateTransceiverPortStatus() noexcept;
-
-  std::string warmBootStateFileName() const;
 
   std::string xphyWarmBootStateDirectory() const;
 

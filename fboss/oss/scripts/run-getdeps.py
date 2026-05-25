@@ -42,6 +42,7 @@ ARG_SKIP_INSTALL = "--skip-install"
 ARG_ASAN = "--asan"
 ARG_GETDEPS_HELP = "--getdeps-help"
 ARG_GETDEPS = "getdeps_args"
+ARG_USE_GCC = "--use-gcc"
 
 SUPPORTED_SAI_IMPLS = {
     "SAI_BRCM_IMPL",
@@ -60,6 +61,8 @@ SAI_VERSION_SHAS = {
     "1.16.1": "cf65142d1a1286b5faa24c9ae61b3f955f04724d0bf5ef6e5679298353aa0871",
     "1.16.3": "5c89cdb6b2e4f1b42ced6b78d43d06d22434ddbf423cdc551f7c2001f12e63d9",
     "1.17.1": "05411b13b32abcc50f2f2b78e491e503b2b05e5a1503699abd4cc1b81f90d1ae",
+    "1.17.4": "362640d5398c53e7257daf67ff7044591937a8443bf037748527bb2cd185f660",
+    "1.18.0": "606e35da083056e60e818964bcc0737f229a78f1a150e8aa398bc76b3a360509",
 }
 SUPPORTED_SAI_SDK_VERSIONS = {
     # BRCM XGS
@@ -71,6 +74,7 @@ SUPPORTED_SAI_SDK_VERSIONS = {
     "SAI_VERSION_14_0_EA_ODP",
     "SAI_VERSION_14_2_0_0_ODP",
     "SAI_VERSION_15_0_EA_ODP",
+    "SAI_VERSION_15_4_EA_ODP",
     # BRCM DNX
     "SAI_VERSION_11_7_0_0_DNX_ODP",
     "SAI_VERSION_12_2_0_0_DNX_ODP",
@@ -82,10 +86,12 @@ SUPPORTED_SAI_SDK_VERSIONS = {
     "TAJO_SDK_VERSION_1_42_8",
     "TAJO_SDK_VERSION_24_8_3001",
     "TAJO_SDK_VERSION_25_5_4210",
-    "TAJO_SDK_VERSION_25_11_5210",
+    "TAJO_SDK_VERSION_25_11_4210",
+    "TAJO_SDK_VERSION_26_2_5210",
     # Chenab
     "CHENAB_SAI_SDK_VERSION_2505_34_0_38",
     "CHENAB_SAI_SDK_VERSION_2511_35_0_19",
+    "CHENAB_SAI_SDK_VERSION_2511_6_0_8_ea",
 }
 
 
@@ -165,6 +171,12 @@ def parse_args():
         ARG_GETDEPS,
         nargs=argparse.REMAINDER,
         help="Arguments to be passed to getdeps.py.",
+    )
+    parser.add_argument(
+        ARG_USE_GCC,
+        required=False,
+        action="store_true",
+        help="Stay on GCC instead of auto-switching to Clang.",
     )
     return parser.parse_args()
 
@@ -578,12 +590,43 @@ def main():
     # Detect which toolchain is active and set up environment accordingly
     toolchain_info = detect_toolchain()
 
+    set_clang_cmd = [
+        "update-alternatives",
+        "--set",
+        "gcc",
+        "/usr/local/llvm/bin/clang",
+    ]
+    set_gcc_cmd = [
+        "update-alternatives",
+        "--set",
+        "gcc",
+        "/opt/rh/gcc-toolset-12/root/usr/bin/gcc",
+    ]
     if toolchain_info:
         print_info(f"Detected toolchain: {toolchain_info}")
-        if toolchain_info["type"] == "clang":
+        if args.use_gcc:
+            print_info(f"{ARG_USE_GCC} set, proceeding with GCC")
+            subprocess.run(set_gcc_cmd, check=False)
+        elif toolchain_info["type"] == "clang":
             setup_clang_environment(toolchain_info)
         elif toolchain_info["type"] == "gcc":
-            print_info("Detected GCC compiler, no additional flags needed")
+            print_info("Switching to Clang via update-alternatives...")
+            result = subprocess.run(set_clang_cmd, check=False)
+            if result.returncode != 0:
+                print_error(
+                    "Failed to switch to Clang via update-alternatives. "
+                    f"Please run manually: {' '.join(set_clang_cmd)}"
+                )
+                sys.exit(1)
+            toolchain_info = detect_toolchain()
+            if toolchain_info and toolchain_info["type"] == "clang":
+                setup_clang_environment(toolchain_info)
+            else:
+                print_error(
+                    "Failed to detect Clang after switching. "
+                    f"Please run manually: {' '.join(set_clang_cmd)}"
+                )
+                sys.exit(1)
     # If toolchain_info is None, detect_toolchain() already printed a warning
     # and we'll proceed without environment setup
 

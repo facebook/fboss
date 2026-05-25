@@ -5,6 +5,10 @@
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
+extern "C" {
+#include "fboss/agent/hw/sai/api/fake/saifakeextensions.h"
+}
+
 namespace {
 
 using facebook::fboss::FakeSai;
@@ -132,6 +136,7 @@ sai_status_t create_tam_event(
   std::vector<sai_int32_t> packetDropTypeIngress{};
   sai_object_id_t agingGroup{};
   sai_object_id_t ingressSamplepacketEnable{};
+  sai_object_id_t threshold{};
 
   for (auto i = 0; i < attr_count; i++) {
     switch (attr_list[i].id) {
@@ -197,6 +202,10 @@ sai_status_t create_tam_event(
         ingressSamplepacketEnable = attr_list[i].value.oid;
         break;
 
+      case SAI_TAM_EVENT_ATTR_THRESHOLD:
+        threshold = attr_list[i].value.oid;
+        break;
+
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
     }
@@ -213,7 +222,8 @@ sai_status_t create_tam_event(
       packetDropTypeMmu,
       packetDropTypeIngress,
       agingGroup,
-      ingressSamplepacketEnable);
+      ingressSamplepacketEnable,
+      threshold);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -321,6 +331,10 @@ sai_status_t get_tam_event_attribute(
         attr_list[i].value.oid = eventAction.ingressSamplepacketEnable_;
         break;
 
+      case SAI_TAM_EVENT_ATTR_THRESHOLD:
+        attr_list[i].value.oid = eventAction.threshold_;
+        break;
+
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
     }
@@ -403,6 +417,10 @@ sai_status_t set_tam_event_attribute(
         tamEvent.ingressSamplepacketEnable_ = attr->value.oid;
         break;
 
+      case SAI_TAM_EVENT_ATTR_THRESHOLD:
+        tamEvent.threshold_ = attr->value.oid;
+        break;
+
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0;
     }
@@ -482,18 +500,40 @@ sai_status_t create_tam_report(
     sai_object_id_t /*switch_id*/,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  sai_int32_t type;
+  sai_int32_t type{};
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  std::optional<sai_uint32_t> sampleRate;
+  std::optional<sai_uint64_t> maxReportRate;
+  std::optional<sai_uint64_t> maxReportBurst;
+#endif
   for (auto i = 0; i < attr_count; i++) {
     switch (attr_list[i].id) {
       case SAI_TAM_REPORT_ATTR_TYPE:
         type = attr_list[i].value.s32;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      case SAI_TAM_REPORT_ATTR_SAMPLE_RATE:
+        sampleRate = attr_list[i].value.u32;
+        break;
+      case SAI_TAM_REPORT_ATTR_MAX_REPORT_RATE:
+        maxReportRate = attr_list[i].value.u64;
+        break;
+      case SAI_TAM_REPORT_ATTR_MAX_REPORT_BURST:
+        maxReportBurst = attr_list[i].value.u64;
+        break;
+#endif
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
     }
   }
   auto fs = FakeSai::getInstance();
   *id = fs->tamReportManager.create(type);
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  auto& report = fs->tamReportManager.get(*id);
+  report.sampleRate_ = sampleRate;
+  report.maxReportRate_ = maxReportRate;
+  report.maxReportBurst_ = maxReportBurst;
+#endif
   return SAI_STATUS_SUCCESS;
 }
 
@@ -514,6 +554,17 @@ sai_status_t get_tam_report_attribute(
       case SAI_TAM_REPORT_ATTR_TYPE:
         attr_list[i].value.s32 = tamReport.type_;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      case SAI_TAM_REPORT_ATTR_SAMPLE_RATE:
+        attr_list[i].value.u32 = tamReport.sampleRate_.value_or(0);
+        break;
+      case SAI_TAM_REPORT_ATTR_MAX_REPORT_RATE:
+        attr_list[i].value.u64 = tamReport.maxReportRate_.value_or(0);
+        break;
+      case SAI_TAM_REPORT_ATTR_MAX_REPORT_BURST:
+        attr_list[i].value.u64 = tamReport.maxReportBurst_.value_or(0);
+        break;
+#endif
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
     }
@@ -524,18 +575,100 @@ sai_status_t get_tam_report_attribute(
 sai_status_t set_tam_report_attribute(
     sai_object_id_t id,
     const sai_attribute_t* attr_list) {
-  sai_int32_t type;
-  switch (attr_list[0].id) {
-    case SAI_TAM_REPORT_ATTR_TYPE:
-      type = attr_list[0].value.s32;
-      break;
-    default:
-      return SAI_STATUS_ATTR_NOT_SUPPORTED_0;
-  }
   try {
     auto fs = FakeSai::getInstance();
     auto& tamReport = fs->tamReportManager.get(id);
-    tamReport.type_ = type;
+    switch (attr_list[0].id) {
+      case SAI_TAM_REPORT_ATTR_TYPE:
+        tamReport.type_ = attr_list[0].value.s32;
+        break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      case SAI_TAM_REPORT_ATTR_SAMPLE_RATE:
+        tamReport.sampleRate_ = attr_list[0].value.u32;
+        break;
+      case SAI_TAM_REPORT_ATTR_MAX_REPORT_RATE:
+        tamReport.maxReportRate_ = attr_list[0].value.u64;
+        break;
+      case SAI_TAM_REPORT_ATTR_MAX_REPORT_BURST:
+        tamReport.maxReportBurst_ = attr_list[0].value.u64;
+        break;
+#endif
+      default:
+        return SAI_STATUS_ATTR_NOT_SUPPORTED_0;
+    }
+  } catch (...) {
+    return SAI_STATUS_ITEM_NOT_FOUND;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t create_tam_event_threshold(
+    sai_object_id_t* id,
+    sai_object_id_t /*switch_id*/,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  std::optional<sai_int32_t> unit;
+  std::optional<sai_uint32_t> rate;
+  for (auto i = 0; i < attr_count; i++) {
+    switch (attr_list[i].id) {
+      case SAI_TAM_EVENT_THRESHOLD_ATTR_UNIT:
+        unit = attr_list[i].value.s32;
+        break;
+      case SAI_TAM_EVENT_THRESHOLD_ATTR_RATE:
+        rate = attr_list[i].value.u32;
+        break;
+      default:
+        return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
+    }
+  }
+  auto fs = FakeSai::getInstance();
+  *id = fs->tamEventThresholdManager.create(unit, rate);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_tam_event_threshold(sai_object_id_t id) {
+  auto fs = FakeSai::getInstance();
+  fs->tamEventThresholdManager.remove(id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_tam_event_threshold_attribute(
+    sai_object_id_t id,
+    uint32_t attr_count,
+    sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  const auto& threshold = fs->tamEventThresholdManager.get(id);
+  for (auto i = 0; i < attr_count; i++) {
+    switch (attr_list[i].id) {
+      case SAI_TAM_EVENT_THRESHOLD_ATTR_UNIT:
+        attr_list[i].value.s32 = threshold.unit_.value_or(0);
+        break;
+      case SAI_TAM_EVENT_THRESHOLD_ATTR_RATE:
+        attr_list[i].value.u32 = threshold.rate_.value_or(0);
+        break;
+      default:
+        return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_tam_event_threshold_attribute(
+    sai_object_id_t id,
+    const sai_attribute_t* attr) {
+  try {
+    auto fs = FakeSai::getInstance();
+    auto& threshold = fs->tamEventThresholdManager.get(id);
+    switch (attr->id) {
+      case SAI_TAM_EVENT_THRESHOLD_ATTR_UNIT:
+        threshold.unit_ = attr->value.s32;
+        break;
+      case SAI_TAM_EVENT_THRESHOLD_ATTR_RATE:
+        threshold.rate_ = attr->value.u32;
+        break;
+      default:
+        return SAI_STATUS_ATTR_NOT_SUPPORTED_0;
+    }
   } catch (...) {
     return SAI_STATUS_ITEM_NOT_FOUND;
   }
@@ -837,6 +970,13 @@ void populate_tam_api(sai_tam_api_t** tam_api) {
   _tam_api.remove_tam_collector = &remove_tam_collector;
   _tam_api.set_tam_collector_attribute = &set_tam_collector_attribute;
   _tam_api.get_tam_collector_attribute = &get_tam_collector_attribute;
+
+  _tam_api.create_tam_event_threshold = &create_tam_event_threshold;
+  _tam_api.remove_tam_event_threshold = &remove_tam_event_threshold;
+  _tam_api.set_tam_event_threshold_attribute =
+      &set_tam_event_threshold_attribute;
+  _tam_api.get_tam_event_threshold_attribute =
+      &get_tam_event_threshold_attribute;
 
   *tam_api = &_tam_api;
 }

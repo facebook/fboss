@@ -110,6 +110,7 @@ cpp_library(
         "//fboss/qsfp_service/module:qsfp-module",
         "//fboss/qsfp_service/platforms/wedge:wedge-transceiver",
         "//folly:conv",
+        "//folly:dynamic",
         "//folly:exception",
         "//folly:file_util",
         "//folly:memory",

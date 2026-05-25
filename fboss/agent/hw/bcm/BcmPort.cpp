@@ -20,6 +20,7 @@
 #include <vector>
 
 #include <fb303/ServiceData.h>
+#include <fmt/core.h>
 #include <folly/Conv.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -1057,7 +1058,7 @@ void BcmPort::configureSampleDestination(cfg::SampleDestination sampleDest) {
       sampleDestinationToBcmDestFlag(sampleDest_));
   bcmCheckError(
       rv,
-      folly::sformat(
+      fmt::format(
           "Failed to set sample destination for port {} : {}",
           port_,
           bcm_errmsg(rv)));
@@ -1078,7 +1079,7 @@ void BcmPort::enableL3(bool enableV4, bool enableV6) {
         bcm_port_control_get(unit_, port_, std::get<1>(l3Option), &currVal);
     bcmCheckError(
         rv,
-        folly::sformat(
+        fmt::format(
             "Failed to get {} for port {} : {}",
             std::get<0>(l3Option),
             port_,
@@ -1095,7 +1096,7 @@ void BcmPort::enableL3(bool enableV4, bool enableV6) {
           static_cast<int>(std::get<2>(l3Option)));
       bcmCheckError(
           rv,
-          folly::sformat(
+          fmt::format(
               "Failed to set {} for port {} to {} : {}",
               std::get<0>(l3Option),
               port_,
@@ -1181,7 +1182,7 @@ void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
     if (rv != BCM_E_NOT_FOUND) {
       bcmCheckError(
           rv,
-          folly::sformat(
+          fmt::format(
               "Failed to get {} for port {} : {}",
               typeStr,
               port_,
@@ -1194,7 +1195,7 @@ void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
 
       bcmCheckError(
           rv,
-          folly::sformat(
+          fmt::format(
               "Setting {} {} failed for port {}", typeStr, enableStr, port_));
     } else {
       XLOG(DBG2) << typeStr << " is already " << enableStr << " for port "
@@ -2197,13 +2198,13 @@ void BcmPort::setSflowRates(const std::shared_ptr<Port>& swPort) {
       swPort->getSflowEgressRate());
   bcmCheckError(
       rv,
-      folly::sformat(
+      fmt::format(
           "Failed to configure sFlow rate for unit:port {}:{}. Error: '{}' ",
           unit_,
           port_,
           bcm_errmsg(rv)));
 
-  XLOG(DBG1) << folly::sformat(
+  XLOG(DBG1) << fmt::format(
       "Enabled sFlow for unit:port {}:{} ingress rate {} egress rate {}",
       unit_,
       port_,
@@ -2215,8 +2216,7 @@ void BcmPort::disableSflow() {
   auto rv = bcm_port_sample_rate_set(unit_, port_, 0, 0);
   bcmCheckError(rv, "Failed to disable sFlow. Error ", bcm_errmsg(rv));
 
-  XLOG(DBG1) << folly::sformat(
-      "Disabled sFlow for unit:port {}:{}", unit_, port_);
+  XLOG(DBG1) << fmt::format("Disabled sFlow for unit:port {}:{}", unit_, port_);
 
   bcmCheckError(
       rv, "Failed to disable sFlow port control. Error ", bcm_errmsg(rv));

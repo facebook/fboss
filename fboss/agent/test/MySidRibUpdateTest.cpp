@@ -71,7 +71,7 @@ class MySidRibUpdateTest : public ::testing::Test {
     auto ribMySidFunc = createRibMySidToSwitchStateFunction(std::nullopt);
     rib->update(
         sw_->getScopeResolver(),
-        std::vector<MySidWithNextHops>{{mySid, std::move(nhops)}},
+        std::vector<MySidWithNextHops>{{mySid, std::move(nhops), std::nullopt}},
         std::vector<MySidNeighborRemoved>{} /* toUnresolveIfMatch */,
         std::vector<IpPrefix>{} /* toDelete */,
         "addConfigMySid",
@@ -84,12 +84,20 @@ class MySidRibUpdateTest : public ::testing::Test {
     ThriftHandler handler(sw_);
     auto entries = std::make_unique<std::vector<MySidEntry>>();
     MySidEntry entry;
-    entry.type() = MySidType::DECAPSULATE_AND_LOOKUP;
+    entry.type() = MySidType::BINDING_MICRO_SID;
     facebook::network::thrift::IPPrefix prefix;
     prefix.prefixAddress() =
         facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
     prefix.prefixLength() = len;
     entry.mySid() = prefix;
+    NextHopThrift nhop;
+    nhop.address() =
+        facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+    nhop.srv6SegmentList() = {
+        facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+    nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+    nhop.tunnelId() = "tunnel1";
+    entry.nextHops() = {nhop};
     entries->push_back(entry);
     handler.addMySidEntries(std::move(entries));
   }
@@ -128,7 +136,7 @@ TEST_F(MySidRibUpdateTest, RpcMySidHasRpcOwnership) {
   addRpcMySid("2001:db8::1", 64);
   auto mySid = getMySid("2001:db8::1/64");
   ASSERT_NE(mySid, nullptr);
-  EXPECT_EQ(mySid->getType(), MySidType::DECAPSULATE_AND_LOOKUP);
+  EXPECT_EQ(mySid->getType(), MySidType::BINDING_MICRO_SID);
   EXPECT_EQ(mySid->getClientId(), ClientID::TE_AGENT);
 }
 

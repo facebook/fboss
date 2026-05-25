@@ -107,9 +107,16 @@ TEST_F(TamApiTest, TamTransport) {
 
 TEST_F(TamApiTest, TamReport) {
   SaiTamReportTraits::CreateAttributes reportAttr;
-  // for call back
   std::get<SaiTamReportTraits::Attributes::Type>(reportAttr) =
       SAI_TAM_REPORT_TYPE_VENDOR_EXTN;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  std::get<std::optional<SaiTamReportTraits::Attributes::SampleRate>>(
+      reportAttr) = sai_uint32_t{1000};
+  std::get<std::optional<SaiTamReportTraits::Attributes::MaxReportRate>>(
+      reportAttr) = sai_uint64_t{500};
+  std::get<std::optional<SaiTamReportTraits::Attributes::MaxReportBurst>>(
+      reportAttr) = sai_uint64_t{100};
+#endif
   auto reportSaiId = tamApi->create<SaiTamReportTraits>(reportAttr, switchId);
   EXPECT_EQ(
       tamApi->getAttribute(reportSaiId, SaiTamReportTraits::CreateAttributes{}),
@@ -174,6 +181,9 @@ TEST_F(TamApiTest, TamEvent) {
   std::get<
       std::optional<SaiTamEventTraits::Attributes::IngressSamplepacketEnable>>(
       eventAttr) = ingressSamplepacketEnable;
+  sai_object_id_t threshold = 40;
+  std::get<std::optional<SaiTamEventTraits::Attributes::Threshold>>(eventAttr) =
+      threshold;
 
   auto eventSaiId = tamApi->create<SaiTamEventTraits>(eventAttr, switchId);
   EXPECT_EQ(

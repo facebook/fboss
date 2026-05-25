@@ -15,7 +15,7 @@
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
@@ -554,7 +554,7 @@ RateSelectSetting SffModule::getRateSelectSettingValue(RateSelectState state) {
   uint8_t rateRx = getSettingsValue(SffField::RATE_SELECT_RX);
   uint8_t rateTx = getSettingsValue(SffField::RATE_SELECT_TX);
   if (rateRx != rateTx) {
-    QSFP_LOG(ERR, this) << folly::sformat(
+    QSFP_LOG(ERR, this) << fmt::format(
         "Unable to retrieve rate select setting: rx({:#x}) and tx({:#x}) are not equal",
         rateRx,
         rateTx);
@@ -1521,7 +1521,7 @@ bool SffModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
 void SffModule::customizeTransceiverLocked(
     const TransceiverPortState& portState) {
   auto speed = portState.speed;
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}, numHostLanes {}",
       portState.portName,
       apache::thrift::util::enumNameSafe(speed),
@@ -1716,14 +1716,14 @@ bool SffModule::verifyEepromChecksum(SffPages pageId) {
     expectedChecksum = data[0];
 
     if (checkSum != expectedChecksum) {
-      QSFP_LOG(ERR, this) << folly::sformat(
+      QSFP_LOG(ERR, this) << fmt::format(
           "Page {:d}: expected checksum {:#x}, actual {:#x}",
           static_cast<int>(pageId),
           expectedChecksum,
           checkSum);
       return false;
     } else {
-      QSFP_LOG(DBG5, this) << folly::sformat(
+      QSFP_LOG(DBG5, this) << fmt::format(
           "Page {:d}: checksum verified successfully {:#x}",
           static_cast<int>(pageId),
           checkSum);
@@ -1808,7 +1808,7 @@ void SffModule::setDiagsCapability() {
     }
   }
 
-  QSFP_LOG(DBG2, this) << folly::sformat(
+  QSFP_LOG(DBG2, this) << fmt::format(
       "setDiagsCapability: Module {} TxOpCtrl {:s} RxOpCtrl {:s} LbLine {:s} LbSys {:s}",
       qsfpImpl_->getName(),
       ((*diagsCapability).value().txOutputControl().value() ? "Y" : "N"),
@@ -1835,7 +1835,7 @@ bool SffModule::setPortPrbsLocked(
     // Check if there is an override function available for setting prbs
     // state
     if (auto prbsEnable = setPortPrbsOverrideLocked(side, prbs)) {
-      QSFP_LOG(INFO, this) << folly::sformat(
+      QSFP_LOG(INFO, this) << fmt::format(
           "Prbs {:s} {:s} on {:s} side",
           apache::thrift::util::enumNameSafe(polynomial),
           enable ? "enabled" : "disabled",
@@ -1844,7 +1844,7 @@ bool SffModule::setPortPrbsLocked(
     }
   }
 
-  QSFP_LOG(WARNING, this) << folly::sformat(
+  QSFP_LOG(WARNING, this) << fmt::format(
       "Does not support PRBS on {:s} side",
       apache::thrift::util::enumNameSafe(side));
   return false;

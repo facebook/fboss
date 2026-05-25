@@ -13,7 +13,10 @@
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::helpers;
 namespace {
-auto constexpr kFruPresence = "fru_presence_explorer.{}.presence";
+auto constexpr kFruAbsence = "fru_presence_explorer.fru.{}.absence";
+auto constexpr kFruDetectionFailure =
+    "fru_presence_explorer.fru.{}.detection_failure";
+auto constexpr kFruTypeAbsence = "fru_presence_explorer.fru_type.{}.absence";
 auto constexpr kSystem = "SYSTEM";
 } // namespace
 
@@ -43,6 +46,10 @@ void FruPresenceExplorer::detectFruPresence() {
         present = detectFruGpioPresence(
             *fruConfig.presenceDetection()->gpioLineHandle());
       }
+      fb303::fbData->setCounter(
+          fmt::format(kFruAbsence, *fruConfig.fruName()), !present);
+      fb303::fbData->setCounter(
+          fmt::format(kFruDetectionFailure, *fruConfig.fruName()), 0);
       if (fruTypePresence_.find(fruType) == fruTypePresence_.end()) {
         fruTypePresence_[fruType] = present;
       } else {
@@ -62,6 +69,10 @@ void FruPresenceExplorer::detectFruPresence() {
           "fru_presence_detection_failure",
           ex.what(),
           {{"fru_name", *fruConfig.fruName()}, {"fru_type", fruType}});
+      fb303::fbData->setCounter(
+          fmt::format(kFruAbsence, *fruConfig.fruName()), 1);
+      fb303::fbData->setCounter(
+          fmt::format(kFruDetectionFailure, *fruConfig.fruName()), 1);
       fruTypePresence_[fruType] = false;
     }
   }
@@ -71,10 +82,11 @@ void FruPresenceExplorer::detectFruPresence() {
     if (!presence) {
       allFrusPresent = false;
     }
-    fb303::fbData->setCounter(fmt::format(kFruPresence, fruType), presence);
+    fb303::fbData->setCounter(fmt::format(kFruTypeAbsence, fruType), !presence);
     ledManager_->programFruLed(fruType, presence);
   }
-  fb303::fbData->setCounter(fmt::format(kFruPresence, kSystem), allFrusPresent);
+  fb303::fbData->setCounter(
+      fmt::format(kFruTypeAbsence, kSystem), !allFrusPresent);
   ledManager_->programSystemLed(allFrusPresent);
 }
 

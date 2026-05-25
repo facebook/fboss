@@ -2,7 +2,9 @@
 
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeDsfUtils.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeUtils.h"
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -1120,9 +1122,20 @@ bool verifyDsfUngracefulAgentRestart(
 
 std::set<std::string> triggerGracefulAgentRestartWithDelayForRdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
-  auto static constexpr kGracefulRestartTimeout = 120;
-  auto static constexpr kDelayBetweenRestarts =
-      kGracefulRestartTimeout + 60 /* time to verify STALE post GR timeout */;
+  const auto kGracefulRestartTimeout = FLAGS_dsf_gr_hold_time;
+  if (kGracefulRestartTimeout == 0) {
+    throw facebook::fboss::FbossError(
+        "FLAGS_dsf_gr_hold_time is 0 (default); ",
+        "DSF graceful restart test requires it set in materialized config");
+  }
+  // Buffer is bounded above by verifyLiveSystemPorts's retry budget (also
+  // 30 x 5000ms = 150s): the delayed restart must fire before verifyLive
+  // gives up. Caller flow is verifyStale -> verifyLive, both starting at
+  // t=0 and t~=GR respectively, so verifyStale never races the restart in
+  // practice (it returns on first STALE observation around t=GR). +60s
+  // gives ~30s post-verifyStale slack without pushing restart past
+  // verifyLive's deadline (~t=GR+150).
+  const auto kDelayBetweenRestarts = kGracefulRestartTimeout + 60;
 
   auto myHostname = topologyInfo->getMyHostname();
 
@@ -1148,34 +1161,89 @@ std::set<std::string> triggerGracefulAgentRestartWithDelayForRdsws(
 bool verifyStaleSystemPorts(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     const std::set<std::string>& restartedRdsws) {
-  auto allRdsws = topologyInfo->getRdsws();
-  auto staleSystemPorts = [allRdsws, restartedRdsws] {
-    // Verify system ports for restarted RDSWs are STALE
-    // Verify system ports for non-restarted RDSWs are LIVE
-    for (const auto& [rdsw, systemPorts] : getRdswToSystemPorts(allRdsws)) {
-      bool isRestarted = restartedRdsws.find(rdsw) != restartedRdsws.end();
+  if (restartedRdsws.empty()) {
+    XLOG(ERR) << "verifyStaleSystemPorts: called with empty restartedRdsws";
+    return false;
+  }
+  std::set<SwitchID> restartedSwitchIds;
+  for (const auto& rdsw : restartedRdsws) {
+    auto it = topologyInfo->getSwitchNameToSwitchIds().find(rdsw);
+    if (it == topologyInfo->getSwitchNameToSwitchIds().end()) {
+      XLOG(ERR) << "verifyStaleSystemPorts: restarted RDSW '" << rdsw
+                << "' not in topology switchNameToSwitchIds";
+      return false;
+    }
+    restartedSwitchIds.insert(it->second.begin(), it->second.end());
+  }
 
+  // Query every non-restarted RDSW. We skip the restarted ones because:
+  // (a) their sw_agent is dead during most of the restart window (Thrift
+  //     CONNECT_REFUSED), and (b) even briefly after recovery, the freshly
+  //     restarted agent is a fresh subscriber that hasn't seen the disconnect
+  //     — it would report other restarted RDSWs as LIVE rather than STALE.
+  // With dsf_gr_hold_time set cluster-wide, every non-restarted subscriber
+  // marks the restarted RDSWs' system ports as STALE after the GR hold timer.
+  std::set<std::string> queryRdsws = topologyInfo->getRdsws();
+  for (const auto& rdsw : restartedRdsws) {
+    queryRdsws.erase(rdsw);
+  }
+  if (queryRdsws.empty()) {
+    XLOG(ERR) << "verifyStaleSystemPorts: no RDSWs to query (every RDSW is "
+                 "marked restarted)";
+    return false;
+  }
+
+  auto staleSystemPorts = [&queryRdsws, &restartedSwitchIds] {
+    bool failed = false;
+    std::map<SwitchID, int> observedFromRestarted;
+    for (const auto& sid : restartedSwitchIds) {
+      observedFromRestarted[sid] = 0;
+    }
+    for (const auto& [observingRdsw, systemPorts] :
+         getRdswToSystemPorts(queryRdsws)) {
       for (const auto& systemPort : systemPorts) {
         auto livenessStatus = systemPort.remoteSystemPortLivenessStatus();
         if (!livenessStatus.has_value()) {
           continue;
         }
 
-        if (isRestarted) {
-          // Restarted RDSW should have STALE system ports
+        SwitchID sid(*systemPort.switchId());
+        bool portFromRestartedSwitch = restartedSwitchIds.count(sid);
+
+        if (portFromRestartedSwitch) {
+          observedFromRestarted[sid]++;
           if (livenessStatus.value() != LivenessStatus::STALE) {
-            return false;
+            XLOG(DBG2) << "verifyStaleSystemPorts: observingRdsw="
+                       << observingRdsw << " expected STALE got "
+                       << apache::thrift::util::enumNameSafe(*livenessStatus)
+                       << " on " << *systemPort.portName()
+                       << " switchId=" << *systemPort.switchId();
+            failed = true;
           }
         } else {
-          // Non-Restarted RDSW should have LIVE system ports
           if (livenessStatus.value() != LivenessStatus::LIVE) {
-            return false;
+            XLOG(DBG2) << "verifyStaleSystemPorts: observingRdsw="
+                       << observingRdsw << " expected LIVE got "
+                       << apache::thrift::util::enumNameSafe(*livenessStatus)
+                       << " on " << *systemPort.portName()
+                       << " switchId=" << *systemPort.switchId();
+            failed = true;
           }
         }
       }
     }
-
-    return true;
+    // Every restarted switch must have at least one liveness-bearing port
+    // observed; otherwise the test could vacuously pass before subscribers
+    // reported any state for the restarted RDSW.
+    for (const auto& [sid, count] : observedFromRestarted) {
+      if (count == 0) {
+        XLOG(ERR) << "verifyStaleSystemPorts: zero ports with liveness "
+                     "observed for restarted switchId="
+                  << sid;
+        failed = true;
+      }
+    }
+    return !failed;
   };
 
   return checkWithRetryErrorReturn(
@@ -1188,34 +1256,103 @@ bool verifyStaleSystemPorts(
 bool verifyStaleRifs(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     const std::set<std::string>& restartedRdsws) {
-  auto allRdsws = topologyInfo->getRdsws();
-  auto staleRifs = [allRdsws, restartedRdsws] {
-    // Verify rifs for restarted RDSWs are STALE
-    // Verify rifs for non-restarted RDSWs are LIVE
-    for (const auto& [rdsw, rifs] : getRdswToRifs(allRdsws)) {
-      bool isRestarted = restartedRdsws.find(rdsw) != restartedRdsws.end();
+  if (restartedRdsws.empty()) {
+    XLOG(ERR) << "verifyStaleRifs: called with empty restartedRdsws";
+    return false;
+  }
+  // rifs don't carry their owning switchId in the Thrift response, so we
+  // classify by interfaceId range instead. Each switch owns a contiguous
+  // systemPortRange, and by FBOSS DSF convention a rif's interfaceId falls
+  // in its owning switch's range. Track (rdsw, lo, hi) so we can later
+  // count observations per-RDSW.
+  std::vector<std::tuple<std::string, int64_t, int64_t>> restartedIntfIdRanges;
+  const auto& nameToRanges = topologyInfo->getSwitchNameToSystemPortRanges();
+  for (const auto& rdsw : restartedRdsws) {
+    auto it = nameToRanges.find(rdsw);
+    if (it == nameToRanges.end()) {
+      XLOG(ERR) << "verifyStaleRifs: restarted RDSW '" << rdsw
+                << "' not in topology switchNameToSystemPortRanges";
+      return false;
+    }
+    for (const auto& range : *it->second.systemPortRanges()) {
+      restartedIntfIdRanges.emplace_back(
+          rdsw, *range.minimum(), *range.maximum());
+    }
+  }
 
+  // Query every non-restarted RDSW. We skip the restarted ones because:
+  // (a) their sw_agent is dead during most of the restart window (Thrift
+  //     CONNECT_REFUSED), and (b) even briefly after recovery, the freshly
+  //     restarted agent is a fresh subscriber that hasn't seen the disconnect
+  //     — it would report other restarted RDSWs as LIVE rather than STALE.
+  // With dsf_gr_hold_time set cluster-wide, every non-restarted subscriber
+  // marks the restarted RDSWs' rifs as STALE after the GR hold timer.
+  std::set<std::string> queryRdsws = topologyInfo->getRdsws();
+  for (const auto& rdsw : restartedRdsws) {
+    queryRdsws.erase(rdsw);
+  }
+  if (queryRdsws.empty()) {
+    XLOG(ERR) << "verifyStaleRifs: no RDSWs to query (every RDSW is marked "
+                 "restarted)";
+    return false;
+  }
+
+  auto staleRifs = [&queryRdsws, &restartedIntfIdRanges, &restartedRdsws] {
+    bool failed = false;
+    std::map<std::string, int> observedFromRestarted;
+    for (const auto& rdsw : restartedRdsws) {
+      observedFromRestarted[rdsw] = 0;
+    }
+    for (const auto& [observingRdsw, rifs] : getRdswToRifs(queryRdsws)) {
       for (const auto& rif : rifs) {
         auto livenessStatus = rif.remoteIntfLivenessStatus();
         if (!livenessStatus.has_value()) {
           continue;
         }
 
-        if (isRestarted) {
-          // Restarted RDSW should have STALE rifs
+        auto intfId = *rif.interfaceId();
+        const std::string* owningRdsw = nullptr;
+        for (const auto& [rdsw, lo, hi] : restartedIntfIdRanges) {
+          if (intfId >= lo && intfId <= hi) {
+            owningRdsw = &rdsw;
+            break;
+          }
+        }
+
+        if (owningRdsw != nullptr) {
+          observedFromRestarted[*owningRdsw]++;
           if (livenessStatus.value() != LivenessStatus::STALE) {
-            return false;
+            XLOG(DBG2) << "verifyStaleRifs: observingRdsw=" << observingRdsw
+                       << " expected STALE got "
+                       << apache::thrift::util::enumNameSafe(*livenessStatus)
+                       << " on " << *rif.interfaceName()
+                       << " interfaceId=" << intfId;
+            failed = true;
           }
         } else {
-          // Non-Restarted RDSW should have LIVE rifs
           if (livenessStatus.value() != LivenessStatus::LIVE) {
-            return false;
+            XLOG(DBG2) << "verifyStaleRifs: observingRdsw=" << observingRdsw
+                       << " expected LIVE got "
+                       << apache::thrift::util::enumNameSafe(*livenessStatus)
+                       << " on " << *rif.interfaceName()
+                       << " interfaceId=" << intfId;
+            failed = true;
           }
         }
       }
     }
-
-    return true;
+    // Every restarted RDSW must have at least one liveness-bearing rif
+    // observed; otherwise the test could vacuously pass before subscribers
+    // reported any state for that restarted RDSW.
+    for (const auto& [rdsw, count] : observedFromRestarted) {
+      if (count == 0) {
+        XLOG(ERR) << "verifyStaleRifs: zero rifs with liveness observed for "
+                     "restarted RDSW="
+                  << rdsw;
+        failed = true;
+      }
+    }
+    return !failed;
   };
 
   return checkWithRetryErrorReturn(

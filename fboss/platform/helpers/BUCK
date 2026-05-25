@@ -3,6 +3,17 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 oncall("fboss_platform")
 
 cpp_library(
+    name = "expect_session",
+    srcs = [
+        "ExpectSession.cpp",
+    ],
+    headers = [
+        "ExpectSession.h",
+    ],
+    exported_deps = [],
+)
+
+cpp_library(
     name = "platform_name_lib",
     srcs = [
         "PlatformNameLib.cpp",
@@ -66,6 +77,7 @@ cpp_library(
     ],
     exported_external_deps = [
         "gflags",
+        ("openssl", None, "crypto"),
     ],
 )
 

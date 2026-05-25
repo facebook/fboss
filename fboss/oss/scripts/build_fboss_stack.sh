@@ -86,7 +86,7 @@ if [ "$need_sai" -eq 1 ]; then
 
   # Check if phy_sai build environment exists (will be sourced in subshell later)
   if [ -f "/deps/phy_sai-extracted/phy_sai_build.env" ]; then
-    SAI_DIR="/deps/deps/phy_sai-extracted"
+    SAI_DIR="/deps/phy_sai-extracted"
     build_with_phy_sai="yes"
   fi
   echo "Found SAI at $SAI_DIR (installed by build_entrypoint.py)"

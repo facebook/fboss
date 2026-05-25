@@ -68,8 +68,10 @@ class CmdSetPortStateTestFixture : public CmdHandlerTestBase {
 
 TEST_F(CmdSetPortStateTestFixture, nonexistentPort) {
   std::vector<std::string> queriedPortNames = {"eth1/5/10"};
+  std::vector<facebook::fboss::AggregatePortThrift> aggregatePorts;
   EXPECT_THROW(
-      getQueriedPortIds(portEntries, queriedPortNames), std::runtime_error);
+      getQueriedPortIds(portEntries, queriedPortNames, aggregatePorts),
+      std::runtime_error);
 }
 
 TEST_F(CmdSetPortStateTestFixture, disableOnePort) {
@@ -80,6 +82,10 @@ TEST_F(CmdSetPortStateTestFixture, disableOnePort) {
 
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
       .WillOnce(Invoke([&](auto& entries) { entries = portEntries; }));
+  EXPECT_CALL(getMockAgent(), getAggregatePortTable(_))
+      .WillOnce(Invoke([&](auto& entries) {
+        entries = std::vector<AggregatePortThrift>();
+      }));
 
   EXPECT_CALL(getMockAgent(), setPortState(_, _))
       .WillOnce(Invoke([&](int32_t, bool) {
@@ -101,6 +107,10 @@ TEST_F(CmdSetPortStateTestFixture, enableOnePort) {
 
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
       .WillOnce(Invoke([&](auto& entries) { entries = portEntries; }));
+  EXPECT_CALL(getMockAgent(), getAggregatePortTable(_))
+      .WillOnce(Invoke([&](auto& entries) {
+        entries = std::vector<AggregatePortThrift>();
+      }));
 
   EXPECT_CALL(getMockAgent(), setPortState(_, _))
       .WillOnce(Invoke([&](int32_t, bool) {
@@ -122,6 +132,10 @@ TEST_F(CmdSetPortStateTestFixture, disableTwoPorts) {
 
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
       .WillOnce(Invoke([&](auto& entries) { entries = portEntries; }));
+  EXPECT_CALL(getMockAgent(), getAggregatePortTable(_))
+      .WillOnce(Invoke([&](auto& entries) {
+        entries = std::vector<AggregatePortThrift>();
+      }));
 
   EXPECT_CALL(getMockAgent(), setPortState(_, _))
       .WillOnce(Invoke([&](int32_t, bool) {
@@ -146,6 +160,10 @@ TEST_F(CmdSetPortStateTestFixture, disableDuplicatePorts) {
 
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
       .WillOnce(Invoke([&](auto& entries) { entries = portEntries; }));
+  EXPECT_CALL(getMockAgent(), getAggregatePortTable(_))
+      .WillOnce(Invoke([&](auto& entries) {
+        entries = std::vector<AggregatePortThrift>();
+      }));
 
   EXPECT_CALL(getMockAgent(), setPortState(_, _))
       .WillOnce(Invoke([&](int32_t, bool) {
@@ -169,6 +187,11 @@ TEST_F(CmdSetPortStateTestFixture, disableEnablePort) {
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
       .Times(3)
       .WillRepeatedly(Invoke([&](auto& entries) { entries = portEntries; }));
+  EXPECT_CALL(getMockAgent(), getAggregatePortTable(_))
+      .Times(3)
+      .WillRepeatedly(Invoke([&](auto& entries) {
+        entries = std::vector<AggregatePortThrift>();
+      }));
 
   EXPECT_CALL(getMockAgent(), setPortState(_, _))
       .WillOnce(Invoke([&](int32_t, bool) {
@@ -202,6 +225,7 @@ TEST_F(CmdSetPortStateTestFixture, noTtyAndNoYesFlag_throws) {
 
   // No mock expectations: the Thrift agent must NOT be hit.
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_)).Times(0);
+  EXPECT_CALL(getMockAgent(), getAggregatePortTable(_)).Times(0);
   EXPECT_CALL(getMockAgent(), setPortState(_, _)).Times(0);
 
   std::vector<std::string> queriedPortNames = {"eth1/5/1"};
@@ -211,6 +235,152 @@ TEST_F(CmdSetPortStateTestFixture, noTtyAndNoYesFlag_throws) {
   EXPECT_THROW(
       cmd.queryClient(localhost(), queriedPortNames, state),
       std::invalid_argument);
+}
+
+/*
+ * Helper function to create aggregate port entries for testing
+ */
+std::vector<AggregatePortThrift> createAggregatePortEntriesForSetPortState() {
+  std::vector<AggregatePortThrift> aggregatePorts;
+
+  // Create Port-Channel1 with members eth1/5/1 and eth1/5/2
+  AggregatePortThrift aggPort1;
+  aggPort1.name() = "Port-Channel1";
+  aggPort1.description() = "Test aggregate port 1";
+  aggPort1.key() = 1001;
+  aggPort1.minimumLinkCount() = 1;
+
+  AggregatePortMemberThrift member1;
+  member1.memberPortID() = 1;
+  member1.isForwarding() = true;
+  member1.rate() = LacpPortRateThrift::FAST;
+  aggPort1.memberPorts()->push_back(member1);
+
+  AggregatePortMemberThrift member2;
+  member2.memberPortID() = 2;
+  member2.isForwarding() = true;
+  member2.rate() = LacpPortRateThrift::FAST;
+  aggPort1.memberPorts()->push_back(member2);
+
+  aggregatePorts.push_back(aggPort1);
+
+  // Create Port-Channel2 with member eth1/5/3
+  AggregatePortThrift aggPort2;
+  aggPort2.name() = "Port-Channel2";
+  aggPort2.description() = "Test aggregate port 2";
+  aggPort2.key() = 1002;
+  aggPort2.minimumLinkCount() = 1;
+
+  AggregatePortMemberThrift member3;
+  member3.memberPortID() = 3;
+  member3.isForwarding() = true;
+  member3.rate() = LacpPortRateThrift::FAST;
+  aggPort2.memberPorts()->push_back(member3);
+
+  aggregatePorts.push_back(aggPort2);
+
+  return aggregatePorts;
+}
+
+TEST_F(CmdSetPortStateTestFixture, disableAggregatePort) {
+  setupMockedAgentServer();
+  std::vector<std::string> queriedPortNames = {"Port-Channel1"};
+  // Port-Channel1 has members eth1/5/1 (id=1) and eth1/5/2 (id=2)
+  std::vector<std::string> state = {"disable"};
+
+  auto aggregatePorts = createAggregatePortEntriesForSetPortState();
+
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = portEntries; }));
+  EXPECT_CALL(getMockAgent(), getAggregatePortTable(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = aggregatePorts; }));
+
+  EXPECT_CALL(getMockAgent(), setPortState(_, _))
+      .WillOnce(Invoke([&](int32_t, bool) {
+        portEntries[1].adminState() = PortAdminState::DISABLED;
+      }))
+      .WillOnce(Invoke([&](int32_t, bool) {
+        portEntries[2].adminState() = PortAdminState::DISABLED;
+      }));
+
+  EXPECT_EQ(portEntries[1].adminState(), PortAdminState::ENABLED);
+  EXPECT_EQ(portEntries[2].adminState(), PortAdminState::DISABLED);
+
+  auto cmd = CmdSetPortState();
+  auto model = cmd.queryClient(localhost(), queriedPortNames, state);
+
+  EXPECT_EQ(portEntries[1].adminState(), PortAdminState::DISABLED);
+  EXPECT_EQ(portEntries[2].adminState(), PortAdminState::DISABLED);
+  // Both member ports should be disabled
+  EXPECT_EQ(model, "Disabling port eth1/5/1\nDisabling port eth1/5/2\n");
+}
+
+TEST_F(CmdSetPortStateTestFixture, enableAggregatePort) {
+  setupMockedAgentServer();
+  std::vector<std::string> queriedPortNames = {"Port-Channel2"};
+  // Port-Channel2 has member eth1/5/3 (id=3)
+  std::vector<std::string> state = {"enable"};
+
+  auto aggregatePorts = createAggregatePortEntriesForSetPortState();
+
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = portEntries; }));
+  EXPECT_CALL(getMockAgent(), getAggregatePortTable(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = aggregatePorts; }));
+
+  EXPECT_CALL(getMockAgent(), setPortState(_, _))
+      .WillOnce(Invoke([&](int32_t, bool) {
+        portEntries[3].adminState() = PortAdminState::ENABLED;
+      }));
+
+  EXPECT_EQ(portEntries[3].adminState(), PortAdminState::ENABLED);
+
+  auto cmd = CmdSetPortState();
+  auto model = cmd.queryClient(localhost(), queriedPortNames, state);
+
+  EXPECT_EQ(portEntries[3].adminState(), PortAdminState::ENABLED);
+  EXPECT_EQ(model, "Enabling port eth1/5/3\n");
+}
+
+TEST_F(CmdSetPortStateTestFixture, mixPortAndAggregatePort) {
+  setupMockedAgentServer();
+  // Mix individual port and aggregate port
+  std::vector<std::string> queriedPortNames = {"eth1/5/3", "Port-Channel1"};
+  // eth1/5/3 (id=3) + Port-Channel1 members eth1/5/1 (id=1) and eth1/5/2 (id=2)
+  std::vector<std::string> state = {"disable"};
+
+  auto aggregatePorts = createAggregatePortEntriesForSetPortState();
+
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = portEntries; }));
+  EXPECT_CALL(getMockAgent(), getAggregatePortTable(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = aggregatePorts; }));
+
+  EXPECT_CALL(getMockAgent(), setPortState(_, _))
+      .WillOnce(Invoke([&](int32_t, bool) {
+        portEntries[3].adminState() = PortAdminState::DISABLED;
+      }))
+      .WillOnce(Invoke([&](int32_t, bool) {
+        portEntries[1].adminState() = PortAdminState::DISABLED;
+      }))
+      .WillOnce(Invoke([&](int32_t, bool) {
+        portEntries[2].adminState() = PortAdminState::DISABLED;
+      }));
+
+  auto cmd = CmdSetPortState();
+  auto model = cmd.queryClient(localhost(), queriedPortNames, state);
+
+  EXPECT_EQ(portEntries[1].adminState(), PortAdminState::DISABLED);
+  EXPECT_EQ(portEntries[2].adminState(), PortAdminState::DISABLED);
+  EXPECT_EQ(portEntries[3].adminState(), PortAdminState::DISABLED);
+}
+
+TEST_F(CmdSetPortStateTestFixture, nonexistentAggregatePort) {
+  std::vector<std::string> queriedPortNames = {"Port-Channel99"};
+  auto aggregatePorts = createAggregatePortEntriesForSetPortState();
+  EXPECT_THROW(
+      getQueriedPortIds(portEntries, queriedPortNames, aggregatePorts),
+      std::runtime_error);
 }
 
 } // namespace facebook::fboss

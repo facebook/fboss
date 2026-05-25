@@ -1,6 +1,6 @@
 {
-  "name": "staticdocs-starter",
-  "version": "0.0.0",
+  "name": "fboss-github-docs",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
@@ -19,7 +19,7 @@
     "@docusaurus/preset-classic": "2.4.3",
     "@mdx-js/react": "^1.6.21",
     "clsx": "^1.1.1",
-    "docusaurus-plugin-internaldocs-fb": "^1.19.3",
+    "docusaurus-plugin-internaldocs-fb": "1.20.0",
     "prism-react-renderer": "^1.3.3",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
@@ -45,6 +45,7 @@
     "yarn-audit-fix": "^9.3.10"
   },
   "resolutions": {
-    "webpack": "5.105.4"
+    "webpack": "5.105.4",
+    "cytoscape": "3.31.2"
   }
 }

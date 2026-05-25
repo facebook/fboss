@@ -162,6 +162,7 @@ target_link_libraries(utils
   meru800bfa_platform_mapping
   janga800bic_platform_mapping
   j4sim_platform_mapping
+  saintpaul_platform_mapping
   blackwolf800banw_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping

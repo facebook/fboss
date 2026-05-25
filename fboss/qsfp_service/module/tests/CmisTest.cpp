@@ -44,6 +44,7 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD0(getModuleStateChanged, bool());
   MOCK_METHOD1(ensureTransceiverReadyLocked, bool(bool));
 
+  using CmisModule::configureRxConsActHoldOffTimer;
   using CmisModule::disableTxRxSquelchForTunableOptics;
   using CmisModule::enableRxLfInsertionForTunableOptics;
   using CmisModule::frequencyGridToGridSelection;
@@ -51,7 +52,9 @@ class MockCmisModule : public CmisModule {
   using CmisModule::getChannelNumFromFrequency;
   using CmisModule::getCurrentAppSelCode;
   using CmisModule::getInterfaceCodeForAppSel;
+  using CmisModule::getQsfpValuePtr;
   using CmisModule::getTunableLaserStatus;
+  using CmisModule::isRxConsActHoldOffTmrImplSupported;
   using CmisModule::isRxConsActImplSupported;
   using CmisModule::isTunableOptics;
 
@@ -1355,6 +1358,60 @@ TEST_F(CmisTest, cmis800GZrSquelchDisableWithMacLfCheck) {
         << "Lane " << *hostLane.lane()
         << ": RX squelch disable should be set for ZR with MAC LF support";
   }
+}
+
+TEST_F(CmisTest, cmis800GZrHoldOffTimerCapabilityCheck) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_TRUE(xcvr->isTunableOptics());
+  EXPECT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
+}
+
+TEST_F(CmisTest, cmis800GZrHoldOffTimerDefault10ms) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_TRUE(xcvr->isTunableOptics());
+  ASSERT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
+
+  xcvr->configureRxConsActHoldOffTimer(10, true);
+  transceiverManager_->refreshStateMachines();
+
+  // Read hold-off timer from cached Page 38h, offset 141, length 2
+  const uint8_t* data =
+      xcvr->getQsfpValuePtr(static_cast<int>(CmisPages::PAGE38), 141, 2);
+  uint16_t readValue = (static_cast<uint16_t>(data[0]) << 8) | data[1];
+  EXPECT_EQ(readValue, 1);
+}
+
+TEST_F(CmisTest, cmis800GZrHoldOffTimerDisabled) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
+
+  xcvr->configureRxConsActHoldOffTimer(0, true);
+  transceiverManager_->refreshStateMachines();
+
+  // Read hold-off timer from cached Page 38h, offset 141, length 2
+  const uint8_t* data =
+      xcvr->getQsfpValuePtr(static_cast<int>(CmisPages::PAGE38), 141, 2);
+  uint16_t readValue = (static_cast<uint16_t>(data[0]) << 8) | data[1];
+  EXPECT_EQ(readValue, 0);
+}
+
+TEST_F(CmisTest, cmis800GZrHoldOffTimerNegativeValue) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
+
+  EXPECT_THROW(xcvr->configureRxConsActHoldOffTimer(-1, true), FbossError);
 }
 
 // Test coherent FEC Performance Monitoring stats from C-CMIS page 34h

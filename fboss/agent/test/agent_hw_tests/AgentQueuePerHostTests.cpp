@@ -8,7 +8,6 @@
  *
  */
 
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/test/AgentHwTest.h"
@@ -142,6 +141,29 @@ class AgentQueuePerHostTest : public AgentHwTest {
       neighborTable->addPendingEntry(ip, kIntfID);
     }
 
+    return outState;
+  }
+
+  std::shared_ptr<typename NeighborTableT::Entry> getNeighborEntry(AddrT ip) {
+    return getProgrammedState()
+        ->getInterfaces()
+        ->getNode(kIntfID)
+        ->template getNeighborTable<NeighborTableT>()
+        ->getEntryIf(ip);
+  }
+
+  std::shared_ptr<SwitchState> removeNeighbors(
+      const std::shared_ptr<SwitchState>& inState) {
+    auto outState{inState->clone()};
+    for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
+      auto ip = ipToMacAndClassID.first;
+      NeighborTableT* neighborTable;
+      neighborTable = outState->getInterfaces()
+                          ->getNode(kIntfID)
+                          ->template getNeighborTable<NeighborTableT>()
+                          ->modify(kIntfID, &outState);
+      neighborTable->removeEntry(ip);
+    }
     return outState;
   }
 
@@ -426,21 +448,11 @@ class AgentQueuePerHostTest : public AgentHwTest {
           // counts ttl >= 128 packet only
           EXPECT_EVENTUALLY_EQ(packetsAfter - packetsBefore, 1);
           if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
-            // TODO ruinanhu: Remove this once we have a fix for TH6 counter
-            // problem
-            auto hwAsic =
-                checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
-            auto extraBytes =
-                (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6)
-                ? 4
-                : 0;
             if (frontPanel) {
-              EXPECT_EVENTUALLY_EQ(
-                  bytesAfter - bytesBefore + extraBytes, packetSize);
+              EXPECT_EVENTUALLY_EQ(bytesAfter - bytesBefore, packetSize);
             }
             // TODO: Still need to debug why we get extra 4 bytes for CPU port
-            EXPECT_EVENTUALLY_TRUE(
-                bytesAfter - bytesBefore + extraBytes >= packetSize);
+            EXPECT_EVENTUALLY_TRUE(bytesAfter - bytesBefore >= packetSize);
           }
         });
       }
@@ -536,6 +548,34 @@ TYPED_TEST(
 // incremented.
 TYPED_TEST(AgentQueuePerHostTest, VerifyTtldCounter) {
   this->verifyTtldCounter();
+}
+
+// Verify that removing a Pending NDP/ARP entry that was never Reachable
+// is handled cleanly by LookupClassUpdater on a QPH-enabled port. Unlike
+// the other tests in this file, this one does not resolve the entries
+// between add and remove.
+TYPED_TEST(AgentQueuePerHostTest, RemovePendingNeighborDoesNotCrash) {
+  auto setup = [this]() {
+    this->applyNewState(
+        [this](const std::shared_ptr<SwitchState>& /*in*/) {
+          return this->addNeighbors(this->getProgrammedState());
+        },
+        "inject Pending neighbors");
+
+    this->applyNewState(
+        [this](const std::shared_ptr<SwitchState>& /*in*/) {
+          return this->removeNeighbors(this->getProgrammedState());
+        },
+        "remove Pending neighbors");
+  };
+
+  auto verify = [this]() {
+    for (const auto& ipToMacAndClassID : this->getIpToMacAndClassID()) {
+      EXPECT_EQ(this->getNeighborEntry(ipToMacAndClassID.first), nullptr);
+    }
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

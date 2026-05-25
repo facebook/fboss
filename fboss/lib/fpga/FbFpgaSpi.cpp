@@ -5,7 +5,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/lib/fpga/FbFpgaRegisters.h"
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/Synchronized.h>
 #include <folly/futures/Future.h>
 #include <folly/logging/xlog.h>
@@ -51,7 +51,7 @@ void FbFpgaSpi::read(uint8_t offset, int page, folly::MutableByteRange buf) {
   SpiDescriptorLower descLower;
   SpiDescriptorUpper descUpper;
   SpiWriteDataBlock writeDataBlock;
-  std::string logMsgPrefix = folly::sformat(
+  std::string logMsgPrefix = fmt::format(
       "SpiRead: SpiId: {:d}, offset: {:x}, page: {:x}", spiId_, offset, page);
 
   // Increment the counter for total read transactions issued
@@ -120,7 +120,7 @@ void FbFpgaSpi::write(uint8_t offset, int page, folly::ByteRange buf) {
   SpiDescriptorLower descLower;
   SpiDescriptorUpper descUpper;
   SpiWriteDataBlock writeDataBlock;
-  std::string logMsgPrefix = folly::sformat(
+  std::string logMsgPrefix = fmt::format(
       "SpiWrite: SpiId: {:d}, offset: {:x}, page: {:x}", spiId_, offset, page);
 
   // Increment the counter for total write transactions issued
@@ -320,7 +320,7 @@ FbFpgaSpiController::~FbFpgaSpiController() {
 
 uint8_t FbFpgaSpiController::readByte(uint8_t offset, int page) {
   uint8_t buf;
-  XLOG(DBG5) << folly::sformat(
+  XLOG(DBG5) << fmt::format(
       "FbFpgaSpiController::readByte pim {:d} spi {:d} offset {:d}",
       pim_,
       spiId_,
@@ -333,7 +333,7 @@ void FbFpgaSpiController::read(
     uint8_t offset,
     int page,
     folly::MutableByteRange buf) {
-  XLOG(DBG5) << folly::sformat(
+  XLOG(DBG5) << fmt::format(
       "FbFpgaSpiController::read pim {:d} spi {:d} offset {:d}",
       pim_,
       spiId_,
@@ -342,7 +342,7 @@ void FbFpgaSpiController::read(
 }
 
 void FbFpgaSpiController::writeByte(uint8_t offset, uint8_t val, int page) {
-  XLOG(DBG5) << folly::sformat(
+  XLOG(DBG5) << fmt::format(
       "FbFpgaSpiController::writeByte pim {:d} spi {:d} offset {:d} val {:d}",
       pim_,
       spiId_,
@@ -355,7 +355,7 @@ void FbFpgaSpiController::write(
     uint8_t offset,
     int page,
     folly::ByteRange buf) {
-  XLOG(DBG5) << folly::sformat(
+  XLOG(DBG5) << fmt::format(
       "FbFpgaSpiController::write pim {:d} spi {:d} offset {:d}",
       pim_,
       spiId_,

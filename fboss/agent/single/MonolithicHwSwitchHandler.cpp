@@ -266,6 +266,7 @@ void MonolithicHwSwitchHandler::getHwStats(
   hwStats.timestamp() = now.count();
 
   hwStats.hwPortStats() = getPortStats();
+  hwStats.hwTrunkStats() = hw_->getTrunkStats();
   hwStats.sysPortStats() = getSysPortStats();
   hwStats.switchDropStats() = getSwitchDropStats();
   hwStats.fabricReachabilityStats() = getFabricReachabilityStats();

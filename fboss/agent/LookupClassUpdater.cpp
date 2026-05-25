@@ -359,6 +359,13 @@ void LookupClassUpdater::processRemoved(
     return;
   }
 
+  if constexpr (!std::is_same_v<RemovedNeighborEntryT, MacEntry>) {
+    // Mirror processAdded: Pending entries (broadcast MAC) were never cached.
+    if (!removedEntry->isReachable()) {
+      return;
+    }
+  }
+
   removeClassIDForPortAndMac(switchState, vlan, removedEntry);
 }
 

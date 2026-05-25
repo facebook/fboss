@@ -33,7 +33,7 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
     openssl openssl-devel openssl-libs \
     re2 re2-devel snappy-devel xxhash-devel xz-devel zlib-devel zlib-static \
     libxml2-devel expat-devel wget git sudo lsof `basename "$USER_SHELL"` \
-    libcap-devel libmount-devel
+    libcap-devel libmount-devel libpciaccess-devel
 
 # Set up Python 3.12 as the system default.
 # Python 3.12 is chosen to match the getdeps python manifest which installs

@@ -50,7 +50,7 @@ When running tests with `run_test.py`, you may need to specify the following var
   - For SAI Agent tests: `./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON`
   - For SAI tests: `./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON`
   - For QSFP tests: `./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON`
-  - For Link tests: `./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON`
+  - For Link tests: `./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON` and `./share/link_known_bad_tests/agent_ensemble_link_unsupported_tests.materialized_JSON`
 
 :::
 
@@ -135,6 +135,7 @@ When running tests with `run_test.py`, you may need to specify the following var
 --config ./share/link_test_configs/$CONFIG \
 --qsfp-config /opt/fboss/share/qsfp_test_configs/$QSFP_CONFIG \
 --known-bad-tests-file ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON \
+--unsupported-tests-file ./share/link_known_bad_tests/agent_ensemble_link_unsupported_tests.materialized_JSON \
 --skip-known-bad-tests $KEY
 ```
 
@@ -152,6 +153,7 @@ When running tests with `run_test.py`, you may need to specify the following var
 --config ./share/link_test_configs/$CONFIG \
 --qsfp-config /opt/fboss/share/qsfp_test_configs/$QSFP_CONFIG \
 --known-bad-tests-file ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON \
+--unsupported-tests-file ./share/link_known_bad_tests/agent_ensemble_link_unsupported_tests.materialized_JSON \
 --skip-known-bad-tests $KEY
 ```
 
@@ -204,18 +206,18 @@ T1 Link tests scope is controlled by the known-bad and unsupported test files, s
 --config ./share/link_test_configs/$CONFIG \
 --qsfp-config /opt/fboss/share/qsfp_test_configs/$QSFP_CONFIG \
 --known-bad-tests-file ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON \
+--unsupported-tests-file ./share/link_known_bad_tests/agent_ensemble_link_unsupported_tests.materialized_JSON \
 --skip-known-bad-tests $KEY
 ```
 
 ### Agent Benchmark Tests
 
-`run_test.py`:
+`run_test.py` discovers all benchmarks from the binary via `--bm_list` and runs each one.
+
 ```bash
 ./bin/run_test.py benchmark \
---filter_file ./share/hw_benchmark_tests/t1_benchmarks.conf
-```
-
-```bash file=../fboss/oss/hw_benchmark_tests/t1_benchmarks.conf
+--config ./share/hw_test_configs/$CONFIG \
+--skip-known-bad-tests $KEY
 ```
 
 ### SAI Tests
@@ -252,10 +254,7 @@ T1 Link tests scope is controlled by the known-bad and unsupported test files, s
 `run_test.py`:
 ```bash
 ./bin/run_test.py benchmark \
---filter_file ./share/hw_benchmark_tests/t2_benchmarks.conf
-```
-
-```bash file=../fboss/oss/hw_benchmark_tests/t2_benchmarks.conf
+--filter ".*Scale.*"
 ```
 
 ### SAI Tests

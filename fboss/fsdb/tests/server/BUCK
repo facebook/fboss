@@ -8,6 +8,9 @@ cpp_unittest(
         "ServiceHandlerTest.cpp",
     ],
     deps = [
+        "//fb303:service_data",
+        "//fboss/fsdb/common:utils",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/lib:common_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",

@@ -84,23 +84,19 @@ class IPV6List : public BaseObjectArgType<std::string> {
 };
 
 /**
- * Whether input port name conforms to the required pattern
- * 'moduleNum/port/subport' For example, eth1/5/3 will be parsed to four parts:
- * eth(module name), 1(module number), 5(port number), 3(subport number). Error
- * will be thrown if the port name is not valid.
+ * Port names for commands. Accepts regular port names like 'eth1/5/3'
+ * and aggregate port names like 'Port-Channel1'.
+ * Validation against actual ports/aggregate ports happens later in the
+ * command implementation.
  */
 class PortList : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ PortList() : BaseObjectArgType() {}
   /* implicit */ PortList(std::vector<std::string> ports) {
-    static const RE2 exp("([a-z]+)(\\d+)/(\\d+)/(\\d+)");
+    // Basic validation - just check that ports are non-empty
     for (auto const& port : ports) {
-      if (!RE2::FullMatch(port, exp)) {
-        throw std::invalid_argument(
-            folly::to<std::string>(
-                "Invalid port name: ",
-                port,
-                "\nPort name must match 'moduleNum/port/subport' pattern"));
+      if (port.empty()) {
+        throw std::invalid_argument("Port name cannot be empty");
       }
     }
     // deduplicate ports while ensuring order

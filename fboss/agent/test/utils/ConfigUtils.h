@@ -310,6 +310,11 @@ void configurePortGroup(
     cfg::PortSpeed speed,
     std::vector<PortID> allPortsInGroup);
 
+void configurePortGroupsForMaxSpeed(
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
+    cfg::SwitchConfig& config);
+
 std::vector<PortID> getAllPortsInGroup(
     const PlatformMapping* platformMapping,
     PortID portID);

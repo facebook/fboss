@@ -73,6 +73,13 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   // of DISCARD. Needed because FBOSS tests forwards such packets legitimately.
   kv_map.insert(std::make_pair("SAI_KEY_NOT_DROP_SMAC_DMAC_EQUAL", "1"));
 
+  // Do not drop packets where source IP equals destination IP. Sets the
+  // SX_TRAP_ID_DISCARD_ING_ROUTER_SIP_DIP trap action to IGNORE instead
+  // of DISCARD. Required for L3 hairpin forwarding where a host sends a
+  // packet with the same source and destination IP, and routing resolves
+  // the egress back to the same ingress port.
+  kv_map.insert(std::make_pair("SAI_KEY_NOT_DROP_SIP_DIP_EQUAL", "1"));
+
   // PG0 is the default priority group — traffic is mapped to it when no
   // specific priority group is configured. It is lossy/best-effort. The
   // SDK has an internal optimization that reclaims PG0 buffer space. Some
@@ -195,11 +202,11 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   // throttle other TCs.
   kv_map.insert(std::make_pair("SAI_KEY_NO_HQOS_QUEUE_TO_SUBGROUP", "1"));
 
-  kv_map.insert(std::make_pair("SAI_KEY_SDK_SNIFFER_MODE", "cyclic"));
-  kv_map.insert(
-      std::make_pair("SAI_KEY_SDK_SNIFFER_LOG_MAX_SIZE", "314572800"));
-  kv_map.insert(std::make_pair("SAI_KEY_SDK_SNIFFER_LOG_NUM", "4"));
-  kv_map.insert(std::make_pair("SAI_KEY_SDK_SNIFFER_WRITE_INTERVAL", "10"));
+  // Disable the SDK sniffer; FBOSS does not consume sniffer logs and the
+  // sniffer requires /usr/bin/sx_def_filter which is not staged in the
+  // FBOSS image.
+  kv_map.insert(std::make_pair("SAI_KEY_SDK_SNIFFER_DISABLE", "1"));
+
   return kv_map;
 }
 

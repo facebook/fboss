@@ -523,6 +523,11 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION,
         AclEntryActionU32>;
+    using ActionRedirect = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_ACTION_REDIRECT,
+        AclEntryActionSaiObjectIdT,
+        SaiAclEntryActionSaiObjectDefault>;
     using ActionCounter = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_COUNTER,
@@ -633,6 +638,7 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::UserDefinedFieldGroupMin4>,
 #endif
       std::optional<Attributes::ActionPacketAction>,
+      std::optional<Attributes::ActionRedirect>,
       std::optional<Attributes::ActionCounter>,
       std::optional<Attributes::ActionSetTC>,
       std::optional<Attributes::ActionSetDSCP>,
@@ -705,6 +711,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, UserDefinedFieldGroupMin3);
 SAI_ATTRIBUTE_NAME(AclEntry, UserDefinedFieldGroupMin4);
 #endif
 SAI_ATTRIBUTE_NAME(AclEntry, ActionPacketAction);
+SAI_ATTRIBUTE_NAME(AclEntry, ActionRedirect);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionCounter);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetTC);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetDSCP);

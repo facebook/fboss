@@ -1,12 +1,17 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
@@ -16,6 +21,7 @@
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
@@ -52,6 +58,11 @@ class AgentSrv6EncapTest : public AgentHwTest {
   static constexpr int kNumNextHops{4};
   static constexpr uint8_t kECT1{1};
 
+  // NHG names for SRv6 encap routes (also used as counter IDs)
+  // Same names used for both v4 and v6 routes
+  static inline const std::string kNhgSid0{"kSid0"};
+  static inline const std::string kNhgSid1OrSid2{"kSid1_or_kSid2"};
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (kIsTrunk) {
@@ -59,12 +70,14 @@ class AgentSrv6EncapTest : public AgentHwTest {
           ProductionFeature::SRV6_ENCAP,
           ProductionFeature::L3_QOS,
           ProductionFeature::ECN,
-          ProductionFeature::LAG};
+          ProductionFeature::LAG,
+          ProductionFeature::ROUTE_COUNTERS};
     }
     return {
         ProductionFeature::SRV6_ENCAP,
         ProductionFeature::L3_QOS,
-        ProductionFeature::ECN};
+        ProductionFeature::ECN,
+        ProductionFeature::ROUTE_COUNTERS};
   }
 
   void setCmdLineFlagOverrides() const override {
@@ -88,6 +101,9 @@ class AgentSrv6EncapTest : public AgentHwTest {
       }
     }
     addSrv6TunnelConfig(cfg);
+    cfg.loadBalancers() =
+        utility::getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
+            ensemble.getL3Asics());
     auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     utility::addTrapPacketAcl(
         asic,
@@ -119,18 +135,14 @@ class AgentSrv6EncapTest : public AgentHwTest {
         this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
   }
 
-  void resolveV4AndV6NextHops(int numNextHops) {
-    auto ecmpHelper6 = makeEcmpHelper<folly::IPAddressV6>();
-    this->resolveNeighbors(ecmpHelper6, numNextHops);
-    auto ecmpHelper4 = makeEcmpHelper<folly::IPAddressV4>();
-    this->resolveNeighbors(ecmpHelper4, numNextHops);
+  void resolveNextHops(int numNextHops) {
+    auto ecmpHelper = makeEcmpHelper<folly::IPAddressV6>();
+    this->resolveNeighbors(ecmpHelper, numNextHops, true /* useLinkLocal */);
   }
 
-  void unresolveV4AndV6NextHops(int numNextHops) {
-    auto ecmpHelper6 = makeEcmpHelper<folly::IPAddressV6>();
-    this->unresolveNeighbors(ecmpHelper6, numNextHops);
-    auto ecmpHelper4 = makeEcmpHelper<folly::IPAddressV4>();
-    this->unresolveNeighbors(ecmpHelper4, numNextHops);
+  void unresolveNextHops(int numNextHops) {
+    auto ecmpHelper = makeEcmpHelper<folly::IPAddressV6>();
+    this->unresolveNeighbors(ecmpHelper, numNextHops, true /* useLinkLocal */);
   }
   void setupHelper(
       bool resolveNeighbors = true,
@@ -140,25 +152,31 @@ class AgentSrv6EncapTest : public AgentHwTest {
           this->initialConfig(*this->getAgentEnsemble()));
     }
     if (resolveNeighbors) {
-      resolveV4AndV6NextHops(kNumNextHops);
+      resolveNextHops(kNumNextHops);
     }
     if (programEncapRoutes) {
       // IPv6 encap routes (v6 next hops)
       addEncapRoute<folly::CIDRNetworkV6>(
-          {kEncapRoutePrefix, kEncapRoutePrefixLen}, {{kSid0}});
+          {kEncapRoutePrefix, kEncapRoutePrefixLen}, {{kSid0}}, kNhgSid0);
       addEncapRoute<folly::CIDRNetworkV6>(
           {folly::IPAddressV6("2800:3::"), kEncapRoutePrefixLen},
-          {{kSid1}, {kSid2}});
+          {{kSid1}, {kSid2}},
+          kNhgSid1OrSid2);
       addEncapRoute<folly::CIDRNetworkV6>(
           {folly::IPAddressV6("2800:4::"), kEncapRoutePrefixLen},
-          {{kSid1}, {kSid2}});
-      // IPv4 encap routes (v4 next hops)
+          {{kSid1}, {kSid2}},
+          kNhgSid1OrSid2);
+      // IPv4 encap routes (v4 next hops) - use same NHG names as v6
       addEncapRoute<folly::CIDRNetworkV4>(
-          {folly::IPAddressV4("100.0.0.0"), 24}, {{kSid0}});
+          {folly::IPAddressV4("100.0.0.0"), 24}, {{kSid0}}, kNhgSid0);
       addEncapRoute<folly::CIDRNetworkV4>(
-          {folly::IPAddressV4("200.0.0.0"), 24}, {{kSid1}, {kSid2}});
+          {folly::IPAddressV4("200.0.0.0"), 24},
+          {{kSid1}, {kSid2}},
+          kNhgSid1OrSid2);
       addEncapRoute<folly::CIDRNetworkV4>(
-          {folly::IPAddressV4("201.0.0.0"), 24}, {{kSid1}, {kSid2}});
+          {folly::IPAddressV4("201.0.0.0"), 24},
+          {{kSid1}, {kSid2}},
+          kNhgSid1OrSid2);
     }
   }
 
@@ -173,9 +191,124 @@ class AgentSrv6EncapTest : public AgentHwTest {
     auto ecmpHelper = makeEcmpHelper();
     auto routeUpdater = this->getSw()->getRouteUpdater();
 
-    auto makeSrv6Nhop = [](const folly::IPAddress& ip,
-                           const std::vector<folly::IPAddressV6>& sidList,
-                           const std::string& tunnelId) {
+    // Helper to get link-local IP for IPv6 next hops
+    auto getNhopIp = [&ecmpHelper](int idx) {
+      auto nhop = ecmpHelper.nhop(idx);
+      if (nhop.linkLocalNhopIp.has_value()) {
+        return folly::IPAddress(nhop.linkLocalNhopIp.value());
+      }
+      return folly::IPAddress(nhop.ip);
+    };
+
+    // OpenR route A (2901::/48) -> nhop(0), nhop(1) with link-local nexthops
+    RouteNextHopSet openrNhopsA{
+        ResolvedNextHop(getNhopIp(0), ecmpHelper.nhop(0).intf, ECMP_WEIGHT),
+        ResolvedNextHop(getNhopIp(1), ecmpHelper.nhop(1).intf, ECMP_WEIGHT)};
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2901::"),
+        48,
+        ClientID::OPENR,
+        RouteNextHopEntry(openrNhopsA, AdminDistance::OPENR));
+
+    // OpenR route B (2902::/48) -> nhop(2), nhop(3) with link-local nexthops
+    RouteNextHopSet openrNhopsB{
+        ResolvedNextHop(getNhopIp(2), ecmpHelper.nhop(0).intf, ECMP_WEIGHT),
+        ResolvedNextHop(getNhopIp(3), ecmpHelper.nhop(1).intf, ECMP_WEIGHT)};
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2902::"),
+        48,
+        ClientID::OPENR,
+        RouteNextHopEntry(openrNhopsB, AdminDistance::OPENR));
+
+    // SRv6 route -> 2901::1 (kSid0), 2902::1 (kSid1)
+    // These unresolved nexthops carry SRV6 fields and resolve recursively
+    // over the OpenR routes above, which have plain link-local nexthops.
+    RouteNextHopSet srv6Nhops{
+        UnresolvedNextHop(
+            folly::IPAddress("2901::1"),
+            ECMP_WEIGHT,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::vector<folly::IPAddressV6>{kSid0},
+            TunnelType::SRV6_ENCAP,
+            std::string("srv6Tunnel0")),
+        UnresolvedNextHop(
+            folly::IPAddress("2902::1"),
+            ECMP_WEIGHT,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::vector<folly::IPAddressV6>{kSid1},
+            TunnelType::SRV6_ENCAP,
+            std::string("srv6Tunnel0"))};
+    routeUpdater.addRoute(
+        RouterID(0),
+        routePrefix,
+        kEncapRoutePrefixLen,
+        ClientID::TE_AGENT,
+        RouteNextHopEntry(srv6Nhops, AdminDistance::TE_AGENT));
+    routeUpdater.program();
+  }
+
+  void addRecursiveSrv6RoutesSameSidListSameRif() {
+    utility::EcmpSetupTargetedPorts<folly::IPAddressV6> ecmpHelper(
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
+
+    auto makeLinkLocalNhop = [](utility::EcmpNextHop<folly::IPAddressV6> nhop,
+                                const folly::IPAddressV6& linkLocalIp) {
+      nhop.linkLocalNhopIp = linkLocalIp;
+      return nhop;
+    };
+
+    const auto rif0Nhop = ecmpHelper.getNextHops()[0];
+    const folly::IPAddressV6 linkLocalIp0{"fe80:face:b11c::1"};
+    const folly::IPAddressV6 linkLocalIp1{"fe80:face:b11c::2"};
+    const auto rif0Ip0 = makeLinkLocalNhop(rif0Nhop, linkLocalIp0);
+    const auto rif0Ip1 = makeLinkLocalNhop(rif0Nhop, linkLocalIp1);
+
+    this->applyNewState(
+        [&ecmpHelper, &rif0Ip0, &rif0Ip1](
+            const std::shared_ptr<SwitchState> state) {
+          auto newState = ecmpHelper.resolveNextHop(
+              state, rif0Ip0, true /* useLinkLocal */);
+          return ecmpHelper.resolveNextHop(
+              newState, rif0Ip1, true /* useLinkLocal */);
+        },
+        "resolve recursive SRv6 link-local next hops");
+
+    auto makeResolvedNhop = [](const auto& nhop) {
+      return ResolvedNextHop(
+          folly::IPAddress(nhop.linkLocalNhopIp.value()),
+          nhop.intf,
+          ECMP_WEIGHT);
+    };
+
+    auto routeUpdater = this->getSw()->getRouteUpdater();
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2901::"),
+        48,
+        ClientID::OPENR,
+        RouteNextHopEntry(
+            RouteNextHopSet{
+                makeResolvedNhop(rif0Ip0), makeResolvedNhop(rif0Ip1)},
+            AdminDistance::OPENR));
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2902::"),
+        48,
+        ClientID::OPENR,
+        RouteNextHopEntry(
+            RouteNextHopSet{
+                makeResolvedNhop(rif0Ip0), makeResolvedNhop(rif0Ip1)},
+            AdminDistance::OPENR));
+
+    auto makeSrv6Nhop = [this](const folly::IPAddress& ip) {
       return UnresolvedNextHop(
           ip,
           ECMP_WEIGHT,
@@ -183,61 +316,44 @@ class AgentSrv6EncapTest : public AgentHwTest {
           std::nullopt,
           std::nullopt,
           std::nullopt,
-          sidList,
+          std::vector<folly::IPAddressV6>{kSid0},
           TunnelType::SRV6_ENCAP,
-          tunnelId);
+          std::string("srv6Tunnel0"));
     };
 
-    // IGP route A (2901::/48) -> nhop(0), nhop(1) with igpSidListA
-    const std::vector<folly::IPAddressV6> igpSidListA{
-        folly::IPAddressV6("4001:db8:a1::")};
-    RouteNextHopSet igpNhopsA{
-        makeSrv6Nhop(ecmpHelper.nhop(0).ip, igpSidListA, "srv6Tunnel0"),
-        makeSrv6Nhop(ecmpHelper.nhop(1).ip, igpSidListA, "srv6Tunnel0")};
     routeUpdater.addRoute(
         RouterID(0),
-        folly::IPAddressV6("2901::"),
-        48,
-        ClientID::OPENR,
-        RouteNextHopEntry(igpNhopsA, AdminDistance::MAX_ADMIN_DISTANCE));
-
-    // IGP route B (2902::/48) -> nhop(2), nhop(3) with igpSidListB
-    const std::vector<folly::IPAddressV6> igpSidListB{
-        folly::IPAddressV6("4001:db8:b1::")};
-    RouteNextHopSet igpNhopsB{
-        makeSrv6Nhop(ecmpHelper.nhop(2).ip, igpSidListB, "srv6Tunnel0"),
-        makeSrv6Nhop(ecmpHelper.nhop(3).ip, igpSidListB, "srv6Tunnel0")};
-    routeUpdater.addRoute(
-        RouterID(0),
-        folly::IPAddressV6("2902::"),
-        48,
-        ClientID::OPENR,
-        RouteNextHopEntry(igpNhopsB, AdminDistance::MAX_ADMIN_DISTANCE));
-
-    // SRv6 route -> 2901::1 (kSid0), 2902::1 (kSid1)
-    RouteNextHopSet srv6Nhops{
-        makeSrv6Nhop(folly::IPAddress("2901::1"), {kSid0}, "srv6Tunnel0"),
-        makeSrv6Nhop(folly::IPAddress("2902::1"), {kSid1}, "srv6Tunnel0")};
-    routeUpdater.addRoute(
-        RouterID(0),
-        routePrefix,
+        kEncapRoutePrefix,
         kEncapRoutePrefixLen,
-        ClientID::BGPD,
-        RouteNextHopEntry(srv6Nhops, AdminDistance::EBGP));
+        ClientID::TE_AGENT,
+        RouteNextHopEntry(
+            RouteNextHopSet{makeSrv6Nhop(folly::IPAddress("2901::1"))},
+            AdminDistance::TE_AGENT));
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2800:3::"),
+        kEncapRoutePrefixLen,
+        ClientID::TE_AGENT,
+        RouteNextHopEntry(
+            RouteNextHopSet{makeSrv6Nhop(folly::IPAddress("2902::1"))},
+            AdminDistance::TE_AGENT));
     routeUpdater.program();
   }
 
   template <typename CIDRNetworkT>
   void addEncapRoute(
       const CIDRNetworkT& prefix,
-      const std::vector<std::vector<folly::IPAddressV6>>& sidLists) {
-    using IPAddrT = decltype(prefix.first);
-    auto ecmpHelper = makeEcmpHelper<std::remove_const_t<IPAddrT>>();
+      const std::vector<std::vector<folly::IPAddressV6>>& sidLists,
+      const std::string& nhgName) {
     RouteNextHopSet nhops;
+    // Always use ipv6 link local nhops since that;s the prod
+    // use case
+    auto ecmpHelper = makeEcmpHelper<folly::IPAddressV6>();
     for (auto i = 0; i < sidLists.size(); ++i) {
       auto nhop = ecmpHelper.nhop(i);
+      CHECK(nhop.linkLocalNhopIp.has_value());
       nhops.insert(ResolvedNextHop(
-          nhop.ip,
+          folly::IPAddress(*nhop.linkLocalNhopIp),
           nhop.intf,
           ECMP_WEIGHT,
           std::nullopt,
@@ -248,13 +364,27 @@ class AgentSrv6EncapTest : public AgentHwTest {
           TunnelType::SRV6_ENCAP,
           std::string("srv6Tunnel0")));
     }
+
+    auto rib = this->getSw()->getRib();
+    std::vector<std::pair<std::string, RouteNextHopSet>> groups;
+    groups.emplace_back(nhgName, nhops);
+    rib->addOrUpdateNamedNextHopGroups(
+        this->getSw()->getScopeResolver(),
+        groups,
+        createRibToSwitchStateFunction(),
+        this->getSw());
+
+    UnicastRoute route;
+    route.dest()->ip() =
+        facebook::network::toBinaryAddress(folly::IPAddress(prefix.first));
+    route.dest()->prefixLength() = prefix.second;
+    NamedRouteDestination namedDest;
+    namedDest.nextHopGroup_ref() = nhgName;
+    route.namedRouteDestination() = namedDest;
+    route.counterID() = nhgName;
+
     auto routeUpdater = this->getSw()->getRouteUpdater();
-    routeUpdater.addRoute(
-        RouterID(0),
-        prefix.first,
-        prefix.second,
-        ClientID::BGPD,
-        RouteNextHopEntry(nhops, AdminDistance::EBGP));
+    routeUpdater.addRoute(RouterID(0), ClientID::TE_AGENT, route);
     routeUpdater.program();
   }
 
@@ -273,12 +403,25 @@ class AgentSrv6EncapTest : public AgentHwTest {
       bool isV4 = false,
       const std::vector<folly::IPAddressV6>& expectedSids = {kSid0},
       std::optional<PortID> injectPort = std::nullopt,
-      std::optional<folly::IPAddress> dstIp = std::nullopt) {
+      std::optional<folly::IPAddress> dstIp = std::nullopt,
+      const std::string& counterID = "") {
     const auto& sids = expectedSids;
 
     std::map<PortID, int64_t> bytesBefore;
     for (auto port : egressPorts) {
       bytesBefore[port] = *this->getLatestPortStats(port).outBytes_();
+    }
+
+    int64_t counterBytesBefore = 0;
+    int64_t counterPacketsBefore = 0;
+    if (!counterID.empty()) {
+      auto hwSwitchStats = this->getHwSwitchStats();
+      auto& routeCounters = *hwSwitchStats.counterStats()->routeCounters();
+      auto it = routeCounters.find(counterID);
+      if (it != routeCounters.end()) {
+        counterBytesBefore = it->second.bytes().value_or(0);
+        counterPacketsBefore = it->second.packets().value_or(0);
+      }
     }
 
     auto intfMac =
@@ -293,6 +436,11 @@ class AgentSrv6EncapTest : public AgentHwTest {
         ? dstIp.value()
         : (isV4 ? folly::IPAddress("100.0.0.1")
                 : folly::IPAddress(kEncapRouteDstIp));
+
+    XLOG(DBG2) << " Verifying : v4: " << isV4 << " with counter ID: "
+               << (counterID.size() ? counterID : "none")
+               << " dst IP: " << pktDstIp
+               << " from CPU: " << (injectPort ? "no" : "yes");
     auto txPacket = utility::makeUDPTxPacket(
         this->getSw(),
         this->getVlanIDForTx(),
@@ -371,19 +519,62 @@ class AgentSrv6EncapTest : public AgentHwTest {
       // for it here.
       EXPECT_EQ(*v6Payload->v6PayLoad(), *origPacket);
     }
+
+    if (!counterID.empty()) {
+      WITH_RETRIES({
+        auto hwSwitchStats = this->getHwSwitchStats();
+        auto& routeCounters = *hwSwitchStats.counterStats()->routeCounters();
+        auto it = routeCounters.find(counterID);
+        ASSERT_EVENTUALLY_TRUE(it != routeCounters.end())
+            << "Route counter " << counterID << " not found";
+        EXPECT_EVENTUALLY_GT(
+            it->second.bytes().value_or(0), counterBytesBefore);
+        EXPECT_EVENTUALLY_EQ(
+            it->second.packets().value_or(0), counterPacketsBefore + 1);
+      });
+    }
   }
 
   void verifyEncapPacketCpuAndFrontPanel(
       const std::vector<PortID>& egressPorts,
-      const std::vector<folly::IPAddressV6>& expectedSids = {kSid0}) {
+      const std::vector<folly::IPAddressV6>& expectedSids = {kSid0},
+      const std::string& counterID = "") {
     auto injectPort = findInjectPort(egressPorts);
     for (bool isV4 : {false, true}) {
       // ECN not marked
-      verifyEncapPacket(egressPorts, false, isV4, expectedSids);
-      verifyEncapPacket(egressPorts, false, isV4, expectedSids, injectPort);
+      verifyEncapPacket(
+          egressPorts,
+          false,
+          isV4,
+          expectedSids,
+          std::nullopt,
+          std::nullopt,
+          counterID);
+      verifyEncapPacket(
+          egressPorts,
+          false,
+          isV4,
+          expectedSids,
+          injectPort,
+          std::nullopt,
+          counterID);
       // ECN marked
-      verifyEncapPacket(egressPorts, true, isV4, expectedSids);
-      verifyEncapPacket(egressPorts, true, isV4, expectedSids, injectPort);
+      verifyEncapPacket(
+          egressPorts,
+          true,
+          isV4,
+          expectedSids,
+          std::nullopt,
+          std::nullopt,
+          counterID);
+      verifyEncapPacket(
+          egressPorts,
+          true,
+          isV4,
+          expectedSids,
+          injectPort,
+          std::nullopt,
+          counterID);
     }
   }
 
@@ -419,7 +610,8 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRoute) {
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    this->verifyEncapPacketCpuAndFrontPanel({egressPort});
+    this->verifyEncapPacketCpuAndFrontPanel(
+        {egressPort}, {this->kSid0}, this->kNhgSid0);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -431,7 +623,7 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRouteAfterLinkFlap) {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     this->bringDownPort(egressPort);
-    this->unresolveV4AndV6NextHops(2);
+    this->unresolveNextHops(2);
     this->bringUpPort(egressPort);
     // For aggregate ports, the SAI fast-path link down handler disables
     // the LAG member (EgressDisable=true). Since LACP is not running in
@@ -453,13 +645,14 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRouteAfterLinkFlap) {
           },
           "re-enable trunk ports after link flap");
     }
-    this->resolveV4AndV6NextHops(2);
+    this->resolveNextHops(2);
   };
 
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    this->verifyEncapPacketCpuAndFrontPanel({egressPort});
+    this->verifyEncapPacketCpuAndFrontPanel(
+        {egressPort}, {this->kSid0}, "kSid0");
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -490,17 +683,43 @@ TYPED_TEST(AgentSrv6EncapTest, recursiveResolutionPreservesSidList) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentSrv6EncapTest, recursiveResolutionSameSidListSameRif) {
+  auto setup = [this]() {
+    // Skip programming direct encap routes to avoid colliding
+    // SRv6 managed next hop keys with recursive resolution.
+    this->setupHelper(false /*resolveNeighbors*/, false /*programEncapRoutes*/);
+    this->addRecursiveSrv6RoutesSameSidListSameRif();
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto rif0EgressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+
+    this->verifyEncapPacket(
+        {rif0EgressPort}, false /*ecnMarked*/, false /*isV4*/, {this->kSid0});
+    this->verifyEncapPacket(
+        {rif0EgressPort},
+        false /*ecnMarked*/,
+        false /*isV4*/,
+        {this->kSid0},
+        std::nullopt,
+        folly::IPAddress("2800:3::1"));
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 TYPED_TEST(AgentSrv6EncapTest, resolveNeighborsAfterRouteProgram) {
   auto setup = [this]() {
     this->setupHelper(false /*resolveNeighbors*/);
     // Resolve neighbors after route programming
-    this->resolveV4AndV6NextHops(2);
+    this->resolveNextHops(2);
   };
 
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    this->verifyEncapPacketCpuAndFrontPanel({egressPort});
+    this->verifyEncapPacketCpuAndFrontPanel(
+        {egressPort}, {this->kSid0}, "kSid0");
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -512,86 +731,98 @@ TYPED_TEST(AgentSrv6EncapTest, multipleSidListsSameNextHop) {
     auto ecmpHelper = this->makeEcmpHelper();
     auto nhop0 = ecmpHelper.nhop(0);
     auto nhop1 = ecmpHelper.nhop(1);
+    auto rib = this->getSw()->getRib();
 
-    // Phase 1: Two routes with different SID lists both via nhop(0)
-    // Route A: kEncapRoutePrefix/64 -> nhop(0) with kSid0
-    // Route B: 2800:3::/64 -> nhop(0) with kSid1
+    auto makeNhopSet = [](const auto& nhop,
+                          const std::vector<folly::IPAddressV6>& sidList) {
+      // Helper to get link-local IP for IPv6 next hops
+      auto getNhopIp = [](const auto& nhop) {
+        if (nhop.linkLocalNhopIp.has_value()) {
+          return nhop.linkLocalNhopIp.value();
+        }
+        return nhop.ip;
+      };
+      RouteNextHopSet nhops;
+      nhops.insert(ResolvedNextHop(
+          getNhopIp(nhop),
+          nhop.intf,
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          sidList,
+          TunnelType::SRV6_ENCAP,
+          std::string("srv6Tunnel0")));
+      return nhops;
+    };
+
+    // Phase 1: Two routes with different named NHGs both via nhop(0)
+    // NHG A: nhop(0) with kSid0
+    // NHG B: nhop(0) with kSid1
     {
-      auto routeUpdater = this->getSw()->getRouteUpdater();
-      RouteNextHopSet nhopsA;
-      nhopsA.insert(ResolvedNextHop(
-          nhop0.ip,
-          nhop0.intf,
-          ECMP_WEIGHT,
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          std::vector<folly::IPAddressV6>{this->kSid0},
-          TunnelType::SRV6_ENCAP,
-          std::string("srv6Tunnel0")));
-      routeUpdater.addRoute(
-          RouterID(0),
-          this->kEncapRoutePrefix,
-          this->kEncapRoutePrefixLen,
-          ClientID::BGPD,
-          RouteNextHopEntry(nhopsA, AdminDistance::EBGP));
+      std::vector<std::pair<std::string, RouteNextHopSet>> groups;
+      groups.emplace_back("nhg-sid0", makeNhopSet(nhop0, {this->kSid0}));
+      groups.emplace_back("nhg-sid1", makeNhopSet(nhop0, {this->kSid1}));
+      rib->addOrUpdateNamedNextHopGroups(
+          this->getSw()->getScopeResolver(),
+          groups,
+          createRibToSwitchStateFunction(),
+          this->getSw());
 
-      RouteNextHopSet nhopsB;
-      nhopsB.insert(ResolvedNextHop(
-          nhop0.ip,
-          nhop0.intf,
-          ECMP_WEIGHT,
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          std::vector<folly::IPAddressV6>{this->kSid1},
-          TunnelType::SRV6_ENCAP,
-          std::string("srv6Tunnel0")));
-      routeUpdater.addRoute(
-          RouterID(0),
-          folly::IPAddressV6("2800:3::"),
-          this->kEncapRoutePrefixLen,
-          ClientID::BGPD,
-          RouteNextHopEntry(nhopsB, AdminDistance::EBGP));
+      auto routeUpdater = this->getSw()->getRouteUpdater();
+
+      UnicastRoute routeA;
+      routeA.dest()->ip() = facebook::network::toBinaryAddress(
+          folly::IPAddress(this->kEncapRoutePrefix));
+      routeA.dest()->prefixLength() = this->kEncapRoutePrefixLen;
+      NamedRouteDestination namedDestA;
+      namedDestA.nextHopGroup_ref() = "nhg-sid0";
+      routeA.namedRouteDestination() = namedDestA;
+      routeA.counterID() = "nhg-sid0";
+      routeUpdater.addRoute(RouterID(0), ClientID::TE_AGENT, routeA);
+
+      UnicastRoute routeB;
+      routeB.dest()->ip() = facebook::network::toBinaryAddress(
+          folly::IPAddress(folly::IPAddressV6("2800:3::")));
+      routeB.dest()->prefixLength() = this->kEncapRoutePrefixLen;
+      NamedRouteDestination namedDestB;
+      namedDestB.nextHopGroup_ref() = "nhg-sid1";
+      routeB.namedRouteDestination() = namedDestB;
+      routeB.counterID() = "nhg-sid1";
+      routeUpdater.addRoute(RouterID(0), ClientID::TE_AGENT, routeB);
+
       routeUpdater.program();
     }
 
     // Verify both routes encap correctly while sharing nhop(0)
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     this->verifyEncapPacket(
-        {egressPort}, false /*ecnMarked*/, false /*isV4*/, {this->kSid0});
+        {egressPort},
+        false /*ecnMarked*/,
+        false /*isV4*/,
+        {this->kSid0},
+        std::nullopt,
+        std::nullopt,
+        "nhg-sid0");
     this->verifyEncapPacket(
         {egressPort},
         false /*ecnMarked*/,
         false /*isV4*/,
         {this->kSid1},
         std::nullopt /*injectPort*/,
-        folly::IPAddress("2800:3::1"));
+        folly::IPAddress("2800:3::1"),
+        "nhg-sid1");
 
-    // Phase 2: Change route B to use nhop(1) instead of nhop(0)
+    // Phase 2: Update NHG B to use nhop(1) instead of nhop(0)
     {
-      auto routeUpdater = this->getSw()->getRouteUpdater();
-      RouteNextHopSet nhopsBNew;
-      nhopsBNew.insert(ResolvedNextHop(
-          nhop1.ip,
-          nhop1.intf,
-          ECMP_WEIGHT,
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          std::vector<folly::IPAddressV6>{this->kSid1},
-          TunnelType::SRV6_ENCAP,
-          std::string("srv6Tunnel0")));
-      routeUpdater.addRoute(
-          RouterID(0),
-          folly::IPAddressV6("2800:3::"),
-          this->kEncapRoutePrefixLen,
-          ClientID::BGPD,
-          RouteNextHopEntry(nhopsBNew, AdminDistance::EBGP));
-      routeUpdater.program();
+      std::vector<std::pair<std::string, RouteNextHopSet>> updatedGroups;
+      updatedGroups.emplace_back("nhg-sid1", makeNhopSet(nhop1, {this->kSid1}));
+      rib->addOrUpdateNamedNextHopGroups(
+          this->getSw()->getScopeResolver(),
+          updatedGroups,
+          createRibToSwitchStateFunction(),
+          this->getSw());
     }
   };
 
@@ -605,7 +836,13 @@ TYPED_TEST(AgentSrv6EncapTest, multipleSidListsSameNextHop) {
 
     // Route A encaps with kSid0 via nhop(0)
     this->verifyEncapPacket(
-        {egressPort0}, false /*ecnMarked*/, false /*isV4*/, {this->kSid0});
+        {egressPort0},
+        false /*ecnMarked*/,
+        false /*isV4*/,
+        {this->kSid0},
+        std::nullopt,
+        std::nullopt,
+        "nhg-sid0");
 
     // Route B encaps with kSid1 via nhop(1)
     this->verifyEncapPacket(
@@ -614,7 +851,8 @@ TYPED_TEST(AgentSrv6EncapTest, multipleSidListsSameNextHop) {
         false /*isV4*/,
         {this->kSid1},
         std::nullopt /*injectPort*/,
-        folly::IPAddress("2800:3::1"));
+        folly::IPAddress("2800:3::1"),
+        "nhg-sid1");
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -625,9 +863,11 @@ TYPED_TEST(AgentSrv6EncapTest, verifySrv6EncapEcnMarking) {
       this->applyConfigAndEnableTrunks(
           this->initialConfig(*this->getAgentEnsemble()));
     }
-    this->resolveV4AndV6NextHops(2);
+    this->resolveNextHops(2);
     this->template addEncapRoute<folly::CIDRNetworkV6>(
-        {this->kEncapRoutePrefix, this->kEncapRoutePrefixLen}, {{this->kSid0}});
+        {this->kEncapRoutePrefix, this->kEncapRoutePrefixLen},
+        {{this->kSid0}},
+        this->kNhgSid0);
   };
 
   auto verify = [this]() {
@@ -680,9 +920,11 @@ TYPED_TEST(AgentSrv6EncapTest, VerifyDscpQueueMapping) {
       this->applyConfigAndEnableTrunks(
           this->initialConfig(*this->getAgentEnsemble()));
     }
-    this->resolveV4AndV6NextHops(this->kNumNextHops);
+    this->resolveNextHops(this->kNumNextHops);
     this->template addEncapRoute<folly::CIDRNetworkV6>(
-        {this->kEncapRoutePrefix, this->kEncapRoutePrefixLen}, {{this->kSid0}});
+        {this->kEncapRoutePrefix, this->kEncapRoutePrefixLen},
+        {{this->kSid0}},
+        this->kNhgSid0);
   };
 
   auto verify = [this]() {

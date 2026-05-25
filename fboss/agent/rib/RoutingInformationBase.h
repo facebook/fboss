@@ -64,11 +64,16 @@ using RibMySidToSwitchStateFunction = std::function<StateDelta(
     void* cookie)>;
 
 // Each pair is (MySid state object, its unresolved next-hop set). The
-// next-hop set is empty for DECAPSULATE_AND_LOOKUP / ADJACENCY_MICRO_SID
-// entries; populated for NODE_MICRO_SID. Bundling them in a pair keeps the
-// two pieces of data inseparable across all RIB / ConfigApplier call sites
-// that consume config-derived MySid state.
-using MySidWithNextHops = std::pair<std::shared_ptr<MySid>, RouteNextHopSet>;
+// next-hop set is empty for DECAPSULATE_AND_LOOKUP and populated for
+// others. Bundling them in a pair keeps the
+// MySid with its associated next hops and optional next hop group name.
+// These three pieces of data are inseparable across all RIB / ConfigApplier
+// call sites that consume config-derived MySid state.
+struct MySidWithNextHops {
+  std::shared_ptr<MySid> mySid;
+  RouteNextHopSet nextHopSet;
+  std::optional<std::string> nextHopGroupName;
+};
 
 // (prefix-key for the MySid, IP of the removed neighbor). Used by the
 // observer-driven neighbor-removal path: RIB clears unresolveNextHopsId
@@ -101,8 +106,10 @@ class RibRouteTables {
   }
 
   void addOrUpdateNamedNextHopGroups(
+      const SwitchIdScopeResolver* resolver,
       const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
-      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
+      void* cookie);
 
   void deleteNamedNextHopGroups(
       const std::vector<std::string>& names,
@@ -119,7 +126,8 @@ class RibRouteTables {
       bool resetClientsRoutes,
       folly::StringPiece updateType,
       const RibToSwitchStateFunction& ribToSwitchStateFunc,
-      void* cookie);
+      void* cookie,
+      std::size_t* cyclesDetectedOut = nullptr);
 
   void update(
       const SwitchIdScopeResolver* resolver,
@@ -352,6 +360,7 @@ class RoutingInformationBase {
     std::size_t mplsRoutesAdded{0};
     std::size_t mplsRoutesDeleted{0};
     std::chrono::microseconds duration{0};
+    std::size_t resolutionCyclesDetected{0};
   };
 
   /*
@@ -414,8 +423,8 @@ class RoutingInformationBase {
    * Update mySids in RIB and switchState from pre-built MySid state objects.
    * Used by the config-driven path (SwSwitch::applyMySidConfig).
    * Each entry in toAdd is (MySid state object, its unresolved next-hop set).
-   * The next-hop set is empty for DECAPSULATE_AND_LOOKUP / ADJACENCY_MICRO_SID
-   * entries; populated for NODE_MICRO_SID.
+   * The next-hop set is empty for DECAPSULATE_AND_LOOKUP entries;
+   * populated for others.
    *
    * The synchronous overload blocks until the rib event-base thread finishes
    * applying the update and rethrows any exception on the caller's thread.
@@ -588,8 +597,10 @@ class RoutingInformationBase {
   // thread-safe access to NextHopIDManager. Allocation/deallocation is followed
   // by a state update callback (under rlock) to sync switch state.
   void addOrUpdateNamedNextHopGroups(
+      const SwitchIdScopeResolver* resolver,
       const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
-      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
+      void* cookie);
 
   void deleteNamedNextHopGroups(
       const std::vector<std::string>& names,

@@ -10,9 +10,11 @@
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/MacAddress.h>
+#include <folly/logging/xlog.h>
 
 #include <algorithm>
 #include <tuple>
@@ -195,6 +197,78 @@ bool AggregatePort::isIngressValid(
  */
 bool AggregatePort::isUp() const {
   return forwardingSubportCount() >= getMinimumLinkCount();
+}
+
+AggregatePortCapacityResult computeAggregatePortCapacityAndStatus(
+    const std::shared_ptr<AggregatePort>& aggPort,
+    const std::shared_ptr<SwitchState>& state) {
+  AggregatePortCapacityResult result;
+  int64_t configuredTotal = 0;
+  int64_t activeTotal = 0;
+  uint32_t fwdCount = 0;
+  bool allSpeedsResolved = true;
+
+  bool isHyperPort =
+      (aggPort->getAggregatePortType() == cfg::AggregatePortType::HYPER_PORT);
+
+  for (const auto& subport : aggPort->sortedSubports()) {
+    bool isForwarding = aggPort->getForwardingState(subport.portID) ==
+        AggregatePort::Forwarding::ENABLED;
+    if (isForwarding) {
+      ++fwdCount;
+    }
+
+    auto port = state->getPorts()->getNodeIf(subport.portID);
+    if (!port) {
+      allSpeedsResolved = false;
+      continue;
+    }
+
+    auto speed = port->getSpeed();
+    if (speed == cfg::PortSpeed::DEFAULT) {
+      // Not expected in production: applyThriftConfig resolves DEFAULT to a
+      // concrete speed before switch state is published.
+      XLOG(WARNING) << "Port " << subport.portID
+                    << " has DEFAULT speed in switch state";
+      allSpeedsResolved = false;
+      continue;
+    }
+
+    int64_t speedMbps = static_cast<int64_t>(speed);
+    configuredTotal += speedMbps;
+
+    if (isForwarding) {
+      activeTotal += speedMbps;
+    }
+  }
+
+  if (allSpeedsResolved) {
+    result.configuredCapacityMbps = configuredTotal;
+  }
+
+  if (isHyperPort) {
+    auto totalCount = aggPort->subportsCount();
+    if (fwdCount == totalCount && allSpeedsResolved) {
+      result.activeCapacityMbps = activeTotal;
+      result.status = state::AggregatePortStatus::UP;
+    } else if (fwdCount == totalCount) {
+      result.status = state::AggregatePortStatus::UP;
+    } else {
+      result.activeCapacityMbps = 0;
+      result.status = state::AggregatePortStatus::DOWN;
+    }
+    return result;
+  }
+
+  if (allSpeedsResolved) {
+    result.activeCapacityMbps = activeTotal;
+  }
+
+  result.status = (fwdCount >= aggPort->getMinimumLinkCount())
+      ? state::AggregatePortStatus::UP
+      : state::AggregatePortStatus::DOWN;
+
+  return result;
 }
 
 template struct ThriftStructNode<AggregatePort, state::AggregatePortFields>;

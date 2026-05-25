@@ -18,6 +18,10 @@ namespace facebook::fboss {
 class SwSwitch;
 class SwitchIdScopeResolver;
 
+RibToSwitchStateFunction createRibToSwitchStateFunction(
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+        std::nullopt);
+
 class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
  public:
   explicit SwSwitchRouteUpdateWrapper(

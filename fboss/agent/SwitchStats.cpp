@@ -92,6 +92,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
       addRouteV6_(map, kCounterPrefix + "route.v6.add", RATE),
       delRouteV4_(map, kCounterPrefix + "route.v4.delete", RATE),
       delRouteV6_(map, kCounterPrefix + "route.v6.delete", RATE),
+      ribResolutionCyclesDetected_(
+          map,
+          kCounterPrefix + "rib_resolution_cycles_detected",
+          SUM,
+          RATE),
       routeProgrammingUpdateAttempts_(
           map,
           kCounterPrefix + "route_programming_update_attempts",

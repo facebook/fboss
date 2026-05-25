@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-# pyre-unsafe
-
-from neteng.fboss.ctrl import FbossCtrl
-from neteng.fboss.qsfp import QsfpService
-from thrift.protocol.THeaderProtocol import THeaderProtocol
-from thrift.transport.THeaderTransport import THeaderTransport
-from thrift.transport.TSocket import TSocket
+from neteng.fboss.ctrl.thrift_clients import FbossCtrl
+from neteng.fboss.qsfp.thrift_clients import QsfpService
+from thrift.python.client.sync_client_factory import get_client as get_sync_client
 
 
 #################
@@ -20,7 +16,7 @@ from thrift.transport.TSocket import TSocket
 #        print(client.getAllPortInfo())    # dump all of the port stats
 
 
-class PlainTextFbossAgentClientDontUseInFb(FbossCtrl.Client):
+class PlainTextFbossAgentClientDontUseInFb:
     DEFAULT_PORT = 5909
     DEFAULT_HW_PORT = 5931
 
@@ -29,23 +25,27 @@ class PlainTextFbossAgentClientDontUseInFb(FbossCtrl.Client):
         if port is None:
             port = self.DEFAULT_PORT
 
-        self._socket = TSocket(host, port)
-        # TSocket.setTimeout() takes a value in milliseconds
-        self._socket.setTimeout(timeout * 1000)
-        self._transport = THeaderTransport(self._socket)
-        self._protocol = THeaderProtocol(self._transport)
-
-        self._transport.open()
-        FbossCtrl.Client.__init__(self, self._protocol)
+        self._client = get_sync_client(
+            FbossCtrl,
+            host=host,
+            port=port,
+            timeout=timeout,
+        )
 
     def __enter__(self):
         return self
 
     def __exit__(self, type, value, traceback):
-        self._transport.close()
+        self._client.__exit__(type, value, traceback)
+
+    def __getattr__(self, name):
+        return getattr(self._client, name)
+
+    def close(self):
+        self._client.__exit__(None, None, None)
 
 
-class QsfpServiceClient(QsfpService.Client):
+class QsfpServiceClient:
     DEFAULT_PORT = 5910
     DEFAULT_TIMEOUT = 10.0
 
@@ -56,17 +56,21 @@ class QsfpServiceClient(QsfpService.Client):
         self.host = host
 
         timeout = timeout or self.DEFAULT_TIMEOUT
-        self._socket = TSocket(host, self.DEFAULT_PORT)
-        # TSocket.setTimeout() takes a value in milliseconds
-        self._socket.setTimeout(timeout * 1000)
-        self._transport = THeaderTransport(self._socket)
-        self._protocol = THeaderProtocol(self._transport)
-
-        self._transport.open()
-        QsfpService.Client.__init__(self, self._protocol)
+        self._client = get_sync_client(
+            QsfpService,
+            host=host,
+            port=self.DEFAULT_PORT,
+            timeout=timeout,
+        )
 
     def __enter__(self):
         return self
 
     def __exit__(self, type, value, traceback):
-        self._transport.close()
+        self._client.__exit__(type, value, traceback)
+
+    def __getattr__(self, name):
+        return getattr(self._client, name)
+
+    def close(self):
+        self._client.__exit__(None, None, None)

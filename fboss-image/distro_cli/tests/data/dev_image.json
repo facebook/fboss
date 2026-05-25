@@ -20,7 +20,7 @@
   "npu_sai": {
     "execute": ["../../../../fboss_brcm_sai/build.sh"]
   },
-    "phy_sai": {
+  "phy_sai": {
     "execute": ["../../../../fboss/oss/scripts/build_phy_sai.sh"]
   },
   "fboss-forwarding-stack": {

@@ -116,6 +116,20 @@ The picture below shows the high level system architecture.
   * The SCM IDPROM must contain the X86 MAC address.
   * Two copies of SCM IDPROM are a must, since both BMC and x86 need access to
     the SCM IDPROM.
+* IDPROM Write-Protection:
+  * IDPROM write-protection shall be controlled by a GPIO pin from CPLD or
+    FPGA, whose default value shall be "write-protected" at power-on or reset.
+    No software intervention should be required to achieve the write-protected
+    state.
+  * None of the FBOSS platform services (such as `platform_manager`,
+    `sensor_service`, `fan_service`, `data_corral_service`, `weutil`, etc.)
+    shall change the IDPROM write-protection bits in their configurations or at
+    runtime. The services must treat IDPROMs as read-only devices during normal
+    operation.
+  * There must be a mechanism for Meta to disable IDPROM write-protection when
+    needed (e.g., during manufacturing or field re-provisioning). This is
+    typically achieved by modifying the corresponding FPGA/CPLD register bits
+    that control the write-protection.
 
 ### 2.3 Console
 
@@ -129,7 +143,9 @@ As shown in the reference design:
    controller directly, and baud rate is set to 9600 bps in the Meta environment.
 2. There must be a UART connection between BMC and CPU/X86, usually muxed by a
    CPLD, for SOL application: the baud rate between BMC and CPU is 57600 bps.
-3. The debug UART (USB 3.0 Debug card) in the reference design is optional.
+3. The debug UART (USB 3.0 Debug card) shall be supported. Support UART
+   multiplexing between the Meta OCP Debug Card USB port, RunBMC, and
+   Microserver (HSUART).
 
 ### 2.4 Management Network Topology (Internal Control Plane Switch)
 
@@ -151,8 +167,8 @@ As shown in the reference design:
 5. Both management ports can be presented as separate network interfaces in both
    x86 and BMC kernel/OS.
 6. The management ports, BMC and X86 shall be connected using an internal/onboard
-   ethernet switch, such as Marvel 88E6321. The switch will be referred to as
-  "oob_switch" in this document.
+   ethernet switch. The OOB switch shall be Marvell 88E6321 or a Meta-approved
+   equivalent. The switch will be referred to as "oob_switch" in this document.
 7. The ethernet connection among BMC, X86 and management ports are running at
    1Gbps.
 
@@ -384,9 +400,10 @@ A few notes:
 ## 5. BMC Subsystem
 
 * BMC HW needs to meet the following requirements
-  * AST2600 series SoC or higher
-  * 2G or bigger Memory,
+  * AST2600 series SoC or higher (e.g., AST2620, AST2720), on a Meta RunBMC module
+  * 2GB or larger DDR5 memory with ECC
   * Without external eMMC
+  * TPM 2.0 device (soldered down) required on the BMC module
   * 2 x 128MB SPI flash chip, No QSPI.
   * Alternate (2nd) Boot Recovery function should be enabled at manufacturing by
     strap OTP trap_en_bspiabr.
@@ -422,14 +439,14 @@ A few notes:
 * HW:
   * The CPU shall be powerful enough to run all Meta services (platform services,
     qsfp_service, agent) as well as ASIC SDK.
-    * Icelake-D with four or more cores is recommended. Intel embedded CPUs more
-      powerful than Icelake-D are acceptable.
+    * AMD FireRange (16 cores, 4.40GHz, 55W TDP or more powerful) is recommended.
+    * It is recommended JDMs use Meta's latest COMe module (Netlake2.0).
     * While COMe does not necessarily have its own EEPROM, SCM (SUP or CPU board)
       shall have its own EEPROM
-    * 32GB or bigger memory shall be used.
-    * 512GB or bigger NVMe shall be used. SSD should meet Meta’s Read/write
-      speed requirements
-      * PCIe Gen4 NVMe E1.S SSD or better, is required.
+    * 2x 32GB DDR5 DIMM with ECC shall be used.
+    * Min 1TB E1.S NVMe shall be used. The detailed SSD requirements are
+      documented at the OCP Hyperscale NVMe Boot SSD Specification v1.0.
+      * x4 PCIe Gen4 NVMe E1.S SSD or better, is required.
     * Primary access to optics/sensors/power-modules should be done from CPU,
       through FPGA.
       * BMC shall have back-up I2C access path to FPGA,
@@ -437,6 +454,7 @@ A few notes:
         through FPGAs and CPLDs
     * The X86 CPU shall have access to all the GPIO lines that indicate the
       presence of FRUs. (can be via FPGA/CPLD)
+    * TPM 2.0 device (soldered down) required.
     * BIOS will be stored in a separate chip. If there are two BIOS binaries
       (Primary / Golden) they will be stored in two different SPI Flash chip.
 
@@ -473,7 +491,8 @@ A few notes:
 
 ### 6.2  ASIC and ASIC Protection
 
-* ASIC shall be connected to CPU through PCIe
+* ASIC shall be connected to CPU through PCIe Gen4x4 or higher
+  (downgradable to Gen3x2 or Gen3x4)
 * Vendor HW (FPGA or CPLD) shall monitor the ASIC temperature through the
   HW interface provided by the ASIC. (I2C, one-wire and so on.)
 * The HW (FPGA or CPLD) shall also have the logic to shut down the ASIC if
@@ -497,6 +516,7 @@ A few notes:
   BSP codebase.
 * FPGAs shall be connected to CPU through PCIe
 * CPLDs shall be connected to CPU through I2C
+* System FPGA complex shall have PCIe interface to CPU via BAR0 memory space.
 
 ## 6.4 Optics
 

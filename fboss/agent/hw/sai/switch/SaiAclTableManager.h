@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/AclApi.h"
+#include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/AclEntry.h"
@@ -80,6 +81,7 @@ struct SaiAclEntryHandle {
   std::shared_ptr<SaiAclRange> dstPortRange;
   std::shared_ptr<SaiHostifUserDefinedTrapHandle> userDefinedTrap;
   std::shared_ptr<SaiAclCounter> aclCounter;
+  std::shared_ptr<SaiObject<SaiTunnelEncapNextHopTraits>> tunnelEncapNextHop;
   std::shared_ptr<SaiAclEntry> aclEntry;
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
   std::optional<std::string> ingressMirror;

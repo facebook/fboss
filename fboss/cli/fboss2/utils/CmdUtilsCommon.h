@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include <CLI/App.hpp>
 #include <bits/types/struct_timeval.h>
 #include <folly/IPAddress.h>
 #include <folly/stop_watch.h>

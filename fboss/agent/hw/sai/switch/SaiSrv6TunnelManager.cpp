@@ -13,20 +13,6 @@
 namespace facebook::fboss {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-namespace {
-
-sai_tunnel_encap_ecn_mode_t getSaiEncapEcnMode(cfg::TunnelMode mode) {
-  switch (mode) {
-    case cfg::TunnelMode::UNIFORM:
-      return SAI_TUNNEL_ENCAP_ECN_MODE_STANDARD;
-    case cfg::TunnelMode::PIPE:
-    case cfg::TunnelMode::USER:
-      return SAI_TUNNEL_ENCAP_ECN_MODE_USER_DEFINED;
-  }
-  throw FbossError("Failed to convert encap ECN mode to SAI type: ", mode);
-}
-
-} // namespace
 #endif
 
 SaiSrv6TunnelManager::SaiSrv6TunnelManager(

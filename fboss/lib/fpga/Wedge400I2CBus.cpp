@@ -6,7 +6,7 @@
 #include "fboss/lib/fpga/Wedge400Fpga.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 
 namespace {
@@ -78,7 +78,7 @@ void Wedge400I2CBus::moduleRead(
     throw I2cError("Too long to read");
   }
 
-  XLOG(DBG3) << folly::format(
+  XLOG(DBG3) << fmt::format(
       "I2C read to module {:d} at offset {:#x} for {:d} bytes",
       module - 1,
       offset,
@@ -106,7 +106,7 @@ void Wedge400I2CBus::moduleWrite(
     throw I2cError("Too long to write");
   }
 
-  XLOG(DBG3) << folly::format(
+  XLOG(DBG3) << fmt::format(
       "I2C write to module {:d} at offset {:#x} for {:d} bytes",
       module - 1,
       offset,
@@ -122,7 +122,7 @@ void Wedge400I2CBus::moduleWrite(
 }
 
 bool Wedge400I2CBus::isPresent(unsigned int module) {
-  XLOG(DBG5) << folly::format("detecting presence of module:{:d}", module);
+  XLOG(DBG5) << fmt::format("detecting presence of module:{:d}", module);
   auto port = getFpgaPort(module);
   return isOnLeftFpga(module) ? leftFpga_->isQsfpPresent(port)
                               : rightFpga_->isQsfpPresent(port);

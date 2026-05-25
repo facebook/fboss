@@ -206,8 +206,8 @@ void sendDHCPV6Packet(
   handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), VlanID(1));
 }
 
-typedef std::function<void(Cursor* cursor, uint32_t length)>
-    DHCPV6PayloadCheckFn;
+using DHCPV6PayloadCheckFn =
+    std::function<void(Cursor* cursor, uint32_t length)>;
 
 // Generic validator function to validate expected packet from the DHCPV6
 // handler

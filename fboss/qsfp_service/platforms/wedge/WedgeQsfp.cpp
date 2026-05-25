@@ -9,6 +9,7 @@
  */
 
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
+#include <fmt/core.h>
 #include <folly/Conv.h>
 #include <folly/Random.h>
 #include <folly/ScopeGuard.h>
@@ -56,7 +57,7 @@ void generateIOErrorForTest(std::string functionName) {
   if (FLAGS_module_io_err_inject > 0 && FLAGS_module_io_err_inject <= 100) {
     int randomPlacement = folly::Random::rand32(1, 100);
     if (randomPlacement <= FLAGS_module_io_err_inject) {
-      throw I2cError(folly::sformat("IO error injected in {:s}", functionName));
+      throw I2cError(fmt::format("IO error injected in {:s}", functionName));
     }
   }
 }
@@ -203,12 +204,12 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
           buf.data(),
           // common enum to all tcvr types
           CAST_TO_INT(CmisField::MGMT_INTERFACE));
-      WEDGE_QSFP_LOG(DBG3) << folly::sformat("identifier: {:#x}", buf[0]);
+      WEDGE_QSFP_LOG(DBG3) << fmt::format("identifier: {:#x}", buf[0]);
       TransceiverManagementInterface modInterfaceType =
           QsfpModule::getTransceiverManagementInterface(buf[0], module_ + 1);
 
       if (modInterfaceType == TransceiverManagementInterface::UNKNOWN) {
-        WEDGE_QSFP_LOG(WARNING) << folly::sformat(
+        WEDGE_QSFP_LOG(WARNING) << fmt::format(
             "has unknown non-zero identifier: {:#x} defaulting to SFF", buf[0]);
         return TransceiverManagementInterface::SFF;
       } else if (modInterfaceType != TransceiverManagementInterface::NONE) {

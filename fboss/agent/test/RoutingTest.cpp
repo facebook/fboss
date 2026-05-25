@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 
+#include <fmt/core.h>
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
@@ -268,13 +269,13 @@ class RoutingFixture : public ::testing::Test {
   static void initializeInterfaceConfig(cfg::Interface& intf, int32_t id) {
     *intf.intfID() = id;
     *intf.vlanID() = id;
-    intf.name() = folly::sformat("Interface-{}", id);
+    intf.name() = fmt::format("Interface-{}", id);
     intf.mtu() = 9000;
     intf.ipAddresses()->resize(4);
-    intf.ipAddresses()[0] = folly::sformat("169.254.{}.{}/32", id, id);
-    intf.ipAddresses()[1] = folly::sformat("10.0.0.{}1/31", id);
-    intf.ipAddresses()[2] = folly::sformat("face:b00c::{}1/127", id);
-    intf.ipAddresses()[3] = folly::sformat("fe80::{}/64", id);
+    intf.ipAddresses()[0] = fmt::format("169.254.{}.{}/32", id, id);
+    intf.ipAddresses()[1] = fmt::format("10.0.0.{}1/31", id);
+    intf.ipAddresses()[2] = fmt::format("face:b00c::{}1/127", id);
+    intf.ipAddresses()[3] = fmt::format("fe80::{}/64", id);
   }
 
   /**

@@ -264,6 +264,7 @@ class HwSwitch {
 
   virtual folly::F14FastMap<std::string, HwPortStats> getPortStats() const = 0;
   virtual CpuPortStats getCpuPortStats() const = 0;
+  virtual std::map<std::string, HwTrunkStats> getTrunkStats() const = 0;
 
   virtual folly::F14FastMap<std::string, HwRouterInterfaceStats>
   getRouterInterfaceStats() const = 0;

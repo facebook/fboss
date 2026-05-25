@@ -148,7 +148,6 @@ add_library(icetea800bc_bsp
 
 target_link_libraries(icetea800bc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -253,6 +252,7 @@ add_library(qsfp_bsp_core
   fboss/lib/bsp/BspTransceiverAccess.cpp
   fboss/lib/bsp/BspTransceiverAccessImpl.cpp
   fboss/lib/bsp/BspTransceiverCpldAccess.cpp
+  fboss/lib/bsp/BspTransceiverGpioAccess.cpp
   fboss/lib/bsp/BspTransceiverApi.cpp
   fboss/lib/bsp/BspTransceiverContainer.cpp
   fboss/lib/bsp/BspTransceiverIO.cpp
@@ -290,6 +290,7 @@ target_link_libraries(qsfp_bsp_core
   ledIO
   led_mapping_cpp2
   build_from_xcvr_lib
+  ${LIBGPIOD}
 )
 
 add_library(transceiver_validator
@@ -370,7 +371,43 @@ target_link_libraries(qsfp_handler
   fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags
+  pai_diag_shell
 )
+
+# PAI Diag Shell library — same lib name in both cases (so qsfp_handler's
+# link line is the same), but the sources + deps differ based on whether
+# SAI_BRCM_PAI_IMPL is set. Mirrors the existing pattern used by
+# `sai_phy_management` (LibPhy.cmake) and `qsfp_service` itself.
+#
+#   SAI_BRCM_PAI_IMPL=ON  -> real impl from PaiDiagShell.cpp, links against
+#                            sai_repl + sai_phy_management + sai_phy. Gives
+#                            users an interactive PAI shell over thrift.
+#   SAI_BRCM_PAI_IMPL=OFF -> throw-on-call stub from PaiDiagShellStub.cpp.
+#                            Calls return "PAI diag shell not supported on
+#                            this platform" via FbossError.
+if(SAI_BRCM_PAI_IMPL)
+  add_library(pai_diag_shell
+    fboss/qsfp_service/diag/PaiDiagShell.cpp
+  )
+  target_link_libraries(pai_diag_shell
+    Folly::folly
+    fboss_error
+    sai_repl
+    sai_api
+    sai_phy_management
+    sai_phy
+    ctrl_cpp2
+  )
+else()
+  add_library(pai_diag_shell
+    fboss/qsfp_service/diag/PaiDiagShellStub.cpp
+  )
+  target_link_libraries(pai_diag_shell
+    Folly::folly
+    fboss_error
+    ctrl_cpp2
+  )
+endif()
 
 add_library(qsfp_core
   fboss/qsfp_service/QsfpServer.cpp
@@ -408,3 +445,25 @@ else()
     "qsfp_service" QSFP_SERVICE_SRCS QSFP_SERVICE_DEPS "" ""
   )
 endif()
+
+# Interactive REPL CLI client for the PAI diag shell — connects to a running
+# qsfp_service over thrift's startPaiDiagShell + producePaiDiagShellInput
+# streaming endpoints and gives the user a bcmsh-style prompt.
+#
+# Mirrors the agent's diag_shell_client (fboss/agent/hw/sai/diag/) which is
+# the production-vetted pattern for the BCM NPU diag shell. The OSS variant
+# uses a raw AsyncSocket + RocketClientChannel; the FB-internal variant
+# (built via BUCK with facebook/) uses ServiceRouter.
+add_executable(fboss_pai_diag_shell_client
+  fboss/qsfp_service/diag/PaiDiagShellClient.cpp
+  fboss/qsfp_service/diag/oss/PaiDiagShellClient.cpp
+)
+
+target_link_libraries(fboss_pai_diag_shell_client
+  qsfp_cpp2
+  ctrl_cpp2
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
+install(TARGETS fboss_pai_diag_shell_client)

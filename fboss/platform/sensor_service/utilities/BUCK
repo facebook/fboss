@@ -5,6 +5,15 @@ load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 oncall("fboss_platform")
 
 cpp_library(
+    name = "power_config_utils",
+    headers = ["PowerConfigUtils.h"],
+    exported_deps = [
+        "fbsource//third-party/re2:re2",
+        "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
+    ],
+)
+
+cpp_library(
     name = "config_differ",
     srcs = [
         "ConfigDiffer.cpp",
@@ -43,5 +52,15 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":config_differ",
+    ],
+)
+
+cpp_unittest(
+    name = "power_config_utils_test",
+    srcs = [
+        "PowerConfigUtilsTest.cpp",
+    ],
+    deps = [
+        ":power_config_utils",
     ],
 )

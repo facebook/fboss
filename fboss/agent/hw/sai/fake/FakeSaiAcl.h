@@ -209,6 +209,9 @@ class FakeAclEntry {
   bool actionPacketActionEnable{false};
   sai_uint32_t actionPacketActionData;
 
+  bool actionRedirectEnable{false};
+  sai_object_id_t actionRedirectData{};
+
   bool actionCounterEnable{false};
   sai_object_id_t actionCounterData;
 

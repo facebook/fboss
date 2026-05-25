@@ -1089,7 +1089,7 @@
               "__comment__": "Local temp high limit setting for high byte.",
               "regOffset": 11,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1103,7 +1103,7 @@
               "__comment__": "Remote temp1 high limit setting for high byte.",
               "regOffset": 13,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1117,7 +1117,7 @@
               "__comment__": "Remote temp2 high limit setting for high byte.",
               "regOffset": 21,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1171,7 +1171,7 @@
               "__comment__": "Local temp high limit setting for high byte.",
               "regOffset": 11,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1185,7 +1185,7 @@
               "__comment__": "Remote temp1 high limit setting for high byte.",
               "regOffset": 13,
               "ioBuf": [
-                100
+                95
               ]
             },
             {

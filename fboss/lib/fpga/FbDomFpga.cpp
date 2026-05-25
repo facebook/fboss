@@ -2,7 +2,7 @@
 
 #include "fboss/lib/fpga/FbDomFpga.h"
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 
@@ -50,7 +50,7 @@ bool FbDomFpga::isQsfpPresent(int qsfp) {
   uint32_t qsfpPresentReg = io_->read(kFacebookFpgaQsfpPresentReg);
   // From the lower end, each bit of this register represent the presence of a
   // QSFP.
-  XLOG(DBG5) << folly::format("qsfpPresentReg value:{:#x}", qsfpPresentReg);
+  XLOG(DBG5) << fmt::format("qsfpPresentReg value:{:#x}", qsfpPresentReg);
   return (qsfpPresentReg >> qsfp) & 1;
 }
 
@@ -64,7 +64,7 @@ void FbDomFpga::ensureQsfpOutOfReset(int qsfp) {
   // 1 to hold QSFP reset active. 0 to release QSFP reset.
   uint32_t newResetReg = ~(0x1 << qsfp) & currentResetReg;
   if (currentResetReg != newResetReg) {
-    XLOG(DBG5) << folly::format(
+    XLOG(DBG5) << fmt::format(
         "For {}, port{:d}, old QsfpResetReg value:{:#x}, new value:{:#x}",
         io_->getName(),
         qsfp,
@@ -88,7 +88,7 @@ void FbDomFpga::triggerQsfpHardReset(int qsfp) {
   // Hold the QSFP in reset state
   uint32_t newResetReg = (0x1 << qsfp) | originalResetReg;
 
-  XLOG(INFO) << folly::format(
+  XLOG(INFO) << fmt::format(
       "For {}, port{:d}, old QsfpResetReg value:{:#x}, new value:{:#x}",
       io_->getName(),
       qsfp,
@@ -116,7 +116,7 @@ void FbDomFpga::setFrontPanelLedColor(int qsfp, FbDomFpga::LedColor ledColor) {
   uint32_t qsfpLedAddress = getPortLedAddress(qsfp);
   io_->write(qsfpLedAddress, static_cast<uint32_t>(ledColor));
 
-  XLOG(DBG5) << folly::format(
+  XLOG(DBG5) << fmt::format(
       "Set {} qsfp={:d} LED to {:s}. Register={:#x}, new value={:#x}",
       io_->getName(),
       qsfp,

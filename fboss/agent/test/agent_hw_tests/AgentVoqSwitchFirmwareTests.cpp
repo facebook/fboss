@@ -2,6 +2,8 @@
 //
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 
+#include <unistd.h>
+
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
@@ -18,6 +20,27 @@ DEFINE_string(
     "Path where isolation FW is placed");
 
 namespace facebook::fboss {
+
+constexpr auto kLinkDisableFirmwarePath =
+    "/tmp/db/jericho3ai_a0/fi-2.4.13-GA.elf";
+constexpr auto kLinkDisableFirmwarePathSdk14 =
+    "/tmp/db/jericho3ai_a0/fi-2.6.6-GA.elf";
+
+// For SDK >= 14.0, use fi-2.6.6-GA.elf instead of fi-2.4.13-GA.elf as the
+// link disable isolation firmware. Since this test file is compiled once for
+// all SDK versions (agent_voq_test_src is a shared library), compile-time
+// SDK version checks via SaiVersion.h are not possible. Instead, use a
+// filesystem-based approach: netcastle copies firmware files from the SDK
+// directory to /tmp/db/jericho3ai_a0/ before launching the test binary, so
+// file presence correctly indicates the SDK version. For SDK >= 14
+// (6.5.34_dnx, 6.5.35_dnx), fi-2.6.6-GA.elf is present and gets selected.
+// For older SDKs, only fi-2.4.13-GA.elf exists and is used as fallback.
+std::string getLinkDisableFirmwarePath() {
+  if (access(kLinkDisableFirmwarePathSdk14, F_OK) == 0) {
+    return kLinkDisableFirmwarePathSdk14;
+  }
+  return kLinkDisableFirmwarePath;
+}
 
 template <bool enableLinkDisableFirmware>
 struct EnableLinkDisableFirmware {
@@ -136,41 +159,74 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
         getAgentEnsemble(), masterLogicalFabricPortIds(), !expectDrained);
   }
   void forceIsolate(int delay = 1) {
-    std::stringstream ss;
-    ss << "edk -c fi force_isolate 0 5 1 " << delay << std::endl;
-    XLOG(INFO) << "Running force_isolate command: ";
     auto switchId = this->getCurrentSwitchIdForTesting();
+    std::stringstream ss;
+    if (std::stoi(getSdkMajorVersion(switchId)) >= 14) {
+      ss << "fabric firmware auto_isolate force enable=1 delay=" << delay
+         << std::endl;
+    } else {
+      ss << "edk -c fi force_isolate 0 5 1 " << delay << std::endl;
+    }
+    XLOG(INFO) << "Running force_isolate command: ";
     std::string out;
     getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
     XLOG(INFO) << "force_isolate output: " << out;
   }
   void getIsolate() {
-    std::stringstream ss;
-    ss << "edk -c fi dump 0 5" << std::endl;
-    XLOG(INFO) << "Running get_isolate command: ";
     auto switchId = this->getCurrentSwitchIdForTesting();
+    std::stringstream ss;
+    if (std::stoi(getSdkMajorVersion(switchId)) >= 14) {
+      ss << "fabric firmware auto_isolate dump" << std::endl;
+    } else {
+      ss << "edk -c fi dump 0 5" << std::endl;
+    }
+    XLOG(INFO) << "Running get_isolate command: ";
     std::string out;
     getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
     XLOG(INFO) << "get_isolate output: " << out;
   }
   void forceCrash(int delay = 1) {
-    std::stringstream ss;
-    ss << "edk -c fi crash 0 5 " << delay << std::endl;
     auto switchId = this->getCurrentSwitchIdForTesting();
+    std::stringstream ss;
+    if (std::stoi(getSdkMajorVersion(switchId)) >= 14) {
+      ss << "fabric firmware auto_isolate fw_crash delay=" << delay
+         << std::endl;
+    } else {
+      ss << "edk -c fi crash 0 5 " << delay << std::endl;
+    }
     std::string out;
     getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
   }
   void forceLinkAdminDisable(int portId) {
-    // SAI Implementation for diag shell requires offset of 1024
-    constexpr auto kPortIdOffset = 1024;
+    auto platformMapping = getAgentEnsemble()->getPlatformMapping();
+    const auto& portEntry =
+        platformMapping->getPlatformPort(static_cast<int32_t>(portId));
+    auto iphyLane = portEntry.mapping()->pins()[0].a()->lane().value();
 
-    std::stringstream ss;
-    auto portToDisable = portId - kPortIdOffset;
-    ss << "edk -c fi force_link_down 0 5 " << portToDisable << " 1"
-       << std::endl;
-    XLOG(INFO) << "Running force link Admin Disable command to disable port: "
-               << portId;
+    auto iphyChip = platformMapping->getPortIphyChip(PortID(portId));
+    auto coreId = iphyChip.physicalID().value();
+
+    auto virtualDeviceId = portEntry.mapping()->virtualDeviceId().value();
+    auto firstFabricPort =
+        platformMapping->getFirstFabricPortForVirtualDevice(virtualDeviceId);
+    auto baseCoreId =
+        platformMapping->getPortIphyChip(firstFabricPort).physicalID().value();
+    auto coreIndex = coreId - baseCoreId;
+
+    constexpr int kFabricLanesPerCore = 8;
+    auto portToDisable = coreIndex * kFabricLanesPerCore + iphyLane;
+
     auto switchId = this->getCurrentSwitchIdForTesting();
+    std::stringstream ss;
+    if (std::stoi(getSdkMajorVersion(switchId)) >= 14) {
+      ss << "fabric firmware auto_link_disable force " << (1024 + portToDisable)
+         << " enable=1" << std::endl;
+    } else {
+      ss << "edk -c fi force_link_down 0 5 " << portToDisable << " 1"
+         << std::endl;
+    }
+    XLOG(INFO) << "Running force link Admin Disable command to disable port: "
+               << portId << " asic port index: " << portToDisable;
     std::string out;
     getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
     XLOG(INFO) << "force link admin disable output: " << out;
@@ -264,7 +320,7 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     FLAGS_sdk_reg_dump_path_prefix = sdkRegDumpPathPrefix_;
 
     if (isLinkDisableFirmware()) {
-      FLAGS_isolation_firmware_path = "/tmp/db/jericho3ai_a0/fi-2.4.11-GA.elf";
+      FLAGS_isolation_firmware_path = getLinkDisableFirmwarePath();
     } else {
       FLAGS_isolation_firmware_path = "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf";
     }
@@ -298,10 +354,12 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
     isColdBoot = this->getAgentEnsemble() &&
         this->getSw()->getBootType() == BootType::COLD_BOOT;
     if (isColdBoot) {
-      // We use just the first FW capable switch index for asserting for
-      // counter.
-      fwCapableSwitchIndex =
-          *this->getFWCapableSwitchIndices(this->getSw()->getConfig()).begin();
+      auto switchId = this->getCurrentSwitchIdForTesting();
+      auto config = this->getSw()->getConfig();
+      auto it = config.switchSettings()->switchIdToSwitchInfo()->find(
+          static_cast<int64_t>(switchId));
+      CHECK(it != config.switchSettings()->switchIdToSwitchInfo()->end());
+      fwCapableSwitchIndex = *it->second.switchIndex();
     }
     if (isColdBoot) {
       WITH_RETRIES({
@@ -553,12 +611,12 @@ class AgentVoqSwitchIsolationFirmwareUpgradeDownGrade
     config = this->clearFWConfig(config);
 
     // AgentVoqSwitchIsolationFirmwareUpgradeDownGrade/0.* run tests warmboot
-    // transition from fw version 2.4.0.1 to 2.4.11.
+    // transition from fw version 2.4.0.1 to link disable fw.
     // AgentVoqSwitchIsolationFirmwareUpgradeDownGrade/1.* tests the reverse
     // transition.
     std::string fwPath;
     if (this->isLinkDisableFirmware()) {
-      fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.11-GA.elf";
+      fwPath = getLinkDisableFirmwarePath();
     } else {
       fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf";
     }
@@ -576,11 +634,11 @@ class AgentVoqSwitchIsolationFirmwareUpgradeDownGrade
       const auto& configFileName = this->getAgentEnsemble()->configFileName();
       agentConfig.sw() = this->clearFWConfig(*agentConfig.sw());
 
-      // To test firmware transition on warmboot, if we chose 2.4.11 during cb,
-      // configure 2.4.0.1 post wb and vice-versa.
+      // To test firmware transition on warmboot, if we chose link disable fw
+      // during cb, configure 2.4.0.1 post wb and vice-versa.
       std::string fwPath;
       if (!this->isLinkDisableFirmware()) {
-        fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.11-GA.elf";
+        fwPath = getLinkDisableFirmwarePath();
       } else {
         fwPath = "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf";
       }

@@ -460,6 +460,16 @@ add_fbthrift_cpp_library(
     asic_config_v2_cpp2
     phy_cpp2
 )
+add_fbthrift_cpp_library(
+  platform_descriptor_cpp2
+  fboss/lib/platforms/platform_descriptor.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    fboss_common_cpp2
+    switch_config_cpp2
+)
 add_fbthrift_python_library(
   platform_config_python
   fboss/agent/platform_config.thrift
@@ -1080,6 +1090,41 @@ foreach(cmakeFile ${cmakeFiles})
   INCLUDE(${cmakeFile})
 endforeach(cmakeFile)
 
+# Install headers and libraries for downstream consumers (e.g., BGP++).
+# Both blocks live here (after the SKIP_ALL_INSTALL macro override) so they
+# behave consistently: when SKIP_ALL_INSTALL is set, both are excluded.
+#
+# Header sources are installed per-subdirectory rather than via
+# install(DIRECTORY ${CMAKE_SOURCE_DIR}/fboss/ ...) because
+# ${CMAKE_SOURCE_DIR}/fboss is a symlink (github/fboss -> ..) and CMake
+# materialises that symlink at the destination, causing the subsequent
+# install of ${CMAKE_BINARY_DIR}/fboss/ to fail with "File exists".
+foreach(_fboss_header_subdir
+  agent cli common fsdb led_service lib mdio mka_service platform
+  qsfp_service thrift_cow thrift_visitors thriftpath_plugin)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/fboss/${_fboss_header_subdir}
+    DESTINATION include/fboss
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
+endforeach()
+install(DIRECTORY ${CMAKE_BINARY_DIR}/fboss/
+  DESTINATION include/fboss
+  FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
+
+install(TARGETS
+  nodebase address_utils radix_tree exponential_back_off
+  switch_config_cpp2 ctrl_cpp2 common_cpp2 fboss_cpp2
+  fboss_common_cpp2 fboss_error fboss_types
+  network_address_cpp2 mpls_cpp2
+  agent_stats_cpp2 hardware_stats_cpp2 mka_structs_cpp2
+  platform_config_cpp2 phy_cpp2 transceiver_cpp2
+  product_info_cpp2 optic_cpp2 prbs_cpp2 link_cpp2
+  cfgr_fboss_common_cpp2 asic_temp_cpp2
+  bcm_config_cpp2 asic_config_cpp2 asic_config_v2_cpp2
+  io_stats_cpp2
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+)
+
 add_custom_target(fboss_agent_benchmark_libs)
 add_dependencies(fboss_agent_benchmark_libs
   hw_flowlet_stats_collection_speed
@@ -1088,8 +1133,6 @@ add_dependencies(fboss_agent_benchmark_libs
   hw_init_and_exit_benchmark_helper
   hw_system_scale_memory_benchmark
 )
-
-
 add_custom_target(fboss_platform_services)
 add_dependencies(fboss_platform_services
   # Services
@@ -1141,6 +1184,9 @@ add_dependencies(qsfp_targets
   qsfp_hw_test
   qsfp_hal_test
   wedge_qsfp_util
+  cmis_test
+  transceiver_manager_test
+  transceiver_state_machine_test
 )
 
 add_custom_target(led_targets)
@@ -1194,6 +1240,7 @@ add_dependencies(fboss_other_services
 
 add_custom_target(fboss_platform_mapping_gen)
 add_dependencies(fboss_platform_mapping_gen
+  fboss-platform-mapping-gen.GEN_PY_EXE
   platform_mapping_gen_unit_test.GEN_PY_EXE
   platform_mapping_gen_no_regression_test.GEN_PY_EXE
 )
@@ -1255,9 +1302,10 @@ if(BUILD_SAI_FAKE_BENCHMARKS)
 add_custom_target(fboss_fake_agent_benchmarks)
 
 # SAI_BENCHMARKS defined in cmake/AgentHwSaiBenchmarks.cmake
-foreach(SAI_BENCHMARK IN LISTS SAI_BENCHMARKS)
-    add_dependencies(fboss_fake_agent_benchmarks sai_${SAI_BENCHMARK}-fake)
-endforeach()
+add_dependencies(fboss_fake_agent_benchmarks
+  sai_all_benchmarks-fake
+  sai_multi_switch_all_benchmarks-fake
+)
 endif()
 
 if (BUILD_SAI_FAKE_LINK_TEST)

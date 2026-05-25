@@ -141,7 +141,7 @@ SaiPortTraits::Attributes::AttributeCrcErrorDetect::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeCablePropogationDelayNS::operator()() {
-  return std::nullopt;
+  return SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY;
 }
 
 std::optional<sai_attr_id_t>
@@ -407,11 +407,7 @@ SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
 
 std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
     AttributeCablePropagationDelayMediaType::operator()() {
-#if SAI_API_VERSION >= SAI_VERSION(1, 17, 0) && defined(CHENAB_SAI_SDK)
-  return SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY;
-#else
   return std::nullopt;
-#endif
 }
 
 std::optional<sai_attr_id_t>

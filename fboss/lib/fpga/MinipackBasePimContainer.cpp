@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/lib/fpga/MinipackBasePimContainer.h"
+#include <fmt/core.h>
 
 namespace {
 constexpr uint32_t kQsfpManagementRegStart = 0x40;
@@ -37,14 +38,14 @@ MinipackBasePimContainer::MinipackBasePimContainer(
   for (auto led = 0; led < kNumLedPerPim; led++) {
     ledControllers_[led] =
         std::make_unique<MinipackLed>(std::make_unique<FpgaMemoryRegister>(
-            folly::format("{}-led{}", name, led).str(),
+            fmt::format("{}-led{}", name, led),
             device,
             pimStart + kPortLedStart + led * kPortLedSize));
   }
 
   pimController_ = std::make_unique<MinipackPimController>(
       std::make_unique<FpgaMemoryRegion>(
-          folly::format("pim{:d}-controller", pim).str(),
+          fmt::format("pim{:d}-controller", pim),
           device,
           pimStart + kMdioBaseAddr,
           pimSize));

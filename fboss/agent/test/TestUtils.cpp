@@ -39,6 +39,7 @@
 
 #include "fboss/agent/Utils.h"
 
+#include <fmt/core.h>
 #include <folly/Memory.h>
 #include <folly/container/Enumerate.h>
 #include <chrono>
@@ -296,14 +297,14 @@ cfg::SwitchConfig testConfigAImpl(
         cfg.interfaces()[i].routerID() = 0;
         cfg.interfaces()[i].type() = cfg::InterfaceType::SYSTEM_PORT;
         cfg.interfaces()[i].name() =
-            folly::sformat("eth1/{}/1", *cfg.ports()[i].logicalID());
+            fmt::format("eth1/{}/1", *cfg.ports()[i].logicalID());
         cfg.interfaces()[i].mac() = "00:02:00:00:00:55";
         cfg.interfaces()[i].mtu() = 9000;
         cfg.interfaces()[i].ipAddresses()->resize(2);
-        cfg.interfaces()[i].ipAddresses()[0] = folly::sformat(
+        cfg.interfaces()[i].ipAddresses()[0] = fmt::format(
             "2401:db00:2110:30{:02d}::1/64", *cfg.ports()[i].logicalID());
         cfg.interfaces()[i].ipAddresses()[1] =
-            folly::sformat("10.0.{}.1/24", *cfg.ports()[i].logicalID());
+            fmt::format("10.0.{}.1/24", *cfg.ports()[i].logicalID());
       }
       cfg::Port recyclePort;
       recyclePort.logicalID() = 1;
@@ -401,19 +402,19 @@ cfg::SwitchConfig testConfigBImpl() {
       intf.intfID() = static_cast<int>(intfId);
       intf.routerID() = 0;
       intf.type() = cfg::InterfaceType::SYSTEM_PORT;
-      intf.name() = folly::sformat("fboss{}", static_cast<int>(intfId));
+      intf.name() = fmt::format("fboss{}", static_cast<int>(intfId));
       intf.mac() = "00:02:00:00:00:55";
       intf.mtu() = 9000;
       intf.ipAddresses()->resize(2);
       intf.ipAddresses()[0] =
-          folly::sformat("2401:db00:2110:30{:02x}::1/64", *port.logicalID());
-      intf.ipAddresses()[1] = folly::sformat("10.0.{}.1/24", *port.logicalID());
+          fmt::format("2401:db00:2110:30{:02x}::1/64", *port.logicalID());
+      intf.ipAddresses()[1] = fmt::format("10.0.{}.1/24", *port.logicalID());
       cfg.interfaces()->push_back(intf);
     }
 
     cfg::Port recyclePort;
     recyclePort.logicalID() = minPort + 1;
-    recyclePort.name() = folly::sformat("rcy{}/1/1", switchIndex + 1);
+    recyclePort.name() = fmt::format("rcy{}/1/1", switchIndex + 1);
     recyclePort.speed() = cfg::PortSpeed::HUNDREDG;
     recyclePort.profileID() =
         cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER;
@@ -448,7 +449,7 @@ std::shared_ptr<SystemPort> makeSysPort(
     int64_t switchId) {
   auto sysPort = std::make_shared<SystemPort>(SystemPortID(sysPortId));
   sysPort->setSwitchId(SwitchID(switchId));
-  sysPort->setName(folly::sformat("sysPort{}", sysPortId));
+  sysPort->setName(fmt::format("sysPort{}", sysPortId));
   sysPort->setCoreIndex(42);
   sysPort->setCorePortIndex(24);
   sysPort->setSpeedMbps(10000);
@@ -494,7 +495,7 @@ cfg::DsfNode makeDsfNodeCfg(
     std::optional<int> fabricLevel) {
   cfg::DsfNode dsfNodeCfg;
   dsfNodeCfg.switchId() = switchId;
-  dsfNodeCfg.name() = folly::sformat("dsfNodeCfg{}", switchId);
+  dsfNodeCfg.name() = fmt::format("dsfNodeCfg{}", switchId);
   dsfNodeCfg.type() = type;
   if (type == cfg::DsfNodeType::INTERFACE_NODE) {
     const auto kBlockSize{100};
@@ -691,13 +692,13 @@ cfg::SwitchConfig testConfigAWithPortInterfaces() {
     intf.portID() = *port.logicalID();
     intf.routerID() = 0;
     intf.type() = cfg::InterfaceType::PORT;
-    intf.name() = folly::sformat("fboss{}", *intf.intfID());
+    intf.name() = fmt::format("fboss{}", *intf.intfID());
     intf.mtu() = 9000;
     intf.mac() = "00:02:00:00:00:55";
     intf.ipAddresses()->resize(2);
     intf.ipAddresses()[0] =
-        folly::sformat("2601:db00:2110:30{:02x}::1/64", *port.logicalID());
-    intf.ipAddresses()[1] = folly::sformat("100.0.{}.1/24", *port.logicalID());
+        fmt::format("2601:db00:2110:30{:02x}::1/64", *port.logicalID());
+    intf.ipAddresses()[1] = fmt::format("100.0.{}.1/24", *port.logicalID());
 
     config.interfaces()->push_back(intf);
   }
@@ -1193,9 +1194,9 @@ std::string fbossHexDump(const IOBuf* buf) {
 
   string result;
   result.reserve(length * 3);
-  folly::format(&result, "{:02x}", cursor.read<uint8_t>());
+  result += fmt::format("{:02x}", cursor.read<uint8_t>());
   for (size_t n = 1; n < length; ++n) {
-    folly::format(&result, " {:02x}", cursor.read<uint8_t>());
+    result += fmt::format(" {:02x}", cursor.read<uint8_t>());
   }
 
   return result;

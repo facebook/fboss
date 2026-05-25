@@ -141,3 +141,4 @@ class SdkcastleSpec:
     build_mode: Optional[BuildMode] = None
     test_runner_mode: Optional[TestRunnerMode] = None
     test_out_dir_path: str = "/tmp/"
+    remote: bool = False

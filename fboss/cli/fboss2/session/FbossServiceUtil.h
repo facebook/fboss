@@ -10,11 +10,10 @@
 
 #pragma once
 
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/session/SystemdInterface.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -33,15 +32,11 @@ namespace facebook::fboss {
 class FbossServiceUtil {
  public:
   // Production constructor: creates its own SystemdInterface.
-  // switchInfoMap is captured at construction from the loaded agent config.
-  // multiSwitch reflects the multi_switch flag in defaultCommandLineArgs.
-  FbossServiceUtil(
-      std::map<int64_t, cfg::SwitchInfo> switchInfoMap,
-      bool multiSwitch);
+  FbossServiceUtil(std::vector<int> switchIndexes, bool multiSwitch);
 
   // Test constructor: accepts an injected SystemdInterface mock.
   FbossServiceUtil(
-      std::map<int64_t, cfg::SwitchInfo> switchInfoMap,
+      std::vector<int> switchIndexes,
       bool multiSwitch,
       std::unique_ptr<SystemdInterface> systemd);
 
@@ -69,7 +64,7 @@ class FbossServiceUtil {
 
  private:
   std::unique_ptr<SystemdInterface> systemd_;
-  std::map<int64_t, cfg::SwitchInfo> switchInfoMap_;
+  std::vector<int> switchIndexes_;
   bool multiSwitch_;
 
   // Returns ordered list of services to restart (hw_agent first, sw_agent last)

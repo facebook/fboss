@@ -60,7 +60,7 @@ jobs:
       - name: Save Docker image
         run: sudo docker save fboss_image:latest | zstd -o ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: fboss
           path: |
@@ -75,7 +75,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v6
       - name: Download artifact with test binaries
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: fboss
       - run: ls ${{ github.workspace }}

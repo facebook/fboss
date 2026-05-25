@@ -10,6 +10,7 @@ cpp_unittest(
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "//fb303:service_data",
         "//fboss/lib:common_file_utils",
         "//fboss/platform/data_corral_service:led_management",
         "//folly:file_util",

@@ -81,35 +81,35 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
       "phyMapping": {
         "0": {
           "phyId": 0,
-          "phyIOControllerId": 1,
-          "phyAddr": 0,
-          "phyCoreId": 0,
-          "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_1/reset_rtm_0"
-        },
-        "1": {
-          "phyId": 1,
           "phyIOControllerId": 2,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_2/reset_rtm_0"
         },
-        "2": {
-          "phyId": 2,
+        "1": {
+          "phyId": 1,
           "phyIOControllerId": 3,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_3/reset_rtm_0"
         },
-        "3": {
-          "phyId": 3,
+        "2": {
+          "phyId": 2,
           "phyIOControllerId": 4,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_4/reset_rtm_0"
+        },
+        "3": {
+          "phyId": 3,
+          "phyIOControllerId": 1,
+          "phyAddr": 0,
+          "phyCoreId": 0,
+          "pimId": 1,
+          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_1/reset_rtm_0"
         },
         "4": {
           "phyId": 4,
@@ -121,43 +121,43 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
         },
         "5": {
           "phyId": 5,
-          "phyIOControllerId": 6,
-          "phyAddr": 0,
-          "phyCoreId": 0,
-          "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_6/reset_rtm_0"
-        },
-        "6": {
-          "phyId": 6,
           "phyIOControllerId": 7,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_7/reset_rtm_0"
         },
-        "7": {
-          "phyId": 7,
+        "6": {
+          "phyId": 6,
           "phyIOControllerId": 8,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_8/reset_rtm_0"
         },
-        "8": {
-          "phyId": 8,
-          "phyIOControllerId": 9,
+        "7": {
+          "phyId": 7,
+          "phyIOControllerId": 6,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_9/reset_rtm_0"
+          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_6/reset_rtm_0"
         },
-        "9": {
-          "phyId": 9,
+        "8": {
+          "phyId": 8,
           "phyIOControllerId": 10,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_10/reset_rtm_0"
+        },
+        "9": {
+          "phyId": 9,
+          "phyIOControllerId": 12,
+          "phyAddr": 0,
+          "phyCoreId": 0,
+          "pimId": 1,
+          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_12/reset_rtm_0"
         },
         "10": {
           "phyId": 10,
@@ -169,11 +169,11 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
         },
         "11": {
           "phyId": 11,
-          "phyIOControllerId": 12,
+          "phyIOControllerId": 9,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_12/reset_rtm_0"
+          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_9/reset_rtm_0"
         },
         "12": {
           "phyId": 12,
@@ -185,59 +185,59 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
         },
         "13": {
           "phyId": 13,
-          "phyIOControllerId": 14,
-          "phyAddr": 0,
-          "phyCoreId": 0,
-          "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_14/reset_rtm_0"
-        },
-        "14": {
-          "phyId": 14,
           "phyIOControllerId": 15,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_15/reset_rtm_0"
         },
-        "15": {
-          "phyId": 15,
+        "14": {
+          "phyId": 14,
           "phyIOControllerId": 16,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_16/reset_rtm_0"
         },
-        "16": {
-          "phyId": 16,
-          "phyIOControllerId": 17,
+        "15": {
+          "phyId": 15,
+          "phyIOControllerId": 14,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_1/reset_rtm_0"
+          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_14/reset_rtm_0"
         },
-        "17": {
-          "phyId": 17,
+        "16": {
+          "phyId": 16,
           "phyIOControllerId": 18,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_2/reset_rtm_0"
         },
-        "18": {
-          "phyId": 18,
+        "17": {
+          "phyId": 17,
           "phyIOControllerId": 19,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_3/reset_rtm_0"
         },
-        "19": {
-          "phyId": 19,
+        "18": {
+          "phyId": 18,
           "phyIOControllerId": 20,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_4/reset_rtm_0"
+        },
+        "19": {
+          "phyId": 19,
+          "phyIOControllerId": 17,
+          "phyAddr": 0,
+          "phyCoreId": 0,
+          "pimId": 1,
+          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_1/reset_rtm_0"
         },
         "20": {
           "phyId": 20,
@@ -249,43 +249,43 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
         },
         "21": {
           "phyId": 21,
-          "phyIOControllerId": 22,
-          "phyAddr": 0,
-          "phyCoreId": 0,
-          "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_6/reset_rtm_0"
-        },
-        "22": {
-          "phyId": 22,
           "phyIOControllerId": 23,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_7/reset_rtm_0"
         },
-        "23": {
-          "phyId": 23,
+        "22": {
+          "phyId": 22,
           "phyIOControllerId": 24,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_8/reset_rtm_0"
         },
-        "24": {
-          "phyId": 24,
-          "phyIOControllerId": 25,
+        "23": {
+          "phyId": 23,
+          "phyIOControllerId": 22,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_9/reset_rtm_0"
+          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_6/reset_rtm_0"
         },
-        "25": {
-          "phyId": 25,
+        "24": {
+          "phyId": 24,
           "phyIOControllerId": 26,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_10/reset_rtm_0"
+        },
+        "25": {
+          "phyId": 25,
+          "phyIOControllerId": 28,
+          "phyAddr": 0,
+          "phyCoreId": 0,
+          "pimId": 1,
+          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_12/reset_rtm_0"
         },
         "26": {
           "phyId": 26,
@@ -297,11 +297,11 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
         },
         "27": {
           "phyId": 27,
-          "phyIOControllerId": 28,
+          "phyIOControllerId": 25,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_12/reset_rtm_0"
+          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_9/reset_rtm_0"
         },
         "28": {
           "phyId": 28,
@@ -313,27 +313,27 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
         },
         "29": {
           "phyId": 29,
-          "phyIOControllerId": 30,
-          "phyAddr": 0,
-          "phyCoreId": 0,
-          "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_14/reset_rtm_0"
-        },
-        "30": {
-          "phyId": 30,
           "phyIOControllerId": 31,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_15/reset_rtm_0"
         },
-        "31": {
-          "phyId": 31,
+        "30": {
+          "phyId": 30,
           "phyIOControllerId": 32,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
           "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_16/reset_rtm_0"
+        },
+        "31": {
+          "phyId": 31,
+          "phyIOControllerId": 30,
+          "phyAddr": 0,
+          "phyCoreId": 0,
+          "pimId": 1,
+          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_14/reset_rtm_0"
         }
       },
       "phyIOControllers": {

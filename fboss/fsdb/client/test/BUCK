@@ -44,6 +44,7 @@ cpp_unittest(
         "//fboss/fsdb/tests/client:fsdb_test_clients",
         "//fboss/lib:common_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//folly:synchronized",
         "//folly/coro:async_generator",
         "//folly/coro:async_pipe",
         "//folly/futures:core",

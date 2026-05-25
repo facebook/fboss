@@ -113,14 +113,14 @@ void MySidNeighborObserver::handleMySidAddedOrChanged(
     return;
   }
 
-  // Scan the neighbor table for the first reachable non-link-local entry.
+  // Scan the neighbor table for the first reachable entry.
   auto findReachableNeighbor =
       [](const auto& table) -> std::optional<folly::IPAddress> {
     if (!table) {
       return std::nullopt;
     }
     for (const auto& [__, entry] : std::as_const(*table)) {
-      if (entry->isReachable() && !entry->getIP().isLinkLocal()) {
+      if (entry->isReachable()) {
         return folly::IPAddress(entry->getIP());
       }
     }
@@ -234,9 +234,9 @@ MySidNeighborObserver::buildIntfToUASidsMap(
 }
 
 template <typename NeighborEntryT>
-bool MySidNeighborObserver::isReachableNonLinkLocalNeighbor(
+bool MySidNeighborObserver::isReachableNeighbor(
     const std::shared_ptr<NeighborEntryT>& entry) const {
-  return entry->isReachable() && !entry->getIP().isLinkLocal();
+  return entry->isReachable();
 }
 
 template <typename NeighborEntryT>
@@ -285,7 +285,7 @@ template <typename AddedNeighborEntryT>
 void MySidNeighborObserver::processAdded(
     const std::vector<std::shared_ptr<MySid>>& mySidsOnIntf,
     const std::shared_ptr<AddedNeighborEntryT>& addedEntry) {
-  if (!isReachableNonLinkLocalNeighbor(addedEntry)) {
+  if (!isReachableNeighbor(addedEntry)) {
     return;
   }
   assignNeighborToMySids(mySidsOnIntf, addedEntry);
@@ -295,7 +295,7 @@ template <typename RemovedNeighborEntryT>
 void MySidNeighborObserver::processRemoved(
     const std::vector<std::shared_ptr<MySid>>& mySidsOnIntf,
     const std::shared_ptr<RemovedNeighborEntryT>& removedEntry) {
-  if (!isReachableNonLinkLocalNeighbor(removedEntry)) {
+  if (!isReachableNeighbor(removedEntry)) {
     return;
   }
   clearNeighborFromMySids(mySidsOnIntf, removedEntry);
@@ -311,16 +311,14 @@ void MySidNeighborObserver::processChanged(
   // IP — a different IP would surface as add+remove.
   CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
 
-  const bool isOldReachableNonLinkLocal =
-      isReachableNonLinkLocalNeighbor(oldEntry);
-  const bool isNewReachableNonLinkLocal =
-      isReachableNonLinkLocalNeighbor(newEntry);
+  const bool isOldReachable = isReachableNeighbor(oldEntry);
+  const bool isNewReachable = isReachableNeighbor(newEntry);
 
-  if (!isOldReachableNonLinkLocal && isNewReachableNonLinkLocal) {
+  if (!isOldReachable && isNewReachable) {
     // Became reachable — assign to MySids on the intf that have no
     // unresolved nhop yet.
     assignNeighborToMySids(mySidsOnIntf, newEntry);
-  } else if (isOldReachableNonLinkLocal && !isNewReachableNonLinkLocal) {
+  } else if (isOldReachable && !isNewReachable) {
     // No longer reachable — clear matching MySids (RIB checks by IP).
     clearNeighborFromMySids(mySidsOnIntf, oldEntry);
   }

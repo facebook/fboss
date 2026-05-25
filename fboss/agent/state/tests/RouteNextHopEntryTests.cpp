@@ -978,3 +978,245 @@ TEST(RouteNextHopEntry, NormalizedNextHopsPreservesSrv6FieldsWideEcmp) {
     }
   }
 }
+
+TEST(RouteNextHopEntry, CostThriftRoundTrip) {
+  RouteNextHopSet nhops;
+  nhops.emplace(ResolvedNextHop(
+      nextHopAddr1,
+      InterfaceID(1),
+      10,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      {},
+      std::nullopt,
+      std::nullopt,
+      int64_t(42)));
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 20));
+
+  auto thriftNhops = util::fromRouteNextHopSet(nhops);
+  auto roundTripped = util::toRouteNextHopSet(thriftNhops, true);
+
+  EXPECT_EQ(nhops.size(), roundTripped.size());
+  for (const auto& nh : roundTripped) {
+    if (nh.addr() == nextHopAddr1) {
+      EXPECT_EQ(nh.cost(), int64_t(42));
+    } else {
+      EXPECT_FALSE(nh.cost().has_value());
+    }
+  }
+}
+
+TEST(RouteNextHopEntry, CostFromNextHopsThrift) {
+  std::vector<NextHopThrift> thriftNhops;
+  NextHopThrift nh;
+  *nh.address() = createV6LinkLocalNextHop(nextHopAddr1);
+  *nh.weight() = 10;
+  nh.cost() = 77;
+  thriftNhops.push_back(std::move(nh));
+
+  UnicastRoute route;
+  route.dest() = kDestPrefix;
+  route.nextHops() = std::move(thriftNhops);
+
+  auto nhopEntry = RouteNextHopEntry::from(
+      route, kDefaultAdminDistance, std::nullopt, std::nullopt);
+
+  ASSERT_EQ(nhopEntry.getAction(), RouteForwardAction::NEXTHOPS);
+  auto nhopSet = nhopEntry.getNextHopSet();
+  ASSERT_EQ(nhopSet.size(), 1);
+  EXPECT_EQ(nhopSet.begin()->cost(), int64_t(77));
+}
+
+TEST(RouteNextHopEntry, CostPreservedThroughNormalization) {
+  RouteNextHopSet nhops;
+  nhops.emplace(ResolvedNextHop(
+      nextHopAddr1,
+      InterfaceID(1),
+      10,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      {},
+      std::nullopt,
+      std::nullopt,
+      int64_t(100)));
+  nhops.emplace(ResolvedNextHop(
+      nextHopAddr2,
+      InterfaceID(2),
+      10,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      {},
+      std::nullopt,
+      std::nullopt,
+      std::nullopt));
+
+  auto normalizedNextHops =
+      RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+
+  ASSERT_EQ(normalizedNextHops.size(), 2);
+  for (const auto& nh : normalizedNextHops) {
+    if (nh.addr() == nextHopAddr1) {
+      EXPECT_EQ(nh.cost(), int64_t(100));
+    } else {
+      EXPECT_FALSE(nh.cost().has_value());
+    }
+  }
+}
+
+TEST(RouteNextHopEntry, CostPreservedThroughNormalizationWithScaling) {
+  FLAGS_ecmp_width = 64;
+
+  for (const auto ucmpOptimized : {false, true}) {
+    FLAGS_optimized_ucmp = ucmpOptimized;
+    RouteNextHopSet nhops;
+    nhops.emplace(ResolvedNextHop(
+        nextHopAddr1,
+        InterfaceID(1),
+        40,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        {},
+        std::nullopt,
+        std::nullopt,
+        int64_t(500)));
+    nhops.emplace(ResolvedNextHop(
+        nextHopAddr2,
+        InterfaceID(2),
+        40,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        {},
+        std::nullopt,
+        std::nullopt,
+        int64_t(600)));
+
+    auto normalizedNextHops =
+        RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+
+    for (const auto& nh : normalizedNextHops) {
+      if (nh.addr() == nextHopAddr1) {
+        EXPECT_EQ(nh.cost(), int64_t(500));
+      } else {
+        EXPECT_EQ(nh.cost(), int64_t(600));
+      }
+    }
+  }
+}
+
+TEST(RouteNextHopEntry, CostPreservedThroughWideEcmpNormalization) {
+  FLAGS_ecmp_width = 512;
+  FLAGS_wide_ecmp = true;
+
+  RouteNextHopSet nhops;
+  nhops.emplace(ResolvedNextHop(
+      nextHopAddr1,
+      InterfaceID(1),
+      55,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      {},
+      std::nullopt,
+      std::nullopt,
+      int64_t(1000)));
+  nhops.emplace(ResolvedNextHop(
+      nextHopAddr2,
+      InterfaceID(2),
+      56,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      {},
+      std::nullopt,
+      std::nullopt,
+      std::nullopt));
+
+  auto normalizedNextHops =
+      RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+
+  ASSERT_EQ(normalizedNextHops.size(), 2);
+  for (const auto& nh : normalizedNextHops) {
+    if (nh.addr() == nextHopAddr1) {
+      EXPECT_EQ(nh.cost(), int64_t(1000));
+    } else {
+      EXPECT_FALSE(nh.cost().has_value());
+    }
+  }
+}
+
+TEST(RouteNextHopEntry, CostToUnicastRoutePreservesCost) {
+  RouteNextHopSet nhops;
+  nhops.emplace(ResolvedNextHop(
+      nextHopAddr1,
+      InterfaceID(1),
+      10,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      {},
+      std::nullopt,
+      std::nullopt,
+      int64_t(42)));
+
+  RouteNextHopEntry entry(nhops, kDefaultAdminDistance);
+  const folly::CIDRNetwork network{folly::IPAddress("fc00::"), 7};
+  auto unicastRoute = util::toUnicastRoute(network, entry);
+
+  ASSERT_EQ(unicastRoute.nextHops()->size(), 1);
+  EXPECT_EQ(unicastRoute.nextHops()->at(0).cost(), 42);
+}
+
+TEST(RouteNextHopEntry, ClientNextHopSetIDAccessors) {
+  RouteNextHopEntry entry(
+      RouteNextHopEntry::Action::DROP, kDefaultAdminDistance);
+
+  EXPECT_FALSE(entry.getClientNextHopSetID().has_value());
+
+  std::optional<NextHopSetID> id{NextHopSetID(42)};
+  entry.setClientNextHopSetID(id);
+  EXPECT_EQ(entry.getClientNextHopSetID(), NextHopSetID(42));
+
+  EXPECT_FALSE(entry.getResolvedNextHopSetID().has_value());
+  EXPECT_FALSE(entry.getNormalizedResolvedNextHopSetID().has_value());
+
+  RouteNextHopEntry roundTripped(
+      RouteNextHopEntry::Action::DROP, kDefaultAdminDistance);
+  roundTripped.fromThrift(entry.toThrift());
+  EXPECT_EQ(roundTripped.getClientNextHopSetID(), NextHopSetID(42));
+
+  std::optional<NextHopSetID> empty;
+  entry.setClientNextHopSetID(empty);
+  EXPECT_FALSE(entry.getClientNextHopSetID().has_value());
+
+  validateThriftStructNodeSerialization<RouteNextHopEntry>(roundTripped);
+}
+
+TEST(RouteNextHopEntry, ClientNextHopSetIDInEquality) {
+  RouteNextHopEntry a(RouteNextHopEntry::Action::DROP, kDefaultAdminDistance);
+  RouteNextHopEntry b(RouteNextHopEntry::Action::DROP, kDefaultAdminDistance);
+  EXPECT_EQ(a, b);
+
+  std::optional<NextHopSetID> id7{NextHopSetID(7)};
+  a.setClientNextHopSetID(id7);
+  EXPECT_NE(a, b);
+
+  b.setClientNextHopSetID(id7);
+  EXPECT_EQ(a, b);
+
+  std::optional<NextHopSetID> id8{NextHopSetID(8)};
+  b.setClientNextHopSetID(id8);
+  EXPECT_NE(a, b);
+}

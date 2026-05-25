@@ -2,6 +2,8 @@
 
 #include "fboss/lib/i2c/minipack/MinipackBaseI2cBus.h"
 
+#include <fmt/core.h>
+
 namespace facebook::fboss {
 
 MinipackBaseI2cBus::MinipackBaseI2cBus() {}
@@ -18,7 +20,7 @@ void MinipackBaseI2cBus::moduleRead(
   auto pim = getPim(module);
   auto port = getQsfpPimPort(module);
 
-  XLOG(DBG3) << folly::format(
+  XLOG(DBG3) << fmt::format(
       "I2C read to pim {:d}, port {:d} at offset {:#x} for {:d} bytes",
       pim,
       port,
@@ -50,7 +52,7 @@ void MinipackBaseI2cBus::moduleWrite(
   auto pim = getPim(module);
   auto port = getQsfpPimPort(module);
 
-  XLOG(DBG3) << folly::format(
+  XLOG(DBG3) << fmt::format(
       "I2C write to pim {:d}, port {:d} at offset {:#x} for {:d} bytes",
       pim,
       port,
@@ -72,7 +74,7 @@ void MinipackBaseI2cBus::moduleWrite(
 bool MinipackBaseI2cBus::isPresent(unsigned int module) {
   auto pim = getPim(module);
   auto port = getQsfpPimPort(module);
-  XLOG(DBG5) << folly::format(
+  XLOG(DBG5) << fmt::format(
       "detecting presence of qsfp at pim:{:d}, port:{:d}", pim, port);
   return systemContainer_->getPimContainer(pim)
       ->getPimQsfpController()

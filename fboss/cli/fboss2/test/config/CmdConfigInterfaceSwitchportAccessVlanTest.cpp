@@ -52,6 +52,17 @@ class CmdConfigInterfaceSwitchportAccessVlanTestFixture
         "spanningTreeState": 2,
         "emitTags": false
       }
+    ],
+    "defaultVlan": 4000,
+    "vlans": [
+      {"id": 1, "name": "vlan1", "routable": true, "intfID": 1},
+      {"id": 2001, "name": "vlan2001", "routable": true, "intfID": 2001},
+      {"id": 3000, "name": "vlan3000", "routable": true, "intfID": 0},
+      {"id": 4000, "name": "vlan4000", "routable": false, "intfID": 0}
+    ],
+    "interfaces": [
+      {"intfID": 1, "vlanID": 1, "routerID": 0, "type": 1, "mtu": 9412},
+      {"intfID": 2001, "vlanID": 2001, "routerID": 0, "type": 1, "mtu": 9412}
     ]
   }
 })") {}
@@ -189,6 +200,30 @@ TEST_F(
   EXPECT_THROW(
       cmd.queryClient(localhost(), emptyInterfaces, vlanId),
       std::invalid_argument);
+}
+
+TEST_F(
+    CmdConfigInterfaceSwitchportAccessVlanTestFixture,
+    queryClientThrowsWhenVlanDoesNotExist) {
+  auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  VlanIdValue vlanId({"4094"});
+
+  try {
+    cmd.queryClient(localhost(), interfaces, vlanId);
+    FAIL() << "Expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    std::string msg = e.what();
+    EXPECT_THAT(msg, HasSubstr("VLAN 4094"));
+    EXPECT_THAT(msg, HasSubstr("does not exist"));
+  }
+
+  auto& config = ConfigSession::getInstance().getAgentConfig();
+  for (const auto& port : *config.sw()->ports()) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.ingressVlan(), 1);
+    }
+  }
 }
 
 } // namespace facebook::fboss

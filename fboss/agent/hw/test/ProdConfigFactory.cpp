@@ -237,8 +237,7 @@ cfg::SwitchConfig createProdRtswConfig(
  * in a production RSW as possible. If more features are desired, they can be
  * added in this function.
  *
- * Mainly to be called from HwProdInvariantsTest for config setup, and can be
- * used anywhere else it might be useful to have a prod RSW config.
+ * Can be used anywhere it might be useful to have a prod RSW config.
  */
 cfg::SwitchConfig createProdRswConfig(
     const std::vector<const HwAsic*>& asics,

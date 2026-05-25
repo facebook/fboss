@@ -21,6 +21,7 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include <fmt/core.h>
 #include <gtest/gtest.h>
 #include <string>
 
@@ -347,8 +348,7 @@ TEST(VlanMap, applyConfig) {
   config.ports()->resize(ports.size());
   for (int i = 0; i < ports.size(); i++) {
     int port = ports[i];
-    registerPort(
-        stateV0, PortID(port), folly::format("port{}", port).str(), scope());
+    registerPort(stateV0, PortID(port), fmt::format("port{}", port), scope());
 
     preparedMockPortConfig(
         config.ports()[i],

@@ -120,6 +120,10 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
       auto clientId = static_cast<ClientID>(*clAndNxthops.clientId());
       auto clientName = apache::thrift::util::enumNameSafe(clientId);
       out << fmt::format("  Nexthops from client {}\n", clientName);
+      if (clAndNxthops.namedNextHopGroup().has_value()) {
+        out << fmt::format(
+            "    via Named NHG: {}\n", *clAndNxthops.namedNextHopGroup());
+      }
       for (const auto& nextHop : clAndNxthops.nextHops().value()) {
         out << fmt::format(
             "    {}\n", show::route::utils::getNextHopInfoStr(nextHop));
@@ -127,6 +131,10 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
     }
 
     out << fmt::format("  Action: {}\n", entry.action().value());
+    if (entry.namedNextHopGroup().has_value()) {
+      out << fmt::format(
+          "  Named Next Hop Group: {}\n", *entry.namedNextHopGroup());
+    }
 
     auto printNextHops = [this, &out](
                              const std::string& header,
@@ -248,6 +256,12 @@ CmdShowRouteDetails::RetType CmdShowRouteDetails::createModel(
             }
           }
         }
+        if (clAndNxthops.namedRouteDestination().has_value() &&
+            clAndNxthops.namedRouteDestination()->getType() ==
+                NamedRouteDestination::Type::nextHopGroup) {
+          clAndNxthopsCli.namedNextHopGroup() =
+              *clAndNxthops.namedRouteDestination()->nextHopGroup_ref();
+        }
         routeDetails.nextHopMulti()->emplace_back(clAndNxthopsCli);
       }
 
@@ -297,6 +311,13 @@ CmdShowRouteDetails::RetType CmdShowRouteDetails::createModel(
       auto classIDPtr = apache::thrift::get_pointer(entry.classID());
       routeDetails.classID() =
           classIDPtr == nullptr ? "None" : getClassID(*classIDPtr);
+      if (entry.namedRouteDestination().has_value() &&
+          entry.namedRouteDestination()->getType() ==
+              NamedRouteDestination::Type::nextHopGroup) {
+        routeDetails.namedNextHopGroup() =
+            *entry.namedRouteDestination()->nextHopGroup_ref();
+      }
+
       auto overrideEcmpModePtr =
           apache::thrift::get_pointer(entry.overridenEcmpMode());
       routeDetails.overridenEcmpMode() = overrideEcmpModePtr == nullptr

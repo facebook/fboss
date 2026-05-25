@@ -27,6 +27,13 @@ switch_manager_unittest(
 )
 
 switch_manager_unittest(
+    name = "acltable_manager_redirect_test",
+    srcs = [
+        "AclTableManagerRedirectTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
     name = "bridge_manager_test",
     srcs = [
         "BridgeManagerTest.cpp",

@@ -681,6 +681,7 @@ class SaiStore {
       SaiObjectStore<SaiEnhancedRemoteMirrorTraits>,
       SaiObjectStore<SaiSflowMirrorTraits>,
       SaiObjectStore<SaiMplsNextHopTraits>,
+      SaiObjectStore<SaiTunnelEncapNextHopTraits>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       SaiObjectStore<SaiSrv6SidlistNextHopTraits>,
 #endif
@@ -704,6 +705,7 @@ class SaiStore {
       SaiObjectStore<SaiTamEventAgingGroupTraits>,
 #endif
       SaiObjectStore<SaiTamEventTraits>,
+      SaiObjectStore<SaiTamEventThresholdTraits>,
       SaiObjectStore<SaiTamTransportTraits>,
       SaiObjectStore<SaiTamCollectorTraits>,
       SaiObjectStore<SaiIpInIpTunnelTraits>,

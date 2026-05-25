@@ -38,6 +38,7 @@
 #include <gtest/gtest.h>
 
 DECLARE_bool(enable_nexthop_id_manager);
+DECLARE_int32(hwswitch_query_timeout);
 
 using namespace facebook::fboss;
 using namespace facebook::stats;
@@ -606,6 +607,18 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getFabricReachabilityStats) {
   ThriftHandler handler(this->sw_);
   FabricReachabilityStats stats;
   handler.getFabricReachabilityStats(stats);
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, getFabricConnectivityHwSwitchFailure) {
+  ThriftHandler handler(this->sw_);
+  std::map<std::string, FabricEndpoint> connectivity;
+  auto oldTimeout = FLAGS_hwswitch_query_timeout;
+  FLAGS_hwswitch_query_timeout = 1;
+  SCOPE_EXIT {
+    FLAGS_hwswitch_query_timeout = oldTimeout;
+  };
+
+  EXPECT_THROW(handler.getFabricConnectivity(connectivity), FbossError);
 }
 
 TYPED_TEST(ThriftTestAllSwitchTypes, getCpuPortStats) {
@@ -1810,7 +1823,7 @@ TEST_F(ThriftTest, addUnicastRoutesRejectsSrv6WithInvalidTunnelType) {
     nh.address() = toBinaryAddress(IPAddress(nhopAddr));
     nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
     nh.tunnelId() = "tunnel1";
-    nh.tunnelType() = TunnelType::IP_IN_IP;
+    nh.tunnelType() = TunnelType::IP_IN_IP_DECAP;
     route->nextHops() = {nh};
     EXPECT_THROW(
         handler.addUnicastRoute(bgpClient, std::move(route)), FbossError);
@@ -3047,6 +3060,12 @@ MySidEntry makeMySidEntryWithNextHops(
     NextHopThrift nh;
     nh.address() =
         facebook::network::toBinaryAddress(folly::IPAddressV6(nhAddr));
+    if (type == MySidType::BINDING_MICRO_SID) {
+      nh.srv6SegmentList() = {facebook::network::toBinaryAddress(
+          folly::IPAddressV6("2001:db8::10"))};
+      nh.tunnelType() = TunnelType::SRV6_ENCAP;
+      nh.tunnelId() = "tunnel1";
+    }
     nextHops.push_back(std::move(nh));
   }
   entry.nextHops() = std::move(nextHops);
@@ -3059,8 +3078,10 @@ TEST_F(ThriftTest, addMySidEntries) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  entries->push_back(makeMySidEntry("2001:db8::1", 64));
-  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::1", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::2", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
   handler.addMySidEntries(std::move(entries));
 
   auto state = sw_->getState();
@@ -3075,8 +3096,10 @@ TEST_F(ThriftTest, deleteMySidEntries) {
 
   // First add entries
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  entries->push_back(makeMySidEntry("2001:db8::1", 64));
-  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::1", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::2", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
   handler.addMySidEntries(std::move(entries));
 
   // Delete one
@@ -3108,16 +3131,11 @@ TEST_F(ThriftTest, addMySidEntryRejectsAdjacencyType) {
   EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
 }
 
-TEST_F(ThriftTest, addMySidEntryRejectsDecapsulateTypeWithNextHops) {
+TEST_F(ThriftTest, addMySidEntryRejectsDecapsulateType) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  auto entry = makeMySidEntry("2001:db8::1", 64);
-  NextHopThrift nhop;
-  nhop.address() =
-      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
-  entry.nextHops()->push_back(nhop);
-  entries->push_back(entry);
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
   EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
 }
 
@@ -3126,7 +3144,8 @@ TEST_F(ThriftTest, addAndDeleteMySidEntriesInSequence) {
 
   // Add
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::1", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
   handler.addMySidEntries(std::move(entries));
 
   auto state = sw_->getState();
@@ -3162,7 +3181,8 @@ TEST_F(ThriftTest, mySidEntryReflectedInRib) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::1", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
   handler.addMySidEntries(std::move(entries));
 
   // Verify RIB has the entry
@@ -3180,8 +3200,8 @@ TEST_F(ThriftTest, addMySidEntryRejectsDecapTypeWithNamedNextHops) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  auto entry = makeMySidEntry("2001:db8::1", 64);
-  // DECAP type with namedNextHops set — should be rejected
+  auto entry =
+      makeMySidEntry("2001:db8::1", 64, MySidType::DECAPSULATE_AND_LOOKUP);
   NamedRouteDestination named;
   named.nextHopGroup() = "group1";
   entry.namedNextHops() = named;
@@ -3201,8 +3221,10 @@ TEST_F(ThriftTest, getMySidEntriesReturnsAddedEntries) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  entries->push_back(makeMySidEntry("2001:db8::1", 64));
-  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::1", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::2", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
   handler.addMySidEntries(std::move(entries));
 
   std::vector<MySidEntry> result;
@@ -3211,7 +3233,7 @@ TEST_F(ThriftTest, getMySidEntriesReturnsAddedEntries) {
 
   std::set<std::string> prefixes;
   for (const auto& e : result) {
-    EXPECT_EQ(*e.type(), MySidType::DECAPSULATE_AND_LOOKUP);
+    EXPECT_EQ(*e.type(), MySidType::BINDING_MICRO_SID);
     auto ip = facebook::network::toIPAddress(*e.mySid()->prefixAddress());
     prefixes.insert(
         folly::IPAddress::networkToString(
@@ -3226,8 +3248,10 @@ TEST_F(ThriftTest, getMySidEntriesReflectsDelete) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
-  entries->push_back(makeMySidEntry("2001:db8::1", 64));
-  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::1", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
+  entries->push_back(makeMySidEntryWithNextHops(
+      "2001:db8::2", 64, MySidType::BINDING_MICRO_SID, {"2001:db8::ff"}));
   handler.addMySidEntries(std::move(entries));
 
   auto prefixes = std::make_unique<std::vector<IpPrefix>>();
@@ -3279,7 +3303,8 @@ TEST_F(ThriftTestWithNhopIdMgr, getMySidEntriesNodeAndAdjacencyTypesViaRib) {
   auto adjMySid = std::make_shared<MySid>(adjFields);
   RouteNextHopSet adjNhops{
       ResolvedNextHop(folly::IPAddress(kNhopAddrB), kInterfaceB, ECMP_WEIGHT)};
-  std::vector<MySidWithNextHops> adjToAdd = {{adjMySid, adjNhops}};
+  std::vector<MySidWithNextHops> adjToAdd = {
+      {adjMySid, adjNhops, std::nullopt}};
   sw_->getRib()->update(
       sw_->getScopeResolver(),
       std::move(adjToAdd),
@@ -3538,4 +3563,383 @@ TEST_F(NamedNextHopGroupThriftTest, addRemoveAddGroup) {
   handler.getNextHopGroups(result, std::move(filter2));
   ASSERT_EQ(result.size(), 1);
   EXPECT_EQ(*result[0].name(), "group1");
+}
+
+TEST_F(NamedNextHopGroupThriftTest, rejectGroupNameExceedingMaxLength) {
+  ThriftHandler handler(sw_);
+
+  // 31 chars should succeed
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(
+      makeGroup(std::string(31, 'a'), {"2401:db00:2110:3001::2"}));
+  EXPECT_NO_THROW(handler.addOrUpdateNamedNextHopGroups(std::move(groups)));
+
+  // 32 chars should fail
+  auto groups2 = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups2->push_back(
+      makeGroup(std::string(32, 'b'), {"2401:db00:2110:3001::2"}));
+  EXPECT_THROW(
+      handler.addOrUpdateNamedNextHopGroups(std::move(groups2)), FbossError);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, rejectsMplsAndSrv6) {
+  ThriftHandler handler(sw_);
+
+  NamedNextHopGroup group;
+  group.name() = "grp1";
+  NextHopThrift nh;
+  nh.address() = toBinaryAddress(folly::IPAddress("2401:db00:2110:3001::2"));
+  MplsAction mplsAction;
+  mplsAction.action() = MplsActionCode::PUSH;
+  mplsAction.pushLabels() = {101};
+  nh.mplsAction() = mplsAction;
+  nh.srv6SegmentList() = {toBinaryAddress(folly::IPAddress("2001:db8::1"))};
+  nh.tunnelType() = TunnelType::SRV6_ENCAP;
+  nh.tunnelId() = "tunnel1";
+  group.nexthops() = {nh};
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(group);
+  EXPECT_THROW(
+      handler.addOrUpdateNamedNextHopGroups(std::move(groups)), FbossError);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, rejectsSrv6WithInvalidTunnelType) {
+  ThriftHandler handler(sw_);
+
+  NamedNextHopGroup group;
+  group.name() = "grp1";
+  NextHopThrift nh;
+  nh.address() = toBinaryAddress(folly::IPAddress("2401:db00:2110:3001::2"));
+  nh.srv6SegmentList() = {toBinaryAddress(folly::IPAddress("2001:db8::1"))};
+  nh.tunnelId() = "tunnel1";
+  nh.tunnelType() = TunnelType::IP_IN_IP_DECAP;
+  group.nexthops() = {nh};
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(group);
+  EXPECT_THROW(
+      handler.addOrUpdateNamedNextHopGroups(std::move(groups)), FbossError);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, acceptsSrv6WithValidTunnelType) {
+  ThriftHandler handler(sw_);
+
+  NamedNextHopGroup group;
+  group.name() = "grp1";
+  NextHopThrift nh;
+  nh.address() = toBinaryAddress(folly::IPAddress("2401:db00:2110:3001::2"));
+  nh.srv6SegmentList() = {toBinaryAddress(folly::IPAddress("2001:db8::1"))};
+  nh.tunnelType() = TunnelType::SRV6_ENCAP;
+  nh.tunnelId() = "tunnel1";
+  group.nexthops() = {nh};
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(group);
+  EXPECT_NO_THROW(handler.addOrUpdateNamedNextHopGroups(std::move(groups)));
+}
+
+TEST_F(NamedNextHopGroupThriftTest, rejectsSrv6WithoutTunnelIdAndNoConfig) {
+  ThriftHandler handler(sw_);
+
+  NamedNextHopGroup group;
+  group.name() = "grp1";
+  NextHopThrift nh;
+  nh.address() = toBinaryAddress(folly::IPAddress("2401:db00:2110:3001::2"));
+  nh.srv6SegmentList() = {toBinaryAddress(folly::IPAddress("2001:db8::1"))};
+  group.nexthops() = {nh};
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(group);
+  EXPECT_THROW(
+      handler.addOrUpdateNamedNextHopGroups(std::move(groups)), FbossError);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, defaultsSrv6TunnelIdFromConfig) {
+  ThriftHandler handler(sw_);
+
+  auto config = sw_->getConfig();
+  cfg::Srv6Tunnel srv6Tunnel;
+  srv6Tunnel.srv6TunnelId() = "srv6Tunnel0";
+  srv6Tunnel.underlayIntfID() = 1;
+  srv6Tunnel.tunnelType() = TunnelType::SRV6_ENCAP;
+  srv6Tunnel.srcIp() = "2001:db8::100";
+  config.srv6Tunnels() = {srv6Tunnel};
+  sw_->applyConfig("Add SRv6 tunnel", config);
+
+  NamedNextHopGroup group;
+  group.name() = "grp1";
+  NextHopThrift nh;
+  nh.address() = toBinaryAddress(folly::IPAddress("2401:db00:2110:3001::2"));
+  nh.srv6SegmentList() = {toBinaryAddress(folly::IPAddress("2001:db8::1"))};
+  group.nexthops() = {nh};
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(group);
+  EXPECT_NO_THROW(handler.addOrUpdateNamedNextHopGroups(std::move(groups)));
+}
+
+TEST_F(
+    NamedNextHopGroupThriftTest,
+    getRouteTableByClientVerifyNamedRouteDestination) {
+  ThriftHandler handler(sw_);
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(makeGroup(
+      "nhg_foo", {"2401:db00:2110:3001::2", "2401:db00:2110:3001::3"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  UnicastRoute route;
+  route.dest()->ip() = toBinaryAddress(IPAddress("2401::1"));
+  route.dest()->prefixLength() = 128;
+  NamedRouteDestination namedDest;
+  namedDest.nextHopGroup() = "nhg_foo";
+  route.namedRouteDestination() = namedDest;
+
+  auto updater = sw_->getRouteUpdater();
+  updater.addRoute(RouterID(0), ClientID::BGPD, route);
+  updater.program();
+
+  // Verify via getRouteTableByClient
+  std::vector<UnicastRoute> routeTable;
+  bool found = false;
+  handler.getRouteTableByClient(routeTable, bgpClient);
+  for (const auto& rt : routeTable) {
+    if (rt.dest()->ip() == toBinaryAddress(IPAddress("2401::1"))) {
+      ASSERT_TRUE(rt.namedRouteDestination()->nextHopGroup().has_value());
+      EXPECT_EQ(*rt.namedRouteDestination()->nextHopGroup(), "nhg_foo");
+      found = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(found);
+}
+
+TEST_F(ThriftTest, routeCounterSetForNamedNhg) {
+  FLAGS_enable_route_counters_for_named_nhg = true;
+  SCOPE_EXIT {
+    FLAGS_enable_route_counters_for_named_nhg = false;
+  };
+  ThriftHandler handler(sw_);
+
+  auto route = std::make_unique<UnicastRoute>();
+  *route->dest()->ip() = toBinaryAddress(IPAddress("2401::1"));
+  *route->dest()->prefixLength() = 128;
+  route->namedRouteDestination()->nextHopGroup() = "nhg_foo";
+
+  auto client = static_cast<int16_t>(ClientID::BGPD);
+  handler.addUnicastRoute(client, std::move(route));
+
+  auto state = sw_->getState();
+  auto rt = findRoute<folly::IPAddressV6>(
+      RouterID(0), IPAddress::createNetwork("2401::1/128"), state);
+  ASSERT_NE(nullptr, rt);
+  EXPECT_EQ(rt->getForwardInfo().getCounterID(), "nhg_foo");
+}
+
+TEST_F(ThriftTest, routeCounterNotSetForNamedNhgWhenDisabled) {
+  FLAGS_enable_route_counters_for_named_nhg = false;
+  ThriftHandler handler(sw_);
+
+  auto route = std::make_unique<UnicastRoute>();
+  *route->dest()->ip() = toBinaryAddress(IPAddress("2401::2"));
+  *route->dest()->prefixLength() = 128;
+  route->namedRouteDestination()->nextHopGroup() = "nhg_bar";
+
+  auto client = static_cast<int16_t>(ClientID::BGPD);
+  handler.addUnicastRoute(client, std::move(route));
+
+  auto state = sw_->getState();
+  auto rt = findRoute<folly::IPAddressV6>(
+      RouterID(0), IPAddress::createNetwork("2401::2/128"), state);
+  ASSERT_NE(nullptr, rt);
+  EXPECT_FALSE(rt->getForwardInfo().getCounterID().has_value());
+}
+
+TEST_F(ThriftTest, syncFibSetsRouteCounterForNamedNhg) {
+  FLAGS_enable_route_counters_for_named_nhg = true;
+  SCOPE_EXIT {
+    FLAGS_enable_route_counters_for_named_nhg = false;
+  };
+  ThriftHandler handler(sw_);
+
+  auto routes = std::make_unique<std::vector<UnicastRoute>>();
+
+  UnicastRoute route1;
+  *route1.dest()->ip() = toBinaryAddress(IPAddress("2401::10"));
+  *route1.dest()->prefixLength() = 128;
+  route1.namedRouteDestination()->nextHopGroup() = "nhg_alpha";
+
+  UnicastRoute route2;
+  *route2.dest()->ip() = toBinaryAddress(IPAddress("2401::20"));
+  *route2.dest()->prefixLength() = 128;
+  route2.namedRouteDestination()->nextHopGroup() = "nhg_beta";
+
+  // Route without named NHG — counterID should not be set
+  UnicastRoute route3;
+  *route3.dest()->ip() = toBinaryAddress(IPAddress("2401::30"));
+  *route3.dest()->prefixLength() = 128;
+  route3.nextHopAddrs()->push_back(toBinaryAddress(IPAddress("10.0.0.2")));
+  route3.adminDistance() = AdminDistance::EBGP;
+
+  routes->push_back(route1);
+  routes->push_back(route2);
+  routes->push_back(route3);
+
+  auto client = static_cast<int16_t>(ClientID::BGPD);
+  handler.syncFib(client, std::move(routes));
+
+  auto state = sw_->getState();
+
+  auto rt1 = findRoute<folly::IPAddressV6>(
+      RouterID(0), IPAddress::createNetwork("2401::10/128"), state);
+  ASSERT_NE(nullptr, rt1);
+  EXPECT_EQ(rt1->getForwardInfo().getCounterID(), "nhg_alpha");
+
+  auto rt2 = findRoute<folly::IPAddressV6>(
+      RouterID(0), IPAddress::createNetwork("2401::20/128"), state);
+  ASSERT_NE(nullptr, rt2);
+  EXPECT_EQ(rt2->getForwardInfo().getCounterID(), "nhg_beta");
+
+  auto rt3 = findRoute<folly::IPAddressV6>(
+      RouterID(0), IPAddress::createNetwork("2401::30/128"), state);
+  ASSERT_NE(nullptr, rt3);
+  EXPECT_FALSE(rt3->getForwardInfo().getCounterID().has_value());
+}
+
+TEST_F(ThriftTest, syncFibDoesNotSetRouteCounterForNamedNhgWhenDisabled) {
+  FLAGS_enable_route_counters_for_named_nhg = false;
+  ThriftHandler handler(sw_);
+
+  auto routes = std::make_unique<std::vector<UnicastRoute>>();
+
+  UnicastRoute route1;
+  *route1.dest()->ip() = toBinaryAddress(IPAddress("2401::40"));
+  *route1.dest()->prefixLength() = 128;
+  route1.namedRouteDestination()->nextHopGroup() = "nhg_gamma";
+
+  routes->push_back(route1);
+
+  auto client = static_cast<int16_t>(ClientID::BGPD);
+  handler.syncFib(client, std::move(routes));
+
+  auto state = sw_->getState();
+  auto rt = findRoute<folly::IPAddressV6>(
+      RouterID(0), IPAddress::createNetwork("2401::40/128"), state);
+  ASSERT_NE(nullptr, rt);
+  EXPECT_FALSE(rt->getForwardInfo().getCounterID().has_value());
+}
+
+TEST_F(ThriftTest, routeCounterUpdatedWhenNamedNhgAddedToExistingRoute) {
+  FLAGS_enable_route_counters_for_named_nhg = true;
+  SCOPE_EXIT {
+    FLAGS_enable_route_counters_for_named_nhg = false;
+  };
+  ThriftHandler handler(sw_);
+  auto client = static_cast<int16_t>(ClientID::BGPD);
+
+  // First add a regular route without named NHG
+  auto route1 = std::make_unique<UnicastRoute>();
+  *route1->dest()->ip() = toBinaryAddress(IPAddress("2401::50"));
+  *route1->dest()->prefixLength() = 128;
+  route1->nextHopAddrs()->push_back(toBinaryAddress(IPAddress("10.0.0.2")));
+  route1->adminDistance() = AdminDistance::EBGP;
+  handler.addUnicastRoute(client, std::move(route1));
+
+  auto state = sw_->getState();
+  auto rt = findRoute<folly::IPAddressV6>(
+      RouterID(0), IPAddress::createNetwork("2401::50/128"), state);
+  ASSERT_NE(nullptr, rt);
+  EXPECT_FALSE(rt->getForwardInfo().getCounterID().has_value());
+
+  // Now update same prefix via syncFib with a named NHG
+  auto routes = std::make_unique<std::vector<UnicastRoute>>();
+  UnicastRoute route2;
+  *route2.dest()->ip() = toBinaryAddress(IPAddress("2401::50"));
+  *route2.dest()->prefixLength() = 128;
+  route2.namedRouteDestination()->nextHopGroup() = "nhg_delta";
+  routes->push_back(route2);
+  handler.syncFib(client, std::move(routes));
+
+  state = sw_->getState();
+  rt = findRoute<folly::IPAddressV6>(
+      RouterID(0), IPAddress::createNetwork("2401::50/128"), state);
+  ASSERT_NE(nullptr, rt);
+  EXPECT_EQ(rt->getForwardInfo().getCounterID(), "nhg_delta");
+}
+
+TEST_F(ThriftTest, routeCounterRemovedWhenNamedNhgRemovedFromRoute) {
+  FLAGS_enable_route_counters_for_named_nhg = true;
+  SCOPE_EXIT {
+    FLAGS_enable_route_counters_for_named_nhg = false;
+  };
+  ThriftHandler handler(sw_);
+  auto client = static_cast<int16_t>(ClientID::BGPD);
+
+  // First add a route with named NHG
+  auto route1 = std::make_unique<UnicastRoute>();
+  *route1->dest()->ip() = toBinaryAddress(IPAddress("2401::60"));
+  *route1->dest()->prefixLength() = 128;
+  route1->namedRouteDestination()->nextHopGroup() = "nhg_epsilon";
+  handler.addUnicastRoute(client, std::move(route1));
+
+  auto state = sw_->getState();
+  auto rt = findRoute<folly::IPAddressV6>(
+      RouterID(0), IPAddress::createNetwork("2401::60/128"), state);
+  ASSERT_NE(nullptr, rt);
+  EXPECT_EQ(rt->getForwardInfo().getCounterID(), "nhg_epsilon");
+
+  // Now update same prefix via syncFib without named NHG
+  auto routes = std::make_unique<std::vector<UnicastRoute>>();
+  UnicastRoute route2;
+  *route2.dest()->ip() = toBinaryAddress(IPAddress("2401::60"));
+  *route2.dest()->prefixLength() = 128;
+  route2.nextHopAddrs()->push_back(toBinaryAddress(IPAddress("10.0.0.2")));
+  route2.adminDistance() = AdminDistance::EBGP;
+  routes->push_back(route2);
+  handler.syncFib(client, std::move(routes));
+
+  state = sw_->getState();
+  rt = findRoute<folly::IPAddressV6>(
+      RouterID(0), IPAddress::createNetwork("2401::60/128"), state);
+  ASSERT_NE(nullptr, rt);
+  EXPECT_FALSE(rt->getForwardInfo().getCounterID().has_value());
+}
+
+TEST_F(ThriftTest, routeCounterUpdatedWhenNamedNhgChanges) {
+  FLAGS_enable_route_counters_for_named_nhg = true;
+  SCOPE_EXIT {
+    FLAGS_enable_route_counters_for_named_nhg = false;
+  };
+  ThriftHandler handler(sw_);
+  auto client = static_cast<int16_t>(ClientID::BGPD);
+
+  // Add route with named NHG "nhg_one"
+  auto route1 = std::make_unique<UnicastRoute>();
+  *route1->dest()->ip() = toBinaryAddress(IPAddress("2401::70"));
+  *route1->dest()->prefixLength() = 128;
+  route1->namedRouteDestination()->nextHopGroup() = "nhg_one";
+  handler.addUnicastRoute(client, std::move(route1));
+
+  auto state = sw_->getState();
+  auto rt = findRoute<folly::IPAddressV6>(
+      RouterID(0), IPAddress::createNetwork("2401::70/128"), state);
+  ASSERT_NE(nullptr, rt);
+  EXPECT_EQ(rt->getForwardInfo().getCounterID(), "nhg_one");
+
+  // Update same prefix with different named NHG "nhg_two"
+  auto routes = std::make_unique<std::vector<UnicastRoute>>();
+  UnicastRoute route2;
+  *route2.dest()->ip() = toBinaryAddress(IPAddress("2401::70"));
+  *route2.dest()->prefixLength() = 128;
+  route2.namedRouteDestination()->nextHopGroup() = "nhg_two";
+  routes->push_back(route2);
+  handler.syncFib(client, std::move(routes));
+
+  state = sw_->getState();
+  rt = findRoute<folly::IPAddressV6>(
+      RouterID(0), IPAddress::createNetwork("2401::70/128"), state);
+  ASSERT_NE(nullptr, rt);
+  EXPECT_EQ(rt->getForwardInfo().getCounterID(), "nhg_two");
 }

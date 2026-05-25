@@ -21,6 +21,7 @@
 
 #include "folly/testing/TestUtil.h"
 
+#include <fmt/core.h>
 #include <algorithm>
 
 namespace facebook::fboss::utility {
@@ -98,8 +99,7 @@ void executeCintScript(const SaiSwitch* saiSwitch, const std::string& script) {
   clientInfo.username() = "hw_test";
   clientInfo.hostname() = "hw_test";
   auto out = diagCmdServer->diagCmd(
-      std::make_unique<fbstring>(
-          folly::sformat("cint {}\n", file.path().c_str())),
+      std::make_unique<fbstring>(fmt::format("cint {}\n", file.path().c_str())),
       std::make_unique<ClientInformation>(clientInfo));
   XLOG(INFO) << "OUTPUT = " << out;
   diagCmdServer->diagCmd(
@@ -118,14 +118,13 @@ std::string buildLegacyFecErrorInjScript(
   )";
   std::string script = kBaseFecErrorInjStr;
   if (injectCorrectable) {
-    script =
-        folly::sformat("\n{}\n injection.error_mask_bit_63_32=0x1;", script);
+    script = fmt::format("\n{}\n injection.error_mask_bit_63_32=0x1;", script);
   } else {
-    script = folly::sformat(
+    script = fmt::format(
         "\n{}\n injection.error_mask_bit_63_32=0xFFFFFFFF;", script);
   }
   for (auto hwPortID : hwPorts) {
-    script = folly::sformat(
+    script = fmt::format(
         "\n{}\n print bcm_port_phy_fec_error_inject_set(unit, {}, error_control_map, injection);",
         script,
         hwPortID);
@@ -144,7 +143,7 @@ std::string buildFecErrorInjScript(
   int rv = 0;
   )";
   for (auto hwPortID : hwPorts) {
-    script += folly::sformat(
+    script += fmt::format(
         R"(
   sal_memset(&enable, 0, sizeof(enable));
   print bcm_port_phy_fec_error_inject_enable_set(unit, {}, enable);
@@ -167,7 +166,7 @@ std::string buildFecErrorInjScript(
   config.error_injection_freq = 0;
 )";
     }
-    script += folly::sformat(
+    script += fmt::format(
         R"(
   print bcm_port_phy_fec_error_inject_config_set(unit, {0}, config);
   sal_memset(&enable, 0, sizeof(enable));

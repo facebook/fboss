@@ -102,6 +102,7 @@ target_link_libraries(thrift_method_rate_limit
   FBThrift::thriftcpp2
 )
 
+find_library(PCIACCESS pciaccess)
 add_library(pci_device
   fboss/lib/PciDevice.cpp
   fboss/lib/PciSystem.cpp
@@ -109,6 +110,7 @@ add_library(pci_device
 
 target_link_libraries(pci_device
   Folly::folly
+  ${PCIACCESS}
 )
 
 add_library(physical_memory

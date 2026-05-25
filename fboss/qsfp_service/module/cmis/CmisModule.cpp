@@ -4,6 +4,7 @@
 
 #include <boost/assign.hpp>
 #include <boost/bimap.hpp>
+#include <fmt/core.h>
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
@@ -411,6 +412,8 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Page 38h, Byte 137 - Consequent Action control
     // Bits 7-4 (rxConsAct), Bits 3-0 (txConsAct)
     {CmisField::CONS_ACT_CONTROL, {CmisPages::PAGE38, 137, 1}},
+    // Page 38h, Bytes 141-142 - Rx Consequent Action Hold-off Timer
+    {CmisField::CONS_ACT_HOLD_OFF_TMR, {CmisPages::PAGE38, 141, 2}},
     // Page 45h - Host Lane Provisioning Advertisement
     {CmisField::PAGE_UPPER45H, {CmisPages::PAGE45, 128, 128}},
     // Page 45h, Byte 129 - Host Lane Provisioning Advertisement
@@ -864,22 +867,38 @@ std::optional<uint16_t> CmisModule::fetchFwBuildNumberFromCdb() {
     return std::nullopt;
   }
 
-  CdbCommandBlock commandBlockBuf;
-  commandBlockBuf.createCdbCmdGetFirmwareInfo();
-  auto ret = commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
-  if (ret && commandBlockBuf.getCdbRlplLength() >= kCdbFwInfoMinRlplLength) {
-    const uint8_t* response = commandBlockBuf.getCdbLplFlatMemory();
-    uint8_t firmwareStatusByte = response[kCdbFwInfoFwStatusOffset];
-    bool bankARunning = (firmwareStatusByte & kCdbFwInfoBankARunningMask) != 0;
-    bool bankBRunning = (firmwareStatusByte & kCdbFwInfoBankBRunningMask) != 0;
+  constexpr int kRetryPollIntervalUsec = 100000;
+  constexpr int kMaxRetries = 3;
+  const int maxAttempts = shouldRetryCdbFwInfo() ? kMaxRetries : 1;
 
-    if (bankARunning) {
-      return (response[kCdbFwInfoImageABuildHiOffset] << 8) |
-          response[kCdbFwInfoImageABuildLoOffset];
-    } else if (bankBRunning) {
-      return (response[kCdbFwInfoImageBBuildHiOffset] << 8) |
-          response[kCdbFwInfoImageBBuildLoOffset];
+  for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+    CdbCommandBlock commandBlockBuf;
+    commandBlockBuf.createCdbCmdGetFirmwareInfo();
+    auto ret = commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
+
+    if (ret) {
+      auto buildNumber = commandBlockBuf.getFwBuildNumber();
+      if (buildNumber.has_value()) {
+        QSFP_LOG(DBG1, this)
+            << "fetchFwBuildNumberFromCdb: build number " << buildNumber.value()
+            << " (attempt " << attempt << ")";
+      }
+      return buildNumber;
     }
+
+    auto cdbStatus = commandBlockBuf.getLastCdbStatus();
+    if (cdbStatus != kCdbCommandStatusFailed || attempt == maxAttempts) {
+      QSFP_LOG(ERR, this) << "fetchFwBuildNumberFromCdb: CDB command failed"
+                          << " cdbStatus=0x" << std::hex << (int)cdbStatus
+                          << std::dec << " after " << attempt << " attempt(s)";
+      return std::nullopt;
+    }
+
+    QSFP_LOG(WARN, this)
+        << "fetchFwBuildNumberFromCdb: CDB returned 0x40 (attempt " << attempt
+        << "/" << maxAttempts << "), retrying";
+    /* sleep override */
+    usleep(kRetryPollIntervalUsec);
   }
   return std::nullopt;
 }
@@ -1066,17 +1085,15 @@ bool CmisModule::getHostLaneSettings(
     laneSettings[lane].rxSquelch() = rxSquelchDisable & laneMask;
 
     uint8_t pre = (dataPre[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
-    QSFP_LOG(DBG3, this) << folly::sformat(
-        "Lane = {:d}, Pre = {:d}", lane, pre);
+    QSFP_LOG(DBG3, this) << fmt::format("Lane = {:d}, Pre = {:d}", lane, pre);
     laneSettings[lane].rxOutputPreCursor() = pre;
 
     uint8_t post = (dataPost[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
-    QSFP_LOG(DBG3, this) << folly::sformat(
-        "Lane = {:d}, Post = {:d}", lane, post);
+    QSFP_LOG(DBG3, this) << fmt::format("Lane = {:d}, Post = {:d}", lane, post);
     laneSettings[lane].rxOutputPostCursor() = post;
 
     uint8_t mainVal = (dataMain[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
-    QSFP_LOG(DBG3, this) << folly::sformat(
+    QSFP_LOG(DBG3, this) << fmt::format(
         "Lane = {:d}, Main = {:d}", lane, mainVal);
     laneSettings[lane].rxOutputAmplitude() = mainVal;
   }
@@ -1312,7 +1329,7 @@ void CmisModule::getApplicationCapabilities() {
       break;
     }
 
-    QSFP_LOG(DBG3, this) << folly::sformat(
+    QSFP_LOG(DBG3, this) << fmt::format(
         "Adding module capability: {:#x} at position {:d}", data[1], i + 1);
     ApplicationAdvertisingField applicationAdvertisingField;
     applicationAdvertisingField.ApSelCode = (i + 1);
@@ -1416,7 +1433,7 @@ bool CmisModule::moduleReadyStatePoll() {
     }
   }
   if (retries >= maxRetriesReady) {
-    QSFP_LOG(ERR, this) << folly::sformat(
+    QSFP_LOG(ERR, this) << fmt::format(
         "Module not ready even after waiting {:d} uSec",
         kUsecModuleReadyStateUpdateTimeMax);
   }
@@ -1426,7 +1443,7 @@ bool CmisModule::moduleReadyStatePoll() {
 void CmisModule::setModuleLowPowerModeLocked() {
   // Set to 0x60 = (SquelchControl=Reduce Pave | LowPwr)
   uint8_t newModuleControl = SQUELCH_CONTROL | LOW_PWR_BIT;
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "setModuleLowPowerModeLocked: Setting module control to {:#x}",
       newModuleControl);
   writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
@@ -1438,7 +1455,7 @@ void CmisModule::setModuleLowPowerModeLocked() {
 void CmisModule::releaseModuleLowPowerModeLocked() {
   // Clear low power bit (set to 0x20)
   uint8_t newModuleControl = SQUELCH_CONTROL;
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "releaseModuleLowPowerModeLocked: Clearing low power bit, module control to {:#x}",
       newModuleControl);
   writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
@@ -1456,7 +1473,7 @@ FlagLevels CmisModule::getChannelFlags(CmisField field, int channel) {
 
   CHECK_GE(channel, 0);
   if (channel > 8) {
-    QSFP_LOG(ERR, this) << folly::sformat(
+    QSFP_LOG(ERR, this) << fmt::format(
         "getChannelFlags: Channel id {:d} is invalid", channel);
     return FlagLevels{};
   }
@@ -2149,7 +2166,7 @@ std::optional<TunableLaserStatus> CmisModule::getTunableLaserStatus() {
 
   tunableLaserStatus.laserFrequencyMhz() = static_cast<int64_t>(frequencyMhz);
 
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "Laser status byte: 0x{:X}, laserStatusFlagsByte: 0x{:X}, "
       "frequency_MHz: {}, TuningStatus: {}, WavelengthLockingStatus: {}",
       laserStatusByte,
@@ -2522,7 +2539,7 @@ void CmisModule::applyHostControlledInputEquilizerTx(
     uint8_t value) {
   auto itr = laneToInputEqTxField.find(lane);
   if (itr == laneToInputEqTxField.end()) {
-    QSFP_LOG(WARN, this) << folly::sformat(
+    QSFP_LOG(WARN, this) << fmt::format(
         "Warning: lane {:#d} is out of range for InputEqTx map", lane);
     return;
   }
@@ -2530,7 +2547,7 @@ void CmisModule::applyHostControlledInputEquilizerTx(
   // only 4 bits are applicable.
   uint8_t valueToApply = value & 0xF;
   if (valueToApply != value) {
-    QSFP_LOG(WARN, this) << folly::sformat(
+    QSFP_LOG(WARN, this) << fmt::format(
         "Warning: Value applied {:#d} is out of range for InputEqTx 4 bits",
         value);
     return;
@@ -2578,7 +2595,7 @@ uint8_t CmisModule::setExplicitControl(
   }
 
   if (driverPeaking->size() < lanes.size()) {
-    QSFP_LOG(WARN, this) << folly::sformat(
+    QSFP_LOG(WARN, this) << fmt::format(
         "Warning: Driver peaking override count {:#d} is smaller than Lane count {:#d}",
         driverPeaking->size(),
         lanes.size());
@@ -2587,7 +2604,7 @@ uint8_t CmisModule::setExplicitControl(
   for (const auto& lane : lanes) {
     auto itr = driverPeaking->find(lane);
     if (itr == driverPeaking->end()) {
-      QSFP_LOG(WARN, this) << folly::sformat(
+      QSFP_LOG(WARN, this) << fmt::format(
           "Warning: Driver peaking override for lane {:#d} is missing", lane);
       continue;
     }
@@ -2671,12 +2688,12 @@ void CmisModule::setApplicationSelectCode(
   const uint8_t explicitControl = setExplicitControl(state, lanesToProgram);
   const uint8_t newApSelCode = (apSelCode << APP_SEL_BITSHIFT) |
       (dataPathId << DATA_PATH_ID_BITSHIFT) | explicitControl;
-  QSFP_LOG(INFO, this) << folly::sformat("newApSelCode: {:#x}", newApSelCode);
+  QSFP_LOG(INFO, this) << fmt::format("newApSelCode: {:#x}", newApSelCode);
 
   // First release the lanes if they are already part of any datapath
   std::vector<uint8_t> zeroApSelCode(lanesToRelease.size(), 0);
   for (auto it = lanesToRelease.begin(); it != lanesToRelease.end(); it++) {
-    QSFP_LOG(INFO, this) << folly::sformat("Releasing lane {:#x}", *it);
+    QSFP_LOG(INFO, this) << fmt::format("Releasing lane {:#x}", *it);
   }
   writeCmisField(laneToAppSelField(lanesToRelease), zeroApSelCode.data());
   // We don't need to check if lanesToRelease is empty or not before setting
@@ -2688,7 +2705,7 @@ void CmisModule::setApplicationSelectCode(
   std::vector<uint8_t> appSelCode;
   for (uint8_t lane = dataPathId; lane < dataPathId + numHostLanes; lane++) {
     // Assign ApSel code to each lane
-    QSFP_LOG(INFO, this) << folly::sformat(
+    QSFP_LOG(INFO, this) << fmt::format(
         "Configuring lane {:#x} with apsel code {:#x}", lane, newApSelCode);
     lanesToProgramAppSel.insert(lane);
     appSelCode.push_back(newApSelCode);
@@ -2699,7 +2716,7 @@ void CmisModule::setApplicationSelectCode(
 
   datapathResetPendingMask_ = applySetForConfigureLanes;
 
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "set application to {:#x}", mediaInterfaceCode);
 }
 
@@ -2807,7 +2824,7 @@ void CmisModule::setMaxFecSamplingLocked() {
     if (itr != kMaxProgFecSamplingSupportedMap_.end()) {
       uint8_t max = itr->second;
       writeCmisField(CmisField::FEC_SAMPLING_PCT, &max);
-      QSFP_LOG(INFO, this) << folly::sformat(
+      QSFP_LOG(INFO, this) << fmt::format(
           "set sampling rate to max: {} for module media interface {}",
           max,
           apache::thrift::util::enumNameSafe(mediaInterface));
@@ -2835,7 +2852,7 @@ void CmisModule::programApplicationSelectCode(
 
   // Use provided function or create default one
   if (!appSelectFunc) {
-    QSFP_LOG(INFO, this) << folly::sformat(
+    QSFP_LOG(INFO, this) << fmt::format(
         "Programming App sel on lanes {:#x}", hostLaneMask);
 
     appSelectFunc = std::bind(
@@ -2863,7 +2880,7 @@ void CmisModule::programApplicationSelectCode(
   // Check if the config has been applied correctly or not
   // TODO: This is a failure scenario. We should Fail somehow !
   if (!checkLaneConfigError(state.startHostLane, numHostLanes)) {
-    QSFP_LOG(ERR, this) << folly::sformat(
+    QSFP_LOG(ERR, this) << fmt::format(
         "application {:#x} could not be set", moduleMediaInterfaceCode);
   }
 }
@@ -2880,7 +2897,7 @@ uint8_t CmisModule::getInterfaceCodeForAppSel(
     uint8_t appSelCode,
     int byteOffset) {
   if (appSelCode == 0 || appSelCode > 15) {
-    QSFP_LOG(INFO, this) << folly::sformat(
+    QSFP_LOG(INFO, this) << fmt::format(
         "Invalid appSelCode {:#x}, returning 0", appSelCode);
     return 0;
   }
@@ -2902,7 +2919,7 @@ uint8_t CmisModule::getInterfaceCodeForAppSel(
     getQsfpValue(dataAddress, offset, 1, &interfaceCode);
   }
 
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "interfaceCode: {:#x} for appSelCode {:#x} byteOffset {}",
       interfaceCode,
       appSelCode,
@@ -2976,7 +2993,7 @@ CmisModule::getAppSelCodeForSpeed(
   // we only take one of them to look at.
   uint8_t currentApplicationSel = getCurrentAppSelCode(startHostLane);
 
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "currentApplicationSel: {:#x} speed {:s} startHostLane {:d} numHostLanesForPort {:d}",
       currentApplicationSel,
       apache::thrift::util::enumNameSafe(speed),
@@ -3024,7 +3041,7 @@ CmisModule::getAppSelCodeForSpeed(
     // If the currently configured application is the same as what we are trying
     // to configure, then skip the configuration
     if (application == currentApplication) {
-      QSFP_LOG(INFO, this) << folly::sformat(
+      QSFP_LOG(INFO, this) << fmt::format(
           "Speed matches: currentApplication {:#x}. Doing nothing",
           currentApplication);
       // Make sure the datapath is initialized, otherwise initialize it before
@@ -3033,7 +3050,7 @@ CmisModule::getAppSelCodeForSpeed(
       if (datapathResetPendingMask_ & hostLaneMask) {
         resetDataPathWithFunc(portName, std::nullopt, hostLaneMask);
         datapathResetPendingMask_ &= ~hostLaneMask;
-        QSFP_LOG(INFO, this) << folly::sformat(
+        QSFP_LOG(INFO, this) << fmt::format(
             "Reset datapath for lane mask {:#x} before returning",
             hostLaneMask);
       }
@@ -3065,7 +3082,7 @@ CmisModule::getAppSelCodeForSpeed(
 void CmisModule::setApplicationCodeLocked(
     const TransceiverPortState& state,
     uint8_t newAppSelCode) {
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "Trying to set application code for speed {} on startHostLane {}",
       apache::thrift::util::enumNameSafe(state.speed),
       state.startHostLane);
@@ -3076,7 +3093,7 @@ void CmisModule::setApplicationCodeLocked(
       throw FbossError("newAppSelCode is invalid for tunable optics");
     }
 
-    QSFP_LOG(INFO, this) << folly::sformat(
+    QSFP_LOG(INFO, this) << fmt::format(
         "Direct AppSelCode programming for speed {} on startHostLane {} newAppSelCode {}",
         apache::thrift::util::enumNameSafe(state.speed),
         state.startHostLane,
@@ -3124,7 +3141,7 @@ void CmisModule::setApplicationCodeLocked(
   if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
       !isRequestValidMultiportSpeedConfig(
           state.speed, state.startHostLane, numHostLanes)) {
-    QSFP_LOG(INFO, this) << folly::sformat(
+    QSFP_LOG(INFO, this) << fmt::format(
         "Programming App sel on ALL lanes: speed={}, startHostLane={}, numHostLanes={}",
         apache::thrift::util::enumNameSafe(state.speed),
         state.startHostLane,
@@ -3253,7 +3270,7 @@ bool CmisModule::checkLaneConfigError(
       if (cfgErr != 1) {
         success = false;
       }
-      QSFP_LOG(INFO, this) << folly::sformat(
+      QSFP_LOG(INFO, this) << fmt::format(
           "Lane {:d} config stats: {:s}",
           channel,
           channelConfigErrorMsg[cfgErr]);
@@ -3357,7 +3374,7 @@ void CmisModule::setPowerOverrideIfSupportedLocked(
 
   writeCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
 
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "QSFP module control field set to {:#x}", currentModuleControl);
 }
 
@@ -3421,6 +3438,43 @@ void CmisModule::enableRxLfInsertionForTunableOptics() {
   writeCmisField(CmisField::CONS_ACT_CONTROL, &lfInsertValue);
   QSFP_LOG(INFO, this)
       << "Enabled Rx LF insertion (rxConsAct=0x1) for tunable optics";
+}
+
+bool CmisModule::isRxConsActHoldOffTmrImplSupported() const {
+  auto info = QsfpFieldInfo<CmisField, CmisPages>::getQsfpFieldAddress(
+      cmisFields, CmisField::HOST_LANE_PROV_AD);
+  const uint8_t* data =
+      getQsfpValuePtr(info.dataAddress, info.offset, info.length);
+  return (*data & RX_CONS_ACT_HOLD_OFF_TMR_IMPL_MASK) != 0;
+}
+
+void CmisModule::configureRxConsActHoldOffTimer(
+    int32_t timerMs,
+    bool isExplicitlyConfigured) {
+  if (timerMs < 0 || timerMs > 655350 || timerMs % 10 != 0) {
+    throw FbossError(
+        "Hold-off timer must be a non-negative multiple of 10ms "
+        "in range [0, 655350]: ",
+        timerMs);
+  }
+  int32_t registerValue = timerMs / 10;
+  if (isRxConsActHoldOffTmrImplSupported()) {
+    uint16_t regVal = static_cast<uint16_t>(registerValue);
+    uint8_t timerData[2];
+    timerData[0] = static_cast<uint8_t>((regVal >> 8) & 0xFF);
+    timerData[1] = static_cast<uint8_t>(regVal & 0xFF);
+    writeCmisField(CmisField::CONS_ACT_HOLD_OFF_TMR, timerData);
+    QSFP_LOG(INFO, this) << "Configured Rx Consequent Action Hold-off Timer to "
+                         << timerMs << "ms (register value=" << regVal << ")";
+  } else if (isExplicitlyConfigured) {
+    throw FbossError(
+        "Module does not advertise rxConsActHoldOffTmrImpl "
+        "(Page 45h, Byte 129, Bit 2). Cannot configure hold-off timer.");
+  } else {
+    QSFP_LOG(INFO, this)
+        << "Hold-off timer not configured and module does not support it. "
+        << "Skipping hold-off timer programming.";
+  }
 }
 
 bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
@@ -3488,7 +3542,7 @@ bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
 
 void CmisModule::customizeTransceiverLocked(
     const TransceiverPortState& portState) {
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}, NumHostLanes{}",
       portState.portName,
       apache::thrift::util::enumNameSafe(portState.speed),
@@ -3561,7 +3615,7 @@ void CmisModule::customizeTransceiverLocked(
         uint8_t currentModuleControl;
         readCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
         uint8_t newModuleControl = currentModuleControl & ~LOW_PWR_BIT;
-        QSFP_LOG(INFO, this) << folly::sformat(
+        QSFP_LOG(INFO, this) << fmt::format(
             "Clearing low power bit to enable high power mode: {:#x} currentModuleControl: {:#x})",
             newModuleControl,
             currentModuleControl);
@@ -3588,6 +3642,11 @@ void CmisModule::programTunableModule(
   const auto& centerFreq = freqConfig->centerFrequencyConfig();
 
   QSFP_LOG(INFO, this) << "Program tunable optics module";
+  configureRxConsActHoldOffTimer(
+      *opticalChannelConfig.rxConsActHoldOffTimerMs(),
+      apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+          opticalChannelConfig.rxConsActHoldOffTimerMs()));
+
   // Disable TX and RX squelch on all lanes
   disableTxRxSquelchForTunableOptics();
 
@@ -3612,7 +3671,7 @@ void CmisModule::programTunableModule(
   // Write grid selection followed by channel number, which is the typical order
   // recommended
   writeCmisField(CmisField::MEDIA_TX_1_GRID_AND_FINE_TUNE_ENA, &gridSelection);
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "Programmed gridSelection {} on the tunable optics", gridSelection);
 
   uint8_t channelNumBytes[2];
@@ -3621,7 +3680,7 @@ void CmisModule::programTunableModule(
 
   // Channel number programming
   writeCmisField(CmisField::MEDIA_TX_1_CHAN_NBR_SEL, channelNumBytes);
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "Programmed Channel number on the tunable optics. frequency {} channel_number {} channelNumBytes[0] {} channelNumBytes[1] {}",
       frequencyMhz,
       channelNum,
@@ -3637,14 +3696,14 @@ void CmisModule::programTunableModule(
     throw FbossError("Tx-power not specified on the qsfp_service_config");
   }
   int16_t txPower = *opticalChannelConfig.txPower0P01Dbm();
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "OpticalChannelConfig txPower {}", txPower);
   uint8_t txPowerBytes[2];
   txPowerBytes[1] = static_cast<uint8_t>(txPower & 0XFF);
   txPowerBytes[0] = static_cast<uint8_t>((txPower >> 8) & 0XFF);
   // Tx Power programming
   writeCmisField(CmisField::MEDIA_TX_1_TGT_OUTPUT_PWR, txPowerBytes);
-  QSFP_LOG(INFO, this) << folly::sformat("Tx power {} got programmed", txPower);
+  QSFP_LOG(INFO, this) << fmt::format("Tx power {} got programmed", txPower);
 }
 
 uint8_t CmisModule::frequencyGridToGridSelection(FrequencyGrid grid) const {
@@ -3775,7 +3834,7 @@ bool CmisModule::ensureTransceiverReadyLocked(bool hasTunableOpticsConfig) {
   setModuleLowPowerModeLocked();
 
   if (isTunableOptics()) {
-    QSFP_LOG(INFO, this) << folly::sformat(
+    QSFP_LOG(INFO, this) << fmt::format(
         "Optics is tunable {}", getNameString());
     // Deactivate all the datapath lane before putting into the high power mode
     // for shutting down the laser
@@ -4039,17 +4098,17 @@ void CmisModule::setModuleRxEqualizerLocked(
       // Apply the change for pre/post/main if needed
       if (changePre) {
         writeCmisField(offsetIndexToCmisField[i][0], &desiredPre[i]);
-        QSFP_LOG(INFO, this) << folly::sformat(
+        QSFP_LOG(INFO, this) << fmt::format(
             "customized index {:d} for Pre-cursor 0x{:x}", i, desiredPre[i]);
       }
       if (changePost) {
         writeCmisField(offsetIndexToCmisField[i][1], &desiredPost[i]);
-        QSFP_LOG(INFO, this) << folly::sformat(
+        QSFP_LOG(INFO, this) << fmt::format(
             "customized index {:d} for Post-cursor 0x{:x}", i, desiredPost[i]);
       }
       if (changeMain) {
         writeCmisField(offsetIndexToCmisField[i][2], &desiredMain[i]);
-        QSFP_LOG(INFO, this) << folly::sformat(
+        QSFP_LOG(INFO, this) << fmt::format(
             "customized index {:d} for Rx-out-main 0x{:x}", i, desiredMain[i]);
       }
     }
@@ -4256,14 +4315,14 @@ bool CmisModule::verifyEepromChecksum(CmisPages pageId) {
   expectedChecksum = data[0];
 
   if (checkSum != expectedChecksum) {
-    QSFP_LOG(ERR, this) << folly::sformat(
+    QSFP_LOG(ERR, this) << fmt::format(
         "Page {:d}: expected eeprom checksum {:#x}, actual {:#x}",
         static_cast<int>(pageId),
         expectedChecksum,
         checkSum);
     return false;
   } else {
-    QSFP_LOG(DBG5, this) << folly::sformat(
+    QSFP_LOG(DBG5, this) << fmt::format(
         "Page {:d}: eeprom checksum verified successfully {:#x}",
         static_cast<int>(pageId),
         checkSum);
@@ -4379,7 +4438,7 @@ bool CmisModule::setPortPrbsLocked(
     const prbs::InterfacePrbsState& prbs) {
   // If PRBS is not supported then return
   if (!isPrbsSupported(side)) {
-    QSFP_LOG(ERR, this) << folly::sformat(
+    QSFP_LOG(ERR, this) << fmt::format(
         "PRBS not supported on {:s} side",
         (side == phy::Side::LINE ? "Line" : "System"));
     return false;
@@ -4421,7 +4480,7 @@ bool CmisModule::setPortPrbsLocked(
 
     // Check that a valid polynomial is provided
     if (prbsPatternItr == prbsPatternMap.left.end()) {
-      QSFP_LOG(ERR, this) << folly::sformat(
+      QSFP_LOG(ERR, this) << fmt::format(
           "PRBS Polynominal {} not supported",
           apache::thrift::util::enumNameSafe(prbs.polynomial().value()));
       return false;
@@ -4456,7 +4515,7 @@ bool CmisModule::setPortPrbsLocked(
     }
     writeCmisField(cmisRegister, &startGenLaneMask);
 
-    QSFP_LOG(INFO, this) << folly::sformat(
+    QSFP_LOG(INFO, this) << fmt::format(
         "PRBS Generator on side {:s} Lanemask {:#x} {:s}",
         ((side == phy::Side::LINE) ? "Line" : "Host"),
         startGenLaneMask,
@@ -4470,7 +4529,7 @@ bool CmisModule::setPortPrbsLocked(
 
     // Check that a valid polynomial is provided
     if (prbsPatternItr == prbsPatternMap.left.end()) {
-      QSFP_LOG(ERR, this) << folly::sformat(
+      QSFP_LOG(ERR, this) << fmt::format(
           "PRBS Polynominal {} not supported",
           apache::thrift::util::enumNameSafe(prbs.polynomial().value()));
       return false;
@@ -4504,7 +4563,7 @@ bool CmisModule::setPortPrbsLocked(
     }
     writeCmisField(cmisRegister, &startChkLaneMask);
 
-    QSFP_LOG(INFO, this) << folly::sformat(
+    QSFP_LOG(INFO, this) << fmt::format(
         "PRBS Checker on side {:s} Lanemask {:#x} {:s}",
         ((side == phy::Side::LINE) ? "Line" : "Host"),
         startChkLaneMask,
@@ -4611,7 +4670,7 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
 
   // If PRBS is not supported then return
   if (!isPrbsSupported(side)) {
-    QSFP_LOG(ERR, this) << folly::sformat(
+    QSFP_LOG(ERR, this) << fmt::format(
         "PRBS not supported on {:s} side",
         (side == phy::Side::LINE ? "Line" : "System"));
     return phy::PrbsStats{};
@@ -4919,7 +4978,7 @@ void CmisModule::resetDataPathForTunableOptics(
     if (initTimers.progStartTimer.time_since_epoch().count() == 0) {
       (*afterDataPathDeinitFunc)();
     } else {
-      QSFP_LOG(INFO, this) << folly::sformat(
+      QSFP_LOG(INFO, this) << fmt::format(
           "DATA_PATH_INIT in progresss dpInitTimer {:d}",
           initTimers.progStartTimer.time_since_epoch().count());
     }
@@ -5012,7 +5071,7 @@ void CmisModule::resetDataPathWithFunc(
     }
   }
 
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "DATA_PATH_DEINIT set and reset done for host lane mask 0x{:#x}",
       hostLaneMask);
 }

@@ -29,7 +29,8 @@ Prefer:  cableguy_cli bounce_interface --circuit "<a:intf|z:intf>" --task <T#>
 
 std::map<std::string, int32_t> getQueriedPortIds(
     const std::map<int32_t, facebook::fboss::PortInfoThrift>& entries,
-    const std::vector<std::string>& queriedPorts) {
+    const std::vector<std::string>& queriedPorts,
+    const std::vector<facebook::fboss::AggregatePortThrift>& aggregatePorts) {
   // deduplicate repetitive names while ensuring order
   std::map<std::string, int32_t> portPairs;
   std::unordered_map<std::string, int32_t> entryNames;
@@ -40,9 +41,30 @@ std::map<std::string, int32_t> getQueriedPortIds(
         portInfo.name().value(), folly::copy(portInfo.portId().value()));
   }
 
+  // Build a map of aggregate port names to their member port IDs
+  std::unordered_map<std::string, std::vector<int32_t>> aggregatePortMembers;
+  for (const auto& aggPort : aggregatePorts) {
+    std::vector<int32_t> memberIds;
+    for (const auto& member : *aggPort.memberPorts()) {
+      memberIds.push_back(folly::copy(member.memberPortID().value()));
+    }
+    aggregatePortMembers.emplace(aggPort.name().value(), std::move(memberIds));
+  }
+
   for (const auto& port : queriedPorts) {
     if (entryNames.count(port)) {
+      // Direct port match
       portPairs.emplace(port, entryNames.at(port));
+    } else if (aggregatePortMembers.count(port)) {
+      // Aggregate port match - expand to all member ports
+      for (const auto& memberId : aggregatePortMembers.at(port)) {
+        // Find the member port name from entries
+        auto it = entries.find(memberId);
+        if (it != entries.end()) {
+          const auto& memberName = it->second.name().value();
+          portPairs.emplace(memberName, memberId);
+        }
+      }
     } else {
       throw std::runtime_error(
           folly::to<std::string>(
@@ -72,13 +94,15 @@ CmdSetPortState::RetType CmdSetPortState::queryClient(
   std::string stateStr = (state.portState) ? "Enabling" : "Disabling";
 
   std::map<int32_t, facebook::fboss::PortInfoThrift> entries;
+  std::vector<facebook::fboss::AggregatePortThrift> aggregatePorts;
   auto client =
       utils::createClient<apache::thrift::Client<facebook::fboss::FbossCtrl>>(
           hostInfo);
   client->sync_getAllPortInfo(entries);
+  client->sync_getAggregatePortTable(aggregatePorts);
 
   std::map<std::string, int32_t> queriedPortIds =
-      getQueriedPortIds(entries, queriedPorts.data());
+      getQueriedPortIds(entries, queriedPorts.data(), aggregatePorts);
 
   std::stringstream ss;
   for (auto const& [portName, portId] : queriedPortIds) {

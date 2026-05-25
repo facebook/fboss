@@ -74,7 +74,7 @@ class AgentPacketStreamHandlerTest : public AgentHwTest {
       const {
     cfg::AclEntry acl;
     acl.name() = "cpuPolicing-aifm-packet-stream";
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       acl.etherType() =
           static_cast<cfg::EtherType>(PacketStreamHandler::ETHERTYPE_AIFM_CTRL);
     } else {

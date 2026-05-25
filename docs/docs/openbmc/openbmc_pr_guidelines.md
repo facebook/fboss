@@ -17,7 +17,7 @@ Below is the latest copyright:
 * Always adopt the latest u-boot for OpenBMC development. The latest u-boot
   version is v2019.04 as of May 2022.
 * Always adopt the latest Linux for OpenBMC development. The latest Linux
-  version is v5.15 as of May 2022.
+  version is v6.18 as of May 2026.
 * Always adopt the latest yocto for OpenBMC development. The latest yocto
   version is “lf-dunfell” as of May 2022.
 

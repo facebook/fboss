@@ -18,7 +18,8 @@ namespace {
 
 sai_tunnel_type_t getSaiTunnelType(TunnelType type) {
   switch (type) {
-    case TunnelType::IP_IN_IP:
+    case TunnelType::IP_IN_IP_DECAP:
+    case TunnelType::IP_IN_IP_ENCAP:
       return SAI_TUNNEL_TYPE_IPINIP;
     case TunnelType::SRV6_ENCAP:
       break;
@@ -122,29 +123,47 @@ TunnelSaiId SaiTunnelManager::addTunnel(
   // the three getters return same variable
   // For overlay interface id, we use the same value as underlay for IpinIP
   // tunnel usecase
-  SaiIpInIpTunnelTraits::CreateAttributes k1{
-      getSaiTunnelType(swTunnel->getType()),
-      saiIntfId,
-      saiIntfId,
-      getSaiTtlMode(swTunnel->getTTLMode()),
-      getSaiDscpMode(swTunnel->getDscpMode()),
-      getSaiDecapEcnMode(swTunnel->getEcnMode())};
-
-  std::shared_ptr<SaiTunnel> tunnelObj = tunnelStore.setObject(k1, k1);
   auto tunnelHandle = std::make_unique<SaiTunnelHandle>();
-  tunnelHandle->tunnel = tunnelObj;
-  if (swTunnel->getTunnelTermType() == cfg::TunnelTerminationType::P2MP) {
-    tunnelHandle->tunnelTerm =
-        addP2MPTunnelTerm(swTunnel, tunnelObj->adapterKey());
-    handles_[swTunnel->getID()] = std::move(tunnelHandle);
-  } else if (swTunnel->getTunnelTermType() == cfg::TunnelTerminationType::P2P) {
-    tunnelHandle->tunnelTerm =
-        addP2PTunnelTerm(swTunnel, tunnelObj->adapterKey());
+
+  if (swTunnel->getType() == TunnelType::IP_IN_IP_ENCAP) {
+    SaiIpInIpTunnelTraits::CreateAttributes k1{
+        getSaiTunnelType(swTunnel->getType()),
+        saiIntfId,
+        saiIntfId,
+        SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
+        SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL,
+        SAI_TUNNEL_DECAP_ECN_MODE_STANDARD,
+        swTunnel->getSrcIP(),
+        getSaiTtlMode(swTunnel->getTTLMode()),
+        getSaiDscpMode(swTunnel->getDscpMode())};
+    tunnelHandle->tunnel = tunnelStore.setObject(k1, k1);
     handles_[swTunnel->getID()] = std::move(tunnelHandle);
   } else {
-    throw FbossError("Tunnel Term types other than P2MP are not supported yet");
+    SaiIpInIpTunnelTraits::CreateAttributes k1{
+        getSaiTunnelType(swTunnel->getType()),
+        saiIntfId,
+        saiIntfId,
+        getSaiTtlMode(swTunnel->getTTLMode()),
+        getSaiDscpMode(swTunnel->getDscpMode()),
+        getSaiDecapEcnMode(swTunnel->getEcnMode()),
+        folly::IPAddress("0.0.0.0"),
+        SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
+        SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
+    tunnelHandle->tunnel = tunnelStore.setObject(k1, k1);
+    if (swTunnel->getTunnelTermType() == cfg::TunnelTerminationType::P2MP) {
+      tunnelHandle->tunnelTerm =
+          addP2MPTunnelTerm(swTunnel, tunnelHandle->tunnel->adapterKey());
+    } else if (
+        swTunnel->getTunnelTermType() == cfg::TunnelTerminationType::P2P) {
+      tunnelHandle->tunnelTerm =
+          addP2PTunnelTerm(swTunnel, tunnelHandle->tunnel->adapterKey());
+    } else {
+      throw FbossError(
+          "Tunnel Term types other than P2MP/P2P are not supported");
+    }
+    handles_[swTunnel->getID()] = std::move(tunnelHandle);
   }
-  return tunnelObj->adapterKey();
+  return handles_[swTunnel->getID()]->tunnel->adapterKey();
 }
 void SaiTunnelManager::removeTunnel(const std::shared_ptr<IpTunnel>& swTunnel) {
   // remove term, remove tunnel

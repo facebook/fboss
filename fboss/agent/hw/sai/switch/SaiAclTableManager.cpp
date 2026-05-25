@@ -24,6 +24,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiTunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -414,6 +415,9 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
         break;
       case cfg::AclTableActionType::SET_USER_DEFINED_TRAP:
         saiActionType = SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID;
+        break;
+      case cfg::AclTableActionType::REDIRECT:
+        saiActionType = SAI_ACL_ACTION_TYPE_REDIRECT;
         break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       case cfg::AclTableActionType::SET_ARS_OBJECT:
@@ -1059,6 +1063,11 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         SAI_PACKET_ACTION_FORWARD};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::ActionRedirect>
+      aclActionRedirect{std::nullopt};
+  std::shared_ptr<SaiObject<SaiTunnelEncapNextHopTraits>> tunnelEncapNextHop{
+      nullptr};
+
   std::shared_ptr<SaiAclCounter> saiAclCounter{nullptr};
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
   std::optional<SaiAclEntryTraits::Attributes::ActionCounter> aclActionCounter{
@@ -1349,6 +1358,34 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #endif
     }
 #endif
+
+    if (matchAction.getRedirectToNextHop()) {
+      auto& [redirectAction, resolvedNexthops] =
+          matchAction.getRedirectToNextHop().value();
+      for (const auto& nhStruct : *redirectAction.redirectNextHops()) {
+        if (nhStruct.tunnelType().has_value() &&
+            nhStruct.tunnelType().value() == TunnelType::IP_IN_IP_ENCAP &&
+            nhStruct.tunnelId().has_value()) {
+          auto tunnelHandle = managerTable_->tunnelManager().getTunnelHandle(
+              nhStruct.tunnelId().value());
+          if (!tunnelHandle) {
+            throw FbossError(
+                "Missing tunnel for redirect: ", nhStruct.tunnelId().value());
+          }
+          auto tunnelSaiId = tunnelHandle->tunnel->adapterKey();
+          auto nhIp = folly::IPAddress(*nhStruct.ip());
+          SaiTunnelEncapNextHopTraits::AdapterHostKey nhKey{tunnelSaiId, nhIp};
+          SaiTunnelEncapNextHopTraits::CreateAttributes nhAttrs{
+              SAI_NEXT_HOP_TYPE_TUNNEL_ENCAP, tunnelSaiId, nhIp, std::nullopt};
+          auto& nhStore = saiStore_->get<SaiTunnelEncapNextHopTraits>();
+          tunnelEncapNextHop = nhStore.setObject(nhKey, nhAttrs);
+          aclActionRedirect = SaiAclEntryTraits::Attributes::ActionRedirect{
+              AclEntryActionSaiObjectIdT(
+                  NextHopSaiId{tunnelEncapNextHop->adapterKey()})};
+          break;
+        }
+      }
+    }
   }
 
   // TODO(skhare) At least one field and one action must be specified.
@@ -1463,6 +1500,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       userDefinedGroup4,
 #endif
       aclActionPacketAction,
+      aclActionRedirect,
       aclActionCounter,
       aclActionSetTC,
       aclActionSetDSCP,
@@ -1492,6 +1530,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   entryHandle->dstPortRange = dstPortRangeObj;
   entryHandle->aclEntry = saiAclEntry;
   entryHandle->aclCounter = saiAclCounter;
+  entryHandle->tunnelEncapNextHop = tunnelEncapNextHop;
   entryHandle->aclCounterTypeAndName = aclCounterTypeAndName;
   entryHandle->ingressMirror = ingressMirror;
   entryHandle->egressMirror = egressMirror;
