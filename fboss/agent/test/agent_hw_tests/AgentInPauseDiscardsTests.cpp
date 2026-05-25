@@ -2,9 +2,6 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/PortMap.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -44,19 +41,17 @@ class AgentInPauseDiscardsCounterTest : public AgentHwTest {
 
   void commonSetup(bool enableRxPause, std::vector<PortID>& ports) {
     if (enableRxPause) {
-      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-        auto newState = in->clone();
-        auto portMap = newState->getPorts()->modify(&newState);
+      auto cfg = getAgentEnsemble()->getCurrentConfig();
+      for (auto& portCfg : *cfg.ports()) {
         for (auto pId : ports) {
-          auto port = portMap->getNodeIf(pId)->clone();
-          cfg::PortPause pauseCfg;
-          *pauseCfg.rx() = true;
-          port->setPause(pauseCfg);
-          portMap->updateNode(
-              port, getAgentEnsemble()->scopeResolver().scope(port));
+          if (PortID(*portCfg.logicalID()) == pId) {
+            cfg::PortPause pauseCfg;
+            *pauseCfg.rx() = true;
+            portCfg.pause() = pauseCfg;
+          }
         }
-        return newState;
-      });
+      }
+      applyNewConfig(cfg);
     }
   }
 
