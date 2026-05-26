@@ -248,6 +248,20 @@ struct TRibEntry {
    * the corresponding active UCMP action is set here
    */
   8: optional rib_policy.TRouteAttributeUcmpAction active_cte_ucmp_action;
+  /*
+   * Convenience copy of the selected best-path entry from `paths`.
+   * Lets FSDB subscribers fetch only the best path (e.g. via
+   * `ribMap/<prefix>/best_path`) without subscribing to the full `paths`
+   * map, which is significantly larger.
+   *
+   * Unset when no path is currently "best" -- e.g. when CPS native criteria
+   * (bgp_native_path_selection_min_nexthop / min_agg_lbw) is violated and
+   * the entry is multipath-only with no bestpath, or when `bestpath` has
+   * not yet been computed for this prefix.
+   *
+   * The `is_best_path` flag on this copy is always set to true.
+   */
+  9: optional TBgpPath best_path;
 }
 
 /**
