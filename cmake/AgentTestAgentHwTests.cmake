@@ -1,7 +1,15 @@
-# CMake to build libraries and binaries in fboss/agent/hw/test
+# CMake to build libraries and binaries in fboss/agent/test/agent_hw_tests
 
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
+
+file(READ fboss/agent/test/agent_hw_tests/golden/asic/jericho3-11.csv JERICHO3-11)
+file(READ fboss/agent/test/agent_hw_tests/golden/asic/jericho3-default.csv JERICHO3-DEFAULT)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/fboss/agent/test/agent_hw_tests/oss/golden_data.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/fboss/agent/test/agent_hw_tests/golden_data.h
+  @ONLY
+)
 
 # QoS test library - tests related to QoS scheduling, DSCP mapping, watermarks
 add_library(agent_qos_test_src
@@ -108,6 +116,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentDot1qMappingTest.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpMarkingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDeepPacketInspectionTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAsicDefaultProgrammingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDiagShellStressTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEcmpTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEmptyTests.cpp
@@ -260,6 +269,7 @@ target_link_libraries(agent_hw_test_src
   system_scale_test_utils
   hyper_port_test_utils
   platform_mapping
+  ${RE2}
 )
 
 add_executable(multi_switch_agent_hw_test

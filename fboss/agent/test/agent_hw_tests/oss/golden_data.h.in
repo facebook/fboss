@@ -1,0 +1,16 @@
+#include <string>
+#include <map>
+
+
+const char *jericho3_11_data = R"(
+@JERICHO3-11@
+)";
+
+const char *jericho3_default_data = R"(
+@JERICHO3-DEFAULT@
+)";
+
+std::map<std::string, std::string> golden_dataMap = {
+  {"golden/asic/jericho3-11.csv", jericho3_11_data},
+  {"golden/asic/jericho3-default.csv", jericho3_default_data},
+};

@@ -1,10 +1,25 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load(
+    "@fbsource//arvr/tools/build_defs:embed_resources.bzl",
+    "embed_resources",
+)
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
 load("//fboss/agent/hw/sai/impl:impl.bzl", "SAI_BRCM_IMPLS", "SAI_LEABA_IMPLS", "SAI_NVIDIA_IMPLS", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
 oncall("fboss_agent_push")
+
+embed_resources(
+    name = "golden_data",
+    add_map = True,
+    header_path = "fboss/agent/test/agent_hw_tests",
+    namespace = None,
+    resources = glob(["golden/**/*.csv"]),
+    visibility = [
+        "PUBLIC",
+    ],
+)
 
 cpp_library(
     name = "agent_ars_test_src",
@@ -173,6 +188,7 @@ cpp_library(
         "AgentAclTableTests.cpp",
         "AgentAmIdlesTests.cpp",
         "AgentAqmTests.cpp",
+        "AgentAsicDefaultProgrammingTests.cpp",
         "AgentConfigSetupTest.cpp",
         "AgentConfigVerifyQosTests.cpp",
         "AgentCoppTests.cpp",
@@ -279,9 +295,11 @@ cpp_library(
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/re2:re2",
         ":agent_ars_test_src",
         ":agent_qos_test_src",
         ":agent_voq_test_src",
+        ":golden_data",
         "//fb303:service_data",
         "//fboss/agent:address_utils",
         "//fboss/agent:agent_features",
@@ -386,6 +404,7 @@ cpp_library(
         "//folly:map_util",
         "//folly:network_address",
         "//folly:scope_guard",
+        "//folly:string",
         "//folly/container:f14_hash",
         "//folly/executors:function_scheduler",
         "//folly/io:iobuf",
