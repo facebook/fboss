@@ -4,6 +4,7 @@
 # cmake/FooBar.cmake
 
 file(READ fboss/agent/test/agent_hw_tests/golden/asic/jericho3-11.csv JERICHO3-11)
+file(READ fboss/agent/test/agent_hw_tests/golden/asic/jericho3-12.csv JERICHO3-12)
 file(READ fboss/agent/test/agent_hw_tests/golden/asic/jericho3-default.csv JERICHO3-DEFAULT)
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/fboss/agent/test/agent_hw_tests/oss/golden_data.h.in
