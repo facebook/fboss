@@ -108,13 +108,23 @@ cpp_benchmark(
     deps = [
         "fbsource//third-party/googletest:gtest",
         ":subscribable_storage_bench_helper",
+        "//common/base:proc",
+        "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//fboss/thrift_cow/storage/tests:benchmark_helper",
         "//fboss/thrift_cow/storage/tests:data_factory",
         "//folly:benchmark",
         "//folly/coro:async_scope",
         "//folly/coro:blocking_wait",
+        "//folly/coro:task",
+        "//folly/coro:timeout",
         "//folly/executors:cpu_thread_pool_executor",
         "//folly/init:init",
         "//folly/json:dynamic",
+        "//folly/synchronization:baton",
+    ],
+    external_deps = [
+        "gflags",
     ],
 )
