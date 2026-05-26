@@ -279,40 +279,14 @@ EcmpResourceManager::getPrimaryEcmpAndMemberCounts() const {
           }
         }
 
-        // Count ECMP members:
-        // - Virtual groups: Do NOT count individual members (they collectively
-        //   use minWidthForVirtualGroup ECMP members, added after the loop)
-        // - Non-virtual groups: Count individual members
-        // - Merged groups' nhops only count once towards ecmp members
         if (auto gitr = groupInfo->getMergedGroupInfoItr()) {
           auto [_, inserted] = mergedGroups.insert(&(*gitr)->second);
-          // Merged groups nhops only count once towards ecmp members
           ecmpMemberCnt += inserted ? (*gitr)->second.mergedNhops.size() : 0;
-        } else if (!isVirtual) {
-          // Only count members for non-virtual, non-merged groups
+        } else {
           ecmpMemberCnt += nhops.size();
         }
       });
-  // Merged groups count as non-virtual (primary) groups
   uint32_t primaryEcmpGroupsCnt = unmergedGroups + mergedGroups.size();
-
-  // Virtual groups collectively use resources (shared across all virtual
-  // groups):
-  // 1. minWidthForVirtualGroup ECMP members
-  // 2. maxVirtualGroupWidth / maxEcmpWidth DLB entries (ECMP groups)
-  if (virtualGroups > 0) {
-    if (config_.getMinWidthForVirtualGroup().has_value()) {
-      ecmpMemberCnt +=
-          static_cast<uint32_t>(config_.getMinWidthForVirtualGroup().value());
-    }
-    if (config_.getMaxVirtualGroupWidth().has_value() &&
-        config_.getMaxEcmpWidth().has_value() &&
-        config_.getMaxEcmpWidth().value() > 0) {
-      primaryEcmpGroupsCnt += static_cast<uint32_t>(
-          config_.getMaxVirtualGroupWidth().value() /
-          config_.getMaxEcmpWidth().value());
-    }
-  }
 
   XLOG(DBG2) << " Got primary group count: " << primaryEcmpGroupsCnt << " with "
              << unmergedGroups << " unmerged groups and " << mergedGroups.size()
@@ -412,8 +386,12 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
   }
   if (auto switchStats = statsGetter_()) {
     switchStats->setPrimaryEcmpGroupsCount(inOutState->primaryEcmpGroupsCnt);
+    DCHECK_GE(
+        nextHopGroup2Id_.size(),
+        inOutState->primaryEcmpGroupsCnt + inOutState->virtualEcmpGroupsCnt);
     auto backupEcmpGroupCount = getBackupEcmpSwitchingMode().has_value()
-        ? nextHopGroup2Id_.size() - inOutState->primaryEcmpGroupsCnt
+        ? nextHopGroup2Id_.size() - inOutState->primaryEcmpGroupsCnt -
+            inOutState->virtualEcmpGroupsCnt
         : 0;
     switchStats->setBackupEcmpGroupsCount(backupEcmpGroupCount);
     auto primaryEcmpExhuasted =
@@ -599,10 +577,25 @@ void EcmpResourceManager::reclaimBackupGroups(
    * overflowed the ECMP limit when processing R0
    */
   inOutState->appendDelta(StateDelta(oldState, newState));
-  // Increment primaryEcmpGroupsCnt, however no need to increment
-  // ecmpMemberCnt since backup ecmp group members already counted
-  // towards ecmpMemberCnt
-  inOutState->primaryEcmpGroupsCnt += groupIdsToReclaim.size();
+  if (!config_.getMaxVirtualEcmpGroups().has_value()) {
+    inOutState->primaryEcmpGroupsCnt += groupIdsToReclaim.size();
+  } else {
+    // Virtual reclaims undo the per-nhop member cost posted when the group
+    // was moved to backup mode.
+    for (const auto& gid : groupIdsToReclaim) {
+      auto grpInfo = nextHopGroupIdToInfo_.ref(gid);
+      CHECK(grpInfo)
+          << "Group " << gid
+          << " in groupIdsToReclaim not found in nextHopGroupIdToInfo_";
+      if (isVirtualArsGroup(grpInfo->getNhops())) {
+        // Backup and primary companion costs are both numNhops — no net change
+        // to ecmpMemberCnt when transitioning from backup to virtual primary.
+        inOutState->virtualEcmpGroupsCnt++;
+      } else {
+        inOutState->primaryEcmpGroupsCnt++;
+      }
+    }
+  }
   inOutState->updated = true;
   XLOG(DBG2) << "After reclaim, primary ECMP Groups: "
              << inOutState->primaryEcmpGroupsCnt
@@ -857,31 +850,69 @@ void EcmpResourceManager::reclaimMergeGroups(
 void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
   DCHECK_LE(
       inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
-  auto canReclaim =
-      config_.getMaxPrimaryEcmpGroups() - inOutState->primaryEcmpGroupsCnt;
-  if (!canReclaim) {
+  auto canReclaimNonVirtual =
+      (config_.getMaxPrimaryEcmpGroups() > inOutState->primaryEcmpGroupsCnt)
+      ? config_.getMaxPrimaryEcmpGroups() - inOutState->primaryEcmpGroupsCnt
+      : 0u;
+  uint32_t canReclaimVirtual = 0;
+  if (auto maxVirtual = config_.getMaxVirtualEcmpGroups()) {
+    canReclaimVirtual = (*maxVirtual > inOutState->virtualEcmpGroupsCnt)
+        ? (*maxVirtual - inOutState->virtualEcmpGroupsCnt)
+        : 0;
+  }
+  if (!canReclaimNonVirtual && !canReclaimVirtual) {
     XLOG(DBG2) << " Unable to reclaim any non primary groups";
     return;
   }
-  XLOG(DBG2) << " Can reclaim : " << canReclaim << " non primary groups";
-  auto overrideGroupsSorted = getGroupsToReclaimOrdered(canReclaim);
-  if (overrideGroupsSorted.empty()) {
-    XLOG(DBG2) << " No override groups available for reclaim";
-    return;
-  }
+  XLOG(DBG2) << " Can reclaim : " << canReclaimNonVirtual << " non-virtual + "
+             << canReclaimVirtual << " virtual non primary groups";
   NextHopGroupIds groupIdsToReclaim;
-  std::for_each(
-      overrideGroupsSorted.begin(),
-      overrideGroupsSorted.end(),
-      [&groupIdsToReclaim](
-          const std::shared_ptr<const NextHopGroupInfo>& grpInfo) {
-        groupIdsToReclaim.insert(grpInfo->getID());
-      });
-  XLOG(DBG2) << " Will reclaim prefixes pointing to groups: "
-             << groupIdsToReclaim;
   if (getBackupEcmpSwitchingMode()) {
-    reclaimBackupGroups(overrideGroupsSorted, groupIdsToReclaim, inOutState);
+    // Pass unbounded budget so cost-ordered resize doesn't truncate
+    // candidates before the per-type filter runs below.
+    auto overrideGroupsSorted =
+        getGroupsToReclaimOrdered(std::numeric_limits<uint32_t>::max());
+    if (overrideGroupsSorted.empty()) {
+      XLOG(DBG2) << " No override groups available for reclaim";
+      return;
+    }
+    std::vector<std::shared_ptr<NextHopGroupInfo>> selectedGroups;
+    for (const auto& grpInfo : overrideGroupsSorted) {
+      if (isVirtualArsGroup(grpInfo->getNhops())) {
+        if (canReclaimVirtual == 0) {
+          continue;
+        }
+        --canReclaimVirtual;
+      } else {
+        if (canReclaimNonVirtual == 0) {
+          continue;
+        }
+        --canReclaimNonVirtual;
+      }
+      selectedGroups.push_back(grpInfo);
+      groupIdsToReclaim.insert(grpInfo->getID());
+    }
+    if (groupIdsToReclaim.empty()) {
+      return;
+    }
+    XLOG(DBG2) << " Will reclaim prefixes pointing to groups: "
+               << groupIdsToReclaim;
+    reclaimBackupGroups(selectedGroups, groupIdsToReclaim, inOutState);
   } else {
+    auto overrideGroupsSorted = getGroupsToReclaimOrdered(canReclaimNonVirtual);
+    if (overrideGroupsSorted.empty()) {
+      XLOG(DBG2) << " No override groups available for reclaim";
+      return;
+    }
+    std::for_each(
+        overrideGroupsSorted.begin(),
+        overrideGroupsSorted.end(),
+        [&groupIdsToReclaim](
+            const std::shared_ptr<const NextHopGroupInfo>& grpInfo) {
+          groupIdsToReclaim.insert(grpInfo->getID());
+        });
+    XLOG(DBG2) << " Will reclaim prefixes pointing to groups: "
+               << groupIdsToReclaim;
     reclaimMergeGroups(overrideGroupsSorted, groupIdsToReclaim, inOutState);
   }
 }
@@ -1455,8 +1486,12 @@ EcmpResourceManager::routeAddedNoCompressionThreshold(
                                             .has_value());
       inOutState->addOrUpdateRoute(rid, newRoute);
     }
-    inOutState->primaryEcmpGroupsCnt += grpInfo->hasOverrides() ? 0 : 1;
     inOutState->ecmpMemberCnt += grpInfo->numNhops();
+    if (!grpInfo->hasOverrides() && isVirtualArsGroup(grpInfo->getNhops())) {
+      inOutState->virtualEcmpGroupsCnt++;
+    } else {
+      inOutState->primaryEcmpGroupsCnt += grpInfo->hasOverrides() ? 0 : 1;
+    }
   } else {
     XLOG(DBG2) << " Route: " << newRoute->str()
                << " points to existing group: " << *grpInfo;
@@ -1956,6 +1991,7 @@ void EcmpResourceManager::routeDeleted(
   std::optional<GroupIds2ConsolidationInfoItr> mergeInfoItr;
   uint32_t numGroupNhops{0};
   bool routeHasOverrides;
+  bool wasVirtualArsGroup{false};
   {
     auto pitr =
         prefixToGroupInfo_.find({rid, removed->prefix().toCidrNetwork()});
@@ -1971,6 +2007,8 @@ void EcmpResourceManager::routeDeleted(
     mergeInfoItr = pitr->second->getMergedGroupInfoItr();
     routeHasOverrides = pitr->second->hasOverrides();
     numGroupNhops = pitr->second->numNhops();
+    wasVirtualArsGroup =
+        !routeHasOverrides && isVirtualArsGroup(pitr->second->getNhops());
     prefixToGroupInfo_.erase(pitr);
   }
   auto groupInfo = nextHopGroupIdToInfo_.ref(groupId);
@@ -1978,14 +2016,22 @@ void EcmpResourceManager::routeDeleted(
     XLOG(DBG2) << "Delete route: " << removed->str() << " all references to "
                << groupId << " are now gone";
     if (!routeHasOverrides) {
-      // Last reference to this ECMP group gone, check if this group was
-      // of primary ECMP group type
-      --inOutState->primaryEcmpGroupsCnt;
+      CHECK_GE(inOutState->ecmpMemberCnt, numGroupNhops);
       inOutState->ecmpMemberCnt -= numGroupNhops;
+      if (wasVirtualArsGroup) {
+        CHECK_GT(inOutState->virtualEcmpGroupsCnt, 0u);
+        inOutState->virtualEcmpGroupsCnt--;
+      } else {
+        --inOutState->primaryEcmpGroupsCnt;
+      }
       XLOG(DBG2) << "Delete route: " << removed->str()
                  << " primary ecmp group count decremented to: "
                  << inOutState->primaryEcmpGroupsCnt << " Group ID: " << groupId
                  << " removed";
+    } else if (!mergeInfoItr) {
+      // Backup group: undo members posted when promoted to backup mode.
+      CHECK_GE(inOutState->ecmpMemberCnt, numGroupNhops);
+      inOutState->ecmpMemberCnt -= numGroupNhops;
     }
   } else {
     decRouteUsageCount(*groupInfo);

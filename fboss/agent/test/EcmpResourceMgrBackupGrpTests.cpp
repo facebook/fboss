@@ -899,4 +899,503 @@ TEST_F(EcmpBackupGroupTypeTest, checkPrimaryEcmpExhaustedEvents) {
       1);
 }
 
+class EcmpVirtualArsGroupTest : public BaseEcmpResourceManagerTest {
+ public:
+  static constexpr uint32_t kMaxVirtualGroups = 5; // effective: 5 - 2 = 3
+  static constexpr int32_t kMinWidthForVirtual = 2;
+  static constexpr int32_t kMaxVirtualGroupWidth = 16;
+  static constexpr int32_t kMaxEcmpWidth = 16;
+  static constexpr uint32_t kMaxHwEcmpGroups = 100;
+
+  int numStartRoutes() const override {
+    return 0;
+  }
+  std::shared_ptr<EcmpResourceManager> makeResourceMgr() const override {
+    return std::make_shared<EcmpResourceManager>(
+        kMaxHwEcmpGroups,
+        cfg::SwitchingMode::PER_PACKET_RANDOM,
+        std::make_optional<uint32_t>(kMaxVirtualGroups),
+        std::make_optional<int32_t>(kMinWidthForVirtual),
+        std::make_optional<int32_t>(kMaxVirtualGroupWidth),
+        std::make_optional<int32_t>(kMaxEcmpWidth));
+  }
+};
+
+TEST_F(EcmpVirtualArsGroupTest, virtualLimitTriggersBackupOverride) {
+  // Pin the make-before-break buffer so other tests can't shift our limit.
+  FLAGS_ecmp_resource_manager_make_before_break_buffer = 2;
+
+  auto baseNhops = defaultNhops();
+  std::vector<RouteNextHopSet> distinctWideNhops;
+  for (int i = 0; i < 5; i++) {
+    distinctWideNhops.push_back(baseNhops);
+    baseNhops.erase(baseNhops.begin());
+    CHECK_GT(baseNhops.size(), 1);
+  }
+
+  auto mgr = makeResourceMgr();
+  ASSERT_EQ(
+      mgr->getBackupEcmpSwitchingMode(), cfg::SwitchingMode::PER_PACKET_RANDOM);
+
+  // Use mgr->consolidate directly; the SwSwitch consolidator lacks virtual
+  // config.
+  auto curState = state_;
+  std::vector<RouteV6::Prefix> prefixes;
+  for (int i = 0; i < 5; i++) {
+    auto pfx = makePrefix(i);
+    prefixes.push_back(pfx);
+    auto nextState = curState->clone();
+    auto fib6 = fib(nextState);
+    fib6->addNode(pfx.str(), makeRoute(pfx, distinctWideNhops[i]));
+    nextState->publish();
+    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    ASSERT_FALSE(deltas.empty());
+    curState = deltas.back().newState();
+  }
+
+  // Effective limit = kMaxVirtualGroups - MBB = 3; routes 4 and 5 go to backup.
+  int virtualCount = 0;
+  int backupCount = 0;
+  for (const auto& pfx : prefixes) {
+    auto route = cfib(curState)->getRouteIf(pfx);
+    ASSERT_NE(route, nullptr) << " missing route for " << pfx.str();
+    auto overrideMode = route->getForwardInfo().getOverrideEcmpSwitchingMode();
+    if (overrideMode.has_value()) {
+      EXPECT_EQ(*overrideMode, cfg::SwitchingMode::PER_PACKET_RANDOM);
+      ++backupCount;
+    } else {
+      ++virtualCount;
+    }
+  }
+  EXPECT_EQ(virtualCount, 3);
+  EXPECT_EQ(backupCount, 2);
+
+  // All groups pay per-nhop cost: 3 virtual (20+19+18) + 2 backup (17+16).
+  auto [primary, virtualGroups, members] = mgr->getPrimaryEcmpAndMemberCounts();
+  EXPECT_EQ(virtualGroups, 3u);
+  EXPECT_EQ(primary, 0u);
+  EXPECT_EQ(members, 20u + 19u + 18u + 17u + 16u);
+}
+
+TEST_F(EcmpVirtualArsGroupTest, reclaimBackupVirtualGroupCounterConsistency) {
+  // Verify add → reclaim member accounting is symmetric: reclaimBackupGroups
+  // subtracts numNhops posted by the backup-add path.
+  FLAGS_ecmp_resource_manager_make_before_break_buffer = 2;
+
+  auto baseNhops = defaultNhops();
+  std::vector<RouteNextHopSet> distinctWideNhops;
+  for (int i = 0; i < 5; i++) {
+    distinctWideNhops.push_back(baseNhops);
+    baseNhops.erase(baseNhops.begin());
+    CHECK_GT(baseNhops.size(), 1);
+  }
+
+  auto mgr = makeResourceMgr();
+
+  // Phase 1: add 5 wide routes → 3 virtual + 2 backup.
+  auto curState = state_;
+  std::vector<RouteV6::Prefix> prefixes;
+  for (int i = 0; i < 5; i++) {
+    auto pfx = makePrefix(i);
+    prefixes.push_back(pfx);
+    auto nextState = curState->clone();
+    fib(nextState)->addNode(pfx.str(), makeRoute(pfx, distinctWideNhops[i]));
+    nextState->publish();
+    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    ASSERT_FALSE(deltas.empty());
+    curState = deltas.back().newState();
+  }
+  {
+    auto [primary, virtualGroups, members] =
+        mgr->getPrimaryEcmpAndMemberCounts();
+    ASSERT_EQ(virtualGroups, 3u);
+    ASSERT_GT(members, 0u); // backup virtual groups must contribute members
+  }
+
+  // Phase 2: delete one virtual route, freeing a slot for reclaim.
+  {
+    auto nextState = curState->clone();
+    fib(nextState)->removeNode(prefixes[0].str());
+    nextState->publish();
+    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    ASSERT_FALSE(deltas.empty());
+    curState = deltas.back().newState();
+  }
+
+  int virtualCount = 0;
+  int backupCount = 0;
+  for (size_t i = 1; i < prefixes.size(); i++) {
+    auto route = cfib(curState)->getRouteIf(prefixes[i]);
+    ASSERT_NE(route, nullptr);
+    if (route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
+      ++backupCount;
+    } else {
+      ++virtualCount;
+    }
+  }
+  EXPECT_EQ(virtualCount, 3);
+  EXPECT_EQ(backupCount, 1);
+
+  auto [primary, virtualGroups, members] = mgr->getPrimaryEcmpAndMemberCounts();
+  EXPECT_EQ(virtualGroups, 3u);
+  EXPECT_GT(members, 0u);
+  EXPECT_LT(members, 1000u); // guard against uint32_t underflow
+
+  // Phase 3: drain all virtual routes; verify counters fully unwind.
+  for (size_t i = 1; i < prefixes.size(); i++) {
+    auto route = cfib(curState)->getRouteIf(prefixes[i]);
+    if (!route ||
+        route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
+      continue; // skip backup routes; drain virtual only
+    }
+    auto nextState = curState->clone();
+    fib(nextState)->removeNode(prefixes[i].str());
+    nextState->publish();
+    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    ASSERT_FALSE(deltas.empty());
+    curState = deltas.back().newState();
+  }
+  auto [primaryAfter, virtualAfter, membersAfter] =
+      mgr->getPrimaryEcmpAndMemberCounts();
+  EXPECT_EQ(virtualAfter, 0u);
+  EXPECT_EQ(primaryAfter, 0u);
+  EXPECT_EQ(membersAfter, 0u);
+}
+
+TEST_F(EcmpVirtualArsGroupTest, directDeleteBackupGroupDecrementsMembers) {
+  // routeDeleted must decrement ecmpMemberCnt for backup virtual
+  // groups even when reclaim doesn't run.
+  FLAGS_ecmp_resource_manager_make_before_break_buffer = 2;
+
+  auto baseNhops = defaultNhops();
+  std::vector<RouteNextHopSet> distinctWideNhops;
+  for (int i = 0; i < 5; i++) {
+    distinctWideNhops.push_back(baseNhops);
+    baseNhops.erase(baseNhops.begin());
+    CHECK_GT(baseNhops.size(), 1);
+  }
+
+  auto mgr = makeResourceMgr();
+
+  auto curState = state_;
+  std::vector<RouteV6::Prefix> prefixes;
+  for (int i = 0; i < 5; i++) {
+    auto pfx = makePrefix(i);
+    prefixes.push_back(pfx);
+    auto nextState = curState->clone();
+    fib(nextState)->addNode(pfx.str(), makeRoute(pfx, distinctWideNhops[i]));
+    nextState->publish();
+    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    ASSERT_FALSE(deltas.empty());
+    curState = deltas.back().newState();
+  }
+
+  {
+    auto [p, v, m] = mgr->getPrimaryEcmpAndMemberCounts();
+    ASSERT_EQ(v, 3u);
+    // All 5 groups (virtual + backup) contribute member cost.
+    ASSERT_EQ(
+        m,
+        distinctWideNhops[0].size() + distinctWideNhops[1].size() +
+            distinctWideNhops[2].size() + distinctWideNhops[3].size() +
+            distinctWideNhops[4].size());
+  }
+
+  // Delete backup route directly; no virtual slot freed so reclaim doesn't run.
+  auto nextState = curState->clone();
+  fib(nextState)->removeNode(prefixes[3].str());
+  nextState->publish();
+  auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+  ASSERT_FALSE(deltas.empty());
+
+  auto [p2, v2, m2] = mgr->getPrimaryEcmpAndMemberCounts();
+  EXPECT_EQ(v2, 3u);
+  EXPECT_EQ(p2, 0u);
+  // Backup group at index 3 removed; remaining 4 groups still contribute.
+  EXPECT_EQ(
+      m2,
+      distinctWideNhops[0].size() + distinctWideNhops[1].size() +
+          distinctWideNhops[2].size() + distinctWideNhops[4].size());
+}
+
+TEST_F(EcmpVirtualArsGroupTest, typeAwareReclaimRespectsVirtualHeadroom) {
+  // Freeing one virtual slot must reclaim exactly one backup virtual group,
+  // not both (canReclaimVirtual exhausted after the first reclaim).
+  FLAGS_ecmp_resource_manager_make_before_break_buffer = 2;
+
+  auto baseNhops = defaultNhops();
+  std::vector<RouteNextHopSet> distinctWideNhops;
+  for (int i = 0; i < 5; i++) {
+    distinctWideNhops.push_back(baseNhops);
+    baseNhops.erase(baseNhops.begin());
+    CHECK_GT(baseNhops.size(), 1);
+  }
+
+  auto mgr = makeResourceMgr();
+
+  // Phase 1: 5 wide routes -> 3 virtual + 2 backup.
+  auto curState = state_;
+  std::vector<RouteV6::Prefix> prefixes;
+  for (int i = 0; i < 5; i++) {
+    auto pfx = makePrefix(i);
+    prefixes.push_back(pfx);
+    auto nextState = curState->clone();
+    fib(nextState)->addNode(pfx.str(), makeRoute(pfx, distinctWideNhops[i]));
+    nextState->publish();
+    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    ASSERT_FALSE(deltas.empty());
+    curState = deltas.back().newState();
+  }
+  {
+    int virtualCount = 0;
+    int backupCount = 0;
+    for (const auto& pfx : prefixes) {
+      auto route = cfib(curState)->getRouteIf(pfx);
+      ASSERT_NE(route, nullptr);
+      if (route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
+        ++backupCount;
+      } else {
+        ++virtualCount;
+      }
+    }
+    ASSERT_EQ(virtualCount, 3);
+    ASSERT_EQ(backupCount, 2);
+  }
+
+  // Phase 2: delete one virtual route → canReclaimVirtual = 1.
+  auto nextState = curState->clone();
+  fib(nextState)->removeNode(prefixes[0].str());
+  nextState->publish();
+  auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+  ASSERT_FALSE(deltas.empty());
+  curState = deltas.back().newState();
+
+  int virtualCount = 0;
+  int backupCount = 0;
+  for (size_t i = 1; i < prefixes.size(); i++) {
+    auto route = cfib(curState)->getRouteIf(prefixes[i]);
+    ASSERT_NE(route, nullptr);
+    if (route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
+      EXPECT_EQ(
+          *route->getForwardInfo().getOverrideEcmpSwitchingMode(),
+          cfg::SwitchingMode::PER_PACKET_RANDOM);
+      ++backupCount;
+    } else {
+      ++virtualCount;
+    }
+  }
+  EXPECT_EQ(virtualCount, 3);
+  EXPECT_EQ(backupCount, 1);
+}
+
+class EcmpVirtualArsMixedReclaimTest : public BaseEcmpResourceManagerTest {
+ public:
+  static constexpr uint32_t kMaxVirtualGroups = 4; // effective: 4 - 2 = 2
+  static constexpr int32_t kMinWidthForVirtual = 8; // width 2..7 = non-virtual
+  static constexpr int32_t kMaxVirtualGroupWidth = 16;
+  static constexpr int32_t kMaxEcmpWidth = 16;
+  static constexpr uint32_t kMaxHwEcmpGroups = 5; // effective: 5 - 2 = 3
+
+  int numStartRoutes() const override {
+    return 0;
+  }
+  std::shared_ptr<EcmpResourceManager> makeResourceMgr() const override {
+    return std::make_shared<EcmpResourceManager>(
+        kMaxHwEcmpGroups,
+        cfg::SwitchingMode::PER_PACKET_RANDOM,
+        std::make_optional<uint32_t>(kMaxVirtualGroups),
+        std::make_optional<int32_t>(kMinWidthForVirtual),
+        std::make_optional<int32_t>(kMaxVirtualGroupWidth),
+        std::make_optional<int32_t>(kMaxEcmpWidth));
+  }
+};
+
+TEST_F(
+    EcmpVirtualArsMixedReclaimTest,
+    perTypeFilterIsSoleGate_NotPreTruncatedByCost) {
+  FLAGS_ecmp_resource_manager_make_before_break_buffer = 2;
+
+  auto allNhops = defaultNhops();
+  ASSERT_GE(allNhops.size(), 12u)
+      << " test needs at least 12 distinct nhops; defaultNhops gave "
+      << allNhops.size();
+
+  std::vector<RouteNextHopSet> wideNhopSets;
+  for (int i = 0; i < 3; i++) {
+    RouteNextHopSet wide;
+    auto it = std::next(allNhops.begin(), i);
+    for (int j = 0; j < kMinWidthForVirtual && it != allNhops.end();
+         j++, ++it) {
+      wide.insert(*it);
+    }
+    ASSERT_GE(wide.size(), static_cast<size_t>(kMinWidthForVirtual));
+    wideNhopSets.push_back(wide);
+  }
+  // Narrow sets (width 2) from the tail to avoid overlap with wide sets.
+  std::vector<RouteNextHopSet> narrowNhopSets;
+  {
+    auto rit = allNhops.rbegin();
+    for (int i = 0; i < 3; i++) {
+      RouteNextHopSet narrow;
+      narrow.insert(*rit++);
+      narrow.insert(*rit++);
+      ASSERT_LT(narrow.size(), static_cast<size_t>(kMinWidthForVirtual));
+      narrowNhopSets.push_back(narrow);
+    }
+  }
+
+  auto mgr = makeResourceMgr();
+  auto curState = state_;
+  auto addRouteAt = [&](int prefixIdx, const RouteNextHopSet& nhops) {
+    auto pfx = makePrefix(prefixIdx);
+    auto nextState = curState->clone();
+    fib(nextState)->addNode(pfx.str(), makeRoute(pfx, nhops));
+    nextState->publish();
+    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    ASSERT_FALSE(deltas.empty());
+    curState = deltas.back().newState();
+  };
+  auto isBackup = [&](int prefixIdx) {
+    auto route = cfib(curState)->getRouteIf(makePrefix(prefixIdx));
+    return route &&
+        route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value();
+  };
+
+  // Phase 1: 2 distinct wide routes -> virtual pool full at cap 2.
+  addRouteAt(0, wideNhopSets[0]);
+  addRouteAt(1, wideNhopSets[1]);
+
+  // Phase 2: 3 routes sharing wideNhopSets[2] → virtual overflow, group cost=3.
+  addRouteAt(2, wideNhopSets[2]);
+  addRouteAt(3, wideNhopSets[2]);
+  addRouteAt(4, wideNhopSets[2]);
+  ASSERT_TRUE(isBackup(2));
+  ASSERT_TRUE(isBackup(3));
+  ASSERT_TRUE(isBackup(4));
+
+  // Phase 3: narrow routes — 2 fit in primary, 3rd overflows to backup (cost
+  // 1).
+  addRouteAt(5, narrowNhopSets[0]);
+  addRouteAt(6, narrowNhopSets[1]);
+  addRouteAt(7, narrowNhopSets[2]);
+  ASSERT_FALSE(isBackup(5));
+  ASSERT_FALSE(isBackup(6));
+  ASSERT_TRUE(isBackup(7))
+      << " narrow-3 must overflow primary into backup for the repro";
+
+  // Phase 4: delete narrow-1 → canReclaimNonVirtual=1, canReclaimVirtual=0.
+  {
+    auto pfx = makePrefix(5);
+    auto nextState = curState->clone();
+    fib(nextState)->removeNode(pfx.str());
+    nextState->publish();
+    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    ASSERT_FALSE(deltas.empty());
+    curState = deltas.back().newState();
+  }
+
+  EXPECT_FALSE(isBackup(7))
+      << " narrow-3 should have been reclaimed back to primary; pre-fix "
+         "the cost-ordered resize starved it because the higher-cost "
+         "virtual backup group truncated it out before the per-type "
+         "filter ran.";
+  EXPECT_TRUE(isBackup(2));
+  EXPECT_TRUE(isBackup(3));
+  EXPECT_TRUE(isBackup(4));
+  EXPECT_FALSE(isBackup(6));
+}
+
+TEST_F(
+    EcmpVirtualArsMixedReclaimTest,
+    reclaimExhaustedBothVirtualAndNonVirtualBudgets) {
+  // When canReclaimNonVirtual=1 and canReclaimVirtual=1 simultaneously,
+  // reclaimEcmpGroups must promote exactly one backup from each type —
+  // neither budget starves the other.
+  //
+  // maxPrimaryEcmpGroups = kMaxHwEcmpGroups(5) - MBB(2) - collective(1) = 2
+  // maxVirtualEcmpGroups = kMaxVirtualGroups(4) - MBB(2) = 2
+  FLAGS_ecmp_resource_manager_make_before_break_buffer = 2;
+
+  auto allNhops = defaultNhops();
+  ASSERT_GE(allNhops.size(), 12u);
+
+  std::vector<RouteNextHopSet> wideNhopSets;
+  for (int i = 0; i < 3; i++) {
+    RouteNextHopSet wide;
+    auto it = std::next(allNhops.begin(), i);
+    for (int j = 0; j < kMinWidthForVirtual && it != allNhops.end();
+         j++, ++it) {
+      wide.insert(*it);
+    }
+    ASSERT_EQ(wide.size(), static_cast<size_t>(kMinWidthForVirtual));
+    wideNhopSets.push_back(wide);
+  }
+  std::vector<RouteNextHopSet> narrowNhopSets;
+  {
+    auto rit = allNhops.rbegin();
+    for (int i = 0; i < 3; i++) {
+      RouteNextHopSet narrow;
+      narrow.insert(*rit++);
+      narrow.insert(*rit++);
+      ASSERT_LT(narrow.size(), static_cast<size_t>(kMinWidthForVirtual));
+      narrowNhopSets.push_back(narrow);
+    }
+  }
+
+  auto mgr = makeResourceMgr();
+  auto curState = state_;
+  auto addRouteAt = [&](int prefixIdx, const RouteNextHopSet& nhops) {
+    auto pfx = makePrefix(prefixIdx);
+    auto nextState = curState->clone();
+    fib(nextState)->addNode(pfx.str(), makeRoute(pfx, nhops));
+    nextState->publish();
+    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    ASSERT_FALSE(deltas.empty());
+    curState = deltas.back().newState();
+  };
+  auto isBackup = [&](int prefixIdx) {
+    auto route = cfib(curState)->getRouteIf(makePrefix(prefixIdx));
+    return route &&
+        route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value();
+  };
+
+  // Phase 1: fill non-virtual primary pool (cap 2) with 2 narrow routes.
+  addRouteAt(0, narrowNhopSets[0]);
+  addRouteAt(1, narrowNhopSets[1]);
+  ASSERT_FALSE(isBackup(0));
+  ASSERT_FALSE(isBackup(1));
+
+  // Phase 2: fill virtual primary pool (cap 2) with 2 wide routes.
+  addRouteAt(2, wideNhopSets[0]);
+  addRouteAt(3, wideNhopSets[1]);
+  ASSERT_FALSE(isBackup(2));
+  ASSERT_FALSE(isBackup(3));
+
+  // Phase 3: 3rd narrow → non-virtual pool full → goes to backup.
+  addRouteAt(4, narrowNhopSets[2]);
+  ASSERT_TRUE(isBackup(4));
+
+  // Phase 4: 3rd wide → virtual pool full → goes to backup.
+  addRouteAt(5, wideNhopSets[2]);
+  ASSERT_TRUE(isBackup(5));
+
+  // Phase 5: delete one primary of each type in a single update.
+  // After: primaryEcmpGroupsCnt=1, virtualEcmpGroupsCnt=1
+  //        → canReclaimNonVirtual=1, canReclaimVirtual=1.
+  {
+    auto nextState = curState->clone();
+    fib(nextState)->removeNode(makePrefix(0).str()); // narrow primary
+    fib(nextState)->removeNode(makePrefix(2).str()); // virtual primary
+    nextState->publish();
+    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    ASSERT_FALSE(deltas.empty());
+    curState = deltas.back().newState();
+  }
+
+  // Both backups must be promoted — neither budget starves the other.
+  EXPECT_FALSE(isBackup(4))
+      << "non-virtual backup must be reclaimed to primary";
+  EXPECT_FALSE(isBackup(5)) << "virtual backup must be reclaimed to primary";
+}
+
 } // namespace facebook::fboss

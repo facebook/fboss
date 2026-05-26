@@ -940,6 +940,7 @@ TEST_F(BaseEcmpResourceManagerTest, maxArsVirtualGroupsFromConfig) {
     auto newState = state_->clone();
     auto flowletConfig = std::make_shared<FlowletSwitchingConfig>();
     flowletConfig->setMaxArsVirtualGroups(128);
+    flowletConfig->setMinWidthForArsVirtualGroup(2);
     flowletConfig->setBackupSwitchingMode(
         cfg::SwitchingMode::PER_PACKET_RANDOM);
     auto switchSettings = newState->getSwitchSettings()
@@ -959,17 +960,17 @@ TEST_F(BaseEcmpResourceManagerTest, maxArsVirtualGroupsFromConfig) {
 TEST_F(BaseEcmpResourceManagerTest, virtualGroupConfigAndLimits) {
   FLAGS_ecmp_resource_manager_make_before_break_buffer = 2;
 
-  // Test config with virtual group settings
+  // collectivePrimary = maxVirtualGroupWidth / maxEcmpWidth = 512/64 = 8.
+  // Effective maxPrimary = 20 - 2 (MBB) - 8 (collective) = 10.
   EcmpResourceManagerConfig config(
-      10, // maxNonVirtual (effective = 8 after buffer)
+      20, // raw maxHwEcmpGroups
       cfg::SwitchingMode::PER_PACKET_RANDOM,
       std::make_optional<uint32_t>(5), // maxVirtual (effective = 3)
       std::make_optional<int32_t>(65), // minWidthForVirtualGroup
       std::make_optional<int32_t>(512), // maxVirtualGroupWidth
       std::make_optional<int32_t>(64)); // maxEcmpWidth
 
-  // Verify buffer applied to both limits
-  EXPECT_EQ(config.getMaxPrimaryEcmpGroups(), 8);
+  EXPECT_EQ(config.getMaxPrimaryEcmpGroups(), 10);
   EXPECT_EQ(config.getMaxVirtualEcmpGroups().value(), 3);
 
   // Verify virtual group config values stored correctly
@@ -979,12 +980,12 @@ TEST_F(BaseEcmpResourceManagerTest, virtualGroupConfigAndLimits) {
 
   // Verify limit checking with virtual count
   EXPECT_FALSE(config.ecmpLimitReached(5, 100, 2)); // Neither reached
-  EXPECT_TRUE(config.ecmpLimitReached(8, 100, 2)); // Non-virtual reached
+  EXPECT_TRUE(config.ecmpLimitReached(10, 100, 2)); // Non-virtual reached
   EXPECT_TRUE(config.ecmpLimitReached(5, 100, 3)); // Virtual reached
 
   // Verify limit checking without virtual count
   EXPECT_FALSE(config.ecmpLimitReached(5, 100));
-  EXPECT_TRUE(config.ecmpLimitReached(8, 100));
+  EXPECT_TRUE(config.ecmpLimitReached(10, 100));
 
   // Test config without virtual groups falls back to standard behavior
   EcmpResourceManagerConfig configNoVirtual(

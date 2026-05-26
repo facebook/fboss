@@ -67,18 +67,22 @@ class EcmpResourceManagerConfig {
       const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
 
  private:
-  static uint32_t computeMaxHwEcmpGroups(uint32_t maxHwEcmpGroups);
+  static uint32_t computeMaxHwEcmpGroups(
+      uint32_t maxHwEcmpGroups,
+      std::optional<uint32_t> maxVirtualEcmpGroups,
+      std::optional<int32_t> maxVirtualGroupWidth,
+      std::optional<int32_t> maxEcmpWidth);
   static std::optional<uint32_t> computeMaxHwEcmpMembers(
       std::optional<uint32_t> maxHwEcmpMembers,
       std::optional<uint32_t> maxEcmpWidth);
   static std::optional<uint32_t> computeMaxVirtualEcmpGroups(
       std::optional<uint32_t> maxVirtualEcmpGroups);
 
-  const uint32_t maxHwEcmpGroups_;
+  uint32_t maxHwEcmpGroups_;
   const std::optional<uint32_t> maxHwEcmpMembers_;
-  const std::optional<uint32_t> maxVirtualEcmpGroups_;
-  const std::optional<int32_t> minWidthForVirtualGroup_;
-  const std::optional<int32_t> maxVirtualGroupWidth_;
+  std::optional<uint32_t> maxVirtualEcmpGroups_;
+  std::optional<int32_t> minWidthForVirtualGroup_;
+  std::optional<int32_t> maxVirtualGroupWidth_;
   const std::optional<int32_t> maxEcmpWidth_;
   uint32_t compressionPenaltyThresholdPct_{0};
   std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
