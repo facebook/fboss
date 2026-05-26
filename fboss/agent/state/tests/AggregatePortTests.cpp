@@ -1230,7 +1230,7 @@ TEST(AggregatePort, configTimeCapacityRecomputesOnSpeedChange) {
 TEST(AggregatePort, configTimeCapacityWithForwardingPorts) {
   auto platform = createMockPlatform();
   auto [startState, config] = makeTwoPortAggPortConfig();
-  config.aggregatePorts()[0].minimumCapacity()->linkCount_ref() = 1;
+  config.aggregatePorts()[0].minimumCapacity()->linkCount() = 1;
 
   auto midState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, midState);
