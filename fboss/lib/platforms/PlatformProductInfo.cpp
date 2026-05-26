@@ -221,7 +221,9 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
     } else if (modelName.find("ICETEA") == 0) {
       type_ = PlatformType::PLATFORM_ICETEA800BC;
-    } else if (modelName.find("LADAKH800BCLS") == 0) {
+    } else if (
+        modelName.find("LADAKH800BCLS") == 0 ||
+        modelName.find("LADAKH800BCLSM") == 0) {
       type_ = PlatformType::PLATFORM_LADAKH800BCLS;
     } else if (modelName.find("LEH800BCLS") == 0) {
       type_ = PlatformType::PLATFORM_LEH800BCLS;
@@ -314,7 +316,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_WEDGE800CACT;
     } else if (FLAGS_mode == "j4sim") {
       type_ = PlatformType::PLATFORM_J4SIM;
-    } else if (FLAGS_mode == "ladakh800bcls") {
+    } else if (
+        FLAGS_mode == "ladakh800bcls" || FLAGS_mode == "ladakh800bclsm") {
       type_ = PlatformType::PLATFORM_LADAKH800BCLS;
     } else if (FLAGS_mode == "leh800bcls") {
       type_ = PlatformType::PLATFORM_LEH800BCLS;
