@@ -212,6 +212,31 @@ class AclNexthopHandlerTest : public ::testing::Test {
     return newState;
   }
 
+  std::shared_ptr<SwitchState> addTunnelEncapAcl(
+      const std::shared_ptr<SwitchState>& state,
+      const std::string& name,
+      const std::string& nexthopIp,
+      const std::string& tunnelId) {
+    auto aclEntry = std::make_shared<AclEntry>(0, name);
+    aclEntry->setDstIp(
+        folly::IPAddress::tryCreateNetwork("2401::2/128").value());
+    auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
+    cfg::RedirectNextHop nhop;
+    nhop.ip() = nexthopIp;
+    nhop.tunnelType() = TunnelType::IP_IN_IP_ENCAP;
+    nhop.tunnelId() = tunnelId;
+    cfgRedirectToNextHop.redirectNextHops()->push_back(nhop);
+    auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
+    redirectToNextHop.first = cfgRedirectToNextHop;
+    MatchAction action = MatchAction();
+    action.setRedirectToNextHop(redirectToNextHop);
+    aclEntry->setAclAction(action);
+    auto newState = state->isPublished() ? state->clone() : state;
+    auto acls = newState->getAcls()->modify(&newState);
+    acls->addNode(aclEntry, scope());
+    return newState;
+  }
+
   RouteNextHopSet makeResolvedMplsNextHops(
       std::vector<std::pair<InterfaceID, std::string>> intfAndIPs,
       int baseLabel) {
@@ -524,4 +549,23 @@ TYPED_TEST(AclNexthopHandlerTest, ResolvedAclNextHopMultiNexthopWithInterface) {
 
   this->verifyResolvedNexthopsInAclAction(kAclName, expectedNexthops);
 }
+TYPED_TEST(AclNexthopHandlerTest, TunnelEncapNexthopSkipsResolution) {
+  this->updateState(
+      "TunnelEncapAcl", [=, this](const std::shared_ptr<SwitchState>& state) {
+        return this->addTunnelEncapAcl(
+            state, kAclName, "2401::1", "encapTunnel0");
+      });
+
+  this->verifyStateUpdate([=, this]() {
+    auto state = this->sw_->getState();
+    auto aclEntry = state->getAcls()->getNodeIf(kAclName);
+    EXPECT_NE(aclEntry, nullptr);
+    EXPECT_NE(aclEntry->isEnabled(), std::optional<bool>(false));
+    const auto& action = aclEntry->getAclAction();
+    auto matchAction = MatchAction::fromThrift(action->toThrift());
+    auto resolvedNexthopSet = matchAction.getRedirectToNextHop().value().second;
+    EXPECT_TRUE(resolvedNexthopSet.empty());
+  });
+}
+
 } // namespace facebook::fboss
