@@ -100,8 +100,7 @@ class AgentHwMirrorTest : public AgentHwTest {
       const bool truncate = false) const {
     cfg::MirrorDestination destination;
     destination.egressPort() = cfg::MirrorEgressPort();
-    destination.egressPort()->logicalID_ref() =
-        masterLogicalInterfacePortIds()[0];
+    destination.egressPort()->logicalID() = masterLogicalInterfacePortIds()[0];
 
     cfg::Mirror mirrorConfig;
     mirrorConfig.name() = mirrorName;
