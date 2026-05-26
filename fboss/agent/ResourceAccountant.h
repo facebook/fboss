@@ -40,6 +40,8 @@ class ResourceAccountant {
       const std::shared_ptr<SwitchState>& state) const;
   bool checkEcmpResource(bool intermediateState) const;
   bool checkArsResource(bool intermediateState) const;
+  bool wouldExceedSuperGroupLimit(
+      const RouteNextHopEntry::NextHopSet& nhSet) const;
   bool isVirtualArsGroup(
       const RouteNextHopEntry& fwd,
       const std::shared_ptr<SwitchState>& state) const;
@@ -135,6 +137,11 @@ class ResourceAccountant {
   };
   std::map<RouteNextHopEntry::NextHopSet, EcmpGroupRefEntry> ecmpGroupRefMap_;
   std::map<RouteNextHopEntry::NextHopSet, uint32_t> arsEcmpGroupRefMap_;
+  // Tracks refcount of each unique nexthop contributed to the virtual ARS
+  // supergroup across all active virtual nhSets. Map size = unique member
+  // count.
+  std::map<RouteNextHopEntry::NextHopSet::value_type, uint32_t>
+      virtualArsSuperGroupMemberRefMap_;
 
   const HwAsicTable* asicTable_;
   const SwitchIdScopeResolver* scopeResolver_;
@@ -174,6 +181,7 @@ class ResourceAccountant {
       checkAndUpdateGenericEcmpResourceForUcmpWeights);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateArsEcmpResource);
   FRIEND_TEST(ResourceAccountantTest, virtualArsGroups);
+  FRIEND_TEST(ResourceAccountantTest, virtualArsSuperGroupMemberLimit);
   FRIEND_TEST(ResourceAccountantTest, virtualArsGroupOverrideExcluded);
   FRIEND_TEST(ResourceAccountantTest, virtualArsGroupOverrideFlipLifecycle);
   FRIEND_TEST(

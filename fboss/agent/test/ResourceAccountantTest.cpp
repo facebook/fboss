@@ -1188,6 +1188,109 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
       false /* intermediateState */));
 }
 
+TEST_F(ResourceAccountantTest, virtualArsSuperGroupMemberLimit) {
+  FLAGS_dlbResourceCheckEnable = true;
+  FLAGS_flowletSwitchingEnable = true;
+  // minWidth=2 so any nhSet with >=2 nexthops qualifies as virtual.
+  // Supergroup limit = 5 unique nexthop members across all virtual groups.
+  this->resourceAccountant_->setMinWidthForArsVirtualGroup(2);
+  this->resourceAccountant_->setMaxArsVirtualGroups(256);
+  this->resourceAccountant_->setMaxArsVirtualGroupWidth(5);
+
+  // Build nexthop sets with partial overlap so the union grows incrementally:
+  //   A = {nh1, nh2, nh3}  -> unique total = 3
+  //   B = {nh2, nh3, nh4}  -> unique total = 4
+  //   C = {nh3, nh4, nh5}  -> unique total = 5  (at limit)
+  //   D = {nh4, nh5, nh6}  -> unique total = 6  (exceeds limit -> rejected)
+  auto makeNh = [](int id) {
+    return ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("10.0.0.", id)),
+        InterfaceID(id),
+        ecmpWeight);
+  };
+
+  auto makeNhSet = [&](std::initializer_list<int> ids) {
+    RouteNextHopSet nhSet;
+    for (int id : ids) {
+      nhSet.insert(makeNh(id));
+    }
+    return nhSet;
+  };
+
+  auto nhSetA = makeNhSet({1, 2, 3});
+  auto nhSetB = makeNhSet({2, 3, 4});
+  auto nhSetC = makeNhSet({3, 4, 5});
+  auto nhSetD = makeNhSet({4, 5, 6});
+
+  RouteNextHopEntry entryA(nhSetA, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(entryA, nhSetA);
+  RouteNextHopEntry entryB(nhSetB, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(entryB, nhSetB);
+  RouteNextHopEntry entryC(nhSetC, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(entryC, nhSetC);
+  RouteNextHopEntry entryD(nhSetD, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(entryD, nhSetD);
+
+  auto addRoute = [&](int prefix,
+                      const RouteNextHopEntry& entry,
+                      const RouteNextHopSet& nhSet) {
+    auto route = makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("::", prefix)), 128},
+        entry,
+        nhSet);
+    return this->resourceAccountant_
+        ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, true, state_);
+  };
+
+  auto removeRoute = [&](int prefix,
+                         const RouteNextHopEntry& entry,
+                         const RouteNextHopSet& nhSet) {
+    auto route = makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("::", prefix)), 128},
+        entry,
+        nhSet);
+    return this->resourceAccountant_
+        ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, false, state_);
+  };
+
+  // Add A: unique members = {nh1, nh2, nh3} = 3
+  EXPECT_TRUE(addRoute(1, entryA, nhSetA));
+  EXPECT_EQ(
+      this->resourceAccountant_->virtualArsSuperGroupMemberRefMap_.size(), 3);
+
+  // Add B: union gains nh4 -> 4 unique
+  EXPECT_TRUE(addRoute(2, entryB, nhSetB));
+  EXPECT_EQ(
+      this->resourceAccountant_->virtualArsSuperGroupMemberRefMap_.size(), 4);
+
+  // Add C: union gains nh5 -> 5 unique (exactly at limit)
+  EXPECT_TRUE(addRoute(3, entryC, nhSetC));
+  EXPECT_EQ(
+      this->resourceAccountant_->virtualArsSuperGroupMemberRefMap_.size(), 5);
+
+  // Add D: would add nh6 -> 6 unique, exceeds limit -> rejected
+  EXPECT_FALSE(addRoute(4, entryD, nhSetD));
+
+  // Remove A: nh1 erased (refcount 0); nh2 still ref'd by B; nh3 still ref'd by
+  // B and C
+  removeRoute(1, entryA, nhSetA);
+  EXPECT_EQ(
+      this->resourceAccountant_->virtualArsSuperGroupMemberRefMap_.size(), 4);
+
+  // D is now accepted: nh6 brings unique count to 5 = limit
+  EXPECT_TRUE(addRoute(4, entryD, nhSetD));
+  EXPECT_EQ(
+      this->resourceAccountant_->virtualArsSuperGroupMemberRefMap_.size(), 5);
+
+  // A second route sharing nhSetB doesn't change the supergroup unique count
+  auto nhSetB2 = makeNhSet({2, 3, 4});
+  RouteNextHopEntry entryB2(nhSetB2, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(entryB2, nhSetB2);
+  EXPECT_TRUE(addRoute(5, entryB2, nhSetB2));
+  EXPECT_EQ(
+      this->resourceAccountant_->virtualArsSuperGroupMemberRefMap_.size(), 5);
+}
+
 TEST_F(ResourceAccountantTest, virtualArsGroupOverrideExcluded) {
   // ERM-overridden (backup) routes must not count against
   // virtualArsGroupCount_.

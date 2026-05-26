@@ -220,9 +220,42 @@ bool ResourceAccountant::checkArsResource(bool intermediateState) const {
           return false;
         }
       }
+
+      if (maxArsVirtualGroupWidth_.has_value() &&
+          maxArsVirtualGroupWidth_.value() >= 0 &&
+          virtualArsSuperGroupMemberRefMap_.size() >
+              static_cast<size_t>(maxArsVirtualGroupWidth_.value())) {
+        XLOG(DBG2) << " Virtual ARS supergroup unique member limit exceeded. "
+                   << "Unique members: "
+                   << virtualArsSuperGroupMemberRefMap_.size()
+                   << " limit: " << maxArsVirtualGroupWidth_.value();
+        return false;
+      }
     }
   }
   return true;
+}
+
+bool ResourceAccountant::wouldExceedSuperGroupLimit(
+    const RouteNextHopEntry::NextHopSet& nhSet) const {
+  if (!maxArsVirtualGroupWidth_.has_value() ||
+      maxArsVirtualGroupWidth_.value() < 0) {
+    return false;
+  }
+  size_t projected = virtualArsSuperGroupMemberRefMap_.size();
+  for (const auto& nh : nhSet) {
+    if (!virtualArsSuperGroupMemberRefMap_.count(nh)) {
+      ++projected;
+    }
+  }
+  if (projected > static_cast<size_t>(maxArsVirtualGroupWidth_.value())) {
+    XLOG(DBG2)
+        << "Virtual ARS supergroup unique member limit would be exceeded."
+        << " Projected: " << projected
+        << " limit: " << maxArsVirtualGroupWidth_.value();
+    return true;
+  }
+  return false;
 }
 
 template <typename AddrT>
@@ -246,7 +279,13 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
             (entry.refCountVirtual == 0 && entry.refCountNonVirtual == 0);
         if (isVirtual) {
           if (entry.refCountVirtual == 0) {
+            if (wouldExceedSuperGroupLimit(nhSet)) {
+              return false;
+            }
             virtualArsGroupCount_++;
+            for (const auto& nh : nhSet) {
+              virtualArsSuperGroupMemberRefMap_[nh]++;
+            }
           }
           entry.refCountVirtual++;
         } else {
@@ -263,6 +302,13 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
           entry.refCountVirtual--;
           if (entry.refCountVirtual == 0) {
             virtualArsGroupCount_--;
+            for (const auto& nh : nhSet) {
+              auto nhIt = virtualArsSuperGroupMemberRefMap_.find(nh);
+              CHECK(nhIt != virtualArsSuperGroupMemberRefMap_.end());
+              if (--nhIt->second == 0) {
+                virtualArsSuperGroupMemberRefMap_.erase(nhIt);
+              }
+            }
           }
         } else {
           CHECK_GT(entry.refCountNonVirtual, 0u);
@@ -279,8 +325,14 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
     CHECK(add);
     EcmpGroupRefEntry entry;
     if (isVirtual) {
+      if (wouldExceedSuperGroupLimit(nhSet)) {
+        return false;
+      }
       entry.refCountVirtual = 1;
       virtualArsGroupCount_++;
+      for (const auto& nh : nhSet) {
+        virtualArsSuperGroupMemberRefMap_[nh]++;
+      }
     } else {
       entry.refCountNonVirtual = 1;
     }
