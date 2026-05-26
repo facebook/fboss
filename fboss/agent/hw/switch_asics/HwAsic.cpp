@@ -56,7 +56,7 @@ HwAsic::HwAsic(
       sdkVersion_(sdkVersion) {
   CHECK(switchInfo.switchMac().has_value());
   asicMac_ = folly::MacAddress(*switchInfo.switchMac());
-  if (supportedModes.find(switchType_) == supportedModes.end()) {
+  if (!supportedModes.contains(switchType_)) {
     throw std::runtime_error(
         folly::to<std::string>("Unsupported Mode: ", switchType_));
   }
