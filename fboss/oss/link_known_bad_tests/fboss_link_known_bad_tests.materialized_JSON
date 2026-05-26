@@ -45014,7 +45014,7 @@
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         }
     ],
-    "minipack3n/sai/asicsdk-2511.35/2511.35": [
+    "minipack3n/sai/asicsdk-2511.36/2511.36": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -45067,7 +45067,7 @@
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         }
     ],
-    "minipack3n/sai/asicsdk-2511.35/2511.35/physdk-credo-0.7.2/credo-0.7.2": [
+    "minipack3n/sai/asicsdk-2511.36/2511.36/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -45120,7 +45120,7 @@
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         }
     ],
-    "minipack3n/sai/asicsdk-2511.35/2511.35/physdk-credo-0.9.0/credo-0.9.0": [
+    "minipack3n/sai/asicsdk-2511.36/2511.36/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
@@ -45173,7 +45173,7 @@
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         }
     ],
-    "minipack3n/sai/asicsdk-2511.35/2511.35/physdk-credo-1.2.8/credo-1.2.8": [
+    "minipack3n/sai/asicsdk-2511.36/2511.36/physdk-credo-1.2.8/credo-1.2.8": [
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
