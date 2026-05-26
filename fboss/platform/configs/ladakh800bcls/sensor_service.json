@@ -590,7 +590,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "MCB_PSP1_XP12R0V_PB1_TEMPARTURES",
+          "name": "MCB_PSP1_XP12R0V_PB1_TEMP",
           "sysfsPath": "/run/devmap/sensors/PMBUS_1/temp1_input",
           "type": 3,
           "thresholds": {
@@ -636,7 +636,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "MCB_PSP2_XP12R0V_PB2_TEMPARTURES",
+          "name": "MCB_PSP2_XP12R0V_PB2_TEMP",
           "sysfsPath": "/run/devmap/sensors/PMBUS_2/temp1_input",
           "type": 3,
           "thresholds": {
@@ -672,7 +672,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "MCB_PSP3_XP12R0V_PB3_TEMPARTURES",
+          "name": "MCB_PSP3_XP12R0V_PB3_TEMP",
           "sysfsPath": "/run/devmap/sensors/PMBUS_3/temp1_input",
           "type": 3,
           "thresholds": {
@@ -705,7 +705,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "MCB_UP15_XP12R0V_COME_TEMPARTURES",
+          "name": "MCB_UP15_XP12R0V_COME_TEMP",
           "sysfsPath": "/run/devmap/sensors/LOAD_SWITCH_MONITOR/temp1_input",
           "type": 3,
           "thresholds": {
