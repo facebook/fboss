@@ -36,10 +36,25 @@ ResourceAccountant::ResourceAccountant(
 }
 
 bool ResourceAccountant::isVirtualArsGroup(
+    const RouteNextHopEntry& fwd,
     const RouteNextHopEntry::NextHopSet& nhSet) const {
-  return FLAGS_dlbResourceCheckEnable &&
-      minWidthForArsVirtualGroup_.has_value() &&
-      nhSet.size() >= static_cast<size_t>(minWidthForArsVirtualGroup_.value());
+  if (!FLAGS_dlbResourceCheckEnable ||
+      !minWidthForArsVirtualGroup_.has_value()) {
+    return false;
+  }
+  // ERM-overridden routes are in backup ECMP mode and don't use the DLB pool.
+  if (FLAGS_enable_ecmp_resource_manager &&
+      fwd.getOverrideEcmpSwitchingMode().has_value()) {
+    return false;
+  }
+  return nhSet.size() >=
+      static_cast<size_t>(minWidthForArsVirtualGroup_.value());
+}
+
+bool ResourceAccountant::isVirtualArsGroup(
+    const RouteNextHopEntry& fwd,
+    const std::shared_ptr<SwitchState>& state) const {
+  return isVirtualArsGroup(fwd, getNormalizedNextHops(state, fwd));
 }
 
 bool ResourceAccountant::isEcmp(
@@ -59,10 +74,9 @@ size_t ResourceAccountant::computeWeightedEcmpMemberCount(
     const std::shared_ptr<SwitchState>& state) const {
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-      // For TH4, UCMP members take 4x of ECMP members in the same table.
-      return 4 * getNormalizedNextHops(state, fwd).size();
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-      // For TH5, UCMP members take 4x of ECMP members in the same table.
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      // UCMP members take 4x of ECMP members in the same table.
       return 4 * getNormalizedNextHops(state, fwd).size();
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_G202X:
@@ -83,10 +97,6 @@ size_t ResourceAccountant::computeWeightedEcmpMemberCount(
 size_t ResourceAccountant::getMemberCountForEcmpGroup(
     const RouteNextHopEntry& fwd,
     const std::shared_ptr<SwitchState>& state) const {
-  // Virtual ARS groups do not use ECMP member objects individually.
-  if (isVirtualArsGroup(getNormalizedNextHops(state, fwd))) {
-    return 0;
-  }
   if (isEcmp(fwd, state)) {
     return getNormalizedNextHops(state, fwd).size();
   }
@@ -134,21 +144,24 @@ bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
     }
 
     if (ecmpGroupEnforcedLimit.has_value() &&
-        ecmpGroupRefMap_.size() > *ecmpGroupEnforcedLimit) {
+        ecmpGroupRefMap_.size() >
+            static_cast<size_t>(*ecmpGroupEnforcedLimit)) {
       XLOG(DBG2) << " Ecmp group limit exceeded. Ecmp demand from this update: "
                  << ecmpGroupRefMap_.size()
                  << " ASIC limit: " << *ecmpGroupEnforcedLimit;
       return false;
     }
-    // Virtual ARS groups collectively use minWidthForArsVirtualGroup_ ECMP
-    // members (shared across all virtual groups)
+    // Virtual ARS groups share a single DLB pool that collectively occupies
+    // maxArsVirtualGroupWidth_ ECMP member table entries regardless of the
+    // number of virtual groups active.
     auto virtualArsEcmpMemberUsage =
-        (virtualArsGroupCount_ > 0 && minWidthForArsVirtualGroup_.has_value())
-        ? static_cast<uint32_t>(minWidthForArsVirtualGroup_.value())
+        (virtualArsGroupCount_ > 0 && maxArsVirtualGroupWidth_.has_value())
+        ? static_cast<uint32_t>(maxArsVirtualGroupWidth_.value())
         : 0;
     auto totalEcmpMemberUsage = ecmpMemberUsage_ + virtualArsEcmpMemberUsage;
     if (ecmpMemberEnforcedLimit.has_value() &&
-        totalEcmpMemberUsage > *ecmpMemberEnforcedLimit) {
+        totalEcmpMemberUsage >
+            static_cast<uint32_t>(*ecmpMemberEnforcedLimit)) {
       XLOG(DBG2)
           << " Ecmp member limit exceeded. Ecmp demand from this update: "
           << totalEcmpMemberUsage
@@ -222,26 +235,59 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
   const auto nhSet = getNormalizedNextHops(state, fwd);
   // Forwarding to nextHops and more than one nextHop - use ECMP
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS && nhSet.size() > 1) {
+    const bool isVirtual = isVirtualArsGroup(fwd, nhSet);
     if (auto it = ecmpGroupRefMap_.find(nhSet); it != ecmpGroupRefMap_.end()) {
-      it->second = it->second + (add ? 1 : -1);
-      CHECK(it->second >= 0);
-      if (!add && it->second == 0) {
-        ecmpGroupRefMap_.erase(it);
-        ecmpMemberUsage_ -= getMemberCountForEcmpGroup(fwd, state);
-        if (isVirtualArsGroup(nhSet)) {
-          virtualArsGroupCount_--;
+      auto& entry = it->second;
+      if (add) {
+        // Virtual ARS nhSets also have a non-hierarchical companion ECMP
+        // object for non-ARS traffic; charge member cost on first ref of
+        // any kind, release when all refs are gone.
+        const bool wasEmpty =
+            (entry.refCountVirtual == 0 && entry.refCountNonVirtual == 0);
+        if (isVirtual) {
+          if (entry.refCountVirtual == 0) {
+            virtualArsGroupCount_++;
+          }
+          entry.refCountVirtual++;
+        } else {
+          entry.refCountNonVirtual++;
+        }
+        if (wasEmpty) {
+          entry.memberContribution =
+              static_cast<uint32_t>(getMemberCountForEcmpGroup(fwd, state));
+          ecmpMemberUsage_ += entry.memberContribution;
+        }
+      } else {
+        if (isVirtual) {
+          CHECK_GT(entry.refCountVirtual, 0u);
+          entry.refCountVirtual--;
+          if (entry.refCountVirtual == 0) {
+            virtualArsGroupCount_--;
+          }
+        } else {
+          CHECK_GT(entry.refCountNonVirtual, 0u);
+          entry.refCountNonVirtual--;
+        }
+        if (entry.refCountVirtual == 0 && entry.refCountNonVirtual == 0) {
+          ecmpMemberUsage_ -= entry.memberContribution;
+          ecmpGroupRefMap_.erase(it);
         }
       }
       return true;
     }
-    // ECMP group does not exists in hw - Check if any usage exceeds ASIC
-    // limit
+    // ECMP group does not exist in hw — check if any usage exceeds ASIC limit
     CHECK(add);
-    ecmpGroupRefMap_[nhSet] = 1;
-    ecmpMemberUsage_ += getMemberCountForEcmpGroup(fwd, state);
-    if (isVirtualArsGroup(nhSet)) {
+    EcmpGroupRefEntry entry;
+    if (isVirtual) {
+      entry.refCountVirtual = 1;
       virtualArsGroupCount_++;
+    } else {
+      entry.refCountNonVirtual = 1;
     }
+    entry.memberContribution =
+        static_cast<uint32_t>(getMemberCountForEcmpGroup(fwd, state));
+    ecmpMemberUsage_ += entry.memberContribution;
+    ecmpGroupRefMap_[nhSet] = entry;
     return checkEcmpResource(true /* intermediateState */);
   }
   return true;
@@ -266,7 +312,7 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
           fwd.getOverrideEcmpSwitchingMode().has_value()) {
         return true;
       }
-      if (isVirtualArsGroup(nhSet)) {
+      if (isVirtualArsGroup(fwd, nhSet)) {
         return checkArsResource(true /* intermediateState */) &&
             checkEcmpResource(true /* intermediateState */);
       }
