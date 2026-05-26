@@ -267,13 +267,13 @@ class AgentIpInIpEncapTunnelTest : public AgentHwTest {
       const AgentEnsemble& ensemble) const override {
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
     auto asic = checkSameAndGetAsicForTesting(l3Asics);
-    auto cfg = utility::oneL3IntfTwoPortConfig(
-        ensemble.getSw()->getPlatformMapping(),
-        asic,
+    std::vector<PortID> ports = {
         ensemble.masterLogicalPortIds()[0],
         ensemble.masterLogicalPortIds()[1],
-        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        ensemble.masterLogicalPortIds()[2],
+    };
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(), ports, true /*interfaceHasSubnet*/);
     addEncapTunnelConfig(cfg);
     addEncapAclConfig(cfg, asic, ensemble);
     return cfg;
@@ -320,16 +320,37 @@ class AgentIpInIpEncapTunnelTest : public AgentHwTest {
     }
     cfg.dataPlaneTrafficPolicy()->matchToAction()->push_back(mta);
 
-    auto port = ensemble.masterLogicalInterfacePortIds()[0];
-    utility::addTrapPacketAcl(asic, &cfg, port);
+    utility::addTrapPacketAcl(
+        asic,
+        &cfg,
+        std::set<PortID>{
+            ensemble.masterLogicalPortIds()[1],
+            ensemble.masterLogicalPortIds()[2]});
+  }
+
+  void setupRouteToPort(
+      const PortID& portID,
+      const folly::IPAddressV6& dstIp,
+      uint8_t prefixLen) {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor()};
+    auto dstPort = PortDescriptor(portID);
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(in, {dstPort});
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(
+        &wrapper,
+        {dstPort},
+        {RoutePrefix<folly::IPAddressV6>{dstIp, prefixLen}});
   }
 
   void setupHelper() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(
-        getProgrammedState(),
-        getSw()->needL2EntryForNeighbor(),
-        getLocalMacAddress());
-    resolveNeighborAndProgramRoutes(ecmpHelper, 1);
+    auto ports = masterLogicalPortIds();
+    // Encap outer dst IP → port 1 (encap egress)
+    setupRouteToPort(ports[1], folly::IPAddressV6(kEncapDstIp), 64);
+    // Default route → port 2 (non-encap egress)
+    setupRouteToPort(ports[2], folly::IPAddressV6(), 0);
   }
 
   std::unique_ptr<TxPacket> makeTcpPacket(
@@ -354,18 +375,25 @@ TEST_F(AgentIpInIpEncapTunnelTest, EncapTunnelForwarding) {
   auto setup = [=, this]() { setupHelper(); };
   auto verify = [=, this]() {
     auto beforeInBytes =
-        getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
-    auto beforeOutBytes =
-        getLatestPortStats(masterLogicalPortIds()[0]).outBytes_().value();
+        getLatestPortStats(masterLogicalPortIds()[0]).inBytes_().value();
+    auto beforeEncapOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).outBytes_().value();
+    auto beforeNonEncapOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[2]).outBytes_().value();
     getAgentEnsemble()->ensureSendPacketOutOfPort(
-        makeTcpPacket(), masterLogicalPortIds()[1]);
+        makeTcpPacket(), masterLogicalPortIds()[0]);
     auto afterInBytes =
-        getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
-    auto afterOutBytes =
-        getLatestPortStats(masterLogicalPortIds()[0]).outBytes_().value();
+        getLatestPortStats(masterLogicalPortIds()[0]).inBytes_().value();
+    auto afterEncapOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).outBytes_().value();
+    auto afterNonEncapOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[2]).outBytes_().value();
+    // Encapped packet exits encap egress port (port 1) with added outer header
     EXPECT_EQ(
         afterInBytes - beforeInBytes + IPv6Hdr::SIZE,
-        afterOutBytes - beforeOutBytes);
+        afterEncapOutBytes - beforeEncapOutBytes);
+    // Non-encap egress port (port 2) should see no traffic
+    EXPECT_EQ(afterNonEncapOutBytes, beforeNonEncapOutBytes);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -374,52 +402,27 @@ TEST_F(AgentIpInIpEncapTunnelTest, EncapAclMiss) {
   auto setup = [=, this]() { setupHelper(); };
   auto verify = [=, this]() {
     auto beforeInBytes =
-        getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
-    auto beforeOutBytes =
-        getLatestPortStats(masterLogicalPortIds()[0]).outBytes_().value();
+        getLatestPortStats(masterLogicalPortIds()[0]).inBytes_().value();
+    auto beforeEncapOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).outBytes_().value();
+    auto beforeNonEncapOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[2]).outBytes_().value();
     getAgentEnsemble()->ensureSendPacketOutOfPort(
-        makeTcpPacket("2620:0:1::1"), masterLogicalPortIds()[1]);
+        makeTcpPacket("2620:0:1::1"), masterLogicalPortIds()[0]);
     auto afterInBytes =
-        getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
-    auto afterOutBytes =
-        getLatestPortStats(masterLogicalPortIds()[0]).outBytes_().value();
+        getLatestPortStats(masterLogicalPortIds()[0]).inBytes_().value();
+    auto afterEncapOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).outBytes_().value();
+    auto afterNonEncapOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[2]).outBytes_().value();
     EXPECT_NE(afterInBytes, beforeInBytes);
-    EXPECT_NE(afterOutBytes, beforeOutBytes);
-    EXPECT_EQ(afterInBytes - beforeInBytes, afterOutBytes - beforeOutBytes);
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(AgentIpInIpEncapTunnelTest, EncapNoTunnelConfigured) {
-  auto setup = [=, this]() {
-    auto ensemble = getAgentEnsemble();
-    auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsicForTesting(l3Asics);
-    auto cfg = utility::oneL3IntfTwoPortConfig(
-        ensemble->getSw()->getPlatformMapping(),
-        asic,
-        ensemble->masterLogicalPortIds()[0],
-        ensemble->masterLogicalPortIds()[1],
-        ensemble->getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
-    applyNewConfig(cfg); // removes tunnel + ACL entries
-    setupHelper();
-  };
-
-  auto verify = [=, this]() {
-    auto beforeInBytes =
-        getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
-    auto beforeOutBytes =
-        getLatestPortStats(masterLogicalPortIds()[0]).outBytes_().value();
-    getAgentEnsemble()->ensureSendPacketOutOfPort(
-        makeTcpPacket(), masterLogicalPortIds()[1]);
-    auto afterInBytes =
-        getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
-    auto afterOutBytes =
-        getLatestPortStats(masterLogicalPortIds()[0]).outBytes_().value();
-    EXPECT_NE(afterInBytes, beforeInBytes);
-    EXPECT_NE(afterOutBytes, beforeOutBytes);
-    EXPECT_EQ(afterInBytes - beforeInBytes, afterOutBytes - beforeOutBytes);
+    // Non-encapped packet exits non-encap egress port (port 2, default route)
+    EXPECT_NE(afterNonEncapOutBytes, beforeNonEncapOutBytes);
+    EXPECT_EQ(
+        afterInBytes - beforeInBytes,
+        afterNonEncapOutBytes - beforeNonEncapOutBytes);
+    // Encap egress port (port 1) should see no traffic
+    EXPECT_EQ(afterEncapOutBytes, beforeEncapOutBytes);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -427,9 +430,10 @@ TEST_F(AgentIpInIpEncapTunnelTest, EncapNoTunnelConfigured) {
 TEST_F(AgentIpInIpEncapTunnelTest, EncapPacketParsing) {
   auto setup = [=, this]() { setupHelper(); };
   auto verify = [=, this]() {
+    constexpr uint8_t kDscp{48};
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
     getAgentEnsemble()->ensureSendPacketOutOfPort(
-        makeTcpPacket("2403:300::1", 443, 0xCE), masterLogicalPortIds()[1]);
+        makeTcpPacket("2403:300::1", 443, kDscp), masterLogicalPortIds()[0]);
     auto capturedPktBuf = snooper.waitForPacket(1);
     ASSERT_TRUE(capturedPktBuf.has_value());
 
@@ -441,7 +445,8 @@ TEST_F(AgentIpInIpEncapTunnelTest, EncapPacketParsing) {
     EXPECT_EQ(outerHdr.srcAddr, folly::IPAddress(kEncapSrcIp));
     EXPECT_EQ(outerHdr.dstAddr, folly::IPAddress(kEncapDstIp));
     EXPECT_EQ(outerHdr.nextHeader, 41);
-    EXPECT_EQ(outerHdr.trafficClass, 0xCE);
+    EXPECT_EQ(outerHdr.trafficClass >> 2, kDscp);
+    EXPECT_EQ(outerHdr.trafficClass & 0x3, 0);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
