@@ -313,6 +313,14 @@ BENCHMARK_COUNTERS_NAME_PARAM(
     120,
     false);
 
+BENCHMARK_COUNTERS_NAME_PARAM(
+    ribmap_state_storage_gtsw,
+    counters,
+    GTSW_YOLO_4K_ThriftCow,
+    4096,
+    64,
+    false);
+
 } // namespace facebook::fboss::thrift_cow::test
 
 int main(int argc, char* argv[]) {
