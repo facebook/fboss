@@ -3525,6 +3525,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/ramon3/multi_switch": [
@@ -3866,6 +3869,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono": [
@@ -4649,6 +4655,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch": [
@@ -4990,6 +4999,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/11.7.0.0_odp/11.7.0.0_odp/tomahawk5/mono": [
@@ -7512,6 +7524,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono/fe13": [
@@ -7532,6 +7547,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono/fe2": [
@@ -7552,6 +7570,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch": [
@@ -7893,6 +7914,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch/fe13": [
@@ -8234,6 +8258,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch/fe2": [
@@ -8575,6 +8602,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/13.0_ea_odp/13.0_ea_odp/tomahawk3/mono": [
@@ -12683,6 +12713,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/13.3.0.0_dnx_odp/13.3.0.0_dnx_odp/ramon3/mono/fe13": [
@@ -12703,6 +12736,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/13.3.0.0_dnx_odp/13.3.0.0_dnx_odp/ramon3/mono/fe2": [
@@ -12723,6 +12759,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/13.3.0.0_dnx_odp/13.3.0.0_dnx_odp/ramon3/multi_switch": [
@@ -13067,6 +13106,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/13.3.0.0_dnx_odp/13.3.0.0_dnx_odp/ramon3/multi_switch/fe13": [
@@ -13408,6 +13450,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/13.3.0.0_dnx_odp/13.3.0.0_dnx_odp/ramon3/multi_switch/fe2": [
@@ -13749,6 +13794,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk3/mono": [
@@ -19162,6 +19210,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/14.0_ea_dnx_odp/14.0_ea_dnx_odp/ramon3/mono/fe13": [
@@ -19182,6 +19233,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/14.0_ea_dnx_odp/14.0_ea_dnx_odp/ramon3/mono/fe2": [
@@ -19202,6 +19256,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/14.0_ea_dnx_odp/14.0_ea_dnx_odp/ramon3/multi_switch": [
@@ -19546,6 +19603,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/14.0_ea_dnx_odp/14.0_ea_dnx_odp/ramon3/multi_switch/fe13": [
@@ -19887,6 +19947,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/14.0_ea_dnx_odp/14.0_ea_dnx_odp/ramon3/multi_switch/fe2": [
@@ -20228,6 +20291,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/14.0_ea_odp/14.0_ea_odp/tomahawk6/mono": [
@@ -23166,6 +23232,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/mono/fe13": [
@@ -23186,6 +23255,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/mono/fe2": [
@@ -23206,6 +23278,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/multi_switch": [
@@ -23550,6 +23625,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/multi_switch/fe13": [
@@ -23891,6 +23969,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/multi_switch/fe2": [
@@ -24232,6 +24313,9 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
         }
     ],
     "brcm/14.2.0.0_odp/14.2.0.0_odp/tomahawk6/mono": [
