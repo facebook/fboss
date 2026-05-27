@@ -3,13 +3,19 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
 #include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace facebook::fboss {
 class AgentEnsemble;
+class SwSwitch;
+class SwitchState;
 } // namespace facebook::fboss
 
 namespace facebook::fboss::utility {
@@ -34,5 +40,43 @@ void verifySrv6EcnMarking(
     const std::function<
         bool(const folly::IPAddressV6& dstAddr, uint8_t ecnBits)>&
         isEcnMarkedPacket);
+
+// Look up port name from switch config by port ID.
+std::string portNameForConfig(const cfg::SwitchConfig& cfg, PortID portId);
+
+// Create an adjacency-based MySidConfig. The portName can be a physical port
+// name (from portNameForConfig) or an aggregate name like "AGG-1".
+cfg::MySidConfig makeAdjacencyMySidConfig(
+    const std::string& portName,
+    const std::string& locatorPrefix,
+    int functionId);
+
+// Poll until a MySid entry with the given prefix reaches the expected
+// resolved/unresolved state. Must be called from within a test context
+// (uses WITH_RETRIES / EXPECT_EVENTUALLY macros).
+void waitForMySidResolveOrUnresolve(
+    const std::function<std::shared_ptr<SwitchState>()>& getState,
+    const folly::IPAddressV6& sidPrefix,
+    uint8_t prefixLen,
+    bool resolved);
+
+// Add a DECAPSULATE_AND_LOOKUP MySid entry via the RIB.
+void addDecapMySidEntry(
+    SwSwitch* sw,
+    const folly::IPAddressV6& addr,
+    uint8_t prefixLen);
+
+// Add a BINDING_MICRO_SID MySid entry via ThriftHandler.
+void addBindingSidEntry(
+    SwSwitch* sw,
+    const folly::IPAddressV6& mySidAddr,
+    uint8_t prefixLen,
+    const std::vector<NextHopThrift>& nhops);
+
+// Build a NextHopThrift for SRv6 encap with a single SID.
+NextHopThrift makeSrv6NextHopThrift(
+    const folly::IPAddressV6& nhopAddr,
+    const folly::IPAddressV6& sid,
+    const std::string& tunnelId = "srv6Tunnel0");
 
 } // namespace facebook::fboss::utility

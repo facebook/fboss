@@ -2,7 +2,6 @@
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
-#include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/Ethertype.h"
@@ -141,7 +140,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     addRoute<folly::CIDRNetworkV4>(
         {folly::IPAddressV4("100.0.0.0"), 24}, 1 /*numNextHops*/);
     if (addMySid) {
-      addMySidEntry(kMySidAddr.str(), kMySidPrefixLen);
+      utility::addDecapMySidEntry(this->getSw(), kMySidAddr, kMySidPrefixLen);
     }
   }
 
@@ -163,32 +162,6 @@ class AgentSrv6DecapTest : public AgentHwTest {
         ClientID::BGPD,
         RouteNextHopEntry(nhops, AdminDistance::EBGP));
     routeUpdater.program();
-  }
-
-  MySidEntry makeMySidEntry(const std::string& addr, uint8_t prefixLen) {
-    MySidEntry entry;
-    entry.type() = MySidType::DECAPSULATE_AND_LOOKUP;
-    facebook::network::thrift::IPPrefix prefix;
-    prefix.prefixAddress() =
-        facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
-    prefix.prefixLength() = prefixLen;
-    entry.mySid() = prefix;
-    return entry;
-  }
-
-  void addMySidEntry(const std::string& addr, uint8_t prefixLen) {
-    auto entry = makeMySidEntry(addr, prefixLen);
-    auto sw = this->getSw();
-    auto rib = sw->getRib();
-    auto ribMySidToSwitchStateFunc =
-        createRibMySidToSwitchStateFunction(std::nullopt);
-    rib->update(
-        sw->getScopeResolver(),
-        {entry},
-        {} /* toDelete */,
-        "addMySidEntry",
-        ribMySidToSwitchStateFunc,
-        sw);
   }
 
   PortID getEgressPort(const PortDescriptor& portDesc) const {

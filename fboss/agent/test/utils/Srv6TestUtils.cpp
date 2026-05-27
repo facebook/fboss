@@ -1,6 +1,13 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/utils/Srv6TestUtils.h"
+#include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/SwSwitchMySidUpdater.h"
+#include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -93,6 +100,111 @@ void verifySrv6EcnMarking(
     }
     EXPECT_EVENTUALLY_TRUE(foundEcnMarked);
   });
+}
+
+std::string portNameForConfig(const cfg::SwitchConfig& cfg, PortID portId) {
+  for (const auto& port : *cfg.ports()) {
+    if (*port.logicalID() == static_cast<int32_t>(portId) &&
+        port.name().has_value() && !port.name()->empty()) {
+      return *port.name();
+    }
+  }
+  throw FbossError("No name found for port ", portId);
+}
+
+cfg::MySidConfig makeAdjacencyMySidConfig(
+    const std::string& portName,
+    const std::string& locatorPrefix,
+    int functionId) {
+  cfg::MySidConfig mySidConfig;
+  mySidConfig.locatorPrefix() = locatorPrefix;
+  cfg::MySidEntryConfig entry;
+  cfg::AdjacencyMySidConfig adjConfig;
+  adjConfig.portName() = portName;
+  adjConfig.isV6() = true;
+  entry.adjacency() = adjConfig;
+  mySidConfig.entries()[functionId] = entry;
+  return mySidConfig;
+}
+
+void waitForMySidResolveOrUnresolve(
+    const std::function<std::shared_ptr<SwitchState>()>& getState,
+    const folly::IPAddressV6& sidPrefix,
+    uint8_t prefixLen,
+    bool resolved) {
+  auto sidKey =
+      folly::to<std::string>(sidPrefix.str(), "/", static_cast<int>(prefixLen));
+  WITH_RETRIES({
+    std::shared_ptr<MySid> mySid;
+    for (const auto& [_, mySidMap] : std::as_const(*getState()->getMySids())) {
+      if (auto node = mySidMap->getNodeIf(sidKey)) {
+        mySid = node;
+        break;
+      }
+    }
+    ASSERT_EVENTUALLY_NE(mySid, nullptr) << "mysid not in switch state";
+    EXPECT_EVENTUALLY_EQ(mySid->getResolvedNextHopsId().has_value(), resolved)
+        << "mysid " << sidKey
+        << (resolved ? " not resolved" : " still resolved")
+        << " (adjacencyInterfaceId="
+        << (mySid->getAdjacencyInterfaceId().has_value()
+                ? std::to_string(*mySid->getAdjacencyInterfaceId())
+                : "<unset>")
+        << ")";
+  });
+}
+
+void addDecapMySidEntry(
+    SwSwitch* sw,
+    const folly::IPAddressV6& addr,
+    uint8_t prefixLen) {
+  MySidEntry entry;
+  entry.type() = MySidType::DECAPSULATE_AND_LOOKUP;
+  facebook::network::thrift::IPPrefix prefix;
+  prefix.prefixAddress() = facebook::network::toBinaryAddress(addr);
+  prefix.prefixLength() = prefixLen;
+  entry.mySid() = prefix;
+
+  auto rib = sw->getRib();
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  rib->update(
+      sw->getScopeResolver(),
+      {entry},
+      {},
+      "addDecapMySidEntry",
+      ribMySidToSwitchStateFunc,
+      sw);
+}
+
+void addBindingSidEntry(
+    SwSwitch* sw,
+    const folly::IPAddressV6& mySidAddr,
+    uint8_t prefixLen,
+    const std::vector<NextHopThrift>& nhops) {
+  ThriftHandler handler(sw);
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  MySidEntry bindingEntry;
+  bindingEntry.type() = MySidType::BINDING_MICRO_SID;
+  facebook::network::thrift::IPPrefix mySidPrefix;
+  mySidPrefix.prefixAddress() = facebook::network::toBinaryAddress(mySidAddr);
+  mySidPrefix.prefixLength() = prefixLen;
+  bindingEntry.mySid() = mySidPrefix;
+  bindingEntry.nextHops() = nhops;
+  entries->push_back(bindingEntry);
+  handler.addMySidEntries(std::move(entries));
+}
+
+NextHopThrift makeSrv6NextHopThrift(
+    const folly::IPAddressV6& nhopAddr,
+    const folly::IPAddressV6& sid,
+    const std::string& tunnelId) {
+  NextHopThrift nhop;
+  nhop.address() = facebook::network::toBinaryAddress(nhopAddr);
+  nhop.srv6SegmentList() = {facebook::network::toBinaryAddress(sid)};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = tunnelId;
+  return nhop;
 }
 
 } // namespace facebook::fboss::utility

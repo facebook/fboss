@@ -100,32 +100,17 @@ class AgentSrv6MidpointTest : public AgentHwTest {
   cfg::MySidConfig makeAdjacencyMySidConfig(
       const cfg::SwitchConfig& cfg,
       const AgentEnsemble& ensemble) const {
-    cfg::MySidConfig mySidConfig;
-    mySidConfig.locatorPrefix() = "fdad:ffff::/32";
-    cfg::MySidEntryConfig entry;
-    cfg::AdjacencyMySidConfig adjConfig;
+    std::string portName;
     if constexpr (kIsTrunk) {
       // utility::addAggPort default name is "AGG-<key>"; key=1 above.
-      adjConfig.portName() = "AGG-1";
+      portName = "AGG-1";
     } else {
-      adjConfig.portName() =
-          portNameFor(cfg, ensemble.masterLogicalPortIds()[0]);
+      portName =
+          utility::portNameForConfig(cfg, ensemble.masterLogicalPortIds()[0]);
     }
-    adjConfig.isV6() = true;
-    entry.adjacency() = adjConfig;
     // Function ID 1 → SID fdad:ffff:1::/48 (matches kMySidPrefix).
-    mySidConfig.entries()[1] = entry;
-    return mySidConfig;
-  }
-
-  static std::string portNameFor(const cfg::SwitchConfig& cfg, PortID portId) {
-    for (const auto& port : *cfg.ports()) {
-      if (*port.logicalID() == static_cast<int32_t>(portId) &&
-          port.name().has_value() && !port.name()->empty()) {
-        return *port.name();
-      }
-    }
-    throw FbossError("No name found for port ", portId);
+    return utility::makeAdjacencyMySidConfig(
+        portName, "fdad:ffff::/32", /*functionId=*/1);
   }
 
   void applyConfigAndEnableTrunks(const cfg::SwitchConfig& config) {
@@ -179,27 +164,9 @@ class AgentSrv6MidpointTest : public AgentHwTest {
   // mysid->resolved(), so verify() must wait for the binding to settle in
   // either direction or it'll race the first packet.
   void waitForMySidResolveOrUnresolve(bool resolved) {
-    auto sidKey = folly::to<std::string>(
-        kMySidPrefix.str(), "/", static_cast<int>(kMySidPrefixLen));
-    WITH_RETRIES({
-      std::shared_ptr<MySid> mySid;
-      for (const auto& [_, mySidMap] :
-           std::as_const(*this->getProgrammedState()->getMySids())) {
-        if (auto node = mySidMap->getNodeIf(sidKey)) {
-          mySid = node;
-          break;
-        }
-      }
-      ASSERT_EVENTUALLY_NE(mySid, nullptr) << "mysid not in switch state";
-      EXPECT_EVENTUALLY_EQ(mySid->getResolvedNextHopsId().has_value(), resolved)
-          << "mysid " << sidKey
-          << (resolved ? " not resolved" : " still resolved")
-          << " (adjacencyInterfaceId="
-          << (mySid->getAdjacencyInterfaceId().has_value()
-                  ? std::to_string(*mySid->getAdjacencyInterfaceId())
-                  : "<unset>")
-          << ")";
-    });
+    auto getStateFn = [this]() { return this->getProgrammedState(); };
+    utility::waitForMySidResolveOrUnresolve(
+        getStateFn, kMySidPrefix, kMySidPrefixLen, resolved);
   }
 
   PortID getEgressPort(const PortDescriptor& portDesc) const {

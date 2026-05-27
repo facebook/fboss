@@ -4,7 +4,6 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
-#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
@@ -197,33 +196,6 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     auto aggPort = this->getProgrammedState()->getAggregatePorts()->getNode(
         portDesc.aggPortID());
     return aggPort->sortedSubports().begin()->portID;
-  }
-
-  void addBindingSidEntry(
-      const folly::IPAddressV6& mySidAddr,
-      const std::vector<NextHopThrift>& nhops) {
-    ThriftHandler handler(this->getSw());
-    auto entries = std::make_unique<std::vector<MySidEntry>>();
-    MySidEntry bindingEntry;
-    bindingEntry.type() = MySidType::BINDING_MICRO_SID;
-    facebook::network::thrift::IPPrefix mySidPrefix;
-    mySidPrefix.prefixAddress() = facebook::network::toBinaryAddress(mySidAddr);
-    mySidPrefix.prefixLength() = kMySidPrefixLen;
-    bindingEntry.mySid() = mySidPrefix;
-    bindingEntry.nextHops() = nhops;
-    entries->push_back(bindingEntry);
-    handler.addMySidEntries(std::move(entries));
-  }
-
-  NextHopThrift makeSrv6NextHopThrift(
-      const folly::IPAddressV6& nhopAddr,
-      const folly::IPAddressV6& sid) {
-    NextHopThrift nhop;
-    nhop.address() = facebook::network::toBinaryAddress(nhopAddr);
-    nhop.srv6SegmentList() = {facebook::network::toBinaryAddress(sid)};
-    nhop.tunnelType() = TunnelType::SRV6_ENCAP;
-    nhop.tunnelId() = "srv6Tunnel0";
-    return nhop;
   }
 
   PortID findInjectPort(const std::vector<PortID>& egressPorts) {
@@ -447,10 +419,12 @@ TYPED_TEST_SUITE(AgentSrv6BindingSidTest, Srv6BindingSidPortTypes);
 TYPED_TEST(AgentSrv6BindingSidTest, multipleNextHops) {
   auto setup = [this]() {
     this->setupHelper();
-    this->addBindingSidEntry(
+    utility::addBindingSidEntry(
+        this->getSw(),
         this->kMySidPrefix,
-        {this->makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0),
-         this->makeSrv6NextHopThrift(this->kBgpRoute1, this->kSid1)});
+        this->kMySidPrefixLen,
+        {utility::makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0),
+         utility::makeSrv6NextHopThrift(this->kBgpRoute1, this->kSid1)});
   };
 
   auto verify = [this]() {
@@ -468,9 +442,11 @@ TYPED_TEST(AgentSrv6BindingSidTest, multipleNextHops) {
 TYPED_TEST(AgentSrv6BindingSidTest, singleNextHop) {
   auto setup = [this]() {
     this->setupHelper();
-    this->addBindingSidEntry(
+    utility::addBindingSidEntry(
+        this->getSw(),
         this->kMySidPrefix,
-        {this->makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
+        this->kMySidPrefixLen,
+        {utility::makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
   };
 
   auto verify = [this]() {
@@ -486,9 +462,11 @@ TYPED_TEST(AgentSrv6BindingSidTest, singleNextHop) {
 TYPED_TEST(AgentSrv6BindingSidTest, bindingSidTracksNeighborResolutionAndLink) {
   auto setup = [this]() {
     this->setupHelper(false /* resolveNeighbors */);
-    this->addBindingSidEntry(
+    utility::addBindingSidEntry(
+        this->getSw(),
         this->kMySidPrefix,
-        {this->makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
+        this->kMySidPrefixLen,
+        {utility::makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
 
     auto ecmpHelper = this->makeEcmpHelper();
     auto portDesc = ecmpHelper.nhop(0).portDesc;
@@ -537,9 +515,11 @@ TYPED_TEST(AgentSrv6BindingSidTest, bindingSidTracksNeighborResolutionAndLink) {
 TYPED_TEST(AgentSrv6BindingSidTest, dropPacketBindingSidIsNotLastSid) {
   auto setup = [this]() {
     this->setupHelper();
-    this->addBindingSidEntry(
+    utility::addBindingSidEntry(
+        this->getSw(),
         this->kMySidPrefix,
-        {this->makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
+        this->kMySidPrefixLen,
+        {utility::makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
   };
 
   auto verify = [this]() {
