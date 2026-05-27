@@ -325,7 +325,9 @@ def run_fboss_build(
     for dotfile in dot_files:
         host_path = os.path.join(home_dir, dotfile)
         if os.path.exists(host_path):
-            cmd_args.extend(["-v", f"{host_path}:/home/{USERNAME}/{dotfile}:rw"])
+            # Resolve symlinks
+            real_path = os.path.realpath(host_path)
+            cmd_args.extend(["-v", f"{real_path}:/home/{USERNAME}/{dotfile}:rw"])
 
     # Add args for docker container name
     cmd_args.append(f"--name={FBOSS_CONTAINER_NAME}")
