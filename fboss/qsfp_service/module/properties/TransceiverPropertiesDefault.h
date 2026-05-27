@@ -388,6 +388,12 @@ constexpr auto kDefaultTransceiverPropertiesJson = R"({
             {"speed": 100000, "hostLanes": {"start": 0, "count": 4}, "mediaLanes": {"start": 0, "count": 4}, "mediaLaneCode": {"smfCode": 0x10}, "mediaInterfaceCode": 1},
             {"speed": 100000, "hostLanes": {"start": 4, "count": 4}, "mediaLanes": {"start": 4, "count": 4}, "mediaLaneCode": {"smfCode": 0x10}, "mediaInterfaceCode": 1}
           ]
+        },
+        {
+          "combinationName": "1x800G-2LR4",
+          "ports": [
+            {"speed": 800000, "hostLanes": {"start": 0, "count": 8}, "mediaLanes": {"start": 0, "count": 8}, "mediaLaneCode": {"smfCode": 0xC1}, "mediaInterfaceCode": 15}
+          ]
         }
       ],
       "speedChangeTransitions": [
