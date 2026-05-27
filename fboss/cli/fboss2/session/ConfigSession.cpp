@@ -684,13 +684,49 @@ void ConfigSession::initializeGit() {
     git_->init();
   }
 
-  // If the repository has no commits but the config file exists,
-  // create an initial commit to track the existing configuration
-  std::string cliConfigPath = getCliConfigPath();
-  if (!git_->hasCommits() && fs::exists(cliConfigPath)) {
+  // Always ensure an initial commit exists so base_ is never empty.
+  // Replicates the exact structure that commit() produces:
+  //   cli/agent.conf  — the actual config content
+  //   agent.conf      — a symlink to cli/agent.conf
+  // This prevents two concurrent users from both seeing base_="" and silently
+  // overwriting each other's commits, and ensures rebase() can always call
+  // git show <base>:cli/agent.conf without hitting exit 128.
+  if (!git_->hasCommits()) {
     std::string systemConfigPath = getSystemConfigPath();
-    git_->commit(
-        {cliConfigPath, systemConfigPath}, "Initial commit", username_, "");
+    std::string cliConfigPath = getCliConfigPath();
+
+    ensureDirectoryExists(getCliConfigDir());
+
+    // Populate cli/agent.conf if it doesn't exist yet.
+    // If agent.conf is currently a plain file (pre-symlink state), copy from
+    // it so we don't lose the running config.  We copy rather than rename
+    // because /etc/coop/agent.conf must remain in place (the running system
+    // reads it, and commit() will later replace it with a symlink).
+    // Fall back to an empty JSON object so the file is always valid JSON.
+    if (!fs::exists(cliConfigPath)) {
+      std::error_code ec;
+      bool systemIsRegularFile =
+          fs::is_regular_file(fs::path(systemConfigPath), ec) && !ec;
+      std::string seedContent = "{}";
+      if (systemIsRegularFile) {
+        folly::readFile(systemConfigPath.c_str(), seedContent);
+        if (seedContent.empty()) {
+          seedContent = "{}";
+        }
+      }
+      folly::writeFileAtomic(
+          cliConfigPath, seedContent, 0644, folly::SyncType::WITH_SYNC);
+    }
+
+    try {
+      git_->commit({cliConfigPath}, "Initial commit", username_, "");
+    } catch (const std::exception&) {
+      // Another process may have raced us to the initial commit.
+      // If commits now exist, swallow the error; otherwise re-throw.
+      if (!git_->hasCommits()) {
+        throw;
+      }
+    }
   }
 }
 
