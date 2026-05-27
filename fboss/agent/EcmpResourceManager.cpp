@@ -2025,9 +2025,14 @@ void EcmpResourceManager::routeDeleted(
         --inOutState->primaryEcmpGroupsCnt;
       }
       XLOG(DBG2) << "Delete route: " << removed->str()
-                 << " primary ecmp group count decremented to: "
-                 << inOutState->primaryEcmpGroupsCnt << " Group ID: " << groupId
-                 << " removed";
+                 << (wasVirtualArsGroup
+                         ? " virtual ecmp group count decremented to: "
+                         : " primary ecmp group count decremented to: ")
+                 << (wasVirtualArsGroup ? inOutState->virtualEcmpGroupsCnt
+                                        : inOutState->primaryEcmpGroupsCnt)
+                 << " (primary=" << inOutState->primaryEcmpGroupsCnt
+                 << ", virtual=" << inOutState->virtualEcmpGroupsCnt
+                 << ") Group ID: " << groupId << " removed";
     } else if (!mergeInfoItr) {
       // Backup group: undo members posted when promoted to backup mode.
       CHECK_GE(inOutState->ecmpMemberCnt, numGroupNhops);
