@@ -73,10 +73,14 @@ struct NextHopThrift {
 * if any next hop has MPLS php action, then recursive resolution may not expand label stack.
 * if any next hop has MPLS pop action, then all next hops must have MPLS pop action, address of nexthop is ignored.
 */
-struct NamedNextHopGroup {
-  1: string name;
+struct NextHopGroup {
+  1: optional string name;
   2: list<NextHopThrift> nexthops;
+  3: optional bool isProgrammed;
 }
+
+// Deprecated: use NextHopGroup instead
+typedef NextHopGroup NamedNextHopGroup
 
 /*
  * Forwarding Class
@@ -101,7 +105,7 @@ enum PacketType {
 }
 
 typedef map<byte, ForwardingClass> DscpToForwardingClassMap
-typedef map<ForwardingClass, NamedNextHopGroup> ForwardingClassToNamedNhg
+typedef map<ForwardingClass, NextHopGroup> ForwardingClassToNamedNhg
 
 /*
  * Class based traffic forwarding policy

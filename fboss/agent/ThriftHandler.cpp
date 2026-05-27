@@ -3244,7 +3244,7 @@ void ThriftHandler::getTeFlowTableDetails(
 }
 
 void ThriftHandler::addOrUpdateNamedNextHopGroups(
-    std::unique_ptr<std::vector<NamedNextHopGroup>> nextHopGroups) {
+    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
@@ -3262,6 +3262,9 @@ void ThriftHandler::addOrUpdateNamedNextHopGroups(
   auto defaultSrv6TunnelId = getDefaultSrv6TunnelId(sw_->getConfig());
   std::vector<std::pair<std::string, RouteNextHopSet>> groups;
   for (auto& group : *nextHopGroups) {
+    if (!group.name().has_value() || group.name()->empty()) {
+      throw FbossError("Named next-hop group must have a name");
+    }
     if (group.name()->size() > kMaxGroupNameLen) {
       throw FbossError(
           "Named next-hop group name exceeds max length of ",
@@ -3304,39 +3307,93 @@ void ThriftHandler::deleteNamedNextHopGroups(
   });
 }
 
-void ThriftHandler::getNextHopGroups(
-    std::vector<NamedNextHopGroup>& result,
+namespace {
+
+struct NhgFibContext {
+  std::shared_ptr<FibInfo> fibInfo;
+  std::map<std::string, NextHopSetId> nameToSetId;
+  std::unordered_set<NextHopSetId> namedSetIds;
+};
+
+std::optional<NhgFibContext> getNhgFibContext(
+    const std::shared_ptr<SwitchState>& state) {
+  auto fibInfoMap = state->getFibsInfoMap();
+  auto fibInfoIt = fibInfoMap->cbegin();
+  if (fibInfoIt == fibInfoMap->cend()) {
+    return std::nullopt;
+  }
+  NhgFibContext ctx;
+  ctx.fibInfo = fibInfoIt->second;
+  ctx.nameToSetId = ctx.fibInfo->getNameToNextHopSetId();
+  for (const auto& [name, setId] : ctx.nameToSetId) {
+    ctx.namedSetIds.insert(setId);
+  }
+  return ctx;
+}
+
+} // namespace
+
+void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  auto ctx = getNhgFibContext(sw_->getState());
+  if (!ctx) {
+    return;
+  }
+
+  auto idToNextHopIdSetMap = ctx->fibInfo->getIdToNextHopIdSetMap();
+  if (!idToNextHopIdSetMap) {
+    return;
+  }
+  auto idSetMapThrift = idToNextHopIdSetMap->toThrift();
+  for (const auto& [setId, _nhIds] : idSetMapThrift) {
+    if (ctx->namedSetIds.count(setId)) {
+      continue;
+    }
+    NextHopGroup thriftGroup;
+    try {
+      auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(setId);
+      std::vector<NextHopThrift> nexthopsThrift;
+      nexthopsThrift.reserve(nextHops.size());
+      for (const auto& hop : nextHops) {
+        nexthopsThrift.push_back(hop.toThrift());
+      }
+      thriftGroup.nexthops() = std::move(nexthopsThrift);
+      result.push_back(std::move(thriftGroup));
+    } catch (const FbossError& e) {
+      XLOG(ERR) << "Failed to resolve nexthops for NextHopSetId " << setId
+                << ": " << e.what();
+    }
+  }
+}
+
+void ThriftHandler::getNamedNextHopGroups(
+    std::vector<NextHopGroup>& result,
     std::unique_ptr<std::vector<std::string>> names) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
-  auto state = sw_->getState();
-  auto fibInfoMap = state->getFibsInfoMap();
+  auto ctx = getNhgFibContext(sw_->getState());
+  if (!ctx) {
+    return;
+  }
 
   std::unordered_set<std::string> nameFilter;
   if (names && !names->empty()) {
     nameFilter.insert(names->begin(), names->end());
   }
 
-  // Use the first FibInfo (all switches share the same mappings)
-  auto fibInfoIt = fibInfoMap->cbegin();
-  if (fibInfoIt == fibInfoMap->cend()) {
-    return;
-  }
-  const auto& fibInfo = fibInfoIt->second;
-
-  // Named groups
-  auto nameToNextHopSetId = fibInfo->getNameToNextHopSetId();
-  std::unordered_set<NextHopSetId> namedSetIds;
-  for (const auto& [name, nextHopSetId] : nameToNextHopSetId) {
-    namedSetIds.insert(nextHopSetId);
+  std::unordered_set<std::string> foundNames;
+  for (const auto& [name, nextHopSetId] : ctx->nameToSetId) {
     if (!nameFilter.empty() && !nameFilter.count(name)) {
       continue;
     }
-    NamedNextHopGroup thriftGroup;
+    foundNames.insert(name);
+    NextHopGroup thriftGroup;
     thriftGroup.name() = name;
     try {
-      auto nextHops = fibInfo->resolveNextHopSetFromId(nextHopSetId);
+      auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(nextHopSetId);
       std::vector<NextHopThrift> nexthopsThrift;
       nexthopsThrift.reserve(nextHops.size());
       for (const auto& hop : nextHops) {
@@ -3350,31 +3407,9 @@ void ThriftHandler::getNextHopGroups(
     }
   }
 
-  // Unnamed groups (only when no name filter is applied)
-  if (nameFilter.empty()) {
-    auto idToNextHopIdSetMap = fibInfo->getIdToNextHopIdSetMap();
-    if (idToNextHopIdSetMap) {
-      auto idSetMapThrift = idToNextHopIdSetMap->toThrift();
-      for (const auto& [setId, _nhIds] : idSetMapThrift) {
-        if (namedSetIds.count(setId)) {
-          continue;
-        }
-        NamedNextHopGroup thriftGroup;
-        thriftGroup.name() = folly::to<std::string>(setId);
-        try {
-          auto nextHops = fibInfo->resolveNextHopSetFromId(setId);
-          std::vector<NextHopThrift> nexthopsThrift;
-          nexthopsThrift.reserve(nextHops.size());
-          for (const auto& hop : nextHops) {
-            nexthopsThrift.push_back(hop.toThrift());
-          }
-          thriftGroup.nexthops() = std::move(nexthopsThrift);
-          result.push_back(std::move(thriftGroup));
-        } catch (const FbossError& e) {
-          XLOG(ERR) << "Failed to resolve nexthops for NextHopSetId " << setId
-                    << ": " << e.what();
-        }
-      }
+  for (const auto& name : nameFilter) {
+    if (!foundNames.count(name)) {
+      XLOG(WARNING) << "Named next hop group '" << name << "' not found";
     }
   }
 }

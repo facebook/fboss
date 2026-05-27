@@ -1415,7 +1415,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * API to add named next hop groups, named next hop group with same name will be replaced
    */
   void addOrUpdateNamedNextHopGroups(
-    1: list<common.NamedNextHopGroup> nextHopGroups,
+    1: list<common.NextHopGroup> nextHopGroups,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
@@ -1426,11 +1426,18 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   );
 
   /*
-   * API to get named next hop groups
+   * API to get next hop groups
    */
-  list<common.NamedNextHopGroup> getNextHopGroups(1: list<string> name) throws (
+  list<common.NextHopGroup> getNextHopGroups() throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * API to get named next hop groups, optionally filtered by name
+   */
+  list<common.NextHopGroup> getNamedNextHopGroups(
+    1: list<string> names,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Set all DSCP values for a given forwarding class
@@ -1501,7 +1508,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Get all next hop group names for class in a policy
    */
-  list<common.NamedNextHopGroup> getNextHopGroupsForPolicy(
+  list<common.NextHopGroup> getNextHopGroupsForPolicy(
     1: string policyName,
     2: common.ForwardingClass fc,
   ) throws (1: fboss.FbossBaseError error);

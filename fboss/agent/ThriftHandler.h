@@ -125,11 +125,12 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       MplsLabel topLabel) override;
 
   void addOrUpdateNamedNextHopGroups(
-      std::unique_ptr<std::vector<NamedNextHopGroup>> nextHopGroups) override;
+      std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) override;
   void deleteNamedNextHopGroups(
       std::unique_ptr<std::vector<std::string>> names) override;
-  void getNextHopGroups(
-      std::vector<NamedNextHopGroup>& result,
+  void getNextHopGroups(std::vector<NextHopGroup>& result) override;
+  void getNamedNextHopGroups(
+      std::vector<NextHopGroup>& result,
       std::unique_ptr<std::vector<std::string>> names) override;
 
   SwSwitch* getSw() const {
