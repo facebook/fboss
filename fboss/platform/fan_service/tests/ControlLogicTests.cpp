@@ -33,6 +33,11 @@ class MockBsp : public Bsp {
   MOCK_METHOD(bool, turnOnLedSysfs, (const std::string&));
   MOCK_METHOD(bool, checkIfInitialSensorDataRead, (), (const));
   MOCK_METHOD(float, readSysfs, (const std::string&), (const));
+  MOCK_METHOD(
+      int,
+      runFanDeadShutdownCmds,
+      (const std::vector<std::string>&, bool),
+      (override));
   std::optional<int> getLedMaxBrightness(const std::string&) const override {
     return 255;
   }
@@ -224,6 +229,41 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToFanInaccessible) {
   EXPECT_EQ(fb303::fbData->getCounter("has.fan_rpm_read_failure"), 1);
   EXPECT_EQ(fb303::fbData->getCounter("has.fan_pwm_write_failure"), 0);
   EXPECT_EQ(fb303::fbData->getCounter("has.fan_absent"), 0);
+}
+
+TEST_F(ControlLogicTests, UpdateControlDeadFanShutdownCondition) {
+  fanServiceConfig_.deadFanShutdownCondition() = DeadFanShutdownCondition();
+  fanServiceConfig_.deadFanShutdownCondition()->numDeadFans() = 2;
+  fanServiceConfig_.deadFanShutdownCondition()->fanDeadShutdownCmds() = {
+      "shutdown asic", "shutdown come"};
+  fanServiceConfig_.deadFanShutdownCondition()->fanDeadPwmValue() = 30;
+  mockBsp_ = std::make_shared<MockBsp>(fanServiceConfig_);
+  controlLogic_ = std::make_shared<ControlLogic>(fanServiceConfig_, mockBsp_);
+
+  EXPECT_CALL(*mockBsp_, checkIfInitialSensorDataRead()).WillOnce(Return(true));
+  for (const auto& fan : *fanServiceConfig_.fans()) {
+    EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmSysfsPath(), _))
+        .WillOnce(Return(true))
+        .WillOnce(Return(true));
+    EXPECT_CALL(*mockBsp_, turnOnLedSysfs(*fan.failLedSysfsPath()))
+        .WillOnce(Return(true));
+    EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmSysfsPath()))
+        .WillOnce(Throw(std::exception()));
+    EXPECT_CALL(*mockBsp_, readSysfs(*fan.presenceSysfsPath()))
+        .WillOnce(Return(1 /* fan exists */));
+  }
+  EXPECT_CALL(
+      *mockBsp_,
+      runFanDeadShutdownCmds(
+          ElementsAre("shutdown asic", "shutdown come"), true))
+      .WillOnce(Return(0));
+
+  controlLogic_->setTransitionValue();
+  controlLogic_->updateControl(sensorData_);
+
+  for (const auto& [fanName, fanStatus] : controlLogic_->getFanStatuses()) {
+    EXPECT_EQ(*fanStatus.pwmToProgram(), 30);
+  }
 }
 
 TEST_F(

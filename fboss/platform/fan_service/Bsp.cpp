@@ -140,6 +140,32 @@ int Bsp::emergencyShutdown(bool enable) {
   return rc;
 }
 
+int Bsp::runFanDeadShutdownCmds(
+    const std::vector<std::string>& fanDeadShutdownCmds,
+    bool enable) {
+  int rc = 0;
+  if (enable) {
+    if (fanDeadShutdownCmds.empty()) {
+      XLOG(ERR)
+          << "Emergency shutdown called but no fanDeadShutdownCmds are set!";
+      return -1;
+    }
+    for (const auto& shutdownCmd : fanDeadShutdownCmds) {
+      if (shutdownCmd.empty()) {
+        XLOG(ERR) << "Emergency shutdown called with an empty shutdownCmd!";
+        return -1;
+      }
+      auto [exitStatus, standardOut] = PlatformUtils().execCommand(shutdownCmd);
+      rc = exitStatus;
+      if (rc != 0) {
+        break;
+      }
+    }
+    setEmergencyState(enable);
+  }
+  return rc;
+}
+
 void Bsp::kickWatchdog() {
   if (!config_.watchdog()) {
     return;

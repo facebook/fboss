@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 
 #include <folly/io/async/EventBase.h>
 
@@ -31,6 +32,9 @@ class Bsp {
   virtual void getOpticsData(std::shared_ptr<SensorData> pSensorData);
   virtual void getAsicTempData(const std::shared_ptr<SensorData>& pSensorData);
   virtual int emergencyShutdown(bool enable);
+  virtual int runFanDeadShutdownCmds(
+      const std::vector<std::string>& fanDeadShutdownCmds,
+      bool enable);
   void kickWatchdog();
   void closeWatchdog();
   virtual bool setFanPwmSysfs(const std::string& path, int pwm);
