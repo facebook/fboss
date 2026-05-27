@@ -164,6 +164,16 @@ folly::dynamic Fboss2IntegrationTest::getRunningConfig() const {
   return folly::parseJson(configStr);
 }
 
+folly::dynamic Fboss2IntegrationTest::getSwitchState(
+    const std::string& path) const {
+  HostInfo hostInfo("localhost");
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+  std::string stateJson;
+  client->sync_getCurrentStateJSON(stateJson, path);
+  return folly::parseJson(stateJson);
+}
+
 std::optional<std::pair<int, std::string>>
 Fboss2IntegrationTest::findConfiguredVlanPort() const {
   auto config = getRunningConfig();

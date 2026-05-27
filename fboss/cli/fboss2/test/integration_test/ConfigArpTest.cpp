@@ -23,69 +23,17 @@
  *   - Test is run as root (or with sudo) on a DUT
  */
 
-#include <fmt/format.h>
-#include <folly/json/dynamic.h>
-#include <folly/json/json.h>
 #include <folly/logging/xlog.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <stdexcept>
 #include <string>
-#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
-#include "fboss/cli/fboss2/utils/HostInfo.h"
 
 using namespace facebook::fboss;
 using ::testing::HasSubstr;
 
 class ConfigArpTest : public Fboss2IntegrationTest {
  protected:
-  folly::dynamic getRunningConfig() const {
-    HostInfo hostInfo("localhost");
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    std::string configStr;
-    client->sync_getRunningConfig(configStr);
-    return folly::parseJson(configStr);
-  }
-
-  // Fetch the agent's programmed switchSettings from the live switch state.
-  // Defined in switch_state.thrift::SwitchSettingsFields.
-  folly::dynamic getSwitchSettings() const {
-    HostInfo hostInfo("localhost");
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    std::string settingsJson;
-    client->sync_getCurrentStateJSON(settingsJson, "switchSettings");
-    return folly::parseJson(settingsJson);
-  }
-
-  // Read a top-level int field from sw (the field is only present when set).
-  int64_t getSwField(const std::string& field) const {
-    auto config = getRunningConfig();
-    if (!config.isObject() || !config.count("sw")) {
-      throw std::runtime_error("Running config missing 'sw' object");
-    }
-    const auto& sw = config["sw"];
-    if (!sw.isObject() || !sw.count(field)) {
-      throw std::runtime_error(
-          fmt::format("Running config 'sw' missing field '{}'", field));
-    }
-    return sw[field].asInt();
-  }
-
-  // Read a field from switchSettings in the agent's switch state. The field is
-  // only present in the JSON once it has been programmed by the agent.
-  int64_t getSwitchSettingsField(const std::string& field) const {
-    auto settings = getSwitchSettings();
-    if (!settings.isObject() || !settings.count(field)) {
-      throw std::runtime_error(
-          fmt::format("switchSettings missing field '{}'", field));
-    }
-    return settings[field].asInt();
-  }
-
   void setAndVerify(
       const std::string& attr,
       const std::string& swField,
@@ -95,7 +43,7 @@ class ConfigArpTest : public Fboss2IntegrationTest {
     XLOG(INFO) << "  arp " << attr << " -> " << newValue;
     XLOG(INFO) << "========================================";
 
-    int64_t originalValue = getSwField(swField);
+    int64_t originalValue = getSwConfigField<int64_t>(swField);
     XLOG(INFO) << "[Step 1] Original " << swField << " = " << originalValue;
     ASSERT_NE(originalValue, newValue)
         << "Test value " << newValue << " must differ from original "
@@ -111,23 +59,20 @@ class ConfigArpTest : public Fboss2IntegrationTest {
     commitConfig();
 
     XLOG(INFO) << "[Step 4] Verifying running config...";
-    int64_t observed = getSwField(swField);
+    int64_t observed = getSwConfigField<int64_t>(swField);
     EXPECT_EQ(observed, newValue) << "Expected running config " << swField
                                   << "=" << newValue << ", got " << observed;
 
     XLOG(INFO) << "[Step 5] Verifying switch state switchSettings."
-               << switchStateField;
-    int64_t programmed = getSwitchSettingsField(switchStateField);
-    EXPECT_EQ(programmed, newValue)
-        << "Expected switchSettings." << switchStateField << "=" << newValue
-        << ", got " << programmed;
+               << switchStateField << " across all switches";
+    verifySwitchSettingsField<int64_t>(switchStateField, newValue);
 
     XLOG(INFO) << "[Step 6] Restoring original value " << originalValue;
     result = runCli({"config", "arp", attr, std::to_string(originalValue)});
     ASSERT_EQ(result.exitCode, 0) << result.stderr;
     commitConfig();
-    EXPECT_EQ(getSwField(swField), originalValue);
-    EXPECT_EQ(getSwitchSettingsField(switchStateField), originalValue);
+    EXPECT_EQ(getSwConfigField<int64_t>(swField), originalValue);
+    verifySwitchSettingsField<int64_t>(switchStateField, originalValue);
 
     XLOG(INFO) << "  PASSED: " << attr;
   }

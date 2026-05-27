@@ -11,6 +11,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -76,6 +77,100 @@ class Fboss2IntegrationTest : public ::testing::Test {
    * Fetch the agent's running config via thrift and return it parsed.
    */
   folly::dynamic getRunningConfig() const;
+
+  /**
+   * Read a top-level field from the running config's "sw" object.
+   *
+   * The return type is controlled by the template parameter:
+   *   getSwConfigField<int>("arpTimeoutSeconds")
+   *   getSwConfigField<bool>("enableLldp")
+   *   getSwConfigField<std::string>("loadBalancerPoolName")
+   */
+  template <typename T>
+  T getSwConfigField(const std::string& field) const {
+    auto config = getRunningConfig();
+    if (!config.isObject() || !config.count("sw")) {
+      throw std::runtime_error("Running config missing 'sw' object");
+    }
+    const auto& sw = config["sw"];
+    if (!sw.isObject() || !sw.count(field)) {
+      throw std::runtime_error(
+          "Running config 'sw' missing field '" + field + "'");
+    }
+    if constexpr (std::is_same_v<T, bool>) {
+      return sw[field].asBool();
+    } else if constexpr (std::is_integral_v<T>) {
+      return static_cast<T>(sw[field].asInt());
+    } else if constexpr (std::is_same_v<T, std::string>) {
+      return sw[field].asString();
+    } else if constexpr (std::is_same_v<T, double>) {
+      return sw[field].asDouble();
+    } else {
+      static_assert(!sizeof(T), "Unsupported type for getSwConfigField");
+    }
+  }
+
+  /**
+   * Fetch the agent's switch state for the given thrift path via
+   * getCurrentStateJSON and return it parsed.
+   */
+  folly::dynamic getSwitchState(const std::string& path) const;
+
+  /**
+   * Read a field from switchSettingsMap in the agent's programmed switch
+   * state.  Returns a map of SwitchIdList -> value for every entry that
+   * contains the field, so callers can verify consistency across all
+   * switches in multi-switch mode.
+   *
+   * The value type is controlled by the template parameter:
+   *   getSwitchSettingsField<int>("arpTimeout")
+   *   getSwitchSettingsField<bool>("qcmEnable")
+   *   getSwitchSettingsField<std::string>("switchDrainState")
+   */
+  template <typename T>
+  std::map<std::string, T> getSwitchSettingsField(
+      const std::string& field) const {
+    auto settingsMap = getSwitchState("switchSettingsMap");
+    std::map<std::string, T> result;
+    for (const auto& [switchIdList, settings] : settingsMap.items()) {
+      if (settings.isObject() && settings.count(field)) {
+        std::string key = switchIdList.asString();
+        if constexpr (std::is_same_v<T, bool>) {
+          result[key] = settings[field].asBool();
+        } else if constexpr (std::is_integral_v<T>) {
+          result[key] = static_cast<T>(settings[field].asInt());
+        } else if constexpr (std::is_same_v<T, std::string>) {
+          result[key] = settings[field].asString();
+        } else if constexpr (std::is_same_v<T, double>) {
+          result[key] = settings[field].asDouble();
+        } else {
+          static_assert(
+              !sizeof(T), "Unsupported type for getSwitchSettingsField");
+        }
+      }
+    }
+    if (result.empty()) {
+      throw std::runtime_error(
+          "switchSettingsMap has no entry with field '" + field + "'");
+    }
+    return result;
+  }
+
+  /**
+   * Assert that a switchSettingsMap field has the expected value across all
+   * switch IDs. Fails the test with a descriptive message if any entry
+   * differs.
+   */
+  template <typename T>
+  void verifySwitchSettingsField(const std::string& field, const T& expected)
+      const {
+    auto values = getSwitchSettingsField<T>(field);
+    for (const auto& [switchIdList, value] : values) {
+      EXPECT_EQ(value, expected)
+          << "switchSettingsMap[" << switchIdList << "]." << field << " = "
+          << value << ", expected " << expected;
+    }
+  }
 
   /**
    * Find a (vlanId, portName) pair where vlanId appears in sw.vlans and the
