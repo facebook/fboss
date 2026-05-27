@@ -391,6 +391,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           RATE),
       dsfGrExpired_(map, kCounterPrefix + "dsfsession_gr_expired", SUM, RATE),
       dsfUpdateFailed_(map, kCounterPrefix + "dsf_update_failed", SUM, RATE),
+      warmbootRemoteIntfRoutesInconsistency_(
+          map,
+          kCounterPrefix + "warmboot_remote_intf_routes_inconsistency",
+          SUM,
+          RATE),
       hiPriPktsReceived_(
           map,
           kCounterPrefix + "hi_pri_pkts_received",

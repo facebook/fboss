@@ -680,6 +680,12 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
   int64_t getDsfUpdateFailred() const {
     return getCumulativeValue(dsfUpdateFailed_);
   }
+  void warmbootRemoteIntfRoutesInconsistency(int64_t count) {
+    warmbootRemoteIntfRoutesInconsistency_.addValue(count);
+  }
+  int64_t getWarmbootRemoteIntfRoutesInconsistency() const {
+    return getCumulativeValue(warmbootRemoteIntfRoutesInconsistency_);
+  }
 
   void switchReachabilityInconsistencyDetected(int16_t switchIndex) {
     CHECK_LT(switchIndex, switchReachabilityInconsistencyDetected_.size());
@@ -1171,6 +1177,7 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
   TLTimeseries switchConfiguredMs_;
   TLTimeseries dsfGrExpired_;
   TLTimeseries dsfUpdateFailed_;
+  TLTimeseries warmbootRemoteIntfRoutesInconsistency_;
   TLTimeseries hiPriPktsReceived_;
   TLTimeseries midPriPktsReceived_;
   TLTimeseries loPriPktsReceived_;
