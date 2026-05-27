@@ -837,6 +837,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningLimit.h
   fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningOnly.cpp
   fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningOnly.h
+  fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.cpp
+  fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h
+  fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.cpp
+  fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.h
   fboss/cli/fboss2/commands/config/qos/CmdConfigQos.cpp
   fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp

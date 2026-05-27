@@ -24,6 +24,7 @@ cpp_binary(
         "ConfigL2LearningModeTest.cpp",
         "ConfigPfcTest.cpp",
         "ConfigPortQueueConfigTest.cpp",
+        "ConfigPtpTest.cpp",
         "ConfigQosPolicyMapTest.cpp",
         "ConfigSessionClearTest.cpp",
         "ConfigVlanPortTaggingModeTest.cpp",
