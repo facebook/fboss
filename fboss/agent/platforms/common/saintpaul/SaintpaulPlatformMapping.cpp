@@ -17,12 +17,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "9": {
         "mapping": {
           "id": 9,
-          "name": "rcy1/1/529",
+          "name": "rcy1/1/521",
           "controllingPort": 9,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core529",
+                "chip": "NPU-J3_RCY-slot1/chip1/core521",
                 "lane": 0
               }
             }
@@ -39,7 +39,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core529",
+                      "chip": "NPU-J3_RCY-slot1/chip1/core521",
                       "lane": 0
                     }
                   }
@@ -51,12 +51,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "10": {
         "mapping": {
           "id": 10,
-          "name": "rcy1/1/530",
+          "name": "rcy1/1/522",
           "controllingPort": 10,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core530",
+                "chip": "NPU-J3_RCY-slot1/chip1/core522",
                 "lane": 0
               }
             }
@@ -73,7 +73,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core530",
+                      "chip": "NPU-J3_RCY-slot1/chip1/core522",
                       "lane": 0
                     }
                   }
@@ -85,12 +85,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "11": {
         "mapping": {
           "id": 11,
-          "name": "rcy1/1/531",
+          "name": "rcy1/1/523",
           "controllingPort": 11,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core531",
+                "chip": "NPU-J3_RCY-slot1/chip1/core523",
                 "lane": 0
               }
             }
@@ -107,7 +107,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core531",
+                      "chip": "NPU-J3_RCY-slot1/chip1/core523",
                       "lane": 0
                     }
                   }
@@ -119,12 +119,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "12": {
         "mapping": {
           "id": 12,
-          "name": "rcy1/1/532",
+          "name": "rcy1/1/524",
           "controllingPort": 12,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core532",
+                "chip": "NPU-J3_RCY-slot1/chip1/core524",
                 "lane": 0
               }
             }
@@ -141,7 +141,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core532",
+                      "chip": "NPU-J3_RCY-slot1/chip1/core524",
                       "lane": 0
                     }
                   }
@@ -153,12 +153,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "13": {
         "mapping": {
           "id": 13,
-          "name": "rcy1/1/533",
+          "name": "rcy1/1/525",
           "controllingPort": 13,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core533",
+                "chip": "NPU-J3_RCY-slot1/chip1/core525",
                 "lane": 0
               }
             }
@@ -175,7 +175,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core533",
+                      "chip": "NPU-J3_RCY-slot1/chip1/core525",
                       "lane": 0
                     }
                   }
@@ -187,12 +187,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "14": {
         "mapping": {
           "id": 14,
-          "name": "rcy1/1/534",
+          "name": "rcy1/1/526",
           "controllingPort": 14,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core534",
+                "chip": "NPU-J3_RCY-slot1/chip1/core526",
                 "lane": 0
               }
             }
@@ -209,7 +209,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core534",
+                      "chip": "NPU-J3_RCY-slot1/chip1/core526",
                       "lane": 0
                     }
                   }
@@ -221,12 +221,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "15": {
         "mapping": {
           "id": 15,
-          "name": "rcy1/1/535",
+          "name": "rcy1/1/527",
           "controllingPort": 15,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core535",
+                "chip": "NPU-J3_RCY-slot1/chip1/core527",
                 "lane": 0
               }
             }
@@ -243,7 +243,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core535",
+                      "chip": "NPU-J3_RCY-slot1/chip1/core527",
                       "lane": 0
                     }
                   }
@@ -255,12 +255,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "16": {
         "mapping": {
           "id": 16,
-          "name": "rcy1/1/536",
+          "name": "rcy1/1/528",
           "controllingPort": 16,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core536",
+                "chip": "NPU-J3_RCY-slot1/chip1/core528",
                 "lane": 0
               }
             }
@@ -277,7 +277,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core536",
+                      "chip": "NPU-J3_RCY-slot1/chip1/core528",
                       "lane": 0
                     }
                   }
@@ -289,12 +289,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "17": {
         "mapping": {
           "id": 17,
-          "name": "evt1/1/1033",
+          "name": "evt1/1/1017",
           "controllingPort": 17,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_EVT-slot1/chip1/core1033",
+                "chip": "NPU-J3_EVT-slot1/chip1/core1017",
                 "lane": 0
               }
             }
@@ -311,7 +311,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_EVT-slot1/chip1/core1033",
+                      "chip": "NPU-J3_EVT-slot1/chip1/core1017",
                       "lane": 0
                     }
                   }
@@ -323,12 +323,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "26": {
         "mapping": {
           "id": 26,
-          "name": "rcy1/1/547",
+          "name": "rcy1/1/538",
           "controllingPort": 26,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core547",
+                "chip": "NPU-J3_RCY-slot1/chip1/core538",
                 "lane": 0
               }
             }
@@ -345,7 +345,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core547",
+                      "chip": "NPU-J3_RCY-slot1/chip1/core538",
                       "lane": 0
                     }
                   }
@@ -15349,12 +15349,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1033": {
         "mapping": {
           "id": 1033,
-          "name": "rcy1/2/529",
+          "name": "rcy1/2/521",
           "controllingPort": 1033,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip2/core529",
+                "chip": "NPU-J3_RCY-slot1/chip2/core521",
                 "lane": 0
               }
             }
@@ -15371,7 +15371,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip2/core529",
+                      "chip": "NPU-J3_RCY-slot1/chip2/core521",
                       "lane": 0
                     }
                   }
@@ -15383,12 +15383,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1034": {
         "mapping": {
           "id": 1034,
-          "name": "rcy1/2/530",
+          "name": "rcy1/2/522",
           "controllingPort": 1034,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip2/core530",
+                "chip": "NPU-J3_RCY-slot1/chip2/core522",
                 "lane": 0
               }
             }
@@ -15405,7 +15405,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip2/core530",
+                      "chip": "NPU-J3_RCY-slot1/chip2/core522",
                       "lane": 0
                     }
                   }
@@ -15417,12 +15417,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1035": {
         "mapping": {
           "id": 1035,
-          "name": "rcy1/2/531",
+          "name": "rcy1/2/523",
           "controllingPort": 1035,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip2/core531",
+                "chip": "NPU-J3_RCY-slot1/chip2/core523",
                 "lane": 0
               }
             }
@@ -15439,7 +15439,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip2/core531",
+                      "chip": "NPU-J3_RCY-slot1/chip2/core523",
                       "lane": 0
                     }
                   }
@@ -15451,12 +15451,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1036": {
         "mapping": {
           "id": 1036,
-          "name": "rcy1/2/532",
+          "name": "rcy1/2/524",
           "controllingPort": 1036,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip2/core532",
+                "chip": "NPU-J3_RCY-slot1/chip2/core524",
                 "lane": 0
               }
             }
@@ -15473,7 +15473,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip2/core532",
+                      "chip": "NPU-J3_RCY-slot1/chip2/core524",
                       "lane": 0
                     }
                   }
@@ -15485,12 +15485,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1037": {
         "mapping": {
           "id": 1037,
-          "name": "rcy1/2/533",
+          "name": "rcy1/2/525",
           "controllingPort": 1037,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip2/core533",
+                "chip": "NPU-J3_RCY-slot1/chip2/core525",
                 "lane": 0
               }
             }
@@ -15507,7 +15507,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip2/core533",
+                      "chip": "NPU-J3_RCY-slot1/chip2/core525",
                       "lane": 0
                     }
                   }
@@ -15519,12 +15519,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1038": {
         "mapping": {
           "id": 1038,
-          "name": "rcy1/2/534",
+          "name": "rcy1/2/526",
           "controllingPort": 1038,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip2/core534",
+                "chip": "NPU-J3_RCY-slot1/chip2/core526",
                 "lane": 0
               }
             }
@@ -15541,7 +15541,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip2/core534",
+                      "chip": "NPU-J3_RCY-slot1/chip2/core526",
                       "lane": 0
                     }
                   }
@@ -15553,12 +15553,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1039": {
         "mapping": {
           "id": 1039,
-          "name": "rcy1/2/535",
+          "name": "rcy1/2/527",
           "controllingPort": 1039,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip2/core535",
+                "chip": "NPU-J3_RCY-slot1/chip2/core527",
                 "lane": 0
               }
             }
@@ -15575,7 +15575,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip2/core535",
+                      "chip": "NPU-J3_RCY-slot1/chip2/core527",
                       "lane": 0
                     }
                   }
@@ -15587,12 +15587,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1040": {
         "mapping": {
           "id": 1040,
-          "name": "rcy1/2/536",
+          "name": "rcy1/2/528",
           "controllingPort": 1040,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip2/core536",
+                "chip": "NPU-J3_RCY-slot1/chip2/core528",
                 "lane": 0
               }
             }
@@ -15609,7 +15609,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip2/core536",
+                      "chip": "NPU-J3_RCY-slot1/chip2/core528",
                       "lane": 0
                     }
                   }
@@ -15621,12 +15621,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1041": {
         "mapping": {
           "id": 1041,
-          "name": "evt1/2/1033",
+          "name": "evt1/2/1017",
           "controllingPort": 1041,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_EVT-slot1/chip2/core1033",
+                "chip": "NPU-J3_EVT-slot1/chip2/core1017",
                 "lane": 0
               }
             }
@@ -15643,7 +15643,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_EVT-slot1/chip2/core1033",
+                      "chip": "NPU-J3_EVT-slot1/chip2/core1017",
                       "lane": 0
                     }
                   }
@@ -15655,12 +15655,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1050": {
         "mapping": {
           "id": 1050,
-          "name": "rcy1/2/547",
+          "name": "rcy1/2/538",
           "controllingPort": 1050,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_RCY-slot1/chip2/core547",
+                "chip": "NPU-J3_RCY-slot1/chip2/core538",
                 "lane": 0
               }
             }
@@ -15677,7 +15677,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip2/core547",
+                      "chip": "NPU-J3_RCY-slot1/chip2/core538",
                       "lane": 0
                     }
                   }
@@ -31021,104 +31021,104 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 17
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip1/core529",
+      "name": "NPU-J3_RCY-slot1/chip1/core521",
       "type": 1,
-      "physicalID": 529
+      "physicalID": 521
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core529",
+      "name": "NPU-J3_RCY-slot1/chip2/core521",
       "type": 1,
-      "physicalID": 529
+      "physicalID": 521
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip1/core530",
+      "name": "NPU-J3_RCY-slot1/chip1/core522",
       "type": 1,
-      "physicalID": 530
+      "physicalID": 522
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core530",
+      "name": "NPU-J3_RCY-slot1/chip2/core522",
       "type": 1,
-      "physicalID": 530
+      "physicalID": 522
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip1/core531",
+      "name": "NPU-J3_RCY-slot1/chip1/core523",
       "type": 1,
-      "physicalID": 531
+      "physicalID": 523
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core531",
+      "name": "NPU-J3_RCY-slot1/chip2/core523",
       "type": 1,
-      "physicalID": 531
+      "physicalID": 523
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip1/core532",
+      "name": "NPU-J3_RCY-slot1/chip1/core524",
       "type": 1,
-      "physicalID": 532
+      "physicalID": 524
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core532",
+      "name": "NPU-J3_RCY-slot1/chip2/core524",
       "type": 1,
-      "physicalID": 532
+      "physicalID": 524
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip1/core533",
+      "name": "NPU-J3_RCY-slot1/chip1/core525",
       "type": 1,
-      "physicalID": 533
+      "physicalID": 525
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core533",
+      "name": "NPU-J3_RCY-slot1/chip2/core525",
       "type": 1,
-      "physicalID": 533
+      "physicalID": 525
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip1/core534",
+      "name": "NPU-J3_RCY-slot1/chip1/core526",
       "type": 1,
-      "physicalID": 534
+      "physicalID": 526
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core534",
+      "name": "NPU-J3_RCY-slot1/chip2/core526",
       "type": 1,
-      "physicalID": 534
+      "physicalID": 526
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip1/core535",
+      "name": "NPU-J3_RCY-slot1/chip1/core527",
       "type": 1,
-      "physicalID": 535
+      "physicalID": 527
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core535",
+      "name": "NPU-J3_RCY-slot1/chip2/core527",
       "type": 1,
-      "physicalID": 535
+      "physicalID": 527
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip1/core536",
+      "name": "NPU-J3_RCY-slot1/chip1/core528",
       "type": 1,
-      "physicalID": 536
+      "physicalID": 528
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core536",
+      "name": "NPU-J3_RCY-slot1/chip2/core528",
       "type": 1,
-      "physicalID": 536
+      "physicalID": 528
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip1/core547",
+      "name": "NPU-J3_RCY-slot1/chip1/core538",
       "type": 1,
-      "physicalID": 547
+      "physicalID": 538
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core547",
+      "name": "NPU-J3_RCY-slot1/chip2/core538",
       "type": 1,
-      "physicalID": 547
+      "physicalID": 538
     },
     {
-      "name": "NPU-J3_EVT-slot1/chip1/core1033",
+      "name": "NPU-J3_EVT-slot1/chip1/core1017",
       "type": 1,
-      "physicalID": 1033
+      "physicalID": 1017
     },
     {
-      "name": "NPU-J3_EVT-slot1/chip2/core1033",
+      "name": "NPU-J3_EVT-slot1/chip2/core1017",
       "type": 1,
-      "physicalID": 1033
+      "physicalID": 1017
     },
     {
       "name": "TRANSCEIVER-OSFP-slot1/chip1",
@@ -31553,16 +31553,18 @@ SaintpaulPlatformMapping::SaintpaulPlatformMapping(
 
 std::map<uint32_t, std::pair<uint32_t, uint32_t>>
 SaintpaulPlatformMapping::getCpuPortsCoreAndPortIdx() const {
-  // TODO: Replace this stub (copied from j4sim) with SaintPaul's actual
-  // CPU port -> (core ID, port ID) mapping. Derive from the recycle/CPU
-  // port entries in stpaul_static_mapping.csv or get from hardware team.
   static const std::map<uint32_t, std::pair<uint32_t, uint32_t>>
       kSingleStageCpuPortsCoreAndPortIdx = {
           // {CPU System Port, {Core ID, Port ID/PP_DSP}}
           {0, {0, 0}},
-          {1, {1, 200}},
-          {2, {2, 202}},
-          {3, {3, 203}},
+          {1, {0, 1}},
+          {2, {0, 2}},
+          {3, {1, 0}},
+          {4, {1, 1}},
+          {5, {2, 0}},
+          {6, {2, 1}},
+          {7, {3, 0}},
+          {8, {3, 1}},
       };
   return kSingleStageCpuPortsCoreAndPortIdx;
 }
