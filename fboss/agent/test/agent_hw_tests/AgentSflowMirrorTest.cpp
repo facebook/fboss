@@ -1531,9 +1531,6 @@ class AgentSflowMirrorTruncateWithSamplesPackingTestV6
 class AgentSflowMirrorRemoteSystemPortTest
     : public AgentSflowMirrorTruncateTest<folly::IPAddressV6> {
  public:
-  static constexpr auto kRemotePortId = 401;
-  const SystemPortID kRemoteSysPortId{kRemotePortId};
-  const InterfaceID kRemoteIntfId{kRemotePortId};
   const folly::IPAddressV6 kRemoteIntfIpV6{"100::1"};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -1640,6 +1637,9 @@ class AgentSflowMirrorRemoteSystemPortTest
   // Override testSampledPacket to set up remote system port for mirror
 
   void testSampledPacket() override {
+    const auto remoteSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState());
+    const auto remoteIntfId = utility::getRemoteIntfId(remoteSysPortId);
     auto setup = [=, this]() {
       auto config = initialConfig(*getAgentEnsemble());
       configureMirrorWithSampling(config, 1 /*sampleRate*/);
@@ -1647,25 +1647,25 @@ class AgentSflowMirrorRemoteSystemPortTest
 
       // Add remote system port and interface
       auto remoteSwitchID = utility::getRemoteVoqSwitchId(getSw());
-      XLOG(DBG2) << "Adding remote system port " << kRemoteSysPortId
-                 << " and interface " << kRemoteIntfId << " on remote switch "
+      XLOG(DBG2) << "Adding remote system port " << remoteSysPortId
+                 << " and interface " << remoteIntfId << " on remote switch "
                  << remoteSwitchID << " with IP: " << kRemoteIntfIpV6.str();
       utility::addRemoteSysPortAndInterface(
           getSw(),
           remoteSwitchID,
-          kRemoteSysPortId,
-          kRemoteIntfId,
+          remoteSysPortId,
+          remoteIntfId,
           {{folly::IPAddress(kRemoteIntfIpV6), 64}});
 
       // Resolve route to remote system port for mirror destination
       auto mirrorDestIp = utility::getSflowMirrorDestination(false /* isV4 */);
       XLOG(DBG2) << "Resolving route for sflow collector " << mirrorDestIp.str()
-                 << " to remote system port " << kRemoteSysPortId;
+                 << " to remote system port " << remoteSysPortId;
       utility::resolveRouteToRemoteSysPort(
           getProgrammedState(),
           getSw(),
           getAgentEnsemble(),
-          kRemoteSysPortId,
+          remoteSysPortId,
           folly::IPAddressV6(mirrorDestIp.str()));
 
       // Set up route for traffic to egress
@@ -1685,21 +1685,21 @@ class AgentSflowMirrorRemoteSystemPortTest
       XLOG(DBG2) << "Traffic destination port: " << getPortName(ports[0])
                  << ", ingress port: " << getPortName(ports[1])
                  << ", sflow collector IP: " << mirrorDestIp.str()
-                 << ", remote system port: " << kRemoteSysPortId
+                 << ", remote system port: " << remoteSysPortId
                  << " on remote switch "
                  << utility::getRemoteVoqSwitchId(getSw());
 
       // Log initial statistics, send packets, and verify VOQ counters
       logPortStats("Before traffic", ports[0]);
       logPortStats("Before traffic", ports[1]);
-      logSysPortStats("Before traffic", kRemoteSysPortId);
+      logSysPortStats("Before traffic", remoteSysPortId);
 
-      sendPacketsAndVerifyVoqCounters(ports[1], kRemoteSysPortId);
+      sendPacketsAndVerifyVoqCounters(ports[1], remoteSysPortId);
 
       // Log final port statistics for comparison
       logPortStats("After traffic", ports[0]);
       logPortStats("After traffic", ports[1]);
-      logSysPortStats("After traffic", kRemoteSysPortId);
+      logSysPortStats("After traffic", remoteSysPortId);
     };
     verifyAcrossWarmBoots(setup, verify);
   }
