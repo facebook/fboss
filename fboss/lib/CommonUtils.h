@@ -251,6 +251,37 @@ inline int64_t getCumulativeValue(const StatT& stat, bool hasSumSuffix = true) {
 #define EXPECT_EVENTUALLY_LE(expr1, expr2) \
   _EXPECT_EVENTUALLY(expr1 <= expr2, EXPECT_LE(expr1, expr2))
 
+// Assert a predicate stays true throughout the given duration. Poll-evaluates
+// the predicate at sleepTime intervals; the macro itself records a gtest
+// failure via EXPECT_TRUE on the first false return and bails out, so the
+// predicate only needs to return bool. Inverse of WITH_RETRIES (which waits
+// for a condition to become true).
+//
+// USAGE:
+//
+// CHECK_HOLDS_FOR_DURATION(std::chrono::seconds(2), [&] {
+//   return counter.get() == expected;
+// });
+#define CHECK_HOLDS_FOR_DURATION_TIMED(duration, sleepTime, predicate)         \
+  {                                                                            \
+    auto CHECK_HOLDS_deadline = std::chrono::steady_clock::now() + (duration); \
+    while (true) {                                                             \
+      bool CHECK_HOLDS_ok = (predicate)();                                     \
+      EXPECT_TRUE(CHECK_HOLDS_ok)                                              \
+          << "CHECK_HOLDS_FOR_DURATION predicate returned false";              \
+      if (!CHECK_HOLDS_ok ||                                                   \
+          std::chrono::steady_clock::now() >= CHECK_HOLDS_deadline) {          \
+        break;                                                                 \
+      }                                                                        \
+      std::this_thread::sleep_for(sleepTime);                                  \
+    }                                                                          \
+  }
+
+// Helper with default 100ms poll interval
+#define CHECK_HOLDS_FOR_DURATION(duration, predicate) \
+  CHECK_HOLDS_FOR_DURATION_TIMED(                     \
+      duration, std::chrono::milliseconds(100), predicate)
+
 #ifndef IS_OSS
 // Folly::folly_exception_tracer* is not available in OSS.
 // Skip its compilation in OSS for now.

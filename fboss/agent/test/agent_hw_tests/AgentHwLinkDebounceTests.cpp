@@ -17,6 +17,7 @@ namespace facebook::fboss {
 
 constexpr double kTolerance = 0.10;
 constexpr int32_t kHoldoffLongMs = 15000;
+constexpr auto kFlapWithinWindow = std::chrono::milliseconds(1000);
 
 class AgentHwLinkDebounceTest : public AgentHwTest {
  public:
@@ -75,6 +76,25 @@ class AgentHwLinkDebounceTest : public AgentHwTest {
     return std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
   }
 
+  // bringUp/DownPort go through linkStateToggler which waits for the port
+  // status to be updated; this helper flips loopback mode without waiting so
+  // we can flap inside the SDK debounce window.
+  void togglePortNoWait(PortID port, bool toUp) {
+    auto asicTable = getAgentEnsemble()->getHwAsicTable();
+    auto switchId = scopeResolver().scope(port).switchId();
+    auto asic = asicTable->getHwAsic(switchId);
+    auto desiredMode = toUp
+        ? asic->getDesiredLoopbackMode(
+              getProgrammedState()->getPorts()->getNodeIf(port)->getPortType())
+        : cfg::PortLoopbackMode::NONE;
+    applyNewState([port, desiredMode](const std::shared_ptr<SwitchState>& in) {
+      auto newState = in->clone();
+      auto newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
+      newPort->setLoopbackMode(desiredMode);
+      return newState;
+    });
+  }
+
   int64_t getLinkStateFlapCount(PortID port) const {
     auto name = getProgrammedState()->getPorts()->getNodeIf(port)->getName();
     return fb303::fbData->getCounterIfExists(name + ".link_state.flap.sum")
@@ -123,6 +143,54 @@ TEST_F(AgentHwLinkDebounceTest, DebounceTimerWithinTolerance) {
     verifyHoldoff(kHoldoffLongMs);
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwLinkDebounceTest, FlapWithinDebounceWindow) {
+  auto port = portForTest();
+
+  auto verifyNoEventInWindow = [&](bool portStartsAsUp, int32_t holdoffMs) {
+    auto preFlap = getLinkStateFlapCount(port);
+    bool needsTransition =
+        getProgrammedState()->getPorts()->getNodeIf(port)->isUp() !=
+        portStartsAsUp;
+
+    if (portStartsAsUp) {
+      bringUpPort(port);
+    } else {
+      bringDownPort(port);
+    }
+    EXPECT_EQ(
+        getProgrammedState()->getPorts()->getNodeIf(port)->isUp(),
+        portStartsAsUp);
+
+    // Wait for fb303 publish to catch up to the expected flap count from the
+    // initial transition. bringUp/DownPort produces one flap event per call.
+    auto baselineFlaps = preFlap + (needsTransition ? 1 : 0);
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(getLinkStateFlapCount(port), baselineFlaps); });
+
+    auto noFlapsSinceBaseline = [&]() -> bool {
+      return getLinkStateFlapCount(port) == baselineFlaps;
+    };
+
+    togglePortNoWait(port, !portStartsAsUp);
+    CHECK_HOLDS_FOR_DURATION(kFlapWithinWindow, noFlapsSinceBaseline);
+    togglePortNoWait(port, portStartsAsUp);
+
+    auto verifyWindow =
+        std::chrono::milliseconds(holdoffMs) - kFlapWithinWindow;
+    CHECK_HOLDS_FOR_DURATION(verifyWindow, noFlapsSinceBaseline);
+    EXPECT_EQ(
+        getProgrammedState()->getPorts()->getNodeIf(port)->isUp(),
+        portStartsAsUp)
+        << "Port should still be in initial state after suppressed flap";
+  };
+
+  applyDebounceConfig(0, kHoldoffLongMs);
+  verifyNoEventInWindow(true /* portStartsAsUp */, kHoldoffLongMs);
+
+  applyDebounceConfig(kHoldoffLongMs, 0);
+  verifyNoEventInWindow(false /* portStartsAsUp */, kHoldoffLongMs);
 }
 
 } // namespace facebook::fboss
