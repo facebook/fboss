@@ -4,7 +4,6 @@
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/FbossHwUpdateError.h"
@@ -84,7 +83,7 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
     shelConfig.shelSrcIp() = "2222::1";
     shelConfig.shelDstIp() = "2222::2";
     shelConfig.shelPeriodicIntervalMS() = 5000;
-    config.switchSettings()->selfHealingEcmpLagConfig() = shelConfig;
+    config.switchSettings()->selfHealingEcmpLagConfig() = std::move(shelConfig);
     // Enable selfHealingEcmpLag on Interface Ports
     for (auto& port : *config.ports()) {
       if (port.portType() == cfg::PortType::INTERFACE_PORT ||

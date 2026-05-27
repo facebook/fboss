@@ -4,6 +4,7 @@
 
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -110,6 +111,24 @@ int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass);
 SwitchID getRemoteVoqSwitchId(SwSwitch* sw);
 
 SystemPortID getFirstRemoteGlobalSystemPortId(const SwSwitch& sw);
+
+SystemPortID getRemoteSysPortId(
+    SwSwitch* sw,
+    const std::shared_ptr<SwitchState>& state,
+    int offset = 0);
+
+SystemPortID getAvailableRemoteSysPortId(
+    SwSwitch* sw,
+    const std::shared_ptr<SwitchState>& state,
+    int offset = 0);
+
+InterfaceID getRemoteIntfId(SystemPortID sysPortId);
+
+std::optional<HwSysPortStats> getRemoteSysPortStatsForSwitchUnderTest(
+    const SwSwitch* sw,
+    const std::shared_ptr<SwitchState>& state,
+    uint16_t switchIndex,
+    SystemPortID sysPortId);
 
 void addRemoteSysPortAndInterface(
     SwSwitch* sw,

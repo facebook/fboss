@@ -16,6 +16,9 @@
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
+#include <algorithm>
+#include <functional>
+
 namespace facebook::fboss::utility {
 
 namespace {
@@ -50,6 +53,45 @@ void updateRemoteIntfWithNeighbor(
   ndp.isLocal() = false;
   ndpTable->emplace(neighborIp.str(), std::move(ndp));
   remoteIntf->setNdpTable(ndpTable->toThrift());
+}
+
+SystemPortID findRemoteSysPortId(
+    SwSwitch* sw,
+    const std::shared_ptr<SwitchState>& state,
+    const std::function<
+        bool(const std::shared_ptr<SystemPortMap>&, SystemPortID)>& pred,
+    int offset,
+    const std::string& description) {
+  auto remoteSwitchId = getRemoteVoqSwitchId(sw);
+  const auto config = sw->getConfig();
+  auto dsfNodeIter = config.dsfNodes()->find(remoteSwitchId);
+  CHECK(dsfNodeIter != config.dsfNodes()->end())
+      << "DSF node missing for remote switchId " << remoteSwitchId;
+  const auto& ranges =
+      *dsfNodeIter->second.systemPortRanges()->systemPortRanges();
+  CHECK(!ranges.empty()) << "No system port ranges for remote switchId "
+                         << remoteSwitchId;
+  auto firstRemoteSysPortId =
+      static_cast<int>(getFirstRemoteGlobalSystemPortId(*sw));
+  auto remoteSysPorts = state->getRemoteSystemPorts()->getAllNodes();
+  auto found = 0;
+  for (const auto& range : ranges) {
+    auto begin =
+        std::max(firstRemoteSysPortId, static_cast<int>(*range.minimum()));
+    auto end = static_cast<int>(*range.maximum());
+    for (auto sysPortId = begin; sysPortId <= end; ++sysPortId) {
+      if (pred(remoteSysPorts, SystemPortID(sysPortId))) {
+        if (found == offset) {
+          return SystemPortID(sysPortId);
+        }
+        ++found;
+      }
+    }
+  }
+  CHECK(false) << "Unable to find " << description << " at offset " << offset
+               << " in configured ranges for remote switchId "
+               << remoteSwitchId;
+  __builtin_unreachable();
 }
 
 std::vector<cfg::PortQueue> getDefaultNifVoqCfg() {
@@ -782,6 +824,67 @@ SystemPortID getFirstRemoteGlobalSystemPortId(const SwSwitch& sw) {
   }
   CHECK_GT(myGlobalSysPort, 0) << "No local VOQ system port ranges found";
   return SystemPortID(myGlobalSysPort + 1);
+}
+
+// Finds the Nth remote SystemPortID from the remote DSF node's configured
+// system-port ranges that is not already a static entry. offset is zero-based
+// among matching candidates.
+SystemPortID getRemoteSysPortId(
+    SwSwitch* sw,
+    const std::shared_ptr<SwitchState>& state,
+    int offset) {
+  return findRemoteSysPortId(
+      sw,
+      state,
+      [](const auto& remoteSysPorts, SystemPortID portId) {
+        auto existingSysPort = remoteSysPorts->getNodeIf(portId);
+        return !existingSysPort ||
+            existingSysPort->getRemoteSystemPortType() !=
+            RemoteSystemPortType::STATIC_ENTRY;
+      },
+      offset,
+      "remote sysport");
+}
+
+// Finds the Nth remote SystemPortID from the remote DSF node's configured
+// system-port ranges that is not programmed in state. offset is zero-based
+// among matching candidates.
+SystemPortID getAvailableRemoteSysPortId(
+    SwSwitch* sw,
+    const std::shared_ptr<SwitchState>& state,
+    int offset) {
+  return findRemoteSysPortId(
+      sw,
+      state,
+      [](const auto& remoteSysPorts, SystemPortID portId) {
+        return !remoteSysPorts->getNodeIf(portId);
+      },
+      offset,
+      "available remote sysport");
+}
+
+InterfaceID getRemoteIntfId(SystemPortID sysPortId) {
+  return InterfaceID(static_cast<int>(sysPortId));
+}
+
+std::optional<HwSysPortStats> getRemoteSysPortStatsForSwitchUnderTest(
+    const SwSwitch* sw,
+    const std::shared_ptr<SwitchState>& state,
+    uint16_t switchIndex,
+    SystemPortID sysPortId) {
+  auto remoteSysPort = state->getRemoteSystemPorts()->getNodeIf(sysPortId);
+  CHECK(remoteSysPort);
+  auto hwStats = sw->getHwSwitchStatsExpensive();
+  auto switchStats = hwStats.find(switchIndex);
+  if (switchStats == hwStats.end()) {
+    return std::nullopt;
+  }
+  auto sysPortStats = switchStats->second.sysPortStats();
+  auto stats = sysPortStats->find(remoteSysPort->getName());
+  if (stats == sysPortStats->end()) {
+    return std::nullopt;
+  }
+  return stats->second;
 }
 
 // Add remote system port and interface for a remote switch. Creates the

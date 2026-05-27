@@ -658,6 +658,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:voq_utils",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/platforms/common/meru800bia:meru800bia_platform_mapping",
         "//fboss/agent/state:state",
