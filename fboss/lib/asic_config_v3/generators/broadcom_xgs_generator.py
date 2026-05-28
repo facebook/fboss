@@ -32,7 +32,13 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
         self._load_vendor_configs()
         self._init_tables()
 
-        self.parser = PlatformMappingParser(read_all_vendor_data(), self.platform_name)
+        # A variant may target a sibling platform_mapping_v2 directory rather
+        # than the platform's own when several variants share an asic_config
+        # but consume different lane / polarity data.
+        mapping_name = self.variant_config.get(
+            "platform_mapping_name", self.platform_name
+        )
+        self.parser = PlatformMappingParser(read_all_vendor_data(), mapping_name)
 
         self.num_ports_per_core: int = self.platform_config.get("num_ports_per_core", 2)
         self.mmu_size: int = self.asic_config.get("mmu_size", 9416)
