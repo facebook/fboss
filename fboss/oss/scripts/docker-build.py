@@ -9,10 +9,8 @@ import re
 import shlex
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
-from typing import List, Optional, Tuple
-
+from typing import Optional
 
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
 OPT_ARG_CMAKE_TARGET = "--target"
@@ -33,7 +31,7 @@ CONTAINER_SCRATCH_PATH = "/var/FBOSS/tmp_bld_dir"
 CONTAINER_WORKDIR = "/var/FBOSS/fboss"
 
 
-def get_linux_type() -> Tuple[str, Optional[str], Optional[str]]:
+def get_linux_type() -> tuple[str, Optional[str], Optional[str]]:
     try:
         with open("/etc/os-release") as f:
             data = f.read()
@@ -47,10 +45,7 @@ def get_linux_type() -> Tuple[str, Optional[str], Optional[str]]:
             continue
         key = parts[0].strip()
         value_parts = shlex.split(parts[1].strip())
-        if not value_parts:
-            value = ""
-        else:
-            value = value_parts[0]
+        value = "" if not value_parts else value_parts[0]
         os_vars[key] = value
 
     name = os_vars.get("NAME")
@@ -73,11 +68,15 @@ def centos_prerequisites(version_id: str):
 
     print("Installing podman-docker via dnf")
     cp = subprocess.run(
-        ["sudo", "dnf", "install", "-y", "podman-docker"], capture_output=True
+        ["sudo", "dnf", "install", "-y", "podman-docker"],
+        check=False,
+        capture_output=True,
     )
     if cp.returncode != 0:
-        errorMsg = f"An error occurred while attempting to installed podman-docker: {cp.stderr}"
-        print(errorMsg, file=sys.stderr)
+        print(
+            f"An error occurred while attempting to installed podman-docker: {cp.stderr}",
+            file=sys.stderr,
+        )
         return cp.returncode
     return 0
 
@@ -86,16 +85,14 @@ def test_prerequisites():
     host_type = get_linux_type()
     (ostype, distro, distro_version) = host_type
     if ostype != "linux":
-        errorMsg = f"Running on unsupported OS type: {ostype}"
-        print(errorMsg, file=sys.stderr)
+        print(f"Running on unsupported OS type: {ostype}", file=sys.stderr)
         return 1
-    else:
-        print(f"Running on {ostype}:{distro}")
+    print(f"Running on {ostype}:{distro}")
 
     if distro == "centos_stream":
-        errCode = centos_prerequisites(distro_version)
-        if errCode != 0:
-            return errCode
+        err_code = centos_prerequisites(distro_version)
+        if err_code != 0:
+            return err_code
     elif distro == "ubuntu":
         print("Ubuntu")
     else:
@@ -214,13 +211,13 @@ def create_scratch_path(scratch_path: str):
     if exists:
         return 0
     os.makedirs(scratch_path)
+    return None
 
 
 def get_docker_path():
     scripts_path = os.path.dirname(__file__)
     oss_dir_path = Path(scripts_path).parent.absolute()
-    docker_dir_path = os.path.join(oss_dir_path, "docker")
-    return docker_dir_path
+    return os.path.join(oss_dir_path, "docker")
 
 
 def get_repo_path():
@@ -237,14 +234,14 @@ def use_stable_hashes():
         "-rf",
         "build/deps/github_hashes/",
     ]
-    subprocess.run(rm_cmd)
+    subprocess.run(rm_cmd, check=False)
 
     extract_cmd = [
         "tar",
         "xvzf",
         "fboss/oss/stable_commits/latest_stable_hashes.tar.gz",
     ]
-    subprocess.run(extract_cmd)
+    subprocess.run(extract_cmd, check=False)
 
     os.chdir(cwd)
 
@@ -273,25 +270,28 @@ def build_docker_image(docker_dir_path: str, use_clang: bool = False):
             "--build-arg",
             f"USE_CLANG={'true' if use_clang else 'false'}",
         ],
+        check=False,
     )
-    if not cp.returncode == 0:
-        errMsg = f"An error occurred while trying to build the FBOSS docker image: {cp.stderr}"
-        print(errMsg, file=sys.stderr)
+    if cp.returncode != 0:
+        print(
+            f"An error occurred while trying to build the FBOSS docker image: {cp.stderr}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
 
-def run_fboss_build(
+def run_fboss_build(  # noqa: PLR0912
     scratch_path: str,
     target: Optional[str],
     docker_output: bool,
     use_system_deps: bool,
-    env_vars: List[str],
+    env_vars: list[str],
     use_local: bool,
     use_clang: bool,
     num_jobs: Optional[int],
     extras_dir: Optional[str],
     extra_cmake_defines: Optional[str],
-    dot_files: Optional[List],
+    dot_files: Optional[list],
 ):
     use_stable_hashes()
 
@@ -303,8 +303,10 @@ def run_fboss_build(
         elif ev.count(":") == 1:
             cmd_args.extend(["-e", ev])
         else:
-            errMsg = f"Ignoring environment variable string {ev} as it does not match a supported pattern."
-            print(errMsg, file=sys.stderr)
+            print(
+                f"Ignoring environment variable string {ev} as it does not match a supported pattern.",
+                file=sys.stderr,
+            )
 
     # Mount fboss repository in container
     cmd_args.append("-v")
@@ -366,7 +368,7 @@ def run_fboss_build(
         build_cmd.extend(["--src-dir", "."])
     build_cmd.append("fboss")
     cmd_args.extend(build_cmd)
-    build_cp = subprocess.run(cmd_args)
+    build_cp = subprocess.run(cmd_args, check=False)
     if build_cp.returncode != 0:
         print(
             "[ERROR] Encountered a failure while attempting to build. Check the logs to root cause.",
@@ -378,6 +380,7 @@ def run_fboss_build(
 def cleanup_fboss_build_container():
     stop_docker_cp = subprocess.run(
         ["sudo", "docker", "container", "stop", FBOSS_CONTAINER_NAME],
+        check=False,
         capture_output=True,
     )
     if stop_docker_cp.returncode != 0:
@@ -388,6 +391,7 @@ def cleanup_fboss_build_container():
         sys.exit(stop_docker_cp.returncode)
     rm_docker_cp = subprocess.run(
         ["sudo", "docker", "container", "rm", FBOSS_CONTAINER_NAME],
+        check=False,
         capture_output=True,
     )
     if rm_docker_cp.returncode != 0:
@@ -402,9 +406,9 @@ def main():
     args = parse_args()
     create_scratch_path(args.scratch_path)
 
-    errCode = test_prerequisites()
-    if errCode != 0:
-        return errCode
+    err_code = test_prerequisites()
+    if err_code != 0:
+        return err_code
 
     docker_dir_path = get_docker_path()
     build_docker_image(docker_dir_path, args.use_clang)
