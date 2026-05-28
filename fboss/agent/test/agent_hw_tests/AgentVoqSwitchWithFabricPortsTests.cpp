@@ -115,6 +115,10 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
       auto state = getProgrammedState();
       for (auto& portMap : std::as_const(*state->getPorts())) {
         for (auto& [_, port] : std::as_const(*portMap.second)) {
+          if (scopeResolver().scope(port).switchId() !=
+              getCurrentSwitchIdForTesting()) {
+            continue;
+          }
           auto loadBearingInErrors = fb303::fbData->getCounterIfExists(
               port->getName() + ".load_bearing_in_errors.sum.60");
           auto loadBearingFecErrors = fb303::fbData->getCounterIfExists(
@@ -658,7 +662,9 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyRxFifoStuckDetectedCallback) {
         getAgentEnsemble()->runDiagCommand(
             "fabric link rx_fifo_monitor action=TRIGGER\n", out, switchId);
         auto multiSwitchStats = getSw()->getHwSwitchStatsExpensive();
-        auto asicError = *multiSwitchStats[switchId].hwAsicErrors();
+        auto switchIndex =
+            getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+        auto asicError = *multiSwitchStats[switchIndex].hwAsicErrors();
         auto rxFifoStuckDetected = asicError.rxFifoStuckDetected().value_or(0);
         XLOG(DBG2) << "Switch ID: " << switchId
                    << ", rxFifoStuckDetected: " << rxFifoStuckDetected;
