@@ -18,6 +18,7 @@ import subprocess
 import sys
 import sysconfig
 import tempfile
+from pathlib import Path
 
 
 def print_info(msg):
@@ -183,7 +184,14 @@ def parse_args():
 
 
 def path_to(*args):
-    return os.path.join(os.path.dirname(__file__), "..", "..", "..", *args)
+    root = os.environ.get("FBOSS_ROOT") or os.path.join(
+        os.path.dirname(__file__), "..", "..", ".."
+    )
+
+    if not Path(root).is_dir():
+        raise FileNotFoundError(f"Provided root is not valid={root}")
+
+    return os.path.join(root, *args)
 
 
 def detect_toolchain():
