@@ -85,6 +85,12 @@ class MirrorOnDropImpl {
   virtual uint16_t getDefaultRouteDropReason() const = 0;
   virtual uint16_t getAclDropReason() const = 0;
   virtual uint16_t getMmuDropReason() const = 0;
+  // TODO: replace placeholder values with actual ASIC drop-reason codes
+  // once available from the vendor SDK.
+  virtual uint16_t getSrv6MidpointNonLastSidDropReason() const = 0;
+  virtual uint16_t getSrv6DecapNonLastSegmentDropReason() const = 0;
+  virtual uint16_t getSrv6BindingSidNonLastSidDropReason() const = 0;
+  virtual uint16_t getSrv6MidpointUnresolvedDropReason() const = 0;
 
   // Configure an ERSPAN (GRE tunnel) mirror used by the sampling test to
   // generate a high drop-rate packet loop.
@@ -139,6 +145,10 @@ class AgentMirrorOnDropStatelessTest : public AgentMirrorOnDropTestBase {
   MirrorOnDropDropReasonCodes getDefaultRouteDropReasons();
   MirrorOnDropDropReasonCodes getAclDropReasons();
   MirrorOnDropDropReasonCodes getMmuDropReasons();
+  MirrorOnDropDropReasonCodes getSrv6MidpointNonLastSidDropReasons();
+  MirrorOnDropDropReasonCodes getSrv6DecapNonLastSegmentDropReasons();
+  MirrorOnDropDropReasonCodes getSrv6BindingSidNonLastSidDropReasons();
+  MirrorOnDropDropReasonCodes getSrv6MidpointUnresolvedDropReasons();
 
   // Configure buffers to trigger MMU drops via setupPfcBuffers.
   void configureMmuDropBuffers(
@@ -176,7 +186,8 @@ class AgentMirrorOnDropStatelessTest : public AgentMirrorOnDropTestBase {
       const folly::IOBuf* captured,
       const PortID& injectionPortId,
       const MirrorOnDropDropReasonCodes& expectedReasons,
-      std::optional<folly::IPAddressV6> expectedInnerDstIp = std::nullopt);
+      std::optional<folly::IPAddressV6> expectedInnerDstIp = std::nullopt,
+      std::optional<folly::IPAddressV6> expectedInnerSrcIp = std::nullopt);
 
   // Wait until outUnicastPkts on every port stabilizes across 3 iterations.
   void waitForStatsToStabilize(const std::vector<PortID>& ports);

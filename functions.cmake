@@ -20,6 +20,22 @@ function (add_sai_sdk_dependencies name)
   foreach(DEPENDENCY ${DEPENDENCIES})
     target_link_libraries(${name} ${DEPENDENCY})
   endforeach ()
+
+  # Also load sai_dependencies.txt if it exists beside libsai_impl.a.
+  # SAI vendors may ship a list of libraries their libsai_impl.a needs;
+  # link those too so binaries can resolve the SDK's undefined symbols.
+  # Entries may be bare filenames (libfoo.so) that resolve against the
+  # SDK's lib dir, -lfoo flags, or absolute paths.
+  if (DEFINED SAI_IMPL_DIR AND EXISTS "${SAI_IMPL_DIR}/lib/sai_dependencies.txt")
+    file(READ "${SAI_IMPL_DIR}/lib/sai_dependencies.txt" SAI_DEPENDENCIES_TEXT)
+    string(REPLACE "\n" ";" SAI_DEPENDENCIES "${SAI_DEPENDENCIES_TEXT}")
+    target_link_directories(${name} PRIVATE "${SAI_IMPL_DIR}/lib")
+    foreach(DEPENDENCY ${SAI_DEPENDENCIES})
+      if (NOT "${DEPENDENCY}" STREQUAL "")
+        target_link_libraries(${name} ${DEPENDENCY})
+      endif ()
+    endforeach ()
+  endif ()
 endfunction ()
 
 function (strtok str delim out_list)

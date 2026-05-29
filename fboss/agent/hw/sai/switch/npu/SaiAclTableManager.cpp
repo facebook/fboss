@@ -19,11 +19,7 @@
 
 extern "C" {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiaclextensions.h>
-#else
-#include <saiaclextensions.h>
-#endif
 #endif
 }
 

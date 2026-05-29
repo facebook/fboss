@@ -80,6 +80,7 @@ add_executable(bsp_tests
   fboss/platform/bsp_tests/WatchdogTests.cpp
   fboss/platform/bsp_tests/XcvrTests.cpp
   fboss/platform/bsp_tests/HwmonTests.cpp
+  fboss/platform/bsp_tests/MdioTests.cpp
 )
 
 target_link_libraries(bsp_tests
@@ -89,6 +90,7 @@ target_link_libraries(bsp_tests
   bsp_test_utils
   platform_manager_i2c_explorer
   platform_manager_config_cpp2
+  device_mdio
   Folly::folly
   ${GFLAGS}
 )

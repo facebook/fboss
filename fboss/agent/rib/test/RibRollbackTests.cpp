@@ -561,3 +561,314 @@ TEST(RibRollbackMySidTest, rollbackMySidReconstruction) {
   EXPECT_EQ(mySidTableCopy.size(), 1);
   EXPECT_NE(mySidTableCopy.find(sidPrefix), mySidTableCopy.end());
 }
+
+// Tests for unresolved-routes index populated by refreshUnresolvedIndex on
+// the success branch of updateFib. Fixture's SetUp adds only resolved
+// routes, so indexes start empty.
+
+namespace {
+
+const auto kV4Prefix = folly::CIDRNetwork{folly::IPAddressV4("10.0.0.0"), 24};
+const auto kV4Prefix2 = folly::CIDRNetwork{folly::IPAddressV4("10.0.1.0"), 24};
+const auto kV6PrefixUnresolved =
+    folly::CIDRNetwork{folly::IPAddressV6("2001:db8::"), 32};
+const folly::IPAddress kUnreachableV4Nhop{"192.168.1.1"};
+const folly::IPAddress kUnreachableV6Nhop{"3000::1"};
+
+folly::CIDRNetworkV4 toV4Key(const folly::CIDRNetwork& p) {
+  return {p.first.asV4(), p.second};
+}
+folly::CIDRNetworkV6 toV6Key(const folly::CIDRNetwork& p) {
+  return {p.first.asV6(), p.second};
+}
+
+} // namespace
+
+// Add unresolved v4 + v6 routes and assert both indexes pick them up.
+TEST_F(RibRollbackTest, indexAddsUnresolvedV4AndV6) {
+  rib_.update(
+      scopeResolver(),
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {makeUnicastRoute(kV4Prefix, {kUnreachableV4Nhop}),
+       makeUnicastRoute(kV6PrefixUnresolved, {kUnreachableV6Nhop})},
+      {},
+      false,
+      "add unresolved v4+v6",
+      ribToSwitchStateUpdate,
+      &switchState_);
+
+  auto v4 = rib_.getUnresolvedV4RoutesForTest(kRid);
+  ASSERT_EQ(v4.size(), 1);
+  auto v4It = v4.find(toV4Key(kV4Prefix));
+  ASSERT_NE(v4It, v4.end());
+  EXPECT_FALSE(v4It->second->isResolved());
+
+  auto v6 = rib_.getUnresolvedV6RoutesForTest(kRid);
+  ASSERT_EQ(v6.size(), 1);
+  auto v6It = v6.find(toV6Key(kV6PrefixUnresolved));
+  ASSERT_NE(v6It, v6.end());
+  EXPECT_FALSE(v6It->second->isResolved());
+}
+
+// Resolved routes never enter the index; routes that do enter are published.
+TEST_F(RibRollbackTest, indexSkipsResolvedAndPublishesUnresolved) {
+  rib_.update(
+      scopeResolver(),
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {makeDropUnicastRoute(kV4Prefix2),
+       makeUnicastRoute(kV4Prefix, {kUnreachableV4Nhop})},
+      {},
+      false,
+      "add drop + unresolved",
+      ribToSwitchStateUpdate,
+      &switchState_);
+
+  auto index = rib_.getUnresolvedV4RoutesForTest(kRid);
+  ASSERT_EQ(index.size(), 1);
+  EXPECT_EQ(index.find(toV4Key(kV4Prefix2)), index.end());
+  EXPECT_TRUE(index.at(toV4Key(kV4Prefix))->isPublished());
+}
+
+// An unrelated update keeps existing unresolved entries in the index; a
+// route that transitions unresolved -> resolved is dropped.
+TEST_F(RibRollbackTest, indexSurvivesUnrelatedUpdateAndDropsOnResolution) {
+  rib_.update(
+      scopeResolver(),
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {makeUnicastRoute(kV4Prefix, {kUnreachableV4Nhop})},
+      {},
+      false,
+      "add unresolved",
+      ribToSwitchStateUpdate,
+      &switchState_);
+  ASSERT_EQ(rib_.getUnresolvedV4RoutesForTest(kRid).size(), 1);
+
+  // Unrelated update on a different prefix: kV4Prefix stays in the index
+  // (still unresolved).
+  rib_.update(
+      scopeResolver(),
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {makeUnicastRoute(kV4Prefix2, {kUnreachableV4Nhop})},
+      {},
+      false,
+      "add 2nd unresolved",
+      ribToSwitchStateUpdate,
+      &switchState_);
+  auto mid = rib_.getUnresolvedV4RoutesForTest(kRid);
+  ASSERT_EQ(mid.size(), 2);
+  auto midIt = mid.find(toV4Key(kV4Prefix));
+  ASSERT_NE(midIt, mid.end());
+  EXPECT_FALSE(midIt->second->isResolved());
+
+  // Replace kV4Prefix with a DROP route -> resolves -> drops from index.
+  rib_.update(
+      scopeResolver(),
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {makeDropUnicastRoute(kV4Prefix)},
+      {},
+      false,
+      "replace with drop",
+      ribToSwitchStateUpdate,
+      &switchState_);
+  auto after = rib_.getUnresolvedV4RoutesForTest(kRid);
+  EXPECT_EQ(after.find(toV4Key(kV4Prefix)), after.end());
+  EXPECT_NE(after.find(toV4Key(kV4Prefix2)), after.end());
+}
+
+// Index correctly reflects add -> update (different nhops, still unresolved)
+// -> delete lifecycle.
+// Regression: a new unresolved route added by an update that fails HW
+// programming must NOT survive rollback. Pre-fix, the rollback walked the
+// post-failure RIB for unresolved routes and re-inserted them, incorrectly
+// preserving the new entry.
+TEST_F(RibRollbackTest, rollbackDropsAddedUnresolvedV4AndV6) {
+  auto routeTableBefore = rib_.getRouteTableDetails(kRid);
+
+  FailSomeUpdates failFirstUpdate({1});
+  EXPECT_THROW(
+      rib_.update(
+          scopeResolver(),
+          kRid,
+          kBgpClient,
+          kBgpDistance,
+          {makeUnicastRoute(kV4Prefix, {kUnreachableV4Nhop}),
+           makeUnicastRoute(kV6PrefixUnresolved, {kUnreachableV6Nhop})},
+          {},
+          false,
+          "fail add unresolved v4+v6",
+          failFirstUpdate,
+          &switchState_),
+      FbossHwUpdateError);
+
+  EXPECT_EQ(routeTableBefore, rib_.getRouteTableDetails(kRid));
+  EXPECT_TRUE(rib_.getUnresolvedV4RoutesForTest(kRid).empty());
+  EXPECT_TRUE(rib_.getUnresolvedV6RoutesForTest(kRid).empty());
+}
+
+// Regression: deleting an unresolved route in an update that fails HW must
+// leave the route in the RIB after rollback (the delete never committed).
+TEST_F(RibRollbackTest, rollbackRestoresUnresolvedAfterDeleteFailure) {
+  rib_.update(
+      scopeResolver(),
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {makeUnicastRoute(kV4Prefix, {kUnreachableV4Nhop})},
+      {},
+      false,
+      "add unresolved",
+      ribToSwitchStateUpdate,
+      &switchState_);
+  ASSERT_EQ(rib_.getUnresolvedV4RoutesForTest(kRid).size(), 1);
+  auto routeTableBeforeDelete = rib_.getRouteTableDetails(kRid);
+
+  FailSomeUpdates failFirstUpdate({1});
+  EXPECT_THROW(
+      rib_.update(
+          scopeResolver(),
+          kRid,
+          kBgpClient,
+          kBgpDistance,
+          {},
+          {toIpPrefix(kV4Prefix)},
+          false,
+          "fail delete unresolved",
+          failFirstUpdate,
+          &switchState_),
+      FbossHwUpdateError);
+
+  EXPECT_EQ(routeTableBeforeDelete, rib_.getRouteTableDetails(kRid));
+  EXPECT_EQ(rib_.getUnresolvedV4RoutesForTest(kRid).size(), 1);
+}
+
+// Regression: a failed update that transitions a route between resolved
+// and unresolved must leave the route in its original state. Covers both
+// directions: resolved -> unresolved (v4) and unresolved -> resolved (v6).
+TEST_F(RibRollbackTest, rollbackRestoresOriginalStateAfterTransitionFailure) {
+  // Sub-case A: resolved -> unresolved that fails.
+  rib_.update(
+      scopeResolver(),
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {makeDropUnicastRoute(kV4Prefix)},
+      {},
+      false,
+      "add resolved v4",
+      ribToSwitchStateUpdate,
+      &switchState_);
+  auto stateAfterAddResolved = rib_.getRouteTableDetails(kRid);
+  ASSERT_TRUE(rib_.getUnresolvedV4RoutesForTest(kRid).empty());
+
+  {
+    FailSomeUpdates failFirstUpdate({1});
+    EXPECT_THROW(
+        rib_.update(
+            scopeResolver(),
+            kRid,
+            kBgpClient,
+            kBgpDistance,
+            {makeUnicastRoute(kV4Prefix, {kUnreachableV4Nhop})},
+            {},
+            false,
+            "fail resolved->unresolved",
+            failFirstUpdate,
+            &switchState_),
+        FbossHwUpdateError);
+    EXPECT_EQ(stateAfterAddResolved, rib_.getRouteTableDetails(kRid));
+    EXPECT_TRUE(rib_.getUnresolvedV4RoutesForTest(kRid).empty());
+  }
+
+  // Sub-case B: unresolved -> resolved that fails.
+  rib_.update(
+      scopeResolver(),
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {makeUnicastRoute(kV6PrefixUnresolved, {kUnreachableV6Nhop})},
+      {},
+      false,
+      "add unresolved v6",
+      ribToSwitchStateUpdate,
+      &switchState_);
+  auto stateBeforeTransition = rib_.getRouteTableDetails(kRid);
+  ASSERT_EQ(rib_.getUnresolvedV6RoutesForTest(kRid).size(), 1);
+
+  {
+    FailSomeUpdates failFirstUpdate({1});
+    EXPECT_THROW(
+        rib_.update(
+            scopeResolver(),
+            kRid,
+            kBgpClient,
+            kBgpDistance,
+            {makeDropUnicastRoute(kV6PrefixUnresolved)},
+            {},
+            false,
+            "fail unresolved->resolved",
+            failFirstUpdate,
+            &switchState_),
+        FbossHwUpdateError);
+    EXPECT_EQ(stateBeforeTransition, rib_.getRouteTableDetails(kRid));
+    EXPECT_EQ(rib_.getUnresolvedV6RoutesForTest(kRid).size(), 1);
+  }
+}
+
+TEST_F(RibRollbackTest, indexHandlesAddUpdateDelete) {
+  // Add: unresolved -> index has entry.
+  rib_.update(
+      scopeResolver(),
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {makeUnicastRoute(kV4Prefix, {kUnreachableV4Nhop})},
+      {},
+      false,
+      "add",
+      ribToSwitchStateUpdate,
+      &switchState_);
+  auto added = rib_.getUnresolvedV4RoutesForTest(kRid);
+  ASSERT_EQ(added.size(), 1);
+  auto* ptrAdded = added.at(toV4Key(kV4Prefix)).get();
+
+  // Update: different unreachable nhop -> route cloned, still unresolved.
+  // Index entry refreshes to the new shared_ptr.
+  rib_.update(
+      scopeResolver(),
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {makeUnicastRoute(kV4Prefix, {folly::IPAddress("192.168.2.2")})},
+      {},
+      false,
+      "update nhop",
+      ribToSwitchStateUpdate,
+      &switchState_);
+  auto updated = rib_.getUnresolvedV4RoutesForTest(kRid);
+  ASSERT_EQ(updated.size(), 1);
+  EXPECT_NE(updated.at(toV4Key(kV4Prefix)).get(), ptrAdded);
+
+  // Delete: index entry gone.
+  rib_.update(
+      scopeResolver(),
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {},
+      {toIpPrefix(kV4Prefix)},
+      false,
+      "delete",
+      ribToSwitchStateUpdate,
+      &switchState_);
+  EXPECT_TRUE(rib_.getUnresolvedV4RoutesForTest(kRid).empty());
+}

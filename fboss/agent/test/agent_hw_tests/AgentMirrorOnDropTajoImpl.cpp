@@ -27,6 +27,12 @@ namespace {
 constexpr uint16_t kTajoDropReasonDefaultRoute = 0x00;
 constexpr uint16_t kTajoDropReasonAcl = 0x00;
 constexpr uint16_t kTajoDropReasonMmu = 0x00;
+// TODO: replace with actual Tajo drop-reason codes for each SRv6 scenario
+// once available from the vendor SDK. These are placeholders.
+constexpr uint16_t kTajoDropReasonSrv6MidpointNonLastSid = 0x00;
+constexpr uint16_t kTajoDropReasonSrv6DecapNonLastSegment = 0x01;
+constexpr uint16_t kTajoDropReasonSrv6BindingSidNonLastSid = 0x02;
+constexpr uint16_t kTajoDropReasonSrv6MidpointUnresolved = 0x03;
 
 // Tajo proprietary header, observed in the MoD sample packet capture: a
 // fixed-size 28-byte punt header sitting between the outer UDP and the
@@ -168,6 +174,22 @@ uint16_t TajoMirrorOnDropImpl::getAclDropReason() const {
 
 uint16_t TajoMirrorOnDropImpl::getMmuDropReason() const {
   return kTajoDropReasonMmu;
+}
+
+uint16_t TajoMirrorOnDropImpl::getSrv6MidpointNonLastSidDropReason() const {
+  return kTajoDropReasonSrv6MidpointNonLastSid;
+}
+
+uint16_t TajoMirrorOnDropImpl::getSrv6DecapNonLastSegmentDropReason() const {
+  return kTajoDropReasonSrv6DecapNonLastSegment;
+}
+
+uint16_t TajoMirrorOnDropImpl::getSrv6BindingSidNonLastSidDropReason() const {
+  return kTajoDropReasonSrv6BindingSidNonLastSid;
+}
+
+uint16_t TajoMirrorOnDropImpl::getSrv6MidpointUnresolvedDropReason() const {
+  return kTajoDropReasonSrv6MidpointUnresolved;
 }
 
 void TajoMirrorOnDropImpl::configureErspanMirror(

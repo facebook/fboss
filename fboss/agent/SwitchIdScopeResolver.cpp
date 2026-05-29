@@ -5,6 +5,7 @@
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwitchInfoUtils.h"
+#include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/FibInfo.h"
@@ -163,6 +164,27 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(const cfg::Port& port) const {
   return scope(PortID(*port.logicalID()));
 }
 
+// ACLs are scoped to all L3 switches unless they match on a qualifier tied to a
+// specific NPU. Today that is srcPort; add other NPU-specific ACL qualifiers
+// here as they need per-switch scoping.
+HwSwitchMatcher SwitchIdScopeResolver::scope(const cfg::AclEntry& acl) const {
+  if (auto srcPort = acl.srcPort()) {
+    return scope(PortID(*srcPort));
+  }
+  return l3SwitchMatcher();
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<AclEntry>& acl) const {
+  if (!acl) {
+    return l3SwitchMatcher();
+  }
+  if (auto srcPort = acl->getSrcPort()) {
+    return scope(PortID(*srcPort));
+  }
+  return l3SwitchMatcher();
+}
+
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const cfg::AggregatePort& aggPort) const {
   checkL3();
@@ -209,10 +231,10 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 const HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Vlan>& vlan) const {
   // TODO - restrict vlan scope to L3 switches
-  // Currently we create psuedo vlans on fabric switches
+  // Currently we create pseudo vlans on fabric switches
   if (vlan->getPortsInfo().empty()) {
     // VLANs corresponding to loopback intfs have no ports
-    // associated with them. Also Psuedo vlans created
+    // associated with them. Also Pseudo vlans created
     // on fabric switches don't have ports associated with them.
 
     // Return the first switchId.

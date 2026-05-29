@@ -117,6 +117,15 @@ class BspTest : public ::testing::Test {
     return std::nullopt;
   }
 
+  const std::optional<DeviceTestData> getDeviceTestData(
+      const std::string& pmName) const {
+    RuntimeConfig conf = GetRuntimeConfig();
+    if (conf.testData()->contains(pmName)) {
+      return conf.testData()->at(pmName);
+    }
+    return std::nullopt;
+  }
+
   const std::optional<std::string> getExpectedErrorReason(
       const std::string& pmName,
       ExpectedErrorType type) const {

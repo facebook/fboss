@@ -6,11 +6,7 @@ extern "C" {
 #include <brcm_sai_extensions.h>
 #include <sai.h>
 
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiswitchextensions.h>
-#else
-#include <saiswitchextensions.h>
-#endif
 }
 
 namespace facebook::fboss {

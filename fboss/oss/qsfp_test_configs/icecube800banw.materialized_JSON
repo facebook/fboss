@@ -951,11 +951,27 @@
             }
           ]
       },
+      "DP08SFP8-LRB-29D": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "110.40.13"
+            }
+          ]
+      },
       "DP08SFP8-ZRB-29B": {
           "versions": [
             {
               "fwType": 1,
-              "version": "10.30"
+              "version": "110.40.13"
+            }
+          ]
+      },
+      "DP08SFP8-ZRB-29D": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "110.40.13"
             }
           ]
       },
@@ -1319,7 +1335,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.247"
+              "version": "114.149"
             }
           ]
       },
@@ -1327,7 +1343,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.247"
+              "version": "114.149"
             }
           ]
       },
@@ -1335,7 +1351,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.247"
+              "version": "114.149"
             }
           ]
       },
@@ -1343,7 +1359,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.247"
+              "version": "114.149"
             }
           ]
       },
@@ -1351,7 +1367,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.247"
+              "version": "114.149"
             }
           ]
       },
@@ -1359,7 +1375,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.247"
+              "version": "114.149"
             }
           ]
       },

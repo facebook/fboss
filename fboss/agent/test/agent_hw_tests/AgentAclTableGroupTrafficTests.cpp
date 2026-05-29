@@ -1,62 +1,54 @@
-/*
- *  Copyright (c) 2004-present, Facebook, Inc.
- *  All rights reserved.
- *
- *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant
- *  of patent rights can be found in the PATENTS file in the same directory.
- *
- */
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
-#include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 #include "fboss/agent/test/utils/NeighborTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
-
-#include "fboss/agent/hw/test/HwTestAclUtils.h"
-#include "fboss/agent/packet/IPProto.h"
 
 DECLARE_bool(enable_acl_table_group);
 
 namespace facebook::fboss {
 
-class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
+class AgentAclTableGroupTrafficTest : public AgentHwTest {
  protected:
-  void SetUp() override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::MULTI_ACL_TABLE,
+        ProductionFeature::L3_FORWARDING,
+        ProductionFeature::L3_QOS};
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_enable_acl_table_group = true;
-    HwLinkStateDependentTest::SetUp();
-    helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(),
-        getHwSwitch()->needL2EntryForNeighbor(),
-        RouterID(0));
   }
-  cfg::SwitchConfig initialConfig() const override {
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
     auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
-        getAsic()->desiredLoopbackModes());
-
+        ensemble.getSw(),
+        {ensemble.masterLogicalPortIds()[0],
+         ensemble.masterLogicalPortIds()[1]},
+        true /*interfaceHasSubnet*/);
     return cfg;
-  }
-
-  cfg::AclStage kAclStage() const {
-    return cfg::AclStage::INGRESS;
   }
 
   template <typename AddrT>
   const std::map<AddrT, std::pair<folly::MacAddress, cfg::AclLookupClass>>&
   getIpToMacAndClassID() {
-    // TODO (skhare) Use ResourceGenerator to create this map, where the number
-    // of entries equals kQueuePerhostQueueIds()
-
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
       static const std::map<
           folly::IPAddressV4,
@@ -83,7 +75,6 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
                    folly::MacAddress("0:2:3:4:5:14"),
                    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4)},
           };
-
       return ipToMacAndClassID;
     } else {
       static const std::map<
@@ -116,12 +107,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   }
 
   const std::vector<uint8_t> ttlfields = {64, 128};
-  /* Default Dscp Value used before */
   const uint8_t dscpDefault = 48;
-
-  bool isSupported() const {
-    return HwTest::isSupported(HwAsic::Feature::L3_QOS);
-  }
 
   template <typename AddrT>
   std::shared_ptr<SwitchState> addNeighbors(
@@ -168,7 +154,6 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
                           ->getNode(kIntfID)
                           ->template getNeighborTable<NeighborTableT>()
                           ->modify(kIntfID, &outState);
-      auto reachableNeighborState = NeighborState::REACHABLE;
       auto neighborPort = PortDescriptor(masterLogicalPortIds()[0]);
       auto existingEntry = neighborTable->getEntryIf(ip);
 
@@ -178,15 +163,14 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
             neighborMac,
             neighborPort,
             kIntfID,
-            reachableNeighborState,
+            NeighborState::REACHABLE,
             classID);
-
       } else {
         neighborTable->updateEntry(
-            ip, neighborMac, neighborPort, kIntfID, reachableNeighborState);
+            ip, neighborMac, neighborPort, kIntfID, NeighborState::REACHABLE);
       }
 
-      if (getHwSwitch()->needL2EntryForNeighbor()) {
+      if (getSw()->needL2EntryForNeighbor()) {
         outState = utility::NeighborTestUtils::updateMacEntryForUpdatedNbrEntry(
             outState, kVlanID, existingEntry, neighborTable->getEntryIf(ip));
       }
@@ -198,36 +182,25 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   template <typename AddrT>
   std::shared_ptr<SwitchState> resolveNeighbors(
       const std::shared_ptr<SwitchState>& inState) {
-    return updateNeighbors<AddrT>(inState, false /* setClassIDs */);
+    return updateNeighbors<AddrT>(inState, false);
   }
 
   template <typename AddrT>
   std::shared_ptr<SwitchState> updateClassID(
       const std::shared_ptr<SwitchState>& inState) {
-    return updateNeighbors<AddrT>(inState, true /* setClassIDs */);
+    return updateNeighbors<AddrT>(inState, true);
   }
 
   template <typename AddrT>
-  void sendPacketHelper(bool frontPanel, uint8_t dscp) {
-    for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
-      auto dstIP = ipToMacAndClassID.first;
-      sendPacket<AddrT>(
-          dstIP,
-          frontPanel,
-          ttlfields[0] /* ttl < 128 */,
-          dscp,
-          IP_PROTO::IP_PROTO_UDP,
-          std::nullopt,
-          std::nullopt);
-      sendPacket<AddrT>(
-          dstIP,
-          frontPanel,
-          ttlfields[1] /* ttl >= 128 */,
-          dscp,
-          IP_PROTO::IP_PROTO_UDP,
-          std::nullopt,
-          std::nullopt);
-    }
+  void addResolvedNeighborWithClassID() {
+    applyNewState([this](std::shared_ptr<SwitchState> /*in*/) {
+      auto state1 = addNeighbors<AddrT>(this->getProgrammedState());
+      auto state2 = resolveNeighbors<AddrT>(state1);
+      return state2;
+    });
+    applyNewState([this](std::shared_ptr<SwitchState> /*in*/) {
+      return updateClassID<AddrT>(this->getProgrammedState());
+    });
   }
 
   template <typename AddrT>
@@ -240,24 +213,17 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       testType = "IPv6 Traffic";
     }
 
-    auto ttlAclName = utility::getQueuePerHostTtlAclName();
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
-    auto statBefore = utility::getAclInOutPackets(
-        getHwSwitch(),
-        this->getProgrammedState(),
-        ttlAclName,
-        ttlCounterName,
-        kAclStage(),
-        utility::getTtlAclTableName());
+    auto statBefore = utility::getAclInOutPackets(getSw(), ttlCounterName);
 
+    const auto beforePortStats =
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]);
+    const auto& beforeQueueOutPktsAll =
+        beforePortStats.queueOutPackets_().value();
     std::map<int, int64_t> beforeQueueOutPkts;
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
-      beforeQueueOutPkts[queueId] =
-          this->getLatestPortStats(this->masterLogicalPortIds()[0])
-              .queueOutPackets_()
-              .value()
-              .at(queueId);
+      beforeQueueOutPkts[queueId] = beforeQueueOutPktsAll.at(queueId);
     }
 
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
@@ -265,7 +231,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       sendPacket<AddrT>(
           dstIP,
           frontPanel,
-          ttlfields[0] /* ttl < 128 */,
+          ttlfields[0],
           dscpDefault,
           IP_PROTO::IP_PROTO_UDP,
           std::nullopt,
@@ -273,121 +239,66 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       sendPacket<AddrT>(
           dstIP,
           frontPanel,
-          ttlfields[1] /* ttl >= 128 */,
+          ttlfields[1],
           dscpDefault,
           IP_PROTO::IP_PROTO_UDP,
           std::nullopt,
           std::nullopt);
     }
 
-    std::map<int, int64_t> afterQueueOutPkts;
-    for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
-      afterQueueOutPkts[queueId] =
-          this->getLatestPortStats(this->masterLogicalPortIds()[0])
-              .queueOutPackets_()
-              .value()
-              .at(queueId);
-    }
-
-    /*
-     *  Consider ACL with action to egress pkts through queue 2.
-     *
-     *  CPU originated packets:
-     *     - Hits ACL (queue2Cnt = 1), egress through queue 2 of port0.
-     *     - port0 is in loopback mode, so the packet gets looped back.
-     *     - When packet is routed, its dstMAC gets overwritten. Thus, the
-     *       looped back packet is not routed, and thus does not hit the ACL.
-     *     - On some platforms, looped back packets for unknown MACs are
-     *       flooded and counted on queue *before* the split horizon check
-     *       (drop when srcPort == dstPort). This flooding always happens on
-     *       queue 0, so expect one or more packets on queue 0.
-     *
-     *  Front panel packets (injected with pipeline bypass):
-     *     - Egress out of port1 queue0 (pipeline bypass).
-     *     - port1 is in loopback mode, so the packet gets looped back.
-     *     - Rest of the workflow is same as above when CPU originated packet
-     *       gets injected for switching.
-     */
-    for (auto [qid, beforePkts] : beforeQueueOutPkts) {
-      auto pktsOnQueue = afterQueueOutPkts[qid] - beforePkts;
-      XLOG(DBG2) << "TestType: " << testType << " Pkts on queue : " << qid
-                 << " pkts: " << pktsOnQueue;
-      if (qid == 0) {
-        EXPECT_GE(pktsOnQueue, 1);
-      } else {
-        EXPECT_EQ(
-            pktsOnQueue, 2 /* 1 pkt each for ttl < 128 and ttl >= 128 */
-        );
-      }
-    }
-
-    auto updateStats = [&]() { getHwSwitch()->updateStats(); };
-
     WITH_RETRIES({
-      updateStats();
-      auto statAfter = utility::getAclInOutPackets(
-          getHwSwitch(),
-          this->getProgrammedState(),
-          ttlAclName,
-          ttlCounterName,
-          kAclStage(),
-          utility::getTtlAclTableName());
+      const auto afterPortStats =
+          this->getLatestPortStats(this->masterLogicalPortIds()[0]);
+      const auto& queueOutPkts = afterPortStats.queueOutPackets_().value();
+      std::map<int, int64_t> afterQueueOutPkts;
+      for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
+        afterQueueOutPkts[queueId] = queueOutPkts.at(queueId);
+      }
 
+      for (auto [qid, beforePkts] : beforeQueueOutPkts) {
+        auto pktsOnQueue = afterQueueOutPkts[qid] - beforePkts;
+        XLOG(DBG2) << "TestType: " << testType << " Pkts on queue : " << qid
+                   << " pkts: " << pktsOnQueue;
+        if (qid == 0) {
+          EXPECT_EVENTUALLY_GE(pktsOnQueue, 1);
+        } else {
+          EXPECT_EVENTUALLY_EQ(pktsOnQueue, 2);
+        }
+      }
+
+      auto statAfter = utility::getAclInOutPackets(getSw(), ttlCounterName);
       XLOG(DBG2) << "statBefore: " << statBefore << " statAfter: " << statAfter
                  << " expected: " << getIpToMacAndClassID<AddrT>().size();
-      // counts ttl >= 128 packet only
       EXPECT_EVENTUALLY_EQ(
           statAfter - statBefore, getIpToMacAndClassID<AddrT>().size());
     });
   }
 
-  template <typename AddrT>
-  std::shared_ptr<SwitchState> addResolvedNeighborWithClassID(
-      const std::shared_ptr<SwitchState>& inState) {
-    auto state1 = addNeighbors<AddrT>(inState);
-    auto state2 = resolveNeighbors<AddrT>(state1);
-    auto state3 = updateClassID<AddrT>(state2);
-
-    return state3;
-  }
-
   void verifyMultipleAclTablesHelper() {
-    bool multipleAclTableSupport =
-        HwTest::isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
-    ASSERT_TRUE(multipleAclTableSupport);
+    ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
     auto setup = [this]() {
-      /*
-       * Tajo Asic needs a key profile to be set which is supposed to be a
-       * superset of all the qualifiers/action types of all the tables. If key
-       * profile is absent, the first table's attributes will be taken as the
-       * key profile. Hence, the first table is always set with the superset of
-       * qualifiers. addAllQualifiers is used in Tajo SDK versions which
-       * support Multi ACL table to add the superset of qualifiers/action types
-       * in first table
-       */
       bool addAllQualifiers = false;
-      resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
 #if defined(TAJO_SDK_GTE_24_8_3001)
       addAllQualifiers = true;
 #endif
 
-      auto state1 = addResolvedNeighborWithClassID<folly::IPAddressV4>(
-          this->getProgrammedState());
-      auto state2 = addResolvedNeighborWithClassID<folly::IPAddressV6>(state1);
-      applyNewState(state2);
+      auto newCfg{initialConfig(*getAgentEnsemble())};
+      utility::addQueuePerHostQueueConfig(&newCfg);
+      utility::addQueuePerHostAclTables(
+          &newCfg,
+          1 /*priority*/,
+          addAllQualifiers,
+          getAgentEnsemble()->isSai());
+      utility::addTtlAclTable(&newCfg, 2 /*priority*/);
+      applyNewConfig(newCfg);
 
-      if (this->isSupported()) {
-        auto newCfg{initialConfig()};
-        utility::addQueuePerHostQueueConfig(&newCfg);
-        utility::addQueuePerHostAclTables(
-            &newCfg,
-            1 /*priority*/,
-            addAllQualifiers,
-            this->getHwSwitchEnsemble()->isSai());
-        utility::addTtlAclTable(&newCfg, 2 /*priority*/);
-        applyNewConfig(newCfg);
-      }
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), getSw()->needL2EntryForNeighbor());
+      resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+
+      addResolvedNeighborWithClassID<folly::IPAddressV4>();
+      addResolvedNeighborWithClassID<folly::IPAddressV6>();
     };
 
     auto verify = [this]() {
@@ -419,25 +330,11 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   }
 
   std::pair<uint64_t, uint64_t> pktCounterHelper() {
-    auto kDscpCounterAclName = utility::kDscpCounterAclName();
     auto kCounterName = utility::kCounterName();
-    auto dscpAclPkts = utility::getAclInOutPackets(
-        getHwSwitch(),
-        this->getProgrammedState(),
-        kDscpCounterAclName,
-        kCounterName,
-        kAclStage(),
-        utility::getDscpAclTableName());
+    auto dscpAclPkts = utility::getAclInOutPackets(getSw(), kCounterName);
 
-    auto ttlAclName = utility::getQueuePerHostTtlAclName();
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
-    auto ttlAclPkts = utility::getAclInOutPackets(
-        getHwSwitch(),
-        this->getProgrammedState(),
-        ttlAclName,
-        ttlCounterName,
-        kAclStage(),
-        utility::getTtlAclTableName());
+    auto ttlAclPkts = utility::getAclInOutPackets(getSw(), ttlCounterName);
 
     return std::make_pair(dscpAclPkts, ttlAclPkts);
   }
@@ -451,100 +348,73 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
     sendAllPacketshelper<AddrT>(dstIP, frontPanel, 0);
 
     WITH_RETRIES({
-      getHwSwitch()->updateStats();
       auto [dscpAclPkts, ttlAclPkts] = pktCounterHelper();
       XLOG(DBG2) << "Before ICP pkts: " << beforeAclPkts.first
                  << " Intermediate ICP pkts: " << dscpAclPkts;
       XLOG(DBG2) << "Before Ttl pkts: " << beforeAclPkts.second
                  << " Intermediate Ttl pkts: " << ttlAclPkts;
-      /* When packet egresses, DSCP is not marked and so ACL counter is not hit.
-       * It marks the DSCP instead. Since the port is in loopback mode, the same
-       * packet comes in and this time hits the counter and is incremented
-       */
       EXPECT_EVENTUALLY_EQ(
           dscpAclPkts - beforeAclPkts.first,
-          (1 /* ACL hit once */ * 2 /* Pkt sent twice with different TTL */ *
-           2 /*l4Srcport and l4DstPort */ *
-           (utility::kUdpPorts().size() +
-            utility::kTcpPorts()
-                .size()) /* For each destIP, all ICP port pkts are sent */));
+          (1 * 2 * 2 *
+           (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
       EXPECT_EVENTUALLY_EQ(
           ttlAclPkts - beforeAclPkts.second,
-          (2 /*l4Srcport and l4DstPort */ *
-           (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
+          (2 * (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
     });
 
     auto intermediateAclPkts = pktCounterHelper();
     sendAllPacketshelper<AddrT>(dstIP, frontPanel, utility::kIcpDscp());
 
     WITH_RETRIES({
-      getHwSwitch()->updateStats();
       auto [dscpAclPkts, ttlAclPkts] = pktCounterHelper();
       XLOG(DBG2) << "Intermediate ICP pkts: " << intermediateAclPkts.first
                  << " After ICP pkts: " << dscpAclPkts;
       XLOG(DBG2) << "Intermediate Ttl pkts: " << intermediateAclPkts.second
                  << " After Ttl pkts: " << ttlAclPkts;
-      /* counts ttl >= 128 packet only. We send twice with and without DSCP
-       * marking. Each time, we send to a list of dest ports.
-       * For each send, we send for all UDP and TCP ICP ports. so the expected
-       * value needs to account for that.
-       */
       EXPECT_EVENTUALLY_EQ(
           ttlAclPkts - intermediateAclPkts.second,
-          (2 /*l4Srcport and l4DstPort */ *
-           (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
-      /* Inject a pkt with dscp = ICP DSCP.
-       *   - The packet will match DSCP ACL, thus counter incremented.
-       *   - Packet egress via front panel port which is in loopback mode.
-       *   - Thus, packet gets looped back.
-       *   - Hits ACL again, and thus counter incremented twice.
-       */
+          (2 * (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
       EXPECT_EVENTUALLY_EQ(
           dscpAclPkts - intermediateAclPkts.first,
-          (2 /* ACL hit twice */ * 2 /* Pkt sent twice with different TTL */ *
-           2 /*L4Srcport and L4DstPort */ *
+          (2 * 2 * 2 *
            (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
     });
   }
 
   void verifyDscpTtlAclTablesHelper() {
-    bool multipleAclTableSupport =
-        HwTest::isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
-    ASSERT_TRUE(multipleAclTableSupport);
+    ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
     auto setup = [this]() {
-      /*
-       * Refer to the detailed comment in setup of verifyMultipleAclTablesHelper
-       * for the reason behind this flag
-       */
       bool addAllQualifiers = false;
-      resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
 #if defined(TAJO_SDK_GTE_24_8_3001)
       addAllQualifiers = true;
 #endif
 
-      auto state1 = addResolvedNeighborWithClassID<folly::IPAddressV4>(
-          this->getProgrammedState());
-      auto state2 = addResolvedNeighborWithClassID<folly::IPAddressV6>(state1);
-      applyNewState(state2);
+      auto newCfg{initialConfig(*getAgentEnsemble())};
+      utility::addOlympicQosMaps(newCfg, getAgentEnsemble()->getL3Asics());
+      auto hwAsic =
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+      utility::addDscpAclTable(
+          &newCfg,
+          hwAsic,
+          1 /*priority*/,
+          addAllQualifiers,
+          getAgentEnsemble()->isSai());
+      utility::addTtlAclTable(&newCfg, 2);
+      applyNewConfig(newCfg);
 
-      if (this->isSupported()) {
-        auto newCfg{initialConfig()};
-        utility::addOlympicQosMaps(newCfg, {getAsic()});
-        utility::addDscpAclTable(
-            &newCfg,
-            getAsic(),
-            1 /*priority*/,
-            addAllQualifiers,
-            this->getHwSwitchEnsemble()->isSai());
-        utility::addTtlAclTable(&newCfg, 2);
-        applyNewConfig(newCfg);
-      }
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), getSw()->needL2EntryForNeighbor());
+      resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+
+      addResolvedNeighborWithClassID<folly::IPAddressV4>();
+      addResolvedNeighborWithClassID<folly::IPAddressV6>();
     };
 
     auto verify = [this]() {
       // TODO: IPV4 not working. It needs to be triaged and fixed
-      //_verifyHelperDscpTtlAclTables<folly::IPAddressV4>(frontPanel);
+      // _verifyHelperDscpTtlAclTables<folly::IPAddressV4>(false);
+      // _verifyHelperDscpTtlAclTables<folly::IPAddressV4>(true);
       _verifyHelperDscpTtlAclTables<folly::IPAddressV6>(false);
       _verifyHelperDscpTtlAclTables<folly::IPAddressV6>(true);
     };
@@ -569,6 +439,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
     sendAllPackets(
         dstIP, frontPanel, dscp, IP_PROTO::IP_PROTO_TCP, utility::kTcpPorts());
   }
+
   template <typename AddrT>
   void sendAllPackets(
       AddrT dstIP,
@@ -578,22 +449,8 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       const std::vector<uint32_t>& ports) {
     for (auto ttl : ttlfields) {
       for (auto port : ports) {
-        sendPacket(
-            dstIP,
-            frontPanel,
-            ttl,
-            dscp,
-            proto,
-            port /* l4SrcPort */,
-            std::nullopt /* l4DstPort */);
-        sendPacket(
-            dstIP,
-            frontPanel,
-            ttl,
-            dscp,
-            proto,
-            std::nullopt /* l4SrcPort */,
-            port /* l4DstPort */);
+        sendPacket(dstIP, frontPanel, ttl, dscp, proto, port, std::nullopt);
+        sendPacket(dstIP, frontPanel, ttl, dscp, proto, std::nullopt, port);
       }
     }
   }
@@ -607,18 +464,16 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       IP_PROTO proto,
       std::optional<uint16_t> l4SrcPort,
       std::optional<uint16_t> l4DstPort) {
-    auto intf = firstInterfaceWithPortsForTesting(getProgrammedState());
-    auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
-    auto intfMac = intf->getMac();
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), kVlanID);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     std::unique_ptr<facebook::fboss::TxPacket> txPacket;
     CHECK(proto == IP_PROTO::IP_PROTO_UDP || proto == IP_PROTO::IP_PROTO_TCP);
     if (proto == IP_PROTO::IP_PROTO_UDP) {
       txPacket = utility::makeUDPTxPacket(
-          getHwSwitch(),
-          vlanId,
-          srcMac, // src mac
-          intfMac, // dst mac
+          getSw(),
+          kVlanID,
+          srcMac,
+          intfMac,
           kSrcIP<AddrT>(),
           dstIP,
           l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
@@ -627,10 +482,10 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
           ttl);
     } else if (proto == IP_PROTO::IP_PROTO_TCP) {
       txPacket = utility::makeTCPTxPacket(
-          getHwSwitch(),
-          vlanId,
-          srcMac, // src mac
-          intfMac, // dst mac
+          getSw(),
+          kVlanID,
+          srcMac,
+          intfMac,
           kSrcIP<AddrT>(),
           dstIP,
           l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
@@ -638,45 +493,28 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
           dscp << 2,
           ttl);
     }
-    // port is in LB mode, so it will egress and immediately loop back.
-    // Since it is not re-written, it should hit the pipeline as if it
-    // ingressed on the port, and be properly queued.
     if (frontPanel) {
-      auto outPort = helper_->ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
-      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-          std::move(txPacket), outPort);
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), getSw()->needL2EntryForNeighbor());
+      auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+      getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {
-      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   }
 
   static inline constexpr auto kEcmpWidth = 1;
   const VlanID kVlanID{utility::kBaseVlanId};
   const InterfaceID kIntfID{utility::kBaseVlanId};
-  std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
-TEST_F(SaiAclTableGroupTrafficTest, VerifyQueuePerHostAclTableAndTtlAclTable) {
-  if (!this->isSupported()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#else
-    return;
-#endif
-  }
-
+TEST_F(
+    AgentAclTableGroupTrafficTest,
+    VerifyQueuePerHostAclTableAndTtlAclTable) {
   this->verifyMultipleAclTablesHelper();
 }
 
-TEST_F(SaiAclTableGroupTrafficTest, VerifyDscpMarkingAndTtlAclTable) {
-  if (!this->isSupported()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#else
-    return;
-#endif
-  }
-
+TEST_F(AgentAclTableGroupTrafficTest, VerifyDscpMarkingAndTtlAclTable) {
   this->verifyDscpTtlAclTablesHelper();
 }
 

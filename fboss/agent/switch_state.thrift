@@ -505,6 +505,9 @@ struct SwitchSettingsFields {
   // System port offset for fabric link monitoring
   60: optional i32 fabricLinkMonitoringSystemPortOffset;
   61: optional switch_config.PacketForwardingMode packetForwardingMode;
+  // FLAGS_ecmp_width snapshot. A mismatch on warmboot triggers assert
+  // and coldboot.
+  62: optional i32 ecmpWidth;
 }
 
 struct RoutePrefix {

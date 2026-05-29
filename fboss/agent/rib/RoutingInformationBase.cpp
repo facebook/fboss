@@ -230,44 +230,78 @@ void validateMySidNextHops(
   }
 }
 
+// Rebuild the unresolved-routes index from the given RIB.
+template <typename AddressT>
+void refreshUnresolvedIndex(
+    const NetworkToRouteMap<AddressT>& ribMap,
+    std::unordered_map<
+        std::pair<AddressT, uint8_t>,
+        std::shared_ptr<Route<AddressT>>>* index) {
+  std::unordered_map<
+      std::pair<AddressT, uint8_t>,
+      std::shared_ptr<Route<AddressT>>>
+      next;
+  for (const auto& node : ribMap) {
+    const auto& route = node.value();
+    if (route->isResolved()) {
+      continue;
+    }
+    auto key =
+        std::make_pair(route->prefix().network(), route->prefix().mask());
+    auto it = index->find(key);
+    if (it != index->end() && it->second.get() == route.get()) {
+      next.emplace(std::move(key), it->second);
+    } else {
+      route->publish();
+      next.emplace(std::move(key), route);
+    }
+  }
+  *index = std::move(next);
+}
+
+void refreshUnresolvedMplsIndex(
+    const LabelToRouteMap& ribMap,
+    std::unordered_map<LabelID, std::shared_ptr<Route<LabelID>>>* index) {
+  std::unordered_map<LabelID, std::shared_ptr<Route<LabelID>>> next;
+  for (const auto& [labelId, route] : ribMap) {
+    if (route->isResolved()) {
+      continue;
+    }
+    auto it = index->find(labelId);
+    if (it != index->end() && it->second.get() == route.get()) {
+      next.emplace(labelId, it->second);
+    } else {
+      route->publish();
+      next.emplace(labelId, route);
+    }
+  }
+  *index = std::move(next);
+}
+
 } // namespace
 
-template <typename AddressT, typename FibType>
-void reconstructRibFromFib(
+template <typename AddressT, typename FibType, typename IndexT>
+void reconstructRib(
     const std::shared_ptr<FibType>& fib,
-    NetworkToRouteMap<AddressT>* addrToRoute) {
-  // FIB has all but unresolved routes from RIB
-  std::vector<std::shared_ptr<Route<AddressT>>> unresolvedRoutes;
-  std::for_each(
-      addrToRoute->begin(),
-      addrToRoute->end(),
-      [&unresolvedRoutes](auto& node) {
-        auto& route = value(node);
-        if (!route->isResolved()) {
-          unresolvedRoutes.push_back(route);
-        }
-      });
+    NetworkToRouteMap<AddressT>* addrToRoute,
+    const IndexT& unresolvedIndex) {
   addrToRoute->clear();
   if constexpr (!std::is_same_v<FibType, MultiLabelForwardingInformationBase>) {
-    for (auto& iter : std::as_const(*fib)) {
+    for (const auto& iter : std::as_const(*fib)) {
       const auto& route = iter.second;
       addrToRoute->insert(route->prefix(), route);
     }
   } else {
-    for (auto& miter : std::as_const(*fib)) {
+    for (const auto& miter : std::as_const(*fib)) {
       for (const auto& iter : std::as_const(*miter.second)) {
         const auto& route = iter.second;
         addrToRoute->insert(route->prefix(), route);
       }
     }
   }
-  // Copy unresolved routes
-  std::for_each(
-      unresolvedRoutes.begin(),
-      unresolvedRoutes.end(),
-      [addrToRoute](const auto& route) {
-        addrToRoute->insert(route->prefix(), route);
-      });
+  for (const auto& [_, route] : unresolvedIndex) {
+    addrToRoute->insert(route->prefix(), route);
+  }
 }
 
 void reconstructMySidTableFromSwitchState(
@@ -593,19 +627,21 @@ void RibRouteTables::updateFib(
       auto lockedRouteTables = synchronizedRouteTables_.wlock();
       auto& routeTable =
           lockedRouteTables->routerIDToRouteTable.find(vrf)->second;
-      reconstructRibFromFib<
-          folly::IPAddressV4,
-          ForwardingInformationBase<folly::IPAddressV4>>(
-          fib->getFibV4(), &routeTable.v4NetworkToRoute);
-      reconstructRibFromFib<
-          folly::IPAddressV6,
-          ForwardingInformationBase<folly::IPAddressV6>>(
-          fib->getFibV6(), &routeTable.v6NetworkToRoute);
+      reconstructRib(
+          fib->getFibV4(),
+          &routeTable.v4NetworkToRoute,
+          routeTable.unresolvedV4Routes);
+      reconstructRib(
+          fib->getFibV6(),
+          &routeTable.v6NetworkToRoute,
+          routeTable.unresolvedV6Routes);
       if (FLAGS_mpls_rib) {
         auto labelFib =
             hwUpdateError.appliedState->getLabelForwardingInformationBase();
-        reconstructRibFromFib<LabelID, MultiLabelForwardingInformationBase>(
-            std::move(labelFib), &routeTable.labelToRoute);
+        reconstructRib(
+            labelFib,
+            &routeTable.labelToRoute,
+            routeTable.unresolvedMplsRoutes);
       }
 
       // Reconstruct NextHopIDManager from the applied state's FIB and MySid
@@ -624,6 +660,21 @@ void RibRouteTables::updateFib(
           &lockedRouteTables->mySidTable);
     }
     throw;
+  }
+  // Refresh unresolved-routes index from the post-update RIB.
+  // Consumed by the rollback path (wired in the next diff).
+  {
+    auto lockedRouteTables = synchronizedRouteTables_.wlock();
+    auto& routeTable =
+        lockedRouteTables->routerIDToRouteTable.find(vrf)->second;
+    refreshUnresolvedIndex(
+        routeTable.v4NetworkToRoute, &routeTable.unresolvedV4Routes);
+    refreshUnresolvedIndex(
+        routeTable.v6NetworkToRoute, &routeTable.unresolvedV6Routes);
+    if (FLAGS_mpls_rib) {
+      refreshUnresolvedMplsIndex(
+          routeTable.labelToRoute, &routeTable.unresolvedMplsRoutes);
+    }
   }
   CHECK(fibDelta.has_value());
   updateEcmpOverrides(vrf, *fibDelta);
@@ -1135,6 +1186,17 @@ RibRouteTables RibRouteTables::fromThrift(
   if (lockedRouteTables->nextHopIDManager && fibsInfoMap) {
     lockedRouteTables->nextHopIDManager->reconstructFromSwitchStateMaps(
         fibsInfoMap, mySidMap, labelFib, &rib);
+  }
+  // Seed the per-VRF unresolved-routes index from the loaded RIB.
+  for (auto& [_, routeTable] : lockedRouteTables->routerIDToRouteTable) {
+    refreshUnresolvedIndex(
+        routeTable.v4NetworkToRoute, &routeTable.unresolvedV4Routes);
+    refreshUnresolvedIndex(
+        routeTable.v6NetworkToRoute, &routeTable.unresolvedV6Routes);
+    if (FLAGS_mpls_rib) {
+      refreshUnresolvedMplsIndex(
+          routeTable.labelToRoute, &routeTable.unresolvedMplsRoutes);
+    }
   }
   return rib;
 }
@@ -1849,20 +1911,36 @@ template std::shared_ptr<Route<folly::IPAddressV6>>
 RibRouteTables::longestMatch(const folly::IPAddressV6& address, RouterID vrf)
     const;
 
-template void reconstructRibFromFib<
+template void reconstructRib<
     folly::IPAddressV4,
-    ForwardingInformationBase<folly::IPAddressV4>>(
+    ForwardingInformationBase<folly::IPAddressV4>,
+    std::unordered_map<
+        folly::CIDRNetworkV4,
+        std::shared_ptr<Route<folly::IPAddressV4>>>>(
     const std::shared_ptr<ForwardingInformationBase<folly::IPAddressV4>>& fib,
-    NetworkToRouteMap<folly::IPAddressV4>* addrToRoute);
-template void reconstructRibFromFib<
+    NetworkToRouteMap<folly::IPAddressV4>* addrToRoute,
+    const std::unordered_map<
+        folly::CIDRNetworkV4,
+        std::shared_ptr<Route<folly::IPAddressV4>>>& unresolvedIndex);
+template void reconstructRib<
     folly::IPAddressV6,
-    ForwardingInformationBase<folly::IPAddressV6>>(
+    ForwardingInformationBase<folly::IPAddressV6>,
+    std::unordered_map<
+        folly::CIDRNetworkV6,
+        std::shared_ptr<Route<folly::IPAddressV6>>>>(
     const std::shared_ptr<ForwardingInformationBase<folly::IPAddressV6>>& fib,
-    NetworkToRouteMap<folly::IPAddressV6>* addrToRoute);
-template void
-reconstructRibFromFib<LabelID, MultiLabelForwardingInformationBase>(
+    NetworkToRouteMap<folly::IPAddressV6>* addrToRoute,
+    const std::unordered_map<
+        folly::CIDRNetworkV6,
+        std::shared_ptr<Route<folly::IPAddressV6>>>& unresolvedIndex);
+template void reconstructRib<
+    LabelID,
+    MultiLabelForwardingInformationBase,
+    std::unordered_map<LabelID, std::shared_ptr<Route<LabelID>>>>(
     const std::shared_ptr<MultiLabelForwardingInformationBase>& fib,
-    NetworkToRouteMap<LabelID>* addrToRoute);
+    NetworkToRouteMap<LabelID>* addrToRoute,
+    const std::unordered_map<LabelID, std::shared_ptr<Route<LabelID>>>&
+        unresolvedIndex);
 
 template std::optional<
     std::pair<std::shared_ptr<Route<folly::IPAddressV4>>, RouteNextHopSet>>

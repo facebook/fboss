@@ -38,10 +38,13 @@ class MultiSwitchMySidMap;
 class SwitchIdScopeResolver;
 class StateDelta;
 
-template <typename AddressT, typename FibType>
-void reconstructRibFromFib(
+// Rebuilds the RIB from a FIB plus an explicit set of unresolved routes.
+// Used by the rollback path on FbossHwUpdateError.
+template <typename AddressT, typename FibType, typename IndexT>
+void reconstructRib(
     const std::shared_ptr<FibType>& fib,
-    NetworkToRouteMap<AddressT>* addrToRoute);
+    NetworkToRouteMap<AddressT>* addrToRoute,
+    const IndexT& unresolvedIndex);
 
 void reconstructMySidTableFromSwitchState(
     const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
@@ -108,6 +111,31 @@ class RibRouteTables {
           }
           return nullptr;
         });
+  }
+
+  // Test-only accessors for the per-VRF unresolved-routes indexes. Return
+  // copies so the caller observes a stable snapshot.
+  std::unordered_map<
+      folly::CIDRNetworkV4,
+      std::shared_ptr<Route<folly::IPAddressV4>>>
+  getUnresolvedV4RoutesForTest(const RouterID& vrf) const {
+    return synchronizedRouteTables_.withRLock([&vrf](const auto& routeTables) {
+      return routeTables.routerIDToRouteTable.at(vrf).unresolvedV4Routes;
+    });
+  }
+  std::unordered_map<
+      folly::CIDRNetworkV6,
+      std::shared_ptr<Route<folly::IPAddressV6>>>
+  getUnresolvedV6RoutesForTest(const RouterID& vrf) const {
+    return synchronizedRouteTables_.withRLock([&vrf](const auto& routeTables) {
+      return routeTables.routerIDToRouteTable.at(vrf).unresolvedV6Routes;
+    });
+  }
+  std::unordered_map<LabelID, std::shared_ptr<Route<LabelID>>>
+  getUnresolvedMplsRoutesForTest(const RouterID& vrf) const {
+    return synchronizedRouteTables_.withRLock([&vrf](const auto& routeTables) {
+      return routeTables.routerIDToRouteTable.at(vrf).unresolvedMplsRoutes;
+    });
   }
 
   void addOrUpdateNamedNextHopGroups(
@@ -256,6 +284,20 @@ class RibRouteTables {
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
     LabelToRouteMap labelToRoute;
+
+    // Per-address-family unresolved-routes index. Populated on a
+    // successful updateFib and consumed by the rollback path on
+    // FbossHwUpdateError.
+    std::unordered_map<
+        folly::CIDRNetworkV4,
+        std::shared_ptr<Route<folly::IPAddressV4>>>
+        unresolvedV4Routes;
+    std::unordered_map<
+        folly::CIDRNetworkV6,
+        std::shared_ptr<Route<folly::IPAddressV6>>>
+        unresolvedV6Routes;
+    std::unordered_map<LabelID, std::shared_ptr<Route<LabelID>>>
+        unresolvedMplsRoutes;
 
     bool operator==(const VrfRouteTable& other) const {
       return v4NetworkToRoute == other.v4NetworkToRoute &&
@@ -574,7 +616,7 @@ class RoutingInformationBase {
   template <typename AddressT>
   std::shared_ptr<Route<AddressT>> longestMatch(
       const AddressT& address,
-      RouterID vrf) const {
+      const RouterID& vrf) const {
     return ribTables_.longestMatch(address, vrf);
   }
 
@@ -596,6 +638,24 @@ class RoutingInformationBase {
   // operation and is intended only for tests.
   std::unique_ptr<NextHopIDManager> getNextHopIDManagerCopy() const {
     return ribTables_.getNextHopIDManagerCopy();
+  }
+
+  // Test-only accessors for the per-VRF unresolved-routes indexes.
+  std::unordered_map<
+      folly::CIDRNetworkV4,
+      std::shared_ptr<Route<folly::IPAddressV4>>>
+  getUnresolvedV4RoutesForTest(const RouterID& vrf) const {
+    return ribTables_.getUnresolvedV4RoutesForTest(vrf);
+  }
+  std::unordered_map<
+      folly::CIDRNetworkV6,
+      std::shared_ptr<Route<folly::IPAddressV6>>>
+  getUnresolvedV6RoutesForTest(const RouterID& vrf) const {
+    return ribTables_.getUnresolvedV6RoutesForTest(vrf);
+  }
+  std::unordered_map<LabelID, std::shared_ptr<Route<LabelID>>>
+  getUnresolvedMplsRoutesForTest(const RouterID& vrf) const {
+    return ribTables_.getUnresolvedMplsRoutesForTest(vrf);
   }
 
   // Named next-hop group operations. These run on the RIB thread to ensure
