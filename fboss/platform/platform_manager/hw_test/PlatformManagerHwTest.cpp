@@ -221,6 +221,12 @@ TEST_F(PlatformManagerHwTest, XcvrLedFiles) {
   EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
   explorationOk();
 
+  if (platformConfig_.platformName().value().find("LADAKH800BCLS") !=
+      std::string::npos) {
+    GTEST_SKIP()
+        << "Skipping this test because the platform doesn't have xcvrs.";
+  }
+
   auto primaryColor = xcvrLib_.getPrimaryLedColor();
   auto secondaryColor = fboss::XcvrLib::LedColor::AMBER;
 
