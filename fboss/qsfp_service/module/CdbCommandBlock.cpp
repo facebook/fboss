@@ -53,11 +53,15 @@ constexpr int delayAfterFwCommitUsec = 200000; // 200 ms
 
 // CMIS firmware related register offsets
 constexpr uint8_t kCdbCommandStatusReg = 37;
+constexpr uint8_t kModuleFlagReg = 8;
 constexpr uint8_t kModulePasswordEntryReg = 122;
 constexpr uint8_t kPageSelectReg = 127;
 constexpr uint8_t kCdbCommandMsbReg = 128;
 constexpr uint8_t kCdbCommandLsbReg = 129;
 constexpr uint8_t kCdbRlplLengthReg = 134;
+
+// CdbCmdCompleteFlag1 is at byte 8, bit 6 (page 00h lower memory)
+constexpr uint8_t kCdbCmdCompleteFlag1Mask = 0x40;
 
 // CMIS command
 constexpr int kCmisCommand = static_cast<int>(CmisField::CDB_COMMAND);
@@ -113,7 +117,8 @@ void CdbCommandBlock::i2cWriteAndContinue(
  */
 bool CdbCommandBlock::cmisRunCdbCommand(
     TransceiverImpl* bus,
-    std::optional<uint64_t> overrideTimeoutUsec) {
+    std::optional<uint64_t> overrideTimeoutUsec,
+    bool cdbCmdCompleteFlagSupported) {
   // Command block length is 8 plus lpl memory length
   int len = this->cdbFields_.cdbLplLength + 8;
 
@@ -207,6 +212,40 @@ bool CdbCommandBlock::cmisRunCdbCommand(
   /* sleep override */
   usleep(cdbCommandStatusPollIntervalUsec);
   while (true) {
+    // If CdbCmdCompleteFlag is supported, wait for it to be set before
+    // reading the command status register
+    bool cdbCmdCompleteFlagTimedOut = false;
+    if (cdbCmdCompleteFlagSupported) {
+      uint8_t moduleFlag = 0;
+      try {
+        bus->readTransceiver(
+            {TransceiverAccessParameter::ADDR_QSFP,
+             kModuleFlagReg,
+             1,
+             kLowerPage},
+            &moduleFlag,
+            kCmisCommand);
+      } catch (const std::exception& e) {
+        XLOG(INFO) << fmt::format(
+            "cmisRunCdbCommand Mod{:d}: Failed to read CdbCmdCompleteFlag1: {}",
+            bus->getNum(),
+            e.what());
+      }
+      if (!(moduleFlag & kCdbCmdCompleteFlag1Mask)) {
+        auto currTime = std::chrono::steady_clock::now();
+        if (currTime > finishTime) {
+          XLOG(INFO) << fmt::format(
+              "cmisRunCdbCommand Mod{:d}: CdbCmdCompleteFlag1 not set, timed out, falling through to read status register",
+              bus->getNum());
+          cdbCmdCompleteFlagTimedOut = true;
+        } else {
+          /* sleep override */
+          usleep(cdbCommandStatusPollIntervalUsec);
+          continue;
+        }
+      }
+    }
+
     try {
       bus->readTransceiver(
           {TransceiverAccessParameter::ADDR_QSFP,
@@ -222,6 +261,11 @@ bool CdbCommandBlock::cmisRunCdbCommand(
       /* sleep override */
       usleep(cdbCommandErrorIntervalUsec);
       status = kCdbCommandStatusBusyCmdCaptured;
+    }
+    if (cdbCmdCompleteFlagTimedOut && status == kCdbCommandStatusSuccess) {
+      XLOG(INFO) << fmt::format(
+          "cmisRunCdbCommand Mod{:d}: CdbCmdCompleteFlag1 was not set but CDB status register reports success",
+          bus->getNum());
     }
     if (status != kCdbCommandStatusBusyCmdCaptured &&
         status != kCdbCommandStatusBusyCmdCheck &&

@@ -16,6 +16,7 @@
 #include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 DECLARE_string(fruid_filepath);
+DECLARE_string(mode);
 
 namespace facebook::fboss {
 
@@ -31,6 +32,7 @@ class PlatformProductInfo {
   }
   void initialize();
   std::string getFabricLocation();
+  std::string getOem() const;
   std::string getProductName();
   int getProductVersion() const;
 

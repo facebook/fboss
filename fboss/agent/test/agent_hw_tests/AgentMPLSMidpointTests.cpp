@@ -4,6 +4,7 @@
 #include <folly/Conv.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 
 #include <array>
@@ -290,6 +291,11 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
       bool isV4,
       std::optional<PortID> injectPort) {
     auto pkt = makeMplsIngressPacket(label, ttl, isV4);
+    XLOG(INFO) << "MPLS midpoint injected packet hexdump label "
+               << label.value() << " ttl " << static_cast<int>(ttl)
+               << " payload " << (isV4 ? "IPv4" : "IPv6") << " send "
+               << (injectPort.has_value() ? "front-panel" : "cpu") << ":\n"
+               << folly::hexDump(pkt->buf()->data(), pkt->buf()->length());
     if (injectPort.has_value()) {
       EXPECT_TRUE(
           getAgentEnsemble()->ensureSendPacketOutOfPort(

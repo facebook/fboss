@@ -29827,6 +29827,9 @@
           "test_name_regex": "AgentTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -30193,6 +30196,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -31432,6 +31438,9 @@
           "test_name_regex": "AgentTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -31750,6 +31759,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -32072,6 +32084,9 @@
           "test_name_regex": "AgentTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -32390,6 +32405,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -32716,6 +32734,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"

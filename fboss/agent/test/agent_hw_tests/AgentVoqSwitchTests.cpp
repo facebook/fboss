@@ -879,10 +879,11 @@ TEST_F(AgentVoqSwitchTest, verifyDramErrorDetection) {
       getSw()->updateStats();
       auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
       ASSERT_EVENTUALLY_TRUE(
-          switchStats.hwAsicErrors()->dramErrors().has_value());
-      EXPECT_EVENTUALLY_GT(switchStats.hwAsicErrors()->dramErrors().value(), 0);
-      XLOG(DBG0) << "Dram Error count: "
-                 << switchStats.hwAsicErrors()->dramErrors().value();
+          switchStats.hwAsicErrors()->dramWarnings().has_value());
+      EXPECT_EVENTUALLY_GT(
+          switchStats.hwAsicErrors()->dramWarnings().value(), 0);
+      XLOG(DBG0) << "Dram Warning count: "
+                 << switchStats.hwAsicErrors()->dramWarnings().value();
     });
   };
   verifyAcrossWarmBoots(setup, verify);

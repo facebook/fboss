@@ -8,11 +8,13 @@
  *
  */
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
+#include "fboss/lib/platforms/PlatformDescriptor.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
 #include <memory>
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatform.h"
@@ -45,8 +47,37 @@
 #include "fboss/agent/platforms/sai/SaiWedge800CACTPlatform.h"
 #include "fboss/agent/platforms/sai/SaiYangra2Platform.h"
 #include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
+#include "thrift/lib/cpp/util/EnumUtils.h"
 
 namespace facebook::fboss {
+namespace {
+
+std::string getPlatformMappingForInit(PlatformType type) {
+  std::string platformMappingStr;
+  if (!FLAGS_platform_mapping_override_path.empty()) {
+    if (!folly::readFile(
+            FLAGS_platform_mapping_override_path.data(), platformMappingStr)) {
+      throw FbossError("unable to read ", FLAGS_platform_mapping_override_path);
+    }
+    XLOG(INFO) << "Overriding platform mapping from "
+               << FLAGS_platform_mapping_override_path;
+    return platformMappingStr;
+  }
+
+  if (!FLAGS_platform_descriptor_config_path.empty()) {
+    auto registry = PlatformDescriptorRegistry::get();
+    if (registry.getDescriptor(type)) {
+      auto descriptorPlatformMapping = registry.loadPlatformMapping(type);
+      if (descriptorPlatformMapping.has_value()) {
+        return *descriptorPlatformMapping;
+      }
+    }
+  }
+
+  return platformMappingStr;
+}
+
+} // namespace
 
 std::unique_ptr<SaiPlatform> chooseSaiPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
@@ -167,15 +198,7 @@ std::unique_ptr<Platform> initSaiPlatform(
   productInfo->initialize();
   auto localMac = getLocalMacAddress();
 
-  std::string platformMappingStr;
-  if (!FLAGS_platform_mapping_override_path.empty()) {
-    if (!folly::readFile(
-            FLAGS_platform_mapping_override_path.data(), platformMappingStr)) {
-      throw FbossError("unable to read ", FLAGS_platform_mapping_override_path);
-    }
-    XLOG(INFO) << "Overriding platform mapping from "
-               << FLAGS_platform_mapping_override_path;
-  }
+  auto platformMappingStr = getPlatformMappingForInit(productInfo->getType());
   auto platform =
       chooseSaiPlatform(std::move(productInfo), localMac, platformMappingStr);
   platform->init(std::move(config), hwFeaturesDesired, switchIndex);

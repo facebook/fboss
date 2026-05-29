@@ -589,8 +589,10 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
       tcvrState.moduleTechnology() = ModuleTechnology::LPO;
     } else if (isAecModule()) {
       tcvrState.moduleTechnology() = ModuleTechnology::AEC;
-    } else if (isTunableOptics()) {
-      tcvrState.moduleTechnology() = ModuleTechnology::TUNABLE;
+    } else if (isCBandTunable()) {
+      tcvrState.moduleTechnology() = ModuleTechnology::TUNABLE_C_BAND;
+    } else if (isLBandTunable()) {
+      tcvrState.moduleTechnology() = ModuleTechnology::TUNABLE_L_BAND;
     } else {
       tcvrState.moduleTechnology() = ModuleTechnology::GREY;
     }

@@ -2,6 +2,7 @@
 
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/Route.h"
@@ -470,7 +471,8 @@ bool assertNextHopIdMapsSame(
 void NextHopIDManager::reconstructFromSwitchStateMaps(
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
     const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
-    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+    const RibRouteTables* ribTables) {
   DCHECK(assertNextHopIdMapsSame(fibsInfoMap));
   clearNhopIdManagerState();
 
@@ -575,13 +577,20 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
                 id2NhopIdSetMapInFib);
           }
 
-          // Reconstruct named NHG reverse mapping from per-client entries
+          // Reconstruct named NHG reverse mapping from per-client entries,
+          // and rebuild refcounts for any per-client clientNextHopSetID.
           const auto& nhopsMulti = route->getEntryForClients();
           for (const auto& entry : nhopsMulti) {
             auto nhgName = entry.second->getNamedNextHopGroup();
             if (nhgName.has_value()) {
               auto cidr = route->prefix().toCidrNetwork();
               nameToRoutes_[*nhgName].emplace(rid, cidr);
+            }
+            if (auto clientSetIdOpt = entry.second->getClientNextHopSetID()) {
+              processNhopSetId(
+                  NextHopSetID(*clientSetIdOpt),
+                  id2NhopMapInFib,
+                  id2NhopIdSetMapInFib);
             }
           }
         }
@@ -651,9 +660,7 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
     }
   }
 
-  // MPLS pass: reconstruct nexthop IDs from label FIB entries.
-  // Label routes are stored separately from IPv4/IPv6 FIBs, so they need
-  // their own iteration pass.
+  // MPLS FIB pass: resolved setIDs + per-client clientNextHopSetIDs.
   if (labelFib && fibId2NhopMap && fibId2NhopIdSetMap) {
     for (const auto& [switchId, labelFibInner] : std::as_const(*labelFib)) {
       for (const auto& [label, route] : std::as_const(*labelFibInner)) {
@@ -669,6 +676,75 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
               fibId2NhopMap,
               fibId2NhopIdSetMap);
         }
+        for (const auto& [_clientId, entry] :
+             std::as_const(route->getEntryForClients())) {
+          if (auto clientSetIdOpt = entry->getClientNextHopSetID()) {
+            processNhopSetId(
+                NextHopSetID(*clientSetIdOpt),
+                fibId2NhopMap,
+                fibId2NhopIdSetMap);
+          }
+        }
+      }
+    }
+  }
+
+  // Unresolved-RIB pass: per-client setIDs invisible to the FIB walk.
+  if (ribTables && fibId2NhopMap && fibId2NhopIdSetMap) {
+    // We use unsafeGetUnlocked() because the caller already holds the
+    // synchronizedRouteTables_ wlock — re-locking would self-deadlock.
+    //
+    // The obvious-looking alternative — drop the unsafe access and pass
+    // lockedRouteTables->routerIDToRouteTable straight in as a parameter
+    // — falls apart for two reasons. First, RouterIDToRouteTable /
+    // VrfRouteTable / RouteTables are private nested types in
+    // RibRouteTables, so naming them in this header's signature would
+    // force them all public and require moving them to a shared header.
+    // Second, the moment NextHopIDManager.h mentions a RibRouteTables
+    // type it has to include RoutingInformationBase.h, which already
+    // includes this header back (RibRouteTables owns a NextHopIDManager
+    // member) — circular include.
+    //
+    // Rather than reorganize that type hierarchy for one refcount walk,
+    // we stuck with unsafeGetUnlocked + a friend declaration on
+    // RibRouteTables. Minimal blast radius, no public surface change.
+    const auto& routeTables =
+        ribTables->synchronizedRouteTables_.unsafeGetUnlocked();
+    auto bumpClientSetIdsOnRoute = [&](const auto& route) {
+      if (route->isResolved()) {
+        return;
+      }
+      for (const auto& [_clientId, entry] :
+           std::as_const(route->getEntryForClients())) {
+        if (auto setIdOpt = entry->getClientNextHopSetID()) {
+          processNhopSetId(
+              NextHopSetID(*setIdOpt), fibId2NhopMap, fibId2NhopIdSetMap);
+        }
+      }
+    };
+    // v4/v6 NetworkToRouteMap is a RadixTree — iterator yields nodes
+    // dereferenced via .value().
+    auto processUnresolvedIpRoutes = [&](const auto& routes) {
+      for (auto ritr = routes.begin(); ritr != routes.end(); ++ritr) {
+        bumpClientSetIdsOnRoute(ritr->value());
+      }
+    };
+    // LabelToRouteMap is an unordered_map — range-for yields
+    // pair<LabelID, shared_ptr<Route<LabelID>>>.
+    auto processUnresolvedMplsRoutes = [&](const auto& routes) {
+      for (const auto& [_label, route] : routes) {
+        bumpClientSetIdsOnRoute(route);
+      }
+    };
+    for (const auto& [_vrf, vrfTable] : routeTables.routerIDToRouteTable) {
+      processUnresolvedIpRoutes(vrfTable.v4NetworkToRoute);
+      processUnresolvedIpRoutes(vrfTable.v6NetworkToRoute);
+      // Mirror every other MPLS-touching path in the RIB (FibUpdater,
+      // ConfigApplier, rollback, fromThrift): only walk labelToRoute when
+      // FLAGS_mpls_rib is on, otherwise it may carry stale entries no
+      // decrement path will ever match.
+      if (FLAGS_mpls_rib) {
+        processUnresolvedMplsRoutes(vrfTable.labelToRoute);
       }
     }
   }

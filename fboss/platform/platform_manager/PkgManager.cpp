@@ -74,9 +74,9 @@ int SystemInterface::installRpm(
   int exitStatus{0};
   std::string standardOut{};
   auto cmd = fmt::format(
-      "dnf install {} --assumeyes {}",
+      "dnf install {} --assumeyes --setopt=*.skip_if_unavailable=True {}",
       rpmFullName,
-      repoName.empty() ? "" : "--repo " + repoName);
+      repoName.empty() ? "" : "--disablerepo='*' --enablerepo=" + repoName);
   VLOG(1) << fmt::format("Running command ({})", cmd);
   std::tie(exitStatus, standardOut) = platformUtils_->execCommand(cmd);
   return exitStatus;
@@ -272,15 +272,14 @@ void PkgManager::processRpms() const {
        attempt++) {
     XLOG(INFO) << fmt::format(
         "Installing BSP {}, Attempt #{}", bspKmodsRpmName, attempt);
-    exitStatus = systemInterface_->installRpm(
-        bspKmodsRpmName, attempt == 0 ? "kernel" : "");
+    exitStatus = systemInterface_->installRpm(bspKmodsRpmName, "kernel");
     success = exitStatus == 0;
   }
   if (exitStatus != 0) {
     throw std::runtime_error(
         fmt::format(
             "Failed to install rpm ({}) with exit code {}",
-            FLAGS_local_rpm_path,
+            bspKmodsRpmName,
             exitStatus));
   }
   XLOG(INFO) << "Caching kernel modules dependencies";

@@ -64,7 +64,7 @@ class TestColdBootAgents(unittest.TestCase):
 
     @patch("fboss_agent_utils.subprocess.run")
     def test_raises_on_stop_failure(self, mock_run):
-        def side_effect(cmd, **kwargs):
+        def side_effect(cmd, **_kwargs):
             if "systemctl stop fboss_sw_agent" in cmd:
                 return _mock_run(1)
             return _mock_run(0)
@@ -102,7 +102,7 @@ class TestIsAgentRunning(unittest.TestCase):
 
     @patch("fboss_agent_utils.subprocess.run")
     def test_hw_down(self, mock_run):
-        def side_effect(cmd, **kwargs):
+        def side_effect(cmd, **_kwargs):
             if "fboss_sw_agent" in cmd:
                 return _mock_run(0)
             return _mock_run(3)

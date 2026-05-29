@@ -170,9 +170,14 @@ cpp_library(
 )
 
 cpp_library(
+    # @autodeps-skip: must use :rib_header — :standalone_rib would cycle
+    # through :nexthop_id_manager itself.
     name = "nexthop_id_manager",
     srcs = ["NextHopIDManager.cpp"],
     headers = ["NextHopIDManager.h"],
+    deps = [
+        ":rib_header",
+    ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest_headers",
         "//fboss/agent:fboss-error",

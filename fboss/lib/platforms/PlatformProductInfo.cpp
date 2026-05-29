@@ -9,6 +9,7 @@
  */
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/platforms/PlatformDescriptor.h"
 
 #include <boost/algorithm/string.hpp>
 #include <folly/FileUtil.h>
@@ -56,6 +57,10 @@ std::string PlatformProductInfo::getFabricLocation() {
   return *productInfo_.fabricLocation();
 }
 
+std::string PlatformProductInfo::getOem() const {
+  return *productInfo_.oem();
+}
+
 std::string PlatformProductInfo::getProductName() {
   return *productInfo_.product();
 }
@@ -65,6 +70,15 @@ int PlatformProductInfo::getProductVersion() const {
 }
 
 void PlatformProductInfo::initMode() {
+  if (!FLAGS_platform_descriptor_config_path.empty()) {
+    auto descriptorPlatformType =
+        PlatformDescriptorRegistry::get().findPlatformType(
+            getProductName(), FLAGS_mode);
+    if (descriptorPlatformType.has_value()) {
+      type_ = *descriptorPlatformType;
+      return;
+    }
+  }
   if (FLAGS_mode.empty()) {
     auto modelName = getProductName();
     if (modelName.find("MINIPACK2") == 0) {

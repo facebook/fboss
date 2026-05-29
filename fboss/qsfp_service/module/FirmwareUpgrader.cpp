@@ -42,6 +42,13 @@ constexpr uint8_t kMediaInterfaceTechnologyReg = 212;
 constexpr uint8_t kPage0 = 0x00;
 constexpr uint8_t kCBandTunableLaser = 0x10;
 constexpr uint8_t kLBandTunableLaser = 0x11;
+constexpr uint8_t kCdbAdvertisementReg = 163;
+constexpr uint8_t kCdbAdvertisementPage = 0x01;
+
+// CDB advertisement byte 163, bits 7-6 indicate CdbInstancesSupported
+constexpr uint8_t kCdbInstancesSupportedMask = 0xc0;
+constexpr uint8_t kCdbInstancesSupportedShift = 6;
+constexpr uint8_t kCdbOneCdbInstance = 0x01;
 
 constexpr int moduleDatapathInitDurationUsec = 5000000;
 
@@ -170,6 +177,45 @@ bool CmisFirmwareUpgrader::isTunableModule() const {
   }
 }
 
+bool CmisFirmwareUpgrader::isCdbCmdCompleteFlagSupported() const {
+  try {
+    uint8_t cdbAdvPage = kCdbAdvertisementPage;
+    bus_->writeTransceiver(
+        {TransceiverAccessParameter::ADDR_QSFP, kPageSelectReg, 1, kLowerPage},
+        &cdbAdvPage,
+        POST_I2C_WRITE_NO_DELAY_US,
+        kFwUpgrade);
+    uint8_t cdbAdv = 0;
+    bus_->readTransceiver(
+        {TransceiverAccessParameter::ADDR_QSFP,
+         kCdbAdvertisementReg,
+         1,
+         kCdbAdvertisementPage},
+        &cdbAdv,
+        kFwUpgrade);
+    uint8_t cdbInstances =
+        (cdbAdv & kCdbInstancesSupportedMask) >> kCdbInstancesSupportedShift;
+    if (cdbInstances == kCdbOneCdbInstance) {
+      XLOG(INFO) << fmt::format(
+          "isCdbCmdCompleteFlagSupported: Mod{:d}: CdbCmdCompleteFlag supported",
+          moduleId_);
+      return true;
+    }
+    XLOG(INFO) << fmt::format(
+        "isCdbCmdCompleteFlagSupported: Mod{:d}: CdbCmdCompleteFlag not supported, cdbAdv={:#x}, cdbInstances={:#x}",
+        moduleId_,
+        cdbAdv,
+        cdbInstances);
+    return false;
+  } catch (const std::exception& e) {
+    XLOG(INFO) << fmt::format(
+        "isCdbCmdCompleteFlagSupported: Mod{:d}: Failed to read CDB advertisement: {}",
+        moduleId_,
+        e.what());
+    return false;
+  }
+}
+
 /*
  * cmisModuleFirmwareDownload
  *
@@ -206,11 +252,13 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   CdbCommandBlock commandBlockBuf;
   CdbCommandBlock* commandBlock = &commandBlockBuf;
 
+  bool cdbCmdCompleteFlagSupported = isCdbCmdCompleteFlagSupported();
   // Basic validation first. Check if the firmware download is allowed by
   // issuing the Query command to CDB
   commandBlock->createCdbCmdModuleQuery();
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_);
+  status = commandBlock->cmisRunCdbCommand(
+      bus_, std::nullopt, cdbCmdCompleteFlagSupported);
   if (status) {
     // Query result will be in LPL memory at byte offset 2
     if (commandBlock->getCdbRlplLength() >= 3) {
@@ -237,7 +285,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Done by sending Firmware upgrade feature command to CDB
   commandBlock->createCdbCmdGetFwFeatureInfo();
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_);
+  status = commandBlock->cmisRunCdbCommand(
+      bus_, std::nullopt, cdbCmdCompleteFlagSupported);
 
   // If the CDB command is successful then the Start Command Payload Size is
   // returned by CDB in LPL memory at offset 2
@@ -306,7 +355,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
       startCommandPayloadSize, imageLen, imageOffset, imageBuf);
 
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
+  status = commandBlock->cmisRunCdbCommand(
+      bus_, fwUpgradeCdbTimeoutUsec, cdbCmdCompleteFlagSupported);
   if (!status) {
     // DOWNLOAD_START command failed
     XLOG(INFO) << fmt::format(
@@ -345,7 +395,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
     }
 
     // Run the CDB command
-    status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
+    status = commandBlock->cmisRunCdbCommand(
+        bus_, fwUpgradeCdbTimeoutUsec, cdbCmdCompleteFlagSupported);
     if (!status) {
       // DOWNLOAD_IMAGE command failed
       XLOG(INFO) << fmt::format(
@@ -369,7 +420,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   commandBlock->createCdbCmdFwDownloadComplete();
 
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
+  status = commandBlock->cmisRunCdbCommand(
+      bus_, fwUpgradeCdbTimeoutUsec, cdbCmdCompleteFlagSupported);
   if (!status) {
     // DOWNLOAD_COMPLETE command failed
     XLOG(INFO) << fmt::format(
@@ -395,7 +447,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Run the CDB command
   // No need to check status because RUN command issues soft reset to CDB
   // so we can't check status here
-  status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
+  status = commandBlock->cmisRunCdbCommand(
+      bus_, fwUpgradeCdbTimeoutUsec, cdbCmdCompleteFlagSupported);
 
   XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 4: Issued Firmware download Run command successfully",
@@ -423,7 +476,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   commandBlock->createCdbCmdFwCommit();
 
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
+  status = commandBlock->cmisRunCdbCommand(
+      bus_, fwUpgradeCdbTimeoutUsec, cdbCmdCompleteFlagSupported);
 
   if (!status) {
     XLOG(INFO) << fmt::format(

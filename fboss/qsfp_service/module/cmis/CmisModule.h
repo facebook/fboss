@@ -648,6 +648,8 @@ class CmisModule : public QsfpModule {
    * returns whether optics frequency is tunable or not
    */
   bool isTunableOptics() const override;
+  bool isCBandTunable() const override;
+  bool isLBandTunable() const override;
 
   /*
    * Disable TX and RX squelch on all lanes for tunable optics modules.
