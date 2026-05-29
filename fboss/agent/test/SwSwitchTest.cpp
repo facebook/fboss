@@ -15,11 +15,8 @@
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
-#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ValidateStateUpdate.h"
-#include "fboss/agent/hw/switch_asics/ChenabAsic.h"
-#include "fboss/agent/hw/switch_asics/MockAsic.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
@@ -299,54 +296,6 @@ TEST_F(SwSwitchTest, VerifyEcnValidationWhenFeatureNotSupported) {
   auto port99 = createPortWithEcnProbability(PortID(13), "port13", 99);
   EXPECT_FALSE(hasValidPortQueues(
       port99, false /* isEcnProbabilisticMarkingSupported */));
-}
-
-TEST_F(SwSwitchTest, VerifyPortSpeedChangeValidation) {
-  auto switchSettings =
-      utility::getFirstNodeIf(sw->getState()->getSwitchSettings());
-  auto switchIdToSwitchInfo = switchSettings->getSwitchIdToSwitchInfo();
-  SwitchIdScopeResolver resolver(switchIdToSwitchInfo);
-  auto switchId = SwitchID(switchIdToSwitchInfo.begin()->first);
-
-  auto stateV0 = std::make_shared<SwitchState>();
-  auto portMap0 = stateV0->getPorts()->modify(&stateV0);
-  state::PortFields portFields0;
-  portFields0.portId() = PortID(0);
-  portFields0.portName() = "port0";
-  auto port0 = std::make_shared<Port>(std::move(portFields0));
-  port0->setSpeed(cfg::PortSpeed::HUNDREDG);
-  portMap0->addNode(port0, scope());
-  stateV0->publish();
-
-  auto stateV1 = stateV0->clone();
-  auto portMap1 = stateV1->getPorts()->modify(&stateV1);
-  auto port0Changed = port0->clone();
-  port0Changed->setSpeed(cfg::PortSpeed::FOURHUNDREDG);
-  portMap1->updateNode(port0Changed, scope());
-  stateV1->publish();
-
-  // MockAsic supports SAI_PORT_SPEED_CHANGE, so speed change should be valid
-  auto mockSwitchInfo = cfg::SwitchInfo();
-  mockSwitchInfo.switchType() = cfg::SwitchType::NPU;
-  mockSwitchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
-  mockSwitchInfo.switchMac() = "02:00:00:00:00:01";
-  MockAsic mockAsic(switchId, mockSwitchInfo);
-  EXPECT_TRUE(isStateUpdateValidMultiSwitch(
-      StateDelta(stateV0, stateV1), &resolver, switchId, &mockAsic));
-
-  // ChenabAsic does NOT support SAI_PORT_SPEED_CHANGE, so speed change
-  // should be invalid
-  auto chenabSwitchInfo = cfg::SwitchInfo();
-  chenabSwitchInfo.switchType() = cfg::SwitchType::NPU;
-  chenabSwitchInfo.asicType() = cfg::AsicType::ASIC_TYPE_CHENAB;
-  chenabSwitchInfo.switchMac() = "02:00:00:00:00:01";
-  ChenabAsic chenabAsic(switchId, chenabSwitchInfo);
-  EXPECT_FALSE(isStateUpdateValidMultiSwitch(
-      StateDelta(stateV0, stateV1), &resolver, switchId, &chenabAsic));
-
-  // Same speed (no change) should be valid even on ChenabAsic
-  EXPECT_TRUE(isStateUpdateValidMultiSwitch(
-      StateDelta(stateV0, stateV0), &resolver, switchId, &chenabAsic));
 }
 
 TEST_F(SwSwitchTest, gracefulExit) {

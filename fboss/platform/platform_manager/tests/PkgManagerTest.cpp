@@ -191,7 +191,7 @@ TEST_F(PkgManagerTest, processRpms) {
               "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
               *platformConfig_.bspKmodsRpmName(),
               *platformConfig_.bspKmodsRpmVersion()),
-          _))
+          "kernel"))
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(0));
   EXPECT_NO_THROW(pkgManager_.processRpms());
@@ -220,7 +220,7 @@ TEST_F(PkgManagerTest, processRpms) {
               "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
               *platformConfig_.bspKmodsRpmName(),
               *platformConfig_.bspKmodsRpmVersion()),
-          _))
+          "kernel"))
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(0));
   EXPECT_NO_THROW(pkgManager_.processRpms());
@@ -266,7 +266,7 @@ TEST_F(PkgManagerTest, processRpms) {
               "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
               *platformConfig_.bspKmodsRpmName(),
               *platformConfig_.bspKmodsRpmVersion()),
-          _))
+          "kernel"))
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(1));
   EXPECT_NO_THROW(pkgManager_.processRpms());
@@ -293,7 +293,7 @@ TEST_F(PkgManagerTest, processRpms) {
               "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
               *platformConfig_.bspKmodsRpmName(),
               *platformConfig_.bspKmodsRpmVersion()),
-          _))
+          "kernel"))
       .Times(3)
       .WillRepeatedly(Return(1));
   EXPECT_THROW(pkgManager_.processRpms(), std::runtime_error);

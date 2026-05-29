@@ -74,15 +74,25 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
         Clears out any files in the /tmp/generated_platform_mappings directory.
         """
         if os.path.exists(self._TMP_GENERATED_DIR):
-            for filename in os.listdir(self._TMP_GENERATED_DIR):
-                file_path = os.path.join(self._TMP_GENERATED_DIR, filename)
-                try:
-                    if os.path.isfile(file_path) or os.path.islink(file_path):
+            for root, dirs, files in os.walk(self._TMP_GENERATED_DIR, topdown=False):
+                for filename in files:
+                    file_path = os.path.join(root, filename)
+                    try:
                         os.unlink(file_path)
-                    elif os.path.isdir(file_path):
-                        os.rmdir(file_path)
-                except Exception as e:
-                    print(f"Failed to delete {file_path}. Reason: {e}", file=sys.stderr)
+                    except OSError as e:
+                        print(
+                            f"Failed to delete {file_path}. Reason: {e}",
+                            file=sys.stderr,
+                        )
+                for dirname in dirs:
+                    dir_path = os.path.join(root, dirname)
+                    try:
+                        os.rmdir(dir_path)
+                    except OSError as e:
+                        print(
+                            f"Failed to delete {dir_path}. Reason: {e}",
+                            file=sys.stderr,
+                        )
 
     def _generate_all_oss_platform_mappings_in_tmp(self) -> None:
         for is_multi_npu, platforms in self._OSS_MULTI_NPU_SUPPORTED_PLATFORMS.items():
@@ -93,6 +103,15 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
                     platform,
                     is_multi_npu,
                 )
+
+    def _get_relative_files(self, directory: str) -> List[str]:
+        relative_files = []
+        for root, _, filenames in os.walk(directory):
+            for filename in filenames:
+                relative_files.append(
+                    os.path.relpath(os.path.join(root, filename), directory)
+                )
+        return sorted(relative_files)
 
     def test_generated_files_match(self) -> None:
         """
@@ -125,12 +144,12 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             file=sys.stderr,
         )
 
-        ref_files = os.listdir(self._FBCODE_GENERATED_DIR)
-        gen_files = os.listdir(self._TMP_GENERATED_DIR)
+        ref_files = self._get_relative_files(self._FBCODE_GENERATED_DIR)
+        gen_files = self._get_relative_files(self._TMP_GENERATED_DIR)
 
         self.assertEqual(
-            sorted(ref_files),
-            sorted(gen_files),
+            ref_files,
+            gen_files,
             "Fbcode and tmp generated files don't match",
         )
 

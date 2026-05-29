@@ -2,7 +2,7 @@
 import copy
 import json
 from enum import IntEnum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
 from fboss.lib.platform_mapping_v2.port_profile_mapping import PortProfileMapping
@@ -10,6 +10,7 @@ from fboss.lib.platform_mapping_v2.profile_settings import ProfileSettings
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
 from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
 from neteng.fboss.asic_config_v2.thrift_types import AsicVendorConfigParams
+from neteng.fboss.fboss_common.thrift_types import PlatformType
 from neteng.fboss.phy.phy.thrift_types import (
     FecMode,
     InterfaceType,
@@ -34,6 +35,7 @@ from neteng.fboss.platform_mapping_config.thrift_types import (
     TransceiverOverrideSetting,
 )
 from neteng.fboss.switch_config.thrift_types import (
+    AsicType,
     PortProfileID,
     PortSpeed,
     PortType,
@@ -55,6 +57,10 @@ def column_int_enum_generator(string_list: str):
     return IntEnum(
         "Column", {item: idx for idx, item in enumerate(string_list.split())}
     )
+
+
+def split_csv_list(value: str) -> List[str]:
+    return [item for item in value.split("-") if item]
 
 
 def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping:
@@ -235,6 +241,37 @@ def read_port_profile_mapping(
     return PortProfileMapping(ports=ports)
 
 
+def read_platform_descriptor(directory: Dict[str, str], prefix: str) -> Dict[str, Any]:
+    PLATFORM_DESCRIPTOR_SUFFIX = "_platform_descriptor.csv"
+    Column = column_int_enum_generator(
+        "SYSTEM_VENDOR PLATFORM_TYPE PRODUCT_NAME_PREFIXES MODE_NAMES ASIC_TYPE"
+    )
+    for index, line in enumerate(
+        get_content(directory, prefix + PLATFORM_DESCRIPTOR_SUFFIX).splitlines()
+    ):
+        if index < 1:
+            continue
+        row = line.split(",")
+        # pyrefly: ignore [missing-attribute]
+        system_vendor = row[Column.SYSTEM_VENDOR]
+        # pyrefly: ignore [missing-attribute]
+        platform_type = PlatformType[row[Column.PLATFORM_TYPE]]
+        # pyrefly: ignore [missing-attribute]
+        product_name_prefixes = split_csv_list(row[Column.PRODUCT_NAME_PREFIXES])
+        # pyrefly: ignore [missing-attribute]
+        mode_names = split_csv_list(row[Column.MODE_NAMES])
+        # pyrefly: ignore [missing-attribute]
+        asic_type = AsicType[row[Column.ASIC_TYPE]]
+        return {
+            "systemVendor": system_vendor,
+            "platformType": int(platform_type),
+            "productNamePrefixes": product_name_prefixes,
+            "modeNames": mode_names,
+            "asicType": int(asic_type),
+        }
+    raise ValueError(f"No platform descriptor row found for {prefix}")
+
+
 def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSettings:
     PROFILE_SETTINGS_SUFFIX = "_profile_settings.csv"
     Column = column_int_enum_generator(
@@ -309,7 +346,7 @@ def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSett
     return ProfileSettings(speed_settings=profiles)
 
 
-def read_si_settings(
+def read_si_settings(  # noqa: C901
     directory: Dict[str, str], prefix: str, version: Optional[str] = None
 ) -> SiSettings:
     si_suffix = f"_{version}" if version is not None else ""

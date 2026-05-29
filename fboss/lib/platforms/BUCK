@@ -74,6 +74,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/re2:re2",
         ":fruid_fields",
+        ":platform_descriptor",
         "//common/fbwhoami:fb_who_am_i",
         "//fboss/agent:fboss-error",
         "//fboss/agent/if:product_info-cpp2-types",

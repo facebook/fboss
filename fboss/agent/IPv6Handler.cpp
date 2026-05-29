@@ -905,9 +905,11 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
   }
 
   if (!Interface::isIpAttached(targetIP, intfID, state)) {
+    auto intf = state->getInterfaces()->getNodeIf(intfID);
     XLOG(DBG2) << "unicast neighbor solicitation not sent, neighbor address: "
-               << targetIP << ", is not in the subnets of interface: "
-               << " for interface:" << intfID;
+               << targetIP << " for interface:" << intfID << " ("
+               << (intf ? intf->getAddresses()->size() : 0)
+               << " addresses configured on interface)";
     return;
   }
 

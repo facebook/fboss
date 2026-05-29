@@ -10,6 +10,7 @@ include "fboss/agent/switch_state.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/mpls.thrift"
+include "fboss/lib/phy/phy.thrift"
 include "common/network/if/Address.thrift"
 include "thrift/annotation/thrift.thrift"
 
@@ -217,4 +218,19 @@ service AgentHwTestCtrl {
 
   // acl table group utils
   bool isAclTableGroupEnabled(1: i32 aclStage);
+
+  // port profile utils — returns list of mismatch descriptions (empty = pass)
+  list<string> verifyPortProfile(
+    1: i32 portId,
+    2: switch_config.PortProfileID profileId,
+    3: phy.ProfileSideConfig profileConfig,
+    4: list<phy.PinConfig> pinConfigs,
+  );
+
+  phy.FecMode getPortFECMode(1: i32 portId);
+
+  bool rxSignalDetectSupportedInSdk();
+  bool rxLockStatusSupportedInSdk();
+  bool pcsRxLinkStatusSupportedInSdk();
+  bool fecAlignmentLockSupportedInSdk();
 }

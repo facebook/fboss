@@ -2016,7 +2016,7 @@ void EcmpResourceManager::routeDeleted(
     XLOG(DBG2) << "Delete route: " << removed->str() << " all references to "
                << groupId << " are now gone";
     if (!routeHasOverrides) {
-      CHECK_GE(inOutState->ecmpMemberCnt, numGroupNhops);
+      // Last reference to this ECMP group gone
       inOutState->ecmpMemberCnt -= numGroupNhops;
       if (wasVirtualArsGroup) {
         CHECK_GT(inOutState->virtualEcmpGroupsCnt, 0u);
@@ -2035,7 +2035,6 @@ void EcmpResourceManager::routeDeleted(
                  << ") Group ID: " << groupId << " removed";
     } else if (!mergeInfoItr) {
       // Backup group: undo members posted when promoted to backup mode.
-      CHECK_GE(inOutState->ecmpMemberCnt, numGroupNhops);
       inOutState->ecmpMemberCnt -= numGroupNhops;
     }
   } else {

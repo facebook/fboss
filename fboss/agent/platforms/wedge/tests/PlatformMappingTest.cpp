@@ -24,6 +24,7 @@
 #include "fboss/agent/platforms/common/yamp/Yamp16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/platforms/PlatformDescriptor.h"
 #include "fboss/lib/platforms/PlatformMode.h"
 
 #include <gtest/gtest.h>
@@ -100,6 +101,13 @@ TEST_F(PlatformMappingTest, VerifyWedge400CPlatformMapping) {
 
   auto mapping = std::make_unique<Wedge400CPlatformMapping>();
   verify(mapping.get());
+}
+
+TEST(PlatformDescriptorMappingTest, DefaultRegistryHasNoWedge800BACTMapping) {
+  auto externalMappingStr =
+      PlatformDescriptorRegistry::get().loadPlatformMapping(
+          PlatformType::PLATFORM_WEDGE800BACT);
+  EXPECT_FALSE(externalMappingStr.has_value());
 }
 
 TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {

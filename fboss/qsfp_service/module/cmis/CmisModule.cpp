@@ -3917,18 +3917,23 @@ void CmisModule::configureModule(uint8_t startHostLane) {
 }
 
 bool CmisModule::isTunableOptics() const {
+  return isCBandTunable() || isLBandTunable();
+}
+
+bool CmisModule::isCBandTunable() const {
   auto info = QsfpFieldInfo<CmisField, CmisPages>::getQsfpFieldAddress(
       cmisFields, CmisField::MEDIA_INTERFACE_TECHNOLOGY);
   const uint8_t* data =
       getQsfpValuePtr(info.dataAddress, info.offset, info.length);
+  return *data == DeviceTechnologyCmis::C_BAND_TUNABLE_LASER_CMIS;
+}
 
-  uint8_t transTech = *data;
-  if ((transTech == DeviceTechnologyCmis::C_BAND_TUNABLE_LASER_CMIS) ||
-      (transTech == DeviceTechnologyCmis::L_BAND_TUNABLE_LASER_CMIS)) {
-    return true;
-  } else {
-    return false;
-  }
+bool CmisModule::isLBandTunable() const {
+  auto info = QsfpFieldInfo<CmisField, CmisPages>::getQsfpFieldAddress(
+      cmisFields, CmisField::MEDIA_INTERFACE_TECHNOLOGY);
+  const uint8_t* data =
+      getQsfpValuePtr(info.dataAddress, info.offset, info.length);
+  return *data == DeviceTechnologyCmis::L_BAND_TUNABLE_LASER_CMIS;
 }
 
 bool CmisModule::isLpoModule() const {

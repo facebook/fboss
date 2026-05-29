@@ -1107,6 +1107,9 @@ endforeach()
 install(DIRECTORY ${CMAKE_BINARY_DIR}/fboss/
   DESTINATION include/fboss
   FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
+install(DIRECTORY ${CMAKE_BINARY_DIR}/configerator/
+  DESTINATION include/configerator
+  FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
 
 install(TARGETS
   nodebase address_utils radix_tree exponential_back_off
@@ -1119,6 +1122,20 @@ install(TARGETS
   cfgr_fboss_common_cpp2 asic_temp_cpp2
   bcm_config_cpp2 asic_config_cpp2 asic_config_v2_cpp2
   io_stats_cpp2
+  # FSDB client libraries for downstream consumers (BGP++ FsdbSyncer,
+  # NeighborWatcher). Dependents before dependencies for one-pass linkers.
+  fsdb_syncer fsdb_pub_sub fsdb_sub_mgr fsdb_stream_client
+  fsdb_flags fsdb_utils
+  fsdb_model_cpp2 thriftpath_lib
+  fsdb_common_cpp2 fsdb_oper_cpp2 fsdb_cpp2
+  cow_storage_mgr oper_path_helpers
+  common_thrift_utils thrift_service_client
+  # COW subscription instantiations (FsdbCowStateSubManager)
+  fsdb_cow_state_sub_mgr fsdb_cow_storage fsdb_cow_root
+  # FSDB model transitive thrift deps (agent state/config/info types)
+  switch_state_cpp2 agent_config_cpp2 agent_info_cpp2
+  switch_reachability_cpp2
+  qsfp_state_cpp2 qsfp_stats_cpp2 sensor_service_stats_cpp2
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
 )

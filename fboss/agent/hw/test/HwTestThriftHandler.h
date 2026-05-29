@@ -16,6 +16,7 @@
 #include "fboss/agent/HwSwitch.h"
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <cstdint>
 #include <memory>
@@ -229,6 +230,20 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
   void getAllMirrorDestinations(::std::vector<int64_t>& destinations) override;
 
   bool isMirrorSflowTunnelEnabled(int64_t destination) override;
+
+  void verifyPortProfile(
+      std::vector<std::string>& result,
+      int32_t portId,
+      cfg::PortProfileID profileId,
+      std::unique_ptr<phy::ProfileSideConfig> profileConfig,
+      std::unique_ptr<std::vector<phy::PinConfig>> pinConfigs) override;
+
+  phy::FecMode getPortFECMode(int32_t portId) override;
+
+  bool rxSignalDetectSupportedInSdk() override;
+  bool rxLockStatusSupportedInSdk() override;
+  bool pcsRxLinkStatusSupportedInSdk() override;
+  bool fecAlignmentLockSupportedInSdk() override;
 
  private:
   HwSwitch* hwSwitch_;

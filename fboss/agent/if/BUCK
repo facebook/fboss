@@ -359,6 +359,7 @@ thrift_library(
         "//common/network/if:if",
         "//fboss/agent:switch_config",
         "//fboss/agent:switch_state",
+        "//fboss/lib/phy:phy",
         "//thrift/annotation:cpp",
         "//thrift/annotation:thrift",
     ],

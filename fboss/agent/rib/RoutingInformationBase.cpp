@@ -614,7 +614,8 @@ void RibRouteTables::updateFib(
         lockedRouteTables->nextHopIDManager->reconstructFromSwitchStateMaps(
             hwUpdateError.appliedState->getFibsInfoMap(),
             hwUpdateError.appliedState->getMySids(),
-            hwUpdateError.appliedState->getLabelForwardingInformationBase());
+            hwUpdateError.appliedState->getLabelForwardingInformationBase(),
+            this);
       }
 
       // Reconstruct MySidTable from the applied state
@@ -654,7 +655,8 @@ void RibRouteTables::updateFib(
         lockedRouteTables->nextHopIDManager->reconstructFromSwitchStateMaps(
             hwUpdateError.appliedState->getFibsInfoMap(),
             hwUpdateError.appliedState->getMySids(),
-            hwUpdateError.appliedState->getLabelForwardingInformationBase());
+            hwUpdateError.appliedState->getLabelForwardingInformationBase(),
+            this);
       }
     }
     throw;
@@ -1132,7 +1134,7 @@ RibRouteTables RibRouteTables::fromThrift(
   // boot
   if (lockedRouteTables->nextHopIDManager && fibsInfoMap) {
     lockedRouteTables->nextHopIDManager->reconstructFromSwitchStateMaps(
-        fibsInfoMap, mySidMap, labelFib);
+        fibsInfoMap, mySidMap, labelFib, &rib);
   }
   return rib;
 }
@@ -1523,7 +1525,8 @@ void RibRouteTables::updateFibNamedNextHopGroups(
         lockedRouteTables->nextHopIDManager->reconstructFromSwitchStateMaps(
             hwUpdateError.appliedState->getFibsInfoMap(),
             hwUpdateError.appliedState->getMySids(),
-            hwUpdateError.appliedState->getLabelForwardingInformationBase());
+            hwUpdateError.appliedState->getLabelForwardingInformationBase(),
+            this);
       }
     }
     throw;

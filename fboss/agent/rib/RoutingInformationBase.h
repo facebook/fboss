@@ -89,6 +89,11 @@ using MySidNeighborRemoved = std::pair<folly::CIDRNetworkV6, folly::IPAddress>;
  * lookups that are not encumbered by long HW write cycles
  */
 class RibRouteTables {
+  // NextHopIDManager iterates unresolved RIB routes inside
+  // reconstructFromSwitchStateMaps to rebuild refcounts for per-client
+  // clientNextHopSetIDs that the FIB walk can't see.
+  friend class NextHopIDManager;
+
  public:
   RibRouteTables() = default;
 

@@ -1,10 +1,14 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/core.h>
+
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
+#include "fboss/agent/hw/test/PhyCapabilities.h"
 #include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
 
 namespace facebook {
@@ -271,6 +275,59 @@ bool HwTestThriftHandler::verifyPktFromAggPort(int aggPortId) {
       cfg::PacketRxReason::UNMATCHED,
       0 /* queue Id */);
   return rxPacket->isFromAggregatePort();
+}
+
+void HwTestThriftHandler::verifyPortProfile(
+    std::vector<std::string>& result,
+    int32_t portId,
+    cfg::PortProfileID profileId,
+    std::unique_ptr<phy::ProfileSideConfig> profileConfig,
+    std::unique_ptr<std::vector<phy::PinConfig>> pinConfigs) {
+  auto platform = hwSwitch_->getPlatform();
+  auto tryVerify = [&](const std::string& name, auto&& fn) {
+    try {
+      fn();
+    } catch (const std::exception& ex) {
+      result.push_back(
+          fmt::format("{} failed on port {}: {}", name, portId, ex.what()));
+    }
+  };
+  tryVerify("verifyInterfaceMode", [&]() {
+    ::facebook::fboss::utility::verifyInterfaceMode(
+        PortID(portId), profileId, platform, *profileConfig);
+  });
+  tryVerify("verifyTxSettting", [&]() {
+    ::facebook::fboss::utility::verifyTxSettting(
+        PortID(portId), profileId, platform, *pinConfigs);
+  });
+  tryVerify("verifyRxSettting", [&]() {
+    ::facebook::fboss::utility::verifyRxSettting(
+        PortID(portId), profileId, platform, *pinConfigs);
+  });
+  tryVerify("verifyFec", [&]() {
+    ::facebook::fboss::utility::verifyFec(
+        PortID(portId), profileId, platform, *profileConfig);
+  });
+}
+
+phy::FecMode HwTestThriftHandler::getPortFECMode(int32_t portId) {
+  return hwSwitch_->getPortFECMode(PortID(portId));
+}
+
+bool HwTestThriftHandler::rxSignalDetectSupportedInSdk() {
+  return ::facebook::fboss::rxSignalDetectSupportedInSdk();
+}
+
+bool HwTestThriftHandler::rxLockStatusSupportedInSdk() {
+  return ::facebook::fboss::rxLockStatusSupportedInSdk();
+}
+
+bool HwTestThriftHandler::pcsRxLinkStatusSupportedInSdk() {
+  return ::facebook::fboss::pcsRxLinkStatusSupportedInSdk();
+}
+
+bool HwTestThriftHandler::fecAlignmentLockSupportedInSdk() {
+  return ::facebook::fboss::fecAlignmentLockSupportedInSdk();
 }
 
 } // namespace utility

@@ -84,6 +84,9 @@ class CmisFirmwareUpgrader {
 
   // Check if module is tunable by reading MEDIA_INTERFACE_TECHNOLOGY register
   bool isTunableModule() const;
+
+  // Check if CdbCmdCompleteFlag is supported by reading the CDB advertisement
+  bool isCdbCmdCompleteFlagSupported() const;
 };
 
 } // namespace facebook::fboss

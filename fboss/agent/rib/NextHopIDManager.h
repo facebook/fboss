@@ -20,6 +20,8 @@
 
 namespace facebook::fboss {
 
+class RibRouteTables;
+
 // A set of NextHopIDs (used as key for NextHopIDSetID mapping)
 using NextHopIDSet = std::set<NextHopID>;
 
@@ -279,10 +281,14 @@ class NextHopIDManager {
    * switches. NextHopID manager is common across all switches, but the NextHop
    * ID maps in the switch state are specific to each switch.
    */
+  // ribTables: when non-null, also walks unresolved RIB routes to reconstruct
+  // refcounts for clientNextHopSetIDs that the FIB walk cannot see. Pass
+  // nullptr from callsites that have no RIB to consult.
   void reconstructFromSwitchStateMaps(
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
-      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+      const RibRouteTables* ribTables);
 
  private:
   // Decrement reference count for a NextHopID and deallocate if count reaches 0
@@ -352,6 +358,9 @@ class NextHopIDManager {
   FRIEND_TEST(NextHopIDManagerTest, updateRouteNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMaps);
   FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMapsMultiSwitch);
+  FRIEND_TEST(
+      NextHopIDManagerTest,
+      reconstructFromSwitchStateMapsClientNextHopSetID);
   FRIEND_TEST(
       NextHopIDManagerTest,
       reconstructFromSwitchStateMaps_MySidResolvedNextHopsId);

@@ -109,9 +109,12 @@ class CdbCommandBlock {
   // Public function to run the CDB command on the module. An optional
   // timeout can be passed to override the default
   // FLAGS_cdb_command_timeout_usec.
+  // cdbCmdCompleteFlagSupported enables polling the CdbCmdCompleteFlag1 before
+  // reading command status.
   bool cmisRunCdbCommand(
       TransceiverImpl* bus,
-      std::optional<uint64_t> overrideTimeoutUsec = std::nullopt);
+      std::optional<uint64_t> overrideTimeoutUsec = std::nullopt,
+      bool cdbCmdCompleteFlagSupported = false);
   // Provide response data to caller
   uint8_t getResponseData(uint8_t** pResponse);
 
