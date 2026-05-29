@@ -491,7 +491,9 @@
         101,
         94,
         105,
-        89
+        89,
+        87,
+        78
     ],
     "tomahawkultra1": [
         2,
@@ -1103,7 +1105,9 @@
         "AIFM_PACKET_STREAM_HANDLER",
         "L2_QOS",
         "L4_DST_PORT_RANGE",
-        "AM_IDLES"
+        "AM_IDLES",
+        "UDF_HASH",
+        "ECMP_RANDOM_SPRAY"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
