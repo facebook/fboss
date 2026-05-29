@@ -2055,6 +2055,9 @@
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -2484,6 +2487,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -9552,6 +9558,9 @@
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -9969,6 +9978,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -14768,6 +14780,9 @@
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -15185,6 +15200,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -20784,9 +20802,6 @@
           "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
-          "test_name_regex": "AgentBthOpcodeAclCounterTest.VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
-        },
-        {
           "test_name_regex": "AgentFlowletSwitchingTest.VerifyEcmp$"
         },
         {
@@ -21239,9 +21254,6 @@
           "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
-          "test_name_regex": "AgentBthOpcodeAclCounterTest.VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
-        },
-        {
           "test_name_regex": "AgentFlowletSwitchingTest.VerifyEcmp$"
         },
         {
@@ -21332,22 +21344,7 @@
           "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
         },
         {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
-        },
-        {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
-        },
-        {
-          "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
-        },
-        {
           "test_name_regex": "AgentAqmWredDropTest.verifyWredDrop$"
-        },
-        {
-          "test_name_regex": "AgentFlowletAclPriorityTest.VerifyUdfAclPriority$"
-        },
-        {
-          "test_name_regex": "AgentFlowletAclPriorityTest.VerifyUdfAclPriorityWB$"
         },
         {
           "test_name_regex": "AgentFlowletWideArsSwitchingTest.EcmpScaleTest$"
@@ -24821,9 +24818,6 @@
           "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
-          "test_name_regex": "AgentBthOpcodeAclCounterTest.VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
-        },
-        {
           "test_name_regex": "AgentFlowletSwitchingTest.VerifyEcmp$"
         },
         {
@@ -25276,9 +25270,6 @@
           "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
-          "test_name_regex": "AgentBthOpcodeAclCounterTest.VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
-        },
-        {
           "test_name_regex": "AgentFlowletSwitchingTest.VerifyEcmp$"
         },
         {
@@ -25369,22 +25360,7 @@
           "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
         },
         {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
-        },
-        {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
-        },
-        {
-          "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
-        },
-        {
           "test_name_regex": "AgentAqmWredDropTest.verifyWredDrop$"
-        },
-        {
-          "test_name_regex": "AgentFlowletAclPriorityTest.VerifyUdfAclPriority$"
-        },
-        {
-          "test_name_regex": "AgentFlowletAclPriorityTest.VerifyUdfAclPriorityWB$"
         },
         {
           "test_name_regex": "AgentFlowletWideArsSwitchingTest.EcmpScaleTest$"
@@ -27191,6 +27167,9 @@
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -27674,6 +27653,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -29956,6 +29938,9 @@
           "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -30325,6 +30310,9 @@
         },
         {
           "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -31567,6 +31555,9 @@
           "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -31888,6 +31879,9 @@
         },
         {
           "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -32213,6 +32207,9 @@
           "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -32534,6 +32531,9 @@
         },
         {
           "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -32863,6 +32863,9 @@
         },
         {
           "test_name_regex": "AgentHwLinkDebounceTest.PacketDropDuringDownHoldoff$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
