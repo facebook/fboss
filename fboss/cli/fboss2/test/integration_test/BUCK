@@ -19,6 +19,8 @@ cpp_binary(
         "ConfigArpTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigInterfaceDescriptionTest.cpp",
+        "ConfigInterfaceIpv6NdpTest.cpp",
+        "DeleteInterfaceIpv6NdpTest.cpp",
         "ConfigInterfaceMtuTest.cpp",
         "ConfigInterfaceProfileTest.cpp",
         "ConfigL2LearningModeTest.cpp",

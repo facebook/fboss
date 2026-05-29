@@ -14,6 +14,7 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <chrono>
 #include <cstddef>
@@ -29,6 +30,7 @@
 #include <stdexcept>
 #include <streambuf>
 #include <string>
+#include <string_view>
 #include <system_error>
 #include <thread>
 #include <utility>
@@ -172,6 +174,24 @@ folly::dynamic Fboss2IntegrationTest::getSwitchState(
   std::string stateJson;
   client->sync_getCurrentStateJSON(stateJson, path);
   return folly::parseJson(stateJson);
+}
+
+int Fboss2IntegrationTest::getInterfaceIdForPort(
+    const std::string& portName) const {
+  HostInfo hostInfo("localhost");
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+  std::map<int32_t, InterfaceDetail> intfDetails;
+  client->sync_getAllInterfaces(intfDetails);
+  for (const auto& [intfId, detail] : intfDetails) {
+    for (const auto& name : *detail.portNames()) {
+      if (name == portName) {
+        return *detail.interfaceId();
+      }
+    }
+  }
+  throw std::runtime_error(
+      fmt::format("No L3 interface found for port {}", portName));
 }
 
 std::optional<std::pair<int, std::string>>
@@ -371,6 +391,29 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::findFirstEthInterface()
 
 void Fboss2IntegrationTest::commitConfig() const {
   auto result = runCli({"config", "session", "commit"});
+  if (result.exitCode == 0) {
+    return;
+  }
+  // When a commit triggers an agent restart (warmboot / coldboot to apply the
+  // new config), the thrift call can lose its connection mid-flight. The
+  // commit itself may have been accepted before the restart — callers should
+  // confirm the actual outcome via getRunningConfig() / waitForRunningConfig().
+  // Treat the disconnect signatures as expected: log, wait for the agent to
+  // come back, and return without failing the test here.
+  static constexpr std::array<std::string_view, 3> kRestartSignatures = {
+      "Channel got EOF",
+      "Connection refused",
+      "Socket not open",
+  };
+  for (auto sig : kRestartSignatures) {
+    if (result.stderr.find(sig) != std::string::npos) {
+      XLOG(INFO)
+          << "Commit dropped connection (likely agent restart): " << sig
+          << ". Waiting for agent to come back; caller must verify via running config.";
+      waitForAgentReady();
+      return;
+    }
+  }
   ASSERT_EQ(result.exitCode, 0) << "Failed to commit config: " << result.stderr;
 }
 
@@ -514,6 +557,53 @@ Fboss2IntegrationTest::waitForPortRunningInfo(
              << " — last observed: profile=" << last.profileId
              << ", speed=" << last.speedMbps << " Mbps";
   return last;
+}
+
+folly::dynamic Fboss2IntegrationTest::waitForRunningConfig(
+    const std::function<bool(const folly::dynamic&)>& condition,
+    std::chrono::seconds timeout,
+    std::chrono::seconds interval) const {
+  auto deadline = std::chrono::steady_clock::now() + timeout;
+  folly::dynamic last = folly::dynamic::object();
+  bool everFetched = false;
+  do {
+    try {
+      last = getRunningConfig();
+      everFetched = true;
+      if (condition(last)) {
+        return last;
+      }
+      XLOG(DBG1) << "Running-config condition not yet met, retrying in "
+                 << interval.count() << "s...";
+    } catch (const std::exception& e) {
+      XLOG(DBG1) << "Failed to fetch running config (" << e.what()
+                 << "), retrying in " << interval.count() << "s...";
+    }
+    /* sleep override */ std::this_thread::sleep_for(interval);
+  } while (std::chrono::steady_clock::now() < deadline);
+  XLOG(WARN) << "Timed out waiting for running-config condition after "
+             << timeout.count() << "s"
+             << (everFetched ? "" : " (config never successfully fetched)")
+             << "; returning last observed config";
+  return last;
+}
+
+folly::dynamic Fboss2IntegrationTest::getNdpConfig(
+    const folly::dynamic& runningConfig,
+    int intfID) {
+  if (!runningConfig.isObject() || !runningConfig.count("sw")) {
+    return folly::dynamic::object();
+  }
+  const auto& sw = runningConfig["sw"];
+  if (!sw.count("interfaces")) {
+    return folly::dynamic::object();
+  }
+  for (const auto& iface : sw["interfaces"]) {
+    if (iface.count("intfID") && iface["intfID"].asInt() == intfID) {
+      return iface.count("ndp") ? iface["ndp"] : folly::dynamic::object();
+    }
+  }
+  return folly::dynamic::object();
 }
 
 } // namespace facebook::fboss
