@@ -304,21 +304,18 @@ cpp_library(
 )
 
 hw_test_common_srcs = [
-    "HwVerifyPfcConfigInHwTest.cpp",
     "HwTestFabricUtils.cpp",
     "HwEmptyTest.cpp",
     "HwLabelEdgeRouteTest.cpp",
     "HwLabelSwitchRouteTest.cpp",
     "HwLinkStateDependentTest.cpp",
     "HwMirrorTests.cpp",
-    "HwPortProfileTests.cpp",
     "HwTest.cpp",
     "HwVlanTests.cpp",
     "HwFlowletSwitchingTests.cpp",
 ]
 
 hw_dataplane_test_srcs = [
-    "dataplane_tests/HwL3Tests.cpp",
     "dataplane_tests/HwSflowTests.cpp",
     "dataplane_tests/HwTrunkLoadBalancerTests.cpp",
 ]
@@ -391,7 +388,6 @@ cpp_library(
         "//fboss/agent/test/utils:ecmp_dataplane_test_util",
         "//fboss/agent/test/utils:load_balancer_test_runner_h",
         "//fboss/agent/test/utils:load_balancer_test_utils",
-        "//fboss/agent/test/utils:pfc_test_utils",
         "//fboss/agent/test/utils:port_stats_test_utils",
         "//fboss/agent/test/utils:queue_per_host_test_utils",
         "//fboss/agent/test/utils:stats_test_utils",
@@ -463,7 +459,6 @@ cpp_library(
         "//fboss/agent/test:linkstate_toggler",
         "//fboss/agent/test:trunk_utils",
         "//fboss/agent/test/utils:agent_hw_test_constants",
-        "//fboss/agent/test/utils:pfc_test_utils",
         "//fboss/agent/test/utils:port_stats_test_utils",
         "//fboss/agent/test/utils:stats_test_utils",
         "//fboss/agent/test/utils:udf_test_utils",
@@ -527,8 +522,7 @@ cpp_library(
 cpp_library(
     name = "phy_capabilities",
     headers = ["PhyCapabilities.h"],
-    exported_deps = [
-    ],
+    exported_deps = [],
 )
 
 cpp_library(

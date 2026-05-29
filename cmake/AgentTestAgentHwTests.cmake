@@ -138,6 +138,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentMacLearningTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningAndNeighborResolutionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropDnxTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropSrv6Tests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropStatelessTest.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropStatelessTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTajoImpl.cpp
@@ -183,6 +184,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentHwAclStatTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclTableTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclTableGroupTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAclTableGroupTrafficTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwResourceStatsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwParityErrorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentTrafficPfcTests.cpp

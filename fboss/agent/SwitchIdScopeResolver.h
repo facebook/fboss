@@ -102,12 +102,8 @@ class SwitchIdScopeResolver {
   HwSwitchMatcher scope(
       const std::shared_ptr<Srv6Tunnel>& tunnel,
       const cfg::SwitchConfig& cfg) const;
-  const HwSwitchMatcher& scope(const cfg::AclEntry& /*acl*/) const {
-    return l3SwitchMatcher();
-  }
-  const HwSwitchMatcher& scope(const std::shared_ptr<AclEntry>& /*acl*/) const {
-    return l3SwitchMatcher();
-  }
+  HwSwitchMatcher scope(const cfg::AclEntry& acl) const;
+  HwSwitchMatcher scope(const std::shared_ptr<AclEntry>& acl) const;
   const HwSwitchMatcher scope(const std::shared_ptr<Vlan>& vlan) const;
 
   HwSwitchMatcher scope(SystemPortID sysPortID) const;

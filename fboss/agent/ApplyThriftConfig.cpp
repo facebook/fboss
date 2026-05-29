@@ -170,6 +170,59 @@ std::shared_ptr<MultiMap> toMultiSwitchMap(
   return multiMap;
 }
 
+std::shared_ptr<AclTable> scopeAclTableToSwitch(
+    const std::shared_ptr<AclTable>& aclTable,
+    SwitchID switchId,
+    const facebook::fboss::SwitchIdScopeResolver& resolver) {
+  AclMap::NodeContainer scopedAcls;
+  for (const auto& aclEntry : *aclTable->getAclMap()) {
+    const auto& acl = aclEntry.second;
+    if (resolver.scope(acl).has(switchId)) {
+      scopedAcls.emplace(acl->getID(), acl);
+    }
+  }
+  auto scopedAclTable = aclTable->clone();
+  scopedAclTable->setAclMap(std::make_shared<AclMap>(std::move(scopedAcls)));
+  return scopedAclTable;
+}
+
+std::shared_ptr<AclTableGroup> scopeAclTableGroupToSwitch(
+    const std::shared_ptr<AclTableGroup>& aclTableGroup,
+    SwitchID switchId,
+    const facebook::fboss::SwitchIdScopeResolver& resolver) {
+  auto scopedAclTableMap = std::make_shared<AclTableMap>();
+  for (const auto& aclTableEntry : *aclTableGroup->getAclTableMap()) {
+    scopedAclTableMap->addTable(
+        scopeAclTableToSwitch(aclTableEntry.second, switchId, resolver));
+  }
+  auto scopedAclTableGroup = aclTableGroup->clone();
+  scopedAclTableGroup->setAclTableMap(scopedAclTableMap);
+  return scopedAclTableGroup;
+}
+
+std::shared_ptr<MultiSwitchAclTableGroupMap>
+toScopedMultiSwitchAclTableGroupMap(
+    const std::shared_ptr<AclTableGroupMap>& aclTableGroups,
+    const facebook::fboss::SwitchIdScopeResolver& resolver) {
+  auto multiSwitchAclTableGroups =
+      std::make_shared<MultiSwitchAclTableGroupMap>();
+  for (const auto& switchIdAndInfo : resolver.switchIdToSwitchInfo()) {
+    auto switchId = static_cast<SwitchID>(switchIdAndInfo.first);
+    auto switchMatcher =
+        HwSwitchMatcher(std::unordered_set<SwitchID>({switchId}));
+    for (const auto& aclTableGroupEntry : *aclTableGroups) {
+      const auto& aclTableGroup = aclTableGroupEntry.second;
+      if (!resolver.scope(aclTableGroup).has(switchId)) {
+        continue;
+      }
+      multiSwitchAclTableGroups->addNode(
+          scopeAclTableGroupToSwitch(aclTableGroup, switchId, resolver),
+          switchMatcher);
+    }
+  }
+  return multiSwitchAclTableGroups;
+}
+
 bool checkParallelLinksToInterfaceNodes(
     const cfg::SwitchConfig* cfg,
     const std::vector<SwitchID>& localFabricSwitchIds,
@@ -840,9 +893,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (FLAGS_enable_acl_table_group) {
       auto newAclTableGroups = updateAclTableGroups();
       if (newAclTableGroups) {
-        new_->resetAclTableGroups(
-            toMultiSwitchMap<MultiSwitchAclTableGroupMap>(
-                newAclTableGroups, scopeResolver_));
+        new_->resetAclTableGroups(toScopedMultiSwitchAclTableGroupMap(
+            newAclTableGroups, scopeResolver_));
         changed = true;
       }
     } else {
@@ -5638,6 +5690,16 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
+  // Snapshot FLAGS_ecmp_width into switch_state. On warmboot replay a
+  // mismatch between the stored value and the current FLAGS_ecmp_width
+  // triggers assert and coldboot.
+  {
+    int32_t newEcmpWidth = static_cast<int32_t>(FLAGS_ecmp_width);
+    if (origSwitchSettings->getEcmpWidth() != newEcmpWidth) {
+      newSwitchSettings->setEcmpWidth(newEcmpWidth);
+      switchSettingsChange = true;
+    }
+  }
   {
     std::optional<int32_t> fabricLinkMonitoringSystemPortOffset;
     if (cfg_->switchSettings()->fabricLinkMonitoringSystemPortOffset()) {
@@ -5973,6 +6035,21 @@ std::shared_ptr<MultiSwitchMirrorMap> ThriftConfigApplier::updateMirrors() {
     return nullptr;
   }
 
+  std::map<std::string, std::set<SwitchID>> portReferencedMirrorSwitchIds;
+  for (const auto& matcherAndPortMap : std::as_const(*(new_->getPorts()))) {
+    auto matcher = HwSwitchMatcher(matcherAndPortMap.first);
+    for (const auto& port : std::as_const(*matcherAndPortMap.second)) {
+      if (auto ingressMirror = port.second->getIngressMirror()) {
+        portReferencedMirrorSwitchIds[*ingressMirror].insert(
+            matcher.switchIds().begin(), matcher.switchIds().end());
+      }
+      if (auto egressMirror = port.second->getEgressMirror()) {
+        portReferencedMirrorSwitchIds[*egressMirror].insert(
+            matcher.switchIds().begin(), matcher.switchIds().end());
+      }
+    }
+  }
+
   auto multiSwitchMirrors = std::make_shared<MultiSwitchMirrorMap>();
   for (auto& switchIdAndSwitchInfo :
        *cfg_->switchSettings()->switchIdToSwitchInfo()) {
@@ -5990,6 +6067,11 @@ std::shared_ptr<MultiSwitchMirrorMap> ThriftConfigApplier::updateMirrors() {
         if (!portScope.has(SwitchID(switchId))) {
           continue;
         }
+      } else if (auto mirrorSwitchIds =
+                     portReferencedMirrorSwitchIds.find(mirrorMapEntry.first);
+                 mirrorSwitchIds != portReferencedMirrorSwitchIds.end() &&
+                 !mirrorSwitchIds->second.contains(SwitchID(switchId))) {
+        continue;
       }
       auto newMirror = mirror->clone();
       newMirror->setSwitchId(SwitchID(switchId));

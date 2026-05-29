@@ -116,6 +116,26 @@ AgentMirrorOnDropStatelessTest::getMmuDropReasons() {
   return egressOnly(impl()->getMmuDropReason());
 }
 
+MirrorOnDropDropReasonCodes
+AgentMirrorOnDropStatelessTest::getSrv6MidpointNonLastSidDropReasons() {
+  return ingressOnly(impl()->getSrv6MidpointNonLastSidDropReason());
+}
+
+MirrorOnDropDropReasonCodes
+AgentMirrorOnDropStatelessTest::getSrv6DecapNonLastSegmentDropReasons() {
+  return ingressOnly(impl()->getSrv6DecapNonLastSegmentDropReason());
+}
+
+MirrorOnDropDropReasonCodes
+AgentMirrorOnDropStatelessTest::getSrv6BindingSidNonLastSidDropReasons() {
+  return ingressOnly(impl()->getSrv6BindingSidNonLastSidDropReason());
+}
+
+MirrorOnDropDropReasonCodes
+AgentMirrorOnDropStatelessTest::getSrv6MidpointUnresolvedDropReasons() {
+  return ingressOnly(impl()->getSrv6MidpointUnresolvedDropReason());
+}
+
 void AgentMirrorOnDropStatelessTest::configureMmuDropBuffers(
     cfg::SwitchConfig& config,
     const PortID& injectionPortId,
@@ -146,7 +166,8 @@ void AgentMirrorOnDropStatelessTest::validateMirrorOnDropPacket(
     const folly::IOBuf* captured,
     const PortID& injectionPortId,
     const MirrorOnDropDropReasonCodes& expectedReasons,
-    std::optional<folly::IPAddressV6> expectedInnerDstIp) {
+    std::optional<folly::IPAddressV6> expectedInnerDstIp,
+    std::optional<folly::IPAddressV6> expectedInnerSrcIp) {
   verifyAsicSpecificInvariants(captured);
   auto fields = parseMirrorOnDropPacket(captured);
 
@@ -159,7 +180,7 @@ void AgentMirrorOnDropStatelessTest::validateMirrorOnDropPacket(
   EXPECT_EQ(fields.ingressPort, static_cast<uint16_t>(injectionPortId));
   EXPECT_EQ(fields.dropReasonIngress, expectedReasons.ingressDropReason);
   EXPECT_EQ(fields.dropReasonEgress, expectedReasons.egressDropReason);
-  EXPECT_EQ(fields.innerSrcIp, kPacketSrcIp_);
+  EXPECT_EQ(fields.innerSrcIp, expectedInnerSrcIp.value_or(kPacketSrcIp_));
 
   if (expectedInnerDstIp.has_value()) {
     EXPECT_EQ(fields.innerDstIp, expectedInnerDstIp.value());

@@ -149,9 +149,7 @@ bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
 
     // Mark the SAI adaptor as thread-safe to enable parallel XPHY
     // initialization.
-    SaiApiLock::getInstance()->setAdaptorIsThreadSafe(true);
-    XLOG(INFO) << "Enabled parallel XPHY initialization by marking SAI adaptor "
-               << "as thread-safe";
+    // SaiApiLock::getInstance()->setAdaptorIsThreadSafe(true);
   }
 
   return true;

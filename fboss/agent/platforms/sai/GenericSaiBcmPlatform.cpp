@@ -1,0 +1,64 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/agent/platforms/sai/GenericSaiBcmPlatform.h"
+
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+
+namespace facebook::fboss {
+
+// TODO: these defaults match Wedge800BACT; they should eventually come from
+// ASIC traits or the platform descriptor config.
+namespace {
+constexpr uint32_t kDefaultNumLanesPerCore = 8;
+constexpr uint32_t kDefaultNumCellsAvailable = 319960;
+} // namespace
+
+GenericSaiBcmPlatform::GenericSaiBcmPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<PlatformMapping> platformMapping,
+    folly::MacAddress localMac)
+    : SaiBcmPlatform(
+          std::move(productInfo),
+          std::move(platformMapping),
+          localMac) {}
+
+GenericSaiBcmPlatform::~GenericSaiBcmPlatform() = default;
+
+void GenericSaiBcmPlatform::setupAsic(
+    std::optional<int64_t> switchId,
+    const cfg::SwitchInfo& switchInfo,
+    std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
+  asic_ = HwAsic::makeAsic(
+      switchId.value_or(0), switchInfo, std::nullopt, fabricNodeRole);
+}
+
+HwAsic* GenericSaiBcmPlatform::getAsic() const {
+  return asic_.get();
+}
+
+uint32_t GenericSaiBcmPlatform::numLanesPerCore() const {
+  return kDefaultNumLanesPerCore;
+}
+
+uint32_t GenericSaiBcmPlatform::numCellsAvailable() const {
+  return kDefaultNumCellsAvailable;
+}
+
+std::vector<FlexPortMode> GenericSaiBcmPlatform::getSupportedFlexPortModes()
+    const {
+  return {};
+}
+
+bool GenericSaiBcmPlatform::supportInterfaceType() const {
+  return true;
+}
+
+} // namespace facebook::fboss

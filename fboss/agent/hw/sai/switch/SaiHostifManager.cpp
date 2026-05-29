@@ -24,11 +24,7 @@
 
 extern "C" {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saihostifextensions.h>
-#else
-#include <saihostifextensions.h>
-#endif
 #endif
 }
 

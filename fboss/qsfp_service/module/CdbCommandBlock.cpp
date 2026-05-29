@@ -185,12 +185,6 @@ bool CdbCommandBlock::cmisRunCdbCommand(
       &buf[1],
       kCdbPage);
 
-  // Special handling for RUN command
-  if (this->cdbFields_.cdbCommandCode ==
-      htons(kCdbCommandFirmwareDownloadRun)) {
-    return true;
-  }
-
   // Special handling for COMMIT command
   if (this->cdbFields_.cdbCommandCode ==
       htons(kCdbCommandFirmwareDownloadCommit)) {
@@ -505,7 +499,15 @@ void CdbCommandBlock::createCdbCmdFwDownloadComplete() {
  * createCdbCmdFwImageRun
  *
  * This function creates the CDB command block for the new firmware image run
- * command. This creates "run immediate" command.
+ * command. This creates "run immediate" command with a configurable delay
+ * before reset occurs.
+ *
+ * Per OIF-CMIS-05.3 Table 9-28:
+ * - Byte 136 (cdbLplFlatMemory[0]): Reserved = 0
+ * - Byte 137 (cdbLplFlatMemory[1]): ImageToRun = 0 (Traffic affecting Reset)
+ * - Bytes 138-139 (cdbLplFlatMemory[2-3]): DelayToReset (U16, big-endian)
+ *   Indicates the delay in ms after receiving this command before a reset
+ *   will occur.
  */
 void CdbCommandBlock::createCdbCmdFwImageRun() {
   resetCdbBlock();
@@ -513,9 +515,15 @@ void CdbCommandBlock::createCdbCmdFwImageRun() {
   cdbFields_.cdbEplLength = 0;
 
   cdbFields_.cdbLplLength = 4;
-  // No delay needed before running this ccommand
-  cdbFields_.cdbLplMemory.cdbLplFlatMemory[2] = 0;
-  cdbFields_.cdbLplMemory.cdbLplFlatMemory[3] = 0;
+
+  // DelayToReset = 0x1388 (5000ms, 5 seconds) in big-endian format
+  // This gives the host time to read the CdbStatus message before reset
+  constexpr uint16_t delayToResetMs = 5000;
+  cdbFields_.cdbLplMemory.cdbLplFlatMemory[2] =
+      (delayToResetMs >> 8) & 0xFF; // High byte = 0x13
+  cdbFields_.cdbLplMemory.cdbLplFlatMemory[3] =
+      delayToResetMs & 0xFF; // Low byte = 0x88
+
   cdbFields_.cdbChecksum = onesComplementSum();
 }
 

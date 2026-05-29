@@ -86,6 +86,9 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
         "montblanc_odd_ports_8x100G",
         "montblanc",
     ],
+    "minipack3bta": [
+        "minipack3bta_16rifs",
+    ],
 }
 
 _PLATFORM_TO_BASE_PLATFORM: Dict[str, str] = {

@@ -9,6 +9,12 @@ DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
 
 DEFINE_bool(test_fixture, false, "Enable test fixture platform mapping");
 
+// TODO: Remove once rifs limitation is fixed
+DEFINE_bool(
+    minipack3bta_16rifs,
+    false,
+    "Enable 16rifs platform mapping for minipack3bta");
+
 DEFINE_bool(dsf_4k, false, "Enable DSF Scale Test config");
 
 DEFINE_bool(dsf_100g_nif_breakout, false, "Enable J3 DSF Scale Test config");

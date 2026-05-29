@@ -1553,6 +1553,9 @@
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
         },
         {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
+        },
+        {
           "test_name_regex": "AgentMacOverFlowTest.*$"
         },
         {
@@ -1952,6 +1955,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "AgentMacOverFlowTest.*$"
@@ -3148,6 +3154,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks"
         }
     ],
@@ -3508,6 +3517,9 @@
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
           "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks"
@@ -4266,6 +4278,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig$"
         },
         {
@@ -4635,6 +4650,9 @@
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig$"
@@ -6366,6 +6384,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         }
     ],
@@ -6755,6 +6776,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
         },
         {
@@ -7132,6 +7156,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         }
     ],
@@ -7498,6 +7525,9 @@
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -9027,6 +9057,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
         }
     ],
     "brcm/13.0_ea_odp/13.0_ea_odp/tomahawk3/multi_switch": [
@@ -9422,6 +9455,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
         }
     ],
     "brcm/13.0_ea_odp/13.0_ea_odp/tomahawk4/mono": [
@@ -11549,6 +11585,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -11941,6 +11980,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -12321,6 +12363,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -12690,6 +12735,9 @@
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -14225,6 +14273,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk3/multi_switch": [
@@ -14620,6 +14671,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk4/mono": [
@@ -17657,6 +17711,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -18047,6 +18104,9 @@
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -18450,6 +18510,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -18824,6 +18887,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -19193,6 +19259,9 @@
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -21679,6 +21748,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -22069,6 +22141,9 @@
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -22472,6 +22547,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -22846,6 +22924,9 @@
           "test_name_regex": "AgentEcmpTrunkTest.*"
         },
         {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -23215,6 +23296,9 @@
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -26542,6 +26626,9 @@
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
         },
         {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -26971,6 +27058,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -27991,6 +28081,15 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         }
     ],
     "chenab/2505.34/2505.34/chenab/multi_switch": [
@@ -28056,6 +28155,15 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -28136,6 +28244,15 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         }
     ],
     "chenab/2511.36/2511.36/chenab/multi_switch": [
@@ -28201,6 +28318,15 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -32949,6 +33075,15 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         }
     ],
     "nvda/2505.34/2505.34/spectrum4/multi_switch": [
@@ -33014,6 +33149,15 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -33094,6 +33238,15 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         }
     ],
     "nvda/2511.36/2511.36/spectrum4/multi_switch": [
@@ -33159,6 +33312,15 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
