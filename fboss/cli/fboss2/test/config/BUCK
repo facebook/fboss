@@ -29,6 +29,7 @@ cpp_unittest(
         "CmdConfigVlanStaticMacTest.cpp",
         "CmdDeleteInterfaceIpv6NdpTest.cpp",
         "ConfigSessionSystemdTest.cpp",
+        "CmdDeleteInterfaceIpv6NdpTest.cpp",
     ],
     headers = [
         "MockFbossServiceUtil.h",
