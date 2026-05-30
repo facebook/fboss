@@ -28,7 +28,8 @@ bcm_test_platforms_common_srcs = [
 
 cpp_library(
     name = "bcm_test_platforms",
-    srcs = bcm_test_platforms_common_srcs + [
+    srcs = bcm_test_platforms_common_srcs
+    + [
         "BcmTestWedgeTomahawk3Platform.cpp",
         "BcmTestWedgeTomahawkPlatform.cpp",
         "FakeBcmTestPlatform.cpp",
@@ -65,7 +66,8 @@ cpp_library(
 
 cpp_library(
     name = "fake_bcm_test_platforms",
-    srcs = bcm_test_platforms_common_srcs + [
+    srcs = bcm_test_platforms_common_srcs
+    + [
         "BcmTestWedgeTomahawk3Platform.cpp",
         "BcmTestWedgeTomahawkPlatform.cpp",
         "FakeBcmTestPlatform.cpp",

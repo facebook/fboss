@@ -67,30 +67,34 @@ fboss_fbpkg_builder(
 
 build_test_artifacts_fbpkgs(product_lines = [ProductLine.NVIDIA_SAI_SDK])
 
-#Build LEABA test artifacts fbpkg
+# Build LEABA test artifacts fbpkg
 build_test_artifacts_fbpkgs(product_lines = [ProductLine.LEABA])
 
-#Build BCM test artifacts fbpkg (All three product lines use the same product name (brcm))
-build_test_artifacts_fbpkgs(product_lines = [
-    ProductLine.SAI_SDK_BCM,
-    ProductLine.BCM_DSF_SDK,
-])
+# Build BCM test artifacts fbpkg (All three product lines use the same product name (brcm))
+build_test_artifacts_fbpkgs(
+    product_lines = [
+        ProductLine.SAI_SDK_BCM,
+        ProductLine.BCM_DSF_SDK,
+    ]
+)
 
-#Build BCM_native_sdk test artifacts fbpkg (native_bcm)
+# Build BCM_native_sdk test artifacts fbpkg (native_bcm)
 build_test_artifacts_fbpkgs(product_lines = [ProductLine.BCM_NATIVE_SDK])
 
 build_hw_agent_artifacts_fbpkgs(product_lines = [ProductLine.NVIDIA_SAI_SDK])
 
-#Build LEABA test artifacts fbpkg
+# Build LEABA test artifacts fbpkg
 build_hw_agent_artifacts_fbpkgs(product_lines = [ProductLine.LEABA])
 
-#Build BCM test artifacts fbpkg (All three product lines use the same product name (brcm))
-build_hw_agent_artifacts_fbpkgs(product_lines = [
-    ProductLine.SAI_SDK_BCM,
-    ProductLine.BCM_DSF_SDK,
-])
+# Build BCM test artifacts fbpkg (All three product lines use the same product name (brcm))
+build_hw_agent_artifacts_fbpkgs(
+    product_lines = [
+        ProductLine.SAI_SDK_BCM,
+        ProductLine.BCM_DSF_SDK,
+    ]
+)
 
-#Build DSF multinode test artifacts fbpkg
+# Build DSF multinode test artifacts fbpkg
 build_test_artifacts_fbpkgs(
     product_lines = [ProductLine.BCM_DSF_SDK],
     test_types = ["multinode_test"],

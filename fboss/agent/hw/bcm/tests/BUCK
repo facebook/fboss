@@ -376,7 +376,7 @@ bcm_test_all_hw_common_srcs = [
     "PhyCapabilities.cpp",
 ]
 
-#Ideally, we should have the same srcs for both real and fake bcm tests
+# Ideally, we should have the same srcs for both real and fake bcm tests
 bcm_test_all_hw_facebook_srcs = bcm_test_all_hw_common_srcs + [
     "facebook/BcmSwitchEnsemble.cpp",
     "facebook/BcmTestHandler.cpp",
@@ -650,8 +650,7 @@ cpp_library(
         "HwTestUdfUtilsThriftHandler.cpp",
         "HwTestVoqSwitchUtilsThriftHandler.cpp",
     ],
-    headers = [
-    ],
+    headers = [],
     undefined_symbols = "True",  # The sai/bcm implementations will define some functions
     exported_deps = [
         "fbsource//third-party/fmt:fmt",

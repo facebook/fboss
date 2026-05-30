@@ -1024,8 +1024,7 @@ thrift_library(
         "serde",
     ],
     thrift_srcs = {"production_features.thrift": []},
-    deps = [
-    ],
+    deps = [],
 )
 
 cpp_library(

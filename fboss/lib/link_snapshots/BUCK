@@ -4,8 +4,7 @@ oncall("fboss_agent_push")
 
 cpp_library(
     name = "ring_buffer",
-    srcs = [
-    ],
+    srcs = [],
     headers = [
         "RingBuffer.h",
         "RingBuffer-defs.h",

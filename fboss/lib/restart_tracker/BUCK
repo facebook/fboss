@@ -18,6 +18,5 @@ cpp_library(
         "//folly:synchronized",
         "//folly/logging:logging",
     ],
-    exported_external_deps = [
-    ],
+    exported_external_deps = [],
 )

@@ -80,8 +80,7 @@ cpp_library(
 agent_benchmark_lib(
     name = "hw_bgp_rx_slow_path_rate",
     srcs = ["HwBGPRxSlowPathBenchmark.cpp"],
-    extra_deps = [
-    ],
+    extra_deps = [],
 )
 
 agent_benchmark_lib(
