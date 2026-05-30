@@ -943,6 +943,11 @@ class SwSwitch : public HwSwitchCallback {
       const std::string& reason,
       const std::optional<folly::IPAddressV6>& targetIP = std::nullopt);
 
+  // Send ARP request for interfaces with desiredPeerAddressIPv4 configured
+  void sendArpRequestForConfiguredInterfaces(
+      const std::string& reason,
+      const std::optional<folly::IPAddressV4>& targetIP = std::nullopt);
+
   InterfaceID getInterfaceIDForAggregatePort(
       AggregatePortID aggregatePortID) const;
 

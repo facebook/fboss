@@ -1645,6 +1645,7 @@ void SwSwitch::initialConfigApplied(
   XLOG(DBG4)
       << "SwSwitch::initialConfigApplied - Checking for existing interfaces that need neighbor solicitation after warm boot";
   sendNeighborSolicitationForConfiguredInterfaces("warm boot");
+  sendArpRequestForConfiguredInterfaces("warm boot");
 
   if (flags_ & SwitchFlags::PUBLISH_STATS) {
     stats()->switchConfiguredMs(
@@ -4435,6 +4436,124 @@ void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
                 << intf->getID() << " - reason: " << reason << ": " << e.what();
             folly::rethrow_current_exception();
           }
+        }
+      }
+    }
+  }
+}
+
+void SwSwitch::sendArpRequestForConfiguredInterfaces(
+    const std::string& reason,
+    const std::optional<folly::IPAddressV4>& targetIP) {
+  if (!FLAGS_arp_static_neighbor) {
+    return;
+  }
+
+  auto currentState = getState();
+  if (!currentState) {
+    XLOG(WARN)
+        << "SwSwitch::sendArpRequestForConfiguredInterfaces - No current state available";
+    return;
+  }
+
+  auto interfaces = currentState->getInterfaces();
+  for (const auto& [_, intfMap] : std::as_const(*interfaces)) {
+    for (const auto& [_, intf] : std::as_const(*intfMap)) {
+      if (!intf->getDesiredPeerAddressIPv4().has_value()) {
+        continue;
+      }
+
+      auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv4();
+      auto cidrNetwork =
+          folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
+      auto desiredPeerAddressIPv4 = cidrNetwork.first.asV4();
+
+      // If targetIP is specified, only process that specific IP
+      if (targetIP.has_value() && desiredPeerAddressIPv4 != targetIP) {
+        continue;
+      }
+
+      if (!intf->canReachAddress(desiredPeerAddressIPv4)) {
+        continue;
+      }
+
+      // Check if interface is operationally UP
+      bool isInterfaceOperationallyUp = false;
+
+      switch (intf->getType()) {
+        case cfg::InterfaceType::PORT: {
+          // Fix: PORT type interfaces have ports directly associated
+          auto portIds = getPortsForInterface(intf->getID(), currentState);
+          for (auto portId : portIds) {
+            auto port = currentState->getPorts()->getNodeIf(portId);
+            if (port && port->isPortUp()) {
+              isInterfaceOperationallyUp = true;
+              break;
+            }
+          }
+          break;
+        }
+        case cfg::InterfaceType::VLAN: {
+          // In production, FBOSS uses 1:1 VLAN-to-port mapping
+          // (onePortPerInterfaceConfig), so this loop effectively checks
+          // if the single port in the VLAN is UP. The loop handles the
+          // general multi-port case defensively.
+          if (auto vlanID = intf->getVlanID()) {
+            auto vlanMap = currentState->getVlans();
+            if (vlanMap) {
+              auto vlan = vlanMap->getNodeIf(vlanID);
+              if (vlan) {
+                for (auto memberPort : vlan->getPortsInfo()) {
+                  auto port =
+                      currentState->getPorts()->getNodeIf(memberPort.first);
+                  if (port && port->isPortUp()) {
+                    isInterfaceOperationallyUp = true;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+          break;
+        }
+        case cfg::InterfaceType::SYSTEM_PORT: {
+          if (auto sysPortID = intf->getSystemPortID()) {
+            auto physPortID = getPortID(sysPortID.value(), currentState);
+            auto port = currentState->getPorts()->getNodeIf(physPortID);
+            if (port && port->isPortUp()) {
+              isInterfaceOperationallyUp = true;
+            }
+          }
+          break;
+        }
+      }
+
+      if (isInterfaceOperationallyUp) {
+        auto sourceAddr = intf->getAddressToReach(desiredPeerAddressIPv4);
+        if (sourceAddr.has_value()) {
+          XLOG(DBG4)
+              << "SwSwitch::sendArpRequestForConfiguredInterfaces - Sending ARP request for interface "
+              << intf->getID() << " (" << intf->getName()
+              << ") with desiredPeerAddressIPv4 "
+              << desiredPeerAddressIPv4.str() << " - reason: " << reason;
+
+          try {
+            sendArpRequestHelper(
+                intf,
+                currentState,
+                sourceAddr->first.asV4(),
+                desiredPeerAddressIPv4);
+          } catch (const std::exception& e) {
+            XLOG(ERR)
+                << "SwSwitch::sendArpRequestForConfiguredInterfaces - Failed to send ARP request for interface "
+                << intf->getID() << " - reason: " << reason << ": " << e.what();
+          }
+        } else {
+          XLOG(WARN)
+              << "SwSwitch::sendArpRequestForConfiguredInterfaces - No source address found to reach "
+              << desiredPeerAddressIPv4.str() << " on interface "
+              << intf->getID()
+              << " - check that the interface has an IPv4 address in the same subnet";
         }
       }
     }
