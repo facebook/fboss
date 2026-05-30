@@ -71,13 +71,10 @@ SystemPortID findRemoteSysPortId(
       *dsfNodeIter->second.systemPortRanges()->systemPortRanges();
   CHECK(!ranges.empty()) << "No system port ranges for remote switchId "
                          << remoteSwitchId;
-  auto firstRemoteSysPortId =
-      static_cast<int>(getFirstRemoteGlobalSystemPortId(*sw));
   auto remoteSysPorts = state->getRemoteSystemPorts()->getAllNodes();
   auto found = 0;
   for (const auto& range : ranges) {
-    auto begin =
-        std::max(firstRemoteSysPortId, static_cast<int>(*range.minimum()));
+    auto begin = static_cast<int>(*range.minimum());
     auto end = static_cast<int>(*range.maximum());
     for (auto sysPortId = begin; sysPortId <= end; ++sysPortId) {
       if (pred(remoteSysPorts, SystemPortID(sysPortId))) {
