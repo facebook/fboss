@@ -2550,9 +2550,20 @@ int32_t ThriftHandler::flushNeighborEntry(
                  << ", checking for interfaces that need neighbor solicitation";
 
       if (parsedIP.isV6()) {
-        // Use common function to send neighbor solicitation for specific IP
         sw_->sendNeighborSolicitationForConfiguredInterfaces(
             "NDP entry clear", parsedIP.asV6());
+      }
+    }
+
+    // Check if ARP static neighbor is enabled
+    if (FLAGS_arp_static_neighbor) {
+      XLOG(DBG4) << "ThriftHandler::flushNeighborEntry - Entry flushed for "
+                 << parsedIP.str()
+                 << ", checking for interfaces that need ARP request";
+
+      if (parsedIP.isV4()) {
+        sw_->sendArpRequestForConfiguredInterfaces(
+            "ARP entry clear", parsedIP.asV4());
       }
     }
 
