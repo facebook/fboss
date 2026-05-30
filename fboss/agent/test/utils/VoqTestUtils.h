@@ -76,19 +76,9 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
     TestEnsembleIf* ensemble,
     utility::EcmpSetupTargetedPorts6& ecmpHelper);
 
-boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
-    TestEnsembleIf* ensemble,
-    utility::EcmpSetupTargetedPorts6& ecmpHelper,
-    const boost::container::flat_set<PortDescriptor>& sysPortDescs);
-
 boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
     TestEnsembleIf* ensemble,
     utility::EcmpSetupTargetedPorts6& ecmpHelper);
-
-boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
-    TestEnsembleIf* ensemble,
-    utility::EcmpSetupTargetedPorts6& ecmpHelper,
-    const boost::container::flat_set<PortDescriptor>& sysPortDescs);
 
 void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<SystemPortMap>>& switchId2SystemPorts,
