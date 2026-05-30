@@ -193,6 +193,7 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
       {"RxEqPrecursor", {2, 2, 2, 2}},
       {"RxEqPostcursor", {0, 0, 0, 0}},
       {"RxEqMain", {3, 3, 3, 3}},
+      {"CurrentAppSel", {1, 1, 1, 1}},
   };
 
   auto settings = info.tcvrState()->settings().value_or({});

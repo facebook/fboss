@@ -1078,6 +1078,11 @@ bool CmisModule::getHostLaneSettings(
   getQsfpFieldAddress(CmisField::RX_OUT_MAIN, dataAddress, offset, length);
   dataMain = getQsfpValuePtr(dataAddress, offset, length);
 
+  const uint8_t* dataActiveCtrl;
+  getQsfpFieldAddress(
+      CmisField::ACTIVE_CTRL_ALL_LANES, dataAddress, offset, length);
+  dataActiveCtrl = getQsfpValuePtr(dataAddress, offset, length);
+
   for (int lane = 0; lane < laneSettings.size(); lane++) {
     auto laneMask = (1 << lane);
     laneSettings[lane].lane() = lane;
@@ -1096,6 +1101,9 @@ bool CmisModule::getHostLaneSettings(
     QSFP_LOG(DBG3, this) << fmt::format(
         "Lane = {:d}, Main = {:d}", lane, mainVal);
     laneSettings[lane].rxOutputAmplitude() = mainVal;
+
+    uint8_t appSel = (dataActiveCtrl[lane] & APP_SEL_MASK) >> APP_SEL_BITSHIFT;
+    laneSettings[lane].currentAppSel() = appSel;
   }
   return true;
 }
