@@ -4594,6 +4594,39 @@ bool SwSwitch::hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId) {
   return false;
 }
 
+bool SwSwitch::hasQualifiedConfiguredDesiredPeerIPv4(
+    const InterfaceID& intfId) {
+  auto switchState = getState();
+  auto* intf = switchState->getInterfaces()->getNode(intfId).get();
+  if (intf->getDesiredPeerAddressIPv4().has_value()) {
+    auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv4();
+    auto cidrNetwork =
+        folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
+    if (!cidrNetwork.first.isV4()) {
+      XLOG(ERR) << "Desired peer address is not a valid IPv4 address: "
+                << *desiredPeerAddressString;
+      return false;
+    }
+    auto portIds = getPortsForInterface(intfId, switchState);
+    bool hasOperationalPort = false;
+    for (auto portId : portIds) {
+      auto port = switchState->getPorts()->getNodeIf(portId);
+      if (port && port->isUp()) {
+        hasOperationalPort = true;
+        break;
+      }
+    }
+    if (!hasOperationalPort) {
+      XLOG(DBG4)
+          << "Interface " << intfId
+          << " has no operational ports, skipping desired peer IPv4 check";
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
 void SwSwitch::setPacketStreamHandler(PacketStreamHandler* handler) {
 #if FOLLY_HAS_COROUTINES
   packetStreamHandler_ = handler;
