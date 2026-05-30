@@ -1556,6 +1556,12 @@
           "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
         },
         {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_40G_4_NRZ_NOFEC_COPPER.TestProfile$"
+        },
+        {
           "test_name_regex": "AgentMacOverFlowTest.*$"
         },
         {
@@ -1958,6 +1964,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_40G_4_NRZ_NOFEC_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "AgentMacOverFlowTest.*$"
@@ -3164,6 +3176,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentVoqSwitchWithFabricPortsTest.fdrCellDrops"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3/multi_switch": [
@@ -3529,6 +3544,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentVoqSwitchWithFabricPortsTest.fdrCellDrops"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/ramon3/mono": [
@@ -9066,6 +9084,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_40G_4_NRZ_NOFEC_COPPER.TestProfile$"
         }
     ],
     "brcm/13.0_ea_odp/13.0_ea_odp/tomahawk3/multi_switch": [
@@ -9464,6 +9488,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_40G_4_NRZ_NOFEC_COPPER.TestProfile$"
         }
     ],
     "brcm/13.0_ea_odp/13.0_ea_odp/tomahawk4/mono": [
@@ -14288,6 +14318,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_40G_4_NRZ_NOFEC_COPPER.TestProfile$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk3/multi_switch": [
@@ -14686,6 +14722,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_40G_4_NRZ_NOFEC_COPPER.TestProfile$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk4/mono": [
@@ -26605,6 +26647,12 @@
           "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
         },
         {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_40G_4_NRZ_NOFEC_COPPER.TestProfile$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -27037,6 +27085,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_40G_4_NRZ_NOFEC_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
