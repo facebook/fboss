@@ -468,6 +468,16 @@ uint32_t NeighborUpdaterImpl::getProbesLeft(
       : 0;
 }
 
+uint32_t NeighborUpdaterImpl::getProbesLeftIPv4(
+    const InterfaceID& intfID,
+    const folly::IPAddressV4& ip) {
+  auto cache = getArpCacheForIntf(intfID);
+  auto arpEntry = cache->getArpCacheData(ip);
+  return arpEntry.has_value() && arpEntry->probesLeft().has_value()
+      ? *arpEntry->probesLeft()
+      : 0;
+}
+
 uint32_t NeighborUpdaterImpl::getMaxNeighborProbes(const InterfaceID& intfID) {
   auto cache = getNdpCacheForIntf(intfID);
   return cache->getMaxNeighborProbes();
