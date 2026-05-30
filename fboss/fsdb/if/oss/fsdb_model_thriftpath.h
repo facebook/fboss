@@ -1645,7 +1645,8 @@ std::pair<apache::thrift::ident::rxOutputAmplitude, Child<::std::int32_t, ::apac
 std::pair<apache::thrift::ident::rxOutput, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<apache::thrift::ident::rxSquelch, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<apache::thrift::ident::rxOutputPreCursor, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<apache::thrift::ident::rxOutputPostCursor, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<apache::thrift::ident::rxOutputPostCursor, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<apache::thrift::ident::currentAppSel, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -1659,6 +1660,7 @@ std::pair<apache::thrift::ident::rxOutputPostCursor, Child<::std::int32_t, ::apa
     STRUCT_CHILD_GETTERS(rxSquelch, 6);
     STRUCT_CHILD_GETTERS(rxOutputPreCursor, 7);
     STRUCT_CHILD_GETTERS(rxOutputPostCursor, 8);
+    STRUCT_CHILD_GETTERS(currentAppSel, 9);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -1670,6 +1672,7 @@ std::pair<apache::thrift::ident::rxOutputPostCursor, Child<::std::int32_t, ::apa
     else if constexpr (__id == apache::thrift::FieldId{6}) { return rxSquelch(); }
     else if constexpr (__id == apache::thrift::FieldId{7}) { return rxOutputPreCursor(); }
     else if constexpr (__id == apache::thrift::FieldId{8}) { return rxOutputPostCursor(); }
+    else if constexpr (__id == apache::thrift::FieldId{9}) { return currentAppSel(); }
   }
 };
 

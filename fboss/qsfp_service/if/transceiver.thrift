@@ -436,6 +436,7 @@ struct HostLaneSettings {
   6: optional bool rxSquelch;
   7: optional i32 rxOutputPreCursor;
   8: optional i32 rxOutputPostCursor;
+  9: optional i32 currentAppSel;
 }
 
 struct MediaLaneSignals {
