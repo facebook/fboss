@@ -169,6 +169,7 @@ target_link_libraries(utils
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
   ladakh800bcls_platform_mapping
+  leh800bcls_platform_mapping
 )
 
 add_library(stats
