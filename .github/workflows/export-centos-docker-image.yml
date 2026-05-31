@@ -9,6 +9,10 @@ on:
   schedule:
     # Run weekly on Mondays
     - cron: '0 0 * * 1'
+
+permissions:
+  contents: read
+
 jobs:
   export-centos-docker-image:
     runs-on: ubuntu-latest
