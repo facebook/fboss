@@ -70,8 +70,11 @@ void AgentEnsembleTest::TearDown() {
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
     runForever();
   }
+  // If the test is skipped, don't do warmboot shutdown, as it will make the
+  // test report as 'passing' instead of 'skipped'
   if (FLAGS_setup_for_warmboot &&
-      isSupportedOnAllAsics(HwAsic::Feature::WARMBOOT)) {
+      isSupportedOnAllAsics(HwAsic::Feature::WARMBOOT) &&
+      !::testing::Test::IsSkipped()) {
     XLOG(DBG2) << "tearDownAgentEnsemble() for warmboot";
     tearDownAgentEnsemble(true);
   } else {
