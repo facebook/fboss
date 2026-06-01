@@ -1437,6 +1437,7 @@ add_dependencies(fboss_platform_services
   data_corral_service
   reboot_cause_finder
   watchdog_util
+  led_service
   # Utilities
   sensor_service_client
   fixmyfboss
