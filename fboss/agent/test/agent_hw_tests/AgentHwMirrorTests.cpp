@@ -1254,4 +1254,33 @@ TYPED_TEST(AgentHwSflowMirrorTest, SampleAllPortsReloadConfig) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentHwMirrorTrunkTest, ResolvedErspanMirrorOnTrunk) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+
+    utility::addAggPort(1, {this->masterLogicalInterfacePortIds()[0]}, &cfg);
+    cfg.mirrors()->push_back(this->getErspanMirror());
+    auto state = this->applyNewConfig(cfg);
+    this->applyNewState([=](const std::shared_ptr<SwitchState>&) {
+      return utility::enableTrunkPorts(state);
+    });
+
+    this->resolveMirror(kErspan, this->masterLogicalInterfacePortIds()[0]);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror =
+          this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
+      EXPECT_EVENTUALLY_TRUE(mirror && mirror->isResolved());
+      if (!mirror || !mirror->isResolved()) {
+        continue;
+      }
+      auto fields = mirror->toThrift();
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
