@@ -975,4 +975,52 @@ TYPED_TEST(AgentHwSflowMirrorTest, SampleAllPortsMirrorUnresolved) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentHwSflowMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    /* sampling all ports and send traffic to sflow mirror */
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    for (auto portId : this->masterLogicalInterfacePortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    this->applyNewConfig(cfg);
+    // resolve mirror
+    this->resolveMirror(kSflow, this->masterLogicalInterfacePortIds()[0]);
+    // unresolve
+    this->unresolveMirror(kSflow);
+    // reresolve
+    this->resolveMirror(kSflow, this->masterLogicalInterfacePortIds()[0]);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      EXPECT_EVENTUALLY_TRUE(mirror && mirror->isResolved());
+      if (!mirror || !mirror->isResolved()) {
+        continue;
+      }
+      auto fields = mirror->toThrift();
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      EXPECT_EVENTUALLY_EQ(destinations.size(), 1);
+    });
+    for (auto port : this->masterLogicalInterfacePortIds()) {
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+            static_cast<int32_t>(port),
+            this->getMirrorPortIngressAndSflowFlags(),
+            destinations[0]));
+      });
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
