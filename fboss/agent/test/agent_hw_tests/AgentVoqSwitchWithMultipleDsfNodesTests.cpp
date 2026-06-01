@@ -148,16 +148,14 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
 }
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
-  auto constexpr remotePortIdA = 401;
-  auto constexpr remotePortIdB = 402;
-
   auto setup = [this]() {
-    // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
-    // keeping remote switch id passed below in sync with it
-    int numCores =
-        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
-            ->getNumCores();
-    auto remoteSwitchId = static_cast<SwitchID>(numCores);
+    const auto kRemoteSysPortIdA =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState());
+    const auto kRemoteSysPortIdB =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState(), 1);
+    const auto kRemoteIntfIdA = utility::getRemoteIntfId(kRemoteSysPortIdA);
+    const auto kRemoteIntfIdB = utility::getRemoteIntfId(kRemoteSysPortIdB);
+    auto remoteSwitchId = utility::getRemoteVoqSwitchId(getSw());
 
     // Helper to apply a DSF state update via DsfStateUpdaterUtil, which
     // processes interface route deltas through processRemoteInterfaceRoutes.
@@ -187,28 +185,24 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
     };
 
     // Phase 1: Add two remote RIFs with distinct prefixes.
-    //   RIF A (401): 100.0.0.1/24, 100::1/64
-    //   RIF B (402): 101.0.0.1/24, 101::1/64
     {
       auto sysPorts = std::make_shared<SystemPortMap>();
       sysPorts->addNode(
-          utility::makeRemoteSysPort(
-              SystemPortID(remotePortIdA), remoteSwitchId));
+          utility::makeRemoteSysPort(kRemoteSysPortIdA, remoteSwitchId));
       sysPorts->addNode(
-          utility::makeRemoteSysPort(
-              SystemPortID(remotePortIdB), remoteSwitchId, 0, 2));
+          utility::makeRemoteSysPort(kRemoteSysPortIdB, remoteSwitchId, 0, 2));
 
       auto rifs = std::make_shared<InterfaceMap>();
       rifs->addNode(
           utility::makeRemoteInterface(
-              InterfaceID(remotePortIdA),
+              kRemoteIntfIdA,
               {
                   {folly::IPAddress("100::1"), 64},
                   {folly::IPAddress("100.0.0.1"), 24},
               }));
       rifs->addNode(
           utility::makeRemoteInterface(
-              InterfaceID(remotePortIdB),
+              kRemoteIntfIdB,
               {
                   {folly::IPAddress("101::1"), 64},
                   {folly::IPAddress("101.0.0.1"), 24},
@@ -221,10 +215,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
     WITH_RETRIES({
       auto state = getProgrammedState();
       auto remoteIntfs = state->getRemoteInterfaces()->getAllNodes();
-      EXPECT_EVENTUALLY_NE(
-          remoteIntfs->getNodeIf(InterfaceID(remotePortIdA)), nullptr);
-      EXPECT_EVENTUALLY_NE(
-          remoteIntfs->getNodeIf(InterfaceID(remotePortIdB)), nullptr);
+      EXPECT_EVENTUALLY_NE(remoteIntfs->getNodeIf(kRemoteIntfIdA), nullptr);
+      EXPECT_EVENTUALLY_NE(remoteIntfs->getNodeIf(kRemoteIntfIdB), nullptr);
 
       auto fibContainer = state->getFibsInfoMap()->getFibContainer(RouterID(0));
       EXPECT_EVENTUALLY_NE(
@@ -247,13 +239,12 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
     {
       auto sysPorts = std::make_shared<SystemPortMap>();
       sysPorts->addNode(
-          utility::makeRemoteSysPort(
-              SystemPortID(remotePortIdA), remoteSwitchId));
+          utility::makeRemoteSysPort(kRemoteSysPortIdA, remoteSwitchId));
 
       auto rifs = std::make_shared<InterfaceMap>();
       rifs->addNode(
           utility::makeRemoteInterface(
-              InterfaceID(remotePortIdA),
+              kRemoteIntfIdA,
               {
                   {folly::IPAddress("101::1"), 64},
                   {folly::IPAddress("101.0.0.1"), 24},
@@ -264,18 +255,15 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
   };
 
   auto verify = [this]() {
-    // After the prefix move, verify:
-    //   RIF A (401) exists with the moved prefix
-    //   RIF B (402) is removed
-    //   Connected route for 101.0.0.0/24 and 101::/64 exists
-    //   Connected route for 100.0.0.0/24 and 100::/64 is removed
+    const auto kRemoteIntfIdA = utility::getRemoteIntfId(
+        utility::getRemoteSysPortId(getSw(), getProgrammedState()));
+    const auto kRemoteIntfIdB = utility::getRemoteIntfId(
+        utility::getRemoteSysPortId(getSw(), getProgrammedState(), 1));
     WITH_RETRIES({
       auto state = getProgrammedState();
       auto remoteIntfs = state->getRemoteInterfaces()->getAllNodes();
-      EXPECT_EVENTUALLY_NE(
-          remoteIntfs->getNodeIf(InterfaceID(remotePortIdA)), nullptr);
-      EXPECT_EVENTUALLY_EQ(
-          remoteIntfs->getNodeIf(InterfaceID(remotePortIdB)), nullptr);
+      EXPECT_EVENTUALLY_NE(remoteIntfs->getNodeIf(kRemoteIntfIdA), nullptr);
+      EXPECT_EVENTUALLY_EQ(remoteIntfs->getNodeIf(kRemoteIntfIdB), nullptr);
 
       auto fibContainer = state->getFibsInfoMap()->getFibContainer(RouterID(0));
       auto fibV4 = fibContainer->getFibV4();
@@ -291,7 +279,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
         ASSERT_EQ(nhops.size(), 1);
         EXPECT_EQ(
             utility::createTunIntfName(nhops.begin()->intf()),
-            utility::createTunIntfName(InterfaceID(remotePortIdA)));
+            utility::createTunIntfName(kRemoteIntfIdA));
       }
       auto movedV6 =
           fibV6->exactMatch(RoutePrefixV6{folly::IPAddressV6("101::"), 64});
@@ -302,7 +290,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
         ASSERT_EQ(nhops.size(), 1);
         EXPECT_EQ(
             utility::createTunIntfName(nhops.begin()->intf()),
-            utility::createTunIntfName(InterfaceID(remotePortIdA)));
+            utility::createTunIntfName(kRemoteIntfIdA));
       }
 
       // Old prefix routes should be gone
