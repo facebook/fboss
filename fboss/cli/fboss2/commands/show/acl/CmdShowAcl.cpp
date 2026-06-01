@@ -16,6 +16,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
@@ -40,52 +41,66 @@ void CmdShowAcl::printOutput(const RetType& model, std::ostream& out) {
       out << "Acl: " << aclEntry.name().value() << std::endl;
       out << "   priority: " << folly::copy(aclEntry.priority().value())
           << std::endl;
-      if (folly::copy(aclEntry.proto().value())) {
+      if (aclEntry.srcIp().has_value()) {
+        out << "   src ip: " << aclEntry.srcIp().value();
+        if (aclEntry.srcIpPrefixLength().has_value()) {
+          out << "/" << folly::copy(aclEntry.srcIpPrefixLength().value());
+        }
+        out << std::endl;
+      }
+      if (aclEntry.dstIp().has_value()) {
+        out << "   dst ip: " << aclEntry.dstIp().value();
+        if (aclEntry.dstIpPrefixLength().has_value()) {
+          out << "/" << folly::copy(aclEntry.dstIpPrefixLength().value());
+        }
+        out << std::endl;
+      }
+      if (aclEntry.proto().has_value()) {
         out << "   proto: " << folly::copy(aclEntry.proto().value())
             << std::endl;
       }
-      if (folly::copy(aclEntry.srcPort().value())) {
+      if (aclEntry.srcPort().has_value()) {
         out << "   src port: " << folly::copy(aclEntry.srcPort().value())
             << std::endl;
       }
-      if (folly::copy(aclEntry.dstPort().value())) {
+      if (aclEntry.dstPort().has_value()) {
         out << "   dst port: " << folly::copy(aclEntry.dstPort().value())
             << std::endl;
       }
-      if (folly::copy(aclEntry.ipFrag().value())) {
+      if (aclEntry.ipFrag().has_value()) {
         out << "   ip fragment: " << folly::copy(aclEntry.ipFrag().value())
             << std::endl;
       }
-      if (folly::copy(aclEntry.dscp().value())) {
+      if (aclEntry.dscp().has_value()) {
         out << "   dscp: " << folly::copy(aclEntry.dscp().value()) << std::endl;
       }
-      if (folly::copy(aclEntry.ipType().value())) {
+      if (aclEntry.ipType().has_value()) {
         out << "   ip type: " << folly::copy(aclEntry.ipType().value())
             << std::endl;
       }
-      if (folly::copy(aclEntry.icmpType().value())) {
+      if (aclEntry.icmpType().has_value()) {
         out << "   icmp type: " << folly::copy(aclEntry.icmpType().value())
             << std::endl;
       }
-      if (folly::copy(aclEntry.icmpCode().value())) {
+      if (aclEntry.icmpCode().has_value()) {
         out << "   icmp code: " << folly::copy(aclEntry.icmpCode().value())
             << std::endl;
       }
-      if (folly::copy(aclEntry.ttl().value())) {
+      if (aclEntry.ttl().has_value()) {
         out << "   ttl: " << folly::copy(aclEntry.ttl().value()) << std::endl;
       }
-      if (folly::copy(aclEntry.l4SrcPort().value())) {
+      if (aclEntry.l4SrcPort().has_value()) {
         out << "   L4 src port: " << folly::copy(aclEntry.l4SrcPort().value())
             << std::endl;
       }
-      if (folly::copy(aclEntry.l4DstPort().value())) {
+      if (aclEntry.l4DstPort().has_value()) {
         out << "   L4 dst port: " << folly::copy(aclEntry.l4DstPort().value())
             << std::endl;
       }
-      if (aclEntry.dstMac().value() != "") {
+      if (aclEntry.dstMac().has_value()) {
         out << "   dst mac: " << aclEntry.dstMac().value() << std::endl;
       }
-      if (folly::copy(aclEntry.lookupClassL2().value())) {
+      if (aclEntry.lookupClassL2().has_value()) {
         out << "   lookup class L2: "
             << folly::copy(aclEntry.lookupClassL2().value()) << std::endl;
       }
@@ -110,6 +125,24 @@ RetType CmdShowAcl::createModel(facebook::fboss::AclTableThrift entries) {
 
       aclDetails.name() = entry.name().value();
       aclDetails.priority() = folly::copy(entry.priority().value());
+      // srcIp/dstIp are non-optional BinaryAddress on the wire; the agent
+      // populates them from a default-constructed CIDRNetwork when unset,
+      // yielding an empty addr and prefixLength=0. Treat prefixLength>0 as
+      // the signal that the ACL actually qualifies on the address.
+      if (folly::copy(entry.srcIpPrefixLength().value()) > 0 &&
+          !entry.srcIp()->addr()->empty()) {
+        aclDetails.srcIp() =
+            facebook::network::toIPAddress(entry.srcIp().value()).str();
+        aclDetails.srcIpPrefixLength() =
+            folly::copy(entry.srcIpPrefixLength().value());
+      }
+      if (folly::copy(entry.dstIpPrefixLength().value()) > 0 &&
+          !entry.dstIp()->addr()->empty()) {
+        aclDetails.dstIp() =
+            facebook::network::toIPAddress(entry.dstIp().value()).str();
+        aclDetails.dstIpPrefixLength() =
+            folly::copy(entry.dstIpPrefixLength().value());
+      }
       if (apache::thrift::get_pointer(entry.proto())) {
         aclDetails.proto() =
             static_cast<int16_t>(*apache::thrift::get_pointer(entry.proto()));
