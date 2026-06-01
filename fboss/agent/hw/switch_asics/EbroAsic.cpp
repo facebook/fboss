@@ -325,20 +325,20 @@ EbroAsic::desiredLoopbackModes() const {
           kDefaultLoopbackMode = {
               {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}};
       return kDefaultLoopbackMode;
-    } break;
+    }
     case cfg::SwitchType::VOQ: {
       static const std::map<cfg::PortType, cfg::PortLoopbackMode>
           kDefaultLoopbackMode = {
               {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
               {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
       return kDefaultLoopbackMode;
-    } break;
+    }
     case cfg::SwitchType::FABRIC: {
       static const std::map<cfg::PortType, cfg::PortLoopbackMode>
           kDefaultLoopbackMode = {
               {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
       return kDefaultLoopbackMode;
-    } break;
+    }
     case cfg::SwitchType::PHY:
       /* unsupported */
       break;
