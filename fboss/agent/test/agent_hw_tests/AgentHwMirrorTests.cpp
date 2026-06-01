@@ -1095,4 +1095,46 @@ TYPED_TEST(AgentHwSflowMirrorTest, SampleAllPortsMirrorUpdate) {
   this->verifyAcrossWarmBoots(setup, verify, setupPostWb, verify);
 }
 
+TYPED_TEST(AgentHwSflowMirrorTest, RemoveSampleAllPorts) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    /* sampling all ports and send traffic to sflow mirror */
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    for (auto portId : this->masterLogicalInterfacePortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    this->applyNewConfig(cfg);
+    // resolve mirror
+    this->resolveMirror(kSflow, this->masterLogicalInterfacePortIds()[0]);
+
+    /* reset all config */
+    cfg = this->initialConfig(*this->getAgentEnsemble());
+    this->applyNewConfig(cfg);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      EXPECT_EVENTUALLY_TRUE(mirror == nullptr);
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      EXPECT_EVENTUALLY_EQ(destinations.size(), 0);
+    });
+    for (auto port : this->masterLogicalInterfacePortIds()) {
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortNoMirrorDestination(
+            static_cast<int32_t>(port),
+            this->getMirrorPortIngressAndSflowFlags()));
+      });
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
