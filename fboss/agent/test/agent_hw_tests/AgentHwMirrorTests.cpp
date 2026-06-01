@@ -3,6 +3,7 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
+#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
@@ -822,6 +823,98 @@ TYPED_TEST(AgentHwSflowMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
           static_cast<int32_t>(this->masterLogicalInterfacePortIds()[1]),
           this->getMirrorPortIngressAndSflowFlags()));
     });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[2]),
+          this->getMirrorPortIngressFlags(),
+          erspan));
+    });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[2]),
+          this->getMirrorPortEgressFlags(),
+          erspan));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentHwSflowMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
+
+    for (auto i = 0; i < 2; i++) {
+      auto portId = this->masterLogicalInterfacePortIds()[i];
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    auto portCfg =
+        utility::findCfgPort(cfg, this->masterLogicalInterfacePortIds()[2]);
+    portCfg->ingressMirror() = *cfg.mirrors()[1].name();
+    portCfg->egressMirror() = *cfg.mirrors()[1].name();
+    this->applyNewConfig(cfg);
+    // resolve both mirrors
+    this->resolveAllMirrors(this->masterLogicalInterfacePortIds()[0]);
+    for (auto i = 0; i < 2; i++) {
+      auto portId = this->masterLogicalInterfacePortIds()[i];
+      auto portConfig = utility::findCfgPort(cfg, portId);
+      portConfig->sampleDest() = cfg::SampleDestination::CPU;
+      *portConfig->sFlowIngressRate() = 0;
+      portConfig->ingressMirror().reset();
+    }
+    this->applyNewConfig(cfg);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      bool allResolved = true;
+      for (auto mniter :
+           std::as_const(*this->getProgrammedState()->getMirrors())) {
+        for (auto iter : std::as_const(*mniter.second)) {
+          auto mirror = iter.second;
+          if (!mirror || !mirror->isResolved()) {
+            allResolved = false;
+          }
+        }
+      }
+      EXPECT_EVENTUALLY_TRUE(allResolved);
+      if (!allResolved) {
+        continue;
+      }
+      for (auto mniter :
+           std::as_const(*this->getProgrammedState()->getMirrors())) {
+        for (auto iter : std::as_const(*mniter.second)) {
+          auto mirror = iter.second;
+          auto fields = mirror->toThrift();
+          EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+        }
+      }
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      EXPECT_EVENTUALLY_EQ(destinations.size(), 2);
+    });
+    int64_t erspan = 0;
+    for (auto destination : destinations) {
+      if (client->sync_isMirrorSflowTunnelEnabled(destination)) {
+        std::ignore = destination;
+      } else {
+        erspan = destination;
+      }
+    }
+    for (auto port : this->masterLogicalInterfacePortIds()) {
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortNoMirrorDestination(
+            static_cast<int32_t>(port),
+            this->getMirrorPortIngressAndSflowFlags()));
+      });
+    }
     WITH_RETRIES({
       EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
           static_cast<int32_t>(this->masterLogicalInterfacePortIds()[2]),
