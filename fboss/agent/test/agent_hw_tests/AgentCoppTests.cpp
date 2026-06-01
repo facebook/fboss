@@ -95,11 +95,16 @@ class AgentCoppTest : public AgentHwTest {
     if (isTrunk) {
       return getTrunkInitialConfig(ensemble);
     }
-
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    auto asic = checkSameAndGetAsic(
+        ensemble.getL3Asics(), static_cast<int32_t>(switchId));
     auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
+        ensemble.getPlatformMapping(),
+        asic,
+        ensemble.masterLogicalPortIds(switchId),
+        ensemble.supportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
 
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     utility::setDefaultCpuTrafficPolicyConfig(
@@ -109,18 +114,22 @@ class AgentCoppTest : public AgentHwTest {
   }
 
   cfg::SwitchConfig getTrunkInitialConfig(const AgentEnsemble& ensemble) const {
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    auto asic = checkSameAndGetAsic(
+        ensemble.getL3Asics(), static_cast<int32_t>(switchId));
+    auto interfacePorts = ensemble.masterLogicalInterfacePortIds(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalInterfacePortIds()[0],
-        ensemble.masterLogicalInterfacePortIds()[1]);
+        ensemble.getPlatformMapping(),
+        asic,
+        interfacePorts[0],
+        interfacePorts[1],
+        ensemble.supportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     utility::setDefaultCpuTrafficPolicyConfig(
         cfg, ensemble.getL3Asics(), ensemble.isSai());
     utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
-    utility::addAggPort(
-        1,
-        {ensemble.masterLogicalInterfacePortIds()[0],
-         ensemble.masterLogicalInterfacePortIds()[1]},
-        &cfg);
+    utility::addAggPort(1, {interfacePorts[0], interfacePorts[1]}, &cfg);
     return cfg;
   }
 
