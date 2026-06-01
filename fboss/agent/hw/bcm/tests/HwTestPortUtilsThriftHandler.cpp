@@ -29,7 +29,6 @@ facebook::fboss::cfg::PortLoopbackMode bcmToFbLoopbackMode(
       return facebook::fboss::cfg::PortLoopbackMode::MAC;
     default:
       CHECK(0) << "Should never reach here";
-      break;
   }
   return facebook::fboss::cfg::PortLoopbackMode::NONE;
 }
