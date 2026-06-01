@@ -183,7 +183,6 @@ std::string RouteNextHopEntry::str_DEPRACATED() const {
       break;
     default:
       CHECK(0);
-      break;
   }
   result += folly::to<std::string>(
       ";admin=", static_cast<int32_t>(getAdminDistance()));
