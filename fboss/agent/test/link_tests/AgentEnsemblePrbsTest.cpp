@@ -269,10 +269,18 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       auto agentClient = utils::createWedgeAgentClient();
       for (const auto& [polynomial, portNames] : asicPortsByPolynomial) {
         state.polynomial() = polynomial;
+        // setInterfacesPrbs is serialized per-port, and can time out on systems
+        // with large numbers of ports
+        constexpr uint32_t kDefaultRecvTimeoutSeconds = 45;
+        apache::thrift::RpcOptions rpcOpts;
+        rpcOpts.setTimeout(
+            std::chrono::seconds(
+                std::max<size_t>(
+                    kDefaultRecvTimeoutSeconds, portNames.size() * 3)));
         WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
           try {
             agentClient->sync_setInterfacesPrbs(
-                portNames, phy::PortComponent::ASIC, state);
+                rpcOpts, portNames, phy::PortComponent::ASIC, state);
             EXPECT_EVENTUALLY_TRUE(true);
           } catch (const std::exception& ex) {
             XLOG(ERR) << "Setting PRBS on ASIC ports failed with " << ex.what();
