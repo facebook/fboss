@@ -3435,7 +3435,6 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
     // needed to handle error from -Werror=switch
     default:
       folly::assume_unreachable();
-      break;
   }
 
   return minLinkCount;
