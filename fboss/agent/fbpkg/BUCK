@@ -1,4 +1,3 @@
-# load("//fboss/agent/fbpkg:agent.bzl", "get_all_wedge_agent_csco_path_actions", "get_all_wedge_agent_dnx_path_actions", "get_all_wedge_agent_path_actions")
 load("//fboss/agent/fbpkg:agent.bzl", "get_all_wedge_agent_nvda_path_actions")
 load(
     "//fboss/agent/fbpkg:test_artifacts.bzl",
@@ -10,41 +9,6 @@ load("//fboss/build:sdk.thrift.bzl", "ProductLine")
 load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_agent_push")
-
-# TODO: reenable these once they have parity with cfgr pkgs, including test_artifacts
-
-# fbpkg.builder(
-#     name = "neteng.fboss.wedge_agent",
-#     override_log_paths = [
-#         "fboss/agent",
-#         "fboss/lib",
-#         "neteng/fboss/tools/wrapper_scripts",
-#     ],
-#     path_actions = get_all_wedge_agent_path_actions(),
-#     split_debuginfo = True,
-# )
-
-# fbpkg.builder(
-#     name = "neteng.fboss.wedge_agent_dnx",
-#     override_log_paths = [
-#         "fboss/agent",
-#         "fboss/lib",
-#         "neteng/fboss/tools/wrapper_scripts",
-#     ],
-#     path_actions = get_all_wedge_agent_dnx_path_actions(),
-#     split_debuginfo = True,
-# )
-
-# fbpkg.builder(
-#     name = "neteng.fboss.wedge_agent_csco",
-#     override_log_paths = [
-#         "fboss/agent",
-#         "fboss/lib",
-#         "neteng/fboss/tools/wrapper_scripts",
-#     ],
-#     path_actions = get_all_wedge_agent_csco_path_actions(),
-#     split_debuginfo = True,
-# )
 
 fboss_fbpkg_builder(
     name = "neteng.fboss.wedge_agent_nvda",
@@ -75,7 +39,7 @@ build_test_artifacts_fbpkgs(
     product_lines = [
         ProductLine.SAI_SDK_BCM,
         ProductLine.BCM_DSF_SDK,
-    ]
+    ],
 )
 
 # Build BCM_native_sdk test artifacts fbpkg (native_bcm)
@@ -91,7 +55,7 @@ build_hw_agent_artifacts_fbpkgs(
     product_lines = [
         ProductLine.SAI_SDK_BCM,
         ProductLine.BCM_DSF_SDK,
-    ]
+    ],
 )
 
 # Build DSF multinode test artifacts fbpkg
