@@ -1083,6 +1083,19 @@ set_property(
 find_package(Threads REQUIRED)
 enable_testing()
 
+# Shipit maps fbcode/neteng/fboss/bgp/public_tld/configerator/structs/neteng/
+# to configerator/structs/neteng/ in the OSS repo, but thrift includes and
+# CMake source paths reference the original internal path under public_tld.
+# Create a symlink to bridge the two so both paths resolve to the same files.
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/neteng/fboss/bgp/public_tld/configerator/structs/neteng")
+  file(MAKE_DIRECTORY
+    "${CMAKE_SOURCE_DIR}/neteng/fboss/bgp/public_tld/configerator/structs")
+  file(CREATE_LINK
+    "${CMAKE_SOURCE_DIR}/configerator/structs/neteng"
+    "${CMAKE_SOURCE_DIR}/neteng/fboss/bgp/public_tld/configerator/structs/neteng"
+    SYMBOLIC)
+endif()
+
 # Build all cmake files under cmake/*cmake
 file(GLOB_RECURSE cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
 foreach(cmakeFile ${cmakeFiles})
