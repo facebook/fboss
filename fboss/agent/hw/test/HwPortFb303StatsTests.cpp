@@ -698,6 +698,62 @@ TEST(HwPortFb303Stats, queueNameChangeResetsValue) {
   }
 }
 
+TEST(HwPortFb303StatsTest, Srv6CounterNotCreatedWhenDisabled) {
+  HwPortFb303Stats stats(kPortName);
+  EXPECT_FALSE(fbData->getStatMap()->contains(
+      HwPortFb303Stats::statName(kInSrv6MySidDiscards(), kPortName)));
+}
+
+TEST(HwPortFb303StatsTest, Srv6CounterCreatedWhenEnabled) {
+  HwPortFb303Stats stats(
+      kPortName,
+      {} /*queueId2Name*/,
+      {} /*enabledPfcPriorities*/,
+      std::nullopt /*pfcCfg*/,
+      false /*inCongestionDiscardCountSupported*/,
+      false /*inCongestionDiscardSeenSupported*/,
+      true /*srv6MysidDiscardCounterSupported*/);
+  EXPECT_TRUE(fbData->getStatMap()->contains(
+      HwPortFb303Stats::statName(kInSrv6MySidDiscards(), kPortName)));
+}
+
+TEST(HwPortFb303StatsTest, MplsCounterNotCreatedWhenDisabled) {
+  HwPortFb303Stats stats(kPortName);
+  EXPECT_FALSE(fbData->getStatMap()->contains(
+      HwPortFb303Stats::statName(kInLabelMissDiscards(), kPortName)));
+}
+
+TEST(HwPortFb303StatsTest, MplsCounterCreatedWhenEnabled) {
+  HwPortFb303Stats stats(
+      kPortName,
+      {} /*queueId2Name*/,
+      {} /*enabledPfcPriorities*/,
+      std::nullopt /*pfcCfg*/,
+      false /*inCongestionDiscardCountSupported*/,
+      false /*inCongestionDiscardSeenSupported*/,
+      false /*srv6MysidDiscardCounterSupported*/,
+      true /*mplsLabelLookupFailCounterSupported*/);
+  EXPECT_TRUE(fbData->getStatMap()->contains(
+      HwPortFb303Stats::statName(kInLabelMissDiscards(), kPortName)));
+}
+
+TEST(HwPortFb303StatsTest, Srv6CounterReinitOnPortNameChange) {
+  constexpr auto kNewPortName = "eth1/2/1";
+  HwPortFb303Stats stats(
+      kPortName,
+      {} /*queueId2Name*/,
+      {} /*enabledPfcPriorities*/,
+      std::nullopt /*pfcCfg*/,
+      false /*inCongestionDiscardCountSupported*/,
+      false /*inCongestionDiscardSeenSupported*/,
+      true /*srv6MysidDiscardCounterSupported*/);
+  stats.portNameChanged(kNewPortName);
+  EXPECT_TRUE(fbData->getStatMap()->contains(
+      HwPortFb303Stats::statName(kInSrv6MySidDiscards(), kNewPortName)));
+  EXPECT_FALSE(fbData->getStatMap()->contains(
+      HwPortFb303Stats::statName(kInSrv6MySidDiscards(), kPortName)));
+}
+
 TEST(HwPortFb303StatsTest, ChangePfcConfig) {
   HwPortFb303Stats stats(kPortName, kQueue2Name, kEnabledPfcPriorities);
   std::vector<PfcPriority> newPriorities(
