@@ -221,7 +221,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
-  fboss/agent/hw/test/dataplane_tests/HwTrunkLoadBalancerTests.cpp
 )
 
 add_library(hw_switch_test

@@ -317,10 +317,12 @@ hw_test_common_srcs = [
 
 hw_dataplane_test_srcs = [
     "dataplane_tests/HwSflowTests.cpp",
-    "dataplane_tests/HwTrunkLoadBalancerTests.cpp",
 ]
 
 cpp_library(
+    # @autodeps-skip: re-exports the hw test util libs (e.g. :hw_test_te_flow_utils)
+    # consumed transitively by the SAI hw_test binaries (//fboss/agent/hw/sai/hw_test:sai_test-*).
+    # autodeps would strip these exported_deps (unused by this lib's own srcs) and break sai_test.
     name = "hw_switch_test",
     srcs = hw_test_common_srcs + hw_dataplane_test_srcs,
     link_whole = True,
@@ -407,6 +409,9 @@ cpp_library(
 )
 
 cpp_library(
+    # @autodeps-skip: re-exports the hw test util libs consumed transitively by the
+    # fake SAI hw_test binary (//fboss/agent/hw/sai/hw_test:sai_test-fake-*). autodeps
+    # would strip these exported_deps (unused by this lib's own srcs) and break that build.
     name = "fake_hw_switch_test",
     srcs = hw_test_common_srcs,
     link_whole = True,
@@ -745,5 +750,6 @@ cpp_library(
         "//fboss/agent:hw_switch",
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent/if:agent_hw_test_ctrl-cpp2-services",
+        "//fboss/lib/phy:phy-cpp2-types",
     ],
 )
