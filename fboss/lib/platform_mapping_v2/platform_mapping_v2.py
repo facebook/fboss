@@ -80,6 +80,7 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
         "ladakh800bcls_test_fixture",
     ],
     "leh800bcls": [
+        "leh800bcls_rack",
         "leh800bcls_test_fixture",
     ],
     "montblanc": [

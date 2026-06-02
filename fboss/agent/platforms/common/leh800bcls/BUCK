@@ -9,6 +9,7 @@ cpp_library(
     ],
     headers = [
         "Leh800bclsPlatformMapping.h",
+        "Leh800bclsProdPlatformMapping.h",
         "Leh800bclsTestPlatformMapping.h",
     ],
     exported_deps = [
