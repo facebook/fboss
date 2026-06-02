@@ -366,10 +366,11 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
 TEST_F(AgentVoqSwitchWithFabricPortsTest, overdrainPct) {
   auto setup = []() {};
   auto verify = [this]() {
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          0, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
-    });
+    auto switchIndex = getCurrentSwitchIndexForTesting();
+    auto counterName =
+        folly::to<std::string>("switch.", switchIndex, ".fabric_overdrain_pct");
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(0, fb303::fbData->getCounter(counterName)); });
     auto enableFabPorts = [this](bool enable) {
       auto cfg = initialConfig(*getAgentEnsemble());
       for (auto& port : *cfg.ports()) {
@@ -382,16 +383,12 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, overdrainPct) {
     };
     // Disable all fabric port
     enableFabPorts(false);
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          100, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
-    });
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(100, fb303::fbData->getCounter(counterName)); });
     // Enable all fabric port
     enableFabPorts(true);
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          0, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
-    });
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(0, fb303::fbData->getCounter(counterName)); });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
