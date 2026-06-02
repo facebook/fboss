@@ -541,6 +541,8 @@ std::string saiSerLogTypeToString(sai_ser_log_type_t sai_ser_log_type) {
       return "SAI_SER_LOG_TYPE_ENTRY_INFO";
     case SAI_SER_LOG_TYPE_CACHE:
       return "SAI_SER_LOG_TYPE_CACHE";
+    case SAI_SER_LOG_TYPE_NONE:
+      return "SAI_SER_LOG_TYPE_NONE";
   }
   return folly::to<std::string>(static_cast<int>(sai_ser_log_type));
 }
