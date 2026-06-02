@@ -100,6 +100,7 @@ target_link_libraries(led_manager_lib
   tahansb800bc_bsp
   ladakh800bcls_bsp
   leh800bcls_bsp
+  saintpaul_bsp
   darwin_platform_mapping
   elbert_platform_mapping
   fuji_platform_mapping

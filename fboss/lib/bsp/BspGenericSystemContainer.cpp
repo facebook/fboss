@@ -15,6 +15,7 @@
 #include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
+#include "fboss/lib/bsp/saintpaul/SaintpaulBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahansb800bc/Tahansb800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/wedge800bact/Wedge800BACTBspPlatformMapping.h"
@@ -192,6 +193,15 @@ template <>
 std::shared_ptr<Icecube800banwSystemContainer>
 Icecube800banwSystemContainer::getInstance() {
   return _icecube800banwSystemContainer.try_get();
+}
+
+using SaintpaulSystemContainer =
+    BspGenericSystemContainer<SaintpaulBspPlatformMapping>;
+const folly::Singleton<SaintpaulSystemContainer> _saintpaulSystemContainer;
+template <>
+std::shared_ptr<SaintpaulSystemContainer>
+SaintpaulSystemContainer::getInstance() {
+  return _saintpaulSystemContainer.try_get();
 }
 
 } // namespace fboss

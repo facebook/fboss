@@ -250,6 +250,17 @@ target_link_libraries(leh800bcls_bsp
   bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
+
+add_library(saintpaul_bsp
+  fboss/lib/bsp/saintpaul/SaintpaulBspPlatformMapping.cpp
+)
+
+target_link_libraries(saintpaul_bsp
+  bsp_platform_mapping
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
 add_library(qsfp_bsp_core
   fboss/lib/bsp/BspGenericSystemContainer.cpp
   fboss/lib/bsp/BspIOBus.cpp
@@ -292,6 +303,7 @@ target_link_libraries(qsfp_bsp_core
   wedge800cact_bsp
   ladakh800bcls_bsp
   leh800bcls_bsp
+  saintpaul_bsp
   device_mdio
   fpga_device
   phy_management_base
