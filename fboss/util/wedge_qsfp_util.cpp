@@ -50,6 +50,7 @@
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
+#include "fboss/lib/bsp/leh800bcls/Leh800bclsBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
@@ -4704,6 +4705,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
                                  .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "leh800bcls") {
+      auto systemContainer =
+          BspGenericSystemContainer<Leh800bclsBspPlatformMapping>::getInstance()
+              .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
     } else {
       return getTransceiverIOBusFromPlatform(FLAGS_platform);
     }
@@ -4813,6 +4820,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
                                .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_LEH800BCLS) {
+    auto systemContainer =
+        BspGenericSystemContainer<Leh800bclsBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
   }
 
   return getTransceiverIOBusFromMode(mode);
@@ -4871,6 +4884,8 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode = PlatformType::PLATFORM_TAHANSB800BC;
     } else if (FLAGS_platform == "ladakh800bcls") {
       mode = PlatformType::PLATFORM_LADAKH800BCLS;
+    } else if (FLAGS_platform == "leh800bcls") {
+      mode = PlatformType::PLATFORM_LEH800BCLS;
     }
   } else {
     // If the platform is not provided by the user then use current hardware's
@@ -4938,6 +4953,12 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
     auto systemContainer = BspGenericSystemContainer<
                                Ladakh800bclsBspPlatformMapping>::getInstance()
                                .get();
+    return std::make_pair(
+        std::make_unique<BspTransceiverApi>(systemContainer), 0);
+  } else if (mode == PlatformType::PLATFORM_LEH800BCLS) {
+    auto systemContainer =
+        BspGenericSystemContainer<Leh800bclsBspPlatformMapping>::getInstance()
+            .get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);
   } else if (mode == PlatformType::PLATFORM_WEDGE400C) {
