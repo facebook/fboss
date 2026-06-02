@@ -5,7 +5,7 @@ oncall("fboss_platform")
 
 fbpkg.builder(
     name = "fboss.platform.stack",
-    expire_days = 10,
+    expire_days = 28,
     override_log_paths = ["fboss/platform"],
     path_actions = {
         "data_corral_service": "//fboss/platform/data_corral_service:data_corral_service",
