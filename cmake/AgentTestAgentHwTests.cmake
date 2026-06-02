@@ -310,6 +310,45 @@ target_link_libraries(multi_switch_agent_hw_test
   ${LIBGMOCK_LIBRARIES}
 )
 
+add_library(agent_scale_test_src
+  fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
+)
+
+add_sai_sdk_dependencies(agent_scale_test_src)
+
+target_link_libraries(agent_scale_test_src
+  config_factory
+  packet_factory
+  agent_hw_test_src
+  ecmp_helper
+  production_features_cpp2
+  acl_test_utils
+  asic_test_utils
+  scale_test_utils
+  Folly::folly
+)
+
+add_executable(multi_switch_agent_scale_test
+  fboss/agent/test/agent_hw_tests/MultiSwitchAgentHwTest.cpp
+)
+
+add_sai_sdk_dependencies(multi_switch_agent_scale_test)
+
+target_link_libraries(multi_switch_agent_scale_test
+  -Wl,--whole-archive
+  agent_scale_test_src
+  agent_hw_test
+  multi_switch_agent_ensemble
+  setup_thrift_prod
+  Folly::folly
+  -Wl,--no-whole-archive
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+install(TARGETS multi_switch_agent_scale_test)
+
 function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
 
   message(STATUS "Building SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
@@ -345,25 +384,6 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
     -DSAI_VER_MINOR=${SAI_VER_MINOR} \
     -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_library(agent_scale_test_src
-    fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
-    fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
-  )
-
-  add_sai_sdk_dependencies(agent_scale_test_src)
-
-  target_link_libraries(agent_scale_test_src
-    config_factory
-    packet_factory
-    agent_hw_test_src
-    ecmp_helper
-    production_features_cpp2
-    acl_test_utils
-    asic_test_utils
-    scale_test_utils
-    Folly::folly
   )
 
   add_executable(sai_agent_scale_test-${SAI_IMPL_NAME}
