@@ -9,9 +9,11 @@
  */
 
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
+#include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 
 namespace facebook::fboss {
 
@@ -899,7 +901,32 @@ TEST_F(EcmpBackupGroupTypeTest, checkPrimaryEcmpExhaustedEvents) {
       1);
 }
 
-class EcmpVirtualArsGroupTest : public BaseEcmpResourceManagerTest {
+// Shared base for the virtual-ARS fixtures, which build states by hand and feed
+// them to a standalone EcmpResourceManager. Stamps NextHop IDs on each state
+// before consolidate (mirrors EcmpResourceManagerDsfScaleTest) so the
+// consolidator can resolve nexthops under FLAGS_resolve_nexthops_from_id.
+class EcmpVirtualArsTestBase : public BaseEcmpResourceManagerTest {
+ public:
+  void SetUp() override {
+    BaseEcmpResourceManagerTest::SetUp();
+    if (FLAGS_enable_nexthop_id_manager) {
+      nextHopIDManager_ = std::make_unique<NextHopIDManager>();
+    }
+  }
+
+  std::vector<StateDelta> consolidateWithIds(
+      EcmpResourceManager& mgr,
+      const std::shared_ptr<SwitchState>& curState,
+      std::shared_ptr<SwitchState> nextState) {
+    assignNextHopIdsToAllRoutes(nextHopIDManager_.get(), nextState);
+    nextState->publish();
+    return mgr.consolidate(StateDelta(curState, nextState));
+  }
+
+  std::unique_ptr<NextHopIDManager> nextHopIDManager_;
+};
+
+class EcmpVirtualArsGroupTest : public EcmpVirtualArsTestBase {
  public:
   static constexpr uint32_t kMaxVirtualGroups = 5; // effective: 5 - 2 = 3
   static constexpr int32_t kMinWidthForVirtual = 2;
@@ -947,8 +974,7 @@ TEST_F(EcmpVirtualArsGroupTest, virtualLimitTriggersBackupOverride) {
     auto nextState = curState->clone();
     auto fib6 = fib(nextState);
     fib6->addNode(pfx.str(), makeRoute(pfx, distinctWideNhops[i]));
-    nextState->publish();
-    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    auto deltas = consolidateWithIds(*mgr, curState, nextState);
     ASSERT_FALSE(deltas.empty());
     curState = deltas.back().newState();
   }
@@ -1000,8 +1026,7 @@ TEST_F(EcmpVirtualArsGroupTest, reclaimBackupVirtualGroupCounterConsistency) {
     prefixes.push_back(pfx);
     auto nextState = curState->clone();
     fib(nextState)->addNode(pfx.str(), makeRoute(pfx, distinctWideNhops[i]));
-    nextState->publish();
-    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    auto deltas = consolidateWithIds(*mgr, curState, nextState);
     ASSERT_FALSE(deltas.empty());
     curState = deltas.back().newState();
   }
@@ -1016,8 +1041,7 @@ TEST_F(EcmpVirtualArsGroupTest, reclaimBackupVirtualGroupCounterConsistency) {
   {
     auto nextState = curState->clone();
     fib(nextState)->removeNode(prefixes[0].str());
-    nextState->publish();
-    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    auto deltas = consolidateWithIds(*mgr, curState, nextState);
     ASSERT_FALSE(deltas.empty());
     curState = deltas.back().newState();
   }
@@ -1050,8 +1074,7 @@ TEST_F(EcmpVirtualArsGroupTest, reclaimBackupVirtualGroupCounterConsistency) {
     }
     auto nextState = curState->clone();
     fib(nextState)->removeNode(prefixes[i].str());
-    nextState->publish();
-    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    auto deltas = consolidateWithIds(*mgr, curState, nextState);
     ASSERT_FALSE(deltas.empty());
     curState = deltas.back().newState();
   }
@@ -1084,8 +1107,7 @@ TEST_F(EcmpVirtualArsGroupTest, directDeleteBackupGroupDecrementsMembers) {
     prefixes.push_back(pfx);
     auto nextState = curState->clone();
     fib(nextState)->addNode(pfx.str(), makeRoute(pfx, distinctWideNhops[i]));
-    nextState->publish();
-    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    auto deltas = consolidateWithIds(*mgr, curState, nextState);
     ASSERT_FALSE(deltas.empty());
     curState = deltas.back().newState();
   }
@@ -1104,8 +1126,7 @@ TEST_F(EcmpVirtualArsGroupTest, directDeleteBackupGroupDecrementsMembers) {
   // Delete backup route directly; no virtual slot freed so reclaim doesn't run.
   auto nextState = curState->clone();
   fib(nextState)->removeNode(prefixes[3].str());
-  nextState->publish();
-  auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+  auto deltas = consolidateWithIds(*mgr, curState, nextState);
   ASSERT_FALSE(deltas.empty());
 
   auto [p2, v2, m2] = mgr->getPrimaryEcmpAndMemberCounts();
@@ -1141,8 +1162,7 @@ TEST_F(EcmpVirtualArsGroupTest, typeAwareReclaimRespectsVirtualHeadroom) {
     prefixes.push_back(pfx);
     auto nextState = curState->clone();
     fib(nextState)->addNode(pfx.str(), makeRoute(pfx, distinctWideNhops[i]));
-    nextState->publish();
-    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    auto deltas = consolidateWithIds(*mgr, curState, nextState);
     ASSERT_FALSE(deltas.empty());
     curState = deltas.back().newState();
   }
@@ -1165,8 +1185,7 @@ TEST_F(EcmpVirtualArsGroupTest, typeAwareReclaimRespectsVirtualHeadroom) {
   // Phase 2: delete one virtual route → canReclaimVirtual = 1.
   auto nextState = curState->clone();
   fib(nextState)->removeNode(prefixes[0].str());
-  nextState->publish();
-  auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+  auto deltas = consolidateWithIds(*mgr, curState, nextState);
   ASSERT_FALSE(deltas.empty());
   curState = deltas.back().newState();
 
@@ -1188,7 +1207,7 @@ TEST_F(EcmpVirtualArsGroupTest, typeAwareReclaimRespectsVirtualHeadroom) {
   EXPECT_EQ(backupCount, 1);
 }
 
-class EcmpVirtualArsMixedReclaimTest : public BaseEcmpResourceManagerTest {
+class EcmpVirtualArsMixedReclaimTest : public EcmpVirtualArsTestBase {
  public:
   static constexpr uint32_t kMaxVirtualGroups = 4; // effective: 4 - 2 = 2
   static constexpr int32_t kMinWidthForVirtual = 8; // width 2..7 = non-virtual
@@ -1250,8 +1269,7 @@ TEST_F(
     auto pfx = makePrefix(prefixIdx);
     auto nextState = curState->clone();
     fib(nextState)->addNode(pfx.str(), makeRoute(pfx, nhops));
-    nextState->publish();
-    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    auto deltas = consolidateWithIds(*mgr, curState, nextState);
     ASSERT_FALSE(deltas.empty());
     curState = deltas.back().newState();
   };
@@ -1288,8 +1306,7 @@ TEST_F(
     auto pfx = makePrefix(5);
     auto nextState = curState->clone();
     fib(nextState)->removeNode(pfx.str());
-    nextState->publish();
-    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    auto deltas = consolidateWithIds(*mgr, curState, nextState);
     ASSERT_FALSE(deltas.empty());
     curState = deltas.back().newState();
   }
@@ -1348,8 +1365,7 @@ TEST_F(
     auto pfx = makePrefix(prefixIdx);
     auto nextState = curState->clone();
     fib(nextState)->addNode(pfx.str(), makeRoute(pfx, nhops));
-    nextState->publish();
-    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    auto deltas = consolidateWithIds(*mgr, curState, nextState);
     ASSERT_FALSE(deltas.empty());
     curState = deltas.back().newState();
   };
@@ -1386,8 +1402,7 @@ TEST_F(
     auto nextState = curState->clone();
     fib(nextState)->removeNode(makePrefix(0).str()); // narrow primary
     fib(nextState)->removeNode(makePrefix(2).str()); // virtual primary
-    nextState->publish();
-    auto deltas = mgr->consolidate(StateDelta(curState, nextState));
+    auto deltas = consolidateWithIds(*mgr, curState, nextState);
     ASSERT_FALSE(deltas.empty());
     curState = deltas.back().newState();
   }
