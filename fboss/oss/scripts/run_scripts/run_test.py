@@ -40,6 +40,7 @@ from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_servic
 # - link: Link tests
 # - platform: Platform service hardware tests
 # - sai_agent_scale: SAI agent scale tests
+# - sai_invariant_agent: SAI agent invariant config tests
 # - benchmark: Benchmark tests
 # - cli: CLI tests
 #
@@ -135,6 +136,7 @@ SUB_CMD_SAI_AGENT = "sai_agent"
 SUB_CMD_PLATFORM = "platform"
 SUB_CMD_FBOSS2_INTEGRATION = "fboss2_integration"
 SUB_CMD_SAI_AGENT_SCALE = "sai_agent_scale"
+SUB_CMD_SAI_INVARIANT_AGENT = "sai_invariant_agent"
 SUB_CMD_BENCHMARK = "benchmark"
 SUB_ARG_AGENT_RUN_MODE = "--agent-run-mode"
 SUB_ARG_AGENT_RUN_MODE_MONO = "mono"
@@ -1604,6 +1606,80 @@ class SaiAgentScaleTestRunner(TestRunner):
         return tests
 
 
+class SaiInvariantAgentTestRunner(TestRunner):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        sub_parser.add_argument(
+            OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a platform mapping JSON file to be used.",
+            default=None,
+        )
+
+    def _get_config_path(self):
+        return ""
+
+    def _get_known_bad_tests_file(self):
+        if not args.known_bad_tests_file:
+            return SAI_AGENT_TEST_KNOWN_BAD_TESTS
+        return args.known_bad_tests_file
+
+    def _get_unsupported_tests_file(self):
+        if not args.unsupported_tests_file:
+            return SAI_AGENT_UNSUPPORTED_TESTS
+        return args.unsupported_tests_file
+
+    def _get_test_binary_name(self):
+        return "/opt/fboss/bin/sai_invariant_agent_test-sai_impl"
+
+    def _get_sai_replayer_logging_flags(
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
+        if sai_replayer_log_path is None:
+            return []
+        return [
+            "--enable-replayer",
+            "--enable_get_attr_log",
+            "--enable_packet_log",
+            "--sai-log",
+            sai_replayer_log_path,
+        ]
+
+    def _get_sai_logging_flags(self, sai_logging):
+        return ["--enable_sai_log", sai_logging]
+
+    def _get_warmboot_check_file(self):
+        return agent_can_warm_boot_file_path(switch_index=0)
+
+    def _get_test_run_args(self, conf_file):
+        args_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        if args.platform_mapping_override_path is not None:
+            args_list.extend(
+                [
+                    "--platform_mapping_override_path",
+                    args.platform_mapping_override_path,
+                ]
+            )
+        return args_list
+
+    def _setup_run(self, conf_file: str) -> None:
+        pass
+
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
+        if args.setup_for_coldboot:
+            run_script(args.setup_for_coldboot)
+
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
+        if args.setup_for_warmboot:
+            run_script(args.setup_for_warmboot)
+
+    def _end_run(self):
+        return
+
+    def _filter_tests(self, tests: list[str]) -> list[str]:
+        return tests
+
+
 class PlatformServicesTestRunner(TestRunner):
     TEST_TYPE_CHOICES: ClassVar[list] = [
         SUB_ARG_PLATFORM_HW_TEST,
@@ -2869,6 +2945,18 @@ if __name__ == "__main__":
     sai_agent_scale_test_runner = SaiAgentScaleTestRunner()
     sai_agent_scale_test_parser.set_defaults(func=sai_agent_scale_test_runner.run_test)
     sai_agent_scale_test_runner.add_subcommand_arguments(sai_agent_scale_test_parser)
+
+    # Add subparser for SAI Invariant Agent tests
+    sai_invariant_agent_test_parser = subparsers.add_parser(
+        SUB_CMD_SAI_INVARIANT_AGENT, help="run sai agent invariant config tests"
+    )
+    sai_invariant_agent_test_runner = SaiInvariantAgentTestRunner()
+    sai_invariant_agent_test_parser.set_defaults(
+        func=sai_invariant_agent_test_runner.run_test
+    )
+    sai_invariant_agent_test_runner.add_subcommand_arguments(
+        sai_invariant_agent_test_parser
+    )
 
     # Add subparser for platform tests
     platform_test_parser = subparsers.add_parser(
