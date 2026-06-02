@@ -306,9 +306,11 @@ std::map<PortID, HwPortStats> AgentHwTest::extractPortStats(
   std::map<PortID, HwPortStats> portStats;
   for (auto portId : ports) {
     auto portSwitchId = scopeResolver().scope(portId).switchId();
+    auto portSwitchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(portSwitchId);
     auto port = getProgrammedState()->getPort(portId);
     const auto& switchStats =
-        switch2Stats.find(static_cast<uint16_t>(portSwitchId))->second;
+        switch2Stats.find(static_cast<uint16_t>(portSwitchIndex))->second;
     portStats[portId] =
         switchStats.hwPortStats()->find(port->getName())->second;
   }
