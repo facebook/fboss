@@ -79,9 +79,6 @@ struct NextHopGroup {
   3: optional bool isProgrammed;
 }
 
-// Deprecated: use NextHopGroup instead
-typedef NextHopGroup NamedNextHopGroup
-
 /*
  * Forwarding Class
  */
