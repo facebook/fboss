@@ -39,9 +39,14 @@ class HwBasePortFb303Stats {
       std::optional<cfg::PortPfc> pfcCfg = std::nullopt,
       bool inCongestionDiscardCountSupported = false,
       bool inCongestionDiscardSeenSupported = false,
+      bool srv6MysidDiscardCounterSupported = false,
+      bool mplsLabelLookupFailCounterSupported = false,
       std::optional<std::string> multiSwitchStatsPrefix = std::nullopt)
       : queueId2Name_(std::move(queueId2Name)),
         portName_(portName),
+        srv6MysidDiscardCounterSupported_(srv6MysidDiscardCounterSupported),
+        mplsLabelLookupFailCounterSupported_(
+            mplsLabelLookupFailCounterSupported),
         portCounters_(HwFb303Stats(std::move(multiSwitchStatsPrefix))) {
     pfcInfo_.inCongestionDiscardCountSupported =
         inCongestionDiscardCountSupported;
@@ -194,6 +199,12 @@ class HwBasePortFb303Stats {
   const std::vector<PfcPriority>& getEnabledPfcPriorities() const {
     return pfcInfo_.enabledPfcPriorities;
   }
+  bool isSrv6MysidDiscardCounterSupported() const {
+    return srv6MysidDiscardCounterSupported_;
+  }
+  bool isMplsLabelLookupFailCounterSupported() const {
+    return mplsLabelLookupFailCounterSupported_;
+  }
 
  protected:
   QueueId2Name queueId2Name_;
@@ -215,6 +226,8 @@ class HwBasePortFb303Stats {
       std::optional<std::string> oldQueueName);
 
   std::string portName_;
+  bool srv6MysidDiscardCounterSupported_{false};
+  bool mplsLabelLookupFailCounterSupported_{false};
   HwFb303Stats portCounters_;
   bool macsecStatsInited_{false};
   PfcPriorityInfo pfcInfo_;

@@ -35,6 +35,8 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
             std::nullopt /*pfcCfg*/,
             false /*inCongestionDiscardCountSupported*/,
             false /*inCongestionDiscardSeenSupported*/,
+            false /*srv6MysidDiscardCounterSupported*/,
+            false /*mplsLabelLookupFailCounterSupported*/,
             multiSwitchStatsPrefix) {
     portStats_.portName_() = portName;
 

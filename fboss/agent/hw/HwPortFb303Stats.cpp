@@ -32,7 +32,6 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kInIpv4HdrErrors(),
       kInIpv6HdrErrors(),
       kInDstNullDiscards(),
-      kInSrv6MySidDiscards(),
       kInDiscardsRaw(),
       kOutBytes(),
       kOutUnicastPkts(),
@@ -47,7 +46,6 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kFecCorrectable(),
       kFecUncorrectable(),
       kLeakyBucketFlapCnt(),
-      kInLabelMissDiscards(),
       kInCongestionDiscards(),
       kInAclDiscards(),
       kInTrapDiscards(),
@@ -184,7 +182,8 @@ void HwPortFb303Stats::updateStats(
       timeRetrieved_, kInIpv6HdrErrors(), *curPortStats.inIpv6HdrErrors_());
   updateStat(
       timeRetrieved_, kInDstNullDiscards(), *curPortStats.inDstNullDiscards_());
-  if (curPortStats.inSrv6MySidDiscards_().has_value()) {
+  if (isSrv6MysidDiscardCounterSupported() &&
+      curPortStats.inSrv6MySidDiscards_().has_value()) {
     updateStat(
         timeRetrieved_,
         kInSrv6MySidDiscards(),
@@ -222,10 +221,12 @@ void HwPortFb303Stats::updateStats(
         kLeakyBucketFlapCnt(),
         *curPortStats.leakyBucketFlapCount_());
   }
-  updateStat(
-      timeRetrieved_,
-      kInLabelMissDiscards(),
-      *curPortStats.inLabelMissDiscards_());
+  if (isMplsLabelLookupFailCounterSupported()) {
+    updateStat(
+        timeRetrieved_,
+        kInLabelMissDiscards(),
+        *curPortStats.inLabelMissDiscards_());
+  }
   updateStat(
       timeRetrieved_,
       kInCongestionDiscards(),

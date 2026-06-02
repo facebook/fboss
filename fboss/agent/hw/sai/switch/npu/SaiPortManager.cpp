@@ -301,7 +301,11 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
             platform_->getAsic()->isSupported(
                 HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS),
             platform_->getAsic()->isSupported(
-                HwAsic::Feature::SAI_PORT_PG_DROP_STATUS)));
+                HwAsic::Feature::SAI_PORT_PG_DROP_STATUS),
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER),
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER)));
   }
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
@@ -424,7 +428,11 @@ void SaiPortManager::changePortImpl(
               platform_->getAsic()->isSupported(
                   HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS),
               platform_->getAsic()->isSupported(
-                  HwAsic::Feature::SAI_PORT_PG_DROP_STATUS)));
+                  HwAsic::Feature::SAI_PORT_PG_DROP_STATUS),
+              platform_->getAsic()->isSupported(
+                  HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER),
+              platform_->getAsic()->isSupported(
+                  HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER)));
     } else if (oldPort->getName() != newPort->getName()) {
       // Port was already enabled, but Port name changed - update stats
       portStats_.find(newPort->getID())

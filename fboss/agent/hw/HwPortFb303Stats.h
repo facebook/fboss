@@ -30,14 +30,18 @@ class HwPortFb303Stats : public HwBasePortFb303Stats {
       const std::vector<PfcPriority>& enabledPfcPriorities = {},
       const std::optional<cfg::PortPfc>& pfcCfg = std::nullopt,
       bool inCongestionDiscardCountSupported = false,
-      bool inCongestionDiscardSeenSupported = false)
+      bool inCongestionDiscardSeenSupported = false,
+      bool srv6MysidDiscardCounterSupported = false,
+      bool mplsLabelLookupFailCounterSupported = false)
       : HwBasePortFb303Stats(
             portName,
             std::move(queueId2Name),
             enabledPfcPriorities,
             pfcCfg,
             inCongestionDiscardCountSupported,
-            inCongestionDiscardSeenSupported) {
+            inCongestionDiscardSeenSupported,
+            srv6MysidDiscardCounterSupported,
+            mplsLabelLookupFailCounterSupported) {
     portStats_.portName_() = portName;
     reinitStats(std::nullopt);
   }
