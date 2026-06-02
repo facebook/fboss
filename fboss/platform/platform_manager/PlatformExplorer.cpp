@@ -17,6 +17,7 @@
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/CpldManager.h"
+#include "fboss/platform/platform_manager/FanCpldManager.h"
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/weutil/FbossEepromInterface.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
@@ -493,6 +494,10 @@ void PlatformExplorer::exploreI2cDevices(
       }
       createI2cDevice(
           devicePath, *i2cDeviceConfig.kernelDeviceName(), busNum, devAddr);
+      if (i2cDeviceConfig.fanCpldConfig()) {
+        setupFanCpld(
+            devicePath, busNum, devAddr, *i2cDeviceConfig.fanCpldConfig());
+      }
       if (i2cDeviceConfig.numOutgoingChannels()) {
         auto channelToBusNums =
             i2cExplorer_.getMuxChannelI2CBuses(busNum, devAddr);
@@ -1107,6 +1112,20 @@ void PlatformExplorer::setupCpldSysfsAttrs(
     XLOG(ERR) << ex.what();
     explorationSummary_.addError(
         ExplorationErrorType::CPLD_SYSFS_ATTR_CREATE, devicePath, ex.what());
+  }
+}
+
+void PlatformExplorer::setupFanCpld(
+    const std::string& devicePath,
+    uint16_t busNum,
+    const I2cAddr& addr,
+    const FanCpldConfig& fanCpldConfig) {
+  try {
+    configureFanCpld(busNum, addr, fanCpldConfig);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << ex.what();
+    explorationSummary_.addError(
+        ExplorationErrorType::FAN_CPLD_CONFIGURE, devicePath, ex.what());
   }
 }
 

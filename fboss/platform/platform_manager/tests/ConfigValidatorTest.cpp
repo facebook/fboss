@@ -2156,3 +2156,61 @@ TEST(ConfigValidatorTest, XcvrCtrlBlockXcvrCoverage) {
     EXPECT_FALSE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
   }
 }
+
+namespace {
+FanCpldConfig getValidFanCpldConfig() {
+  FanCpldConfig config;
+  config.numFans() = 4;
+  config.pwmMax() = 64;
+  config.speedMultiplier() = 150;
+  config.hasRearTach() = true;
+  config.hasLeds() = true;
+  return config;
+}
+} // namespace
+
+TEST(ConfigValidatorTest, FanCpldConfig) {
+  ConfigValidator validator;
+
+  // Valid: baseline config
+  EXPECT_TRUE(validator.isValidFanCpldConfig(getValidFanCpldConfig()));
+
+  // Invalid: numFans = 0
+  auto config = getValidFanCpldConfig();
+  config.numFans() = 0;
+  EXPECT_FALSE(validator.isValidFanCpldConfig(config));
+
+  // Invalid: numFans = 9
+  config.numFans() = 9;
+  EXPECT_FALSE(validator.isValidFanCpldConfig(config));
+
+  // Valid: numFans boundaries
+  config.numFans() = 1;
+  EXPECT_TRUE(validator.isValidFanCpldConfig(config));
+  config.numFans() = 8;
+  EXPECT_TRUE(validator.isValidFanCpldConfig(config));
+
+  // Invalid: pwmMax = 0
+  config = getValidFanCpldConfig();
+  config.pwmMax() = 0;
+  EXPECT_FALSE(validator.isValidFanCpldConfig(config));
+
+  // Invalid: pwmMax = 256
+  config.pwmMax() = 256;
+  EXPECT_FALSE(validator.isValidFanCpldConfig(config));
+
+  // Valid: pwmMax boundaries
+  config.pwmMax() = 1;
+  EXPECT_TRUE(validator.isValidFanCpldConfig(config));
+  config.pwmMax() = 255;
+  EXPECT_TRUE(validator.isValidFanCpldConfig(config));
+
+  // Invalid: speedMultiplier = 0
+  config = getValidFanCpldConfig();
+  config.speedMultiplier() = 0;
+  EXPECT_FALSE(validator.isValidFanCpldConfig(config));
+
+  // Valid: speedMultiplier = 1
+  config.speedMultiplier() = 1;
+  EXPECT_TRUE(validator.isValidFanCpldConfig(config));
+}

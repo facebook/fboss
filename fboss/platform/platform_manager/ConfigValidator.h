@@ -39,6 +39,7 @@ class ConfigValidator {
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
   bool isValidCpldSysfsAttrs(const std::vector<CpldSysfsAttr>& cpldSysfsAttrs);
+  bool isValidFanCpldConfig(const FanCpldConfig& fanCpldConfig);
   bool isValidDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& devicePath);

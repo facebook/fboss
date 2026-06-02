@@ -185,6 +185,26 @@ struct CpldSysfsAttr {
   7: string description;
 }
 
+// Configuration for a generic fan CPLD device (fbfancpld driver).
+// Sent to the driver via ioctl after device creation.
+//
+// `numFans`: Number of fan trays.
+//
+// `pwmMax`: Maximum PWM register value (e.g. 40 or 64).
+//
+// `speedMultiplier`: Tach register to RPM multiplier (e.g. 150 or 300).
+//
+// `hasRearTach`: Whether fans have both front and rear tach sensors.
+//
+// `hasLeds`: Whether fan trays have LED indicators.
+struct FanCpldConfig {
+  1: i32 numFans;
+  2: i32 pwmMax;
+  3: i32 speedMultiplier;
+  4: bool hasRearTach;
+  5: bool hasLeds;
+}
+
 // `I2cDeviceConfig` defines a i2c device within any PmUnit.
 //
 // `busName`: Refer to Bus Naming Convention above.
@@ -217,6 +237,11 @@ struct CpldSysfsAttr {
 // `isEeprom`: Whether this I2C Device is an EEPROM device
 //
 // `eepromOffset`: offset for eeprom content.  Applies only to EEPROM device
+//
+// `cpldSysfsAttrs`: list of CPLD sysfs attributes to create for this device
+//
+// `fanCpldConfig`: configuration for a generic fan CPLD device, sent to the
+// fbfancpld driver via ioctl after device creation
 //
 // For example, the three i2c devices in the below Sample PmUnit will be modeled
 // as follows
@@ -260,6 +285,7 @@ struct I2cDeviceConfig {
   14: optional i16 eepromOffset;
   15: optional list<CpldSysfsAttr> cpldSysfsAttrs;
   16: optional i32 pca9548Mode;
+  17: optional FanCpldConfig fanCpldConfig;
 }
 
 // Configs for sensors which are embedded (eg within CPU).

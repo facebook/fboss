@@ -204,6 +204,7 @@ cpp_library(
         ":data_store",
         ":device_path_resolver",
         ":exploration_errors",
+        ":fan_cpld_manager",
         ":i2c_explorer",
         ":pci_explorer",
         ":platform_manager_config-cpp2-types",
@@ -344,6 +345,28 @@ cpp_library(
         ":platform_manager_config-cpp2-types",
         ":utils",
         "//folly:conv",
+        "//folly:file",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "fbfancpld_ioctl_h",
+    headers = [
+        "uapi/fbfancpld-ioctl.h",
+    ],
+)
+
+cpp_library(
+    name = "fan_cpld_manager",
+    srcs = ["FanCpldManager.cpp"],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":fbfancpld_ioctl_h",
+        ":i2c_misc",
+        ":platform_manager_config-cpp2-types",
+        ":utils",
         "//folly:file",
         "//folly:string",
         "//folly/logging:logging",

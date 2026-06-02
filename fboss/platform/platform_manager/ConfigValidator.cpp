@@ -644,6 +644,32 @@ bool ConfigValidator::isValidI2cDeviceConfig(
       !isValidCpldSysfsAttrs(*i2cDeviceConfig.cpldSysfsAttrs())) {
     return false;
   }
+  if (i2cDeviceConfig.fanCpldConfig() &&
+      !isValidFanCpldConfig(*i2cDeviceConfig.fanCpldConfig())) {
+    return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidFanCpldConfig(const FanCpldConfig& fanCpldConfig) {
+  if (*fanCpldConfig.numFans() < 1 || *fanCpldConfig.numFans() > 8) {
+    XLOG(ERR) << fmt::format(
+        "FanCpldConfig numFans {} out of range (1-8)",
+        *fanCpldConfig.numFans());
+    return false;
+  }
+  if (*fanCpldConfig.pwmMax() < 1 || *fanCpldConfig.pwmMax() > 255) {
+    XLOG(ERR) << fmt::format(
+        "FanCpldConfig pwmMax {} out of range (1-255)",
+        *fanCpldConfig.pwmMax());
+    return false;
+  }
+  if (*fanCpldConfig.speedMultiplier() < 1) {
+    XLOG(ERR) << fmt::format(
+        "FanCpldConfig speedMultiplier {} must be positive",
+        *fanCpldConfig.speedMultiplier());
+    return false;
+  }
   return true;
 }
 
