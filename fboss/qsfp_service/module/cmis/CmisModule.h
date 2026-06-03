@@ -805,7 +805,7 @@ class CmisModule : public QsfpModule {
   MediaInterfaceCode getModuleMediaInterface() const override;
 
   uint64_t getExpectedDatapathDelayUsec(bool /*init*/);
-  uint64_t maxRetriesWith500msDelay(bool /*init*/);
+  uint64_t maxDatapathStatePolls(bool /*init*/);
 
   /*
    * Program the datapath for the specified port. When isInit is true, releases

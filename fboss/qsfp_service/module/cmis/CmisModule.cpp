@@ -4828,7 +4828,7 @@ uint64_t CmisModule::getExpectedDatapathDelayUsec(bool init) {
   return kUsecDatapathStateUpdateTime;
 }
 
-uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
+uint64_t CmisModule::maxDatapathStatePolls(bool init) {
   return getExpectedDatapathDelayUsec(init) / kUsecDatapathStatePollTime;
 }
 
@@ -5032,7 +5032,7 @@ void CmisModule::resetDataPathWithFunc(
     writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
 
     // Wait for all datapath state machines to get Deactivated
-    const auto maxRetriesDeInit = maxRetriesWith500msDelay(/*init=*/false);
+    const auto maxRetriesDeInit = maxDatapathStatePolls(/*init=*/false);
 
     auto retries = 0;
     while (retries++ < maxRetriesDeInit) {
@@ -5058,7 +5058,7 @@ void CmisModule::resetDataPathWithFunc(
     writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
 
     // Wait for the datapath to come out of deactivated state
-    const auto maxRetriesInit = maxRetriesWith500msDelay(/*init=*/true);
+    const auto maxRetriesInit = maxDatapathStatePolls(/*init=*/true);
     retries = 0;
     while (retries++ < maxRetriesInit) {
       /* sleep override */
