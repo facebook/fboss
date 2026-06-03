@@ -15,6 +15,7 @@
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -681,6 +682,49 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutesRecursiveResolution) {
   EXPECT_EQ(refCounts[namedNhgClientId], 1);
   // The resolved link-local ID should also be counted (resolved + normalized)
   EXPECT_EQ(refCounts[resolvedLinkLocalId], 2);
+}
+
+TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromMySidEmpty) {
+  auto refCounts = FibInfo::getNextHopSetIdRefCountsFromMySid(state_);
+  EXPECT_TRUE(refCounts.empty());
+}
+
+TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromMySid) {
+  NextHopSetID setId1(100);
+  NextHopSetID setId2(200);
+
+  auto makeMySidEntry = [](const std::string& ip, uint8_t len) {
+    state::MySidFields fields;
+    fields.type() = MySidType::NODE_MICRO_SID;
+    facebook::network::thrift::IPPrefix prefix;
+    prefix.prefixAddress() =
+        facebook::network::toBinaryAddress(folly::IPAddress(ip));
+    prefix.prefixLength() = len;
+    fields.mySid() = prefix;
+    return std::make_shared<MySid>(fields);
+  };
+
+  auto mySid1 = makeMySidEntry("fc00:100::1", 48);
+  mySid1->setResolvedNextHopsId(setId1);
+
+  auto mySid2 = makeMySidEntry("fc00:200::1", 48);
+  mySid2->setResolvedNextHopsId(setId1);
+  mySid2->setUnresolveNextHopsId(setId2);
+
+  auto mySid3 = makeMySidEntry("fc00:300::1", 48);
+  mySid3->setResolvedNextHopsId(setId2);
+
+  auto matcher = createMatcher(0);
+  auto mySids = state_->getMySids()->modify(&state_);
+  mySids->addNode(mySid1, matcher);
+  mySids->addNode(mySid2, matcher);
+  mySids->addNode(mySid3, matcher);
+
+  auto refCounts = FibInfo::getNextHopSetIdRefCountsFromMySid(state_);
+  // setId1: resolved(mySid1) + resolved(mySid2) = 2
+  EXPECT_EQ(refCounts[setId1], 2);
+  // setId2: unresolved(mySid2) + resolved(mySid3) = 2
+  EXPECT_EQ(refCounts[setId2], 2);
 }
 
 } // namespace facebook::fboss
