@@ -1041,12 +1041,22 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         updatedRoute->setConnected();
       }
     } else {
-      if (nextHopIDManager_ && oldNextHopSetID.has_value()) {
-        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
-      }
-      if (nextHopIDManager_ && oldNormalizedNextHopSetID.has_value()) {
-        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
-            *oldNormalizedNextHopSetID);
+      if (nextHopIDManager_) {
+        if (oldNextHopSetID.has_value()) {
+          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
+        }
+        if (oldNormalizedNextHopSetID.has_value()) {
+          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
+              *oldNormalizedNextHopSetID);
+        }
+        // Assert clientNextHopSetID not present in fwd entry so the invariant
+        // can't be silently broken.
+        CHECK(!updatedRoute->getForwardInfo()
+                   .getClientNextHopSetID()
+                   .has_value());
+
+        // Clear the fwd so the unresolvable route retains no freed set IDs.
+        updatedRoute->clearForward();
       }
       updatedRoute->setUnresolvable();
     }

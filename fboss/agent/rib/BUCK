@@ -22,6 +22,7 @@ cpp_library(
         "//folly/json:dynamic",
     ],
     exported_external_deps = [
+        "gflags",
         ("boost", None, "boost_container"),
     ],
 )
@@ -144,6 +145,9 @@ cpp_library(
         "//fboss/lib:radix_tree",
         "//folly:network_address",
         "//folly/json:dynamic",
+    ],
+    exported_external_deps = [
+        "gflags",
     ],
 )
 
