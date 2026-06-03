@@ -205,7 +205,7 @@ class YubaAsic : public TajoAsic {
   bool isSrv6Supported() const;
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;
-  static constexpr auto kSrv6MinSdkRequired = "26.2.5210";
+  static constexpr auto kSrv6MinSdkRequired = "26.2.4210";
   std::optional<uint64_t> currentSdkVersion_{std::nullopt};
 };
 
