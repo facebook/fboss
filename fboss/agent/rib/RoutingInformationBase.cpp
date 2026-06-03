@@ -1737,33 +1737,6 @@ void RoutingInformationBase::deleteNamedNextHopGroups(
   }
 }
 
-state::RouteTableFields RibRouteTables::VrfRouteTable::toThrift() const {
-  state::RouteTableFields obj{};
-  obj.v4NetworkToRoute() = v4NetworkToRoute.toThrift();
-  obj.v6NetworkToRoute() = v6NetworkToRoute.toThrift();
-  obj.labelToRoute() = labelToRoute.toThrift();
-  return obj;
-}
-
-state::RouteTableFields RibRouteTables::VrfRouteTable::warmBootState() const {
-  state::RouteTableFields obj{};
-  obj.v4NetworkToRoute() = v4NetworkToRoute.warmBootState();
-  obj.v6NetworkToRoute() = v6NetworkToRoute.warmBootState();
-  obj.labelToRoute() = labelToRoute.warmBootState();
-  return obj;
-}
-
-RibRouteTables::VrfRouteTable RibRouteTables::VrfRouteTable::fromThrift(
-    const state::RouteTableFields& obj) {
-  VrfRouteTable routeTable;
-  routeTable.v4NetworkToRoute =
-      IPv4NetworkToRouteMap::fromThrift(*obj.v4NetworkToRoute());
-  routeTable.v6NetworkToRoute =
-      IPv6NetworkToRouteMap::fromThrift(*obj.v6NetworkToRoute());
-  routeTable.labelToRoute = LabelToRouteMap::fromThrift(*obj.labelToRoute());
-  return routeTable;
-}
-
 std::map<int32_t, state::RouteTableFields> RibRouteTables::toThrift() const {
   std::map<int32_t, state::RouteTableFields> obj{};
   auto routeTables = synchronizedRouteTables_.rlock();
@@ -1790,8 +1763,7 @@ RibRouteTables RibRouteTables::fromThrift(
   for (const auto& [rid, routeTableFields] : obj) {
     // @lint-ignore CLANGTIDY
     routeTables->routerIDToRouteTable.emplace(
-        RouterID(rid),
-        RibRouteTables::VrfRouteTable::fromThrift(routeTableFields));
+        RouterID(rid), VrfRouteTable::fromThrift(routeTableFields));
   }
   return ribRouteTables;
 }

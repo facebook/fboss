@@ -35,6 +35,7 @@ cpp_library(
         "RibRouteWeightNormalizer.cpp",
         "RouteUpdater.cpp",
         "RoutingInformationBase.cpp",
+        "VrfRouteTable.cpp",
     ],
     exported_deps = [
         ":network_to_route_map",
