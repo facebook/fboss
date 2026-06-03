@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -120,6 +121,37 @@ std::vector<NextHop> FibInfo::resolveNextHopSetFromName(
     throw FbossError("Named next-hop group '", name, "' not found");
   }
   return resolveNextHopSetFromId(*idOpt);
+}
+
+std::unordered_map<NextHopSetID, uint32_t>
+FibInfo::getNextHopSetIdRefCountsFromRoutes() const {
+  std::unordered_map<NextHopSetID, uint32_t> refCounts;
+  auto fibsMap = getfibsMap();
+  if (!fibsMap) {
+    return refCounts;
+  }
+
+  auto collectFromFib = [&refCounts](const auto& fib) {
+    for (const auto& [_, route] : std::as_const(*fib)) {
+      const auto& fwdInfo = route->getForwardInfo();
+      if (auto id = fwdInfo.getClientNextHopSetID()) {
+        ++refCounts[*id];
+      }
+      if (auto id = fwdInfo.getResolvedNextHopSetID()) {
+        ++refCounts[*id];
+      }
+      if (auto id = fwdInfo.getNormalizedResolvedNextHopSetID()) {
+        ++refCounts[*id];
+      }
+    }
+  };
+
+  for (const auto& [_, fibContainer] : std::as_const(*fibsMap)) {
+    collectFromFib(fibContainer->getFibV4());
+    collectFromFib(fibContainer->getFibV6());
+  }
+
+  return refCounts;
 }
 
 std::map<std::string, NextHopSetId> FibInfo::getNameToNextHopSetId() const {
