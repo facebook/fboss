@@ -54,6 +54,14 @@ constexpr int moduleDatapathInitDurationUsec = 5000000;
 
 constexpr int moduleReadyAfterFirmwareRunUsec = 100 * 1000; // 100ms
 
+// Module ready state polling constants
+constexpr int kModuleReadyPollTimeoutUsec = 120 * 1000 * 1000; // 120 seconds
+constexpr int kModuleReadyPollIntervalUsec = 500 * 1000; // 0.5 seconds
+constexpr uint8_t kModuleStateReg = 3; // Page 0, byte 3
+constexpr uint8_t kModuleStateMask = 0x0E; // Bits 1-3
+constexpr uint8_t kModuleStateBitshift = 1;
+constexpr uint8_t kModuleStateReady = 0x03; // ModuleReady state value
+
 // CMIS FW Upgrade
 constexpr int kFwUpgrade = static_cast<int>(CmisField::FW_UPGRADE);
 
@@ -456,6 +464,11 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
 
   usleep(2 * moduleDatapathInitDurationUsec);
 
+  // Poll for module ready state after firmware run (tunable optics only)
+  if (isTunableModule()) {
+    pollForModuleReady();
+  }
+
   // Set the password to let the privileged operation of firmware download
   bus_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP,
@@ -603,6 +616,68 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   }
 
   return true;
+}
+
+/*
+ * pollForModuleReady
+ *
+ * Polls the module state register until the module reaches the ready state
+ * or the timeout expires. The module may take time to initialize after a
+ * firmware run command. I2C exceptions during the reset period are handled
+ * gracefully.
+ */
+bool CmisFirmwareUpgrader::pollForModuleReady() {
+  XLOG(INFO) << fmt::format(
+      "pollForModuleReady: Mod{:d}: Polling for module ready state (timeout: {:d} sec, interval: {:d} ms)",
+      moduleId_,
+      kModuleReadyPollTimeoutUsec / 1000000,
+      kModuleReadyPollIntervalUsec / 1000);
+
+  auto pollStartTime = std::chrono::steady_clock::now();
+  auto pollFinishTime =
+      pollStartTime + std::chrono::microseconds(kModuleReadyPollTimeoutUsec);
+
+  while (std::chrono::steady_clock::now() < pollFinishTime) {
+    /* sleep override */
+    usleep(kModuleReadyPollIntervalUsec);
+
+    try {
+      uint8_t moduleState = 0;
+      bus_->readTransceiver(
+          {TransceiverAccessParameter::ADDR_QSFP,
+           kModuleStateReg,
+           1,
+           kFwUpgrade},
+          &moduleState,
+          kFwUpgrade);
+
+      uint8_t stateValue =
+          (moduleState & kModuleStateMask) >> kModuleStateBitshift;
+
+      if (stateValue == kModuleStateReady) {
+        auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                             std::chrono::steady_clock::now() - pollStartTime)
+                             .count();
+        XLOG(INFO) << fmt::format(
+            "pollForModuleReady: Mod{:d}: Module is in READY state after {:d} ms",
+            moduleId_,
+            elapsedMs);
+        return true;
+      }
+    } catch (const std::exception& e) {
+      // I2C access may fail while module is resetting, continue polling
+      XLOG(WARN) << fmt::format(
+          "pollForModuleReady: Mod{:d}: Exception while reading module state: {}. Continuing to poll...",
+          moduleId_,
+          e.what());
+    }
+  }
+
+  XLOG(ERR) << fmt::format(
+      "pollForModuleReady: Mod{:d}: Module did not reach READY state within {:d} seconds",
+      moduleId_,
+      kModuleReadyPollTimeoutUsec / 1000000);
+  return false;
 }
 
 } // namespace facebook::fboss
