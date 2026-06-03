@@ -374,10 +374,11 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
 }
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
-  auto constexpr remotePortId = 401;
-  const SystemPortID kRemoteSysPortId(remotePortId);
   folly::IPAddressV6 kNeighborIp("100::2");
-  auto setup = [=, this]() {
+  auto setup = [this, kNeighborIp]() {
+    const auto kRemoteSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState());
+    const auto kIntfId = utility::getRemoteIntfId(kRemoteSysPortId);
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
@@ -391,7 +392,6 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
           static_cast<SwitchID>(
               numCores * getAgentEnsemble()->getNumL3Asics()));
     });
-    const InterfaceID kIntfId(remotePortId);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteInterface(
           in,
@@ -420,18 +420,31 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
           utility::getDummyEncapIndex(getAgentEnsemble()));
     });
   };
-  auto verify = [=, this]() {
-    auto getVoQDeletedPkts = [=, this]() {
+  auto verify = [this, kNeighborIp]() {
+    const auto kRemoteSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState());
+    auto getVoQDeletedPkts = [=, this]() -> std::optional<int64_t> {
       if (!isSupportedOnAllAsics(HwAsic::Feature::VOQ_DELETE_COUNTER)) {
         return 0L;
       }
-      return folly::copy(getLatestSysPortStats(kRemoteSysPortId)
-                             .queueCreditWatchdogDeletedPackets_()
-                             .value())
+      auto sysPortStats = utility::getRemoteSysPortStatsForSwitchUnderTest(
+          getSw(),
+          getProgrammedState(),
+          getCurrentSwitchIndexForTesting(),
+          kRemoteSysPortId);
+      if (!sysPortStats.has_value()) {
+        return std::nullopt;
+      }
+      return folly::copy(
+                 sysPortStats->queueCreditWatchdogDeletedPackets_().value())
           .at(utility::getDefaultQueue());
     };
 
-    auto voqDeletedPktsBefore = getVoQDeletedPkts();
+    std::optional<int64_t> voqDeletedPktsBefore;
+    WITH_RETRIES({
+      voqDeletedPktsBefore = getVoQDeletedPkts();
+      ASSERT_EVENTUALLY_TRUE(voqDeletedPktsBefore.has_value());
+    });
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
@@ -441,9 +454,10 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
     }
     WITH_RETRIES({
       auto voqDeletedPktsAfter = getVoQDeletedPkts();
-      XLOG(INFO) << "Voq deleted pkts, before: " << voqDeletedPktsBefore
-                 << " after: " << voqDeletedPktsAfter;
-      EXPECT_EVENTUALLY_EQ(voqDeletedPktsBefore + 100, voqDeletedPktsAfter);
+      ASSERT_EVENTUALLY_TRUE(voqDeletedPktsAfter.has_value());
+      XLOG(INFO) << "Voq deleted pkts, before: " << *voqDeletedPktsBefore
+                 << " after: " << *voqDeletedPktsAfter;
+      EXPECT_EVENTUALLY_EQ(*voqDeletedPktsBefore + 100, *voqDeletedPktsAfter);
     });
   };
   verifyAcrossWarmBoots(setup, verify);
