@@ -134,6 +134,7 @@ std::vector<MediaInterfaceCode> getExpectedMediaInterfaceCodes(
     const std::string& comboDescription,
     const SpeedCombination& combo) {
   std::vector<MediaInterfaceCode> result(8, MediaInterfaceCode::UNKNOWN);
+  int totalMediaLanes = 0;
   for (const auto& port : *combo.ports()) {
     auto mediaLaneCodeValue =
         extractFromMediaInterfaceUnion<SMFMediaInterfaceCode>(
@@ -148,12 +149,14 @@ std::vector<MediaInterfaceCode> getExpectedMediaInterfaceCodes(
           " in speed combination ",
           comboDescription);
     }
-    auto start = *port.hostLanes()->start();
-    auto count = *port.hostLanes()->count();
+    auto start = *port.mediaLanes()->start();
+    auto count = *port.mediaLanes()->count();
     for (int i = 0; i < count; i++) {
       result[start + i] = mediaInterfaceCode;
     }
+    totalMediaLanes = std::max(totalMediaLanes, start + count);
   }
+  result.resize(totalMediaLanes);
   return result;
 }
 
