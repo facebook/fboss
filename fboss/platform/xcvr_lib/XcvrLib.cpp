@@ -76,9 +76,9 @@ int XcvrLib::getPresenceMask() const {
 }
 
 int XcvrLib::getResetHoldHi() const {
-  const auto& platformName = *pmConfig_.platformName();
-  if (platformName == "MERU800BFA" || platformName == "MERU800BIA" ||
-      platformName == "MORGAN800CC") {
+  const auto& bspKmodsRpmName = *pmConfig_.bspKmodsRpmName();
+  if (bspKmodsRpmName == "arista_bsp_kmods" ||
+      bspKmodsRpmName == "cisco_bsp_kmods") {
     return 0;
   }
   return 1;
