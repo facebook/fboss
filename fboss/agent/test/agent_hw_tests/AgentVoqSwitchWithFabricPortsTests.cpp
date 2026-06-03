@@ -219,8 +219,9 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    auto switchId = getCurrentSwitchIdForTesting();
     utility::checkPortFabricReachability(
-        getAgentEnsemble(), SwitchID(0), fabricPortId);
+        getAgentEnsemble(), switchId, fabricPortId);
     auto drainPort = [&](bool drain) {
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         auto out = in->clone();
@@ -238,7 +239,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
           getAgentEnsemble(), fabricPortIds, expectActive);
       // Fabric reachability should be unchanged regardless of drain
       utility::checkPortFabricReachability(
-          getAgentEnsemble(), SwitchID(0), fabricPortId);
+          getAgentEnsemble(), switchId, fabricPortId);
       // Flap port, active and reachability status should be unaffected
       // after flap
       bringDownPort(fabricPortId);
@@ -246,7 +247,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
       utility::checkFabricPortsActiveState(
           getAgentEnsemble(), fabricPortIds, expectActive);
       utility::checkPortFabricReachability(
-          getAgentEnsemble(), SwitchID(0), fabricPortId);
+          getAgentEnsemble(), switchId, fabricPortId);
     };
     drainPort(true);
     drainPort(false);
