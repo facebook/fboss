@@ -943,12 +943,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     maxSystemPortId = 1024 - 1;
     localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
   }
-  // J4 SIM configuration
+  // J4 configuration
   if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
-    maxSystemPorts = 8192;
-    maxVoqs = 8192 * 8;
-    maxSystemPortId = 8192 - 1;
-    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 53}};
+    maxSystemPorts = 1280;
+    maxVoqs = 1280 * 8;
+    maxSystemPortId = 1279;
+    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 161}};
   }
 #endif
 
