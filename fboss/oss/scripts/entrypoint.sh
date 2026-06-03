@@ -15,6 +15,7 @@ fi
 
 if [ "$FBOSS_META_ENV" = "1" ]; then
     mkdir -p "$FBOSS_SRC/build"
+    mkdir -p "$FBOSS_SRC/neteng"
     rm -rf "$FBOSS_SRC/build/fbcode_builder"
     ln -sfn "$FBCODE/fboss/github/CMakeLists.txt" "$FBOSS_SRC/CMakeLists.txt"
     ln -sfn "$FBCODE/fboss/github/functions.cmake" "$FBOSS_SRC/functions.cmake"
@@ -22,6 +23,7 @@ if [ "$FBOSS_META_ENV" = "1" ]; then
     ln -sfn "$FBCODE/fboss" "$FBOSS_SRC/fboss"
     ln -sfn "$FBCODE/fboss/common" "$FBOSS_SRC/common"
     ln -sfn "$FBCODE/configerator" "$FBOSS_SRC/configerator"
+    ln -sfn "$FBCODE/neteng/fboss" "$FBOSS_SRC/neteng/fboss"
     cp -r "$FBCODE/opensource/fbcode_builder" "$FBOSS_SRC/build/fbcode_builder"
     ln -sfn "$FBCODE/fboss/github/fboss-image" "$FBOSS_SRC/fboss-image"
     ln -sfn "$FBCODE/fboss/github/sdk_dependencies.txt" "$FBOSS_SRC/sdk_dependencies.txt"
