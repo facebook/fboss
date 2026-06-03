@@ -167,9 +167,13 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(const cfg::Port& port) const {
 // ACLs are scoped to all L3 switches unless they match on a qualifier tied to a
 // specific NPU. Today that is srcPort; add other NPU-specific ACL qualifiers
 // here as they need per-switch scoping.
+// Port 0 is the CPU port which is shared across all NPUs — ACLs referencing it
+// apply to all L3 switches.
 HwSwitchMatcher SwitchIdScopeResolver::scope(const cfg::AclEntry& acl) const {
   if (auto srcPort = acl.srcPort()) {
-    return scope(PortID(*srcPort));
+    if (*srcPort != 0) {
+      return scope(PortID(*srcPort));
+    }
   }
   return l3SwitchMatcher();
 }
@@ -180,7 +184,9 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
     return l3SwitchMatcher();
   }
   if (auto srcPort = acl->getSrcPort()) {
-    return scope(PortID(*srcPort));
+    if (*srcPort != 0) {
+      return scope(PortID(*srcPort));
+    }
   }
   return l3SwitchMatcher();
 }
