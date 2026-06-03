@@ -2829,7 +2829,7 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
         saiSwitchId_, restartIssu);
 #endif
   }
-#if defined(TAJO_SAI_SDK)
+#if defined(TAJO_SDK_EBRO) || defined(TAJO_SDK_MORGAN)
   checkAndSetSdkDowngradeVersion();
 #endif
   folly::dynamic follySwitchState = folly::dynamic::object;

@@ -95,7 +95,9 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_USER_TRAP_ID:
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_ARS_OBJECT:
     case SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING:
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_ECMP_HASH_ALGORITHM:
+#endif
       return true;
     case SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL:
       return true;
@@ -875,12 +877,14 @@ sai_status_t set_acl_entry_attribute_fn(
           attr->value.aclaction.parameter.booldata;
       res = SAI_STATUS_SUCCESS;
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_ECMP_HASH_ALGORITHM:
       aclEntry.actionSetEcmpHashAlgorithmEnable = attr->value.aclaction.enable;
       aclEntry.actionSetEcmpHashAlgorithmData =
           attr->value.aclaction.parameter.oid;
       res = SAI_STATUS_SUCCESS;
       break;
+#endif
     case SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL:
       aclEntry.actionL3SwitchCancelEnable = attr->value.aclaction.enable;
       aclEntry.actionL3SwitchCancelData =
@@ -1174,12 +1178,14 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclaction.parameter.booldata =
             aclEntry.actionDisableArsForwarding;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       case SAI_ACL_ENTRY_ATTR_ACTION_SET_ECMP_HASH_ALGORITHM:
         attr_list[i].value.aclaction.enable =
             aclEntry.actionSetEcmpHashAlgorithmEnable;
         attr_list[i].value.aclaction.parameter.oid =
             aclEntry.actionSetEcmpHashAlgorithmData;
         break;
+#endif
       case SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL:
         attr_list[i].value.aclaction.enable =
             aclEntry.actionL3SwitchCancelEnable;

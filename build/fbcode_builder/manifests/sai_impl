@@ -1,0 +1,13 @@
+[manifest]
+name = sai_impl
+
+[download]
+url = file:///var/FBOSS/scratch/libsai_impl.tar.gz
+sha256 = b44276bc2a486dc34876fe175304d320810a55373d4e1e0f478bdfc29841be59
+
+[build]
+builder = nop
+
+[install.files]
+lib = lib
+include = experimental

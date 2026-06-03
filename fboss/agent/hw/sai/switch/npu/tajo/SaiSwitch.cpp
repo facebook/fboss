@@ -5,7 +5,11 @@
 #include "fboss/lib/CommonFileUtils.h"
 
 extern "C" {
+#if defined(TAJO_SDK_GTE_26_2)
+#include <saiextensions.h>
+#else
 #include <experimental/sai_attr_ext.h>
+#endif
 }
 
 DEFINE_string(
@@ -30,7 +34,7 @@ std::string eventName(sai_switch_event_type_t type) {
       return "SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN";
     case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR:
       return "SAI_SWITCH_EVENT_TYPE_PARITY_ERROR";
-#if defined(TAJO_SDK_EBRO) || defined(TAJO_SDK_VERSION_24_4_90)
+#if defined(TAJO_SDK_EBRO) || defined(TAJO_SDK_GTE_24_8_3001)
     case SAI_SWITCH_EVENT_TYPE_LACK_OF_RESOURCES:
       return "SAI_SWITCH_EVENT_TYPE_LACK_OF_RESOURCES";
 #endif
@@ -108,7 +112,7 @@ void SaiSwitch::tamEventCallback(
 #else
   // >= 25.5.X, eventDesc->type is type of sai_tam_event_type_extensions_t
   // including SAI_TAM_EVENT_TYPE_SWITCH
-  if (eventDesc->type != SAI_TAM_EVENT_TYPE_SWITCH) {
+  if (eventDesc->type != (sai_tam_event_type_extensions_t)SAI_TAM_EVENT_TYPE_SWITCH) {
     // not a switch type event
     return;
   }

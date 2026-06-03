@@ -130,8 +130,8 @@ if (BUILD_SAI_FAKE_LINK_TEST)
   message(STATUS "Configured to build SAI Fake Link Test binaries")
 endif()
 
-if (SAI_BRCM_IMPL OR SAI_TAJO_IMPL)
-    # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL or SAI_TAJO_IMPL
+if (SAI_BRCM_IMPL)
+    # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL
   if ("$ENV{SAI_SDK_VERSION}" STREQUAL "")
     message(FATAL_ERROR
       "SAI_SDK_VERSION environment variable is required when SAI_BRCM_IMPL is enabled.\n"
@@ -147,6 +147,17 @@ if (SAI_BRCM_IMPL OR SAI_TAJO_IMPL)
   message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 endif()
 
+# Read TAJO_SDK_VERSION from environment, default to 25_5_4210 (Will work for 25.5 & Above)
+# Must specify 24_8_3001 in order to build for 24.8.
+if (NOT "$ENV{TAJO_SDK_VERSION}" STREQUAL "")
+  set(TAJO_SDK_VERSION "$ENV{TAJO_SDK_VERSION}")
+else()
+  set(TAJO_SDK_VERSION "25_5_4210")
+endif()
+message(STATUS "Building for TAJO SDK version: ${TAJO_SDK_VERSION}")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTAJO_SDK_VERSION_${TAJO_SDK_VERSION}=1 -DTAJO_SDK=1 -DSAI_TAJO_IMPL=1")
+
 # SAI version is set. Extract MAJOR, MINOR, RELEASE ver
 strtok(${SAI_VERSION} "." tokens)
 set(listLength 0)
@@ -159,6 +170,39 @@ else()
   list(GET tokens 2 SAI_VER_RELEASE)
 endif()
 message(STATUS "Building for SAI Spec ${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}")
+
+if(SAI_TAJO_IMPL)
+list(APPEND CMAKE_LIBRARY_PATH /usr/lib64 /opt/grpc/lib /opt/sdk_build/klish/.libs)
+
+  # Find libnl-3 and libnl-genl-3 libraries only if SAI_TAJO_IMPL is set
+  find_library(LIBNL3 NAMES nl-3)
+  find_library(LIBNL_GENL3 NAMES nl-genl-3)
+
+  # Print paths for debugging
+  message(STATUS "LIBNL3 found at: ${LIBNL3}")
+  message(STATUS "LIBNL_GENL3 found at: ${LIBNL_GENL3}")
+
+  # Check if both libraries were found; if not, show an error
+  if(NOT LIBNL3 OR NOT LIBNL_GENL3)
+    message(FATAL_ERROR "Required libnl libraries not found!")
+  endif()
+
+  # Locate grpc, absl_synchronization, and protobuf libraries
+  find_library(GRPC NAMES grpc++)
+  find_library(ABSL_SYNCHRONIZATION NAMES absl_synchronization)
+  find_library(PROTOBUF NAMES protobuf)
+
+  # Print paths for verification
+  message(STATUS "GRPC found at: ${GRPC}")
+  message(STATUS "ABSL_SYNCHRONIZATION found at: ${ABSL_SYNCHRONIZATION}")
+  message(STATUS "PROTOBUF found at: ${PROTOBUF}")
+
+  # Check if all required libraries are found
+  if(NOT GRPC OR NOT ABSL_SYNCHRONIZATION OR NOT PROTOBUF)
+      message(FATAL_ERROR "One or more grpc/absl/protobuf libraries were not found!")
+  endif()
+
+endif()
 
 set(CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/build/fbcode_builder/CMake"
@@ -211,6 +255,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized")
 endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic")
 # Clang-specific warning suppressions and fixes
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-literal-operator")
@@ -292,10 +337,9 @@ if (SAI_BRCM_IMPL)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
   message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")
 elseif(SAI_TAJO_IMPL)
-  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES experimental/sai_attr_ext.h)
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES saiextensions.h)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
-  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
-  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
 elseif(CHENAB_SAI_SDK)
   # Chenab-TODO: set experimental directories appropriately
   set(SAI_EXPERIMENTAL_INCLUDE_DIR "/var/FBOSS/sai_impl_output/include")

@@ -256,14 +256,15 @@ void verifyTxSettting(
     EXPECT_EQ(pre3, expectedPre3->value());
   }
 
-  auto asicVendor = saiPlatform->getAsic()->getAsicVendor();
   auto asicType = saiPlatform->getAsic()->getAsicType();
   if (saiPlatform->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
     pre2 = portApi.getAttribute(
         serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPre2{});
     EXPECT_EQ(pre2, GET_OPT_ATTR(PortSerdes, TxFirPre2, expectedTx));
-    if (asicVendor != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+    if (saiPlatform->getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB &&
+        saiPlatform->getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA &&
+        saiPlatform->getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_G202X) {
       post2 = portApi.getAttribute(
           serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost2{});
 
@@ -292,34 +293,39 @@ void verifyTxSettting(
   EXPECT_EQ(pre.size(), txSettings.size());
   for (int i = 0; i < txSettings.size(); ++i) {
     auto expectedTxFromPin = txSettings[i];
-    if (expectedTxFromPin.firPre1().has_value()) {
-      EXPECT_EQ(pre[i], expectedTxFromPin.firPre1());
+
+    // YUBA platform uses firPre1/firMain/firPost1 fields in Thrift,
+    // while other platforms use pre/main/post fields
+    if (saiPlatform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+        saiPlatform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
+      // YUBA/Leaba ASICs use FIR-specific fields
+      auto firPre1 = *expectedTxFromPin.firPre1();
+      auto firMain = *expectedTxFromPin.firMain();
+      auto firPost1 = *expectedTxFromPin.firPost1();
+      EXPECT_EQ(pre[i], static_cast<sai_uint32_t>(firPre1));
+      EXPECT_EQ(main[i], static_cast<sai_uint32_t>(firMain));
+      EXPECT_EQ(post[i], static_cast<sai_uint32_t>(firPost1));
     } else {
+      // Standard platforms use standard fields
       EXPECT_EQ(pre[i], expectedTxFromPin.pre());
-    }
-    if (expectedTxFromPin.firMain().has_value()) {
-      EXPECT_EQ(main[i], expectedTxFromPin.firMain());
-    } else {
       EXPECT_EQ(main[i], expectedTxFromPin.main());
-    }
-    if (expectedTxFromPin.firPost1().has_value()) {
-      EXPECT_EQ(post[i], expectedTxFromPin.firPost1());
-    } else {
       EXPECT_EQ(post[i], expectedTxFromPin.post());
     }
     if (saiPlatform->getAsic()->isSupported(
             HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
-      if (expectedTxFromPin.firPre2().has_value()) {
-        EXPECT_EQ(pre2[i], expectedTxFromPin.firPre2());
+      // YUBA uses firPre2 field, others use pre2
+      if (saiPlatform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+          saiPlatform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
+        auto firPre2 = *expectedTxFromPin.firPre2();
+        EXPECT_EQ(pre2[i], static_cast<sai_uint32_t>(firPre2));
       } else {
         EXPECT_EQ(pre2[i], expectedTxFromPin.pre2());
       }
-      if (asicVendor != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
-        if (expectedTxFromPin.firPost2().has_value()) {
-          EXPECT_EQ(post2[i], expectedTxFromPin.firPost2());
-        } else {
-          EXPECT_EQ(post2[i], expectedTxFromPin.post2());
-        }
+      // POST2/POST3 only for non-CHENAB and non-YUBA platforms
+      if (saiPlatform->getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB &&
+          saiPlatform->getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA &&
+          saiPlatform->getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_G202X) {
+        EXPECT_EQ(post2[i], expectedTxFromPin.post2());
         if (asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
           if (expectedTxFromPin.firPost3().has_value()) {
             EXPECT_EQ(post3[i], expectedTxFromPin.firPost3());

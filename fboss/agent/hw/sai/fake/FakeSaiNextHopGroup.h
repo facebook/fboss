@@ -35,14 +35,21 @@ class FakeNextHopGroupMember {
 class FakeNextHopGroup {
  public:
   FakeNextHopGroup(int32_t type) : type(type) {}
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   FakeNextHopGroup(
       int32_t type,
       sai_object_id_t ars_id,
       sai_int32_t hash_algorithm)
       : type(type), ars_id(ars_id), hash_algorithm(hash_algorithm) {}
+#else
+  FakeNextHopGroup(int32_t type, sai_object_id_t ars_id)
+      : type(type), ars_id(ars_id) {}
+#endif
   int32_t type;
   sai_object_id_t ars_id;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   sai_int32_t hash_algorithm;
+#endif
   sai_object_id_t id;
   FakeManager<sai_object_id_t, FakeNextHopGroupMember>& fm() {
     return fm_;

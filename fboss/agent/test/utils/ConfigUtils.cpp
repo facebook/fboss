@@ -1662,6 +1662,8 @@ void setupMultipleEgressPoolAndQueueConfigs(
       queueCfg.bufferPoolName() = kLosslessPoolName;
     } else {
       queueCfg.bufferPoolName() = kLossyPoolName;
+      // Use static threshold for lossy queues
+      queueCfg.sharedBytes() = static_cast<int>(mmuSizeBytes * 0.3);
     }
     queues.push_back(queueCfg);
   }

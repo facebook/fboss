@@ -29,6 +29,16 @@ function(BUILD_AGENT_ENSEMBLE_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     ${LIBGMOCK_LIBRARIES}
   )
 
+  if(SAI_TAJO_IMPL)
+  target_link_libraries(sai_mono_link_test-${SAI_IMPL_NAME}
+    ${GRPC}
+    ${ABSL_SYNCHRONIZATION}
+    ${PROTOBUF}
+    ${LIBNL3}
+    ${LIBNL_GENL3}
+  )
+  endif()
+
   set_target_properties(sai_mono_link_test-${SAI_IMPL_NAME}
       PROPERTIES COMPILE_FLAGS
       "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
@@ -60,6 +70,16 @@ function(BUILD_AGENT_ENSEMBLE_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     ${GTEST}
     ${LIBGMOCK_LIBRARIES}
   )
+
+  if(SAI_TAJO_IMPL)
+  target_link_libraries(sai_multi_link_test-${SAI_IMPL_NAME}
+    ${GRPC}
+    ${ABSL_SYNCHRONIZATION}
+    ${PROTOBUF}
+    ${LIBNL3}
+    ${LIBNL_GENL3}
+  )
+  endif()
 
   set_target_properties(sai_mono_link_test-${SAI_IMPL_NAME}
       PROPERTIES COMPILE_FLAGS

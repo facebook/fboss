@@ -5,7 +5,11 @@
 extern "C" {
 #include <sai.h>
 
+#if defined(TAJO_SDK_GTE_26_2)
+#include <saiextensions.h>
+#else
 #include <experimental/sai_attr_ext.h>
+#endif
 }
 
 namespace facebook::fboss {
@@ -64,7 +68,11 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeWarmBootTargetVersionWrapper::operator()() {
+#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_GTE_24_8_3001)
   return SAI_SWITCH_ATTR_EXT_WARM_BOOT_TARGET_VERSION;
+#else
+  return std::nullopt;
+#endif
 }
 
 std::optional<sai_attr_id_t>

@@ -32,6 +32,7 @@ libusb
 libcurl
 libnl
 libsai
+sai_impl
 re2
 python
 yaml-cpp

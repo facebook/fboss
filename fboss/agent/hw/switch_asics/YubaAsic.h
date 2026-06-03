@@ -154,7 +154,7 @@ class YubaAsic : public TajoAsic {
      * But the test passed for 18172 and failed for 18173. So, returning 18172.
      * Will work with Cisco to understand the reason for this. - MT-803
      */
-    return 18172;
+    return 18171;
   }
   uint32_t getNumCores() const override {
     return 12;
@@ -205,7 +205,7 @@ class YubaAsic : public TajoAsic {
   bool isSrv6Supported() const;
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;
-  static constexpr auto kSrv6MinSdkRequired = "26.2.5210";
+  static constexpr auto kSrv6MinSdkRequired = "26.2.4210";
   std::optional<uint64_t> currentSdkVersion_{std::nullopt};
 };
 
