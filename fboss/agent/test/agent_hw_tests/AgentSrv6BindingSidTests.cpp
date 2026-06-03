@@ -1,5 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <utility>
+
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
@@ -8,12 +10,10 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/RouteNextHop.h"
-#include "fboss/agent/state/Srv6Tunnel.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -47,12 +47,20 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
 
   static inline const folly::IPAddressV6 kBgpRoute0{"2001::1"};
   static inline const folly::IPAddressV6 kBgpRoute1{"3001::1"};
+  static inline const folly::IPAddressV6 kBgpRoute2{"4001::1"};
+  static inline const folly::IPAddressV6 kBgpRoute3{"5001::1"};
   static inline const folly::IPAddressV6 kOpenrPrefix0{"fdad::1:0"};
   static inline const folly::IPAddressV6 kOpenrPrefix1{"fdad::2:0"};
+  static inline const folly::IPAddressV6 kOpenrPrefix2{"fdad::3:0"};
+  static inline const folly::IPAddressV6 kOpenrPrefix3{"fdad::4:0"};
 
   static inline const folly::IPAddressV6 kMySidPrefix{"fc00:100:1::"};
   static constexpr uint8_t kMySidPrefixLen{48};
-  static constexpr int kNumNextHops{2};
+  static constexpr int kNumNextHops{4};
+
+  static inline const folly::CIDRNetwork kEncapRoutePrefix{
+      folly::IPAddress("2800:2::"),
+      64};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -186,10 +194,54 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
                 ECMP_WEIGHT)},
             AdminDistance::EBGP));
 
+    // OpenR route 2 (fdad::3:0/112) -> nhop(2) link-local
+    RouteNextHopSet openrNhops2{
+        ResolvedNextHop(getNhopIp(2), ecmpHelper.nhop(2).intf, ECMP_WEIGHT)};
+    routeUpdater.addRoute(
+        RouterID(0),
+        kOpenrPrefix2,
+        112,
+        ClientID::OPENR,
+        RouteNextHopEntry(openrNhops2, AdminDistance::OPENR));
+
+    // OpenR route 3 (fdad::4:0/112) -> nhop(3) link-local
+    RouteNextHopSet openrNhops3{
+        ResolvedNextHop(getNhopIp(3), ecmpHelper.nhop(3).intf, ECMP_WEIGHT)};
+    routeUpdater.addRoute(
+        RouterID(0),
+        kOpenrPrefix3,
+        112,
+        ClientID::OPENR,
+        RouteNextHopEntry(openrNhops3, AdminDistance::OPENR));
+
+    // BGP route 2 (4001::1/128) -> fdad::3:1 (resolves via OpenR route 2)
+    routeUpdater.addRoute(
+        RouterID(0),
+        kBgpRoute2,
+        128,
+        ClientID::BGPD,
+        RouteNextHopEntry(
+            RouteNextHopSet{UnresolvedNextHop(
+                folly::IPAddress(folly::IPAddressV6("fdad::3:1")),
+                ECMP_WEIGHT)},
+            AdminDistance::EBGP));
+
+    // BGP route 3 (5001::1/128) -> fdad::4:1 (resolves via OpenR route 3)
+    routeUpdater.addRoute(
+        RouterID(0),
+        kBgpRoute3,
+        128,
+        ClientID::BGPD,
+        RouteNextHopEntry(
+            RouteNextHopSet{UnresolvedNextHop(
+                folly::IPAddress(folly::IPAddressV6("fdad::4:1")),
+                ECMP_WEIGHT)},
+            AdminDistance::EBGP));
+
     routeUpdater.program();
   }
 
-  PortID getEgressPort(PortDescriptor portDesc) {
+  PortID getEgressPort(const PortDescriptor& portDesc) {
     if (portDesc.isPhysicalPort()) {
       return portDesc.phyPortID();
     }
@@ -285,12 +337,13 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
       bool isV4,
       std::optional<PortID> injectPort = std::nullopt) {
     std::map<PortID, int64_t> bytesBefore;
-    for (auto port : egressPorts) {
+    for (const auto& port : egressPorts) {
       bytesBefore[port] = *this->getLatestPortStats(port).outBytes_();
     }
 
     utility::SwSwitchPacketSnooper snooper(this->getSw(), "bindingSidSnooper");
-    auto originalFrame = sendBindingSidPacket(ecnMarked, isV4, injectPort);
+    auto originalFrame =
+        sendBindingSidPacket(ecnMarked, isV4, std::move(injectPort));
 
     auto frameRx = snooper.waitForPacket(1);
     WITH_RETRIES({
@@ -373,7 +426,7 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
                << (outerDst.has_value() ? outerDst->str() : "default");
     auto injectStatsBefore = this->getLatestPortStats(injectPort);
     std::map<PortID, int64_t> egressBytesBefore;
-    for (auto port : egressPorts) {
+    for (const auto& port : egressPorts) {
       egressBytesBefore[port] = *this->getLatestPortStats(port).outBytes_();
     }
 
@@ -402,6 +455,131 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     for (bool isV4 : {false, true}) {
       assertBindingSidDrop(injectPort, egressPorts, isV4, outerDst);
     }
+  }
+
+  void addEncapRouteToBindingSid(
+      const folly::CIDRNetwork& prefix,
+      const folly::IPAddressV6& bindingSidAddr) {
+    static constexpr int kEncapNhopIdx = 4;
+    auto ecmpHelper = utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        utility::kLocalCpuMac());
+    auto nhop = ecmpHelper.nhop(kEncapNhopIdx);
+    CHECK(nhop.linkLocalNhopIp.has_value());
+
+    this->applyNewState(
+        [&ecmpHelper, &nhop](std::shared_ptr<SwitchState> in) {
+          return ecmpHelper.resolveNextHops(
+              in, {nhop.portDesc}, true /* useLinkLocal */);
+        },
+        "resolve encap route neighbor with kLocalCpuMac");
+
+    RouteNextHopSet nhops{ResolvedNextHop(
+        folly::IPAddress(*nhop.linkLocalNhopIp),
+        nhop.intf,
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::vector<folly::IPAddressV6>{bindingSidAddr},
+        TunnelType::SRV6_ENCAP,
+        std::string("srv6Tunnel0"))};
+
+    std::string nhgName = "encapToBindingSid";
+    auto rib = this->getSw()->getRib();
+    std::vector<std::pair<std::string, RouteNextHopSet>> groups;
+    groups.emplace_back(nhgName, nhops);
+    rib->addOrUpdateNamedNextHopGroups(
+        this->getSw()->getScopeResolver(),
+        groups,
+        createRibToSwitchStateFunction(),
+        this->getSw());
+
+    UnicastRoute route;
+    route.dest()->ip() =
+        facebook::network::toBinaryAddress(folly::IPAddress(prefix.first));
+    route.dest()->prefixLength() = prefix.second;
+    NamedRouteDestination namedDest;
+    namedDest.nextHopGroup_ref() = nhgName;
+    route.namedRouteDestination() = namedDest;
+
+    auto routeUpdater = this->getSw()->getRouteUpdater();
+    routeUpdater.addRoute(RouterID(0), ClientID::TE_AGENT, route);
+    routeUpdater.program();
+  }
+
+  void pumpEncapTrafficAndVerifyLoadBalanced(
+      const std::vector<PortID>& egressPorts,
+      int numPackets = 10000,
+      int maxDeviationPct = 25) {
+    auto portStatsBefore = this->getLatestPortStats(egressPorts);
+    auto vlanId = this->getVlanIDForTx().value();
+    auto mac = utility::kLocalCpuMac();
+    int sqrtN = static_cast<int>(std::sqrt(numPackets));
+
+    XLOG(DBG2) << "pumpEncapTrafficAndVerifyLoadBalanced: sending "
+               << sqrtN * sqrtN << " packets across " << egressPorts.size()
+               << " egress ports";
+
+    for (int i = 0; i < sqrtN; ++i) {
+      for (int j = 0; j < sqrtN; ++j) {
+        auto srcIp =
+            folly::IPAddressV6(folly::to<std::string>("1001::1:", i + 1));
+        auto dstIp =
+            folly::IPAddressV6(folly::to<std::string>("2800:2::", j + 1));
+        auto txPacket = utility::makeUDPTxPacket(
+            this->getSw(),
+            vlanId,
+            mac,
+            mac,
+            srcIp,
+            dstIp,
+            10000 + i,
+            20000 + j);
+        this->sendPacketSwitchedAsync(std::move(txPacket));
+      }
+    }
+
+    XLOG(DBG2) << "pumpEncapTrafficAndVerifyLoadBalanced: all packets sent, "
+               << "verifying load balance";
+
+    WITH_RETRIES({
+      auto portStatsAfter = this->getLatestPortStats(egressPorts);
+      auto getOutBytesDelta = [&](const PortID& port) {
+        auto afterIt = portStatsAfter.find(port);
+        auto beforeIt = portStatsBefore.find(port);
+        if (afterIt == portStatsAfter.end() ||
+            beforeIt == portStatsBefore.end()) {
+          return int64_t(0);
+        }
+        return *afterIt->second.outBytes_() - *beforeIt->second.outBytes_();
+      };
+
+      int64_t lowest = std::numeric_limits<int64_t>::max();
+      int64_t highest = 0;
+      for (auto port : egressPorts) {
+        auto bytes = getOutBytesDelta(port);
+        XLOG(DBG2) << "  port " << port << ": " << bytes << " bytes";
+        lowest = std::min(lowest, bytes);
+        highest = std::max(highest, bytes);
+      }
+
+      XLOG(DBG2) << "  lowest=" << lowest << " highest=" << highest;
+
+      EXPECT_EVENTUALLY_GT(lowest, 0)
+          << "At least one egress port received no traffic";
+      if (lowest > 0) {
+        auto percentDev =
+            (static_cast<float>(highest - lowest) / lowest) * 100.0;
+        XLOG(DBG2) << "  deviation=" << percentDev
+                   << "% (threshold=" << maxDeviationPct << "%)";
+        EXPECT_EVENTUALLY_LE(percentDev, maxDeviationPct)
+            << "Load imbalance: lowest=" << lowest << " highest=" << highest
+            << " deviation=" << percentDev << "%";
+      }
+    });
   }
 
  private:
@@ -528,6 +706,41 @@ TYPED_TEST(AgentSrv6BindingSidTest, dropPacketBindingSidIsNotLastSid) {
         this->getEgressPort(ecmpHelper.nhop(0).portDesc)};
     this->verifyBindingSidDropFrontPanel(
         egressPorts, folly::IPAddressV6("fc00:100:1:2::"));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+/*
+Note that we inject packets first through encap on nhop(4),
+so that the flow label gets populated and then make them
+hit binding sid. This is to mimic how things will happen in
+actual production.
+*/
+TYPED_TEST(AgentSrv6BindingSidTest, bindingSidMultiHopIsLoadBalanced) {
+  auto constexpr kBindingSidWidth = 4;
+  auto setup = [this]() {
+    this->setupHelper(false /* resolveNeighbors */);
+    this->resolveNextHops(kBindingSidWidth);
+    utility::addBindingSidEntry(
+        this->getSw(),
+        this->kMySidPrefix,
+        this->kMySidPrefixLen,
+        {utility::makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0),
+         utility::makeSrv6NextHopThrift(this->kBgpRoute1, this->kSid1),
+         utility::makeSrv6NextHopThrift(this->kBgpRoute2, this->kSid0),
+         utility::makeSrv6NextHopThrift(this->kBgpRoute3, this->kSid1)});
+    this->addEncapRouteToBindingSid(
+        this->kEncapRoutePrefix, this->kMySidPrefix);
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    std::vector<PortID> egressPorts;
+    egressPorts.reserve(kBindingSidWidth);
+    for (int i = 0; i < kBindingSidWidth; ++i) {
+      egressPorts.push_back(this->getEgressPort(ecmpHelper.nhop(i).portDesc));
+    }
+    this->pumpEncapTrafficAndVerifyLoadBalanced(egressPorts);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
