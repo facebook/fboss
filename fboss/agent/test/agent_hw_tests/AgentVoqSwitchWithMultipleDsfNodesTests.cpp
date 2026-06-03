@@ -48,9 +48,14 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
     auto voqDiscardBytes = 0;
     WITH_RETRIES({
       sendPkts();
+      auto sysPortStats = utility::getRemoteSysPortStatsForSwitchUnderTest(
+          getSw(),
+          getProgrammedState(),
+          getCurrentSwitchIndexForTesting(),
+          sysPortId);
+      ASSERT_EVENTUALLY_TRUE(sysPortStats.has_value());
       voqDiscardBytes =
-          getLatestSysPortStats(sysPortId).get_queueOutDiscardBytes_().at(
-              utility::getDefaultQueue());
+          sysPortStats->queueOutDiscardBytes_()->at(utility::getDefaultQueue());
       XLOG(INFO) << " VOQ discard bytes: " << voqDiscardBytes;
       EXPECT_EVENTUALLY_GT(voqDiscardBytes, 0);
     });
@@ -556,9 +561,10 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
   folly::IPAddressV6 kNeighborIp("100::2");
-  auto constexpr remotePortId = 401;
-  const SystemPortID kRemoteSysPortId(remotePortId);
-  auto setup = [=, this]() {
+  auto setup = [this, kNeighborIp]() {
+    const auto kRemoteSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState());
+    const auto kIntfId = utility::getRemoteIntfId(kRemoteSysPortId);
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
@@ -574,7 +580,6 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
           static_cast<SwitchID>(
               numCores * getAgentEnsemble()->getNumL3Asics()));
     });
-    const InterfaceID kIntfId(remotePortId);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteInterface(
           in,
@@ -599,7 +604,9 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
     });
   };
 
-  auto verify = [=, this]() {
+  auto verify = [this, kNeighborIp]() {
+    const auto kRemoteSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState());
     assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
   };
   verifyAcrossWarmBoots(setup, verify);
