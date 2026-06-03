@@ -313,8 +313,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
     int numCores =
         checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
             ->getNumCores();
-    auto constexpr remotePortId = 401;
-    const SystemPortID kRemoteSysPortId(remotePortId);
+    const auto kRemoteSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState());
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteSysPort(
           in,
@@ -323,7 +323,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
           static_cast<SwitchID>(
               numCores * getAgentEnsemble()->getNumL3Asics()));
     });
-    const InterfaceID kIntfId(remotePortId);
+    const auto kIntfId = utility::getRemoteIntfId(kRemoteSysPortId);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteInterface(
           in,
