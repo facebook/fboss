@@ -41,6 +41,8 @@ static constexpr uint16_t kCdbCommandModuleQuery = 0x0000;
 static constexpr uint16_t kCdbCommandSymbolErrorHistogram = 0x9000;
 static constexpr uint16_t kCdbCommandRxErrorHistogram = 0x9001;
 
+// CDB command busy status values (internal to CDB polling loop)
+static constexpr uint8_t kCdbCommandStatusReadFailureUnknown = 0x00;
 static constexpr uint8_t kCdbCommandStatusBusyUnknown = 0x80;
 static constexpr uint8_t kCdbCommandStatusBusyCmdCaptured = 0x81;
 static constexpr uint8_t kCdbCommandStatusBusyCmdCheck = 0x82;
@@ -264,6 +266,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(
     if (status != kCdbCommandStatusBusyCmdCaptured &&
         status != kCdbCommandStatusBusyCmdCheck &&
         status != kCdbCommandStatusBusyCmdExec &&
+        status != kCdbCommandStatusReadFailureUnknown &&
         status != kCdbCommandStatusBusyUnknown) {
       break;
     }
