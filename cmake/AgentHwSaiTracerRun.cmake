@@ -17,6 +17,11 @@ function(BUILD_SAI_REPLAYER SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--no-as-needed -ldl
     -lz
     ${SAI_IMPL_ARG}
+    ${GRPC}
+    ${ABSL_SYNCHRONIZATION}
+    ${PROTOBUF}
+    ${LIBNL3}
+    ${LIBNL_GENL3}
     ${CMAKE_THREAD_LIBS_INIT}
   )
 

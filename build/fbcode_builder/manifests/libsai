@@ -2,13 +2,59 @@
 name = libsai
 
 [download]
-url = https://github.com/opencomputeproject/SAI/archive/v1.16.3.tar.gz
-sha256 = 5c89cdb6b2e4f1b42ced6b78d43d06d22434ddbf423cdc551f7c2001f12e63d9
+url = file:///var/FBOSS/scratch/v1.18.1.tar.gz
+sha256 = 9ae8c1b515ad0b28a954825c9f408ff7426070ecca980c017fe18da60de705ed
 
 [build]
 builder = nop
-subdir = SAI-1.16.3
+subdir = SAI-1.18.1
 
 [install.files]
 inc = include
-experimental = experimental
+experimental = include
+custom = include
+custom/saiaclcustom.h = include/saiaclcustom.h
+custom/saibridgecustom.h = include/saibridgecustom.h
+custom/saibuffercustom.h = include/saibuffercustom.h
+custom/saicustom.h = include/saicustom.h
+custom/saicustomfec.h = include/saicustomfec.h
+custom/saicustomipm.h = include/saicustomipm.h
+custom/saidebugcountercustom.h = include/saidebugcountercustom.h
+custom/saihostifcustom.h = include/saihostifcustom.h
+custom/sailagcustom.h = include/sailagcustom.h
+custom/saimirrorcustom.h = include/saimirrorcustom.h
+custom/sainexthopgroupcustom.h = include/sainexthopgroupcustom.h
+custom/saipolicercustom.h = include/saipolicercustom.h
+custom/saiportcustom.h = include/saiportcustom.h
+custom/saiqosmapcustom.h = include/saiqosmapcustom.h
+custom/sairouterinterfacecustom.h = include/sairouterinterfacecustom.h
+custom/saisamplepacketcustom.h = include/saisamplepacketcustom.h
+custom/saischedulercustom.h = include/saischedulercustom.h
+custom/saiswitchcustom.h = include/saiswitchcustom.h
+custom/saitamcustom.h = include/saitamcustom.h
+custom/saitunnelcustom.h = include/saitunnelcustom.h
+custom/saitypescustom.h = include/saitypescustom.h
+custom/saiudfcustom.h = include/saiudfcustom.h
+custom/saivlancustom.h = include/saivlancustom.h
+experimental/saiexperimentalbmtor.h = include/saiexperimentalbmtor.h
+experimental/saiexperimentaldashacl.h = include/saiexperimentaldashacl.h
+experimental/saiexperimentaldashdirectionlookup.h = include/saiexperimentaldashdirectionlookup.h
+experimental/saiexperimentaldasheni.h = include/saiexperimentaldasheni.h
+experimental/saiexperimentaldashinboundrouting.h = include/saiexperimentaldashinboundrouting.h
+experimental/saiexperimentaldashmeter.h = include/saiexperimentaldashmeter.h
+experimental/saiexperimentaldashoutboundcatopa.h = include/saiexperimentaldashoutboundcatopa.h
+experimental/saiexperimentaldashoutboundrouting.h = include/saiexperimentaldashoutboundrouting.h
+experimental/saiexperimentaldashpavalidation.h = include/saiexperimentaldashpavalidation.h
+experimental/saiexperimentaldashvip.h = include/saiexperimentaldashvip.h
+experimental/saiexperimentaldashvnet.h = include/saiexperimentaldashvnet.h
+experimental/saiextensions.h = include/saiextensions.h
+experimental/saiportextensions.h = include/saiportextensions.h
+experimental/saiswitchextensions.h = include/saiswitchextensions.h
+experimental/saitypesextensions.h = include/saitypesextensions.h
+experimental/saiexperimentaldashflow.h = include/saiexperimentaldashflow.h
+experimental/saiexperimentaldashappliance.h = include/saiexperimentaldashappliance.h
+experimental/saiexperimentaldashha.h = include/saiexperimentaldashha.h
+experimental/saiexperimentaldashtunnel.h = include/saiexperimentaldashtunnel.h
+experimental/saiexperimentaldashtrustedvni.h = include/saiexperimentaldashtrustedvni.h
+experimental/saiexperimentaldashoutboundportmap.h = include/saiexperimentaldashoutboundportmap.h
+

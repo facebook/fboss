@@ -238,8 +238,10 @@ class FakeAclEntry {
 
   bool actionDisableArsForwarding{false};
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   bool actionSetEcmpHashAlgorithmEnable{false};
   sai_object_id_t actionSetEcmpHashAlgorithmData{};
+#endif
 
   bool actionL3SwitchCancelEnable{false};
   bool actionL3SwitchCancelData{false};

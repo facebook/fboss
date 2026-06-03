@@ -94,8 +94,8 @@
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
-            "asicSdk": "26.2.5210",
-            "saiSdk": "26.2.5210",
+            "asicSdk": "26.2.4210",
+            "saiSdk": "26.2.4210",
             "saiVersion": "1.17.1"
         }
     ],

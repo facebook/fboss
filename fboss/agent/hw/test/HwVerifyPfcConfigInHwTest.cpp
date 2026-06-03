@@ -277,8 +277,10 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
            cfg::PfcWatchdogRecoveryAction::DROP,
            "Verify PFC watchdog deadlock detection timer outside range with 1600msec"});
     } else if (
-        getAsic()->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
-      // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
+        getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+        getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
+      // Chenab and Yuba ASICs require at minimum 200ms DLD/ 400ms DLR intervals
       wdParams.push_back(
           {200,
            400,
@@ -395,8 +397,10 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
 
     // All PFC WD configuration combinations to test
     std::vector<PfcWdTestConfigs> configTest;
-    if (getAsic()->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
-      // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
+    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+        getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
+      // Chenab and Yuba ASICs require at minimum 200ms DLD/ 400ms DLR intervals
       configTest.push_back(
           {200,
            400,
@@ -453,8 +457,10 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
 
     // PFC watchdog deadlock config on multiple ports
     auto portId2 = this->portIdsForTest()[1];
-    if (getAsic()->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
-      // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
+    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+        getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
+      // Chenab and Yuba ASICs require at minimum 200ms DLD/ 400ms DLR intervals
       setupPfcWdAndValidateProgramming(
           {200,
            500,
@@ -490,9 +496,10 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
       // In SAI implementation, PFC and PFC WD are separate attributes
       // and are independently configured, so unconfiguring PFC will not
       // unconfigure PFC WD.
-      if (getAsic()->getAsicVendor() ==
-          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
-        // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
+      if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB ||
+          getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+          getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
+        // Chenab and Yuba ASICs require at minimum 200ms DLD/ 400ms DLR intervals
         setupPfcWdAndValidateProgramming(
             {200,
              400,

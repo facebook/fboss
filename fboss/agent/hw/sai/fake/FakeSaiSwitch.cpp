@@ -314,9 +314,11 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_TAM_OBJECT_ID:
       sw.setTamObjectId(attr->value.oid);
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
     case SAI_SWITCH_ATTR_PORT_PTP_MODE:
       // TODO: implement if required
       break;
+#endif
     case SAI_SWITCH_ATTR_REG_FATAL_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
       // TODO: implement if required
       break;
@@ -593,9 +595,11 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_TAM_OBJECT_ID:
         attr[i].value.oid = sw.getTamObjectId();
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       case SAI_SWITCH_ATTR_PORT_PTP_MODE:
         attr[i].value.s32 = 0;
         break;
+#endif
       case SAI_SWITCH_ATTR_REG_FATAL_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
       case SAI_SWITCH_ATTR_REG_NOTICE_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
         attr[i].value.s32list.count = 0;

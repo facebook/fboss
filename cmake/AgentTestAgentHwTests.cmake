@@ -315,8 +315,6 @@ add_library(agent_scale_test_src
   fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
 )
 
-add_sai_sdk_dependencies(agent_scale_test_src)
-
 target_link_libraries(agent_scale_test_src
   config_factory
   packet_factory
@@ -325,29 +323,10 @@ target_link_libraries(agent_scale_test_src
   production_features_cpp2
   acl_test_utils
   asic_test_utils
+  setup_thrift_prod
   scale_test_utils
   Folly::folly
 )
-
-add_executable(multi_switch_agent_scale_test
-  fboss/agent/test/agent_hw_tests/MultiSwitchAgentHwTest.cpp
-)
-
-add_sai_sdk_dependencies(multi_switch_agent_scale_test)
-
-target_link_libraries(multi_switch_agent_scale_test
-  -Wl,--whole-archive
-  agent_scale_test_src
-  agent_hw_test
-  multi_switch_agent_ensemble
-  setup_thrift_prod
-  Folly::folly
-  -Wl,--no-whole-archive
-  ${GTEST}
-  ${LIBGMOCK_LIBRARIES}
-)
-
-install(TARGETS multi_switch_agent_scale_test)
 
 function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
 
@@ -379,6 +358,17 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--no-whole-archive
   )
 
+  if(SAI_TAJO_IMPL)
+  # Link libraries only under TAJO_SAI_SDK
+  target_link_libraries(sai_agent_hw_test-${SAI_IMPL_NAME}
+    ${GRPC}
+    ${ABSL_SYNCHRONIZATION}
+    ${PROTOBUF}
+    ${LIBNL3}
+    ${LIBNL_GENL3}
+  )
+  endif() 
+  
   set_target_properties(sai_agent_hw_test-${SAI_IMPL_NAME}
     PROPERTIES COMPILE_FLAGS
     "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
@@ -395,6 +385,11 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_agent_scale_test-${SAI_IMPL_NAME}
     -Wl,--whole-archive
     ${SAI_IMPL_ARG}
+    ${GRPC}
+    ${ABSL_SYNCHRONIZATION}
+    ${PROTOBUF}
+    ${LIBNL3}
+    ${LIBNL_GENL3}
     agent_scale_test_src
     agent_hw_test
     sai_acl_utils
@@ -406,6 +401,18 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     ${GTEST}
     ${LIBGMOCK_LIBRARIES}
   )
+
+  if(SAI_TAJO_IMPL)
+  # Link libraries only under TAJO_SAI_SDK
+  target_link_libraries(sai_agent_scale_test-${SAI_IMPL_NAME}
+    ${GRPC}
+    ${ABSL_SYNCHRONIZATION}
+    ${PROTOBUF}
+    ${LIBNL3}
+    ${LIBNL_GENL3}
+  )
+  endif() 
+
 endfunction()
 
 if(BUILD_SAI_FAKE)
@@ -424,4 +431,7 @@ if(SAI_IMPL)
   install(
     TARGETS
     sai_agent_hw_test-sai_impl)
+  install(
+    TARGETS
+    sai_agent_scale_test-sai_impl)
 endif()

@@ -12,7 +12,11 @@
 #include "fboss/agent/hw/switch_asics/TajoAsic.h"
 
 extern "C" {
+#if defined(TAJO_SDK_GTE_26_2)
+#include <saiextensions.h>
+#else
 #include <experimental/sai_attr_ext.h>
+#endif
 }
 namespace facebook::fboss {
 
@@ -25,10 +29,12 @@ SaiTajoPlatform::getSaiProfileVendorExtensionValues() const {
 #endif
   }
 
-  if (const char* basePath = getenv("BASE_OUTPUT_DIR")) {
-    vendorExtensions["SAI_SDK_LOG_CONFIG_FILE"] =
-        std::string(basePath) + "/res/config/sai_sdk_log_config.json";
-  }
+  //if (const char* basePath = getenv("BASE_OUTPUT_DIR")) {
+  //  vendorExtensions["SAI_SDK_LOG_CONFIG_FILE"] =
+  //      std::string(basePath) + "/res/config/sai_sdk_log_config.json";
+  //}
+  vendorExtensions["SAI_SDK_LOG_CONFIG_FILE"] = "/root/res/config/sai_sdk_log_config.json";
+
   return vendorExtensions;
 }
 
