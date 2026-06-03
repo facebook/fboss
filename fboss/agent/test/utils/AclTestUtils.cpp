@@ -68,11 +68,52 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
       asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
   }
+  if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+    std::set<cfg::AclTableQualifier> remove{
+        cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::OUTER_VLAN,
+    };
+    auto iter = qualifiers.begin();
+    while (iter != qualifiers.end()) {
+      if (remove.find(*iter) != remove.end()) {
+        iter = qualifiers.erase(iter);
+      } else {
+        ++iter;
+      }
+    }
+  }
   if (asicType == cfg::AsicType::ASIC_TYPE_FAKE) {
     qualifiers.push_back(cfg::AclTableQualifier::L4_DST_PORT_RANGE);
   }
 
   return qualifiers;
+}
+
+std::vector<cfg::AclTableActionType> genAclActionTypesConfig(
+    cfg::AsicType asicType) {
+  std::vector<cfg::AclTableActionType> actions = {
+      cfg::AclTableActionType::PACKET_ACTION,
+      cfg::AclTableActionType::COUNTER,
+      cfg::AclTableActionType::SET_TC,
+      cfg::AclTableActionType::SET_DSCP,
+      cfg::AclTableActionType::MIRROR_INGRESS,
+      cfg::AclTableActionType::MIRROR_EGRESS,
+  };
+  if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+    // TU1 does not support the SET_TC action in the ingress ACL table.
+    std::set<cfg::AclTableActionType> remove{
+        cfg::AclTableActionType::SET_TC,
+    };
+    auto iter = actions.begin();
+    while (iter != actions.end()) {
+      if (remove.find(*iter) != remove.end()) {
+        iter = actions.erase(iter);
+      } else {
+        ++iter;
+      }
+    }
+  }
+  return actions;
 }
 
 int getAclTableIndex(
@@ -305,11 +346,25 @@ void addDefaultAclTable(
   auto asic =
       checkSameAndGetAsic(asicTable.getL3Asics(), FLAGS_switch_id_for_testing);
   auto split = asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
+  auto isTomahawkUltra1 =
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1;
 
   /* Create default ACL table similar to whats being done in Agent today */
   std::vector<cfg::AclTableQualifier> qualifiers = {};
   std::vector<cfg::AclTableActionType> actions = {};
-  if (!split) {
+  if (isTomahawkUltra1) {
+    qualifiers = genAclQualifiersConfig(asic->getAsicType());
+    qualifiers.push_back(cfg::AclTableQualifier::SRC_PORT);
+    qualifiers.push_back(cfg::AclTableQualifier::IP_FRAG);
+    qualifiers.push_back(cfg::AclTableQualifier::DST_MAC);
+    addAclTable(
+        &cfg,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        0 /* priority */,
+        genAclActionTypesConfig(asic->getAsicType()),
+        qualifiers,
+        udfGroups);
+  } else if (!split) {
     addAclTable(
         &cfg,
         cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
