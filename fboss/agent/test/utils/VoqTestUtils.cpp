@@ -528,12 +528,10 @@ void populateRemoteIntfAndSysPorts(
                                 useEncapIndex,
                                 addNeighborToIntf](
                                    const auto& dsfNode, const auto& switchId) {
-      const auto globalOffset = dsfNode.systemPortRanges()
-                                    ->systemPortRanges()
-                                    ->at(0)
-                                    .minimum()
-                                    .value() -
-          1;
+      const auto& sysPortRange =
+          dsfNode.systemPortRanges()->systemPortRanges()->at(0);
+      const auto globalOffset = sysPortRange.minimum().value() - 1;
+      const auto sysPortRangeMax = sysPortRange.maximum().value();
       const auto minEdswSwitchId = 512;
       static const auto rdswPlatformMapping =
           Meru800biaPlatformMapping(HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE);
@@ -553,6 +551,9 @@ void populateRemoteIntfAndSysPorts(
              *mapping.portType() == cfg::PortType::HYPER_PORT)) {
           const auto remoteSysPortId =
               static_cast<SystemPortID>(portID + globalOffset);
+          if (static_cast<int64_t>(remoteSysPortId) > sysPortRangeMax) {
+            continue;
+          }
           const auto remoteIntfId = static_cast<InterfaceID>(remoteSysPortId);
           const PortDescriptor portDesc(remoteSysPortId);
           const std::optional<uint64_t> encapEndx = useEncapIndex
