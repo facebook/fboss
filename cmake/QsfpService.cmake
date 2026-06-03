@@ -129,7 +129,6 @@ add_library(icecube800banw_bsp
 
 target_link_libraries(icecube800banw_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -157,7 +156,6 @@ add_library(minipack3bta_bsp
 
 target_link_libraries(minipack3bta_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -207,7 +205,6 @@ add_library(tahansb800bc_bsp
 
 target_link_libraries(tahansb800bc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -217,7 +214,6 @@ add_library(wedge800bact_bsp
 
 target_link_libraries(wedge800bact_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -227,7 +223,6 @@ add_library(wedge800cact_bsp
 
 target_link_libraries(wedge800cact_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
