@@ -93,6 +93,9 @@ class RouteNextHopEntry
     return safe_cref<switch_state_tags::action>()->cref();
   }
 
+  // Do NOT use to read a route's nexthops. Returns inline nexthops only  Always
+  // use the ID-aware FibHelpers::getNextHops(state, entry) instead. The inline
+  // nexthops will be removeed in the future
   NextHopSet getNextHopSet() const;
   void setNextHops(const NextHopSet& nhops);
 
@@ -213,11 +216,6 @@ class RouteNextHopEntry
   // only on the input set (no `this`), so callers that resolve the set via an
   // ID can normalize without an inline getNextHopSet() read.
   static NextHopSet normalizeNextHops(const NextHopSet& nhopSet);
-
-  // Get the sum of the weights of all the nexthops in the entry
-  NextHopWeight getTotalWeight() const;
-
-  std::string str_DEPRACATED() const;
 
   std::string str() const;
 
