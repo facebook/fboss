@@ -382,6 +382,42 @@ sai_status_t get_ingress_priority_group_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+/*
+ * In fake sai there isn't a dataplane, so all ingress priority group stats
+ * stay at 0. Mirrors the buffer pool stats handling above.
+ */
+sai_status_t get_ingress_priority_group_stats_fn(
+    sai_object_id_t /*ingress_priority_group_id*/,
+    uint32_t number_of_counters,
+    const sai_stat_id_t* /*counter_ids*/,
+    uint64_t* counters) {
+  for (auto i = 0; i < number_of_counters; ++i) {
+    counters[i] = 0;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_ingress_priority_group_stats_ext_fn(
+    sai_object_id_t ingress_priority_group_id,
+    uint32_t number_of_counters,
+    const sai_stat_id_t* counter_ids,
+    sai_stats_mode_t /*mode*/,
+    uint64_t* counters) {
+  return get_ingress_priority_group_stats_fn(
+      ingress_priority_group_id, number_of_counters, counter_ids, counters);
+}
+
+/*
+ * noop clear stats API. Since fake doesn't have a dataplane stats are always
+ * set to 0, so no need to clear them.
+ */
+sai_status_t clear_ingress_priority_group_stats_fn(
+    sai_object_id_t /*ingress_priority_group_id*/,
+    uint32_t /*number_of_counters*/,
+    const sai_stat_id_t* /*counter_ids*/) {
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_buffer_api_t _buffer_api;
@@ -404,6 +440,12 @@ void populate_buffer_api(sai_buffer_api_t** buffer_api) {
       &get_ingress_priority_group_attribute_fn;
   _buffer_api.set_ingress_priority_group_attribute =
       &set_ingress_priority_group_attribute_fn;
+  _buffer_api.get_ingress_priority_group_stats =
+      &get_ingress_priority_group_stats_fn;
+  _buffer_api.get_ingress_priority_group_stats_ext =
+      &get_ingress_priority_group_stats_ext_fn;
+  _buffer_api.clear_ingress_priority_group_stats =
+      &clear_ingress_priority_group_stats_fn;
   *buffer_api = &_buffer_api;
 }
 
