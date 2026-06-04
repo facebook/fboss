@@ -155,13 +155,12 @@ FibInfo::getNextHopSetIdRefCountsFromRoutes() const {
   return refCounts;
 }
 
-std::unordered_map<NextHopSetID, uint32_t>
-FibInfo::getNextHopSetIdRefCountsFromMySid(
-    const std::shared_ptr<SwitchState>& state) {
-  std::unordered_map<NextHopSetID, uint32_t> refCounts;
+void FibInfo::getNextHopSetIdRefCountsFromMySid(
+    const std::shared_ptr<SwitchState>& state,
+    std::unordered_map<NextHopSetID, uint32_t>& refCounts) {
   auto mySidMap = state->getMySids();
   if (!mySidMap) {
-    return refCounts;
+    return;
   }
 
   for (const auto& miter : std::as_const(*mySidMap)) {
@@ -174,8 +173,6 @@ FibInfo::getNextHopSetIdRefCountsFromMySid(
       }
     }
   }
-
-  return refCounts;
 }
 
 std::map<std::string, NextHopSetId> FibInfo::getNameToNextHopSetId() const {

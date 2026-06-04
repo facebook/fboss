@@ -685,7 +685,8 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutesRecursiveResolution) {
 }
 
 TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromMySidEmpty) {
-  auto refCounts = FibInfo::getNextHopSetIdRefCountsFromMySid(state_);
+  std::unordered_map<NextHopSetID, uint32_t> refCounts;
+  FibInfo::getNextHopSetIdRefCountsFromMySid(state_, refCounts);
   EXPECT_TRUE(refCounts.empty());
 }
 
@@ -720,7 +721,8 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromMySid) {
   mySids->addNode(mySid2, matcher);
   mySids->addNode(mySid3, matcher);
 
-  auto refCounts = FibInfo::getNextHopSetIdRefCountsFromMySid(state_);
+  std::unordered_map<NextHopSetID, uint32_t> refCounts;
+  FibInfo::getNextHopSetIdRefCountsFromMySid(state_, refCounts);
   // setId1: resolved(mySid1) + resolved(mySid2) = 2
   EXPECT_EQ(refCounts[setId1], 2);
   // setId2: unresolved(mySid2) + resolved(mySid3) = 2
