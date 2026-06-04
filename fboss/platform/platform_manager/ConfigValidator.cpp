@@ -45,7 +45,8 @@ constexpr auto kSymlinkDirs = {
     "xcvrs",
     "flashes",
     "watchdogs",
-    "mdio-busses"};
+    "mdio-busses",
+    "rtms"};
 // Supported modalias - spidev +
 // https://github.com/torvalds/linux/blob/master/drivers/spi/spidev.c#L702
 constexpr auto kSpiDevModaliases = {
@@ -599,6 +600,12 @@ bool ConfigValidator::isValidPciDeviceConfig(
     }
   }
 
+  for (const auto& config : *pciDeviceConfig.rtmCtrlBlockConfigs()) {
+    if (!isValidRtmCtrlBlockConfig(config)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -921,6 +928,7 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
 
   // Store numXcvrs for use by other validation methods
   numXcvrs_ = *config.numXcvrs();
+  numRtms_ = *config.numRtms();
 
   // Verify presence of platform name
   if (config.platformName()->empty()) {
@@ -1738,6 +1746,10 @@ void ConfigValidator::buildDeviceNameCache(
       for (const auto& mdioBusConfig : Utils::createMdioBusConfigs(pciConfig)) {
         cache[slotType].insert(*mdioBusConfig.pmUnitScopedName());
       }
+
+      for (const auto& rtmCtrlConfig : Utils::createRtmCtrlConfigs(pciConfig)) {
+        addFromFpgaIpBlock(slotType, *rtmCtrlConfig.fpgaIpBlockConfig());
+      }
     }
   }
 
@@ -1856,6 +1868,73 @@ ConfigValidator::getLogicalEeproms(
     }
   }
   return result;
+}
+
+bool ConfigValidator::isValidRtmCtrlBlockConfig(
+    const RtmCtrlBlockConfig& rtmCtrlBlockConfig) {
+  if (rtmCtrlBlockConfig.pmUnitScopedNamePrefix()->empty()) {
+    XLOG(ERR) << "PmUnitScopedNamePrefix must be a non-empty string";
+    return false;
+  }
+  if (rtmCtrlBlockConfig.pmUnitScopedNamePrefix()->ends_with('_')) {
+    XLOG(ERR) << "PmUnitScopedNamePrefix must not end with an underscore";
+    return false;
+  }
+  if (rtmCtrlBlockConfig.deviceName()->empty()) {
+    XLOG(ERR) << "deviceName must be a non-empty string";
+    return false;
+  }
+  if (rtmCtrlBlockConfig.csrOffsetCalc()->empty()) {
+    XLOG(ERR) << "csrOffsetCalc must be a non-empty string";
+    return false;
+  }
+  if (*rtmCtrlBlockConfig.numPorts() <= 0) {
+    XLOG(ERR) << "numPorts must be a value greater than 0";
+    return false;
+  }
+  if (*rtmCtrlBlockConfig.startPort() <= 0) {
+    XLOG(ERR) << "startPort must be a value greater than 0";
+    return false;
+  }
+  if (*rtmCtrlBlockConfig.numPorts() > numRtms_) {
+    XLOG(ERR) << fmt::format(
+        "numPorts must be less than or equal to {}", numRtms_);
+    return false;
+  }
+  if (*rtmCtrlBlockConfig.startPort() > numRtms_) {
+    XLOG(ERR) << fmt::format(
+        "startPort must be less than or equal to {}", numRtms_);
+    return false;
+  }
+  if (*rtmCtrlBlockConfig.startPort() + *rtmCtrlBlockConfig.numPorts() - 1 >
+      numRtms_) {
+    XLOG(ERR) << fmt::format(
+        "startPort + numPorts - 1 must be must be less than or equal to {}",
+        numRtms_);
+    return false;
+  }
+
+  for (int16_t port = *rtmCtrlBlockConfig.startPort();
+       port < *rtmCtrlBlockConfig.startPort() + *rtmCtrlBlockConfig.numPorts();
+       port++) {
+    if (!isValidCsrOffsetCalc(
+            *rtmCtrlBlockConfig.csrOffsetCalc(),
+            port,
+            *rtmCtrlBlockConfig.startPort())) {
+      return false;
+    }
+
+    if (!rtmCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+      if (!isValidIobufOffsetCalc(
+              *rtmCtrlBlockConfig.iobufOffsetCalc(),
+              port,
+              *rtmCtrlBlockConfig.startPort())) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 } // namespace facebook::fboss::platform::platform_manager
