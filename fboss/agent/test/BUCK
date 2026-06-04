@@ -1084,6 +1084,7 @@ cpp_unittest(
         "//fboss/agent:agent_features",
         "//fboss/agent:core",
         "//fboss/agent:ecmp_resource_manager",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fib_helpers",
         "//fboss/agent:file_based_warmboot_utils",

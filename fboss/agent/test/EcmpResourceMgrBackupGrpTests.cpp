@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
@@ -1411,6 +1412,127 @@ TEST_F(
   EXPECT_FALSE(isBackup(4))
       << "non-virtual backup must be reclaimed to primary";
   EXPECT_FALSE(isBackup(5)) << "virtual backup must be reclaimed to primary";
+}
+
+// ERM primary cap (DLB groups) forces demotion to backup ECMP-spray, then
+// the total post-demotion ECMP group count breaches the ResourceAccountant
+// cap and the next update is rejected.
+class DlbOverflowsAccountantTest : public BaseEcmpResourceManagerTest {
+ public:
+  // MockAsic getMaxArsGroups()==7; floor(7*50/100)=3 → ERM primary cap.
+  static constexpr auto kExpectedMaxArsGroups = 7;
+  // MockAsic getMaxEcmpGroups()==20; floor(20*25/100)=5 → accountant cap.
+  static constexpr auto kExpectedMaxEcmpGroups = 20;
+  // # routes that fit the accountant cap exactly (3 primary + 2 backup).
+  static constexpr auto kAccountantEcmpCap = 5;
+  // One more than the accountant cap — triggers ResourceAccountant rejection.
+  static constexpr auto kRoutesAboveCap = kAccountantEcmpCap + 1;
+
+  int numStartRoutes() const override {
+    return 0;
+  }
+
+  void setupFlags() const override {
+    FLAGS_enable_ecmp_resource_manager = true;
+    FLAGS_flowletSwitchingEnable = true;
+    FLAGS_dlbResourceCheckEnable = true;
+    FLAGS_ecmp_resource_manager_make_before_break_buffer = 0;
+    FLAGS_ars_resource_percentage = 50;
+    FLAGS_ecmp_resource_percentage = 25;
+  }
+
+  // Build `n` distinct ECMP nhop sets by repeatedly trimming the front of
+  // defaultNhops() — mirrors the pattern at `defaultNhopSets` (line 32) /
+  // `nextNhopSets` (line 42) on `EcmpBackupGroupTypeTest`.
+  std::vector<RouteNextHopSet> distinctNhopSets(int n) const {
+    std::vector<RouteNextHopSet> sets;
+    auto nhops = defaultNhops();
+    for (auto i = 0; i < n; ++i) {
+      sets.push_back(nhops);
+      nhops.erase(nhops.begin());
+      CHECK_GT(nhops.size(), 1);
+    }
+    return sets;
+  }
+
+  // The base TearDown's `assertReplayIsNoOp` re-adds routes via thrift and
+  // asserts the state is identical to `state_`. We update via the Thrift
+  // handler directly (not consolidate()), so `state_` stays at the SetUp
+  // snapshot. Sync `state_` to the live SwSwitch state so the base TearDown's
+  // warmboot/RIB/ERM-correctness invariants still run.
+  void TearDown() override {
+    state_ = sw_->getState();
+    BaseEcmpResourceManagerTest::TearDown();
+  }
+};
+
+TEST_F(DlbOverflowsAccountantTest, DemoteThenReject) {
+  // Guard the math behind the cap choices — if MockAsic ever changes these
+  // limits, the test's per-FLAG percentages below will silently miscount.
+  auto asic = *sw_->getHwAsicTable()->getL3Asics().begin();
+  ASSERT_TRUE(asic->getMaxArsGroups().has_value());
+  ASSERT_TRUE(asic->getMaxEcmpGroups().has_value());
+  EXPECT_EQ(*asic->getMaxArsGroups(), kExpectedMaxArsGroups);
+  EXPECT_EQ(*asic->getMaxEcmpGroups(), kExpectedMaxEcmpGroups);
+
+  // Build kRoutesAboveCap distinct ECMP nhop sets (one per route).
+  auto nhopSets = distinctNhopSets(kRoutesAboveCap);
+
+  // Phase 1 — add kAccountantEcmpCap routes. ERM primary cap (3) forces 2
+  // groups to backup ECMP-spray. Total ECMP groups = cap, update lands.
+  std::vector<RouteV6::Prefix> phase1Prefixes;
+  {
+    auto newState = sw_->getState()->clone();
+    auto fib6 = fib(newState);
+    for (int i = 0; i < kAccountantEcmpCap; ++i) {
+      auto pfx = makePrefix(i);
+      phase1Prefixes.push_back(pfx);
+      fib6->addNode(makeRoute(pfx, nhopSets[i]));
+    }
+    updateRoutes(newState);
+  }
+  EXPECT_EQ(
+      getPostConfigResolvedRoutes(sw_->getState()).size(), kAccountantEcmpCap);
+
+  int backupCount = 0;
+  for (const auto& pfx : phase1Prefixes) {
+    auto grpInfo = sw_->getEcmpResourceManager()->getGroupInfo(
+        RouterID(0), pfx.toCidrNetwork());
+    ASSERT_NE(grpInfo, nullptr);
+    if (grpInfo->isBackupEcmpGroupType()) {
+      ++backupCount;
+      auto mode = cfib(sw_->getState())
+                      ->getRouteIf(pfx)
+                      ->getForwardInfo()
+                      .getOverrideEcmpSwitchingMode();
+      ASSERT_TRUE(mode.has_value());
+      EXPECT_EQ(*mode, cfg::SwitchingMode::PER_PACKET_RANDOM);
+    }
+  }
+  EXPECT_EQ(backupCount, 2);
+  EXPECT_EQ(sw_->stats()->getBackupEcmpGroupsCount(), backupCount);
+
+  // Phase 2 — add one more route, putting total ECMP groups one above the
+  // accountant cap. ResourceAccountant rejects → SwSwitch state stays
+  // unchanged. updateStateWithHwFailureProtection throws FbossHwUpdateError
+  // when the applied state can't match the desired one — including the
+  // validation rejection path; otherwise SwSwitch FATALs on unprotected
+  // rejection.
+  auto preState = sw_->getState();
+  auto extraPfx = makePrefix(kAccountantEcmpCap);
+  auto extraNhops = nhopSets[kAccountantEcmpCap];
+  EXPECT_THROW(
+      sw_->updateStateWithHwFailureProtection(
+          "DlbOverflowsAccountantTest extra route",
+          [&](const std::shared_ptr<SwitchState>& in) {
+            auto out = in->clone();
+            fib(out)->addNode(makeRoute(extraPfx, extraNhops));
+            return out;
+          }),
+      FbossHwUpdateError);
+  EXPECT_EQ(sw_->getState(), preState);
+  EXPECT_EQ(
+      getPostConfigResolvedRoutes(sw_->getState()).size(), kAccountantEcmpCap);
 }
 
 } // namespace facebook::fboss
