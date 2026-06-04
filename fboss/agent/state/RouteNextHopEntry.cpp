@@ -343,7 +343,7 @@ bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
 
 void RouteNextHopEntry::normalize(
     std::vector<NextHopWeight>& scaledWeights,
-    NextHopWeight totalWeight) const {
+    NextHopWeight totalWeight) {
   // This is the weight distribution without constraints
   std::vector<double> idealWeights;
 
@@ -427,13 +427,15 @@ void RouteNextHopEntry::normalize(
 
 RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
     bool ignoreOverride) const {
-  NextHopSet nhopSet;
   auto overrideNhops = getOverrideNextHops();
   if (!ignoreOverride && overrideNhops) {
-    nhopSet = *overrideNhops;
-  } else {
-    nhopSet = getNextHopSet();
+    return normalizeNextHops(*overrideNhops);
   }
+  return normalizeNextHops(getNextHopSet());
+}
+
+RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizeNextHops(
+    const NextHopSet& nhopSet) {
   NextHopSet normalizedNextHops;
   // 1)
   for (const auto& nhop : nhopSet) {
@@ -574,7 +576,7 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
         scaledTotalWeight = FLAGS_ecmp_width;
       }
     }
-    XLOG(DBG3) << "Scaled next hops from " << getNextHopSet() << " to "
+    XLOG(DBG3) << "Scaled next hops from " << nhopSet << " to "
                << scaledNextHops;
     normalizedNextHops = scaledNextHops;
   } else {
@@ -604,7 +606,7 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
           nhop.tunnelId(),
           nhop.cost()));
     }
-    XLOG(DBG3) << "Scaled next hops from " << getNextHopSet() << " to "
+    XLOG(DBG3) << "Scaled next hops from " << nhopSet << " to "
                << normalizedToMaxPathNextHops;
     return normalizedToMaxPathNextHops;
   }

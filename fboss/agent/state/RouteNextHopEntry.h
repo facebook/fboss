@@ -207,6 +207,10 @@ class RouteNextHopEntry
   NextHopSet nonOverrideNormalizedNextHops() const {
     return normalizedNextHopsImpl(true /*ignoreOverride*/);
   }
+  // Weight-normalize an arbitrary nexthop set to ECMP width. Pure: depends
+  // only on the input set (no `this`), so callers that resolve the set via an
+  // ID can normalize without an inline getNextHopSet() read.
+  static NextHopSet normalizeNextHops(const NextHopSet& nhopSet);
 
   // Get the sum of the weights of all the nexthops in the entry
   NextHopWeight getTotalWeight() const;
@@ -275,9 +279,9 @@ class RouteNextHopEntry
       const std::optional<NextHopSetID>& normalizedResolvedNextHopSetID,
       const std::optional<NextHopSetID>& resolvedNextHopSetID,
       const std::optional<NextHopSetID>& clientNextHopSetID);
-  void normalize(
+  static void normalize(
       std::vector<NextHopWeight>& scaledWeights,
-      NextHopWeight totalWeight) const;
+      NextHopWeight totalWeight);
 };
 
 /**
