@@ -284,7 +284,11 @@ namespace facebook::fboss {
 class AgentTrafficPfcTest : public AgentHwTest {
  public:
   void TearDown() override {
-    if (!FLAGS_list_production_feature) {
+    // If SetUp() threw before the ensemble was created (e.g. the switch
+    // never came up), getAgentEnsemble() is null. gtest still invokes
+    // TearDown(), so guard the ensemble-dependent teardown to avoid a null
+    // deref in getL3Asics(); AgentHwTest::TearDown() is already null-safe.
+    if (!FLAGS_list_production_feature && getAgentEnsemble() != nullptr) {
       auto asic =
           checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
       if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
