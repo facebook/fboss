@@ -340,6 +340,79 @@ def _patch_manifests_disable_binutils():
             print_info(f"Patching manifest {manifest} to disable binutils")
 
 
+def _patch_boost_fpic():
+    """Fix -fPIC flags in boost and boost-python manifests.
+
+    The upstream boost-python manifest has cxxflags="-fPIC" with quotes and
+    is missing cflags=-fPIC. The quotes are passed literally to b2 (the
+    manifest parser does not strip them), so the compiler never receives
+    -fPIC. This causes linker failures when folly-python links the static
+    boost archives into a shared library (BUILD_SHARED_LIBS=ON +
+    BOOST_LINK_STATIC=ON).
+
+    Both boost and boost-python are patched because fboss pulls in both
+    (fb303 -> folly -> boost, and folly-python -> boost-python) and cmake
+    finds whichever appears first in CMAKE_PREFIX_PATH.
+    """
+    manifests_dir = path_to("build", "fbcode_builder", "manifests")
+
+    # The correct replacement for [b2.args.os=linux] -fPIC lines.
+    # Both manifests need unquoted cxxflags and cflags.
+    fpic_correct = "cxxflags=-fPIC\ncflags=-fPIC"
+
+    for manifest_name in ("boost-python", "boost"):
+        manifest_path = os.path.join(manifests_dir, manifest_name)
+        if not os.path.isfile(manifest_path):
+            continue
+        with open(manifest_path) as f:
+            content = f.read()
+        patched = content
+
+        # Fix quoted cxxflags (boost-python has this bug)
+        patched = patched.replace('cxxflags="-fPIC"', fpic_correct)
+
+        # Ensure cflags=-fPIC is present if cxxflags=-fPIC already is
+        if "cxxflags=-fPIC" in patched and "cflags=-fPIC" not in patched:
+            patched = patched.replace("cxxflags=-fPIC", fpic_correct)
+
+        if patched != content:
+            with open(manifest_path, "w") as f:
+                f.write(patched)
+            print_info(f"Patched {manifest_name} manifest: ensured -fPIC flags")
+
+
+def _create_fpic_compiler_wrappers():
+    """Ensure -fPIC is used for all compilations via compiler wrappers.
+
+    Boost's b2 build system does not reliably apply cxxflags=-fPIC from
+    its manifest on CentOS Stream 9 (both with gcc-toolset-12 and clang).
+    Since folly-python links boost static archives into a shared library
+    (BUILD_SHARED_LIBS=ON + BOOST_LINK_STATIC=ON), all objects must be PIC.
+
+    We create thin wrapper scripts for common compiler names that prepend
+    -fPIC, then put them first on PATH. This guarantees -fPIC regardless
+    of build system (cmake, b2, make).
+    """
+    wrapper_dir = "/tmp/fpic_wrappers"
+    os.makedirs(wrapper_dir, exist_ok=True)
+    created = []
+    for name in ("gcc", "g++", "cc", "c++", "clang", "clang++"):
+        real = subprocess.run(
+            ["which", name], capture_output=True, text=True, check=False
+        ).stdout.strip()
+        if not real:
+            continue
+        wrapper = os.path.join(wrapper_dir, name)
+        with open(wrapper, "w") as f:
+            f.write(f'#!/bin/bash\nexec {real} -fPIC "$@"\n')
+        os.chmod(wrapper, 0o755)
+        created.append(name)
+
+    if created:
+        os.environ["PATH"] = wrapper_dir + ":" + os.environ.get("PATH", "")
+        print_info(f"Created -fPIC compiler wrappers for {created} in {wrapper_dir}")
+
+
 def setup_clang_environment(toolchain_info):
     """
     Set up the environment for building with clang.
@@ -595,6 +668,8 @@ def main():
     if args.npu_sai_version is not None:
         _edit_libsai_manifest(args.npu_sai_version)
 
+    _patch_boost_fpic()
+
     # Detect which toolchain is active and set up environment accordingly
     toolchain_info = detect_toolchain()
 
@@ -637,6 +712,8 @@ def main():
                 sys.exit(1)
     # If toolchain_info is None, detect_toolchain() already printed a warning
     # and we'll proceed without environment setup
+
+    _create_fpic_compiler_wrappers()
 
     # Call the real getdeps.py with all arguments
     print_info(f"Executing getdeps.py with args: {args.getdeps_args}")
