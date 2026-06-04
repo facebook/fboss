@@ -523,6 +523,7 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
 
   void pumpEncapTrafficAndVerifyLoadBalanced(
       const std::vector<PortID>& egressPorts,
+      std::optional<PortID> injectPort = std::nullopt,
       int numPackets = 10000,
       int maxDeviationPct = 25) {
     auto portStatsBefore = this->getLatestPortStats(egressPorts);
@@ -532,7 +533,10 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
 
     XLOG(DBG2) << "pumpEncapTrafficAndVerifyLoadBalanced: sending "
                << sqrtN * sqrtN << " packets across " << egressPorts.size()
-               << " egress ports";
+               << " egress ports, inject="
+               << (injectPort.has_value()
+                       ? folly::to<std::string>(injectPort.value())
+                       : "CPU");
 
     for (int i = 0; i < sqrtN; ++i) {
       for (int j = 0; j < sqrtN; ++j) {
@@ -549,7 +553,12 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
             dstIp,
             10000 + i,
             20000 + j);
-        this->sendPacketSwitchedAsync(std::move(txPacket));
+        if (injectPort.has_value()) {
+          this->getSw()->sendPacketOutOfPortAsync(
+              std::move(txPacket), injectPort.value());
+        } else {
+          this->sendPacketSwitchedAsync(std::move(txPacket));
+        }
       }
     }
 
@@ -752,6 +761,8 @@ TYPED_TEST(AgentSrv6BindingSidTest, bindingSidMultiHopIsLoadBalanced) {
       egressPorts.push_back(this->getEgressPort(ecmpHelper.nhop(i).portDesc));
     }
     this->pumpEncapTrafficAndVerifyLoadBalanced(egressPorts);
+    auto injectPort = this->findInjectPort(egressPorts);
+    this->pumpEncapTrafficAndVerifyLoadBalanced(egressPorts, injectPort);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
