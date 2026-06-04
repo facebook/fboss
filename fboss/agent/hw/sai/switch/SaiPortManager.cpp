@@ -1482,6 +1482,7 @@ void SaiPortManager::resetCableLength(PortID portId) {
     return;
   }
   curPortStats.cableLengthMeters().reset();
+  curPortStats.cableDelayNsec().reset();
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   portStatItr->second->updateStats(curPortStats, now);
 }
@@ -2612,6 +2613,7 @@ void SaiPortManager::updateStats(
             SaiApiTable::getInstance()->portApi().getAttribute(
                 handle->port->adapterKey(),
                 SaiPortTraits::Attributes::CablePropogationDelayNS{});
+        curPortStats.cableDelayNsec() = cablePropogationDelayNS;
         cablePropogationDelayNS = std::max(
             cablePropogationDelayNS -
                 getWorstCaseAssumedOpticsDelayNS(

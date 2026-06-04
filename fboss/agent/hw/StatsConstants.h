@@ -312,6 +312,10 @@ inline folly::StringPiece constexpr kCableLengthMeters() {
   return "cable_length_meters";
 }
 
+inline folly::StringPiece constexpr kCableDelayNsec() {
+  return "cable_delay_nsec";
+}
+
 inline folly::StringPiece constexpr kDataCellsFilterOn() {
   return "data_cells_filter_on";
 }

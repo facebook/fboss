@@ -120,6 +120,7 @@ struct HwPortStats {
   76: optional i64 outDiscardsSll_;
   77: optional i64 outDiscardsHll_;
   78: optional i64 inSrv6MySidDiscards_;
+  79: optional i64 cableDelayNsec;
 }
 
 struct HwSysPortStats {
