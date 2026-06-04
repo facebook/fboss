@@ -1024,7 +1024,8 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         // allocation but deallocate any existing old ID
         if (!labelPopandLookup) {
           newNormalizedResolvedNextHopSetId = updateNextHopSetIDs(
-              nhop->nonOverrideNormalizedNextHops(), oldNormalizedNextHopSetID);
+              RouteNextHopEntry::normalizeNextHops(nhop->getNextHopSet()),
+              oldNormalizedNextHopSetID);
         } else if (oldNormalizedNextHopSetID.has_value()) {
           // Route transitioned to POP_AND_LOOKUP - deallocate old normalized ID
           nextHopIDManager_->decrOrDeallocRouteNextHopSetID(

@@ -204,6 +204,8 @@ class RouteNextHopEntry
   NextHopSet normalizedNextHops() const {
     return normalizedNextHopsImpl(false /*ignoreOverride*/);
   }
+  // Deprecated: do not add new callers; will be removed. Use the static
+  // normalizeNextHops(NextHopSet) instead.
   NextHopSet nonOverrideNormalizedNextHops() const {
     return normalizedNextHopsImpl(true /*ignoreOverride*/);
   }
