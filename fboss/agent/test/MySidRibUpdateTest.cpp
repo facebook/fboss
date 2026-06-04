@@ -5,6 +5,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchMySidUpdater.h"
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/MySid.h"
@@ -120,6 +121,64 @@ class MySidRibUpdateTest : public ::testing::Test {
         sw_);
   }
 
+  void addBindingSidWithNextHop(
+      const std::string& mySidAddr,
+      uint8_t len,
+      const std::string& nhopAddr,
+      const std::string& sid) {
+    MySidEntry entry;
+    entry.type() = MySidType::BINDING_MICRO_SID;
+    facebook::network::thrift::IPPrefix prefix;
+    prefix.prefixAddress() =
+        facebook::network::toBinaryAddress(folly::IPAddressV6(mySidAddr));
+    prefix.prefixLength() = len;
+    entry.mySid() = prefix;
+    NextHopThrift nhop;
+    nhop.address() =
+        facebook::network::toBinaryAddress(folly::IPAddressV6(nhopAddr));
+    nhop.srv6SegmentList() = {
+        facebook::network::toBinaryAddress(folly::IPAddressV6(sid))};
+    nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+    nhop.tunnelId() = "tunnel1";
+    entry.nextHops() = {nhop};
+
+    auto rib = sw_->getRib();
+    auto ribMySidFunc = createRibMySidToSwitchStateFunction(std::nullopt);
+    rib->update(
+        sw_->getScopeResolver(),
+        {entry},
+        {} /* toDelete */,
+        "addBindingSidWithNextHop",
+        ribMySidFunc,
+        sw_);
+  }
+
+  void addOpenrRoute(
+      const std::string& prefix,
+      uint8_t len,
+      const std::string& nhopAddr) {
+    auto routeUpdater = sw_->getRouteUpdater();
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6(prefix),
+        len,
+        ClientID::OPENR,
+        RouteNextHopEntry(
+            RouteNextHopSet{ResolvedNextHop(
+                folly::IPAddress(folly::IPAddressV6(nhopAddr)),
+                InterfaceID(1),
+                ECMP_WEIGHT)},
+            AdminDistance::DIRECTLY_CONNECTED));
+    routeUpdater.program();
+  }
+
+  void removeOpenrRoute(const std::string& prefix, uint8_t len) {
+    auto routeUpdater = sw_->getRouteUpdater();
+    routeUpdater.delRoute(
+        RouterID(0), folly::IPAddressV6(prefix), len, ClientID::OPENR);
+    routeUpdater.program();
+  }
+
   SwSwitch* sw_;
   std::unique_ptr<HwTestHandle> handle_;
 };
@@ -215,4 +274,51 @@ TEST_F(MySidRibUpdateTest, NodeMySidWithUnresolvedNextHops) {
   EXPECT_EQ(mySid->getClientId(), ClientID::STATIC_ROUTE);
   // Should have unresolvedNextHopsId allocated by NextHopIDManager
   EXPECT_TRUE(mySid->getUnresolveNextHopsId().has_value());
+}
+
+TEST_F(MySidRibUpdateTest, BindingSidResolvesWithOpenrRoute) {
+  // BGP route: 2001:db8::ff/128 -> fdad::1:1 (unresolved, no OpenR route yet)
+  auto routeUpdater = sw_->getRouteUpdater();
+  routeUpdater.addRoute(
+      RouterID(0),
+      folly::IPAddressV6("2001:db8::ff"),
+      128,
+      ClientID::BGPD,
+      RouteNextHopEntry(
+          RouteNextHopSet{UnresolvedNextHop(
+              folly::IPAddress(folly::IPAddressV6("fdad::1:1")), ECMP_WEIGHT)},
+          AdminDistance::EBGP));
+  routeUpdater.program();
+
+  // Add binding SID pointing to the BGP route
+  addBindingSidWithNextHop(
+      "fc00:100:1::", 48, "2001:db8::ff", "3001:db8:1:2:3:4:5:6");
+
+  // Without OpenR route, binding SID should be unresolved
+  auto mySid = getMySid("fc00:100:1::/48");
+  ASSERT_NE(mySid, nullptr);
+  EXPECT_FALSE(mySid->getResolvedNextHopsId().has_value());
+
+  // Add OpenR route that resolves the BGP next hop
+  addOpenrRoute("fdad::1:0", 112, "fe80::1");
+
+  // Binding SID should now be resolved
+  mySid = getMySid("fc00:100:1::/48");
+  ASSERT_NE(mySid, nullptr);
+  EXPECT_TRUE(mySid->getResolvedNextHopsId().has_value());
+
+  // Remove OpenR route
+  removeOpenrRoute("fdad::1:0", 112);
+
+  // Binding SID should go back to unresolved
+  mySid = getMySid("fc00:100:1::/48");
+  ASSERT_NE(mySid, nullptr);
+  EXPECT_FALSE(mySid->getResolvedNextHopsId().has_value());
+
+  // Re-add OpenR route — should resolve again
+  addOpenrRoute("fdad::1:0", 112, "fe80::1");
+
+  mySid = getMySid("fc00:100:1::/48");
+  ASSERT_NE(mySid, nullptr);
+  EXPECT_TRUE(mySid->getResolvedNextHopsId().has_value());
 }
