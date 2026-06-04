@@ -12085,12 +12085,6 @@
           "test_name_regex": "HwPortPrbsTestAll.*$"
         },
         {
-          "test_name_regex": "HwPortPrbsTest_LINE_PAM4.*$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest_SYSTEM_NRZ.*$"
-        },
-        {
           "test_name_regex": "HwTest.cmisPageChange$"
         },
         {
@@ -19170,9 +19164,6 @@
           "test_name_regex": "HwPortPrbsTestAll.*$"
         },
         {
-          "test_name_regex": "HwPortPrbsTest_SYSTEM_NRZ.*$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         },
         {
@@ -19367,9 +19358,6 @@
           "test_name_regex": "HwPortPrbsTestAll.*$"
         },
         {
-          "test_name_regex": "HwPortPrbsTest_SYSTEM_NRZ.*$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         },
         {
@@ -19562,9 +19550,6 @@
         },
         {
           "test_name_regex": "HwPortPrbsTestAll.*$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest_SYSTEM_NRZ.*$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
