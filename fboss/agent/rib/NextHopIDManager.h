@@ -380,7 +380,10 @@ class NextHopIDManager {
       nhopRefCountBumped_afterResolvingNhopWithIntfId);
   FRIEND_TEST(
       RibMySidUpdaterTest,
-      twoEntriesSameNhops_resolvedSetIdSharedAndRefCountIsTwo);
+      twoEntriesSameNhops_resolvedSetIdSharedAndRefCountIsThree);
+  FRIEND_TEST(
+      RibMySidUpdaterTest,
+      secondResolve_differentNhops_oldSetRetainedByRoute);
   FRIEND_TEST(
       RibMySidNextHopTest,
       replaceNodeMySidWithDecapReleasesBothUnresolvedAndResolvedIds);
