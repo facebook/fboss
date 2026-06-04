@@ -327,8 +327,23 @@ class AgentQueuePerHostTest : public AgentHwTest {
           if (qid == 0) {
             EXPECT_EVENTUALLY_GE(pktsOnQueue, 1);
           } else {
-            EXPECT_EVENTUALLY_EQ(
-                pktsOnQueue, 2 /* 1 pkt each for ttl < 128 and ttl >= 128 */);
+            /*
+             * On some platforms, split horizon check is after ACL matching.
+             * Thus, the counter get increment one additional time for the
+             * looped back packet.
+             */
+            if (checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                        ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+                checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                        ->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+                checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                        ->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
+              /* 1 pkt each for ttl < 128 and ttl >= 128 */
+              EXPECT_EVENTUALLY_EQ(pktsOnQueue, 4);
+            } else {
+              EXPECT_EVENTUALLY_EQ(
+                  pktsOnQueue, 2 /* 1 pkt each for ttl < 128 and ttl >= 128 */);
+            }
           }
         }
       }
@@ -510,8 +525,8 @@ class AgentQueuePerHostTest : public AgentHwTest {
 
 TYPED_TEST_SUITE(AgentQueuePerHostTest, TestTypes);
 
-// Verify that traffic arriving on a front panel port gets right queue-per-host
-// queue.
+// Verify that traffic arriving on a front panel port gets right
+// queue-per-host queue.
 TYPED_TEST(
     AgentQueuePerHostTest,
     VerifyHostToQueueMappingClassIDsAfterResolve) {
@@ -519,8 +534,8 @@ TYPED_TEST(
       false /* block neighbor */);
 }
 
-// Verify that traffic arriving on a front panel port to a blocked neighbor gets
-// dropped.
+// Verify that traffic arriving on a front panel port to a blocked neighbor
+// gets dropped.
 TYPED_TEST(
     AgentQueuePerHostTest,
     VerifyHostToQueueMappingClassIDsAfterResolveBlock) {
@@ -528,15 +543,15 @@ TYPED_TEST(
       true /* block neighbor */);
 }
 
-// Verify that traffic arriving on a front panel port gets right queue-per-host
-// queue.
+// Verify that traffic arriving on a front panel port gets right
+// queue-per-host queue.
 TYPED_TEST(AgentQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolve) {
   this->verifyHostToQueueMappingClassIDsWithResolveHelper(
       false /* block neighbor */);
 }
 
-// Verify that traffic arriving on a front panel port to a blocked neighbor gets
-// dropped.
+// Verify that traffic arriving on a front panel port to a blocked neighbor
+// gets dropped.
 TYPED_TEST(
     AgentQueuePerHostTest,
     VerifyHostToQueueMappingClassIDsWithResolveBlock) {
