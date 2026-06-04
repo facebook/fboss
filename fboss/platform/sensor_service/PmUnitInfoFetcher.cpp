@@ -24,9 +24,9 @@ std::optional<platform_manager::PmUnitInfo> PmUnitInfoFetcher::fetch(
     if (auto pmUnitVersion = pmUnitInfo.version()) {
       XLOG(DBG1) << fmt::format(
           "Fetched PmUnitVersion: {}.{}.{} for {} at {}",
-          *pmUnitVersion->productProductionState(),
-          *pmUnitVersion->productVersion(),
-          *pmUnitVersion->productSubVersion(),
+          *pmUnitVersion->productionState(),
+          *pmUnitVersion->productionSubState(),
+          *pmUnitVersion->respinVariantIndicator(),
           *pmUnitInfo.name(),
           slotPath);
     } else {

@@ -770,15 +770,15 @@ struct PmUnitInfo {
 
 // `PmUnitVersion`: Version of a PmUnit.
 //
-// `productProductionState`: Minimum productProductionState (EEPROM V5 Type 8).
+// `productionState`: Production State (EEPROM V6 Type 8).
 //
-// `productVersion`: Minimum productVersion (EEPROM V5 Type 9).
+// `productionSubState`: Production Sub-State (EEPROM V6 Type 9).
 //
-// `productSubVersion`: Minimum productSubVersion (EEPROM V5 Type 10).
+// `respinVariantIndicator`: Re-Spin/Variant Indicator (EEPROM V6 Type 10).
 struct PmUnitVersion {
-  1: i16 productProductionState;
-  2: i16 productVersion;
-  3: i16 productSubVersion;
+  1: i16 productionState;
+  2: i16 productionSubState;
+  3: i16 respinVariantIndicator;
 }
 
 // Defines thrift structure used for the Bsp Kmods file under /usr/local/{vendor}_bsp/...

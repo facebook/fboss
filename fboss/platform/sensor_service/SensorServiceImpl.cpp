@@ -136,9 +136,9 @@ SensorServiceImpl::prefetchPmUnitInfos() {
     if (pmUnitInfo && pmUnitInfo->version()) {
       XLOG(INFO) << fmt::format(
           "Found v{}.{}.{} of {} at {}",
-          *pmUnitInfo->version()->productProductionState(),
-          *pmUnitInfo->version()->productVersion(),
-          *pmUnitInfo->version()->productSubVersion(),
+          *pmUnitInfo->version()->productionState(),
+          *pmUnitInfo->version()->productionSubState(),
+          *pmUnitInfo->version()->respinVariantIndicator(),
           *pmUnitInfo->name(),
           slotPath);
     } else if (pmUnitInfo) {
@@ -203,9 +203,9 @@ void SensorServiceImpl::fetchSensorData() {
           "Processing {} PMUnit (v{}.{}.{}). "
           "Using VersionedPmSensor v{}.{}.{} (productName: {}): {} sensors",
           *pmUnitSensors.pmUnitName(),
-          *pmUnitInfo->version()->productProductionState(),
-          *pmUnitInfo->version()->productVersion(),
-          *pmUnitInfo->version()->productSubVersion(),
+          *pmUnitInfo->version()->productionState(),
+          *pmUnitInfo->version()->productionSubState(),
+          *pmUnitInfo->version()->respinVariantIndicator(),
           *versionedPmSensors->productProductionState(),
           *versionedPmSensors->productVersion(),
           *versionedPmSensors->productSubVersion(),

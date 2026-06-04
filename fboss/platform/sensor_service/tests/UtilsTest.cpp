@@ -19,13 +19,13 @@ class UtilsTests : public testing::Test {
     return versionedPmSensor;
   }
   platform_manager::PmUnitInfo
-  createPmUnitInfo(int16_t pps, int16_t pv, int16_t psv) {
+  createPmUnitInfo(int16_t ps, int16_t pss, int16_t rvi) {
     platform_manager::PmUnitInfo info;
     info.name() = "TestUnit";
     platform_manager::PmUnitVersion version;
-    version.productProductionState() = pps;
-    version.productVersion() = pv;
-    version.productSubVersion() = psv;
+    version.productionState() = ps;
+    version.productionSubState() = pss;
+    version.respinVariantIndicator() = rvi;
     info.version() = version;
     return info;
   }
@@ -125,11 +125,11 @@ TEST_F(UtilsTests, ResolveVersionedSensorsWithProductName) {
       };
   auto createPmUnitInfoWithEepromProductName =
       [this](
-          int16_t pps,
-          int16_t pv,
-          int16_t psv,
+          int16_t ps,
+          int16_t pss,
+          int16_t rvi,
           const std::string& eepromProductName) {
-        auto info = createPmUnitInfo(pps, pv, psv);
+        auto info = createPmUnitInfo(ps, pss, rvi);
         info.eepromProductName() = eepromProductName;
         return info;
       };

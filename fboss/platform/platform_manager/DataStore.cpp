@@ -119,10 +119,10 @@ void DataStore::updatePmUnitVersion(
       slotPath,
       *slotPathToPmUnitInfo[slotPath].name(),
       fmt::format(
-          "ProductProductionState {}, ProductVersion {}, ProductSubVersion {}",
-          *version.productProductionState(),
-          *version.productVersion(),
-          *version.productSubVersion()));
+          "ProductionState {}, ProductionSubState {}, RespinVariantIndicator {}",
+          *version.productionState(),
+          *version.productionSubState(),
+          *version.respinVariantIndicator()));
 }
 
 void DataStore::updatePmUnitEepromProductName(
@@ -157,32 +157,33 @@ PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
   const auto& version = pmUnitInfo.version();
   if (!version) {
     XLOG(INFO) << fmt::format(
-        "Resolved {} to default PmUnitConfig of {}. No ProductSubversion was "
-        "read from IDPROM at the slotPath.",
+        "Resolved {} to default PmUnitConfig of {}. No RespinVariantIndicator "
+        "was read from IDPROM at the slotPath.",
         slotPath,
         pmUnitName);
     return platformConfig_.pmUnitConfigs()->at(pmUnitName);
   }
-  auto productSubVersion = *version->productSubVersion();
+  auto respinVariantIndicator = *version->respinVariantIndicator();
   if (platformConfig_.versionedPmUnitConfigs()->contains(pmUnitName)) {
     for (const auto& versionedPmUnitConfig :
          platformConfig_.versionedPmUnitConfigs()->at(pmUnitName)) {
-      if (*versionedPmUnitConfig.productSubVersion() == productSubVersion) {
+      if (*versionedPmUnitConfig.productSubVersion() ==
+          respinVariantIndicator) {
         XLOG(INFO) << fmt::format(
-            "Resolved {} to PmUnitConfig of {} with ProductSubVersion {}",
+            "Resolved {} to PmUnitConfig of {} with RespinVariantIndicator {}",
             slotPath,
             pmUnitName,
-            productSubVersion);
+            respinVariantIndicator);
         return *versionedPmUnitConfig.pmUnitConfig();
       }
     }
   }
   XLOG(INFO) << fmt::format(
       "Resolved {} to default PmUnitConfig of {}. No versioned config for "
-      "ProductSubVersion {}",
+      "RespinVariantIndicator {}",
       slotPath,
       pmUnitName,
-      productSubVersion);
+      respinVariantIndicator);
   return platformConfig_.pmUnitConfigs()->at(pmUnitName);
 }
 
