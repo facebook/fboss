@@ -165,7 +165,6 @@ add_library(minipack3n_bsp
 
 target_link_libraries(minipack3n_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
