@@ -5,6 +5,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -225,6 +226,30 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
               in, portDescs, /*useLinkLocal=*/true);
         },
         "unresolve all neighbors");
+  }
+
+  void addBindingSid(
+      const folly::IPAddressV6& mySidAddr,
+      const std::vector<NextHopThrift>& nhops) {
+    MySidEntry bindingEntry;
+    bindingEntry.type() = MySidType::BINDING_MICRO_SID;
+    facebook::network::thrift::IPPrefix mySidPrefix;
+    mySidPrefix.prefixAddress() = facebook::network::toBinaryAddress(mySidAddr);
+    mySidPrefix.prefixLength() = kMySidPrefixLen;
+    bindingEntry.mySid() = mySidPrefix;
+    bindingEntry.nextHops() = nhops;
+
+    auto* rib = this->getSw()->getRib();
+    CHECK(rib) << "RIB not initialized";
+    auto ribMySidToSwitchStateFunc =
+        createRibMySidToSwitchStateFunction(std::nullopt);
+    rib->update(
+        this->getSw()->getScopeResolver(),
+        {bindingEntry},
+        {} /* toDelete */,
+        "addBindingSid",
+        ribMySidToSwitchStateFunc,
+        this->getSw());
   }
 
   PortID getEgressPort(const PortDescriptor& portDesc) {
