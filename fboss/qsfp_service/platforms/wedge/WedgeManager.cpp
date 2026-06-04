@@ -246,8 +246,7 @@ void WedgeManager::getAllTransceiversValidationInfo(
   const auto& presentTransceivers = getPresentTransceivers();
   for (const auto& i : *ids) {
     auto tcvrID = TransceiverID(i);
-    if (!isValidTransceiver(i) ||
-        presentTransceivers.find(tcvrID) == presentTransceivers.end()) {
+    if (!isValidTransceiver(i) || !presentTransceivers.contains(tcvrID)) {
       // If the transceiver idx is invalid or the transceiver is not present,
       // skip to the next one.
       continue;
