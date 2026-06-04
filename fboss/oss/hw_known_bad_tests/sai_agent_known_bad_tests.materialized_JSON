@@ -68,6 +68,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -198,6 +201,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -478,6 +484,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -608,6 +617,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -801,6 +813,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -916,6 +931,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -1232,6 +1250,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -1353,6 +1374,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -1732,6 +1756,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -1853,6 +1880,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -2166,6 +2196,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -2287,6 +2320,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -2456,6 +2492,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -2583,6 +2622,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -2857,6 +2899,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -2984,6 +3029,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -3236,6 +3284,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -3366,6 +3417,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -3580,6 +3634,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -3710,6 +3767,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -3987,6 +4047,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -4117,6 +4180,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -4372,6 +4438,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -4502,6 +4571,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -4770,6 +4842,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -4900,6 +4975,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -5264,6 +5342,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -5394,6 +5475,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -5686,6 +5770,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -5816,6 +5903,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -6078,6 +6168,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -6208,6 +6301,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -6491,6 +6587,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -6621,6 +6720,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -6862,6 +6964,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -6992,6 +7097,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -7299,6 +7407,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -7429,6 +7540,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -7643,6 +7757,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -7773,6 +7890,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -7987,6 +8107,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -8117,6 +8240,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -8331,6 +8457,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -8461,6 +8590,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -8726,6 +8858,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -8856,6 +8991,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -9142,6 +9280,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -9272,6 +9413,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -9516,6 +9660,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -9646,6 +9793,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -9956,6 +10106,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -10086,6 +10239,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -10303,6 +10459,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -10433,6 +10592,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -10647,6 +10809,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -10777,6 +10942,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -10991,6 +11159,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -11106,6 +11277,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -11416,6 +11590,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -11537,6 +11714,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -11913,6 +12093,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -12034,6 +12217,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -12335,6 +12521,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -12456,6 +12645,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -12667,6 +12859,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -12797,6 +12992,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -13152,6 +13350,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -13282,6 +13483,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -13619,6 +13823,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -13749,6 +13956,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -14083,6 +14293,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -14213,6 +14426,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -14475,6 +14691,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -14605,6 +14824,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -14870,6 +15092,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -15000,6 +15225,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -15274,6 +15502,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -15404,6 +15635,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -15684,6 +15918,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -15814,6 +16051,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -16058,6 +16298,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -16188,6 +16431,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -16498,6 +16744,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -16628,6 +16877,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -16845,6 +17097,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -16975,6 +17230,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -17189,6 +17447,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -17319,6 +17580,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -17587,6 +17851,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -17717,6 +17984,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -18072,6 +18342,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -18202,6 +18475,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -19018,6 +19294,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -19386,6 +19665,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -19710,6 +19992,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -20051,6 +20336,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -20430,6 +20718,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -20804,6 +21095,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -21044,6 +21338,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -21306,6 +21603,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -21515,6 +21815,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -21719,6 +22022,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -22047,6 +22353,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -22371,6 +22680,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -22699,6 +23011,9 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
+        },
+        {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
         },
         {
@@ -23023,6 +23338,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
@@ -23355,6 +23673,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSrv6DecapTest/[01].verifyDecapPuntStripsOuterHeader$"
         },
         {
           "test_name_regex": "AgentMacLearningMacMoveTest.*$"
