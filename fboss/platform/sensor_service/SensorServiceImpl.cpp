@@ -188,9 +188,9 @@ void SensorServiceImpl::fetchSensorData() {
     if (versionedPmSensors) {
       publishVersionedSensorStats(
           *pmUnitSensors.pmUnitName(),
-          *versionedPmSensors->productProductionState(),
-          *versionedPmSensors->productVersion(),
-          *versionedPmSensors->productSubVersion());
+          *versionedPmSensors->productionState(),
+          *versionedPmSensors->productionSubState(),
+          *versionedPmSensors->respinVariantIndicator());
       pmSensors.insert(
           pmSensors.end(),
           versionedPmSensors->sensors()->begin(),
@@ -206,18 +206,18 @@ void SensorServiceImpl::fetchSensorData() {
           *pmUnitInfo->version()->productionState(),
           *pmUnitInfo->version()->productionSubState(),
           *pmUnitInfo->version()->respinVariantIndicator(),
-          *versionedPmSensors->productProductionState(),
-          *versionedPmSensors->productVersion(),
-          *versionedPmSensors->productSubVersion(),
+          *versionedPmSensors->productionState(),
+          *versionedPmSensors->productionSubState(),
+          *versionedPmSensors->respinVariantIndicator(),
           versionedPmSensors->productName().value_or("UNSET"),
           pmSensors.size());
     } else if (versionedPmSensors) {
       XLOG(INFO) << fmt::format(
           "Processing {} PMUnit. Using VersionedSensor v{}.{}.{} (productName: {}): {} sensors",
           *pmUnitSensors.pmUnitName(),
-          *versionedPmSensors->productProductionState(),
-          *versionedPmSensors->productVersion(),
-          *versionedPmSensors->productSubVersion(),
+          *versionedPmSensors->productionState(),
+          *versionedPmSensors->productionSubState(),
+          *versionedPmSensors->respinVariantIndicator(),
           versionedPmSensors->productName().value_or("UNSET"),
           pmSensors.size());
     } else {
@@ -293,16 +293,16 @@ std::vector<PmSensor> SensorServiceImpl::resolveSensors(
 
 void SensorServiceImpl::publishVersionedSensorStats(
     const std::string& pmUnitName,
-    int16_t productProductionState,
-    int16_t productVersion,
-    int16_t productSubVersion) {
+    int16_t productionState,
+    int16_t productionSubState,
+    int16_t respinVariantIndicator) {
   fb303::fbData->setCounter(
       fmt::format(
           kPmUnitVersion,
           pmUnitName,
-          productProductionState,
-          productVersion,
-          productSubVersion),
+          productionState,
+          productionSubState,
+          respinVariantIndicator),
       1);
 }
 

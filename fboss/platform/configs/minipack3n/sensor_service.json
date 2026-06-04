@@ -1122,9 +1122,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 1
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 1
         },
         {
           "sensors": [
@@ -1189,9 +1189,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 1,
-          "productSubVersion": 2
+          "productionState": 4,
+          "productionSubState": 1,
+          "respinVariantIndicator": 2
         },
         {
           "sensors": [
@@ -1256,9 +1256,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 2
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 2
         }
       ]
     },
