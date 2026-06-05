@@ -105,6 +105,9 @@ std::optional<std::string> XcvrLib::getXcvrResetSysfsPath(int xcvrId) const {
         numXcvrs_);
     return std::nullopt;
   }
+  if (*pmConfig_.bspKmodsRpmName() == "cisco_bsp_kmods") {
+    return fmt::format("/run/devmap/xcvrs/xcvr_ctrl_{}/xcvr_reset", xcvrId);
+  }
   return fmt::format(
       "/run/devmap/xcvrs/xcvr_ctrl_{}/xcvr_reset_{}", xcvrId, xcvrId);
 }
@@ -116,6 +119,9 @@ std::optional<std::string> XcvrLib::getXcvrPresenceSysfsPath(int xcvrId) const {
         xcvrId,
         numXcvrs_);
     return std::nullopt;
+  }
+  if (*pmConfig_.bspKmodsRpmName() == "cisco_bsp_kmods") {
+    return fmt::format("/run/devmap/xcvrs/xcvr_ctrl_{}/xcvr_present", xcvrId);
   }
   return fmt::format(
       "/run/devmap/xcvrs/xcvr_ctrl_{}/xcvr_present_{}", xcvrId, xcvrId);
