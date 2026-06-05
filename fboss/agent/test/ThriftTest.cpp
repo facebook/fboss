@@ -38,6 +38,7 @@
 #include <gtest/gtest.h>
 
 DECLARE_bool(enable_nexthop_id_manager);
+DECLARE_int32(hwswitch_query_timeout);
 
 using namespace facebook::fboss;
 using namespace facebook::stats;
@@ -606,6 +607,18 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getFabricReachabilityStats) {
   ThriftHandler handler(this->sw_);
   FabricReachabilityStats stats;
   handler.getFabricReachabilityStats(stats);
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, getFabricConnectivityHwSwitchFailure) {
+  ThriftHandler handler(this->sw_);
+  std::map<std::string, FabricEndpoint> connectivity;
+  auto oldTimeout = FLAGS_hwswitch_query_timeout;
+  FLAGS_hwswitch_query_timeout = 1;
+  SCOPE_EXIT {
+    FLAGS_hwswitch_query_timeout = oldTimeout;
+  };
+
+  EXPECT_THROW(handler.getFabricConnectivity(connectivity), FbossError);
 }
 
 TYPED_TEST(ThriftTestAllSwitchTypes, getCpuPortStats) {
