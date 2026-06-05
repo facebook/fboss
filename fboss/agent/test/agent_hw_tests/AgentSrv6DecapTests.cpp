@@ -376,6 +376,7 @@ TYPED_TEST(AgentSrv6DecapTest, verifySrv6DecapEcnMarking) {
             0 /* innerTrafficClass */,
             64,
             std::optional<uint8_t>(64),
+            0,
             std::vector<uint8_t>(7000, 0xff));
         this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
       }
