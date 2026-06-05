@@ -9,7 +9,7 @@
 #
 # Usage:
 #   stage_artifacts.sh \
-#     --platform <path/to/platform_fboss_bins.tar.gz> \
+#     --platform <path/to/platform_fboss_bins.tar.zst> \
 #     --bsp <path/to/fboss_bsp_kmods.tar> \
 #     --sai <path/to/fboss_sai_kmods.tar> \
 #     --agent <path/to/agent_fboss_bins.tar.zst> \
@@ -29,7 +29,7 @@ Artifacts are copied to ${STAGING_DIR}/ with filenames matching
 the download paths in manifests/generic.json.
 
 All options are required:
-  --platform PATH   Path to platform_fboss_bins.tar.gz
+  --platform PATH   Path to platform_fboss_bins.tar.zst
   --bsp PATH        Path to fboss_bsp_kmods.tar
   --sai PATH        Path to fboss_sai_kmods.tar
   --agent PATH      Path to agent_fboss_bins.tar.zst
@@ -79,7 +79,7 @@ fi
 # (if two args point to the same source path, both must still be staged)
 SRCS=("$PLATFORM" "$BSP" "$SAI" "$AGENT" "$FSDB" "$QSFP")
 DESTS=(
-    "platform_fboss_bins.tar.gz"
+    "platform_fboss_bins.tar.zst"
     "fboss_bsp_kmods.tar"
     "fboss_sai_kmods.tar"
     "agent_fboss_bins.tar.zst"
