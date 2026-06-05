@@ -15,6 +15,7 @@
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
+#include "fboss/cli/fboss2/commands/config/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
@@ -128,6 +129,12 @@ const CommandTree& kConfigCommandTree() {
        "Show history of committed config revisions",
        commandHandler<CmdConfigHistory>,
        argRegistrar<CmdConfigHistoryTraits>},
+
+      {"config",
+       "icmpv4-unavailable-src-addr",
+       "Set IPv4 source address for ICMP when no address is configured",
+       commandHandler<CmdConfigIcmpV4UnavailableSrcAddr>,
+       argRegistrar<CmdConfigIcmpV4UnavailableSrcAddrTraits>},
 
       {
           "config",
