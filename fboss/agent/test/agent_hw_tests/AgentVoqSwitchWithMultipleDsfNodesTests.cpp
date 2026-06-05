@@ -696,9 +696,10 @@ TEST_F(
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   folly::IPAddressV6 kNeighborIp("100::2");
-  auto constexpr remotePortId = 401;
-  const SystemPortID kRemoteSysPortId(remotePortId);
-  auto setup = [=, this]() {
+  auto setup = [this, kNeighborIp]() {
+    const auto kRemoteSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState());
+    const auto kIntfId = utility::getRemoteIntfId(kRemoteSysPortId);
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
@@ -712,7 +713,6 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
           static_cast<SwitchID>(
               numCores * getAgentEnsemble()->getNumL3Asics()));
     });
-    const InterfaceID kIntfId(remotePortId);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteInterface(
           in,
@@ -742,31 +742,46 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
     });
   };
 
-  auto verify = [=, this]() {
+  auto verify = [this, kNeighborIp]() {
+    const auto kRemoteSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState());
     for (const auto& q2dscps : utility::kNetworkAIQueueToDscp()) {
       auto tc = q2dscps.first;
       auto voqId = utility::getTrafficClassToVoqId(
           checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics()), tc);
+      std::optional<HwSysPortStats> statsBefore;
+      WITH_RETRIES({
+        statsBefore = utility::getRemoteSysPortStatsForSwitchUnderTest(
+            getSw(),
+            getProgrammedState(),
+            getCurrentSwitchIndexForTesting(),
+            kRemoteSysPortId);
+        ASSERT_EVENTUALLY_TRUE(statsBefore.has_value());
+      });
+      auto queueBytesBefore = statsBefore->queueOutBytes_()->at(voqId) +
+          statsBefore->queueOutDiscardBytes_()->at(voqId);
       for (auto dscp : q2dscps.second) {
-        XLOG(DBG2) << "verify packet with dscp " << static_cast<int>(dscp)
-                   << " goes to voq " << voqId;
-        auto statsBefore = getLatestSysPortStats(kRemoteSysPortId);
-        auto queueBytesBefore = statsBefore.queueOutBytes_()->at(voqId) +
-            statsBefore.queueOutDiscardBytes_()->at(voqId);
+        XLOG(DBG2) << "send packet with dscp " << static_cast<int>(dscp)
+                   << " expected on voq " << voqId;
         sendPacket(
             kNeighborIp,
             std::nullopt,
             std::optional<std::vector<uint8_t>>(),
             dscp);
-        WITH_RETRIES_N(10, {
-          auto statsAfter = getLatestSysPortStats(kRemoteSysPortId);
-          auto queueBytesAfter = statsAfter.queueOutBytes_()->at(voqId) +
-              statsAfter.queueOutDiscardBytes_()->at(voqId);
-          XLOG(DBG2) << "voq " << voqId << " stats before: " << queueBytesBefore
-                     << " stats after: " << queueBytesAfter;
-          EXPECT_EVENTUALLY_GT(queueBytesAfter, queueBytesBefore);
-        });
       }
+      WITH_RETRIES_N(10, {
+        auto statsAfter = utility::getRemoteSysPortStatsForSwitchUnderTest(
+            getSw(),
+            getProgrammedState(),
+            getCurrentSwitchIndexForTesting(),
+            kRemoteSysPortId);
+        ASSERT_EVENTUALLY_TRUE(statsAfter.has_value());
+        auto queueBytesAfter = statsAfter->queueOutBytes_()->at(voqId) +
+            statsAfter->queueOutDiscardBytes_()->at(voqId);
+        XLOG(DBG2) << "voq " << voqId << " stats before: " << queueBytesBefore
+                   << " stats after: " << queueBytesAfter;
+        EXPECT_EVENTUALLY_GT(queueBytesAfter, queueBytesBefore);
+      });
     }
   };
   verifyAcrossWarmBoots(setup, verify);
