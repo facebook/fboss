@@ -32,7 +32,7 @@ class HwSwitchThriftClientTable {
 
   std::optional<std::map<::std::int64_t, FabricEndpoint>> getFabricReachability(
       SwitchID switchId);
-  std::optional<std::map<::std::string, FabricEndpoint>> getFabricConnectivity(
+  std::map<::std::string, FabricEndpoint> getFabricConnectivity(
       SwitchID switchId);
 
   void clearHwPortStats(SwitchID switchId, std::vector<int32_t>& ports);
