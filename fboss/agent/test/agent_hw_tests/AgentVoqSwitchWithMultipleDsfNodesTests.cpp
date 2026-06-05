@@ -470,8 +470,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
   };
   auto verify = [this]() {
     auto numIterations = 500;
-    auto constexpr remotePortId = 401;
-    const SystemPortID kRemoteSysPortId(remotePortId);
+    const auto kRemoteSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState());
     folly::IPAddressV6 kNeighborIp("100::2");
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
@@ -481,8 +481,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
         checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
             ->getNumCores();
     const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-    const InterfaceID kIntfId(remotePortId);
-    PortDescriptor kRemotePort(kRemoteSysPortId);
+    const auto kIntfId = utility::getRemoteIntfId(kRemoteSysPortId);
     auto addObjects = [&]() {
       // add local neighbor
       addRemoveNeighbor(kPort, NeighborOp::ADD);
@@ -495,7 +494,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
             static_cast<SwitchID>(
                 numCores * getAgentEnsemble()->getNumL3Asics()));
       });
-      const InterfaceID kRemoteIntfId(remotePortId);
+      const auto kRemoteIntfId = utility::getRemoteIntfId(kRemoteSysPortId);
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return utility::addRemoteInterface(
             in,
@@ -564,7 +563,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
     sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
     WITH_RETRIES({
       auto afterPkts =
-          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+          getLatestPortStats(kPort.phyPortID()).outUnicastPkts_().value();
       EXPECT_EVENTUALLY_EQ(afterPkts, beforePkts + 2);
     });
     // removeObjects before exiting for WB
