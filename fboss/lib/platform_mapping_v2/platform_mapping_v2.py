@@ -376,6 +376,10 @@ class PlatformMappingV2:
             # TODO(pshaikh): add logic to generate chips for yangra
             return chips
 
+        reverse_tcvr_map = (
+            self.pm_parser.get_static_mapping().get_reverse_transceiver_map()
+        )
+
         for chip in parsed_chips:
             if is_npu(chip.chip_type):
                 # Skip adding NPUs other than the first if it's not multi npu
@@ -383,7 +387,14 @@ class PlatformMappingV2:
                     continue
                 chips.append(get_npu_chip(chip))
             elif is_transceiver(chip.chip_type):
-                chips.append(get_transceiver_chip(chip))
+                key = (chip.chip_id, chip.core_id)
+                if key not in reverse_tcvr_map:
+                    raise Exception(
+                        f"Transceiver chip_id={chip.chip_id}, core_id={chip.core_id} "
+                        f"not found in reverse transceiver map"
+                    )
+                virtual_id = reverse_tcvr_map[key]
+                chips.append(get_transceiver_chip(chip, physical_id=virtual_id - 1))
             elif is_backplane(chip.chip_type):
                 chips.append(get_backplane_chip(chip))
             elif is_xphy(chip.chip_type):

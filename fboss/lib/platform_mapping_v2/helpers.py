@@ -193,8 +193,15 @@ def get_npu_chip_name(chip: Chip) -> str:
     return f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
 
 
+def is_multi_core_transceiver(core_type: CoreType) -> bool:
+    return core_type == CoreType.BANKED_CMIS_INTEGRATED
+
+
 def get_terminal_chip_name(chip: Chip) -> str:
-    return f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}"
+    base = f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}"
+    if is_multi_core_transceiver(chip.core_type):
+        return f"{base}/core{chip.core_id}"
+    return base
 
 
 def get_npu_chip(chip: Chip) -> DataPlanePhyChip:
@@ -207,13 +214,13 @@ def get_npu_chip(chip: Chip) -> DataPlanePhyChip:
     )
 
 
-def get_transceiver_chip(chip: Chip) -> DataPlanePhyChip:
+def get_transceiver_chip(chip: Chip, physical_id: int) -> DataPlanePhyChip:
     if not is_transceiver(chip.chip_type):
         raise Exception(chip.chip_type, " is not a Transceiver")
     return DataPlanePhyChip(
         name=get_terminal_chip_name(chip=chip),
         type=DataPlanePhyChipType.TRANSCEIVER,
-        physicalID=chip.chip_id - 1,  # We need 0 indexed physicalIDs
+        physicalID=physical_id,
     )
 
 
@@ -432,13 +439,22 @@ def get_start_connection_end(
             core_id=int(match[4]),
             logical_lane_id=0,
         )
-    # Front panel ports are named "eth|fab{slot_id}/{transceiver_chip_id}/{transceiver_lane_id}"
+    # Front panel ports are named "eth|fab{slot_id}/{virtual_transceiver_id}/{lane_id}"
     # Backplane ports are named "eth{slot_id}/{backplane_chip_id}/{backplane_lane_id}"
+    # For multi-core transceivers (CPO), virtual_transceiver_id maps to
+    # (physical_chip_id, core_id) via the virtual transceiver map.
+    virtual_id = int(match[3])
+    virtual_map = static_mapping.get_virtual_transceiver_map()
+    if virtual_id in virtual_map:
+        chip_id, core_id = virtual_map[virtual_id]
+    else:
+        chip_id = virtual_id
+        core_id = 0
     return static_mapping.find_connection_end(
         slot_id=int(match[2]),
-        chip_id=int(match[3]),
+        chip_id=chip_id,
         chip_types={ChipType.TRANSCEIVER, ChipType.BACKPLANE},
-        core_id=0,
+        core_id=core_id,
         logical_lane_id=int(match[4]) - 1,  # Lanes are 0 indexed in CSV
     )
 

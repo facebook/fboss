@@ -43,6 +43,7 @@ enum CoreType {
   OSFP = 100,
   QSFP28 = 101,
   QSFPDD = 102,
+  BANKED_CMIS_INTEGRATED = 103,
 
   // Backplane Connectors
   EXAMAX = 200,
