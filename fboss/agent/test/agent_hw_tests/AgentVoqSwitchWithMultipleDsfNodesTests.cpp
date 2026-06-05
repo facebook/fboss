@@ -628,9 +628,10 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
 TEST_F(
     AgentVoqSwitchWithMultipleDsfNodesTest,
     sendPktsToRemoteUnresolvedNeighbor) {
-  auto constexpr kRemotePortId = 401;
-  const SystemPortID kRemoteSysPortId(kRemotePortId);
-  auto setup = [=, this]() {
+  auto setup = [this]() {
+    const auto kRemoteSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState());
+    const auto kIntfId = utility::getRemoteIntfId(kRemoteSysPortId);
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
@@ -644,7 +645,6 @@ TEST_F(
           static_cast<SwitchID>(
               numCores * getAgentEnsemble()->getNumL3Asics()));
     });
-    const InterfaceID kIntfId(kRemotePortId);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteInterface(
           in,
