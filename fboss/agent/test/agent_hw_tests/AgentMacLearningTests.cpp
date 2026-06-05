@@ -275,14 +275,18 @@ class AgentMacLearningTest : public AgentHwTest {
     };
 
     auto verify = [this, portDescr]() {
+      auto macPort = masterLogicalPortIds()[0];
+      auto switchIdForMac =
+          getSw()->getScopeResolver()->scope(macPort).switchId();
       // Disable aging, so entry stays in L2 table when we verify.
-      utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
+      utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0, switchIdForMac);
       bringDownPort(masterLogicalPortIds()[1]);
       sendPkt();
       EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac()));
 
       // Force MAC aging to as fast as possible but min is still 1 second
-      utility::setMacAgeTimerSeconds(getAgentEnsemble(), kMinAgeInSecs());
+      utility::setMacAgeTimerSeconds(
+          getAgentEnsemble(), kMinAgeInSecs(), switchIdForMac);
       EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac(), false /* MAC aged */));
     };
 
@@ -424,12 +428,13 @@ class AgentMacSwLearningModeTest : public AgentMacLearningTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto switchId = getCurrentSwitchIdForTesting();
+    auto switchPorts = ensemble.masterLogicalPortIds(switchId);
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
-        ensemble.masterLogicalPortIds()[0],
-        ensemble.masterLogicalPortIds()[1],
+        switchPorts[0],
+        switchPorts[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes(),
         ensemble.getSw()->getPlatformType());
@@ -504,7 +509,11 @@ class AgentMacSwLearningModeTest : public AgentMacLearningTest {
 
       // Force MAC aging to as fast as possible but min is still 1 second
       l2LearningObserver_.reset();
-      utility::setMacAgeTimerSeconds(getAgentEnsemble(), kMinAgeInSecs());
+      auto macPort = masterLogicalPortIds()[0];
+      auto switchIdForMac =
+          getSw()->getScopeResolver()->scope(macPort).switchId();
+      utility::setMacAgeTimerSeconds(
+          getAgentEnsemble(), kMinAgeInSecs(), switchIdForMac);
 
       // Verify if we get DELETE (aging) callback for VALIDATED entry
       verifyL2TableCallback(
@@ -932,8 +941,12 @@ TEST_F(AgentMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
           break;
         case MacOp::DELETE:
           XLOG(DBG2) << " Removing mac";
+          auto macPort = physPortDescr().phyPortID();
+          auto switchIdForMac =
+              getSw()->getScopeResolver()->scope(macPort).switchId();
           // Force MAC aging to as fast as possible but min is still 1 second
-          utility::setMacAgeTimerSeconds(getAgentEnsemble(), kMinAgeInSecs());
+          utility::setMacAgeTimerSeconds(
+              getAgentEnsemble(), kMinAgeInSecs(), switchIdForMac);
 
           // Verify if we get DELETE (aging) callback for VALIDATED entry
           verifyL2TableCallback(
@@ -989,12 +1002,13 @@ class AgentMacLearningMacMoveTest : public AgentMacLearningTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto switchId = getCurrentSwitchIdForTesting();
+    auto switchPorts = ensemble.masterLogicalPortIds(switchId);
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
-        ensemble.masterLogicalPortIds()[0],
-        ensemble.masterLogicalPortIds()[1],
+        switchPorts[0],
+        switchPorts[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes(),
         ensemble.getSw()->getPlatformType());

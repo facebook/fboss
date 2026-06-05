@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
 
@@ -24,6 +25,10 @@ namespace utility {
 void setMacAgeTimerSeconds(
     facebook::fboss::TestEnsembleIf* ensemble,
     uint32_t seconds);
+void setMacAgeTimerSeconds(
+    facebook::fboss::TestEnsembleIf* ensemble,
+    uint32_t seconds,
+    SwitchID targetSwitchId);
 std::vector<L2EntryThrift> getL2Table(SwSwitch* sw_, bool sdk = false);
 
 } // namespace utility

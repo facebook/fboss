@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/test/utils/MacTestUtils.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/HwSwitchThriftClientTable.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -21,6 +22,23 @@ void setMacAgeTimerSeconds(
         return newState;
       },
       "set mac age timer");
+}
+
+void setMacAgeTimerSeconds(
+    facebook::fboss::TestEnsembleIf* ensemble,
+    uint32_t seconds,
+    SwitchID targetSwitchId) {
+  ensemble->applyNewState(
+      [&](const std::shared_ptr<SwitchState>& in) {
+        auto newState = in->clone();
+        HwSwitchMatcher matcher(std::unordered_set<SwitchID>{targetSwitchId});
+        auto switchSettings =
+            newState->getSwitchSettings()->getNode(matcher.matcherString());
+        auto newSwitchSettings = switchSettings->modify(&newState);
+        newSwitchSettings->setL2AgeTimerSeconds(seconds);
+        return newState;
+      },
+      "set mac age timer for specific switch");
 }
 
 std::vector<L2EntryThrift> getL2Table(SwSwitch* sw_, bool sdk) {
