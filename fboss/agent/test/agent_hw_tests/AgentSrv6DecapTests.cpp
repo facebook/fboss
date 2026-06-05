@@ -465,7 +465,7 @@ TYPED_TEST(AgentSrv6DecapTest, sendDecapPacketNonLastSegmentDropped) {
 
     // Outer dst IP matches the mySid /48 prefix but is not the last uSid.
     // The packet should be dropped.
-    const folly::IPAddressV6 kNonLastSegmentDst{"3001:db8:ffff:1:2::"};
+    const folly::IPAddressV6 kNonLastSegmentDst{"3001:db8:7fff:1:2::"};
 
     auto txPacket = utility::makeIpInIpTxPacket(
         this->getSw(),
