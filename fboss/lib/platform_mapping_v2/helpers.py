@@ -184,6 +184,14 @@ def is_xphy(chip_type: ChipType) -> bool:
     return chip_type == ChipType.XPHY
 
 
+def is_optical_engine(chip_type: ChipType) -> bool:
+    return chip_type == ChipType.OPTICAL_ENGINE
+
+
+def is_laser_source(chip_type: ChipType) -> bool:
+    return chip_type == ChipType.LASER_SOURCE
+
+
 # Any terminal connection (front panel transceivers or backplane connectors)
 def is_terminal_chip(chip_type: ChipType) -> bool:
     return is_transceiver(chip_type) or is_backplane(chip_type)
@@ -217,10 +225,12 @@ def get_npu_chip(chip: Chip) -> DataPlanePhyChip:
 def get_transceiver_chip(chip: Chip, physical_id: int) -> DataPlanePhyChip:
     if not is_transceiver(chip.chip_type):
         raise Exception(chip.chip_type, " is not a Transceiver")
+    core_id = chip.core_id if is_multi_core_transceiver(chip.core_type) else None
     return DataPlanePhyChip(
         name=get_terminal_chip_name(chip=chip),
         type=DataPlanePhyChipType.TRANSCEIVER,
         physicalID=physical_id,
+        coreId=core_id,
     )
 
 
@@ -245,6 +255,34 @@ def get_xphy_chip(chip: Chip) -> DataPlanePhyChip:
         name=get_xphy_chip_name(chip=chip),
         type=DataPlanePhyChipType.XPHY,
         physicalID=chip.chip_id - 1,  # We need 0 indexed physicalIDs
+    )
+
+
+def get_optical_engine_chip_name(chip: Chip) -> str:
+    return f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
+
+
+def get_optical_engine_chip(chip: Chip) -> DataPlanePhyChip:
+    if not is_optical_engine(chip.chip_type):
+        raise Exception(chip.chip_type, " is not an Optical Engine")
+    return DataPlanePhyChip(
+        name=get_optical_engine_chip_name(chip=chip),
+        type=DataPlanePhyChipType.OPTICAL_ENGINE,
+        physicalID=chip.chip_id - 1,
+    )
+
+
+def get_laser_source_chip_name(chip: Chip) -> str:
+    return f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}"
+
+
+def get_laser_source_chip(chip: Chip) -> DataPlanePhyChip:
+    if not is_laser_source(chip.chip_type):
+        raise Exception(chip.chip_type, " is not a Laser Source")
+    return DataPlanePhyChip(
+        name=get_laser_source_chip_name(chip=chip),
+        type=DataPlanePhyChipType.LASER_SOURCE,
+        physicalID=chip.chip_id - 1,
     )
 
 
@@ -541,6 +579,10 @@ def get_pin_config(connection_end: ConnectionEnd) -> PinConfig:
         pin_name = get_terminal_chip_name(connection_end.chip)
     elif is_xphy(connection_end.chip.chip_type):
         pin_name = get_xphy_chip_name(connection_end.chip)
+    elif is_optical_engine(connection_end.chip.chip_type):
+        pin_name = get_optical_engine_chip_name(connection_end.chip)
+    elif is_laser_source(connection_end.chip.chip_type):
+        pin_name = get_laser_source_chip_name(connection_end.chip)
     else:
         raise Exception("Don't understand chip type ", connection_end.chip.chip_type)
 
@@ -752,11 +794,14 @@ def get_pin_data_from_connections(
     profile: PortProfileID,
     lane_speed: PortSpeed,
     port_id: int,
+    integrated_tcvr_mapping: Optional[Any] = None,
 ) -> tuple[PortPinConfig, List[PlatformPortConfigOverride]]:
     port_pin_config_iphy = []
     port_pin_config_tcvr = []
     port_pin_config_xphy_sys = []
     port_pin_config_xphy_line = []
+    port_pin_config_optical_engine = []
+    port_pin_config_laser_source = []
     port_pin_config_overrides = []
 
     port_custom_tx_collection_list = []
@@ -769,6 +814,19 @@ def get_pin_data_from_connections(
 
             if is_terminal_chip(connection.chip.chip_type):
                 port_pin_config_tcvr.append(get_pin_config(connection_end=connection))
+                if integrated_tcvr_mapping is not None:
+                    itc = integrated_tcvr_mapping.get_connection(
+                        connection.chip.chip_id,
+                        connection.chip.core_id,
+                        connection.lane.logical_id,
+                    )
+                    if itc is not None:
+                        port_pin_config_optical_engine.append(
+                            get_pin_config(connection_end=itc.opticalEngine)
+                        )
+                        port_pin_config_laser_source.append(
+                            get_pin_config(connection_end=itc.laserSource)
+                        )
             elif is_xphy(connection.chip.chip_type):
                 sys_pins, line_pins, _, _ = _process_xphy_connection(
                     connection, si_settings, profile, lane_speed
@@ -799,6 +857,8 @@ def get_pin_data_from_connections(
         xphySys=port_pin_config_xphy_sys or None,
         xphyLine=port_pin_config_xphy_line or None,
         serdesCustomCollection=custom_collection_str or None,
+        opticalEngine=port_pin_config_optical_engine or None,
+        laserSource=port_pin_config_laser_source or None,
     )
 
     return (

@@ -28,6 +28,7 @@ python_library(
     deps = [
         ":asic_vendor_config",
         ":helpers",
+        ":integrated_transceiver_mapping",
         ":platform_mapping_config-python-types",
         ":port_profile_mapping",
         ":profile_settings",
@@ -83,6 +84,7 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":asic_vendor_config",
+        ":integrated_transceiver_mapping",
         ":platform_mapping_config-python-types",
         ":port_profile_mapping",
         ":profile_settings",
@@ -180,5 +182,14 @@ ci_sandcastle(
     oncall = "fboss_optics_phy",
     schedules = [
         ci.diff,
+    ],
+)
+
+python_library(
+    name = "integrated_transceiver_mapping",
+    srcs = ["integrated_transceiver_mapping.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-python-types",
     ],
 )

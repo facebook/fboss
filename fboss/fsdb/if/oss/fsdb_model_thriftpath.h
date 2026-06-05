@@ -19473,7 +19473,8 @@ class ChildThriftPath<::facebook::fboss::phy::DataPlanePhyChip, ::facebook::fbos
   >;
   using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::name, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<apache::thrift::ident::type, Child<::facebook::fboss::phy::DataPlanePhyChipType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::phy::DataPlanePhyChipType>>>,
-std::pair<apache::thrift::ident::physicalID, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<apache::thrift::ident::physicalID, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<apache::thrift::ident::coreId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -19482,12 +19483,14 @@ std::pair<apache::thrift::ident::physicalID, Child<::std::int32_t, ::apache::thr
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(type, 2);
     STRUCT_CHILD_GETTERS(physicalID, 3);
+    STRUCT_CHILD_GETTERS(coreId, 4);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
     if constexpr (__id == apache::thrift::FieldId{1}) { return name(); }
     else if constexpr (__id == apache::thrift::FieldId{2}) { return type(); }
     else if constexpr (__id == apache::thrift::FieldId{3}) { return physicalID(); }
+    else if constexpr (__id == apache::thrift::FieldId{4}) { return coreId(); }
   }
 };
 
