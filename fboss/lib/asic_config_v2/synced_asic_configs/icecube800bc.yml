@@ -1410,6 +1410,7 @@ bcm_device:
       l3_ecmp_member_secondary_mem_size: 8192
       l3_ecmp_member_first_lkup_mem_size: 8192
       dlb_quality_adjustment_default_value_select: 1
+      ecmp_dlb_port_speeds: 1
 ...
 ---
 device:
