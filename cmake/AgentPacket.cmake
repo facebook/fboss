@@ -85,6 +85,15 @@ target_link_libraries(packet_factory
   multiswitch_ctrl_cpp2
 )
 
+add_library(tajo_punt_header
+  fboss/agent/packet/TajoPuntHeader.cpp
+)
+
+target_link_libraries(tajo_punt_header
+  Folly::folly
+  dl
+)
+
 add_executable(xgs_psamp_mod_test
   fboss/util/oss/TestMain.cpp
   fboss/agent/packet/bcm/test/XgsPsampModTest.cpp

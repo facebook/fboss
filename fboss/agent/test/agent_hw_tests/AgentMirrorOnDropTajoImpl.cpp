@@ -4,29 +4,30 @@
 
 #include <gtest/gtest.h>
 
+#include <folly/Conv.h>
 #include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/packet/TCPHeader.h"
+#include "fboss/agent/packet/TajoPuntHeader.h"
 #include "fboss/agent/packet/UDPHeader.h"
 
 namespace facebook::fboss {
 
 namespace {
 
-// TODO(Tajo): replace these placeholder drop-reason codes with the actual
-// values from Tajo's published drop-reason enumeration. The MoD sample
-// packet capture only contained MMU/egress-class drops with dropReason
-// values 0x0001-0x0004; ingress-pipeline drops (ACL, default route) were
-// not present, so the correct codes for those are still unknown. We keep
-// all three at 0x00 placeholders rather than guessing at MMU=0x01 based on
-// the capture, because the capture meanings were inferred from ASCII
-// strings inside the inner payloads, not from a Tajo spec. While these are
-// 0x00, every reason check in tests degenerates to 0x00 == 0x00 (always
-// true). The test class is gated off Tajo via configerator
-// (MIRROR_ON_DROP_STATELESS opt-in), so this path is unreachable in CI
-// today — but a manual run will silently pass on bogus reasons.
-constexpr uint16_t kTajoDropReasonDefaultRoute = 0x00;
-constexpr uint16_t kTajoDropReasonAcl = 0x00;
-constexpr uint16_t kTajoDropReasonMmu = 0x00;
+// GR2/Tajo drop-reason expectations used by stateless MoD tests.
+//
+// Source references used for these constants:
+// - L3 default-route miss and L3 ACL drop trap codes are defined in
+//   datacenter/npl/fpp_app/traps/trap_code.npl:
+//     TRAP_CODE_L3_LPM_DROP = 0x8c
+//     TRAP_CODE_L3_ACL_DROP = 0x6b
+//
+constexpr uint16_t kTajoDropReasonDefaultRoute = 0x8c;
+constexpr uint16_t kTajoDropReasonAcl = 0x6b;
+constexpr uint16_t kTajoDropReasonMmu = 0x10;
 // TODO: replace with actual Tajo drop-reason codes for each SRv6 scenario
 // once available from the vendor SDK. These are placeholders.
 constexpr uint16_t kTajoDropReasonSrv6MidpointNonLastSid = 0x00;
@@ -34,38 +35,25 @@ constexpr uint16_t kTajoDropReasonSrv6DecapNonLastSegment = 0x01;
 constexpr uint16_t kTajoDropReasonSrv6BindingSidNonLastSid = 0x02;
 constexpr uint16_t kTajoDropReasonSrv6MidpointUnresolved = 0x03;
 
-// Tajo proprietary header, observed in the MoD sample packet capture: a
-// fixed-size 28-byte punt header sitting between the outer UDP and the
-// inner Ethernet frame. All multi-byte fields are big-endian on the wire.
-struct TajoModPuntHeader {
-  uint8_t version{};
-  uint8_t flags{};
-  uint16_t sequence{};
-  uint16_t dropReason{};
-  uint8_t dropFlags{};
-  uint8_t reasonExt{};
-  uint16_t subType{};
-  uint16_t dropCategory{};
-  uint16_t reserved1{};
-  uint16_t reserved2{};
-  uint16_t observationDomain{};
-  uint16_t flowId{};
-  uint16_t ingressPort{};
-  uint16_t ingressInfo{};
-  uint16_t egressPort{};
-  uint16_t egressInfo{};
-} __attribute__((packed));
-static_assert(sizeof(TajoModPuntHeader) == 28);
-
 struct TajoMirrorOnDropPacketParsed {
   EthHdr ethHeader;
   IPv6Hdr ipv6Header;
   UDPHeader udpHeader;
-  TajoModPuntHeader puntHeader{};
+  ParsedTajoPuntHeader puntHeader{};
   EthHdr innerEth;
-  IPv6Hdr innerIpv6;
-  UDPHeader innerUdp;
+  std::optional<IPv4Hdr> innerIpv4;
+  std::optional<IPv6Hdr> innerIpv6;
+  std::optional<UDPHeader> innerUdp;
+  std::optional<TCPHeader> innerTcp;
 };
+
+folly::IPAddressV6 toV6(const folly::IPAddressV6& ip) {
+  return ip;
+}
+
+folly::IPAddressV6 toV6(const folly::IPAddressV4& ip) {
+  return folly::IPAddressV6(folly::to<std::string>("::ffff:", ip.str()));
+}
 
 TajoMirrorOnDropPacketParsed deserializeTajoMirrorOnDropPacket(
     const folly::IOBuf* buf) {
@@ -74,28 +62,40 @@ TajoMirrorOnDropPacketParsed deserializeTajoMirrorOnDropPacket(
   parsed.ethHeader = EthHdr(cursor);
   parsed.ipv6Header = IPv6Hdr(cursor);
   parsed.udpHeader.parse(&cursor);
-  // Read each TajoModPuntHeader field with explicit byte-order. A raw
-  // cursor.pull() of the packed struct would leave multi-byte fields in
-  // network byte order on the host, breaking any value >= 256.
-  parsed.puntHeader.version = cursor.read<uint8_t>();
-  parsed.puntHeader.flags = cursor.read<uint8_t>();
-  parsed.puntHeader.sequence = cursor.readBE<uint16_t>();
-  parsed.puntHeader.dropReason = cursor.readBE<uint16_t>();
-  parsed.puntHeader.dropFlags = cursor.read<uint8_t>();
-  parsed.puntHeader.reasonExt = cursor.read<uint8_t>();
-  parsed.puntHeader.subType = cursor.readBE<uint16_t>();
-  parsed.puntHeader.dropCategory = cursor.readBE<uint16_t>();
-  parsed.puntHeader.reserved1 = cursor.readBE<uint16_t>();
-  parsed.puntHeader.reserved2 = cursor.readBE<uint16_t>();
-  parsed.puntHeader.observationDomain = cursor.readBE<uint16_t>();
-  parsed.puntHeader.flowId = cursor.readBE<uint16_t>();
-  parsed.puntHeader.ingressPort = cursor.readBE<uint16_t>();
-  parsed.puntHeader.ingressInfo = cursor.readBE<uint16_t>();
-  parsed.puntHeader.egressPort = cursor.readBE<uint16_t>();
-  parsed.puntHeader.egressInfo = cursor.readBE<uint16_t>();
+  parsed.puntHeader = parseTajoPuntHeader(cursor);
   parsed.innerEth = EthHdr(cursor);
-  parsed.innerIpv6 = IPv6Hdr(cursor);
-  parsed.innerUdp.parse(&cursor);
+
+  if (parsed.innerEth.getEtherType() ==
+      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
+    auto innerV6 = IPv6Hdr(cursor);
+    const auto nextHeader = innerV6.nextHeader;
+    parsed.innerIpv6 = innerV6;
+    if (nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
+      UDPHeader udp;
+      udp.parse(&cursor);
+      parsed.innerUdp = udp;
+    } else if (nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP)) {
+      TCPHeader tcp;
+      tcp.parse(&cursor);
+      parsed.innerTcp = tcp;
+    }
+  } else if (
+      parsed.innerEth.getEtherType() ==
+      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4)) {
+    auto innerV4 = IPv4Hdr(cursor);
+    const auto proto = innerV4.protocol;
+    parsed.innerIpv4 = innerV4;
+    if (proto == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
+      UDPHeader udp;
+      udp.parse(&cursor);
+      parsed.innerUdp = udp;
+    } else if (proto == static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP)) {
+      TCPHeader tcp;
+      tcp.parse(&cursor);
+      parsed.innerTcp = tcp;
+    }
+  }
+
   return parsed;
 }
 
@@ -130,6 +130,26 @@ MirrorOnDropPacketFields TajoMirrorOnDropImpl::parsePacket(
   // Tajo's punt header carries a single `dropReason` field — there is no
   // separate ingress vs. MMU vs. egress reason like XGS. We surface the
   // value as `dropReasonIngress` and leave `dropReasonEgress` zero.
+  folly::IPAddressV6 innerSrcIp("::");
+  folly::IPAddressV6 innerDstIp("::");
+  if (parsed.innerIpv6.has_value()) {
+    innerSrcIp = toV6(parsed.innerIpv6->srcAddr);
+    innerDstIp = toV6(parsed.innerIpv6->dstAddr);
+  } else if (parsed.innerIpv4.has_value()) {
+    innerSrcIp = toV6(parsed.innerIpv4->srcAddr);
+    innerDstIp = toV6(parsed.innerIpv4->dstAddr);
+  }
+
+  uint16_t innerSrcPort = 0;
+  uint16_t innerDstPort = 0;
+  if (parsed.innerUdp.has_value()) {
+    innerSrcPort = parsed.innerUdp->srcPort;
+    innerDstPort = parsed.innerUdp->dstPort;
+  } else if (parsed.innerTcp.has_value()) {
+    innerSrcPort = parsed.innerTcp->srcPort;
+    innerDstPort = parsed.innerTcp->dstPort;
+  }
+
   return {
       .outerSrcMac = parsed.ethHeader.getSrcMac(),
       .outerDstMac = parsed.ethHeader.getDstMac(),
@@ -142,26 +162,32 @@ MirrorOnDropPacketFields TajoMirrorOnDropImpl::parsePacket(
       .dropReasonEgress = 0,
       .innerSrcMac = parsed.innerEth.getSrcMac(),
       .innerDstMac = parsed.innerEth.getDstMac(),
-      .innerSrcIp = parsed.innerIpv6.srcAddr,
-      .innerDstIp = parsed.innerIpv6.dstAddr,
-      .innerSrcPort = parsed.innerUdp.srcPort,
-      .innerDstPort = parsed.innerUdp.dstPort,
+      .innerSrcIp = innerSrcIp,
+      .innerDstIp = innerDstIp,
+      .innerSrcPort = innerSrcPort,
+      .innerDstPort = innerDstPort,
   };
 }
 
 void TajoMirrorOnDropImpl::verifyInvariants(const folly::IOBuf* buf) const {
   auto parsed = deserializeTajoMirrorOnDropPacket(buf);
+  // Outer transport for MoD export must be UDP over IPv6.
   EXPECT_EQ(
       parsed.ipv6Header.nextHeader,
       static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP));
-  // Constant fields observed across all packets in the sample pcap. If any
-  // of these fail in the future, either the Tajo header format has changed
-  // or the assumed field layout is wrong.
-  EXPECT_EQ(parsed.puntHeader.version, 0x09);
-  EXPECT_EQ(parsed.puntHeader.subType, 0xFF10);
-  EXPECT_EQ(parsed.puntHeader.reasonExt, 0xFF);
-  EXPECT_EQ(parsed.puntHeader.reserved1, 0xFFFF);
-  EXPECT_EQ(parsed.puntHeader.reserved2, 0x0000);
+  // Match XGS invariant behavior: exported outer UDP checksum is expected to be
+  // zero for this encapsulation path.
+  EXPECT_EQ(parsed.udpHeader.csum, 0);
+
+  // Legacy fallback parser validates known fixed/sentinel bytes observed in
+  // the Tajo punt wire format.
+  if (!parsed.puntHeader.parsedBySdk) {
+    EXPECT_EQ(parsed.puntHeader.version, 0x09);
+    EXPECT_EQ(parsed.puntHeader.subType, 0xFF10);
+    EXPECT_EQ(parsed.puntHeader.reasonExt, 0xFF);
+    EXPECT_EQ(parsed.puntHeader.reserved1, 0xFFFF);
+    EXPECT_EQ(parsed.puntHeader.reserved2, 0x0000);
+  }
 }
 
 uint16_t TajoMirrorOnDropImpl::getDefaultRouteDropReason() const {

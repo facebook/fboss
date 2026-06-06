@@ -269,6 +269,7 @@ target_link_libraries(agent_hw_test_src
   voq_test_utils
   fib_updater
   ecmp_test_utils
+  tajo_punt_header
   scale_test_utils
   neighbor_test_utils
   system_scale_test_utils
