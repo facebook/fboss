@@ -1387,6 +1387,84 @@
           "note": "ECMP random spray is supported on Broadcom SAI from 13.3 onwards"
         }
       ]
+    },
+    {
+      "feature": 89,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.2.0.0_dnx_odp",
+          "note": "AM idles supported on Broadcom DNX SAI from 12.2 onwards (CS00012390029)"
+        }
+      ]
+    },
+    {
+      "feature": 58,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.0.0.0_dnx_odp",
+          "note": "Sflow sample packing supported on Broadcom DNX SAI from 12.x onwards"
+        }
+      ]
+    },
+    {
+      "feature": 75,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.0.0.0_dnx_odp",
+          "note": "Global TC rate limit supported on Broadcom DNX SAI from 12.x onwards"
+        }
+      ]
+    },
+    {
+      "feature": 15,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.2.0.0_dnx_odp",
+          "note": "VOQ DNX interrupt counters/handlers landed in Broadcom DNX SAI 12.2"
+        }
+      ]
+    },
+    {
+      "feature": 35,
+      "supportedFrom": [
+        {
+          "asics": [
+            "ebro"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "24.8.3001",
+          "note": "Egress port span/erspan mirroring supported on Leaba Gibraltar from SDK 24.8.3001 (MT-834); earlier 1.42.8 SDK lacks egress mirroring"
+        }
+      ]
+    },
+    {
+      "feature": 27,
+      "supportedFrom": [
+        {
+          "asics": [
+            "ebro"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "24.8.3001",
+          "note": "Route stat counters require SAI API >= 1.10, available on Leaba Gibraltar from SDK 24.8.3001"
+        }
+      ]
     }
   ]
 }
