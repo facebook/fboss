@@ -72,6 +72,22 @@ std::pair<IntfRouteTable, DuplicatePrefixSet> computeExpectedRemoteIntfRoutes(
   return {std::move(expected), std::move(duplicateAcrossRifs)};
 }
 
+template <typename Map, typename ExtractIntf>
+bool containsRoute(
+    const Map& m,
+    RouterID vrf,
+    const folly::CIDRNetwork& prefix,
+    InterfaceID intf,
+    ExtractIntf extract) {
+  auto vrfIter = m.find(vrf);
+  if (vrfIter == m.end()) {
+    return false;
+  }
+  auto routeIter = vrfIter->second.find(prefix);
+  return routeIter != vrfIter->second.end() &&
+      extract(routeIter->second) == intf;
+}
+
 } // namespace
 
 size_t RemoteIntfRouteAudit::totalMismatchCount() const {
@@ -99,12 +115,21 @@ RemoteIntfRouteAudit auditRemoteInterfaceRoutes(
       computeExpectedRemoteIntfRoutes(state);
   RemoteIntfRouteAudit audit;
   audit.duplicateAcrossRifs = std::move(duplicateAcrossRifs);
-  // Walk the FIB to collect REMOTE_INTERFACE_ROUTE entries and the count of
-  // malformed entries; mismatch detection follows in stack.
   auto [currentFromFIB, malformedCount] = collectRemoteIntfRoutesFromFib(state);
   audit.malformedRemoteIntfRoute = malformedCount;
-  (void)expectedFromRIF;
-  (void)currentFromFIB;
+  for (const auto& [vrf, vrfRoutes] : expectedFromRIF) {
+    for (const auto& [prefix, intfAndAddr] : vrfRoutes) {
+      if (!containsRoute(
+              currentFromFIB,
+              vrf,
+              prefix,
+              intfAndAddr.first,
+              [](const auto& v) { return v; })) {
+        audit.missing[vrf].emplace(prefix, intfAndAddr);
+      }
+    }
+  }
+
   return audit;
 }
 
