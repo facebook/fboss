@@ -77,31 +77,7 @@
           "test_name_regex": "AgentNeighborResolutionOverFlowTest.*$"
         },
         {
-          "test_name_regex": "AgentPfcWatchdogGranularityTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowlet.*$"
-        },
-        {
-          "test_name_regex": "AgentEcmpSpilloverTest.*$"
-        },
-        {
-          "test_name_regex": "AgentArsFlowletTest.*$"
-        },
-        {
           "test_name_regex": "AgentUdfAclCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4Udf.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6Udf.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ArsSpray.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6EcmpSpray.*$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
@@ -190,31 +166,7 @@
           "test_name_regex": "AgentNeighborResolutionOverFlowTest.*$"
         },
         {
-          "test_name_regex": "AgentPfcWatchdogGranularityTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowlet.*$"
-        },
-        {
-          "test_name_regex": "AgentEcmpSpilloverTest.*$"
-        },
-        {
-          "test_name_regex": "AgentArsFlowletTest.*$"
-        },
-        {
           "test_name_regex": "AgentUdfAclCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4Udf.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6Udf.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ArsSpray.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6EcmpSpray.*$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
@@ -291,31 +243,7 @@
           "test_name_regex": "AgentSendPacketToMulticastQueueTest.SendPacketOutOfPortToMCQueue$"
         },
         {
-          "test_name_regex": "AgentPfcWatchdogGranularityTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowlet.*$"
-        },
-        {
-          "test_name_regex": "AgentEcmpSpilloverTest.*$"
-        },
-        {
-          "test_name_regex": "AgentArsFlowletTest.*$"
-        },
-        {
           "test_name_regex": "AgentUdfAclCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4Udf.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6Udf.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ArsSpray.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6EcmpSpray.*$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
@@ -392,31 +320,7 @@
           "test_name_regex": "AgentSendPacketToMulticastQueueTest.SendPacketOutOfPortToMCQueue$"
         },
         {
-          "test_name_regex": "AgentPfcWatchdogGranularityTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowlet.*$"
-        },
-        {
-          "test_name_regex": "AgentEcmpSpilloverTest.*$"
-        },
-        {
-          "test_name_regex": "AgentArsFlowletTest.*$"
-        },
-        {
           "test_name_regex": "AgentUdfAclCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4Udf.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6Udf.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ArsSpray.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6EcmpSpray.*$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
@@ -508,31 +412,7 @@
           "test_name_regex": "AgentHwPtpTcProvisionTests.VerifyPtpTcDelayRequest/TWOHUNDREDG$"
         },
         {
-          "test_name_regex": "AgentPfcWatchdogGranularityTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowlet.*$"
-        },
-        {
-          "test_name_regex": "AgentEcmpSpilloverTest.*$"
-        },
-        {
-          "test_name_regex": "AgentArsFlowletTest.*$"
-        },
-        {
           "test_name_regex": "AgentUdfAclCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4Udf.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6Udf.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ArsSpray.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6EcmpSpray.*$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
@@ -624,31 +504,7 @@
           "test_name_regex": "AgentHwPtpTcProvisionTests.VerifyPtpTcDelayRequest/TWOHUNDREDG$"
         },
         {
-          "test_name_regex": "AgentPfcWatchdogGranularityTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowlet.*$"
-        },
-        {
-          "test_name_regex": "AgentEcmpSpilloverTest.*$"
-        },
-        {
-          "test_name_regex": "AgentArsFlowletTest.*$"
-        },
-        {
           "test_name_regex": "AgentUdfAclCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4Udf.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6Udf.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ArsSpray.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6EcmpSpray.*$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
@@ -1455,12 +1311,6 @@
           "test_name_regex": "AgentFlowletSprayTest.VerifyEcmpRandomSpray$"
         },
         {
-          "test_name_regex": "AgentLoadBalancerTestV6ArsSpray.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6EcmpSpray.*$"
-        },
-        {
           "test_name_regex": "AgentFlowletSwitchingEnhancedScaleTest.VerifyAlternateArsEcmpObjects$"
         },
         {
@@ -1560,12 +1410,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSprayTest.VerifyEcmpRandomSpray$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ArsSpray.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6EcmpSpray.*$"
         },
         {
           "test_name_regex": "AgentFlowletSwitchingEnhancedScaleTest.VerifyAlternateArsEcmpObjects$"
@@ -4478,9 +4322,6 @@
         },
         {
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
-        },
-        {
-          "test_name_regex": "AgentHwLinkDebounceTest.*$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/graphene200/multi_switch": [
@@ -4606,9 +4447,6 @@
         },
         {
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
-        },
-        {
-          "test_name_regex": "AgentHwLinkDebounceTest.*$"
         }
     ],
     "leaba/25.11.4210/25.11.4210/gibraltar/mono": [
@@ -4834,6 +4672,9 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsSwapFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentHwLinkDebounceTest.*$"
         }
     ],
     "leaba/25.11.4210/25.11.4210/graphene202x/multi_switch": [
@@ -4923,6 +4764,9 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsSwapFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentHwLinkDebounceTest.*$"
         }
     ],
     "leaba/25.5.4210/25.5.4210/graphene200/mono": [
@@ -5048,9 +4892,6 @@
         },
         {
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
-        },
-        {
-          "test_name_regex": "AgentHwLinkDebounceTest.*$"
         }
     ],
     "leaba/25.5.4210/25.5.4210/graphene200/multi_switch": [
@@ -5176,9 +5017,6 @@
         },
         {
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
-        },
-        {
-          "test_name_regex": "AgentHwLinkDebounceTest.*$"
         }
     ],
     "leaba/26.2.5210/26.2.5210/graphene200/mono": [
