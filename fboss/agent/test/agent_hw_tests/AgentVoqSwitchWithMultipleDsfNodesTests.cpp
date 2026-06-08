@@ -895,13 +895,6 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToLoopbackIp) {
 }
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToRemoteNeighbor) {
-  constexpr auto kRemotePortId = 401;
-  constexpr auto kRemoteHyperPortId = 402;
-  const SystemPortID kRemoteSysPortId(kRemotePortId);
-  const SystemPortID kRemoteHyperSysPortId(kRemoteHyperPortId);
-  const InterfaceID kRemoteIntfId(kRemotePortId);
-  const InterfaceID kRemoteHyperIntfId(kRemoteHyperPortId);
-
   const auto intfAddrV6 = std::make_pair(folly::IPAddress("100::1"), 64);
   const auto intfAddrV4 = std::make_pair(folly::IPAddress("100.0.0.1"), 24);
   const auto hyperIntfAddrV6 = std::make_pair(folly::IPAddress("101::1"), 64);
@@ -910,14 +903,16 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToRemoteNeighbor) {
 
   const auto ipAddr = folly::IPAddressV6("42::42");
   const auto hyperIpAddr = folly::IPAddressV6("43::43");
-  const auto prefixLen = 128;
+  constexpr auto prefixLen = 128;
 
-  auto makeSwitchId2SystemPorts = [=](auto& remoteSwitchID) {
+  auto makeSwitchId2SystemPorts = [=](auto& remoteSwitchID,
+                                      const auto& remoteSysPortId,
+                                      const auto& remoteHyperSysPortId) {
     std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
     auto remoteSysPort =
-        utility::makeRemoteSysPort(kRemoteSysPortId, remoteSwitchID);
+        utility::makeRemoteSysPort(remoteSysPortId, remoteSwitchID);
     auto remoteHyperSysPort = utility::makeRemoteSysPort(
-        kRemoteHyperSysPortId,
+        remoteHyperSysPortId,
         remoteSwitchID,
         0,
         2,
@@ -925,13 +920,18 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToRemoteNeighbor) {
         HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
         cfg::PortType::HYPER_PORT);
     auto remoteSysPorts = std::make_shared<SystemPortMap>();
-    remoteSysPorts->addNode(remoteSysPort);
-    remoteSysPorts->addNode(remoteHyperSysPort);
+    remoteSysPorts->addNode(std::move(remoteSysPort));
+    remoteSysPorts->addNode(std::move(remoteHyperSysPort));
     switchId2SystemPorts[remoteSwitchID] = std::move(remoteSysPorts);
     return switchId2SystemPorts;
   };
 
-  auto makeSwitchId2Rifs = [=](auto& remoteSwitchID) {
+  auto makeSwitchId2Rifs = [=](auto& remoteSwitchID,
+                               const auto& remoteSysPortId,
+                               const auto& remoteHyperSysPortId) {
+    const auto kRemoteIntfId = utility::getRemoteIntfId(remoteSysPortId);
+    const auto kRemoteHyperIntfId =
+        utility::getRemoteIntfId(remoteHyperSysPortId);
     std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
     auto remoteIntf = utility::makeRemoteInterface(
         kRemoteIntfId,
@@ -946,16 +946,21 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToRemoteNeighbor) {
             hyperIntfAddrV4,
         });
     auto remoteIntfs = std::make_shared<InterfaceMap>();
-    remoteIntfs->addNode(remoteIntf);
-    remoteIntfs->addNode(remoteHyperIntf);
+    remoteIntfs->addNode(std::move(remoteIntf));
+    remoteIntfs->addNode(std::move(remoteHyperIntf));
     switchId2Rifs[remoteSwitchID] = std::move(remoteIntfs);
     return switchId2Rifs;
   };
 
-  auto addRemoteSysPortAndIntf = [&](auto swSwitch, auto& remoteSwitchID) {
+  auto addRemoteSysPortAndIntf = [&](auto swSwitch,
+                                     auto& remoteSwitchID,
+                                     const auto& remoteSysPortId,
+                                     const auto& remoteHyperSysPortId) {
     auto updateDsfStateFn = [=](const std::shared_ptr<SwitchState>& in) {
-      auto switchId2SystemPorts = makeSwitchId2SystemPorts(remoteSwitchID);
-      auto switchId2Rifs = makeSwitchId2Rifs(remoteSwitchID);
+      auto switchId2SystemPorts = makeSwitchId2SystemPorts(
+          remoteSwitchID, remoteSysPortId, remoteHyperSysPortId);
+      auto switchId2Rifs = makeSwitchId2Rifs(
+          remoteSwitchID, remoteSysPortId, remoteHyperSysPortId);
 
       return DsfStateUpdaterUtil::getUpdatedState(
           in,
@@ -972,19 +977,42 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToRemoteNeighbor) {
 
   auto setup = [&, this]() {
     auto remoteSwitchID = utility::getRemoteVoqSwitchId(getSw());
-    addRemoteSysPortAndIntf(getSw(), remoteSwitchID);
+    const auto remoteSysPortId =
+        utility::getAvailableRemoteSysPortId(getSw(), getProgrammedState());
+    const auto remoteHyperSysPortId =
+        utility::getAvailableRemoteSysPortId(getSw(), getProgrammedState(), 1);
+    addRemoteSysPortAndIntf(
+        getSw(), remoteSwitchID, remoteSysPortId, remoteHyperSysPortId);
+    WITH_RETRIES({
+      auto state = getProgrammedState();
+      EXPECT_EVENTUALLY_NE(
+          state->getRemoteSystemPorts()->getNodeIf(remoteSysPortId), nullptr);
+      EXPECT_EVENTUALLY_NE(
+          state->getRemoteSystemPorts()->getNodeIf(remoteHyperSysPortId),
+          nullptr);
+      EXPECT_EVENTUALLY_NE(
+          state->getRemoteInterfaces()->getNodeIf(
+              utility::getRemoteIntfId(remoteSysPortId)),
+          nullptr);
+      EXPECT_EVENTUALLY_NE(
+          state->getRemoteInterfaces()->getNodeIf(
+              utility::getRemoteIntfId(remoteHyperSysPortId)),
+          nullptr);
+    });
 
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto routeUpdater = getSw()->getRouteUpdater();
-    auto sysPortDescs =
-        utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
-    CHECK_EQ(sysPortDescs.size(), 2);
 
-    boost::container::flat_set<PortDescriptor> regularPortDescs;
-    boost::container::flat_set<PortDescriptor> hyperPortDescs;
-    regularPortDescs.insert(PortDescriptor(kRemoteSysPortId));
-    hyperPortDescs.insert(PortDescriptor(kRemoteHyperSysPortId));
+    boost::container::flat_set<PortDescriptor> regularPortDescs{
+        PortDescriptor(remoteSysPortId)};
+    boost::container::flat_set<PortDescriptor> hyperPortDescs{
+        PortDescriptor(remoteHyperSysPortId)};
+    boost::container::flat_set<PortDescriptor> allPortDescs{
+        PortDescriptor(remoteSysPortId), PortDescriptor(remoteHyperSysPortId)};
+    // Multi-NPU tests must resolve only the sysports created above. The
+    // flattened remote sysport map can include sysports for other local NPUs.
+    utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper, allPortDescs);
 
     ecmpHelper.programRoutes(
         &routeUpdater, regularPortDescs, {RoutePrefixV6{ipAddr, prefixLen}});
@@ -1000,8 +1028,28 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToRemoteNeighbor) {
     EXPECT_TRUE(
         *hyperRouteInfo.exists() && !*hyperRouteInfo.isProgrammedToDrop());
 
-    auto beforeStats = getLatestSysPortStats(kRemoteSysPortId);
-    auto beforeHyperStats = getLatestSysPortStats(kRemoteHyperSysPortId);
+    // Re-discover the dynamically allocated remote sysport IDs from state
+    // (setup() is skipped on warm boot, so locals from setup are unavailable).
+    const auto remoteSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState(), 0);
+    const auto remoteHyperSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState(), 1);
+    std::optional<HwSysPortStats> beforeStats;
+    std::optional<HwSysPortStats> beforeHyperStats;
+    WITH_RETRIES({
+      beforeStats = utility::getRemoteSysPortStatsForSwitchUnderTest(
+          getSw(),
+          getProgrammedState(),
+          getCurrentSwitchIndexForTesting(),
+          remoteSysPortId);
+      beforeHyperStats = utility::getRemoteSysPortStatsForSwitchUnderTest(
+          getSw(),
+          getProgrammedState(),
+          getCurrentSwitchIndexForTesting(),
+          remoteHyperSysPortId);
+      ASSERT_EVENTUALLY_TRUE(beforeStats.has_value());
+      ASSERT_EVENTUALLY_TRUE(beforeHyperStats.has_value());
+    });
     sendPacket(ipAddr, std::nullopt /* frontPanelPort */);
     sendPacket(hyperIpAddr, std::nullopt /* frontPanelPort */);
     auto getWatchdogDeletePkts = [](const auto& stats) {
@@ -1009,26 +1057,38 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToRemoteNeighbor) {
           utility::getDefaultQueue());
     };
     WITH_RETRIES({
-      auto afterStats = getLatestSysPortStats(kRemoteSysPortId);
-      auto afterHyperStats = getLatestSysPortStats(kRemoteHyperSysPortId);
+      auto afterStats = utility::getRemoteSysPortStatsForSwitchUnderTest(
+          getSw(),
+          getProgrammedState(),
+          getCurrentSwitchIndexForTesting(),
+          remoteSysPortId);
+      auto afterHyperStats = utility::getRemoteSysPortStatsForSwitchUnderTest(
+          getSw(),
+          getProgrammedState(),
+          getCurrentSwitchIndexForTesting(),
+          remoteHyperSysPortId);
+      ASSERT_EVENTUALLY_TRUE(afterStats.has_value());
+      ASSERT_EVENTUALLY_TRUE(afterHyperStats.has_value());
       XLOG(DBG2) << "Regular port - Before: "
-                 << getWatchdogDeletePkts(beforeStats)
-                 << " After: " << getWatchdogDeletePkts(afterStats);
+                 << getWatchdogDeletePkts(*beforeStats)
+                 << " After: " << getWatchdogDeletePkts(*afterStats);
       XLOG(DBG2) << "Hyper port - Before: "
-                 << getWatchdogDeletePkts(beforeHyperStats)
-                 << " After: " << getWatchdogDeletePkts(afterHyperStats);
+                 << getWatchdogDeletePkts(*beforeHyperStats)
+                 << " After: " << getWatchdogDeletePkts(*afterHyperStats);
       EXPECT_EVENTUALLY_GT(
-          getWatchdogDeletePkts(afterStats),
-          getWatchdogDeletePkts(beforeStats));
+          getWatchdogDeletePkts(*afterStats),
+          getWatchdogDeletePkts(*beforeStats));
       EXPECT_EVENTUALLY_GT(
-          getWatchdogDeletePkts(afterHyperStats),
-          getWatchdogDeletePkts(beforeHyperStats));
+          getWatchdogDeletePkts(*afterHyperStats),
+          getWatchdogDeletePkts(*beforeHyperStats));
     });
 
     // Unresolve neighbor
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
-    utility::unresolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
+    boost::container::flat_set<PortDescriptor> portDescs{
+        PortDescriptor(remoteSysPortId), PortDescriptor(remoteHyperSysPortId)};
+    utility::unresolveRemoteNhops(getAgentEnsemble(), ecmpHelper, portDescs);
 
     routeInfo = utility::getRouteInfo(ipAddr, prefixLen, *getAgentEnsemble());
     EXPECT_TRUE(*routeInfo.exists() && *routeInfo.isProgrammedToDrop());
@@ -1038,7 +1098,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToRemoteNeighbor) {
         *hyperRouteInfo.exists() && *hyperRouteInfo.isProgrammedToDrop());
 
     // Resolve neighbor
-    utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
+    utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper, portDescs);
     routeInfo = utility::getRouteInfo(ipAddr, prefixLen, *getAgentEnsemble());
     EXPECT_TRUE(*routeInfo.exists() && !*routeInfo.isProgrammedToDrop());
     hyperRouteInfo =
@@ -1181,7 +1241,7 @@ TEST_F(AgentVoqShelSwitchTest, init) {
 }
 
 TEST_F(AgentVoqShelSwitchTest, routeChurn) {
-  const auto numChurn = 100;
+  constexpr auto numChurn = 100;
   auto setup = []() {};
   auto verify = [&, this]() {
     verifyShelEnabled(true /*desiredShelEnable*/, false /*shelEnabled*/);
