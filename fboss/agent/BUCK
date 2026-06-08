@@ -512,6 +512,19 @@ cpp_library(
 )
 
 cpp_library(
+    name = "remote_intf_route_auditor",
+    srcs = [
+        "RemoteIntfRouteAuditor.cpp",
+    ],
+    headers = [
+        "RemoteIntfRouteAuditor.h",
+    ],
+    exported_deps = [
+        ":voq_utils",
+    ],
+)
+
+cpp_library(
     name = "address_utils",
     headers = [
         "AddressUtil.h",
