@@ -789,19 +789,29 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToLoopbackIp) {
   const auto ipAddr = folly::IPAddressV6("42::42");
-  const auto prefixLen = 128;
-  // Only one remote system port should be created by the remote interface
-  // node's Loopback.
+  constexpr auto prefixLen = 128;
   auto getRemoteLoopbackSysPort = [&]() {
     auto remoteSysPorts =
         getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
-    CHECK_EQ(remoteSysPorts->size(), 1);
-    return remoteSysPorts->cbegin()->first;
+    auto remoteIntfs =
+        getProgrammedState()->getRemoteInterfaces()->getAllNodes();
+    for (const auto& [intfId, remoteIntf] : *remoteIntfs) {
+      auto sysPortId = SystemPortID(static_cast<int>(intfId));
+      auto remoteSysPort = remoteSysPorts->getNodeIf(sysPortId);
+      if (remoteSysPort &&
+          remoteSysPort->getSwitchId() ==
+              utility::getRemoteVoqSwitchId(getSw()) &&
+          remoteIntf->getNdpTable()->size() > 0) {
+        return sysPortId;
+      }
+    }
+    XLOG(FATAL) << "Unable to find remote loopback system port";
+    return SystemPortID(0);
   };
 
   auto getLoopbackNeighborIp = [&]() {
     auto remoteIntf = getProgrammedState()->getRemoteInterfaces()->getNode(
-        getRemoteLoopbackSysPort());
+        utility::getRemoteIntfId(getRemoteLoopbackSysPort()));
     auto nbrTable = remoteIntf->getNdpTable();
     CHECK_GE(nbrTable->size(), 1);
     return folly::IPAddress(nbrTable->cbegin()->first);
@@ -809,7 +819,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToLoopbackIp) {
 
   auto setup = [&, this]() {
     auto remoteIntf = getProgrammedState()->getRemoteInterfaces()->getNode(
-        getRemoteLoopbackSysPort());
+        utility::getRemoteIntfId(getRemoteLoopbackSysPort()));
     auto neighborIp = getLoopbackNeighborIp();
     auto routeUpdater = getSw()->getRouteUpdater();
     RouteNextHopSet nextHopSet{
@@ -831,22 +841,43 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToLoopbackIp) {
   auto verify = [&]() {
     auto sendPacketAndVerifyFwding = [&]() {
       auto neighborIp = getLoopbackNeighborIp();
-      auto sysPortID = SystemPortID(getRemoteLoopbackSysPort());
-      auto beforeStats = getLatestSysPortStats(sysPortID);
-      sendPacket(ipAddr, std::nullopt /* frontPanelPort */);
-      sendPacket(neighborIp, std::nullopt /* frontPanelPort */);
+      auto sysPortID = getRemoteLoopbackSysPort();
+      auto ingressPorts = FLAGS_hyper_port ? masterLogicalHyperPortIds()
+                                           : masterLogicalInterfacePortIds();
+      CHECK(!ingressPorts.empty());
+      auto ingressPort = ingressPorts.front();
+      std::optional<HwSysPortStats> beforeStats;
+      WITH_RETRIES({
+        beforeStats = utility::getRemoteSysPortStatsForSwitchUnderTest(
+            getSw(),
+            getProgrammedState(),
+            getCurrentSwitchIndexForTesting(),
+            sysPortID);
+        EXPECT_EVENTUALLY_TRUE(beforeStats.has_value());
+      });
+      CHECK(beforeStats.has_value());
+      sendPacket(ipAddr, ingressPort);
+      sendPacket(neighborIp, ingressPort);
 
       auto getWatchdogDeletePkts = [](const auto& stats) {
         return stats.queueCreditWatchdogDeletedPackets_()->at(
             utility::getGlobalRcyDefaultQueue());
       };
       WITH_RETRIES({
-        auto afterStats = getLatestSysPortStats(sysPortID);
-        XLOG(DBG2) << "Before: " << getWatchdogDeletePkts(beforeStats)
-                   << " After: " << getWatchdogDeletePkts(afterStats);
+        auto afterStats = utility::getRemoteSysPortStatsForSwitchUnderTest(
+            getSw(),
+            getProgrammedState(),
+            getCurrentSwitchIndexForTesting(),
+            sysPortID);
+        EXPECT_EVENTUALLY_TRUE(afterStats.has_value());
+        if (!afterStats.has_value()) {
+          return;
+        }
+        XLOG(DBG2) << "Before: " << getWatchdogDeletePkts(*beforeStats)
+                   << " After: " << getWatchdogDeletePkts(*afterStats);
         EXPECT_EVENTUALLY_EQ(
-            getWatchdogDeletePkts(afterStats),
-            getWatchdogDeletePkts(beforeStats) + 2);
+            getWatchdogDeletePkts(*afterStats),
+            getWatchdogDeletePkts(*beforeStats) + 2);
       });
     };
 
