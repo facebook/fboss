@@ -1465,6 +1465,32 @@
           "note": "Route stat counters require SAI API >= 1.10, available on Leaba Gibraltar from SDK 24.8.3001"
         }
       ]
+    },
+    {
+      "feature": 111,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "Stateless mirror-on-drop is supported on SAI Tomahawk5 from SDK 13.3 onwards (renamed from AgentMirrorOnDropXgs in D101748313)"
+        }
+      ]
+    },
+    {
+      "feature": 90,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "AlternateArsEcmpObjects (AgentFlowletSwitchingEnhancedScaleTest) requires SAI attributes added in 13.3"
+        }
+      ]
     }
   ]
 }
