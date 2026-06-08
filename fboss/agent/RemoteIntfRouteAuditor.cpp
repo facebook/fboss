@@ -47,6 +47,31 @@ std::pair<FibRemoteIntfRoutes, size_t> collectRemoteIntfRoutesFromFib(
   return {std::move(result), malformedCount};
 }
 
+std::pair<IntfRouteTable, DuplicatePrefixSet> computeExpectedRemoteIntfRoutes(
+    const std::shared_ptr<SwitchState>& state) {
+  IntfRouteTable expected;
+  DuplicatePrefixSet duplicateAcrossRifs;
+  RouterIDToPrefixes discardedDeletions;
+  for (const auto& [_, intfMap] :
+       std::as_const(*state->getRemoteInterfaces())) {
+    for (const auto& [_, rif] : std::as_const(*intfMap)) {
+      IntfRouteTable perRif;
+      processRemoteInterfaceRoutes(
+          rif, state, /*add=*/true, perRif, discardedDeletions);
+      for (auto& [vrf, routes] : perRif) {
+        for (auto& [prefix, intfAddr] : routes) {
+          bool inserted =
+              expected[vrf].emplace(prefix, std::move(intfAddr)).second;
+          if (!inserted) {
+            duplicateAcrossRifs[vrf].insert(prefix);
+          }
+        }
+      }
+    }
+  }
+  return {std::move(expected), std::move(duplicateAcrossRifs)};
+}
+
 } // namespace
 
 size_t RemoteIntfRouteAudit::totalMismatchCount() const {
@@ -70,13 +95,16 @@ size_t RemoteIntfRouteAudit::duplicateAcrossRifsCount() const {
 
 RemoteIntfRouteAudit auditRemoteInterfaceRoutes(
     const std::shared_ptr<SwitchState>& state) {
+  auto [expectedFromRIF, duplicateAcrossRifs] =
+      computeExpectedRemoteIntfRoutes(state);
   RemoteIntfRouteAudit audit;
+  audit.duplicateAcrossRifs = std::move(duplicateAcrossRifs);
   // Walk the FIB to collect REMOTE_INTERFACE_ROUTE entries and the count of
-  // malformed entries; expected-route computation and mismatch detection
-  // follow in stack.
-  auto [current, malformedCount] = collectRemoteIntfRoutesFromFib(state);
+  // malformed entries; mismatch detection follows in stack.
+  auto [currentFromFIB, malformedCount] = collectRemoteIntfRoutesFromFib(state);
   audit.malformedRemoteIntfRoute = malformedCount;
-  (void)current;
+  (void)expectedFromRIF;
+  (void)currentFromFIB;
   return audit;
 }
 
