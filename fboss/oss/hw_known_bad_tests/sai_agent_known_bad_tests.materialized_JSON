@@ -2,24 +2,6 @@
   "known_bad_tests": {
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk/mono": [
         {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
-        {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
         {
@@ -417,24 +399,6 @@
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk/multi_switch": [
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
@@ -1089,24 +1053,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentPortLedTest.TestLed$"
         },
         {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
-        {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
         {
@@ -1505,24 +1451,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentTrunkTest.TrunkPortStats$"
         },
         {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
-        {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
         {
@@ -1650,24 +1578,6 @@
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk4/mono": [
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
@@ -2090,24 +2000,6 @@
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk4/multi_switch": [
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
@@ -4776,24 +4668,6 @@
     ],
     "brcm/11.7.0.0_odp/11.7.0.0_odp/tomahawk5/mono": [
         {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
-        {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
         {
@@ -5275,24 +5149,6 @@
         }
     ],
     "brcm/11.7.0.0_odp/11.7.0.0_odp/tomahawk5/multi_switch": [
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
@@ -11435,24 +11291,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentPortLedTest.TestLed$"
         },
         {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
-        {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
         {
@@ -11845,24 +11683,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentTrunkTest.TrunkPortStats$"
         },
         {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
-        {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
         {
@@ -11987,24 +11807,6 @@
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk4/mono": [
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
@@ -12416,24 +12218,6 @@
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk4/multi_switch": [
         {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
-        {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
         {
@@ -12792,24 +12576,6 @@
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/mono": [
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
@@ -13284,24 +13050,6 @@
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/multi_switch": [
         {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
-        {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
         {
@@ -13757,24 +13505,6 @@
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5t/mono": [
         {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
-        {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
         {
@@ -14226,24 +13956,6 @@
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5t/multi_switch": [
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
@@ -17785,24 +17497,6 @@
     ],
     "brcm/14.2.0.0_odp/14.2.0.0_odp/tomahawk6/mono": [
         {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
-        {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
         {
@@ -18275,24 +17969,6 @@
         }
     ],
     "brcm/14.2.0.0_odp/14.2.0.0_odp/tomahawk6/multi_switch": [
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV4ToMpls.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsPhp.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6InMplsSwap.*$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6ToMpls.*$"
-        },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
         },
