@@ -281,7 +281,22 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
-  // Test 10: Valid with differing pciDeviceConfigs (allowed to differ)
+  // Test 10: Valid with differing embeddedSensorConfigs (allowed to differ)
+  EmbeddedSensorConfig embeddedSensor1, embeddedSensor2;
+  embeddedSensor1.pmUnitScopedName() = "SENSOR_V1";
+  embeddedSensor1.sysfsPath() = "/sys/bus/platform/devices/coretemp.0";
+  embeddedSensor2.pmUnitScopedName() = "SENSOR_V2";
+  embeddedSensor2.sysfsPath() = "/sys/bus/platform/devices/coretemp.1";
+  versionedPmUnitConfig1.pmUnitConfig()->embeddedSensorConfigs() = {
+      embeddedSensor1};
+  pmUnitConfig = config.pmUnitConfigs()->at("SCM");
+  pmUnitConfig.embeddedSensorConfigs() = {embeddedSensor2};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+
+  // Test 11: Valid with differing pciDeviceConfigs (allowed to differ)
   auto pciDev1 = getValidPciDeviceConfig();
   auto pciDev2 = getValidPciDeviceConfig();
   pciDev2.pmUnitScopedName() = "PCI_DEV_V2";
@@ -292,7 +307,7 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
-  // Test 11: Valid with matching ledCtrlBlockConfigs in pciDeviceConfigs
+  // Test 12: Valid with matching ledCtrlBlockConfigs in pciDeviceConfigs
   auto pciDevWithLed = getValidPciDeviceConfig();
   pciDevWithLed.ledCtrlBlockConfigs() = {};
   pmUnitConfig = config.pmUnitConfigs()->at("SCM");
