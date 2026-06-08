@@ -1280,7 +1280,7 @@
           ],
           "sdk": 2,
           "minSdkVersion": "25.5.4210",
-          "note": "Port Debounce is supported from 25.5.4210"
+          "note": "Per-port link debounce timers require SAI_PORT_ATTR_LINK_{UP,DOWN}_DEBOUNCE_PERIOD_MILLISECONDS. Supported on Leaba SAI 25.5.4210 and 26.2.5210+. Regressed on 25.11.4210 (g202x) — see sai_graphene202x_25_11_unsupported_tests in sai_agent_test.cinc."
         }
       ]
     },
@@ -1293,6 +1293,98 @@
           ],
           "sdk": 1,
           "minSdkVersion": "13.3.0.0_odp"
+        }
+      ]
+    },
+    {
+      "feature": 19,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "DLB and ARS flowlets are supported on Broadcom SAI from 11.7; min set to 13.3 since 11.7 is being deprecated"
+        }
+      ]
+    },
+    {
+      "feature": 81,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp"
+        }
+      ]
+    },
+    {
+      "feature": 87,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "UDF-based hash load balancer tests are supported on Broadcom SAI from 11.7; min set to 13.3 since 11.7 is being deprecated"
+        }
+      ]
+    },
+    {
+      "feature": 80,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp"
+        }
+      ]
+    },
+    {
+      "feature": 82,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "ARS spray load balancer tests require SAI attributes added in 13.3"
+        }
+      ]
+    },
+    {
+      "feature": 78,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk4",
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "ECMP random spray is supported on Broadcom SAI from 13.3 onwards"
         }
       ]
     }
