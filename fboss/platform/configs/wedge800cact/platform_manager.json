@@ -415,9 +415,16 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x33",
-          "kernelDeviceName": "w800_fancpld",
+          "kernelDeviceName": "fbfancpld",
           "pmUnitScopedName": "MCB_FAN_CPLD",
-          "isWatchdog": true
+          "isWatchdog": true,
+          "fanCpldConfig": {
+            "numFans": 4,
+            "pwmMax": 40,
+            "speedMultiplier": 150,
+            "hasRearTach": true,
+            "hasLeds": true
+          }
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
