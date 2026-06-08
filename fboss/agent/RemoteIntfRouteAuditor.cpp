@@ -88,6 +88,18 @@ bool containsRoute(
       extract(routeIter->second) == intf;
 }
 
+// True if `missing[vrf]` already has an entry at `prefix`. Used by the
+// extra-loop IP-swap suppression to skip queuing a delete that would stomp
+// the matching re-add.
+bool routeInMissingSet(
+    const IntfRouteTable& missing,
+    RouterID vrf,
+    const folly::CIDRNetwork& prefix) {
+  auto vrfIter = missing.find(vrf);
+  return vrfIter != missing.end() &&
+      vrfIter->second.find(prefix) != vrfIter->second.end();
+}
+
 } // namespace
 
 size_t RemoteIntfRouteAudit::totalMismatchCount() const {
@@ -127,6 +139,38 @@ RemoteIntfRouteAudit auditRemoteInterfaceRoutes(
               [](const auto& v) { return v; })) {
         audit.missing[vrf].emplace(prefix, intfAndAddr);
       }
+    }
+  }
+
+  for (const auto& [vrf, vrfRoutes] : currentFromFIB) {
+    for (const auto& [prefix, intf] : vrfRoutes) {
+      if (containsRoute(expectedFromRIF, vrf, prefix, intf, [](const auto& v) {
+            return v.first;
+          })) {
+        continue;
+      }
+      // IP-swap case: same prefix appears in both `missing` (correct
+      // intf) and `extra` (stale intf). RIB processes adds before
+      // deletes, so the `missing` add overwrites the stale entry in
+      // place; queuing a delete here would then stomp that re-add.
+      // Relies on missing-loop above having already populated audit.missing.
+      //
+      // Example — two RIFs swap addresses on the same device:
+      //   state: intf1 -> prefix2, intf2 -> prefix1   (post-swap)
+      //   FIB:   prefix1 -> intf1, prefix2 -> intf2   (pre-swap, stale)
+      //
+      // Missing loop emits:
+      //   audit.missing = { prefix1 -> intf2, prefix2 -> intf1 }
+      //
+      // Extra loop sees prefix1/intf1 and prefix2/intf2 as candidates,
+      // but `routeInMissingSet` returns true for both, so both are
+      // suppressed. RIB's add for prefix1/intf2 rewrites the stale
+      // prefix1/intf1 in place via `addOrReplaceRouteImpl`, same for
+      // prefix2. Final FIB matches state; no delete fires.
+      if (routeInMissingSet(audit.missing, vrf, prefix)) {
+        continue;
+      }
+      audit.extra[vrf].push_back(prefix);
     }
   }
 
