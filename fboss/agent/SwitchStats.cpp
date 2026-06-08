@@ -81,6 +81,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "ipv6.hop_limit1_mine",
           SUM,
           RATE),
+      srv6NonLastSegmentDecapDrop_(
+          map,
+          kCounterPrefix + "srv6.non_last_segment_decap_drop",
+          SUM,
+          RATE),
       udpTooSmall_(map, kCounterPrefix + "udp.too_small", SUM, RATE),
       dhcpV4Pkt_(map, kCounterPrefix + "dhcpV4.pkt", SUM, RATE),
       dhcpV4BadPkt_(map, kCounterPrefix + "dhcpV4.bad_pkt", SUM, RATE),
