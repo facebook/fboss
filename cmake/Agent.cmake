@@ -134,6 +134,8 @@ add_library(remote_intf_route_auditor
 
 target_link_libraries(remote_intf_route_auditor
   Folly::folly
+  fib_helpers
+  state
   voq_utils
 )
 

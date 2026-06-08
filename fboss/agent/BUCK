@@ -520,7 +520,10 @@ cpp_library(
         "RemoteIntfRouteAuditor.h",
     ],
     exported_deps = [
+        ":fib_helpers",
         ":voq_utils",
+        "//fboss/agent/state:state",
+        "//folly/logging:logging",
     ],
 )
 

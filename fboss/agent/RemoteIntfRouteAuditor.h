@@ -4,7 +4,11 @@
 
 #include "fboss/agent/VoqUtils.h"
 
+#include <memory>
+
 namespace facebook::fboss {
+
+class SwitchState;
 
 struct RemoteIntfRouteAudit {
   IntfRouteTable missing;
@@ -29,5 +33,8 @@ struct RemoteIntfRouteAudit {
   size_t totalMismatchCount() const;
   size_t duplicateAcrossRifsCount() const;
 };
+
+RemoteIntfRouteAudit auditRemoteInterfaceRoutes(
+    const std::shared_ptr<SwitchState>& state);
 
 } // namespace facebook::fboss
