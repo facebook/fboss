@@ -358,9 +358,16 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x33",
-          "kernelDeviceName": "tahansb_fancpld",
+          "kernelDeviceName": "fbfancpld",
           "pmUnitScopedName": "MCB_FAN_CPLD",
-          "isWatchdog": true
+          "isWatchdog": true,
+          "fanCpldConfig": {
+            "numFans": 4,
+            "pwmMax": 64,
+            "speedMultiplier": 300,
+            "hasRearTach": true,
+            "hasLeds": false
+          }
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
