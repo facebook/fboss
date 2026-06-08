@@ -10,10 +10,9 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-import qsfp_service_utils
-from qsfp_service_utils import (
+import services.qsfp_service_utils as qsfp_service_utils
+from services.qsfp_service_utils import (
     _setup_qsfp_service,
-    _start_qsfp_service,
     cleanup_qsfp_service,
     setup_and_start_qsfp_service,
 )
@@ -26,15 +25,15 @@ def _redirect_paths(monkeypatch, tmp_path):
         str(tmp_path / "qsfp_oss.service"),
     )
     monkeypatch.setattr(
-        qsfp_service_utils,
-        "_QSFP_SERVICE_RSYSLOG_CONF_PATH",
-        str(tmp_path / "rsyslog.conf"),
+        qsfp_service_utils.service_utils,
+        "write_rsyslog_conf",
+        lambda *a, **k: None,
     )
 
 
 class TestCleanupQsfpService:
     def test_stops_all_three_variants_and_pkills(self):
-        with patch.object(qsfp_service_utils.subprocess, "run") as mock_run:
+        with patch("services.service_utils.subprocess.run") as mock_run:
             cleanup_qsfp_service()
         commands = "\n".join(c.args[0] for c in mock_run.call_args_list)
         assert "systemctl stop qsfp_service" in commands
@@ -77,7 +76,7 @@ class TestUnitFileExtraArgs:
         self._setup(monkeypatch, tmp_path)
         config = tmp_path / "qsfp.conf"
         config.write_text("")
-        with patch.object(qsfp_service_utils.subprocess, "run"):
+        with patch("services.service_utils.subprocess.run"):
             _setup_qsfp_service(
                 qsfp_service_config_path=str(config), is_fsdb_disabled=False
             )
@@ -89,7 +88,7 @@ class TestUnitFileExtraArgs:
         self._setup(monkeypatch, tmp_path)
         config = tmp_path / "qsfp.conf"
         config.write_text("")
-        with patch.object(qsfp_service_utils.subprocess, "run"):
+        with patch("services.service_utils.subprocess.run"):
             _setup_qsfp_service(
                 qsfp_service_config_path=str(config), is_fsdb_disabled=True
             )
@@ -102,7 +101,7 @@ class TestUnitFileExtraArgs:
         config.write_text("")
         pm = tmp_path / "pm.json"
         pm.write_text("{}")
-        with patch.object(qsfp_service_utils.subprocess, "run"):
+        with patch("services.service_utils.subprocess.run"):
             _setup_qsfp_service(
                 qsfp_service_config_path=str(config),
                 platform_mapping_override_path=str(pm),
@@ -112,22 +111,22 @@ class TestUnitFileExtraArgs:
 
 
 class TestStartColdVsWarmBoot:
-    def test_cold_boot_creates_marker(self):
-        with (
-            patch.object(qsfp_service_utils.subprocess, "run"),
-            patch.object(
-                qsfp_service_utils, "_setup_qsfp_service_coldboot"
-            ) as mock_marker,
-        ):
-            _start_qsfp_service(is_warm_boot=False)
-        mock_marker.assert_called_once()
+    def test_cold_boot_passes_warm_boot_false(self):
+        with patch("services.qsfp_service_utils.service_utils") as mock_svc:
+            mock_svc.validate_path = lambda *a: None
+            setup_and_start_qsfp_service(
+                qsfp_service_config_path="/tmp/qsfp.conf",
+                is_warm_boot=False,
+            )
+        mock_svc.start_service.assert_called_once()
+        assert mock_svc.start_service.call_args[1]["is_warm_boot"] is False
 
-    def test_warm_boot_skips_marker(self):
-        with (
-            patch.object(qsfp_service_utils.subprocess, "run"),
-            patch.object(
-                qsfp_service_utils, "_setup_qsfp_service_coldboot"
-            ) as mock_marker,
-        ):
-            _start_qsfp_service(is_warm_boot=True)
-        mock_marker.assert_not_called()
+    def test_warm_boot_passes_warm_boot_true(self):
+        with patch("services.qsfp_service_utils.service_utils") as mock_svc:
+            mock_svc.validate_path = lambda *a: None
+            setup_and_start_qsfp_service(
+                qsfp_service_config_path="/tmp/qsfp.conf",
+                is_warm_boot=True,
+            )
+        mock_svc.start_service.assert_called_once()
+        assert mock_svc.start_service.call_args[1]["is_warm_boot"] is True

@@ -10,9 +10,8 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-import fsdb_service_utils
-from fsdb_service_utils import (
-    _start_fsdb_service,
+import services.fsdb_service_utils as fsdb_service_utils
+from services.fsdb_service_utils import (
     cleanup_fsdb_service,
     setup_and_start_fsdb_service,
 )
@@ -20,7 +19,7 @@ from fsdb_service_utils import (
 
 class TestCleanupFsdbService:
     def test_stops_all_three_variants_and_pkills(self):
-        with patch.object(fsdb_service_utils.subprocess, "run") as mock_run:
+        with patch("services.service_utils.subprocess.run") as mock_run:
             cleanup_fsdb_service()
         commands = "\n".join(c.args[0] for c in mock_run.call_args_list)
         assert "systemctl stop fsdb.service" in commands
@@ -39,9 +38,9 @@ class TestSetupPreconditions:
             str(tmp_path / "fsdb_oss.service"),
         )
         monkeypatch.setattr(
-            fsdb_service_utils,
-            "_FSDB_SERVICE_RSYSLOG_CONF_PATH",
-            str(tmp_path / "rsyslog.conf"),
+            fsdb_service_utils.service_utils,
+            "write_rsyslog_conf",
+            lambda *a, **k: None,
         )
 
     def test_raises_when_binary_missing(self, monkeypatch, tmp_path):
@@ -66,25 +65,16 @@ class TestSetupPreconditions:
 
 
 class TestStartColdVsWarmBoot:
-    def test_cold_boot_creates_marker(self):
-        with (
-            patch.object(fsdb_service_utils.subprocess, "run") as mock_run,
-            patch.object(
-                fsdb_service_utils, "_setup_fsdb_service_coldboot"
-            ) as mock_marker,
-        ):
-            _start_fsdb_service(is_warm_boot=False)
-            mock_marker.assert_called_once()
-            commands = "\n".join(c.args[0] for c in mock_run.call_args_list)
-            assert "systemctl enable" in commands
-            assert "systemctl start fsdb_service_oss" in commands
+    def test_cold_boot_passes_warm_boot_false(self):
+        with patch("services.fsdb_service_utils.service_utils") as mock_svc:
+            mock_svc.validate_path = lambda *a: None
+            setup_and_start_fsdb_service(is_warm_boot=False)
+        mock_svc.start_service.assert_called_once()
+        assert mock_svc.start_service.call_args[1]["is_warm_boot"] is False
 
-    def test_warm_boot_skips_marker(self):
-        with (
-            patch.object(fsdb_service_utils.subprocess, "run"),
-            patch.object(
-                fsdb_service_utils, "_setup_fsdb_service_coldboot"
-            ) as mock_marker,
-        ):
-            _start_fsdb_service(is_warm_boot=True)
-        mock_marker.assert_not_called()
+    def test_warm_boot_passes_warm_boot_true(self):
+        with patch("services.fsdb_service_utils.service_utils") as mock_svc:
+            mock_svc.validate_path = lambda *a: None
+            setup_and_start_fsdb_service(is_warm_boot=True)
+        mock_svc.start_service.assert_called_once()
+        assert mock_svc.start_service.call_args[1]["is_warm_boot"] is True

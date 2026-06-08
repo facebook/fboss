@@ -10,8 +10,9 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-import fboss_agent_utils
-from fboss_agent_utils import (
+import services.fboss_agent_utils as fboss_agent_utils
+import services.service_utils as service_utils
+from services.fboss_agent_utils import (
     agent_can_warm_boot_file_path,
     cleanup_hw_agent_service,
     setup_and_start_hw_agent_service,
@@ -32,7 +33,7 @@ class TestAgentCanWarmBootFilePath:
 
 class TestCleanupHwAgentService:
     def test_stops_all_three_service_variants_and_pkills(self):
-        with patch.object(fboss_agent_utils.subprocess, "run") as mock_run:
+        with patch.object(service_utils.subprocess, "run") as mock_run:
             cleanup_hw_agent_service([0])
 
         joined = "\n".join(c.args[0] for c in mock_run.call_args_list)
@@ -115,13 +116,19 @@ class TestWarmBootMissingFileBehavior:
             rc = 1 if cmd.startswith("stat ") else 0
             return MagicMock(returncode=rc)
 
-        with patch.object(
-            fboss_agent_utils.subprocess, "run", side_effect=fake_run
-        ) as mock_run:
+        all_commands = []
+
+        def tracking_fake(cmd, **kw):
+            all_commands.append(cmd)
+            return fake_run(cmd, **kw)
+
+        with (
+            patch.object(
+                fboss_agent_utils.subprocess, "run", side_effect=tracking_fake
+            ),
+            patch.object(service_utils.subprocess, "run", side_effect=tracking_fake),
+        ):
             return_codes = warm_boot_hw_agent(switch_indexes=[0])
 
-        commands = [c.args[0] for c in mock_run.call_args_list]
-        assert any(
-            c.startswith("systemctl start fboss_hw_agent_oss@0") for c in commands
-        )
+        assert any("systemctl start fboss_hw_agent_oss@0" in c for c in all_commands)
         assert return_codes == [0]

@@ -2,11 +2,11 @@
 # @noautodeps
 # Copyright Meta Platforms, Inc. and affiliates.
 
-import os
 import subprocess
 import typing as t
 
-_DEFAULT_OSS_LOG_DIR = "/opt/fboss/logs/"
+from services import service_utils
+
 _DEFAULT_OSS_HW_AGENT_SERVICE_PATH = "/opt/fboss/bin/fboss_hw_agent-sai_impl"
 _PLATFORM_MAPPING_OVERRIDE_PATH_ARG = "--platform_mapping_override_path"
 
@@ -21,48 +21,9 @@ _HW_AGENT_SERVICE_FOR_TESTING = "fboss_hw_agent_for_testing_"
 SW_AGENT_SERVICE_PROD = "fboss_sw_agent"
 _DEFAULT_OSS_SW_AGENT_SERVICE_PATH = "/opt/fboss/bin/fboss_sw_agent"
 
-_SW_AGENT_SERVICE_UNIT_FILE_TEMPLATE = """
-[Unit]
-Description=FBOSS SW Agent Service
-
-[Service]
-LimitNOFILE=10000000
-LimitCORE=32G
-MemoryMax=3.75G
-MemorySwapMax=0
-
-Environment=TSAN_OPTIONS=die_after_fork=0
-Environment=LD_LIBRARY_PATH=/opt/fboss/lib
-ExecStart={sw_agent_service_cmd}
-SyslogIdentifier={service_name}
-Restart=no
-
-[Install]
-WantedBy=multi-user.target
-"""
-
 FBOSS_WARMBOOT_DIR = f"{FBOSS_AGENT_VOLATILE_STATE_DIR}/warm_boot"
 
 _HW_AGENT_SERVICE_OSS = "fboss_hw_agent_oss@"
-_HW_AGENT_SERVICE_UNIT_FILE_TEMPLATE = """
-[Unit]
-Description=FBOSS HW Agent Service
-
-[Service]
-LimitNOFILE=10000000
-LimitCORE=32G
-MemoryMax=3.75G
-MemorySwapMax=0
-
-Environment=TSAN_OPTIONS=die_after_fork=0
-Environment=LD_LIBRARY_PATH=/opt/fboss/lib
-ExecStart={hw_agent_service_cmd}
-SyslogIdentifier={service_name}{switch_index}
-Restart=no
-
-[Install]
-WantedBy=multi-user.target
-"""
 
 
 def agent_can_warm_boot_file_path(switch_index: t.Optional[int] = None) -> str:
@@ -79,14 +40,12 @@ def cleanup_hw_agent_service(switch_indexes: t.List[int]) -> None:
             _HW_AGENT_SERVICE_FOR_TESTING,
             _HW_AGENT_SERVICE_OSS,
         ]:
-            subprocess.run(f"systemctl stop {svc}{switch_index}", shell=True)
-            subprocess.run(f"pkill -f {svc}{switch_index}", shell=True)
-            subprocess.run(f"rm -f /etc/rsyslog.d/{svc}{switch_index}.conf", shell=True)
-        subprocess.run(
-            f"systemctl disable {_HW_AGENT_SERVICE_OSS}{switch_index}", shell=True
-        )
-        subprocess.run("systemctl daemon-reload", shell=True)
-    subprocess.run("systemctl restart rsyslog", shell=True)
+            service_utils.systemctl_stop(f"{svc}{switch_index}")
+            service_utils.pkill_service(f"{svc}{switch_index}")
+            service_utils.remove_rsyslog_conf(f"{svc}{switch_index}")
+        service_utils.systemctl_disable(f"{_HW_AGENT_SERVICE_OSS}{switch_index}")
+        service_utils.systemctl_daemon_reload()
+    service_utils.restart_rsyslog()
 
 
 def _manage_hw_agent_service(
@@ -95,15 +54,16 @@ def _manage_hw_agent_service(
     service_name: str = _HW_AGENT_SERVICE_OSS,
 ) -> t.List[int]:
     return_codes = []
-    op = "start" if isStart else "stop"
     op_ing = "Starting" if isStart else "Stopping"
+    manage_fn = (
+        service_utils.systemctl_start if isStart else service_utils.systemctl_stop
+    )
     for switch_index in switch_indexes:
         print(f"{op_ing} FBOSS HW Agent Service for index={switch_index}...")
-        ret = subprocess.run(
-            f"systemctl {op} {service_name}{switch_index}", shell=True
-        ).returncode
+        ret = manage_fn(f"{service_name}{switch_index}")
         return_codes.append(ret)
         if ret != 0:
+            op = "start" if isStart else "stop"
             print(
                 f"Failed to {op} FBOSS HW Agent Service for index={switch_index} with return code {ret}"
             )
@@ -179,15 +139,10 @@ def _setup_hw_agent_service(
 ) -> None:
     if not hw_agent_service_bin_path:
         hw_agent_service_bin_path = _DEFAULT_OSS_HW_AGENT_SERVICE_PATH
-    if not os.path.exists(hw_agent_service_bin_path):
-        raise Exception(
-            f"HW Agent Service binary path {hw_agent_service_bin_path} does not exist"
-        )
-    print(f"HW Agent Service binary path: {hw_agent_service_bin_path}")
-
-    if not os.path.exists(fboss_agent_config_path):
-        raise Exception(f"Agent config path {fboss_agent_config_path} does not exist")
-    print(f"FBOSS Agent config path: {fboss_agent_config_path}")
+    service_utils.validate_path(
+        hw_agent_service_bin_path, "HW Agent Service binary path"
+    )
+    service_utils.validate_path(fboss_agent_config_path, "FBOSS Agent config path")
 
     cleanup_hw_agent_service(switch_indexes)
 
@@ -197,10 +152,9 @@ def _setup_hw_agent_service(
 
         extra_args = "--hw_agent_for_testing=true" if hw_agent_for_testing else ""
         if platform_mapping_override_path:
-            if not os.path.exists(platform_mapping_override_path):
-                raise Exception(
-                    f"Platform mapping override path {platform_mapping_override_path} does not exist"
-                )
+            service_utils.validate_path(
+                platform_mapping_override_path, "Platform mapping override path"
+            )
             extra_args += f" {_PLATFORM_MAPPING_OVERRIDE_PATH_ARG} {platform_mapping_override_path}"
         if sai_replayer_log_path:
             extra_args += f" --sai_log {sai_replayer_log_path}"
@@ -213,31 +167,21 @@ def _setup_hw_agent_service(
 
         hw_agent_service_cmd = f"{hw_agent_service_bin_path} --config {fboss_agent_config_path} --switchIndex {switch_index} {extra_args}"
         unit_file_path = f"/tmp/{service_full_name}.service"
-        with open(unit_file_path, "w") as f:
-            f.write(
-                _HW_AGENT_SERVICE_UNIT_FILE_TEMPLATE.format(
-                    hw_agent_service_cmd=hw_agent_service_cmd,
-                    service_name=hw_agent_service_name,
-                    switch_index=switch_index,
-                )
-            )
-            f.flush()
-
-        rsyslog_conf_path = f"/etc/rsyslog.d/{service_full_name}.conf"
-        rsyslog_content = (
-            f'if $programname == "{service_full_name}" '
-            f"then {_DEFAULT_OSS_LOG_DIR}/{service_full_name}.log\n"
-            f"& stop\n"
+        service_utils.write_unit_file(
+            unit_file_path,
+            service_utils.build_unit_file_content(
+                description="FBOSS HW Agent Service",
+                exec_start_cmd=hw_agent_service_cmd,
+                syslog_identifier=f"{hw_agent_service_name}{switch_index}",
+            ),
         )
-        with open(rsyslog_conf_path, "w") as f:
-            f.write(rsyslog_content)
-            f.flush()
+        service_utils.write_rsyslog_conf(service_full_name)
 
     subprocess.run("systemctl restart rsyslog; sleep 5", shell=True)
     for switch_index in switch_indexes:
         unit_file = f"/tmp/{hw_agent_service_name}{switch_index}.service"
         subprocess.run(f"systemctl enable {unit_file}", shell=True)
-    subprocess.run("systemctl daemon-reload", shell=True)
+    service_utils.systemctl_daemon_reload()
 
 
 def setup_and_start_hw_agent_service(
@@ -286,12 +230,10 @@ def cleanup_sw_agent_service(
     sw_agent_service_name: str = SW_AGENT_SERVICE_PROD,
 ) -> None:
     print(f"Cleaning up FBOSS SW Agent Service ({sw_agent_service_name})...")
-    subprocess.run(f"systemctl stop {sw_agent_service_name}", shell=True)
-    subprocess.run(f"systemctl disable {sw_agent_service_name}", shell=True)
-    subprocess.run("systemctl daemon-reload", shell=True)
-    subprocess.run(f"pkill -f {sw_agent_service_name}", shell=True)
-    subprocess.run(f"rm -f /etc/rsyslog.d/{sw_agent_service_name}.conf", shell=True)
-    subprocess.run("systemctl restart rsyslog", shell=True)
+    service_utils.cleanup_service(
+        service_names_to_stop=[sw_agent_service_name],
+        service_name_to_disable=sw_agent_service_name,
+    )
 
 
 def _manage_sw_agent_service(
@@ -301,9 +243,10 @@ def _manage_sw_agent_service(
     op = "start" if is_start else "stop"
     op_ing = "Starting" if is_start else "Stopping"
     print(f"{op_ing} FBOSS SW Agent Service ({sw_agent_service_name})...")
-    ret = subprocess.run(
-        f"systemctl {op} {sw_agent_service_name}", shell=True
-    ).returncode
+    manage_fn = (
+        service_utils.systemctl_start if is_start else service_utils.systemctl_stop
+    )
+    ret = manage_fn(sw_agent_service_name)
     if ret != 0:
         print(
             f"Failed to {op} FBOSS SW Agent Service ({sw_agent_service_name}) "
@@ -361,14 +304,10 @@ def _setup_sw_agent_service(
 ) -> None:
     if not sw_agent_service_bin_path:
         sw_agent_service_bin_path = _DEFAULT_OSS_SW_AGENT_SERVICE_PATH
-    if not os.path.exists(sw_agent_service_bin_path):
-        raise Exception(
-            f"SW Agent Service binary path {sw_agent_service_bin_path} does not exist"
-        )
-    print(f"SW Agent Service binary path: {sw_agent_service_bin_path}")
-
-    if not os.path.exists(fboss_agent_config_path):
-        raise Exception(f"Agent config path {fboss_agent_config_path} does not exist")
+    service_utils.validate_path(
+        sw_agent_service_bin_path, "SW Agent Service binary path"
+    )
+    service_utils.validate_path(fboss_agent_config_path, "FBOSS Agent config path")
 
     cleanup_sw_agent_service(sw_agent_service_name)
 
@@ -378,28 +317,18 @@ def _setup_sw_agent_service(
         " --multi_switch --fsdb_client_ssl_preferred=false"
     )
     unit_file_path = f"/tmp/{sw_agent_service_name}.service"
-    with open(unit_file_path, "w") as f:
-        f.write(
-            _SW_AGENT_SERVICE_UNIT_FILE_TEMPLATE.format(
-                sw_agent_service_cmd=sw_agent_service_cmd,
-                service_name=sw_agent_service_name,
-            )
-        )
-        f.flush()
 
-    rsyslog_conf_path = f"/etc/rsyslog.d/{sw_agent_service_name}.conf"
-    rsyslog_content = (
-        f'if $programname == "{sw_agent_service_name}" '
-        f"then {_DEFAULT_OSS_LOG_DIR}/{sw_agent_service_name}.log\n"
-        f"& stop\n"
+    service_utils.setup_service(
+        service_name=sw_agent_service_name,
+        unit_file_path=unit_file_path,
+        unit_file_content=service_utils.build_unit_file_content(
+            description="FBOSS SW Agent Service",
+            exec_start_cmd=sw_agent_service_cmd,
+            syslog_identifier=sw_agent_service_name,
+        ),
     )
-    with open(rsyslog_conf_path, "w") as f:
-        f.write(rsyslog_content)
-        f.flush()
-
-    subprocess.run("systemctl restart rsyslog; sleep 5", shell=True)
     subprocess.run(f"systemctl enable {unit_file_path}", shell=True)
-    subprocess.run("systemctl daemon-reload", shell=True)
+    service_utils.systemctl_daemon_reload()
 
 
 def setup_and_start_sw_agent_service(
@@ -442,16 +371,11 @@ def is_agent_running(
     Returns a list of bools: index 0 is sw_agent, rest are hw_agent per switch index.
     """
     results: t.List[bool] = []
-    ret = subprocess.run(
-        f"systemctl is-active --quiet {sw_agent_service_name}", shell=True
-    ).returncode
-    results.append(ret == 0)
+    results.append(service_utils.systemctl_is_active(sw_agent_service_name))
     for switch_index in switch_indexes:
-        ret = subprocess.run(
-            f"systemctl is-active --quiet {hw_agent_service_name}{switch_index}",
-            shell=True,
-        ).returncode
-        results.append(ret == 0)
+        results.append(
+            service_utils.systemctl_is_active(f"{hw_agent_service_name}{switch_index}")
+        )
     return results
 
 

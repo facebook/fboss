@@ -115,15 +115,29 @@ class PackageFboss:
     def _copy_run_scripts(self, tmp_dir_name):
         run_scripts_path = self.get_fboss_subdirectory("fboss/oss/scripts/run_scripts")
 
+        # Test-only and cache dirs are never imported at runtime and must be
+        # skipped at this top level: the ignore_patterns below only filters
+        # entries *within* a copied directory, not the root passed to copytree.
+        skip_dirs = {"unittests", "tests", "__pycache__"}
         src_files = os.listdir(run_scripts_path)
         for file_name in src_files:
+            if file_name in skip_dirs:
+                continue
             full_file_name = os.path.join(run_scripts_path, file_name)
             script_pkg_path = os.path.join(tmp_dir_name, PackageFboss.BIN)
-            try:
+            # run_test.py imports the fboss_test_runner package, so directories
+            # (the package and its subpackages) must be copied too, not skipped.
+            if os.path.isdir(full_file_name):
+                shutil.copytree(
+                    full_file_name,
+                    os.path.join(script_pkg_path, file_name),
+                    ignore=shutil.ignore_patterns("__pycache__", "unittests", "tests"),
+                    dirs_exist_ok=True,
+                )
+                print(f"Copied directory {full_file_name} to {script_pkg_path}")
+            else:
                 shutil.copy(full_file_name, script_pkg_path)
                 print(f"Copied {full_file_name} to {script_pkg_path}")
-            except IsADirectoryError:
-                print(f"Skipping directory: {full_file_name}")
 
     def _copy_run_configs(self, tmp_dir_name):
         run_configs_path = self.get_fboss_subdirectory("fboss/oss/scripts/run_configs")

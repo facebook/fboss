@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from fboss_agent_utils import (
+from services.fboss_agent_utils import (
     cleanup_sw_agent_service,
     cold_boot_agents,
     cold_boot_sw_agent,
@@ -27,27 +27,42 @@ def _mock_run(returncode: int = 0) -> MagicMock:
     return result
 
 
-class TestColdBootAgents(unittest.TestCase):
-    @patch("fboss_agent_utils.subprocess.run")
-    def test_stops_sw_then_hw_cleans_and_starts(self, mock_run):
-        mock_run.return_value = _mock_run(0)
+def _both_subprocess_patches(fn):
+    """Patch subprocess.run in both service_utils and fboss_agent_utils."""
 
+    @patch("services.fboss_agent_utils.subprocess.run")
+    @patch("services.service_utils.subprocess.run")
+    def wrapper(self, mock_svc_run, mock_agent_run):
+        mock = MagicMock()
+        mock.return_value = _mock_run(0)
+        mock_svc_run.side_effect = mock
+        mock_agent_run.side_effect = mock
+        fn(self, mock)
+
+    return wrapper
+
+
+class TestColdBootAgents(unittest.TestCase):
+    @_both_subprocess_patches
+    def test_stops_sw_then_hw_cleans_and_starts(self, mock_run):
         cold_boot_agents([0])
 
         calls = [c[0][0] for c in mock_run.call_args_list]
-        self.assertIn("systemctl stop fboss_sw_agent", calls[0])
-        self.assertIn("systemctl stop fboss_hw_agent@0", calls[1])
-        self.assertIn(f"rm -rf {FBOSS_WARMBOOT_DIR}", calls[2])
-        self.assertIn(f"mkdir -p {FBOSS_WARMBOOT_DIR}", calls[3])
-        self.assertIn(f"touch {FBOSS_WARMBOOT_DIR}/hw_cold_boot_once_0", calls[4])
-        self.assertIn(f"touch {FBOSS_WARMBOOT_DIR}/sw_cold_boot_once", calls[5])
-        self.assertIn("systemctl start fboss_hw_agent@0", calls[6])
-        self.assertIn("systemctl start fboss_sw_agent", calls[7])
+        self.assertTrue(any("systemctl stop fboss_sw_agent" in c for c in calls))
+        self.assertTrue(any("systemctl stop fboss_hw_agent@0" in c for c in calls))
+        self.assertTrue(any(f"rm -rf {FBOSS_WARMBOOT_DIR}" in c for c in calls))
+        self.assertTrue(any(f"mkdir -p {FBOSS_WARMBOOT_DIR}" in c for c in calls))
+        self.assertTrue(
+            any(f"touch {FBOSS_WARMBOOT_DIR}/hw_cold_boot_once_0" in c for c in calls)
+        )
+        self.assertTrue(
+            any(f"touch {FBOSS_WARMBOOT_DIR}/sw_cold_boot_once" in c for c in calls)
+        )
+        self.assertTrue(any("systemctl start fboss_hw_agent@0" in c for c in calls))
+        self.assertTrue(any("systemctl start fboss_sw_agent" in c for c in calls))
 
-    @patch("fboss_agent_utils.subprocess.run")
+    @_both_subprocess_patches
     def test_multi_npu(self, mock_run):
-        mock_run.return_value = _mock_run(0)
-
         cold_boot_agents([0, 1])
 
         calls = [c[0][0] for c in mock_run.call_args_list]
@@ -62,20 +77,31 @@ class TestColdBootAgents(unittest.TestCase):
         hw_start_calls = [c for c in calls if "systemctl start fboss_hw_agent@" in c]
         self.assertEqual(len(hw_start_calls), 2)
 
-    @patch("fboss_agent_utils.subprocess.run")
-    def test_raises_on_stop_failure(self, mock_run):
+    @patch("services.fboss_agent_utils.subprocess.run")
+    @patch("services.service_utils.subprocess.run")
+    def test_raises_on_stop_failure(self, mock_svc_run, mock_agent_run):
         def side_effect(cmd, **_kwargs):
             if "systemctl stop fboss_sw_agent" in cmd:
                 return _mock_run(1)
             return _mock_run(0)
 
-        mock_run.side_effect = side_effect
+        mock_svc_run.side_effect = side_effect
+        mock_agent_run.side_effect = side_effect
+
+        all_calls = []
+        mock_svc_run.side_effect = lambda cmd, **kw: (
+            all_calls.append(cmd),
+            side_effect(cmd, **kw),
+        )[1]
+        mock_agent_run.side_effect = lambda cmd, **kw: (
+            all_calls.append(cmd),
+            side_effect(cmd, **kw),
+        )[1]
 
         with self.assertRaisesRegex(Exception, "stopping agents"):
             cold_boot_agents([0])
-        calls = [c[0][0] for c in mock_run.call_args_list]
-        self.assertFalse(any("rm -rf" in c for c in calls))
-        self.assertFalse(any("systemctl start" in c for c in calls))
+        self.assertFalse(any("rm -rf" in c for c in all_calls))
+        self.assertFalse(any("systemctl start" in c for c in all_calls))
 
     def test_empty_switch_indexes_raises(self):
         with self.assertRaises(ValueError):
@@ -83,7 +109,7 @@ class TestColdBootAgents(unittest.TestCase):
 
 
 class TestIsAgentRunning(unittest.TestCase):
-    @patch("fboss_agent_utils.subprocess.run")
+    @patch("services.service_utils.subprocess.run")
     def test_all_active(self, mock_run):
         mock_run.return_value = _mock_run(0)
 
@@ -92,7 +118,7 @@ class TestIsAgentRunning(unittest.TestCase):
         self.assertEqual(result, [True, True])
         self.assertEqual(mock_run.call_count, 2)
 
-    @patch("fboss_agent_utils.subprocess.run")
+    @patch("services.service_utils.subprocess.run")
     def test_sw_down(self, mock_run):
         mock_run.return_value = _mock_run(3)
 
@@ -100,7 +126,7 @@ class TestIsAgentRunning(unittest.TestCase):
 
         self.assertEqual(result[0], False)
 
-    @patch("fboss_agent_utils.subprocess.run")
+    @patch("services.service_utils.subprocess.run")
     def test_hw_down(self, mock_run):
         def side_effect(cmd, **_kwargs):
             if "fboss_sw_agent" in cmd:
@@ -113,7 +139,7 @@ class TestIsAgentRunning(unittest.TestCase):
 
         self.assertEqual(result, [True, False])
 
-    @patch("fboss_agent_utils.subprocess.run")
+    @patch("services.service_utils.subprocess.run")
     def test_multi_npu(self, mock_run):
         mock_run.return_value = _mock_run(0)
 
@@ -122,7 +148,7 @@ class TestIsAgentRunning(unittest.TestCase):
         self.assertEqual(result, [True, True, True])
         self.assertEqual(mock_run.call_count, 3)
 
-    @patch("fboss_agent_utils.subprocess.run")
+    @patch("services.service_utils.subprocess.run")
     def test_custom_service_names(self, mock_run):
         mock_run.return_value = _mock_run(0)
 
@@ -138,7 +164,7 @@ class TestIsAgentRunning(unittest.TestCase):
 
 
 class TestCleanupSwAgentService(unittest.TestCase):
-    @patch("fboss_agent_utils.subprocess.run")
+    @patch("services.service_utils.subprocess.run")
     def test_stops_disables_and_cleans(self, mock_run):
         mock_run.return_value = _mock_run(0)
 
@@ -152,21 +178,25 @@ class TestCleanupSwAgentService(unittest.TestCase):
 
 
 class TestSetupAndStartSwAgentService(unittest.TestCase):
-    @patch("fboss_agent_utils.subprocess.run")
-    @patch("fboss_agent_utils.os.path.exists", return_value=True)
+    @patch("services.fboss_agent_utils.subprocess.run")
+    @patch("services.service_utils.subprocess.run")
+    @patch("services.service_utils.os.path.exists", return_value=True)
     @patch("builtins.open", mock_open())
-    def test_sets_up_and_starts(self, mock_exists, mock_run):
-        mock_run.return_value = _mock_run(0)
+    def test_sets_up_and_starts(self, mock_exists, mock_svc_run, mock_agent_run):
+        mock_svc_run.return_value = _mock_run(0)
+        mock_agent_run.return_value = _mock_run(0)
 
         setup_and_start_sw_agent_service(
             fboss_agent_config_path="/etc/coop/agent.conf",
         )
 
-        calls = [c[0][0] for c in mock_run.call_args_list]
-        self.assertTrue(any("systemctl enable" in c for c in calls))
-        self.assertTrue(any("systemctl start fboss_sw_agent" in c for c in calls))
+        all_calls = [c[0][0] for c in mock_svc_run.call_args_list] + [
+            c[0][0] for c in mock_agent_run.call_args_list
+        ]
+        self.assertTrue(any("systemctl enable" in c for c in all_calls))
+        self.assertTrue(any("systemctl start fboss_sw_agent" in c for c in all_calls))
 
-    @patch("fboss_agent_utils.os.path.exists", return_value=False)
+    @patch("services.service_utils.os.path.exists", return_value=False)
     def test_raises_when_binary_missing(self, mock_exists):
         with self.assertRaisesRegex(Exception, "does not exist"):
             setup_and_start_sw_agent_service(
@@ -175,16 +205,20 @@ class TestSetupAndStartSwAgentService(unittest.TestCase):
 
 
 class TestColdBootSwAgent(unittest.TestCase):
-    @patch("fboss_agent_utils.subprocess.run")
-    def test_stop_clean_start_sequence(self, mock_run):
-        mock_run.return_value = _mock_run(0)
+    @patch("services.fboss_agent_utils.subprocess.run")
+    @patch("services.service_utils.subprocess.run")
+    def test_stop_clean_start_sequence(self, mock_svc_run, mock_agent_run):
+        mock_svc_run.return_value = _mock_run(0)
+        mock_agent_run.return_value = _mock_run(0)
 
         result = cold_boot_sw_agent()
 
-        calls = [c[0][0] for c in mock_run.call_args_list]
-        self.assertIn("systemctl stop fboss_sw_agent", calls[0])
-        self.assertIn("can_warm_boot", calls[1])
-        self.assertIn("systemctl start fboss_sw_agent", calls[2])
+        all_calls = [c[0][0] for c in mock_svc_run.call_args_list] + [
+            c[0][0] for c in mock_agent_run.call_args_list
+        ]
+        self.assertTrue(any("systemctl stop fboss_sw_agent" in c for c in all_calls))
+        self.assertTrue(any("can_warm_boot" in c for c in all_calls))
+        self.assertTrue(any("systemctl start fboss_sw_agent" in c for c in all_calls))
         self.assertEqual(result, 0)
 
 

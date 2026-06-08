@@ -16,7 +16,7 @@ from argparse import ArgumentParser
 from datetime import datetime
 from typing import ClassVar
 
-from fboss_agent_utils import (
+from services.fboss_agent_utils import (
     agent_can_warm_boot_file_path,
     cleanup_hw_agent_service,
     cleanup_sw_agent_service,
@@ -27,8 +27,14 @@ from fboss_agent_utils import (
     setup_and_start_sw_agent_service,
     SW_AGENT_SERVICE_PROD,
 )
-from fsdb_service_utils import cleanup_fsdb_service, setup_and_start_fsdb_service
-from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_service
+from services.fsdb_service_utils import (
+    cleanup_fsdb_service,
+    setup_and_start_fsdb_service,
+)
+from services.qsfp_service_utils import (
+    cleanup_qsfp_service,
+    setup_and_start_qsfp_service,
+)
 
 # FBOSS Hardware Test Runner
 #
