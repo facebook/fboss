@@ -96,8 +96,8 @@ bool ConfigUtils::hasConfigChanged() {
     // reload kmods. Once units have the config hash file, we can change the
     // behavior to trigger relaoding of kmods if config hash file is missing.
     XLOG(INFO)
-        << "No stored config hash found, can't determine if config has changed";
-    return false;
+        << "No stored config hash found, can't determine if config has changed. Assuming config has changed.";
+    return true;
   }
 
   auto storedHash = folly::trimWhitespace(storedHashResult.value()).toString();
