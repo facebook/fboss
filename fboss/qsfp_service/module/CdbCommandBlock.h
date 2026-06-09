@@ -60,7 +60,9 @@ class CdbCommandBlock {
   static constexpr uint8_t kCdbLplMemoryLength = 120;
 
   // Constructor to initialize data block from 0
-  CdbCommandBlock() {
+  explicit CdbCommandBlock(
+      uint64_t cdbWriteDelayUsec = POST_I2C_WRITE_DELAY_CDB_US)
+      : cdbWriteDelayUsec_(cdbWriteDelayUsec) {
     resetCdbBlock();
   }
 
@@ -230,6 +232,7 @@ class CdbCommandBlock {
   std::chrono::duration<uint32_t, std::milli> commandBlockCdbWaitTime_{0};
   std::chrono::duration<uint32_t, std::milli> memoryWriteTime_{0};
   uint8_t lastCdbStatus_{0};
+  uint64_t cdbWriteDelayUsec_;
 
   // Utility function to compute the One's complement sum
   uint8_t onesComplementSum();

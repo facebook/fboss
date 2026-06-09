@@ -48,7 +48,8 @@ class CmisFirmwareUpgrader {
   CmisFirmwareUpgrader(
       TransceiverImpl* bus,
       unsigned int modId,
-      FbossFirmware* fbossFirmware);
+      FbossFirmware* fbossFirmware,
+      uint64_t cdbWriteDelayUsec = POST_I2C_WRITE_DELAY_CDB_US);
 
   // Function to trigger the firmware download to the QSFP module of CMIS type
   bool cmisModuleFirmwareUpgrade();
@@ -72,6 +73,8 @@ class CmisFirmwareUpgrader {
   uint32_t imageHeaderLen_;
   // Image type (App/Dsp)
   bool appImage_{true};
+  // Post-write delay for CDB I2C transactions during firmware upgrade
+  uint64_t cdbWriteDelayUsec_;
 
   // Private function to finally download firmware image on module using cdb
   // process
