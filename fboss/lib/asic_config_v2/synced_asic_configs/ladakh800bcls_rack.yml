@@ -1871,7 +1871,7 @@ device:
         552], [554, 554], [558, 558], [560, 560], [562, 562], [564, 564], [566, 566],
         [568, 568], [570, 570], [572, 572]]
       :
-        ENABLE: 1
+        ENABLE: 0
         SPEED: 400000
         NUM_LANES: 2
         FEC_MODE: PC_FEC_RS544_2XN_IEEE
@@ -1880,7 +1880,7 @@ device:
       ?
         PORT_ID: 268
       :
-        ENABLE: 1
+        ENABLE: 0
         SPEED: 100000
         NUM_LANES: 4
         FEC_MODE: PC_FEC_RS528
