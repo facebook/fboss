@@ -295,7 +295,6 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
-
   // Test 11: Valid with differing pciDeviceConfigs (allowed to differ)
   auto pciDev1 = getValidPciDeviceConfig();
   auto pciDev2 = getValidPciDeviceConfig();
