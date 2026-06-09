@@ -4641,7 +4641,7 @@
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
         }
     ],
-    "leaba/26.2.5210/26.2.5210/graphene200/mono": [
+    "leaba/26.2.4210/26.2.4210/graphene200/mono": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
@@ -4730,7 +4730,7 @@
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
         }
     ],
-    "leaba/26.2.5210/26.2.5210/graphene200/multi_switch": [
+    "leaba/26.2.4210/26.2.4210/graphene200/multi_switch": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
@@ -4819,7 +4819,7 @@
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
         }
     ],
-    "leaba/26.2.5210/26.2.5210/graphene200/multi_switch/rbb": [
+    "leaba/26.2.4210/26.2.4210/graphene200/multi_switch/rbb": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
