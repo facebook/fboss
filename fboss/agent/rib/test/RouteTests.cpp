@@ -1968,6 +1968,97 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughTwoOpenrRoutes) {
   EXPECT_TRUE(intfs.count(InterfaceID(2)));
 }
 
+// Same-prefix client preference: an OpenR route (no SID lists) and a TE_Agent
+// route (with SID lists) share a prefix. The TE_Agent route has the lower admin
+// distance, so it wins best-entry selection and its SID lists are programmed.
+TEST(Route, srv6TeAgentRoutePreferredOverOpenrByAdminDistance) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  const std::vector<folly::IPAddressV6> sidList1{
+      folly::IPAddressV6("fdad:ffff:0001:0002::")};
+  const std::vector<folly::IPAddressV6> sidList2{
+      folly::IPAddressV6("fdad:ffff:0003:0004::")};
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr);
+
+  RouteV6::Prefix prefix{IPAddressV6("2001::"), 64};
+
+  // 1. OpenR route for the prefix with two link-local next hops, no SID lists.
+  RouteNextHopSet openrNhops{
+      ResolvedNextHop(IPAddress("fe80::1"), InterfaceID(1), ECMP_WEIGHT),
+      ResolvedNextHop(IPAddress("fe80::2"), InterfaceID(2), ECMP_WEIGHT)};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::OPENR,
+      {
+          {{prefix.network(), prefix.mask()},
+           RouteNextHopEntry(openrNhops, AdminDistance::OPENR)},
+      },
+      {},
+      false);
+
+  // 2. TE_Agent route for the SAME prefix with the same next hops, but each
+  //    carrying its own SID list. Lower admin distance than OpenR.
+  RouteNextHopSet teNhops;
+  teNhops.emplace(ResolvedNextHop(
+      IPAddress("fe80::1"),
+      InterfaceID(1),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList1,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel1")));
+  teNhops.emplace(ResolvedNextHop(
+      IPAddress("fe80::2"),
+      InterfaceID(2),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList2,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel2")));
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::TE_AGENT,
+      {
+          {{prefix.network(), prefix.mask()},
+           RouteNextHopEntry(teNhops, AdminDistance::TE_AGENT)},
+      },
+      {},
+      false);
+
+  // 3. TE_Agent entry wins (admin distance 2 < OpenR's 10), so the resolved
+  //    next hops carry the TE_Agent SID lists.
+  auto it = v6Routes.exactMatch(prefix.network(), prefix.mask());
+  ASSERT_NE(v6Routes.end(), it);
+  auto route = it->value();
+  EXPECT_TRUE(route->isResolved());
+  EXPECT_EQ(route->getBestEntry().first, ClientID::TE_AGENT);
+  EXPECT_EQ(
+      route->getForwardInfo().getAdminDistance(), AdminDistance::TE_AGENT);
+
+  const auto& resolvedNhops = route->getForwardInfo().getNextHopSet();
+  ASSERT_EQ(resolvedNhops.size(), 2);
+  for (const auto& nh : resolvedNhops) {
+    EXPECT_TRUE(nh.isResolved());
+    EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    if (nh.intf() == InterfaceID(1)) {
+      EXPECT_EQ(nh.srv6SegmentList(), sidList1);
+      EXPECT_EQ(nh.tunnelId(), "tunnel1");
+    } else if (nh.intf() == InterfaceID(2)) {
+      EXPECT_EQ(nh.srv6SegmentList(), sidList2);
+      EXPECT_EQ(nh.tunnelId(), "tunnel2");
+    } else {
+      FAIL() << "Unexpected interface on resolved next hop";
+    }
+  }
+}
+
 TEST(RibRouteTables, getVrfList) {
   RoutingInformationBase rib;
 
