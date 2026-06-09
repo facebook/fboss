@@ -1626,8 +1626,17 @@ service TBgpService extends fb303.FacebookService {
 
   /**
    * Clear RouteFilterPolicy.
+   * Note: When CRF FILE_MODE is active, this operation is silently skipped.
    */
   void clearRouteFilterPolicy();
+
+  /**
+   * [Route Filter Policy - File Mode]
+   * Refresh CRF policy from the local artifact file.
+   * Reads CrfPolicyArtifact, syncs dryrun mode, and applies policy if
+   * dryrun=false (FILE_MODE).
+   */
+  TResult setCrfPolicyFromFile();
 
   /**
    * [Watchdog]
