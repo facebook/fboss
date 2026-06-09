@@ -1237,8 +1237,8 @@
             "g202x"
           ],
           "sdk": 2,
-          "minSdkVersion": "26.2.5210",
-          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+          "minSdkVersion": "26.2.4210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.4210"
         }
       ]
     },
@@ -1251,8 +1251,8 @@
             "g202x"
           ],
           "sdk": 2,
-          "minSdkVersion": "26.2.5210",
-          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+          "minSdkVersion": "26.2.4210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.4210"
         }
       ]
     },
@@ -1265,8 +1265,8 @@
             "g202x"
           ],
           "sdk": 2,
-          "minSdkVersion": "26.2.5210",
-          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+          "minSdkVersion": "26.2.4210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.4210"
         }
       ]
     },
@@ -1280,7 +1280,7 @@
           ],
           "sdk": 2,
           "minSdkVersion": "25.5.4210",
-          "note": "Per-port link debounce timers require SAI_PORT_ATTR_LINK_{UP,DOWN}_DEBOUNCE_PERIOD_MILLISECONDS. Supported on Leaba SAI 25.5.4210 and 26.2.5210+. Regressed on 25.11.4210 (g202x) — see sai_graphene202x_25_11_unsupported_tests in sai_agent_test.cinc."
+          "note": "Per-port link debounce timers require SAI_PORT_ATTR_LINK_{UP,DOWN}_DEBOUNCE_PERIOD_MILLISECONDS. Supported on Leaba SAI 25.5.4210 and 26.2.4210+. Regressed on 25.11.4210 (g202x) — see sai_graphene202x_25_11_unsupported_tests in sai_agent_test.cinc."
         }
       ]
     },
