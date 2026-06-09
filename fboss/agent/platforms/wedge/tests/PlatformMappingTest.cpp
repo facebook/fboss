@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/elbert/Elbert16QPimPlatformMapping.h"
+#include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 #include "fboss/agent/platforms/common/fuji/Fuji16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
@@ -1390,4 +1391,49 @@ TEST_F(PlatformMappingTest, VerifyYampXphyLinePolaritySwap) {
   verifyXphyLinePolaritySwapByProfile(
       mapping.get(), mapping->getPlatformPorts(), expectedPolaritySwap);
 }
+TEST_F(PlatformMappingTest, VerifyGetTransceiverBankIdNoCoreId) {
+  auto mapping = std::make_unique<FakeTestPlatformMapping>(std::vector<int>{1});
+  auto ports = mapping->getPlatformPorts();
+  ASSERT_FALSE(ports.empty());
+
+  auto portId = PortID(ports.begin()->first);
+  auto profiles = *ports.begin()->second.supportedProfiles();
+  ASSERT_FALSE(profiles.empty());
+  auto profileId = profiles.begin()->first;
+
+  auto bankId = mapping->getTransceiverBankId(
+      PlatformPortProfileConfigMatcher(profileId, portId, std::nullopt));
+  EXPECT_FALSE(bankId.has_value());
+}
+
+TEST_F(PlatformMappingTest, VerifyGetTransceiverBankIdWithCoreId) {
+  auto mapping = std::make_unique<FakeTestPlatformMapping>(std::vector<int>{1});
+
+  std::string tcvrChipName;
+  for (const auto& [name, chip] : mapping->getChips()) {
+    if (*chip.type() == phy::DataPlanePhyChipType::TRANSCEIVER) {
+      tcvrChipName = name;
+      break;
+    }
+  }
+  ASSERT_FALSE(tcvrChipName.empty());
+
+  phy::DataPlanePhyChip chipWithCoreId;
+  *chipWithCoreId.name() = tcvrChipName;
+  *chipWithCoreId.type() = phy::DataPlanePhyChipType::TRANSCEIVER;
+  *chipWithCoreId.physicalID() = 0;
+  chipWithCoreId.coreId() = 2;
+  mapping->setChip(tcvrChipName, chipWithCoreId);
+
+  auto ports = mapping->getPlatformPorts();
+  auto portId = PortID(ports.begin()->first);
+  auto profiles = *ports.begin()->second.supportedProfiles();
+  auto profileId = profiles.begin()->first;
+
+  auto bankId = mapping->getTransceiverBankId(
+      PlatformPortProfileConfigMatcher(profileId, portId, std::nullopt));
+  ASSERT_TRUE(bankId.has_value());
+  EXPECT_EQ(*bankId, 2);
+}
+
 } // namespace facebook::fboss::test
