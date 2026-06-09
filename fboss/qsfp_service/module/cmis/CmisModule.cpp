@@ -5268,8 +5268,11 @@ uint64_t CmisModule::getFwUpgradeCdbWriteDelayUsec() const {
 bool CmisModule::upgradeFirmwareLockedImpl(FbossFirmware* fbossFw) const {
   QSFP_LOG(INFO, this) << "Upgrading CMIS Module Firmware";
 
-  auto fwUpgradeObj =
-      std::make_unique<CmisFirmwareUpgrader>(qsfpImpl_, getID(), fbossFw);
+  auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
+      qsfpImpl_,
+      getID(),
+      fbossFw,
+      cachedCdbWriteDelayUsec_.value_or(POST_I2C_WRITE_DELAY_CDB_US));
 
   bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();
   return ret;
