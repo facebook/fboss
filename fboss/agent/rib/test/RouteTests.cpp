@@ -1612,6 +1612,362 @@ TEST(Route, resolveRecursiveSrv6OpenrRouteChange) {
   EXPECT_TRUE(intfs.count(InterfaceID(4)));
 }
 
+// SRv6-over-SRv6 recursion: outer route R1 has no SID list and resolves over a
+// single OpenR route R2 whose link-local next hops themselves carry SID lists.
+// Documents current behavior: the inner SID lists are NOT inherited; the
+// outer's empty SID list is stamped on the resolved leaves.
+TEST(Route, resolveRecursiveSrv6InnerSidListThroughSingleOpenrRoute) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  const std::vector<folly::IPAddressV6> sidList1{
+      folly::IPAddressV6("fdad:ffff:0001:0002::")};
+  const std::vector<folly::IPAddressV6> sidList2{
+      folly::IPAddressV6("fdad:ffff:0003:0004::")};
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr);
+
+  // 1. OpenR route R2 with link-local next hops that carry their own SID lists.
+  RouteNextHopSet openrNhops;
+  openrNhops.emplace(ResolvedNextHop(
+      IPAddress("fe80::1"),
+      InterfaceID(1),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList1,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel1")));
+  openrNhops.emplace(ResolvedNextHop(
+      IPAddress("fe80::2"),
+      InterfaceID(2),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList2,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel2")));
+
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::OPENR,
+      {
+          {{IPAddress("fdad:feff:0202::0:d:0"), 112},
+           RouteNextHopEntry(openrNhops, AdminDistance::OPENR)},
+      },
+      {},
+      false);
+
+  // 2. BGP route R1 with a single plain next hop (no SID list) resolving
+  //    recursively over R2.
+  RouteNextHopSet bgpNhops{
+      UnresolvedNextHop(IPAddress("fdad:feff:0202::0:d:0"), ECMP_WEIGHT)};
+
+  RouteV6::Prefix bgpPrefix{IPAddressV6("2001::"), 64};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::BGPD,
+      {
+          {{bgpPrefix.network(), bgpPrefix.mask()},
+           RouteNextHopEntry(bgpNhops, AdminDistance::EBGP)},
+      },
+      {},
+      false);
+
+  // 3. R1 resolves to fe80::1/fe80::2 but the inner SID lists are dropped
+  //    because the outer next hop carried none.
+  auto it = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
+  ASSERT_NE(v6Routes.end(), it);
+  EXPECT_TRUE(it->value()->isResolved());
+  const auto& resolvedNhops = it->value()->getForwardInfo().getNextHopSet();
+  ASSERT_EQ(resolvedNhops.size(), 2);
+
+  std::set<InterfaceID> intfs;
+  for (const auto& nh : resolvedNhops) {
+    EXPECT_TRUE(nh.isResolved());
+    EXPECT_TRUE(nh.srv6SegmentList().empty());
+    EXPECT_FALSE(nh.tunnelType().has_value());
+    EXPECT_FALSE(nh.tunnelId().has_value());
+    intfs.insert(nh.intf());
+  }
+  EXPECT_TRUE(intfs.count(InterfaceID(1)));
+  EXPECT_TRUE(intfs.count(InterfaceID(2)));
+}
+
+// SRv6-over-SRv6 recursion: outer route R1 carries sidList1 and resolves over a
+// single OpenR route R2 whose link-local next hops carry their own SID lists.
+// The outer SID list overrides the inner ones on every resolved leaf.
+TEST(Route, resolveRecursiveSrv6OuterSidListThroughSingleOpenrRoute) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  const std::vector<folly::IPAddressV6> sidList1{
+      folly::IPAddressV6("fdad:ffff:0001:0002::")};
+  const std::vector<folly::IPAddressV6> sidList2{
+      folly::IPAddressV6("fdad:ffff:0003:0004::")};
+  const std::vector<folly::IPAddressV6> sidList3{
+      folly::IPAddressV6("fdad:ffff:0005:0006::")};
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr);
+
+  // 1. OpenR route R2 with link-local next hops carrying their own SID lists.
+  RouteNextHopSet openrNhops;
+  openrNhops.emplace(ResolvedNextHop(
+      IPAddress("fe80::1"),
+      InterfaceID(1),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList2,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel2")));
+  openrNhops.emplace(ResolvedNextHop(
+      IPAddress("fe80::2"),
+      InterfaceID(2),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList3,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel3")));
+
+  // 2. OpenR route R1 carrying sidList1, resolving recursively over R2.
+  RouteNextHopSet r1Nhops{UnresolvedNextHop(
+      IPAddress("fdad:feff:0202::0:d:0"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList1,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel1"))};
+
+  RouteV6::Prefix r1Prefix{IPAddressV6("2001::"), 64};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::OPENR,
+      {
+          {{IPAddress("fdad:feff:0202::0:d:0"), 112},
+           RouteNextHopEntry(openrNhops, AdminDistance::OPENR)},
+          {{r1Prefix.network(), r1Prefix.mask()},
+           RouteNextHopEntry(r1Nhops, AdminDistance::OPENR)},
+      },
+      {},
+      false);
+
+  // 3. Both resolved leaves carry the outer sidList1, not the inner SID lists.
+  auto it = v6Routes.exactMatch(r1Prefix.network(), r1Prefix.mask());
+  ASSERT_NE(v6Routes.end(), it);
+  EXPECT_TRUE(it->value()->isResolved());
+  const auto& resolvedNhops = it->value()->getForwardInfo().getNextHopSet();
+  ASSERT_EQ(resolvedNhops.size(), 2);
+
+  std::set<InterfaceID> intfs;
+  for (const auto& nh : resolvedNhops) {
+    EXPECT_TRUE(nh.isResolved());
+    EXPECT_EQ(nh.srv6SegmentList(), sidList1);
+    EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    EXPECT_EQ(nh.tunnelId(), "tunnel1");
+    intfs.insert(nh.intf());
+  }
+  EXPECT_TRUE(intfs.count(InterfaceID(1)));
+  EXPECT_TRUE(intfs.count(InterfaceID(2)));
+}
+
+// SRv6-over-SRv6 recursion: outer route R1 has no SID list and its two plain
+// next hops resolve over two distinct OpenR routes R2/R3, each with a
+// link-local next hop carrying its own SID list. Documents current behavior:
+// inner SID lists are dropped (outer carried none).
+TEST(Route, resolveRecursiveSrv6InnerSidListThroughTwoOpenrRoutes) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  const std::vector<folly::IPAddressV6> sidList1{
+      folly::IPAddressV6("fdad:ffff:0001:0002::")};
+  const std::vector<folly::IPAddressV6> sidList2{
+      folly::IPAddressV6("fdad:ffff:0003:0004::")};
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr);
+
+  // 1. OpenR routes R2 (d:0) and R3 (c:0), each with one link-local next hop
+  //    carrying its own SID list.
+  RouteNextHopSet openrNhopsD{ResolvedNextHop(
+      IPAddress("fe80::1"),
+      InterfaceID(1),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList1,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel1"))};
+  RouteNextHopSet openrNhopsC{ResolvedNextHop(
+      IPAddress("fe80::2"),
+      InterfaceID(2),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList2,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel2"))};
+
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::OPENR,
+      {
+          {{IPAddress("fdad:feff:0202::0:d:0"), 112},
+           RouteNextHopEntry(openrNhopsD, AdminDistance::OPENR)},
+          {{IPAddress("fdad:feff:0202::0:c:0"), 112},
+           RouteNextHopEntry(openrNhopsC, AdminDistance::OPENR)},
+      },
+      {},
+      false);
+
+  // 2. BGP route R1 with two plain next hops (no SID list), one resolving over
+  //    R2 and the other over R3.
+  RouteNextHopSet bgpNhops{
+      UnresolvedNextHop(IPAddress("fdad:feff:0202::0:d:0"), ECMP_WEIGHT),
+      UnresolvedNextHop(IPAddress("fdad:feff:0202::0:c:0"), ECMP_WEIGHT)};
+
+  RouteV6::Prefix bgpPrefix{IPAddressV6("2001::"), 64};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::BGPD,
+      {
+          {{bgpPrefix.network(), bgpPrefix.mask()},
+           RouteNextHopEntry(bgpNhops, AdminDistance::EBGP)},
+      },
+      {},
+      false);
+
+  // 3. R1 resolves to fe80::1/fe80::2 with empty SID lists.
+  auto it = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
+  ASSERT_NE(v6Routes.end(), it);
+  EXPECT_TRUE(it->value()->isResolved());
+  const auto& resolvedNhops = it->value()->getForwardInfo().getNextHopSet();
+  ASSERT_EQ(resolvedNhops.size(), 2);
+
+  std::set<InterfaceID> intfs;
+  for (const auto& nh : resolvedNhops) {
+    EXPECT_TRUE(nh.isResolved());
+    EXPECT_TRUE(nh.srv6SegmentList().empty());
+    EXPECT_FALSE(nh.tunnelType().has_value());
+    EXPECT_FALSE(nh.tunnelId().has_value());
+    intfs.insert(nh.intf());
+  }
+  EXPECT_TRUE(intfs.count(InterfaceID(1)));
+  EXPECT_TRUE(intfs.count(InterfaceID(2)));
+}
+
+// SRv6-over-SRv6 recursion: outer route R1 carries sidList1 on both next hops,
+// which resolve over two distinct OpenR routes R2/R3 whose link-local next hops
+// carry their own SID lists. The outer sidList1 overrides the inner ones.
+TEST(Route, resolveRecursiveSrv6OuterSidListThroughTwoOpenrRoutes) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  const std::vector<folly::IPAddressV6> sidList1{
+      folly::IPAddressV6("fdad:ffff:0001:0002::")};
+  const std::vector<folly::IPAddressV6> sidList2{
+      folly::IPAddressV6("fdad:ffff:0003:0004::")};
+  const std::vector<folly::IPAddressV6> sidList3{
+      folly::IPAddressV6("fdad:ffff:0005:0006::")};
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr);
+
+  // 1. OpenR routes R2 (d:0) and R3 (c:0), each with one link-local next hop
+  //    carrying its own SID list.
+  RouteNextHopSet openrNhopsD{ResolvedNextHop(
+      IPAddress("fe80::1"),
+      InterfaceID(1),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList2,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel2"))};
+  RouteNextHopSet openrNhopsC{ResolvedNextHop(
+      IPAddress("fe80::2"),
+      InterfaceID(2),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList3,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel3"))};
+
+  // 2. OpenR route R1 carrying sidList1 on both next hops, resolving over
+  // R2/R3.
+  RouteNextHopSet r1Nhops{
+      UnresolvedNextHop(
+          IPAddress("fdad:feff:0202::0:d:0"),
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          sidList1,
+          TunnelType::SRV6_ENCAP,
+          std::string("tunnel1")),
+      UnresolvedNextHop(
+          IPAddress("fdad:feff:0202::0:c:0"),
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          sidList1,
+          TunnelType::SRV6_ENCAP,
+          std::string("tunnel1"))};
+
+  RouteV6::Prefix r1Prefix{IPAddressV6("2001::"), 64};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::OPENR,
+      {
+          {{IPAddress("fdad:feff:0202::0:d:0"), 112},
+           RouteNextHopEntry(openrNhopsD, AdminDistance::OPENR)},
+          {{IPAddress("fdad:feff:0202::0:c:0"), 112},
+           RouteNextHopEntry(openrNhopsC, AdminDistance::OPENR)},
+          {{r1Prefix.network(), r1Prefix.mask()},
+           RouteNextHopEntry(r1Nhops, AdminDistance::OPENR)},
+      },
+      {},
+      false);
+
+  // 3. Both resolved leaves carry the outer sidList1, not the inner SID lists.
+  auto it = v6Routes.exactMatch(r1Prefix.network(), r1Prefix.mask());
+  ASSERT_NE(v6Routes.end(), it);
+  EXPECT_TRUE(it->value()->isResolved());
+  const auto& resolvedNhops = it->value()->getForwardInfo().getNextHopSet();
+  ASSERT_EQ(resolvedNhops.size(), 2);
+
+  std::set<InterfaceID> intfs;
+  for (const auto& nh : resolvedNhops) {
+    EXPECT_TRUE(nh.isResolved());
+    EXPECT_EQ(nh.srv6SegmentList(), sidList1);
+    EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    EXPECT_EQ(nh.tunnelId(), "tunnel1");
+    intfs.insert(nh.intf());
+  }
+  EXPECT_TRUE(intfs.count(InterfaceID(1)));
+  EXPECT_TRUE(intfs.count(InterfaceID(2)));
+}
+
 TEST(RibRouteTables, getVrfList) {
   RoutingInformationBase rib;
 
