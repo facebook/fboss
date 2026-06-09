@@ -2525,6 +2525,9 @@ void CmisModule::updateQsfpData(bool allPages) {
 
       // Cache firmware build number from CDB Get Firmware Info command
       cachedFwBuildNumber_ = fetchFwBuildNumberFromCdb();
+
+      // Cache CDB write delay based on media type
+      cachedCdbWriteDelayUsec_ = getFwUpgradeCdbWriteDelayUsec();
     }
 
     // Update the application capabilities once we have read from eeprom
@@ -5237,6 +5240,29 @@ bool CmisModule::setTransceiverTxImplLocked(
 
   writeCmisField(txDisableRegister, &txDisableVal);
   return true;
+}
+
+uint64_t CmisModule::getFwUpgradeCdbWriteDelayUsec() const {
+  auto mediaInterface = getModuleMediaInterface();
+  switch (mediaInterface) {
+    case MediaInterfaceCode::CWDM4_100G:
+    case MediaInterfaceCode::FR1_100G:
+    case MediaInterfaceCode::FR4_200G:
+    case MediaInterfaceCode::FR4_400G:
+    case MediaInterfaceCode::LR4_400G_10KM:
+    case MediaInterfaceCode::DR4_400G:
+    case MediaInterfaceCode::FR4_2x400G:
+    case MediaInterfaceCode::DR4_2x400G:
+    case MediaInterfaceCode::FR8_800G:
+    case MediaInterfaceCode::FR4_LITE_2x400G:
+    case MediaInterfaceCode::LR4_2x400G_10KM:
+    case MediaInterfaceCode::LR4_200G:
+    case MediaInterfaceCode::FR4_LPO_2x400G:
+    case MediaInterfaceCode::FR4_800G:
+      return POST_I2C_WRITE_DELAY_CDB_US;
+    default:
+      return POST_I2C_WRITE_NO_DELAY_US;
+  }
 }
 
 bool CmisModule::upgradeFirmwareLockedImpl(FbossFirmware* fbossFw) const {
