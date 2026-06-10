@@ -195,7 +195,7 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   negPmUv.productionState() = 0;
   negPmUv.productionSubState() = -1;
   negPmUv.respinVariantIndicator() = 0;
-  versionedPmUnitConfigNegPmUv.pmUnitVersion() = negPmUv;
+  versionedPmUnitConfigNegPmUv.pmUnitVersions() = {negPmUv};
   versionedPmUnitConfigNegPmUv.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfigNegPmUv}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
