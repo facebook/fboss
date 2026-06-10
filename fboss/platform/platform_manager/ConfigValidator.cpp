@@ -1433,10 +1433,10 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
         }
       }
     } else if (
-        versionedPmUnitConfig.respinVariantIndicator() &&
-        *versionedPmUnitConfig.respinVariantIndicator() < 0) {
+        versionedPmUnitConfig.productSubVersion() &&
+        *versionedPmUnitConfig.productSubVersion() < 0) {
       XLOG(ERR) << fmt::format(
-          "One of PmUnit {}'s VersionedPmUnitConfig has a negative respinVariantIndicator",
+          "One of PmUnit {}'s VersionedPmUnitConfig has a negative productSubVersion",
           pmUnitName);
       return false;
     }
