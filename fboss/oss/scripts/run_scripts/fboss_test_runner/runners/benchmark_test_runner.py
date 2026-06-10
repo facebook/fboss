@@ -54,7 +54,7 @@ class BenchmarkTestRunner(TestRunner):
     def _get_warmboot_check_file(self) -> str:
         return ""
 
-    def _get_test_run_args(self, conf_file) -> list[str]:
+    def _get_test_run_args(self, conf_file: str) -> list[str]:
         return []
 
     def _list_benchmarks(self, binary_path: str) -> list[str] | None:
@@ -84,7 +84,7 @@ class BenchmarkTestRunner(TestRunner):
             print(f"Warning: Failed to list benchmarks from {binary_path}: {e}")
             return None
 
-    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser) -> None:
         """Add benchmark-specific command line arguments"""
         super().add_subcommand_arguments(sub_parser)
         self._add_sai_arguments(sub_parser)

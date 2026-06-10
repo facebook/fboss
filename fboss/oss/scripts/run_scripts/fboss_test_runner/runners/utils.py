@@ -6,7 +6,7 @@ import os
 import subprocess
 
 
-def load_from_file(file_path, profile=None):
+def load_from_file(file_path: str, profile: str | None = None) -> list[str]:
     """Load list from a configuration file, skipping comment lines.
 
     Args:
@@ -37,7 +37,7 @@ def load_from_file(file_path, profile=None):
     return file_lines
 
 
-def run_script(script_file: str):
+def run_script(script_file: str) -> None:
     if not os.path.exists(script_file):
         raise Exception(f"Script file {script_file} does not exist")
     if not os.access(script_file, os.X_OK):

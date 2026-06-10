@@ -40,10 +40,11 @@ from fboss_test_runner.runners.sai_invariant_agent_test_runner import (
     SaiInvariantAgentTestRunner,
 )
 from fboss_test_runner.runners.sai_test_runner import SaiTestRunner
+from fboss_test_runner.runners.test_runner import TestRunner
 from setup import setup_fboss_env
 
 
-def main():
+def main() -> None:
     os.chdir("/opt/fboss")
     setup_fboss_env()
 
@@ -52,7 +53,9 @@ def main():
     )
     subparsers = ap.add_subparsers(dest="command", title="test types")
 
-    def _register_runner(cmd, help_text, runner_cls):
+    def _register_runner(
+        cmd: str, help_text: str, runner_cls: type[TestRunner]
+    ) -> None:
         parser = subparsers.add_parser(cmd, help=help_text)
         runner = runner_cls()
         parser.set_defaults(func=runner.run_test)

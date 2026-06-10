@@ -24,7 +24,7 @@ from fboss_test_runner.services.fboss_agent_utils import (
 
 
 class SaiAgentScaleTestRunner(TestRunner):
-    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser) -> None:
         super().add_subcommand_arguments(sub_parser)
         self._add_sai_arguments(sub_parser)
         sub_parser.add_argument(
@@ -52,22 +52,22 @@ class SaiAgentScaleTestRunner(TestRunner):
             help="Specify number of npus to run in multi switch mode. Default is 1.",
         )
 
-    def _get_config_path(self):
+    def _get_config_path(self) -> str:
         return ""
 
-    def _get_known_bad_tests_file(self):
+    def _get_known_bad_tests_file(self) -> str:
         args = run_test.args
         if not args.known_bad_tests_file:
             return SAI_AGENT_TEST_KNOWN_BAD_TESTS
         return args.known_bad_tests_file
 
-    def _get_unsupported_tests_file(self):
+    def _get_unsupported_tests_file(self) -> str:
         args = run_test.args
         if not args.unsupported_tests_file:
             return SAI_AGENT_UNSUPPORTED_TESTS
         return args.unsupported_tests_file
 
-    def _get_test_binary_name(self):
+    def _get_test_binary_name(self) -> str:
         args = run_test.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
             return "/opt/fboss/bin/sai_agent_scale_test-sai_impl"
@@ -90,19 +90,19 @@ class SaiAgentScaleTestRunner(TestRunner):
             sai_replayer_log_path,
         ]
 
-    def _get_sai_logging_flags(self):
+    def _get_sai_logging_flags(self) -> list[str]:
         args = run_test.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             return []
         return ["--enable_sai_log", args.sai_logging]
 
-    def _get_warmboot_check_file(self):
+    def _get_warmboot_check_file(self) -> str:
         args = run_test.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             return agent_can_warm_boot_file_path(switch_index=None)
         return agent_can_warm_boot_file_path(switch_index=0)
 
-    def _get_test_run_args(self, conf_file):
+    def _get_test_run_args(self, conf_file: str) -> list[str]:
         args = run_test.args
         args_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
         if (
@@ -120,7 +120,7 @@ class SaiAgentScaleTestRunner(TestRunner):
     def _setup_run(self, conf_file: str) -> None:
         pass
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None) -> None:
         args = run_test.args
         if args.setup_for_coldboot:
             run_script(args.setup_for_coldboot)
@@ -133,7 +133,7 @@ class SaiAgentScaleTestRunner(TestRunner):
                 is_warm_boot=False,
             )
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None) -> None:
         args = run_test.args
         if args.setup_for_warmboot:
             run_script(args.setup_for_warmboot)
@@ -146,7 +146,7 @@ class SaiAgentScaleTestRunner(TestRunner):
                 is_warm_boot=True,
             )
 
-    def _end_run(self):
+    def _end_run(self) -> None:
         args = run_test.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             cleanup_hw_agent_service(list(range(args.num_npus)))

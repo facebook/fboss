@@ -35,7 +35,7 @@ FEATURE_LIST_PREFIX = "Feature List: "
 
 
 class SaiAgentTestRunner(TestRunner):
-    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser) -> None:
         super().add_subcommand_arguments(sub_parser)
         self._add_sai_arguments(sub_parser)
         sub_parser.add_argument(
@@ -83,23 +83,23 @@ class SaiAgentTestRunner(TestRunner):
             help="Specify number of npus to run in multi switch mode. Default is 1.",
         )
 
-    def _get_config_path(self):
+    def _get_config_path(self) -> str:
         # TOOO Not available in OSS
         return ""
 
-    def _get_known_bad_tests_file(self):
+    def _get_known_bad_tests_file(self) -> str:
         args = run_test.args
         if not args.known_bad_tests_file:
             return SAI_AGENT_TEST_KNOWN_BAD_TESTS
         return args.known_bad_tests_file
 
-    def _get_unsupported_tests_file(self):
+    def _get_unsupported_tests_file(self) -> str:
         args = run_test.args
         if not args.unsupported_tests_file:
             return SAI_AGENT_UNSUPPORTED_TESTS
         return args.unsupported_tests_file
 
-    def _get_test_binary_name(self):
+    def _get_test_binary_name(self) -> str:
         args = run_test.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
             return "/opt/fboss/bin/sai_agent_hw_test-sai_impl"
@@ -125,7 +125,7 @@ class SaiAgentTestRunner(TestRunner):
             sai_replayer_log_path,
         ]
 
-    def _get_sai_logging_flags(self):
+    def _get_sai_logging_flags(self) -> list[str]:
         args = run_test.args
         # Multi switch mode is using hw agent as a service, so the sai replayer logging needs to
         # be enabled in the systemd unit file instead of the test binary flags
@@ -133,7 +133,7 @@ class SaiAgentTestRunner(TestRunner):
             return []
         return ["--enable_sai_log", args.sai_logging]
 
-    def _get_warmboot_check_file(self):
+    def _get_warmboot_check_file(self) -> str:
         args = run_test.args
         # If it's multi_switch mode, we need to check the warmboot file for SW switch which doesn't
         # have any switch_index
@@ -143,7 +143,7 @@ class SaiAgentTestRunner(TestRunner):
         # as 0
         return agent_can_warm_boot_file_path(switch_index=0)
 
-    def _get_test_run_args(self, conf_file):
+    def _get_test_run_args(self, conf_file: str) -> list[str]:
         args = run_test.args
         args_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
         # Multi switch mode is using hw agent as a service, so the override platform mapping needs
@@ -163,7 +163,7 @@ class SaiAgentTestRunner(TestRunner):
     def _setup_run(self, conf_file: str) -> None:
         pass
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None) -> None:
         args = run_test.args
         if args.setup_for_coldboot:
             run_script(args.setup_for_coldboot)
@@ -176,7 +176,7 @@ class SaiAgentTestRunner(TestRunner):
                 is_warm_boot=False,
             )
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None) -> None:
         args = run_test.args
         if args.setup_for_warmboot:
             run_script(args.setup_for_warmboot)
@@ -189,7 +189,7 @@ class SaiAgentTestRunner(TestRunner):
                 is_warm_boot=True,
             )
 
-    def _end_run(self):
+    def _end_run(self) -> None:
         args = run_test.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             cleanup_hw_agent_service(list(range(args.num_npus)))

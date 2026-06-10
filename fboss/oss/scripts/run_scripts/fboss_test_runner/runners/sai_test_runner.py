@@ -19,7 +19,7 @@ SAI_UNSUPPORTED_TESTS = (
 
 
 class SaiTestRunner(TestRunner):
-    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser) -> None:
         super().add_subcommand_arguments(sub_parser)
         self._add_sai_arguments(sub_parser)
         sub_parser.add_argument(
@@ -30,19 +30,19 @@ class SaiTestRunner(TestRunner):
             default=None,
         )
 
-    def _get_known_bad_tests_file(self):
+    def _get_known_bad_tests_file(self) -> str:
         args = run_test.args
         if not args.known_bad_tests_file:
             return SAI_HW_KNOWN_BAD_TESTS
         return args.known_bad_tests_file
 
-    def _get_unsupported_tests_file(self):
+    def _get_unsupported_tests_file(self) -> str:
         args = run_test.args
         if not args.unsupported_tests_file:
             return SAI_UNSUPPORTED_TESTS
         return args.unsupported_tests_file
 
-    def _get_test_binary_name(self):
+    def _get_test_binary_name(self) -> str:
         return "/opt/fboss/bin/sai_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
@@ -58,13 +58,13 @@ class SaiTestRunner(TestRunner):
             sai_replayer_log_path,
         ]
 
-    def _get_sai_logging_flags(self):
+    def _get_sai_logging_flags(self) -> list[str]:
         return ["--enable_sai_log", run_test.args.sai_logging]
 
-    def _get_warmboot_check_file(self):
+    def _get_warmboot_check_file(self) -> str:
         return agent_can_warm_boot_file_path(switch_index=0)
 
-    def _get_test_run_args(self, conf_file):
+    def _get_test_run_args(self, conf_file: str) -> list[str]:
         args = run_test.args
         args_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
         if args.platform_mapping_override_path is not None:
@@ -76,12 +76,12 @@ class SaiTestRunner(TestRunner):
             )
         return args_list
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None) -> None:
         args = run_test.args
         if args.setup_for_coldboot:
             run_script(args.setup_for_coldboot)
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None) -> None:
         args = run_test.args
         if args.setup_for_warmboot:
             run_script(args.setup_for_warmboot)

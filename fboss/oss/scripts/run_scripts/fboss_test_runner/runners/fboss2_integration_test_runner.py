@@ -42,14 +42,14 @@ class Fboss2IntegrationTestRunner(TestRunner):
     _AGENT_CONFIG_PATH = "/etc/coop/agent.conf"
     _CONFIG_SNAPSHOT_PATH = "/tmp/agent.conf.fboss2_test_snapshot"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         # Whether fboss_sw_agent and fboss_hw_agent@N are already running
         self._is_prod_multi_switch: bool = False
         self._switch_indexes: list[int] = []
         self._test_config_source: str = self._AGENT_CONFIG_PATH
 
-    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser) -> None:
         """Add CLI test-specific command line arguments"""
         super().add_subcommand_arguments(sub_parser)
         sub_parser.set_defaults(fruid_path=None, coldboot_only=True)
@@ -61,10 +61,10 @@ class Fboss2IntegrationTestRunner(TestRunner):
             help="Number of NPUs (switch indexes). Default is 1.",
         )
 
-    def _get_config_path(self):
+    def _get_config_path(self) -> str:
         return self._AGENT_CONFIG_PATH
 
-    def _get_known_bad_tests_file(self):
+    def _get_known_bad_tests_file(self) -> str:
         args = run_test.args
         if args.known_bad_tests_file:
             if os.path.exists(args.known_bad_tests_file):
@@ -83,13 +83,13 @@ class Fboss2IntegrationTestRunner(TestRunner):
         print("No known bad tests file found, skipping known bad test filtering")
         return ""
 
-    def _get_test_binary_name(self):
+    def _get_test_binary_name(self) -> str:
         return "fboss2_integration_test"
 
-    def _get_warmboot_check_file(self):
+    def _get_warmboot_check_file(self) -> str:
         return ""
 
-    def _get_test_run_args(self, conf_file):
+    def _get_test_run_args(self, conf_file: str) -> list[str]:
         return []
 
     def _setup_run(self, conf_file: str) -> None:
@@ -136,7 +136,7 @@ class Fboss2IntegrationTestRunner(TestRunner):
                 sw_agent_service_name=SW_AGENT_SERVICE_PROD,
             )
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None) -> None:
         if self._test_config_source != self._AGENT_CONFIG_PATH:
             subprocess.run(
                 ["cp", self._test_config_source, self._AGENT_CONFIG_PATH], check=True
@@ -147,7 +147,7 @@ class Fboss2IntegrationTestRunner(TestRunner):
             sw_agent_service_name=SW_AGENT_SERVICE_PROD,
         )
 
-    def _end_run(self):
+    def _end_run(self) -> None:
         if self._is_prod_multi_switch:
             print("Restoring original agent config and restarting agents.")
             subprocess.run(

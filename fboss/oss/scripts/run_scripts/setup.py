@@ -35,7 +35,7 @@ def setup_fboss_env() -> None:
         )
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--reload", help="Clear setup config, and reload", action="store_true"
@@ -70,7 +70,7 @@ class SetupFboss:
     TH = "th"
     TH3 = "th3"
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.SRC_USER_BDE_KO_FULL_PATH = os.path.join(
             os.environ["FBOSS_KMODS"], self.USER_BDE_KO
         )
@@ -105,7 +105,7 @@ class SetupFboss:
                 self.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
             )
 
-    def _cleanup_old_setup(self):
+    def _cleanup_old_setup(self) -> None:
         if os.path.exists(SetupFboss.FRUID_FULL_PATH):
             os.remove(SetupFboss.FRUID_FULL_PATH)
 
@@ -124,7 +124,7 @@ class SetupFboss:
         if os.path.exists(SetupFboss.KERNEL_BDE_KO_FULL_PATH):
             os.remove(SetupFboss.KERNEL_BDE_KO_FULL_PATH)
 
-    def _copy_configs(self):
+    def _copy_configs(self) -> None:
         if not os.path.exists(SetupFboss.FRUID_FULL_PATH):
             if not os.path.exists(SetupFboss.FRUID_DIR_PATH):
                 os.makedirs(SetupFboss.FRUID_DIR_PATH)
@@ -140,7 +140,7 @@ class SetupFboss:
         if not os.path.exists(SetupFboss.BDE_CONF_FULL_PATH):
             shutil.copy(self.src_bde_full_path, SetupFboss.BDE_CONF_FULL_PATH)
 
-    def _link_kmods(self):
+    def _link_kmods(self) -> None:
         new_kmod = False
         if not os.path.exists(SetupFboss.USER_BDE_KO_FULL_PATH):
             subprocess.run(
@@ -169,7 +169,7 @@ class SetupFboss:
         if new_kmod:
             subprocess.run(["depmod", "-a"])
 
-    def _load_kmods(self):
+    def _load_kmods(self) -> None:
         output = subprocess.check_output(["lsmod"]).decode("utf-8").split("\n")
 
         if not [x for x in output if SetupFboss.LSMOD_USER_BDE in x]:
@@ -177,7 +177,7 @@ class SetupFboss:
         if not [x for x in output if SetupFboss.LSMOD_KERNEL_BDE in x]:
             subprocess.run(["modprobe", SetupFboss.KERNEL_BDE])
 
-    def run(self, args):
+    def run(self, args: argparse.Namespace) -> None:
         if args.reload:
             self._cleanup_old_setup()
 

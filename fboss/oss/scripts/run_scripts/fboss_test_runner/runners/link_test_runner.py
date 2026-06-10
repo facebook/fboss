@@ -34,7 +34,7 @@ LINK_KNOWN_BAD_TESTS = (
 
 
 class LinkTestRunner(TestRunner):
-    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser) -> None:
         super().add_subcommand_arguments(sub_parser)
         self._add_sai_arguments(sub_parser)
         self._add_service_arguments(sub_parser)
@@ -70,19 +70,19 @@ class LinkTestRunner(TestRunner):
             help="Specify number of npus to run in multi switch mode. Default is 1.",
         )
 
-    def _get_config_path(self):
+    def _get_config_path(self) -> str:
         return ""
 
-    def _get_known_bad_tests_file(self):
+    def _get_known_bad_tests_file(self) -> str:
         args = run_test.args
         if not args.known_bad_tests_file:
             return LINK_KNOWN_BAD_TESTS
         return args.known_bad_tests_file
 
-    def _get_unsupported_tests_file(self):
+    def _get_unsupported_tests_file(self) -> str:
         return ""
 
-    def _get_test_binary_name(self):
+    def _get_test_binary_name(self) -> str:
         args = run_test.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
             return "/opt/fboss/bin/sai_mono_link_test-sai_impl"
@@ -95,10 +95,10 @@ class LinkTestRunner(TestRunner):
     ) -> list[str]:
         return []
 
-    def _get_sai_logging_flags(self):
+    def _get_sai_logging_flags(self) -> list[str]:
         return ["--enable_sai_log", run_test.args.sai_logging]
 
-    def _get_warmboot_check_file(self):
+    def _get_warmboot_check_file(self) -> str:
         args = run_test.args
         # If it's multi_switch mode, we need to check the warmboot file for SW switch which doesn't
         # have any switch_index
@@ -108,7 +108,7 @@ class LinkTestRunner(TestRunner):
         # as 0
         return agent_can_warm_boot_file_path(switch_index=0)
 
-    def _get_test_run_args(self, conf_file):
+    def _get_test_run_args(self, conf_file: str) -> list[str]:
         args = run_test.args
         arg_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
         if args.platform_mapping_override_path is not None:
@@ -126,7 +126,7 @@ class LinkTestRunner(TestRunner):
     def _setup_run(self, conf_file: str) -> None:
         pass
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None) -> None:
         args = run_test.args
         # Start FSDB service if not disabled
         if not args.disable_fsdb:
@@ -152,7 +152,7 @@ class LinkTestRunner(TestRunner):
                 is_warm_boot=False,
             )
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None) -> None:
         args = run_test.args
         # Start FSDB service if not disabled
         if not args.disable_fsdb:
@@ -177,7 +177,7 @@ class LinkTestRunner(TestRunner):
                 is_warm_boot=True,
             )
 
-    def _end_run(self):
+    def _end_run(self) -> None:
         args = run_test.args
         cleanup_qsfp_service()
         if not args.disable_fsdb:
