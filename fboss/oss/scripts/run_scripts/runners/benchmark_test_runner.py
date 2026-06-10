@@ -2,16 +2,16 @@
 # @noautodeps
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-import csv
 import json
 import os
 import re
 import subprocess
-import sys
 import threading
-from argparse import ArgumentParser
-from datetime import datetime
+from argparse import ArgumentParser, Namespace
 
+from reporters.console_reporter import ConsoleReporter
+from reporters.csv_reporter import CsvReporter
+from result_types import BenchmarkResult
 from run_test import (
     _load_from_file,
     OPT_ARG_FILTER,
@@ -40,7 +40,7 @@ class BenchmarkTestRunner:
     for full setup/run/teardown isolation.
     """
 
-    def _get_benchmark_binary(self, args):
+    def _get_benchmark_binary(self, args: Namespace) -> str | None:
         if (
             getattr(args, "agent_run_mode", SUB_ARG_AGENT_RUN_MODE_MONO)
             == SUB_ARG_AGENT_RUN_MODE_MULTI
@@ -52,7 +52,7 @@ class BenchmarkTestRunner:
             return benchmark_binary
         return None
 
-    def _list_benchmarks(self, binary_path):
+    def _list_benchmarks(self, binary_path: str) -> list[str] | None:
         """Discover available benchmarks via --bm_list.
 
         Returns:
@@ -117,7 +117,7 @@ class BenchmarkTestRunner:
             help="Number of NPUs for multi-switch mode. Default is 1.",
         )
 
-    def _build_keys_to_try(self, platform_key):
+    def _build_keys_to_try(self, platform_key: str) -> list[str]:
         keys_to_try = [platform_key]
         for suffix in ("/mono", "/multi_switch"):
             if platform_key.endswith(suffix):
@@ -125,7 +125,7 @@ class BenchmarkTestRunner:
                 break
         return keys_to_try
 
-    def _load_known_bad_test_regexes(self, platform_key):
+    def _load_known_bad_test_regexes(self, platform_key: str) -> list[str]:
         """Load known bad test regexes from sai_bench config JSON.
         Args:
             platform_key: Platform key string (e.g., 'brcm/10.2.0.0_odp/tomahawk4')
@@ -140,7 +140,7 @@ class BenchmarkTestRunner:
             keys_to_try=self._build_keys_to_try(platform_key),
         )
 
-    def _load_unsupported_test_regexes(self, platform_key):
+    def _load_unsupported_test_regexes(self, platform_key: str) -> list[str]:
         """Load unsupported test regexes from sai_bench config JSON.
         Args:
             platform_key: Platform key string (e.g., 'brcm/10.2.0.0_odp/tomahawk4')
@@ -155,7 +155,7 @@ class BenchmarkTestRunner:
             keys_to_try=self._build_keys_to_try(platform_key),
         )
 
-    def _load_benchmark_thresholds(self):
+    def _load_benchmark_thresholds(self) -> dict:
         """Load benchmark thresholds from sai_bench config JSON.
 
         Returns:
@@ -171,8 +171,12 @@ class BenchmarkTestRunner:
         return config.get("buck_rule_or_test_id_to_benchmark_thres", {})
 
     def _find_thresholds_for_benchmark(
-        self, benchmark_name, is_multi_switch, platform_key, all_thresholds
-    ):
+        self,
+        benchmark_name: str,
+        is_multi_switch: bool,
+        platform_key: str,
+        all_thresholds: dict,
+    ) -> list[dict]:
         """Find matching thresholds for a benchmark.
 
         Lookup:
@@ -213,7 +217,9 @@ class BenchmarkTestRunner:
 
         return []
 
-    def _check_thresholds(self, result, thresholds):
+    def _check_thresholds(
+        self, result: BenchmarkResult, thresholds: list[dict]
+    ) -> list[str]:
         """Check benchmark metrics against thresholds.
 
         Args:
@@ -252,7 +258,7 @@ class BenchmarkTestRunner:
         return violations
 
     @staticmethod
-    def _find_jsons_in_str(output):
+    def _find_jsons_in_str(output: str) -> list[dict]:
         """Extract all JSON dicts from a string that may contain non-JSON text.
 
         Scans for '{' characters and tries json.JSONDecoder().raw_decode()
@@ -277,7 +283,9 @@ class BenchmarkTestRunner:
                 idx += 1
         return results
 
-    def _parse_benchmark_output(self, binary_name, stdout, benchmark_name=None):
+    def _parse_benchmark_output(
+        self, binary_name: str, stdout: str, benchmark_name: str | None = None
+    ) -> BenchmarkResult:
         """Parse benchmark output to extract metrics.
 
         With --json flag, the binary outputs multiple JSON objects:
@@ -331,13 +339,15 @@ class BenchmarkTestRunner:
         return result
 
     @staticmethod
-    def _read_stream(stream, lines_list, prefix=""):
+    def _read_stream(stream: object, lines_list: list[str], prefix: str = "") -> None:
         """Read lines from a stream, print them in real-time, and collect them."""
         for line in stream:
             print(f"{prefix}{line}", end="", flush=True)
             lines_list.append(line)
 
-    def _build_benchmark_cmd(self, binary_name, args, benchmark_name=None):
+    def _build_benchmark_cmd(
+        self, binary_name: str, args: Namespace, benchmark_name: str | None = None
+    ) -> list[str]:
         """Build the command line for running a benchmark binary."""
         is_multi_switch = (
             getattr(args, "agent_run_mode", SUB_ARG_AGENT_RUN_MODE_MONO)
@@ -374,7 +384,9 @@ class BenchmarkTestRunner:
         run_cmd.extend(["--logging", "WARN"])
         return run_cmd
 
-    def _run_benchmark_binary(self, binary_name, args, benchmark_name=None):
+    def _run_benchmark_binary(
+        self, binary_name: str, args: Namespace, benchmark_name: str | None = None
+    ) -> BenchmarkResult:
         """Run a single benchmark and return parsed results.
 
         When benchmark_name is provided, uses --bm_regex to select exactly
@@ -468,7 +480,7 @@ class BenchmarkTestRunner:
                 "metrics": {},
             }
 
-    def _load_requested_benchmarks(self, filter_file):
+    def _load_requested_benchmarks(self, filter_file: str) -> list[str] | None:
         """Load benchmark test names from a filter file.
 
         Args:
@@ -490,8 +502,12 @@ class BenchmarkTestRunner:
         return names
 
     def _apply_threshold_check(
-        self, result, is_multi_switch, platform_key, all_thresholds
-    ):
+        self,
+        result: BenchmarkResult,
+        is_multi_switch: bool,
+        platform_key: str | None,
+        all_thresholds: dict,
+    ) -> None:
         """Apply threshold validation to a benchmark result.
 
         Looks up thresholds by benchmark name, preferring entries that match
@@ -531,75 +547,16 @@ class BenchmarkTestRunner:
             result["threshold_status"] = "PASS"
             result["threshold_details"] = ""
 
-    def _write_results_and_summary(self, results, skipped_count=0):
+    def _write_results_and_summary(
+        self, results: list[BenchmarkResult], skipped_count: int = 0
+    ) -> None:
         """Write CSV results file and print summary."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        csv_filename = f"benchmark_results_{timestamp}.csv"
+        CsvReporter().write_benchmark_results(results)
+        ConsoleReporter().print_benchmark_summary(results, skipped_count)
 
-        with open(csv_filename, "w", newline="") as csvfile:
-            fieldnames = [
-                "benchmark_binary_name",
-                "benchmark_test_name",
-                "benchmark_time_ps",
-                "test_status",
-                "cpu_time_usec",
-                "max_rss",
-                "cpu_rx_pps",
-                "cpu_tx_pps",
-                "threshold_status",
-                "threshold_details",
-            ]
-            writer = csv.DictWriter(
-                csvfile, fieldnames=fieldnames, extrasaction="ignore"
-            )
-            writer.writeheader()
-            for result in results:
-                writer.writerow(result)
-
-        # Print summary
-
-        print(f"\n########## Benchmark results written to: {csv_filename}")
-
-        print("\n" + "=" * 80)
-        print("BENCHMARK RESULTS SUMMARY")
-        print("=" * 80)
-        for result in results:
-            status = result["test_status"]
-            threshold = result.get("threshold_status", "")
-            name = result.get("benchmark_test_name") or result["benchmark_binary_name"]
-            suffix = ""
-            if threshold == "EXCEEDED":
-                suffix = f" [THRESHOLD EXCEEDED: {result['threshold_details']}]"
-            elif threshold == "PASS":
-                suffix = " [THRESHOLD PASS]"
-            elif threshold == "NO_THRESHOLD":
-                suffix = " [NO_THRESHOLD]"
-            print(f"{name}: {status}{suffix}")
-        print("=" * 80)
-
-        ok = sum(1 for r in results if r["test_status"] == "OK")
-        failed = sum(1 for r in results if r["test_status"] == "FAILED")
-        timed_out = sum(1 for r in results if r["test_status"] == "TIMEOUT")
-        threshold_pass = sum(1 for r in results if r.get("threshold_status") == "PASS")
-        threshold_exceeded = sum(
-            1 for r in results if r.get("threshold_status") == "EXCEEDED"
-        )
-        no_threshold = sum(
-            1 for r in results if r.get("threshold_status") == "NO_THRESHOLD"
-        )
-        print(f"\nTotal: {len(results)} benchmarks")
-        print(f"OK: {ok}")
-        print(f"Failed: {failed}")
-        print(f"Timed Out: {timed_out}")
-        print(f"Skipped (known bad, pre-filtered): {skipped_count}")
-        print(
-            f"Threshold: {threshold_pass} pass, {threshold_exceeded} exceeded, {no_threshold} not configured"
-        )
-
-        if failed > 0 or timed_out > 0 or threshold_exceeded > 0:
-            sys.exit(1)
-
-    def _get_benchmarks_to_run(self, all_benchmarks, args):
+    def _get_benchmarks_to_run(
+        self, all_benchmarks: list[str], args: Namespace
+    ) -> list[str] | None:
         """Apply --filter and --filter_file to narrow the benchmark list.
 
         Returns:
@@ -637,7 +594,9 @@ class BenchmarkTestRunner:
 
         return benchmarks
 
-    def _filter_known_bad(self, benchmarks, known_bad_regexes):
+    def _filter_known_bad(
+        self, benchmarks: list[str], known_bad_regexes: list[str]
+    ) -> tuple[list[str], int]:
         """Remove known-bad tests from the list before running.
 
         Returns:
@@ -657,7 +616,9 @@ class BenchmarkTestRunner:
             print(f"Pre-filtered {skipped_count} known bad benchmarks")
         return filtered, skipped_count
 
-    def _filter_unsupported(self, benchmarks, unsupported_regexes):
+    def _filter_unsupported(
+        self, benchmarks: list[str], unsupported_regexes: list[str]
+    ) -> tuple[list[str], int]:
         """Remove unsupported tests from the list before running.
 
         Returns:
@@ -677,7 +638,7 @@ class BenchmarkTestRunner:
             print(f"Pre-filtered {skipped_count} unsupported benchmarks")
         return filtered, skipped_count
 
-    def _start_hw_agent_service(self, args):
+    def _start_hw_agent_service(self, args: Namespace) -> None:
         """Start hw_agent service for multi-switch benchmarks."""
         num_npus = getattr(args, "num_npus", 1)
         switch_indexes = list(range(num_npus))
@@ -692,12 +653,12 @@ class BenchmarkTestRunner:
             additional_args=additional_args or None,
         )
 
-    def _stop_hw_agent_service(self, args):
+    def _stop_hw_agent_service(self, args: Namespace) -> None:
         """Stop hw_agent service after multi-switch benchmarks."""
         switch_indexes = list(range(getattr(args, "num_npus", 1)))
         cleanup_hw_agent_service(switch_indexes)
 
-    def run_test(self, args):
+    def run_test(self, args: Namespace) -> None:
         """Run benchmark tests."""
         is_multi_switch = (
             getattr(args, "agent_run_mode", SUB_ARG_AGENT_RUN_MODE_MONO)

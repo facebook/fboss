@@ -3,7 +3,6 @@
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 import abc
-import csv
 import json
 import os
 import re
@@ -15,6 +14,9 @@ from datetime import datetime
 from typing import ClassVar
 
 import run_test
+from reporters.console_reporter import ConsoleReporter
+from reporters.csv_reporter import CsvReporter
+from result_types import GtestResult
 
 _YELLOW = "\033[1;33m"
 _RED = "\033[1;31m"
@@ -36,12 +38,6 @@ class TestRunner(abc.ABC):
     WARMBOOT_SETUP_OPTION = "--setup-for-warmboot"
     COLDBOOT_PREFIX = "cold_boot."
     WARMBOOT_PREFIX = "warm_boot."
-
-    _GTEST_RESULT_PATTERN = re.compile(
-        r"""\[\s+(?P<status>(OK)|(FAILED)|(SKIPPED)|(TIMEOUT))\s+\]\s+
-        (?P<test_case>[\w\.\/]+)\s+\((?P<duration>\d+)\s+ms\)$""",
-        re.VERBOSE,
-    )
 
     def __init__(self):
         self._known_bad_test_regexes = None
@@ -256,14 +252,8 @@ class TestRunner(abc.ABC):
 
         return ret
 
-    def _parse_gtest_run_output(self, test_output):
-        test_summary = []
-        for line in test_output.decode("utf-8").split("\n"):
-            match = self._GTEST_RESULT_PATTERN.match(line.strip())
-            if not match:
-                continue
-            test_summary.append(line)
-        return test_summary
+    def _parse_gtest_run_output(self, test_output: bytes) -> list[GtestResult]:
+        return GtestResult.parse_output(test_output)
 
     def _list_tests_to_run(self, test_filter):
         output = subprocess.check_output(
@@ -588,54 +578,12 @@ class TestRunner(abc.ABC):
             self._end_run()
         return test_outputs
 
-    _GTEST_STATUS_MAP: ClassVar[dict[str, str]] = {
-        "OK": "PASSED",
-        "FAILED": "FAILED",
-        "SKIPPED": "SKIPPED",
-        "TIMEOUT": "TIMEOUT",
-    }
-
-    def _print_output_summary(self, test_outputs):
-        test_summaries = []
-        test_summary_count = {"PASSED": 0, "FAILED": 0, "SKIPPED": 0, "TIMEOUT": 0}
+    def _print_output_summary(self, test_outputs: list[bytes]) -> None:
+        results: list[GtestResult] = []
         for test_output in test_outputs:
-            test_summaries += self._parse_gtest_run_output(test_output)
-        # Print test results and update test result counts
-        for test_summary in test_summaries:
-            m = re.search(r"\[\s*(OK|FAILED|SKIPPED|TIMEOUT)\s*\]", test_summary)
-            if m is None:
-                print(test_summary)
-                continue
-            mapped_status = self._GTEST_STATUS_MAP[m.group(1)]
-            line = test_summary.replace(m.group(0), f"[ {mapped_status} ]")
-            print(line)
-            test_summary_count[mapped_status] += 1
-        print("Summary:")
-        for test_result, value in test_summary_count.items():
-            print("  ", test_result, ":", value)
-
-        self._write_results_to_csv(test_summaries)
-
-    def _write_results_to_csv(self, output):
-        if not output:
-            print("No tests we were run.")
-            return
-        output_csv = (
-            f"hwtest_results_{datetime.now().strftime('%Y_%b_%d-%I_%M_%S_%p')}.csv"
-        )
-
-        with open(output_csv, "w") as f:
-            writer = csv.writer(f)
-            writer.writerow(["Test Name", "Result"])
-            for line in output:
-                raw_result = line.split("]")[0].strip("[ ")
-                # Map gtest tokens so CSV matches the console summary
-                # (OK -> PASSED, etc.).
-                test_result = self._GTEST_STATUS_MAP.get(raw_result, raw_result)
-                test_name = line.split("]")[1].split("(")[0].strip()
-                writer.writerow([test_name, test_result])
-
-        print(f"\nTest output stored at: {output_csv}")
+            results += self._parse_gtest_run_output(test_output)
+        ConsoleReporter().print_gtest_summary(results)
+        CsvReporter().write_gtest_results(results)
 
     def run_test(self, args):
         # Initialize test lists once at the start

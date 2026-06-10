@@ -65,8 +65,8 @@ class TestParseGtestRunOutput:
         )
         result = runner._parse_gtest_run_output(output)
         assert len(result) == 2
-        assert "OK" in result[0]
-        assert "FAILED" in result[1]
+        assert result[0].status == "OK"
+        assert result[1].status == "FAILED"
 
     def test_no_matching_lines(self, runner):
         output = b"Some random output\nAnother line\n"
