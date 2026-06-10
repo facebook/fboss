@@ -425,83 +425,34 @@ if __name__ == "__main__":
     # Add subparsers for different test types
     subparsers = ap.add_subparsers()
 
-    # Add subparser for BCM tests
-    bcm_test_parser = subparsers.add_parser(SUB_CMD_BCM, help="run bcm tests")
-    bcm_test_parser.set_defaults(func=BcmTestRunner().run_test)
+    def _register_runner(cmd, help_text, runner_cls):
+        parser = subparsers.add_parser(cmd, help=help_text)
+        runner = runner_cls()
+        parser.set_defaults(func=runner.run_test)
+        runner.add_subcommand_arguments(parser)
 
-    # Add subparser for SAI tests
-    sai_test_parser = subparsers.add_parser(SUB_CMD_SAI, help="run sai tests")
-    sai_test_runner = SaiTestRunner()
-    sai_test_parser.set_defaults(func=sai_test_runner.run_test)
-    sai_test_runner.add_subcommand_arguments(sai_test_parser)
-
-    # Add subparser for QSFP tests
-    qsfp_test_parser = subparsers.add_parser(SUB_CMD_QSFP, help="run qsfp tests")
-    qsfp_test_runner = QsfpTestRunner()
-    qsfp_test_parser.set_defaults(func=qsfp_test_runner.run_test)
-    qsfp_test_runner.add_subcommand_arguments(qsfp_test_parser)
-
-    # Add subparser for Link tests
-    link_test_parser = subparsers.add_parser(SUB_CMD_LINK, help="run link tests")
-    link_test_runner = LinkTestRunner()
-    link_test_parser.set_defaults(func=link_test_runner.run_test)
-    link_test_runner.add_subcommand_arguments(link_test_parser)
-
-    # Add subparser for SAI Agent tests
-    sai_agent_test_parser = subparsers.add_parser(
-        SUB_CMD_SAI_AGENT, help="run sai agent tests"
+    _register_runner(SUB_CMD_BCM, "run bcm tests", BcmTestRunner)
+    _register_runner(SUB_CMD_SAI, "run sai tests", SaiTestRunner)
+    _register_runner(SUB_CMD_QSFP, "run qsfp tests", QsfpTestRunner)
+    _register_runner(SUB_CMD_LINK, "run link tests", LinkTestRunner)
+    _register_runner(SUB_CMD_SAI_AGENT, "run sai agent tests", SaiAgentTestRunner)
+    _register_runner(
+        SUB_CMD_SAI_AGENT_SCALE, "run sai agent scale tests", SaiAgentScaleTestRunner
     )
-    sai_agent_test_runner = SaiAgentTestRunner()
-    sai_agent_test_parser.set_defaults(func=sai_agent_test_runner.run_test)
-    sai_agent_test_runner.add_subcommand_arguments(sai_agent_test_parser)
-
-    # Add subparser for SAI Agent Scale tests
-    sai_agent_scale_test_parser = subparsers.add_parser(
-        SUB_CMD_SAI_AGENT_SCALE, help="run sai agent scale tests"
+    _register_runner(
+        SUB_CMD_SAI_INVARIANT_AGENT,
+        "run sai agent invariant config tests",
+        SaiInvariantAgentTestRunner,
     )
-    sai_agent_scale_test_runner = SaiAgentScaleTestRunner()
-    sai_agent_scale_test_parser.set_defaults(func=sai_agent_scale_test_runner.run_test)
-    sai_agent_scale_test_runner.add_subcommand_arguments(sai_agent_scale_test_parser)
-
-    # Add subparser for SAI Invariant Agent tests
-    sai_invariant_agent_test_parser = subparsers.add_parser(
-        SUB_CMD_SAI_INVARIANT_AGENT, help="run sai agent invariant config tests"
+    _register_runner(
+        SUB_CMD_PLATFORM, "run platform services test", PlatformServicesTestRunner
     )
-    sai_invariant_agent_test_runner = SaiInvariantAgentTestRunner()
-    sai_invariant_agent_test_parser.set_defaults(
-        func=sai_invariant_agent_test_runner.run_test
+    _register_runner(
+        SUB_CMD_FBOSS2_INTEGRATION,
+        "run fboss2 integration tests",
+        Fboss2IntegrationTestRunner,
     )
-    sai_invariant_agent_test_runner.add_subcommand_arguments(
-        sai_invariant_agent_test_parser
-    )
-
-    # Add subparser for platform tests
-    platform_test_parser = subparsers.add_parser(
-        SUB_CMD_PLATFORM, help="run platform services test"
-    )
-    platform_test_runner = PlatformServicesTestRunner()
-    platform_test_parser.set_defaults(func=platform_test_runner.run_test)
-    platform_test_runner.add_subcommand_arguments(platform_test_parser)
-
-    # Add subparser for fboss2 integration tests
-    fboss2_integration_test_parser = subparsers.add_parser(
-        SUB_CMD_FBOSS2_INTEGRATION, help="run fboss2 integration tests"
-    )
-    fboss2_integration_test_runner = Fboss2IntegrationTestRunner()
-    fboss2_integration_test_parser.set_defaults(
-        func=fboss2_integration_test_runner.run_test
-    )
-    fboss2_integration_test_runner.add_subcommand_arguments(
-        fboss2_integration_test_parser
-    )
-
-    # Add subparser for Benchmark tests
-    benchmark_test_parser = subparsers.add_parser(
-        SUB_CMD_BENCHMARK, help="run benchmark tests"
-    )
-    benchmark_test_runner = BenchmarkTestRunner()
-    benchmark_test_parser.set_defaults(func=benchmark_test_runner.run_test)
-    benchmark_test_runner.add_subcommand_arguments(benchmark_test_parser)
+    _register_runner(SUB_CMD_BENCHMARK, "run benchmark tests", BenchmarkTestRunner)
 
     # Parse the args
     args = ap.parse_known_args()
