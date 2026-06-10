@@ -3,7 +3,6 @@
 # Copyright Meta Platforms, Inc. and affiliates.
 
 import subprocess
-import typing as t
 
 from fboss_test_runner.services import service_utils
 
@@ -26,13 +25,13 @@ FBOSS_WARMBOOT_DIR = f"{FBOSS_AGENT_VOLATILE_STATE_DIR}/warm_boot"
 _HW_AGENT_SERVICE_OSS = "fboss_hw_agent_oss@"
 
 
-def agent_can_warm_boot_file_path(switch_index: t.Optional[int] = None) -> str:
+def agent_can_warm_boot_file_path(switch_index: int | None = None) -> str:
     if switch_index is None:
         return FBOSS_AGENT_WB_FLAG_FILE
     return f"{FBOSS_AGENT_WB_FLAG_FILE}_{switch_index}"
 
 
-def cleanup_hw_agent_service(switch_indexes: t.List[int]) -> None:
+def cleanup_hw_agent_service(switch_indexes: list[int]) -> None:
     for switch_index in switch_indexes:
         print(f"Cleaning up FBOSS HW Agent Service for index={switch_index}...")
         for svc in [
@@ -49,10 +48,10 @@ def cleanup_hw_agent_service(switch_indexes: t.List[int]) -> None:
 
 
 def _manage_hw_agent_service(
-    switch_indexes: t.List[int],
+    switch_indexes: list[int],
     isStart: bool,
     service_name: str = _HW_AGENT_SERVICE_OSS,
-) -> t.List[int]:
+) -> list[int]:
     return_codes = []
     op_ing = "Starting" if isStart else "Stopping"
     manage_fn = (
@@ -71,10 +70,10 @@ def _manage_hw_agent_service(
 
 
 def warm_boot_hw_agent(
-    switch_indexes: t.List[int],
+    switch_indexes: list[int],
     skipStopping: bool = False,
     service_name: str = _HW_AGENT_SERVICE_OSS,
-) -> t.List[int]:
+) -> list[int]:
     if not skipStopping:
         return_codes = _manage_hw_agent_service(switch_indexes, False, service_name)
         if any(return_codes):
@@ -99,10 +98,10 @@ def warm_boot_hw_agent(
 
 
 def cold_boot_hw_agent(
-    switch_indexes: t.List[int],
+    switch_indexes: list[int],
     skipStopping: bool = False,
     service_name: str = _HW_AGENT_SERVICE_OSS,
-) -> t.List[int]:
+) -> list[int]:
     if not skipStopping:
         return_codes = _manage_hw_agent_service(switch_indexes, False, service_name)
         if any(return_codes):
@@ -127,15 +126,15 @@ def cold_boot_hw_agent(
 
 
 def _setup_hw_agent_service(
-    switch_indexes: t.List[int],
+    switch_indexes: list[int],
     fboss_agent_config_path: str,
-    hw_agent_service_bin_path: t.Optional[str] = None,
-    platform_mapping_override_path: t.Optional[str] = None,
-    sai_replayer_log_path: t.Optional[str] = None,
+    hw_agent_service_bin_path: str | None = None,
+    platform_mapping_override_path: str | None = None,
+    sai_replayer_log_path: str | None = None,
     is_fsdb_disabled: bool = False,
     hw_agent_service_name: str = _HW_AGENT_SERVICE_OSS,
     hw_agent_for_testing: bool = True,
-    additional_args: t.Optional[t.List[str]] = None,
+    additional_args: list[str] | None = None,
 ) -> None:
     if not hw_agent_service_bin_path:
         hw_agent_service_bin_path = _DEFAULT_OSS_HW_AGENT_SERVICE_PATH
@@ -185,16 +184,16 @@ def _setup_hw_agent_service(
 
 
 def setup_and_start_hw_agent_service(
-    switch_indexes: t.List[int],
+    switch_indexes: list[int],
     fboss_agent_config_path: str,
-    hw_agent_service_bin_path: t.Optional[str] = None,
-    platform_mapping_override_path: t.Optional[str] = None,
-    sai_replayer_log_path: t.Optional[str] = None,
+    hw_agent_service_bin_path: str | None = None,
+    platform_mapping_override_path: str | None = None,
+    sai_replayer_log_path: str | None = None,
     is_fsdb_disabled: bool = False,
     is_warm_boot: bool = False,
     hw_agent_service_name: str = _HW_AGENT_SERVICE_OSS,
     hw_agent_for_testing: bool = True,
-    additional_args: t.Optional[t.List[str]] = None,
+    additional_args: list[str] | None = None,
 ) -> None:
     _setup_hw_agent_service(
         switch_indexes,
@@ -299,7 +298,7 @@ def warm_boot_sw_agent(
 
 def _setup_sw_agent_service(
     fboss_agent_config_path: str,
-    sw_agent_service_bin_path: t.Optional[str] = None,
+    sw_agent_service_bin_path: str | None = None,
     sw_agent_service_name: str = SW_AGENT_SERVICE_PROD,
 ) -> None:
     if not sw_agent_service_bin_path:
@@ -333,7 +332,7 @@ def _setup_sw_agent_service(
 
 def setup_and_start_sw_agent_service(
     fboss_agent_config_path: str,
-    sw_agent_service_bin_path: t.Optional[str] = None,
+    sw_agent_service_bin_path: str | None = None,
     is_warm_boot: bool = False,
     sw_agent_service_name: str = SW_AGENT_SERVICE_PROD,
 ) -> None:
@@ -362,15 +361,15 @@ def setup_and_start_sw_agent_service(
 
 
 def is_agent_running(
-    switch_indexes: t.List[int],
+    switch_indexes: list[int],
     hw_agent_service_name: str = HW_AGENT_SERVICE_PROD,
     sw_agent_service_name: str = SW_AGENT_SERVICE_PROD,
-) -> t.List[bool]:
+) -> list[bool]:
     """Check if sw_agent and hw_agent services are currently active.
 
     Returns a list of bools: index 0 is sw_agent, rest are hw_agent per switch index.
     """
-    results: t.List[bool] = []
+    results: list[bool] = []
     results.append(service_utils.systemctl_is_active(sw_agent_service_name))
     for switch_index in switch_indexes:
         results.append(
@@ -380,7 +379,7 @@ def is_agent_running(
 
 
 def cold_boot_agents(
-    switch_indexes: t.List[int],
+    switch_indexes: list[int],
     hw_agent_service_name: str = HW_AGENT_SERVICE_PROD,
     sw_agent_service_name: str = SW_AGENT_SERVICE_PROD,
 ) -> None:
@@ -392,7 +391,7 @@ def cold_boot_agents(
     if not switch_indexes:
         raise ValueError("switch indexes cannot be empty")
 
-    def _check(return_codes: t.List[int], step: str) -> None:
+    def _check(return_codes: list[int], step: str) -> None:
         if any(return_codes):
             raise Exception(f"Error during cold boot agents: {step}")
 

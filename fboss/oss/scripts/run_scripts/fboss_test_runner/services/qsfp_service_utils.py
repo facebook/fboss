@@ -2,7 +2,6 @@
 # @noautodeps
 # Copyright Meta Platforms, Inc. and affiliates.
 
-import typing as t
 
 from fboss_test_runner.services import service_utils
 
@@ -21,9 +20,9 @@ _QSFP_SERVICE_UNIT_FILE_PATH = f"/tmp/{_QSFP_SERVICE_OSS}.service"
 
 
 def _setup_qsfp_service(
-    qsfp_service_config_path: t.Optional[str] = None,
-    platform_mapping_override_path: t.Optional[str] = None,
-    bsp_platform_mapping_override_path: t.Optional[str] = None,
+    qsfp_service_config_path: str | None = None,
+    platform_mapping_override_path: str | None = None,
+    bsp_platform_mapping_override_path: str | None = None,
     is_fsdb_disabled: bool = False,
 ) -> None:
     print(f"Setting up {_QSFP_SERVICE_OSS}")
@@ -72,9 +71,9 @@ def _setup_qsfp_service(
 
 
 def setup_and_start_qsfp_service(
-    qsfp_service_config_path: t.Optional[str] = None,
-    platform_mapping_override_path: t.Optional[str] = None,
-    bsp_platform_mapping_override_path: t.Optional[str] = None,
+    qsfp_service_config_path: str | None = None,
+    platform_mapping_override_path: str | None = None,
+    bsp_platform_mapping_override_path: str | None = None,
     is_fsdb_disabled: bool = False,
     is_warm_boot: bool = False,
 ) -> None:

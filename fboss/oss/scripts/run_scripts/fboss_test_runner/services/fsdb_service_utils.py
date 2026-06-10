@@ -1,6 +1,5 @@
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-import typing as t
 
 from fboss_test_runner.services import service_utils
 
@@ -20,7 +19,7 @@ _FSDB_SERVICE_UNIT_FILE_PATH = f"/tmp/{_FSDB_SERVICE_OSS}.service"
 
 
 def _setup_fsdb_service(
-    fsdb_service_config_path: t.Optional[str] = None,
+    fsdb_service_config_path: str | None = None,
 ) -> None:
     print(f"Setting up {_FSDB_SERVICE_OSS}")
 
@@ -52,7 +51,7 @@ def _setup_fsdb_service(
 
 
 def setup_and_start_fsdb_service(
-    fsdb_service_config_path: t.Optional[str] = None,
+    fsdb_service_config_path: str | None = None,
     is_warm_boot: bool = False,
 ) -> None:
     _setup_fsdb_service(fsdb_service_config_path)

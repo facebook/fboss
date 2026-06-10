@@ -4,7 +4,6 @@
 
 import os
 import subprocess
-import typing as t
 
 _DEFAULT_OSS_LOG_DIR = "/opt/fboss/logs/"
 
@@ -71,8 +70,8 @@ def start_service(
     service_name: str,
     unit_file_path: str,
     is_warm_boot: bool = False,
-    cold_boot_volatile_dir: t.Optional[str] = None,
-    cold_boot_marker_file: t.Optional[str] = None,
+    cold_boot_volatile_dir: str | None = None,
+    cold_boot_marker_file: str | None = None,
     sleep_after_start: int = 0,
 ) -> None:
     boot_mode = "WARMBOOT" if is_warm_boot else "COLDBOOT"
@@ -96,9 +95,9 @@ def enable_and_start_service(
 
 
 def cleanup_service(
-    service_names_to_stop: t.List[str],
+    service_names_to_stop: list[str],
     service_name_to_disable: str,
-    service_names_to_pkill: t.Optional[t.List[str]] = None,
+    service_names_to_pkill: list[str] | None = None,
 ) -> None:
     for svc in service_names_to_stop:
         systemctl_stop(svc)
