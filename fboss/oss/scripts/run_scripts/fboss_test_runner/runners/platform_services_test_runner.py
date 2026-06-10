@@ -3,7 +3,6 @@
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 from argparse import ArgumentParser
-from datetime import datetime
 from typing import ClassVar
 
 import run_test
@@ -121,43 +120,7 @@ class PlatformServicesTestRunner(TestRunner):
 
     def run_test(self, args):
         args.fruid_path = None
-
-        if args.type is not None:
-            super().run_test(args)
-            return
-
-        # Initialize test lists once at the start
-        self._initialize_test_lists(args)
-
-        # Initialize test lists once at the start
-        self._initialize_test_lists(args)
-
-        output = []
-        start_time = datetime.now()
-
-        for test_type in self.TEST_TYPE_CHOICES:
+        types = [args.type] if args.type else self.TEST_TYPE_CHOICES
+        for test_type in types:
             args.type = test_type
-            tests_to_run = self._get_tests_to_run()
-            tests_to_run = self._filter_tests(tests_to_run)
-
-            # Check if tests need to be run or only listed
-            if args.list_tests is False:
-                original_conf_file = (
-                    args.config
-                    if (args.config is not None)
-                    else self._get_config_path()
-                )
-                conf_file = self._backup_and_modify_config(original_conf_file)
-                output.extend(self._run_tests(tests_to_run, conf_file, args))
-            else:
-                for test in tests_to_run:
-                    print(test)
-                return
-
-        end_time = datetime.now()
-        delta_time = end_time - start_time
-        print(
-            f"Running all tests took {delta_time} between {start_time} and {end_time}",
-            flush=True,
-        )
-        self._print_output_summary(output)
+            super().run_test(args)

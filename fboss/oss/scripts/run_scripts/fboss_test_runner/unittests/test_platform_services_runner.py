@@ -77,6 +77,7 @@ class TestRunTestMultiTypeIteration:
 
         with (
             patch("run_test.args", new=runner_args),
+            patch("shutil.which", return_value="/opt/fboss/bin/platform_hw_test"),
             patch.object(platform_runner, "_initialize_test_lists"),
             patch.object(
                 platform_runner, "_get_tests_to_run", side_effect=capture_type

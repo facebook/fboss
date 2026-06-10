@@ -746,6 +746,20 @@ class TestRunner(abc.ABC):
         CsvReporter().write_gtest_results(results)
 
     def run_test(self, args):
+        test_binary = self._get_test_binary_name()
+        # Some runners return an absolute path (e.g. /opt/fboss/bin/sai_test-sai_impl);
+        # others return a bare binary name resolved via $PATH (e.g. platform_hw_test).
+        if os.path.isabs(test_binary):
+            binary_found = os.path.isfile(test_binary)
+        else:
+            binary_found = shutil.which(test_binary) is not None
+        if not binary_found:
+            print(
+                f"Error: test binary not found: {test_binary}\n"
+                f"\tMake sure the binary is installed at the expected path."
+            )
+            return
+
         # Initialize test lists once at the start
         self._initialize_test_lists(args)
 
