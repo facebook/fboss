@@ -72,6 +72,16 @@ class TestRunner(abc.ABC):
         self._unsupported_test_regexes: list[str] | None = None
         self.env_var: dict[str, str] = dict(os.environ)
 
+    def _get_common_gflags(self) -> list[str]:
+        """
+        Return pass-through gflags appended to every test binary invocation.
+        No parsing or validation - just forward whatever the user provides.
+        """
+        args = run_test.args
+        if hasattr(args, "extra_gflags") and args.extra_gflags:
+            return args.extra_gflags.split()
+        return []
+
     def _get_config_path(self) -> str:
         return ""
 
@@ -187,6 +197,17 @@ class TestRunner(abc.ABC):
             default=DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
             help="Specify test run timeout in seconds",
         )
+        # --- Pass-through gflags for test binaries ---
+        sub_parser.add_argument(
+            "--extra-gflags",
+            type=str,
+            default=None,
+            help=(
+                "Pass-through flags appended to every test binary invocation. "
+                "Use = to attach value (required when value starts with --). "
+                "Example: --extra-gflags='--asic_feature_support_overrides=73=false --v=2'"
+            ),
+        )
 
     @staticmethod
     def _add_sai_arguments(sub_parser: ArgumentParser) -> None:
@@ -273,6 +294,7 @@ class TestRunner(abc.ABC):
         if args.fruid_path is not None:
             run_cmd.append("--fruid_filepath=" + args.fruid_path)
         run_cmd += self._get_test_run_args(conf_file)
+        run_cmd += self._get_common_gflags()
 
         return run_cmd + flags if flags else run_cmd
 

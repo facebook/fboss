@@ -56,6 +56,7 @@ def mock_args():
     args.fboss_logging = "WARN"
     args.test_run_timeout = 300
     args.skip_known_bad_tests = None
+    args.extra_gflags = None
     return args
 
 

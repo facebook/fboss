@@ -34,6 +34,7 @@ def _make_mock_args(**overrides):
     mock_args.simulator = None
     mock_args.coldboot_only = True
     mock_args.sandcastle = False
+    mock_args.extra_gflags = None
     for k, v in overrides.items():
         setattr(mock_args, k, v)
     return mock_args
