@@ -43,7 +43,7 @@ from fboss_test_runner.constants import (
 )
 from fboss_test_runner.reporters.console_reporter import ConsoleReporter
 from fboss_test_runner.reporters.csv_reporter import CsvReporter
-from fboss_test_runner.result_types import GtestResult
+from fboss_test_runner.result_types import GtestResult, RunOutcome
 from fboss_test_runner.runners.utils import load_from_file
 
 _YELLOW = "\033[1;33m"
@@ -273,17 +273,6 @@ class TestRunner(abc.ABC):
 
         return run_cmd + flags if flags else run_cmd
 
-    def _add_test_prefix_to_gtest_result(self, run_test_output, test_prefix):
-        run_test_result = run_test_output
-        line = run_test_output.decode("utf-8")
-        # Anchor to the gtest result-line format `[  STATUS ] ` so we don't
-        # match incidental tokens like "FAILED to allocate" in log noise.
-        m = re.search(r"\[\s*(?:OK|FAILED|SKIPPED|TIMEOUT)\s*\] ", line)
-        if m is not None:
-            idx = m.end()
-            run_test_result = (line[:idx] + test_prefix + line[idx:]).encode("utf-8")
-        return run_test_result
-
     def _get_test_regexes_from_file(
         self,
         file_path: str,
@@ -494,7 +483,7 @@ class TestRunner(abc.ABC):
         test_to_run,
         setup_warmboot,
         sai_replayer_logging_path: str | None = None,
-    ):
+    ) -> RunOutcome:
         args = run_test.args
         # Setup flags for the test binary before running the tests
         flags = [self.WARMBOOT_SETUP_OPTION] if setup_warmboot else []
@@ -517,21 +506,18 @@ class TestRunner(abc.ABC):
             )
             elapsed_ms = int((time.time() - start_time) * 1000)
 
-            # Add test prefix to test name in the result
-            run_test_result = self._add_test_prefix_to_gtest_result(
-                run_test_output, test_prefix
-            )
-            # If no gtest result line found (e.g. --setup-for-warmboot
-            # causes early exit), use return code to synthesize result
-            if run_test_result == run_test_output:
-                run_test_result = (
-                    "[       OK ] "
-                    + test_prefix
-                    + test_to_run
-                    + " ("
-                    + str(elapsed_ms)
-                    + " ms)"
-                ).encode("utf-8")
+            # Parse the real gtest output and tag each result with the
+            # boot-phase prefix (cold_boot./warm_boot.).
+            results = self._parse_gtest_run_output(run_test_output)
+            for result in results:
+                result.test_name = test_prefix + result.test_name
+            if not results:
+                # No gtest result line found (e.g. --setup-for-warmboot causes
+                # an early exit); synthesize an OK so the test still appears in
+                # the summary.
+                synthesized = GtestResult(test_prefix + test_to_run, "OK", elapsed_ms)
+                return RunOutcome(synthesized.as_log_line(), [synthesized])
+            return RunOutcome(run_test_output.decode("utf-8"), results)
         except subprocess.TimeoutExpired as e:
             # Test timed out, mark it as TIMEOUT
             print("Test timeout!", flush=True)
@@ -539,14 +525,10 @@ class TestRunner(abc.ABC):
             print(f"Test output {output}", flush=True)
             stderr = e.stderr.decode("utf-8") if e.stderr else None
             print(f"Test error {stderr}", flush=True)
-            run_test_result = (
-                "[  TIMEOUT ] "
-                + test_prefix
-                + test_to_run
-                + " ("
-                + str(args.test_run_timeout * 1000)
-                + " ms)"
-            ).encode("utf-8")
+            result = GtestResult(
+                test_prefix + test_to_run, "TIMEOUT", args.test_run_timeout * 1000
+            )
+            return RunOutcome(result.as_log_line(), [result])
         except subprocess.CalledProcessError as e:
             # Test aborted, mark it as FAILED
             elapsed_ms = int((time.time() - start_time) * 1000)
@@ -555,15 +537,8 @@ class TestRunner(abc.ABC):
             print(f"Test output {output}", flush=True)
             stderr = e.stderr.decode("utf-8") if e.stderr else None
             print(f"Test error {stderr}", flush=True)
-            run_test_result = (
-                "[   FAILED ] "
-                + test_prefix
-                + test_to_run
-                + " ("
-                + str(elapsed_ms)
-                + " ms)"
-            ).encode("utf-8")
-        return run_test_result
+            result = GtestResult(test_prefix + test_to_run, "FAILED", elapsed_ms)
+            return RunOutcome(result.as_log_line(), [result])
 
     def _string_in_file(self, file_path, string):
         try:
@@ -663,7 +638,7 @@ class TestRunner(abc.ABC):
             print(f"########## Required configuration file not found: {conf_file}")
             return []
 
-        test_outputs = []
+        all_results: list[GtestResult] = []
         try:
             self._setup_run(conf_file)
             num_tests = len(tests_to_run)
@@ -677,19 +652,18 @@ class TestRunner(abc.ABC):
                 print("########## Running test: " + test_to_run, flush=True)
                 if simulator:
                     self._restart_bcmsim(simulator)
-                test_output = self._run_test(
+                run_outcome = self._run_test(
                     conf_file,
                     test_prefix,
                     test_to_run,
                     warmboot,  # setup_warmboot
                     sai_replayer_log_path,
                 )
-                output = test_output.decode("utf-8")
                 print(
-                    f"########## Coldboot test results ({idx + 1}/{num_tests}): {output}",
+                    f"########## Coldboot test results ({idx + 1}/{num_tests}): {run_outcome.console_output}",
                     flush=True,
                 )
-                test_outputs.append(test_output)
+                all_results.extend(run_outcome.results)
 
                 # Run the test again for warmboot verification if the test supports it
                 if warmboot and os.path.isfile(self._get_warmboot_check_file()):
@@ -702,27 +676,23 @@ class TestRunner(abc.ABC):
                         "########## Verifying test with warmboot: " + test_to_run,
                         flush=True,
                     )
-                    test_output = self._run_test(
+                    run_outcome = self._run_test(
                         conf_file,
                         test_prefix,
                         test_to_run,
                         False,  # setup_warmboot
                         sai_replayer_log_path,
                     )
-                    output = test_output.decode("utf-8")
                     print(
-                        f"########## Warmboot test results ({idx + 1}/{num_tests}): {output}",
+                        f"########## Warmboot test results ({idx + 1}/{num_tests}): {run_outcome.console_output}",
                         flush=True,
                     )
-                    test_outputs.append(test_output)
+                    all_results.extend(run_outcome.results)
         finally:
             self._end_run()
-        return test_outputs
+        return all_results
 
-    def _print_output_summary(self, test_outputs: list[bytes]) -> None:
-        results: list[GtestResult] = []
-        for test_output in test_outputs:
-            results += self._parse_gtest_run_output(test_output)
+    def _print_output_summary(self, results: list[GtestResult]) -> None:
         ConsoleReporter().print_gtest_summary(results)
         CsvReporter().write_gtest_results(results)
 
@@ -764,14 +734,14 @@ class TestRunner(abc.ABC):
                 args.config if (args.config is not None) else self._get_config_path()
             )
             conf_file = self._backup_and_modify_config(original_conf_file)
-            output = self._run_tests(tests_to_run, conf_file, args)
+            results = self._run_tests(tests_to_run, conf_file, args)
             end_time = datetime.now()
             delta_time = end_time - start_time
             print(
                 f"Running all tests took {delta_time} between {start_time} and {end_time}",
                 flush=True,
             )
-            self._print_output_summary(output)
+            self._print_output_summary(results)
         else:
             # Print the filtered tests
             for test in tests_to_run:

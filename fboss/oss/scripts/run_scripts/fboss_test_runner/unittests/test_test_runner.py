@@ -11,6 +11,7 @@ import subprocess
 import tempfile
 from unittest.mock import MagicMock, patch
 
+from fboss_test_runner.result_types import GtestResult, RunOutcome
 from fboss_test_runner.runners.utils import load_from_file
 
 
@@ -106,17 +107,18 @@ class TestRunTestGtestFallback:
         # _get_test_run_cmd reads the module-level `args` global, which is only
         # bound under `if __name__ == "__main__":` — use create=True to inject it.
         with patch("run_test.args", new=mock_args, create=True):
-            result = runner._run_test(
+            outcome = runner._run_test(
                 conf_file="dummy.conf",
                 test_prefix="cold_boot.",
                 test_to_run="HwFooTest.Bar",
                 setup_warmboot=False,
             )
-        decoded = result.decode("utf-8")
-        assert "SKIPPED" in decoded
-        assert "cold_boot.HwFooTest.Bar" in decoded
-        # Critical: the fallback must NOT have rewritten this to "[       OK ]".
-        assert "[       OK ]" not in decoded
+        assert len(outcome.results) == 1
+        result = outcome.results[0]
+        assert result.status == "SKIPPED"
+        assert result.test_name == "cold_boot.HwFooTest.Bar"
+        # Critical: the fallback must NOT have rewritten this to OK.
+        assert result.status != "OK"
 
     @patch("subprocess.check_output")
     def test_synthesize_ok_when_no_gtest_line(
@@ -127,14 +129,16 @@ class TestRunTestGtestFallback:
         the summary."""
         mock_check_output.return_value = b""
         with patch("run_test.args", new=mock_args, create=True):
-            result = runner._run_test(
+            outcome = runner._run_test(
                 conf_file="dummy.conf",
                 test_prefix="warm_boot.",
                 test_to_run="HwFooTest.Bar",
                 setup_warmboot=True,
             )
-        decoded = result.decode("utf-8")
-        assert "[       OK ] warm_boot.HwFooTest.Bar" in decoded
+        assert len(outcome.results) == 1
+        result = outcome.results[0]
+        assert result.status == "OK"
+        assert result.test_name == "warm_boot.HwFooTest.Bar"
 
 
 class TestRunTestTimeout:
@@ -150,19 +154,20 @@ class TestRunTestTimeout:
         )
         mock_args.test_run_timeout = 300
         with patch("run_test.args", new=mock_args, create=True):
-            result = runner._run_test(
+            outcome = runner._run_test(
                 conf_file="dummy.conf",
                 test_prefix="cold_boot.",
                 test_to_run="HwSlowTest.Slow",
                 setup_warmboot=False,
             )
-        decoded = result.decode("utf-8")
-        # Critical: timeout must produce a TIMEOUT line, NOT be silently
+        assert len(outcome.results) == 1
+        result = outcome.results[0]
+        # Critical: timeout must produce a TIMEOUT result, NOT be silently
         # dropped or rewritten as OK.
-        assert "[  TIMEOUT ]" in decoded
-        assert "cold_boot.HwSlowTest.Slow" in decoded
+        assert result.status == "TIMEOUT"
+        assert result.test_name == "cold_boot.HwSlowTest.Slow"
         # Duration reported is timeout_in_second * 1000.
-        assert "(300000 ms)" in decoded
+        assert result.duration_ms == 300000
 
 
 class TestRunTestsWarmboot:
@@ -194,7 +199,11 @@ class TestRunTestsWarmboot:
 
         with (
             patch.object(
-                runner, "_run_test", return_value=b"[       OK ] x.HwT.t (1 ms)"
+                runner,
+                "_run_test",
+                return_value=RunOutcome(
+                    "[ OK ] x.HwT.t (1 ms)", [GtestResult("x.HwT.t", "OK", 1)]
+                ),
             ) as mock_run,
             patch.object(runner, "_setup_coldboot_test"),
             patch.object(runner, "_setup_warmboot_test"),
@@ -218,7 +227,11 @@ class TestRunTestsWarmboot:
 
         with (
             patch.object(
-                runner, "_run_test", return_value=b"[       OK ] x.HwT.t (1 ms)"
+                runner,
+                "_run_test",
+                return_value=RunOutcome(
+                    "[ OK ] x.HwT.t (1 ms)", [GtestResult("x.HwT.t", "OK", 1)]
+                ),
             ) as mock_run,
             patch.object(runner, "_setup_coldboot_test"),
             patch.object(runner, "_setup_warmboot_test") as mock_warm_setup,
@@ -244,7 +257,11 @@ class TestRunTestsWarmboot:
 
         with (
             patch.object(
-                runner, "_run_test", return_value=b"[       OK ] x.HwT.t (1 ms)"
+                runner,
+                "_run_test",
+                return_value=RunOutcome(
+                    "[ OK ] x.HwT.t (1 ms)", [GtestResult("x.HwT.t", "OK", 1)]
+                ),
             ) as mock_run,
             patch.object(runner, "_setup_coldboot_test"),
             patch.object(runner, "_setup_warmboot_test") as mock_warm_setup,

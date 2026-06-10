@@ -84,59 +84,12 @@ class TestParseGtestRunOutput:
         result = runner._parse_gtest_run_output(b"")
         assert result == []
 
-
-class TestAddTestPrefixToGtestResult:
-    """Tests for _add_test_prefix_to_gtest_result which injects boot type prefix."""
-
-    def test_ok_result_gets_prefix(self, runner):
-        output = b"[       OK ] HwVlanTest.Config (150 ms)"
-        result = runner._add_test_prefix_to_gtest_result(output, "cold_boot.")
-        decoded = result.decode("utf-8")
-        assert "cold_boot.HwVlanTest.Config" in decoded
-        assert "(150 ms)" in decoded
-
-    def test_failed_result_gets_prefix(self, runner):
-        output = b"[  FAILED  ] HwVlanTest.Config (200 ms)"
-        result = runner._add_test_prefix_to_gtest_result(output, "warm_boot.")
-        decoded = result.decode("utf-8")
-        assert "warm_boot.HwVlanTest.Config" in decoded
-
-    def test_no_gtest_line_returns_unchanged(self, runner):
-        output = b"Some random output without gtest markers"
-        result = runner._add_test_prefix_to_gtest_result(output, "cold_boot.")
-        assert result == output
-
-    @pytest.mark.parametrize(
-        "status_token, raw_line",
-        [
-            ("OK", b"[       OK ] FooTest.Bar (5 ms)\n"),
-            ("FAILED", b"[  FAILED  ] FooTest.Bar (5 ms)\n"),
-            ("SKIPPED", b"[  SKIPPED ] FooTest.Bar (5 ms)\n"),
-            ("TIMEOUT", b"[  TIMEOUT ] FooTest.Bar (5 ms)\n"),
-        ],
-    )
-    def test_inserts_for_all_statuses(self, runner, status_token, raw_line):
-        """All four gtest statuses must have the boot prefix inserted after `] `."""
-        result = runner._add_test_prefix_to_gtest_result(raw_line, "cold_boot.")
-        assert result != raw_line, (
-            f"{status_token} line was not modified — fallback would synthesize OK"
-        )
-        assert b"] cold_boot.FooTest.Bar" in result
-
-    def test_skipped_distinct_from_ok(self, runner):
-        """Regression guard: SKIPPED line must not be confused with an OK line."""
-        raw = b"[  SKIPPED ] HwFooTest.Bar (5 ms)\n"
-        result = runner._add_test_prefix_to_gtest_result(raw, "cold_boot.")
-        assert b"SKIPPED" in result
-        assert b"OK" not in result.split(b"]")[0]
-
-    def test_ignores_log_noise(self, runner):
-        """Regression guard: the prefix regex must not match unrelated tokens like
-        'FAILED to allocate ... ]' in surrounding log noise."""
-        raw = b"E0506 12:00:00 some_module.cpp:42] FAILED to allocate buffer ] \n"
-        # No gtest result line present; should return unchanged so the
-        # synthesize-OK fallback can decide what to do.
-        assert runner._add_test_prefix_to_gtest_result(raw, "cold_boot.") == raw
+    def test_log_noise_not_parsed_as_result(self, runner):
+        """Regression guard: log noise containing tokens like 'FAILED to
+        allocate ]' must not be parsed as a gtest result line. _run_test relies
+        on this to decide when to synthesize a fallback OK result."""
+        output = b"E0506 12:00:00 some_module.cpp:42] FAILED to allocate buffer ]\n"
+        assert runner._parse_gtest_run_output(output) == []
 
 
 class TestRegexMatching:

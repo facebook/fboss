@@ -9,6 +9,7 @@ Counts only reflect tests that actually ran — filtered tests are dropped.
 from unittest.mock import patch
 
 import pytest
+from fboss_test_runner.result_types import GtestResult
 
 
 class TestPrintOutputSummary:
@@ -20,7 +21,9 @@ class TestPrintOutputSummary:
         monkeypatch.chdir(tmp_path)
 
     def test_ok_rendered_as_passed(self, runner, capsys):
-        runner._print_output_summary([b"[       OK ] cold_boot.HwFooTest.Bar (100 ms)"])
+        runner._print_output_summary(
+            [GtestResult("cold_boot.HwFooTest.Bar", "OK", 100)]
+        )
         out = capsys.readouterr().out
         assert "[ PASSED ] cold_boot.HwFooTest.Bar (100 ms)" in out
         assert "PASSED : 1" in out
@@ -30,9 +33,9 @@ class TestPrintOutputSummary:
     def test_failed_skipped_timeout_preserved(self, runner, capsys):
         runner._print_output_summary(
             [
-                b"[  FAILED  ] cold_boot.HwFailTest.A (200 ms)",
-                b"[  SKIPPED ] cold_boot.HwSkipTest.B (5 ms)",
-                b"[  TIMEOUT ] cold_boot.HwSlowTest.C (1200000 ms)",
+                GtestResult("cold_boot.HwFailTest.A", "FAILED", 200),
+                GtestResult("cold_boot.HwSkipTest.B", "SKIPPED", 5),
+                GtestResult("cold_boot.HwSlowTest.C", "TIMEOUT", 1200000),
             ]
         )
         out = capsys.readouterr().out
@@ -44,10 +47,10 @@ class TestPrintOutputSummary:
     def test_mixed_outputs_counted_correctly(self, runner, capsys):
         runner._print_output_summary(
             [
-                b"[       OK ] cold_boot.HwA.t (10 ms)",
-                b"[       OK ] warm_boot.HwA.t (8 ms)",
-                b"[  FAILED  ] cold_boot.HwB.t (20 ms)",
-                b"[  SKIPPED ] cold_boot.HwC.t (1 ms)",
+                GtestResult("cold_boot.HwA.t", "OK", 10),
+                GtestResult("warm_boot.HwA.t", "OK", 8),
+                GtestResult("cold_boot.HwB.t", "FAILED", 20),
+                GtestResult("cold_boot.HwC.t", "SKIPPED", 1),
             ]
         )
         out = capsys.readouterr().out
@@ -73,7 +76,7 @@ class TestPrintOutputSummary:
             mock_args.filter = None
             mock_args.filter_file = None
             runner._get_tests_to_run()
-        runner._print_output_summary([b"[       OK ] cold_boot.HwGoodTest.B (100 ms)"])
+        runner._print_output_summary([GtestResult("cold_boot.HwGoodTest.B", "OK", 100)])
         out = capsys.readouterr().out
         assert "PASSED : 1" in out
         assert "SKIPPED : 0" in out
@@ -81,10 +84,10 @@ class TestPrintOutputSummary:
     def test_csv_uses_mapped_status(self, runner, tmp_path):
         runner._print_output_summary(
             [
-                b"[       OK ] cold_boot.HwA.t (10 ms)",
-                b"[  FAILED  ] cold_boot.HwB.t (20 ms)",
-                b"[  SKIPPED ] cold_boot.HwC.t (1 ms)",
-                b"[  TIMEOUT ] cold_boot.HwD.t (1200000 ms)",
+                GtestResult("cold_boot.HwA.t", "OK", 10),
+                GtestResult("cold_boot.HwB.t", "FAILED", 20),
+                GtestResult("cold_boot.HwC.t", "SKIPPED", 1),
+                GtestResult("cold_boot.HwD.t", "TIMEOUT", 1200000),
             ]
         )
         csv_files = list(tmp_path.glob("hwtest_results_*.csv"))

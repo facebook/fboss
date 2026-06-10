@@ -11,6 +11,7 @@ from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
+from fboss_test_runner.result_types import RunOutcome
 from fboss_test_runner.runners.fboss2_integration_test_runner import (
     Fboss2IntegrationTestRunner,
 )
@@ -302,7 +303,11 @@ class TestSetupRunHook(unittest.TestCase):
         with (
             patch("run_test.args", mock_args, create=True),
             patch.object(
-                runner, "_run_test", return_value=b"[       OK ] Test (100 ms)"
+                runner,
+                "_run_test",
+                return_value=RunOutcome(
+                    console_output="[       OK ] Test (100 ms)", results=[]
+                ),
             ),
         ):
             runner._run_tests(

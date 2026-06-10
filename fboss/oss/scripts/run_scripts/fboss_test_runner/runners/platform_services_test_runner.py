@@ -61,26 +61,25 @@ class PlatformServicesTestRunner(TestRunner):
 
     def _run_tests(self, tests_to_run, conf_file, args):
         test_binary_name = self._get_test_binary_name()
-        test_outputs = []
+        all_results = []
         num_tests = len(tests_to_run)
         for idx, test_to_run in enumerate(tests_to_run):
             test_prefix = test_binary_name + "."
             print("########## Running test: " + test_to_run, flush=True)
-            test_output = self._run_test(
+            run_outcome = self._run_test(
                 conf_file,
                 test_prefix,
                 test_to_run,
                 False,  # setup_warmboot
             )
-            output = test_output.decode("utf-8")
             print(
-                f"test results ({idx + 1}/{num_tests}): {output}",
+                f"test results ({idx + 1}/{num_tests}): {run_outcome.console_output}",
                 flush=True,
             )
-            test_outputs.append(test_output)
+            all_results.extend(run_outcome.results)
 
         self._end_run()
-        return test_outputs
+        return all_results
 
     def run_test(self, args):
         args.fruid_path = None

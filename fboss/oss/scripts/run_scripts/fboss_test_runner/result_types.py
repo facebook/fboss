@@ -30,6 +30,10 @@ class GtestResult:
     def mapped_status(self) -> str:
         return _GTEST_STATUS_MAP.get(self.status, self.status)
 
+    def as_log_line(self) -> str:
+        """Render as a single gtest-style line for the per-test console echo."""
+        return f"[ {self.status} ] {self.test_name} ({self.duration_ms} ms)"
+
     @staticmethod
     def parse_output(test_output: bytes) -> list["GtestResult"]:
         results = []
@@ -44,6 +48,20 @@ class GtestResult:
                     )
                 )
         return results
+
+
+@dataclass
+class RunOutcome:
+    """Outcome of a single ``_run_test`` invocation.
+
+    Carries the text to echo to the console (the raw test output, or a
+    synthesized status line when the binary produced none) alongside the
+    structured results that feed the run summary. Building ``GtestResult``s
+    directly here avoids synthesizing gtest text only to re-parse it.
+    """
+
+    console_output: str
+    results: list[GtestResult]
 
 
 class BenchmarkResult(t.TypedDict, total=False):
