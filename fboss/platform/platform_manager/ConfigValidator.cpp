@@ -606,6 +606,14 @@ bool ConfigValidator::isValidPciDeviceConfig(
     }
   }
 
+  std::vector<std::pair<int16_t, int16_t>> rtmPortRanges;
+  for (const auto& config : *pciDeviceConfig.rtmCtrlBlockConfigs()) {
+    rtmPortRanges.emplace_back(*config.startPort(), *config.numPorts());
+  }
+  if (!isValidPortRanges(rtmPortRanges)) {
+    return false;
+  }
+
   return true;
 }
 
