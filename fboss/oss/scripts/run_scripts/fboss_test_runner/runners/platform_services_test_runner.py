@@ -31,6 +31,7 @@ class PlatformServicesTestRunner(TestRunner):
     ]
 
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        super().add_subcommand_arguments(sub_parser)
         sub_parser.add_argument(
             SUB_ARG_TEST_TYPE,
             choices=self.TEST_TYPE_CHOICES,
@@ -103,7 +104,7 @@ class PlatformServicesTestRunner(TestRunner):
                 test_prefix,
                 test_to_run,
                 False,  # setup_warmboot
-                args.sai_logging,
+                "WARN",  # default sai log level
                 args.fboss_logging,
                 None,
                 args.test_run_timeout,

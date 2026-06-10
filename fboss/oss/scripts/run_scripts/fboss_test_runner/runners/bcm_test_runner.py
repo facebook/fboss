@@ -10,7 +10,8 @@ from fboss_test_runner.services.fboss_agent_utils import agent_can_warm_boot_fil
 
 class BcmTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
-        pass
+        super().add_subcommand_arguments(sub_parser)
+        self._add_sai_arguments(sub_parser)
 
     def _get_config_path(self):
         return "/etc/coop/bcm.conf"

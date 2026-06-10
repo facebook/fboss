@@ -51,6 +51,7 @@ class Fboss2IntegrationTestRunner(TestRunner):
 
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
         """Add CLI test-specific command line arguments"""
+        super().add_subcommand_arguments(sub_parser)
         sub_parser.set_defaults(fruid_path=None, coldboot_only=True)
         sub_parser.add_argument(
             "--num-npus",

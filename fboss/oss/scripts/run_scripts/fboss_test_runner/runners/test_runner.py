@@ -15,8 +15,30 @@ from typing import ClassVar
 
 import run_test
 from fboss_test_runner.constants import (
+    ALL_SIMUALTOR_ASICS_STR,
     DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
     DNX_SIMULATOR_ASICS,
+    OPT_ARG_COLDBOOT,
+    OPT_ARG_CONFIG_FILE,
+    OPT_ARG_DISABLE_FSDB,
+    OPT_ARG_FBOSS_LOGGING,
+    OPT_ARG_FILTER,
+    OPT_ARG_FILTER_FILE,
+    OPT_ARG_FRUID_PATH,
+    OPT_ARG_FSDB_CONFIG_FILE,
+    OPT_ARG_LIST_TESTS,
+    OPT_ARG_MGT_IF,
+    OPT_ARG_PROFILE,
+    OPT_ARG_QSFP_CONFIG_FILE,
+    OPT_ARG_SAI_LOGGING,
+    OPT_ARG_SAI_REPLAYER_LOGGING,
+    OPT_ARG_SETUP_CB,
+    OPT_ARG_SETUP_WB,
+    OPT_ARG_SIMULATOR,
+    OPT_ARG_SKIP_KNOWN_BAD_TESTS,
+    OPT_ARG_TEST_RUN_TIMEOUT,
+    OPT_KNOWN_BAD_TESTS_FILE,
+    OPT_UNSUPPORTED_TESTS_FILE,
     XGS_SIMULATOR_ASICS,
 )
 from fboss_test_runner.reporters.console_reporter import ConsoleReporter
@@ -99,9 +121,137 @@ class TestRunner(abc.ABC):
     def _end_run(self):
         pass
 
-    @abc.abstractmethod
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
-        pass
+        sub_parser.add_argument(
+            OPT_ARG_COLDBOOT,
+            action="store_true",
+            default=False,
+            help="Run tests without warmboot",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_FILTER,
+            type=str,
+            help="only run tests that match the filter e.g. --filter=*Route*V6*",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_FILTER_FILE,
+            type=str,
+            help="only run tests that match the filters in filter file",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_PROFILE,
+            type=str,
+            help="only include patterns tagged with this profile (requires --filter_file)",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_LIST_TESTS,
+            action="store_true",
+            default=False,
+            help="Only lists the tests, do not run any test",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_CONFIG_FILE,
+            type=str,
+            help="run with the specified config file",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_SKIP_KNOWN_BAD_TESTS,
+            type=str,
+            help="test config key for known bad tests. Format: vendor/coldboot-sai/warmboot-sai/asic",
+        )
+        sub_parser.add_argument(
+            OPT_KNOWN_BAD_TESTS_FILE,
+            type=str,
+            default=None,
+            help="Specify file for storing the known bad tests",
+        )
+        sub_parser.add_argument(
+            OPT_UNSUPPORTED_TESTS_FILE,
+            type=str,
+            default=None,
+            help="Specify file for storing the unsupported tests",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_MGT_IF,
+            type=str,
+            default="eth0",
+            help="Management interface (default = eth0)",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_FRUID_PATH,
+            type=str,
+            default="/var/facebook/fboss/fruid.json",
+            help="Specify file for storing the fruid data",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_FBOSS_LOGGING,
+            type=str,
+            default="DBG4",
+            help="Enable FBOSS logging (Options: INFO|ERR|DBG0-9)",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_TEST_RUN_TIMEOUT,
+            type=int,
+            default=DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
+            help="Specify test run timeout in seconds",
+        )
+
+    @staticmethod
+    def _add_sai_arguments(sub_parser: ArgumentParser):
+        sub_parser.add_argument(
+            OPT_ARG_SAI_LOGGING,
+            type=str,
+            default="WARN",
+            help="Enable SAI logging (Options: DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL)",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_SAI_REPLAYER_LOGGING,
+            type=str,
+            help="Enable SAI Replayer logging and store logs in the supplied directory",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_SIMULATOR,
+            type=str,
+            help="Specify ASIC simulator. Options: " + ALL_SIMUALTOR_ASICS_STR,
+        )
+        sub_parser.add_argument(
+            "--run-on-reference-board",
+            action="store_true",
+            help="Modify SAI settings to run on reference board instead of real product",
+            default=False,
+        )
+        sub_parser.add_argument(
+            OPT_ARG_SETUP_CB,
+            type=str,
+            default=None,
+            help="run script before cold boot run",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_SETUP_WB,
+            type=str,
+            default=None,
+            help="run script before warm boot run",
+        )
+
+    @staticmethod
+    def _add_service_arguments(sub_parser: ArgumentParser):
+        sub_parser.add_argument(
+            OPT_ARG_QSFP_CONFIG_FILE,
+            type=str,
+            help="run tests with specified qsfp config (absolute path)",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_DISABLE_FSDB,
+            action="store_true",
+            help="Disable FSDB service for link tests",
+            default=False,
+        )
+        sub_parser.add_argument(
+            OPT_ARG_FSDB_CONFIG_FILE,
+            type=str,
+            help="run tests with specified fsdb config (absolute path)",
+            default=None,
+        )
 
     @abc.abstractmethod
     def _filter_tests(self, tests: list[str]) -> list[str]:
@@ -454,7 +604,7 @@ class TestRunner(abc.ABC):
     def _backup_and_modify_config(self, conf_file):
         """Create a copy of the config and modify settings"""
         args = run_test.args
-        if args.run_on_reference_board:
+        if getattr(args, "run_on_reference_board", False):
             # Create a copy of the config file for modification
             try:
                 # Create a modified copy in /tmp with standard name
@@ -479,24 +629,28 @@ class TestRunner(abc.ABC):
         return conf_file
 
     def _run_tests(self, tests_to_run, conf_file, args):  # noqa: PLR0915 - complex orchestration; splitting would harm readability
-        if args.sai_replayer_logging:
-            if os.path.isdir(args.sai_replayer_logging) or os.path.isfile(
-                args.sai_replayer_logging
+        sai_replayer_logging = getattr(args, "sai_replayer_logging", None)
+        simulator = getattr(args, "simulator", None)
+        sai_logging = getattr(args, "sai_logging", "WARN")
+
+        if sai_replayer_logging:
+            if os.path.isdir(sai_replayer_logging) or os.path.isfile(
+                sai_replayer_logging
             ):
                 raise ValueError(
-                    f"File or directory {args.sai_replayer_logging} already exists."
+                    f"File or directory {sai_replayer_logging} already exists."
                     "Remove or specify another directory and retry. Exitting"
                 )
 
-            os.makedirs(args.sai_replayer_logging)
-        if args.simulator in XGS_SIMULATOR_ASICS:
+            os.makedirs(sai_replayer_logging)
+        if simulator in XGS_SIMULATOR_ASICS:
             self.ENV_VAR["SOC_TARGET_SERVER"] = "127.0.0.1"
             self.ENV_VAR["BCM_SIM_PATH"] = "1"
             self.ENV_VAR["SOC_BOOT_FLAGS"] = "4325376"
             self.ENV_VAR["SAI_BOOT_FLAGS"] = "4325376"
             self.ENV_VAR["SOC_TARGET_PORT"] = "22222"
             self.ENV_VAR["SOC_TARGET_COUNT"] = "1"
-        elif args.simulator in DNX_SIMULATOR_ASICS:
+        elif simulator in DNX_SIMULATOR_ASICS:
             self.ENV_VAR["BCM_SIM_PATH"] = "1"
             self.ENV_VAR["SOC_BOOT_FLAGS"] = "0x1020000"
             self.ENV_VAR["ADAPTER_DEVID_0"] = "8860"
@@ -529,19 +683,19 @@ class TestRunner(abc.ABC):
             for idx, test_to_run in enumerate(tests_to_run):
                 test_prefix = self.COLDBOOT_PREFIX
                 sai_replayer_log_path = self._get_sai_replayer_log_path(
-                    test_prefix, test_to_run, args.sai_replayer_logging
+                    test_prefix, test_to_run, sai_replayer_logging
                 )
                 # Run the test for coldboot verification
                 self._setup_coldboot_test(sai_replayer_log_path)
                 print("########## Running test: " + test_to_run, flush=True)
-                if args.simulator:
-                    self._restart_bcmsim(args.simulator)
+                if simulator:
+                    self._restart_bcmsim(simulator)
                 test_output = self._run_test(
                     conf_file,
                     test_prefix,
                     test_to_run,
                     warmboot,  # setup_warmboot
-                    args.sai_logging,
+                    sai_logging,
                     args.fboss_logging,
                     sai_replayer_log_path,
                     args.test_run_timeout,
@@ -557,7 +711,7 @@ class TestRunner(abc.ABC):
                 if warmboot and os.path.isfile(self._get_warmboot_check_file()):
                     test_prefix = self.WARMBOOT_PREFIX
                     sai_replayer_log_path = self._get_sai_replayer_log_path(
-                        test_prefix, test_to_run, args.sai_replayer_logging
+                        test_prefix, test_to_run, sai_replayer_logging
                     )
                     self._setup_warmboot_test(sai_replayer_log_path)
                     print(
@@ -569,7 +723,7 @@ class TestRunner(abc.ABC):
                         test_prefix,
                         test_to_run,
                         False,  # setup_warmboot
-                        args.sai_logging,
+                        sai_logging,
                         args.fboss_logging,
                         sai_replayer_log_path,
                         args.test_run_timeout,

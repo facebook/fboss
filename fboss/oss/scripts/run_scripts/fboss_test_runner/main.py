@@ -8,29 +8,9 @@ from argparse import ArgumentParser
 
 import run_test
 from fboss_test_runner.constants import (
-    ALL_SIMUALTOR_ASICS_STR,
-    DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
-    OPT_ARG_COLDBOOT,
-    OPT_ARG_CONFIG_FILE,
-    OPT_ARG_DISABLE_FSDB,
-    OPT_ARG_FBOSS_LOGGING,
     OPT_ARG_FILTER,
     OPT_ARG_FILTER_FILE,
-    OPT_ARG_FRUID_PATH,
-    OPT_ARG_FSDB_CONFIG_FILE,
-    OPT_ARG_LIST_TESTS,
-    OPT_ARG_MGT_IF,
     OPT_ARG_PROFILE,
-    OPT_ARG_QSFP_CONFIG_FILE,
-    OPT_ARG_SAI_LOGGING,
-    OPT_ARG_SAI_REPLAYER_LOGGING,
-    OPT_ARG_SETUP_CB,
-    OPT_ARG_SETUP_WB,
-    OPT_ARG_SIMULATOR,
-    OPT_ARG_SKIP_KNOWN_BAD_TESTS,
-    OPT_ARG_TEST_RUN_TIMEOUT,
-    OPT_KNOWN_BAD_TESTS_FILE,
-    OPT_UNSUPPORTED_TESTS_FILE,
     SUB_CMD_BCM,
     SUB_CMD_BENCHMARK,
     SUB_CMD_FBOSS2_INTEGRATION,
@@ -69,177 +49,10 @@ def main():
     setup_fboss_env()
     TestRunner.ENV_VAR = dict(os.environ)
 
-    ap = ArgumentParser(description="Run tests.")
-
-    ap.add_argument(
-        OPT_ARG_COLDBOOT,
-        action="store_true",
-        default=False,
-        help="Run tests without warmboot",
+    ap = ArgumentParser(
+        description="FBOSS Hardware Test Runner",
     )
-    ap.add_argument(
-        OPT_ARG_FILTER,
-        type=str,
-        help=(
-            "only run tests that match the filter e.g. "
-            + OPT_ARG_FILTER
-            + "=*Route*V6*"
-        ),
-    )
-    ap.add_argument(
-        OPT_ARG_FILTER_FILE,
-        type=str,
-        help=(
-            "only run tests that match the filters in filter file e.g. "
-            + OPT_ARG_FILTER_FILE
-            + "=/fboss.git/fboss/oss/hw_known_good_tests//known-good_regexes-brcm-sai-9.0_ea_dnx_odp-jericho2"
-        ),
-    )
-    ap.add_argument(
-        OPT_ARG_PROFILE,
-        type=str,
-        help=(
-            "when used with "
-            + OPT_ARG_FILTER_FILE
-            + ", only include patterns tagged with this profile (e.g. t for traditional, s for scale-up). Without this flag, all patterns are included."
-        ),
-    )
-    ap.add_argument(
-        OPT_ARG_LIST_TESTS,
-        action="store_true",
-        default=False,
-        help="Only lists the tests, do not run any test",
-    )
-    ap.add_argument(
-        OPT_ARG_CONFIG_FILE,
-        type=str,
-        help=(
-            "run with the specified config file e.g. "
-            + OPT_ARG_CONFIG_FILE
-            + "=./share/bcm-configs/WEDGE100+RSW-bcm.conf"
-        ),
-    )
-    ap.add_argument(
-        OPT_ARG_QSFP_CONFIG_FILE,
-        type=str,
-        help=(
-            "run tests with specified qsfp config with the absolute path e.g. "
-            + OPT_ARG_QSFP_CONFIG_FILE
-            + "=/opt/fboss/share/qsfp_test_configs/meru800bia.materialized_JSON"
-        ),
-    )
-    ap.add_argument(
-        OPT_ARG_SAI_REPLAYER_LOGGING,
-        type=str,
-        help=(
-            "Enable SAI Replayer logging (e.g. SAI replayer for sai tests"
-            "and store the logs in the supplied directory)"
-        ),
-    )
-    ap.add_argument(
-        OPT_ARG_SKIP_KNOWN_BAD_TESTS,
-        type=str,
-        help=(
-            "test config key to specify which known bad tests to skip. "
-            "The key format is: vendor/coldboot-sai/warmboot-sai/asic. "
-            "Example: "
-            + OPT_ARG_SKIP_KNOWN_BAD_TESTS
-            + "=brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk"
-        ),
-    )
-    ap.add_argument(
-        OPT_KNOWN_BAD_TESTS_FILE,
-        type=str,
-        default=None,
-        help=("Specify file for storing the known bad tests. "),
-    )
-    ap.add_argument(
-        OPT_UNSUPPORTED_TESTS_FILE,
-        type=str,
-        default=None,
-        help=("Specify file for storing the unsupported tests. "),
-    )
-    ap.add_argument(
-        OPT_ARG_MGT_IF,
-        type=str,
-        default="eth0",
-        help=("Management interface (default = eth0)"),
-    )
-
-    ap.add_argument(
-        OPT_ARG_FRUID_PATH,
-        type=str,
-        default="/var/facebook/fboss/fruid.json",
-        help=(
-            "Specify file for storing the fruid data. "
-            "Default is /var/facebook/fboss/fruid.json"
-        ),
-    )
-    ap.add_argument(
-        OPT_ARG_SIMULATOR,
-        type=str,
-        help=(
-            "Specify what asic simulator to use if configured. These are options"
-            + ALL_SIMUALTOR_ASICS_STR
-            + "Default is None, meaning physical asic is used"
-        ),
-    )
-    ap.add_argument(
-        OPT_ARG_SAI_LOGGING,
-        type=str,
-        default="WARN",
-        help=("Enable SAI logging (Options: DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL)"),
-    )
-    ap.add_argument(
-        OPT_ARG_FBOSS_LOGGING,
-        type=str,
-        default="DBG4",
-        help=("Enable FBOSS logging (Options: INFO|ERR|DBG0-9)"),
-    )
-
-    ap.add_argument(
-        OPT_ARG_SETUP_CB,
-        type=str,
-        default=None,
-        help=("run script before cold boot run"),
-    )
-    ap.add_argument(
-        OPT_ARG_SETUP_WB,
-        type=str,
-        default=None,
-        help=("run script before warm boot run"),
-    )
-    ap.add_argument(
-        OPT_ARG_TEST_RUN_TIMEOUT,
-        type=int,
-        default=DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
-        help="Specify test run timeout in seconds",
-    )
-    ap.add_argument(
-        "--run-on-reference-board",
-        action="store_true",
-        help="Modify SAI settings to run on reference board instead of real product",
-        default=False,
-    )
-
-    ap.add_argument(
-        OPT_ARG_DISABLE_FSDB,
-        action="store_true",
-        help="Disable FSDB service for link tests",
-        default=False,
-    )
-    ap.add_argument(
-        OPT_ARG_FSDB_CONFIG_FILE,
-        type=str,
-        help=(
-            "run tests with specified fsdb config with the absolute path e.g. "
-            + OPT_ARG_FSDB_CONFIG_FILE
-            + "=/opt/fboss/share/fsdb_test_configs/meru800bia.materialized_JSON"
-        ),
-        default=None,
-    )
-
-    subparsers = ap.add_subparsers()
+    subparsers = ap.add_subparsers(dest="command", title="test types")
 
     def _register_runner(cmd, help_text, runner_cls):
         parser = subparsers.add_parser(cmd, help=help_text)
@@ -270,8 +83,11 @@ def main():
     )
     _register_runner(SUB_CMD_BENCHMARK, "run benchmark tests", BenchmarkTestRunner)
 
-    args = ap.parse_known_args()
-    args = ap.parse_args(args[1], args[0])
+    if len(sys.argv) < 2:
+        ap.print_help()
+        sys.exit(1)
+
+    args = ap.parse_args()
 
     if ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ):
         print("FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'")
@@ -287,10 +103,5 @@ def main():
             f"{OPT_ARG_PROFILE} requires {OPT_ARG_FILTER_FILE} to be specified"
         )
 
-    try:
-        func = args.func
-    except AttributeError as e:
-        raise AttributeError("too few arguments") from e
-
     run_test.args = args
-    func(args)
+    args.func(args)

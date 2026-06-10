@@ -24,6 +24,8 @@ QSFP_WARMBOOT_CHECK_FILE = f"{QSFP_SERVICE_DIR}/can_warm_boot"
 
 class QsfpTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        super().add_subcommand_arguments(sub_parser)
+        self._add_service_arguments(sub_parser)
         sub_parser.add_argument(
             OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
             nargs="?",

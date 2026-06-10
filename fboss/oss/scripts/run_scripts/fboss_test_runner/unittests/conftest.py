@@ -12,8 +12,6 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from argparse import ArgumentParser
-
 import run_test
 from fboss_test_runner.runners.test_runner import TestRunner
 
@@ -62,9 +60,6 @@ class StubTestRunner(TestRunner):
         pass
 
     def _end_run(self):
-        pass
-
-    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
         pass
 
     def _filter_tests(self, tests):

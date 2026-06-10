@@ -35,6 +35,9 @@ LINK_KNOWN_BAD_TESTS = (
 
 class LinkTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        super().add_subcommand_arguments(sub_parser)
+        self._add_sai_arguments(sub_parser)
+        self._add_service_arguments(sub_parser)
         sub_parser.add_argument(
             OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
             nargs="?",

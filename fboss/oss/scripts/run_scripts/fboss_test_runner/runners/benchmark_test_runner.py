@@ -10,8 +10,6 @@ import threading
 from argparse import ArgumentParser, Namespace
 
 from fboss_test_runner.constants import (
-    OPT_ARG_FILTER,
-    OPT_ARG_FILTER_FILE,
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
     SUB_ARG_AGENT_RUN_MODE,
     SUB_ARG_AGENT_RUN_MODE_MONO,
@@ -82,18 +80,8 @@ class BenchmarkTestRunner:
 
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
         """Add benchmark-specific command line arguments"""
-        sub_parser.add_argument(
-            OPT_ARG_FILTER,
-            type=str,
-            help="Regex to filter benchmarks by name (e.g. --filter HwEcmp.*)",
-            default=None,
-        )
-        sub_parser.add_argument(
-            OPT_ARG_FILTER_FILE,
-            type=str,
-            help="File containing list of benchmark test names to run (one per line).",
-            default=None,
-        )
+        TestRunner.add_subcommand_arguments(self, sub_parser)
+        TestRunner._add_sai_arguments(sub_parser)
         sub_parser.add_argument(
             OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
             nargs="?",
