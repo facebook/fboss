@@ -30,10 +30,6 @@ class SaiTestRunner(TestRunner):
             default=None,
         )
 
-    def _get_config_path(self):
-        # TOOO Not available in OSS
-        return ""
-
     def _get_known_bad_tests_file(self):
         args = run_test.args
         if not args.known_bad_tests_file:
@@ -80,9 +76,6 @@ class SaiTestRunner(TestRunner):
             )
         return args_list
 
-    def _setup_run(self, conf_file: str) -> None:
-        pass
-
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         args = run_test.args
         if args.setup_for_coldboot:
@@ -92,9 +85,3 @@ class SaiTestRunner(TestRunner):
         args = run_test.args
         if args.setup_for_warmboot:
             run_script(args.setup_for_warmboot)
-
-    def _end_run(self):
-        return
-
-    def _filter_tests(self, tests: list[str]) -> list[str]:
-        return tests

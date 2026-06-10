@@ -71,31 +71,26 @@ class TestRunner(abc.ABC):
         self._known_bad_test_regexes = None
         self._unsupported_test_regexes = None
 
-    @abc.abstractmethod
     def _get_config_path(self):
-        pass
+        return ""
 
-    @abc.abstractmethod
     def _get_known_bad_tests_file(self):
-        pass
+        return ""
 
-    @abc.abstractmethod
     def _get_unsupported_tests_file(self):
-        pass
+        return ""
 
     @abc.abstractmethod
     def _get_test_binary_name(self):
         pass
 
-    @abc.abstractmethod
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: str | None
     ) -> list[str]:
-        pass
+        return []
 
-    @abc.abstractmethod
     def _get_sai_logging_flags(self):
-        pass
+        return []
 
     @abc.abstractmethod
     def _get_warmboot_check_file(self):
@@ -105,20 +100,16 @@ class TestRunner(abc.ABC):
     def _get_test_run_args(self, conf_file):
         pass
 
-    @abc.abstractmethod
-    def _setup_run(self, conf_file: str) -> None:
+    def _setup_run(self, conf_file: str) -> None:  # noqa: B027
         pass
 
-    @abc.abstractmethod
-    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):  # noqa: B027
         pass
 
-    @abc.abstractmethod
-    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):  # noqa: B027
         pass
 
-    @abc.abstractmethod
-    def _end_run(self):
+    def _end_run(self):  # noqa: B027
         pass
 
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
@@ -253,9 +244,8 @@ class TestRunner(abc.ABC):
             default=None,
         )
 
-    @abc.abstractmethod
     def _filter_tests(self, tests: list[str]) -> list[str]:
-        pass
+        return tests
 
     def _get_sai_replayer_log_path(
         self,

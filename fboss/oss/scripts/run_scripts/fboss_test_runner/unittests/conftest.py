@@ -24,46 +24,16 @@ run_test.args = None
 
 
 class StubTestRunner(TestRunner):
-    """Concrete TestRunner with all abstract methods stubbed for testing."""
-
-    def _get_config_path(self):
-        return "/tmp/test.conf"
-
-    def _get_known_bad_tests_file(self):
-        return ""
-
-    def _get_unsupported_tests_file(self):
-        return ""
+    """Concrete TestRunner with abstract methods stubbed for testing."""
 
     def _get_test_binary_name(self):
         return "test_binary"
-
-    def _get_sai_replayer_logging_flags(self, sai_replayer_log_path):
-        return []
-
-    def _get_sai_logging_flags(self):
-        return []
 
     def _get_warmboot_check_file(self):
         return "/tmp/can_warm_boot"
 
     def _get_test_run_args(self, conf_file):
         return ["--config", conf_file]
-
-    def _setup_run(self, conf_file):
-        pass
-
-    def _setup_coldboot_test(self, sai_replayer_log_path=None):
-        pass
-
-    def _setup_warmboot_test(self, sai_replayer_log_path=None):
-        pass
-
-    def _end_run(self):
-        pass
-
-    def _filter_tests(self, tests):
-        return tests
 
 
 @pytest.fixture

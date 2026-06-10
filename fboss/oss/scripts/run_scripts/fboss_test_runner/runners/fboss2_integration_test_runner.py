@@ -83,19 +83,8 @@ class Fboss2IntegrationTestRunner(TestRunner):
         print("No known bad tests file found, skipping known bad test filtering")
         return ""
 
-    def _get_unsupported_tests_file(self):
-        return ""
-
     def _get_test_binary_name(self):
         return "fboss2_integration_test"
-
-    def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: str | None
-    ) -> list[str]:
-        return []
-
-    def _get_sai_logging_flags(self):
-        return []
 
     def _get_warmboot_check_file(self):
         return ""
@@ -158,9 +147,6 @@ class Fboss2IntegrationTestRunner(TestRunner):
             sw_agent_service_name=SW_AGENT_SERVICE_PROD,
         )
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
-        pass
-
     def _end_run(self):
         if self._is_prod_multi_switch:
             print("Restoring original agent config and restarting agents.")
@@ -183,6 +169,3 @@ class Fboss2IntegrationTestRunner(TestRunner):
             print("Cleaning up agent services.")
             cleanup_sw_agent_service(SW_AGENT_SERVICE_PROD)
             cleanup_hw_agent_service(self._switch_indexes)
-
-    def _filter_tests(self, tests: list[str]) -> list[str]:
-        return tests

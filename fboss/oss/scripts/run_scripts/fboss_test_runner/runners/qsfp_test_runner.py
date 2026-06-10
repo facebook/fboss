@@ -42,9 +42,6 @@ class QsfpTestRunner(TestRunner):
             default=None,
         )
 
-    def _get_config_path(self):
-        return ""
-
     def _get_known_bad_tests_file(self):
         args = run_test.args
         if not args.known_bad_tests_file:
@@ -56,15 +53,6 @@ class QsfpTestRunner(TestRunner):
 
     def _get_test_binary_name(self):
         return "/opt/fboss/bin/qsfp_hw_test"
-
-    def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: str | None
-    ) -> list[str]:
-        return []
-
-    def _get_sai_logging_flags(self):
-        # N/A
-        return []
 
     def _get_warmboot_check_file(self):
         return QSFP_WARMBOOT_CHECK_FILE
@@ -88,20 +76,8 @@ class QsfpTestRunner(TestRunner):
             )
         return arg_list
 
-    def _setup_run(self, conf_file: str) -> None:
-        pass
-
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         subprocess.Popen(
             # Clean up left over flags
             ["rm", "-rf", QSFP_SERVICE_DIR]
         )
-
-    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
-        return
-
-    def _end_run(self):
-        return
-
-    def _filter_tests(self, tests: list[str]) -> list[str]:
-        return tests

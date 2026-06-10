@@ -39,15 +39,6 @@ class PlatformServicesTestRunner(TestRunner):
             help="Specify test type for platform services test.",
         )
 
-    def _get_config_path(self):
-        return ""
-
-    def _get_known_bad_tests_file(self):
-        return ""
-
-    def _get_unsupported_tests_file(self):
-        return ""
-
     def _get_test_binary_name(self):
         args = run_test.args
         binary_map = {
@@ -62,34 +53,11 @@ class PlatformServicesTestRunner(TestRunner):
 
         return binary_map.get(args.type, "platform_hw_test")
 
-    def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: str | None
-    ) -> list[str]:
-        return []
-
-    def _get_sai_logging_flags(self):
-        return []
-
     def _get_warmboot_check_file(self):
         return ""
 
     def _get_test_run_args(self, conf_file):
         return []
-
-    def _setup_run(self, conf_file: str) -> None:
-        pass
-
-    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
-        return
-
-    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
-        return
-
-    def _end_run(self):
-        return
-
-    def _filter_tests(self, tests: list[str]) -> list[str]:
-        return tests
 
     def _run_tests(self, tests_to_run, conf_file, args):
         test_binary_name = self._get_test_binary_name()
