@@ -41,7 +41,7 @@ class StubTestRunner(TestRunner):
     def _get_sai_replayer_logging_flags(self, sai_replayer_log_path):
         return []
 
-    def _get_sai_logging_flags(self, sai_logging):
+    def _get_sai_logging_flags(self):
         return []
 
     def _get_warmboot_check_file(self):

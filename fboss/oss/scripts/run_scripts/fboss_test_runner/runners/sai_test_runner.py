@@ -62,8 +62,8 @@ class SaiTestRunner(TestRunner):
             sai_replayer_log_path,
         ]
 
-    def _get_sai_logging_flags(self, sai_logging):
-        return ["--enable_sai_log", sai_logging]
+    def _get_sai_logging_flags(self):
+        return ["--enable_sai_log", run_test.args.sai_logging]
 
     def _get_warmboot_check_file(self):
         return agent_can_warm_boot_file_path(switch_index=0)

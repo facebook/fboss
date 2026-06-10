@@ -67,7 +67,7 @@ class PlatformServicesTestRunner(TestRunner):
     ) -> list[str]:
         return []
 
-    def _get_sai_logging_flags(self, sai_logging):
+    def _get_sai_logging_flags(self):
         return []
 
     def _get_warmboot_check_file(self):
@@ -103,10 +103,6 @@ class PlatformServicesTestRunner(TestRunner):
                 test_prefix,
                 test_to_run,
                 False,  # setup_warmboot
-                "WARN",  # default sai log level
-                args.fboss_logging,
-                None,
-                args.test_run_timeout,
             )
             output = test_output.decode("utf-8")
             print(

@@ -25,6 +25,8 @@ from fboss_test_runner.services.fboss_agent_utils import (
 
 class SaiInvariantAgentTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        super().add_subcommand_arguments(sub_parser)
+        self._add_sai_arguments(sub_parser)
         sub_parser.add_argument(
             OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
             nargs="?",
@@ -88,11 +90,11 @@ class SaiInvariantAgentTestRunner(TestRunner):
             sai_replayer_log_path,
         ]
 
-    def _get_sai_logging_flags(self, sai_logging):
+    def _get_sai_logging_flags(self):
         args = run_test.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             return []
-        return ["--enable_sai_log", sai_logging]
+        return ["--enable_sai_log", args.sai_logging]
 
     def _get_warmboot_check_file(self):
         args = run_test.args

@@ -503,16 +503,14 @@ class TestRunner(abc.ABC):
         test_prefix,
         test_to_run,
         setup_warmboot,
-        sai_logging,
-        fboss_logging,
         sai_replayer_logging_path: str | None = None,
-        test_run_timeout_in_second: int = DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
     ):
+        args = run_test.args
         # Setup flags for the test binary before running the tests
         flags = [self.WARMBOOT_SETUP_OPTION] if setup_warmboot else []
         flags += self._get_sai_replayer_logging_flags(sai_replayer_logging_path)
-        flags += self._get_sai_logging_flags(sai_logging)
-        flags += ["--logging", fboss_logging]
+        flags += self._get_sai_logging_flags()
+        flags += ["--logging", args.fboss_logging]
 
         try:
             test_run_cmd = self._get_test_run_cmd(conf_file, test_to_run, flags)
@@ -524,7 +522,7 @@ class TestRunner(abc.ABC):
             start_time = time.time()
             run_test_output = subprocess.check_output(
                 test_run_cmd,
-                timeout=test_run_timeout_in_second,
+                timeout=args.test_run_timeout,
                 env=self.ENV_VAR,
             )
             elapsed_ms = int((time.time() - start_time) * 1000)
@@ -556,7 +554,7 @@ class TestRunner(abc.ABC):
                 + test_prefix
                 + test_to_run
                 + " ("
-                + str(test_run_timeout_in_second * 1000)
+                + str(args.test_run_timeout * 1000)
                 + " ms)"
             ).encode("utf-8")
         except subprocess.CalledProcessError as e:
@@ -631,7 +629,6 @@ class TestRunner(abc.ABC):
     def _run_tests(self, tests_to_run, conf_file, args):  # noqa: PLR0915 - complex orchestration; splitting would harm readability
         sai_replayer_logging = getattr(args, "sai_replayer_logging", None)
         simulator = getattr(args, "simulator", None)
-        sai_logging = getattr(args, "sai_logging", "WARN")
 
         if sai_replayer_logging:
             if os.path.isdir(sai_replayer_logging) or os.path.isfile(
@@ -695,10 +692,7 @@ class TestRunner(abc.ABC):
                     test_prefix,
                     test_to_run,
                     warmboot,  # setup_warmboot
-                    sai_logging,
-                    args.fboss_logging,
                     sai_replayer_log_path,
-                    args.test_run_timeout,
                 )
                 output = test_output.decode("utf-8")
                 print(
@@ -723,10 +717,7 @@ class TestRunner(abc.ABC):
                         test_prefix,
                         test_to_run,
                         False,  # setup_warmboot
-                        sai_logging,
-                        args.fboss_logging,
                         sai_replayer_log_path,
-                        args.test_run_timeout,
                     )
                     output = test_output.decode("utf-8")
                     print(

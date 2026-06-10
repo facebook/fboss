@@ -111,8 +111,6 @@ class TestRunTestGtestFallback:
                 test_prefix="cold_boot.",
                 test_to_run="HwFooTest.Bar",
                 setup_warmboot=False,
-                sai_logging="WARN",
-                fboss_logging="WARN",
             )
         decoded = result.decode("utf-8")
         assert "SKIPPED" in decoded
@@ -134,8 +132,6 @@ class TestRunTestGtestFallback:
                 test_prefix="warm_boot.",
                 test_to_run="HwFooTest.Bar",
                 setup_warmboot=True,
-                sai_logging="WARN",
-                fboss_logging="WARN",
             )
         decoded = result.decode("utf-8")
         assert "[       OK ] warm_boot.HwFooTest.Bar" in decoded
@@ -152,15 +148,13 @@ class TestRunTestTimeout:
         mock_check_output.side_effect = subprocess.TimeoutExpired(
             cmd=["dummy"], timeout=300
         )
+        mock_args.test_run_timeout = 300
         with patch("run_test.args", new=mock_args, create=True):
             result = runner._run_test(
                 conf_file="dummy.conf",
                 test_prefix="cold_boot.",
                 test_to_run="HwSlowTest.Slow",
                 setup_warmboot=False,
-                sai_logging="WARN",
-                fboss_logging="WARN",
-                test_run_timeout_in_second=300,
             )
         decoded = result.decode("utf-8")
         # Critical: timeout must produce a TIMEOUT line, NOT be silently

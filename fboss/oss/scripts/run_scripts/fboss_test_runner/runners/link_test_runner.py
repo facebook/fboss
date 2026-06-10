@@ -95,8 +95,8 @@ class LinkTestRunner(TestRunner):
     ) -> list[str]:
         return []
 
-    def _get_sai_logging_flags(self, sai_logging):
-        return ["--enable_sai_log", sai_logging]
+    def _get_sai_logging_flags(self):
+        return ["--enable_sai_log", run_test.args.sai_logging]
 
     def _get_warmboot_check_file(self):
         args = run_test.args

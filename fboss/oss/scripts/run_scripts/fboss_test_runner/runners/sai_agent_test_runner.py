@@ -125,13 +125,13 @@ class SaiAgentTestRunner(TestRunner):
             sai_replayer_log_path,
         ]
 
-    def _get_sai_logging_flags(self, sai_logging):
+    def _get_sai_logging_flags(self):
         args = run_test.args
         # Multi switch mode is using hw agent as a service, so the sai replayer logging needs to
         # be enabled in the systemd unit file instead of the test binary flags
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             return []
-        return ["--enable_sai_log", sai_logging]
+        return ["--enable_sai_log", args.sai_logging]
 
     def _get_warmboot_check_file(self):
         args = run_test.args

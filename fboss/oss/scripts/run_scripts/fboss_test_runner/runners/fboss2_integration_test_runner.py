@@ -94,7 +94,7 @@ class Fboss2IntegrationTestRunner(TestRunner):
     ) -> list[str]:
         return []
 
-    def _get_sai_logging_flags(self, sai_logging):
+    def _get_sai_logging_flags(self):
         return []
 
     def _get_warmboot_check_file(self):
