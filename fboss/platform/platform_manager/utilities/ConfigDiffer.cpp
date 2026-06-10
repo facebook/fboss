@@ -176,14 +176,16 @@ void ConfigDiffer::compareVersionedConfigs(
   // Compare each versioned config against the default config
   for (const auto& versionedConfig : versionedConfigs) {
     auto versionInfo = fmt::format(
-        "default{}v{}", kArrow, *versionedConfig.respinVariantIndicator());
-    if (const auto& pmUv = versionedConfig.pmUnitVersion(); pmUv) {
+        "default{}v{}", kArrow, *versionedConfig.productSubVersion());
+    if (const auto& pmUvs = versionedConfig.pmUnitVersions();
+        pmUvs && !pmUvs->empty()) {
+      const auto& pmUv = pmUvs->front();
       versionInfo = fmt::format(
           "default{}v{}.{}.{}",
           kArrow,
-          *pmUv->productionState(),
-          *pmUv->productionSubState(),
-          *pmUv->respinVariantIndicator());
+          *pmUv.productionState(),
+          *pmUv.productionSubState(),
+          *pmUv.respinVariantIndicator());
     }
 
     comparePmUnitConfigs(
