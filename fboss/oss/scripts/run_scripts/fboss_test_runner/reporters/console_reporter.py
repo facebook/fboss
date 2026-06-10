@@ -4,12 +4,12 @@
 
 import sys
 
-from fboss_test_runner.result_types import BenchmarkResult, GtestResult
+from fboss_test_runner.result_types import BenchmarkResult, GtestResult, GtestStatus
 
 
 class ConsoleReporter:
     def print_gtest_summary(self, results: list[GtestResult]) -> None:
-        counts = {"PASSED": 0, "FAILED": 0, "SKIPPED": 0, "TIMEOUT": 0}
+        counts = {status.display_name: 0 for status in GtestStatus}
         for result in results:
             status = result.mapped_status
             print(f"[ {status} ] {result.test_name} ({result.duration_ms} ms)")

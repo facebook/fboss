@@ -43,7 +43,7 @@ from fboss_test_runner.constants import (
 )
 from fboss_test_runner.reporters.console_reporter import ConsoleReporter
 from fboss_test_runner.reporters.csv_reporter import CsvReporter
-from fboss_test_runner.result_types import GtestResult, RunOutcome
+from fboss_test_runner.result_types import GtestResult, GtestStatus, RunOutcome
 from fboss_test_runner.runners.utils import load_from_file
 
 _YELLOW = "\033[1;33m"
@@ -515,7 +515,9 @@ class TestRunner(abc.ABC):
                 # No gtest result line found (e.g. --setup-for-warmboot causes
                 # an early exit); synthesize an OK so the test still appears in
                 # the summary.
-                synthesized = GtestResult(test_prefix + test_to_run, "OK", elapsed_ms)
+                synthesized = GtestResult(
+                    test_prefix + test_to_run, GtestStatus.OK, elapsed_ms
+                )
                 return RunOutcome(synthesized.as_log_line(), [synthesized])
             return RunOutcome(run_test_output.decode("utf-8"), results)
         except subprocess.TimeoutExpired as e:
@@ -526,7 +528,9 @@ class TestRunner(abc.ABC):
             stderr = e.stderr.decode("utf-8") if e.stderr else None
             print(f"Test error {stderr}", flush=True)
             result = GtestResult(
-                test_prefix + test_to_run, "TIMEOUT", args.test_run_timeout * 1000
+                test_prefix + test_to_run,
+                GtestStatus.TIMEOUT,
+                args.test_run_timeout * 1000,
             )
             return RunOutcome(result.as_log_line(), [result])
         except subprocess.CalledProcessError as e:
@@ -537,7 +541,9 @@ class TestRunner(abc.ABC):
             print(f"Test output {output}", flush=True)
             stderr = e.stderr.decode("utf-8") if e.stderr else None
             print(f"Test error {stderr}", flush=True)
-            result = GtestResult(test_prefix + test_to_run, "FAILED", elapsed_ms)
+            result = GtestResult(
+                test_prefix + test_to_run, GtestStatus.FAILED, elapsed_ms
+            )
             return RunOutcome(result.as_log_line(), [result])
 
     def _string_in_file(self, file_path, string):

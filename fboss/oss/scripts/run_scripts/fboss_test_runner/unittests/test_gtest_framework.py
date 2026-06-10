@@ -8,6 +8,7 @@ import tempfile
 from unittest.mock import MagicMock
 
 import pytest
+from fboss_test_runner.result_types import GtestStatus
 
 
 class TestParseListTestOutput:
@@ -65,8 +66,8 @@ class TestParseGtestRunOutput:
         )
         result = runner._parse_gtest_run_output(output)
         assert len(result) == 2
-        assert result[0].status == "OK"
-        assert result[1].status == "FAILED"
+        assert result[0].status == GtestStatus.OK
+        assert result[1].status == GtestStatus.FAILED
 
     def test_no_matching_lines(self, runner):
         output = b"Some random output\nAnother line\n"

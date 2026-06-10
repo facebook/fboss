@@ -11,7 +11,7 @@ import subprocess
 import tempfile
 from unittest.mock import MagicMock, patch
 
-from fboss_test_runner.result_types import GtestResult, RunOutcome
+from fboss_test_runner.result_types import GtestResult, GtestStatus, RunOutcome
 from fboss_test_runner.runners.utils import load_from_file
 
 
@@ -115,10 +115,10 @@ class TestRunTestGtestFallback:
             )
         assert len(outcome.results) == 1
         result = outcome.results[0]
-        assert result.status == "SKIPPED"
+        assert result.status == GtestStatus.SKIPPED
         assert result.test_name == "cold_boot.HwFooTest.Bar"
         # Critical: the fallback must NOT have rewritten this to OK.
-        assert result.status != "OK"
+        assert result.status != GtestStatus.OK
 
     @patch("subprocess.check_output")
     def test_synthesize_ok_when_no_gtest_line(
@@ -137,7 +137,7 @@ class TestRunTestGtestFallback:
             )
         assert len(outcome.results) == 1
         result = outcome.results[0]
-        assert result.status == "OK"
+        assert result.status == GtestStatus.OK
         assert result.test_name == "warm_boot.HwFooTest.Bar"
 
 
@@ -164,7 +164,7 @@ class TestRunTestTimeout:
         result = outcome.results[0]
         # Critical: timeout must produce a TIMEOUT result, NOT be silently
         # dropped or rewritten as OK.
-        assert result.status == "TIMEOUT"
+        assert result.status == GtestStatus.TIMEOUT
         assert result.test_name == "cold_boot.HwSlowTest.Slow"
         # Duration reported is timeout_in_second * 1000.
         assert result.duration_ms == 300000
@@ -202,7 +202,7 @@ class TestRunTestsWarmboot:
                 runner,
                 "_run_test",
                 return_value=RunOutcome(
-                    "[ OK ] x.HwT.t (1 ms)", [GtestResult("x.HwT.t", "OK", 1)]
+                    "[ OK ] x.HwT.t (1 ms)", [GtestResult("x.HwT.t", GtestStatus.OK, 1)]
                 ),
             ) as mock_run,
             patch.object(runner, "_setup_coldboot_test"),
@@ -230,7 +230,7 @@ class TestRunTestsWarmboot:
                 runner,
                 "_run_test",
                 return_value=RunOutcome(
-                    "[ OK ] x.HwT.t (1 ms)", [GtestResult("x.HwT.t", "OK", 1)]
+                    "[ OK ] x.HwT.t (1 ms)", [GtestResult("x.HwT.t", GtestStatus.OK, 1)]
                 ),
             ) as mock_run,
             patch.object(runner, "_setup_coldboot_test"),
@@ -260,7 +260,7 @@ class TestRunTestsWarmboot:
                 runner,
                 "_run_test",
                 return_value=RunOutcome(
-                    "[ OK ] x.HwT.t (1 ms)", [GtestResult("x.HwT.t", "OK", 1)]
+                    "[ OK ] x.HwT.t (1 ms)", [GtestResult("x.HwT.t", GtestStatus.OK, 1)]
                 ),
             ) as mock_run,
             patch.object(runner, "_setup_coldboot_test"),
