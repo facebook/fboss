@@ -9,7 +9,7 @@ import re
 import shutil
 import subprocess
 import time
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from datetime import datetime
 
 import run_test
@@ -52,7 +52,7 @@ _RED = "\033[1;31m"
 _RESET = "\033[0m"
 
 
-def _print_deprecation_banner(lines):
+def _print_deprecation_banner(lines: list[str]) -> None:
     """Print a highly visible warning banner with color and box formatting."""
     width = max(len(line) for line in lines) + 4
     border = "*" * width
@@ -67,22 +67,22 @@ class TestRunner(abc.ABC):
     COLDBOOT_PREFIX = "cold_boot."
     WARMBOOT_PREFIX = "warm_boot."
 
-    def __init__(self):
-        self._known_bad_test_regexes = None
-        self._unsupported_test_regexes = None
+    def __init__(self) -> None:
+        self._known_bad_test_regexes: list[str] | None = None
+        self._unsupported_test_regexes: list[str] | None = None
         self.env_var: dict[str, str] = dict(os.environ)
 
-    def _get_config_path(self):
+    def _get_config_path(self) -> str:
         return ""
 
-    def _get_known_bad_tests_file(self):
+    def _get_known_bad_tests_file(self) -> str:
         return ""
 
-    def _get_unsupported_tests_file(self):
+    def _get_unsupported_tests_file(self) -> str:
         return ""
 
     @abc.abstractmethod
-    def _get_test_binary_name(self):
+    def _get_test_binary_name(self) -> str:
         pass
 
     def _get_sai_replayer_logging_flags(
@@ -90,30 +90,30 @@ class TestRunner(abc.ABC):
     ) -> list[str]:
         return []
 
-    def _get_sai_logging_flags(self):
+    def _get_sai_logging_flags(self) -> list[str]:
         return []
 
     @abc.abstractmethod
-    def _get_warmboot_check_file(self):
+    def _get_warmboot_check_file(self) -> str:
         pass
 
     @abc.abstractmethod
-    def _get_test_run_args(self, conf_file):
+    def _get_test_run_args(self, conf_file: str) -> list[str]:
         pass
 
     def _setup_run(self, conf_file: str) -> None:  # noqa: B027
         pass
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):  # noqa: B027
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None) -> None:  # noqa: B027
         pass
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):  # noqa: B027
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None) -> None:  # noqa: B027
         pass
 
-    def _end_run(self):  # noqa: B027
+    def _end_run(self) -> None:  # noqa: B027
         pass
 
-    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser) -> None:
         sub_parser.add_argument(
             OPT_ARG_COLDBOOT,
             action="store_true",
@@ -189,7 +189,7 @@ class TestRunner(abc.ABC):
         )
 
     @staticmethod
-    def _add_sai_arguments(sub_parser: ArgumentParser):
+    def _add_sai_arguments(sub_parser: ArgumentParser) -> None:
         sub_parser.add_argument(
             OPT_ARG_SAI_LOGGING,
             type=str,
@@ -226,7 +226,7 @@ class TestRunner(abc.ABC):
         )
 
     @staticmethod
-    def _add_service_arguments(sub_parser: ArgumentParser):
+    def _add_service_arguments(sub_parser: ArgumentParser) -> None:
         sub_parser.add_argument(
             OPT_ARG_QSFP_CONFIG_FILE,
             type=str,
@@ -261,7 +261,9 @@ class TestRunner(abc.ABC):
             "replayer-log-" + test_prefix + test_name.replace("/", "-"),
         )
 
-    def _get_test_run_cmd(self, conf_file, test_to_run, flags):
+    def _get_test_run_cmd(
+        self, conf_file: str, test_to_run: str, flags: list[str]
+    ) -> list[str]:
         args = run_test.args
         test_binary_name = self._get_test_binary_name()
         run_cmd = [
@@ -317,7 +319,7 @@ class TestRunner(abc.ABC):
 
             return list(test_regexes)
 
-    def _initialize_test_lists(self, args):
+    def _initialize_test_lists(self, args: Namespace) -> None:
         """
         Initialize known bad and unsupported test lists.
         This should be called once at the start of run_test() when args are available.
@@ -364,7 +366,7 @@ class TestRunner(abc.ABC):
             keys_to_try=keys_to_try,
         )
 
-    def _parse_list_test_output(self, output):
+    def _parse_list_test_output(self, output: bytes) -> list[str]:
         ret = []
         class_name = None
         for line in output.decode("utf-8").split("\n"):
@@ -391,7 +393,7 @@ class TestRunner(abc.ABC):
     def _parse_gtest_run_output(self, test_output: bytes) -> list[GtestResult]:
         return GtestResult.parse_output(test_output)
 
-    def _list_tests_to_run(self, test_filter):
+    def _list_tests_to_run(self, test_filter: str) -> list[str]:
         output = subprocess.check_output(
             [
                 self._get_test_binary_name(),
@@ -401,7 +403,7 @@ class TestRunner(abc.ABC):
         )
         return self._parse_list_test_output(output)
 
-    def _test_matches_any_regex(self, test, regex_list):
+    def _test_matches_any_regex(self, test: str, regex_list: list[str]) -> bool:
         """
         Check if a test name matches any regex in the provided list.
 
@@ -414,15 +416,15 @@ class TestRunner(abc.ABC):
         """
         return any(re.match(regex_pattern, test) for regex_pattern in regex_list)
 
-    def _is_known_bad_test(self, test):
+    def _is_known_bad_test(self, test: str) -> bool:
         """Check if a test is in the known bad tests list."""
         return self._test_matches_any_regex(test, self._known_bad_test_regexes)
 
-    def _is_unsupported_test(self, test):
+    def _is_unsupported_test(self, test: str) -> bool:
         """Check if a test is in the unsupported tests list."""
         return self._test_matches_any_regex(test, self._unsupported_test_regexes)
 
-    def _get_tests_to_run(self):
+    def _get_tests_to_run(self) -> list[str]:
         # Filter syntax is -
         #   --filter=<include_regexes>-<exclude_regexes>
         #   in case of multiple regexes, each one should be separated by ':'
@@ -461,7 +463,7 @@ class TestRunner(abc.ABC):
             return []
         return self._list_tests_to_run(test_filter)
 
-    def _restart_bcmsim(self, asic):
+    def _restart_bcmsim(self, asic: str) -> None:
         try:
             subprocess.Popen(
                 # avoid warmboot, so as to run test with coldboot init, warmboot shut down
@@ -479,10 +481,10 @@ class TestRunner(abc.ABC):
 
     def _run_test(
         self,
-        conf_file,
-        test_prefix,
-        test_to_run,
-        setup_warmboot,
+        conf_file: str,
+        test_prefix: str,
+        test_to_run: str,
+        setup_warmboot: bool,
         sai_replayer_logging_path: str | None = None,
     ) -> RunOutcome:
         args = run_test.args
@@ -547,7 +549,7 @@ class TestRunner(abc.ABC):
             )
             return RunOutcome(result.as_log_line(), [result])
 
-    def _string_in_file(self, file_path, string):
+    def _string_in_file(self, file_path: str, string: str) -> bool | None:
         try:
             with open(file_path) as file:
                 file_contents = file.read()
@@ -555,7 +557,9 @@ class TestRunner(abc.ABC):
         except FileNotFoundError:
             print(f"File not found when replacing string: {file_path}")
 
-    def _replace_string_in_file(self, file_path, old_str, new_str):
+    def _replace_string_in_file(
+        self, file_path: str, old_str: str, new_str: str
+    ) -> None:
         try:
             with open(file_path) as file:
                 file_contents = file.read()
@@ -571,7 +575,7 @@ class TestRunner(abc.ABC):
         except Exception as e:
             print(f"Error when replacing string in {file_path}: {e!s}")
 
-    def _backup_and_modify_config(self, conf_file):
+    def _backup_and_modify_config(self, conf_file: str) -> str:
         """Create a copy of the config and modify settings"""
         args = run_test.args
         if getattr(args, "run_on_reference_board", False):
@@ -605,7 +609,9 @@ class TestRunner(abc.ABC):
         elif simulator in DNX_SIMULATOR_ASICS:
             self.env_var.update(DNX_SIMULATOR_ENV)
 
-    def _run_tests(self, tests_to_run, conf_file, args):  # noqa: PLR0915 - complex orchestration; splitting would harm readability
+    def _run_tests(  # noqa: PLR0915 - complex orchestration; splitting would harm readability
+        self, tests_to_run: list[str], conf_file: str, args: Namespace
+    ) -> list[GtestResult]:
         sai_replayer_logging = getattr(args, "sai_replayer_logging", None)
         simulator = getattr(args, "simulator", None)
 
@@ -688,7 +694,7 @@ class TestRunner(abc.ABC):
         ConsoleReporter().print_gtest_summary(results)
         CsvReporter().write_gtest_results(results)
 
-    def run_test(self, args):
+    def run_test(self, args: Namespace) -> None:
         test_binary = self._get_test_binary_name()
         # Some runners return an absolute path (e.g. /opt/fboss/bin/sai_test-sai_impl);
         # others return a bare binary name resolved via $PATH (e.g. platform_hw_test).
