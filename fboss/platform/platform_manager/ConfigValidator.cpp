@@ -1436,7 +1436,7 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
         versionedPmUnitConfig.productSubVersion() &&
         *versionedPmUnitConfig.productSubVersion() < 0) {
       XLOG(ERR) << fmt::format(
-          "One of PmUnit {}'s VersionedPmUnitConfig has a negative productSubVersion",
+          "One of PmUnit {}'s VersionedPmUnitConfig has a negative ProductSubVersion",
           pmUnitName);
       return false;
     }
