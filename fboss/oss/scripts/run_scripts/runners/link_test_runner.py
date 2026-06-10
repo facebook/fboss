@@ -5,8 +5,7 @@
 from argparse import ArgumentParser
 
 import run_test
-from run_test import (
-    LINK_KNOWN_BAD_TESTS,
+from constants import (
     OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH,
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
     SUB_ARG_AGENT_RUN_MODE,
@@ -27,6 +26,10 @@ from services.fsdb_service_utils import (
 from services.qsfp_service_utils import (
     cleanup_qsfp_service,
     setup_and_start_qsfp_service,
+)
+
+LINK_KNOWN_BAD_TESTS = (
+    "./share/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON"
 )
 
 

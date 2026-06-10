@@ -7,7 +7,6 @@ import subprocess
 from argparse import ArgumentParser
 
 import run_test
-from run_test import FBOSS2_INTEGRATION_KNOWN_BAD_TESTS
 from runners.test_runner import TestRunner
 from services.fboss_agent_utils import (
     cleanup_hw_agent_service,
@@ -19,6 +18,8 @@ from services.fboss_agent_utils import (
     setup_and_start_sw_agent_service,
     SW_AGENT_SERVICE_PROD,
 )
+
+FBOSS2_INTEGRATION_KNOWN_BAD_TESTS = "./share/fboss2_integration_known_bad_tests/fboss2_integration_known_bad_tests.materialized_JSON"
 
 
 class Fboss2IntegrationTestRunner(TestRunner):

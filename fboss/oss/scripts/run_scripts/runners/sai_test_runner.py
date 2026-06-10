@@ -5,14 +5,17 @@
 from argparse import ArgumentParser
 
 import run_test
-from run_test import (
-    OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
-    run_script,
-    SAI_HW_KNOWN_BAD_TESTS,
-    SAI_UNSUPPORTED_TESTS,
-)
+from constants import OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH
+from run_test import run_script
 from runners.test_runner import TestRunner
 from services.fboss_agent_utils import agent_can_warm_boot_file_path
+
+SAI_HW_KNOWN_BAD_TESTS = (
+    "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
+)
+SAI_UNSUPPORTED_TESTS = (
+    "./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON"
+)
 
 
 class SaiTestRunner(TestRunner):

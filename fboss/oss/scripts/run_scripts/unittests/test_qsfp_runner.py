@@ -5,8 +5,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from run_test import QSFP_SERVICE_DIR
-from runners.qsfp_test_runner import QsfpTestRunner
+from runners.qsfp_test_runner import QSFP_SERVICE_DIR, QsfpTestRunner
 
 
 @pytest.fixture

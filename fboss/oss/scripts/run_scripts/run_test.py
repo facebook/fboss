@@ -78,95 +78,6 @@ import sys
 # - Link: ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON
 #         ./share/link_known_bad_tests/agent_ensemble_link_unsupported_tests.materialized_JSON
 
-OPT_ARG_COLDBOOT = "--coldboot_only"
-OPT_ARG_FILTER = "--filter"
-OPT_ARG_FILTER_FILE = "--filter_file"
-OPT_ARG_PROFILE = "--profile"
-OPT_ARG_LIST_TESTS = "--list_tests"
-OPT_ARG_CONFIG_FILE = "--config"
-OPT_ARG_QSFP_CONFIG_FILE = "--qsfp-config"
-OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH = "--platform_mapping_override_path"
-OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH = "--bsp_platform_mapping_override_path"
-OPT_ARG_SAI_REPLAYER_LOGGING = "--sai_replayer_logging"
-OPT_ARG_SKIP_KNOWN_BAD_TESTS = "--skip-known-bad-tests"
-OPT_ARG_MGT_IF = "--mgmt-if"
-OPT_ARG_FRUID_PATH = "--fruid-path"
-OPT_ARG_SIMULATOR = "--simulator"
-OPT_ARG_SAI_LOGGING = "--sai_logging"
-OPT_ARG_FBOSS_LOGGING = "--fboss_logging"
-OPT_ARG_PRODUCTION_FEATURES = "--production-features"
-OPT_ARG_ENABLE_PRODUCTION_FEATURES = "--enable-production-features"
-OPT_ARG_LIST_TESTS_FOR_FEATURE = "--list-tests-for-features"
-OPT_KNOWN_BAD_TESTS_FILE = "--known-bad-tests-file"
-OPT_UNSUPPORTED_TESTS_FILE = "--unsupported-tests-file"
-OPT_ARG_SETUP_CB = "--setup-for-coldboot"
-OPT_ARG_SETUP_WB = "--setup-for-warmboot"
-OPT_ARG_TEST_RUN_TIMEOUT = "--test-run-timeout"
-OPT_ARG_DISABLE_FSDB = "--disable-fsdb"
-OPT_ARG_FSDB_CONFIG_FILE = "--fsdb-config"
-SUB_CMD_BCM = "bcm"
-SUB_CMD_SAI = "sai"
-SUB_CMD_QSFP = "qsfp"
-SUB_CMD_LINK = "link"
-SUB_CMD_SAI_AGENT = "sai_agent"
-SUB_CMD_PLATFORM = "platform"
-SUB_CMD_FBOSS2_INTEGRATION = "fboss2_integration"
-SUB_CMD_SAI_AGENT_SCALE = "sai_agent_scale"
-SUB_CMD_SAI_INVARIANT_AGENT = "sai_invariant_agent"
-SUB_CMD_BENCHMARK = "benchmark"
-SUB_ARG_AGENT_RUN_MODE = "--agent-run-mode"
-SUB_ARG_AGENT_RUN_MODE_MONO = "mono"
-SUB_ARG_AGENT_RUN_MODE_MULTI = "multi_switch"
-SUB_ARG_NUM_NPUS = "--num-npus"
-SUB_ARG_TEST_TYPE = "--type"
-SUB_ARG_PLATFORM_HW_TEST = "platform_hw_test"
-SUB_ARG_DATA_CORRAL_HW_TEST = "data_corral_service_hw_test"
-SUB_ARG_FAN_HW_TEST = "fan_service_hw_test"
-SUB_ARG_FW_UTIL_HW_TEST = "fw_util_hw_test"
-SUB_ARG_SENSOR_HW_TEST = "sensor_service_hw_test"
-SUB_ARG_WEUTIL_HW_TEST = "weutil_hw_test"
-SUB_ARG_PLATFORM_MANAGER_HW_TEST = "platform_manager_hw_test"
-
-SAI_HW_KNOWN_BAD_TESTS = (
-    "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
-)
-QSFP_KNOWN_BAD_TESTS = (
-    "./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON"
-)
-QSFP_UNSUPPORTED_TESTS = (
-    "./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON"
-)
-LINK_KNOWN_BAD_TESTS = (
-    "./share/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON"
-)
-SAI_AGENT_TEST_KNOWN_BAD_TESTS = (
-    "./share/hw_known_bad_tests/sai_agent_known_bad_tests.materialized_JSON"
-)
-FBOSS2_INTEGRATION_KNOWN_BAD_TESTS = "./share/fboss2_integration_known_bad_tests/fboss2_integration_known_bad_tests.materialized_JSON"
-ASIC_PRODUCTION_FEATURES = (
-    "./share/production_features/asic_production_features.materialized_JSON"
-)
-SAI_UNSUPPORTED_TESTS = (
-    "./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON"
-)
-SAI_AGENT_UNSUPPORTED_TESTS = (
-    "./share/sai_hw_unsupported_tests/sai_agent_hw_unsupported_tests.materialized_JSON"
-)
-SAI_BENCH_CONFIG = "./share/hw_benchmark_tests/sai_bench.materialized_JSON"
-
-QSFP_SERVICE_DIR = "/dev/shm/fboss/qsfp_service"
-QSFP_WARMBOOT_CHECK_FILE = f"{QSFP_SERVICE_DIR}/can_warm_boot"
-
-XGS_SIMULATOR_ASICS = ["th3", "th4", "th4_b0", "th5"]
-DNX_SIMULATOR_ASICS = ["j3"]
-
-ALL_SIMUALTOR_ASICS_STR = "|".join(XGS_SIMULATOR_ASICS + DNX_SIMULATOR_ASICS)
-
-GTEST_NAME_PREFIX = "[ RUN      ] "
-FEATURE_LIST_PREFIX = "Feature List: "
-
-DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND = 1200
-
 
 def _load_from_file(file_path, profile=None):
     """Load list from a configuration file, skipping comment lines.
@@ -236,6 +147,41 @@ def setup_fboss_env() -> None:
 if __name__ == "__main__":
     from argparse import ArgumentParser
 
+    from constants import (
+        ALL_SIMUALTOR_ASICS_STR,
+        DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
+        OPT_ARG_COLDBOOT,
+        OPT_ARG_CONFIG_FILE,
+        OPT_ARG_DISABLE_FSDB,
+        OPT_ARG_FBOSS_LOGGING,
+        OPT_ARG_FILTER,
+        OPT_ARG_FILTER_FILE,
+        OPT_ARG_FRUID_PATH,
+        OPT_ARG_FSDB_CONFIG_FILE,
+        OPT_ARG_LIST_TESTS,
+        OPT_ARG_MGT_IF,
+        OPT_ARG_PROFILE,
+        OPT_ARG_QSFP_CONFIG_FILE,
+        OPT_ARG_SAI_LOGGING,
+        OPT_ARG_SAI_REPLAYER_LOGGING,
+        OPT_ARG_SETUP_CB,
+        OPT_ARG_SETUP_WB,
+        OPT_ARG_SIMULATOR,
+        OPT_ARG_SKIP_KNOWN_BAD_TESTS,
+        OPT_ARG_TEST_RUN_TIMEOUT,
+        OPT_KNOWN_BAD_TESTS_FILE,
+        OPT_UNSUPPORTED_TESTS_FILE,
+        SUB_CMD_BCM,
+        SUB_CMD_BENCHMARK,
+        SUB_CMD_FBOSS2_INTEGRATION,
+        SUB_CMD_LINK,
+        SUB_CMD_PLATFORM,
+        SUB_CMD_QSFP,
+        SUB_CMD_SAI,
+        SUB_CMD_SAI_AGENT,
+        SUB_CMD_SAI_AGENT_SCALE,
+        SUB_CMD_SAI_INVARIANT_AGENT,
+    )
     from runners.bcm_test_runner import BcmTestRunner
     from runners.benchmark_test_runner import BenchmarkTestRunner
     from runners.fboss2_integration_test_runner import Fboss2IntegrationTestRunner

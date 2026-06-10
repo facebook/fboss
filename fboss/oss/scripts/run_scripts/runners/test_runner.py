@@ -14,6 +14,11 @@ from datetime import datetime
 from typing import ClassVar
 
 import run_test
+from constants import (
+    DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
+    DNX_SIMULATOR_ASICS,
+    XGS_SIMULATOR_ASICS,
+)
 from reporters.console_reporter import ConsoleReporter
 from reporters.csv_reporter import CsvReporter
 from result_types import GtestResult
@@ -350,7 +355,7 @@ class TestRunner(abc.ABC):
         sai_logging,
         fboss_logging,
         sai_replayer_logging_path: str | None = None,
-        test_run_timeout_in_second: int = run_test.DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
+        test_run_timeout_in_second: int = DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
     ):
         # Setup flags for the test binary before running the tests
         flags = [self.WARMBOOT_SETUP_OPTION] if setup_warmboot else []
@@ -483,14 +488,14 @@ class TestRunner(abc.ABC):
                 )
 
             os.makedirs(args.sai_replayer_logging)
-        if args.simulator in run_test.XGS_SIMULATOR_ASICS:
+        if args.simulator in XGS_SIMULATOR_ASICS:
             self.ENV_VAR["SOC_TARGET_SERVER"] = "127.0.0.1"
             self.ENV_VAR["BCM_SIM_PATH"] = "1"
             self.ENV_VAR["SOC_BOOT_FLAGS"] = "4325376"
             self.ENV_VAR["SAI_BOOT_FLAGS"] = "4325376"
             self.ENV_VAR["SOC_TARGET_PORT"] = "22222"
             self.ENV_VAR["SOC_TARGET_COUNT"] = "1"
-        elif args.simulator in run_test.DNX_SIMULATOR_ASICS:
+        elif args.simulator in DNX_SIMULATOR_ASICS:
             self.ENV_VAR["BCM_SIM_PATH"] = "1"
             self.ENV_VAR["SOC_BOOT_FLAGS"] = "0x1020000"
             self.ENV_VAR["ADAPTER_DEVID_0"] = "8860"

@@ -9,25 +9,26 @@ import subprocess
 import threading
 from argparse import ArgumentParser, Namespace
 
-from reporters.console_reporter import ConsoleReporter
-from reporters.csv_reporter import CsvReporter
-from result_types import BenchmarkResult
-from run_test import (
-    _load_from_file,
+from constants import (
     OPT_ARG_FILTER,
     OPT_ARG_FILTER_FILE,
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
-    SAI_BENCH_CONFIG,
     SUB_ARG_AGENT_RUN_MODE,
     SUB_ARG_AGENT_RUN_MODE_MONO,
     SUB_ARG_AGENT_RUN_MODE_MULTI,
     SUB_ARG_NUM_NPUS,
 )
+from reporters.console_reporter import ConsoleReporter
+from reporters.csv_reporter import CsvReporter
+from result_types import BenchmarkResult
+from run_test import _load_from_file
 from runners.test_runner import TestRunner
 from services.fboss_agent_utils import (
     cleanup_hw_agent_service,
     setup_and_start_hw_agent_service,
 )
+
+SAI_BENCH_CONFIG = "./share/hw_benchmark_tests/sai_bench.materialized_JSON"
 
 
 class BenchmarkTestRunner:

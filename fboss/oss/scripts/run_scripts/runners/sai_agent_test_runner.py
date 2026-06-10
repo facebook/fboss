@@ -8,16 +8,8 @@ import sys
 from argparse import ArgumentParser
 
 import run_test
-from run_test import (
-    ASIC_PRODUCTION_FEATURES,
-    FEATURE_LIST_PREFIX,
-    OPT_ARG_ENABLE_PRODUCTION_FEATURES,
-    OPT_ARG_LIST_TESTS_FOR_FEATURE,
+from constants import (
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
-    OPT_ARG_PRODUCTION_FEATURES,
-    run_script,
-    SAI_AGENT_TEST_KNOWN_BAD_TESTS,
-    SAI_AGENT_UNSUPPORTED_TESTS,
     SUB_ARG_AGENT_RUN_MODE,
     SUB_ARG_AGENT_RUN_MODE_MONO,
     SUB_ARG_AGENT_RUN_MODE_MULTI,
@@ -29,6 +21,20 @@ from services.fboss_agent_utils import (
     cleanup_hw_agent_service,
     setup_and_start_hw_agent_service,
 )
+
+OPT_ARG_PRODUCTION_FEATURES = "--production-features"
+OPT_ARG_ENABLE_PRODUCTION_FEATURES = "--enable-production-features"
+OPT_ARG_LIST_TESTS_FOR_FEATURE = "--list-tests-for-features"
+SAI_AGENT_TEST_KNOWN_BAD_TESTS = (
+    "./share/hw_known_bad_tests/sai_agent_known_bad_tests.materialized_JSON"
+)
+SAI_AGENT_UNSUPPORTED_TESTS = (
+    "./share/sai_hw_unsupported_tests/sai_agent_hw_unsupported_tests.materialized_JSON"
+)
+ASIC_PRODUCTION_FEATURES = (
+    "./share/production_features/asic_production_features.materialized_JSON"
+)
+FEATURE_LIST_PREFIX = "Feature List: "
 
 
 class SaiAgentTestRunner(TestRunner):
@@ -161,7 +167,7 @@ class SaiAgentTestRunner(TestRunner):
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         args = run_test.args
         if args.setup_for_coldboot:
-            run_script(args.setup_for_coldboot)
+            run_test.run_script(args.setup_for_coldboot)
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             setup_and_start_hw_agent_service(
                 switch_indexes=list(range(args.num_npus)),
@@ -174,7 +180,7 @@ class SaiAgentTestRunner(TestRunner):
     def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         args = run_test.args
         if args.setup_for_warmboot:
-            run_script(args.setup_for_warmboot)
+            run_test.run_script(args.setup_for_warmboot)
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             setup_and_start_hw_agent_service(
                 switch_indexes=list(range(args.num_npus)),

@@ -6,15 +6,20 @@ import subprocess
 from argparse import ArgumentParser
 
 import run_test
-from run_test import (
+from constants import (
     OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH,
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
-    QSFP_KNOWN_BAD_TESTS,
-    QSFP_SERVICE_DIR,
-    QSFP_UNSUPPORTED_TESTS,
-    QSFP_WARMBOOT_CHECK_FILE,
 )
 from runners.test_runner import TestRunner
+
+QSFP_KNOWN_BAD_TESTS = (
+    "./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON"
+)
+QSFP_UNSUPPORTED_TESTS = (
+    "./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON"
+)
+QSFP_SERVICE_DIR = "/dev/shm/fboss/qsfp_service"  # noqa: S108
+QSFP_WARMBOOT_CHECK_FILE = f"{QSFP_SERVICE_DIR}/can_warm_boot"
 
 
 class QsfpTestRunner(TestRunner):
