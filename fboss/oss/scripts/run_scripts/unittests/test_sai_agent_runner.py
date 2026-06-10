@@ -140,7 +140,7 @@ class TestFilterTestsProductionFeatures:
                     production_features=path,
                 ),
             ),
-            patch("run_test.subprocess.run", side_effect=fake_run),
+            patch("subprocess.run", side_effect=fake_run),
         ):
             kept = sai_agent_runner._filter_tests(
                 ["AgentAclTest.OK", "AgentExoticTest.Bad"]

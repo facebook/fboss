@@ -3,7 +3,7 @@
 """Tests for TestRunner orchestration: _run_test, _run_tests, and related
 end-to-end execution paths (gtest output post-processing, synthesize-OK
 fallback for early-exit binaries, warmboot loop, timeout handling, config
-backup, filter merging), plus the _load_from_file helper consumed
+backup, filter merging), plus the load_from_file helper consumed
 by _get_tests_to_run via args.filter_file."""
 
 import os
@@ -11,11 +11,11 @@ import subprocess
 import tempfile
 from unittest.mock import MagicMock, patch
 
-from run_test import _load_from_file
+from runners.utils import load_from_file
 
 
 class TestLoadFromFile:
-    """_load_from_file is a module-level helper used by _get_tests_to_run
+    """load_from_file is a module-level helper used by _get_tests_to_run
     (args.filter_file path) and BenchmarkTestRunner. Tests live here next to
     the consumer."""
 
@@ -30,14 +30,14 @@ class TestLoadFromFile:
             f.write("entry3\n")
             temp_file = f.name
         try:
-            result = _load_from_file(temp_file)
+            result = load_from_file(temp_file)
             assert result == ["entry1", "entry2", "entry3"]
         finally:
             os.unlink(temp_file)
 
     def test_nonexistent(self):
         """Test loading from a nonexistent file returns empty list"""
-        result = _load_from_file("/nonexistent/path.conf")
+        result = load_from_file("/nonexistent/path.conf")
         assert result == []
 
     def test_empty(self):
@@ -45,7 +45,7 @@ class TestLoadFromFile:
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".conf") as f:
             temp_file = f.name
         try:
-            result = _load_from_file(temp_file)
+            result = load_from_file(temp_file)
             assert result == []
         finally:
             os.unlink(temp_file)
@@ -59,7 +59,7 @@ class TestLoadFromFile:
             f.write("entry_tagged_t t\n")
             temp_file = f.name
         try:
-            result = _load_from_file(temp_file, profile="p1")
+            result = load_from_file(temp_file, profile="p1")
             assert result == ["entry_tagged_p1"]
         finally:
             os.unlink(temp_file)
@@ -72,7 +72,7 @@ class TestLoadFromFile:
             f.write("entry_tagged_t t\n")
             temp_file = f.name
         try:
-            result = _load_from_file(temp_file)
+            result = load_from_file(temp_file)
             assert result == ["entry_untagged", "entry_tagged_t"]
         finally:
             os.unlink(temp_file)
@@ -87,7 +87,7 @@ class TestLoadFromFile:
             f.write("entry1\n")
             temp_file = f.name
         try:
-            result = _load_from_file(temp_file)
+            result = load_from_file(temp_file)
             assert result == ["entry1"]
         finally:
             os.unlink(temp_file)

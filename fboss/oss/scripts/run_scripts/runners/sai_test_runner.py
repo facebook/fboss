@@ -6,8 +6,8 @@ from argparse import ArgumentParser
 
 import run_test
 from constants import OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH
-from run_test import run_script
 from runners.test_runner import TestRunner
+from runners.utils import run_script
 from services.fboss_agent_utils import agent_can_warm_boot_file_path
 
 SAI_HW_KNOWN_BAD_TESTS = (

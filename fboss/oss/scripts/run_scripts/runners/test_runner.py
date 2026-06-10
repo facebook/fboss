@@ -22,6 +22,7 @@ from constants import (
 from reporters.console_reporter import ConsoleReporter
 from reporters.csv_reporter import CsvReporter
 from result_types import GtestResult
+from runners.utils import load_from_file
 
 _YELLOW = "\033[1;33m"
 _RED = "\033[1;31m"
@@ -312,7 +313,7 @@ class TestRunner(abc.ABC):
         test_names = []
         if args.filter or args.filter_file:
             if args.filter_file:
-                gtest_regexes = run_test._load_from_file(args.filter_file, args.profile)
+                gtest_regexes = load_from_file(args.filter_file, args.profile)
                 test_names = self._list_tests_to_run(":".join(gtest_regexes))
             elif args.filter:
                 test_names = self._list_tests_to_run(args.filter)

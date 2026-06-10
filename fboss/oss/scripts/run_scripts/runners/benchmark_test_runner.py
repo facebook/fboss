@@ -21,8 +21,8 @@ from constants import (
 from reporters.console_reporter import ConsoleReporter
 from reporters.csv_reporter import CsvReporter
 from result_types import BenchmarkResult
-from run_test import _load_from_file
 from runners.test_runner import TestRunner
+from runners.utils import load_from_file
 from services.fboss_agent_utils import (
     cleanup_hw_agent_service,
     setup_and_start_hw_agent_service,
@@ -494,7 +494,7 @@ class BenchmarkTestRunner:
             print(f"Error: Configuration file not found: {filter_file}")
             return None
 
-        names = _load_from_file(filter_file)
+        names = load_from_file(filter_file)
 
         if not names:
             print(f"Error: No benchmarks found in {filter_file}")

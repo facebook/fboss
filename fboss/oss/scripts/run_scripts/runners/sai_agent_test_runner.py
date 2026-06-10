@@ -16,6 +16,7 @@ from constants import (
     SUB_ARG_NUM_NPUS,
 )
 from runners.test_runner import TestRunner
+from runners.utils import run_script
 from services.fboss_agent_utils import (
     agent_can_warm_boot_file_path,
     cleanup_hw_agent_service,
@@ -167,7 +168,7 @@ class SaiAgentTestRunner(TestRunner):
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         args = run_test.args
         if args.setup_for_coldboot:
-            run_test.run_script(args.setup_for_coldboot)
+            run_script(args.setup_for_coldboot)
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             setup_and_start_hw_agent_service(
                 switch_indexes=list(range(args.num_npus)),
@@ -180,7 +181,7 @@ class SaiAgentTestRunner(TestRunner):
     def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         args = run_test.args
         if args.setup_for_warmboot:
-            run_test.run_script(args.setup_for_warmboot)
+            run_script(args.setup_for_warmboot)
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             setup_and_start_hw_agent_service(
                 switch_indexes=list(range(args.num_npus)),

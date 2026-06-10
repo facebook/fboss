@@ -57,7 +57,7 @@ class TestRunArgsOverrides:
 
 class TestColdbootCleansQsfpServiceDir:
     def test_invokes_rm_rf_on_qsfp_service_dir(self, qsfp_runner):
-        with patch("run_test.subprocess.Popen") as mock_popen:
+        with patch("subprocess.Popen") as mock_popen:
             qsfp_runner._setup_coldboot_test()
         mock_popen.assert_called_once()
         cmd = mock_popen.call_args.args[0]
