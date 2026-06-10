@@ -8,7 +8,31 @@ import shutil
 import subprocess
 import sys
 
-from run_test import setup_fboss_env
+
+def setup_fboss_env() -> None:
+    print("Setting fboss environment variables")
+
+    fboss = os.getcwd()
+    os.environ["FBOSS"] = fboss
+    os.environ["FBOSS_BIN"] = f"{fboss}/bin"
+    os.environ["FBOSS_LIB"] = f"{fboss}/lib"
+    os.environ["FBOSS_LIB64"] = f"{fboss}/lib64"
+    os.environ["FBOSS_KMODS"] = f"{fboss}/lib/modules"
+    os.environ["FBOSS_DATA"] = f"{fboss}/share"
+
+    if os.environ.get("PATH") is not None:
+        os.environ["PATH"] = f"{os.environ['FBOSS_BIN']}:{os.environ['PATH']}"
+    else:
+        os.environ["PATH"] = os.environ["FBOSS_BIN"]
+
+    if os.environ.get("LD_LIBRARY_PATH") is not None:
+        os.environ["LD_LIBRARY_PATH"] = (
+            f"{os.environ['FBOSS_LIB64']}:{os.environ['FBOSS_LIB']}:{os.environ['LD_LIBRARY_PATH']}"
+        )
+    else:
+        os.environ["LD_LIBRARY_PATH"] = (
+            f"{os.environ['FBOSS_LIB64']}:{os.environ['FBOSS_LIB']}"
+        )
 
 
 def parse_args():
@@ -43,14 +67,18 @@ class SetupFboss:
     LSMOD_USER_BDE = "linux_user_bde"
     LSMOD_KERNEL_BDE = "linux_kernel_bde"
 
-    SRC_USER_BDE_KO_FULL_PATH = os.path.join(os.environ["FBOSS_KMODS"], USER_BDE_KO)
-    SRC_KERNEL_BDE_KO_FULL_PATH = os.path.join(os.environ["FBOSS_KMODS"], KERNEL_BDE_KO)
-
-    BCM_CONFIG_DIR = os.path.join(os.environ["FBOSS_DATA"], "bcm_configs")
     TH = "th"
     TH3 = "th3"
 
     def __init__(self):
+        self.SRC_USER_BDE_KO_FULL_PATH = os.path.join(
+            os.environ["FBOSS_KMODS"], self.USER_BDE_KO
+        )
+        self.SRC_KERNEL_BDE_KO_FULL_PATH = os.path.join(
+            os.environ["FBOSS_KMODS"], self.KERNEL_BDE_KO
+        )
+        self.BCM_CONFIG_DIR = os.path.join(os.environ["FBOSS_DATA"], "bcm_configs")
+
         output = subprocess.check_output(["lspci"]).decode("utf-8").split("\n")
 
         if [x for x in output if "Broadcom" in x and "BCM56960" in x]:
@@ -62,7 +90,7 @@ class SetupFboss:
             )
             PLATFORM = "WEDGE100S+RSW"
             self.src_bcm_conf_full_path = os.path.join(
-                SetupFboss.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
+                self.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
             )
 
         elif [x for x in output if "Broadcom" in x and "b980" in x]:
@@ -74,7 +102,7 @@ class SetupFboss:
             )
             PLATFORM = "MINIPACK+FSW"
             self.src_bcm_conf_full_path = os.path.join(
-                SetupFboss.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
+                self.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
             )
 
     def _cleanup_old_setup(self):
@@ -119,7 +147,7 @@ class SetupFboss:
                 [
                     "ln",
                     "-s",
-                    SetupFboss.SRC_USER_BDE_KO_FULL_PATH,
+                    self.SRC_USER_BDE_KO_FULL_PATH,
                     "-t",
                     SetupFboss.KMOD_FULL_PATH,
                 ]
@@ -131,7 +159,7 @@ class SetupFboss:
                 [
                     "ln",
                     "-s",
-                    SetupFboss.SRC_KERNEL_BDE_KO_FULL_PATH,
+                    self.SRC_KERNEL_BDE_KO_FULL_PATH,
                     "-t",
                     SetupFboss.KMOD_FULL_PATH,
                 ]

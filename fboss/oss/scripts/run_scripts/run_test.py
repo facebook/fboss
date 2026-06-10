@@ -118,32 +118,6 @@ def run_script(script_file: str):
     subprocess.run(script_file, check=False, shell=True)
 
 
-def setup_fboss_env() -> None:
-    print("Setting fboss environment variables")
-
-    fboss = os.getcwd()
-    os.environ["FBOSS"] = fboss
-    os.environ["FBOSS_BIN"] = f"{fboss}/bin"
-    os.environ["FBOSS_LIB"] = f"{fboss}/lib"
-    os.environ["FBOSS_LIB64"] = f"{fboss}/lib64"
-    os.environ["FBOSS_KMODS"] = f"{fboss}/lib/modules"
-    os.environ["FBOSS_DATA"] = f"{fboss}/share"
-
-    if os.environ.get("PATH") is not None:
-        os.environ["PATH"] = f"{os.environ['FBOSS_BIN']}:{os.environ['PATH']}"
-    else:
-        os.environ["PATH"] = os.environ["FBOSS_BIN"]
-
-    if os.environ.get("LD_LIBRARY_PATH") is not None:
-        os.environ["LD_LIBRARY_PATH"] = (
-            f"{os.environ['FBOSS_LIB64']}:{os.environ['FBOSS_LIB']}:{os.environ['LD_LIBRARY_PATH']}"
-        )
-    else:
-        os.environ["LD_LIBRARY_PATH"] = (
-            f"{os.environ['FBOSS_LIB64']}:{os.environ['FBOSS_LIB']}"
-        )
-
-
 if __name__ == "__main__":
     from argparse import ArgumentParser
 
@@ -193,6 +167,7 @@ if __name__ == "__main__":
     from runners.sai_invariant_agent_test_runner import SaiInvariantAgentTestRunner
     from runners.sai_test_runner import SaiTestRunner
     from runners.test_runner import TestRunner
+    from setup import setup_fboss_env
 
     os.chdir("/opt/fboss")
     setup_fboss_env()
