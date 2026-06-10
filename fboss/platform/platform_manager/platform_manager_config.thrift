@@ -746,13 +746,14 @@ struct PmUnitConfig {
 // backwards compatibility with configs that predate the pmUnitVersion field.
 // This refers to field Type 10 in Meta EEPROM V5.
 //
-// `pmUnitVersion`: Minimum version of the PmUnit this config applies to.
+// `pmUnitVersions`: List of PmUnit versions this config applies to. A system
+// matching any version in this list will use this config.
 // `productSubVersion` is ignored when `pmUnitVersion` is present. At least
 // one of `productSubVersion` or `pmUnitVersion` must be set.
 struct VersionedPmUnitConfig {
   1: PmUnitConfig pmUnitConfig;
   3: optional i16 productSubVersion;
-  4: optional PmUnitVersion pmUnitVersion;
+  4: optional list<PmUnitVersion> pmUnitVersions;
 }
 
 // `PmUnitInfo`: Details of a PmUnit.

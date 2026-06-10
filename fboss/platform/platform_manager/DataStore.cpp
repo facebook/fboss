@@ -166,12 +166,18 @@ PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
   if (platformConfig_.versionedPmUnitConfigs()->contains(pmUnitName)) {
     for (const auto& versionedPmUnitConfig :
          platformConfig_.versionedPmUnitConfigs()->at(pmUnitName)) {
-      bool matches;
-      if (const auto& pmUv = versionedPmUnitConfig.pmUnitVersion(); pmUv) {
-        matches = *pmUv->productionState() ==
-                *version->productionState() &&
-            *pmUv->productionSubState() == *version->productionSubState() &&
-            *pmUv->respinVariantIndicator() == *version->respinVariantIndicator();
+      bool matches = false;
+      if (const auto& pmUvs = versionedPmUnitConfig.pmUnitVersions();
+          pmUvs && !pmUvs->empty()) {
+        for (const auto& pmUv : *pmUvs) {
+          if (*pmUv.productionState() == *version->productionState() &&
+              *pmUv.productionSubState() == *version->productionSubState() &&
+              *pmUv.respinVariantIndicator() ==
+                  *version->respinVariantIndicator()) {
+            matches = true;
+            break;
+          }
+        }
       } else {
         matches = versionedPmUnitConfig.respinVariantIndicator() &&
             *versionedPmUnitConfig.respinVariantIndicator() ==

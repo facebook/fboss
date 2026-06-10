@@ -1417,17 +1417,21 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
   }
 
   for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
-    if (const auto& pmUv = versionedPmUnitConfig.pmUnitVersion(); pmUv &&
-        (*pmUv->productionState() < 0 || *pmUv->productionSubState() < 0 ||
-         *pmUv->respinVariantIndicator() < 0)) {
-      XLOG(ERR) << fmt::format(
-          "PmUnit {}'s VersionedPmUnitConfig has invalid pmUnitVersion "
-          "{}.{}.{}: all fields must be >= 0",
-          pmUnitName,
-          *pmUv->productionState(),
-          *pmUv->productionSubState(),
-          *pmUv->respinVariantIndicator());
-      return false;
+    if (const auto& pmUvs = versionedPmUnitConfig.pmUnitVersions();
+        pmUvs && !pmUvs->empty()) {
+      for (const auto& pmUv : *pmUvs) {
+        if (*pmUv.productionState() < 0 || *pmUv.productionSubState() < 0 ||
+            *pmUv.respinVariantIndicator() < 0) {
+          XLOG(ERR) << fmt::format(
+              "PmUnit {}'s VersionedPmUnitConfig has invalid pmUnitVersion "
+              "{}.{}.{}: all fields must be >= 0",
+              pmUnitName,
+              *pmUv->productionState(),
+              *pmUv->productionSubState(),
+              *pmUv->respinVariantIndicator());
+          return false;
+        }
+      }
     } else if (
         versionedPmUnitConfig.respinVariantIndicator() &&
         *versionedPmUnitConfig.respinVariantIndicator() < 0) {
