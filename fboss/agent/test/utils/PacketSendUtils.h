@@ -43,6 +43,14 @@ bool ensureSendPacketSwitched(
     const HwPortStatsFunc& getHwPortStats,
     const int msBetweenRetry = 20);
 
+bool ensureSendPacketSwitched(
+    TestEnsembleIf* ensemble,
+    std::unique_ptr<TxPacket> pkt,
+    SwitchID switchId,
+    const std::vector<PortID>& portIds,
+    const HwPortStatsFunc& getHwPortStats,
+    const int msBetweenRetry = 20);
+
 bool ensureSendPacketOutOfPort(
     TestEnsembleIf* ensemble,
     std::unique_ptr<TxPacket> pkt,

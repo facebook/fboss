@@ -10,6 +10,7 @@
 #include "fboss/agent/test/utils/PacketSendUtils.h"
 
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
 #include <folly/logging/xlog.h>
@@ -204,6 +205,22 @@ bool ensureSendPacketSwitched(
       {},
       noopGetSysPortStats,
       msBetweenRetry);
+}
+
+bool ensureSendPacketSwitched(
+    TestEnsembleIf* ensemble,
+    std::unique_ptr<TxPacket> pkt,
+    SwitchID switchId,
+    const std::vector<PortID>& portIds,
+    const HwPortStatsFunc& getHwPortStats,
+    const int msBetweenRetry) {
+  auto originalPortStats = getHwPortStats(portIds);
+  auto* agentEnsemble = dynamic_cast<AgentEnsemble*>(ensemble);
+  CHECK(agentEnsemble)
+      << "Ensemble must be an AgentEnsemble for targeted NPU packet sending";
+  agentEnsemble->getSw()->sendPacketSwitchedAsync(std::move(pkt), {switchId});
+  return waitForAnyPorAndQueutOutBytesIncrement(
+      ensemble, originalPortStats, portIds, getHwPortStats, msBetweenRetry);
 }
 
 bool ensureSendPacketOutOfPort(
