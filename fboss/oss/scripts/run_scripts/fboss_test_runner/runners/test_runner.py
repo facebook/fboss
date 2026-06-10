@@ -11,13 +11,13 @@ import subprocess
 import time
 from argparse import ArgumentParser
 from datetime import datetime
-from typing import ClassVar
 
 import run_test
 from fboss_test_runner.constants import (
     ALL_SIMUALTOR_ASICS_STR,
     DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
     DNX_SIMULATOR_ASICS,
+    DNX_SIMULATOR_ENV,
     OPT_ARG_COLDBOOT,
     OPT_ARG_CONFIG_FILE,
     OPT_ARG_DISABLE_FSDB,
@@ -40,6 +40,7 @@ from fboss_test_runner.constants import (
     OPT_KNOWN_BAD_TESTS_FILE,
     OPT_UNSUPPORTED_TESTS_FILE,
     XGS_SIMULATOR_ASICS,
+    XGS_SIMULATOR_ENV,
 )
 from fboss_test_runner.reporters.console_reporter import ConsoleReporter
 from fboss_test_runner.reporters.csv_reporter import CsvReporter
@@ -62,7 +63,6 @@ def _print_deprecation_banner(lines):
 
 
 class TestRunner(abc.ABC):
-    ENV_VAR: ClassVar[dict] = dict(os.environ)
     WARMBOOT_SETUP_OPTION = "--setup-for-warmboot"
     COLDBOOT_PREFIX = "cold_boot."
     WARMBOOT_PREFIX = "warm_boot."
@@ -70,6 +70,7 @@ class TestRunner(abc.ABC):
     def __init__(self):
         self._known_bad_test_regexes = None
         self._unsupported_test_regexes = None
+        self.env_var: dict[str, str] = dict(os.environ)
 
     def _get_config_path(self):
         return ""
@@ -502,7 +503,7 @@ class TestRunner(abc.ABC):
             run_test_output = subprocess.check_output(
                 test_run_cmd,
                 timeout=args.test_run_timeout,
-                env=self.ENV_VAR,
+                env=self.env_var,
             )
             elapsed_ms = int((time.time() - start_time) * 1000)
 
@@ -597,6 +598,13 @@ class TestRunner(abc.ABC):
                 return conf_file
         return conf_file
 
+    def _apply_simulator_env(self, simulator: str | None) -> None:
+        """Overlay simulator-specific env vars onto this run's environment."""
+        if simulator in XGS_SIMULATOR_ASICS:
+            self.env_var.update(XGS_SIMULATOR_ENV)
+        elif simulator in DNX_SIMULATOR_ASICS:
+            self.env_var.update(DNX_SIMULATOR_ENV)
+
     def _run_tests(self, tests_to_run, conf_file, args):  # noqa: PLR0915 - complex orchestration; splitting would harm readability
         sai_replayer_logging = getattr(args, "sai_replayer_logging", None)
         simulator = getattr(args, "simulator", None)
@@ -611,29 +619,7 @@ class TestRunner(abc.ABC):
                 )
 
             os.makedirs(sai_replayer_logging)
-        if simulator in XGS_SIMULATOR_ASICS:
-            self.ENV_VAR["SOC_TARGET_SERVER"] = "127.0.0.1"
-            self.ENV_VAR["BCM_SIM_PATH"] = "1"
-            self.ENV_VAR["SOC_BOOT_FLAGS"] = "4325376"
-            self.ENV_VAR["SAI_BOOT_FLAGS"] = "4325376"
-            self.ENV_VAR["SOC_TARGET_PORT"] = "22222"
-            self.ENV_VAR["SOC_TARGET_COUNT"] = "1"
-        elif simulator in DNX_SIMULATOR_ASICS:
-            self.ENV_VAR["BCM_SIM_PATH"] = "1"
-            self.ENV_VAR["SOC_BOOT_FLAGS"] = "0x1020000"
-            self.ENV_VAR["ADAPTER_DEVID_0"] = "8860"
-            self.ENV_VAR["ADAPTER_REVID_0"] = "1"
-            self.ENV_VAR["ADAPTER_SERVER_MODE"] = "1"
-            self.ENV_VAR["CMODEL_DEVID_0"] = "8860"
-            self.ENV_VAR["CMODEL_REVID_0"] = "1"
-            self.ENV_VAR["CMODEL_MEMORY_PORT_0"] = "1222"
-            self.ENV_VAR["CMODEL_PACKET_PORT_0"] = "6815"
-            self.ENV_VAR["CMODEL_SDK_INTERFACE_PORT_0"] = "6816"
-            self.ENV_VAR["CMODEL_EXTERNAL_EVENTS_PORT_0"] = "6817"
-            self.ENV_VAR["cmodel_ip_address"] = "localhost"
-            self.ENV_VAR["SOC_TARGET_SERVER"] = "localhost"
-            self.ENV_VAR["SOC_TARGET_SERVER_0"] = "localhost"
-            self.ENV_VAR["SAI_BOOT_FLAGS"] = "0x1020000"
+        self._apply_simulator_env(simulator)
 
         # Determine if tests need to be run with warmboot mode too
         warmboot = False

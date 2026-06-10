@@ -276,6 +276,38 @@ class TestRunTestsWarmboot:
         mock_warm_setup.assert_not_called()
 
 
+class TestSimulatorEnv:
+    """_apply_simulator_env overlays simulator vars onto a per-instance env
+    copy, so simulator runs never leak env across runner instances (the env
+    used to live on a shared ClassVar)."""
+
+    def test_xgs_overlay(self, runner):
+        runner._apply_simulator_env("th4")
+        assert runner.env_var["BCM_SIM_PATH"] == "1"
+        assert runner.env_var["SOC_TARGET_SERVER"] == "127.0.0.1"
+        assert runner.env_var["SOC_TARGET_PORT"] == "22222"
+
+    def test_dnx_overlay(self, runner):
+        runner._apply_simulator_env("j3")
+        assert runner.env_var["ADAPTER_DEVID_0"] == "8860"
+        assert runner.env_var["SOC_TARGET_SERVER"] == "localhost"
+        assert runner.env_var["SAI_BOOT_FLAGS"] == "0x1020000"
+
+    def test_no_simulator_leaves_env_unchanged(self, runner):
+        before = dict(runner.env_var)
+        runner._apply_simulator_env(None)
+        assert runner.env_var == before
+
+    def test_env_is_per_instance_no_leak(self, runner):
+        # Applying simulator env to one runner must not leak onto a
+        # separate instance.
+        other = type(runner)()
+        assert "SOC_TARGET_PORT" not in other.env_var
+        runner._apply_simulator_env("th4")
+        assert "SOC_TARGET_PORT" in runner.env_var
+        assert "SOC_TARGET_PORT" not in other.env_var
+
+
 class TestBackupAndModifyConfig:
     """Test that _backup_and_modify_config copies the config to /tmp and
     rewrites AUTOLOAD_BOARD_SETTINGS when --run-on-reference-board is set.

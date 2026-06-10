@@ -49,6 +49,35 @@ XGS_SIMULATOR_ASICS = ["th3", "th4", "th4_b0", "th5"]
 DNX_SIMULATOR_ASICS = ["j3"]
 ALL_SIMUALTOR_ASICS_STR = "|".join(XGS_SIMULATOR_ASICS + DNX_SIMULATOR_ASICS)
 
+# Environment overlaid onto the test process when running against an ASIC
+# simulator (selected via --simulator).
+XGS_SIMULATOR_ENV: dict[str, str] = {
+    "SOC_TARGET_SERVER": "127.0.0.1",
+    "BCM_SIM_PATH": "1",
+    "SOC_BOOT_FLAGS": "4325376",
+    "SAI_BOOT_FLAGS": "4325376",
+    "SOC_TARGET_PORT": "22222",
+    "SOC_TARGET_COUNT": "1",
+}
+
+DNX_SIMULATOR_ENV: dict[str, str] = {
+    "BCM_SIM_PATH": "1",
+    "SOC_BOOT_FLAGS": "0x1020000",
+    "ADAPTER_DEVID_0": "8860",
+    "ADAPTER_REVID_0": "1",
+    "ADAPTER_SERVER_MODE": "1",
+    "CMODEL_DEVID_0": "8860",
+    "CMODEL_REVID_0": "1",
+    "CMODEL_MEMORY_PORT_0": "1222",
+    "CMODEL_PACKET_PORT_0": "6815",
+    "CMODEL_SDK_INTERFACE_PORT_0": "6816",
+    "CMODEL_EXTERNAL_EVENTS_PORT_0": "6817",
+    "cmodel_ip_address": "localhost",
+    "SOC_TARGET_SERVER": "localhost",
+    "SOC_TARGET_SERVER_0": "localhost",
+    "SAI_BOOT_FLAGS": "0x1020000",
+}
+
 DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND = 1200
 
 # Shared known-bad / unsupported SAI-agent test list paths (relative to /opt/fboss CWD)

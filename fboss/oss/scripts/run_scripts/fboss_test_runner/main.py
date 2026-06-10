@@ -40,14 +40,12 @@ from fboss_test_runner.runners.sai_invariant_agent_test_runner import (
     SaiInvariantAgentTestRunner,
 )
 from fboss_test_runner.runners.sai_test_runner import SaiTestRunner
-from fboss_test_runner.runners.test_runner import TestRunner
 from setup import setup_fboss_env
 
 
 def main():
     os.chdir("/opt/fboss")
     setup_fboss_env()
-    TestRunner.ENV_VAR = dict(os.environ)
 
     ap = ArgumentParser(
         description="FBOSS Hardware Test Runner",
