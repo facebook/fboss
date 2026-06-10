@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from argparse import ArgumentParser
 
 import run_test
-from run_test import TestRunner
+from runners.test_runner import TestRunner
 
 # `run_test.args` is populated at runtime by argparse inside main(), so the
 # attribute does not exist at import time. Declare it here so unit tests can

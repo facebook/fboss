@@ -10,7 +10,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-from run_test import SaiAgentTestRunner
+from runners.sai_agent_test_runner import SaiAgentTestRunner
 
 
 @pytest.fixture

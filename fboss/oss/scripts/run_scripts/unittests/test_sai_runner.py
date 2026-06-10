@@ -5,7 +5,8 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from run_test import SAI_HW_KNOWN_BAD_TESTS, SaiTestRunner
+from run_test import SAI_HW_KNOWN_BAD_TESTS
+from runners.sai_test_runner import SaiTestRunner
 
 
 @pytest.fixture

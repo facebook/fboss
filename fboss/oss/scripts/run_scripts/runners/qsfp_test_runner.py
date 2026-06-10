@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+# @noautodeps
+# (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+import subprocess
+from argparse import ArgumentParser
+
+import run_test
+from run_test import (
+    OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH,
+    OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
+    QSFP_KNOWN_BAD_TESTS,
+    QSFP_SERVICE_DIR,
+    QSFP_UNSUPPORTED_TESTS,
+    QSFP_WARMBOOT_CHECK_FILE,
+)
+from runners.test_runner import TestRunner
+
+
+class QsfpTestRunner(TestRunner):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        sub_parser.add_argument(
+            OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a platform mapping JSON file to be used.",
+            default=None,
+        )
+
+        sub_parser.add_argument(
+            OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a BSP platform mapping JSON file to be used.",
+            default=None,
+        )
+
+    def _get_config_path(self):
+        return ""
+
+    def _get_known_bad_tests_file(self):
+        args = run_test.args
+        if not args.known_bad_tests_file:
+            return QSFP_KNOWN_BAD_TESTS
+        return args.known_bad_tests_file
+
+    def _get_unsupported_tests_file(self):
+        return QSFP_UNSUPPORTED_TESTS
+
+    def _get_test_binary_name(self):
+        return "/opt/fboss/bin/qsfp_hw_test"
+
+    def _get_sai_replayer_logging_flags(
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
+        return []
+
+    def _get_sai_logging_flags(self, sai_logging):
+        # N/A
+        return []
+
+    def _get_warmboot_check_file(self):
+        return QSFP_WARMBOOT_CHECK_FILE
+
+    def _get_test_run_args(self, conf_file):
+        args = run_test.args
+        arg_list = ["--qsfp-config", args.qsfp_config]
+        if args.platform_mapping_override_path is not None:
+            arg_list.extend(
+                [
+                    "--platform_mapping_override_path",
+                    args.platform_mapping_override_path,
+                ]
+            )
+        if args.bsp_platform_mapping_override_path is not None:
+            arg_list.extend(
+                [
+                    "--bsp_platform_mapping_override_path",
+                    args.bsp_platform_mapping_override_path,
+                ]
+            )
+        return arg_list
+
+    def _setup_run(self, conf_file: str) -> None:
+        pass
+
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
+        subprocess.Popen(
+            # Clean up left over flags
+            ["rm", "-rf", QSFP_SERVICE_DIR]
+        )
+
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
+        return
+
+    def _end_run(self):
+        return
+
+    def _filter_tests(self, tests: list[str]) -> list[str]:
+        return tests

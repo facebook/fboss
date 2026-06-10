@@ -9,7 +9,7 @@ must launch FSDB before QSFP before HW Agent."""
 from unittest.mock import MagicMock, patch
 
 import pytest
-from run_test import LinkTestRunner
+from runners.link_test_runner import LinkTestRunner
 
 
 @pytest.fixture
@@ -74,15 +74,15 @@ class TestSetupColdbootServiceOrder:
                 new=_make_args(agent_run_mode="multi_switch"),
             ),
             patch(
-                "run_test.setup_and_start_fsdb_service",
+                "runners.link_test_runner.setup_and_start_fsdb_service",
                 side_effect=lambda **_: call_order.append("fsdb"),
             ),
             patch(
-                "run_test.setup_and_start_qsfp_service",
+                "runners.link_test_runner.setup_and_start_qsfp_service",
                 side_effect=lambda **_: call_order.append("qsfp"),
             ),
             patch(
-                "run_test.setup_and_start_hw_agent_service",
+                "runners.link_test_runner.setup_and_start_hw_agent_service",
                 side_effect=lambda **_: call_order.append("hw_agent"),
             ),
         ):
@@ -95,15 +95,15 @@ class TestSetupColdbootServiceOrder:
         with (
             patch("run_test.args", new=_make_args(agent_run_mode="mono")),
             patch(
-                "run_test.setup_and_start_fsdb_service",
+                "runners.link_test_runner.setup_and_start_fsdb_service",
                 side_effect=lambda **_: call_order.append("fsdb"),
             ),
             patch(
-                "run_test.setup_and_start_qsfp_service",
+                "runners.link_test_runner.setup_and_start_qsfp_service",
                 side_effect=lambda **_: call_order.append("qsfp"),
             ),
             patch(
-                "run_test.setup_and_start_hw_agent_service",
+                "runners.link_test_runner.setup_and_start_hw_agent_service",
             ) as mock_hw_agent,
         ):
             link_runner._setup_coldboot_test()
@@ -116,8 +116,8 @@ class TestSetupColdbootServiceOrder:
                 "run_test.args",
                 new=_make_args(agent_run_mode="mono", disable_fsdb=True),
             ),
-            patch("run_test.setup_and_start_fsdb_service") as mock_fsdb,
-            patch("run_test.setup_and_start_qsfp_service") as mock_qsfp,
+            patch("runners.link_test_runner.setup_and_start_fsdb_service") as mock_fsdb,
+            patch("runners.link_test_runner.setup_and_start_qsfp_service") as mock_qsfp,
         ):
             link_runner._setup_coldboot_test()
         mock_fsdb.assert_not_called()

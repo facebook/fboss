@@ -9,7 +9,7 @@ iteration in run_test that iterates TEST_TYPE_CHOICES when --type is omitted."""
 from unittest.mock import MagicMock, patch
 
 import pytest
-from run_test import PlatformServicesTestRunner
+from runners.platform_services_test_runner import PlatformServicesTestRunner
 
 
 @pytest.fixture

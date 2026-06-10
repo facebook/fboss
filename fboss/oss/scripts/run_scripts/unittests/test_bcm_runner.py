@@ -3,7 +3,7 @@
 """Tests for BcmTestRunner."""
 
 import pytest
-from run_test import BcmTestRunner
+from runners.bcm_test_runner import BcmTestRunner
 
 
 @pytest.fixture

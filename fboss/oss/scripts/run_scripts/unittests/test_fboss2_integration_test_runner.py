@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from run_test import Fboss2IntegrationTestRunner
+from runners.fboss2_integration_test_runner import Fboss2IntegrationTestRunner
 
 
 def _make_mock_args(**overrides):
@@ -40,8 +40,11 @@ class TestSetupRun(unittest.TestCase):
     def setUp(self):
         self.runner = Fboss2IntegrationTestRunner()
 
-    @patch("run_test.subprocess.run")
-    @patch("run_test.is_agent_running", return_value=[True, True])
+    @patch("runners.fboss2_integration_test_runner.subprocess.run")
+    @patch(
+        "runners.fboss2_integration_test_runner.is_agent_running",
+        return_value=[True, True],
+    )
     def test_prod_multi_switch_snapshots_config(self, mock_is_running, mock_run):
         with patch("run_test.args", _make_mock_args(), create=True):
             self.runner._setup_run("/etc/coop/agent.conf")
@@ -52,8 +55,11 @@ class TestSetupRun(unittest.TestCase):
             check=True,
         )
 
-    @patch("run_test.subprocess.run")
-    @patch("run_test.is_agent_running", return_value=[True, True])
+    @patch("runners.fboss2_integration_test_runner.subprocess.run")
+    @patch(
+        "runners.fboss2_integration_test_runner.is_agent_running",
+        return_value=[True, True],
+    )
     def test_prod_multi_switch_copies_test_config(self, mock_is_running, mock_run):
         with patch("run_test.args", _make_mock_args(), create=True):
             self.runner._setup_run("/opt/fboss/share/link_test_configs/test.conf")
@@ -67,10 +73,13 @@ class TestSetupRun(unittest.TestCase):
             check=True,
         )
 
-    @patch("run_test.subprocess.run")
-    @patch("run_test.setup_and_start_sw_agent_service")
-    @patch("run_test.setup_and_start_hw_agent_service")
-    @patch("run_test.is_agent_running", return_value=[False, False])
+    @patch("runners.fboss2_integration_test_runner.subprocess.run")
+    @patch("runners.fboss2_integration_test_runner.setup_and_start_sw_agent_service")
+    @patch("runners.fboss2_integration_test_runner.setup_and_start_hw_agent_service")
+    @patch(
+        "runners.fboss2_integration_test_runner.is_agent_running",
+        return_value=[False, False],
+    )
     def test_bare_device_sets_up_services(
         self, mock_is_running, mock_hw_setup, mock_sw_setup, mock_run
     ):
@@ -101,10 +110,13 @@ class TestSetupRun(unittest.TestCase):
             sw_agent_service_name="fboss_sw_agent",
         )
 
-    @patch("run_test.subprocess.run")
-    @patch("run_test.is_agent_running", return_value=[False, False])
-    @patch("run_test.setup_and_start_sw_agent_service")
-    @patch("run_test.setup_and_start_hw_agent_service")
+    @patch("runners.fboss2_integration_test_runner.subprocess.run")
+    @patch(
+        "runners.fboss2_integration_test_runner.is_agent_running",
+        return_value=[False, False],
+    )
+    @patch("runners.fboss2_integration_test_runner.setup_and_start_sw_agent_service")
+    @patch("runners.fboss2_integration_test_runner.setup_and_start_hw_agent_service")
     def test_bare_device_no_snapshot(self, mock_hw, mock_sw, mock_is_running, mock_run):
         with patch("run_test.args", _make_mock_args(), create=True):
             self.runner._setup_run("/etc/coop/agent.conf")
@@ -121,8 +133,8 @@ class TestSetupColdbootTest(unittest.TestCase):
     def setUp(self):
         self.runner = Fboss2IntegrationTestRunner()
 
-    @patch("run_test.subprocess.run")
-    @patch("run_test.cold_boot_agents", return_value=None)
+    @patch("runners.fboss2_integration_test_runner.subprocess.run")
+    @patch("runners.fboss2_integration_test_runner.cold_boot_agents", return_value=None)
     def test_calls_cold_boot_agents(self, mock_cold_boot, mock_run):
         self.runner._switch_indexes = [0]
         self.runner._setup_coldboot_test()
@@ -133,8 +145,8 @@ class TestSetupColdbootTest(unittest.TestCase):
             sw_agent_service_name="fboss_sw_agent",
         )
 
-    @patch("run_test.subprocess.run")
-    @patch("run_test.cold_boot_agents", return_value=None)
+    @patch("runners.fboss2_integration_test_runner.subprocess.run")
+    @patch("runners.fboss2_integration_test_runner.cold_boot_agents", return_value=None)
     def test_restores_config_before_cold_boot(self, mock_cold_boot, mock_run):
         self.runner._switch_indexes = [0]
         self.runner._test_config_source = (
@@ -151,7 +163,7 @@ class TestSetupColdbootTest(unittest.TestCase):
             check=True,
         )
 
-    @patch("run_test.cold_boot_agents", return_value=None)
+    @patch("runners.fboss2_integration_test_runner.cold_boot_agents", return_value=None)
     def test_skips_config_copy_when_same_path(self, mock_cold_boot):
         self.runner._switch_indexes = [0]
         self.runner._test_config_source = "/etc/coop/agent.conf"
@@ -159,8 +171,8 @@ class TestSetupColdbootTest(unittest.TestCase):
 
         mock_cold_boot.assert_called_once()
 
-    @patch("run_test.subprocess.run")
-    @patch("run_test.cold_boot_agents", return_value=None)
+    @patch("runners.fboss2_integration_test_runner.subprocess.run")
+    @patch("runners.fboss2_integration_test_runner.cold_boot_agents", return_value=None)
     def test_multi_npu(self, mock_cold_boot, mock_run):
         self.runner._switch_indexes = [0, 1]
         self.runner._setup_coldboot_test()
@@ -171,7 +183,10 @@ class TestSetupColdbootTest(unittest.TestCase):
             sw_agent_service_name="fboss_sw_agent",
         )
 
-    @patch("run_test.cold_boot_agents", side_effect=Exception("stopping agents"))
+    @patch(
+        "runners.fboss2_integration_test_runner.cold_boot_agents",
+        side_effect=Exception("stopping agents"),
+    )
     def test_raises_on_cold_boot_failure(self, mock_cold_boot):
         self.runner._switch_indexes = [0]
         with self.assertRaisesRegex(Exception, "stopping agents"):
@@ -182,8 +197,8 @@ class TestEndRun(unittest.TestCase):
     def setUp(self):
         self.runner = Fboss2IntegrationTestRunner()
 
-    @patch("run_test.subprocess.run")
-    @patch("run_test.cold_boot_agents", return_value=None)
+    @patch("runners.fboss2_integration_test_runner.subprocess.run")
+    @patch("runners.fboss2_integration_test_runner.cold_boot_agents", return_value=None)
     def test_prod_multi_switch_restores_config_and_restarts(
         self, mock_cold_boot, mock_run
     ):
@@ -205,9 +220,9 @@ class TestEndRun(unittest.TestCase):
             check=False,
         )
 
-    @patch("run_test.subprocess.run")
-    @patch("run_test.cleanup_hw_agent_service")
-    @patch("run_test.cleanup_sw_agent_service")
+    @patch("runners.fboss2_integration_test_runner.subprocess.run")
+    @patch("runners.fboss2_integration_test_runner.cleanup_hw_agent_service")
+    @patch("runners.fboss2_integration_test_runner.cleanup_sw_agent_service")
     def test_bare_cleans_up_services(self, mock_sw_cleanup, mock_hw_cleanup, mock_run):
         self.runner._is_prod_multi_switch = False
         self.runner._switch_indexes = [0]
@@ -219,9 +234,12 @@ class TestEndRun(unittest.TestCase):
 
 class TestSetupRunHook(unittest.TestCase):
     @patch("os.path.exists", return_value=True)
-    @patch("run_test.cold_boot_agents", return_value=None)
-    @patch("run_test.is_agent_running", return_value=[True, True])
-    @patch("run_test.subprocess.run")
+    @patch("runners.fboss2_integration_test_runner.cold_boot_agents", return_value=None)
+    @patch(
+        "runners.fboss2_integration_test_runner.is_agent_running",
+        return_value=[True, True],
+    )
+    @patch("runners.fboss2_integration_test_runner.subprocess.run")
     def test_setup_run_called_before_test_loop(
         self, mock_run, mock_is_running, mock_cold_boot, mock_exists
     ):

@@ -16,7 +16,7 @@ import tempfile
 from unittest.mock import Mock, patch
 
 import pytest
-from run_test import BenchmarkTestRunner
+from runners.benchmark_test_runner import BenchmarkTestRunner
 
 # Fixtures
 
@@ -1036,7 +1036,7 @@ def temp_sai_bench_config():
         os.unlink(temp_file)
 
 
-@patch("run_test.SAI_BENCH_CONFIG", new="nonexistent_file.json")
+@patch("runners.benchmark_test_runner.SAI_BENCH_CONFIG", new="nonexistent_file.json")
 def test_load_known_bad_test_regexes_missing_file(runner):
     """Test loading known bad tests when config file doesn't exist"""
     result = runner._load_known_bad_test_regexes("brcm/10.2.0.0_odp/tomahawk4")
@@ -1045,7 +1045,9 @@ def test_load_known_bad_test_regexes_missing_file(runner):
 
 def test_load_known_bad_test_regexes_exact_key(runner, temp_sai_bench_config):
     """Test loading known bad tests with exact key match"""
-    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+    with patch(
+        "runners.benchmark_test_runner.SAI_BENCH_CONFIG", new=temp_sai_bench_config
+    ):
         regexes = runner._load_known_bad_test_regexes("brcm/10.2.0.0_odp/tomahawk4")
     assert ".*Voq.*" in regexes
     assert "HwInitAndExitFabricBenchmark" in regexes
@@ -1053,7 +1055,9 @@ def test_load_known_bad_test_regexes_exact_key(runner, temp_sai_bench_config):
 
 def test_load_known_bad_test_regexes_no_match(runner, temp_sai_bench_config):
     """Test loading known bad tests with no matching key"""
-    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+    with patch(
+        "runners.benchmark_test_runner.SAI_BENCH_CONFIG", new=temp_sai_bench_config
+    ):
         regexes = runner._load_known_bad_test_regexes("brcm/10.2.0.0_odp/tomahawk5")
     assert regexes == []
 
@@ -1063,7 +1067,9 @@ def test_load_known_bad_test_regexes_no_match(runner, temp_sai_bench_config):
 
 def test_find_thresholds_mono_match(runner, temp_sai_bench_config):
     """Mono binary picks the mono-keyed threshold by benchmark name"""
-    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+    with patch(
+        "runners.benchmark_test_runner.SAI_BENCH_CONFIG", new=temp_sai_bench_config
+    ):
         all_thresholds = runner._load_benchmark_thresholds()
     thresholds = runner._find_thresholds_for_benchmark(
         "HwEcmpGroupShrink", False, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
@@ -1074,7 +1080,9 @@ def test_find_thresholds_mono_match(runner, temp_sai_bench_config):
 
 def test_find_thresholds_multi_switch_match(runner, temp_sai_bench_config):
     """Multi-switch binary picks the multi_switch-keyed threshold"""
-    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+    with patch(
+        "runners.benchmark_test_runner.SAI_BENCH_CONFIG", new=temp_sai_bench_config
+    ):
         all_thresholds = runner._load_benchmark_thresholds()
     thresholds = runner._find_thresholds_for_benchmark(
         "RxSlowPathBenchmark", True, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
@@ -1085,7 +1093,9 @@ def test_find_thresholds_multi_switch_match(runner, temp_sai_bench_config):
 
 def test_find_thresholds_mono_falls_back_to_multi_switch(runner, temp_sai_bench_config):
     """If only a multi-switch threshold exists, mono falls back to it."""
-    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+    with patch(
+        "runners.benchmark_test_runner.SAI_BENCH_CONFIG", new=temp_sai_bench_config
+    ):
         all_thresholds = runner._load_benchmark_thresholds()
     thresholds = runner._find_thresholds_for_benchmark(
         "RxSlowPathBenchmark", False, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
@@ -1127,7 +1137,9 @@ def test_find_thresholds_multi_switch_prefers_multi_over_mono(runner):
 
 def test_find_thresholds_no_match(runner, temp_sai_bench_config):
     """Unknown benchmark name returns no thresholds"""
-    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+    with patch(
+        "runners.benchmark_test_runner.SAI_BENCH_CONFIG", new=temp_sai_bench_config
+    ):
         all_thresholds = runner._load_benchmark_thresholds()
     thresholds = runner._find_thresholds_for_benchmark(
         "NonExistentBenchmark", False, "brcm/10.2.0.0_odp/tomahawk4", all_thresholds
@@ -1137,7 +1149,9 @@ def test_find_thresholds_no_match(runner, temp_sai_bench_config):
 
 def test_find_thresholds_platform_mismatch(runner, temp_sai_bench_config):
     """Benchmark name matches but platform regex doesn't"""
-    with patch("run_test.SAI_BENCH_CONFIG", new=temp_sai_bench_config):
+    with patch(
+        "runners.benchmark_test_runner.SAI_BENCH_CONFIG", new=temp_sai_bench_config
+    ):
         all_thresholds = runner._load_benchmark_thresholds()
     thresholds = runner._find_thresholds_for_benchmark(
         "HwEcmpGroupShrink", False, "brcm/10.2.0.0_odp/tomahawk5", all_thresholds
