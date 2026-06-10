@@ -23,6 +23,7 @@ cpp_binary(
         "ConfigInterfaceProfileTest.cpp",
         "ConfigL2LearningModeTest.cpp",
         "ConfigMacTest.cpp",
+        "ConfigNeedL2EntryForNeighborTest.cpp",
         "ConfigPfcTest.cpp",
         "ConfigPortQueueConfigTest.cpp",
         "ConfigPtpTest.cpp",
