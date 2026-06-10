@@ -16,7 +16,7 @@
 
 namespace facebook::fboss::utility {
 namespace {
-static auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
+static auto kDefaultPayload = std::vector<uint8_t>(384, 0xff);
 
 template <typename CursorType>
 void writeEthHeader(
