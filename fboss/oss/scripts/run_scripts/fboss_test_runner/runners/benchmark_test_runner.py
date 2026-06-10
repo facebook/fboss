@@ -276,6 +276,22 @@ class BenchmarkTestRunner(TestRunner):
                 idx += 1
         return results
 
+    @staticmethod
+    def _empty_benchmark_result(
+        binary_name: str, benchmark_name: str | None, status: str
+    ) -> BenchmarkResult:
+        return {
+            "benchmark_binary_name": binary_name,
+            "benchmark_test_name": benchmark_name or "",
+            "benchmark_time_ps": "",
+            "test_status": status,
+            "cpu_time_usec": "",
+            "max_rss": "",
+            "cpu_rx_pps": "",
+            "cpu_tx_pps": "",
+            "metrics": {},
+        }
+
     def _parse_benchmark_output(
         self, binary_name: str, stdout: str, benchmark_name: str | None = None
     ) -> BenchmarkResult:
@@ -295,17 +311,7 @@ class BenchmarkTestRunner(TestRunner):
             benchmark_name: If provided, used to look up benchmark timing
                 directly from metrics instead of guessing by exclusion.
         """
-        result = {
-            "benchmark_binary_name": binary_name,
-            "benchmark_test_name": benchmark_name or "",
-            "benchmark_time_ps": "",
-            "test_status": "FAILED",
-            "cpu_time_usec": "",
-            "max_rss": "",
-            "cpu_rx_pps": "",
-            "cpu_tx_pps": "",
-            "metrics": {},
-        }
+        result = self._empty_benchmark_result(binary_name, benchmark_name, "FAILED")
 
         json_dicts = self._find_jsons_in_str(stdout)
 
@@ -425,17 +431,9 @@ class BenchmarkTestRunner(TestRunner):
                     f"\n########## Benchmark {display_name} timed out after "
                     f"{args.test_run_timeout} seconds"
                 )
-                return {
-                    "benchmark_binary_name": binary_name,
-                    "benchmark_test_name": benchmark_name or "",
-                    "benchmark_time_ps": "",
-                    "test_status": "TIMEOUT",
-                    "cpu_time_usec": "",
-                    "max_rss": "",
-                    "cpu_rx_pps": "",
-                    "cpu_tx_pps": "",
-                    "metrics": {},
-                }
+                return self._empty_benchmark_result(
+                    binary_name, benchmark_name, "TIMEOUT"
+                )
 
             stdout_thread.join()
             stderr_thread.join()
@@ -461,17 +459,7 @@ class BenchmarkTestRunner(TestRunner):
 
         except Exception as e:
             print(f"########## Error running benchmark {display_name}: {e!s}")
-            return {
-                "benchmark_binary_name": binary_name,
-                "benchmark_test_name": benchmark_name or "",
-                "benchmark_time_ps": "",
-                "test_status": "FAILED",
-                "cpu_time_usec": "",
-                "max_rss": "",
-                "cpu_rx_pps": "",
-                "cpu_tx_pps": "",
-                "metrics": {},
-            }
+            return self._empty_benchmark_result(binary_name, benchmark_name, "FAILED")
 
     def _load_requested_benchmarks(self, filter_file: str) -> list[str] | None:
         """Load benchmark test names from a filter file.
