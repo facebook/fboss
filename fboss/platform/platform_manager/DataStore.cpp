@@ -179,8 +179,8 @@ PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
           }
         }
       } else {
-        matches = versionedPmUnitConfig.respinVariantIndicator() &&
-            *versionedPmUnitConfig.respinVariantIndicator() ==
+        matches = versionedPmUnitConfig.productSubVersion() &&
+            *versionedPmUnitConfig.productSubVersion() ==
                 *version->respinVariantIndicator();
       }
       if (matches) {
