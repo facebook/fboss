@@ -309,6 +309,7 @@ TEST(UtilsTest, CreateRtmCtrlConfigs) {
   rtmBlock.csrOffsetCalc() = "0x1000 + ({portNum} - {startPort})*0x4";
   rtmBlock.numPorts() = 2;
   rtmBlock.startPort() = 1;
+  rtmBlock.iobufOffsetCalc() = "0x2000 + ({portNum} - {startPort})*0x4";
   pciDeviceConfig.rtmCtrlBlockConfigs() = {rtmBlock};
 
   auto configs = Utils::createRtmCtrlConfigs(pciDeviceConfig);
@@ -316,11 +317,19 @@ TEST(UtilsTest, CreateRtmCtrlConfigs) {
   EXPECT_EQ(
       "RTM_L_MDIO_1_RTM_CTRL_PORT_1",
       *configs[0].fpgaIpBlockConfig()->pmUnitScopedName());
+  EXPECT_EQ(
+      "RTM_L_MDIO_1_RTM_CTRL_PORT_2",
+      *configs[1].fpgaIpBlockConfig()->pmUnitScopedName());
   EXPECT_EQ("0x1000", *configs[0].fpgaIpBlockConfig()->csrOffset());
   EXPECT_EQ("0x1004", *configs[1].fpgaIpBlockConfig()->csrOffset());
+  EXPECT_EQ(1, *configs[0].portNumber());
+  EXPECT_EQ(2, *configs[1].portNumber());
+  EXPECT_EQ("0x2000", *configs[0].fpgaIpBlockConfig()->iobufOffset());
+  EXPECT_EQ("0x2004", *configs[1].fpgaIpBlockConfig()->iobufOffset());
 
   rtmBlock.iobufOffsetCalc() = "";
   pciDeviceConfig.rtmCtrlBlockConfigs() = {rtmBlock};
   configs = Utils::createRtmCtrlConfigs(pciDeviceConfig);
   EXPECT_TRUE(configs[0].fpgaIpBlockConfig()->iobufOffset()->empty());
+  EXPECT_TRUE(configs[1].fpgaIpBlockConfig()->iobufOffset()->empty());
 }
