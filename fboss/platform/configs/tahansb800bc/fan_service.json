@@ -20,8 +20,8 @@
     "conditions": [
       {
         "sensorName": "SMB_U2_TH6_TEMP",
-        "overtempThreshold": 103,
-        "slidingWindowSize": 1
+        "overtempThreshold": 120,
+        "slidingWindowSize": 10
       }
     ]
   },
