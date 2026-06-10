@@ -65,6 +65,15 @@ def temp_benchmark_file():
         os.unlink(temp_file)
 
 
+@pytest.fixture(autouse=True)
+def _benchmark_binary_present():
+    """run_test() guards on os.path.isfile(binary_path); default it to present
+    so the run_test tests reach their logic. Tests exercising the missing-binary
+    path override this locally."""
+    with patch("os.path.isfile", return_value=True):
+        yield
+
+
 # Tests for _load_requested_benchmarks
 
 
@@ -98,50 +107,33 @@ def test_load_requested_with_empty_file(runner, capsys):
         os.unlink(temp_file)
 
 
-# Tests for _get_benchmark_binary
+# Tests for _get_test_binary_name
 
 
-def test_get_benchmark_binary_mono(runner, mock_args):
+def test_get_test_binary_name_mono(runner, mock_args):
     """Default agent_run_mode (mono) returns the mono binary"""
     mock_args.agent_run_mode = "mono"
-    with (
-        patch("os.path.exists", return_value=True),
-        patch("os.path.isfile", return_value=True),
-    ):
-        path = runner._get_benchmark_binary(mock_args)
+    with patch("run_test.args", mock_args):
+        path = runner._get_test_binary_name()
     assert path == "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
 
 
-def test_get_benchmark_binary_multi_switch(runner, mock_args):
+def test_get_test_binary_name_multi_switch(runner, mock_args):
     """agent_run_mode=multi_switch returns the multi-switch binary"""
     mock_args.agent_run_mode = "multi_switch"
-    with (
-        patch("os.path.exists", return_value=True),
-        patch("os.path.isfile", return_value=True),
-    ):
-        path = runner._get_benchmark_binary(mock_args)
+    with patch("run_test.args", mock_args):
+        path = runner._get_test_binary_name()
     assert path == "/opt/fboss/bin/sai_multi_switch_all_benchmarks-sai_impl"
 
 
-def test_get_benchmark_binary_missing(runner, mock_args):
-    """Returns None when binary doesn't exist"""
-    mock_args.agent_run_mode = "mono"
-    with patch("os.path.exists", return_value=False):
-        assert runner._get_benchmark_binary(mock_args) is None
-
-
-def test_get_benchmark_binary_defaults_to_mono_when_attr_missing(runner):
-    """Callers without agent_run_mode (e.g., older Namespaces) get the mono binary."""
+def test_get_test_binary_name_defaults_to_mono_when_attr_missing(runner):
+    """args without agent_run_mode (e.g., older Namespaces) get the mono binary."""
 
     class _NoAgentRunMode:
         pass
 
-    args = _NoAgentRunMode()
-    with (
-        patch("os.path.exists", return_value=True),
-        patch("os.path.isfile", return_value=True),
-    ):
-        path = runner._get_benchmark_binary(args)
+    with patch("run_test.args", _NoAgentRunMode()):
+        path = runner._get_test_binary_name()
     assert path == "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
 
 
@@ -526,12 +518,13 @@ def _make_ok_result(name):
     }
 
 
-@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_get_test_binary_name")
 def test_run_test_no_binary(mock_get_bin, runner, mock_args, capsys):
-    """Test run_test when binary not found"""
-    mock_get_bin.return_value = None
+    """Test run_test when the benchmark binary is missing"""
+    mock_get_bin.return_value = "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
 
-    runner.run_test(mock_args)
+    with patch("os.path.isfile", return_value=False):
+        runner.run_test(mock_args)
 
     captured = capsys.readouterr()
     assert "Could not find benchmark binary" in captured.out
@@ -540,7 +533,7 @@ def test_run_test_no_binary(mock_get_bin, runner, mock_args, capsys):
 @patch.object(BenchmarkTestRunner, "_write_results_and_summary")
 @patch.object(BenchmarkTestRunner, "_run_benchmark_binary")
 @patch.object(BenchmarkTestRunner, "_list_benchmarks")
-@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_get_test_binary_name")
 def test_run_test_basic_flow(
     mock_get_bin, mock_list, mock_run, mock_write, runner, mock_args
 ):
@@ -563,7 +556,7 @@ def test_run_test_basic_flow(
 @patch.object(BenchmarkTestRunner, "_load_known_bad_test_regexes")
 @patch.object(BenchmarkTestRunner, "_run_benchmark_binary")
 @patch.object(BenchmarkTestRunner, "_list_benchmarks")
-@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_get_test_binary_name")
 def test_run_test_passes_is_multi_switch_to_threshold_check(
     mock_get_bin,
     mock_list,
@@ -601,7 +594,7 @@ def test_run_test_passes_is_multi_switch_to_threshold_check(
 @patch.object(BenchmarkTestRunner, "_run_benchmark_binary")
 @patch.object(BenchmarkTestRunner, "_load_requested_benchmarks")
 @patch.object(BenchmarkTestRunner, "_list_benchmarks")
-@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_get_test_binary_name")
 def test_run_test_with_filter_file(
     mock_get_bin, mock_list, mock_load, mock_run, mock_write, runner, mock_args
 ):
@@ -621,7 +614,7 @@ def test_run_test_with_filter_file(
 @patch.object(BenchmarkTestRunner, "_write_results_and_summary")
 @patch.object(BenchmarkTestRunner, "_run_benchmark_binary")
 @patch.object(BenchmarkTestRunner, "_list_benchmarks")
-@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_get_test_binary_name")
 def test_run_test_pre_filters_known_bad(
     mock_get_bin, mock_list, mock_run, mock_write, runner, mock_args, capsys
 ):
@@ -653,7 +646,7 @@ def test_run_test_pre_filters_known_bad(
 @patch.object(BenchmarkTestRunner, "_write_results_and_summary")
 @patch.object(BenchmarkTestRunner, "_run_benchmark_binary")
 @patch.object(BenchmarkTestRunner, "_list_benchmarks")
-@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_get_test_binary_name")
 def test_run_test_filter_exact_match(
     mock_get_bin, mock_list, mock_run, _mock_write, runner, mock_args
 ):
@@ -672,7 +665,7 @@ def test_run_test_filter_exact_match(
 @patch.object(BenchmarkTestRunner, "_write_results_and_summary")
 @patch.object(BenchmarkTestRunner, "_run_benchmark_binary")
 @patch.object(BenchmarkTestRunner, "_list_benchmarks")
-@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_get_test_binary_name")
 def test_run_test_filter_regex_match(
     mock_get_bin, mock_list, mock_run, _mock_write, runner, mock_args
 ):
@@ -692,7 +685,7 @@ def test_run_test_filter_regex_match(
 
 
 @patch.object(BenchmarkTestRunner, "_list_benchmarks")
-@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_get_test_binary_name")
 def test_run_test_filter_no_match(mock_get_bin, mock_list, runner, mock_args, capsys):
     """Test --filter with no matches prints error and returns"""
     mock_get_bin.return_value = "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
@@ -706,7 +699,7 @@ def test_run_test_filter_no_match(mock_get_bin, mock_list, runner, mock_args, ca
 
 
 @patch.object(BenchmarkTestRunner, "_list_benchmarks")
-@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_get_test_binary_name")
 def test_run_test_filter_invalid_regex(
     mock_get_bin, mock_list, runner, mock_args, capsys
 ):
@@ -723,7 +716,7 @@ def test_run_test_filter_invalid_regex(
 
 @patch.object(BenchmarkTestRunner, "_load_requested_benchmarks")
 @patch.object(BenchmarkTestRunner, "_list_benchmarks")
-@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_get_test_binary_name")
 def test_run_test_filter_file_not_found_in_binary(
     mock_get_bin, mock_list, mock_load, runner, mock_args, capsys
 ):
@@ -746,7 +739,7 @@ def test_run_test_filter_file_not_found_in_binary(
 
 
 @patch.object(BenchmarkTestRunner, "_list_benchmarks")
-@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_get_test_binary_name")
 def test_run_test_list_tests(mock_get_bin, mock_list, runner, mock_args, capsys):
     """Test --list_tests prints all discovered benchmarks"""
     mock_get_bin.return_value = "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
@@ -761,7 +754,7 @@ def test_run_test_list_tests(mock_get_bin, mock_list, runner, mock_args, capsys)
 
 
 @patch.object(BenchmarkTestRunner, "_list_benchmarks")
-@patch.object(BenchmarkTestRunner, "_get_benchmark_binary")
+@patch.object(BenchmarkTestRunner, "_get_test_binary_name")
 def test_run_test_discovery_failure(mock_get_bin, mock_list, runner, mock_args, capsys):
     """Test run_test when benchmark discovery fails"""
     mock_get_bin.return_value = "/opt/fboss/bin/sai_all_benchmarks-sai_impl"

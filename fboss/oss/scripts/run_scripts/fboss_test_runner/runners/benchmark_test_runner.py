@@ -9,6 +9,7 @@ import subprocess
 import threading
 from argparse import ArgumentParser, Namespace
 
+import run_test
 from fboss_test_runner.constants import (
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
     SUB_ARG_AGENT_RUN_MODE,
@@ -29,7 +30,7 @@ from fboss_test_runner.services.fboss_agent_utils import (
 SAI_BENCH_CONFIG = "./share/hw_benchmark_tests/sai_bench.materialized_JSON"
 
 
-class BenchmarkTestRunner:
+class BenchmarkTestRunner(TestRunner):
     """
     Runner for benchmark tests.
 
@@ -39,17 +40,22 @@ class BenchmarkTestRunner:
     for full setup/run/teardown isolation.
     """
 
-    def _get_benchmark_binary(self, args: Namespace) -> str | None:
+    def _get_test_binary_name(self) -> str:
         if (
-            getattr(args, "agent_run_mode", SUB_ARG_AGENT_RUN_MODE_MONO)
+            getattr(run_test.args, "agent_run_mode", SUB_ARG_AGENT_RUN_MODE_MONO)
             == SUB_ARG_AGENT_RUN_MODE_MULTI
         ):
-            benchmark_binary = "/opt/fboss/bin/sai_multi_switch_all_benchmarks-sai_impl"
-        else:
-            benchmark_binary = "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
-        if os.path.exists(benchmark_binary) and os.path.isfile(benchmark_binary):
-            return benchmark_binary
-        return None
+            return "/opt/fboss/bin/sai_multi_switch_all_benchmarks-sai_impl"
+        return "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
+
+    # run_test() is overridden with a benchmark-specific loop that never uses
+    # the base gtest run path, so the two hooks below are never exercised; they
+    # exist only to satisfy the TestRunner ABC.
+    def _get_warmboot_check_file(self) -> str:
+        return ""
+
+    def _get_test_run_args(self, conf_file) -> list[str]:
+        return []
 
     def _list_benchmarks(self, binary_path: str) -> list[str] | None:
         """Discover available benchmarks via --bm_list.
@@ -80,8 +86,8 @@ class BenchmarkTestRunner:
 
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
         """Add benchmark-specific command line arguments"""
-        TestRunner.add_subcommand_arguments(self, sub_parser)
-        TestRunner._add_sai_arguments(sub_parser)
+        super().add_subcommand_arguments(sub_parser)
+        self._add_sai_arguments(sub_parser)
         sub_parser.add_argument(
             OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
             nargs="?",
@@ -122,8 +128,7 @@ class BenchmarkTestRunner:
         Returns:
             List of regex pattern strings for known bad tests
         """
-        return TestRunner._get_test_regexes_from_file(
-            self,
+        return self._get_test_regexes_from_file(
             file_path=SAI_BENCH_CONFIG,
             test_dict_key="known_bad_tests",
             keys_to_try=self._build_keys_to_try(platform_key),
@@ -137,8 +142,7 @@ class BenchmarkTestRunner:
         Returns:
             List of regex pattern strings for unsupported tests
         """
-        return TestRunner._get_test_regexes_from_file(
-            self,
+        return self._get_test_regexes_from_file(
             file_path=SAI_BENCH_CONFIG,
             test_dict_key="unsupported_tests",
             keys_to_try=self._build_keys_to_try(platform_key),
@@ -596,7 +600,7 @@ class BenchmarkTestRunner:
 
         filtered = []
         for name in benchmarks:
-            if TestRunner._test_matches_any_regex(self, name, known_bad_regexes):
+            if self._test_matches_any_regex(name, known_bad_regexes):
                 print(f"  >> SKIPPING (known bad): {name}")
             else:
                 filtered.append(name)
@@ -618,7 +622,7 @@ class BenchmarkTestRunner:
 
         filtered = []
         for name in benchmarks:
-            if TestRunner._test_matches_any_regex(self, name, unsupported_regexes):
+            if self._test_matches_any_regex(name, unsupported_regexes):
                 print(f"  >> SKIPPING (unsupported): {name}")
             else:
                 filtered.append(name)
@@ -668,9 +672,9 @@ class BenchmarkTestRunner:
                 f"and {len(all_thresholds)} threshold configs for '{platform_key}'"
             )
 
-        binary_path = self._get_benchmark_binary(args)
-        if not binary_path:
-            print("Error: Could not find benchmark binary")
+        binary_path = self._get_test_binary_name()
+        if not os.path.isfile(binary_path):
+            print(f"Error: Could not find benchmark binary: {binary_path}")
             return
 
         all_benchmarks = self._list_benchmarks(binary_path)
