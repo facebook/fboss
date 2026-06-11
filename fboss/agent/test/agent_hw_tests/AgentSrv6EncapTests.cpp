@@ -182,13 +182,14 @@ class AgentSrv6EncapTest : public AgentHwTest {
     }
   }
 
-  // Programs recursive SRv6 routes for testing SID list preservation:
-  //   IGP route A (2901::/48) -> nhop(0), nhop(1) with igpSidListA
-  //   IGP route B (2902::/48) -> nhop(2), nhop(3) with igpSidListB
+  // Programs recursive SRv6 routes for testing SID list override:
+  //   OpenR route A (2901::/48) -> nhop(0), nhop(1), each carrying kSid2
+  //   OpenR route B (2902::/48) -> nhop(2), nhop(3), each carrying kSid2
   //   SRv6 route (routePrefix/kEncapRoutePrefixLen) -> 2901::1 (kSid0),
-  //     2902::1 (kSid1), resolving recursively through IGP routes.
-  // After resolution, the SRv6 route expands to 4 next hops preserving
-  // the original SID lists (kSid0/kSid1), not the IGP SID lists.
+  //     2902::1 (kSid1), resolving recursively through the OpenR routes.
+  // After resolution, the SRv6 route expands to 4 next hops carrying the
+  // outer SID lists (kSid0/kSid1), which override the inner OpenR SID list
+  // (kSid2).
   void addRecursiveSrv6Routes(const folly::IPAddressV6& routePrefix) {
     auto ecmpHelper = makeEcmpHelper();
     auto routeUpdater = this->getSw()->getRouteUpdater();
@@ -202,10 +203,29 @@ class AgentSrv6EncapTest : public AgentHwTest {
       return folly::IPAddress(nhop.ip);
     };
 
-    // OpenR route A (2901::/48) -> nhop(0), nhop(1) with link-local nexthops
+    // Inner OpenR routes carry their own SID list (kSid2) so that recursive
+    // resolution is exercised against a non-empty inner SID list; the outer
+    // SRv6 route's SIDs (kSid0/kSid1) must override it.
+    auto makeSidCarryingNhop = [](const folly::IPAddress& ip,
+                                  InterfaceID intf) {
+      return ResolvedNextHop(
+          ip,
+          intf,
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::vector<folly::IPAddressV6>{kSid2},
+          TunnelType::SRV6_ENCAP,
+          std::string("srv6Tunnel0"));
+    };
+
+    // OpenR route A (2901::/48) -> nhop(0), nhop(1), link-local nexthops
+    // carrying kSid2
     RouteNextHopSet openrNhopsA{
-        ResolvedNextHop(getNhopIp(0), ecmpHelper.nhop(0).intf, ECMP_WEIGHT),
-        ResolvedNextHop(getNhopIp(1), ecmpHelper.nhop(1).intf, ECMP_WEIGHT)};
+        makeSidCarryingNhop(getNhopIp(0), ecmpHelper.nhop(0).intf),
+        makeSidCarryingNhop(getNhopIp(1), ecmpHelper.nhop(1).intf)};
     routeUpdater.addRoute(
         RouterID(0),
         folly::IPAddressV6("2901::"),
@@ -213,10 +233,11 @@ class AgentSrv6EncapTest : public AgentHwTest {
         ClientID::OPENR,
         RouteNextHopEntry(openrNhopsA, AdminDistance::OPENR));
 
-    // OpenR route B (2902::/48) -> nhop(2), nhop(3) with link-local nexthops
+    // OpenR route B (2902::/48) -> nhop(2), nhop(3), link-local nexthops
+    // carrying kSid2
     RouteNextHopSet openrNhopsB{
-        ResolvedNextHop(getNhopIp(2), ecmpHelper.nhop(0).intf, ECMP_WEIGHT),
-        ResolvedNextHop(getNhopIp(3), ecmpHelper.nhop(1).intf, ECMP_WEIGHT)};
+        makeSidCarryingNhop(getNhopIp(2), ecmpHelper.nhop(0).intf),
+        makeSidCarryingNhop(getNhopIp(3), ecmpHelper.nhop(1).intf)};
     routeUpdater.addRoute(
         RouterID(0),
         folly::IPAddressV6("2902::"),
@@ -226,7 +247,8 @@ class AgentSrv6EncapTest : public AgentHwTest {
 
     // SRv6 route -> 2901::1 (kSid0), 2902::1 (kSid1)
     // These unresolved nexthops carry SRV6 fields and resolve recursively
-    // over the OpenR routes above, which have plain link-local nexthops.
+    // over the OpenR routes above, whose link-local nexthops carry kSid2
+    // (overridden by the outer kSid0/kSid1 after resolution).
     RouteNextHopSet srv6Nhops{
         UnresolvedNextHop(
             folly::IPAddress("2901::1"),
@@ -454,6 +476,56 @@ class AgentSrv6EncapTest : public AgentHwTest {
         ClientID::TE_AGENT,
         RouteNextHopEntry(
             RouteNextHopSet{makeSrv6Nhop(folly::IPAddress("2902::1"))},
+            AdminDistance::TE_AGENT));
+    routeUpdater.program();
+  }
+
+  // Programs the SAME prefix (kEncapRoutePrefix) from two clients to exercise
+  // admin-distance preference: OpenR (plain link-local nexthop, no SID list)
+  // and TE_Agent (link-local nexthop carrying kSid0). TE_Agent has the lower
+  // admin distance, so it wins and the route is SRv6-encapped with kSid0.
+  void addTeAgentPreferredOverOpenrRoute() {
+    auto ecmpHelper = makeEcmpHelper();
+    auto getNhopIp = [&ecmpHelper](int idx) {
+      auto nhop = ecmpHelper.nhop(idx);
+      if (nhop.linkLocalNhopIp.has_value()) {
+        return folly::IPAddress(nhop.linkLocalNhopIp.value());
+      }
+      return folly::IPAddress(nhop.ip);
+    };
+    auto routeUpdater = this->getSw()->getRouteUpdater();
+
+    // OpenR route: plain link-local nexthop, no SID list (higher admin
+    // distance, should lose).
+    routeUpdater.addRoute(
+        RouterID(0),
+        kEncapRoutePrefix,
+        kEncapRoutePrefixLen,
+        ClientID::OPENR,
+        RouteNextHopEntry(
+            RouteNextHopSet{ResolvedNextHop(
+                getNhopIp(0), ecmpHelper.nhop(0).intf, ECMP_WEIGHT)},
+            AdminDistance::OPENR));
+
+    // TE_Agent route: link-local nexthop carrying kSid0 (lower admin distance,
+    // should win and drive the SRv6 encap).
+    routeUpdater.addRoute(
+        RouterID(0),
+        kEncapRoutePrefix,
+        kEncapRoutePrefixLen,
+        ClientID::TE_AGENT,
+        RouteNextHopEntry(
+            RouteNextHopSet{ResolvedNextHop(
+                getNhopIp(0),
+                ecmpHelper.nhop(0).intf,
+                ECMP_WEIGHT,
+                std::nullopt,
+                std::nullopt,
+                std::nullopt,
+                std::nullopt,
+                std::vector<folly::IPAddressV6>{kSid0},
+                TunnelType::SRV6_ENCAP,
+                std::string("srv6Tunnel0"))},
             AdminDistance::TE_AGENT));
     routeUpdater.program();
   }
@@ -822,6 +894,24 @@ TYPED_TEST(AgentSrv6EncapTest, recursiveResolutionSameSidListSameRif) {
         {this->kSid0},
         std::nullopt,
         folly::IPAddress("2800:3::1"));
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6EncapTest, teAgentRoutePreferredOverOpenr) {
+  auto setup = [this]() {
+    this->setupHelper(true /*resolveNeighbors*/, false /*programEncapRoutes*/);
+    this->addTeAgentPreferredOverOpenrRoute();
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    // TE_Agent wins by admin distance, so the packet is SRv6-encapped with
+    // kSid0. An OpenR win would forward un-encapped and fail the outer-SID
+    // assertion in verifyEncapPacket.
+    this->verifyEncapPacket(
+        {egressPort}, false /*ecnMarked*/, false /*isV4*/, {this->kSid0});
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
