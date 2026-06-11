@@ -12,6 +12,7 @@ from unittest.mock import MagicMock, mock_open, patch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from fboss_test_runner.services.fboss_agent_utils import (
+    _setup_hw_agent_service,
     cleanup_sw_agent_service,
     cold_boot_agents,
     cold_boot_sw_agent,
@@ -40,6 +41,11 @@ def _both_subprocess_patches(fn):
         fn(self, mock)
 
     return wrapper
+
+
+def _written_content(mock_open_obj: MagicMock) -> str:
+    """Concatenate everything written to files opened via the mocked ``open``."""
+    return "".join(call.args[0] for call in mock_open_obj().write.call_args_list)
 
 
 class TestColdBootAgents(unittest.TestCase):
@@ -222,6 +228,59 @@ class TestColdBootSwAgent(unittest.TestCase):
         self.assertTrue(any("can_warm_boot" in c for c in all_calls))
         self.assertTrue(any("systemctl start fboss_sw_agent" in c for c in all_calls))
         self.assertEqual(result, 0)
+
+
+class TestSetupHwAgentService(unittest.TestCase):
+    _SAI_REPLAYER_FLAGS = (
+        "--enable_replayer",
+        "--enable_get_attr_log",
+        "--enable_packet_log",
+    )
+
+    @patch("fboss_test_runner.services.fboss_agent_utils.subprocess.run")
+    @patch("fboss_test_runner.services.service_utils.subprocess.run")
+    @patch("fboss_test_runner.services.service_utils.os.path.exists", return_value=True)
+    def test_sai_replayer_flags_in_execstart_when_log_path_set(
+        self, mock_exists, mock_svc_run, mock_agent_run
+    ):
+        mock_svc_run.return_value = _mock_run(0)
+        mock_agent_run.return_value = _mock_run(0)
+        log_path = "/tmp/sai_replayer.log"
+        m = mock_open()
+        with patch("builtins.open", m):
+            _setup_hw_agent_service(
+                switch_indexes=[0],
+                fboss_agent_config_path="/etc/coop/agent.conf",
+                hw_agent_service_bin_path="/opt/fboss/bin/fboss_hw_agent-sai_impl",
+                sai_replayer_log_path=log_path,
+            )
+
+        written = _written_content(m)
+        for flag in self._SAI_REPLAYER_FLAGS:
+            self.assertIn(flag, written)
+        self.assertIn(f"--sai_log {log_path}", written)
+
+    @patch("fboss_test_runner.services.fboss_agent_utils.subprocess.run")
+    @patch("fboss_test_runner.services.service_utils.subprocess.run")
+    @patch("fboss_test_runner.services.service_utils.os.path.exists", return_value=True)
+    def test_no_sai_replayer_flags_when_log_path_none(
+        self, mock_exists, mock_svc_run, mock_agent_run
+    ):
+        mock_svc_run.return_value = _mock_run(0)
+        mock_agent_run.return_value = _mock_run(0)
+        m = mock_open()
+        with patch("builtins.open", m):
+            _setup_hw_agent_service(
+                switch_indexes=[0],
+                fboss_agent_config_path="/etc/coop/agent.conf",
+                hw_agent_service_bin_path="/opt/fboss/bin/fboss_hw_agent-sai_impl",
+                sai_replayer_log_path=None,
+            )
+
+        written = _written_content(m)
+        for flag in self._SAI_REPLAYER_FLAGS:
+            self.assertNotIn(flag, written)
+        self.assertNotIn("--sai_log", written)
 
 
 if __name__ == "__main__":

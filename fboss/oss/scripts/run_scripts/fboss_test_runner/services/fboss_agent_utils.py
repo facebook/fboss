@@ -156,7 +156,12 @@ def _setup_hw_agent_service(
             )
             extra_args += f" {_PLATFORM_MAPPING_OVERRIDE_PATH_ARG} {platform_mapping_override_path}"
         if sai_replayer_log_path:
-            extra_args += f" --sai_log {sai_replayer_log_path}"
+            extra_args += (
+                " --enable_replayer"
+                " --enable_get_attr_log"
+                " --enable_packet_log"
+                f" --sai_log {sai_replayer_log_path}"
+            )
 
         if not is_fsdb_disabled:
             extra_args += " --fsdb_client_ssl_preferred=false"
