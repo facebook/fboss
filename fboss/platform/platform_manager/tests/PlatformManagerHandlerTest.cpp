@@ -171,9 +171,9 @@ TEST_F(PlatformManagerHandlerTest, GetPmUnitInfo_ReturnsValidInfoOnSuccess) {
 
   // Setup: Populate DataStore with a valid PmUnit
   PmUnitVersion version;
-  version.productProductionState() = 2;
-  version.productVersion() = 13;
-  version.productSubVersion() = 1;
+  version.productionState() = 2;
+  version.productionSubState() = 13;
+  version.respinVariantIndicator() = 1;
 
   dataStore_->updatePmUnitName("/TEST_SLOT@0", "TEST_PM_UNIT");
   dataStore_->updatePmUnitVersion("/TEST_SLOT@0", version);
@@ -185,21 +185,21 @@ TEST_F(PlatformManagerHandlerTest, GetPmUnitInfo_ReturnsValidInfoOnSuccess) {
   handler_->getPmUnitInfo(response, std::move(request));
 
   EXPECT_EQ(*response.pmUnitInfo()->name(), "TEST_PM_UNIT");
-  EXPECT_EQ(*response.pmUnitInfo()->version()->productProductionState(), 2);
-  EXPECT_EQ(*response.pmUnitInfo()->version()->productVersion(), 13);
-  EXPECT_EQ(*response.pmUnitInfo()->version()->productSubVersion(), 1);
+  EXPECT_EQ(*response.pmUnitInfo()->version()->productionState(), 2);
+  EXPECT_EQ(*response.pmUnitInfo()->version()->productionSubState(), 13);
+  EXPECT_EQ(*response.pmUnitInfo()->version()->respinVariantIndicator(), 1);
 }
 
 TEST_F(PlatformManagerHandlerTest, GetAllPmUnits_ReturnsPopulatedMapWithUnits) {
   PmUnitVersion version1;
-  version1.productProductionState() = 1;
-  version1.productVersion() = 10;
-  version1.productSubVersion() = 0;
+  version1.productionState() = 1;
+  version1.productionSubState() = 10;
+  version1.respinVariantIndicator() = 0;
 
   PmUnitVersion version2;
-  version2.productProductionState() = 2;
-  version2.productVersion() = 20;
-  version2.productSubVersion() = 5;
+  version2.productionState() = 2;
+  version2.productionSubState() = 20;
+  version2.respinVariantIndicator() = 5;
 
   DataStore dataStore(config_);
   dataStore.updatePmUnitName("/SLOT_A@0", "PM_UNIT_A");
@@ -217,13 +217,13 @@ TEST_F(PlatformManagerHandlerTest, GetAllPmUnits_ReturnsPopulatedMapWithUnits) {
 
   auto& unitA = response.pmUnits()->at("/SLOT_A@0");
   EXPECT_EQ(*unitA.name(), "PM_UNIT_A");
-  EXPECT_EQ(*unitA.version()->productProductionState(), 1);
-  EXPECT_EQ(*unitA.version()->productVersion(), 10);
+  EXPECT_EQ(*unitA.version()->productionState(), 1);
+  EXPECT_EQ(*unitA.version()->productionSubState(), 10);
 
   auto& unitB = response.pmUnits()->at("/SLOT_B@1");
   EXPECT_EQ(*unitB.name(), "PM_UNIT_B");
-  EXPECT_EQ(*unitB.version()->productProductionState(), 2);
-  EXPECT_EQ(*unitB.version()->productVersion(), 20);
+  EXPECT_EQ(*unitB.version()->productionState(), 2);
+  EXPECT_EQ(*unitB.version()->productionSubState(), 20);
 }
 
 TEST_F(

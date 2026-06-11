@@ -93,6 +93,9 @@ class RouteNextHopEntry
     return safe_cref<switch_state_tags::action>()->cref();
   }
 
+  // Do NOT use to read a route's nexthops. Returns inline nexthops only  Always
+  // use the ID-aware FibHelpers::getNextHops(state, entry) instead. The inline
+  // nexthops will be removeed in the future
   NextHopSet getNextHopSet() const;
   void setNextHops(const NextHopSet& nhops);
 
@@ -204,14 +207,15 @@ class RouteNextHopEntry
   NextHopSet normalizedNextHops() const {
     return normalizedNextHopsImpl(false /*ignoreOverride*/);
   }
+  // Deprecated: do not add new callers; will be removed. Use the static
+  // normalizeNextHops(NextHopSet) instead.
   NextHopSet nonOverrideNormalizedNextHops() const {
     return normalizedNextHopsImpl(true /*ignoreOverride*/);
   }
-
-  // Get the sum of the weights of all the nexthops in the entry
-  NextHopWeight getTotalWeight() const;
-
-  std::string str_DEPRACATED() const;
+  // Weight-normalize an arbitrary nexthop set to ECMP width. Pure: depends
+  // only on the input set (no `this`), so callers that resolve the set via an
+  // ID can normalize without an inline getNextHopSet() read.
+  static NextHopSet normalizeNextHops(const NextHopSet& nhopSet);
 
   std::string str() const;
 
@@ -275,9 +279,9 @@ class RouteNextHopEntry
       const std::optional<NextHopSetID>& normalizedResolvedNextHopSetID,
       const std::optional<NextHopSetID>& resolvedNextHopSetID,
       const std::optional<NextHopSetID>& clientNextHopSetID);
-  void normalize(
+  static void normalize(
       std::vector<NextHopWeight>& scaledWeights,
-      NextHopWeight totalWeight) const;
+      NextHopWeight totalWeight);
 };
 
 /**

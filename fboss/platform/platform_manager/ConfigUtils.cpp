@@ -90,14 +90,9 @@ bool ConfigUtils::hasConfigChanged() {
 
   auto storedHashResult = pFsUtils_->getStringFileContent(kConfigHashFile);
   if (!storedHashResult.has_value()) {
-    // In the first run of this change, we will not have config hash file of
-    // running config. In this case align with the existing behavior of the
-    // service (of not reloading just because only config changed) and dont
-    // reload kmods. Once units have the config hash file, we can change the
-    // behavior to trigger relaoding of kmods if config hash file is missing.
     XLOG(INFO)
-        << "No stored config hash found, can't determine if config has changed";
-    return false;
+        << "No stored config hash found, can't determine if config has changed. Assuming config has changed.";
+    return true;
   }
 
   auto storedHash = folly::trimWhitespace(storedHashResult.value()).toString();

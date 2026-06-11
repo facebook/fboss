@@ -5,6 +5,9 @@ from enum import IntEnum
 from typing import Any, Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
+from fboss.lib.platform_mapping_v2.integrated_transceiver_mapping import (
+    IntegratedTransceiverMapping,
+)
 from fboss.lib.platform_mapping_v2.port_profile_mapping import PortProfileMapping
 from fboss.lib.platform_mapping_v2.profile_settings import ProfileSettings
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
@@ -26,6 +29,7 @@ from neteng.fboss.platform_mapping_config.thrift_types import (
     ConnectionEnd,
     ConnectionPair,
     CoreType,
+    IntegratedTransceiverConnection,
     Lane,
     Port,
     SiSettingFactor,
@@ -831,3 +835,62 @@ def read_asic_vendor_config(directory: Dict[str, str], prefix: str) -> AsicVendo
     )
 
     return AsicVendorConfig(asic_vendor_config_params=asic_vendor_config_params)
+
+
+def read_integrated_transceiver_mapping(
+    directory: Dict[str, str], prefix: str
+) -> IntegratedTransceiverMapping:
+    SUFFIX = "_integrated_transceiver_mapping.csv"
+    Column = column_int_enum_generator(
+        "TCVR_CHIP_ID TCVR_CORE_ID TCVR_LANE "
+        + "OE_CHIP_ID OE_CORE_ID OE_LANE "
+        + "LASER_SOURCE_CHIP_ID LASER_SOURCE_CORE_ID LASER_SOURCE_LANE",
+    )
+    connections = []
+    for index, line in enumerate(get_content(directory, prefix + SUFFIX).splitlines()):
+        if index < 1:
+            continue
+        row = line.split(",")
+        tcvr_chip = Chip(
+            slot_id=1,
+            # pyrefly: ignore [missing-attribute]
+            chip_id=int(row[Column.TCVR_CHIP_ID]),
+            chip_type=ChipType.TRANSCEIVER,
+            # pyrefly: ignore [missing-attribute]
+            core_id=int(row[Column.TCVR_CORE_ID]),
+            core_type=CoreType.BANKED_CMIS_INTEGRATED,
+        )
+        # pyrefly: ignore [missing-attribute]
+        tcvr_lane = Lane(logical_id=int(row[Column.TCVR_LANE]))
+        oe_chip = Chip(
+            slot_id=1,
+            # pyrefly: ignore [missing-attribute]
+            chip_id=int(row[Column.OE_CHIP_ID]),
+            chip_type=ChipType.OPTICAL_ENGINE,
+            # pyrefly: ignore [missing-attribute]
+            core_id=int(row[Column.OE_CORE_ID]),
+            core_type=CoreType.INTEGRATED_OE,
+        )
+        # pyrefly: ignore [missing-attribute]
+        oe_lane = Lane(logical_id=int(row[Column.OE_LANE]))
+        laser_source_chip = Chip(
+            slot_id=1,
+            # pyrefly: ignore [missing-attribute]
+            chip_id=int(row[Column.LASER_SOURCE_CHIP_ID]),
+            chip_type=ChipType.LASER_SOURCE,
+            # pyrefly: ignore [missing-attribute]
+            core_id=int(row[Column.LASER_SOURCE_CORE_ID]),
+            core_type=CoreType.ELSFP,
+        )
+        # pyrefly: ignore [missing-attribute]
+        laser_source_lane = Lane(logical_id=int(row[Column.LASER_SOURCE_LANE]))
+        connections.append(
+            IntegratedTransceiverConnection(
+                transceiver=ConnectionEnd(chip=tcvr_chip, lane=tcvr_lane),
+                opticalEngine=ConnectionEnd(chip=oe_chip, lane=oe_lane),
+                laserSource=ConnectionEnd(
+                    chip=laser_source_chip, lane=laser_source_lane
+                ),
+            )
+        )
+    return IntegratedTransceiverMapping(connections=connections)

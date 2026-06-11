@@ -112,7 +112,7 @@ PLATFORM_BINARIES = [
     "rackmon",
     "sensor_service",
     "sensor_service_client",
-    "showtech",
+    "rma-showtech",
     "weutil",
 ]
 

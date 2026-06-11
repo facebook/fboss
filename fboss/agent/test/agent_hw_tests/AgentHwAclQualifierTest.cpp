@@ -42,12 +42,16 @@ void configureAllIpQualifiers(
   bool enableIpFragQualifier = (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
                                 asicType != cfg::AsicType::ASIC_TYPE_CHENAB2) &&
       enable;
-  bool enableLookupClass = (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
-                            asicType != cfg::AsicType::ASIC_TYPE_CHENAB2) &&
+  bool enableLookupClass =
+      (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
+       asicType != cfg::AsicType::ASIC_TYPE_CHENAB2 &&
+       asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) &&
       enable;
   bool enableEtherTpe = (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
                          asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) &&
       enable;
+  bool enableTtlQualifier =
+      (asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) && enable;
 
   if (asicType != cfg::AsicType::ASIC_TYPE_JERICHO3) {
     // TODO(daiweix): remove after J3 ACL supports IP_TYPE
@@ -71,7 +75,7 @@ void configureAllIpQualifiers(
       enableIpFragQualifier,
       cfg::IpFragMatch::MATCH_FIRST_FRAGMENT);
   configureQualifier(acl->dscp(), enable, 0x24);
-  configureQualifier(acl->ttl(), enable, ttl);
+  configureQualifier(acl->ttl(), enableTtlQualifier, ttl);
 
   if (ipType == cfg::IpType::IP6) {
     configureQualifier(acl->etherType(), enableEtherTpe, cfg::EtherType::IPv6);
@@ -90,7 +94,8 @@ void configureAllTcpQualifiers(
   bool enableTcpFlags =
       (enable &&
        (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
-        asicType != cfg::AsicType::ASIC_TYPE_CHENAB2));
+        asicType != cfg::AsicType::ASIC_TYPE_CHENAB2 &&
+        asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1));
   configureQualifier(acl->tcpFlagsBitMap(), enableTcpFlags, 16);
 }
 
@@ -102,17 +107,23 @@ void configureAllIcmpQualifiers(
   bool enableEtherTypeQualifier =
       (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
        asicType == cfg::AsicType::ASIC_TYPE_CHENAB2);
+  bool enableIcmpQualifier =
+      (asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) && enable;
 
   if (ipType == cfg::IpType::IP6) {
     configureQualifier(acl->proto(), enable, 58); // Icmp v6
-    configureQualifier(acl->icmpType(), enable, 1); // Destination unreachable
-    configureQualifier(acl->icmpCode(), enable, 4); // Port unreachable
+    configureQualifier(
+        acl->icmpType(), enableIcmpQualifier, 1); // Destination unreachable
+    configureQualifier(
+        acl->icmpCode(), enableIcmpQualifier, 4); // Port unreachable
     configureQualifier(
         acl->etherType(), enableEtherTypeQualifier, cfg::EtherType::IPv6);
   } else {
     configureQualifier(acl->proto(), enable, 1); // Icmp v4
-    configureQualifier(acl->icmpType(), enable, 3); // Destination unreachable
-    configureQualifier(acl->icmpCode(), enable, 3); // Port unreachable
+    configureQualifier(
+        acl->icmpType(), enableIcmpQualifier, 3); // Destination unreachable
+    configureQualifier(
+        acl->icmpCode(), enableIcmpQualifier, 3); // Port unreachable
     configureQualifier(
         acl->etherType(), enableEtherTypeQualifier, cfg::EtherType::IPv4);
   }
@@ -178,9 +189,15 @@ class AgentHwAclQualifierTest : public AgentHwTest {
         (hwAsicForSwitch(switchID)->getAsicVendor() !=
          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) &&
         (hwAsicForSwitch(switchID)->getAsicType() !=
-         cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+         cfg::AsicType::ASIC_TYPE_JERICHO3) &&
+        (hwAsicForSwitch(switchID)->getAsicType() !=
+         cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) &&
+        (hwAsicForSwitch(switchID)->getAsicType() !=
+         cfg::AsicType::ASIC_TYPE_TOMAHAWK6)) {
       // No out port support on J2. Out port not used in prod
       // No out support on Chenab in ingress stage
+      // No out port support on TU1 in ingress stage
+      // No out port support on TH6 in ingress stage
       configureQualifier(acl->dstPort(), enable, masterLogicalPorts[1]);
     }
   }
@@ -212,6 +229,9 @@ class AgentHwAclQualifierTest : public AgentHwTest {
                                                       // chenab in ingress stage
                                                       // L2 switching only on
                                                       // NPU type switch
+        asic->getAsicType() !=
+            cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1 && // no l2 lookup class in
+                                                       // TU1 ingress stage
         switchType == cfg::SwitchType::NPU) {
       configureQualifier(
           acl->lookupClassL2(),
@@ -236,10 +256,12 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       // TODO(daiweix): remove after J3 ACL supports IP_TYPE
       configureQualifier(acl->ipType(), true, cfg::IpType::IP4);
     }
+    bool enableTtlQualifier =
+        (asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1);
     configureQualifier(acl->srcIp(), enableSrcIpQualifier, "192.168.0.1");
     configureQualifier(acl->dstIp(), true, "192.168.0.0/24");
     configureQualifier(acl->dscp(), true, 0x24);
-    configureQualifier(acl->ttl(), true, ttl);
+    configureQualifier(acl->ttl(), enableTtlQualifier, ttl);
     configureQualifier(acl->proto(), true, 6);
     configureQualifier(
         acl->etherType(), enableEtherTypeQualifier, cfg::EtherType::IPv4);
@@ -262,11 +284,13 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       configureQualifier(acl->ipType(), true, cfg::IpType::IP6);
     }
 
+    bool enableTtlQualifier =
+        (asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1);
     configureQualifier(acl->srcIp(), enableSrcIpQualifier, "::ffff:c0a8:1");
     configureQualifier(
         acl->dstIp(), true, "2401:db00:3020:70e2:face:0:63:0/64");
     configureQualifier(acl->dscp(), true, 0x24);
-    configureQualifier(acl->ttl(), true, ttl);
+    configureQualifier(acl->ttl(), enableTtlQualifier, ttl);
     configureQualifier(acl->proto(), true, 6);
     configureQualifier(
         acl->etherType(), enableEtherTypeQualifier, cfg::EtherType::IPv6);
@@ -308,6 +332,11 @@ class AgentHwAclQualifierTest : public AgentHwTest {
         defaultQualifiers.clear();
       }
       std::vector<cfg::AclTableActionType> actions = {};
+      if (this->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+        defaultQualifiers =
+            utility::genAclQualifiersConfig(this->getAsicType());
+        actions = utility::genAclActionTypesConfig(this->getAsicType());
+      }
       std::vector<cfg::AclTableQualifier> qualifiers = enableQualifiers
           ? utility::genAclQualifiersConfig(this->getAsicType())
           : defaultQualifiers;

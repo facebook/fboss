@@ -25,7 +25,8 @@ platform::platform_manager::PlatformConfig makeTestConfig(
     int numXcvrs,
     const std::vector<platform::platform_manager::LedCtrlBlockConfig>&
         ledBlocks = {},
-    const std::map<std::string, std::string>& symbolicLinks = {}) {
+    const std::map<std::string, std::string>& symbolicLinks = {},
+    const std::string& bspKmodsRpmName = "fboss_bsp_kmods") {
   platform::platform_manager::PciDeviceConfig pciDevice;
   pciDevice.ledCtrlBlockConfigs() = ledBlocks;
 
@@ -37,6 +38,7 @@ platform::platform_manager::PlatformConfig makeTestConfig(
   pmConfig.numXcvrs() = numXcvrs;
   pmConfig.symbolicLinkToDevicePath() = symbolicLinks;
   pmConfig.pmUnitConfigs() = {{"test_unit", pmUnit}};
+  pmConfig.bspKmodsRpmName() = bspKmodsRpmName;
   return pmConfig;
 }
 
@@ -178,23 +180,21 @@ TEST(XcvrLibTest, GetPresenceMask) {
   EXPECT_EQ(xcvr.getPresenceMask(), 1);
 }
 
-TEST(XcvrLibTest, GetResetHoldHiDefault) {
-  XcvrLib xcvr(makeTestConfig("TEST_PLATFORM", 1, {makeLedBlock(1, 1, 2, 8)}));
+TEST(XcvrLibTest, GetResetHoldHiFbossBsp) {
+  XcvrLib xcvr(makeTestConfig(
+      "TEST_PLATFORM", 1, {makeLedBlock(1, 1, 2, 8)}, {}, "fboss_bsp_kmods"));
   EXPECT_EQ(xcvr.getResetHoldHi(), 1);
 }
 
-TEST(XcvrLibTest, GetResetHoldHiMeru800bfa) {
-  XcvrLib xcvr(makeTestConfig("MERU800BFA", 1, {makeLedBlock(1, 1, 2, 8)}));
+TEST(XcvrLibTest, GetResetHoldHiAristaBsp) {
+  XcvrLib xcvr(makeTestConfig(
+      "TEST_PLATFORM", 1, {makeLedBlock(1, 1, 2, 8)}, {}, "arista_bsp_kmods"));
   EXPECT_EQ(xcvr.getResetHoldHi(), 0);
 }
 
-TEST(XcvrLibTest, GetResetHoldHiMeru800bia) {
-  XcvrLib xcvr(makeTestConfig("MERU800BIA", 1, {makeLedBlock(1, 1, 2, 8)}));
-  EXPECT_EQ(xcvr.getResetHoldHi(), 0);
-}
-
-TEST(XcvrLibTest, GetResetHoldHiMorgan800cc) {
-  XcvrLib xcvr(makeTestConfig("MORGAN800CC", 1, {makeLedBlock(1, 1, 2, 8)}));
+TEST(XcvrLibTest, GetResetHoldHiCiscoBsp) {
+  XcvrLib xcvr(makeTestConfig(
+      "TEST_PLATFORM", 1, {makeLedBlock(1, 1, 2, 8)}, {}, "cisco_bsp_kmods"));
   EXPECT_EQ(xcvr.getResetHoldHi(), 0);
 }
 

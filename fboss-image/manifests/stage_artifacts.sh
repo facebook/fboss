@@ -9,12 +9,13 @@
 #
 # Usage:
 #   stage_artifacts.sh \
-#     --platform <path/to/platform_fboss_bins.tar.gz> \
+#     --platform <path/to/platform_fboss_bins.tar.zst> \
 #     --bsp <path/to/fboss_bsp_kmods.tar> \
 #     --sai <path/to/fboss_sai_kmods.tar> \
 #     --agent <path/to/agent_fboss_bins.tar.zst> \
 #     --fsdb <path/to/fsdb_fboss_bins.tar.zst> \
-#     --qsfp <path/to/qsfp_fboss_bins.tar.zst>
+#     --qsfp <path/to/qsfp_fboss_bins.tar.zst> \
+#     --fboss2 <path/to/fboss2_fboss_bins.tar.zst>
 
 set -euo pipefail
 
@@ -29,12 +30,13 @@ Artifacts are copied to ${STAGING_DIR}/ with filenames matching
 the download paths in manifests/generic.json.
 
 All options are required:
-  --platform PATH   Path to platform_fboss_bins.tar.gz
+  --platform PATH   Path to platform_fboss_bins.tar.zst
   --bsp PATH        Path to fboss_bsp_kmods.tar
   --sai PATH        Path to fboss_sai_kmods.tar
   --agent PATH      Path to agent_fboss_bins.tar.zst
   --fsdb PATH       Path to fsdb_fboss_bins.tar.zst
   --qsfp PATH       Path to qsfp_fboss_bins.tar.zst
+  --fboss2 PATH     Path to fboss2_fboss_bins.tar.zst
   -h, --help        Show this help message
 EOF
     exit 1
@@ -46,6 +48,7 @@ SAI=""
 AGENT=""
 FSDB=""
 QSFP=""
+FBOSS2=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -55,6 +58,7 @@ while [[ $# -gt 0 ]]; do
         --agent)    AGENT="$2"; shift 2 ;;
         --fsdb)     FSDB="$2"; shift 2 ;;
         --qsfp)     QSFP="$2"; shift 2 ;;
+        --fboss2)   FBOSS2="$2"; shift 2 ;;
         -h|--help)  usage ;;
         *)          echo "Error: Unknown option: $1"; usage ;;
     esac
@@ -68,6 +72,7 @@ missing=()
 [[ -z "$AGENT" ]]    && missing+=("--agent")
 [[ -z "$FSDB" ]]     && missing+=("--fsdb")
 [[ -z "$QSFP" ]]     && missing+=("--qsfp")
+[[ -z "$FBOSS2" ]]   && missing+=("--fboss2")
 
 if [[ ${#missing[@]} -gt 0 ]]; then
     echo "Error: Missing required arguments: ${missing[*]}"
@@ -77,14 +82,15 @@ fi
 
 # Use parallel arrays to avoid duplicate-key issues with associative arrays
 # (if two args point to the same source path, both must still be staged)
-SRCS=("$PLATFORM" "$BSP" "$SAI" "$AGENT" "$FSDB" "$QSFP")
+SRCS=("$PLATFORM" "$BSP" "$SAI" "$AGENT" "$FSDB" "$QSFP" "$FBOSS2")
 DESTS=(
-    "platform_fboss_bins.tar.gz"
+    "platform_fboss_bins.tar.zst"
     "fboss_bsp_kmods.tar"
     "fboss_sai_kmods.tar"
     "agent_fboss_bins.tar.zst"
     "fsdb_fboss_bins.tar.zst"
     "qsfp_fboss_bins.tar.zst"
+    "fboss2_fboss_bins.tar.zst"
 )
 
 # Validate all source files exist

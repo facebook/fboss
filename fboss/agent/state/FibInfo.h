@@ -119,6 +119,13 @@ class FibInfo : public ThriftStructNode<FibInfo, state::FibInfoFields> {
   std::unordered_map<NextHopSetID, uint32_t>
   getNextHopSetIdRefCountsFromRoutes() const;
 
+  // Collect refcounts of NextHopSetIds referenced by MySID entries.
+  // Each MySID entry referencing a NextHopSetId increments its count
+  // in the provided refCounts map.
+  static void getNextHopSetIdRefCountsFromMySid(
+      const std::shared_ptr<SwitchState>& state,
+      std::unordered_map<NextHopSetID, uint32_t>& refCounts);
+
   // Get all name to NextHopSetId mappings
   std::map<std::string, NextHopSetId> getNameToNextHopSetId() const;
 

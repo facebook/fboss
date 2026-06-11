@@ -632,6 +632,7 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
         link_group_map = get_link_group_map(
             to_impl_bin_name(sai_impl, _sai_agent_provision_test_prefix),
             sai_impl,
+            is_prod = True,
         ),
         linker_flags = [
             "--export-dynamic",
@@ -652,5 +653,5 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
         ]
         + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
-    for sai_impl in SAI_LEABA_IMPLS
+    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS
 ]

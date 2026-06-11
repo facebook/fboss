@@ -12,6 +12,7 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:fboss_event_base",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/state:state",
@@ -22,6 +23,7 @@ cpp_library(
         "//folly/json:dynamic",
     ],
     exported_external_deps = [
+        "gflags",
         ("boost", None, "boost_container"),
     ],
 )
@@ -46,6 +48,7 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:fboss_event_base",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-services",
@@ -110,7 +113,9 @@ cpp_unittest(
         "//fboss/agent/test:hw_test_handle",
         "//fboss/agent/test:label_forwarding_utils",
         "//fboss/agent/test:utils",
+        "//fboss/agent/test/utils:nexthop_id_test_utils",
         "//folly:network_address",
+        "//folly:scope_guard",
         "//folly/functional:partial",
         "//folly/json:dynamic",
         "//folly/logging:logging",
@@ -144,6 +149,9 @@ cpp_library(
         "//fboss/lib:radix_tree",
         "//folly:network_address",
         "//folly/json:dynamic",
+    ],
+    exported_external_deps = [
+        "gflags",
     ],
 )
 

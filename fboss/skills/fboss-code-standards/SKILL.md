@@ -67,6 +67,7 @@ Currently `fboss/` only. TODO: extend to `configerator/source/neteng/fboss`, `ne
 | Testing | Consolidate test helpers | Move shared helpers to base classes |
 | Testing | Validation UTs | Pure validation → unit tests, not just HW tests |
 | Testing | No setup changes to existing tests | Create new tests instead; setup changes break warmboot roundtrip CI |
+| Testing | NextHop IDs on routes | Route tests must keep `enable_nexthop_id_manager` on; every route added must have a nexthop ID assigned |
 
 ## When to Load References
 

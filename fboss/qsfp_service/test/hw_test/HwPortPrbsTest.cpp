@@ -12,7 +12,6 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
-#include <boost/preprocessor/cat.hpp>
 #include <optional>
 
 namespace facebook::fboss {
@@ -174,105 +173,6 @@ buildPortToProfileAndPoly(
   return portToProfileAndPoly;
 }
 } // namespace
-
-template <phy::Side Side, phy::IpModulation Modulation>
-class HwPortPrbsTest : public HwExternalPhyPortTest {
- public:
-  const std::vector<phy::ExternalPhy::Feature>& neededFeatures()
-      const override {
-    return getPrbsNeededFeatures();
-  }
-
-  std::vector<std::pair<PortID, cfg::PortProfileID>> findAvailableXphyPorts()
-      override {
-    const auto& origAvailablePorts =
-        HwExternalPhyPortTest::findAvailableXphyPorts();
-    auto filteredPorts = filterXphyPortsByModulation(
-        origAvailablePorts, getHwQsfpEnsemble(), Side, Modulation);
-    CHECK(!filteredPorts.empty())
-        << "Can't find xphy ports to support features:" << neededFeatureNames();
-    return filteredPorts;
-  }
-
-  std::vector<qsfp_production_features::QsfpProductionFeature>
-  getProductionFeatures() const override {
-    std::vector<qsfp_production_features::QsfpProductionFeature> featureVector =
-        HwExternalPhyPortTest::getProductionFeatures();
-    if (Side == phy::Side::SYSTEM && Modulation == phy::IpModulation::NRZ) {
-      featureVector.push_back(
-          qsfp_production_features::QsfpProductionFeature::
-              XPHY_SYSTEM_NRZ_PROFILE);
-    } else if (
-        Side == phy::Side::SYSTEM && Modulation == phy::IpModulation::PAM4) {
-      featureVector.push_back(
-          qsfp_production_features::QsfpProductionFeature::
-              XPHY_SYSTEM_PAM4_PROFILE);
-    } else if (
-        Side == phy::Side::LINE && Modulation == phy::IpModulation::NRZ) {
-      featureVector.push_back(
-          qsfp_production_features::QsfpProductionFeature::
-              XPHY_LINE_NRZ_PROFILE);
-    } else if (
-        Side == phy::Side::LINE && Modulation == phy::IpModulation::PAM4) {
-      featureVector.push_back(
-          qsfp_production_features::QsfpProductionFeature::
-              XPHY_LINE_PAM4_PROFILE);
-    } else {
-      CHECK(false) << "Side and Modulation not specified correctly ("
-                   << apache::thrift::util::enumNameSafe(Side) << ","
-                   << apache::thrift::util::enumNameSafe(Modulation) << ")";
-    }
-
-    return featureVector;
-  }
-
- protected:
-  void runTest(bool enable) {
-    const auto& availableXphyPorts = findAvailableXphyPorts();
-
-    auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-    auto platformType = wedgeManager->getPlatformType();
-
-    auto portToProfileAndPoly =
-        buildPortToProfileAndPoly(platformType, Modulation, availableXphyPorts);
-
-    PrbsTestConfig config{Side, Modulation, enable};
-    auto setup = [this, &config, &portToProfileAndPoly]() {
-      setupPrbsOnPorts(getHwQsfpEnsemble(), config, portToProfileAndPoly);
-    };
-
-    auto verify = [this, &config, &portToProfileAndPoly]() {
-      verifyPrbsOnPorts(getHwQsfpEnsemble(), config, portToProfileAndPoly);
-    };
-    verifyAcrossWarmBoots(setup, verify);
-  }
-};
-
-#define TEST_NAME(SIDE, MODULATION, ENABLE) \
-  BOOST_PP_CAT(                             \
-      BOOST_PP_CAT(HwPortPrbsTest, _),      \
-      BOOST_PP_CAT(                         \
-          BOOST_PP_CAT(SIDE, _),            \
-          BOOST_PP_CAT(BOOST_PP_CAT(MODULATION, _), ENABLE)))
-
-#define TEST_SET_PRBS(SIDE, MODULATION, ENABLE)          \
-  struct TEST_NAME(SIDE, MODULATION, ENABLE)             \
-      : public HwPortPrbsTest<                           \
-            phy::Side::SIDE,                             \
-            phy::IpModulation::MODULATION> {};           \
-  TEST_F(TEST_NAME(SIDE, MODULATION, ENABLE), SetPrbs) { \
-    runTest(ENABLE);                                     \
-  }
-
-TEST_SET_PRBS(SYSTEM, NRZ, true);
-TEST_SET_PRBS(LINE, NRZ, true);
-TEST_SET_PRBS(SYSTEM, NRZ, false);
-TEST_SET_PRBS(LINE, NRZ, false);
-
-TEST_SET_PRBS(SYSTEM, PAM4, true);
-TEST_SET_PRBS(LINE, PAM4, true);
-TEST_SET_PRBS(SYSTEM, PAM4, false);
-TEST_SET_PRBS(LINE, PAM4, false);
 
 /*
  * HwPortPrbsTestAll - Runs all PRBS test combinations in a single iteration

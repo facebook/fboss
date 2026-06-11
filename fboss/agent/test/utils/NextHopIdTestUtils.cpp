@@ -23,7 +23,8 @@ void allocateRouteNextHopIds(
       allocResult.nextHopIdSetIter->second.id;
   entry.setResolvedNextHopSetID(resolvedId);
 
-  auto normalizedNhops = entry.nonOverrideNormalizedNextHops();
+  auto normalizedNhops =
+      RouteNextHopEntry::normalizeNextHops(entry.getNextHopSet());
   auto normAllocResult =
       idManager->getOrAllocRouteNextHopSetID(normalizedNhops);
   std::optional<NextHopSetID> normalizedId =

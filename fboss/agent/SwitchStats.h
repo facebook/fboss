@@ -201,6 +201,10 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
     ipv6HopLimit1Mine_.addValue(1);
   }
 
+  void srv6NonLastSegmentDecapDrop() {
+    srv6NonLastSegmentDecapDrop_.addValue(1);
+  }
+
   void udpTooSmall() {
     udpTooSmall_.addValue(1);
   }
@@ -938,6 +942,8 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
   // Locally destined packets which arrive with
   // hop limit 1
   TLTimeseries ipv6HopLimit1Mine_;
+  // SRv6 packet with non-last uSID matching decap MySID
+  TLTimeseries srv6NonLastSegmentDecapDrop_;
 
   // UDP packets dropped due to smaller packet size
   TLTimeseries udpTooSmall_;

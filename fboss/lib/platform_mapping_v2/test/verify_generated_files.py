@@ -52,6 +52,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "blackwolf800banw",
             "j4sim",
             "icecube800banw",
+            "example_integrated_optics",
         ],
         True: [
             "meru800bfa",

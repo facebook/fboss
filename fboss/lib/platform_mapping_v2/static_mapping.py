@@ -1,5 +1,6 @@
 # pyre-strict
-from typing import Dict, List, Optional, Set
+from collections import defaultdict
+from typing import Dict, List, Optional, Set, Tuple
 
 import neteng.fboss.platform_mapping_config.thrift_types as pm_types
 from neteng.fboss.platform_mapping_config.thrift_types import ChipType
@@ -15,6 +16,67 @@ class StaticMapping:
         self._a_values: List[pm_types.ConnectionEnd] = [
             connection_pair.a for connection_pair in self._az_connections
         ]
+        self._virtual_tcvr_map: Dict[int, Tuple[int, int]] = {}
+        self._reverse_tcvr_map: Dict[Tuple[int, int], int] = {}
+        self._build_virtual_transceiver_maps()
+
+    def _build_virtual_transceiver_maps(self) -> None:
+        by_chip: Dict[int, Set[int]] = defaultdict(set)
+        for connection_pair in self._az_connections:
+            for connection_end in [connection_pair.a, connection_pair.z]:
+                if (
+                    connection_end
+                    and connection_end.chip
+                    and connection_end.chip.chip_type == ChipType.TRANSCEIVER
+                ):
+                    by_chip[connection_end.chip.chip_id].add(
+                        connection_end.chip.core_id
+                    )
+
+        virtual_map: Dict[int, Tuple[int, int]] = {}
+        reverse_map: Dict[Tuple[int, int], int] = {}
+
+        multi_core_chip_ids = {cid for cid, cores in by_chip.items() if len(cores) > 1}
+        single_core_chip_ids = {
+            cid for cid, cores in by_chip.items() if len(cores) == 1
+        }
+
+        if multi_core_chip_ids:
+            virtual_id = min(multi_core_chip_ids)
+            for chip_id in sorted(multi_core_chip_ids):
+                for core_id in sorted(by_chip[chip_id]):
+                    if virtual_id in single_core_chip_ids:
+                        raise ValueError(
+                            f"Virtual transceiver ID {virtual_id} collides "
+                            f"with single-core chip_id {virtual_id}"
+                        )
+                    if virtual_id in virtual_map:
+                        raise ValueError(
+                            f"Virtual transceiver ID {virtual_id} already "
+                            f"assigned to {virtual_map[virtual_id]}"
+                        )
+                    virtual_map[virtual_id] = (chip_id, core_id)
+                    reverse_map[(chip_id, core_id)] = virtual_id
+                    virtual_id += 1
+
+        for chip_id in sorted(single_core_chip_ids):
+            core_id = next(iter(by_chip[chip_id]))
+            if chip_id in virtual_map:
+                raise ValueError(
+                    f"Single-core chip_id {chip_id} collides "
+                    f"with multi-core virtual transceiver ID"
+                )
+            virtual_map[chip_id] = (chip_id, core_id)
+            reverse_map[(chip_id, core_id)] = chip_id
+
+        self._virtual_tcvr_map = virtual_map
+        self._reverse_tcvr_map = reverse_map
+
+    def get_virtual_transceiver_map(self) -> Dict[int, Tuple[int, int]]:
+        return self._virtual_tcvr_map
+
+    def get_reverse_transceiver_map(self) -> Dict[Tuple[int, int], int]:
+        return self._reverse_tcvr_map
 
     # Given a connection endpoint, return the other connected end
     def get_other_connection_end(

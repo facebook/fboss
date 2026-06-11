@@ -55,9 +55,9 @@ TEST_F(PmUnitInfoFetcherTest, FetchWithValidVersion) {
     return std::make_unique<FakePmClient>(
         [](pm::PmUnitInfoResponse& response, const pm::PmUnitInfoRequest&) {
           pm::PmUnitVersion version;
-          version.productProductionState() = 1;
-          version.productVersion() = 2;
-          version.productSubVersion() = 3;
+          version.productionState() = 1;
+          version.productionSubState() = 2;
+          version.respinVariantIndicator() = 3;
 
           pm::PmUnitInfo info;
           info.name() = "TestPmUnit";
@@ -74,9 +74,9 @@ TEST_F(PmUnitInfoFetcherTest, FetchWithValidVersion) {
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(*result->name(), "TestPmUnit");
   ASSERT_TRUE(result->version().has_value());
-  EXPECT_EQ(*result->version()->productProductionState(), 1);
-  EXPECT_EQ(*result->version()->productVersion(), 2);
-  EXPECT_EQ(*result->version()->productSubVersion(), 3);
+  EXPECT_EQ(*result->version()->productionState(), 1);
+  EXPECT_EQ(*result->version()->productionSubState(), 2);
+  EXPECT_EQ(*result->version()->respinVariantIndicator(), 3);
 }
 
 TEST_F(PmUnitInfoFetcherTest, FetchWithoutVersion) {

@@ -129,6 +129,10 @@ struct ClientAndNextHops {
   3: list<common.NextHopThrift> nextHops;
   // will be populated if policy based route or named next hop group is used
   4: optional common.NamedRouteDestination namedRouteDestination;
+  5: optional AdminDistance adminDistance;
+  6: optional bool isPreferred;
+  7: optional RouteCounterID counterID;
+  8: optional switch_config.AclLookupClass classID;
 }
 
 struct IfAndIP {

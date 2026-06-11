@@ -3,7 +3,11 @@
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 
 extern "C" {
+#if defined(TAJO_SDK_GTE_26_5)
+#include <saiextensions.h>
+#else
 #include <experimental/sai_attr_ext.h>
+#endif
 }
 
 #include <folly/logging/xlog.h>

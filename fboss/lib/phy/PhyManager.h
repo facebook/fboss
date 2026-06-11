@@ -103,6 +103,15 @@ class PhyManager {
       cfg::PortProfileID portProfileId,
       std::optional<TransceiverInfo> transceiverInfo);
 
+  // Returns the original PortPinConfig from PlatformMapping, preserving
+  // the JSON pin order. Used by the SAI XPHY path to send pinConfigs to
+  // SwitchState in NPU-pin order (vs the std::map-sorted order produced by
+  // ExternalPhyConfig::getPinConfigs()).
+  phy::PortPinConfig getDesiredPortPinConfig(
+      PortID portId,
+      cfg::PortProfileID portProfileId,
+      std::optional<TransceiverInfo> transceiverInfo);
+
   phy::PhyPortConfig getHwPhyPortConfig(PortID portId, bool readFromHw = false);
 
   virtual void programOnePort(

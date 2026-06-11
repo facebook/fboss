@@ -11,14 +11,15 @@
   "other_dependencies": [
   ],
   "fboss-platform-stack": {
-    "download": "file:///tmp/fboss-image-staging/platform_fboss_bins.tar.gz"
+    "download": "file:///tmp/fboss-image-staging/platform_fboss_bins.tar.zst"
   },
   "bsps": {
     "download": "file:///tmp/fboss-image-staging/fboss_bsp_kmods.tar"
   },
-  "sai": {
+  "npu_sai": {
     "download": "file:///tmp/fboss-image-staging/fboss_sai_kmods.tar"
   },
+  "phy_sai": {},
   "fboss-forwarding-stack": [
     {"download": "file:///tmp/fboss-image-staging/agent_fboss_bins.tar.zst"},
     {"download": "file:///tmp/fboss-image-staging/fsdb_fboss_bins.tar.zst"},

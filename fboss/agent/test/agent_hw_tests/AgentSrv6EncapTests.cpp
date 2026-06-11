@@ -55,6 +55,8 @@ class AgentSrv6EncapTest : public AgentHwTest {
   const folly::IPAddressV6 kEncapRoutePrefix{"2800:2::"};
   static constexpr uint8_t kEncapRoutePrefixLen{64};
   const folly::IPAddressV6 kEncapRouteDstIp{"2800:2::1"};
+  static inline const folly::IPAddressV4 kRecursiveV4Prefix{"100.0.0.0"};
+  static constexpr uint8_t kRecursiveV4PrefixLen{24};
   static constexpr int kNumNextHops{4};
   static constexpr uint8_t kECT1{1};
 
@@ -250,6 +252,122 @@ class AgentSrv6EncapTest : public AgentHwTest {
         RouterID(0),
         routePrefix,
         kEncapRoutePrefixLen,
+        ClientID::TE_AGENT,
+        RouteNextHopEntry(srv6Nhops, AdminDistance::TE_AGENT));
+    routeUpdater.program();
+  }
+
+  void programRecursiveOpenrRoutes() {
+    auto ecmpHelper = makeEcmpHelper();
+    auto routeUpdater = this->getSw()->getRouteUpdater();
+
+    auto getNhopIp = [&ecmpHelper](int idx) {
+      auto nhop = ecmpHelper.nhop(idx);
+      if (nhop.linkLocalNhopIp.has_value()) {
+        return folly::IPAddress(nhop.linkLocalNhopIp.value());
+      }
+      return folly::IPAddress(nhop.ip);
+    };
+
+    RouteNextHopSet openrNhopsA{
+        ResolvedNextHop(getNhopIp(0), ecmpHelper.nhop(0).intf, ECMP_WEIGHT),
+        ResolvedNextHop(getNhopIp(1), ecmpHelper.nhop(1).intf, ECMP_WEIGHT)};
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2901::"),
+        48,
+        ClientID::OPENR,
+        RouteNextHopEntry(openrNhopsA, AdminDistance::OPENR));
+
+    RouteNextHopSet openrNhopsB{
+        ResolvedNextHop(getNhopIp(2), ecmpHelper.nhop(2).intf, ECMP_WEIGHT),
+        ResolvedNextHop(getNhopIp(3), ecmpHelper.nhop(3).intf, ECMP_WEIGHT)};
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2902::"),
+        48,
+        ClientID::OPENR,
+        RouteNextHopEntry(openrNhopsB, AdminDistance::OPENR));
+
+    routeUpdater.program();
+  }
+
+  void removeRecursiveOpenrRoutes() {
+    auto routeUpdater = this->getSw()->getRouteUpdater();
+    routeUpdater.delRoute(
+        RouterID(0), folly::IPAddressV6("2901::"), 48, ClientID::OPENR);
+    routeUpdater.delRoute(
+        RouterID(0), folly::IPAddressV6("2902::"), 48, ClientID::OPENR);
+    routeUpdater.program();
+  }
+
+  void addRecursiveSrv6RoutesWithV4(
+      const folly::IPAddressV6& v6Prefix,
+      uint8_t v6PrefixLen,
+      const folly::IPAddressV4& v4Prefix,
+      uint8_t v4PrefixLen) {
+    auto ecmpHelper = makeEcmpHelper();
+    auto routeUpdater = this->getSw()->getRouteUpdater();
+
+    auto getNhopIp = [&ecmpHelper](int idx) {
+      auto nhop = ecmpHelper.nhop(idx);
+      if (nhop.linkLocalNhopIp.has_value()) {
+        return folly::IPAddress(nhop.linkLocalNhopIp.value());
+      }
+      return folly::IPAddress(nhop.ip);
+    };
+
+    RouteNextHopSet openrNhopsA{
+        ResolvedNextHop(getNhopIp(0), ecmpHelper.nhop(0).intf, ECMP_WEIGHT),
+        ResolvedNextHop(getNhopIp(1), ecmpHelper.nhop(1).intf, ECMP_WEIGHT)};
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2901::"),
+        48,
+        ClientID::OPENR,
+        RouteNextHopEntry(openrNhopsA, AdminDistance::OPENR));
+
+    RouteNextHopSet openrNhopsB{
+        ResolvedNextHop(getNhopIp(2), ecmpHelper.nhop(2).intf, ECMP_WEIGHT),
+        ResolvedNextHop(getNhopIp(3), ecmpHelper.nhop(3).intf, ECMP_WEIGHT)};
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2902::"),
+        48,
+        ClientID::OPENR,
+        RouteNextHopEntry(openrNhopsB, AdminDistance::OPENR));
+
+    RouteNextHopSet srv6Nhops{
+        UnresolvedNextHop(
+            folly::IPAddress("2901::1"),
+            ECMP_WEIGHT,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::vector<folly::IPAddressV6>{kSid0},
+            TunnelType::SRV6_ENCAP,
+            std::string("srv6Tunnel0")),
+        UnresolvedNextHop(
+            folly::IPAddress("2902::1"),
+            ECMP_WEIGHT,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::vector<folly::IPAddressV6>{kSid1},
+            TunnelType::SRV6_ENCAP,
+            std::string("srv6Tunnel0"))};
+    routeUpdater.addRoute(
+        RouterID(0),
+        v6Prefix,
+        v6PrefixLen,
+        ClientID::TE_AGENT,
+        RouteNextHopEntry(srv6Nhops, AdminDistance::TE_AGENT));
+    routeUpdater.addRoute(
+        RouterID(0),
+        v4Prefix,
+        v4PrefixLen,
         ClientID::TE_AGENT,
         RouteNextHopEntry(srv6Nhops, AdminDistance::TE_AGENT));
     routeUpdater.program();
@@ -966,6 +1084,69 @@ TYPED_TEST(AgentSrv6EncapTest, VerifyDscpQueueMapping) {
             portStatsBefore, queue, this->getSw(), egressPort, dscps.size());
       }
     }
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6EncapTest, multiHopUnresolvedToResolved) {
+  auto setup = [this]() {
+    // Start with neighbors unresolved and no encap routes.
+    // Program OpenR routes + v6/v4 SRv6 encap routes atomically.
+    // The SRv6 routes have unresolved next hops (2901::1, 2902::1) that
+    // resolve recursively through the OpenR routes (2901::/48, 2902::/48).
+    this->setupHelper(false /*resolveNeighbors*/, false /*programEncapRoutes*/);
+    this->addRecursiveSrv6RoutesWithV4(
+        this->kEncapRoutePrefix,
+        this->kEncapRoutePrefixLen,
+        this->kRecursiveV4Prefix,
+        this->kRecursiveV4PrefixLen);
+
+    // Resolve neighbors to complete the forwarding path.
+    this->resolveNextHops(this->kNumNextHops);
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    std::vector<PortID> egressPorts;
+    egressPorts.reserve(this->kNumNextHops);
+    for (int i = 0; i < this->kNumNextHops; ++i) {
+      egressPorts.push_back(this->getEgressPort(ecmpHelper.nhop(i).portDesc));
+    }
+
+    XLOG(DBG2) << "multiHopUnresolvedToResolved: verifying initial forwarding";
+    this->verifyEncapPacketCpuAndFrontPanel(
+        egressPorts, {this->kSid0, this->kSid1});
+
+    XLOG(DBG2)
+        << "multiHopUnresolvedToResolved: iteration 1 — unresolve neighbors, then remove OpenR routes";
+    this->unresolveNextHops(this->kNumNextHops);
+    this->removeRecursiveOpenrRoutes();
+
+    XLOG(DBG2)
+        << "multiHopUnresolvedToResolved: iteration 1 — re-add OpenR routes and re-resolve";
+    this->programRecursiveOpenrRoutes();
+    this->resolveNextHops(this->kNumNextHops);
+
+    XLOG(DBG2)
+        << "multiHopUnresolvedToResolved: iteration 1 — verifying forwarding recovered";
+    this->verifyEncapPacketCpuAndFrontPanel(
+        egressPorts, {this->kSid0, this->kSid1});
+
+    XLOG(DBG2)
+        << "multiHopUnresolvedToResolved: iteration 2 — remove OpenR routes, then unresolve neighbors";
+    this->removeRecursiveOpenrRoutes();
+    this->unresolveNextHops(this->kNumNextHops);
+
+    XLOG(DBG2)
+        << "multiHopUnresolvedToResolved: iteration 2 — re-add OpenR routes and re-resolve";
+    this->programRecursiveOpenrRoutes();
+    this->resolveNextHops(this->kNumNextHops);
+
+    XLOG(DBG2)
+        << "multiHopUnresolvedToResolved: iteration 2 — verifying forwarding recovered";
+    this->verifyEncapPacketCpuAndFrontPanel(
+        egressPorts, {this->kSid0, this->kSid1});
   };
 
   this->verifyAcrossWarmBoots(setup, verify);

@@ -97,6 +97,7 @@ HwPortStats getInitedStats() {
       0, // outDiscardsSll_
       0, // outDiscardsHll_
       0, // inSrv6MySidDiscards_
+      0, // cableDelayNsec
   };
 }
 

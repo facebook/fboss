@@ -185,6 +185,19 @@ phy::PhyPortConfig PhyManager::getDesiredPhyPortConfig(
   return phyPortConfig;
 }
 
+phy::PortPinConfig PhyManager::getDesiredPortPinConfig(
+    PortID portId,
+    cfg::PortProfileID portProfileId,
+    std::optional<TransceiverInfo> transceiverInfo) {
+  std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
+  if (transceiverInfo) {
+    factor = buildPlatformPortConfigOverrideFactor(*transceiverInfo);
+  }
+  PlatformPortProfileConfigMatcher matcher =
+      PlatformPortProfileConfigMatcher(portProfileId, portId, factor);
+  return platformMapping_->getPortXphyPinConfig(matcher);
+}
+
 phy::PhyPortConfig PhyManager::getHwPhyPortConfig(
     PortID portID,
     bool readFromHw) {

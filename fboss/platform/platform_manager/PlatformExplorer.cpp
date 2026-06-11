@@ -324,8 +324,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   CHECK(slotTypeConfig.idpromConfig() || slotTypeConfig.pmUnitName());
   std::optional<std::string> pmUnitNameInEeprom{std::nullopt};
   std::optional<int> productionStateInEeprom{std::nullopt};
-  std::optional<int> productVersionInEeprom{std::nullopt};
-  std::optional<int> productSubVersionInEeprom{std::nullopt};
+  std::optional<int> productionSubStateInEeprom{std::nullopt};
+  std::optional<int> respinVariantIndicatorInEeprom{std::nullopt};
   if (slotTypeConfig.idpromConfig()) {
     auto idpromConfig = *slotTypeConfig.idpromConfig();
     auto eepromI2cBusNum =
@@ -396,39 +396,43 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
         dataStore_.updatePmUnitEepromProductName(slotPath, *pmUnitNameInEeprom);
       }
       productionStateInEeprom = std::stoi(eepromContents.getProductionState());
-      productVersionInEeprom =
+      productionSubStateInEeprom =
           std::stoi(eepromContents.getProductionSubState());
-      productSubVersionInEeprom = std::stoi(eepromContents.getVariantVersion());
+      respinVariantIndicatorInEeprom =
+          std::stoi(eepromContents.getVariantVersion());
       XLOG(INFO) << fmt::format(
-          "Found ProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in IDPROM {} at {}",
+          "Found ProductionState `{}` ProductionSubState `{}` RespinVariantIndicator `{}` in IDPROM {} at {}",
           productionStateInEeprom ? std::to_string(*productionStateInEeprom)
                                   : "<ABSENT>",
-          productVersionInEeprom ? std::to_string(*productVersionInEeprom)
-                                 : "<ABSENT>",
-          productSubVersionInEeprom ? std::to_string(*productSubVersionInEeprom)
-                                    : "<ABSENT>",
+          productionSubStateInEeprom
+              ? std::to_string(*productionSubStateInEeprom)
+              : "<ABSENT>",
+          respinVariantIndicatorInEeprom
+              ? std::to_string(*respinVariantIndicatorInEeprom)
+              : "<ABSENT>",
           eepromPath,
           slotPath);
 
       if (productionStateInEeprom.has_value() &&
-          productVersionInEeprom.has_value() &&
-          productSubVersionInEeprom.has_value()) {
+          productionSubStateInEeprom.has_value() &&
+          respinVariantIndicatorInEeprom.has_value()) {
         PmUnitVersion version;
-        version.productProductionState() = *productionStateInEeprom;
-        version.productVersion() = *productVersionInEeprom;
-        version.productSubVersion() = *productSubVersionInEeprom;
+        version.productionState() = *productionStateInEeprom;
+        version.productionSubState() = *productionSubStateInEeprom;
+        version.respinVariantIndicator() = *respinVariantIndicatorInEeprom;
         dataStore_.updatePmUnitVersion(slotPath, version);
       } else {
         XLOG(WARNING) << fmt::format(
-            "At SlotPath {}, unexpected partial versions: ProductProductionState `{}` "
-            "ProductVersion `{}` ProductSubVersion `{}`. Skipping updating PmUnit {}",
+            "At SlotPath {}, unexpected partial versions: ProductionState `{}` "
+            "ProductionSubState `{}` RespinVariantIndicator `{}`. Skipping updating PmUnit {}",
             slotPath,
             productionStateInEeprom ? std::to_string(*productionStateInEeprom)
                                     : "<ABSENT>",
-            productVersionInEeprom ? std::to_string(*productVersionInEeprom)
-                                   : "<ABSENT>",
-            productSubVersionInEeprom
-                ? std::to_string(*productSubVersionInEeprom)
+            productionSubStateInEeprom
+                ? std::to_string(*productionSubStateInEeprom)
+                : "<ABSENT>",
+            respinVariantIndicatorInEeprom
+                ? std::to_string(*respinVariantIndicatorInEeprom)
                 : "<ABSENT>",
             *pmUnitNameInEeprom);
       }
@@ -1049,9 +1053,9 @@ void PlatformExplorer::publishHardwareVersions() {
     }
     auto versionStr = fmt::format(
         "{}.{}.{}",
-        *version->productProductionState(),
-        *version->productVersion(),
-        *version->productSubVersion());
+        *version->productionState(),
+        *version->productionSubState(),
+        *version->respinVariantIndicator());
     fb303::fbData->setCounter(
         fmt::format(kPmUnitVersionODS, *pmUnitInfo.name(), versionStr), 1);
   }

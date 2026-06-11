@@ -1,5 +1,7 @@
 "Test Case","Platform","Status"
 "SensorServiceHwTest.SensorFetchODSCheck","montblanc","PASSED"
+"SensorServiceHwTest.PowerAndInputVoltageAboveZero","montblanc","PASSED"
+"SensorServiceHwTest.MinPsuCountMatchesPowerType","montblanc","PASSED"
 "SensorServiceHwTest.GetSomeSensorsViaThrift","montblanc","PASSED"
 "SensorServiceHwTest.GetSomeSensors","montblanc","PASSED"
 "SensorServiceHwTest.GetBogusSensor","montblanc","PASSED"

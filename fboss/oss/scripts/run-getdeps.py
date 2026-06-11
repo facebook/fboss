@@ -439,8 +439,8 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
     Both paths must be provided together. ``libsai_impl_path`` is a directory
     that contains libsai_impl.a (and may contain sai_dependencies.txt or
     additional SDK libs). When present, the artifacts are staged into a
-    temporary directory with the lib/ and include/ structure that CMake
-    expects, and that directory is prepended to CMAKE_PREFIX_PATH.
+    temporary directory with the lib/, include/ and experimental/ structure
+    that CMake expects, and that directory is prepended to CMAKE_PREFIX_PATH.
     """
     if (libsai_impl_path is None) and (experiments_path is None):
         print_info(
@@ -486,15 +486,29 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
     # Stage artifacts into a prefix directory with lib/ and include/ subdirs.
     # The lib/ symlink points at the source directory so libsai_impl.a and
     # any siblings (sai_dependencies.txt, extra SDK libs) are visible to CMake.
+    #
+    # Vendor SDKs ship their SAI extension headers flat in the experiments dir
+    # (e.g. <exp>/saiextensions.h and <exp>/saitamextensions.h), but FBOSS
+    # references them with two different include forms: bare (e.g.
+    # <saiextensions.h>, <brcm_sai_extensions.h>) and "experimental/"-prefixed
+    # (e.g. <experimental/saitamextensions.h>). To make both forms resolve
+    # against the single flat directory, stage it twice: as include/ (so bare
+    # includes resolve) and as experimental/ off the staging root (so prefixed
+    # includes resolve, since the staging root is on the include path).
     staging_dir = tempfile.mkdtemp(prefix="fboss_sdk_")
     abs_libsai_impl_path = os.path.abspath(libsai_impl_path)
+    abs_experiments_path = os.path.abspath(experiments_path)
     os.symlink(abs_libsai_impl_path, os.path.join(staging_dir, "lib"))
-    os.symlink(os.path.abspath(experiments_path), os.path.join(staging_dir, "include"))
+    os.symlink(abs_experiments_path, os.path.join(staging_dir, "include"))
+    os.symlink(abs_experiments_path, os.path.join(staging_dir, "experimental"))
     print_info(
         f"Symlinked {abs_libsai_impl_path} -> {os.path.join(staging_dir, 'lib')}"
     )
     print_info(
-        f"Symlinked {experiments_path} -> {os.path.join(staging_dir, 'include')}"
+        f"Symlinked {abs_experiments_path} -> {os.path.join(staging_dir, 'include')}"
+    )
+    print_info(
+        f"Symlinked {abs_experiments_path} -> {os.path.join(staging_dir, 'experimental')}"
     )
 
     print_info(f"Staged SDK artifacts in {staging_dir}")

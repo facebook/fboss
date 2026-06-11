@@ -1153,6 +1153,32 @@ install(TARGETS
   switch_state_cpp2 agent_config_cpp2 agent_info_cpp2
   switch_reachability_cpp2
   qsfp_state_cpp2 qsfp_stats_cpp2 sensor_service_stats_cpp2
+  # Leaf thrift deps of the FsdbOperStateRoot COW model, transitively
+  # required by downstream consumers that link it (BGP++ NeighborWatcher
+  # FsdbCowStateSubManager). Headers ship via the include dir, but the
+  # static archives must be installed for one-pass linkers to resolve.
+  qsfp_config_cpp2 port_state_cpp2 pim_state_cpp2 sensor_service_cpp2
+  # thrift_cow C++ libraries (CowStorage / visitors / patch appliers) that
+  # back the COW storage instantiations above.
+  patch_cpp2 cow_visitor_results_cpp2
+  storage cow_storage
+  thrift_cow_serializer thrift_cow_nodes
+  thrift_cow_visitors_common thrift_cow_visitors
+  # FsdbOperStateRoot extern-template instantiation libs. fsdb_cow_storage
+  # references these for the PathVisitor (visitNode), PatchApplier, and
+  # ThriftStructNode instantiations over the oper-state tree; without them a
+  # one-pass link leaves thousands of undefined visitNode/PatchApplier refs.
+  fsdb_cow_root_path_visitor
+  fsdb_path_visitor_oper_state_instantiations
+  fsdb_patch_applier_oper_state_instantiations
+  fsdb_thrift_struct_oper_instantiations
+  # Additional leaf thrift deps reached through the qsfp_state / sensor /
+  # service-client portions of the model: transceiver_validation
+  # (FirmwarePair/TransceiverAttributes/VendorConfig), sensor_config
+  # (Thresholds), and qsfp (QsfpService client vtable via thrift_service_client).
+  transceiver_validation_cpp2
+  sensor_config_cpp2
+  qsfp_cpp2
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
 )

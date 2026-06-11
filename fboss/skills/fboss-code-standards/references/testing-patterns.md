@@ -91,3 +91,10 @@ Patterns for FBOSS test code, including agent HW tests, multinode tests, and tes
 **Why**: Existing tests run in trunk-to-prod (and prod-to-trunk) warmboot roundtrip CI. When you modify a test's setup, the trunk version programs different HW state than the prod version. On warmboot from trunk back to prod, the prod binary encounters unexpected programmed state, causing test failures that block releases. The setup defines the HW contract between cold boot and warmboot — changing it breaks that contract across commits.
 **Source**: D102269880 — modified setup of an existing RouteTest to program v4 routes; broke warmboot roundtrip because prod binary didn't expect v4 route state programmed by trunk.
 **Confidence**: HIGH (always create a new test instead of modifying existing setup)
+
+### 18. Every Route in a Test Must Have a NextHop ID
+**Check**: Any test that adds routes — or hand-builds route/FIB state — must ensure every route ends up with a nexthop ID assigned. Keep the `NextHopIDManager` on (`FLAGS_enable_nexthop_id_manager=true`, the default); do NOT disable it in route tests. Prefer adding routes through the RIB/RouteUpdater path so IDs are assigned automatically:
+- **Tests driving the real path** (`createTestHandle` → `ThriftHandler::addUnicastRoutes`/`syncFib`, or the `RouteUpdater` wrapper): IDs are assigned automatically. Assert each resolved fwd entry with action `NEXTHOPS` carries an ID — non-`nullopt` `getResolvedNextHopSetID()` and `getNormalizedResolvedNextHopSetID()`.
+- **Tests hand-building a `SwitchState`/FIB directly** (bypassing the RIB): IDs are NOT assigned. Either route the adds through the RouteUpdater wrapper instead, or — if the test must build state directly — call `assignNextHopIdsToAllRoutes(idManager, state)` (or per-entry `allocateRouteNextHopIds`) from `fboss/agent/test/utils/NextHopIdTestUtils.h` so every route gets an ID.
+**Why**: ID-based nexthops are shipping to prod. ID-less routes in tests give false coverage and crash ID consumers under `FLAGS_resolve_nexthops_from_id` (e.g. `FibHelpers.cpp` `getFwdSwitchingMode` CHECK).
+**Confidence**: HIGH (every route added in a test must have a nexthop ID)

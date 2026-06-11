@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -152,6 +153,26 @@ FibInfo::getNextHopSetIdRefCountsFromRoutes() const {
   }
 
   return refCounts;
+}
+
+void FibInfo::getNextHopSetIdRefCountsFromMySid(
+    const std::shared_ptr<SwitchState>& state,
+    std::unordered_map<NextHopSetID, uint32_t>& refCounts) {
+  auto mySidMap = state->getMySids();
+  if (!mySidMap) {
+    return;
+  }
+
+  for (const auto& miter : std::as_const(*mySidMap)) {
+    for (const auto& [_, mySid] : std::as_const(*miter.second)) {
+      if (auto id = mySid->getResolvedNextHopsId()) {
+        ++refCounts[*id];
+      }
+      if (auto id = mySid->getUnresolveNextHopsId()) {
+        ++refCounts[*id];
+      }
+    }
+  }
 }
 
 std::map<std::string, NextHopSetId> FibInfo::getNameToNextHopSetId() const {

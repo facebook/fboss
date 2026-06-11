@@ -943,11 +943,18 @@ SendPktFunc getSendPktFunc(TestEnsembleIf* ensemble) {
   });
 }
 
-SendPktFunc getSendPktFunc(SwSwitch* sw) {
-  return SendPktFunc([sw](
+SendPktFunc getSendPktFunc(
+    SwSwitch* sw,
+    const std::optional<SwitchID>& switchId) {
+  return SendPktFunc([sw, switchId](
                          std::unique_ptr<TxPacket> pkt,
                          std::optional<PortDescriptor> port,
                          std::optional<uint8_t> queue) {
+    if (switchId.has_value() && !port.has_value()) {
+      CHECK(!queue.has_value());
+      sw->sendPacketSwitchedAsync(std::move(pkt), {*switchId});
+      return;
+    }
     sw->sendPacketAsync(std::move(pkt), std::move(port), queue);
   });
 }

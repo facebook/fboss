@@ -44,6 +44,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
   void SetUp() override {
     gflags::SetCommandLineOptionWithMode(
         "enable_snapshot_debugs", "0", gflags::SET_FLAGS_DEFAULT);
+    gflags::SetCommandLineOptionWithMode(
+        "cdb_command_timeout_usec", "1", gflags::SET_FLAGS_DEFAULT);
     TransceiverManagerTestHelper::SetUp();
   }
 

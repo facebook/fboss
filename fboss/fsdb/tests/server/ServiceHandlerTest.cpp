@@ -54,6 +54,18 @@ class ServiceHandlerTest : public ::testing::Test {
     return req;
   }
 
+  SubRequest createExtendedPatchRequest(const std::string& subId) {
+    OperPathElem elem;
+    elem.raw() = "agent";
+    ExtendedOperPath path;
+    path.path() = {elem};
+    SubRequest req;
+    req.extPaths() = {{0, path}};
+    req.clientId()->client() = FsdbClient::AGENT;
+    req.clientId()->instanceId() = subId;
+    return req;
+  }
+
   std::unique_ptr<FsdbTestServer> fsdb_;
 };
 
@@ -121,6 +133,35 @@ TEST_F(ServiceHandlerTest, testSubscriberInfo) {
     client->sync_getAllOperSubscriberInfos(subInfos);
     EXPECT_EVENTUALLY_EQ(subInfos.size(), 1);
   });
+}
+
+// Regression test for `fboss2 show fsdb subscribers` to correctly report
+// isStats flag for extended State and Stats subscriptions.
+TEST_F(ServiceHandlerTest, extendedSubscriptionIsStatsAttribute) {
+  folly::EventBase evb;
+  auto client = createClient(&evb);
+  auto stateSub = client->sync_subscribeStateExtended(
+      createExtendedPatchRequest("ext-state-sub"));
+  auto statsSub = client->sync_subscribeStatsExtended(
+      createExtendedPatchRequest("ext-stats-sub"));
+
+  SubscriberIdToOperSubscriberInfos subInfos;
+  WITH_RETRIES({
+    client->sync_getAllOperSubscriberInfos(subInfos);
+    EXPECT_EVENTUALLY_EQ(subInfos.size(), 2);
+  });
+
+  ASSERT_EQ(subInfos.count("ext-state-sub"), 1);
+  ASSERT_EQ(subInfos.at("ext-state-sub").size(), 1);
+  const auto& stateInfo = subInfos.at("ext-state-sub").at(0);
+  EXPECT_FALSE(*stateInfo.isStats());
+  EXPECT_TRUE(stateInfo.extendedPaths().has_value());
+
+  ASSERT_EQ(subInfos.count("ext-stats-sub"), 1);
+  ASSERT_EQ(subInfos.at("ext-stats-sub").size(), 1);
+  const auto& statsInfo = subInfos.at("ext-stats-sub").at(0);
+  EXPECT_TRUE(*statsInfo.isStats());
+  EXPECT_TRUE(statsInfo.extendedPaths().has_value());
 }
 
 TEST_F(ServiceHandlerTest, subscribeDup) {
@@ -320,6 +361,33 @@ TEST_F(ExpectedSubscriptionsTest, allMode_DifferentInstancesDoNotCount) {
   auto statsB = statsClient->sync_subscribeStats(makeRequest("agent:B"));
   waitForActiveSubscriptions(2);
   EXPECT_EQ(getCounter(FsdbClient::AGENT), 0);
+}
+
+TEST_F(ExpectedSubscriptionsTest, allMode_multipleSubscriberInstances) {
+  // switch_agent runs core and cluster instances. ALL mode requires a
+  // single subscriberId to hold both a state and a stats subscription.
+  // A state sub on "switch_agent:core" and a stats sub on
+  // "switch_agent:cluster" are split across two instances, so the gauge
+  // stays 0. A third state sub on "switch_agent:cluster" completes the
+  // state+stats pair for that instance and flips the gauge to 1.
+  setupServer({{"switch_agent:", ExpectedSubscriptionType::ALL}});
+  EXPECT_EQ(getCounter(FsdbClient::SWITCH_AGENT), 0);
+
+  folly::EventBase evb;
+  auto coreStateClient = createClient(&evb);
+  auto coreState =
+      coreStateClient->sync_subscribeState(makeRequest("switch_agent:core"));
+  auto clusterStatsClient = createClient(&evb);
+  auto clusterStats = clusterStatsClient->sync_subscribeStats(
+      makeRequest("switch_agent:cluster"));
+  waitForActiveSubscriptions(2);
+  EXPECT_EQ(getCounter(FsdbClient::SWITCH_AGENT), 0);
+
+  auto clusterStateClient = createClient(&evb);
+  auto clusterState = clusterStateClient->sync_subscribeState(
+      makeRequest("switch_agent:cluster"));
+  waitForActiveSubscriptions(3);
+  WITH_RETRIES(EXPECT_EVENTUALLY_EQ(getCounter(FsdbClient::SWITCH_AGENT), 1));
 }
 
 TEST_F(ExpectedSubscriptionsTest, allMode_UpdateOnDisconnect) {

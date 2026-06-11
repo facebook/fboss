@@ -2985,7 +2985,7 @@
           "reason": "Temporary addition to known bad, needs more debugging"
         }
     ],
-    "leaba/26.2.5210/graphene200": [
+    "leaba/26.2.4210/graphene200": [
         {
           "test_name_regex": ".*Voq.*",
           "reason": "VOQ tests not applicable to NPU"
@@ -3035,7 +3035,7 @@
           "reason": "Temporary addition to known bad, needs more debugging"
         }
     ],
-    "leaba/26.2.5210/graphene200/mono": [
+    "leaba/26.2.4210/graphene200/mono": [
         {
           "test_name_regex": ".*Voq.*",
           "reason": "VOQ tests not applicable to NPU"
@@ -3085,7 +3085,7 @@
           "reason": "Temporary addition to known bad, needs more debugging"
         }
     ],
-    "leaba/26.2.5210/graphene200/multi_switch": [
+    "leaba/26.2.4210/graphene200/multi_switch": [
         {
           "test_name_regex": ".*Voq.*",
           "reason": "VOQ tests not applicable to NPU"

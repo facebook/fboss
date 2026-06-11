@@ -128,6 +128,17 @@ target_link_libraries(voq_utils
   state
 )
 
+add_library(remote_intf_route_auditor
+  fboss/agent/RemoteIntfRouteAuditor.cpp
+)
+
+target_link_libraries(remote_intf_route_auditor
+  Folly::folly
+  fib_helpers
+  state
+  voq_utils
+)
+
 target_link_libraries(address_utils
   network_address_cpp2
   Folly::folly
@@ -164,6 +175,7 @@ target_link_libraries(utils
   j4sim_platform_mapping
   saintpaul_platform_mapping
   blackwolf800banw_platform_mapping
+  m4062nhp_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping

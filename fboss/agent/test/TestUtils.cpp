@@ -1331,20 +1331,20 @@ ResolvedNextHop makeResolvedNextHop(
 
 RouteNextHopEntry makeExpectedRouteNextHopEntry(
     const SwSwitch* sw,
-    RouteNextHopSet nhops,
+    const RouteNextHopSet& nhops,
     AdminDistance distance) {
-  RouteNextHopEntry entry(std::move(nhops), distance);
+  RouteNextHopEntry entry(nhops, distance);
 
   CHECK(sw);
   CHECK(sw->getRib());
   auto idManager = sw->getRib()->getNextHopIDManagerCopy();
   if (idManager) {
     // Lookup resolvedNextHopSetID for the nhops
-    auto resolvedId = idManager->lookupRouteNextHopSetID(entry.getNextHopSet());
+    auto resolvedId = idManager->lookupRouteNextHopSetID(nhops);
     CHECK(resolvedId);
     entry.setResolvedNextHopSetID(resolvedId);
     // Lookup normalizedResolvedNextHopSetID for the normalized nhops
-    auto normalizedNhops = entry.nonOverrideNormalizedNextHops();
+    auto normalizedNhops = RouteNextHopEntry::normalizeNextHops(nhops);
     auto normalizedResolvedId =
         idManager->lookupRouteNextHopSetID(normalizedNhops);
     CHECK(normalizedResolvedId);

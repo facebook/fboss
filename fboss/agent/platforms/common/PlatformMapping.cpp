@@ -485,6 +485,27 @@ std::set<uint8_t> PlatformMapping::getTransceiverHostLanes(
   return tcvrHostLanes;
 }
 
+std::optional<uint8_t> PlatformMapping::getTransceiverBankId(
+    const PlatformPortProfileConfigMatcher& matcher) const {
+  auto pinConfigs = getPortTransceiverPinConfigs(matcher);
+  auto portID = matcher.getPortIDIf();
+
+  if (!portID.has_value()) {
+    throw FbossError("getTransceiverBankId miss portID match factor");
+  }
+
+  if (!pinConfigs || pinConfigs->empty()) {
+    throw FbossError("Can't find tcvr pinConfigs for portId ", *portID);
+  }
+
+  const auto& chipName = *pinConfigs->front().id()->chip();
+  auto chipIt = chips_.find(chipName);
+  if (chipIt == chips_.end()) {
+    return std::nullopt;
+  }
+  return chipIt->second.coreId().to_optional();
+}
+
 int PlatformMapping::getTransceiverIdFromSwPort(PortID swPort) const {
   const auto& platformPorts = getPlatformPorts();
   const auto& chips = getChips();

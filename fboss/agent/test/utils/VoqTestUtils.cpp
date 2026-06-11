@@ -677,9 +677,14 @@ boost::container::flat_set<PortDescriptor> getRemoteSysPorts(
 boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
     TestEnsembleIf* ensemble,
     utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-  auto remoteSysPorts =
-      ensemble->getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
   auto sysPortDescs = getRemoteSysPorts(ensemble);
+  return resolveRemoteNhops(ensemble, ecmpHelper, sysPortDescs);
+}
+
+boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
+    TestEnsembleIf* ensemble,
+    utility::EcmpSetupTargetedPorts6& ecmpHelper,
+    const boost::container::flat_set<PortDescriptor>& sysPortDescs) {
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
     return ecmpHelper.resolveNextHops(
         in, sysPortDescs, false, getDummyEncapIndex(ensemble));
@@ -690,9 +695,14 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
 boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
     TestEnsembleIf* ensemble,
     utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-  auto remoteSysPorts =
-      ensemble->getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
   auto sysPortDescs = getRemoteSysPorts(ensemble);
+  return unresolveRemoteNhops(ensemble, ecmpHelper, sysPortDescs);
+}
+
+boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
+    TestEnsembleIf* ensemble,
+    utility::EcmpSetupTargetedPorts6& ecmpHelper,
+    const boost::container::flat_set<PortDescriptor>& sysPortDescs) {
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
     return ecmpHelper.unresolveNextHops(in, sysPortDescs, false);
   });

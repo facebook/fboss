@@ -6,22 +6,30 @@ from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
 from fboss.lib.platform_mapping_v2.helpers import (
     get_backplane_chip,
     get_connection_pairs_for_profile,
+    get_laser_source_chip,
     get_mapping_pins,
     get_npu_chip,
+    get_optical_engine_chip,
     get_pin_data_from_connections,
     get_platform_config_entry,
     get_transceiver_chip,
     get_unique_connection_pairs,
     get_xphy_chip,
     is_backplane,
+    is_laser_source,
     is_npu,
+    is_optical_engine,
     is_transceiver,
     is_xphy,
+)
+from fboss.lib.platform_mapping_v2.integrated_transceiver_mapping import (
+    IntegratedTransceiverMapping,
 )
 from fboss.lib.platform_mapping_v2.port_profile_mapping import PortProfileMapping
 from fboss.lib.platform_mapping_v2.profile_settings import ProfileSettings
 from fboss.lib.platform_mapping_v2.read_files_utils import (
     read_asic_vendor_config,
+    read_integrated_transceiver_mapping,
     read_port_profile_mapping,
     read_profile_settings,
     read_si_settings,
@@ -116,6 +124,7 @@ class PlatformMappingParser:
         self._profile_settings: Optional[ProfileSettings] = None
         self._si_settings: Optional[SiSettings] = None
         self._asic_vendor_config: Optional[AsicVendorConfig] = None
+        self._integrated_tcvr_mapping: Optional[IntegratedTransceiverMapping] = None
         self._read_csvs()
 
     def get_directory(self, use_base_platform: bool = False) -> Dict[str, str]:
@@ -182,6 +191,15 @@ class PlatformMappingParser:
         except FileNotFoundError:
             print("No asic vendor config found...", file=sys.stderr)
 
+        # Integrated transceiver mapping is optional — only CPO platforms have this CSV
+        try:
+            self._integrated_tcvr_mapping = read_integrated_transceiver_mapping(
+                self.get_directory(),
+                self.get_mapping_prefix(),
+            )
+        except (FileNotFoundError, KeyError):
+            print("No integrated transceiver mapping found...", file=sys.stderr)
+
     def get_static_mapping(self) -> StaticMapping:
         if not self._static_mapping:
             raise TypeError(f"Static mapping file not defined for {self.platform}")
@@ -206,6 +224,11 @@ class PlatformMappingParser:
 
     def get_asic_vendor_config(self) -> Optional[AsicVendorConfig]:
         return self._asic_vendor_config
+
+    def get_integrated_transceiver_mapping(
+        self,
+    ) -> Optional[IntegratedTransceiverMapping]:
+        return self._integrated_tcvr_mapping
 
 
 class PlatformMappingV2:
@@ -376,6 +399,10 @@ class PlatformMappingV2:
             # TODO(pshaikh): add logic to generate chips for yangra
             return chips
 
+        reverse_tcvr_map = (
+            self.pm_parser.get_static_mapping().get_reverse_transceiver_map()
+        )
+
         for chip in parsed_chips:
             if is_npu(chip.chip_type):
                 # Skip adding NPUs other than the first if it's not multi npu
@@ -383,13 +410,29 @@ class PlatformMappingV2:
                     continue
                 chips.append(get_npu_chip(chip))
             elif is_transceiver(chip.chip_type):
-                chips.append(get_transceiver_chip(chip))
+                key = (chip.chip_id, chip.core_id)
+                if key not in reverse_tcvr_map:
+                    raise Exception(
+                        f"Transceiver chip_id={chip.chip_id}, core_id={chip.core_id} "
+                        f"not found in reverse transceiver map"
+                    )
+                virtual_id = reverse_tcvr_map[key]
+                chips.append(get_transceiver_chip(chip, physical_id=virtual_id - 1))
             elif is_backplane(chip.chip_type):
                 chips.append(get_backplane_chip(chip))
             elif is_xphy(chip.chip_type):
                 chips.append(get_xphy_chip(chip))
             else:
                 raise Exception("Unhandled chip_type ", chip.chip_type)
+
+        integrated_mapping = self.pm_parser.get_integrated_transceiver_mapping()
+        if integrated_mapping is not None:
+            for chip in integrated_mapping.get_chips():
+                if is_optical_engine(chip.chip_type):
+                    chips.append(get_optical_engine_chip(chip))
+                elif is_laser_source(chip.chip_type):
+                    chips.append(get_laser_source_chip(chip))
+
         chips = sorted(chips, key=lambda chip: (chip.type, chip.physicalID, chip.name))
         return chips
 
@@ -491,6 +534,7 @@ class PlatformMappingV2:
                     if speed_setting.num_lanes == 0
                     else speed_setting.speed / speed_setting.num_lanes,
                     port_id=port_detail.global_port_id,
+                    integrated_tcvr_mapping=self.pm_parser.get_integrated_transceiver_mapping(),
                 )
                 if len(platform_port_config_override) > 0:
                     port_config_overrides.extend(platform_port_config_override)

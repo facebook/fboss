@@ -62,6 +62,9 @@ void addUdfTableToAcl(
 std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
     cfg::AsicType asicType);
 
+std::vector<cfg::AclTableActionType> genAclActionTypesConfig(
+    cfg::AsicType asicType);
+
 int getAclTableIndex(
     cfg::AclTableGroup* aclTableGroup,
     const std::string& tableName);
