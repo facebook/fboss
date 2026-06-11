@@ -115,9 +115,10 @@ struct FanSpinnerDevice {
 
 // Switch card power good status configuration.
 //
-// `sysfsAttribute`: Power good status via a sysfs attribute. Use this when
-// the power good signal is exposed as a sysfs file. See SysfsAttribute
-// struct below.
+// `sysfsAttributes`: List of sysfs attributes to read from this device.
+// These typically include power good status. Use these when
+// the power good signals are exposed as sysfs files.
+// See SysfsAttribute struct below.
 //
 // `gpioAttribute`: Power good status via a GPIO signal. Use this when the
 // power good signal is connected to a GPIO pin. See Gpio struct above.
@@ -125,7 +126,7 @@ struct FanSpinnerDevice {
 // Note: Only one of sysfsAttribute or gpioAttribute should be set,
 // depending on how the power good signal is exposed in the hardware.
 struct SwitchCardPowerGoodStatus {
-  1: optional SysfsAttribute sysfsAttribute;
+  1: optional list<SysfsAttribute> sysfsAttributes;
   2: optional Gpio gpioAttribute;
 }
 
