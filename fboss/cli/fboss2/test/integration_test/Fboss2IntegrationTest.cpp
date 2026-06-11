@@ -66,9 +66,6 @@ void Fboss2IntegrationTest::TearDown() {
 }
 
 void Fboss2IntegrationTest::discardSession() const {
-  // Delete the session files to ensure we start with a fresh session
-  // based on the current HEAD. ConfigSession::initializeSession() will
-  // reset internal state when it detects no session file exists.
   // NOLINTNEXTLINE(concurrency-mt-unsafe): HOME is read-only in practice
   const char* home = std::getenv("HOME");
   if (home == nullptr) {
@@ -475,8 +472,59 @@ void Fboss2IntegrationTest::waitForAgentReady(
     // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
     std::this_thread::sleep_for(std::chrono::seconds(10));
   }
+  dumpAgentDiagnostics();
   FAIL() << "Agent did not become ready within " << timeout.count()
          << " seconds";
+}
+
+void Fboss2IntegrationTest::dumpAgentDiagnostics() const {
+  // Print to std::cerr (not XLOG) so the dump is unconditional and not
+  // reordered/buffered by folly's async logger relative to the FAIL() output.
+  std::cerr << "=== Agent diagnostics (waitForAgentReady timed out) ==="
+            << std::endl;
+
+  for (const auto* unit : {"fboss_sw_agent", "fboss_hw_agent@0"}) {
+    std::cerr << "--- systemctl status " << unit << " ---" << std::endl;
+    auto status =
+        runCmd({"/usr/bin/systemctl", "--no-pager", "-l", "status", unit});
+    if (!status.stdout.empty()) {
+      std::cerr << status.stdout;
+    }
+    if (!status.stderr.empty()) {
+      std::cerr << status.stderr;
+    }
+  }
+
+  // Both fboss_sw_agent and fboss_hw_agent@0 are configured to append to
+  // /var/facebook/logs/fboss/wedge_agent.log (see fboss_sw_agent.service /
+  // fboss_hw_agent@.service). Tail enough lines to capture the start of the
+  // most recent boot.
+  constexpr auto kAgentLogPath = "/var/facebook/logs/fboss/wedge_agent.log";
+  constexpr auto kTailLines = "500";
+  std::cerr << "--- tail -n " << kTailLines << " " << kAgentLogPath << " ---"
+            << std::endl;
+  auto tail = runCmd({"/usr/bin/tail", "-n", kTailLines, kAgentLogPath});
+  if (!tail.stdout.empty()) {
+    std::cerr << tail.stdout;
+  }
+  if (tail.exitCode != 0 && !tail.stderr.empty()) {
+    std::cerr << "tail stderr: " << tail.stderr;
+  }
+  std::cerr << "=== End agent diagnostics ===" << std::endl;
+}
+
+void Fboss2IntegrationTest::waitForAgentReadyViaSystemd(int timeoutSec) {
+  for (int i = 0; i < timeoutSec; ++i) {
+    // NOLINTNEXTLINE(concurrency-mt-unsafe,bugprone-unsafe-functions)
+    if (std::system(
+            "sudo systemctl is-active --quiet fboss_sw_agent && "
+            "timeout 3 fboss2-dev show interface >/dev/null 2>&1") == 0) {
+      return;
+    }
+    // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
+  FAIL() << "fboss_sw_agent did not become ready within " << timeoutSec << "s";
 }
 
 int Fboss2IntegrationTest::getKernelInterfaceMtu(int vlanId) const {

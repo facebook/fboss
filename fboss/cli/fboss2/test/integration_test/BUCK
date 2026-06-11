@@ -18,6 +18,7 @@ cpp_binary(
     srcs = [
         "ConfigAdminDistanceTest.cpp",
         "ConfigArpTest.cpp",
+        "ConfigAclRuleTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",
         "ConfigDhcpSourceOverrideTest.cpp",
