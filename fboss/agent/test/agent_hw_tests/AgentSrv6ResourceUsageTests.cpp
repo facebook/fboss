@@ -18,6 +18,10 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
   const folly::IPAddressV6 kMidpointMySidPrefix{"3001:db8:1::"};
   static constexpr uint8_t kMidpointMySidPrefixLen{48};
 
+  // GR2 uDT installs two HW endpoints (exact /128 match + prefix miss action).
+  static constexpr int32_t kDecapMySidSlotsPerEntry{2};
+  static constexpr int32_t kAdjacencyMySidSlotsPerEntry{1};
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     return {ProductionFeature::SRV6_DECAP, ProductionFeature::SRV6_MIDPOINT};
@@ -88,7 +92,8 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
     prefix.prefixLength() = kMidpointMySidPrefixLen;
     fields.mySid() = prefix;
     auto mySid = std::make_shared<MySid>(fields);
-    RouteNextHopSet nhops{ResolvedNextHop(nexthopIp, nexthopIntf, ECMP_WEIGHT)};
+    RouteNextHopSet nhops{
+        ResolvedNextHop(nexthopIp, nexthopIntf, ECMP_WEIGHT)};
     std::vector<MySidWithNextHops> toAdd = {{mySid, nhops}};
 
     auto sw = getSw();
@@ -137,12 +142,15 @@ TEST_F(AgentSrv6ResourceUsageTest, verifyMySidResourceUsage) {
   auto verify = [this]() {
     auto mySidFreeBefore = getMySidEntriesFree();
 
-    // Add decap mySid, verify counter decreases by 1.
+    // Add decap (uDT) mySid — consumes 2 slots on GR2.
     addDecapMySidEntry();
-    WITH_RETRIES(
-        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBefore - 1); });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          getMySidEntriesFree(),
+          mySidFreeBefore - kDecapMySidSlotsPerEntry);
+    });
 
-    // Add adjacency mySid, verify counter decreases by 2 total.
+    // Add adjacency (uA) mySid — one slot; decap + uA = 3 total.
     auto ecmpHelper = makeEcmpHelper();
     applyNewState([&ecmpHelper](std::shared_ptr<SwitchState> in) {
       return ecmpHelper.resolveNextHops(in, 1);
@@ -150,13 +158,20 @@ TEST_F(AgentSrv6ResourceUsageTest, verifyMySidResourceUsage) {
     const auto ecmpNhop = ecmpHelper.nhop(0);
     const folly::IPAddress nexthopIp = folly::IPAddress(ecmpNhop.ip);
     addAdjacencyMySidEntry(nexthopIp, ecmpNhop.intf);
-    WITH_RETRIES(
-        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBefore - 2); });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          getMySidEntriesFree(),
+          mySidFreeBefore - kDecapMySidSlotsPerEntry -
+              kAdjacencyMySidSlotsPerEntry);
+    });
 
-    // Remove adjacency mySid, verify counter goes back to -1.
+    // Remove adjacency mySid — only decap (2 slots) remain.
     removeAdjacencyMySidEntry();
-    WITH_RETRIES(
-        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBefore - 1); });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          getMySidEntriesFree(),
+          mySidFreeBefore - kDecapMySidSlotsPerEntry);
+    });
 
     // Remove decap mySid, verify counter returns to baseline.
     removeDecapMySidEntry();
