@@ -85,29 +85,21 @@ class Fboss2IntegrationTest : public ::testing::Test {
    *   getSwConfigField<int>("arpTimeoutSeconds")
    *   getSwConfigField<bool>("enableLldp")
    *   getSwConfigField<std::string>("loadBalancerPoolName")
+   *   getSwConfigField<std::string>("optionalField", "default")
    */
   template <typename T>
   T getSwConfigField(const std::string& field) const {
-    auto config = getRunningConfig();
-    if (!config.isObject() || !config.count("sw")) {
-      throw std::runtime_error("Running config missing 'sw' object");
-    }
-    const auto& sw = config["sw"];
-    if (!sw.isObject() || !sw.count(field)) {
+    auto result = getSwConfigFieldOpt<T>(field);
+    if (!result) {
       throw std::runtime_error(
           "Running config 'sw' missing field '" + field + "'");
     }
-    if constexpr (std::is_same_v<T, bool>) {
-      return sw[field].asBool();
-    } else if constexpr (std::is_integral_v<T>) {
-      return static_cast<T>(sw[field].asInt());
-    } else if constexpr (std::is_same_v<T, std::string>) {
-      return sw[field].asString();
-    } else if constexpr (std::is_same_v<T, double>) {
-      return sw[field].asDouble();
-    } else {
-      static_assert(!sizeof(T), "Unsupported type for getSwConfigField");
-    }
+    return std::move(*result);
+  }
+
+  template <typename T>
+  T getSwConfigField(const std::string& field, T defaultValue) const {
+    return getSwConfigFieldOpt<T>(field).value_or(std::move(defaultValue));
   }
 
   /**
@@ -355,7 +347,49 @@ class Fboss2IntegrationTest : public ::testing::Test {
    */
   std::string findIpv6OnIntf(int intfId) const;
 
+  /**
+   * Dump systemd unit status and the tail of the agent log to stderr.
+   * Called from waitForAgentReady() on timeout so CI output captures why the
+   * agent never became reachable (otherwise we only see "connection refused"
+   * polls and have nothing to triage from).
+   */
+  void dumpAgentDiagnostics() const;
+
+  /**
+   * Static counterpart to waitForAgentReady() for use from
+   * `SetUpTestSuite` / `TearDownTestSuite` and other contexts that don't
+   * have a fixture instance. Polls `systemctl is-active fboss_sw_agent`
+   * plus a `fboss2-dev show interface` subprocess each second; the
+   * subprocess form is what makes this callable without an instance
+   * (the instance method uses the in-process CLI).
+   */
+  static void waitForAgentReadyViaSystemd(int timeoutSec = 180);
+
  private:
+  template <typename T>
+  std::optional<T> getSwConfigFieldOpt(const std::string& field) const {
+    auto config = getRunningConfig();
+    if (!config.isObject() || !config.count("sw")) {
+      return std::nullopt;
+    }
+    const auto& sw = config["sw"];
+    if (!sw.isObject() || !sw.count(field)) {
+      return std::nullopt;
+    }
+    if constexpr (std::is_same_v<T, bool>) {
+      return sw[field].asBool();
+    } else if constexpr (std::is_integral_v<T>) {
+      return static_cast<T>(sw[field].asInt());
+    } else if constexpr (std::is_same_v<T, std::string>) {
+      return sw[field].asString();
+    } else if constexpr (std::is_same_v<T, double>) {
+      return sw[field].asDouble();
+    } else {
+      static_assert(!sizeof(T), "Unsupported type for getSwConfigField");
+    }
+    return std::nullopt;
+  }
+
   Interface parseInterfaceJson(const folly::dynamic& data) const;
 
   /**
