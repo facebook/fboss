@@ -474,7 +474,7 @@ class AgentMplsTrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
 // SRv6 Trunk + ECMP load balancing
 class AgentSrv6TrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
  protected:
-  static constexpr AggPortInfo kSrv6AggInfo{2, 2};
+  static constexpr AggPortInfo kSrv6AggInfo{1, 2};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
