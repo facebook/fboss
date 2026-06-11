@@ -267,6 +267,8 @@ struct AclEntryFields {
   31: optional list<byte> roceMask;
   32: optional list<switch_config.AclUdfEntry> udfTable;
   33: optional switch_config.Range l4DstPortRange;
+  34: optional byte trafficClass;
+  35: optional string namedNextHopGroup;
 }
 
 enum NeighborState {

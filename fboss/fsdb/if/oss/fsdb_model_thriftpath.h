@@ -15196,7 +15196,9 @@ std::pair<apache::thrift::ident::roceOpcode, Child<::std::int8_t, ::apache::thri
 std::pair<apache::thrift::ident::roceBytes, ChildThriftPath<::std::vector<::std::int8_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::roceMask, ChildThriftPath<::std::vector<::std::int8_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::udfTable, ChildThriftPath<::std::vector<::facebook::fboss::cfg::AclUdfEntry>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<apache::thrift::ident::l4DstPortRange, ChildThriftPath<::facebook::fboss::cfg::Range, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<apache::thrift::ident::l4DstPortRange, ChildThriftPath<::facebook::fboss::cfg::Range, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<apache::thrift::ident::trafficClass, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
+std::pair<apache::thrift::ident::namedNextHopGroup, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -15235,6 +15237,8 @@ std::pair<apache::thrift::ident::l4DstPortRange, ChildThriftPath<::facebook::fbo
     STRUCT_CHILD_GETTERS(roceMask, 31);
     STRUCT_CHILD_GETTERS(udfTable, 32);
     STRUCT_CHILD_GETTERS(l4DstPortRange, 33);
+    STRUCT_CHILD_GETTERS(trafficClass, 34);
+    STRUCT_CHILD_GETTERS(namedNextHopGroup, 35);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -15271,6 +15275,8 @@ std::pair<apache::thrift::ident::l4DstPortRange, ChildThriftPath<::facebook::fbo
     else if constexpr (__id == apache::thrift::FieldId{31}) { return roceMask(); }
     else if constexpr (__id == apache::thrift::FieldId{32}) { return udfTable(); }
     else if constexpr (__id == apache::thrift::FieldId{33}) { return l4DstPortRange(); }
+    else if constexpr (__id == apache::thrift::FieldId{34}) { return trafficClass(); }
+    else if constexpr (__id == apache::thrift::FieldId{35}) { return namedNextHopGroup(); }
   }
 };
 
