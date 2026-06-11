@@ -2431,27 +2431,6 @@ std::pair<apache::thrift::ident::set_ucmp_weights, ChildThriftPath<::facebook::b
   }
 };
 
-template<typename Parent>
-class ChildThriftPath<::std::vector<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Parent> :
-  public Path<
-   ::std::vector<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix>,
-   ::facebook::fboss::fsdb::FsdbOperStateRoot,
-   ::apache::thrift::type_class::list<::apache::thrift::type_class::structure>,
-   ::apache::thrift::type::list<::apache::thrift::type::struct_t<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix>>,
-   Parent> {
- public:
-  using Self = Path<
-   ::std::vector<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix>,
-   ::facebook::fboss::fsdb::FsdbOperStateRoot,
-   ::apache::thrift::type_class::list<::apache::thrift::type_class::structure>,
-   ::apache::thrift::type::list<::apache::thrift::type::struct_t<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix>>,
-   Parent>;
-  using Child = ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>;
-  using Self::Self;
-
-  CONTAINER_CHILD_GETTERS(::std::int32_t);
-};
-
 
 template<typename Parent>
 class ChildThriftPath<::facebook::bgp::rib_policy::TRibRouteMatcher, ::facebook::fboss::fsdb::FsdbOperStateRoot, Parent> :
@@ -2685,7 +2664,8 @@ class ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedP
   >;
   using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::prefix, ChildThriftPath<::facebook::neteng::fboss::bgp_attr::TIpPrefix, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::path_count, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<apache::thrift::ident::mnh_threshold, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<apache::thrift::ident::mnh_threshold, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<apache::thrift::ident::min_capacity_threshold, ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TMinCapacityThreshold, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -2694,12 +2674,14 @@ std::pair<apache::thrift::ident::mnh_threshold, Child<::std::int32_t, ::apache::
     STRUCT_CHILD_GETTERS(prefix, 1);
     STRUCT_CHILD_GETTERS(path_count, 2);
     STRUCT_CHILD_GETTERS(mnh_threshold, 3);
+    STRUCT_CHILD_GETTERS(min_capacity_threshold, 4);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
     if constexpr (__id == apache::thrift::FieldId{1}) { return prefix(); }
     else if constexpr (__id == apache::thrift::FieldId{2}) { return path_count(); }
     else if constexpr (__id == apache::thrift::FieldId{3}) { return mnh_threshold(); }
+    else if constexpr (__id == apache::thrift::FieldId{4}) { return min_capacity_threshold(); }
   }
 };
 
@@ -4104,6 +4086,47 @@ class ChildThriftPath<::std::vector<::facebook::bgp::routing_policy::Neighbor>, 
   CONTAINER_CHILD_GETTERS(::std::int32_t);
 };
 
+
+template<typename Parent>
+class ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TMinCapacityThreshold, ::facebook::fboss::fsdb::FsdbOperStateRoot, Parent> :
+  public Path<
+   ::facebook::neteng::fboss::bgp::thrift::TMinCapacityThreshold,
+   ::facebook::fboss::fsdb::FsdbOperStateRoot,
+   ::apache::thrift::type_class::variant,
+   ::apache::thrift::type::union_t<::facebook::neteng::fboss::bgp::thrift::TMinCapacityThreshold>,
+   Parent> {
+ public:
+  using Self = Path<
+   ::facebook::neteng::fboss::bgp::thrift::TMinCapacityThreshold,
+   ::facebook::fboss::fsdb::FsdbOperStateRoot,
+   ::apache::thrift::type_class::variant,
+   ::apache::thrift::type::union_t<::facebook::neteng::fboss::bgp::thrift::TMinCapacityThreshold>,
+   Parent>;
+  template <typename ChildType, typename ChildTC, typename ChildTag>
+  using Child = Path<
+    ChildType,
+    ::facebook::fboss::fsdb::FsdbOperStateRoot,
+    ChildTC,
+    ChildTag,
+    Self
+  >;
+  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::mnh, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<apache::thrift::ident::agg_lbw_bps, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+
+  template <typename Name>
+  using TypeFor = typename Children::template type_of<Name>;
+  using Self::Self;
+  
+    STRUCT_CHILD_GETTERS(mnh, 1);
+    STRUCT_CHILD_GETTERS(agg_lbw_bps, 2);
+
+  template <apache::thrift::FieldId __id>
+  auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
+    if constexpr (__id == apache::thrift::FieldId{1}) { return mnh(); }
+    else if constexpr (__id == apache::thrift::FieldId{2}) { return agg_lbw_bps(); }
+  }
+};
+
 template<typename Parent>
 class ChildThriftPath<::std::vector<::facebook::bgp::bgp_policy::CommunityList>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Parent> :
   public Path<
@@ -4508,6 +4531,27 @@ std::pair<apache::thrift::ident::description, Child<::std::string, ::apache::thr
     else if constexpr (__id == apache::thrift::FieldId{2}) { return name(); }
     else if constexpr (__id == apache::thrift::FieldId{3}) { return description(); }
   }
+};
+
+template<typename Parent>
+class ChildThriftPath<::std::vector<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Parent> :
+  public Path<
+   ::std::vector<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix>,
+   ::facebook::fboss::fsdb::FsdbOperStateRoot,
+   ::apache::thrift::type_class::list<::apache::thrift::type_class::structure>,
+   ::apache::thrift::type::list<::apache::thrift::type::struct_t<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix>>,
+   Parent> {
+ public:
+  using Self = Path<
+   ::std::vector<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix>,
+   ::facebook::fboss::fsdb::FsdbOperStateRoot,
+   ::apache::thrift::type_class::list<::apache::thrift::type_class::structure>,
+   ::apache::thrift::type::list<::apache::thrift::type::struct_t<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix>>,
+   Parent>;
+  using Child = ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>;
+  using Self::Self;
+
+  CONTAINER_CHILD_GETTERS(::std::int32_t);
 };
 
 
