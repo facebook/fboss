@@ -195,17 +195,33 @@ struct TRibEntry {
 }
 
 /**
- * A single prefix in partial-drain state due to MNH violation.
- * When relax MNH is enabled and a prefix violates the min-nexthop
- * threshold, the prefix is advertised with drain community 65446:10
+ * The capacity-threshold criterion + value that triggered partial drain
+ * for a single prefix. Exactly one variant is set per drained prefix —
+ * matches the active criterion on the policy statement.
+ */
+union TMinCapacityThreshold {
+  /** BGP native min-nexthop count the prefix violated */
+  1: i32 mnh;
+  /** BGP native aggregate LBW threshold (bps) the prefix violated */
+  2: i64 agg_lbw_bps;
+}
+
+/**
+ * A single prefix in partial-drain state. A prefix enters partial drain
+ * when drain_on_min_nexthop_violation is configured on its path-selector
+ * statement and the matched capacity threshold (min-nexthop or aggregate
+ * LBW) is violated. The prefix is advertised with drain community 65446:10
+ * instead of being withdrawn.
  */
 struct TPartiallyDrainedPrefix {
   /** CIDR prefix currently in partial-drain state */
   1: bgp_attr.TIpPrefix prefix;
   /** Number of valid paths (nexthops) currently available for this prefix */
   2: i32 path_count;
-  /** Configured MNH threshold */
+  /** @deprecated Use min_capacity_threshold (field 4) instead */
   3: i32 mnh_threshold;
+  /** The capacity-threshold criterion + value that triggered drain */
+  4: TMinCapacityThreshold min_capacity_threshold;
 }
 
 /**
