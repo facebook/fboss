@@ -429,8 +429,8 @@ class AgentAclTableGroupTest : public AgentHwTest {
       }
     };
 
-    auto setupPostWarmboot = [=, this]() {
-      auto newCfg = getMultiAclConfig(addRemoveAclQualifier);
+    auto applyEntryModifications = [=, this](bool withQualifier) {
+      auto newCfg = getMultiAclConfig(withQualifier);
       utility::addDscpAclEntryWithCounter(
           &newCfg, kAclTable3(), getAgentEnsemble()->isSai());
       addCounterAclToAclTable(
@@ -457,8 +457,20 @@ class AgentAclTableGroupTest : public AgentHwTest {
           kTable1CounterAcl3(),
           kTable1Counter3Name(),
           3,
-          addRemoveAclQualifier);
+          withQualifier);
       applyNewConfig(newCfg);
+    };
+
+    auto setupPostWarmboot = [=, this]() {
+      applyEntryModifications(false);
+      if (addRemoveAclQualifier) {
+        if (isSupportedOnAllAsics(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
+          verifyAclEntryTestHelper(38, 3);
+        } else {
+          verifyAclEntryTestHelper(23, 3);
+        }
+        applyEntryModifications(true);
+      }
     };
 
     auto verifyPostWarmboot = [=, this]() {
@@ -520,25 +532,6 @@ TEST_F(AgentAclTableGroupTest, MultipleTablesNoEntries) {
     ASSERT_TRUE(client->sync_isAclTableEnabled(kAclTable1()));
     ASSERT_TRUE(client->sync_isAclTableEnabled(kAclTable2()));
   };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(AgentAclTableGroupTest, MultipleTablesWithEntries) {
-  ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
-
-  auto setup = [this]() {
-    auto& ensemble = *getAgentEnsemble();
-    auto newCfg = initialConfig(ensemble);
-    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
-    addAclTable1(newCfg);
-    addAclTable1Entry1(newCfg, kAclTable1());
-    addAclTable2(newCfg);
-    addAclTable2Entry1(newCfg);
-    applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() { verifyMultipleTableWithEntriesHelper(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -841,10 +834,6 @@ TEST_F(AgentAclTableGroupTest, RepositionAclEntriesPostWarmboot) {
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verify);
-}
-
-TEST_F(AgentAclTableGroupTest, AddAclEntriesToAclTablesPostWarmboot) {
-  verifyAclEntryModificationTestHelper(true, false);
 }
 
 TEST_F(
