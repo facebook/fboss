@@ -47,6 +47,7 @@ target_link_libraries(bsp_test_utils
   platform_manager_i2c_explorer
   platform_manager_pkg_manager
   platform_manager_config_cpp2
+  platform_manager_fan_cpld_manager
   Folly::folly
   ${RE2}
 )
