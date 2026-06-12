@@ -43,7 +43,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.1.8449"
+              "version": "1.1.8192"
             }
           ]
       },
@@ -51,7 +51,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.1.8448"
+              "version": "1.1.8192"
             }
           ]
       },
@@ -107,7 +107,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "110.40.13"
+              "version": "10.40.13"
             }
           ]
       },
@@ -115,7 +115,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "110.40.13"
+              "version": "10.40.13"
             }
           ]
       },
@@ -123,7 +123,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "110.40.13"
+              "version": "10.40.13"
             }
           ]
       },
