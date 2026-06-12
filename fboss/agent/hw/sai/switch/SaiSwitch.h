@@ -263,6 +263,8 @@ class SaiSwitch : public HwSwitch {
       const override;
   void dumpDebugState(const std::string& /*path*/) const override;
 
+  void setSdkRegDumpEnabled(bool enabled) override;
+
   bool transactionsSupported() const override;
   bool l2LearningModeChangeProhibited() const;
 

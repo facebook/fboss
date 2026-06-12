@@ -1296,6 +1296,16 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * on a box
    */
   string getHwDebugDump();
+
+  /*
+   * Enable or disable the SDK dumping register/state logs to disk
+   * (SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME). Disabling clears the attribute so
+   * the SDK stops dumping. Throws if the device/ASIC does not support this.
+   */
+  void setSdkRegDumpEnabled(1: bool enabled) throws (
+    1: fboss.FbossBaseError error,
+  );
+
   /*
    * String formatted information of givens Hw Objects.
    */

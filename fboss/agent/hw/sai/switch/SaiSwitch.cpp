@@ -4967,6 +4967,11 @@ void SaiSwitch::dumpDebugState(const std::string& path) const {
   saiCheckError(sai_dbg_generate_dump(path.c_str()));
 }
 
+void SaiSwitch::setSdkRegDumpEnabled(bool enabled) {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  setSdkRegDumpEnabledLocked(lock, enabled);
+}
+
 void SaiSwitch::setSdkRegDumpEnabledLocked(
     const std::lock_guard<std::mutex>& /*lock*/,
     bool enabled) {

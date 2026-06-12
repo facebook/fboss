@@ -426,6 +426,12 @@ void SaiHandler::getHwDebugDump(std::string& out) {
   out = hw_->getDebugDump();
 }
 
+void SaiHandler::setSdkRegDumpEnabled(bool enabled) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+  hw_->setSdkRegDumpEnabled(enabled);
+}
+
 void SaiHandler::getPortPrbsState(
     prbs::InterfacePrbsState& prbsState,
     int32_t portId) {
