@@ -316,6 +316,7 @@ class AgentMirrorOnDropDnxTest
       return DroppedPacketType::NONE; // can't use ASSERT_TRUE in non-void func
     }
     auto udpHeader = frame.v6PayLoad()->udpPayload()->header();
+    EXPECT_EQ(udpHeader.srcPort, kMirrorSrcPort);
     EXPECT_EQ(udpHeader.dstPort, kMirrorDstPort);
 
     auto content = frame.v6PayLoad()->udpPayload()->payload();
