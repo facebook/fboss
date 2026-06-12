@@ -527,7 +527,7 @@ class AgentSrv6TrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
           std::nullopt,
           sidList,
           TunnelType::SRV6_ENCAP,
-          folly::sformat("srv6Tunnel{}", i)));
+          std::string("srv6Tunnel0")));
     }
     auto routeUpdater = getSw()->getRouteUpdater();
     routeUpdater.addRoute(
