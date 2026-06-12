@@ -12,6 +12,7 @@ FROM quay.io/centos/centos:stream9
 # - jemalloc: alternative malloc implementation that's more robust against corruption
 # - jq: JSON processor for config manipulation
 # - vim, git: development/debugging tools
+# - sudo: privilege escalation for runtime tooling/scripts
 RUN dnf install -y \
     epel-release \
     && dnf install -y \
@@ -22,6 +23,7 @@ RUN dnf install -y \
     procps-ng \
     jemalloc \
     jq \
+    sudo \
     && dnf clean all && rm -rf /var/cache/dnf
 
 # Create FBOSS directories
