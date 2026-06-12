@@ -408,6 +408,10 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       SwitchRunState newState);
 
+  void setSdkRegDumpEnabledLocked(
+      const std::lock_guard<std::mutex>& lock,
+      bool enabled);
+
   void exitFatalLocked(const std::lock_guard<std::mutex>& lock) const;
 
   bool isPortUpLocked(const std::lock_guard<std::mutex>& lock, PortID port)

@@ -336,6 +336,12 @@ DEFINE_string(
     "File path prefix for SDK register dump");
 
 DEFINE_bool(
+    skip_sdk_reg_dump,
+    false,
+    "Prevent the SDK from writing register/state dumps to disk. Used to "
+    "selectively avoid devices that log heavily to disk.");
+
+DEFINE_bool(
     type_dctype1_janga,
     false,
     "Enable support for single NPU config on Janga for MTIA");
