@@ -42,6 +42,7 @@ cpp_binary(
         "DeleteInterfaceIpv6NdpTest.cpp",
         "DeleteInterfaceTest.cpp",
         "Fboss2IntegrationTest.cpp",
+        "TunnelIpInIpTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
     deps = [

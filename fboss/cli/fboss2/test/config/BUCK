@@ -24,11 +24,13 @@ cpp_unittest(
         "CmdConfigSessionTest.cpp",
         "CmdConfigTestBase.cpp",
         "CmdConfigVlanDefaultTest.cpp",
+        "CmdConfigTunnelIpInIpTest.cpp",
         "CmdConfigVlanManagerTest.cpp",
         "CmdConfigVlanPortTaggingModeTest.cpp",
         "CmdConfigVlanStaticMacTest.cpp",
         "CmdDeleteInterfaceIpv6NdpTest.cpp",
         "CmdDeleteInterfaceTest.cpp",
+        "CmdDeleteTunnelIpInIpTest.cpp",
         "ConfigSessionSystemdTest.cpp",
     ],
     headers = [
