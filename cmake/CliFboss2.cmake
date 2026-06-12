@@ -429,6 +429,10 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/set/sdk/CmdSetSdk.cpp
   fboss/cli/fboss2/commands/set/sdk/reg_dump/CmdSetSdkRegDump.h
   fboss/cli/fboss2/commands/set/sdk/reg_dump/CmdSetSdkRegDump.cpp
+  fboss/cli/fboss2/commands/set/transceiver/CmdSetTransceiver.h
+  fboss/cli/fboss2/commands/set/transceiver/CmdSetTransceiver.cpp
+  fboss/cli/fboss2/commands/set/transceiver/loopback/CmdSetTransceiverLoopback.h
+  fboss/cli/fboss2/commands/set/transceiver/loopback/CmdSetTransceiverLoopback.cpp
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.cpp
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h
@@ -576,6 +580,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.cpp
   fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h
   fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.cpp
+  fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.h
+  fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.cpp
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.cpp
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
@@ -596,6 +602,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/utils/CmdClientUtilsCommon.h
   fboss/cli/fboss2/utils/CmdUtilsCommon.h
   fboss/cli/fboss2/utils/FilterUtils.h
+  fboss/cli/fboss2/utils/LoopbackUtils.h
+  fboss/cli/fboss2/utils/LoopbackUtils.cpp
   fboss/cli/fboss2/utils/PrbsUtils.cpp
   fboss/cli/fboss2/utils/SafetyPromptUtils.h
   fboss/cli/fboss2/utils/SafetyPromptUtils.cpp
