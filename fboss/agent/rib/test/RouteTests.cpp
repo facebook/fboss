@@ -29,6 +29,7 @@ namespace {
 using namespace facebook::fboss;
 const ClientID kClientA = ClientID(1001);
 const ClientID kClientB = ClientID(1002);
+const std::string kSrv6Tunnel0{"srv6Tunnel0"};
 } // namespace
 
 using folly::IPAddress;
@@ -171,7 +172,7 @@ TEST(Route, addRouteWithSrv6NextHops) {
       std::nullopt, // adjustedWeight
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
   srv6Nhops.emplace(UnresolvedNextHop(
       IPAddress("2.2.2.10"),
       ECMP_WEIGHT,
@@ -181,7 +182,7 @@ TEST(Route, addRouteWithSrv6NextHops) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_2")));
+      kSrv6Tunnel0));
 
   RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
   RouteV6::Prefix r2{IPAddressV6("3001::0"), 48};
@@ -210,7 +211,7 @@ TEST(Route, addRouteWithSrv6NextHops) {
   for (const auto& nh : v4Nhops->getNextHopSet()) {
     EXPECT_EQ(nh.srv6SegmentList(), segList);
     EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-    EXPECT_TRUE(nh.tunnelId() == "tunnel_1" || nh.tunnelId() == "tunnel_2");
+    EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
   }
 }
 
@@ -232,7 +233,7 @@ TEST(Route, serializeRouteTableWithSrv6) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
 
   // Also add a regular (non-SRv6) nexthop
   RouteNextHopSet regularNhops = makeNextHops({"2.2.2.10"});
@@ -266,7 +267,7 @@ TEST(Route, serializeRouteTableWithSrv6) {
   const auto& nh = *nhops.begin();
   EXPECT_EQ(nh.srv6SegmentList(), segList);
   EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-  EXPECT_EQ(nh.tunnelId(), "tunnel_1");
+  EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
 
   // Verify regular route has empty SRv6 fields
   auto it2 = v4Routes.exactMatch(r2.network(), r2.mask());
@@ -325,7 +326,7 @@ TEST(Route, resolveEcmpRouteWithSrv6NextHops) {
       std::nullopt, // adjustedWeight
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
   srv6Nhops.emplace(UnresolvedNextHop(
       IPAddress("2.2.2.10"),
       ECMP_WEIGHT,
@@ -335,7 +336,7 @@ TEST(Route, resolveEcmpRouteWithSrv6NextHops) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_2")));
+      kSrv6Tunnel0));
 
   RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
 
@@ -360,7 +361,7 @@ TEST(Route, resolveEcmpRouteWithSrv6NextHops) {
   for (const auto& nh : resolvedNhops) {
     EXPECT_EQ(nh.srv6SegmentList(), segList);
     EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-    EXPECT_TRUE(nh.tunnelId() == "tunnel_1" || nh.tunnelId() == "tunnel_2");
+    EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     // Verify resolved to correct interfaces
     EXPECT_TRUE(nh.isResolved());
     EXPECT_TRUE(nh.intf() == InterfaceID(1) || nh.intf() == InterfaceID(2));
@@ -412,7 +413,7 @@ TEST(Route, resolveUcmpRouteWithSrv6NextHops) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
   srv6Nhops.emplace(UnresolvedNextHop(
       IPAddress("2.2.2.10"),
       2, // weight
@@ -422,7 +423,7 @@ TEST(Route, resolveUcmpRouteWithSrv6NextHops) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_2")));
+      kSrv6Tunnel0));
 
   RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
 
@@ -447,7 +448,7 @@ TEST(Route, resolveUcmpRouteWithSrv6NextHops) {
   for (const auto& nh : resolvedNhops) {
     EXPECT_EQ(nh.srv6SegmentList(), segList);
     EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-    EXPECT_TRUE(nh.tunnelId() == "tunnel_1" || nh.tunnelId() == "tunnel_2");
+    EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     EXPECT_TRUE(nh.isResolved());
     EXPECT_TRUE(nh.intf() == InterfaceID(1) || nh.intf() == InterfaceID(2));
     // UCMP path preserves non-zero weights (optimized)
@@ -498,7 +499,7 @@ TEST(Route, resolveV6RouteWithSrv6NextHops) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
 
   RouteV6::Prefix r1{IPAddressV6("2800:2::"), 64};
 
@@ -523,7 +524,7 @@ TEST(Route, resolveV6RouteWithSrv6NextHops) {
   const auto& nh = *resolvedNhops.begin();
   EXPECT_EQ(nh.srv6SegmentList(), segList);
   EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-  EXPECT_EQ(nh.tunnelId(), "srv6Tunnel0");
+  EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
   EXPECT_TRUE(nh.isResolved());
   EXPECT_EQ(nh.intf(), InterfaceID(1));
 }
@@ -569,7 +570,7 @@ TEST(Route, resolveEcmpMixedSrv6AndPlainNextHops) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
   // Plain nexthop (no SRv6)
   mixedNhops.emplace(UnresolvedNextHop(IPAddress("2.2.2.10"), ECMP_WEIGHT));
 
@@ -601,7 +602,7 @@ TEST(Route, resolveEcmpMixedSrv6AndPlainNextHops) {
       // SRv6 nexthop
       EXPECT_EQ(nh.srv6SegmentList(), segList);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "tunnel_1");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
       foundSrv6Nhop = true;
     } else if (nh.intf() == InterfaceID(2)) {
       // Plain nexthop - should have empty SRv6 fields
