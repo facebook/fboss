@@ -27,6 +27,8 @@
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
 #include "fboss/cli/fboss2/commands/set/port/CmdSetPort.h"
 #include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
+#include "fboss/cli/fboss2/commands/set/sdk/CmdSetSdk.h"
+#include "fboss/cli/fboss2/commands/set/sdk/reg_dump/CmdSetSdkRegDump.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
@@ -559,6 +561,15 @@ const CommandTree& kCommandTree() {
          commandHandler<CmdSetPortState>,
          argTypeHandler<CmdSetPortStateTraits>,
          localOptionsHandler<CmdSetPortStateTraits>}}},
+      {"set",
+       "sdk",
+       "Set SDK information",
+       commandHandler<CmdSetSdk>,
+       argRegistrar<CmdSetSdkTraits>,
+       {{"reg-dump",
+         "Enable or disable the SDK dumping register/state logs to disk",
+         commandHandler<CmdSetSdkRegDump>,
+         argRegistrar<CmdSetSdkRegDumpTraits>}}},
 
       {"start",
        "pcap",

@@ -425,6 +425,10 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/set/port/CmdSetPort.cpp
   fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h
   fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.cpp
+  fboss/cli/fboss2/commands/set/sdk/CmdSetSdk.h
+  fboss/cli/fboss2/commands/set/sdk/CmdSetSdk.cpp
+  fboss/cli/fboss2/commands/set/sdk/reg_dump/CmdSetSdkRegDump.h
+  fboss/cli/fboss2/commands/set/sdk/reg_dump/CmdSetSdkRegDump.cpp
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.cpp
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h
