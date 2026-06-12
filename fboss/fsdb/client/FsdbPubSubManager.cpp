@@ -758,6 +758,66 @@ void FsdbPubSubManager::removeSubscriptionImpl(
   }
 }
 
+size_t FsdbPubSubManager::repointSubscriptions(
+    const std::string& fromHost,
+    const utils::ConnectionOptions& toConnectionOptions,
+    bool noGR) {
+  const auto toHost = toConnectionOptions.getDstAddr().getAddressStr();
+  if (toHost == fromHost) {
+    return 0;
+  }
+  // Subscription keys are "<host>:/<type>:/<state|stats>:/<path>" (see
+  // toSubscriptionStr), so a subscription targeting fromHost is exactly one
+  // whose key starts with this prefix, and re-keying to the new host is a
+  // prefix swap.
+  const auto fromPrefix = fromHost + ":/";
+  auto repointMap =
+      [&](folly::Synchronized<
+          std::unordered_map<std::string, std::unique_ptr<FsdbSubscriberBase>>>&
+              path2Subscriber) -> size_t {
+    auto path2SubscriberW = path2Subscriber.wlock();
+    // Two-phase so the move is atomic. Phase 1 computes every oldKey -> newKey
+    // and verifies the destination key is free; if any is already taken we
+    // throw here, before mutating anything, so a failed repoint never
+    // half-moves the map. Phase 2 then commits the moves, which can no longer
+    // collide.
+    std::vector<std::pair<std::string, std::string>> moves;
+    for (const auto& entry : *path2SubscriberW) {
+      const auto& key = entry.first;
+      if (key.starts_with(fromPrefix)) {
+        auto newKey = toHost + key.substr(fromHost.size());
+        if (path2SubscriberW->contains(newKey)) {
+          throw std::runtime_error(
+              "repointSubscriptions: subscription already exists at destination: " +
+              newKey);
+        }
+        moves.emplace_back(key, std::move(newKey));
+      }
+    }
+    for (auto& [oldKey, newKey] : moves) {
+      // Move the live subscriber to the new endpoint without tearing it down:
+      // swap the target (allowReset) and bounce the stream. A CONNECTED stream
+      // is forced over by reconnect(); a DISCONNECTED one re-dials the new
+      // target on its next (sub-second) retry tick. Re-key via a node handle so
+      // the subscriber is never copied or destroyed.
+      auto node = path2SubscriberW->extract(oldKey);
+      node.key() = std::move(newKey);
+      node.mapped()->setConnectionOptions(
+          toConnectionOptions, /*allowReset=*/true);
+      node.mapped()->reconnect(noGR);
+      path2SubscriberW->insert(std::move(node));
+    }
+    return moves.size();
+  };
+  // The two maps are repointed independently, so the per-map atomicity above
+  // does not extend across both: if the state map commits and the stat map then
+  // collides, the state moves are not rolled back. That cross-map window is
+  // acceptable here -- the only caller (the per-device FsdbSubscriber) holds
+  // subscriptions on a single host, so a destination key is never pre-occupied
+  // and neither map collides.
+  return repointMap(statePath2Subscriber_) + repointMap(statPath2Subscriber_);
+}
+
 FsdbStreamClient::State FsdbPubSubManager::getStatePathSubsriptionState(
     const MultiPath& subscribePath,
     const std::string& fsdbHost) const {
