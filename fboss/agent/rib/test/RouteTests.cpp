@@ -616,9 +616,9 @@ TEST(Route, resolveEcmpMixedSrv6AndPlainNextHops) {
   EXPECT_TRUE(foundPlainNhop);
 }
 
-// Test that different SRv6 tunnelIds on same interface are kept distinct
+// Test that different SRv6 SID lists on same interface are kept distinct
 // through UCMP resolution (NextHopCombinedWeightsKey differentiation)
-TEST(Route, resolveUcmpDistinctSrv6TunnelIds) {
+TEST(Route, resolveUcmpDistinctSrv6SegmentLists) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
 
@@ -643,8 +643,8 @@ TEST(Route, resolveUcmpDistinctSrv6TunnelIds) {
       {},
       false);
 
-  // Step 2: Add a route with two SRv6 nexthops to same IP but different
-  // tunnels (different segment lists and tunnel IDs)
+  // Step 2: Add a route with two SRv6 nexthops to same IP and same tunnel
+  // but different segment lists
   RouteNextHopSet srv6Nhops;
   srv6Nhops.emplace(UnresolvedNextHop(
       IPAddress("1.1.1.10"),
@@ -655,7 +655,7 @@ TEST(Route, resolveUcmpDistinctSrv6TunnelIds) {
       std::nullopt,
       segListA,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_A")));
+      kSrv6Tunnel0));
   srv6Nhops.emplace(UnresolvedNextHop(
       IPAddress("1.1.1.10"),
       3, // weight
@@ -665,7 +665,7 @@ TEST(Route, resolveUcmpDistinctSrv6TunnelIds) {
       std::nullopt,
       segListB,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_B")));
+      kSrv6Tunnel0));
 
   RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
 
@@ -689,22 +689,21 @@ TEST(Route, resolveUcmpDistinctSrv6TunnelIds) {
   // Both should be present as distinct nexthops
   ASSERT_EQ(resolvedNhops.size(), 2);
 
-  bool foundTunnelA = false;
-  bool foundTunnelB = false;
+  bool foundSegListA = false;
+  bool foundSegListB = false;
   for (const auto& nh : resolvedNhops) {
     EXPECT_TRUE(nh.isResolved());
     EXPECT_EQ(nh.intf(), InterfaceID(1));
     EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-    if (nh.tunnelId() == "tunnel_A") {
-      EXPECT_EQ(nh.srv6SegmentList(), segListA);
-      foundTunnelA = true;
-    } else if (nh.tunnelId() == "tunnel_B") {
-      EXPECT_EQ(nh.srv6SegmentList(), segListB);
-      foundTunnelB = true;
+    EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
+    if (nh.srv6SegmentList() == segListA) {
+      foundSegListA = true;
+    } else if (nh.srv6SegmentList() == segListB) {
+      foundSegListB = true;
     }
   }
-  EXPECT_TRUE(foundTunnelA);
-  EXPECT_TRUE(foundTunnelB);
+  EXPECT_TRUE(foundSegListA);
+  EXPECT_TRUE(foundSegListB);
 }
 
 TEST(Route, resolveEcmpRouteWithCost) {
