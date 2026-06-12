@@ -19,6 +19,7 @@ add_executable(fboss2_cmd_config_test
   fboss/cli/fboss2/test/config/CmdConfigSessionTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigTestBase.cpp
   fboss/cli/fboss2/test/config/CmdConfigVlanDefaultTest.cpp
+  fboss/cli/fboss2/test/config/CmdConfigVlanManagerTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigVlanPortTaggingModeTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigVlanStaticMacTest.cpp
   fboss/cli/fboss2/test/config/ConfigSessionSystemdTest.cpp

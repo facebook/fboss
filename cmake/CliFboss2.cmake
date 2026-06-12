@@ -881,6 +881,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h
   fboss/cli/fboss2/commands/config/vlan/CmdConfigVlanDefault.cpp
   fboss/cli/fboss2/commands/config/vlan/CmdConfigVlanDefault.h
+  fboss/cli/fboss2/commands/config/vlan/VlanManager.cpp
+  fboss/cli/fboss2/commands/config/vlan/VlanManager.h
   fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.cpp
   fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h
   fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h
