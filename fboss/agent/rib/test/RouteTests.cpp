@@ -1458,7 +1458,7 @@ TEST(Route, resolveRecursiveSrv6WithIntermediateLinkLocalCost) {
       std::nullopt,
       segListA,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_A")));
+      kSrv6Tunnel0));
   bgpNhops.emplace(UnresolvedNextHop(
       IPAddress("fdad:ff02:10b::c:0"),
       ECMP_WEIGHT,
@@ -1468,7 +1468,7 @@ TEST(Route, resolveRecursiveSrv6WithIntermediateLinkLocalCost) {
       std::nullopt,
       segListB,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_B")));
+      kSrv6Tunnel0));
 
   RouteV6::Prefix bgpPrefix{IPAddressV6("2001::"), 64};
 
@@ -1497,12 +1497,12 @@ TEST(Route, resolveRecursiveSrv6WithIntermediateLinkLocalCost) {
 
     if (nh.srv6SegmentList() == segListA) {
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "tunnel_A");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
       EXPECT_TRUE(nh.intf() == InterfaceID(1) || nh.intf() == InterfaceID(2));
       segListACount++;
     } else if (nh.srv6SegmentList() == segListB) {
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "tunnel_B");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
       EXPECT_TRUE(nh.intf() == InterfaceID(3) || nh.intf() == InterfaceID(4));
       segListBCount++;
     } else {
@@ -1547,7 +1547,7 @@ TEST(Route, resolveRecursiveSrv6OpenrRouteChange) {
       std::nullopt,
       segListA,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_A"))};
+      kSrv6Tunnel0)};
 
   RouteV6::Prefix bgpPrefix{IPAddressV6("2001::"), 64};
   u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
@@ -1570,7 +1570,7 @@ TEST(Route, resolveRecursiveSrv6OpenrRouteChange) {
     for (const auto& nh : resolved) {
       EXPECT_EQ(nh.srv6SegmentList(), segListA);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "tunnel_A");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
       intfs.insert(nh.intf());
     }
     EXPECT_TRUE(intfs.count(InterfaceID(1)));
@@ -1605,7 +1605,7 @@ TEST(Route, resolveRecursiveSrv6OpenrRouteChange) {
     EXPECT_TRUE(nh.isResolved());
     EXPECT_EQ(nh.srv6SegmentList(), segListA);
     EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-    EXPECT_EQ(nh.tunnelId(), "tunnel_A");
+    EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     intfs.insert(nh.intf());
   }
   EXPECT_TRUE(intfs.count(InterfaceID(3)));
@@ -1640,7 +1640,7 @@ TEST(Route, resolveRecursiveSrv6InnerSidListThroughSingleOpenrRoute) {
       std::nullopt,
       sidList1,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel1")));
+      kSrv6Tunnel0));
   openrNhops.emplace(ResolvedNextHop(
       IPAddress("fe80::2"),
       InterfaceID(2),
@@ -1651,7 +1651,7 @@ TEST(Route, resolveRecursiveSrv6InnerSidListThroughSingleOpenrRoute) {
       std::nullopt,
       sidList2,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel2")));
+      kSrv6Tunnel0));
 
   u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
       ClientID::OPENR,
@@ -1726,7 +1726,7 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughSingleOpenrRoute) {
       std::nullopt,
       sidList2,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel2")));
+      kSrv6Tunnel0));
   openrNhops.emplace(ResolvedNextHop(
       IPAddress("fe80::2"),
       InterfaceID(2),
@@ -1737,7 +1737,7 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughSingleOpenrRoute) {
       std::nullopt,
       sidList3,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel3")));
+      kSrv6Tunnel0));
 
   // 2. OpenR route R1 carrying sidList1, resolving recursively over R2.
   RouteNextHopSet r1Nhops{UnresolvedNextHop(
@@ -1749,7 +1749,7 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughSingleOpenrRoute) {
       std::nullopt,
       sidList1,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel1"))};
+      kSrv6Tunnel0)};
 
   RouteV6::Prefix r1Prefix{IPAddressV6("2001::"), 64};
   u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
@@ -1775,7 +1775,7 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughSingleOpenrRoute) {
     EXPECT_TRUE(nh.isResolved());
     EXPECT_EQ(nh.srv6SegmentList(), sidList1);
     EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-    EXPECT_EQ(nh.tunnelId(), "tunnel1");
+    EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     intfs.insert(nh.intf());
   }
   EXPECT_TRUE(intfs.count(InterfaceID(1)));
@@ -1810,7 +1810,7 @@ TEST(Route, resolveRecursiveSrv6InnerSidListThroughTwoOpenrRoutes) {
       std::nullopt,
       sidList1,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel1"))};
+      kSrv6Tunnel0)};
   RouteNextHopSet openrNhopsC{ResolvedNextHop(
       IPAddress("fe80::2"),
       InterfaceID(2),
@@ -1821,7 +1821,7 @@ TEST(Route, resolveRecursiveSrv6InnerSidListThroughTwoOpenrRoutes) {
       std::nullopt,
       sidList2,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel2"))};
+      kSrv6Tunnel0)};
 
   u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
       ClientID::OPENR,
@@ -1898,7 +1898,7 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughTwoOpenrRoutes) {
       std::nullopt,
       sidList2,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel2"))};
+      kSrv6Tunnel0)};
   RouteNextHopSet openrNhopsC{ResolvedNextHop(
       IPAddress("fe80::2"),
       InterfaceID(2),
@@ -1909,7 +1909,7 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughTwoOpenrRoutes) {
       std::nullopt,
       sidList3,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel3"))};
+      kSrv6Tunnel0)};
 
   // 2. OpenR route R1 carrying sidList1 on both next hops, resolving over
   // R2/R3.
@@ -1923,7 +1923,7 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughTwoOpenrRoutes) {
           std::nullopt,
           sidList1,
           TunnelType::SRV6_ENCAP,
-          std::string("tunnel1")),
+          kSrv6Tunnel0),
       UnresolvedNextHop(
           IPAddress("fdad:feff:0202::0:c:0"),
           ECMP_WEIGHT,
@@ -1933,7 +1933,7 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughTwoOpenrRoutes) {
           std::nullopt,
           sidList1,
           TunnelType::SRV6_ENCAP,
-          std::string("tunnel1"))};
+          kSrv6Tunnel0)};
 
   RouteV6::Prefix r1Prefix{IPAddressV6("2001::"), 64};
   u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
@@ -1961,7 +1961,7 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughTwoOpenrRoutes) {
     EXPECT_TRUE(nh.isResolved());
     EXPECT_EQ(nh.srv6SegmentList(), sidList1);
     EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-    EXPECT_EQ(nh.tunnelId(), "tunnel1");
+    EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     intfs.insert(nh.intf());
   }
   EXPECT_TRUE(intfs.count(InterfaceID(1)));
@@ -2011,7 +2011,7 @@ TEST(Route, srv6TeAgentRoutePreferredOverOpenrByAdminDistance) {
       std::nullopt,
       sidList1,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel1")));
+      kSrv6Tunnel0));
   teNhops.emplace(ResolvedNextHop(
       IPAddress("fe80::2"),
       InterfaceID(2),
@@ -2022,7 +2022,7 @@ TEST(Route, srv6TeAgentRoutePreferredOverOpenrByAdminDistance) {
       std::nullopt,
       sidList2,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel2")));
+      kSrv6Tunnel0));
   u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
       ClientID::TE_AGENT,
       {
@@ -2049,10 +2049,10 @@ TEST(Route, srv6TeAgentRoutePreferredOverOpenrByAdminDistance) {
     EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
     if (nh.intf() == InterfaceID(1)) {
       EXPECT_EQ(nh.srv6SegmentList(), sidList1);
-      EXPECT_EQ(nh.tunnelId(), "tunnel1");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     } else if (nh.intf() == InterfaceID(2)) {
       EXPECT_EQ(nh.srv6SegmentList(), sidList2);
-      EXPECT_EQ(nh.tunnelId(), "tunnel2");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     } else {
       FAIL() << "Unexpected interface on resolved next hop";
     }
