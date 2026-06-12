@@ -164,7 +164,7 @@ TEST_F(AgentMirrorOnDropSrv6Test, Srv6Drops) {
   PortID collectorPortId = masterLogicalInterfacePortIds()[1];
   PortID injectionPortId = masterLogicalInterfacePortIds()[2];
 
-  const folly::IPAddressV6 kDecapNonLastDst{"3001:db8:ffff:1:2::"};
+  const folly::IPAddressV6 kDecapNonLastDst{"3001:db8:7fff:1:2::"};
   const folly::IPAddressV6 kBindingSidNonLastDst{"fc00:100:1:2::"};
   const folly::IPAddressV6 kMidpointValidDst{"fdad:ffff:1:2::"};
 
