@@ -164,6 +164,8 @@ add_fbthrift_cpp_library(
 add_fbthrift_cpp_library(
   bgp_thrift_cpp2
   neteng/fboss/bgp/if/bgp_thrift.thrift
+  SERVICES
+    TBgpService
   OPTIONS
     json
     reflection

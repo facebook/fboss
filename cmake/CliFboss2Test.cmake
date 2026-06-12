@@ -71,6 +71,15 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowRouteSummaryTest.cpp
   fboss/cli/fboss2/test/CmdShowTeFlowTest.cpp
   # fboss/cli/fboss2/test/CmdShowTransceiverTest.cpp - excluded (depends on configerator bgp namespace)
+  fboss/cli/fboss2/test/CmdBgpTestUtils.cpp
+  # NOTE: The "show bgp" command tests below are intentionally NOT compiled in
+  # this diff. They depend on test helpers (getMockBgp / EXPECT_THRIFT_EQ_VECTOR
+  # in CmdHandlerTestBase.h and the canonical MockBgpClient) that are introduced
+  # by the follow-up internal-migration diff, which also wires these sources into
+  # this OSS test build. See D108379404.
+  fboss/cli/fboss2/test/CmdShowConfigTestUtils.cpp
+  fboss/cli/fboss2/test/config/CmdConfigTestBase.cpp
+  fboss/cli/fboss2/test/config/BgpConfigSessionTest.cpp
   fboss/cli/fboss2/test/CmdStartPcapTest.cpp
   fboss/cli/fboss2/test/CmdStopPcapTest.cpp
   fboss/cli/fboss2/test/GitTest.cpp

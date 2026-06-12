@@ -64,6 +64,18 @@ createClient(const HostInfo& hostInfo) {
   return utils::createFanServiceClient(hostInfo);
 }
 
+// In non-OSS builds, this specialization is provided by
+// utils/facebook/CmdClientUtils.cpp; defining it here too would cause a
+// duplicate-symbol link error.
+#ifdef IS_OSS
+template <>
+std::unique_ptr<
+    apache::thrift::Client<facebook::neteng::fboss::bgp::thrift::TBgpService>>
+createClient(const HostInfo& hostInfo) {
+  return utils::createBgpClient(hostInfo);
+}
+#endif
+
 MultiSwitchRunState getMultiSwitchRunState(const HostInfo& hostInfo) {
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);

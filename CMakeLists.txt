@@ -883,6 +883,17 @@ add_fbthrift_cpp_library(
   fboss/lib/i2c/i2c_controller_stats.thrift
 )
 
+
+add_fbthrift_cpp_library(
+  bgp_summary_cpp2
+  fboss/cli/fboss2/commands/show/bgp/summary/bgp_summary.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    bgp_thrift_cpp2
+)
+
 add_fbthrift_cpp_library(
   io_stats_cpp2
   fboss/lib/if/io_stats.thrift
