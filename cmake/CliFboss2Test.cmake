@@ -44,6 +44,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowAclTest.cpp
   fboss/cli/fboss2/test/CmdShowAgentSslTest.cpp
   fboss/cli/fboss2/test/CmdShowArpTest.cpp
+  fboss/cli/fboss2/test/CmdShowConfigRunningBgpTest.cpp
   fboss/cli/fboss2/test/CmdShowConfigRunningTest.cpp
   # fboss/cli/fboss2/test/CmdShowHardwareTest.cpp - excluded (hardware model not built in CMake)
   fboss/cli/fboss2/test/CmdShowInterfaceStatusTest.cpp
@@ -72,11 +73,28 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowTeFlowTest.cpp
   # fboss/cli/fboss2/test/CmdShowTransceiverTest.cpp - excluded (depends on configerator bgp namespace)
   fboss/cli/fboss2/test/CmdBgpTestUtils.cpp
-  # NOTE: The "show bgp" command tests below are intentionally NOT compiled in
-  # this diff. They depend on test helpers (getMockBgp / EXPECT_THRIFT_EQ_VECTOR
-  # in CmdHandlerTestBase.h and the canonical MockBgpClient) that are introduced
-  # by the follow-up internal-migration diff, which also wires these sources into
-  # this OSS test build. See D108379404.
+  fboss/cli/fboss2/test/CmdShowBgpChangelistTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedPostPolicyTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedPrePolicyTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedRejectedTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsReceivedPostPolicyTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsReceivedPrePolicyTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsReceivedRejectedTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpOriginatedRoutesTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpShadowRibTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpStatsAttrsTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpStatsEntriesTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpStatsPolicyTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpStreamSubscriberTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpStreamSummaryTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpSummaryEgressTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpSummaryTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpTableCommunityTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpTableDetailTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpTableMoreSpecificsTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpTablePrefixTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpTableTest.cpp
   fboss/cli/fboss2/test/CmdShowConfigTestUtils.cpp
   fboss/cli/fboss2/test/config/CmdConfigTestBase.cpp
   fboss/cli/fboss2/test/config/BgpConfigSessionTest.cpp

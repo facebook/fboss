@@ -153,7 +153,13 @@ const std::map<TIpPrefix, std::vector<TBgpPath>> getRejectedNetworks(
     const std::map<TIpPrefix, std::vector<TBgpPath>>& acceptedNetworks);
 // Searches for link bandwidth in a list of ext-communities.
 float getLinkBandwidthFromExtCommunities(
-    const std::vector<TBgpCommunity>& extCommunities);
+    const std::vector<TBgpExtCommunity>& extCommunities);
+// Shared helpers used by both the OSS (oss/CmdShowUtils.cpp) and internal
+// (facebook/CmdShowUtils.cpp) implementations of the diverging show-util
+// functions. Defined once in commands/show/bgp/CmdShowUtils.cpp.
+float translateLinkBandwidthValue(uint32_t linkBandwidthValue);
+std::string formatBgpOrigin(int32_t origin);
+bool hasBestPath(const TRibEntry& entry);
 // This functions maps from std::map<TIpPrefix, TBgpPath> to
 // std::map<TIpPrefix, std::vector<TBgpPath>>
 const std::map<TIpPrefix, std::vector<TBgpPath>> vectorizePaths(

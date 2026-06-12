@@ -24,6 +24,8 @@
 #include "folly/IPAddress.h" // NOLINT(misc-include-cleaner)
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 #ifndef IS_OSS
+// Avoid EXPECT_THRIFT_EQ clash with <thrift/lib/cpp2/reflection/testing.h>
+#undef EXPECT_THRIFT_EQ
 #include "nettools/common/TestUtils.h"
 #endif
 

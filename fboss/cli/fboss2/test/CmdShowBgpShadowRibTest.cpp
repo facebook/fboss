@@ -21,6 +21,8 @@
 #include "fboss/cli/fboss2/test/CmdBgpTestUtils.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 #ifndef IS_OSS
+// Avoid EXPECT_THRIFT_EQ clash with <thrift/lib/cpp2/reflection/testing.h>
+#undef EXPECT_THRIFT_EQ
 #include "nettools/common/TestUtils.h"
 #endif
 
@@ -145,7 +147,7 @@ TEST_F(CmdShowBgpShadowRibTestFixture, printCPSOutput) {
       true /* omit best path */);
   bgp::rib_policy::TPathSelector activeCriteria3;
   activeCriteria3.bgp_native_path_selection_min_nexthop() = 20;
-  activeCriteria3.relax_bgp_native_path_selection_min_nexthop() = true;
+  activeCriteria3.drain_on_min_nexthop_violation() = true;
   pathOverriddenEntry3.active_cps_criteria() = std::move(activeCriteria3);
   combinedEntries_.push_back(std::move(pathOverriddenEntry3));
 
@@ -203,7 +205,7 @@ TEST_F(CmdShowBgpShadowRibTestFixture, printCPSOutput) {
       "Path overridden by CPS:\n"
       "  prefix: 8.0.0.3/32\n"
       "    default BGP multipath selector\n"
-      "    BGP native min nexthop: 20, relaxed: true\n"
+      "    BGP native min nexthop: 20, partial drain: true\n"
       "*  from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
       "\n> 2001::1/64, Selected 1/1 paths\n"
       "*@ from 2001::3 (two00one::three) via 2001::2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
