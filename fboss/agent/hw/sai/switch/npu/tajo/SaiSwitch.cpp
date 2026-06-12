@@ -2,15 +2,8 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
+#include "fboss/agent/hw/sai/api/tajo/TajoSaiIncludes.h"
 #include "fboss/lib/CommonFileUtils.h"
-
-extern "C" {
-#if defined(TAJO_SDK_GTE_26_5)
-#include <saiextensions.h>
-#else
-#include <experimental/sai_attr_ext.h>
-#endif
-}
 
 DEFINE_string(
     wb_downgrade_target_sdk_version_file,

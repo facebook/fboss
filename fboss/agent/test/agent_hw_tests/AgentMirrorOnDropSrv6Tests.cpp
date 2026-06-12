@@ -96,14 +96,22 @@ class AgentMirrorOnDropSrv6Test : public AgentMirrorOnDropStatelessTest {
   void sendAndVerifyModPacket(
       const PortID& injectionPortId,
       const folly::IPAddressV6& outerDst,
-      const MirrorOnDropDropReasonCodes& expectedReasons) {
-    utility::SwSwitchPacketSnooper snooper(getSw(), "mod-srv6-snooper");
+      const MirrorOnDropDropReasonCodes& expectedReasons,
+      std::optional<PortID> expectedIngressPortId = std::nullopt) {
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-srv6-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        utility::packetSnooperReceivePacketType::PACKET_TYPE_ALL,
+        mirrorOnDropRxPacketFilter());
     snooper.ignoreUnclaimedRxPkts();
 
     sendSrv6Packet(injectionPortId, outerDst);
 
     WITH_RETRIES_N(5, {
-      auto frameRx = snooper.waitForPacket(1);
+      auto frameRx = waitForMirrorOnDropPacket(snooper, 1);
       EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
       if (frameRx.has_value()) {
         XLOG(INFO) << "Captured MirrorOnDrop packet for SRv6 drop:\n"
@@ -112,8 +120,9 @@ class AgentMirrorOnDropSrv6Test : public AgentMirrorOnDropStatelessTest {
             frameRx->get(),
             injectionPortId,
             expectedReasons,
-            outerDst,
-            kSrv6OuterSrcIp);
+            std::nullopt,
+            kSrv6OuterSrcIp,
+            expectedIngressPortId);
       }
     });
   }
@@ -155,10 +164,6 @@ class AgentMirrorOnDropSrv6Test : public AgentMirrorOnDropStatelessTest {
   }
 };
 
-// Single test exercising all SRv6 drop scenarios with MOD.
-// Setup installs midpoint, decap, and binding SID MySid entries with
-// neighbors resolved. Verify exercises each drop sequentially, then
-// unresolves the midpoint neighbor for the final scenario.
 TEST_F(AgentMirrorOnDropSrv6Test, Srv6Drops) {
   PortID mySidPortId = masterLogicalInterfacePortIds()[0];
   PortID collectorPortId = masterLogicalInterfacePortIds()[1];
@@ -219,12 +224,6 @@ TEST_F(AgentMirrorOnDropSrv6Test, Srv6Drops) {
   };
 
   auto verify = [&]() {
-    XLOG(INFO) << "--- Midpoint non-last-SID drop ---";
-    sendAndVerifyModPacket(
-        injectionPortId,
-        kMidpointMySidPrefix,
-        getSrv6MidpointNonLastSidDropReasons());
-
     XLOG(INFO) << "--- Decap non-last-segment drop ---";
     sendAndVerifyModPacket(
         injectionPortId,

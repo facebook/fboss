@@ -9,15 +9,8 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiTajoPlatform.h"
+#include "fboss/agent/hw/sai/api/tajo/TajoSaiIncludes.h"
 #include "fboss/agent/hw/switch_asics/TajoAsic.h"
-
-extern "C" {
-#if defined(TAJO_SDK_GTE_26_5)
-#include <saiextensions.h>
-#else
-#include <experimental/sai_attr_ext.h>
-#endif
-}
 namespace facebook::fboss {
 
 const std::unordered_map<std::string, std::string>
@@ -25,7 +18,7 @@ SaiTajoPlatform::getSaiProfileVendorExtensionValues() const {
   std::unordered_map<std::string, std::string> vendorExtensions;
   if (getAsic()->isSupported(HwAsic::Feature::P4_WARMBOOT)) {
 #if defined(TAJO_P4_WB_SDK)
-    vendorExtensions[SAI_KEY_EXT_DEVICE_ISSU_CAPABLE] = "1";
+    vendorExtensions["SAI_KEY_EXT_DEVICE_ISSU_CAPABLE"] = "1";
 #endif
   }
 

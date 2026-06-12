@@ -2,13 +2,7 @@
 
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 
-extern "C" {
-#if defined(TAJO_SDK_GTE_26_5)
-#include <saiextensions.h>
-#else
-#include <experimental/sai_attr_ext.h>
-#endif
-}
+#include "fboss/agent/hw/sai/api/tajo/TajoSaiIncludes.h"
 
 namespace facebook::fboss {
 

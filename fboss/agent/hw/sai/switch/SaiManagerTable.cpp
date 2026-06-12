@@ -232,6 +232,17 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
     }
   }
 #endif
+#if defined(TAJO_SAI_SDK)
+  // Tajo keeps a default switch-event TAM handle even without MoD reports.
+  // Always clear switch TAM binding first so TAM/TAM_EVENT/TAM_EVENT_THRESHOLD
+  // objects can be removed cleanly before switch teardown.
+  switchManager_->setTamObject({});
+  // If MoD reports were configured, clear per-port TAM bindings too.
+  auto modPortIds = tamManager_->getAllMirrorOnDropPortIds();
+  for (auto portId : modPortIds) {
+    portManager_->setTamObject(portId, {});
+  }
+#endif
   tamManager_.reset();
 
   // ports may be referenced in acls, reset ports after acls
