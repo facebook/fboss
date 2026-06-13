@@ -248,7 +248,8 @@ std::string getUserInfo() {
 
 std::string getUnixname() {
   auto envuser = getenv("USER");
-  if (strcmp(envuser, "root") != 0 && strcmp(envuser, "netops") != 0) {
+  if (envuser && *envuser && strcmp(envuser, "root") != 0 &&
+      strcmp(envuser, "netops") != 0) {
     return envuser;
   }
   // Last resort get unixname from user input
