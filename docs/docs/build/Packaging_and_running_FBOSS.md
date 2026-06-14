@@ -76,12 +76,16 @@ The `run_test.py` script is a helper utility to simplify the process of running 
 - QSFP Hardware tests
 - Link tests
 - SAI Agent tests
+- SAI Agent Scale tests
+- SAI Agent Invariant tests
 - Platform tests
 - Benchmark tests
 
 Examples of the command to run for each of the various types of tests are shown below.
 
 **Important:** You must be in the `/opt/fboss` directory when running tests with `run_test.py`.
+
+**Run mode — prefer `multi_switch`:** The agent-based test types (`sai_agent`, `sai_agent_scale`, `sai_invariant_agent`, `benchmark`) accept `--agent-run-mode mono|multi_switch`. Prefer **`multi_switch`** — it runs the SwSwitch control plane and the HwAgent (ASIC) as separate processes over Thrift, exactly as in production, and `run_test.py` manages the `hw_agent` service lifecycle for you. `mono` (single process) is deprecated and will be removed in the future. When `--agent-run-mode` is omitted these types default to `multi_switch` (except `benchmark`, whose historical default is `mono` — pass `--agent-run-mode multi_switch` explicitly).
 
 ### SAI tests
 
@@ -140,6 +144,54 @@ Special flags:
 1. `--filter`: FBOSS uses GTEST for it's test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
 1. `--agent-run-mode`: the agent run mode to use. This value is passed through to the sai_agent tests. Currently it supports "mono" and "multi_switch" modes. If not specified, it will use "multi_switch" mode.
 1. `--num-npus {1,2}`: Specify number of npus to run in multi switch mode. Default is 1.
+
+### SAI Agent Scale tests
+
+Scale tests stress FBOSS features at production-like resource counts (max ECMP groups/members, max ACL entries). See [Agent Scale Test](/docs/testing/agent_scale_test/).
+
+```
+# Run ALL scale tests (recommended). run_test.py discovers and runs every
+# scale test; --skip-known-bad-tests skips tests known not to pass for this ASIC/SDK.
+./bin/run_test.py sai_agent_scale \
+    --config ./share/hw_test_configs/$CONFIG \
+    --agent-run-mode multi_switch \
+    --skip-known-bad-tests "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/multi_switch"
+
+# Run a single test (optional). The test name is for illustration only.
+./bin/run_test.py sai_agent_scale \
+    --config ./share/hw_test_configs/$CONFIG \
+    --agent-run-mode multi_switch \
+    --filter AgentEcmpTest.CreateMaxEcmpGroups
+```
+
+1. `--filter`: GTEST filter passed through to the test binary.
+1. `--agent-run-mode`: `mono` or `multi_switch` (default `multi_switch`).
+1. `--num-npus {1,2}`: number of NPUs to run in multi_switch mode (default 1).
+1. `--skip-known-bad-tests`: ASIC/SDK key (`vendor/coldboot-sdk/warmboot-sdk/asic/mode`) to skip known-bad/unsupported tests. Scale tests reuse the SAI Agent known-bad lists.
+
+### SAI Agent Invariant tests
+
+Invariant tests verify core forwarding invariants (ACL, CoPP, load balancing, DSCP-to-queue, diag/Thrift handlers) hold after applying a production-like config. See [Agent Invariant Test](/docs/testing/agent_invariant_test/).
+
+```
+# Run ALL invariant tests (recommended). run_test.py discovers and runs every
+# invariant test; --skip-known-bad-tests skips tests known not to pass for this ASIC/SDK.
+./bin/run_test.py sai_invariant_agent \
+    --config ./share/hw_test_configs/$CONFIG \
+    --agent-run-mode multi_switch \
+    --skip-known-bad-tests "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/multi_switch"
+
+# Run a single test (optional). The test name is for illustration only.
+./bin/run_test.py sai_invariant_agent \
+    --config ./share/hw_test_configs/$CONFIG \
+    --agent-run-mode multi_switch \
+    --filter ProdInvariantTest.verifyInvariants
+```
+
+1. `--filter`: GTEST filter passed through to the test binary. Use it to select a role variant, e.g. `ProdInvariantRtswTest.verifyInvariants`.
+1. `--agent-run-mode`: `mono` or `multi_switch` (default `multi_switch`).
+1. `--num-npus {1,2}`: number of NPUs to run in multi_switch mode (default 1).
+1. `--skip-known-bad-tests`: ASIC/SDK key (`vendor/coldboot-sdk/warmboot-sdk/asic/mode`) to skip known-bad/unsupported tests. Invariant tests reuse the SAI Agent known-bad lists.
 
 ### Platform tests
 

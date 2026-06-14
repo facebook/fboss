@@ -8,6 +8,23 @@ FBOSS Agent Hw tests are used to verify all FBOSS features like L3 routing, ACL,
 
 Unlike link tests, agent hw tests run on standalone duts and no cable connections are required. All tests involving data plane traffic are implemented by injecting packets to front panel ports put in loopback mode.
 
+## Run Modes (mono vs multi_switch)
+
+The FBOSS agent runs in one of two modes, and agent hw tests can run in either via `run_test.py --agent-run-mode`:
+
+- **multi_switch (recommended)** — the SwSwitch control plane and the HwAgent (ASIC) run as separate processes communicating over Thrift, exactly as in production. `run_test.py` brings up the `hw_agent` service automatically. Binary: `multi_switch_agent_hw_test`.
+- **mono (deprecated)** — SwSwitch and HwSwitch run in a single process. Binary: `sai_agent_hw_test-sai_impl`.
+
+**Prefer `multi_switch`** — it mirrors the production process model. `mono` is deprecated and will be removed in the future. When `--agent-run-mode` is omitted, `run_test.py` defaults to `multi_switch`. See the [run reference](/docs/build/packaging_and_running_fboss_hw_tests_on_switch/#sai-agent-tests) for full invocation details and flags.
+
+## Related Agent Test Types
+
+These build on the same Agent Hw Test framework and are documented separately:
+
+- [Agent Scale Test](/docs/testing/agent_scale_test/) — features at production-like scale (max ECMP groups/members, max ACL entries).
+- [Agent Invariant Test](/docs/testing/agent_invariant_test/) — core forwarding invariants (ACL, CoPP, load balancing, DSCP-to-queue) after a production-like config.
+- [Benchmark Test](/docs/testing/benchmark_test/) — performance measurements (route scale, init/exit time, etc.).
+
 ## Test Cases
 
 All agent hw test cases could be found at
