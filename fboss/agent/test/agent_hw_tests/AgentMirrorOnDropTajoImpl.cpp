@@ -26,8 +26,8 @@ constexpr uint16_t kTajoDropReasonDefaultRoute = 112;
 constexpr uint16_t kTajoDropReasonAcl = 107;
 constexpr uint16_t kTajoDropReasonMmu = 0x12;
 constexpr uint16_t kTajoDropReasonSrv6MidpointNonLastSid = 52;
-constexpr uint16_t kTajoDropReasonSrv6DecapNonLastSegment = 112;
-constexpr uint16_t kTajoDropReasonSrv6BindingSidNonLastSid = 161;
+constexpr uint16_t kTajoDropReasonSrv6DecapNonLastSegment = 161;
+constexpr uint16_t kTajoDropReasonSrv6BindingSidNonLastSid = 164;
 constexpr uint16_t kTajoDropReasonSrv6MidpointUnresolved = 161;
 constexpr int16_t kTajoModTruncateSize = 128;
 
