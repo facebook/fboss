@@ -801,8 +801,8 @@ struct RedirectNextHop {
 
 // Redirect packet to a different nexthop
 struct RedirectToNextHopAction {
-  // deprecated
-  1: list<string> nexthops;
+  // deprecated - use redirectNextHops
+  1: list<string> nexthops_DEPRECATED;
   2: list<RedirectNextHop> redirectNextHops;
 }
 
