@@ -742,14 +742,14 @@ struct PmUnitConfig {
 //
 // `PmUnitConfig`: PmUnit configuration. Refer to PmUnitConfig definition above.
 //
-// `productSubVersion`: Deprecated. Use `pmUnitVersion` instead. Retained for
-// backwards compatibility with configs that predate the pmUnitVersion field.
+// `productSubVersion`: Deprecated. Use `pmUnitVersions` instead. Retained for
+// backwards compatibility with configs that predate the pmUnitVersions field.
 // This refers to field Type 10 in Meta EEPROM V5.
 //
 // `pmUnitVersions`: List of PmUnit versions this config applies to. A system
 // matching any version in this list will use this config.
-// `productSubVersion` is ignored when `pmUnitVersion` is present. At least
-// one of `productSubVersion` or `pmUnitVersion` must be set.
+// `productSubVersion` is ignored when `pmUnitVersions` is present. At least
+// one of `productSubVersion` or `pmUnitVersions` must be set.
 struct VersionedPmUnitConfig {
   1: PmUnitConfig pmUnitConfig;
   3: optional i16 productSubVersion;
