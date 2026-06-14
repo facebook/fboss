@@ -1013,6 +1013,12 @@ std::set<cfg::AclTableQualifier> getRequiredQualifers(
       case cfg::AclTableQualifier::UDF:
         // handled with getRequiredUdfGroups
         break;
+
+      case cfg::AclTableQualifier::TC:
+      case cfg::AclTableQualifier::NEXT_HOP_GROUP_ID:
+        // PBR-only qualifiers, synthesized into state AclEntry; not represented
+        // in cfg::AclEntry.
+        break;
     }
   }
   return requiredQualifiers;
