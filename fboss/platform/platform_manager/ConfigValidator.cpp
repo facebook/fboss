@@ -1426,9 +1426,9 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
               "PmUnit {}'s VersionedPmUnitConfig has invalid pmUnitVersion "
               "{}.{}.{}: all fields must be >= 0",
               pmUnitName,
-              *pmUv->productionState(),
-              *pmUv->productionSubState(),
-              *pmUv->respinVariantIndicator());
+              *pmUv.productionState(),
+              *pmUv.productionSubState(),
+              *pmUv.respinVariantIndicator());
           return false;
         }
       }
