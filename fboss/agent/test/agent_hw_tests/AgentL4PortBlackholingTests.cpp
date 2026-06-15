@@ -61,7 +61,27 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
   }
 
  protected:
-  void runTest(bool isV6) {
+  void pumpTrafficAndVerify(PortID portId, bool isV6) {
+    int numL4Ports = kNumL4Ports();
+    auto original = *getLatestPortStats(portId).outUnicastPkts_();
+    pumpTraffic(isV6);
+
+    WITH_RETRIES_N_TIMED(90, std::chrono::milliseconds(1000), {
+      auto newPortStats = getLatestPortStats(portId);
+      auto current = *newPortStats.outUnicastPkts_();
+      XLOGF(
+          INFO,
+          "Checking current port outPkts ({}) - "
+          "original port outPkts: ({}) ==  "
+          "2 * number of l4 ports ({})",
+          current,
+          original,
+          2 * numL4Ports);
+      EXPECT_EVENTUALLY_EQ(current - original, 2 * numL4Ports);
+    });
+  }
+
+  void runTest() {
     auto setup = [=, this]() {
       const RouterID kRid{0};
       resolveNeighborAndProgramRoutes(
@@ -74,41 +94,29 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
           1);
     };
     auto verify = [=, this]() {
-      int numL4Ports = kNumL4Ports();
       PortID portId;
       if (FLAGS_hyper_port) {
         portId = masterLogicalHyperPortIds()[0];
       } else {
         portId = masterLogicalInterfacePortIds()[0];
       }
-      auto originalPortStats = getLatestPortStats(portId);
-      auto original = *originalPortStats.outUnicastPkts_();
-      pumpTraffic(isV6);
-
-      WITH_RETRIES_N_TIMED(90, std::chrono::milliseconds(1000), {
-        auto newPortStats = getLatestPortStats(portId);
-        auto current = *newPortStats.outUnicastPkts_();
-        XLOGF(
-            INFO,
-            "Checking current port outPkts ({}) - "
-            "original port outPkts: ({}) ==  "
-            "2 * number of l4 ports ({})",
-            current,
-            original,
-            2 * numL4Ports);
-        EXPECT_EVENTUALLY_EQ(current - original, 2 * numL4Ports);
-      });
+      // Sweep all L4 ports for both address families in a single setup/verify
+      // cycle, with per-family before/after snapshots.
+      {
+        SCOPED_TRACE("v6");
+        pumpTrafficAndVerify(portId, true /* isV6 */);
+      }
+      {
+        SCOPED_TRACE("v4");
+        pumpTrafficAndVerify(portId, false /* isV6 */);
+      }
     };
     verifyAcrossWarmBoots(setup, verify);
   }
 };
 
-TEST_F(AgentL4PortBlackHolingTest, v6UDP) {
-  runTest(true);
-}
-
-TEST_F(AgentL4PortBlackHolingTest, v4UDP) {
-  runTest(false);
+TEST_F(AgentL4PortBlackHolingTest, udp) {
+  runTest();
 }
 
 } // namespace facebook::fboss
