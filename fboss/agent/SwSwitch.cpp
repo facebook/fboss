@@ -986,6 +986,8 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.sysPortStats()});
       agentStats.switchDropStatsMap()->insert(
           {switchIdx, *hwSwitchStats.switchDropStats()});
+      agentStats.switchDropBitmapStatsMap()->insert(
+          {switchIdx, *hwSwitchStats.switchDropBitmapStats()});
       for (auto& [_, phyInfo] : *hwSwitchStats.phyInfo()) {
         auto portName = phyInfo.state()->name().value();
         agentStats.phyStats()->insert({portName, phyInfo.stats().value()});

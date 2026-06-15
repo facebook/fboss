@@ -273,6 +273,7 @@ void MonolithicHwSwitchHandler::getHwStats(
   hwStats.hwTrunkStats() = hw_->getTrunkStats();
   hwStats.sysPortStats() = getSysPortStats();
   hwStats.switchDropStats() = getSwitchDropStats();
+  hwStats.switchDropBitmapStats() = hw_->getSwitchDropBitmapStats();
   hwStats.fabricReachabilityStats() = getFabricReachabilityStats();
   hwStats.switchWatermarkStats() = getSwitchWatermarkStats();
   hwStats.switchPipelineStats() = getSwitchPipelineStats();

@@ -285,6 +285,9 @@ class HwSwitch {
   virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
   virtual TeFlowStats getTeFlowStats() const = 0;
   virtual HwSwitchDropStats getSwitchDropStats() const = 0;
+  virtual HwSwitchDropBitmapStats getSwitchDropBitmapStats() const {
+    return HwSwitchDropBitmapStats{};
+  }
   virtual HwFlowletStats getHwFlowletStats() const = 0;
   virtual std::vector<EcmpDetails> getAllEcmpDetails() const = 0;
   virtual HwSwitchWatermarkStats getSwitchWatermarkStats() const = 0;

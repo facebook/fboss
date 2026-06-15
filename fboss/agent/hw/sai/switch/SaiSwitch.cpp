@@ -5563,6 +5563,11 @@ HwSwitchDropStats SaiSwitch::getSwitchDropStats() const {
   return managerTable_->switchManager().getSwitchDropStats();
 }
 
+HwSwitchDropBitmapStats SaiSwitch::getSwitchDropBitmapStats() const {
+  std::lock_guard<std::mutex> lk(saiSwitchMutex_);
+  return managerTable_->switchManager().getSwitchDropBitmapStats();
+}
+
 AclStats SaiSwitch::getAclStats() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return managerTable_->aclTableManager().getAclStats();
