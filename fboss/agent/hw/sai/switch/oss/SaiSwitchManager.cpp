@@ -43,6 +43,12 @@ void fillHwSwitchSaiExtensionDropStats(
   CHECK_EQ(counterId2Value.size(), 0);
 }
 
+void fillHwSwitchDropBitmapStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropBitmapStats& /*dropBitmapStats*/) {
+  CHECK_EQ(counterId2Value.size(), 0);
+}
+
 void publishSwitchWatermarks(HwSwitchWatermarkStats& /*watermarkStats*/) {}
 
 void publishSwitchPipelineStats(HwSwitchPipelineStats& /*pipelineStats*/) {}
