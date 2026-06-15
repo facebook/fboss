@@ -36,7 +36,7 @@ class MockBsp : public Bsp {
   MOCK_METHOD(
       int,
       runFanDeadShutdownCmds,
-      (const std::vector<std::string>&, bool),
+      (const std::vector<std::string>&),
       (override));
   std::optional<int> getLedMaxBrightness(const std::string&) const override {
     return 255;
@@ -254,8 +254,7 @@ TEST_F(ControlLogicTests, UpdateControlDeadFanShutdownCondition) {
   }
   EXPECT_CALL(
       *mockBsp_,
-      runFanDeadShutdownCmds(
-          ElementsAre("shutdown asic", "shutdown come"), true))
+      runFanDeadShutdownCmds(ElementsAre("shutdown asic", "shutdown come")))
       .WillOnce(Return(0));
 
   controlLogic_->setTransitionValue();

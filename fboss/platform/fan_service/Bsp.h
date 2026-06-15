@@ -33,8 +33,7 @@ class Bsp {
   virtual void getAsicTempData(const std::shared_ptr<SensorData>& pSensorData);
   virtual int emergencyShutdown(bool enable);
   virtual int runFanDeadShutdownCmds(
-      const std::vector<std::string>& fanDeadShutdownCmds,
-      bool enable);
+      const std::vector<std::string>& fanDeadShutdownCmds);
   void kickWatchdog();
   void closeWatchdog();
   virtual bool setFanPwmSysfs(const std::string& path, int pwm);

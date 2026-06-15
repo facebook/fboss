@@ -141,28 +141,25 @@ int Bsp::emergencyShutdown(bool enable) {
 }
 
 int Bsp::runFanDeadShutdownCmds(
-    const std::vector<std::string>& fanDeadShutdownCmds,
-    bool enable) {
+    const std::vector<std::string>& fanDeadShutdownCmds) {
   int rc = 0;
-  if (enable) {
-    if (fanDeadShutdownCmds.empty()) {
-      XLOG(ERR)
-          << "Emergency shutdown called but no fanDeadShutdownCmds are set!";
+  if (fanDeadShutdownCmds.empty()) {
+    XLOG(ERR)
+        << "Emergency shutdown called but no fanDeadShutdownCmds are set!";
+    return -1;
+  }
+  for (const auto& shutdownCmd : fanDeadShutdownCmds) {
+    if (shutdownCmd.empty()) {
+      XLOG(ERR) << "Emergency shutdown called with an empty shutdownCmd!";
       return -1;
     }
-    for (const auto& shutdownCmd : fanDeadShutdownCmds) {
-      if (shutdownCmd.empty()) {
-        XLOG(ERR) << "Emergency shutdown called with an empty shutdownCmd!";
-        return -1;
-      }
-      auto [exitStatus, standardOut] = PlatformUtils().execCommand(shutdownCmd);
-      rc = exitStatus;
-      if (rc != 0) {
-        break;
-      }
+    auto [exitStatus, standardOut] = PlatformUtils().execCommand(shutdownCmd);
+    rc = exitStatus;
+    if (rc != 0) {
+      break;
     }
-    setEmergencyState(enable);
   }
+  setEmergencyState(true);
   return rc;
 }
 

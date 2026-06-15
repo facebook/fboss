@@ -772,9 +772,9 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
     fb303::fbData->setCounter(kHasFanAbsent, hasAnyFanAbsent ? 1 : 0);
   });
 
-  if (deadFanShutdownMode_) {
+  if (deadFanShutdownMode_ && config_.deadFanShutdownCondition()) {
     pBsp_->runFanDeadShutdownCmds(
-        *config_.deadFanShutdownCondition()->fanDeadShutdownCmds(), true);
+        *config_.deadFanShutdownCondition()->fanDeadShutdownCmds());
   }
 }
 
