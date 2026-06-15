@@ -2294,6 +2294,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_DEFAULT.TestProfile$"
+        },
+        {
+          "test_name_regex": "warm_boot.*"
         }
     ],
     "elbert_2x16Q_6x8DD/physdk-credo-1.2.8/credo-1.2.8": [
@@ -2861,6 +2864,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_DEFAULT.TestProfile$"
+        },
+        {
+          "test_name_regex": "warm_boot.*"
         }
     ],
     "elbert_5x16Q_3x8DD/physdk-credo-1.2.8/credo-1.2.8": [
