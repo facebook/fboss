@@ -233,4 +233,11 @@ service AgentHwTestCtrl {
   bool rxLockStatusSupportedInSdk();
   bool pcsRxLinkStatusSupportedInSdk();
   bool fecAlignmentLockSupportedInSdk();
+
+  // Log capture utils. Logs emitted HW-side (e.g. drop-reason WARNINGs) are
+  // produced in the HwAgent process in multi-switch mode; these let a test
+  // capture and read them over RPC, working in both mono and multi-switch.
+  // installLogCapture() must be called before the log is emitted.
+  void installLogCapture();
+  list<string> getMatchingLogMessages(1: string substring);
 }
