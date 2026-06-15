@@ -32,7 +32,8 @@ class CmdConfigArpTestFixture : public CmdConfigTestBase {
     "arpTimeoutSeconds": 60,
     "arpAgerInterval": 5,
     "maxNeighborProbes": 300,
-    "staleEntryInterval": 10
+    "staleEntryInterval": 10,
+    "proactiveArp": false
   }
 })") {}
 
@@ -60,6 +61,30 @@ TEST_F(CmdConfigArpTestFixture, argValidation_valid) {
   ArpConfigArgs d({"stale-interval", "0"});
   EXPECT_EQ(d.getAttribute(), "stale-interval");
   EXPECT_EQ(d.getValue(), 0);
+}
+
+TEST_F(CmdConfigArpTestFixture, argValidation_proactive) {
+  ArpConfigArgs enabled({"proactive", "enabled"});
+  EXPECT_EQ(enabled.getAttribute(), "proactive");
+  EXPECT_TRUE(enabled.getBoolValue());
+
+  ArpConfigArgs disabled({"proactive", "disabled"});
+  EXPECT_EQ(disabled.getAttribute(), "proactive");
+  EXPECT_FALSE(disabled.getBoolValue());
+
+  // proactive only accepts enabled/disabled, not integers or other tokens.
+  EXPECT_THROW(ArpConfigArgs({"proactive", "1"}), std::invalid_argument);
+  EXPECT_THROW(ArpConfigArgs({"proactive", "true"}), std::invalid_argument);
+  EXPECT_THROW(ArpConfigArgs({"proactive", "Enabled"}), std::invalid_argument);
+  // Case-sensitive and bounded: timer attrs still reject enabled/disabled.
+  EXPECT_THROW(ArpConfigArgs({"timeout", "enabled"}), std::invalid_argument);
+
+  // Cross-kind accessor guards: getValue() on boolean attr throws, and vice
+  // versa.
+  EXPECT_THROW(
+      ArpConfigArgs({"proactive", "enabled"}).getValue(), std::logic_error);
+  EXPECT_THROW(
+      ArpConfigArgs({"timeout", "45"}).getBoolValue(), std::logic_error);
 }
 
 TEST_F(CmdConfigArpTestFixture, argValidation_badArity) {
@@ -146,6 +171,30 @@ TEST_F(CmdConfigArpTestFixture, setStaleInterval) {
 
   auto& config = ConfigSession::getInstance().getAgentConfig();
   EXPECT_EQ(*config.sw()->staleEntryInterval(), 15);
+}
+
+TEST_F(CmdConfigArpTestFixture, setProactive) {
+  // Seed has proactiveArp=false; flip it on then off.
+  setupTestableConfigSession(cmdPrefix_, "proactive enabled");
+  CmdConfigArp cmd;
+  HostInfo hostInfo("testhost");
+
+  auto onResult =
+      cmd.queryClient(hostInfo, ArpConfigArgs({"proactive", "enabled"}));
+  EXPECT_THAT(onResult, HasSubstr("proactive"));
+  EXPECT_THAT(onResult, HasSubstr("enabled"));
+  {
+    auto& config = ConfigSession::getInstance().getAgentConfig();
+    EXPECT_TRUE(*config.sw()->proactiveArp());
+  }
+
+  auto offResult =
+      cmd.queryClient(hostInfo, ArpConfigArgs({"proactive", "disabled"}));
+  EXPECT_THAT(offResult, HasSubstr("disabled"));
+  {
+    auto& config = ConfigSession::getInstance().getAgentConfig();
+    EXPECT_FALSE(*config.sw()->proactiveArp());
+  }
 }
 
 TEST_F(CmdConfigArpTestFixture, idempotentSameValue) {
