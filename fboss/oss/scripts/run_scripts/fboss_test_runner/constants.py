@@ -24,6 +24,7 @@ OPT_UNSUPPORTED_TESTS_FILE = "--unsupported-tests-file"
 OPT_ARG_SETUP_CB = "--setup-for-coldboot"
 OPT_ARG_SETUP_WB = "--setup-for-warmboot"
 OPT_ARG_TEST_RUN_TIMEOUT = "--test-run-timeout"
+OPT_ARG_NUM_WARMBOOT_ITERATIONS = "--num-warmboot-iterations"
 OPT_ARG_DISABLE_FSDB = "--disable-fsdb"
 OPT_ARG_FSDB_CONFIG_FILE = "--fsdb-config"
 

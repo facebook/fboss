@@ -28,6 +28,7 @@ from fboss_test_runner.constants import (
     OPT_ARG_FSDB_CONFIG_FILE,
     OPT_ARG_LIST_TESTS,
     OPT_ARG_MGT_IF,
+    OPT_ARG_NUM_WARMBOOT_ITERATIONS,
     OPT_ARG_PROFILE,
     OPT_ARG_QSFP_CONFIG_FILE,
     OPT_ARG_SAI_LOGGING,
@@ -196,6 +197,17 @@ class TestRunner(abc.ABC):
             type=int,
             default=DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
             help="Specify test run timeout in seconds",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_NUM_WARMBOOT_ITERATIONS,
+            type=int,
+            default=1,
+            help=(
+                "Number of consecutive warmboot iterations to run after coldboot "
+                "(default 1). Use with --filter to soak a single test across many "
+                "warmboots, e.g. --filter AgentEmptyTest.CheckInit "
+                "--num-warmboot-iterations 64. Ignored when --coldboot_only is set."
+            ),
         )
         # --- Pass-through gflags for test binaries ---
         sub_parser.add_argument(
@@ -685,29 +697,50 @@ class TestRunner(abc.ABC):
                 )
                 all_results.extend(run_outcome.results)
 
-                # Run the test again for warmboot verification if the test supports it
-                if warmboot and os.path.isfile(self._get_warmboot_check_file()):
-                    test_prefix = self.WARMBOOT_PREFIX
+                # Run the test again for warmboot verification if the test supports it.
+                # With --num-warmboot-iterations N, soak the test across N consecutive
+                # warmboots; each iteration re-arms --setup-for-warmboot so the next boot
+                # can warmboot, and we stop early on the first failure.
+                num_wb_iterations = max(1, getattr(args, "num_warmboot_iterations", 1))
+                for wb_iter in range(num_wb_iterations):
+                    if not (
+                        warmboot and os.path.isfile(self._get_warmboot_check_file())
+                    ):
+                        break
+                    # Re-arm warmboot for every iteration except the last so the next
+                    # boot warmboots; the final iteration need not set up again.
+                    setup_next_warmboot = wb_iter < num_wb_iterations - 1
+                    test_prefix = (
+                        self.WARMBOOT_PREFIX
+                        if num_wb_iterations == 1
+                        else f"{self.WARMBOOT_PREFIX}{wb_iter}."
+                    )
                     sai_replayer_log_path = self._get_sai_replayer_log_path(
                         test_prefix, test_to_run, sai_replayer_logging
                     )
                     self._setup_warmboot_test(sai_replayer_log_path)
                     print(
-                        "########## Verifying test with warmboot: " + test_to_run,
+                        "########## Verifying test with warmboot "
+                        f"({wb_iter + 1}/{num_wb_iterations}): {test_to_run}",
                         flush=True,
                     )
                     run_outcome = self._run_test(
                         conf_file,
                         test_prefix,
                         test_to_run,
-                        False,  # setup_warmboot
+                        setup_next_warmboot,  # setup_warmboot
                         sai_replayer_log_path,
                     )
                     print(
-                        f"########## Warmboot test results ({idx + 1}/{num_tests}): {run_outcome.console_output}",
+                        f"########## Warmboot test results ({idx + 1}/{num_tests}, "
+                        f"iter {wb_iter + 1}/{num_wb_iterations}): {run_outcome.console_output}",
                         flush=True,
                     )
                     all_results.extend(run_outcome.results)
+                    # Stop the warmboot soak on first non-passing iteration.
+                    # GtestStatus.OK is the passing status (displayed as "PASSED").
+                    if any(r.status != GtestStatus.OK for r in run_outcome.results):
+                        break
         finally:
             self._end_run()
         return all_results
