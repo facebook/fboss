@@ -3,10 +3,14 @@
 #include <fmt/core.h>
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
+#include <folly/logging/xlog.h>
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -38,6 +42,11 @@ AgentEnsembleSwitchConfigFn makeMySidConfigFn() {
 // one at a time and measures the total time to program them to the ASIC.
 void srv6MidpointMySidScaleBenchmark(int numEntries) {
   folly::BenchmarkSuspender suspender;
+  // For scale benchmarking, do not cap MySID usage at the default 75%.
+  // This aligns with other scale benchmarks that set resource percentages to
+  // 100.
+  FLAGS_enable_mysid_resource_protection = true;
+  FLAGS_mysid_resource_percentage = 100;
 
   auto ensemble = createAgentEnsemble(
       makeMySidConfigFn(), false /*disableLinkStateToggler*/);
@@ -57,33 +66,45 @@ void srv6MidpointMySidScaleBenchmark(int numEntries) {
   auto sw = ensemble->getSw();
   auto rib = sw->getRib();
   auto ribMySidFunc = createRibMySidToSwitchStateFunction(std::nullopt);
+  XLOG(INFO) << "HwSrv6MidpointMySidScaleBenchmark targetEntries="
+             << numEntries;
 
   // Timed: program MySID entries one at a time
+  int programmedEntries = 0;
   suspender.dismiss();
   for (int i = 0; i < numEntries; ++i) {
-    MySidEntry entry;
-    entry.type() = MySidType::ADJACENCY_MICRO_SID;
+    auto ecmpNhop = ecmpHelper.nhop(i % numNhops);
+    state::MySidFields fields;
+    fields.type() = MySidType::ADJACENCY_MICRO_SID;
+    fields.adjacencyInterfaceId() = static_cast<int32_t>(ecmpNhop.intf);
+    // EcmpSetupAnyNPorts6 always yields IPv6 next hops.
+    fields.isV6() = true;
+    fields.clientId() = ClientID::STATIC_ROUTE;
     facebook::network::thrift::IPPrefix prefix;
     prefix.prefixAddress() = facebook::network::toBinaryAddress(
         folly::IPAddressV6(makeMySidAddr(i)));
     prefix.prefixLength() = kMySidPrefixLen;
-    entry.mySid() = prefix;
-    NextHopThrift nhop;
-    nhop.address() =
-        facebook::network::toBinaryAddress(ecmpHelper.nhop(i % numNhops).ip);
-    entry.nextHops()->push_back(nhop);
+    fields.mySid() = prefix;
+    auto mySid = std::make_shared<MySid>(fields);
+    RouteNextHopSet nhops{ResolvedNextHop(
+        folly::IPAddress(ecmpNhop.ip), ecmpNhop.intf, ECMP_WEIGHT)};
+    std::vector<MySidWithNextHops> toAdd = {{mySid, nhops}};
     rib->update(
         sw->getScopeResolver(),
-        {entry},
+        std::move(toAdd),
+        {} /* toUnresolveIfMatch */,
         {} /* toDelete */,
         "addMySidEntry",
         ribMySidFunc,
         sw);
+    ++programmedEntries;
   }
   suspender.rehire();
+  XLOG(INFO) << "HwSrv6MidpointMySidScaleBenchmark programmedEntries="
+             << programmedEntries;
 
   // Cleanup: delete all MySID entries (untimed)
-  for (int i = 0; i < numEntries; ++i) {
+  for (int i = 0; i < programmedEntries; ++i) {
     IpPrefix prefix;
     prefix.ip() = facebook::network::toBinaryAddress(
         folly::IPAddressV6(makeMySidAddr(i)));
@@ -96,15 +117,17 @@ void srv6MidpointMySidScaleBenchmark(int numEntries) {
         ribMySidFunc,
         sw);
   }
+  XLOG(INFO) << "HwSrv6MidpointMySidScaleBenchmark cleanupEntries="
+             << programmedEntries;
 }
 
 } // namespace
 
-// ASIC supports up to 2K MySID entries.
+// Current validated capacity is 2042 MySID entries in SAI tests.
 // Midpoint (ADJACENCY_MICRO_SID): each entry has a next hop for uSID shift
 // and forwarding to the adjacency.
 BENCHMARK(HwSrv6MidpointMySidScaleBenchmark) {
-  srv6MidpointMySidScaleBenchmark(2048);
+  srv6MidpointMySidScaleBenchmark(2042);
 }
 
 } // namespace facebook::fboss
