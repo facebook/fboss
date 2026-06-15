@@ -17,6 +17,16 @@ The FBOSS agent runs in one of two modes, and agent hw tests can run in either v
 
 **Prefer `multi_switch`** — it mirrors the production process model. `mono` is deprecated and will be removed in the future. When `--agent-run-mode` is omitted, `run_test.py` defaults to `multi_switch`. See the [run reference](/docs/build/packaging_and_running_fboss_hw_tests_on_switch/#sai-agent-tests) for full invocation details and flags.
 
+## Warmboot Soak (N-warmboot iterations)
+
+To stress warmboot stability, run a single test across many consecutive warmboots with `--num-warmboot-iterations N` (default 1). `run_test.py` coldboots once, then warmboots the same test N times — each iteration re-arms warmboot so the next boot warmboots, and the soak stops early on the first non-passing iteration. Typically used with `AgentEmptyTest.CheckInit`:
+
+```bash
+./bin/run_test.py sai_agent \
+    --config ./share/hw_test_configs/$CONFIG --agent-run-mode multi_switch \
+    --filter AgentEmptyTest.CheckInit --num-warmboot-iterations 64
+```
+
 ## Related Agent Test Types
 
 These build on the same Agent Hw Test framework and are documented separately:

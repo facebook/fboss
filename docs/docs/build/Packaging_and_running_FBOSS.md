@@ -140,10 +140,17 @@ Special flags:
 ./bin/run_test.py sai_agent \
     --config ./share/hw_test_configs/$CONFIG \
     --filter AgentRxReasonTests.InsertAndRemoveRxReason --agent-run-mode multi_switch
+
+# Warmboot soak: run a single test across many consecutive warmboots
+# (coldboot once, then warmboot N times).
+./bin/run_test.py sai_agent \
+    --config ./share/hw_test_configs/$CONFIG --agent-run-mode multi_switch \
+    --filter AgentEmptyTest.CheckInit --num-warmboot-iterations 64
 ```
 1. `--filter`: FBOSS uses GTEST for it's test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
 1. `--agent-run-mode`: the agent run mode to use. This value is passed through to the sai_agent tests. Currently it supports "mono" and "multi_switch" modes. If not specified, it will use "multi_switch" mode.
 1. `--num-npus {1,2}`: Specify number of npus to run in multi switch mode. Default is 1.
+1. `--num-warmboot-iterations N`: Run the test across N consecutive warmboots after the initial coldboot (default 1). Use with `--filter` to soak a single test (typically `AgentEmptyTest.CheckInit`) across many warmboots and catch warmboot-stability regressions. Each iteration re-arms warmboot so the next boot warmboots, and the soak stops early on the first non-passing iteration. Ignored when `--coldboot_only` is set. Applies to the agent test types (`sai`, `sai_agent`, `sai_agent_scale`, `sai_invariant_agent`).
 
 ### SAI Agent Scale tests
 
