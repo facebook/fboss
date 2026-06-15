@@ -421,7 +421,6 @@ cpp_library(
         "//folly/io/async:scoped_event_base_thread",
         "//folly/json:dynamic",
         "//folly/logging:logging",
-        "//folly/logging/test:test_handler",
         "//folly/memory:mallctl_helper",
         "//thrift/lib/cpp2/test:matcher",
     ],

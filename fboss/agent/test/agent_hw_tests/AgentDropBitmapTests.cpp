@@ -9,10 +9,7 @@
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 #include "fboss/lib/CommonUtils.h"
 
-#ifndef IS_OSS
-#include <folly/logging/LoggerDB.h>
-#include <folly/logging/test/TestLogHandler.h>
-#endif
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 
@@ -197,25 +194,33 @@ class AgentDropBitmapTest : public AgentHwTest {
     }
   }
 
-  // Must be called in verify(), not setup(). The process restarts on
-  // warm boot, destroying any handler installed during setup(). Installing
-  // in verify() ensures log capture works on both CB and WB iterations.
-#ifndef IS_OSS
-  std::shared_ptr<folly::TestLogHandler> installLogHandler() {
-    auto handler = std::make_shared<folly::TestLogHandler>();
-    folly::LoggerDB::get().getCategory("")->addHandler(handler);
-    return handler;
+  // Install a log-capture handler in the HwAgent process (where
+  // logDropBitmapReasons emits) via the AgentHwTestCtrl RPC. Works in both
+  // mono (in-process hw agent server) and multi-switch (remote HwAgent).
+  // Must be called in verify() before the drop is triggered.
+  void installLogCapture() {
+    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+      getAgentEnsemble()
+          ->getHwAgentTestClient(switchId)
+          ->sync_installLogCapture();
+    }
   }
 
-  // Verify that the drop reason logging pipeline is working end-to-end:
-  // the bitmap was collected, decoded, and logged by logDropBitmapReasons.
+  // Verify the drop reason logging pipeline end-to-end: the bitmap was
+  // collected, decoded, and logged by logDropBitmapReasons. Reads the
+  // captured logs back from the HwAgent over RPC so this works in
+  // multi-switch (where the log is emitted in a separate process).
   void verifyDropReasonLogged(
-      const std::shared_ptr<folly::TestLogHandler>& handler,
       const std::string& expectedSubstring,
       const char* desc) {
     bool found = false;
-    for (const auto& [msg, cat] : handler->getMessages()) {
-      if (msg.getMessage().find(expectedSubstring) != std::string::npos) {
+    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+      std::vector<std::string> matches;
+      getAgentEnsemble()
+          ->getHwAgentTestClient(switchId)
+          ->sync_getMatchingLogMessages(matches, expectedSubstring);
+      if (!matches.empty()) {
+        XLOG(DBG2) << desc << ": verified drop reason log: " << matches.front();
         found = true;
         break;
       }
@@ -223,25 +228,12 @@ class AgentDropBitmapTest : public AgentHwTest {
     EXPECT_TRUE(found) << desc << ": expected log containing '"
                        << expectedSubstring << "' not found";
   }
-#else
-  // folly/logging/test (TestLogHandler) is not shipped by the OSS folly
-  // build, so log capture is unavailable there. Provide no-op shims so the
-  // call sites are identical across builds; the bitmap stat assertions
-  // (verifyOnlyExpectedDrop) still run and validate drop detection in OSS.
-  std::shared_ptr<void> installLogHandler() {
-    return nullptr;
-  }
-  void verifyDropReasonLogged(
-      const std::shared_ptr<void>& /*handler*/,
-      const std::string& /*expectedSubstring*/,
-      const char* /*desc*/) {}
-#endif
 };
 
 TEST_F(AgentDropBitmapTest, pipelineIpv4Ipv6Drops) {
   auto verify = [&]() {
-    // Installed in verify() to capture logs during both CB and WB iterations.
-    auto logHandler = installLogHandler();
+    // Install log capture (in the HwAgent process) before triggering drops.
+    installLogCapture();
 
     // IPv4 loopback DIP drop
     sendPacket(folly::IPAddressV4("127.0.0.1"));
@@ -258,7 +250,7 @@ TEST_F(AgentDropBitmapTest, pipelineIpv4Ipv6Drops) {
         PipelineIpDropBit::kDipIsLoopback,
         "IPv4 loopback DIP");
     verifyDropReasonLogged(
-        logHandler, "DROP reasons pipelineIpv4", "IPv4 loopback DIP log");
+        "DROP reasons pipelineIpv4", "IPv4 loopback DIP log");
 
     // Drain residual IPv4 stats before starting IPv6 phase.
     // Bitmaps are READ_AND_CLEAR — wait for the next collection
@@ -283,15 +275,15 @@ TEST_F(AgentDropBitmapTest, pipelineIpv4Ipv6Drops) {
         PipelineIpDropBit::kDipIsLoopback,
         "IPv6 loopback DIP");
     verifyDropReasonLogged(
-        logHandler, "DROP reasons pipelineIpv6", "IPv6 loopback DIP log");
+        "DROP reasons pipelineIpv6", "IPv6 loopback DIP log");
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
 TEST_F(AgentDropBitmapTest, pipelineMacAndIngressMacDrops) {
   auto verify = [&]() {
-    // Installed in verify() to capture logs during both CB and WB iterations.
-    auto logHandler = installLogHandler();
+    // Install log capture (in the HwAgent process) before triggering drops.
+    installLogCapture();
     auto intfMac = getMacForFirstInterfaceWithPorts(getProgrammedState());
 
     // Pipeline MAC: SMAC multicast drop
@@ -311,8 +303,7 @@ TEST_F(AgentDropBitmapTest, pipelineMacAndIngressMacDrops) {
         DropBitmapField::PIPELINE_MAC,
         PipelineMacDropBit::kSmacIsMulticast,
         "Pipeline MAC SMAC multicast");
-    verifyDropReasonLogged(
-        logHandler, "DROP reasons pipelineMac", "Pipeline MAC SMAC log");
+    verifyDropReasonLogged("DROP reasons pipelineMac", "Pipeline MAC SMAC log");
 
     // Drain residual pipelineMac stats before ingress MAC phase.
     WITH_RETRIES({
@@ -338,7 +329,7 @@ TEST_F(AgentDropBitmapTest, pipelineMacAndIngressMacDrops) {
           (1LL << IngressMacDropBit::kTypeOutOfRange));
     });
     verifyDropReasonLogged(
-        logHandler, "DROP reasons ingressMac", "Ingress MAC type OOR log");
+        "DROP reasons ingressMac", "Ingress MAC type OOR log");
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
@@ -370,8 +361,8 @@ TEST_F(AgentDropBitmapTest, egressMacMtuDrop) {
   };
 
   auto verify = [&]() {
-    // Installed in verify() to capture logs during both CB and WB iterations.
-    auto logHandler = installLogHandler();
+    // Install log capture (in the HwAgent process) before triggering drops.
+    installLogCapture();
     auto intfMac = getMacForFirstInterfaceWithPorts(getProgrammedState());
 
     auto pkt = utility::makeUDPTxPacket(
@@ -400,8 +391,7 @@ TEST_F(AgentDropBitmapTest, egressMacMtuDrop) {
           stats.egressMacDropBitmap().value_or(0) &
           (1LL << EgressMacDropBit::kEgressMtuError));
     });
-    verifyDropReasonLogged(
-        logHandler, "DROP reasons egressMac", "Egress MTU log");
+    verifyDropReasonLogged("DROP reasons egressMac", "Egress MTU log");
   };
   verifyAcrossWarmBoots(setup, verify);
 }
