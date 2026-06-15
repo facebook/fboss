@@ -539,6 +539,11 @@ class HwAsic {
     SRV6_MYSID_DISCARD_COUNTER,
     SRV6_MYSID_RESOURCE_COUNTER,
     DEVICE_WATERMARK_SUPPORT,
+    // Per-stage HW drop cause bitmaps via custom SAI switch stats
+    // (SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_*). Each bitmap is an i64
+    // where set bits indicate specific drop reasons within that pipeline
+    // stage. Currently supported on Chenab with SDK >= 2511.36.
+    SWITCH_CUSTOM_DROP_BITMAP_SUPPORT,
   };
 
   enum class AsicMode {

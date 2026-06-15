@@ -226,6 +226,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
+    case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     // TU1 SDK 15.0/15.1 unsupported features (Accton/Broadcom CSPs)
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
