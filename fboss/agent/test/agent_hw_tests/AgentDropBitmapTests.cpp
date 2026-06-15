@@ -13,6 +13,14 @@
 
 namespace facebook::fboss {
 
+// Drop bitmaps are READ_AND_CLEAR: each HwAgent stats-collection cycle reads
+// and clears the HW bitmap and pushes that one snapshot to the SwSwitch cache
+// these tests read, so a single drop is easy to miss — especially post-warmboot
+// while the HwAgent->SwSwitch stats sink is re-establishing. Each verify loop
+// below re-sends the drop-triggering traffic on every WITH_RETRIES iteration
+// (the ~1s collection interval) and OR-accumulates: a miss in one collection
+// window is covered by the next, and the first observed drop is latched.
+
 // Drop cause bit positions from the Chenab SDK telemetry pipeline.
 // These map to sx_tele_drop_cause_*_reason_e enums in sx_tele_auto.h.
 enum PipelineIpDropBit : int {
@@ -113,6 +121,54 @@ class AgentDropBitmapTest : public AgentHwTest {
       return true;
     });
     return result;
+  }
+
+  // True if any drop bitmap field is non-zero.
+  static bool hasAnyDrop(const HwSwitchDropBitmapStats& s) {
+    return (s.ingressMacDropBitmap().value_or(0) |
+            s.egressPipeDropBitmap().value_or(0) |
+            s.egressMacDropBitmap().value_or(0) |
+            s.pipelineGeneralDropBitmap().value_or(0) |
+            s.pipelineMacDropBitmap().value_or(0) |
+            s.pipelineMplsDropBitmap().value_or(0) |
+            s.pipelineTunnelDropBitmap().value_or(0) |
+            s.pipelineIpv4DropBitmap().value_or(0) |
+            s.pipelineIpv6DropBitmap().value_or(0) |
+            s.bufferDropBitmap().value_or(0) | s.queueDropBitmap().value_or(0) |
+            s.hostDropBitmap().value_or(0)) != 0;
+  }
+
+  // Drain the drop bitmaps before a capture phase so a stale drop (from a prior
+  // phase or warm-boot iteration) isn't OR-latched into the next phase. A zero
+  // read alone is ambiguous — value_or(0) can't tell a real zero from stats not
+  // flowing yet — so require a few consecutive snapshots that are both fresh
+  // (per-switch timestamp advancing) and all-zero.
+  void waitForDropBitmapsToClear() {
+    constexpr int kRequiredConsecutiveClearReads = 3;
+    auto prevStats = getAllHwSwitchStats();
+    int consecutiveClearReads = 0;
+    WITH_RETRIES({
+      auto curStats = getAllHwSwitchStats();
+      bool freshAndClear = true;
+      for (const auto& switchIndex :
+           getSw()->getSwitchInfoTable().getSwitchIndices()) {
+        auto curIt = curStats.find(switchIndex);
+        auto prevIt = prevStats.find(switchIndex);
+        if (curIt == curStats.end() || prevIt == prevStats.end()) {
+          freshAndClear = false;
+          continue;
+        }
+        if (curIt->second.timestamp().value() <=
+                prevIt->second.timestamp().value() ||
+            hasAnyDrop(*curIt->second.switchDropBitmapStats())) {
+          freshAndClear = false;
+        }
+      }
+      prevStats = curStats;
+      consecutiveClearReads = freshAndClear ? consecutiveClearReads + 1 : 0;
+      EXPECT_EVENTUALLY_TRUE(
+          consecutiveClearReads >= kRequiredConsecutiveClearReads);
+    });
   }
 
   enum class DropBitmapField {
@@ -235,10 +291,18 @@ TEST_F(AgentDropBitmapTest, pipelineIpv4Ipv6Drops) {
     // Install log capture (in the HwAgent process) before triggering drops.
     installLogCapture();
 
+    // Confirm all drop bitmaps are clear before we start — especially on the
+    // warm-boot iteration, where residual drops from the cold-boot run can
+    // linger and contaminate the OR-accumulated stats below.
+    waitForDropBitmapsToClear();
+
     // IPv4 loopback DIP drop
-    sendPacket(folly::IPAddressV4("127.0.0.1"));
+    const folly::IPAddressV4 kIpv4Dip("127.0.0.1");
     HwSwitchDropBitmapStats ipv4Stats;
     WITH_RETRIES({
+      XLOG(DBG2) << "Drop bitmap test: sending IPv4 loopback DIP packet to "
+                 << kIpv4Dip.str();
+      sendPacket(kIpv4Dip);
       orBitmapStats(ipv4Stats, getAggregatedSwitchDropBitmapStats());
       EXPECT_EVENTUALLY_TRUE(
           ipv4Stats.pipelineIpv4DropBitmap().value_or(0) &
@@ -252,18 +316,17 @@ TEST_F(AgentDropBitmapTest, pipelineIpv4Ipv6Drops) {
     verifyDropReasonLogged(
         "DROP reasons pipelineIpv4", "IPv4 loopback DIP log");
 
-    // Drain residual IPv4 stats before starting IPv6 phase.
-    // Bitmaps are READ_AND_CLEAR — wait for the next collection
-    // cycle to clear the IPv4 drop so it doesn't leak into IPv6.
-    WITH_RETRIES({
-      auto drain = getAggregatedSwitchDropBitmapStats();
-      EXPECT_EVENTUALLY_EQ(drain.pipelineIpv4DropBitmap().value_or(0), 0);
-    });
+    // Drain residual drops before the IPv6 phase so the IPv4 drop doesn't
+    // leak into IPv6's exclusivity check.
+    waitForDropBitmapsToClear();
 
     // IPv6 loopback DIP drop
-    sendPacket(folly::IPAddressV6("::1"));
+    const folly::IPAddressV6 kIpv6Dip("::1");
     HwSwitchDropBitmapStats ipv6Stats;
     WITH_RETRIES({
+      XLOG(DBG2) << "Drop bitmap test: sending IPv6 loopback DIP packet to "
+                 << kIpv6Dip.str();
+      sendPacket(kIpv6Dip);
       orBitmapStats(ipv6Stats, getAggregatedSwitchDropBitmapStats());
       EXPECT_EVENTUALLY_TRUE(
           ipv6Stats.pipelineIpv6DropBitmap().value_or(0) &
@@ -286,13 +349,18 @@ TEST_F(AgentDropBitmapTest, pipelineMacAndIngressMacDrops) {
     installLogCapture();
     auto intfMac = getMacForFirstInterfaceWithPorts(getProgrammedState());
 
+    // Confirm all drop bitmaps are clear (and stats are flowing) before we
+    // start — handles residuals from the previous warm-boot iteration.
+    waitForDropBitmapsToClear();
+
     // Pipeline MAC: SMAC multicast drop
-    sendRawEthPacket(
-        folly::MacAddress("01:00:5e:aa:aa:aa"),
-        intfMac,
-        ETHERTYPE::ETHERTYPE_IPV4);
+    const folly::MacAddress kMulticastSmac("01:00:5e:aa:aa:aa");
     HwSwitchDropBitmapStats macStats;
     WITH_RETRIES({
+      XLOG(DBG2)
+          << "Drop bitmap test: sending eth packet with multicast srcMac="
+          << kMulticastSmac;
+      sendRawEthPacket(kMulticastSmac, intfMac, ETHERTYPE::ETHERTYPE_IPV4);
       orBitmapStats(macStats, getAggregatedSwitchDropBitmapStats());
       EXPECT_EVENTUALLY_TRUE(
           macStats.pipelineMacDropBitmap().value_or(0) &
@@ -305,11 +373,8 @@ TEST_F(AgentDropBitmapTest, pipelineMacAndIngressMacDrops) {
         "Pipeline MAC SMAC multicast");
     verifyDropReasonLogged("DROP reasons pipelineMac", "Pipeline MAC SMAC log");
 
-    // Drain residual pipelineMac stats before ingress MAC phase.
-    WITH_RETRIES({
-      auto drain = getAggregatedSwitchDropBitmapStats();
-      EXPECT_EVENTUALLY_EQ(drain.pipelineMacDropBitmap().value_or(0), 0);
-    });
+    // Drain residual drops before the ingress MAC phase.
+    waitForDropBitmapsToClear();
 
     // Ingress MAC: type out of range drop
     // EtherType 0x05E0 is in the reserved range 0x05DD..0x05FF
@@ -317,12 +382,16 @@ TEST_F(AgentDropBitmapTest, pipelineMacAndIngressMacDrops) {
     // traverses multiple pipeline stages that each flag it independently.
     // We verify the primary drop (ingressMac) without cross-contamination
     // checks since multi-stage drops are expected.
-    sendRawEthPacket(
-        folly::MacAddress("00:00:00:00:00:01"),
-        intfMac,
-        static_cast<ETHERTYPE>(0x05E0));
+    const folly::MacAddress kIngressSrcMac("00:00:00:00:00:01");
+    constexpr uint16_t kOutOfRangeEtherType = 0x05E0;
     HwSwitchDropBitmapStats ingressMacStats;
     WITH_RETRIES({
+      XLOG(DBG2) << "Drop bitmap test: sending eth packet with out-of-range "
+                 << "ethertype 0x" << std::hex << kOutOfRangeEtherType;
+      sendRawEthPacket(
+          kIngressSrcMac,
+          intfMac,
+          static_cast<ETHERTYPE>(kOutOfRangeEtherType));
       orBitmapStats(ingressMacStats, getAggregatedSwitchDropBitmapStats());
       EXPECT_EVENTUALLY_TRUE(
           ingressMacStats.ingressMacDropBitmap().value_or(0) &
@@ -337,6 +406,8 @@ TEST_F(AgentDropBitmapTest, pipelineMacAndIngressMacDrops) {
 TEST_F(AgentDropBitmapTest, egressMacMtuDrop) {
   auto egressPort = PortDescriptor(masterLogicalInterfaceOrHyperPortIds()[0]);
   auto injectionPort = masterLogicalInterfaceOrHyperPortIds()[1];
+  const folly::IPAddressV6 kEgressSrcIp("1001::1");
+  const folly::IPAddressV6 kEgressDstIp("2001::1");
 
   auto setup = [&]() {
     auto config = initialConfig(*getAgentEnsemble());
@@ -356,8 +427,7 @@ TEST_F(AgentDropBitmapTest, egressMacMtuDrop) {
 
     auto wrapper = getSw()->getRouteUpdater();
     using Prefix = typename Route<folly::IPAddressV6>::Prefix;
-    helper.programRoutes(
-        &wrapper, {egressPort}, {Prefix{folly::IPAddressV6("2001::1"), 128}});
+    helper.programRoutes(&wrapper, {egressPort}, {Prefix{kEgressDstIp, 128}});
   };
 
   auto verify = [&]() {
@@ -365,27 +435,31 @@ TEST_F(AgentDropBitmapTest, egressMacMtuDrop) {
     installLogCapture();
     auto intfMac = getMacForFirstInterfaceWithPorts(getProgrammedState());
 
-    auto pkt = utility::makeUDPTxPacket(
-        getSw(),
-        getVlanIDForTx(),
-        intfMac,
-        intfMac,
-        folly::IPAddressV6("1001::1"),
-        folly::IPAddressV6("2001::1"),
-        10000,
-        10001,
-        0,
-        64,
-        std::vector<uint8_t>(1400, 0xff));
-    getSw()->sendPacketOutOfPortAsync(std::move(pkt), PortID(injectionPort));
+    // Confirm all drop bitmaps are clear (and stats are flowing) before we
+    // start — handles residuals from the previous warm-boot iteration.
+    waitForDropBitmapsToClear();
 
-    // No verifyOnlyExpectedDrop here: unlike the early-stage pipeline drops,
-    // this is a well-formed routed packet that traverses ingress, pipeline
-    // and routing before being dropped at the egress MAC MTU check, so other
-    // stage bitmaps may legitimately be set. We assert only the egress MAC
-    // MTU bit (same rationale as the ingress MAC phase).
+    // Assert only the egress MAC MTU bit (not verifyOnlyExpectedDrop): the
+    // oversized routed packet can also trigger collateral drops in the
+    // loopback test topology, so an exclusivity check would be flaky.
     HwSwitchDropBitmapStats stats;
     WITH_RETRIES({
+      auto pkt = utility::makeUDPTxPacket(
+          getSw(),
+          getVlanIDForTx(),
+          intfMac,
+          intfMac,
+          kEgressSrcIp,
+          kEgressDstIp,
+          10000,
+          10001,
+          0,
+          64,
+          std::vector<uint8_t>(1400, 0xff));
+      XLOG(DBG2) << "Drop bitmap test: sending oversized UDP packet (1400B) "
+                 << "dstIp=" << kEgressDstIp.str() << " out of injection port "
+                 << injectionPort;
+      getSw()->sendPacketOutOfPortAsync(std::move(pkt), PortID(injectionPort));
       orBitmapStats(stats, getAggregatedSwitchDropBitmapStats());
       EXPECT_EVENTUALLY_TRUE(
           stats.egressMacDropBitmap().value_or(0) &
