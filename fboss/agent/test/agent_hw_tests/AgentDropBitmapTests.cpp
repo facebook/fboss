@@ -30,6 +30,10 @@ enum IngressMacDropBit : int {
   kTypeOutOfRange = 4,
 };
 
+enum EgressMacDropBit : int {
+  kEgressMtuError = 0,
+};
+
 class AgentDropBitmapTest : public AgentHwTest {
  public:
   cfg::SwitchConfig initialConfig(
@@ -337,6 +341,69 @@ TEST_F(AgentDropBitmapTest, pipelineMacAndIngressMacDrops) {
         logHandler, "DROP reasons ingressMac", "Ingress MAC type OOR log");
   };
   verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentDropBitmapTest, egressMacMtuDrop) {
+  auto egressPort = PortDescriptor(masterLogicalInterfaceOrHyperPortIds()[0]);
+  auto injectionPort = masterLogicalInterfaceOrHyperPortIds()[1];
+
+  auto setup = [&]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    for (auto& port : *config.ports()) {
+      if (PortID(*port.logicalID()) == egressPort.phyPortID()) {
+        port.maxFrameSize() = 200;
+      }
+    }
+    applyNewConfig(config);
+
+    utility::EcmpSetupTargetedPorts6 helper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper.resolveNextHops(in, {egressPort});
+    });
+
+    auto wrapper = getSw()->getRouteUpdater();
+    using Prefix = typename Route<folly::IPAddressV6>::Prefix;
+    helper.programRoutes(
+        &wrapper, {egressPort}, {Prefix{folly::IPAddressV6("2001::1"), 128}});
+  };
+
+  auto verify = [&]() {
+    // Installed in verify() to capture logs during both CB and WB iterations.
+    auto logHandler = installLogHandler();
+    auto intfMac = getMacForFirstInterfaceWithPorts(getProgrammedState());
+
+    auto pkt = utility::makeUDPTxPacket(
+        getSw(),
+        getVlanIDForTx(),
+        intfMac,
+        intfMac,
+        folly::IPAddressV6("1001::1"),
+        folly::IPAddressV6("2001::1"),
+        10000,
+        10001,
+        0,
+        64,
+        std::vector<uint8_t>(1400, 0xff));
+    getSw()->sendPacketOutOfPortAsync(std::move(pkt), PortID(injectionPort));
+
+    // No verifyOnlyExpectedDrop here: unlike the early-stage pipeline drops,
+    // this is a well-formed routed packet that traverses ingress, pipeline
+    // and routing before being dropped at the egress MAC MTU check, so other
+    // stage bitmaps may legitimately be set. We assert only the egress MAC
+    // MTU bit (same rationale as the ingress MAC phase).
+    HwSwitchDropBitmapStats stats;
+    WITH_RETRIES({
+      orBitmapStats(stats, getAggregatedSwitchDropBitmapStats());
+      EXPECT_EVENTUALLY_TRUE(
+          stats.egressMacDropBitmap().value_or(0) &
+          (1LL << EgressMacDropBit::kEgressMtuError));
+    });
+    verifyDropReasonLogged(
+        logHandler, "DROP reasons egressMac", "Egress MTU log");
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
