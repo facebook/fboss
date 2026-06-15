@@ -37,19 +37,17 @@
 
 set -euo pipefail
 
-# The 21 entry points that MUST be present in the bundled archive.
+# The 19 entry points that MUST be present in the bundled archive.
 EXPECTED_SYMBOLS=(
     FsdbInit
     FsdbCgoAbiVersion
+    FsdbSetFlag
     CreateFsdbWrapper
     DestroyFsdbWrapper
     ShutdownFsdbWrapper
     SubscribeToPortMaps
-    SubscribeToPortMapsWithPort
     SubscribeToStatsPath
-    SubscribeToStatsPathWithPort
     SubscribeToStatePath
-    SubscribeToStatePathWithPort
     HasStateSubscription
     HasStatsSubscription
     HasStatePathSubscription

@@ -14,7 +14,7 @@
 // Bump on any change to a struct layout, function signature, or enum value.
 // Pass this value to FsdbInit() — the library compares it against its own
 // baked-in version and refuses to initialize on mismatch.
-#define FSDB_CGO_ABI_VERSION 1
+#define FSDB_CGO_ABI_VERSION 2
 
 // Returns the ABI version baked into the shipped library. Most consumers
 // should not call this directly — pass FSDB_CGO_ABI_VERSION to FsdbInit() and
@@ -29,6 +29,7 @@ typedef void* FsdbWrapperHandle;
 
 typedef struct {
   const char* port_name;
+  int32_t port_id;
   int32_t oper_state;
 } FsdbPortStateUpdate;
 
@@ -85,29 +86,26 @@ FSDB_CGO_API void DestroyFsdbWrapper(FsdbWrapperHandle handle);
 // success, 1 if an exception was caught. Idempotent and null-safe.
 FSDB_CGO_API int32_t ShutdownFsdbWrapper(FsdbWrapperHandle handle);
 
-FSDB_CGO_API void SubscribeToPortMaps(FsdbWrapperHandle handle);
-FSDB_CGO_API void SubscribeToPortMapsWithPort(
+// All subscribe entry points take a host + port. host == NULL or "" connects
+// to localhost (::1). server_port < 0 uses the default FSDB port (in which case
+// host is ignored — pass an explicit port to reach a remote host).
+FSDB_CGO_API void SubscribeToPortMaps(
     FsdbWrapperHandle handle,
+    const char* host,
     int32_t server_port);
 
 FSDB_CGO_API void SubscribeToStatsPath(
     FsdbWrapperHandle handle,
     const char** path_tokens,
-    int32_t num_tokens);
-FSDB_CGO_API void SubscribeToStatsPathWithPort(
-    FsdbWrapperHandle handle,
-    const char** path_tokens,
     int32_t num_tokens,
+    const char* host,
     int32_t server_port);
 
 FSDB_CGO_API void SubscribeToStatePath(
     FsdbWrapperHandle handle,
     const char** path_tokens,
-    int32_t num_tokens);
-FSDB_CGO_API void SubscribeToStatePathWithPort(
-    FsdbWrapperHandle handle,
-    const char** path_tokens,
     int32_t num_tokens,
+    const char* host,
     int32_t server_port);
 
 FSDB_CGO_API int32_t HasStateSubscription(FsdbWrapperHandle handle);
