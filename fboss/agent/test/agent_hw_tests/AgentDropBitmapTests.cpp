@@ -2,6 +2,7 @@
 
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -21,6 +22,14 @@ enum PipelineIpDropBit : int {
   kDipIsLoopback = 3,
 };
 
+enum PipelineMacDropBit : int {
+  kSmacIsMulticast = 11,
+};
+
+enum IngressMacDropBit : int {
+  kTypeOutOfRange = 4,
+};
+
 class AgentDropBitmapTest : public AgentHwTest {
  public:
   cfg::SwitchConfig initialConfig(
@@ -37,6 +46,17 @@ class AgentDropBitmapTest : public AgentHwTest {
   }
 
  protected:
+  void sendRawEthPacket(
+      folly::MacAddress srcMac,
+      folly::MacAddress dstMac,
+      ETHERTYPE etherType) {
+    auto vlanId = getVlanIDForTx();
+    auto pkt =
+        utility::makeEthTxPacket(getSw(), vlanId, srcMac, dstMac, etherType);
+    getSw()->sendPacketOutOfPortAsync(
+        std::move(pkt), PortID(masterLogicalInterfaceOrHyperPortIds()[0]));
+  }
+
   template <typename AddrT>
   void sendPacket(AddrT dstIp) {
     auto vlanId = getVlanIDForTx();
@@ -260,6 +280,61 @@ TEST_F(AgentDropBitmapTest, pipelineIpv4Ipv6Drops) {
         "IPv6 loopback DIP");
     verifyDropReasonLogged(
         logHandler, "DROP reasons pipelineIpv6", "IPv6 loopback DIP log");
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentDropBitmapTest, pipelineMacAndIngressMacDrops) {
+  auto verify = [&]() {
+    // Installed in verify() to capture logs during both CB and WB iterations.
+    auto logHandler = installLogHandler();
+    auto intfMac = getMacForFirstInterfaceWithPorts(getProgrammedState());
+
+    // Pipeline MAC: SMAC multicast drop
+    sendRawEthPacket(
+        folly::MacAddress("01:00:5e:aa:aa:aa"),
+        intfMac,
+        ETHERTYPE::ETHERTYPE_IPV4);
+    HwSwitchDropBitmapStats macStats;
+    WITH_RETRIES({
+      orBitmapStats(macStats, getAggregatedSwitchDropBitmapStats());
+      EXPECT_EVENTUALLY_TRUE(
+          macStats.pipelineMacDropBitmap().value_or(0) &
+          (1LL << PipelineMacDropBit::kSmacIsMulticast));
+    });
+    verifyOnlyExpectedDrop(
+        macStats,
+        DropBitmapField::PIPELINE_MAC,
+        PipelineMacDropBit::kSmacIsMulticast,
+        "Pipeline MAC SMAC multicast");
+    verifyDropReasonLogged(
+        logHandler, "DROP reasons pipelineMac", "Pipeline MAC SMAC log");
+
+    // Drain residual pipelineMac stats before ingress MAC phase.
+    WITH_RETRIES({
+      auto drain = getAggregatedSwitchDropBitmapStats();
+      EXPECT_EVENTUALLY_EQ(drain.pipelineMacDropBitmap().value_or(0), 0);
+    });
+
+    // Ingress MAC: type out of range drop
+    // EtherType 0x05E0 is in the reserved range 0x05DD..0x05FF
+    // This also triggers PIPELINE_MAC_INVALID_ETHERTYPE — the packet
+    // traverses multiple pipeline stages that each flag it independently.
+    // We verify the primary drop (ingressMac) without cross-contamination
+    // checks since multi-stage drops are expected.
+    sendRawEthPacket(
+        folly::MacAddress("00:00:00:00:00:01"),
+        intfMac,
+        static_cast<ETHERTYPE>(0x05E0));
+    HwSwitchDropBitmapStats ingressMacStats;
+    WITH_RETRIES({
+      orBitmapStats(ingressMacStats, getAggregatedSwitchDropBitmapStats());
+      EXPECT_EVENTUALLY_TRUE(
+          ingressMacStats.ingressMacDropBitmap().value_or(0) &
+          (1LL << IngressMacDropBit::kTypeOutOfRange));
+    });
+    verifyDropReasonLogged(
+        logHandler, "DROP reasons ingressMac", "Ingress MAC type OOR log");
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
