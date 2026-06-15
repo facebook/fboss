@@ -589,6 +589,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.cpp
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.h
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.cpp
+  fboss/cli/fboss2/commands/show/bgp/CmdShowBgpInitializationEvents.h
+  fboss/cli/fboss2/commands/show/bgp/CmdShowBgpInitializationEvents.cpp
   fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h
   fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.cpp
   fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.h

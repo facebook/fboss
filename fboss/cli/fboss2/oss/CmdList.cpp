@@ -2,6 +2,7 @@
 
 #include "fboss/cli/fboss2/CmdList.h"
 
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowBgpInitializationEvents.h"
 #include "fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.h"
 #include "fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.h"
 #include "fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h"
@@ -52,6 +53,11 @@ const CommandTree& kBaseAdditionalCommandTree() {
            "Show running BGP configuration",
            commandHandler<CmdShowConfigRunningBgp>,
            argTypeHandler<CmdShowConfigRunningBgpTraits>}}},
+
+        {"initialization-events",
+         "Show BGP initialization events",
+         commandHandler<CmdShowBgpInitializationEvents>,
+         argTypeHandler<CmdShowBgpInitializationEventsTraits>},
 
         {"neighbors",
          "Show BGP neighbors",
