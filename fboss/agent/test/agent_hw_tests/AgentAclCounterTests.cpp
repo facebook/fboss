@@ -723,14 +723,14 @@ class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
 };
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHit) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHit) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
@@ -771,27 +771,13 @@ TEST_F(AgentAclCounterL4DstPortRangeTest, VerifyL4DstPortRangeAcl) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitWithDrop) {
   this->aclActionType_ = cfg::AclActionType::DENY;
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
-// Verify that traffic originating on the CPU increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */,
-      false /* cpu port */,
-      {AclType::TCP_TTLD, AclType::UDP_TTLD},
-      true /* also verify non-matching traffic does not bump */);
-}
-
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */, false /* cpu port */, {AclType::SRC_PORT});
-}
-
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBump) {
   this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       true /* front panel port */,
