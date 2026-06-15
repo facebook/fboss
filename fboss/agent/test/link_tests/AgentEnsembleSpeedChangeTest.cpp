@@ -142,6 +142,9 @@ class AgentEnsembleSpeedChangeTest : public AgentEnsembleLinkTest {
       // updated
       applyNewConfig(newConfig);
 
+      // Speed change may alter the number of logical ports,
+      // so we need to refresh the cabledPorts_.
+      updateCablePorts();
       EXPECT_NO_THROW(waitForAllCabledPorts(true, 60, 5s););
       createL3DataplaneFlood();
     };
