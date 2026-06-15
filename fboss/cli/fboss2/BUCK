@@ -419,8 +419,6 @@ cpp_library(
         "commands/delete/config/facebook/CmdDeleteConfigPatcherAgent.cpp",
         "commands/delete/config/facebook/CmdDeleteConfigUtils.cpp",
         "commands/facebook/rage/CmdRage.cpp",
-        "commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.cpp",
-        "commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.cpp",
         "commands/get/pcap/CmdGetPcap.cpp",
         "commands/reload/facebook/CmdReloadConfigAgent.cpp",
         "commands/set/debug/facebook/CmdSetDebugBgp.cpp",
