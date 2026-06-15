@@ -9,6 +9,8 @@ DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
 
 DEFINE_bool(test_fixture, false, "Enable test fixture platform mapping");
 
+DEFINE_bool(osfp_tray, false, "Enable OSFP tray platform mapping");
+
 // TODO: Remove once rifs limitation is fixed
 DEFINE_bool(
     minipack3bta_16rifs,
