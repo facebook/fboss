@@ -60,7 +60,9 @@ class CdbCommandBlock {
   static constexpr uint8_t kCdbLplMemoryLength = 120;
 
   // Constructor to initialize data block from 0
-  CdbCommandBlock() {
+  explicit CdbCommandBlock(
+      uint64_t cdbWriteDelayUsec = POST_I2C_WRITE_DELAY_CDB_US)
+      : cdbWriteDelayUsec_(cdbWriteDelayUsec) {
     resetCdbBlock();
   }
 
@@ -109,9 +111,12 @@ class CdbCommandBlock {
   // Public function to run the CDB command on the module. An optional
   // timeout can be passed to override the default
   // FLAGS_cdb_command_timeout_usec.
+  // cdbCmdCompleteFlagSupported enables polling the CdbCmdCompleteFlag1 before
+  // reading command status.
   bool cmisRunCdbCommand(
       TransceiverImpl* bus,
-      std::optional<uint64_t> overrideTimeoutUsec = std::nullopt);
+      std::optional<uint64_t> overrideTimeoutUsec = std::nullopt,
+      bool cdbCmdCompleteFlagSupported = false);
   // Provide response data to caller
   uint8_t getResponseData(uint8_t** pResponse);
 
@@ -227,6 +232,7 @@ class CdbCommandBlock {
   std::chrono::duration<uint32_t, std::milli> commandBlockCdbWaitTime_{0};
   std::chrono::duration<uint32_t, std::milli> memoryWriteTime_{0};
   uint8_t lastCdbStatus_{0};
+  uint64_t cdbWriteDelayUsec_;
 
   // Utility function to compute the One's complement sum
   uint8_t onesComplementSum();

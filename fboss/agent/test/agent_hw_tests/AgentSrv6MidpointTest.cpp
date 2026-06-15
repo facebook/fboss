@@ -263,8 +263,15 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     auto portStatsBefore = this->getLatestPortStats(egressPort);
     auto bytesBefore = *portStatsBefore.outBytes_();
 
+    // Only filter snooper by egress port if ACL port qualifier is supported.
+    auto asic =
+        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics());
+    std::optional<PortID> snooperPort =
+        asic->isSupported(HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)
+        ? std::make_optional(egressPort)
+        : std::nullopt;
     utility::SwSwitchPacketSnooper snooper(
-        this->getSw(), "srv6MidpointSnooper");
+        this->getSw(), "srv6MidpointSnooper", snooperPort);
 
     auto origFrame = sendMidpointPacket(ecnMarked, isV4, injectPort);
 

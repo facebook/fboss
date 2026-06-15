@@ -262,9 +262,10 @@ void HwTransceiverUtils::verifyOpticsSettings(
   EXPECT_GT(relevantMediaLanes.size(), 0);
   EXPECT_GT(relevantHostLanes.size(), 0);
 
-  // Identify Tunable Module.
-  bool isTunableOptics =
-      tcvrState.moduleTechnology().value() == ModuleTechnology::TUNABLE;
+  // Identify Tunable Module (C-Band or L-Band ZR).
+  auto modTech = tcvrState.moduleTechnology().value();
+  bool isTunableOptics = modTech == ModuleTechnology::TUNABLE_C_BAND ||
+      modTech == ModuleTechnology::TUNABLE_L_BAND;
 
   for (auto& mediaLane :
        apache::thrift::can_throw(*settings.mediaLaneSettings())) {

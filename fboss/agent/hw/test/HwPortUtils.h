@@ -44,28 +44,9 @@ void assertPortsSampleDestination(
     const HwSwitch* hw,
     const std::map<PortID, int>& port2SampleDestination);
 
-bool portsExistsInPortGroup(
-    const Platform* platform,
-    const std::vector<PortID>& allPortsInGroup,
-    cfg::PortSpeed speed);
-
-void enablePortsInPortGroup(
-    cfg::SwitchConfig* config,
-    cfg::PortSpeed enabledLaneSpeed,
-    cfg::PortSpeed disabledLaneSpeed,
-    const std::vector<PortID>& allPortsInGroup,
-    const Platform* platform,
-    const std::array<bool, 4>& enabledPortsOption);
-
 void cleanPortConfig(
     cfg::SwitchConfig* config,
     std::vector<PortID> allPortsinGroup);
-
-void updateFlexConfig(
-    cfg::SwitchConfig* config,
-    FlexPortMode flexMode,
-    std::vector<PortID> allPortsinGroup,
-    const Platform* platform);
 
 void assertQUADMode(
     HwSwitch* hw,
@@ -83,12 +64,6 @@ void assertSINGLEMode(
     cfg::PortSpeed enabledLaneSpeed,
     cfg::PortSpeed disabledLaneSpeed,
     std::vector<PortID> allPortsinGroup);
-
-void updateFlexConfig(
-    cfg::SwitchConfig* config,
-    FlexPortMode flexMode,
-    std::vector<PortID> allPortsinGroup,
-    const Platform* platform);
 
 void verifyInterfaceMode(
     PortID portID,

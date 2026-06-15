@@ -126,6 +126,7 @@ enum ProductionFeature {
   MIRROR_ON_DROP_STATELESS = 111,
   PORT_DEBOUNCE = 112,
   SRV6_BINDING_SID = 113,
+  MPLS_BINDING_SID = 114,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

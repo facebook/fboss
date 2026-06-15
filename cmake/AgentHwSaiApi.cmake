@@ -111,6 +111,8 @@ if (SAI_TAJO_IMPL)
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
   include_directories(${SAI_IMPL_DIR})
   message(STATUS "Found SAI_IMPL_DIR: ${SAI_IMPL_DIR}")
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+  message(STATUS "Using SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
 elseif (SAI_BRCM_IMPL)
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/bcm/ArsApi.cpp
@@ -131,6 +133,8 @@ elseif (SAI_BRCM_IMPL)
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
   include_directories(${SAI_IMPL_DIR})
   message(STATUS "Found SAI_IMPL_DIR: ${SAI_IMPL_DIR}")
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+  message(STATUS "Using SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
 elseif (CHENAB_SAI_SDK)
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/oss/ArsApi.cpp
@@ -151,6 +155,8 @@ elseif (CHENAB_SAI_SDK)
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
   include_directories(${SAI_IMPL_DIR})
   message(STATUS "Found SAI_IMPL_DIR: ${SAI_IMPL_DIR}")
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+  message(STATUS "Using SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
 elseif (SAI_BRCM_PAI_IMPL)
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/oss/AclApi.cpp

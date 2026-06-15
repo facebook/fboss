@@ -40,11 +40,7 @@
 #include <fmt/ranges.h>
 
 #if defined(BRCM_SAI_SDK_DNX) || defined(BRCM_SAI_SDK_XGS)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiportextensions.h>
-#else
-#include <saiportextensions.h>
-#endif
 #endif
 
 #if defined(CHENAB_SAI_SDK)
@@ -1486,6 +1482,7 @@ void SaiPortManager::resetCableLength(PortID portId) {
     return;
   }
   curPortStats.cableLengthMeters().reset();
+  curPortStats.cableDelayNsec().reset();
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   portStatItr->second->updateStats(curPortStats, now);
 }
@@ -1812,9 +1809,11 @@ bool SaiPortManager::createOnlyAttributeChanged(
 
 cfg::PortType SaiPortManager::derivePortTypeOfLogicalPort(
     PortSaiId portSaiId) const {
-  // TODO remove once Broadcom could return MGMT interface type for TH6
+  // TODO remove once Broadcom could return MGMT interface type for TH6/TU1
   if (platform_->getAsic()->getAsicType() ==
-      cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK6 ||
+      platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
     auto portSpeed = SaiApiTable::getInstance()->portApi().getAttribute(
         portSaiId, SaiPortTraits::Attributes::Speed{});
 
@@ -2614,6 +2613,7 @@ void SaiPortManager::updateStats(
             SaiApiTable::getInstance()->portApi().getAttribute(
                 handle->port->adapterKey(),
                 SaiPortTraits::Attributes::CablePropogationDelayNS{});
+        curPortStats.cableDelayNsec() = cablePropogationDelayNS;
         cablePropogationDelayNS = std::max(
             cablePropogationDelayNS -
                 getWorstCaseAssumedOpticsDelayNS(

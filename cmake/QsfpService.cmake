@@ -119,7 +119,6 @@ add_library(montblanc_bsp
 
 target_link_libraries(montblanc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -129,7 +128,6 @@ add_library(icecube800banw_bsp
 
 target_link_libraries(icecube800banw_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -157,7 +155,6 @@ add_library(minipack3bta_bsp
 
 target_link_libraries(minipack3bta_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -167,7 +164,6 @@ add_library(minipack3n_bsp
 
 target_link_libraries(minipack3n_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -177,7 +173,6 @@ add_library(morgan800cc_bsp
 
 target_link_libraries(morgan800cc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -207,7 +202,6 @@ add_library(tahansb800bc_bsp
 
 target_link_libraries(tahansb800bc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -217,7 +211,6 @@ add_library(wedge800bact_bsp
 
 target_link_libraries(wedge800bact_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -227,7 +220,6 @@ add_library(wedge800cact_bsp
 
 target_link_libraries(wedge800cact_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -236,6 +228,26 @@ add_library(ladakh800bcls_bsp
 )
 
 target_link_libraries(ladakh800bcls_bsp
+  bsp_platform_mapping
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
+add_library(leh800bcls_bsp
+  fboss/lib/bsp/leh800bcls/Leh800bclsBspPlatformMapping.cpp
+)
+
+target_link_libraries(leh800bcls_bsp
+  bsp_platform_mapping
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
+add_library(saintpaul_bsp
+  fboss/lib/bsp/saintpaul/SaintpaulBspPlatformMapping.cpp
+)
+
+target_link_libraries(saintpaul_bsp
   bsp_platform_mapping
   bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
@@ -282,6 +294,8 @@ target_link_libraries(qsfp_bsp_core
   wedge800bact_bsp
   wedge800cact_bsp
   ladakh800bcls_bsp
+  leh800bcls_bsp
+  saintpaul_bsp
   device_mdio
   fpga_device
   phy_management_base

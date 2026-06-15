@@ -240,6 +240,12 @@ void TransceiverTestsHelper::verifyHostLaneSettings(
           expectedLaneSettings["RxEqPostcursor"][*setting.lane()],
           setting.rxOutputPostCursor().value_or({}));
     }
+    if (expectedLaneSettings.find("CurrentAppSel") !=
+        expectedLaneSettings.end()) {
+      EXPECT_EQ(
+          expectedLaneSettings["CurrentAppSel"][*setting.lane()],
+          setting.currentAppSel().value_or({}));
+    }
   }
 }
 

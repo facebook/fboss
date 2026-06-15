@@ -355,15 +355,17 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
         cache_->checkReachability(getIP(), getMac(), getPort());
       }
       --probesLeft_;
-      // Check if NDP static neighbor is enabled
-      if (FLAGS_ndp_static_neighbor) {
-        if (!hasProbesLeft() &&
+      if (!hasProbesLeft()) {
+        // Check if NDP static neighbor is enabled
+        if (FLAGS_ndp_static_neighbor &&
             cache_->sw_->hasQualifiedConfiguredDesiredPeer(getIntfID())) {
-          // If we have configured desired peers, we should not flush the entry
-          // after MAX_PROBE tries. Instead, we should keep on probing.
-          // Start slow retries after MAX_PROBE and set probesLeft_ to 1.
-          // This functionality is needed for the scenario:
-          //  - We have a configured desired peer on the interface.
+          slowRetries_ = true;
+          XLOG(DBG2) << "Slow Retries enabling for " << getIP();
+          probesLeft_ = 1;
+        }
+        // Check if ARP static neighbor is enabled
+        if (FLAGS_arp_static_neighbor &&
+            cache_->sw_->hasQualifiedConfiguredDesiredPeerIPv4(getIntfID())) {
           slowRetries_ = true;
           XLOG(DBG2) << "Slow Retries enabling for " << getIP();
           probesLeft_ = 1;

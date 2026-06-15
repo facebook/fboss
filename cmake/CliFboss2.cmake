@@ -406,6 +406,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/CmdStreamHandler.h
   fboss/cli/fboss2/CmdStreamHandler.cpp
   fboss/cli/fboss2/CmdStreamHandlerImpl.cpp
+  fboss/cli/fboss2/CmdHandlerImplBgp.cpp
   fboss/cli/fboss2/CmdArgsLists.cpp
   fboss/cli/fboss2/CmdList.cpp
   fboss/cli/fboss2/CmdLocalOptions.cpp
@@ -425,6 +426,14 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/set/port/CmdSetPort.cpp
   fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h
   fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.cpp
+  fboss/cli/fboss2/commands/set/sdk/CmdSetSdk.h
+  fboss/cli/fboss2/commands/set/sdk/CmdSetSdk.cpp
+  fboss/cli/fboss2/commands/set/sdk/reg_dump/CmdSetSdkRegDump.h
+  fboss/cli/fboss2/commands/set/sdk/reg_dump/CmdSetSdkRegDump.cpp
+  fboss/cli/fboss2/commands/set/transceiver/CmdSetTransceiver.h
+  fboss/cli/fboss2/commands/set/transceiver/CmdSetTransceiver.cpp
+  fboss/cli/fboss2/commands/set/transceiver/loopback/CmdSetTransceiverLoopback.h
+  fboss/cli/fboss2/commands/set/transceiver/loopback/CmdSetTransceiverLoopback.cpp
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.cpp
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h
@@ -572,6 +581,48 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.cpp
   fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h
   fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.cpp
+  fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.h
+  fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.cpp
+  fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h
+  fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.cpp
+  fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.h
+  fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.cpp
+  fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.h
+  fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.cpp
+  fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h
+  fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.cpp
+  fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.h
+  fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.cpp
+  fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigTraits.h
+  fboss/cli/fboss2/commands/show/bgp/shadowrib/CmdShowBgpShadowRib.h
+  fboss/cli/fboss2/commands/show/bgp/shadowrib/CmdShowBgpShadowRib.cpp
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsAttrs.h
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsEntries.h
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsEntries.cpp
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsPolicy.h
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsPolicy.cpp
+  fboss/cli/fboss2/commands/show/bgp/summary/CmdShowBgpSummary.h
+  fboss/cli/fboss2/commands/show/bgp/summary/egress/CmdShowBgpSummaryEgress.h
+  fboss/cli/fboss2/commands/show/bgp/summary/egress/CmdShowBgpSummaryEgress.cpp
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTable.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTable.cpp
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableCommunity.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedDryRun.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPostPolicy.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPrePolicy.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedRejected.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedPostPolicy.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedPrePolicy.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedRejected.h
+  fboss/cli/fboss2/commands/show/bgp/stream/CmdShowBgpStreamSummary.h
+  fboss/cli/fboss2/commands/show/bgp/stream/CmdShowBgpStreamSubscriber.h
+  fboss/cli/fboss2/commands/show/bgp/stream/subscriber/CmdShowBgpStreamSubscriberPrePolicy.h
+  fboss/cli/fboss2/commands/show/bgp/stream/subscriber/CmdShowBgpStreamSubscriberPostPolicy.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.cpp
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
@@ -579,6 +630,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
   fboss/cli/fboss2/oss/CmdList.cpp
+  fboss/cli/fboss2/oss/CmdShowUtils.cpp
   fboss/cli/fboss2/utils/CmdUtils.cpp
   fboss/cli/fboss2/utils/CLIParserUtils.cpp
   fboss/cli/fboss2/utils/CmdClientUtils.cpp
@@ -592,6 +644,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/utils/CmdClientUtilsCommon.h
   fboss/cli/fboss2/utils/CmdUtilsCommon.h
   fboss/cli/fboss2/utils/FilterUtils.h
+  fboss/cli/fboss2/utils/LoopbackUtils.h
+  fboss/cli/fboss2/utils/LoopbackUtils.cpp
   fboss/cli/fboss2/utils/PrbsUtils.cpp
   fboss/cli/fboss2/utils/SafetyPromptUtils.h
   fboss/cli/fboss2/utils/SafetyPromptUtils.cpp
@@ -623,6 +677,8 @@ target_link_libraries(fboss2_lib
   Folly::folly
   input_balance_util
   cli_model
+  bgp_thrift_cpp2
+  bgp_summary_cpp2
   show_acl_model
   show_agent_model
   show_aggregateport_model
@@ -877,6 +933,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h
   fboss/cli/fboss2/commands/config/vlan/CmdConfigVlanDefault.cpp
   fboss/cli/fboss2/commands/config/vlan/CmdConfigVlanDefault.h
+  fboss/cli/fboss2/commands/config/vlan/VlanManager.cpp
+  fboss/cli/fboss2/commands/config/vlan/VlanManager.h
   fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.cpp
   fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h
   fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h

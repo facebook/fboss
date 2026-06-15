@@ -36,11 +36,7 @@
 
 extern "C" {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiaclextensions.h>
-#else
-#include <saiaclextensions.h>
-#endif
 #endif
 }
 
@@ -1919,6 +1915,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     // ETHER_TYPE required for Aifm controller packets using 0x88B6
     if (isTomahawk6) {
       bcmQualifiers.insert(cfg::AclTableQualifier::ETHER_TYPE);
+      bcmQualifiers.erase(cfg::AclTableQualifier::OUT_PORT);
     }
     if (isFake) {
       bcmQualifiers.insert(cfg::AclTableQualifier::L4_DST_PORT_RANGE);
@@ -2107,6 +2104,10 @@ bool SaiAclTableManager::isQualifierSupported(
           attributes);
       return field.has_value();
     }
+    case cfg::AclTableQualifier::TC:
+    case cfg::AclTableQualifier::NEXT_HOP_GROUP_ID:
+      // PBR phase 2 qualifiers: real support is wired in a stacked diff.
+      return false;
     case cfg::AclTableQualifier::UDF:
       /* not supported */
       return false;

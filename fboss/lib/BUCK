@@ -272,8 +272,7 @@ cpp_library(
         "//folly/io/async:async_base",
         "//folly/logging:logging",
     ],
-    exported_external_deps = [
-    ],
+    exported_external_deps = [],
 )
 
 cpp_library(

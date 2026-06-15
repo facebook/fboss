@@ -26,17 +26,17 @@ TEST(DataStoreTest, GetPmUnitInfo) {
   DataStore dataStore(config);
 
   PmUnitVersion version;
-  version.productProductionState() = 2;
-  version.productVersion() = 13;
-  version.productSubVersion() = 1;
+  version.productionState() = 2;
+  version.productionSubState() = 13;
+  version.respinVariantIndicator() = 1;
 
   dataStore.updatePmUnitName("/", "MCB_FAN_CPLD");
   dataStore.updatePmUnitVersion("/", version);
   EXPECT_EQ(*dataStore.getPmUnitInfo("/").name(), "MCB_FAN_CPLD");
+  EXPECT_EQ(*dataStore.getPmUnitInfo("/").version()->productionState(), 2);
+  EXPECT_EQ(*dataStore.getPmUnitInfo("/").version()->productionSubState(), 13);
   EXPECT_EQ(
-      *dataStore.getPmUnitInfo("/").version()->productProductionState(), 2);
-  EXPECT_EQ(*dataStore.getPmUnitInfo("/").version()->productVersion(), 13);
-  EXPECT_EQ(*dataStore.getPmUnitInfo("/").version()->productSubVersion(), 1);
+      *dataStore.getPmUnitInfo("/").version()->respinVariantIndicator(), 1);
   EXPECT_THROW(dataStore.getPmUnitInfo("/SMB_SLOT@1"), std::runtime_error);
 }
 
@@ -72,9 +72,9 @@ TEST(DataStoreTest, HasPmUnit) {
   // present
   dataStore.updatePmUnitName("/SLOT_WITH_VERSION_PRESENT", "TEST_UNIT_VERSION");
   PmUnitVersion version;
-  version.productProductionState() = 2;
-  version.productVersion() = 1;
-  version.productSubVersion() = 1;
+  version.productionState() = 2;
+  version.productionSubState() = 1;
+  version.respinVariantIndicator() = 1;
   dataStore.updatePmUnitVersion("/SLOT_WITH_VERSION_PRESENT", version);
   dataStore.updatePmUnitPresenceInfo(
       "/SLOT_WITH_VERSION_PRESENT", presenceInfoPresent);
@@ -122,9 +122,9 @@ TEST(DataStoreTest, ResolvePmUnitConfig) {
 
   // Case 1 -- Resolve when No versionedPmUnitConfigs
   PmUnitVersion version1;
-  version1.productProductionState() = 2;
-  version1.productVersion() = 1;
-  version1.productSubVersion() = 1;
+  version1.productionState() = 2;
+  version1.productionSubState() = 1;
+  version1.respinVariantIndicator() = 1;
 
   dataStore.updatePmUnitVersion(slotPath, version1);
   EXPECT_TRUE(
@@ -132,9 +132,9 @@ TEST(DataStoreTest, ResolvePmUnitConfig) {
 
   // Case 2 -- Resolve to versionedPmUnitConfigs
   PmUnitVersion version2;
-  version2.productProductionState() = 3;
-  version2.productVersion() = 1;
-  version2.productSubVersion() = 2;
+  version2.productionState() = 3;
+  version2.productionSubState() = 1;
+  version2.respinVariantIndicator() = 2;
 
   dataStore.updatePmUnitVersion(slotPath, version2);
   VersionedPmUnitConfig versionedPmUnitConfig;
@@ -148,15 +148,15 @@ TEST(DataStoreTest, ResolvePmUnitConfig) {
 
   // Case 3 -- Resolve to default PmUnitConfig if no version matches.
   PmUnitVersion version3;
-  version3.productProductionState() = 2;
-  version3.productVersion() = 1;
-  version3.productSubVersion() = 3;
+  version3.productionState() = 2;
+  version3.productionSubState() = 1;
+  version3.respinVariantIndicator() = 3;
 
   dataStore.updatePmUnitVersion(slotPath, version3);
   EXPECT_TRUE(
       dataStore.resolvePmUnitConfig(slotPath).i2cDeviceConfigs()->empty());
 
-  // Case 4 -- Resolve to default PmUnitConfig if productVersion is null.
+  // Case 4 -- Resolve to default PmUnitConfig if version is null.
 
   dataStore.updatePmUnitVersion(slotPath, PmUnitVersion());
   EXPECT_TRUE(

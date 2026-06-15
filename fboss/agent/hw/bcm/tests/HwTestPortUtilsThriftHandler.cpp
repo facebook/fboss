@@ -1,11 +1,15 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/core.h>
+
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/tests/BcmTrunkUtils.h"
+#include "fboss/agent/hw/test/HwPortUtils.h"
+#include "fboss/agent/hw/test/PhyCapabilities.h"
 
 extern "C" {
 #include <bcm/port.h>
@@ -25,7 +29,6 @@ facebook::fboss::cfg::PortLoopbackMode bcmToFbLoopbackMode(
       return facebook::fboss::cfg::PortLoopbackMode::MAC;
     default:
       CHECK(0) << "Should never reach here";
-      break;
   }
   return facebook::fboss::cfg::PortLoopbackMode::NONE;
 }
@@ -213,6 +216,59 @@ void HwTestThriftHandler::clearInterfacePhyCounters(
     std::unique_ptr<::std::vector<::std::int32_t>> portIds) {
   hwSwitch_->clearInterfacePhyCounters(
       std::make_unique<std::vector<int32_t>>(std::move(*portIds)));
+}
+
+void HwTestThriftHandler::verifyPortProfile(
+    std::vector<std::string>& result,
+    int32_t portId,
+    cfg::PortProfileID profileId,
+    std::unique_ptr<phy::ProfileSideConfig> profileConfig,
+    std::unique_ptr<std::vector<phy::PinConfig>> pinConfigs) {
+  auto platform = hwSwitch_->getPlatform();
+  auto tryVerify = [&](const std::string& name, auto&& fn) {
+    try {
+      fn();
+    } catch (const std::exception& ex) {
+      result.push_back(
+          fmt::format("{} failed on port {}: {}", name, portId, ex.what()));
+    }
+  };
+  tryVerify("verifyInterfaceMode", [&]() {
+    ::facebook::fboss::utility::verifyInterfaceMode(
+        PortID(portId), profileId, platform, *profileConfig);
+  });
+  tryVerify("verifyTxSettting", [&]() {
+    ::facebook::fboss::utility::verifyTxSettting(
+        PortID(portId), profileId, platform, *pinConfigs);
+  });
+  tryVerify("verifyRxSettting", [&]() {
+    ::facebook::fboss::utility::verifyRxSettting(
+        PortID(portId), profileId, platform, *pinConfigs);
+  });
+  tryVerify("verifyFec", [&]() {
+    ::facebook::fboss::utility::verifyFec(
+        PortID(portId), profileId, platform, *profileConfig);
+  });
+}
+
+phy::FecMode HwTestThriftHandler::getPortFECMode(int32_t portId) {
+  return hwSwitch_->getPortFECMode(PortID(portId));
+}
+
+bool HwTestThriftHandler::rxSignalDetectSupportedInSdk() {
+  return ::facebook::fboss::rxSignalDetectSupportedInSdk();
+}
+
+bool HwTestThriftHandler::rxLockStatusSupportedInSdk() {
+  return ::facebook::fboss::rxLockStatusSupportedInSdk();
+}
+
+bool HwTestThriftHandler::pcsRxLinkStatusSupportedInSdk() {
+  return ::facebook::fboss::pcsRxLinkStatusSupportedInSdk();
+}
+
+bool HwTestThriftHandler::fecAlignmentLockSupportedInSdk() {
+  return ::facebook::fboss::fecAlignmentLockSupportedInSdk();
 }
 
 } // namespace utility

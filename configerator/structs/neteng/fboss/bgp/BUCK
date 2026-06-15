@@ -1,0 +1,30 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("routing_protocol")
+
+thrift_library(
+    name = "bgp_config_oss",
+    go_thrift_namespaces = {
+        "bgp_config.thrift": "neteng.fboss.bgp_config",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py3-deprecated",
+        "py-deprecated",
+        "python",
+    ],
+    py3_namespace = "configerator.structs.neteng.fboss.bgp",
+    py_base_module = "neteng/fboss",
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "bgp_config.thrift": [],
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        "//configerator/structs/neteng/bgp_policy/thrift:bgp_policy",
+        "//configerator/structs/neteng/fboss/bgp/if:bgp_attr",
+        "//thrift/annotation:python",
+        "//thrift/annotation:thrift",
+    ],
+)

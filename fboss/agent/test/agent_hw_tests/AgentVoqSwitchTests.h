@@ -95,14 +95,18 @@ class AgentVoqSwitchTest : public AgentHwTest {
       const std::set<cfg::PortType>& portTypes = {
           cfg::PortType::INTERFACE_PORT,
           cfg::PortType::HYPER_PORT}) {
+    auto switchId = getSwitchIdUnderTest(*getAgentEnsemble());
     auto ports = getProgrammedState()->getPorts()->getAllNodes();
     std::vector<PortDescriptor> portDescs;
     std::for_each(
         ports->begin(),
         ports->end(),
-        [this, &portDescs, &portTypes](const auto& idAndPort) {
+        [this, &portDescs, &portTypes, switchId](const auto& idAndPort) {
           const auto port = idAndPort.second;
-          if (portTypes.contains(port->getPortType())) {
+          if (portTypes.contains(port->getPortType()) &&
+              scopeResolver()
+                      .scope(getProgrammedState(), port->getID())
+                      .switchId() == switchId) {
             portDescs.push_back(PortDescriptor(getSystemPortID(
                 PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
           }

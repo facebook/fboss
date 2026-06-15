@@ -189,7 +189,7 @@ RouteNextHopSet getNonOverrideNormalizedNextHops(
         getNextHops(state, static_cast<NextHopSetId>(*normalizedSetId));
     return RouteNextHopSet(nhops.begin(), nhops.end());
   }
-  return entry.nonOverrideNormalizedNextHops();
+  return RouteNextHopEntry::normalizeNextHops(entry.getNextHopSet());
 }
 
 std::shared_ptr<SwitchState> getNewStateWithOldFibInfo(

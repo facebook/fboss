@@ -3493,6 +3493,56 @@ TEST_F(NamedNextHopGroupThriftTest, getNonExistentGroupByName) {
   EXPECT_TRUE(result.empty());
 }
 
+TEST_F(NamedNextHopGroupThriftTest, namedGroupNotProgrammedByDefault) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup("orphan", {"2401:db00:2110:3001::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  std::vector<NextHopGroup> result;
+  auto names = std::make_unique<std::vector<std::string>>();
+  names->push_back("orphan");
+  handler.getNamedNextHopGroups(result, std::move(names));
+  ASSERT_EQ(result.size(), 1);
+  ASSERT_TRUE(result[0].isProgrammed().has_value());
+  EXPECT_FALSE(*result[0].isProgrammed());
+}
+
+TEST_F(NamedNextHopGroupThriftTest, getAllNamedGroups) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup("groupA", {"2401:db00:2110:3001::2"}));
+  groups->push_back(makeGroup("groupB", {"2401:db00:2110:3055::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  std::vector<NextHopGroup> result;
+  auto emptyNames = std::make_unique<std::vector<std::string>>();
+  handler.getNamedNextHopGroups(result, std::move(emptyNames));
+  ASSERT_EQ(result.size(), 2);
+
+  std::set<std::string> foundNames;
+  for (const auto& g : result) {
+    foundNames.insert(*g.name());
+    EXPECT_TRUE(g.isProgrammed().has_value());
+  }
+  EXPECT_EQ(foundNames.count("groupA"), 1);
+  EXPECT_EQ(foundNames.count("groupB"), 1);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, getUnnamedNextHopGroups) {
+  ThriftHandler handler(sw_);
+
+  std::vector<NextHopGroup> result;
+  handler.getNextHopGroups(result);
+  ASSERT_FALSE(result.empty());
+  for (const auto& g : result) {
+    EXPECT_FALSE(g.name().has_value());
+    EXPECT_FALSE(g.nexthops()->empty());
+  }
+}
+
 TEST_F(NamedNextHopGroupThriftTest, removeNextHopGroup) {
   ThriftHandler handler(sw_);
 

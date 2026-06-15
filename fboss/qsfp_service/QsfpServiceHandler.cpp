@@ -150,6 +150,47 @@ void QsfpServiceHandler::getPortTransceiverIDs(
   tcvrManager_->getPortTransceiverIDs(portTransceiverIds);
 }
 
+void QsfpServiceHandler::getTransceiverInfoByPortName(
+    std::map<std::string, TransceiverInfo>& info,
+    std::unique_ptr<std::vector<std::string>> portNames) {
+  auto log = LOG_THRIFT_CALL(INFO);
+
+  // Get port name -> transceiver ID mapping (single ID per port)
+  const auto& portNameToModule = tcvrManager_->getPortNameToModuleMap();
+
+  // Collect unique transceiver IDs and build reverse mapping
+  std::set<int32_t> neededIds;
+  std::unordered_map<int32_t, std::vector<std::string>> tcvrIdToPortNames;
+  for (const auto& name : *portNames) {
+    auto it = portNameToModule.find(name);
+    if (it != portNameToModule.end()) {
+      auto tcvrId = it->second;
+      neededIds.insert(tcvrId);
+      tcvrIdToPortNames[tcvrId].push_back(name);
+    }
+  }
+
+  if (neededIds.empty()) {
+    return;
+  }
+
+  // Fetch transceiver info for those IDs
+  auto idVec = std::make_unique<std::vector<int32_t>>(
+      neededIds.begin(), neededIds.end());
+  std::map<int32_t, TransceiverInfo> tcvrInfo;
+  tcvrManager_->getTransceiversInfo(tcvrInfo, std::move(idVec));
+
+  // Map back to all port names sharing each transceiver
+  for (const auto& [tcvrId, tcvr] : tcvrInfo) {
+    auto it = tcvrIdToPortNames.find(tcvrId);
+    if (it != tcvrIdToPortNames.end()) {
+      for (const auto& name : it->second) {
+        info[name] = tcvr;
+      }
+    }
+  }
+}
+
 void QsfpServiceHandler::getTransceiverConfigValidationInfo(
     std::map<int32_t, std::string>& info,
     std::unique_ptr<std::vector<int32_t>> ids,

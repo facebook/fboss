@@ -23,26 +23,25 @@ struct {
   bool operator()(
       const platform_manager::PmUnitVersion& l1,
       const platform_manager::PmUnitVersion& l2) {
-    if (*l1.productProductionState() != *l2.productProductionState()) {
-      return *l1.productProductionState() > *l2.productProductionState();
+    if (*l1.productionState() != *l2.productionState()) {
+      return *l1.productionState() > *l2.productionState();
     }
-    if (*l1.productVersion() != *l2.productVersion()) {
-      return *l1.productVersion() > *l2.productVersion();
+    if (*l1.productionSubState() != *l2.productionSubState()) {
+      return *l1.productionSubState() > *l2.productionSubState();
     }
-    return *l1.productSubVersion() > *l2.productSubVersion();
+    return *l1.respinVariantIndicator() > *l2.respinVariantIndicator();
   }
   bool operator()(
       const VersionedPmSensor& vSensor1,
       const VersionedPmSensor& vSensor2) {
-    if (*vSensor1.productProductionState() !=
-        *vSensor2.productProductionState()) {
-      return *vSensor1.productProductionState() >
-          *vSensor2.productProductionState();
+    if (*vSensor1.productionState() != *vSensor2.productionState()) {
+      return *vSensor1.productionState() > *vSensor2.productionState();
     }
-    if (*vSensor1.productVersion() != *vSensor2.productVersion()) {
-      return *vSensor1.productVersion() > *vSensor2.productVersion();
+    if (*vSensor1.productionSubState() != *vSensor2.productionSubState()) {
+      return *vSensor1.productionSubState() > *vSensor2.productionSubState();
     }
-    return *vSensor1.productSubVersion() > *vSensor2.productSubVersion();
+    return *vSensor1.respinVariantIndicator() >
+        *vSensor2.respinVariantIndicator();
   }
 } VersionedSensorComparator;
 } // namespace
@@ -136,16 +135,16 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
     // Find a VersionedSensor that satisfies fetched PmUnitInfo version.
     // i.e. PmUnitInfo version >= VersionedSensor sensor
     platform_manager::PmUnitVersion sensorVersion;
-    sensorVersion.productProductionState() =
-        *versionedSensor.productProductionState();
-    sensorVersion.productVersion() = *versionedSensor.productVersion();
-    sensorVersion.productSubVersion() = *versionedSensor.productSubVersion();
+    sensorVersion.productionState() = *versionedSensor.productionState();
+    sensorVersion.productionSubState() = *versionedSensor.productionSubState();
+    sensorVersion.respinVariantIndicator() =
+        *versionedSensor.respinVariantIndicator();
     if (!VersionedSensorComparator(sensorVersion, fetchedVersion)) {
       XLOG(DBG1) << fmt::format(
           "Resolved to VersionedPmSensor of version {}.{}.{} (productName: {})",
-          *versionedSensor.productProductionState(),
-          *versionedSensor.productVersion(),
-          *versionedSensor.productSubVersion(),
+          *versionedSensor.productionState(),
+          *versionedSensor.productionSubState(),
+          *versionedSensor.respinVariantIndicator(),
           versionedSensor.productName().value_or("UNSET"));
       return versionedSensor;
     }

@@ -36,7 +36,9 @@ struct SendPktFunc {
   const FuncType3 func3_;
 };
 SendPktFunc getSendPktFunc(TestEnsembleIf* ensemble);
-SendPktFunc getSendPktFunc(SwSwitch* sw);
+SendPktFunc getSendPktFunc(
+    SwSwitch* sw,
+    const std::optional<SwitchID>& switchId = std::nullopt);
 
 using AllocatePktFunc = std::function<std::unique_ptr<TxPacket>(uint32_t size)>;
 AllocatePktFunc getAllocatePktFn(TestEnsembleIf* ensemble);

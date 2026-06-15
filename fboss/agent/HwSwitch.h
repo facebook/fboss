@@ -394,6 +394,8 @@ class HwSwitch {
 
   std::string getDebugDump() const;
   virtual void dumpDebugState(const std::string& path) const = 0;
+
+  virtual void setSdkRegDumpEnabled(bool enabled);
   virtual std::string listObjects(
       const std::vector<HwObjectType>& types,
       bool cached) const = 0;

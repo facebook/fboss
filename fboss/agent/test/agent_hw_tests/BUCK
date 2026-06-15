@@ -5,7 +5,9 @@ load(
     "embed_resources",
 )
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
-load("//fboss/agent/hw/sai/impl:impl.bzl", "SAI_BRCM_IMPLS", "SAI_LEABA_IMPLS", "SAI_NVIDIA_IMPLS", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name")
+load(
+    "//fboss/agent/hw/sai/impl:impl.bzl", "SAI_BRCM_IMPLS", "SAI_LEABA_IMPLS", "SAI_NVIDIA_IMPLS", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name"
+)
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
 oncall("fboss_agent_push")
@@ -185,6 +187,7 @@ cpp_library(
         "AgentAclInDiscardCounterTests.cpp",
         "AgentAclPriorityTests.cpp",
         "AgentAclTableGroupTests.cpp",
+        "AgentAclTableGroupTrafficTests.cpp",
         "AgentAclTableTests.cpp",
         "AgentAmIdlesTests.cpp",
         "AgentAqmTests.cpp",
@@ -232,6 +235,7 @@ cpp_library(
         "AgentMacLearningTests.cpp",
         "AgentMemoryUsageTests.cpp",
         "AgentMirrorOnDropDnxTests.cpp",
+        "AgentMirrorOnDropSrv6Tests.cpp",
         "AgentMirrorOnDropStatelessTest.cpp",
         "AgentMirrorOnDropStatelessTests.cpp",
         "AgentMirrorOnDropTajoImpl.cpp",
@@ -247,6 +251,7 @@ cpp_library(
         "AgentPfcTests.cpp",
         "AgentPortBandWidthTests.cpp",
         "AgentPortLedTests.cpp",
+        "AgentPortProfileTests.cpp",
         "AgentPrbsTests.cpp",
         "AgentQueuePerHostL2Tests.cpp",
         "AgentQueuePerHostRouteTests.cpp",
@@ -291,6 +296,7 @@ cpp_library(
         "AgentVoqSwitchFabricLinkMonitoringTests.h",
     ],
     link_whole = True,
+    undefined_symbols = True,
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
@@ -331,6 +337,7 @@ cpp_library(
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_copp_utils",
         "//fboss/agent/hw/test:hw_packet_utils",
+        "//fboss/agent/hw/test:hw_test_port_utils",
         "//fboss/agent/hw/test:prod_config_factory",
         "//fboss/agent/if:agent_hw_test_ctrl-cpp2-types",
         "//fboss/agent/if:common-cpp2-types",
@@ -338,6 +345,7 @@ cpp_library(
         "//fboss/agent/if:highfreq-cpp2-types",
         "//fboss/agent/if:hw_ctrl-cpp2-clients",
         "//fboss/agent/packet:ether_type",
+        "//fboss/agent/packet:ipproto",
         "//fboss/agent/packet:packet",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/packet:pktutil",
@@ -399,6 +407,7 @@ cpp_library(
         "//fboss/agent/thrift_packet_stream:packet_stream_client",
         "//fboss/lib:common_utils",
         "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/phy:phy_utils",
         "//folly:conv",
         "//folly:file_util",
         "//folly:map_util",
@@ -566,7 +575,8 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
             "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
             "//fboss/agent:setup_thrift_prod",
-        ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
+        ]
+        + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
 ]
@@ -591,7 +601,7 @@ _sai_scale_test_configs = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
-        ] if sai_impl.name == "nvda" else [],
+        ],
         versions = to_versions(sai_impl),
         deps = [
             "fbsource//third-party/googletest:gtest",
@@ -604,7 +614,8 @@ _sai_scale_test_configs = [
             "//fboss/agent/test:{}".format(agent_ensemble),
             "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
             "//fboss/agent:setup_thrift_prod",
-        ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
+        ]
+        + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for (prefix, agent_ensemble) in _sai_scale_test_configs
     for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
@@ -621,12 +632,13 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
         link_group_map = get_link_group_map(
             to_impl_bin_name(sai_impl, _sai_agent_provision_test_prefix),
             sai_impl,
+            is_prod = True,
         ),
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
-        ] if sai_impl.name == "nvda" else [],
+        ],
         versions = to_versions(sai_impl),
         deps = [
             "fbsource//third-party/googletest:gtest",
@@ -638,7 +650,8 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
             "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
             "//fboss/agent:setup_thrift_prod",
-        ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
+        ]
+        + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
-    for sai_impl in SAI_LEABA_IMPLS
+    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS
 ]

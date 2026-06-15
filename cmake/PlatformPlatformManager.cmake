@@ -149,6 +149,24 @@ target_link_libraries(platform_manager_cpld_manager
   Folly::folly
 )
 
+add_library(platform_manager_fbfancpld_ioctl_h INTERFACE)
+
+target_sources(platform_manager_fbfancpld_ioctl_h
+  INTERFACE
+    fboss/platform/platform_manager/uapi/fbfancpld-ioctl.h
+)
+
+add_library(platform_manager_fan_cpld_manager
+  fboss/platform/platform_manager/FanCpldManager.cpp
+)
+
+target_link_libraries(platform_manager_fan_cpld_manager
+  fmt::fmt
+  platform_manager_config_cpp2
+  platform_manager_utils
+  Folly::folly
+)
+
 add_library(platform_manager_device_path_resolver
   fboss/platform/platform_manager/DevicePathResolver.cpp
 )
@@ -170,6 +188,7 @@ add_library(platform_manager_platform_explorer
 
 target_link_libraries(platform_manager_platform_explorer
   platform_manager_cpld_manager
+  platform_manager_fan_cpld_manager
   platform_manager_data_store
   platform_manager_device_path_resolver
   platform_manager_i2c_explorer

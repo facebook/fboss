@@ -380,7 +380,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x40590 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
               "numPorts": 1,
-              "ledPerPort": 1,
+              "ledPerPort": 2,
               "startPort": 33,
               "lanesPerPort": 4
             }
@@ -415,9 +415,16 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x33",
-          "kernelDeviceName": "w800_fancpld",
+          "kernelDeviceName": "fbfancpld",
           "pmUnitScopedName": "MCB_FAN_CPLD",
-          "isWatchdog": true
+          "isWatchdog": true,
+          "fanCpldConfig": {
+            "numFans": 4,
+            "pwmMax": 40,
+            "speedMultiplier": 150,
+            "hasRearTach": true,
+            "hasLeds": true
+          }
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
@@ -1043,13 +1050,14 @@
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 33,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.2.0-1",
+  "bspKmodsRpmVersion": "4.3.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",
     "fboss_iob_pci",
     "fboss_iob_i2c",
     "fboss_iob_spi",
+    "fboss_iob_gpio",
     "ledtrig_timer"
   ]
 }

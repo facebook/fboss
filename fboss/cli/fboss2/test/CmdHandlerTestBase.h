@@ -1,18 +1,20 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#pragma once
+
 #include <gtest/gtest.h>
 
 #include <folly/IPAddressV4.h>
-#include <thrift/lib/cpp2/server/ThriftServer.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h> // NOLINT(misc-include-cleaner)
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 #include <memory>
 
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
 #include "fboss/cli/fboss2/test/MockClients.h"
+#include "fboss/cli/fboss2/test/bgp/MockBgpClient.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/lib/ThriftServiceUtils.h"
-
-#pragma once
 
 namespace facebook::fboss {
 
@@ -21,7 +23,7 @@ class CmdHandlerTestBase : public ::testing::Test {
   void SetUp() override {
     mockedAgent_ = std::make_shared<MockFbossCtrlAgent>();
     mockedQsfpService_ = std::make_shared<MockFbossQsfpService>();
-    mockedBgpService_ = std::make_shared<MockFbossBgpService>();
+    // mockedBgpService_ is created in setupMockedBgpServer() when needed
     mockedFsdb_ = std::make_shared<MockFsdb>();
     localHost_ = std::make_unique<HostInfo>(
         "test.host", "test-oob.host", folly::IPAddressV6("::1"));
@@ -36,14 +38,14 @@ class CmdHandlerTestBase : public ::testing::Test {
   void setupMockedAgentServer() {
     mockedAgentServer_ =
         std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-            mockedAgent_, createFastMockServerConfig());
+            mockedAgent_, "::1", 0, createFastMockServerConfig());
     // set global agent thrift port to the fake server created on localhost
     CmdGlobalOptions::getInstance()->setAgentThriftPort(
         mockedAgentServer_->getAddress().getPort());
 
     mockedQsfpServer_ =
         std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-            mockedQsfpService_, createFastMockServerConfig());
+            mockedQsfpService_, "::1", 0, createFastMockServerConfig());
     // set global agent thrift port to the fake server created on localhost
     CmdGlobalOptions::getInstance()->setQsfpThriftPort(
         mockedQsfpServer_->getAddress().getPort());
@@ -58,19 +60,22 @@ class CmdHandlerTestBase : public ::testing::Test {
   }
 
   void setupMockedBgpServer() {
-#ifndef IS_OSS
+    // Create a fresh mock service to avoid stale expectations between tests
+    mockedBgpService_ = std::make_shared<MockBgpClient>();
     mockedBgpServer_ =
         std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-            mockedBgpService_, createFastMockServerConfig());
+            mockedBgpService_, "::1", 0, createFastMockServerConfig());
     CmdGlobalOptions::getInstance()->setBgpThriftPort(
         mockedBgpServer_->getAddress().getPort());
-#endif
   }
 
   void TearDown() override {
-    // stop agent servers
+    // stop agent and BGP servers
     mockedAgentServer_.reset();
     mockedFsdbServer_.reset();
+    mockedBgpServer_.reset();
+    // Reset BGP mnemonic caches to ensure fresh data for next test
+    resetBgpMnemonicCaches();
   }
 
   auto& getMockAgent() {
@@ -87,6 +92,11 @@ class CmdHandlerTestBase : public ::testing::Test {
 
   auto& getMockFsdb() {
     return *mockedFsdb_;
+  }
+
+  // Alias for getBgpService() used by BGP tests
+  auto& getMockBgp() {
+    return *mockedBgpService_;
   }
 
   const auto& localhost() {
@@ -106,10 +116,24 @@ class CmdHandlerTestBase : public ::testing::Test {
 
   std::shared_ptr<MockFbossQsfpService> mockedQsfpService_;
 
-  std::shared_ptr<MockFbossBgpService> mockedBgpService_;
+  std::shared_ptr<MockBgpClient> mockedBgpService_;
 
   std::shared_ptr<MockFsdb> mockedFsdb_;
 
   std::unique_ptr<HostInfo> localHost_;
 };
+
+// Helper macro to compare vectors of Thrift structs element by element
+// EXPECT_THRIFT_EQ doesn't work with vectors, only individual structs
+#define EXPECT_THRIFT_EQ_VECTOR(actual, expected)            \
+  do {                                                       \
+    ASSERT_EQ((actual).size(), (expected).size())            \
+        << "Vector sizes differ: actual=" << (actual).size() \
+        << " expected=" << (expected).size();                \
+    for (size_t i = 0; i < (expected).size(); ++i) {         \
+      EXPECT_THRIFT_EQ((actual)[i], (expected)[i])           \
+          << "Mismatch at index " << i;                      \
+    }                                                        \
+  } while (0)
+
 } // namespace facebook::fboss

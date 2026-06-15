@@ -25,7 +25,10 @@ std::string sanitizePlatformName(const std::string& platformNameFromBios) {
       platformNameUpper == "MINIPACK3_MCB") {
     return "MONTBLANC";
   }
-
+  if (platformNameUpper == "MINIPACK3M" ||
+      platformNameUpper == "MINIPACK3M_MCB") {
+    return "MONTBLANCM";
+  }
   if (platformNameUpper == "JANGA") {
     return "JANGA800BIC";
   }

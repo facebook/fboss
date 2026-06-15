@@ -74,8 +74,16 @@ TEST(ParserTest, GetNameForTests) {
       "ladakh800bcls");
   EXPECT_EQ(
       facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_LEH800BCLS),
+      "leh800bcls");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
           facebook::fboss::PlatformType::PLATFORM_ICECUBE800BANW),
       "icecube800banw");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_SAINTPAUL),
+      "saintpaul");
 }
 
 TEST(ParserTest, GetTransceiverConfigRowFromCsvLine) {

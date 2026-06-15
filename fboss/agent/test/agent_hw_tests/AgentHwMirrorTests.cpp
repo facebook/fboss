@@ -3,6 +3,7 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
+#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
@@ -448,6 +449,7 @@ TYPED_TEST(AgentHwMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
       client->sync_getAllMirrorDestinations(destinations);
       ASSERT_EVENTUALLY_EQ(destinations.size(), 1);
     });
+    ASSERT_EQ(destinations.size(), 1);
     WITH_RETRIES({
       EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
           static_cast<int32_t>(this->masterLogicalInterfacePortIds()[0]),
@@ -599,6 +601,7 @@ TYPED_TEST(AgentHwSflowMirrorTest, SampleOnePort) {
       client->sync_getAllMirrorDestinations(destinations);
       ASSERT_EVENTUALLY_EQ(destinations.size(), 1);
     });
+    ASSERT_EQ(destinations.size(), 1);
     WITH_RETRIES({
       EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
           static_cast<int32_t>(this->masterLogicalInterfacePortIds()[1]),
@@ -641,7 +644,603 @@ TYPED_TEST(AgentHwSflowMirrorTest, SampleAllPorts) {
     WITH_RETRIES({
       destinations.clear();
       client->sync_getAllMirrorDestinations(destinations);
-      EXPECT_EVENTUALLY_EQ(destinations.size(), 1);
+      ASSERT_EVENTUALLY_EQ(destinations.size(), 1);
+    });
+    ASSERT_EQ(destinations.size(), 1);
+    for (auto port : this->masterLogicalInterfacePortIds()) {
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+            static_cast<int32_t>(port),
+            this->getMirrorPortIngressAndSflowFlags(),
+            destinations[0]));
+      });
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentHwSflowMirrorTest, SflowMirrorWithErspanMirror) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
+
+    for (auto i = 0; i < 2; i++) {
+      auto portId = this->masterLogicalInterfacePortIds()[i];
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    auto portCfg =
+        utility::findCfgPort(cfg, this->masterLogicalInterfacePortIds()[2]);
+    portCfg->ingressMirror() = *cfg.mirrors()[1].name();
+    portCfg->egressMirror() = *cfg.mirrors()[1].name();
+    this->applyNewConfig(cfg);
+    // resolve both mirrors
+    this->resolveAllMirrors(this->masterLogicalInterfacePortIds()[0]);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      bool allResolved = true;
+      for (auto mniter :
+           std::as_const(*this->getProgrammedState()->getMirrors())) {
+        for (auto iter : std::as_const(*mniter.second)) {
+          auto mirror = iter.second;
+          if (!mirror || !mirror->isResolved()) {
+            allResolved = false;
+          }
+        }
+      }
+      EXPECT_EVENTUALLY_TRUE(allResolved);
+      if (!allResolved) {
+        continue;
+      }
+      for (auto mniter :
+           std::as_const(*this->getProgrammedState()->getMirrors())) {
+        for (auto iter : std::as_const(*mniter.second)) {
+          auto mirror = iter.second;
+          auto fields = mirror->toThrift();
+          EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+        }
+      }
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      ASSERT_EVENTUALLY_EQ(destinations.size(), 2);
+    });
+    ASSERT_EQ(destinations.size(), 2);
+    int64_t sflow = 0;
+    int64_t erspan = 0;
+    for (auto destination : destinations) {
+      if (client->sync_isMirrorSflowTunnelEnabled(destination)) {
+        sflow = destination;
+      } else {
+        erspan = destination;
+      }
+    }
+    for (auto i = 0; i < 2; i++) {
+      auto port = this->masterLogicalInterfacePortIds()[i];
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+            static_cast<int32_t>(port),
+            this->getMirrorPortIngressAndSflowFlags(),
+            sflow));
+      });
+    }
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[2]),
+          this->getMirrorPortIngressFlags(),
+          erspan));
+    });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[2]),
+          this->getMirrorPortEgressFlags(),
+          erspan));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentHwSflowMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
+
+    for (auto i = 0; i < 2; i++) {
+      auto portId = this->masterLogicalInterfacePortIds()[i];
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    auto portCfg =
+        utility::findCfgPort(cfg, this->masterLogicalInterfacePortIds()[2]);
+    portCfg->ingressMirror() = *cfg.mirrors()[1].name();
+    portCfg->egressMirror() = *cfg.mirrors()[1].name();
+    this->applyNewConfig(cfg);
+    // resolve both mirrors
+    this->resolveAllMirrors(this->masterLogicalInterfacePortIds()[0]);
+
+    portCfg =
+        utility::findCfgPort(cfg, this->masterLogicalInterfacePortIds()[1]);
+    portCfg->sampleDest() = cfg::SampleDestination::CPU;
+    *portCfg->sFlowIngressRate() = 0;
+    portCfg->ingressMirror().reset();
+    this->applyNewConfig(cfg);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      bool allResolved = true;
+      for (auto mniter :
+           std::as_const(*this->getProgrammedState()->getMirrors())) {
+        for (auto iter : std::as_const(*mniter.second)) {
+          auto mirror = iter.second;
+          if (!mirror || !mirror->isResolved()) {
+            allResolved = false;
+          }
+        }
+      }
+      EXPECT_EVENTUALLY_TRUE(allResolved);
+      if (!allResolved) {
+        continue;
+      }
+      for (auto mniter :
+           std::as_const(*this->getProgrammedState()->getMirrors())) {
+        for (auto iter : std::as_const(*mniter.second)) {
+          auto mirror = iter.second;
+          auto fields = mirror->toThrift();
+          EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+        }
+      }
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      ASSERT_EVENTUALLY_EQ(destinations.size(), 2);
+    });
+    ASSERT_EQ(destinations.size(), 2);
+    int64_t sflow = 0;
+    int64_t erspan = 0;
+    for (auto destination : destinations) {
+      if (client->sync_isMirrorSflowTunnelEnabled(destination)) {
+        sflow = destination;
+      } else {
+        erspan = destination;
+      }
+    }
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[0]),
+          this->getMirrorPortIngressAndSflowFlags(),
+          sflow));
+    });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortNoMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[1]),
+          this->getMirrorPortIngressAndSflowFlags()));
+    });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[2]),
+          this->getMirrorPortIngressFlags(),
+          erspan));
+    });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[2]),
+          this->getMirrorPortEgressFlags(),
+          erspan));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentHwSflowMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
+
+    for (auto i = 0; i < 2; i++) {
+      auto portId = this->masterLogicalInterfacePortIds()[i];
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    auto portCfg =
+        utility::findCfgPort(cfg, this->masterLogicalInterfacePortIds()[2]);
+    portCfg->ingressMirror() = *cfg.mirrors()[1].name();
+    portCfg->egressMirror() = *cfg.mirrors()[1].name();
+    this->applyNewConfig(cfg);
+    // resolve both mirrors
+    this->resolveAllMirrors(this->masterLogicalInterfacePortIds()[0]);
+    for (auto i = 0; i < 2; i++) {
+      auto portId = this->masterLogicalInterfacePortIds()[i];
+      auto portConfig = utility::findCfgPort(cfg, portId);
+      portConfig->sampleDest() = cfg::SampleDestination::CPU;
+      *portConfig->sFlowIngressRate() = 0;
+      portConfig->ingressMirror().reset();
+    }
+    this->applyNewConfig(cfg);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      bool allResolved = true;
+      for (auto mniter :
+           std::as_const(*this->getProgrammedState()->getMirrors())) {
+        for (auto iter : std::as_const(*mniter.second)) {
+          auto mirror = iter.second;
+          if (!mirror || !mirror->isResolved()) {
+            allResolved = false;
+          }
+        }
+      }
+      EXPECT_EVENTUALLY_TRUE(allResolved);
+      if (!allResolved) {
+        continue;
+      }
+      for (auto mniter :
+           std::as_const(*this->getProgrammedState()->getMirrors())) {
+        for (auto iter : std::as_const(*mniter.second)) {
+          auto mirror = iter.second;
+          auto fields = mirror->toThrift();
+          EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+        }
+      }
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      ASSERT_EVENTUALLY_EQ(destinations.size(), 2);
+    });
+    ASSERT_EQ(destinations.size(), 2);
+    int64_t erspan = 0;
+    for (auto destination : destinations) {
+      if (client->sync_isMirrorSflowTunnelEnabled(destination)) {
+        std::ignore = destination;
+      } else {
+        erspan = destination;
+      }
+    }
+    for (auto port : this->masterLogicalInterfacePortIds()) {
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortNoMirrorDestination(
+            static_cast<int32_t>(port),
+            this->getMirrorPortIngressAndSflowFlags()));
+      });
+    }
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[2]),
+          this->getMirrorPortIngressFlags(),
+          erspan));
+    });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+          static_cast<int32_t>(this->masterLogicalInterfacePortIds()[2]),
+          this->getMirrorPortEgressFlags(),
+          erspan));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentHwSflowMirrorTest, SampleAllPortsMirrorUnresolved) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    /* sampling all ports and send traffic to sflow mirror */
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    for (auto portId : this->masterLogicalInterfacePortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    this->applyNewConfig(cfg);
+    // resolve mirror
+    this->resolveMirror(kSflow, this->masterLogicalInterfacePortIds()[0]);
+    this->unresolveMirror(kSflow);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      EXPECT_EVENTUALLY_TRUE(mirror != nullptr);
+      if (!mirror) {
+        continue;
+      }
+      auto fields = mirror->toThrift();
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyUnResolvedMirror(fields));
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      EXPECT_EVENTUALLY_EQ(destinations.size(), 0);
+    });
+    for (auto port : this->masterLogicalInterfacePortIds()) {
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortNoMirrorDestination(
+            static_cast<int32_t>(port),
+            this->getMirrorPortIngressAndSflowFlags()));
+      });
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentHwSflowMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    /* sampling all ports and send traffic to sflow mirror */
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    for (auto portId : this->masterLogicalInterfacePortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    this->applyNewConfig(cfg);
+    // resolve mirror
+    this->resolveMirror(kSflow, this->masterLogicalInterfacePortIds()[0]);
+    // unresolve
+    this->unresolveMirror(kSflow);
+    // reresolve
+    this->resolveMirror(kSflow, this->masterLogicalInterfacePortIds()[0]);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      EXPECT_EVENTUALLY_TRUE(mirror && mirror->isResolved());
+      if (!mirror || !mirror->isResolved()) {
+        continue;
+      }
+      auto fields = mirror->toThrift();
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      ASSERT_EVENTUALLY_EQ(destinations.size(), 1);
+    });
+    ASSERT_EQ(destinations.size(), 1);
+    for (auto port : this->masterLogicalInterfacePortIds()) {
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+            static_cast<int32_t>(port),
+            this->getMirrorPortIngressAndSflowFlags(),
+            destinations[0]));
+      });
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentHwSflowMirrorTest, SampleAllPortsMirrorUpdate) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    /* sampling all ports and send traffic to sflow mirror */
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    for (auto portId : this->masterLogicalInterfacePortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    this->applyNewConfig(cfg);
+    // resolve mirror
+    this->resolveMirror(kSflow, this->masterLogicalInterfacePortIds()[0]);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      EXPECT_EVENTUALLY_TRUE(mirror && mirror->isResolved());
+      if (!mirror || !mirror->isResolved()) {
+        continue;
+      }
+      auto fields = mirror->toThrift();
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      ASSERT_EVENTUALLY_EQ(destinations.size(), 1);
+    });
+    ASSERT_EQ(destinations.size(), 1);
+    for (auto port : this->masterLogicalInterfacePortIds()) {
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+            static_cast<int32_t>(port),
+            this->getMirrorPortIngressAndSflowFlags(),
+            destinations[0]));
+      });
+    }
+  };
+  auto setupPostWb = [=, this] {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    // update to truncate if supported
+    *cfg.mirrors()[0].truncate() =
+        this->isSupportedOnAllAsics(HwAsic::Feature::MIRROR_PACKET_TRUNCATION);
+    // update destination port now
+    cfg.mirrors()[0].destination()->tunnel()->sflowTunnel()->udpDstPort() =
+        9898;
+    /* sampling all ports and send traffic to sflow mirror */
+    for (auto portId : this->masterLogicalInterfacePortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    this->applyNewConfig(cfg);
+    // resolve mirror
+    this->resolveMirror(kSflow, this->masterLogicalInterfacePortIds()[0]);
+  };
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWb, verify);
+}
+
+TYPED_TEST(AgentHwSflowMirrorTest, RemoveSampleAllPorts) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    /* sampling all ports and send traffic to sflow mirror */
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    for (auto portId : this->masterLogicalInterfacePortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    this->applyNewConfig(cfg);
+    // resolve mirror
+    this->resolveMirror(kSflow, this->masterLogicalInterfacePortIds()[0]);
+
+    /* reset all config */
+    cfg = this->initialConfig(*this->getAgentEnsemble());
+    this->applyNewConfig(cfg);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      EXPECT_EVENTUALLY_TRUE(mirror == nullptr);
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      EXPECT_EVENTUALLY_EQ(destinations.size(), 0);
+    });
+    for (auto port : this->masterLogicalInterfacePortIds()) {
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortNoMirrorDestination(
+            static_cast<int32_t>(port),
+            this->getMirrorPortIngressAndSflowFlags()));
+      });
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentHwSflowMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    /* sampling all ports and send traffic to sflow mirror */
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    for (const auto& portId : this->masterLogicalInterfacePortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    this->applyNewConfig(cfg);
+    // resolve mirror
+    this->resolveMirror(kSflow, this->masterLogicalInterfacePortIds()[0]);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      EXPECT_EVENTUALLY_TRUE(mirror && mirror->isResolved());
+      if (!mirror || !mirror->isResolved()) {
+        continue;
+      }
+      auto fields = mirror->toThrift();
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      ASSERT_EVENTUALLY_EQ(destinations.size(), 1);
+    });
+    for (const auto& port : this->masterLogicalInterfacePortIds()) {
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortMirrorDestination(
+            static_cast<int32_t>(port),
+            this->getMirrorPortIngressAndSflowFlags(),
+            destinations[0]));
+      });
+    }
+  };
+  auto setupPostWb = [=, this]() {
+    /* reset all config */
+    this->applyNewConfig(this->initialConfig(*this->getAgentEnsemble()));
+  };
+  auto verifyPostWb = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      EXPECT_EVENTUALLY_TRUE(mirror == nullptr);
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      EXPECT_EVENTUALLY_EQ(destinations.size(), 0);
+    });
+    for (auto port : this->masterLogicalInterfacePortIds()) {
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_verifyPortNoMirrorDestination(
+            static_cast<int32_t>(port),
+            this->getMirrorPortIngressAndSflowFlags()));
+      });
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWb, verifyPostWb);
+}
+
+TYPED_TEST(AgentHwSflowMirrorTest, SampleAllPortsReloadConfig) {
+  /* Setup sample destination to mirror for all ports, and mirror only one port
+  this will ensure all port traffic is sampled and sent to that mirror */
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    /* sampling all ports and send traffic to sflow mirror */
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    for (const auto& portId : this->masterLogicalInterfacePortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    }
+    this->applyNewConfig(cfg);
+    // resolve mirror
+    this->resolveMirror(kSflow, this->masterLogicalInterfacePortIds()[0]);
+
+    // reload config and verify mirror stays resolved
+    this->applyNewConfig(cfg);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      EXPECT_EVENTUALLY_TRUE(mirror && mirror->isResolved());
+      if (!mirror || !mirror->isResolved()) {
+        continue;
+      }
+      auto fields = mirror->toThrift();
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+    });
+    std::vector<int64_t> destinations;
+    WITH_RETRIES({
+      destinations.clear();
+      client->sync_getAllMirrorDestinations(destinations);
+      ASSERT_EVENTUALLY_EQ(destinations.size(), 1);
     });
     for (auto port : this->masterLogicalInterfacePortIds()) {
       WITH_RETRIES({
@@ -651,6 +1250,35 @@ TYPED_TEST(AgentHwSflowMirrorTest, SampleAllPorts) {
             destinations[0]));
       });
     }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentHwMirrorTrunkTest, ResolvedErspanMirrorOnTrunk) {
+  auto setup = [=, this]() {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+
+    utility::addAggPort(1, {this->masterLogicalInterfacePortIds()[0]}, &cfg);
+    cfg.mirrors()->push_back(this->getErspanMirror());
+    auto state = this->applyNewConfig(cfg);
+    this->applyNewState([=](const std::shared_ptr<SwitchState>&) {
+      return utility::enableTrunkPorts(state);
+    });
+
+    this->resolveMirror(kErspan, this->masterLogicalInterfacePortIds()[0]);
+  };
+  auto verify = [=, this]() {
+    auto client = this->getClient();
+    WITH_RETRIES({
+      auto mirror =
+          this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
+      EXPECT_EVENTUALLY_TRUE(mirror && mirror->isResolved());
+      if (!mirror || !mirror->isResolved()) {
+        continue;
+      }
+      auto fields = mirror->toThrift();
+      EXPECT_EVENTUALLY_TRUE(client->sync_verifyResolvedMirror(fields));
+    });
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

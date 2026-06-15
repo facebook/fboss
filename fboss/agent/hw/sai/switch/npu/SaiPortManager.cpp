@@ -16,11 +16,7 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #if defined(BRCM_SAI_SDK_DNX) || defined(BRCM_SAI_SDK_XGS)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiportextensions.h>
-#else
-#include <saiportextensions.h>
-#endif
 #endif
 
 DEFINE_bool(
@@ -305,7 +301,11 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
             platform_->getAsic()->isSupported(
                 HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS),
             platform_->getAsic()->isSupported(
-                HwAsic::Feature::SAI_PORT_PG_DROP_STATUS)));
+                HwAsic::Feature::SAI_PORT_PG_DROP_STATUS),
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER),
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER)));
   }
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
@@ -428,7 +428,11 @@ void SaiPortManager::changePortImpl(
               platform_->getAsic()->isSupported(
                   HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS),
               platform_->getAsic()->isSupported(
-                  HwAsic::Feature::SAI_PORT_PG_DROP_STATUS)));
+                  HwAsic::Feature::SAI_PORT_PG_DROP_STATUS),
+              platform_->getAsic()->isSupported(
+                  HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER),
+              platform_->getAsic()->isSupported(
+                  HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER)));
     } else if (oldPort->getName() != newPort->getName()) {
       // Port was already enabled, but Port name changed - update stats
       portStats_.find(newPort->getID())
@@ -1057,7 +1061,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       linkUpDebounce, // LinkUpDebouncePeriodMs
       linkDownDebounce, // LinkDownDebouncePeriodMs
 #endif
-#if defined(CHENAB_SAI_SDK)
+#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_8_ea)
       0xffff, // PfcPauseDurationOverride
 #else
       std::nullopt, // PfcPauseDurationOverride

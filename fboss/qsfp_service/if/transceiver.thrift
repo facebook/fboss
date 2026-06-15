@@ -436,6 +436,7 @@ struct HostLaneSettings {
   6: optional bool rxSquelch;
   7: optional i32 rxOutputPreCursor;
   8: optional i32 rxOutputPostCursor;
+  9: optional i32 currentAppSel;
 }
 
 struct MediaLaneSignals {
@@ -722,8 +723,12 @@ enum TransceiverErrorState {
 enum ModuleTechnology {
   GREY = 0,
   LPO = 1,
-  TUNABLE = 2,
+  // CMIS MEDIA_INTERFACE_TECHNOLOGY byte 00h:212
+  // C-Band tunable laser (0x10) — 191.3-196.1 THz
+  TUNABLE_C_BAND = 2,
   AEC = 3,
+  // L-Band tunable laser (0x11) — 186.0-191.2 THz
+  TUNABLE_L_BAND = 4,
 
   // unknown
   UNKNOWN = -1,

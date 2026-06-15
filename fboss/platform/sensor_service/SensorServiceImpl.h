@@ -136,9 +136,9 @@ class SensorServiceImpl {
 
   void publishVersionedSensorStats(
       const std::string& pmUnitName,
-      int16_t productProductionState,
-      int16_t productVersion,
-      int16_t productSubVersion);
+      int16_t productionState,
+      int16_t productionSubState,
+      int16_t respinVariantIndicator);
 
   // Pre-fetches PmUnitInfo for every PmUnitSensors entry that declares
   // versionedSensors OR is a field-replaceable PSU/PEM slot, so the

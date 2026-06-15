@@ -74,6 +74,14 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     return false;
   }
 
+  // ZR/coherent modules can only run PRBS line-side to line-side
+  // (TRANSCEIVER_LINE to TRANSCEIVER_LINE). They cannot generate or pass
+  // through PRBS on the ASIC or transceiver system side, so they must be
+  // excluded from every other PRBS mode.
+  bool isZrModule(PortID port) {
+    return checkValidMedia(port, MediaInterfaceCode::ZR_800G);
+  }
+
   bool checkPrbsSupported(
       std::string& interfaceName,
       phy::PortComponent component,
@@ -269,10 +277,18 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       auto agentClient = utils::createWedgeAgentClient();
       for (const auto& [polynomial, portNames] : asicPortsByPolynomial) {
         state.polynomial() = polynomial;
+        // setInterfacesPrbs is serialized per-port, and can time out on systems
+        // with large numbers of ports
+        constexpr uint32_t kDefaultRecvTimeoutSeconds = 45;
+        apache::thrift::RpcOptions rpcOpts;
+        rpcOpts.setTimeout(
+            std::chrono::seconds(
+                std::max<size_t>(
+                    kDefaultRecvTimeoutSeconds, portNames.size() * 3)));
         WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
           try {
             agentClient->sync_setInterfacesPrbs(
-                portNames, phy::PortComponent::ASIC, state);
+                rpcOpts, portNames, phy::PortComponent::ASIC, state);
             EXPECT_EVENTUALLY_TRUE(true);
           } catch (const std::exception& ex) {
             XLOG(ERR) << "Setting PRBS on ASIC ports failed with " << ex.what();
@@ -784,6 +800,12 @@ class PhyToTransceiverSystemPrbsTest : public AgentEnsemblePrbsTest {
     for (const auto& [port1, port2] : connectedPairs) {
       for (const auto& port : {port1, port2}) {
         auto portName = this->getPortName(port);
+        if (isZrModule(port)) {
+          XLOG(INFO) << "Skipping ZR port " << portName
+                     << " for ASIC/TCVR-system PRBS test; ZR only supports "
+                     << "TRANSCEIVER_LINE to TRANSCEIVER_LINE PRBS";
+          continue;
+        }
         auto portValidMedia = checkValidMedia(port, Media);
         auto portSupportPrbsA =
             checkPrbsSupported(portName, ComponentA, PolynomialA);
@@ -825,6 +847,13 @@ class AsicToAsicPrbsTest : public AgentEnsemblePrbsTest {
     for (const auto& [port1, port2] : connectedPairs) {
       auto portName1 = this->getPortName(port1);
       auto portName2 = this->getPortName(port2);
+
+      if (isZrModule(port1) || isZrModule(port2)) {
+        XLOG(INFO) << "Skipping ZR port pair " << portName1 << ", " << portName2
+                   << " for ASIC to ASIC PRBS test; ZR only supports "
+                   << "TRANSCEIVER_LINE to TRANSCEIVER_LINE PRBS";
+        continue;
+      }
 
       auto port1SupportPrbs =
           checkPrbsSupported(portName1, phy::PortComponent::ASIC, Polynomial);

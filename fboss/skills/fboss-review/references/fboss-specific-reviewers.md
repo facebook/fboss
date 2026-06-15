@@ -8,7 +8,7 @@ These reviewers load their respective pattern files from `../fboss-code-standard
 - **#7 FSDB & thrift_cow**: thrift-cow-fsdb-patterns.md — state/stats duality, extern template, COW safety
 - **#8 Platform & Config**: platform-config-patterns.md — JSON/Thrift sync, startup order, OSS split
 - **#9 SAI/SDK Integration**: sai-sdk-patterns.md — SaiApiTable, SaiStore, attribute mapping, SDK guards, client cancellation
-- **#10 Testing Standards**: testing-patterns.md — naming, fixtures, NSDB, GTEST_SKIP, DSF counters
+- **#10 Testing Standards**: testing-patterns.md — naming, fixtures, NSDB, GTEST_SKIP, DSF counters, nexthop IDs on route tests
 
 ## Reviewer 11: FBOSS Architect
 

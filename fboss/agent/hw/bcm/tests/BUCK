@@ -186,9 +186,12 @@ cpp_library(
 cpp_library(
     name = "bcm_port_utils",
     srcs = [
+        "BcmPortUtils.cpp",
         "HwTestPortUtils.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":bcm_switch_ensemble",
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/test:hw_test_port_utils",
     ],
@@ -310,11 +313,10 @@ cpp_library(
     ],
     undefined_symbols = True,
     exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:fboss-types",
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/test:hw_test_pfc_utils",
-    ],
-    exported_external_deps = [
-        ("broadcom-xgs-robo", None, "xgs_robo"),
     ],
 )
 
@@ -374,7 +376,7 @@ bcm_test_all_hw_common_srcs = [
     "PhyCapabilities.cpp",
 ]
 
-#Ideally, we should have the same srcs for both real and fake bcm tests
+# Ideally, we should have the same srcs for both real and fake bcm tests
 bcm_test_all_hw_facebook_srcs = bcm_test_all_hw_common_srcs + [
     "facebook/BcmSwitchEnsemble.cpp",
     "facebook/BcmTestHandler.cpp",
@@ -648,13 +650,15 @@ cpp_library(
         "HwTestUdfUtilsThriftHandler.cpp",
         "HwTestVoqSwitchUtilsThriftHandler.cpp",
     ],
-    headers = [
-    ],
+    headers = [],
     undefined_symbols = "True",  # The sai/bcm implementations will define some functions
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         ":bcm_aqm_utils",  # @manual
         ":bcm_pfc_utils",
+        ":bcm_phy_capabilities",
+        ":bcm_port_utils",
         ":bcm_trunk_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -662,11 +666,13 @@ cpp_library(
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",  # @manual
         "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_test_acl_utils",
         "//fboss/agent/hw/test:hw_test_aqm_utils",
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:hw_test_pfc_utils",
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
+        "//fboss/agent/hw/test:phy_capabilities",
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/state:state",
         "//fboss/agent/test/utils:acl_test_utils",

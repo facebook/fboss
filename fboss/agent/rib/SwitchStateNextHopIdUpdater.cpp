@@ -204,7 +204,7 @@ bool SwitchStateNextHopIdUpdater::verifyNextHopIdConsistency(
         if (!verifyNextHopIds(
                 route,
                 fwdInfo.getNormalizedResolvedNextHopSetID(),
-                fwdInfo.nonOverrideNormalizedNextHops(),
+                RouteNextHopEntry::normalizeNextHops(fwdInfo.getNextHopSet()),
                 "normalizedResolvedNextHopSetID")) {
           return false;
         }

@@ -9,30 +9,30 @@ namespace facebook::fboss::platform::sensor_service {
 class UtilsTests : public testing::Test {
  public:
   VersionedPmSensor createVersionedPmSensor(
-      uint productProductionState,
-      uint productVersion,
-      uint productSubVersion) {
+      uint productionState,
+      uint productionSubState,
+      uint respinVariantIndicator) {
     VersionedPmSensor versionedPmSensor;
-    versionedPmSensor.productProductionState() = productProductionState;
-    versionedPmSensor.productVersion() = productVersion;
-    versionedPmSensor.productSubVersion() = productSubVersion;
+    versionedPmSensor.productionState() = productionState;
+    versionedPmSensor.productionSubState() = productionSubState;
+    versionedPmSensor.respinVariantIndicator() = respinVariantIndicator;
     return versionedPmSensor;
   }
   platform_manager::PmUnitInfo
-  createPmUnitInfo(int16_t pps, int16_t pv, int16_t psv) {
+  createPmUnitInfo(int16_t ps, int16_t pss, int16_t rvi) {
     platform_manager::PmUnitInfo info;
     info.name() = "TestUnit";
     platform_manager::PmUnitVersion version;
-    version.productProductionState() = pps;
-    version.productVersion() = pv;
-    version.productSubVersion() = psv;
+    version.productionState() = ps;
+    version.productionSubState() = pss;
+    version.respinVariantIndicator() = rvi;
     info.version() = version;
     return info;
   }
   bool isEqual(VersionedPmSensor s1, VersionedPmSensor s2) {
-    return s1.productProductionState() == s2.productProductionState() &&
-        s1.productVersion() == s2.productVersion() &&
-        s1.productSubVersion() == s2.productSubVersion();
+    return s1.productionState() == s2.productionState() &&
+        s1.productionSubState() == s2.productionSubState() &&
+        s1.respinVariantIndicator() == s2.respinVariantIndicator();
   }
   std::string slotPath_;
 };
@@ -118,18 +118,18 @@ TEST_F(UtilsTests, ResolveVersionedSensorsWithProductName) {
   std::optional<VersionedPmSensor> resolvedVersionedSensor;
 
   auto createVersionedPmSensorWithProductName =
-      [this](uint pps, uint pv, uint psv, const std::string& productName) {
-        auto vs = createVersionedPmSensor(pps, pv, psv);
+      [this](uint ps, uint pss, uint rvi, const std::string& productName) {
+        auto vs = createVersionedPmSensor(ps, pss, rvi);
         vs.productName() = productName;
         return vs;
       };
   auto createPmUnitInfoWithEepromProductName =
       [this](
-          int16_t pps,
-          int16_t pv,
-          int16_t psv,
+          int16_t ps,
+          int16_t pss,
+          int16_t rvi,
           const std::string& eepromProductName) {
-        auto info = createPmUnitInfo(pps, pv, psv);
+        auto info = createPmUnitInfo(ps, pss, rvi);
         info.eepromProductName() = eepromProductName;
         return info;
       };

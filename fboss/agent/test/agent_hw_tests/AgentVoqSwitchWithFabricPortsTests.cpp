@@ -115,6 +115,10 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
       auto state = getProgrammedState();
       for (auto& portMap : std::as_const(*state->getPorts())) {
         for (auto& [_, port] : std::as_const(*portMap.second)) {
+          if (scopeResolver().scope(port).switchId() !=
+              getCurrentSwitchIdForTesting()) {
+            continue;
+          }
           auto loadBearingInErrors = fb303::fbData->getCounterIfExists(
               port->getName() + ".load_bearing_in_errors.sum.60");
           auto loadBearingFecErrors = fb303::fbData->getCounterIfExists(
@@ -215,8 +219,9 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    auto switchId = getCurrentSwitchIdForTesting();
     utility::checkPortFabricReachability(
-        getAgentEnsemble(), SwitchID(0), fabricPortId);
+        getAgentEnsemble(), switchId, fabricPortId);
     auto drainPort = [&](bool drain) {
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         auto out = in->clone();
@@ -234,7 +239,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
           getAgentEnsemble(), fabricPortIds, expectActive);
       // Fabric reachability should be unchanged regardless of drain
       utility::checkPortFabricReachability(
-          getAgentEnsemble(), SwitchID(0), fabricPortId);
+          getAgentEnsemble(), switchId, fabricPortId);
       // Flap port, active and reachability status should be unaffected
       // after flap
       bringDownPort(fabricPortId);
@@ -242,7 +247,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
       utility::checkFabricPortsActiveState(
           getAgentEnsemble(), fabricPortIds, expectActive);
       utility::checkPortFabricReachability(
-          getAgentEnsemble(), SwitchID(0), fabricPortId);
+          getAgentEnsemble(), switchId, fabricPortId);
     };
     drainPort(true);
     drainPort(false);
@@ -362,10 +367,11 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
 TEST_F(AgentVoqSwitchWithFabricPortsTest, overdrainPct) {
   auto setup = []() {};
   auto verify = [this]() {
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          0, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
-    });
+    auto switchIndex = getCurrentSwitchIndexForTesting();
+    auto counterName =
+        folly::to<std::string>("switch.", switchIndex, ".fabric_overdrain_pct");
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(0, fb303::fbData->getCounter(counterName)); });
     auto enableFabPorts = [this](bool enable) {
       auto cfg = initialConfig(*getAgentEnsemble());
       for (auto& port : *cfg.ports()) {
@@ -378,16 +384,12 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, overdrainPct) {
     };
     // Disable all fabric port
     enableFabPorts(false);
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          100, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
-    });
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(100, fb303::fbData->getCounter(counterName)); });
     // Enable all fabric port
     enableFabPorts(true);
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          0, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
-    });
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(0, fb303::fbData->getCounter(counterName)); });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -658,7 +660,9 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyRxFifoStuckDetectedCallback) {
         getAgentEnsemble()->runDiagCommand(
             "fabric link rx_fifo_monitor action=TRIGGER\n", out, switchId);
         auto multiSwitchStats = getSw()->getHwSwitchStatsExpensive();
-        auto asicError = *multiSwitchStats[switchId].hwAsicErrors();
+        auto switchIndex =
+            getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+        auto asicError = *multiSwitchStats[switchIndex].hwAsicErrors();
         auto rxFifoStuckDetected = asicError.rxFifoStuckDetected().value_or(0);
         XLOG(DBG2) << "Switch ID: " << switchId
                    << ", rxFifoStuckDetected: " << rxFifoStuckDetected;

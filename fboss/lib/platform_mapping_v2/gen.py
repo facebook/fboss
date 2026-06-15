@@ -6,10 +6,12 @@ import sys
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
+from fboss.lib.platform_mapping_v2.read_files_utils import read_platform_descriptor
 from thrift.python.serializer import Protocol, serialize
 
 _FBOSS_DIR: str = os.getcwd() + "/fboss"
 INPUT_DIR: str = f"{_FBOSS_DIR}/lib/platform_mapping_v2/platforms/"
+DESCRIPTOR_OUTPUT_DIR: str = "descriptors"
 
 JsonValue = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
 
@@ -158,6 +160,37 @@ def generate_platform_mappings(
     print(f"Writing to file {output_file}...", file=sys.stderr)
     with open(os.path.expanduser(output_file), "w") as f:
         f.write(platform_mapping_json)
+
+    generate_platform_descriptor(vendor_data_map, output_dir, platform_name)
+
+
+def generate_platform_descriptor(
+    vendor_data_map: Dict[str, Dict[str, str]], output_dir: str, platform_name: str
+) -> None:
+    try:
+        platform_descriptor = read_platform_descriptor(
+            vendor_data_map[platform_name], platform_name
+        )
+    except FileNotFoundError:
+        return
+
+    system_vendor = platform_descriptor.pop("systemVendor")
+    if not isinstance(system_vendor, str):
+        raise TypeError(f"Invalid system vendor for {platform_name}")
+
+    descriptor_json = _format_json(platform_descriptor)
+    if not descriptor_json.endswith("\n"):
+        descriptor_json += "\n"
+
+    descriptor_dir = os.path.expanduser(
+        f"{output_dir}/{DESCRIPTOR_OUTPUT_DIR}/{system_vendor}/{platform_name}"
+    )
+    os.makedirs(descriptor_dir, exist_ok=True)
+    output_file = f"{descriptor_dir}/platform_descriptor.json"
+
+    print(f"Writing to file {output_file}...", file=sys.stderr)
+    with open(output_file, "w") as f:
+        f.write(descriptor_json)
 
 
 def generate_mappings_without_args() -> None:

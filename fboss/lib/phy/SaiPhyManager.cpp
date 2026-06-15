@@ -446,6 +446,13 @@ void SaiPhyManager::programOnePort(
     auto saiPlatform = getSaiPlatform(globalPhyID);
     const auto& desiredPhyPortConfig =
         getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo);
+    // Original PortPinConfig from PlatformMapping. We use this directly to
+    // populate SwitchState pinConfigs so that the JSON pin order (= NPU pin
+    // order) is preserved all the way to SAI HwLaneList. Going through
+    // desiredPhyPortConfig.config.{system,line}.getPinConfigs() would sort
+    // lanes ascending due to the underlying std::map<LaneID, LaneConfig>.
+    const auto& desiredPortPinConfig =
+        getDesiredPortPinConfig(portId, portProfileId, transceiverInfo);
 
     // Is port create allowed
     if (!isPortCreateAllowed(globalPhyID, desiredPhyPortConfig)) {
@@ -476,27 +483,33 @@ void SaiPhyManager::programOnePort(
       }
     }
 
-    auto updateFn =
-        [this, &saiPlatform, portId, portProfileId, desiredPhyPortConfig](
-            std::shared_ptr<SwitchState> in) {
-          return portUpdateHelper(
-              in,
-              portId,
-              saiPlatform,
-              [portProfileId, desiredPhyPortConfig](auto& port) {
-                port->setSpeed(desiredPhyPortConfig.profile.speed);
-                port->setProfileId(portProfileId);
-                port->setAdminState(cfg::PortState::ENABLED);
-                // Prepare the side profileConfig and pinConfigs for both system
-                // and line sides by using desiredPhyPortConfig
-                port->setProfileConfig(desiredPhyPortConfig.profile.system);
-                port->resetPinConfigs(
-                    desiredPhyPortConfig.config.system.getPinConfigs());
-                port->setLineProfileConfig(desiredPhyPortConfig.profile.line);
-                port->resetLinePinConfigs(
-                    desiredPhyPortConfig.config.line.getPinConfigs());
-              });
-        };
+    auto updateFn = [this,
+                     &saiPlatform,
+                     portId,
+                     portProfileId,
+                     desiredPhyPortConfig,
+                     desiredPortPinConfig](std::shared_ptr<SwitchState> in) {
+      return portUpdateHelper(
+          in,
+          portId,
+          saiPlatform,
+          [portProfileId, desiredPhyPortConfig, desiredPortPinConfig](
+              auto& port) {
+            port->setSpeed(desiredPhyPortConfig.profile.speed);
+            port->setProfileId(portProfileId);
+            port->setAdminState(cfg::PortState::ENABLED);
+            // Prepare the side profileConfig and pinConfigs for both system
+            // and line sides by using desiredPhyPortConfig
+            port->setProfileConfig(desiredPhyPortConfig.profile.system);
+            // Use the original PortPinConfig (from PlatformMapping) so the
+            // SAI HwLaneList preserves NPU pin order. The std::map detour
+            // via desiredPhyPortConfig.config.system.getPinConfigs() would
+            // sort ascending and lose pin order.
+            port->resetPinConfigs(*desiredPortPinConfig.xphySys());
+            port->setLineProfileConfig(desiredPhyPortConfig.profile.line);
+            port->resetLinePinConfigs(*desiredPortPinConfig.xphyLine());
+          });
+    };
     getPlatformInfo(globalPhyID)
         ->applyUpdate(
             fmt::format("Port {} program", static_cast<int>(portId)), updateFn);

@@ -233,7 +233,8 @@ void printCmisDetailService(
 void printPortDetail(
     const DOMDataUnion& domDataUnion,
     unsigned int port,
-    const std::string& portNames);
+    const std::string& portNames,
+    DirectI2cInfo* i2cInfo = nullptr);
 std::optional<PortInfoSummary> getPortInfoSummary(
     const DOMDataUnion& domDataUnion,
     unsigned int port,

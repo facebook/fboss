@@ -5,7 +5,7 @@ oncall("fboss_platform")
 
 fbpkg.builder(
     name = "fboss.platform.stack",
-    expire_days = 10,
+    expire_days = 28,
     override_log_paths = ["fboss/platform"],
     path_actions = {
         "data_corral_service": "//fboss/platform/data_corral_service:data_corral_service",
@@ -36,8 +36,8 @@ buck_genrule(
     srcs = glob(["configs/*/platform_manager.json"]),
     out = "all_bsp_metadata.json",
     cmd = (
-        "jq -s '" +
-        "[.[] | {key: (.platformName | ascii_downcase), value: {platformName, bspKmodsRpmName, bspKmodsRpmVersion}}] | from_entries" +
-        "' $SRCS > $OUT"
+        "jq -s '"
+        + "[.[] | {key: (.platformName | ascii_downcase), value: {platformName, bspKmodsRpmName, bspKmodsRpmVersion}}] | from_entries"
+        + "' $SRCS > $OUT"
     ),
 )

@@ -138,6 +138,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentMacLearningTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningAndNeighborResolutionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropDnxTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropSrv6Tests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropStatelessTest.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropStatelessTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTajoImpl.cpp
@@ -160,6 +161,8 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentSaiPortAdminStateTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortBandWidthTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortLedTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentPortProfileTests.cpp
+  fboss/agent/hw/test/HwTestPortUtils.cpp
   fboss/agent/test/agent_hw_tests/AgentPrbsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAqmTests.cpp
@@ -181,6 +184,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentHwAclStatTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclTableTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclTableGroupTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAclTableGroupTrafficTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwResourceStatsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwParityErrorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentTrafficPfcTests.cpp
@@ -269,6 +273,8 @@ target_link_libraries(agent_hw_test_src
   neighbor_test_utils
   system_scale_test_utils
   hyper_port_test_utils
+  sai_port_utils
+  phy_utils
   platform_mapping
   ${RE2}
 )
@@ -298,10 +304,50 @@ target_link_libraries(multi_switch_agent_hw_test
   traffic_policy_utils
   Folly::folly
   hw_packet_utils
+  phy_utils
   -Wl,--no-whole-archive
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+add_library(agent_scale_test_src
+  fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
+)
+
+add_sai_sdk_dependencies(agent_scale_test_src)
+
+target_link_libraries(agent_scale_test_src
+  config_factory
+  packet_factory
+  agent_hw_test_src
+  ecmp_helper
+  production_features_cpp2
+  acl_test_utils
+  asic_test_utils
+  scale_test_utils
+  Folly::folly
+)
+
+add_executable(multi_switch_agent_scale_test
+  fboss/agent/test/agent_hw_tests/MultiSwitchAgentHwTest.cpp
+)
+
+add_sai_sdk_dependencies(multi_switch_agent_scale_test)
+
+target_link_libraries(multi_switch_agent_scale_test
+  -Wl,--whole-archive
+  agent_scale_test_src
+  agent_hw_test
+  multi_switch_agent_ensemble
+  setup_thrift_prod
+  Folly::folly
+  -Wl,--no-whole-archive
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+install(TARGETS multi_switch_agent_scale_test)
 
 function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
 
@@ -329,6 +375,7 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     traffic_policy_utils
     sai_traced_api
     setup_thrift_prod
+    phy_utils
     -Wl,--no-whole-archive
   )
 
@@ -337,25 +384,6 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
     -DSAI_VER_MINOR=${SAI_VER_MINOR} \
     -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_library(agent_scale_test_src
-    fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
-    fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
-  )
-
-  add_sai_sdk_dependencies(agent_scale_test_src)
-
-  target_link_libraries(agent_scale_test_src
-    config_factory
-    packet_factory
-    agent_hw_test_src
-    ecmp_helper
-    production_features_cpp2
-    acl_test_utils
-    asic_test_utils
-    scale_test_utils
-    Folly::folly
   )
 
   add_executable(sai_agent_scale_test-${SAI_IMPL_NAME}
@@ -372,6 +400,7 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     sai_acl_utils
     mono_agent_ensemble
     agent_hw_test_thrift_handler
+    sai_port_utils
     setup_thrift_prod
     -Wl,--no-whole-archive
     ${GTEST}

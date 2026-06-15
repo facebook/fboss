@@ -2,11 +2,7 @@
 
 #include "fboss/agent/hw/sai/api/AclApi.h"
 
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiaclextensions.h>
-#else
-#include <saiaclextensions.h>
-#endif
 
 namespace facebook::fboss {
 

@@ -65,7 +65,8 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   rd.nextHops() = fillNextHops(nhopSet, rd);
 
   // Add the multi-nexthops
-  rd.nextHopMulti() = nexthopsmulti().toThriftLegacy();
+  auto bestEntry = getBestEntry();
+  rd.nextHopMulti() = nexthopsmulti().toThriftLegacy(bestEntry.first);
   rd.isConnected() = isConnected();
   // add counter id
   if (fwd().getCounterID().has_value()) {
@@ -90,8 +91,8 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   if (auto setId = fwd().getNormalizedResolvedNextHopSetID()) {
     rd.normalizedResolvedNextHopSetID() = static_cast<int64_t>(*setId);
   }
-  auto bestEntry = getBestEntry();
   if (bestEntry.second) {
+    rd.adminDistance() = bestEntry.second->getAdminDistance();
     auto nhgName = bestEntry.second->getNamedNextHopGroup();
     if (nhgName.has_value()) {
       NamedRouteDestination namedDest;

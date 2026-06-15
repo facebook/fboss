@@ -754,9 +754,9 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
       bool hasTunableOptics = false;
       for (auto id : getPresentTransceivers()) {
         auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
-        if (tcvrInfo.tcvrState()->moduleTechnology().has_value() &&
-            tcvrInfo.tcvrState()->moduleTechnology().value() ==
-                ModuleTechnology::TUNABLE) {
+        auto modTech = tcvrInfo.tcvrState()->moduleTechnology().value();
+        if (modTech == ModuleTechnology::TUNABLE_C_BAND ||
+            modTech == ModuleTechnology::TUNABLE_L_BAND) {
           hasTunableOptics = true;
           break;
         }

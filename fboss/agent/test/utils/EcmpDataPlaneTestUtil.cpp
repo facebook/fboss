@@ -420,7 +420,7 @@ void HwSrv6EcmpDataPlaneTestUtil::programRoutes(
         std::nullopt,
         sidList,
         TunnelType::SRV6_ENCAP,
-        folly::sformat("srv6Tunnel{}", i)));
+        std::string("srv6Tunnel0")));
   }
   auto routeUpdater = ensemble->getRouteUpdaterWrapper();
   routeUpdater->addRoute(

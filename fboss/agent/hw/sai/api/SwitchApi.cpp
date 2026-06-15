@@ -12,11 +12,7 @@
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
 extern "C" {
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiswitchextensions.h>
-#else
-#include <saiswitchextensions.h>
-#endif
 }
 #endif
 

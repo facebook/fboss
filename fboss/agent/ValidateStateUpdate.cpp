@@ -219,35 +219,6 @@ bool isStateUpdateValidMultiSwitch(
         return LoopAction::CONTINUE;
       });
 
-  DeltaFunctions::forEachChanged(
-      delta.getPortsDelta(),
-      [&](const std::shared_ptr<Port>& oldPort,
-          const std::shared_ptr<Port>& newPort) {
-        if (oldPort->getSpeed() == newPort->getSpeed()) {
-          return LoopAction::CONTINUE;
-        }
-        auto portScope = resolver->scope(newPort);
-        for (auto switchId : portScope.switchIds()) {
-          auto itr = hwAsics.find(switchId);
-          if (itr == hwAsics.end()) {
-            XLOG(ERR) << "ASIC not found for the switch " << switchId;
-            isValid = false;
-            return LoopAction::BREAK;
-          }
-          if (!itr->second->isSupported(
-                  HwAsic::Feature::SAI_PORT_SPEED_CHANGE)) {
-            XLOG(ERR) << "Port " << newPort->getID() << " speed changed from "
-                      << static_cast<int>(oldPort->getSpeed()) << " to "
-                      << static_cast<int>(newPort->getSpeed())
-                      << " but SAI_PORT_SPEED_CHANGE is not supported"
-                      << " on switch " << switchId;
-            isValid = false;
-            return LoopAction::BREAK;
-          }
-        }
-        return LoopAction::CONTINUE;
-      });
-
   std::map<SwitchID, uint32_t> switchId2Mirrors;
   for (const auto& [matcherStr, mirrors] :
        std::as_const(*(delta.newState()->getMirrors()))) {

@@ -663,7 +663,11 @@ void AgentEnsemble::sendPacketAsync(
     std::optional<PortDescriptor> portDescriptor,
     std::optional<uint8_t> queueId) {
   if (!portDescriptor.has_value()) {
-    getSw()->sendPacketSwitchedAsync(std::move(pkt));
+    auto switchId = getSw()
+                        ->getScopeResolver()
+                        ->scope(masterLogicalPortIds()[0])
+                        .switchId();
+    getSw()->sendPacketSwitchedAsync(std::move(pkt), {switchId});
     return;
   }
   getSw()->sendPacketOutOfPortAsync(

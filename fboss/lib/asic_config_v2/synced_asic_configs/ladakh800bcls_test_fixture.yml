@@ -1871,7 +1871,7 @@ device:
         552], [554, 554], [558, 558], [560, 560], [562, 562], [564, 564], [566, 566],
         [568, 568], [570, 570], [572, 572]]
       :
-        ENABLE: 1
+        ENABLE: 0
         SPEED: 400000
         NUM_LANES: 2
         FEC_MODE: PC_FEC_RS544_2XN_IEEE
@@ -1880,7 +1880,7 @@ device:
       ?
         PORT_ID: 268
       :
-        ENABLE: 1
+        ENABLE: 0
         SPEED: 100000
         NUM_LANES: 4
         FEC_MODE: PC_FEC_RS528
@@ -1939,6 +1939,9 @@ bcm_device:
       global_flexctr_egr_pool_num_reserved: 5
       global_flexctr_egr_op_profile_num_reserved: 10
       global_flexctr_egr_group_num_reserved: 1
+      l3_ecmp_member_secondary_mem_size: 8192
+      l3_ecmp_member_first_lkup_mem_size: 8192
+      dlb_quality_adjustment_default_value_select: 1
 ...
 ---
 device:
@@ -2014,4 +2017,10 @@ device:
       CTR_ING_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE: 1
       CTR_EGR_EFLEX_OPERMODE_PIPEUNIQUE: 1
       CTR_EGR_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE: 1
+...
+---
+device:
+  0:
+    DLB_ECMP_CONFIG:
+      PATH_QUALITY_PROFILE_MODE: WIDE
 ...

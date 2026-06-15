@@ -6,6 +6,8 @@
 set(SAI_PLATFORM_SRC
 # common_srcs
   fboss/agent/platforms/sai/SaiPlatform.cpp
+  fboss/agent/platforms/sai/GenericSaiBcmPlatform.cpp
+  fboss/agent/platforms/sai/GenericSaiTajoPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmWedge100Platform.cpp

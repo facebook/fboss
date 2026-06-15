@@ -16,8 +16,7 @@ cpp_unittest(
     deps = [
         "//fboss/lib:physical_memory",
     ],
-    external_deps = [
-    ],
+    external_deps = [],
 )
 
 cpp_unittest(

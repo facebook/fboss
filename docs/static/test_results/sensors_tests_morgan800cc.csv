@@ -1,5 +1,7 @@
 "Test Case","Platform","Status"
 "SensorServiceHwTest.SensorFetchODSCheck","morgan800cc","PASSED"
+"SensorServiceHwTest.PowerAndInputVoltageAboveZero","morgan800cc","PASSED"
+"SensorServiceHwTest.MinPsuCountMatchesPowerType","morgan800cc","PASSED"
 "SensorServiceHwTest.GetSomeSensorsViaThrift","morgan800cc","PASSED"
 "SensorServiceHwTest.GetSomeSensors","morgan800cc","PASSED"
 "SensorServiceHwTest.GetBogusSensor","morgan800cc","PASSED"

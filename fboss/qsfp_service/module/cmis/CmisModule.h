@@ -262,6 +262,9 @@ class CmisModule : public QsfpModule {
   // Cached firmware build number from CDB Get Firmware Info command
   std::optional<uint16_t> cachedFwBuildNumber_;
 
+  // Cached CDB I2C write delay for firmware upgrade, computed from media type
+  std::optional<uint64_t> cachedCdbWriteDelayUsec_;
+
   /*
    * Structure to hold datapath init/deinit state per port using timers
    * progStartTimer: Time point when datapath programming started.
@@ -648,6 +651,8 @@ class CmisModule : public QsfpModule {
    * returns whether optics frequency is tunable or not
    */
   bool isTunableOptics() const override;
+  bool isCBandTunable() const override;
+  bool isLBandTunable() const override;
 
   /*
    * Disable TX and RX squelch on all lanes for tunable optics modules.
@@ -802,8 +807,12 @@ class CmisModule : public QsfpModule {
    */
   MediaInterfaceCode getModuleMediaInterface() const override;
 
+  // Returns the CDB I2C write delay for firmware upgrade based on media type.
+  // Legacy optics need the 5ms inter-write delay; new media types default to 0.
+  uint64_t getFwUpgradeCdbWriteDelayUsec() const;
+
   uint64_t getExpectedDatapathDelayUsec(bool /*init*/);
-  uint64_t maxRetriesWith500msDelay(bool /*init*/);
+  uint64_t maxDatapathStatePolls(bool /*init*/);
 
   /*
    * Program the datapath for the specified port. When isInit is true, releases

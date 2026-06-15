@@ -263,6 +263,8 @@ class SaiSwitch : public HwSwitch {
       const override;
   void dumpDebugState(const std::string& /*path*/) const override;
 
+  void setSdkRegDumpEnabled(bool enabled) override;
+
   bool transactionsSupported() const override;
   bool l2LearningModeChangeProhibited() const;
 
@@ -407,6 +409,10 @@ class SaiSwitch : public HwSwitch {
   void switchRunStateChangedImplLocked(
       const std::lock_guard<std::mutex>& lock,
       SwitchRunState newState);
+
+  void setSdkRegDumpEnabledLocked(
+      const std::lock_guard<std::mutex>& lock,
+      bool enabled);
 
   void exitFatalLocked(const std::lock_guard<std::mutex>& lock) const;
 

@@ -538,6 +538,14 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  virtual bool isCBandTunable() const {
+    return false;
+  }
+
+  virtual bool isLBandTunable() const {
+    return false;
+  }
+
   virtual bool isRxConsActImplSupported() const {
     return false;
   }

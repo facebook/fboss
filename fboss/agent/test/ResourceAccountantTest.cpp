@@ -75,7 +75,7 @@ class ResourceAccountantTest : public ::testing::Test {
         allocResult.nextHopIdSetIter->second.id;
     entry.setResolvedNextHopSetID(resolvedId);
 
-    auto normalizedNhops = entry.nonOverrideNormalizedNextHops();
+    auto normalizedNhops = RouteNextHopEntry::normalizeNextHops(nhops);
     auto normAllocResult =
         nextHopIDManager_->getOrAllocRouteNextHopSetID(normalizedNhops);
     std::optional<NextHopSetID> normalizedId =

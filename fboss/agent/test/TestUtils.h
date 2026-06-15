@@ -378,7 +378,7 @@ ResolvedNextHop makeResolvedNextHop(
  */
 RouteNextHopEntry makeExpectedRouteNextHopEntry(
     const SwSwitch* sw,
-    RouteNextHopSet nhops,
+    const RouteNextHopSet& nhops,
     AdminDistance distance);
 
 /*

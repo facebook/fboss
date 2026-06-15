@@ -31,6 +31,7 @@ thrift_library(
         "fsdb_model.thrift": [],
     },
     deps = [
+        "//configerator/structs/neteng/bgp_policy/thrift:rib_policy",
         "//fboss/agent:agent_config",
         "//fboss/agent:agent_info",
         "//fboss/agent:agent_stats",
@@ -40,6 +41,8 @@ thrift_library(
         "//fboss/platform/sensor_service:sensor_service_stats",
         "//fboss/qsfp_service/if:state",
         "//fboss/qsfp_service/if:stats",
+        "//neteng/fboss/bgp/if:bgp_route_types",
+        "//neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp:bgp_config_oss",
         "//thrift/annotation:thrift",
     ],
 )
@@ -49,7 +52,7 @@ cpp_library(
     headers = ["fsdb_model_thriftpath.h"],
     exported_deps = [
         ":fsdb_model-cpp2-types",
-        "//fatal:fatal",
+        "//configerator/structs/neteng/bgp_policy/thrift:rib_policy-cpp2-types",
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:agent_info-cpp2-types",
         "//fboss/agent:agent_stats-cpp2-types",
@@ -61,6 +64,8 @@ cpp_library(
         "//fboss/qsfp_service/if:stats-cpp2-types",
         "//fboss/thriftpath_plugin:path",
         "//folly:unit",
+        "//neteng/fboss/bgp/if:bgp_route_types-cpp2-types",
+        "//neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp:bgp_config_oss-cpp2-types",
     ],
 )
 

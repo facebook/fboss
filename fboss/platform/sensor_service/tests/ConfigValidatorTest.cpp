@@ -78,9 +78,9 @@ VersionedPmSensor createVersionedPmSensor(
     const std::string& productName,
     const std::vector<PmSensor>& sensors) {
   VersionedPmSensor vs;
-  vs.productProductionState() = 0;
-  vs.productVersion() = 0;
-  vs.productSubVersion() = 0;
+  vs.productionState() = 0;
+  vs.productionSubState() = 0;
+  vs.respinVariantIndicator() = 0;
   vs.productName() = productName;
   vs.sensors() = sensors;
   return vs;
@@ -681,7 +681,7 @@ TEST(ConfigValidatorTest, GetAllSensorNames) {
       createPmSensor("BASE_SENSOR_1", "/run/devmap/sensors/BASE_1"),
       createPmSensor("BASE_SENSOR_2", "/run/devmap/sensors/BASE_2")};
   VersionedPmSensor versionedPmSensor;
-  versionedPmSensor.productProductionState() = 1;
+  versionedPmSensor.productionState() = 1;
   versionedPmSensor.sensors() = {
       createPmSensor("VERSIONED_SENSOR_1", "/run/devmap/sensors/VERSIONED_1"),
       createPmSensor("VERSIONED_SENSOR_2", "/run/devmap/sensors/VERSIONED_2")};
@@ -713,7 +713,7 @@ TEST(ConfigValidatorTest, GetAllUniversalSensorNames) {
       createPmSensor("TEMP_SENSOR", "/run/devmap/sensors/TEMP"),
       createPmSensor("FAN_SENSOR", "/run/devmap/sensors/FAN")};
   VersionedPmSensor versionedPmSensor;
-  versionedPmSensor.productProductionState() = 1;
+  versionedPmSensor.productionState() = 1;
   versionedPmSensor.sensors() = {
       createPmSensor("VERSIONED_TEMP", "/run/devmap/sensors/VERSIONED_TEMP"),
       createPmSensor("VERSIONED_FAN", "/run/devmap/sensors/VERSIONED_FAN")};
@@ -744,11 +744,11 @@ TEST(ConfigValidatorTest, GetAllUniversalSensorNamesMultipleVersionedSensors) {
   pmUnitA.pmUnitName() = "A";
   pmUnitA.sensors() = {createPmSensor("A_BASE", "/run/devmap/sensors/A_BASE")};
   VersionedPmSensor a1, a2;
-  a1.productProductionState() = 0;
+  a1.productionState() = 0;
   a1.sensors() = {
       createPmSensor("A_SHARED", "/run/devmap/sensors/A_SHARED"),
       createPmSensor("A_ONLY_IN_1", "/run/devmap/sensors/A_ONLY_IN_1")};
-  a2.productProductionState() = 1;
+  a2.productionState() = 1;
   a2.sensors() = {
       createPmSensor("A_SHARED", "/run/devmap/sensors/A_SHARED"),
       createPmSensor("A_ONLY_IN_2", "/run/devmap/sensors/A_ONLY_IN_2")};
@@ -759,13 +759,13 @@ TEST(ConfigValidatorTest, GetAllUniversalSensorNamesMultipleVersionedSensors) {
   pmUnitB.pmUnitName() = "B";
   pmUnitB.sensors() = {createPmSensor("B_BASE", "/run/devmap/sensors/B_BASE")};
   VersionedPmSensor b1, b2, b3;
-  b1.productProductionState() = 0;
+  b1.productionState() = 0;
   b1.sensors() = {createPmSensor("B_COMMON", "/run/devmap/sensors/B_COMMON")};
-  b2.productProductionState() = 1;
+  b2.productionState() = 1;
   b2.sensors() = {
       createPmSensor("B_COMMON", "/run/devmap/sensors/B_COMMON"),
       createPmSensor("B_EXTRA", "/run/devmap/sensors/B_EXTRA")};
-  b3.productProductionState() = 2;
+  b3.productionState() = 2;
   b3.sensors() = {createPmSensor("B_COMMON", "/run/devmap/sensors/B_COMMON")};
   pmUnitB.versionedSensors() = {b1, b2, b3};
 
@@ -871,7 +871,7 @@ TEST(ConfigValidatorTest, AsicCommandWithVersionedSensors) {
 
   // Add versioned sensor
   VersionedPmSensor versionedSensor;
-  versionedSensor.productProductionState() = 1;
+  versionedSensor.productionState() = 1;
   versionedSensor.sensors() = {
       createPmSensor("VERSIONED_SENSOR", "/run/devmap/sensors/VERSIONED")};
   pmUnitSensors.versionedSensors() = {versionedSensor};
@@ -1082,7 +1082,7 @@ TEST(ConfigValidatorTest, TemperatureConfigVersionedSensorReferenceRules) {
 
   // Add a second entry that lacks VERSIONED_TEMP — reference now rejected.
   VersionedPmSensor otherVersionedPmSensor;
-  otherVersionedPmSensor.productProductionState() = 1;
+  otherVersionedPmSensor.productionState() = 1;
   otherVersionedPmSensor.sensors() = {
       createPmSensor("OTHER_TEMP", "/run/devmap/sensors/OTHER_TEMP")};
   config.pmUnitSensorsList()->at(0).versionedSensors() = {
@@ -1188,7 +1188,7 @@ TEST(ConfigValidatorTest, isValidPmSensor) {
   pmUnitSensors.sensors() = {
       createPmSensor("BASE_SENSOR", "/run/devmap/sensors/BASE")};
   VersionedPmSensor versionedSensor;
-  versionedSensor.productProductionState() = 1;
+  versionedSensor.productionState() = 1;
   versionedSensor.sensors() = {
       createPmSensor("versioned_sensor", "/run/devmap/sensors/VERSIONED")};
   pmUnitSensors.versionedSensors() = {versionedSensor};
@@ -1296,7 +1296,7 @@ TEST(ConfigValidatorTest, VersionedTemperatureSensorWithoutThresholds) {
   auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
 
   VersionedPmSensor versionedPmSensor;
-  versionedPmSensor.productProductionState() = 1;
+  versionedPmSensor.productionState() = 1;
   versionedPmSensor.sensors() = {createPmSensor(
       "VERSIONED_TEMP",
       "/run/devmap/sensors/VERSIONED_TEMP",

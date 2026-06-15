@@ -163,7 +163,8 @@ cpp_library(
         "facebook/BcmShellServer.h",
         "facebook/BcmSimHALVector.h",
     ],
-    exported_deps = common_deps + [
+    exported_deps = common_deps
+    + [
         ":bcm_types",
         ":types",
         "//common/logging:logging",
@@ -212,7 +213,8 @@ cpp_library(
         "facebook/BcmShellServer.h",
         "facebook/BcmSimHALVector.h",
     ],
-    exported_deps = common_deps + [
+    exported_deps = common_deps
+    + [
         ":bcm_types",
         ":types",
         "//common/logging:logging",
@@ -454,9 +456,11 @@ thrift_library(
     ],
     py3_namespace = "neteng.fboss",
     py_base_module = "neteng.fboss",
-    thrift_srcs = {"bcm_ctrl.thrift": [
-        "BcmCtrl",
-    ]},
+    thrift_srcs = {
+        "bcm_ctrl.thrift": [
+            "BcmCtrl",
+        ]
+    },
     deps = [
         "//fboss/agent/hw/bcm:packettrace",
         "//fboss/agent/if:common",

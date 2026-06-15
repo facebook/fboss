@@ -1,0 +1,27 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#pragma once
+
+#include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
+
+namespace facebook::fboss {
+
+struct CmdSetTransceiverTraits : public WriteCommandTraits {
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
+  using ObjectArgType = utils::PortList;
+  using RetType = std::string;
+};
+
+class CmdSetTransceiver
+    : public CmdHandler<CmdSetTransceiver, CmdSetTransceiverTraits> {
+ public:
+  RetType queryClient(
+      const HostInfo& hostInfo,
+      const ObjectArgType& queriedPorts);
+
+  void printOutput(const RetType& output, std::ostream& out = std::cout);
+};
+
+} // namespace facebook::fboss

@@ -919,4 +919,96 @@ TEST_F(NextHopMapPopulationTest, SyncFibReleasesFwdSideIdsForReclaimedRoutes) {
       << "v6 normalizedResolvedNextHopSetID leaked in syncFib reclaim path";
 }
 
+// Regression: a route going resolved -> truly unresolvable must clear its fwd
+// info, not just flip the flag, else the freed resolvedNextHopSetID stays
+// stamped and double-frees on the next re-resolve/remove. An A->B->C->A nexthop
+// cycle forces genuine unresolvability (no nexthops/drop/to-cpu) despite the
+// fixture's default route.
+TEST_F(NextHopMapPopulationTest, ResolvedToUnresolvableClearsFwdSideIds) {
+  auto fwdResolvedId =
+      [&](const std::string& prefixStr) -> std::optional<int64_t> {
+    auto ribThrift = sw_->getRib()->toThrift();
+    const auto& v4 = *ribThrift.begin()->second.v4NetworkToRoute();
+    auto it = v4.find(prefixStr);
+    if (it == v4.end()) {
+      return std::nullopt;
+    }
+    return it->second.fwd()->resolvedNextHopSetID().to_optional();
+  };
+  auto fwdNormalizedId =
+      [&](const std::string& prefixStr) -> std::optional<int64_t> {
+    auto ribThrift = sw_->getRib()->toThrift();
+    const auto& v4 = *ribThrift.begin()->second.v4NetworkToRoute();
+    auto it = v4.find(prefixStr);
+    if (it == v4.end()) {
+      return std::nullopt;
+    }
+    return it->second.fwd()->normalizedResolvedNextHopSetID().to_optional();
+  };
+
+  // Step 1 (unresolved -> resolved): three routes resolve via connected
+  // nexthops; each gets a distinct fwd-side resolved + normalized setID the
+  // manager holds.
+  auto updater = sw_->getRouteUpdater();
+  addV4Route(updater, "10.0.0.0/8", {"1.1.1.10"});
+  addV4Route(updater, "20.0.0.0/8", {"2.2.2.10"});
+  addV4Route(updater, "30.0.0.0/8", {"3.3.3.10"});
+  updater.program();
+  auto idA = fwdResolvedId("10.0.0.0/8");
+  auto idB = fwdResolvedId("20.0.0.0/8");
+  auto idC = fwdResolvedId("30.0.0.0/8");
+  ASSERT_TRUE(idA.has_value());
+  ASSERT_TRUE(idB.has_value());
+  ASSERT_TRUE(idC.has_value());
+  ASSERT_TRUE(fwdNormalizedId("10.0.0.0/8").has_value());
+  ASSERT_TRUE(fwdNormalizedId("20.0.0.0/8").has_value());
+  ASSERT_TRUE(fwdNormalizedId("30.0.0.0/8").has_value());
+  verifyIDMapsConsistency();
+  verifyIdMapsMatchIdManager();
+
+  // Step 2 (resolved -> truly unresolvable): rewire into an A->B->C->A cycle.
+  // No route resolves, so each hits the unresolvable path. The fwd-side IDs
+  // must be cleared off the route and freed from the manager. Without the fix
+  // the stale freed IDs stay stamped and these EXPECT_FALSEs fail.
+  updater = sw_->getRouteUpdater();
+  addV4Route(updater, "10.0.0.0/8", {"20.1.1.10"});
+  addV4Route(updater, "20.0.0.0/8", {"30.1.1.10"});
+  addV4Route(updater, "30.0.0.0/8", {"10.1.1.10"});
+  updater.program();
+  EXPECT_FALSE(fwdResolvedId("10.0.0.0/8").has_value());
+  EXPECT_FALSE(fwdResolvedId("20.0.0.0/8").has_value());
+  EXPECT_FALSE(fwdResolvedId("30.0.0.0/8").has_value());
+  EXPECT_FALSE(fwdNormalizedId("10.0.0.0/8").has_value());
+  EXPECT_FALSE(fwdNormalizedId("20.0.0.0/8").has_value());
+  EXPECT_FALSE(fwdNormalizedId("30.0.0.0/8").has_value());
+  verifyIDMapsConsistency();
+  verifyIdMapsMatchIdManager();
+
+  // Step 3 (unresolvable -> resolved again): rewire back to connected
+  // nexthops. The routes re-resolve with fresh fwd-side IDs; without the fix
+  // updating from the dangling old ID double-frees here.
+  updater = sw_->getRouteUpdater();
+  addV4Route(updater, "10.0.0.0/8", {"1.1.1.10"});
+  addV4Route(updater, "20.0.0.0/8", {"2.2.2.10"});
+  addV4Route(updater, "30.0.0.0/8", {"3.3.3.10"});
+  updater.program();
+  EXPECT_TRUE(fwdResolvedId("10.0.0.0/8").has_value());
+  EXPECT_TRUE(fwdResolvedId("20.0.0.0/8").has_value());
+  EXPECT_TRUE(fwdResolvedId("30.0.0.0/8").has_value());
+  EXPECT_TRUE(fwdNormalizedId("10.0.0.0/8").has_value());
+  EXPECT_TRUE(fwdNormalizedId("20.0.0.0/8").has_value());
+  EXPECT_TRUE(fwdNormalizedId("30.0.0.0/8").has_value());
+  verifyIDMapsConsistency();
+  verifyIdMapsMatchIdManager();
+
+  // Step 4 (remove): the routes remove cleanly with no double-free.
+  updater = sw_->getRouteUpdater();
+  delV4Route(updater, "10.0.0.0/8");
+  delV4Route(updater, "20.0.0.0/8");
+  delV4Route(updater, "30.0.0.0/8");
+  updater.program();
+  verifyIDMapsConsistency();
+  verifyIdMapsMatchIdManager();
+}
+
 } // namespace facebook::fboss

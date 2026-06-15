@@ -64,6 +64,13 @@ cpp_library(
 )
 
 cpp_library(
+    name = "transceiver-delay-constants",
+    headers = [
+        "facebook/TransceiverDelayConstants.h",
+    ],
+)
+
+cpp_library(
     name = "core-default",
     exported_deps = [
         ":core-credo-0.7.2",  # @manual

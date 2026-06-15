@@ -267,6 +267,8 @@ struct AclEntryFields {
   31: optional list<byte> roceMask;
   32: optional list<switch_config.AclUdfEntry> udfTable;
   33: optional switch_config.Range l4DstPortRange;
+  34: optional byte trafficClass;
+  35: optional string namedNextHopGroup;
 }
 
 enum NeighborState {
@@ -505,6 +507,9 @@ struct SwitchSettingsFields {
   // System port offset for fabric link monitoring
   60: optional i32 fabricLinkMonitoringSystemPortOffset;
   61: optional switch_config.PacketForwardingMode packetForwardingMode;
+  // FLAGS_ecmp_width snapshot. A mismatch on warmboot triggers assert
+  // and coldboot.
+  62: optional i32 ecmpWidth;
 }
 
 struct RoutePrefix {

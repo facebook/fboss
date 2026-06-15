@@ -75,8 +75,10 @@ TEST_F(AgentHwResourceStatsTest, l3Stats) {
                           ->getScopeResolver()
                           ->scope(getAgentEnsemble()->masterLogicalPortIds())
                           .switchId();
+      auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
       multiswitch::HwSwitchStats hwSwitchStats =
-          getSw()->getHwSwitchStatsExpensive(switchId);
+          getSw()->getHwSwitchStatsExpensive(switchIndex);
       HwResourceStats& hwResourceStats = *hwSwitchStats.hwResourceStats();
       EXPECT_EQ(0, hwResourceStats.hw_table_stats_stale().value());
       return std::make_tuple(
@@ -179,8 +181,10 @@ TEST_F(AgentHwResourceStatsTest, aclStats) {
                           ->getScopeResolver()
                           ->scope(getAgentEnsemble()->masterLogicalPortIds())
                           .switchId();
+      auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
       multiswitch::HwSwitchStats hwSwitchStats =
-          getSw()->getHwSwitchStatsExpensive(switchId);
+          getSw()->getHwSwitchStatsExpensive(switchIndex);
       HwResourceStats& hwResourceStats = *hwSwitchStats.hwResourceStats();
       EXPECT_EQ(0, hwResourceStats.hw_table_stats_stale().value());
       return std::make_tuple(

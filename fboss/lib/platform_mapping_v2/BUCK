@@ -28,6 +28,7 @@ python_library(
     deps = [
         ":asic_vendor_config",
         ":helpers",
+        ":integrated_transceiver_mapping",
         ":platform_mapping_config-python-types",
         ":port_profile_mapping",
         ":profile_settings",
@@ -83,6 +84,7 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":asic_vendor_config",
+        ":integrated_transceiver_mapping",
         ":platform_mapping_config-python-types",
         ":port_profile_mapping",
         ":profile_settings",
@@ -90,6 +92,7 @@ python_library(
         ":static_mapping",
         "//fboss/agent:switch_config-python-types",
         "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/lib/if:fboss_common-python-types",
         "//fboss/lib/phy:phy-python-types",
         "//fboss/qsfp_service/if:transceiver-python-types",
     ],
@@ -145,14 +148,17 @@ python_binary(
     par_style = "xar",
     deps = [
         ":platform_mapping_v2",
+        ":read_files_utils",
         "//thrift/lib/python:types",
     ],
 )
 
+# @ci-signal-ack
 ci_sandcastle(
     name = "platform_mapping_v2_verify_and_configo_sync",
     alias = "platform-mapping-v2-verify-and-configo-sync-citadel",
     args = {
+        "skip_if_error_exists_on_base_revision": True,
         "steps": [
             {
                 "name": "Verify /generated_platform_mappings Is Populated Correctly",
@@ -173,9 +179,17 @@ ci_sandcastle(
         "fbcode/fboss/lib/platform_mapping_v2/**",
     ],
     command = "SandcastleUniversalCommand",
-    metadata = {"brr_disable_reason": "NOT_YET_IMPLEMENTED"},  # auto-derived, may be wrong
     oncall = "fboss_optics_phy",
     schedules = [
         ci.diff,
+    ],
+)
+
+python_library(
+    name = "integrated_transceiver_mapping",
+    srcs = ["integrated_transceiver_mapping.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-python-types",
     ],
 )

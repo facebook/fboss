@@ -11,6 +11,7 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/EcmpResourceManager.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -18,6 +19,7 @@
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -37,6 +39,9 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
     auto cfg = onePortPerIntfConfig(kNumIntfs);
     handle_ = createTestHandle(&cfg);
     sw_ = handle_->getSw();
+    if (FLAGS_enable_nexthop_id_manager) {
+      nextHopIDManager_ = std::make_unique<NextHopIDManager>();
+    }
     ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
     // Taken from mock asic
     EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 5);
@@ -96,7 +101,12 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
     }
     return nhopsTo;
   }
-  void updateRoutes(const std::shared_ptr<SwitchState>& newState) {
+  void updateRoutes(const std::shared_ptr<SwitchState>& newStateIn) {
+    // Stamp NextHop IDs on the made-up routes so getNextHops() can resolve them
+    // via resolvedNextHopSetID once FLAGS_resolve_nexthops_from_id is on.
+    auto newState = newStateIn->clone();
+    assignNextHopIdsToAllRoutes(nextHopIDManager_.get(), newState);
+    newState->publish();
     auto updater = sw_->getRouteUpdater();
     StateDelta delta(sw_->getState(), newState);
     processFibsDeltaInHwSwitchOrder(
@@ -129,6 +139,7 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
   }
   std::unique_ptr<HwTestHandle> handle_;
   SwSwitch* sw_;
+  std::unique_ptr<NextHopIDManager> nextHopIDManager_;
 };
 
 TEST_F(EcmpResourceManagerRibFibTest, init) {

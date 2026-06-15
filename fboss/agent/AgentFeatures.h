@@ -77,6 +77,7 @@ DECLARE_bool(dual_stage_edsw_3q_2q);
 DECLARE_bool(dual_stage_3q_2q_qos);
 DECLARE_bool(janga_test);
 DECLARE_bool(test_fixture);
+DECLARE_bool(minipack3bta_16rifs);
 
 bool isDualStage3Q2QMode();
 bool isDualStage3Q2QQos();
@@ -109,6 +110,7 @@ DECLARE_bool(run_forever);
 DECLARE_bool(run_forever_on_failure);
 
 DECLARE_string(sdk_reg_dump_path_prefix);
+DECLARE_bool(skip_sdk_reg_dump);
 DECLARE_bool(type_dctype1_janga);
 DECLARE_bool(prod_invariant_config_test);
 DECLARE_int32(max_unprocessed_switch_reachability_changes);

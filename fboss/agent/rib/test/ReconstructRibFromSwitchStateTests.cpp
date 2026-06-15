@@ -80,11 +80,28 @@ RoutePrefixV6 makeV6Prefix(const std::string& addr, uint8_t mask) {
 
 } // namespace
 
+namespace {
+
+using V4UnresolvedRouteMap = std::unordered_map<
+    folly::CIDRNetworkV4,
+    std::shared_ptr<Route<folly::IPAddressV4>>>;
+using V6UnresolvedRouteMap = std::unordered_map<
+    folly::CIDRNetworkV6,
+    std::shared_ptr<Route<folly::IPAddressV6>>>;
+
+template <typename AddrT>
+auto toKey(const RoutePrefix<AddrT>& p) {
+  return std::make_pair(p.network(), p.mask());
+}
+
+} // namespace
+
 TEST(ReconstructRibFromFib, EmptyFibEmptyRib) {
   auto fib = std::make_shared<ForwardingInformationBaseV4>();
   IPv4NetworkToRouteMap rib;
+  V4UnresolvedRouteMap index;
 
-  reconstructRibFromFib<folly::IPAddressV4>(fib, &rib);
+  reconstructRib(fib, &rib, index);
 
   EXPECT_EQ(rib.size(), 0);
 }
@@ -100,7 +117,8 @@ TEST(ReconstructRibFromFib, FibPopulatesEmptyRibV4) {
   fib->addNode(route2);
 
   IPv4NetworkToRouteMap rib;
-  reconstructRibFromFib<folly::IPAddressV4>(fib, &rib);
+  V4UnresolvedRouteMap index;
+  reconstructRib(fib, &rib, index);
 
   EXPECT_EQ(rib.size(), 2);
 }
@@ -116,14 +134,15 @@ TEST(ReconstructRibFromFib, FibPopulatesEmptyRibV6) {
   fib->addNode(route2);
 
   IPv6NetworkToRouteMap rib;
-  reconstructRibFromFib<folly::IPAddressV6>(fib, &rib);
+  V6UnresolvedRouteMap index;
+  reconstructRib(fib, &rib, index);
 
   EXPECT_EQ(rib.size(), 2);
 }
 
 TEST(ReconstructRibFromFib, UnresolvedRoutesPreserved) {
-  // RIB has an unresolved route; FIB has a resolved route.
-  // After reconstruction, both should be present.
+  // Index has an unresolved route; FIB has a resolved route at a different
+  // prefix. After reconstruction, both should be present.
   auto fib = std::make_shared<ForwardingInformationBaseV4>();
 
   auto resolvedPrefix = makeV4Prefix("10.0.0.0", 24);
@@ -133,11 +152,12 @@ TEST(ReconstructRibFromFib, UnresolvedRoutesPreserved) {
   IPv4NetworkToRouteMap rib;
   auto unresolvedPrefix = makeV4Prefix("172.16.0.0", 12);
   auto unresolvedRoute = makeUnresolvedRoute(unresolvedPrefix);
-  rib.insert(unresolvedPrefix, unresolvedRoute);
+  V4UnresolvedRouteMap index;
+  index[toKey(unresolvedPrefix)] = unresolvedRoute;
 
-  reconstructRibFromFib<folly::IPAddressV4>(fib, &rib);
+  reconstructRib(fib, &rib, index);
 
-  // Both FIB resolved route and RIB unresolved route should be present
+  // Both FIB resolved route and indexed unresolved route should be present
   EXPECT_EQ(rib.size(), 2);
 }
 
@@ -159,36 +179,38 @@ TEST(ReconstructRibFromFib, ResolvedRoutesReplacedByFib) {
   auto extraRoute = makeResolvedRoute(extraPrefix);
   rib.insert(extraPrefix, extraRoute);
 
-  reconstructRibFromFib<folly::IPAddressV4>(fib, &rib);
+  V4UnresolvedRouteMap index;
+  reconstructRib(fib, &rib, index);
 
   // Only the FIB route should remain (extra resolved route was cleared)
   EXPECT_EQ(rib.size(), 1);
 }
 
 TEST(ReconstructRibFromFib, OnlyUnresolvedRoutesWithEmptyFib) {
-  // RIB has only unresolved routes, FIB is empty.
-  // After reconstruction, unresolved routes should be preserved.
+  // Index has only unresolved routes, FIB is empty.
+  // After reconstruction, unresolved routes from the index should be present.
   auto fib = std::make_shared<ForwardingInformationBaseV4>();
 
   IPv4NetworkToRouteMap rib;
   auto prefix1 = makeV4Prefix("10.0.0.0", 24);
   auto prefix2 = makeV4Prefix("172.16.0.0", 12);
-  rib.insert(prefix1, makeUnresolvedRoute(prefix1));
-  rib.insert(prefix2, makeUnresolvedRoute(prefix2));
+  V4UnresolvedRouteMap index;
+  index[toKey(prefix1)] = makeUnresolvedRoute(prefix1);
+  index[toKey(prefix2)] = makeUnresolvedRoute(prefix2);
 
-  reconstructRibFromFib<folly::IPAddressV4>(fib, &rib);
+  reconstructRib(fib, &rib, index);
 
-  // Unresolved routes should survive
+  // Unresolved routes should appear
   EXPECT_EQ(rib.size(), 2);
 }
 
 TEST(ReconstructRibFromFib, MixedRibWithFibOverwrite) {
-  // RIB has both resolved and unresolved routes.
-  // FIB has different resolved routes.
+  // RIB has resolved routes that don't overlap with FIB.
+  // Index has an unresolved route.
   // After reconstruction:
   //   - Old resolved routes from RIB are gone
   //   - FIB resolved routes are imported
-  //   - Unresolved routes from RIB are preserved
+  //   - Unresolved route from index is added
   auto fib = std::make_shared<ForwardingInformationBaseV6>();
 
   auto fibPrefix1 = makeV6Prefix("2001:db8::", 32);
@@ -200,11 +222,12 @@ TEST(ReconstructRibFromFib, MixedRibWithFibOverwrite) {
   // Resolved route in RIB that is NOT in FIB — should be removed
   auto oldResolvedPrefix = makeV6Prefix("fc00::", 16);
   rib.insert(oldResolvedPrefix, makeResolvedRoute(oldResolvedPrefix));
-  // Unresolved route in RIB — should be preserved
+  // Unresolved route lives in the index — should be preserved
   auto unresolvedPrefix = makeV6Prefix("fe80::", 10);
-  rib.insert(unresolvedPrefix, makeUnresolvedRoute(unresolvedPrefix));
+  V6UnresolvedRouteMap index;
+  index[toKey(unresolvedPrefix)] = makeUnresolvedRoute(unresolvedPrefix);
 
-  reconstructRibFromFib<folly::IPAddressV6>(fib, &rib);
+  reconstructRib(fib, &rib, index);
 
   // 2 FIB routes + 1 unresolved route = 3
   EXPECT_EQ(rib.size(), 3);
@@ -221,9 +244,10 @@ TEST(ReconstructRibFromFib, UnresolvedRouteOverwritesFibRouteForSamePrefix) {
 
   IPv4NetworkToRouteMap rib;
   auto unresolvedRoute = makeUnresolvedRoute(sharedPrefix);
-  rib.insert(sharedPrefix, unresolvedRoute);
+  V4UnresolvedRouteMap index;
+  index[toKey(sharedPrefix)] = unresolvedRoute;
 
-  reconstructRibFromFib<folly::IPAddressV4>(fib, &rib);
+  reconstructRib(fib, &rib, index);
 
   // The unresolved route overwrites the FIB route for the same prefix
   EXPECT_EQ(rib.size(), 1);

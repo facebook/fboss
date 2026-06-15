@@ -127,11 +127,13 @@ set_target_properties(sai_udf_utils PROPERTIES COMPILE_FLAGS
 
 add_library(sai_port_utils
   fboss/agent/hw/sai/hw_test/HwTestPortUtils.cpp
+  fboss/agent/hw/sai/hw_test/SaiPortUtils.cpp
 )
 
 target_link_libraries(sai_port_utils
   sai_switch # //fboss/agent/hw/sai/switch:sai_switch
   sai_platform
+  config_factory
 )
 
 set_target_properties(sai_port_utils PROPERTIES COMPILE_FLAGS
@@ -231,6 +233,7 @@ target_link_libraries(agent_hw_test_thrift_handler
   sai_ecmp_utils
   sai_pfc_utils
   sai_port_utils
+  sai_phy_capabilities
   diag_shell
   wedge_led_utils
 )
@@ -246,7 +249,6 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
   message(STATUS "Building SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
 
   add_executable(sai_test-${SAI_IMPL_NAME}
-    fboss/agent/hw/sai/hw_test/dataplane_tests/SaiAclTableGroupTrafficTests.cpp
     fboss/agent/hw/sai/hw_test/HwTestTamUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestAclUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestPfcUtils.cpp
@@ -263,12 +265,9 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/HwTestSwitchingModeUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestTeFlowUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestTrunkUtils.cpp
-    fboss/agent/hw/sai/hw_test/HwTestPortUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestRouteUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestUdfUtils.cpp
     fboss/agent/hw/sai/hw_test/HwVlanUtils.cpp
-    fboss/agent/hw/sai/hw_test/SaiPortUtils.cpp
-    fboss/agent/hw/sai/hw_test/SaiPortAdminStateTests.cpp
   )
 
   add_sai_sdk_dependencies(sai_test-${SAI_IMPL_NAME})
@@ -279,6 +278,7 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     ${SAI_IMPL_ARG}
     sai_switch_ensemble
     sai_phy_capabilities
+    sai_port_utils
     hw_switch_test
     hw_test_main
     -Wl,--no-whole-archive

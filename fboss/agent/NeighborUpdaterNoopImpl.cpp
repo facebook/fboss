@@ -205,6 +205,13 @@ uint32_t NeighborUpdaterNoopImpl::getProbesLeft(
     const folly::IPAddressV6& /*ip*/) {
   return 0;
 }
+
+uint32_t NeighborUpdaterNoopImpl::getProbesLeftIPv4(
+    const InterfaceID& /*intfID*/,
+    const folly::IPAddressV4& /*ip*/) {
+  return 0;
+}
+
 uint32_t NeighborUpdaterNoopImpl::getMaxNeighborProbes(
     const InterfaceID& /*intfID*/) {
   return 0;

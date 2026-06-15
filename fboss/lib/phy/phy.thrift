@@ -277,6 +277,8 @@ enum DataPlanePhyChipType {
   XPHY = 2,
   TRANSCEIVER = 3,
   BACKPLANE = 4,
+  OPTICAL_ENGINE = 5,
+  LASER_SOURCE = 6,
 }
 
 struct DataPlanePhyChip {
@@ -288,6 +290,8 @@ struct DataPlanePhyChip {
   // type=DataPlanePhyChipType::XPHY, which means the xphy(gearbox) id
   // type=DataPlanePhyChipType::TRANSCEIVER, which means the transceiver id
   3: i32 physicalID;
+  // Bank/core ID for multi-core transceivers (CPO BANKED_CMIS_INTEGRATED)
+  4: optional i32 coreId;
 }
 
 struct PinID {
@@ -333,6 +337,8 @@ struct PortPinConfig {
   3: optional list<PinConfig> xphySys;
   4: optional list<PinConfig> xphyLine;
   5: optional string serdesCustomCollection;
+  6: optional list<PinConfig> opticalEngine;
+  7: optional list<PinConfig> laserSource;
 }
 
 struct PortPrbsState {

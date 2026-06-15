@@ -10,6 +10,7 @@
 
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
@@ -22,6 +23,8 @@
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 
 #include <gtest/gtest.h>
+
+#include <unordered_set>
 
 using namespace facebook::fboss;
 using std::make_pair;
@@ -721,6 +724,62 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
       *table2);
   EXPECT_EQ(
       *(stateV2->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup);
+}
+
+TEST(AclGroup, ApplyConfigScopesSrcPortAclTableEntries) {
+  FLAGS_enable_acl_table_group = true;
+  auto platform = createMockPlatform();
+
+  cfg::SwitchConfig config;
+  config.aclTableGroup() = cfg::AclTableGroup();
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      {0,
+       createSwitchInfo(
+           cfg::SwitchType::NPU, cfg::AsicType::ASIC_TYPE_MOCK, 0, 99, 0)},
+      {1,
+       createSwitchInfo(
+           cfg::SwitchType::NPU, cfg::AsicType::ASIC_TYPE_MOCK, 100, 199, 1)}};
+
+  config.aclTableGroup()->name() = kGroup1;
+  config.aclTableGroup()->stage() = kAclStage1;
+  config.aclTableGroup()->aclTables()->resize(1);
+  auto& cfgTable = config.aclTableGroup()->aclTables()[0];
+  cfgTable.name() = kTable1;
+  cfgTable.priority() = 1;
+  cfgTable.aclEntries()->resize(2);
+  cfgTable.aclEntries()[0].name() = kAcl1a;
+  cfgTable.aclEntries()[0].actionType() = cfg::AclActionType::DENY;
+  cfgTable.aclEntries()[0].srcPort() = 2;
+  cfgTable.aclEntries()[1].name() = kAcl1b;
+  cfgTable.aclEntries()[1].actionType() = cfg::AclActionType::DENY;
+
+  auto state = publishAndApplyConfig(
+      std::make_shared<SwitchState>(), &config, platform.get());
+  ASSERT_NE(nullptr, state);
+
+  auto matcher0 = HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(0)});
+  auto matcher1 = HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(1)});
+  auto switch0AclGroups = state->getAclTableGroups()->getMapNodeIf(matcher0);
+  auto switch1AclGroups = state->getAclTableGroups()->getMapNodeIf(matcher1);
+  ASSERT_NE(nullptr, switch0AclGroups);
+  ASSERT_NE(nullptr, switch1AclGroups);
+
+  auto switch0Acls = switch0AclGroups->getAclTableGroup(kAclStage1)
+                         ->getAclTableMap()
+                         ->getTable(kTable1)
+                         ->getAclMap();
+  auto switch1Acls = switch1AclGroups->getAclTableGroup(kAclStage1)
+                         ->getAclTableMap()
+                         ->getTable(kTable1)
+                         ->getAclMap();
+
+  EXPECT_NE(*switch0Acls, *switch1Acls);
+  EXPECT_EQ(2, switch0Acls->numEntries());
+  EXPECT_EQ(1, switch1Acls->numEntries());
+  EXPECT_NE(nullptr, switch0Acls->getEntryIf(kAcl1a));
+  EXPECT_NE(nullptr, switch0Acls->getEntryIf(kAcl1b));
+  EXPECT_EQ(nullptr, switch1Acls->getEntryIf(kAcl1a));
+  EXPECT_NE(nullptr, switch1Acls->getEntryIf(kAcl1b));
 }
 
 TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {

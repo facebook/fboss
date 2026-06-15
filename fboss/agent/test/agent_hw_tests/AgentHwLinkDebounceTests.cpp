@@ -1,10 +1,13 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -191,6 +194,59 @@ TEST_F(AgentHwLinkDebounceTest, FlapWithinDebounceWindow) {
 
   applyDebounceConfig(kHoldoffLongMs, 0);
   verifyNoEventInWindow(false /* portStartsAsUp */, kHoldoffLongMs);
+}
+
+TEST_F(AgentHwLinkDebounceTest, PacketDropDuringDownHoldoff) {
+  auto port = portForTest();
+  auto setup = [&]() { bringUpPort(port); };
+  auto verify = [&]() {
+    applyDebounceConfig(std::nullopt, kHoldoffLongMs);
+
+    ASSERT_TRUE(getProgrammedState()->getPorts()->getNodeIf(port)->isUp());
+    auto baselineFlaps = getLinkStateFlapCount(port);
+    auto statsBefore = getLatestPortStats(port);
+
+    auto holdoffStart = std::chrono::steady_clock::now();
+    togglePortNoWait(port, false /* toUp */);
+
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    auto pkt = utility::makeUDPTxPacket(
+        getSw(),
+        std::nullopt /* vlan */,
+        srcMac,
+        intfMac,
+        folly::IPAddress("1001::1"),
+        folly::IPAddress("2001::1"),
+        4242,
+        4242);
+    getSw()->sendPacketOutOfPortAsync(std::move(pkt), port);
+
+    auto elapsed = std::chrono::steady_clock::now() - holdoffStart;
+    auto verifyWindow = std::chrono::milliseconds(kHoldoffLongMs) - elapsed;
+    CHECK_HOLDS_FOR_DURATION(verifyWindow, [&]() -> bool {
+      return getProgrammedState()->getPorts()->getNodeIf(port)->isUp() &&
+          getLinkStateFlapCount(port) == baselineFlaps;
+    });
+
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_FALSE(
+          getProgrammedState()->getPorts()->getNodeIf(port)->isUp());
+    });
+
+    auto inBefore = *statsBefore.inDiscards_();
+    WITH_RETRIES({
+      auto statsAfter = getLatestPortStats(port);
+      auto inAfter = *statsAfter.inDiscards_();
+      XLOG(INFO) << "Port inDiscards before/after: " << inBefore << "/"
+                 << inAfter;
+      EXPECT_EVENTUALLY_EQ(inAfter, inBefore + 1);
+    });
+
+    togglePortNoWait(port, true /* toUp */);
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

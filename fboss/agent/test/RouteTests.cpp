@@ -81,6 +81,7 @@ const std::optional<cfg::AclLookupClass> kClassID2(
 constexpr AdminDistance DISTANCE = AdminDistance::MAX_ADMIN_DISTANCE;
 constexpr AdminDistance EBGP_DISTANCE = AdminDistance::EBGP;
 const RouterID kRid0 = RouterID(0);
+const std::string kSrv6Tunnel0{"srv6Tunnel0"};
 
 //
 // Helper functions
@@ -2761,7 +2762,7 @@ TEST_F(RouteTest, addRouteWithSingleSrv6NextHop) {
       std::nullopt,
       sidList,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
 
   auto updater = this->sw_->getRouteUpdater();
   updater.addRoute(
@@ -2781,7 +2782,7 @@ TEST_F(RouteTest, addRouteWithSingleSrv6NextHop) {
   EXPECT_EQ(nh.addr(), folly::IPAddress("1::10"));
   EXPECT_EQ(nh.srv6SegmentList(), sidList);
   EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-  EXPECT_EQ(nh.tunnelId(), "srv6Tunnel0");
+  EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
 }
 
 TEST_F(RouteTest, addRouteWithMultipleSrv6NextHops) {
@@ -2801,7 +2802,7 @@ TEST_F(RouteTest, addRouteWithMultipleSrv6NextHops) {
       std::nullopt,
       sidList1,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   nhops.emplace(UnresolvedNextHop(
       folly::IPAddress("2::10"),
       ECMP_WEIGHT,
@@ -2811,7 +2812,7 @@ TEST_F(RouteTest, addRouteWithMultipleSrv6NextHops) {
       std::nullopt,
       sidList2,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel1")));
+      kSrv6Tunnel0));
 
   auto updater = this->sw_->getRouteUpdater();
   updater.addRoute(
@@ -2832,12 +2833,12 @@ TEST_F(RouteTest, addRouteWithMultipleSrv6NextHops) {
     if (nh.addr() == folly::IPAddress("1::10")) {
       EXPECT_EQ(nh.srv6SegmentList(), sidList1);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel0");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     } else {
       EXPECT_EQ(nh.addr(), folly::IPAddress("2::10"));
       EXPECT_EQ(nh.srv6SegmentList(), sidList2);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel1");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     }
   }
 }
@@ -2860,7 +2861,7 @@ TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
       std::nullopt,
       sidList1,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   nhops.emplace(UnresolvedNextHop(
       folly::IPAddress("2::10"),
       ECMP_WEIGHT,
@@ -2870,7 +2871,7 @@ TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
       std::nullopt,
       sidList2,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel1")));
+      kSrv6Tunnel0));
   // 2 plain (non-SRv6) next hops
   nhops.emplace(UnresolvedNextHop(folly::IPAddress("3::10"), ECMP_WEIGHT));
   nhops.emplace(UnresolvedNextHop(folly::IPAddress("4::10"), ECMP_WEIGHT));
@@ -2881,11 +2882,11 @@ TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
     if (nh.addr() == folly::IPAddress("1::10")) {
       EXPECT_EQ(nh.srv6SegmentList(), sidList1);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel0");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     } else if (nh.addr() == folly::IPAddress("2::10")) {
       EXPECT_EQ(nh.srv6SegmentList(), sidList2);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel1");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     } else {
       EXPECT_TRUE(nh.srv6SegmentList().empty());
       EXPECT_EQ(nh.tunnelType(), std::nullopt);
@@ -2913,12 +2914,12 @@ TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
       // SRv6 next hop 1: fields must match input
       EXPECT_EQ(nh.srv6SegmentList(), sidList1);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel0");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     } else if (nh.addr() == folly::IPAddress("2::10")) {
       // SRv6 next hop 2: fields must match input
       EXPECT_EQ(nh.srv6SegmentList(), sidList2);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel1");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     } else {
       // Plain next hops (3::10 or 4::10): no SRv6 fields
       EXPECT_TRUE(
@@ -2963,7 +2964,7 @@ TEST_F(RouteTest, resolveRouteWithSrv6NextHopToMultipleResolvedNextHops) {
       std::nullopt,
       sidList,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   updater.addRoute(
       rid,
       IPAddress("2800:1::"),
@@ -2993,7 +2994,7 @@ TEST_F(RouteTest, resolveRouteWithSrv6NextHopToMultipleResolvedNextHops) {
       std::nullopt,
       sidList,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   expectedNhops.emplace(ResolvedNextHop(
       IPAddress("2::10"),
       InterfaceID(2),
@@ -3004,7 +3005,7 @@ TEST_F(RouteTest, resolveRouteWithSrv6NextHopToMultipleResolvedNextHops) {
       std::nullopt,
       sidList,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
 
   EXPECT_EQ(expectedNhops, fwdNhops);
 }
@@ -3043,7 +3044,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       igpSidListA,
       TunnelType::SRV6_ENCAP,
-      std::string("igpTunnelA")));
+      kSrv6Tunnel0));
   igpNhopsA.emplace(UnresolvedNextHop(
       folly::IPAddress("2::10"),
       ECMP_WEIGHT,
@@ -3053,7 +3054,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       igpSidListA,
       TunnelType::SRV6_ENCAP,
-      std::string("igpTunnelA")));
+      kSrv6Tunnel0));
   updater.addRoute(
       rid,
       IPAddress("2801::"),
@@ -3073,7 +3074,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       igpSidListB,
       TunnelType::SRV6_ENCAP,
-      std::string("igpTunnelB")));
+      kSrv6Tunnel0));
   igpNhopsB.emplace(UnresolvedNextHop(
       folly::IPAddress("4::10"),
       ECMP_WEIGHT,
@@ -3083,7 +3084,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       igpSidListB,
       TunnelType::SRV6_ENCAP,
-      std::string("igpTunnelB")));
+      kSrv6Tunnel0));
   updater.addRoute(
       rid,
       IPAddress("2802::"),
@@ -3103,7 +3104,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       sidListA,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   srv6Nhops.emplace(UnresolvedNextHop(
       folly::IPAddress("2802::1"),
       ECMP_WEIGHT,
@@ -3113,7 +3114,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       sidListB,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel1")));
+      kSrv6Tunnel0));
   updater.addRoute(
       rid,
       IPAddress("2800:5::"),
@@ -3142,7 +3143,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       sidListA,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   expectedNhops.emplace(ResolvedNextHop(
       IPAddress("2::10"),
       InterfaceID(2),
@@ -3153,7 +3154,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       sidListA,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   expectedNhops.emplace(ResolvedNextHop(
       IPAddress("3::10"),
       InterfaceID(3),
@@ -3164,7 +3165,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       sidListB,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel1")));
+      kSrv6Tunnel0));
   expectedNhops.emplace(ResolvedNextHop(
       IPAddress("4::10"),
       InterfaceID(4),
@@ -3175,7 +3176,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       sidListB,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel1")));
+      kSrv6Tunnel0));
 
   EXPECT_EQ(expectedNhops, fwdNhops);
 }

@@ -130,12 +130,8 @@ if (BUILD_SAI_FAKE_LINK_TEST)
   message(STATUS "Configured to build SAI Fake Link Test binaries")
 endif()
 
-if (SAI_BRCM_IMPL)
-  # TODO (skhare) IS_OSS_BRCM_SAI is only a short-term change to unblock.
-  # Refactor/fix the code and then remove this flag.
-  add_definitions (-DIS_OSS_BRCM_SAI=true)
-
-  # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL
+if (SAI_BRCM_IMPL OR SAI_TAJO_IMPL)
+    # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL or SAI_TAJO_IMPL
   if ("$ENV{SAI_SDK_VERSION}" STREQUAL "")
     message(FATAL_ERROR
       "SAI_SDK_VERSION environment variable is required when SAI_BRCM_IMPL is enabled.\n"
@@ -291,9 +287,15 @@ include_directories(${SAI_INCLUDE_DIR})
 message(STATUS "Found SAI Include dir: ${SAI_INCLUDE_DIR}")
 
 if (SAI_BRCM_IMPL)
-  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES saiswitchextensions.h)
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES brcm_sai_extensions.h)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
-  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")
+elseif(SAI_TAJO_IMPL)
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES experimental/sai_attr_ext.h)
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")
 elseif(CHENAB_SAI_SDK)
   # Chenab-TODO: set experimental directories appropriately
   set(SAI_EXPERIMENTAL_INCLUDE_DIR "/var/FBOSS/sai_impl_output/include")
@@ -881,6 +883,17 @@ add_fbthrift_cpp_library(
   fboss/lib/i2c/i2c_controller_stats.thrift
 )
 
+
+add_fbthrift_cpp_library(
+  bgp_summary_cpp2
+  fboss/cli/fboss2/commands/show/bgp/summary/bgp_summary.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    bgp_thrift_cpp2
+)
+
 add_fbthrift_cpp_library(
   io_stats_cpp2
   fboss/lib/if/io_stats.thrift
@@ -1081,6 +1094,19 @@ set_property(
 find_package(Threads REQUIRED)
 enable_testing()
 
+# Shipit maps fbcode/neteng/fboss/bgp/public_tld/configerator/structs/neteng/
+# to configerator/structs/neteng/ in the OSS repo, but thrift includes and
+# CMake source paths reference the original internal path under public_tld.
+# Create a symlink to bridge the two so both paths resolve to the same files.
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/neteng/fboss/bgp/public_tld/configerator/structs/neteng")
+  file(MAKE_DIRECTORY
+    "${CMAKE_SOURCE_DIR}/neteng/fboss/bgp/public_tld/configerator/structs")
+  file(CREATE_LINK
+    "${CMAKE_SOURCE_DIR}/configerator/structs/neteng"
+    "${CMAKE_SOURCE_DIR}/neteng/fboss/bgp/public_tld/configerator/structs/neteng"
+    SYMBOLIC)
+endif()
+
 # Build all cmake files under cmake/*cmake
 file(GLOB_RECURSE cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
 foreach(cmakeFile ${cmakeFiles})
@@ -1107,6 +1133,9 @@ endforeach()
 install(DIRECTORY ${CMAKE_BINARY_DIR}/fboss/
   DESTINATION include/fboss
   FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
+install(DIRECTORY ${CMAKE_BINARY_DIR}/configerator/
+  DESTINATION include/configerator
+  FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
 
 install(TARGETS
   nodebase address_utils radix_tree exponential_back_off
@@ -1119,6 +1148,48 @@ install(TARGETS
   cfgr_fboss_common_cpp2 asic_temp_cpp2
   bcm_config_cpp2 asic_config_cpp2 asic_config_v2_cpp2
   io_stats_cpp2
+  # Utility libraries for downstream consumers (BGP++)
+  alert_logger log_thrift_call
+  # FSDB client libraries for downstream consumers (BGP++ FsdbSyncer,
+  # NeighborWatcher). Dependents before dependencies for one-pass linkers.
+  fsdb_syncer fsdb_pub_sub fsdb_sub_mgr fsdb_stream_client
+  fsdb_flags fsdb_utils
+  fsdb_model_cpp2 thriftpath_lib
+  fsdb_common_cpp2 fsdb_oper_cpp2 fsdb_cpp2
+  cow_storage_mgr oper_path_helpers
+  common_thrift_utils thrift_service_client
+  # COW subscription instantiations (FsdbCowStateSubManager)
+  fsdb_cow_state_sub_mgr fsdb_cow_storage fsdb_cow_root
+  # FSDB model transitive thrift deps (agent state/config/info types)
+  switch_state_cpp2 agent_config_cpp2 agent_info_cpp2
+  switch_reachability_cpp2
+  qsfp_state_cpp2 qsfp_stats_cpp2 sensor_service_stats_cpp2
+  # Leaf thrift deps of the FsdbOperStateRoot COW model, transitively
+  # required by downstream consumers that link it (BGP++ NeighborWatcher
+  # FsdbCowStateSubManager). Headers ship via the include dir, but the
+  # static archives must be installed for one-pass linkers to resolve.
+  qsfp_config_cpp2 port_state_cpp2 pim_state_cpp2 sensor_service_cpp2
+  # thrift_cow C++ libraries (CowStorage / visitors / patch appliers) that
+  # back the COW storage instantiations above.
+  patch_cpp2 cow_visitor_results_cpp2
+  storage cow_storage
+  thrift_cow_serializer thrift_cow_nodes
+  thrift_cow_visitors_common thrift_cow_visitors
+  # FsdbOperStateRoot extern-template instantiation libs. fsdb_cow_storage
+  # references these for the PathVisitor (visitNode), PatchApplier, and
+  # ThriftStructNode instantiations over the oper-state tree; without them a
+  # one-pass link leaves thousands of undefined visitNode/PatchApplier refs.
+  fsdb_cow_root_path_visitor
+  fsdb_path_visitor_oper_state_instantiations
+  fsdb_patch_applier_oper_state_instantiations
+  fsdb_thrift_struct_oper_instantiations
+  # Additional leaf thrift deps reached through the qsfp_state / sensor /
+  # service-client portions of the model: transceiver_validation
+  # (FirmwarePair/TransceiverAttributes/VendorConfig), sensor_config
+  # (Thresholds), and qsfp (QsfpService client vtable via thrift_service_client).
+  transceiver_validation_cpp2
+  sensor_config_cpp2
+  qsfp_cpp2
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
 )

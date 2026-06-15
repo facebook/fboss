@@ -140,8 +140,7 @@ custom_unittest(
 
 thrift_library(
     name = "sensor_service_stats",
-    cpp2_deps = [
-    ],
+    cpp2_deps = [],
     go_thrift_namespaces = {
         "sensor_service_stats.thrift": "neteng.fboss.sensor_service_stats",
     },

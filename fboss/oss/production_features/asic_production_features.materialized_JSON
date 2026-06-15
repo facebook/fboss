@@ -491,7 +491,9 @@
         101,
         94,
         105,
-        89
+        89,
+        87,
+        78
     ],
     "tomahawkultra1": [
         2,
@@ -1103,7 +1105,9 @@
         "AIFM_PACKET_STREAM_HANDLER",
         "L2_QOS",
         "L4_DST_PORT_RANGE",
-        "AM_IDLES"
+        "AM_IDLES",
+        "UDF_HASH",
+        "ECMP_RANDOM_SPRAY"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
@@ -1233,8 +1237,8 @@
             "g202x"
           ],
           "sdk": 2,
-          "minSdkVersion": "26.2.5210",
-          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+          "minSdkVersion": "26.2.4210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.4210"
         }
       ]
     },
@@ -1247,8 +1251,8 @@
             "g202x"
           ],
           "sdk": 2,
-          "minSdkVersion": "26.2.5210",
-          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+          "minSdkVersion": "26.2.4210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.4210"
         }
       ]
     },
@@ -1261,8 +1265,8 @@
             "g202x"
           ],
           "sdk": 2,
-          "minSdkVersion": "26.2.5210",
-          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.5210"
+          "minSdkVersion": "26.2.4210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.4210"
         }
       ]
     },
@@ -1276,7 +1280,7 @@
           ],
           "sdk": 2,
           "minSdkVersion": "25.5.4210",
-          "note": "Port Debounce is supported from 25.5.4210"
+          "note": "Per-port link debounce timers require SAI_PORT_ATTR_LINK_{UP,DOWN}_DEBOUNCE_PERIOD_MILLISECONDS. Supported on Leaba SAI 25.5.4210 and 26.2.4210+. Regressed on 25.11.4210 (g202x) — see sai_graphene202x_25_11_unsupported_tests in sai_agent_test.cinc."
         }
       ]
     },
@@ -1289,6 +1293,202 @@
           ],
           "sdk": 1,
           "minSdkVersion": "13.3.0.0_odp"
+        }
+      ]
+    },
+    {
+      "feature": 19,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "DLB and ARS flowlets are supported on Broadcom SAI from 11.7; min set to 13.3 since 11.7 is being deprecated"
+        }
+      ]
+    },
+    {
+      "feature": 81,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp"
+        }
+      ]
+    },
+    {
+      "feature": 87,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "UDF-based hash load balancer tests are supported on Broadcom SAI from 11.7; min set to 13.3 since 11.7 is being deprecated"
+        }
+      ]
+    },
+    {
+      "feature": 80,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp"
+        }
+      ]
+    },
+    {
+      "feature": 82,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "ARS spray load balancer tests require SAI attributes added in 13.3"
+        }
+      ]
+    },
+    {
+      "feature": 78,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk4",
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "ECMP random spray is supported on Broadcom SAI from 13.3 onwards"
+        }
+      ]
+    },
+    {
+      "feature": 89,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.2.0.0_dnx_odp",
+          "note": "AM idles supported on Broadcom DNX SAI from 12.2 onwards (CS00012390029)"
+        }
+      ]
+    },
+    {
+      "feature": 58,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.0.0.0_dnx_odp",
+          "note": "Sflow sample packing supported on Broadcom DNX SAI from 12.x onwards"
+        }
+      ]
+    },
+    {
+      "feature": 75,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.0.0.0_dnx_odp",
+          "note": "Global TC rate limit supported on Broadcom DNX SAI from 12.x onwards"
+        }
+      ]
+    },
+    {
+      "feature": 15,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.2.0.0_dnx_odp",
+          "note": "VOQ DNX interrupt counters/handlers landed in Broadcom DNX SAI 12.2"
+        }
+      ]
+    },
+    {
+      "feature": 35,
+      "supportedFrom": [
+        {
+          "asics": [
+            "ebro"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "24.8.3001",
+          "note": "Egress port span/erspan mirroring supported on Leaba Gibraltar from SDK 24.8.3001 (MT-834); earlier 1.42.8 SDK lacks egress mirroring"
+        }
+      ]
+    },
+    {
+      "feature": 27,
+      "supportedFrom": [
+        {
+          "asics": [
+            "ebro"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "24.8.3001",
+          "note": "Route stat counters require SAI API >= 1.10, available on Leaba Gibraltar from SDK 24.8.3001"
+        }
+      ]
+    },
+    {
+      "feature": 111,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "Stateless mirror-on-drop is supported on SAI Tomahawk5 from SDK 13.3 onwards (renamed from AgentMirrorOnDropXgs in D101748313)"
+        }
+      ]
+    },
+    {
+      "feature": 90,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "AlternateArsEcmpObjects (AgentFlowletSwitchingEnhancedScaleTest) requires SAI attributes added in 13.3"
         }
       ]
     }

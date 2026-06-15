@@ -265,6 +265,36 @@
             "profileID": 39,
             "hasTransceiver": true
         },
+        "eth1/50/1": {
+            "neighbor": "eth1/51/1",
+            "profileID": 45,
+            "hasTransceiver": true
+        },
+        "eth1/50/5": {
+            "neighbor": "eth1/51/5",
+            "profileID": 45,
+            "hasTransceiver": true
+        },
+        "eth1/51/1": {
+            "neighbor": "eth1/50/1",
+            "profileID": 45,
+            "hasTransceiver": true
+        },
+        "eth1/51/5": {
+            "neighbor": "eth1/50/5",
+            "profileID": 45,
+            "hasTransceiver": true
+        },
+        "eth1/56/1": {
+            "neighbor": "eth1/57/1",
+            "profileID": 50,
+            "hasTransceiver": true
+        },
+        "eth1/57/1": {
+            "neighbor": "eth1/56/1",
+            "profileID": 50,
+            "hasTransceiver": true
+        },
         "eth1/58/1": {
             "neighbor": "eth1/59/1",
             "profileID": 38,

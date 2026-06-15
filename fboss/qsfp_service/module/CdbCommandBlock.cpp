@@ -41,6 +41,8 @@ static constexpr uint16_t kCdbCommandModuleQuery = 0x0000;
 static constexpr uint16_t kCdbCommandSymbolErrorHistogram = 0x9000;
 static constexpr uint16_t kCdbCommandRxErrorHistogram = 0x9001;
 
+// CDB command busy status values (internal to CDB polling loop)
+static constexpr uint8_t kCdbCommandStatusReadFailureUnknown = 0x00;
 static constexpr uint8_t kCdbCommandStatusBusyUnknown = 0x80;
 static constexpr uint8_t kCdbCommandStatusBusyCmdCaptured = 0x81;
 static constexpr uint8_t kCdbCommandStatusBusyCmdCheck = 0x82;
@@ -53,11 +55,15 @@ constexpr int delayAfterFwCommitUsec = 200000; // 200 ms
 
 // CMIS firmware related register offsets
 constexpr uint8_t kCdbCommandStatusReg = 37;
+constexpr uint8_t kModuleFlagReg = 8;
 constexpr uint8_t kModulePasswordEntryReg = 122;
 constexpr uint8_t kPageSelectReg = 127;
 constexpr uint8_t kCdbCommandMsbReg = 128;
 constexpr uint8_t kCdbCommandLsbReg = 129;
 constexpr uint8_t kCdbRlplLengthReg = 134;
+
+// CdbCmdCompleteFlag1 is at byte 8, bit 6 (page 00h lower memory)
+constexpr uint8_t kCdbCmdCompleteFlag1Mask = 0x40;
 
 // CMIS command
 constexpr int kCmisCommand = static_cast<int>(CmisField::CDB_COMMAND);
@@ -78,13 +84,11 @@ void CdbCommandBlock::i2cWriteAndContinue(
   auto startTime = std::chrono::steady_clock::now();
 
   try {
-    // Sleep for 5 msec after every CDB memory block write to let the next
-    // command run successfully. Some of the optics need this delay
     /* sleep override */
     bus->writeTransceiver(
         {i2cAddress, offset, length, page},
         buf,
-        POST_I2C_WRITE_DELAY_CDB_US,
+        cdbWriteDelayUsec_,
         kCmisCommand);
   } catch (const std::exception& e) {
     XLOG(INFO) << "write() raised exception: Sleep for 100ms and continue: "
@@ -96,7 +100,7 @@ void CdbCommandBlock::i2cWriteAndContinue(
   auto writeTime = std::chrono::steady_clock::now() - startTime;
   memoryWriteTime_ +=
       std::chrono::duration_cast<std::chrono::milliseconds>(writeTime) -
-      std::chrono::milliseconds(POST_I2C_WRITE_DELAY_CDB_US / 1000);
+      std::chrono::milliseconds(cdbWriteDelayUsec_ / 1000);
 }
 
 /*
@@ -113,7 +117,8 @@ void CdbCommandBlock::i2cWriteAndContinue(
  */
 bool CdbCommandBlock::cmisRunCdbCommand(
     TransceiverImpl* bus,
-    std::optional<uint64_t> overrideTimeoutUsec) {
+    std::optional<uint64_t> overrideTimeoutUsec,
+    bool cdbCmdCompleteFlagSupported) {
   // Command block length is 8 plus lpl memory length
   int len = this->cdbFields_.cdbLplLength + 8;
 
@@ -180,12 +185,6 @@ bool CdbCommandBlock::cmisRunCdbCommand(
       &buf[1],
       kCdbPage);
 
-  // Special handling for RUN command
-  if (this->cdbFields_.cdbCommandCode ==
-      htons(kCdbCommandFirmwareDownloadRun)) {
-    return true;
-  }
-
   // Special handling for COMMIT command
   if (this->cdbFields_.cdbCommandCode ==
       htons(kCdbCommandFirmwareDownloadCommit)) {
@@ -207,6 +206,40 @@ bool CdbCommandBlock::cmisRunCdbCommand(
   /* sleep override */
   usleep(cdbCommandStatusPollIntervalUsec);
   while (true) {
+    // If CdbCmdCompleteFlag is supported, wait for it to be set before
+    // reading the command status register
+    bool cdbCmdCompleteFlagTimedOut = false;
+    if (cdbCmdCompleteFlagSupported) {
+      uint8_t moduleFlag = 0;
+      try {
+        bus->readTransceiver(
+            {TransceiverAccessParameter::ADDR_QSFP,
+             kModuleFlagReg,
+             1,
+             kLowerPage},
+            &moduleFlag,
+            kCmisCommand);
+      } catch (const std::exception& e) {
+        XLOG(INFO) << fmt::format(
+            "cmisRunCdbCommand Mod{:d}: Failed to read CdbCmdCompleteFlag1: {}",
+            bus->getNum(),
+            e.what());
+      }
+      if (!(moduleFlag & kCdbCmdCompleteFlag1Mask)) {
+        auto currTime = std::chrono::steady_clock::now();
+        if (currTime > finishTime) {
+          XLOG(INFO) << fmt::format(
+              "cmisRunCdbCommand Mod{:d}: CdbCmdCompleteFlag1 not set, timed out, falling through to read status register",
+              bus->getNum());
+          cdbCmdCompleteFlagTimedOut = true;
+        } else {
+          /* sleep override */
+          usleep(cdbCommandStatusPollIntervalUsec);
+          continue;
+        }
+      }
+    }
+
     try {
       bus->readTransceiver(
           {TransceiverAccessParameter::ADDR_QSFP,
@@ -223,9 +256,15 @@ bool CdbCommandBlock::cmisRunCdbCommand(
       usleep(cdbCommandErrorIntervalUsec);
       status = kCdbCommandStatusBusyCmdCaptured;
     }
+    if (cdbCmdCompleteFlagTimedOut && status == kCdbCommandStatusSuccess) {
+      XLOG(INFO) << fmt::format(
+          "cmisRunCdbCommand Mod{:d}: CdbCmdCompleteFlag1 was not set but CDB status register reports success",
+          bus->getNum());
+    }
     if (status != kCdbCommandStatusBusyCmdCaptured &&
         status != kCdbCommandStatusBusyCmdCheck &&
         status != kCdbCommandStatusBusyCmdExec &&
+        status != kCdbCommandStatusReadFailureUnknown &&
         status != kCdbCommandStatusBusyUnknown) {
       break;
     }
@@ -461,7 +500,15 @@ void CdbCommandBlock::createCdbCmdFwDownloadComplete() {
  * createCdbCmdFwImageRun
  *
  * This function creates the CDB command block for the new firmware image run
- * command. This creates "run immediate" command.
+ * command. This creates "run immediate" command with a configurable delay
+ * before reset occurs.
+ *
+ * Per OIF-CMIS-05.3 Table 9-28:
+ * - Byte 136 (cdbLplFlatMemory[0]): Reserved = 0
+ * - Byte 137 (cdbLplFlatMemory[1]): ImageToRun = 0 (Traffic affecting Reset)
+ * - Bytes 138-139 (cdbLplFlatMemory[2-3]): DelayToReset (U16, big-endian)
+ *   Indicates the delay in ms after receiving this command before a reset
+ *   will occur.
  */
 void CdbCommandBlock::createCdbCmdFwImageRun() {
   resetCdbBlock();
@@ -469,9 +516,15 @@ void CdbCommandBlock::createCdbCmdFwImageRun() {
   cdbFields_.cdbEplLength = 0;
 
   cdbFields_.cdbLplLength = 4;
-  // No delay needed before running this ccommand
-  cdbFields_.cdbLplMemory.cdbLplFlatMemory[2] = 0;
-  cdbFields_.cdbLplMemory.cdbLplFlatMemory[3] = 0;
+
+  // DelayToReset = 0x1388 (5000ms, 5 seconds) in big-endian format
+  // This gives the host time to read the CdbStatus message before reset
+  constexpr uint16_t delayToResetMs = 5000;
+  cdbFields_.cdbLplMemory.cdbLplFlatMemory[2] =
+      (delayToResetMs >> 8) & 0xFF; // High byte = 0x13
+  cdbFields_.cdbLplMemory.cdbLplFlatMemory[3] =
+      delayToResetMs & 0xFF; // Low byte = 0x88
+
   cdbFields_.cdbChecksum = onesComplementSum();
 }
 

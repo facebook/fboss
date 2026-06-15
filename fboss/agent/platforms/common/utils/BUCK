@@ -24,8 +24,7 @@ cpp_library(
         "//folly:range",
         "//folly/logging:logging",
     ],
-    exported_external_deps = [
-    ],
+    exported_external_deps = [],
 )
 
 cpp_library(

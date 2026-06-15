@@ -8,12 +8,14 @@
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
+#include "fboss/lib/bsp/leh800bcls/Leh800bclsBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
+#include "fboss/lib/bsp/saintpaul/SaintpaulBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahansb800bc/Tahansb800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/wedge800bact/Wedge800BACTBspPlatformMapping.h"
@@ -175,6 +177,15 @@ Ladakh800bclsSystemContainer::getInstance() {
   return _Ladakh800bclsSystemContainer.try_get();
 }
 
+using Leh800bclsSystemContainer =
+    BspGenericSystemContainer<Leh800bclsBspPlatformMapping>;
+folly::Singleton<Leh800bclsSystemContainer> _Leh800bclsSystemContainer;
+template <>
+std::shared_ptr<Leh800bclsSystemContainer>
+Leh800bclsSystemContainer::getInstance() {
+  return _Leh800bclsSystemContainer.try_get();
+}
+
 using Icecube800banwSystemContainer =
     BspGenericSystemContainer<Icecube800banwBspPlatformMapping>;
 folly::Singleton<Icecube800banwSystemContainer> _icecube800banwSystemContainer;
@@ -182,6 +193,15 @@ template <>
 std::shared_ptr<Icecube800banwSystemContainer>
 Icecube800banwSystemContainer::getInstance() {
   return _icecube800banwSystemContainer.try_get();
+}
+
+using SaintpaulSystemContainer =
+    BspGenericSystemContainer<SaintpaulBspPlatformMapping>;
+const folly::Singleton<SaintpaulSystemContainer> _saintpaulSystemContainer;
+template <>
+std::shared_ptr<SaintpaulSystemContainer>
+SaintpaulSystemContainer::getInstance() {
+  return _saintpaulSystemContainer.try_get();
 }
 
 } // namespace fboss

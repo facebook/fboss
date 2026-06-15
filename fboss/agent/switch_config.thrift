@@ -708,6 +708,8 @@ enum AclTableQualifier {
   BTH_OPCODE = 25,
   IPV6_NEXT_HEADER = 26,
   L4_DST_PORT_RANGE = 27,
+  TC = 28,
+  NEXT_HOP_GROUP_ID = 29,
 }
 
 struct AclTable {
@@ -801,9 +803,13 @@ struct RedirectNextHop {
 
 // Redirect packet to a different nexthop
 struct RedirectToNextHopAction {
-  // deprecated
-  1: list<string> nexthops;
+  // deprecated - use redirectNextHops
+  1: list<string> nexthops_DEPRECATED;
   2: list<RedirectNextHop> redirectNextHops;
+  // Named NHG redirect target for PBR. The RIB resolves this name to a
+  // NextHopSetID (stored in switch state) at synthesis time; the id is not
+  // known at config time.
+  3: optional string redirectNextHopGroup;
 }
 
 enum FlowletAction {
@@ -1133,6 +1139,8 @@ const string DEFAULT_INGRESS_ACL_TABLE = "AclTable1";
 const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE_GROUP = "post-lookup-ingress-ACL-Table-Group";
 
 const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE = "PostLookupAclTable1";
+
+const string DEFAULT_PBR_ACL_TABLE = "PbrAclTable";
 
 enum PortType {
   INTERFACE_PORT = 0,

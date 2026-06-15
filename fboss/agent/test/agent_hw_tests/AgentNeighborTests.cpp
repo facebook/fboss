@@ -135,7 +135,8 @@ class AgentNeighborTest : public AgentHwTest {
       // the two ports for testing. Only use ports from masterLogicalPortIds()
       // which are scoped to the test switch ID, to avoid adding ports from
       // other switches in multi-NPU setups.
-      auto masterPorts = ensemble.masterLogicalPortIds({switchId});
+      // Only use INTERFACE_PORT ports for aggPorts
+      auto masterPorts = ensemble.masterLogicalInterfacePortIds({switchId});
       std::set<int> portSet{masterPorts[0], masterPorts[1]};
       int idx = 0;
       while (portSet.size() < std::min(

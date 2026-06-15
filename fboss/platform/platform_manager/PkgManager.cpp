@@ -74,9 +74,9 @@ int SystemInterface::installRpm(
   int exitStatus{0};
   std::string standardOut{};
   auto cmd = fmt::format(
-      "dnf install {} --assumeyes {}",
+      "dnf install {} --assumeyes --setopt=*.skip_if_unavailable=True {}",
       rpmFullName,
-      repoName.empty() ? "" : "--repo " + repoName);
+      repoName.empty() ? "" : "--disablerepo='*' --enablerepo=" + repoName);
   VLOG(1) << fmt::format("Running command ({})", cmd);
   std::tie(exitStatus, standardOut) = platformUtils_->execCommand(cmd);
   return exitStatus;
@@ -216,10 +216,6 @@ void PkgManager::processAll(bool enablePkgMgmnt, bool reloadKmods) const {
     if (!systemInterface_->isRpmInstalled(bspKmodsRpmName)) {
       XLOG(INFO) << fmt::format(
           "BSP Kmods {} is not installed", bspKmodsRpmName);
-      // Unload old kmods from previous BSP installation to prevent old kmods
-      // from binding to devices. This relies of old kmods being listed in
-      // kmods.json file.
-      unloadBspKmods();
       // Install desired rpm
       processRpms();
       // In cases where kmods.json from previous BSP installation is absent
@@ -272,15 +268,14 @@ void PkgManager::processRpms() const {
        attempt++) {
     XLOG(INFO) << fmt::format(
         "Installing BSP {}, Attempt #{}", bspKmodsRpmName, attempt);
-    exitStatus = systemInterface_->installRpm(
-        bspKmodsRpmName, attempt == 0 ? "kernel" : "");
+    exitStatus = systemInterface_->installRpm(bspKmodsRpmName, "kernel");
     success = exitStatus == 0;
   }
   if (exitStatus != 0) {
     throw std::runtime_error(
         fmt::format(
             "Failed to install rpm ({}) with exit code {}",
-            FLAGS_local_rpm_path,
+            bspKmodsRpmName,
             exitStatus));
   }
   XLOG(INFO) << "Caching kernel modules dependencies";
@@ -465,6 +460,10 @@ void PkgManager::loadRequiredKmods() const {
 }
 
 void PkgManager::removeInstalledRpms() const {
+  // Uninstalling the RPM can leave the system in a weird state if kmods
+  // themselves are not unloaded. Bundling these two operations together
+  // ensures that removing an RPM actually results in a clean system
+  unloadBspKmods();
   auto installedRpms =
       systemInterface_->getInstalledRpms(getKmodsRpmBaseWithKernelName());
   if (installedRpms.empty()) {

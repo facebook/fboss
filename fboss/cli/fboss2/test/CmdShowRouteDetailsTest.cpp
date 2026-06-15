@@ -50,10 +50,14 @@ std::vector<RouteDetails> createRouteEntries() {
   ClientAndNextHops clAndNxthops1;
   clAndNxthops1.clientId() = 0;
   clAndNxthops1.nextHops()->emplace_back(nextHop1_1);
+  clAndNxthops1.adminDistance() = AdminDistance::EBGP;
+  clAndNxthops1.isPreferred() = true;
+  clAndNxthops1.classID() = cfg::AclLookupClass::DST_CLASS_L3_DPR;
   routeEntry1.nextHopMulti()->emplace_back(clAndNxthops1);
 
   routeEntry1.action() = "Nexthops";
   routeEntry1.isConnected() = false;
+  routeEntry1.adminDistance() = AdminDistance::EBGP;
 
   network::thrift::BinaryAddress binaryAddr1_3 =
       facebook::network::toBinaryAddress(ip1_2);
@@ -95,6 +99,9 @@ std::vector<RouteDetails> createRouteEntries() {
   ClientAndNextHops clAndNxthops2;
   clAndNxthops2.clientId() = 1;
   clAndNxthops2.nextHopAddrs()->emplace_back(binaryAddr2_2);
+  clAndNxthops2.adminDistance() = AdminDistance::DIRECTLY_CONNECTED;
+  clAndNxthops2.isPreferred() = true;
+  clAndNxthops2.counterID() = "counter0";
   routeEntry2.nextHopMulti()->emplace_back(clAndNxthops2);
 
   routeEntry2.action() = "Nexthops";
@@ -161,6 +168,8 @@ std::vector<RouteDetails> createRouteEntries() {
   ClientAndNextHops clAndNxthops4;
   clAndNxthops4.clientId() = 0;
   clAndNxthops4.nextHops()->emplace_back(nextHop4);
+  clAndNxthops4.adminDistance() = AdminDistance::EBGP;
+  clAndNxthops4.isPreferred() = true;
   NamedRouteDestination namedDest4Client;
   namedDest4Client.nextHopGroup_ref() = "nhg1";
   clAndNxthops4.namedRouteDestination() = namedDest4Client;
@@ -169,6 +178,7 @@ std::vector<RouteDetails> createRouteEntries() {
   routeEntry4.nextHops()->emplace_back(nextHop4);
   routeEntry4.action() = "Nexthops";
   routeEntry4.isConnected() = false;
+  routeEntry4.adminDistance() = AdminDistance::EBGP;
 
   NamedRouteDestination namedDest4;
   namedDest4.nextHopGroup_ref() = "nhg1";
@@ -199,10 +209,14 @@ cli::ShowRouteDetailsModel createRouteModel() {
   cli::ClientAndNextHops clnAndNxtHops1;
   clnAndNxtHops1.clientId() = 0;
   clnAndNxtHops1.nextHops()->emplace_back(nextHopInfo1_1);
+  clnAndNxtHops1.adminDistance() = "20";
+  clnAndNxtHops1.isPreferred() = true;
+  clnAndNxtHops1.counterID() = "None";
+  clnAndNxtHops1.classID() = "DST_CLASS_L3_DPR(20)";
   entry1.nextHopMulti()->emplace_back(clnAndNxtHops1);
 
   entry1.isConnected() = false;
-  entry1.adminDistance() = "None";
+  entry1.adminDistance() = "20";
 
   cli::MplsActionInfo mplsActionInfo1_2;
   mplsActionInfo1_2.action() = "PUSH";
@@ -233,10 +247,14 @@ cli::ShowRouteDetailsModel createRouteModel() {
   cli::ClientAndNextHops clnAndNxtHops2;
   clnAndNxtHops2.clientId() = 1;
   clnAndNxtHops2.nextHops()->emplace_back(nextHopInfo2_1);
+  clnAndNxtHops2.adminDistance() = "0";
+  clnAndNxtHops2.isPreferred() = true;
+  clnAndNxtHops2.counterID() = "counter0";
+  clnAndNxtHops2.classID() = "None";
   entry2.nextHopMulti()->emplace_back(clnAndNxtHops2);
 
   entry2.isConnected() = true;
-  entry2.adminDistance() = "DIRECTLY_CONNECTED";
+  entry2.adminDistance() = "0";
 
   cli::NextHopInfo nextHopInfo2_2;
   nextHopInfo2_2.addr() = "240.161.6.0";
@@ -271,7 +289,7 @@ cli::ShowRouteDetailsModel createRouteModel() {
   entry4.prefixLength() = 64;
   entry4.action() = "Nexthops";
   entry4.isConnected() = false;
-  entry4.adminDistance() = "None";
+  entry4.adminDistance() = "20";
   entry4.counterID() = "None";
   entry4.classID() = "None";
   entry4.overridenEcmpMode() = "None";
@@ -284,6 +302,10 @@ cli::ShowRouteDetailsModel createRouteModel() {
   cli::ClientAndNextHops clnAndNxtHops4;
   clnAndNxtHops4.clientId() = 0;
   clnAndNxtHops4.nextHops()->emplace_back(nextHopInfo4);
+  clnAndNxtHops4.adminDistance() = "20";
+  clnAndNxtHops4.isPreferred() = true;
+  clnAndNxtHops4.counterID() = "None";
+  clnAndNxtHops4.classID() = "None";
   clnAndNxtHops4.namedNextHopGroup() = "nhg1";
   entry4.nextHopMulti()->emplace_back(clnAndNxtHops4);
 
@@ -380,49 +402,45 @@ TEST_F(CmdShowRouteDetailsTestFixture, printOutput) {
   std::string output = ss.str();
   std::string expectOutput = R"(
 Network Address: 2401:db00::/32
-  Nexthops from client BGPD
-    2401:db00:e32f:8fc::2 weight 1 MPLS -> SWAP : 1
+> Client: BGPD (Admin Distance: 20)
+      Nexthops:
+        2401:db00:e32f:8fc::2 weight 1 MPLS -> SWAP : 1
+      Counter Id: None
+      Class Id: DST_CLASS_L3_DPR(20)
   Action: Nexthops
   Forwarding via:
     2401:db00:e32f:8fc::2 dev Port-Channel304 weight 1 MPLS -> PUSH : {2,3}
-  Admin Distance: None
-  Counter Id: None
-  Class Id: DST_CLASS_L3_DPR(20)
   Overridden ECMP mode: None
   Resolved NextHop Set ID: 100
   Normalized Resolved NextHop Set ID: 200
 
 Network Address: 176.161.6.0/32 (connected)
-  Nexthops from client STATIC_ROUTE
-    240.161.6.0
+> Client: STATIC_ROUTE (Admin Distance: 0)
+      Nexthops:
+        240.161.6.0
+      Counter Id: counter0
+      Class Id: None
   Action: Nexthops
   Forwarding via:
     (i/f 0) 240.161.6.0
-  Admin Distance: DIRECTLY_CONNECTED
-  Counter Id: counter0
-  Class Id: None
   Overridden ECMP mode: None
 
 Network Address: fc00::/48
   Action: Nexthops
   Forwarding via:
     2001:db8::1 weight 1 SRv6 SID List [fc00:1::,fc00:2::]
-  Admin Distance: None
-  Counter Id: None
-  Class Id: None
   Overridden ECMP mode: None
 
 Network Address: 2800:2::/64
-  Nexthops from client BGPD
-    via Named NHG: nhg1
-    1.1.1.10 weight 1
+> Client: BGPD (Admin Distance: 20)
+      Named Next Hop Group: nhg1
+      Nexthops:
+        1.1.1.10 weight 1
+      Counter Id: None
+      Class Id: None
   Action: Nexthops
-  Named Next Hop Group: nhg1
   Forwarding via:
     1.1.1.10 weight 1
-  Admin Distance: None
-  Counter Id: None
-  Class Id: None
   Overridden ECMP mode: None
 )";
   EXPECT_EQ(output, expectOutput);

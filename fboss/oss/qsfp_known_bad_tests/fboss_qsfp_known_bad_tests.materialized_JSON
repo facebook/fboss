@@ -341,9 +341,6 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
-          "test_name_regex": "HwPortPrbsTestAll.*$"
-        },
-        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -356,9 +353,6 @@
     "fuji_5x16Q/physdk-barchetta2-7.4/barchetta2-7.4": [
         {
           "test_name_regex": "DummyTest.*$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTestAll.*$"
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
@@ -375,9 +369,6 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
-          "test_name_regex": "HwPortPrbsTest_.*$"
-        },
-        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -390,9 +381,6 @@
     "fuji_8x16Q/physdk-barchetta2-7.4/barchetta2-7.4": [
         {
           "test_name_regex": "DummyTest.*$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest_.*$"
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
@@ -936,6 +924,9 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
+          "test_name_regex": "HwTest_PROFILE_200G_2_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -950,6 +941,9 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
+          "test_name_regex": "HwTest_PROFILE_200G_2_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -962,6 +956,9 @@
     "montblanc/physdk-credo-1.2.8/credo-1.2.8": [
         {
           "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_200G_2_PAM4_RS544X2N_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"

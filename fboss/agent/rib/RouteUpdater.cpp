@@ -1024,7 +1024,8 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         // allocation but deallocate any existing old ID
         if (!labelPopandLookup) {
           newNormalizedResolvedNextHopSetId = updateNextHopSetIDs(
-              nhop->nonOverrideNormalizedNextHops(), oldNormalizedNextHopSetID);
+              RouteNextHopEntry::normalizeNextHops(nhop->getNextHopSet()),
+              oldNormalizedNextHopSetID);
         } else if (oldNormalizedNextHopSetID.has_value()) {
           // Route transitioned to POP_AND_LOOKUP - deallocate old normalized ID
           nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
@@ -1041,12 +1042,22 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         updatedRoute->setConnected();
       }
     } else {
-      if (nextHopIDManager_ && oldNextHopSetID.has_value()) {
-        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
-      }
-      if (nextHopIDManager_ && oldNormalizedNextHopSetID.has_value()) {
-        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
-            *oldNormalizedNextHopSetID);
+      if (nextHopIDManager_) {
+        if (oldNextHopSetID.has_value()) {
+          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
+        }
+        if (oldNormalizedNextHopSetID.has_value()) {
+          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
+              *oldNormalizedNextHopSetID);
+        }
+        // Assert clientNextHopSetID not present in fwd entry so the invariant
+        // can't be silently broken.
+        CHECK(!updatedRoute->getForwardInfo()
+                   .getClientNextHopSetID()
+                   .has_value());
+
+        // Clear the fwd so the unresolvable route retains no freed set IDs.
+        updatedRoute->clearForward();
       }
       updatedRoute->setUnresolvable();
     }

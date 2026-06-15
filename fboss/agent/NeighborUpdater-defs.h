@@ -66,6 +66,7 @@ NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getArpCacheDataForIntf, std::list<ArpEnt
 NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getNdpCacheDataForIntf, std::list<NdpEntryThrift>)
 
 NEIGHBOR_UPDATER_METHOD(public, getProbesLeft, uint32_t, const InterfaceID&, intfID, const folly::IPAddressV6&, ip)
+NEIGHBOR_UPDATER_METHOD(public, getProbesLeftIPv4, uint32_t, const InterfaceID&, intfID, const folly::IPAddressV4&, ip)
 NEIGHBOR_UPDATER_METHOD(public, getMaxNeighborProbes, uint32_t,const InterfaceID&, intfID)
 
 // Enable access to neighbor caches from NeighborUpdater to help imitate neighbor learning during testing

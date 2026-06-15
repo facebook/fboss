@@ -12,6 +12,9 @@ include "fboss/qsfp_service/if/qsfp_state.thrift"
 include "fboss/qsfp_service/if/qsfp_stats.thrift"
 include "fboss/fsdb/if/fsdb_common.thrift"
 include "fboss/platform/sensor_service/sensor_service_stats.thrift"
+include "neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/bgp_config.thrift"
+include "configerator/structs/neteng/bgp_policy/thrift/rib_policy.thrift"
+include "neteng/fboss/bgp/if/bgp_route_types.thrift"
 include "thrift/annotation/thrift.thrift"
 
 @thrift.AllowLegacyMissingUris
@@ -29,9 +32,20 @@ struct AgentData {
   6: optional agent_info.AgentInfo agentInfo;
 }
 
+struct BgpData {
+  1: bgp_config.BgpConfig config;
+  2: optional rib_policy.TRouteAttributePolicy routeAttributePolicy;
+  3: optional rib_policy.TPathSelectionPolicy pathSelectionPolicy;
+  4: optional rib_policy.TRouteFilterPolicy routeFilterPolicy;
+  // key is str() of folly::CIDRNetwork, which matches the prefix in TRibEntry exactly
+  5: optional map<string, bgp_route_types.TRibEntry> ribMap;
+  6: optional bgp_route_types.TPartialDrainState partialDrainState;
+}
+
 @thrift.DeprecatedUnvalidatedAnnotations{items = {"thriftpath.root": "1"}}
 struct FsdbOperStateRoot {
   1: AgentData agent;
+  2: BgpData bgp;
   4: qsfp_state.QsfpServiceData qsfp_service;
 }
 

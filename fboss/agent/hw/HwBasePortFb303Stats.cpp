@@ -107,6 +107,12 @@ void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
   if (macsecStatsInited_) {
     reinitMacsecStats(oldPortName);
   }
+  if (srv6MysidDiscardCounterSupported_) {
+    reinitStat(kInSrv6MySidDiscards(), portName_, oldPortName);
+  }
+  if (mplsLabelLookupFailCounterSupported_) {
+    reinitStat(kInLabelMissDiscards(), portName_, oldPortName);
+  }
   // Init per priority PFC stats
   if (getEnabledPfcPriorities().size()) {
     reinitPfcStats(oldPortName);

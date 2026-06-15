@@ -430,6 +430,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       override;
 
   void getHwDebugDump(std::string& out) override;
+  void setSdkRegDumpEnabled(bool enabled) override;
   void listHwObjects(
       std::string& out,
       std::unique_ptr<std::vector<HwObjectType>> hwObjects,

@@ -165,6 +165,7 @@ bgp_thrift::TRibEntry BgpRibTestPublisher::createTestRibEntry(
   ribEntry.paths()[groupName].push_back(bgpPath);
   ribEntry.best_group() = groupName;
   ribEntry.rib_version() = 1;
+  ribEntry.best_path() = bgpPath;
 
   return ribEntry;
 }

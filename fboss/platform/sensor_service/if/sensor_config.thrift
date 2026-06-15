@@ -81,16 +81,16 @@ struct PmSensor {
 }
 
 // `VersionedPmSensor`: Describes a set of sensors which would exist in Platforms with
-// minimum productProductionState, productVersion and productSubVersion.
+// minimum productionState, productionSubState and respinVariantIndicator.
 //
 // `sensors`: A set of sensors belong to this version. They're mutually exclusive from other versions.
 // If there're any carry-over sensors in the other versions, they must be redefined in that version.
 //
-// `productProductionState`: Minimum productProductionState (EEPROM V5 Type 8).
+// `productionState`: Production State (EEPROM V6 Type 8).
 //
-// `productVersion`: Minimum productVersion (EEPROM V5 Type 9).
+// `productionSubState`: Production Sub-State (EEPROM V6 Type 9).
 //
-// `productSubVersion`: Minimum productSubVersion (EEPROM V5 Type 10).
+// `respinVariantIndicator`: Re-Spin/Variant Indicator (EEPROM V6 Type 10).
 //
 // `productName`: Optional EEPROM Product Name to match against. When set,
 // this VersionedPmSensor only applies if the hardware's EEPROM Product Name
@@ -98,9 +98,9 @@ struct PmSensor {
 // PSU vendors on the same platform).
 struct VersionedPmSensor {
   1: list<PmSensor> sensors;
-  2: i16 productProductionState;
-  3: i16 productVersion;
-  4: i16 productSubVersion;
+  2: i16 productionState;
+  3: i16 productionSubState;
+  4: i16 respinVariantIndicator;
   5: optional string productName;
 }
 

@@ -28,6 +28,7 @@ namespace facebook::fboss {
 namespace {
 
 const RouterID kRid(0);
+const std::string kSrv6Tunnel0{"srv6Tunnel0"};
 
 std::map<int64_t, cfg::SwitchInfo> getTestSwitchInfo() {
   std::map<int64_t, cfg::SwitchInfo> map;
@@ -608,7 +609,7 @@ TEST_F(RibMySidValidationTest, acceptBindingSidWithNextHops) {
   nhop.srv6SegmentList() = {
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
   nhop.tunnelType() = TunnelType::SRV6_ENCAP;
-  nhop.tunnelId() = "tunnel1";
+  nhop.tunnelId() = kSrv6Tunnel0;
   entry.nextHops() = {nhop};
 
   rib_.update(
@@ -628,7 +629,7 @@ TEST_F(RibMySidValidationTest, rejectBindingSidWithoutSidList) {
   nhop.address() =
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"));
   nhop.tunnelType() = TunnelType::SRV6_ENCAP;
-  nhop.tunnelId() = "tunnel1";
+  nhop.tunnelId() = kSrv6Tunnel0;
   entry.nextHops() = {nhop};
 
   EXPECT_THROW(
@@ -675,7 +676,7 @@ TEST_F(RibMySidValidationTest, rejectBindingSidWithWrongTunnelType) {
   nhop.srv6SegmentList() = {
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
   nhop.tunnelType() = TunnelType::IP_IN_IP_DECAP;
-  nhop.tunnelId() = "tunnel1";
+  nhop.tunnelId() = kSrv6Tunnel0;
   entry.nextHops() = {nhop};
 
   EXPECT_THROW(
@@ -2424,7 +2425,7 @@ TEST_F(RibMySidNextHopTest, bindingSidResolvesOverOpenrRouteRetainsSrv6Fields) {
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10")),
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::20"))};
   nhop.tunnelType() = TunnelType::SRV6_ENCAP;
-  nhop.tunnelId() = "tunnel1";
+  nhop.tunnelId() = kSrv6Tunnel0;
   entry.nextHops() = {nhop};
 
   rib_->update(
@@ -2460,7 +2461,7 @@ TEST_F(RibMySidNextHopTest, bindingSidResolvesOverOpenrRouteRetainsSrv6Fields) {
   ASSERT_TRUE(resolvedNh.tunnelType().has_value());
   EXPECT_EQ(*resolvedNh.tunnelType(), TunnelType::SRV6_ENCAP);
   ASSERT_TRUE(resolvedNh.tunnelId().has_value());
-  EXPECT_EQ(*resolvedNh.tunnelId(), "tunnel1");
+  EXPECT_EQ(*resolvedNh.tunnelId(), kSrv6Tunnel0);
 }
 
 TEST_F(
@@ -2544,14 +2545,14 @@ TEST_F(
   nhop1.srv6SegmentList() = {
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
   nhop1.tunnelType() = TunnelType::SRV6_ENCAP;
-  nhop1.tunnelId() = "tunnel1";
+  nhop1.tunnelId() = kSrv6Tunnel0;
   NextHopThrift nhop2;
   nhop2.address() =
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8:2::1"));
   nhop2.srv6SegmentList() = {
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::20"))};
   nhop2.tunnelType() = TunnelType::SRV6_ENCAP;
-  nhop2.tunnelId() = "tunnel2";
+  nhop2.tunnelId() = kSrv6Tunnel0;
   entry.nextHops() = {nhop1, nhop2};
 
   rib_->update(
@@ -2585,10 +2586,10 @@ TEST_F(
       folly::IPAddress,
       std::pair<std::vector<folly::IPAddressV6>, std::string>>
       expectedByAddr;
-  expectedByAddr[folly::IPAddress("fe80::1")] = {sidList1, "tunnel1"};
-  expectedByAddr[folly::IPAddress("fe80::2")] = {sidList1, "tunnel1"};
-  expectedByAddr[folly::IPAddress("fe80::3")] = {sidList2, "tunnel2"};
-  expectedByAddr[folly::IPAddress("fe80::4")] = {sidList2, "tunnel2"};
+  expectedByAddr[folly::IPAddress("fe80::1")] = {sidList1, kSrv6Tunnel0};
+  expectedByAddr[folly::IPAddress("fe80::2")] = {sidList1, kSrv6Tunnel0};
+  expectedByAddr[folly::IPAddress("fe80::3")] = {sidList2, kSrv6Tunnel0};
+  expectedByAddr[folly::IPAddress("fe80::4")] = {sidList2, kSrv6Tunnel0};
 
   for (const auto& nh : *resolvedNhops) {
     EXPECT_TRUE(nh.intfID().has_value());
@@ -2663,7 +2664,7 @@ TEST_F(RibMySidNextHopTest, bindingSidReResolvesWhenOpenrRouteNextHopsChange) {
   nhop.srv6SegmentList() = {
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
   nhop.tunnelType() = TunnelType::SRV6_ENCAP;
-  nhop.tunnelId() = "tunnel1";
+  nhop.tunnelId() = kSrv6Tunnel0;
   entry.nextHops() = {nhop};
 
   rib_->update(
@@ -2742,7 +2743,7 @@ TEST_F(RibMySidNextHopTest, bindingSidReResolvesWhenOpenrRouteNextHopsChange) {
     ASSERT_TRUE(nh.tunnelType().has_value());
     EXPECT_EQ(*nh.tunnelType(), TunnelType::SRV6_ENCAP);
     ASSERT_TRUE(nh.tunnelId().has_value());
-    EXPECT_EQ(*nh.tunnelId(), "tunnel1");
+    EXPECT_EQ(*nh.tunnelId(), kSrv6Tunnel0);
   }
 }
 
@@ -2812,7 +2813,7 @@ TEST_F(RibMySidNextHopTest, bindingSidUpdatedToNewNextHopsResolvesRecursively) {
   nhop1.srv6SegmentList() = {
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
   nhop1.tunnelType() = TunnelType::SRV6_ENCAP;
-  nhop1.tunnelId() = "tunnel1";
+  nhop1.tunnelId() = kSrv6Tunnel0;
   entry.nextHops() = {nhop1};
 
   rib_->update(
@@ -2834,7 +2835,7 @@ TEST_F(RibMySidNextHopTest, bindingSidUpdatedToNewNextHopsResolvesRecursively) {
     ASSERT_TRUE(resolved.has_value());
     ASSERT_EQ(resolved->size(), 1);
     EXPECT_EQ(resolved->begin()->addr(), folly::IPAddress("fe80::1"));
-    EXPECT_EQ(*resolved->begin()->tunnelId(), "tunnel1");
+    EXPECT_EQ(*resolved->begin()->tunnelId(), kSrv6Tunnel0);
   }
 
   // Step 4: Update the binding SID to point to a different gateway with
@@ -2848,7 +2849,7 @@ TEST_F(RibMySidNextHopTest, bindingSidUpdatedToNewNextHopsResolvesRecursively) {
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::20")),
       facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::30"))};
   nhop2.tunnelType() = TunnelType::SRV6_ENCAP;
-  nhop2.tunnelId() = "tunnel2";
+  nhop2.tunnelId() = kSrv6Tunnel0;
   updatedEntry.nextHops() = {nhop2};
 
   rib_->update(
@@ -2879,7 +2880,7 @@ TEST_F(RibMySidNextHopTest, bindingSidUpdatedToNewNextHopsResolvesRecursively) {
   ASSERT_TRUE(resolvedNh.tunnelType().has_value());
   EXPECT_EQ(*resolvedNh.tunnelType(), TunnelType::SRV6_ENCAP);
   ASSERT_TRUE(resolvedNh.tunnelId().has_value());
-  EXPECT_EQ(*resolvedNh.tunnelId(), "tunnel2");
+  EXPECT_EQ(*resolvedNh.tunnelId(), kSrv6Tunnel0);
 }
 
 TEST_F(RibMySidNextHopTest, syncUpdateAddsEntry) {

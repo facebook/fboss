@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -65,20 +66,12 @@ void AgentVoqSwitchTest::rxPacketToCpuHelper(
   auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
 
   auto verify = [this, ecmpHelper, kPortDesc, l4SrcPort, l4DstPort, queueId]() {
-    // TODO(skhare)
-    // Send to only one IPv6 address for ease of debugging.
-    // Once SAI implementation bugs are fixed, send to ALL interface
-    // addresses.
-    auto ipAddrs =
-        *(initialConfig(*getAgentEnsemble()).interfaces()[0].ipAddresses());
-    auto ipv6Addr =
-        std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
-          auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
-          return ip.isV6();
-        });
-
-    auto dstIp =
-        folly::IPAddress::createNetwork(*ipv6Addr, -1, false).first.asV6();
+    const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+    auto intfID =
+        getProgrammedState()->getInterfaceIDForPort(PortDescriptor(port));
+    auto ipv6Addrs = utility::getIntfAddrsV6(getProgrammedState(), intfID);
+    CHECK(!ipv6Addrs.empty());
+    auto dstIp = ipv6Addrs[0];
     folly::IPAddressV6 kSrcIp("1::1");
     const auto srcMac = folly::MacAddress("00:00:01:02:03:04");
     const auto dstMac = utility::kLocalCpuMac();
@@ -95,8 +88,6 @@ void AgentVoqSwitchTest::rxPacketToCpuHelper(
               l4SrcPort,
               l4DstPort);
         };
-
-    const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
     auto switchId =
         scopeResolver().scope(getProgrammedState(), port).switchId();
     auto [beforeQueueOutPkts, beforeQueueOutBytes] =
@@ -879,10 +870,11 @@ TEST_F(AgentVoqSwitchTest, verifyDramErrorDetection) {
       getSw()->updateStats();
       auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
       ASSERT_EVENTUALLY_TRUE(
-          switchStats.hwAsicErrors()->dramErrors().has_value());
-      EXPECT_EVENTUALLY_GT(switchStats.hwAsicErrors()->dramErrors().value(), 0);
-      XLOG(DBG0) << "Dram Error count: "
-                 << switchStats.hwAsicErrors()->dramErrors().value();
+          switchStats.hwAsicErrors()->dramWarnings().has_value());
+      EXPECT_EVENTUALLY_GT(
+          switchStats.hwAsicErrors()->dramWarnings().value(), 0);
+      XLOG(DBG0) << "Dram Warning count: "
+                 << switchStats.hwAsicErrors()->dramWarnings().value();
     });
   };
   verifyAcrossWarmBoots(setup, verify);

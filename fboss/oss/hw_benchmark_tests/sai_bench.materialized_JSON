@@ -625,6 +625,10 @@
         {
           "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
           "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Flaky on jericho3 11.7: bimodal cold-boot perf (~245k vs ~300k cpu_rx_pps), ~57% of runs land below the 256k threshold. Needs debugging."
         }
     ],
     "brcm/11.7.0.0_dnx_odp/jericho3/mono": [
@@ -675,6 +679,10 @@
         {
           "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
           "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Flaky on jericho3 11.7: bimodal cold-boot perf (~245k vs ~300k cpu_rx_pps), ~57% of runs land below the 256k threshold. Needs debugging."
         }
     ],
     "brcm/11.7.0.0_dnx_odp/jericho3/multi_switch": [
@@ -725,6 +733,10 @@
         {
           "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
           "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Flaky on jericho3 11.7: bimodal cold-boot perf (~245k vs ~300k cpu_rx_pps), ~57% of runs land below the 256k threshold. Needs debugging."
         }
     ],
     "brcm/11.7.0.0_dnx_odp/ramon3": [
@@ -2985,7 +2997,7 @@
           "reason": "Temporary addition to known bad, needs more debugging"
         }
     ],
-    "leaba/26.2.5210/graphene200": [
+    "leaba/26.2.4210/graphene200": [
         {
           "test_name_regex": ".*Voq.*",
           "reason": "VOQ tests not applicable to NPU"
@@ -3035,7 +3047,7 @@
           "reason": "Temporary addition to known bad, needs more debugging"
         }
     ],
-    "leaba/26.2.5210/graphene200/mono": [
+    "leaba/26.2.4210/graphene200/mono": [
         {
           "test_name_regex": ".*Voq.*",
           "reason": "VOQ tests not applicable to NPU"
@@ -3085,7 +3097,7 @@
           "reason": "Temporary addition to known bad, needs more debugging"
         }
     ],
-    "leaba/26.2.5210/graphene200/multi_switch": [
+    "leaba/26.2.4210/graphene200/multi_switch": [
         {
           "test_name_regex": ".*Voq.*",
           "reason": "VOQ tests not applicable to NPU"

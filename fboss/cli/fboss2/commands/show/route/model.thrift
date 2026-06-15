@@ -41,6 +41,10 @@ struct ClientAndNextHops {
   1: i32 clientId;
   2: list<NextHopInfo> nextHops;
   3: optional string namedNextHopGroup;
+  4: string adminDistance;
+  5: bool isPreferred;
+  6: string counterID;
+  7: string classID;
 }
 
 struct RouteEntry {

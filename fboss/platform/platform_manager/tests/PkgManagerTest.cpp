@@ -84,12 +84,13 @@ class PkgManagerTest : public testing::Test {
 
 TEST_F(PkgManagerTest, EnablePkgMgmnt) {
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
-  // Case 1: When new rpm installed
+  // Case 1: When new rpm installed. processRpms() unloads kmods internally (via
+  // removeInstalledRpms), then processAll re-attempts the unload before
+  // loading.
   {
     InSequence seq;
     EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_))
         .WillOnce(Return(false));
-    EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, processRpms()).Times(1);
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
@@ -115,12 +116,12 @@ TEST_F(PkgManagerTest, EnablePkgMgmnt) {
 
 TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
-  // Case 1: When new rpm installed and expect to reload kmods twice.
+  // Case 1: When new rpm installed. reloadKmods has no effect here because the
+  // BSP-management branch returns early after processRpms()/unloadBspKmods().
   {
     InSequence seq;
     EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_))
         .WillOnce(Return(false));
-    EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, processRpms()).Times(1);
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
@@ -175,6 +176,13 @@ TEST_F(PkgManagerTest, DisablePkgMgmntWithReloadKmods) {
 TEST_F(PkgManagerTest, processRpms) {
   EXPECT_CALL(*mockSystemInterface_, getHostKernelVersion())
       .WillRepeatedly(Return("6.4.3-0_fbk1_755_ga25447393a1d"));
+  // removeInstalledRpms() now unloads BSP kmods first. Present a kmods.json
+  // with nothing currently loaded so the embedded unloadBspKmods() is a no-op
+  // here.
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
+      .WillRepeatedly(Return(jsonBspKmodsFile_));
+  EXPECT_CALL(*mockSystemInterface_, lsmod())
+      .WillRepeatedly(Return(std::set<std::string>{}));
   // No installed rpms
   EXPECT_CALL(
       *mockSystemInterface_,
@@ -191,7 +199,7 @@ TEST_F(PkgManagerTest, processRpms) {
               "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
               *platformConfig_.bspKmodsRpmName(),
               *platformConfig_.bspKmodsRpmVersion()),
-          _))
+          "kernel"))
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(0));
   EXPECT_NO_THROW(pkgManager_.processRpms());
@@ -220,7 +228,7 @@ TEST_F(PkgManagerTest, processRpms) {
               "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
               *platformConfig_.bspKmodsRpmName(),
               *platformConfig_.bspKmodsRpmVersion()),
-          _))
+          "kernel"))
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(0));
   EXPECT_NO_THROW(pkgManager_.processRpms());
@@ -266,7 +274,7 @@ TEST_F(PkgManagerTest, processRpms) {
               "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
               *platformConfig_.bspKmodsRpmName(),
               *platformConfig_.bspKmodsRpmVersion()),
-          _))
+          "kernel"))
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(1));
   EXPECT_NO_THROW(pkgManager_.processRpms());
@@ -293,7 +301,7 @@ TEST_F(PkgManagerTest, processRpms) {
               "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
               *platformConfig_.bspKmodsRpmName(),
               *platformConfig_.bspKmodsRpmVersion()),
-          _))
+          "kernel"))
       .Times(3)
       .WillRepeatedly(Return(1));
   EXPECT_THROW(pkgManager_.processRpms(), std::runtime_error);

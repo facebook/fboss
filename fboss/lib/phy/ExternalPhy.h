@@ -88,6 +88,11 @@ struct PhySideConfig {
 
   bool operator==(const PhySideConfig& rhs) const;
   folly::dynamic toDynamic() const;
+  // WARNING: This method returns pins sorted by LaneID due to the underlying
+  // std::map. This loses the original JSON/NPU pin order. For XPHY programming
+  // where pin order matters, use PortPinConfig::xphySys()/xphyLine() directly
+  // from PlatformMapping instead, which preserves the NPU pin order.
+  // TODO: Consider deprecating this method in favor of an ordered alternative.
   std::vector<PinConfig> getPinConfigs() const;
 };
 

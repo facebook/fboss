@@ -1169,9 +1169,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 2,
-          "productSubVersion": 1
+          "productionState": 1,
+          "productionSubState": 2,
+          "respinVariantIndicator": 1
         },
         {
           "sensors": [
@@ -1310,9 +1310,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 2,
-          "productSubVersion": 2
+          "productionState": 1,
+          "productionSubState": 2,
+          "respinVariantIndicator": 2
         },
         {
           "sensors": [
@@ -1451,9 +1451,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 3,
-          "productSubVersion": 1
+          "productionState": 1,
+          "productionSubState": 3,
+          "respinVariantIndicator": 1
         },
         {
           "sensors": [
@@ -1592,9 +1592,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 3,
-          "productSubVersion": 2
+          "productionState": 1,
+          "productionSubState": 3,
+          "respinVariantIndicator": 2
         }
       ]
     },
@@ -3164,9 +3164,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 1,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -3219,9 +3219,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 6,
-          "productSubVersion": 10
+          "productionState": 1,
+          "productionSubState": 6,
+          "respinVariantIndicator": 10
         }
       ]
     }

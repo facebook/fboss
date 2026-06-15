@@ -1,3 +1,15 @@
 {
-  "i2cBusIgnore": []
+  "i2cBusIgnore": [],
+  "scPowerGood": {
+    "sysfsAttributes": [
+      {
+        "name": "SMB_L_POWERGOOD",
+        "path": "/run/devmap/cplds/MCB_CPLD/smbl_pg"
+      },
+      {
+        "name": "SMB_R_POWERGOOD",
+        "path": "/run/devmap/cplds/MCB_CPLD/smbr_pg"
+      }
+    ]
+  }
 }
