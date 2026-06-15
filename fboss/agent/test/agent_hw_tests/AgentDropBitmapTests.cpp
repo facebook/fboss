@@ -214,4 +214,54 @@ class AgentDropBitmapTest : public AgentHwTest {
 #endif
 };
 
+TEST_F(AgentDropBitmapTest, pipelineIpv4Ipv6Drops) {
+  auto verify = [&]() {
+    // Installed in verify() to capture logs during both CB and WB iterations.
+    auto logHandler = installLogHandler();
+
+    // IPv4 loopback DIP drop
+    sendPacket(folly::IPAddressV4("127.0.0.1"));
+    HwSwitchDropBitmapStats ipv4Stats;
+    WITH_RETRIES({
+      orBitmapStats(ipv4Stats, getAggregatedSwitchDropBitmapStats());
+      EXPECT_EVENTUALLY_TRUE(
+          ipv4Stats.pipelineIpv4DropBitmap().value_or(0) &
+          (1LL << PipelineIpDropBit::kDipIsLoopback));
+    });
+    verifyOnlyExpectedDrop(
+        ipv4Stats,
+        DropBitmapField::PIPELINE_IPV4,
+        PipelineIpDropBit::kDipIsLoopback,
+        "IPv4 loopback DIP");
+    verifyDropReasonLogged(
+        logHandler, "DROP reasons pipelineIpv4", "IPv4 loopback DIP log");
+
+    // Drain residual IPv4 stats before starting IPv6 phase.
+    // Bitmaps are READ_AND_CLEAR — wait for the next collection
+    // cycle to clear the IPv4 drop so it doesn't leak into IPv6.
+    WITH_RETRIES({
+      auto drain = getAggregatedSwitchDropBitmapStats();
+      EXPECT_EVENTUALLY_EQ(drain.pipelineIpv4DropBitmap().value_or(0), 0);
+    });
+
+    // IPv6 loopback DIP drop
+    sendPacket(folly::IPAddressV6("::1"));
+    HwSwitchDropBitmapStats ipv6Stats;
+    WITH_RETRIES({
+      orBitmapStats(ipv6Stats, getAggregatedSwitchDropBitmapStats());
+      EXPECT_EVENTUALLY_TRUE(
+          ipv6Stats.pipelineIpv6DropBitmap().value_or(0) &
+          (1LL << PipelineIpDropBit::kDipIsLoopback));
+    });
+    verifyOnlyExpectedDrop(
+        ipv6Stats,
+        DropBitmapField::PIPELINE_IPV6,
+        PipelineIpDropBit::kDipIsLoopback,
+        "IPv6 loopback DIP");
+    verifyDropReasonLogged(
+        logHandler, "DROP reasons pipelineIpv6", "IPv6 loopback DIP log");
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
 } // namespace facebook::fboss
