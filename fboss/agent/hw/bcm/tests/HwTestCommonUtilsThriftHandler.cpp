@@ -4,9 +4,68 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
+#include <folly/Synchronized.h>
+#include <folly/logging/LogHandler.h>
+#include <folly/logging/LogHandlerConfig.h>
+#include <folly/logging/LogMessage.h>
+#include <folly/logging/LoggerDB.h>
+
 namespace facebook {
 namespace fboss {
 namespace utility {
+
+namespace {
+class CaptureLogHandler : public folly::LogHandler {
+ public:
+  void handleMessage(
+      const folly::LogMessage& message,
+      const folly::LogCategory* /*category*/) override {
+    messages_.wlock()->push_back(message.getMessage());
+  }
+  void flush() override {}
+  folly::LogHandlerConfig getConfig() const override {
+    return folly::LogHandlerConfig{"capture"};
+  }
+  std::vector<std::string> matching(const std::string& substring) const {
+    auto snapshot = messages_.copy();
+    std::vector<std::string> out;
+    for (const auto& m : snapshot) {
+      if (m.find(substring) != std::string::npos) {
+        out.push_back(m);
+      }
+    }
+    return out;
+  }
+  void clear() {
+    messages_.wlock()->clear();
+  }
+
+ private:
+  folly::Synchronized<std::vector<std::string>> messages_;
+};
+} // namespace
+
+void HwTestThriftHandler::installLogCapture() {
+  auto locked = logCaptureHandler_.wlock();
+  if (*locked) {
+    static_cast<CaptureLogHandler*>(locked->get())->clear();
+    return;
+  }
+  auto handler = std::make_shared<CaptureLogHandler>();
+  folly::LoggerDB::get().getCategory("")->addHandler(handler);
+  *locked = std::move(handler);
+}
+
+void HwTestThriftHandler::getMatchingLogMessages(
+    std::vector<std::string>& out,
+    std::unique_ptr<std::string> substring) {
+  auto handler = *logCaptureHandler_.rlock();
+  if (!handler) {
+    return;
+  }
+  out = static_cast<CaptureLogHandler*>(handler.get())->matching(*substring);
+}
+
 void HwTestThriftHandler::printDiagCmd(std::unique_ptr<::std::string> cmd) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch_);
   bcmSwitch->printDiagCmd(*cmd);
