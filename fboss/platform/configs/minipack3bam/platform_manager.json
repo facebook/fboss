@@ -1352,6 +1352,7 @@
     "fboss_iob_i2c",
     "fboss_iob_spi",
     "fboss_iob_gpio",
+    "fboss_iob_led",
     "ledtrig_timer"
   ]
 }
