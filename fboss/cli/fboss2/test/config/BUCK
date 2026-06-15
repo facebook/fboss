@@ -9,6 +9,7 @@ cpp_unittest(
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigArpTest.cpp",
         "CmdConfigHistoryTest.cpp",
+        "CmdConfigInterfaceIpv6NdpTest.cpp",
         "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
         "CmdConfigInterfaceTest.cpp",
         "CmdConfigL2LearningModeTest.cpp",
@@ -24,6 +25,7 @@ cpp_unittest(
         "CmdConfigVlanManagerTest.cpp",
         "CmdConfigVlanPortTaggingModeTest.cpp",
         "CmdConfigVlanStaticMacTest.cpp",
+        "CmdDeleteInterfaceIpv6NdpTest.cpp",
         "ConfigSessionSystemdTest.cpp",
     ],
     headers = [

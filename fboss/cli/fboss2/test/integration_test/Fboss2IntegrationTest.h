@@ -173,6 +173,13 @@ class Fboss2IntegrationTest : public ::testing::Test {
   }
 
   /**
+   * Return the L3 interfaceId for the L3 interface associated with the named
+   * port. Looks up the agent's getAllInterfaces() and matches on portNames.
+   * @throws std::runtime_error if no interface is associated with the port.
+   */
+  int getInterfaceIdForPort(const std::string& portName) const;
+
+  /**
    * Find a (vlanId, portName) pair where vlanId appears in sw.vlans and the
    * port is a member of that VLAN via sw.vlanPorts. Returns nullopt on
    * switches configured in a port-based / L3-routed style with no L2 VLAN
@@ -279,6 +286,29 @@ class Fboss2IntegrationTest : public ::testing::Test {
       const std::function<bool(const PortRunningInfo&)>& condition,
       std::chrono::seconds timeout = std::chrono::seconds(30),
       std::chrono::seconds interval = std::chrono::seconds(2)) const;
+
+  /**
+   * Poll getRunningConfig() until condition(config) is true or timeout
+   * expires. Thrift exceptions during a poll are swallowed and treated as
+   * condition-not-met — the agent may still be coming back up after a
+   * commit-triggered restart. Returns the last successfully fetched config
+   * (or an empty object if none was fetched) so callers can assert on the
+   * observed value when the condition was not met in time.
+   */
+  folly::dynamic waitForRunningConfig(
+      const std::function<bool(const folly::dynamic&)>& condition,
+      std::chrono::seconds timeout = std::chrono::seconds(30),
+      std::chrono::seconds interval = std::chrono::seconds(2)) const;
+
+  /**
+   * Look up the ndp sub-object for the L3 interface with the given intfID in
+   * a running config (as returned by getRunningConfig()). Returns an empty
+   * object if the interface or its ndp block is absent. Obtain the intfID
+   * via getInterfaceIdForPort().
+   */
+  static folly::dynamic getNdpConfig(
+      const folly::dynamic& runningConfig,
+      int intfID);
 
   /**
    * Discard any pending config session by deleting session files.
