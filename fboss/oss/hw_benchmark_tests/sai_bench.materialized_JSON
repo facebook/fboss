@@ -1287,6 +1287,36 @@
           "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
         }
     ],
+    "brcm/12.2.0.0_dnx_odp/ramon3": [
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitVoqBenchmark",
+          "reason": "VOQ tests not applicable to fabric"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/ramon3/mono": [
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitVoqBenchmark",
+          "reason": "VOQ tests not applicable to fabric"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/ramon3/multi_switch": [
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitVoqBenchmark",
+          "reason": "VOQ tests not applicable to fabric"
+        }
+    ],
     "brcm/13.0_ea_odp/tomahawk5": [
         {
           "test_name_regex": ".*Voq.*",
@@ -5317,6 +5347,21 @@
         }
     ],
     "brcm/12.2.0.0_dnx_odp/jericho3/multi_switch/fap": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/ramon3": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/ramon3/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/ramon3/multi_switch": [
         {
           "test_name_regex": "HwSrv6.*$"
         }
