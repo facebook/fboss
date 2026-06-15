@@ -1444,6 +1444,7 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
           customDropBitmapStatIds, SAI_STATS_MODE_READ_AND_CLEAR);
       fillHwSwitchDropBitmapStats(
           switch_->getStats(customDropBitmapStatIds), switchDropBitmapStats_);
+      logDropBitmapReasons(switchDropBitmapStats_);
     }
   }
   switchTemperatureStats_ = getHwSwitchTemperatureStats();

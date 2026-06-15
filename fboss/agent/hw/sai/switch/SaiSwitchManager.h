@@ -235,6 +235,7 @@ void fillHwSwitchSaiExtensionDropStats(
 void fillHwSwitchDropBitmapStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchDropBitmapStats& dropBitmapStats);
+void logDropBitmapReasons(const HwSwitchDropBitmapStats& stats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
 void publishSwitchPipelineStats(HwSwitchPipelineStats& pipelineStats);
 void publishSwitchTemperatureStats(HwSwitchTemperatureStats& temperatureStats);

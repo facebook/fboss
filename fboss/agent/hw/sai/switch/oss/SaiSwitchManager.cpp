@@ -49,6 +49,8 @@ void fillHwSwitchDropBitmapStats(
   CHECK_EQ(counterId2Value.size(), 0);
 }
 
+void logDropBitmapReasons(const HwSwitchDropBitmapStats& /*stats*/) {}
+
 void publishSwitchWatermarks(HwSwitchWatermarkStats& /*watermarkStats*/) {}
 
 void publishSwitchPipelineStats(HwSwitchPipelineStats& /*pipelineStats*/) {}

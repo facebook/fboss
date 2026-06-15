@@ -184,4 +184,6 @@ void fillHwSwitchDropBitmapStats(
   CHECK_EQ(counterId2Value.size(), 0);
 }
 
+void logDropBitmapReasons(const HwSwitchDropBitmapStats& /*stats*/) {}
+
 } // namespace facebook::fboss
