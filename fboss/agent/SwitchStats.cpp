@@ -81,6 +81,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "ipv6.hop_limit1_mine",
           SUM,
           RATE),
+      srv6DecapMySidToMe_(
+          map,
+          kCounterPrefix + "srv6.decap_mysid_to_me",
+          SUM,
+          RATE),
       srv6NonLastSegmentDecapDrop_(
           map,
           kCounterPrefix + "srv6.non_last_segment_decap_drop",

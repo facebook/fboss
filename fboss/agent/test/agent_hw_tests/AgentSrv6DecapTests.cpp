@@ -1,8 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fb303/ServiceData.h>
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -683,6 +685,11 @@ TYPED_TEST(AgentSrv6DecapTest, verifyDecapPuntStripsOuterHeader) {
     constexpr uint8_t kOuterHopLimit{64};
     constexpr uint8_t kInnerHopLimit{64};
 
+    auto counterName =
+        SwitchStats::kCounterPrefix + "srv6.decap_mysid_to_me.sum";
+    auto decapCountBefore =
+        fb303::fbData->getCounterIfExists(counterName).value_or(0);
+
     for (bool isV4 : {false, true}) {
       SCOPED_TRACE(isV4 ? "IPv4 inner" : "IPv6 inner");
 
@@ -773,6 +780,12 @@ TYPED_TEST(AgentSrv6DecapTest, verifyDecapPuntStripsOuterHeader) {
       ASSERT_TRUE(rxUdp.has_value());
       EXPECT_EQ(*rxUdp, *expectedUdp);
     }
+
+    WITH_RETRIES({
+      auto decapCountAfter =
+          fb303::fbData->getCounterIfExists(counterName).value_or(0);
+      EXPECT_EVENTUALLY_GE(decapCountAfter - decapCountBefore, 2);
+    });
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

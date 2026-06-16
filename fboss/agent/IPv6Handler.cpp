@@ -132,8 +132,8 @@ void IPv6Handler::rebuildDecapMySidCache(
         if (mySid->getType() == MySidType::DECAPSULATE_AND_LOOKUP) {
           auto [prefix, prefixLen] = mySid->getMySid();
           if (prefix.isV6()) {
-            newCache.exactAddrs.insert(prefix.asV6());
-            newCache.prefixTree.insert(prefix.asV6(), prefixLen, true);
+            newCache.decapMySids.insert(prefix.asV6());
+            newCache.decapMySidSubnets.insert(prefix.asV6(), prefixLen, true);
           }
         }
       }
@@ -215,13 +215,13 @@ void IPv6Handler::handlePacket(
     auto action = DecapAction::NONE;
     {
       auto cache = decapMySidCache_.rlock();
-      if (!cache->exactAddrs.empty()) {
-        if (cache->exactAddrs.count(ipv6.dstAddr)) {
+      if (!cache->decapMySids.empty()) {
+        if (cache->decapMySids.count(ipv6.dstAddr)) {
           action = DecapAction::DECAP;
         } else {
-          auto match = cache->prefixTree.longestMatch(
+          auto match = cache->decapMySidSubnets.longestMatch(
               ipv6.dstAddr, folly::IPAddressV6::bitCount());
-          if (match != cache->prefixTree.end()) {
+          if (match != cache->decapMySidSubnets.end()) {
             action = DecapAction::SUBNET_DROP;
           }
         }
@@ -237,6 +237,7 @@ void IPv6Handler::handlePacket(
       size_t l2HeaderSize = pkt->getLength() - l3Len;
       PktUtil::decapsulatePacket(
           pkt->buf(), l2HeaderSize, IPv6Hdr::SIZE, innerEtherType);
+      sw_->stats()->srv6DecapMySidToMe();
       sw_->packetReceived(std::move(pkt));
       return;
     } else if (action == DecapAction::SUBNET_DROP) {
