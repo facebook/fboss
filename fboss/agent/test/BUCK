@@ -74,6 +74,7 @@ cpp_unittest(
         "RoutingTest.cpp",
         "SelfHealingEcmpLagTests.cpp",
         "ShelManagerTest.cpp",
+        "Srv6DecapHandlerTest.cpp",
         "StaticL2ForNeighborObserverTests.cpp",
         "StaticRoutes.cpp",
         "SwSwitchTest.cpp",
