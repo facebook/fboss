@@ -1173,6 +1173,94 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
   mergeGroupAndMigratePrefixes(mergeSet, inOutState);
 }
 
+EcmpResourceManager::GroupsTrimmedFromMerge
+EcmpResourceManager::restoreGroupsTrimmedFromMerge(
+    const std::set<NextHopGroupIds>& preExistingMemberMergeSets,
+    const NextHopGroupIds& mergeSet,
+    InputOutputState* inOutState) {
+  // Survivors are members of the erased merges that are NOT in the new
+  // mergeSet. 2+ survivors stay merged as a smaller group (slot-neutral); a
+  // lone survivor goes standalone. At most one pre-existing merge can have
+  // survivors per call, so at most one of the two is ever set.
+  GroupsTrimmedFromMerge trimmed;
+  bool survivorsSeen = false;
+  for (const auto& oldMergeSet : preExistingMemberMergeSets) {
+    NextHopGroupIds survivors;
+    for (auto gid : oldMergeSet) {
+      // In the new mergeSet (re-pointed by the caller) or a routeless alias:
+      // skip.
+      if (!mergeSet.contains(gid) && nextHopGroupIdToInfo_.ref(gid)) {
+        survivors.insert(gid);
+      }
+    }
+    if (survivors.empty()) {
+      continue;
+    }
+    // Enforce the one-survivor-merge-per-call invariant. A second would
+    // overwrite the first's trimmed group, leaving it unrestored and dangling
+    // (the SEV this fixes) -- fail loudly instead of corrupting state silently.
+    CHECK(!survivorsSeen)
+        << "Multiple pre-existing merges have survivors in a single call";
+    survivorsSeen = true;
+    if (survivors.size() > 1) {
+      trimmed.mergeGroup = std::move(survivors);
+    } else {
+      trimmed.standaloneGroup = *survivors.begin();
+    }
+  }
+  if (trimmed.mergeGroup.empty() && !trimmed.standaloneGroup.has_value()) {
+    return trimmed;
+  }
+  // This creates one extra ECMP group in HW transiently. For instance we had
+  // group [A, B] and now created [C, D] which matches A:
+  //  - Unmerge [A, B] and update prefixes that originally pointed to B to point
+  //    to B again.
+  //  - Prefixes that originally pointed to A still point to [A, B], so [A, B]
+  //  is
+  //    still in HW.
+  //  - [A, B] is dropped once we program [C, D].
+  // Similarly if we had a group [A, B, C] and now created a group [D, E] which
+  // matches A's nexthops:
+  //  - Unmerge [A, B, C] and update prefixes that originally pointed to B or C
+  //    to point to [B, C].
+  //  - Prefixes that originally pointed to A still point to [A, B, C], so
+  //    [A, B, C] is still in HW.
+  //  - [A, B, C] is dropped once we program [D, E].
+  auto oldState = inOutState->getCurrentStateDelta().newState();
+  auto newState = oldState->clone();
+  auto gid2Prefix = getGidToPrefixes();
+  if (!trimmed.mergeGroup.empty()) {
+    XLOG(DBG2) << " Keeping survivors of erased merge as merged group: "
+               << trimmed.mergeGroup;
+    auto [survivorItr, inserted] = mergedGroups_.insert(
+        {trimmed.mergeGroup, computeConsolidationInfo(trimmed.mergeGroup)});
+    CHECK(inserted);
+    auto [survivorGrpInfo, _] =
+        getOrCreateGroupInfo(survivorItr->second.mergedNhops, *inOutState);
+    survivorGrpInfo->setMergedGroupInfoItr(survivorItr);
+    survivorItr->second.mergedGroupInfo = survivorGrpInfo;
+    updateMergeInfo(gid2Prefix, trimmed.mergeGroup, survivorItr, newState);
+    // One new merged group replaces the erased one: net-zero primary count.
+    ++inOutState->primaryEcmpGroupsCnt;
+    inOutState->ecmpMemberCnt += survivorItr->second.mergedNhops.size();
+  } else if (trimmed.standaloneGroup.has_value()) {
+    XLOG(DBG2) << " Restoring lone survivor as standalone: "
+               << *trimmed.standaloneGroup;
+    updateMergeInfo(
+        gid2Prefix,
+        NextHopGroupIds{*trimmed.standaloneGroup},
+        std::nullopt,
+        newState);
+    ++inOutState->primaryEcmpGroupsCnt;
+    inOutState->ecmpMemberCnt +=
+        nextHopGroupIdToInfo_.ref(*trimmed.standaloneGroup)->getNhops().size();
+  }
+  newState->publish();
+  inOutState->appendDelta(StateDelta(oldState, newState));
+  inOutState->updated = true;
+  return trimmed;
+}
+
 void EcmpResourceManager::mergeGroupAndMigratePrefixes(
     const NextHopGroupIds& mergeSetIn,
     InputOutputState* inOutState) {
@@ -1248,6 +1336,12 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
               inserted ? (*pmitr)->second.mergedNhops.size() : 0;
         }
       });
+  // Re-point the survivors of the merges we're about to erase (members not in
+  // the new mergeSet) onto fresh entries, else their mergedGroupInfoItr dangles
+  // into the freed node.
+  auto [mergeGroupAfterTrimming, standaloneGroupAfterTrimming] =
+      restoreGroupsTrimmedFromMerge(
+          preExistingMemberMergeSets, mergeSet, inOutState);
   // Prune preExistingMemberMergeSets since we are going to
   // make these part of a larger merge set now
   std::for_each(
@@ -1313,6 +1407,44 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
   inOutState->ecmpMemberCnt -= preExistingMergeGrpNhops;
   // Compute new candidate merges of merged group + each unmerged group
   computeCandidateMergesForNewMergedGroup(mergeSet);
+  // Refresh candidates for the restored survivors (the new group's members are
+  // now merged, no longer unmerged).
+  if (!mergeGroupAfterTrimming.empty()) {
+    computeCandidateMergesForNewMergedGroup(mergeGroupAfterTrimming);
+  }
+  if (standaloneGroupAfterTrimming.has_value()) {
+    computeCandidateMergesForNewUnmergedGroups({*standaloneGroupAfterTrimming});
+  }
+  // Restoring a survivor above is a +1 that, while rolling back (replaying a
+  // delta whose routes already carry their merged/override nexthops), can have
+  // nothing to offset it -- leaving us one over the soft limit. When that
+  // happens, drain the overshoot with the same overflow merge the forward path
+  // uses, until back under (or out of candidates). This can only happen while
+  // rolling back (hence the DCHECK below).
+  //
+  // Example -- soft limit reached, with an existing merge {A, B}:
+  //  1. Route R is replayed through routeAddedWithOverrideNhops(); its override
+  //     nexthops equal A's, so its override group resolves to the existing A ->
+  //     overrideGrpInserted == false -> the "free a slot" merge is skipped (no
+  //     slot is freed).
+  //  2. R still forms its own merge {A, R}. To put A into {A, R}, A is pulled
+  //     out of {A, B}, leaving B as a lone survivor restored standalone (+1).
+  //  3. so B's +1 is uncompensated -> we are at soft limit + 1.
+  //  4. This loop re-merges until back under the soft limit, before control
+  //     returns to the per-route limit DCHECK.
+  if (!mergeGroupAfterTrimming.empty() ||
+      standaloneGroupAfterTrimming.has_value()) {
+    while (inOutState->primaryEcmpGroupsCnt >
+               config_.getMaxPrimaryEcmpGroups() &&
+           !candidateMergeGroups_.empty()) {
+      DCHECK(inOutState->rollingBack());
+      XLOG(DBG2) << " Re-merging after survivor restore: primaryEcmpGroupsCnt="
+                 << inOutState->primaryEcmpGroupsCnt << " > limit "
+                 << config_.getMaxPrimaryEcmpGroups()
+                 << ", candidates available: " << candidateMergeGroups_.size();
+      mergeGroupAndMigratePrefixes(inOutState);
+    }
+  }
   XLOG(DBG2) << "Done migrating prefixes to merged group: " << mergeSet
              << ". Incremented primary ecmp group count to : "
              << inOutState->primaryEcmpGroupsCnt

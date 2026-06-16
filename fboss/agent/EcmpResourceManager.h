@@ -359,6 +359,19 @@ class EcmpResourceManager {
    */
   void mergeGroupAndMigratePrefixes(InputOutputState* inOutState);
 
+  // Groups left behind ("trimmed") when the new merge absorbs one member of an
+  // existing merge. At most one of these is set per call.
+  struct GroupsTrimmedFromMerge {
+    NextHopGroupIds mergeGroup; // 2+ survivors kept merged
+    std::optional<NextHopGroupId> standaloneGroup; // lone survivor
+  };
+  // Re-point the survivors of erased pre-existing merges onto fresh entries
+  // (before those merges are erased) so their mergedGroupInfoItr can't dangle.
+  GroupsTrimmedFromMerge restoreGroupsTrimmedFromMerge(
+      const std::set<NextHopGroupIds>& preExistingMemberMergeSets,
+      const NextHopGroupIds& mergeSet,
+      InputOutputState* inOutState);
+
   void reclaimEcmpGroups(InputOutputState* inOutState);
   template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
