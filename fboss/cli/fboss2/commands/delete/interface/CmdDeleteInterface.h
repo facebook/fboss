@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/commands/config/interface/InterfaceAttrUtils.h"
+#include "fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h"
 
 namespace facebook::fboss {
 
@@ -62,16 +62,8 @@ class CmdDeleteInterface
   using RetType = CmdDeleteInterfaceTraits::RetType;
 
   RetType queryClient(
-<<<<<<< HEAD
-      const HostInfo& /* hostInfo */,
-      const ObjectArgType& /* interfaceConfig */) {
-    throw std::runtime_error(
-        "Incomplete command, please use one of the subcommands (e.g. ipv6 ndp)");
-  }
-=======
       const HostInfo& hostInfo,
       const ObjectArgType& deleteConfig);
->>>>>>> 533d22933a ([Nexthop] Add and delete interface attributes)
 
   void printOutput(const RetType& logMsg);
 };
