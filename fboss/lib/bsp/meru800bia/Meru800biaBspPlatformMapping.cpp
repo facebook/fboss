@@ -24,7 +24,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_reset_1",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_present_1",
@@ -59,7 +59,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_2/xcvr_reset_2",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_2/xcvr_present_2",
@@ -94,7 +94,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_3/xcvr_reset_3",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_3/xcvr_present_3",
@@ -129,7 +129,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_4/xcvr_reset_4",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_4/xcvr_present_4",
@@ -164,7 +164,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_5/xcvr_reset_5",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_5/xcvr_present_5",
@@ -199,7 +199,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_6/xcvr_reset_6",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_6/xcvr_present_6",
@@ -234,7 +234,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_7/xcvr_reset_7",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_7/xcvr_present_7",
@@ -269,7 +269,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_8/xcvr_reset_8",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_8/xcvr_present_8",
@@ -304,7 +304,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_9/xcvr_reset_9",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_9/xcvr_present_9",
@@ -339,7 +339,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_10/xcvr_reset_10",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_10/xcvr_present_10",
@@ -374,7 +374,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_11/xcvr_reset_11",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_11/xcvr_present_11",
@@ -409,7 +409,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_12/xcvr_reset_12",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_12/xcvr_present_12",
@@ -444,7 +444,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_13/xcvr_reset_13",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_13/xcvr_present_13",
@@ -479,7 +479,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_14/xcvr_reset_14",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_14/xcvr_present_14",
@@ -514,7 +514,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_15/xcvr_reset_15",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_15/xcvr_present_15",
@@ -549,7 +549,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_16/xcvr_reset_16",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_16/xcvr_present_16",
@@ -584,7 +584,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_17/xcvr_reset_17",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_17/xcvr_present_17",
@@ -619,7 +619,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_18/xcvr_reset_18",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_18/xcvr_present_18",
@@ -654,7 +654,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_19/xcvr_reset_19",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_19/xcvr_present_19",
@@ -689,7 +689,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_20/xcvr_reset_20",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_20/xcvr_present_20",
@@ -724,7 +724,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_21/xcvr_reset_21",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_21/xcvr_present_21",
@@ -759,7 +759,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_22/xcvr_reset_22",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_22/xcvr_present_22",
@@ -794,7 +794,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_23/xcvr_reset_23",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_23/xcvr_present_23",
@@ -829,7 +829,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_24/xcvr_reset_24",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_24/xcvr_present_24",
@@ -864,7 +864,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_25/xcvr_reset_25",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_25/xcvr_present_25",
@@ -899,7 +899,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_26/xcvr_reset_26",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_26/xcvr_present_26",
@@ -934,7 +934,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_27/xcvr_reset_27",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_27/xcvr_present_27",
@@ -969,7 +969,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_28/xcvr_reset_28",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_28/xcvr_present_28",
@@ -1004,7 +1004,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_29/xcvr_reset_29",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_29/xcvr_present_29",
@@ -1039,7 +1039,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_30/xcvr_reset_30",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_30/xcvr_present_30",
@@ -1074,7 +1074,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_31/xcvr_reset_31",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_31/xcvr_present_31",
@@ -1109,7 +1109,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_32/xcvr_reset_32",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_32/xcvr_present_32",
@@ -1144,7 +1144,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_33/xcvr_reset_33",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_33/xcvr_present_33",
@@ -1179,7 +1179,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_34/xcvr_reset_34",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_34/xcvr_present_34",
@@ -1214,7 +1214,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_35/xcvr_reset_35",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_35/xcvr_present_35",
@@ -1249,7 +1249,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_36/xcvr_reset_36",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_36/xcvr_present_36",
@@ -1284,7 +1284,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_37/xcvr_reset_37",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_37/xcvr_present_37",
@@ -1319,7 +1319,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_38/xcvr_reset_38",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_38/xcvr_present_38",
@@ -1354,7 +1354,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_39/xcvr_reset_39",
               "mask": 1,
               "gpioOffset": 0,
-              "resetHoldHi": 0
+              "resetHoldHi": 1
             },
             "presence": {
               "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_39/xcvr_present_39",
