@@ -879,6 +879,15 @@ add_fbthrift_cpp_library(
     reflection
 )
 add_fbthrift_cpp_library(
+  link_qsfp_test_port_info_cpp2
+  fboss/lib/if/link_qsfp_test_port_info.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+    transceiver_cpp2
+)
+add_fbthrift_cpp_library(
   i2c_controller_stats_cpp2
   fboss/lib/i2c/i2c_controller_stats.thrift
 )
