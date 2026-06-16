@@ -12,6 +12,7 @@ set(
     "fboss/lib/platform_mapping_v2/asic_vendor_config.py"
     "fboss/lib/platform_mapping_v2/gen.py"
     "fboss/lib/platform_mapping_v2/helpers.py"
+    "fboss/lib/platform_mapping_v2/integrated_transceiver_mapping.py"
     "fboss/lib/platform_mapping_v2/platform_mapping_v2.py"
     "fboss/lib/platform_mapping_v2/port_profile_mapping.py"
     "fboss/lib/platform_mapping_v2/profile_settings.py"
