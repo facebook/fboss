@@ -4,7 +4,7 @@
 
 extern "C" {
 #include <sai.h>
-#if defined(TAJO_SDK_GTE_26_5)
+#if defined(TAJO_SDK_GTE_26_2)
 #include <saiextensions.h>
 #elif __has_include(<experimental/sai_attr_ext.h>)
 #include <experimental/sai_attr_ext.h>
