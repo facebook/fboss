@@ -33,10 +33,16 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
+    auto switchId = getCurrentSwitchIdForTesting();
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
-        ensemble.getSw(),
+        ensemble.getSw()->getPlatformMapping(),
+        asic,
         ensemble.masterLogicalPortIds()[0],
-        ensemble.masterLogicalPortIds()[1]);
+        ensemble.masterLogicalPortIds()[1],
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     utility::addQueuePerHostQueueConfig(&cfg);
     utility::addQueuePerHostAcls(&cfg, ensemble.isSai());
     return cfg;
