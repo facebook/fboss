@@ -276,6 +276,7 @@ cpp_library(
         "//fboss/qsfp_service/if:transceiver-cpp2-serialization",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//folly:conv",
         "//folly:network_address",
         "//folly:random",
         "//folly:string",
