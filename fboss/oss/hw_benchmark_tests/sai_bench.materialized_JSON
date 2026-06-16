@@ -3537,6 +3537,15 @@
               "upper_bound": 22330000000000.0
             }
           ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6EcmpGroupScaleBenchmark",
+              "upper_bound": 16050000000000.0
+            }
+          ]
         }
     ],
     "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6MidpointMySidScaleBenchmark": [
@@ -3546,6 +3555,15 @@
             {
               "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
               "upper_bound": 82960000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
+              "upper_bound": 72250000000000.0
             }
           ]
         }
@@ -3568,6 +3586,15 @@
               "upper_bound": 16660000000000.0
             }
           ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MixedRouteScaleBenchmark",
+              "upper_bound": 12300000000000.0
+            }
+          ]
         }
     ],
     "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6NextHopScaleBenchmark": [
@@ -3577,6 +3604,15 @@
             {
               "metric_key_regex": "HwSrv6NextHopScaleBenchmark",
               "upper_bound": 47080000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6NextHopScaleBenchmark",
+              "upper_bound": 34350000000000.0
             }
           ]
         }
@@ -3599,6 +3635,15 @@
               "upper_bound": 8680000000000.0
             }
           ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6SingleNextHopRouteScaleBenchmark",
+              "upper_bound": 6570000000000.0
+            }
+          ]
         }
     ],
     "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6V4RouteScaleBenchmark": [
@@ -3619,6 +3664,15 @@
               "upper_bound": 14210000000000.0
             }
           ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6V4RouteScaleBenchmark",
+              "upper_bound": 10240000000000.0
+            }
+          ]
         }
     ],
     "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6V6RouteScaleBenchmark": [
@@ -3637,6 +3691,15 @@
             {
               "metric_key_regex": "HwSrv6V6RouteScaleBenchmark",
               "upper_bound": 15080000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6V6RouteScaleBenchmark",
+              "upper_bound": 10870000000000.0
             }
           ]
         }
@@ -4508,6 +4571,15 @@
               "upper_bound": 22330000000000.0
             }
           ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6EcmpGroupScaleBenchmark",
+              "upper_bound": 16050000000000.0
+            }
+          ]
         }
     ],
     "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6MidpointMySidScaleBenchmark": [
@@ -4517,6 +4589,15 @@
             {
               "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
               "upper_bound": 82960000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
+              "upper_bound": 72250000000000.0
             }
           ]
         }
@@ -4539,6 +4620,15 @@
               "upper_bound": 16660000000000.0
             }
           ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MixedRouteScaleBenchmark",
+              "upper_bound": 12300000000000.0
+            }
+          ]
         }
     ],
     "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6NextHopScaleBenchmark": [
@@ -4548,6 +4638,15 @@
             {
               "metric_key_regex": "HwSrv6NextHopScaleBenchmark",
               "upper_bound": 47080000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6NextHopScaleBenchmark",
+              "upper_bound": 34350000000000.0
             }
           ]
         }
@@ -4570,6 +4669,15 @@
               "upper_bound": 8680000000000.0
             }
           ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6SingleNextHopRouteScaleBenchmark",
+              "upper_bound": 6570000000000.0
+            }
+          ]
         }
     ],
     "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6V4RouteScaleBenchmark": [
@@ -4590,6 +4698,15 @@
               "upper_bound": 14210000000000.0
             }
           ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6V4RouteScaleBenchmark",
+              "upper_bound": 10240000000000.0
+            }
+          ]
         }
     ],
     "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6V6RouteScaleBenchmark": [
@@ -4608,6 +4725,15 @@
             {
               "metric_key_regex": "HwSrv6V6RouteScaleBenchmark",
               "upper_bound": 15080000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6V6RouteScaleBenchmark",
+              "upper_bound": 10870000000000.0
             }
           ]
         }
