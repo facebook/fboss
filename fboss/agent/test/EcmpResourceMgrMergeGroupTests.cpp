@@ -10,6 +10,7 @@
 
 #include "fboss/agent/test/BaseEcmpResourceMgrMergeGroupsTests.h"
 #include "fboss/agent/test/CounterCache.h"
+#include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 
 namespace facebook::fboss {
 
@@ -1027,6 +1028,66 @@ TEST_F(EcmpResourceMgrMergeGroupTest, mergeThenUnmerge) {
   };
 }
 
+// Regression test for the dangling `mergedGroupInfoItr` bug in
+// `mergeGroupAndMigratePrefixes` (SEV S666090), N=1 leftover case.
+//
+// We have a pre-existing 2-group merge {groupA, groupB}. A subsequent
+// route update forms a new merge that pulls in groupA (but not groupB)
+// and erases the original {groupA, groupB} entry. Pre-fix, groupB was
+// left holding a stale iterator into the erased entry — the next walk
+// of groupB would dereference freed memory and crash the agent.
+//
+// Pre-fix: fails via EXPECT_FALSE on groupB's iterator, or via an ASan
+// heap-use-after-free on the next per-route bookkeeping walk.
+// Post-fix: groupB's iterator is cleared during the merge cleanup.
+TEST_F(
+    EcmpResourceMgrMergeGroupTest,
+    mergeGroupAndMigratePrefixesLeavesStaleItrOnOrphanedGroup) {
+  // Phase 1: trigger the initial 2-member merge {groupA, groupB}.
+  auto initialMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  ASSERT_EQ(initialMergeSet.size(), 2);
+  addNextRoute();
+  assertMergedGroup(initialMergeSet);
+
+  auto groupA = *initialMergeSet.begin();
+  auto groupB = *(++initialMergeSet.begin());
+  auto groupANhops =
+      sw_->getEcmpResourceManager()->getGroupInfo(groupA)->getNhops();
+
+  // Do NOT rmRoute — freeing capacity triggers the reclaim path which
+  // correctly clears iterators and hides the bug.
+
+  // Phase 2: construct routeOne / routeTwo so that the merge they would
+  // form pulls in groupA, making (routeOne, routeTwo) the cheapest
+  // candidate at the next overflow.
+  auto routeOneNhops = groupANhops;
+  routeOneNhops.insert(*makeNextHops(1, 1, 2).begin());
+  auto routeTwoNhops = groupANhops;
+  routeTwoNhops.insert(*makeNextHops(1, 1, 3).begin());
+
+  // Phase 3: add routeOne + routeTwo + filler in one batch. Filler tips
+  // us over the limit and triggers a merge that pulls in groupA,
+  // erases {groupA, groupB}, and (pre-fix) leaves groupB stranded.
+  auto fibSize = cfib(state_)->size();
+  addRoutes({
+      {makePrefix(fibSize + 100), routeOneNhops},
+      {makePrefix(fibSize + 101), routeTwoNhops},
+      {makePrefix(fibSize + 102), makeNextHops(kNumIntfs, 1, 7)},
+  });
+
+  // Phase 4: with the fix, groupB's iterator was cleared during Part 1.
+  auto groupBInfo = sw_->getEcmpResourceManager()->getGroupInfo(groupB);
+  ASSERT_NE(groupBInfo, nullptr);
+  EXPECT_FALSE(groupBInfo->getMergedGroupInfoItr().has_value())
+      << "groupB (" << groupB
+      << ") leftover after {groupA, groupB} erase; iterator should be cleared";
+
+  // nhop count: manager's ecmp member count matches the nhops programmed in
+  // the FIB (covers the leftover restore's member accounting).
+  assertResourceMgrCorrectness(*sw_->getEcmpResourceManager(), sw_->getState());
+}
+
 TEST_F(
     EcmpResourceMgrMergeGroupTest,
     triggerMergeThenShrinkOverflowedMemberGroup) {
@@ -1048,5 +1109,193 @@ TEST_F(
     mergedNhops.erase(*mergedNhops.begin());
   }
   updateRoute(*overflowPrefixes.begin(), shrunkNhops);
+}
+
+// Regression test for the same dangling `mergedGroupInfoItr` bug, N=2
+// leftover case (the N=1 test exercises only one orphaned group; this
+// one exercises the cleanup loop with two).
+//
+// We have a pre-existing 3-group merge {A, B, C}. A subsequent route
+// update forms a new merge that pulls in B (but not A or C) and erases
+// the original {A, B, C} entry. Pre-fix, BOTH A and C were left holding
+// stale iterators into the erased entry.
+//
+// Pre-fix: fails via EXPECT_FALSE on A's or C's iterator, or via an ASan
+// heap-use-after-free during Phase 3's route processing.
+// Post-fix: both A's and C's iterators are cleared during the merge
+// cleanup loop.
+TEST_F(
+    EcmpResourceMgrMergeGroupTest,
+    mergeGroupAndMigratePrefixesLeavesStaleItrsOnMultipleOrphanedGroups) {
+  // Phase 1: build the 3-group merge {A, B, C}. Free two slots and add
+  // B, C, A in one batch — when A is processed last it triggers overflow,
+  // and the cheapest candidate (B, C) gets extended to pull A in,
+  // forming the 3-group merge in a single shot.
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+
+  // A: 20 fresh nhops disjoint from the defaults. B, C: A + one unique
+  // extra each, so intersection(B, C) == A.
+  auto aNhops = makeNextHops(kNumIntfs, 1, 5);
+  auto bNhops = aNhops;
+  bNhops.insert(*makeNextHops(1, 1, 6).begin());
+  auto cNhops = aNhops;
+  cNhops.insert(*makeNextHops(1, 1, 7).begin());
+
+  addRoutes({
+      {makePrefix(100), bNhops},
+      {makePrefix(101), cNhops},
+      {makePrefix(102), aNhops},
+  });
+
+  auto mergedGroupsAfterPhase1 =
+      sw_->getEcmpResourceManager()->getMergedGroups();
+  ASSERT_EQ(mergedGroupsAfterPhase1.size(), 1);
+  ASSERT_EQ(mergedGroupsAfterPhase1[0].size(), 3);
+
+  const auto& nhopsToId = sw_->getEcmpResourceManager()->getNhopsToId();
+  auto aGid = nhopsToId.find(aNhops)->second;
+  auto bGid = nhopsToId.find(bNhops)->second;
+  auto cGid = nhopsToId.find(cNhops)->second;
+  auto threeMergeSet = mergedGroupsAfterPhase1[0];
+
+  // Phase 2: stage D and E (designed so the merge they trigger will pull
+  // in B) below the soft limit, so the (D, E) candidate exists when the
+  // Phase 3 trigger fires.
+  auto dNhops = bNhops;
+  dNhops.insert(*makeNextHops(1, 1, 8).begin());
+  auto eNhops = bNhops;
+  eNhops.insert(*makeNextHops(1, 1, 9).begin());
+
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  addRoutes({
+      {makePrefix(200), dNhops},
+      {makePrefix(201), eNhops},
+  });
+
+  // Bump primary back to the soft limit so Phase 3's update sees overflow.
+  addRoute(makePrefix(300), makeNextHops(kNumIntfs, 1, 15));
+
+  // Phase 3: trigger the (D, E) merge via an UPDATE (not a new add) so
+  // the route delete and add cancel out in the primary count — otherwise
+  // the N=2-leftover accounting would push us over the soft limit and
+  // trip a DCHECK. The merge pulls in B and erases {A, B, C}, leaving
+  // A and C as leftovers.
+  updateRoute(
+      (*getPostConfigResolvedRoutes(state_).begin())->prefix(),
+      makeNextHops(kNumIntfs, 1, 20));
+
+  // With the fix, Part 1 cleared both leftover iterators. Without it, an
+  // ASan run hits a heap-use-after-free during the update above; in a
+  // non-ASan run these EXPECT_FALSEs would still fail.
+  auto aInfo = sw_->getEcmpResourceManager()->getGroupInfo(aGid);
+  auto cInfo = sw_->getEcmpResourceManager()->getGroupInfo(cGid);
+  ASSERT_NE(aInfo, nullptr);
+  ASSERT_NE(cInfo, nullptr);
+  EXPECT_FALSE(aInfo->getMergedGroupInfoItr().has_value())
+      << "A (gid " << aGid << ") leftover iterator should be cleared";
+  EXPECT_FALSE(cInfo->getMergedGroupInfoItr().has_value())
+      << "C (gid " << cGid << ") leftover iterator should be cleared";
+
+  // Sanity: original {A, B, C} merge erased, new {B, D, E} merge present.
+  auto mergedGroupsAfter = sw_->getEcmpResourceManager()->getMergedGroups();
+  EXPECT_TRUE(
+      std::find(
+          mergedGroupsAfter.begin(), mergedGroupsAfter.end(), threeMergeSet) ==
+      mergedGroupsAfter.end());
+  auto dGid = nhopsToId.find(dNhops)->second;
+  auto eGid = nhopsToId.find(eNhops)->second;
+  bool foundNewMerge = std::any_of(
+      mergedGroupsAfter.begin(),
+      mergedGroupsAfter.end(),
+      [&](const auto& mset) {
+        return mset.contains(bGid) && mset.contains(dGid) &&
+            mset.contains(eGid);
+      });
+  EXPECT_TRUE(foundNewMerge);
+
+  // nhop count: manager's ecmp member count matches the nhops programmed in
+  // the FIB (covers the leftover restore's member accounting).
+  assertResourceMgrCorrectness(*sw_->getEcmpResourceManager(), sw_->getState());
+}
+
+// Option-2 behavior: when a merge loses one member to a new merge but 2+
+// members survive, the survivors are kept as a single smaller merged group
+// (not split into standalones). Same shape as the N=2 orphan test, but the
+// trigger is an add (not a net-neutral update): keeping the survivors merged
+// is slot-neutral, so we land at the soft limit and reclaim does NOT dissolve
+// the survivor merge — letting us assert it stays merged.
+TEST_F(
+    EcmpResourceMgrMergeGroupTest,
+    mergeGroupAndMigratePrefixesKeepsSurvivingMembersMerged) {
+  // Phase 1: build the 3-group merge {A, B, C} (intersection(B, C) == A).
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  auto aNhops = makeNextHops(kNumIntfs, 1, 5);
+  auto bNhops = aNhops;
+  bNhops.insert(*makeNextHops(1, 1, 6).begin());
+  auto cNhops = aNhops;
+  cNhops.insert(*makeNextHops(1, 1, 7).begin());
+  addRoutes({
+      {makePrefix(100), bNhops},
+      {makePrefix(101), cNhops},
+      {makePrefix(102), aNhops},
+  });
+  ASSERT_EQ(sw_->getEcmpResourceManager()->getMergedGroups().size(), 1);
+
+  const auto& nhopsToId = sw_->getEcmpResourceManager()->getNhopsToId();
+  auto aGid = nhopsToId.find(aNhops)->second;
+  auto bGid = nhopsToId.find(bNhops)->second;
+  auto cGid = nhopsToId.find(cNhops)->second;
+
+  // Phase 2: stage D, E so the merge they trigger pulls in B.
+  auto dNhops = bNhops;
+  dNhops.insert(*makeNextHops(1, 1, 8).begin());
+  auto eNhops = bNhops;
+  eNhops.insert(*makeNextHops(1, 1, 9).begin());
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  addRoutes({
+      {makePrefix(200), dNhops},
+      {makePrefix(201), eNhops},
+  });
+  // Bump back to the soft limit so the Phase 3 add triggers overflow.
+  addRoute(makePrefix(300), makeNextHops(kNumIntfs, 1, 15));
+
+  // Phase 3: add a filler that tips us over. The optimal (D, E) merge pulls in
+  // B and erases {A, B, C}, leaving A and C as survivors kept merged.
+  addRoute(makePrefix(400), makeNextHops(kNumIntfs, 1, 20));
+
+  auto mgr = sw_->getEcmpResourceManager();
+  auto aInfo = mgr->getGroupInfo(aGid);
+  auto cInfo = mgr->getGroupInfo(cGid);
+  ASSERT_NE(aInfo, nullptr);
+  ASSERT_NE(cInfo, nullptr);
+  // A and C are kept merged: both point at the same {A, C} merge entry.
+  ASSERT_TRUE(aInfo->getMergedGroupInfoItr().has_value());
+  ASSERT_TRUE(cInfo->getMergedGroupInfoItr().has_value());
+  EcmpResourceManager::NextHopGroupIds acMergeSet{aGid, cGid};
+  EXPECT_EQ((*aInfo->getMergedGroupInfoItr())->first, acMergeSet);
+  EXPECT_EQ(*aInfo->getMergedGroupInfoItr(), *cInfo->getMergedGroupInfoItr());
+
+  // nhop count: the {A, C} merge programs intersection(A, C) == A's nhops.
+  auto acMergeInfo = mgr->getMergeGroupConsolidationInfo(aGid);
+  ASSERT_TRUE(acMergeInfo.has_value());
+  EXPECT_EQ(acMergeInfo->mergedNhops.size(), aNhops.size());
+
+  // Original {A, B, C} is gone; the new {B, D, E} merge is present.
+  auto dGid = nhopsToId.find(dNhops)->second;
+  auto eGid = nhopsToId.find(eNhops)->second;
+  auto mergedGroups = mgr->getMergedGroups();
+  EXPECT_TRUE(
+      std::any_of(
+          mergedGroups.begin(), mergedGroups.end(), [&](const auto& mset) {
+            return mset.contains(bGid) && mset.contains(dGid) &&
+                mset.contains(eGid);
+          }));
+
+  // nhop count: manager's ecmp member count matches the FIB.
+  assertResourceMgrCorrectness(*mgr, sw_->getState());
 }
 } // namespace facebook::fboss
