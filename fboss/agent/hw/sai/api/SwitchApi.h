@@ -1005,6 +1005,7 @@ struct SaiSwitchTraits {
   static const std::vector<sai_stat_id_t>&
   fabricInterCellJitterWatermarkStats();
   static const std::vector<sai_stat_id_t>& deviceWatermarkBytes();
+  static const std::vector<sai_stat_id_t>& customDropBitmapStats();
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)

@@ -48,6 +48,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
   const folly::IPAddressV6 kMySidAddr{"3001:db8:7fff::"};
   static constexpr uint8_t kMySidPrefixLen{48};
   static constexpr uint8_t kECT1{1};
+  static constexpr int kNumNextHops{4};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -72,7 +73,6 @@ class AgentSrv6DecapTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    constexpr auto kNumNextHops = 4;
     auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
@@ -332,6 +332,136 @@ class AgentSrv6DecapTest : public AgentHwTest {
     }
     throw FbossError("No UP port found besides egress port");
   }
+
+  PortID findInjectPortExcluding(const std::vector<PortID>& egressPorts) {
+    for (const auto& portMap :
+         std::as_const(*this->getProgrammedState()->getPorts())) {
+      for (const auto& [_, port] : std::as_const(*portMap.second)) {
+        if (std::find(egressPorts.begin(), egressPorts.end(), port->getID()) ==
+                egressPorts.end() &&
+            port->isPortUp()) {
+          return port->getID();
+        }
+      }
+    }
+    throw FbossError("No UP port found besides egress ports");
+  }
+
+  void pumpDecapTrafficAndVerifyLoadBalanced(
+      const std::vector<PortID>& egressPorts,
+      std::optional<PortID> injectPort = std::nullopt,
+      int numPackets = 10000,
+      int maxDeviationPct = 25) {
+    auto vlanId = this->getVlanIDForTx().value();
+    auto mac = utility::kLocalCpuMac();
+    int sqrtN = static_cast<int>(std::sqrt(numPackets));
+
+    auto pumpTraffic = [&]() {
+      XLOG(DBG2) << "pumpDecapTrafficAndVerifyLoadBalanced: sending "
+                 << sqrtN * sqrtN << " v6-in-v6 packets, inject="
+                 << (injectPort.has_value()
+                         ? folly::to<std::string>(injectPort.value())
+                         : "CPU");
+      for (int i = 0; i < sqrtN; ++i) {
+        for (int j = 0; j < sqrtN; ++j) {
+          auto innerSrcIp =
+              folly::IPAddressV6(folly::to<std::string>("1001::1:", i + 1));
+          auto innerDstIp =
+              folly::IPAddressV6(folly::to<std::string>("2800:2::", j + 1));
+          uint32_t flowLabel =
+              static_cast<uint32_t>((i * sqrtN + j + 1) & 0xFFFFF);
+          auto txPacket = utility::makeIpInIpTxPacket(
+              this->getSw(),
+              vlanId,
+              mac,
+              mac,
+              folly::IPAddressV6("1::1"),
+              kMySidAddr,
+              innerSrcIp,
+              innerDstIp,
+              10000 + i,
+              20000 + j,
+              0,
+              0,
+              64,
+              64,
+              flowLabel);
+          if (injectPort.has_value()) {
+            this->getSw()->sendPacketOutOfPortAsync(
+                std::move(txPacket), injectPort.value());
+          } else {
+            this->sendPacketSwitchedAsync(std::move(txPacket));
+          }
+        }
+      }
+    };
+
+    utility::pumpTrafficAndVerifyLoadBalanced(
+        pumpTraffic,
+        [&]() {},
+        [&]() {
+          return utility::isLoadBalanced(
+              this->getLatestPortStats(egressPorts), maxDeviationPct);
+        });
+  }
+
+  void pumpV4DecapTrafficAndVerifyLoadBalanced(
+      const std::vector<PortID>& egressPorts,
+      std::optional<PortID> injectPort = std::nullopt,
+      int numPackets = 10000,
+      int maxDeviationPct = 25) {
+    auto vlanId = this->getVlanIDForTx().value();
+    auto mac = utility::kLocalCpuMac();
+    int sqrtN = static_cast<int>(std::sqrt(numPackets));
+
+    auto pumpTraffic = [&]() {
+      XLOG(DBG2) << "pumpV4DecapTrafficAndVerifyLoadBalanced: sending "
+                 << sqrtN * sqrtN << " v4-in-v6 packets, inject="
+                 << (injectPort.has_value()
+                         ? folly::to<std::string>(injectPort.value())
+                         : "CPU");
+      for (int i = 0; i < sqrtN; ++i) {
+        for (int j = 0; j < sqrtN; ++j) {
+          auto innerSrcIp = folly::IPAddressV4(
+              folly::to<std::string>("192.168.", i % 256, ".", (i / 256) + 1));
+          auto innerDstIp = folly::IPAddressV4(
+              folly::to<std::string>("100.0.0.", (j % 254) + 1));
+          uint32_t flowLabel =
+              static_cast<uint32_t>((i * sqrtN + j + 1) & 0xFFFFF);
+          auto txPacket = utility::makeIpInIpTxPacket(
+              this->getSw(),
+              vlanId,
+              mac,
+              mac,
+              folly::IPAddressV6("1::1"),
+              kMySidAddr,
+              innerSrcIp,
+              innerDstIp,
+              10000 + i,
+              20000 + j,
+              0,
+              0,
+              64,
+              64,
+              flowLabel);
+          if (injectPort.has_value()) {
+            this->getSw()->sendPacketOutOfPortAsync(
+                std::move(txPacket), injectPort.value());
+          } else {
+            this->sendPacketSwitchedAsync(std::move(txPacket));
+          }
+        }
+      }
+    };
+
+    utility::pumpTrafficAndVerifyLoadBalanced(
+        pumpTraffic,
+        [&]() {},
+        [&]() {
+          return utility::isLoadBalanced(
+              this->getLatestPortStats(egressPorts), maxDeviationPct);
+        });
+  }
 };
 
 TYPED_TEST_SUITE(AgentSrv6DecapTest, Srv6DecapPortTypes);
@@ -376,6 +506,7 @@ TYPED_TEST(AgentSrv6DecapTest, verifySrv6DecapEcnMarking) {
             0 /* innerTrafficClass */,
             64,
             std::optional<uint8_t>(64),
+            0,
             std::vector<uint8_t>(7000, 0xff));
         this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
       }
@@ -465,7 +596,7 @@ TYPED_TEST(AgentSrv6DecapTest, sendDecapPacketNonLastSegmentDropped) {
 
     // Outer dst IP matches the mySid /48 prefix but is not the last uSid.
     // The packet should be dropped.
-    const folly::IPAddressV6 kNonLastSegmentDst{"3001:db8:ffff:1:2::"};
+    const folly::IPAddressV6 kNonLastSegmentDst{"3001:db8:7fff:1:2::"};
 
     auto txPacket = utility::makeIpInIpTxPacket(
         this->getSw(),
@@ -643,6 +774,44 @@ TYPED_TEST(AgentSrv6DecapTest, verifyDecapPuntStripsOuterHeader) {
       EXPECT_EQ(*rxUdp, *expectedUdp);
     }
   };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+/*
+Send 10k IP-in-IP packets with outer dst = decap SID (kMySidAddr)
+and varying inner src/dst IPs and ports. The MySID entry triggers
+decap, and the inner packets are forwarded via 4-wide ECMP routes.
+Verifies load balancing across all egress ports for both v4 and v6
+inner packets, via CPU and front-panel injection.
+*/
+TYPED_TEST(AgentSrv6DecapTest, decapMultiHopIsLoadBalanced) {
+  auto setup = [this]() {
+    if constexpr (TestFixture::kIsTrunk) {
+      this->applyConfigAndEnableTrunks(
+          this->initialConfig(*this->getAgentEnsemble()));
+    }
+    this->resolveNextHops(this->kNumNextHops);
+    this->template addRoute<folly::CIDRNetworkV6>(
+        {this->kV6RoutePrefix, this->kV6RoutePrefixLen}, this->kNumNextHops);
+    this->template addRoute<folly::CIDRNetworkV4>(
+        {this->kV4RoutePrefix, 24}, this->kNumNextHops);
+    utility::addDecapMySidEntry(
+        this->getSw(), this->kMySidAddr, this->kMySidPrefixLen);
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    std::vector<PortID> egressPorts;
+    for (int i = 0; i < this->kNumNextHops; ++i) {
+      egressPorts.push_back(this->getEgressPort(ecmpHelper.nhop(i).portDesc));
+    }
+    auto injectPort = this->findInjectPortExcluding(egressPorts);
+    this->pumpDecapTrafficAndVerifyLoadBalanced(egressPorts);
+    this->pumpDecapTrafficAndVerifyLoadBalanced(egressPorts, injectPort);
+    this->pumpV4DecapTrafficAndVerifyLoadBalanced(egressPorts);
+    this->pumpV4DecapTrafficAndVerifyLoadBalanced(egressPorts, injectPort);
+  };
+
   this->verifyAcrossWarmBoots(setup, verify);
 }
 

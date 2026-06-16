@@ -30,6 +30,8 @@ constexpr int64_t kSetIdOffset = 1LL << 62;
 
 namespace {
 
+const std::string kSrv6Tunnel0{"srv6Tunnel0"};
+
 // Helper function to create a V4 route with resolvedNextHopSetID and add to FIB
 void addV4RouteWithSetId(
     const std::shared_ptr<ForwardingInformationBaseV4>& fibV4,
@@ -1425,8 +1427,10 @@ TEST_F(NextHopIDManagerTest, Srv6NextHopGetDistinctIDs) {
       folly::IPAddressV6("2001:db8::1"), folly::IPAddressV6("2001:db8::2")};
   const std::vector<folly::IPAddressV6> segList2{
       folly::IPAddressV6("2001:db8::3")};
+  const std::vector<folly::IPAddressV6> segList3{
+      folly::IPAddressV6("2001:db8::4")};
 
-  // SRv6 nexthop with segList1 and tunnel_1
+  // SRv6 nexthop with segList1
   NextHop srv6Nh1 = ResolvedNextHop(
       folly::IPAddress("10.0.0.1"),
       InterfaceID(1),
@@ -1437,7 +1441,7 @@ TEST_F(NextHopIDManagerTest, Srv6NextHopGetDistinctIDs) {
       std::nullopt, // adjustedWeight
       segList1,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1"));
+      kSrv6Tunnel0);
 
   // SRv6 nexthop with same IP but different segment list
   NextHop srv6Nh2 = ResolvedNextHop(
@@ -1450,9 +1454,9 @@ TEST_F(NextHopIDManagerTest, Srv6NextHopGetDistinctIDs) {
       std::nullopt,
       segList2,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_2"));
+      kSrv6Tunnel0);
 
-  // SRv6 nexthop with same IP but different tunnel ID
+  // SRv6 nexthop with same IP but a third, distinct segment list
   NextHop srv6Nh3 = ResolvedNextHop(
       folly::IPAddress("10.0.0.1"),
       InterfaceID(1),
@@ -1461,9 +1465,9 @@ TEST_F(NextHopIDManagerTest, Srv6NextHopGetDistinctIDs) {
       std::nullopt,
       std::nullopt,
       std::nullopt,
-      segList1,
+      segList3,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_3"));
+      kSrv6Tunnel0);
 
   // Regular nexthop with same IP (no SRv6 fields)
   NextHop regularNh =
@@ -1513,7 +1517,7 @@ TEST_F(NextHopIDManagerTest, Srv6NextHopSetID) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1"));
+      kSrv6Tunnel0);
 
   NextHop srv6Nh2 = ResolvedNextHop(
       folly::IPAddress("10.0.0.2"),
@@ -1525,7 +1529,7 @@ TEST_F(NextHopIDManagerTest, Srv6NextHopSetID) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_2"));
+      kSrv6Tunnel0);
 
   // Allocate individual NextHop IDs
   auto nhId1 = manager_->getOrAllocateNextHopID(srv6Nh1)->second;

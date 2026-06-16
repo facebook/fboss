@@ -77,8 +77,12 @@ constexpr int kFwUpgrade = static_cast<int>(CmisField::FW_UPGRADE);
 CmisFirmwareUpgrader::CmisFirmwareUpgrader(
     TransceiverImpl* bus,
     unsigned int modId,
-    FbossFirmware* fbossFirmware)
-    : bus_(bus), moduleId_(modId), fbossFirmware_(fbossFirmware) {
+    FbossFirmware* fbossFirmware,
+    uint64_t cdbWriteDelayUsec)
+    : bus_(bus),
+      moduleId_(modId),
+      fbossFirmware_(fbossFirmware),
+      cdbWriteDelayUsec_(cdbWriteDelayUsec) {
   // Check the FbossFirmware object first
   if (fbossFirmware_ == nullptr) {
     XLOG(ERR) << "FbossFirmware object is null, returning...";
@@ -240,9 +244,10 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   bool eplSupported = false;
 
   XLOG(INFO) << fmt::format(
-      "cmisModuleFirmwareDownload: Mod{:d}: Starting to download the image with length {:d}",
+      "cmisModuleFirmwareDownload: Mod{:d}: Starting to download the image with length {:d}, cdbWriteDelay {:d} us",
       moduleId_,
-      imageLen);
+      imageLen,
+      cdbWriteDelayUsec_);
 
   // Start the IO profiling
   bus_->i2cTimeProfilingStart();
@@ -257,7 +262,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
       POST_I2C_WRITE_NO_DELAY_US,
       kFwUpgrade);
 
-  CdbCommandBlock commandBlockBuf;
+  CdbCommandBlock commandBlockBuf(cdbWriteDelayUsec_);
   CdbCommandBlock* commandBlock = &commandBlockBuf;
 
   bool cdbCmdCompleteFlagSupported = isCdbCmdCompleteFlagSupported();

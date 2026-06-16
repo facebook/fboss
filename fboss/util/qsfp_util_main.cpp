@@ -414,7 +414,7 @@ int main(int argc, char* argv[]) {
           }
         } else {
           auto logicalPorts = folly::join(", ", portNameList);
-          printPortDetail(dataUnion, portNum, logicalPorts);
+          printPortDetail(dataUnion, portNum, logicalPorts, &i2cInfo);
         }
       } catch (const I2cError& ex) {
         // This generally means the QSFP module is not present.

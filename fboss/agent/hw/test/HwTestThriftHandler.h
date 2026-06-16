@@ -18,8 +18,13 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
+#include <folly/Synchronized.h>
+#include <folly/logging/LogHandler.h>
+
 #include <cstdint>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace facebook::fboss {
 class HwSwitch;
@@ -245,8 +250,18 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
   bool pcsRxLinkStatusSupportedInSdk() override;
   bool fecAlignmentLockSupportedInSdk() override;
 
+  void installLogCapture() override;
+  void getMatchingLogMessages(
+      std::vector<std::string>& out,
+      std::unique_ptr<std::string> substring) override;
+
  private:
   HwSwitch* hwSwitch_;
+  // Captures log messages in this process for tests to read over RPC.
+  // Typed as the base LogHandler to keep the test-only handler type out of
+  // this widely-included header; concrete type is in the .cpp. Synchronized
+  // because the install/read RPCs run on multiple Thrift threads.
+  folly::Synchronized<std::shared_ptr<folly::LogHandler>> logCaptureHandler_;
 };
 
 std::shared_ptr<HwTestThriftHandler> createHwTestThriftHandler(HwSwitch* hw);

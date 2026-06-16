@@ -204,10 +204,8 @@
   },
   "platform": {
     "chip": {
-      "bcm": {
-        "config": {
-          
-        }
+      "asic": {
+        "config": "/opt/fboss/sn5600_simx_with_port_info.xml"
       }
     }
   },

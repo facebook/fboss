@@ -2326,7 +2326,40 @@ void printCmisDetailService(
   }
 }
 
-void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
+// Reads the running firmware's build number from the module over the live I2C
+// bus using the CDB "Get Firmware Info" command (0x0100). This mirrors the
+// build number lookup done in CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade.
+// Returns std::nullopt if the module can't be reached or the CDB command fails.
+std::optional<uint16_t> getCmisFwBuildNumberFromCdb(
+    DirectI2cInfo& i2cInfo,
+    unsigned int port) {
+  try {
+    CdbCommandBlock cdbBlock;
+    cdbBlock.createCdbCmdGetFirmwareInfo();
+    auto qsfpImpl = std::make_unique<WedgeQsfp>(
+        port - 1,
+        i2cInfo.bus,
+        i2cInfo.transceiverManager,
+        /*logBuffer*/ nullptr);
+    cdbBlock.selectCdbPage(qsfpImpl.get());
+    cdbBlock.setMsaPassword(qsfpImpl.get(), FLAGS_msa_password);
+    if (cdbBlock.cmisRunCdbCommand(qsfpImpl.get())) {
+      return cdbBlock.getFwBuildNumber();
+    }
+  } catch (const std::exception& ex) {
+    fprintf(
+        stderr,
+        "Port %u: failed to fetch FW build number via CDB: %s\n",
+        port,
+        ex.what());
+  }
+  return std::nullopt;
+}
+
+void printCmisDetail(
+    const DOMDataUnion& domDataUnion,
+    unsigned int port,
+    DirectI2cInfo* i2cInfo) {
   int i = 0; // For the index of lane
   CmisData cmisData = domDataUnion.get_cmis();
   const uint8_t *lowerBuf, *page0Buf, *page01Buf, *page10Buf, *page11Buf,
@@ -2373,6 +2406,16 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   printf("  Low power forced: 0x%x\n", (lowerBuf[26] >> 4) & 0x1);
 
   printf("  Module FW Version: %x.%x\n", lowerBuf[39], lowerBuf[40]);
+  // Build number is only available via a live CDB read, so it is only printed
+  // when running against the local I2C bus (--direct_i2c).
+  if (i2cInfo != nullptr) {
+    auto buildNumber = getCmisFwBuildNumberFromCdb(*i2cInfo, port);
+    if (buildNumber.has_value()) {
+      printf("  Build Number: %u\n", buildNumber.value());
+    } else {
+      printf("  Build Number: N/A\n");
+    }
+  }
   if (!flatMem) {
     printf("  DSP FW Version: %x.%x\n", page01Buf[66], page01Buf[67]);
     printf("  Build Rev: %x.%x\n", page01Buf[68], page01Buf[69]);
@@ -2544,7 +2587,8 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
 void printPortDetail(
     const DOMDataUnion& domDataUnion,
     unsigned int port,
-    const std::string& portNames) {
+    const std::string& portNames,
+    DirectI2cInfo* i2cInfo) {
   if (domDataUnion.getType() == DOMDataUnion::Type::__EMPTY__) {
     fprintf(stderr, "DOMDataUnion object is empty\n");
     return;
@@ -2554,7 +2598,7 @@ void printPortDetail(
   if (domDataUnion.getType() == DOMDataUnion::Type::sff8636) {
     printSffDetail(domDataUnion, port);
   } else if (domDataUnion.getType() == DOMDataUnion::Type::cmis) {
-    printCmisDetail(domDataUnion, port);
+    printCmisDetail(domDataUnion, port, i2cInfo);
   } else {
     fprintf(stderr, "Unrecognizable DOMDataUnion format.\n");
     return;

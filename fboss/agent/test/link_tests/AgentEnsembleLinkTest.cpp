@@ -1,11 +1,14 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <folly/String.h>
 #include <folly/Subprocess.h>
 #include <folly/system/EnvUtil.h>
 #include <gflags/gflags.h>
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/DebugProtocol.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
@@ -19,8 +22,10 @@
 #include "fboss/agent/test/utils/HyperPortTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/if/gen-cpp2/link_qsfp_test_port_info_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
@@ -112,10 +117,14 @@ void AgentEnsembleLinkTest::TearDown() {
 
       // Dump the I2C Logs at the end of the test.
       dumpTransceiverI2cLogs(*qsfpServiceClient);
-
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Failed to call qsfp_service getStatus(). " << ex.what();
     }
+
+    // NOTE: per-port metadata is dumped via the dumpTestMetadata() override,
+    // invoked from tearDownAgentEnsemble() so it runs on both the cold-boot
+    // (setup_for_warmboot) and warm-boot phases. TODO: Add a hard check that
+    // every test registers tested ports once all tests are instrumented.
 
 #ifndef IS_OSS
     try {
@@ -792,6 +801,146 @@ void AgentEnsembleLinkTest::printProductionFeatures() const {
     throw std::runtime_error("No production features found for this Link Test");
   }
   std::cout << "Feature List: " << folly::join(",", supportedFeatures) << "\n";
+}
+
+void AgentEnsembleLinkTest::addTestedPort(const PortID& portId) {
+  testedPorts_.insert(portId);
+}
+
+void AgentEnsembleLinkTest::addTestedPorts(const std::vector<PortID>& portIds) {
+  testedPorts_.insert(portIds.begin(), portIds.end());
+}
+
+void AgentEnsembleLinkTest::addTestMetadata(
+    const PortID& portId,
+    const std::string& key,
+    const std::string& value) {
+  perPortMetadata_[portId][key] = value;
+}
+
+void AgentEnsembleLinkTest::dumpTestMetadata() {
+  if (testedPorts_.empty()) {
+    return;
+  }
+  try {
+    auto testInfo = testing::UnitTest::GetInstance()->current_test_info();
+    auto testName =
+        fmt::format("{}.{}", testInfo->test_suite_name(), testInfo->name());
+
+    auto cabledTcvrPorts = getCabledTransceiverPorts();
+    std::unordered_set<PortID> cabledTcvrPortSet(
+        cabledTcvrPorts.begin(), cabledTcvrPorts.end());
+
+    std::vector<int32_t> tcvrIds;
+    std::map<PortID, int32_t> portToTcvrId;
+    for (const auto& portId : testedPorts_) {
+      if (!cabledTcvrPortSet.contains(portId)) {
+        continue;
+      }
+      auto tcvrId =
+          getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(portId);
+      tcvrIds.push_back(tcvrId);
+      portToTcvrId[portId] = tcvrId;
+    }
+
+    std::map<int32_t, TransceiverInfo> tcvrInfos;
+    if (!tcvrIds.empty()) {
+      // Best effort: if qsfp_service is unreachable we still dump port level
+      // info (test name, port name, FEC mode) below.
+      try {
+        auto qsfpServiceClient = utils::createQsfpServiceClient();
+        qsfpServiceClient->sync_getTransceiverInfo(tcvrInfos, tcvrIds);
+      } catch (const std::exception& ex) {
+        XLOG(WARN) << "Failed to get transceiver info for link test port info: "
+                   << folly::exceptionStr(ex);
+      }
+    }
+
+    std::vector<std::string> jsonLines;
+    for (auto portId : testedPorts_) {
+      LinkQsfpTestPortInfo portInfo;
+      auto portName = getPortName(portId);
+      portInfo.testName() = testName;
+      portInfo.portId() = static_cast<int32_t>(portId);
+      portInfo.portName() = portName;
+
+      try {
+        portInfo.fecMode() = getPortFECMode(portId);
+      } catch (const std::exception&) {
+        // Leave fecMode unset if no profile found for this port.
+      }
+
+      if (auto it = portToTcvrId.find(portId); it != portToTcvrId.end()) {
+        portInfo.transceiverId() = it->second;
+        if (auto tcvrIt = tcvrInfos.find(it->second);
+            tcvrIt != tcvrInfos.end()) {
+          const auto& tcvrInfo = tcvrIt->second;
+          const auto& tcvrState = *tcvrInfo.tcvrState();
+          if (tcvrState.vendor().has_value()) {
+            const auto& vendor = *tcvrState.vendor();
+            portInfo.vendorName() = *vendor.name();
+            portInfo.vendorPartNumber() = *vendor.partNumber();
+            portInfo.vendorSerialNumber() = *vendor.serialNumber();
+          }
+          if (tcvrState.status().has_value()) {
+            const auto& status = *tcvrState.status();
+            if (status.fwStatus().has_value()) {
+              const auto& fwStatus = *status.fwStatus();
+              if (fwStatus.version().has_value()) {
+                portInfo.fwVersion() = *fwStatus.version();
+              }
+              if (fwStatus.dspFwVer().has_value()) {
+                portInfo.dspFwVersion() = *fwStatus.dspFwVer();
+              }
+            }
+          }
+          if (tcvrState.moduleMediaInterface().has_value()) {
+            portInfo.moduleMediaInterface() = *tcvrState.moduleMediaInterface();
+          }
+          // Per-port media interface: look up any media lane used by this port
+          // and index into the transceiver's per-lane mediaInterface settings.
+          const auto& portToMediaLanes = *tcvrState.portNameToMediaLanes();
+          auto laneIt = portToMediaLanes.find(portName);
+          if (laneIt != portToMediaLanes.end() && !laneIt->second.empty() &&
+              tcvrState.settings().has_value() &&
+              tcvrState.settings()->mediaInterface().has_value()) {
+            auto lane = laneIt->second.front();
+            for (const auto& mediaIf :
+                 *tcvrState.settings()->mediaInterface()) {
+              if (*mediaIf.lane() == lane) {
+                portInfo.portMediaInterface() = *mediaIf.code();
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (auto it = perPortMetadata_.find(portId);
+          it != perPortMetadata_.end()) {
+        portInfo.extraMetadata() = it->second;
+      }
+
+      jsonLines.push_back(
+          apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+              portInfo));
+    }
+
+    auto content = folly::join("\n", jsonLines);
+    if (writeSysfs(utility::kLinkQsfpTestPortInfoForScuba, content)) {
+      XLOG(DBG2) << "Dumped link test port info for " << testedPorts_.size()
+                 << " ports to " << utility::kLinkQsfpTestPortInfoForScuba;
+    } else {
+      XLOG(ERR) << "Failed to write link test port info for "
+                << testedPorts_.size() << " ports to "
+                << utility::kLinkQsfpTestPortInfoForScuba;
+    }
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << "Failed to dump link test port info: "
+               << folly::exceptionStr(ex);
+  }
+  testedPorts_.clear();
+  perPortMetadata_.clear();
 }
 
 int agentEnsembleLinkTestMain(

@@ -10,8 +10,8 @@
 
 #include "fboss/cli/fboss2/CmdList.h"
 
-#include <fboss/cli/fboss2/utils/CmdUtils.h>
-#include "fboss/cli/fboss2/CmdHandler.h"
+#include <fboss/cli/fboss2/utils/CmdUtils.h> // NOLINT(misc-include-cleaner)
+#include "fboss/cli/fboss2/CmdHandler.h" // NOLINT(misc-include-cleaner)
 #include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
@@ -27,6 +27,10 @@
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
 #include "fboss/cli/fboss2/commands/set/port/CmdSetPort.h"
 #include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
+#include "fboss/cli/fboss2/commands/set/sdk/CmdSetSdk.h"
+#include "fboss/cli/fboss2/commands/set/sdk/reg_dump/CmdSetSdkRegDump.h"
+#include "fboss/cli/fboss2/commands/set/transceiver/CmdSetTransceiver.h"
+#include "fboss/cli/fboss2/commands/set/transceiver/loopback/CmdSetTransceiverLoopback.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
@@ -97,6 +101,7 @@
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h"
+#include "fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.h"
 #include "fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h"
 #include "fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h"
 #include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h"
@@ -370,7 +375,11 @@ const CommandTree& kCommandTree() {
          {{"dump",
            "Dump all EEPROM pages (3 iterations with 2s delay)",
            commandHandler<CmdShowTransceiverEepromDump>,
-           argTypeHandler<CmdShowTransceiverEepromDumpTraits>}}}}},
+           argTypeHandler<CmdShowTransceiverEepromDumpTraits>}}},
+        {"loopback",
+         "Show transceiver loopback capability and state",
+         commandHandler<CmdShowTransceiverLoopback>,
+         argTypeHandler<CmdShowTransceiverLoopbackTraits>}}},
 
       {"show",
        "route",
@@ -559,6 +568,24 @@ const CommandTree& kCommandTree() {
          commandHandler<CmdSetPortState>,
          argTypeHandler<CmdSetPortStateTraits>,
          localOptionsHandler<CmdSetPortStateTraits>}}},
+      {"set",
+       "sdk",
+       "Set SDK information",
+       commandHandler<CmdSetSdk>,
+       argRegistrar<CmdSetSdkTraits>,
+       {{"reg-dump",
+         "Enable or disable the SDK dumping register/state logs to disk",
+         commandHandler<CmdSetSdkRegDump>,
+         argRegistrar<CmdSetSdkRegDumpTraits>}}},
+      {"set",
+       "transceiver",
+       "Set Transceiver properties",
+       commandHandler<CmdSetTransceiver>,
+       argTypeHandler<CmdSetTransceiverTraits>,
+       {{"loopback",
+         "Set transceiver loopback mode",
+         commandHandler<CmdSetTransceiverLoopback>,
+         argRegistrar<CmdSetTransceiverLoopbackTraits>}}},
 
       {"start",
        "pcap",

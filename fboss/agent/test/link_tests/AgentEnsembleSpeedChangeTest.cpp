@@ -109,6 +109,10 @@ class AgentEnsembleSpeedChangeTest : public AgentEnsembleLinkTest {
         << apache::thrift::util::enumName(fromSpeed) << " to "
         << apache::thrift::util::enumName(toSpeed);
 
+    for (const auto& [portId, _] : eligilePortsAndProfile) {
+      addTestedPort(PortID(portId));
+    }
+
     for (auto& port : *swConfig.ports()) {
       auto iter = eligilePortsAndProfile.find(*port.logicalID());
       if (iter != eligilePortsAndProfile.end()) {

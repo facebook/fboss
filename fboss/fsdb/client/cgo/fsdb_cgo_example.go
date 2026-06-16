@@ -28,6 +28,7 @@ import (
 
 type PortStateUpdate struct {
 	PortName  string
+	PortID    int32
 	OperState bool
 }
 
@@ -94,20 +95,14 @@ func (c *FsdbCgoClient) Close() {
 	}
 }
 
-// Subscribes to portMaps on the serverPort the client was created with
-// (uses the FSDB default port when serverPort <= 0).
+// Subscribes to portMaps. nil host => localhost; serverPort < 0 => default port.
 func (c *FsdbCgoClient) SubscribePortState() {
-	if c.serverPort > 0 {
-		C.SubscribeToPortMapsWithPort(c.handle, C.int32_t(c.serverPort))
-	} else {
-		C.SubscribeToPortMaps(c.handle)
-	}
+	C.SubscribeToPortMaps(c.handle, nil, C.int32_t(c.serverPort))
 }
 
-// SubscribeStatsPath subscribes to an arbitrary FSDB stats path on the
-// serverPort the client was created with (uses the FSDB default port when
-// serverPort <= 0). Single subscription per client; further calls log a
-// WARNING on the C++ side and no-op.
+// SubscribeStatsPath subscribes to an arbitrary FSDB stats path (localhost, on
+// the serverPort the client was created with). Single subscription per client;
+// further calls log a WARNING on the C++ side and no-op.
 func (c *FsdbCgoClient) SubscribeStatsPath(path []string) {
 	if len(path) == 0 {
 		return
@@ -117,12 +112,8 @@ func (c *FsdbCgoClient) SubscribeStatsPath(path []string) {
 		cTokens[i] = C.CString(tok)
 		defer C.free(unsafe.Pointer(cTokens[i]))
 	}
-	if c.serverPort > 0 {
-		C.SubscribeToStatsPathWithPort(
-			c.handle, &cTokens[0], C.int32_t(len(path)), C.int32_t(c.serverPort))
-	} else {
-		C.SubscribeToStatsPath(c.handle, &cTokens[0], C.int32_t(len(path)))
-	}
+	C.SubscribeToStatsPath(
+		c.handle, &cTokens[0], C.int32_t(len(path)), nil, C.int32_t(c.serverPort))
 }
 
 // SubscribeStatePath subscribes to an arbitrary FSDB state path. Distinct
@@ -137,12 +128,8 @@ func (c *FsdbCgoClient) SubscribeStatePath(path []string) {
 		cTokens[i] = C.CString(tok)
 		defer C.free(unsafe.Pointer(cTokens[i]))
 	}
-	if c.serverPort > 0 {
-		C.SubscribeToStatePathWithPort(
-			c.handle, &cTokens[0], C.int32_t(len(path)), C.int32_t(c.serverPort))
-	} else {
-		C.SubscribeToStatePath(c.handle, &cTokens[0], C.int32_t(len(path)))
-	}
+	C.SubscribeToStatePath(
+		c.handle, &cTokens[0], C.int32_t(len(path)), nil, C.int32_t(c.serverPort))
 }
 
 func (c *FsdbCgoClient) HasStateSubscription() bool {
@@ -179,6 +166,7 @@ func (c *FsdbCgoClient) WaitForPortStateUpdates(maxUpdates int) ([]PortStateUpda
 	for i := range count {
 		updates[i] = PortStateUpdate{
 			PortName:  C.GoString(out[i].port_name),
+			PortID:    int32(out[i].port_id),
 			OperState: int(out[i].oper_state) != 0,
 		}
 	}
@@ -251,7 +239,7 @@ func subscribeToPortState(client *FsdbCgoClient, done <-chan struct{}) {
 			if u.OperState {
 				state = "UP"
 			}
-			log.Printf("[subscribeToPortState] port=%s  oper_state=%s", u.PortName, state)
+			log.Printf("[subscribeToPortState] port=%s  port_id=%d  oper_state=%s", u.PortName, u.PortID, state)
 		}
 	}
 }

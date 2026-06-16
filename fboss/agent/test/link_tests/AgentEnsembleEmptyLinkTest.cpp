@@ -17,6 +17,7 @@ class AgentEnsembleEmptyLinkTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentEnsembleEmptyLinkTest, CheckInit) {
+  addTestedPorts(getCabledPorts());
   verifyAcrossWarmBoots(
       []() {},
       [this]() {

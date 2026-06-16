@@ -95,6 +95,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
+    case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
       return true;
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:

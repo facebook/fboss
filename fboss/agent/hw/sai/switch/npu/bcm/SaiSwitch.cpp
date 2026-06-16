@@ -1022,7 +1022,8 @@ void SaiSwitch::switchEventCallback(
                 << " error type: " << errorType(eventInfo->error_type)
                 << " Auto Admin disabled link: "
                 << static_cast<int>(fwDisabledSdkPortId)
-#if defined(SAI_VERSION_14_2_0_0_DNX_ODP)
+#if defined(SAI_VERSION_14_2_0_0_DNX_ODP) || \
+    defined(SAI_VERSION_12_2_0_0_DNX_ODP)
                 << " object_id: 0x" << std::hex << eventInfo->object_id
                 << std::dec
 #endif
@@ -1031,7 +1032,8 @@ void SaiSwitch::switchEventCallback(
       if (eventInfo->error_type ==
           SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_LINK_DISABLE) {
         int32_t fwDisabledFbossPortId = fwDisabledSdkPortId;
-#if defined(SAI_VERSION_14_2_0_0_DNX_ODP)
+#if defined(SAI_VERSION_14_2_0_0_DNX_ODP) || \
+    defined(SAI_VERSION_12_2_0_0_DNX_ODP)
         if (eventInfo->object_id != SAI_NULL_OBJECT_ID) {
           const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(
               PortSaiId(eventInfo->object_id));

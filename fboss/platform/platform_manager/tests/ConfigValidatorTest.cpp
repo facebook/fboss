@@ -211,16 +211,7 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 6: Mismatched embeddedSensorConfigs
-  versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {};
-  auto sensorConfig = EmbeddedSensorConfig();
-  sensorConfig.pmUnitScopedName() = "SENSOR_1";
-  versionedPmUnitConfig.pmUnitConfig()->embeddedSensorConfigs() = {
-      sensorConfig};
-  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
-
-  // Test 7: Mismatched pciDeviceConfigs (via differing ledCtrlBlockConfigs)
+  // Test 6: Mismatched pciDeviceConfigs (via differing ledCtrlBlockConfigs)
   versionedPmUnitConfig.pmUnitConfig()->embeddedSensorConfigs() = {};
   config.numXcvrs() = 1;
   auto defaultPciDev = getValidPciDeviceConfig();

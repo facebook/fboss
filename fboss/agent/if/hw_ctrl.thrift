@@ -186,6 +186,15 @@ service FbossHwCtrl {
   string getHwDebugDump();
 
   /*
+   * Enable or disable the SDK dumping register/state logs to disk
+   * (SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME). Disabling clears the attribute so
+   * the SDK stops dumping. Throws if the device/ASIC does not support this.
+   */
+  void setSdkRegDumpEnabled(1: bool enabled) throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
    * Get the current programmed switch state from HwAgent.
    * This returns the in-memory state that HwAgent maintains,
    * which can be used for SW Agent warmboot recovery.

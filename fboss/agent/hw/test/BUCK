@@ -305,18 +305,11 @@ cpp_library(
 
 hw_test_common_srcs = [
     "HwTestFabricUtils.cpp",
-    "HwEmptyTest.cpp",
     "HwLabelEdgeRouteTest.cpp",
     "HwLabelSwitchRouteTest.cpp",
     "HwLinkStateDependentTest.cpp",
-    "HwMirrorTests.cpp",
     "HwTest.cpp",
-    "HwVlanTests.cpp",
     "HwFlowletSwitchingTests.cpp",
-]
-
-hw_dataplane_test_srcs = [
-    "dataplane_tests/HwSflowTests.cpp",
 ]
 
 cpp_library(
@@ -324,7 +317,7 @@ cpp_library(
     # consumed transitively by the SAI hw_test binaries (//fboss/agent/hw/sai/hw_test:sai_test-*).
     # autodeps would strip these exported_deps (unused by this lib's own srcs) and break sai_test.
     name = "hw_switch_test",
-    srcs = hw_test_common_srcs + hw_dataplane_test_srcs,
+    srcs = hw_test_common_srcs,
     link_whole = True,
     undefined_symbols = True,
     exported_deps = [

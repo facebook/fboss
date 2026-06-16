@@ -195,17 +195,57 @@ struct TRibEntry {
 }
 
 /**
- * A single prefix in partial-drain state due to MNH violation.
- * When relax MNH is enabled and a prefix violates the min-nexthop
- * threshold, the prefix is advertised with drain community 65446:10
+ * @deprecated Use TCapacity instead (surfaced via min_capacity / current_capacity
+ * on TPartiallyDrainedPrefix). Retained for FSDB/NSDB wire compatibility because
+ * field 4 min_capacity_threshold is already landed and published.
+ *
+ * The capacity-threshold criterion + value that triggered partial drain for a
+ * single prefix. Exactly one variant is set per drained prefix — matches the
+ * active criterion on the policy statement.
+ */
+union TMinCapacityThreshold {
+  /** BGP native min-nexthop count the prefix violated */
+  1: i32 mnh;
+  /** BGP native aggregate LBW threshold (bps) the prefix violated */
+  2: i64 agg_lbw_bps;
+}
+
+/**
+ * A capacity value for a partially-drained prefix, by criterion. Exactly one
+ * variant is set — the active criterion on the policy statement. Used for both
+ * the violated threshold (min_capacity) and the current observed value
+ * (current_capacity) on TPartiallyDrainedPrefix; the field name distinguishes
+ * the two.
+ */
+union TCapacity {
+  /**
+   * nexthop count: the number of nexthops for a given prefix
+   */
+  1: i32 next_hop_count;
+  /** Aggregate link bandwidth in bps: the total amount of bandwidth across all selected nexthops in bits per second */
+  2: i64 agg_lbw_bps;
+}
+
+/**
+ * A single prefix in partial-drain state. A prefix enters partial drain
+ * when drain_on_min_nexthop_violation is configured on its path-selector
+ * statement and the matched capacity threshold (min-nexthop or aggregate
+ * LBW) is violated. The prefix is advertised with drain community 65446:10
+ * instead of being withdrawn.
  */
 struct TPartiallyDrainedPrefix {
   /** CIDR prefix currently in partial-drain state */
   1: bgp_attr.TIpPrefix prefix;
-  /** Number of valid paths (nexthops) currently available for this prefix */
+  /** @deprecated Use current_capacity (field 5) instead */
   2: i32 path_count;
-  /** Configured MNH threshold */
+  /** @deprecated Use min_capacity (field 6) instead */
   3: i32 mnh_threshold;
+  /** @deprecated Use min_capacity (field 6) instead */
+  4: TMinCapacityThreshold min_capacity_threshold;
+  /** The current observed capacity, on the same criterion arm as min_capacity */
+  5: TCapacity current_capacity;
+  /** The capacity threshold that was violated to trigger drain */
+  6: TCapacity min_capacity;
 }
 
 /**

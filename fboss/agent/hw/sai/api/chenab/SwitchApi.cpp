@@ -398,4 +398,26 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::deviceWatermarkBytes() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::customDropBitmapStats() {
+#if defined(CHENAB_SAI_SDK_GTE_2511_36)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_INGRESS_MAC_0,
+      SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_PIPELINE_GENERAL_0,
+      SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_PIPELINE_MAC_0,
+      SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_PIPELINE_IPV4_0,
+      SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_PIPELINE_IPV6_0,
+      SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_PIPELINE_MPLS_0,
+      SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_PIPELINE_TUNNEL_0,
+      SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_BUFFER_0,
+      SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_QUEUE_0,
+      SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_EGRESS_PIPE_0,
+      SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_EGRESS_MAC_0,
+      SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_HOST_0,
+  };
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
 } // namespace facebook::fboss

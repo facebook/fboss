@@ -74,6 +74,14 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     return false;
   }
 
+  // ZR/coherent modules can only run PRBS line-side to line-side
+  // (TRANSCEIVER_LINE to TRANSCEIVER_LINE). They cannot generate or pass
+  // through PRBS on the ASIC or transceiver system side, so they must be
+  // excluded from every other PRBS mode.
+  bool isZrModule(PortID port) {
+    return checkValidMedia(port, MediaInterfaceCode::ZR_800G);
+  }
+
   bool checkPrbsSupported(
       std::string& interfaceName,
       phy::PortComponent component,
@@ -115,6 +123,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
                    << " test on "
                    << apache::thrift::util::enumNameSafe(testPort.component)
                    << " on " << testPort.portName;
+        addTestedPort(getPortID(testPort.portName));
       }
     }
   }
@@ -792,6 +801,12 @@ class PhyToTransceiverSystemPrbsTest : public AgentEnsemblePrbsTest {
     for (const auto& [port1, port2] : connectedPairs) {
       for (const auto& port : {port1, port2}) {
         auto portName = this->getPortName(port);
+        if (isZrModule(port)) {
+          XLOG(INFO) << "Skipping ZR port " << portName
+                     << " for ASIC/TCVR-system PRBS test; ZR only supports "
+                     << "TRANSCEIVER_LINE to TRANSCEIVER_LINE PRBS";
+          continue;
+        }
         auto portValidMedia = checkValidMedia(port, Media);
         auto portSupportPrbsA =
             checkPrbsSupported(portName, ComponentA, PolynomialA);
@@ -833,6 +848,13 @@ class AsicToAsicPrbsTest : public AgentEnsemblePrbsTest {
     for (const auto& [port1, port2] : connectedPairs) {
       auto portName1 = this->getPortName(port1);
       auto portName2 = this->getPortName(port2);
+
+      if (isZrModule(port1) || isZrModule(port2)) {
+        XLOG(INFO) << "Skipping ZR port pair " << portName1 << ", " << portName2
+                   << " for ASIC to ASIC PRBS test; ZR only supports "
+                   << "TRANSCEIVER_LINE to TRANSCEIVER_LINE PRBS";
+        continue;
+      }
 
       auto port1SupportPrbs =
           checkPrbsSupported(portName1, phy::PortComponent::ASIC, Polynomial);

@@ -394,6 +394,21 @@ struct HwSwitchDropStats {
   22: optional i64 switchTunnelInDrops;
 }
 
+struct HwSwitchDropBitmapStats {
+  1: optional i64 ingressMacDropBitmap;
+  2: optional i64 egressPipeDropBitmap;
+  3: optional i64 egressMacDropBitmap;
+  4: optional i64 pipelineGeneralDropBitmap;
+  5: optional i64 pipelineMacDropBitmap;
+  6: optional i64 pipelineMplsDropBitmap;
+  7: optional i64 pipelineTunnelDropBitmap;
+  8: optional i64 pipelineIpv4DropBitmap;
+  9: optional i64 pipelineIpv6DropBitmap;
+  10: optional i64 bufferDropBitmap;
+  11: optional i64 queueDropBitmap;
+  12: optional i64 hostDropBitmap;
+}
+
 struct HwSwitchDramStats {
   1: optional i64 dramEnqueuedBytes;
   2: optional i64 dramDequeuedBytes;

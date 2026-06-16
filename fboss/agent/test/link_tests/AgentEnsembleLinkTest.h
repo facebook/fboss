@@ -157,6 +157,13 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
 
   void printProductionFeatures() const;
 
+  void addTestedPort(const PortID& portId);
+  void addTestedPorts(const std::vector<PortID>& portIds);
+  void addTestMetadata(
+      const PortID& portId,
+      const std::string& key,
+      const std::string& value);
+
  private:
   void initializeCabledPorts();
   void logLinkDbgMessage(std::vector<PortID>& portIDs) const override;
@@ -164,11 +171,15 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   virtual std::vector<link_test_production_features::LinkTestProductionFeature>
   getProductionFeatures() const;
 
+  void dumpTestMetadata() override;
+
   std::vector<PortID> cabledPorts_;
   std::vector<PortID> cabledFabricPorts_;
   std::set<TransceiverID> cabledTransceivers_;
   std::vector<PortID> cabledTransceiverPorts_;
   std::vector<PortID> qsfpServiceManagedPorts_;
+  std::set<PortID> testedPorts_;
+  std::map<PortID, std::map<std::string, std::string>> perPortMetadata_;
 };
 int agentEnsembleLinkTestMain(
     int argc,

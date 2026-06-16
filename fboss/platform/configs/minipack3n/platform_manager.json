@@ -400,9 +400,16 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x33",
-          "kernelDeviceName": "mp3n_fancpld",
+          "kernelDeviceName": "fbfancpld",
           "pmUnitScopedName": "MCB_FAN_CPLD",
-          "isWatchdog": true
+          "isWatchdog": true,
+          "fanCpldConfig": {
+            "numFans": 8,
+            "pwmMax": 40,
+            "speedMultiplier": 150,
+            "hasRearTach": true,
+            "hasLeds": true
+          }
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
@@ -1356,6 +1363,8 @@
     "fboss_iob_pci",
     "fboss_iob_i2c",
     "fboss_iob_spi",
+    "fboss_iob_gpio",
+    "fboss_iob_led",
     "ledtrig_timer"
   ]
 }

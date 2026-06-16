@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <set>
+
 #include <folly/logging/xlog.h>
 #include <folly/testing/TestUtil.h>
 #include "common/time/Time.h"
@@ -102,6 +104,28 @@ class OpticsFwUpgradeTest : public HwTest {
     CHECK(!tcvrsToTest.empty()) << "No upgradeable transceivers found";
 
     return tcvrsToTest;
+  }
+
+  // Returns the ports requiring optics firmware upgrade, filtered down to only
+  // cabled transceivers. The wedge manager reports every transceiver, but in
+  // the test environment we only want to act on the cabled ones.
+  std::map<std::string, FirmwareUpgradeData>
+  getCabledPortsRequiringOpticsFwUpgrade() {
+    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+    auto portsForFwUpgrade = wedgeMgr->getPortsRequiringOpticsFwUpgrade();
+
+    // Build the set of cabled port names using the same getPortName() mapping
+    // that the wedge manager uses to key the returned map.
+    std::set<std::string> cabledPortNames;
+    for (const auto& tcvrID :
+         utility::getCabledPortTranceivers(getHwQsfpEnsemble())) {
+      cabledPortNames.insert(wedgeMgr->getPortName(tcvrID));
+    }
+
+    std::erase_if(portsForFwUpgrade, [&](const auto& portAndData) {
+      return !cabledPortNames.contains(portAndData.first);
+    });
+    return portsForFwUpgrade;
   }
 
   // Helper function that verifies if an upgrade was done or not
@@ -563,7 +587,7 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
     wedgeMgr->loadConfig();
 
     qsfpServiceHandler->refreshStateMachines();
-    auto portsForFwUpgrade = wedgeMgr->getPortsRequiringOpticsFwUpgrade();
+    auto portsForFwUpgrade = getCabledPortsRequiringOpticsFwUpgrade();
 
     EXPECT_FALSE(portsForFwUpgrade.empty())
         << "No modules requiring firmware upgrade";
@@ -622,7 +646,7 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
   auto verify = [&, tcvrsToTest]() {
     if (didWarmBoot()) {
       qsfpServiceHandler->refreshStateMachines();
-      auto portsForFwUpgrade = wedgeMgr->getPortsRequiringOpticsFwUpgrade();
+      auto portsForFwUpgrade = getCabledPortsRequiringOpticsFwUpgrade();
 
       if (!portsForFwUpgrade.empty()) {
         XLOG(INFO)
@@ -630,8 +654,19 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
 
         long verifyStartTimestampSec = facebook::WallClockUtil::NowInSecFast();
 
+        std::vector<std::string> interfacesToUpgrade;
+        interfacesToUpgrade.reserve(portsForFwUpgrade.size());
+        for (const auto& [portToUpgrade, _] : portsForFwUpgrade) {
+          interfacesToUpgrade.push_back(portToUpgrade);
+        }
+
         std::map<std::string, FirmwareUpgradeData> upgradedPorts;
-        qsfpServiceHandler->triggerAllOpticsFwUpgrade(upgradedPorts);
+        XLOG(INFO)
+            << "Triggering firmware upgrade for transceivers via triggerOpticsFwUpgrade: "
+            << folly::join(",", interfacesToUpgrade);
+        qsfpServiceHandler->triggerOpticsFwUpgrade(
+            upgradedPorts,
+            std::make_unique<std::vector<std::string>>(interfacesToUpgrade));
 
         EXPECT_FALSE(upgradedPorts.empty())
             << "Expected some ports to be selected for upgrade";

@@ -155,7 +155,8 @@ std::unordered_map<std::string, FruEeprom> ConfigUtils::getFruEepromList() {
   // have to add it explicitly. ```
   if (config_.platformName().value() == "MERU800BFA" ||
       config_.platformName().value() == "MERU800BIA" ||
-      config_.platformName().value() == "BLACKWOLF800BANW") {
+      config_.platformName().value() == "BLACKWOLF800BANW" ||
+      config_.platformName().value() == "SAINTPAUL") {
     std::string eepromName = "SCM";
     FruEeprom fruEeprom;
     fruEeprom.path = "/run/devmap/eeproms/MERU_SCM_EEPROM";

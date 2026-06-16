@@ -164,6 +164,7 @@ TEST_F(AgentEnsembleMacLearningTest, l2EntryFlap) {
     auto connectedPair = *getConnectedPairs().begin();
     auto txPort = connectedPair.first;
     auto rxPort = connectedPair.second;
+    addTestedPort(txPort);
     auto cfg = getSw()->getConfig();
     auto portCfg = std::find_if(
         cfg.ports()->begin(), cfg.ports()->end(), [&rxPort](auto& p) {

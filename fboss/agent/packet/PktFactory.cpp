@@ -468,6 +468,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint8_t innerTrafficClass,
     uint8_t outerHopLimit,
     std::optional<uint8_t> innerHopLimit,
+    uint32_t outerFlowLabel,
     std::optional<std::vector<uint8_t>> payload) {
   if (!payload) {
     payload = kDefaultPayload;
@@ -479,6 +480,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
   IPv6Hdr outerIpHdr(outerSrcIp, outerDstIp);
   outerIpHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6);
   outerIpHdr.trafficClass = outerTrafficClass;
+  outerIpHdr.flowLabel = outerFlowLabel;
   outerIpHdr.payloadLength =
       IPv6Hdr::size() + UDPHeader::size() + payloadBytes.size();
   outerIpHdr.hopLimit = outerHopLimit;
@@ -531,6 +533,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint8_t innerDscp,
     uint8_t outerHopLimit,
     std::optional<uint8_t> innerHopLimit,
+    uint32_t outerFlowLabel,
     std::optional<std::vector<uint8_t>> payload) {
   if (!payload) {
     payload = kDefaultPayload;
@@ -542,6 +545,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
   IPv6Hdr outerIpHdr(outerSrcIp, outerDstIp);
   outerIpHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV4);
   outerIpHdr.trafficClass = outerTrafficClass;
+  outerIpHdr.flowLabel = outerFlowLabel;
   outerIpHdr.payloadLength =
       IPv4Hdr::minSize() + UDPHeader::size() + payloadBytes.size();
   outerIpHdr.hopLimit = outerHopLimit;

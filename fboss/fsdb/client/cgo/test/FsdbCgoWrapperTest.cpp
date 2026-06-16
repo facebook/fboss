@@ -8,7 +8,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
-#include <set>
+#include <map>
 #include <string>
 #include <thread>
 
@@ -194,21 +194,35 @@ TEST_F(FsdbCgoPubSubWrapperTest, ReceiveStateUpdate) {
   // Wait for initial update
   folly::Baton<> receivedInitialUpdate;
   folly::Baton<> receivedIncrementalUpdate;
+  int32_t initialPortId = -1;
+  int32_t deltaPortId = -1;
+  bool deltaOperState = false;
 
-  std::thread readerThread(
-      [&wrapper, &receivedInitialUpdate, &receivedIncrementalUpdate]() {
-        try {
-          // Wait for initial update
-          auto updates = wrapper->waitForStateUpdates();
-          receivedInitialUpdate.post();
+  std::thread readerThread([&wrapper,
+                            &receivedInitialUpdate,
+                            &receivedIncrementalUpdate,
+                            &initialPortId,
+                            &deltaPortId,
+                            &deltaOperState]() {
+    try {
+      // Wait for initial update; capture the port_id carried in the dump.
+      auto updates = wrapper->waitForStateUpdates();
+      if (!updates.empty()) {
+        initialPortId = std::get<1>(updates.front());
+      }
+      receivedInitialUpdate.post();
 
-          // Wait for incremental update
-          updates = wrapper->waitForStateUpdates();
-          receivedIncrementalUpdate.post();
-        } catch (const std::exception& e) {
-          XLOG(ERR) << "[Reader] Error receiving state update: " << e.what();
-        }
-      });
+      // Wait for incremental update; port_id must be present on deltas too.
+      updates = wrapper->waitForStateUpdates();
+      if (!updates.empty()) {
+        deltaPortId = std::get<1>(updates.front());
+        deltaOperState = std::get<2>(updates.front());
+      }
+      receivedIncrementalUpdate.post();
+    } catch (const std::exception& e) {
+      XLOG(ERR) << "[Reader] Error receiving state update: " << e.what();
+    }
+  });
 
   // Wait for initial update
   receivedInitialUpdate.wait();
@@ -232,6 +246,11 @@ TEST_F(FsdbCgoPubSubWrapperTest, ReceiveStateUpdate) {
       << "Failed to receive initial state update from FSDB";
   EXPECT_TRUE(receivedIncrementalUpdate.ready())
       << "Failed to receive incremental state update from FSDB";
+  // port_id (== portMaps key 1) must be carried in both the initial dump and
+  // the delta update.
+  EXPECT_EQ(initialPortId, 1);
+  EXPECT_EQ(deltaPortId, 1);
+  EXPECT_TRUE(deltaOperState);
 }
 
 TEST_F(FsdbCgoPubSubWrapperTest, ReceiveStatsUpdate) {
@@ -380,14 +399,68 @@ TEST_F(FsdbCgoPubSubWrapperTest, ExternCRoundTrip) {
   FsdbInit(FSDB_CGO_ABI_VERSION);
   FsdbWrapperHandle handle = CreateFsdbWrapper("extern-c-roundtrip");
   ASSERT_NE(handle, nullptr);
-  SubscribeToPortMapsWithPort(handle, fsdbTestServer_->getFsdbPort());
+  SubscribeToPortMaps(handle, nullptr, fsdbTestServer_->getFsdbPort());
   ASSERT_EQ(HasStateSubscription(handle), 1);
 
   FsdbPortStateUpdate out[16];
   int32_t count = WaitForStateUpdates(handle, out, 16);
   ASSERT_GE(count, 1);
   EXPECT_STREQ(out[0].port_name, "eth1/1/1");
+  EXPECT_EQ(out[0].port_id, 1);
   EXPECT_EQ(out[0].oper_state, 1);
+
+  ShutdownFsdbWrapper(handle);
+  DestroyFsdbWrapper(handle);
+}
+
+TEST_F(FsdbCgoPubSubWrapperTest, ExternCExplicitHostRoundTrip) {
+  // Same as ExternCRoundTrip but passes an explicit host string: it must be
+  // plumbed into ConnectionOptions rather than ignored.
+  createStatePublisher();
+  publishState(makeSwitchStateWithPorts(/*numPorts=*/1));
+
+  FsdbInit(FSDB_CGO_ABI_VERSION);
+  FsdbWrapperHandle handle = CreateFsdbWrapper("extern-c-hostport");
+  ASSERT_NE(handle, nullptr);
+  SubscribeToPortMaps(handle, "::1", fsdbTestServer_->getFsdbPort());
+  ASSERT_EQ(HasStateSubscription(handle), 1);
+
+  FsdbPortStateUpdate out[16];
+  int32_t count = WaitForStateUpdates(handle, out, 16);
+  ASSERT_GE(count, 1);
+  EXPECT_STREQ(out[0].port_name, "eth1/1/1");
+  EXPECT_EQ(out[0].port_id, 1);
+
+  ShutdownFsdbWrapper(handle);
+  DestroyFsdbWrapper(handle);
+}
+
+TEST_F(FsdbCgoPubSubWrapperTest, ExternCPortIdFromFieldNotMapKey) {
+  // port_id must be sourced from PortFields.portId(), not the portMaps map key.
+  // Publish a port whose map key (7) differs from its portId field (42).
+  createStatePublisher();
+  state::SwitchState switchState;
+  state::PortFields port;
+  port.portId() = 42;
+  port.portName() = "eth1/1/1";
+  port.portState() = "ENABLED";
+  port.portOperState() = true;
+  std::map<int16_t, state::PortFields> portMap;
+  portMap[7] = std::move(port);
+  switchState.portMaps()["0"] = std::move(portMap);
+  publishState(switchState);
+
+  FsdbInit(FSDB_CGO_ABI_VERSION);
+  FsdbWrapperHandle handle = CreateFsdbWrapper("extern-c-portid-field");
+  ASSERT_NE(handle, nullptr);
+  SubscribeToPortMaps(handle, nullptr, fsdbTestServer_->getFsdbPort());
+  ASSERT_EQ(HasStateSubscription(handle), 1);
+
+  FsdbPortStateUpdate out[16];
+  int32_t count = WaitForStateUpdates(handle, out, 16);
+  ASSERT_GE(count, 1);
+  EXPECT_STREQ(out[0].port_name, "eth1/1/1");
+  EXPECT_EQ(out[0].port_id, 42); // PortFields.portId(), not the map key (7)
 
   ShutdownFsdbWrapper(handle);
   DestroyFsdbWrapper(handle);
@@ -397,7 +470,7 @@ TEST_F(FsdbCgoPubSubWrapperTest, ExternCShutdownWakesBlockedWaiter) {
   FsdbInit(FSDB_CGO_ABI_VERSION);
   FsdbWrapperHandle handle = CreateFsdbWrapper("extern-c-shutdown");
   ASSERT_NE(handle, nullptr);
-  SubscribeToPortMapsWithPort(handle, fsdbTestServer_->getFsdbPort());
+  SubscribeToPortMaps(handle, nullptr, fsdbTestServer_->getFsdbPort());
   ASSERT_EQ(HasStateSubscription(handle), 1);
 
   // Condition-based: waiter posts when WaitForStateUpdates returns. Allows up
@@ -433,20 +506,24 @@ TEST_F(FsdbCgoPubSubWrapperTest, ExternCOverflowStaysQueued) {
   FsdbInit(FSDB_CGO_ABI_VERSION);
   FsdbWrapperHandle handle = CreateFsdbWrapper("extern-c-overflow");
   ASSERT_NE(handle, nullptr);
-  SubscribeToPortMapsWithPort(handle, fsdbTestServer_->getFsdbPort());
+  SubscribeToPortMaps(handle, nullptr, fsdbTestServer_->getFsdbPort());
 
-  std::set<std::string> received;
+  // Capture the (port_name -> port_id) pairing to confirm port_id is carried
+  // and not cross-wired across ports when draining the bounded queue.
+  std::map<std::string, int32_t> received;
   const auto deadline = std::chrono::steady_clock::now() + 30s;
   while (received.size() < 3 && std::chrono::steady_clock::now() < deadline) {
     FsdbPortStateUpdate out[2];
     int32_t n = WaitForStateUpdates(handle, out, 2);
     ASSERT_GE(n, 0); // never -1 (no error) and never panics
     for (int32_t i = 0; i < n; ++i) {
-      received.insert(out[i].port_name);
+      received[out[i].port_name] = out[i].port_id;
     }
   }
-  EXPECT_EQ(received.size(), 3u)
-      << "Expected all 3 ports to be received; got " << received.size();
+  const std::map<std::string, int32_t> expected{
+      {"eth1/1/1", 1}, {"eth1/2/1", 2}, {"eth1/3/1", 3}};
+  EXPECT_EQ(received, expected)
+      << "Expected all 3 ports with matching port_ids; got " << received.size();
 
   ShutdownFsdbWrapper(handle);
   DestroyFsdbWrapper(handle);

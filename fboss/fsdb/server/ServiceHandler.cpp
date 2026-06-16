@@ -1692,7 +1692,7 @@ ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
   }
 
   auto subscriberInfo = makeSubscriberInfo(
-      *request, PubSubType::PATCH, true, lastSubscriptionUid_.fetch_add(1));
+      *request, PubSubType::PATCH, false, lastSubscriptionUid_.fetch_add(1));
   auto subId = makeSubscriptionIdentifier(subscriberInfo);
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =

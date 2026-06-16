@@ -164,6 +164,10 @@ std::string HwSwitch::getDebugDump() const {
   return out;
 }
 
+void HwSwitch::setSdkRegDumpEnabled(bool /*enabled*/) {
+  throw FbossError("SDK register dump is not supported on this device");
+}
+
 HwSwitchFb303Stats* HwSwitch::getSwitchStats() const {
   if (!hwSwitchStats_) {
     hwSwitchStats_.reset(new HwSwitchFb303Stats(
@@ -214,6 +218,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.fb303GlobalStats() = getSwitchStats()->getAllFb303Stats();
   hwSwitchStats.cpuPortStats() = getCpuPortStats();
   hwSwitchStats.switchDropStats() = getSwitchDropStats();
+  hwSwitchStats.switchDropBitmapStats() = getSwitchDropBitmapStats();
   hwSwitchStats.flowletStats() = getHwFlowletStats();
   hwSwitchStats.aclStats() = getAclStats();
   hwSwitchStats.switchWatermarkStats() = getSwitchWatermarkStats();

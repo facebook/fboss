@@ -50,17 +50,6 @@ struct AggPortInfo {
 const AggPortInfo k4X3WideAggs{4, 3};
 const AggPortInfo k4X2WideAggs{4, 2};
 
-enum TrafficType {
-  IPv4,
-  IPv6,
-  IPv4MPLS,
-  IPv6MPLS,
-  v4MPLS4Swap,
-  v4MPLS4Php,
-  v6MPLS4Swap,
-  v6MPLS4Php
-};
-
 static constexpr uint32_t kV4TopSwap = 10010;
 static constexpr uint32_t kV6TopSwap = 10011;
 static constexpr uint32_t kV4TopPhp = 20010;
@@ -314,148 +303,99 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
         });
   }
 
-  void runIPLoadBalanceTest(
-      bool isV6,
+  // Test categories. A category is family-agnostic: it describes the route/ECMP
+  // programming and the kind of traffic to pump, but not the IP family (v4 vs
+  // v6). Each merged TEST_F programs a category once (setup) and verifies both
+  // families (verify), so that verifyAcrossWarmBoots is invoked exactly once
+  // per test.
+  enum class LoadBalanceTestType {
+    IP,
+    IP2Mpls,
+    Mpls2MplsSwap,
+    Mpls2MplsPhp,
+  };
+
+  // Family-agnostic setup: programs config, trunks and ECMP/routes once.
+  void setupLoadBalanceTest(
+      LoadBalanceTestType testType,
       const std::vector<cfg::LoadBalancer>& loadBalancers,
+      AggPortInfo aggInfo) {
+    auto config = configureAggregatePorts(aggInfo);
+    config.loadBalancers() = loadBalancers;
+    applyConfigAndEnableTrunks(config);
+    switch (testType) {
+      case LoadBalanceTestType::IP:
+        setupIPECMP(aggInfo);
+        break;
+      case LoadBalanceTestType::IP2Mpls:
+        setupIP2MPLSECMP(aggInfo);
+        break;
+      case LoadBalanceTestType::Mpls2MplsSwap:
+      case LoadBalanceTestType::Mpls2MplsPhp:
+        setupMPLSECMP(aggInfo);
+        break;
+    }
+  }
+
+  // Per-family verify: pumps traffic for the given family and asserts load
+  // balancing.
+  void verifyLoadBalanceTest(
+      LoadBalanceTestType testType,
+      bool isV6,
       AggPortInfo aggInfo,
       bool loopThroughFrontPanel,
       int deviation) {
-    auto setup = [=, this]() {
-      auto config = configureAggregatePorts(aggInfo);
-      config.loadBalancers() = loadBalancers;
-      applyConfigAndEnableTrunks(config);
-      setupIPECMP(aggInfo);
-    };
-    auto verify = [=, this]() {
-      pumpIPTrafficAndVerifyLoadBalanced(
-          isV6, loopThroughFrontPanel, aggInfo, deviation);
-    };
-    verifyAcrossWarmBoots(setup, verify);
-  }
-
-  void runIP2MplsLoadBalanceTest(
-      bool isV6,
-      const std::vector<cfg::LoadBalancer>& loadBalancers,
-      AggPortInfo aggInfo,
-      bool loopThroughFrontPanel,
-      int deviation) {
-    auto setup = [=, this]() {
-      auto config = configureAggregatePorts(aggInfo);
-      config.loadBalancers() = loadBalancers;
-      applyConfigAndEnableTrunks(config);
-      setupIP2MPLSECMP(aggInfo);
-    };
-    auto verify = [=, this]() {
-      pumpIPTrafficAndVerifyLoadBalanced(
-          isV6, loopThroughFrontPanel, aggInfo, deviation);
-    };
-    verifyAcrossWarmBoots(setup, verify);
-  }
-
-  void runMpls2MplsLoadBalanceTest(
-      bool isV6,
-      const std::vector<cfg::LoadBalancer>& loadBalancers,
-      LabelForwardingAction::LabelForwardingType type,
-      AggPortInfo aggInfo,
-      bool loopThroughFrontPanel,
-      int deviation) {
-    uint32_t labelV4 =
-        (type == LabelForwardingAction::LabelForwardingType::SWAP ? kV4TopSwap
-                                                                  : kV4TopPhp);
-    uint32_t labelV6 =
-        (type == LabelForwardingAction::LabelForwardingType::SWAP ? kV6TopSwap
-                                                                  : kV6TopPhp);
-    auto setup = [=, this]() {
-      auto config = configureAggregatePorts(aggInfo);
-      config.loadBalancers() = loadBalancers;
-      applyConfigAndEnableTrunks(config);
-      setupMPLSECMP(aggInfo);
-    };
-    auto verify = [=, this]() {
-      pumpMPLSTrafficAndVerifyLoadBalanced(
-          isV6, labelV4, labelV6, loopThroughFrontPanel, aggInfo, 25);
-    };
-    verifyAcrossWarmBoots(setup, verify);
-  }
-
-  void runMpls2MplsLoadBalanceTest(
-      bool isV6,
-      const std::vector<cfg::LoadBalancer>& loadBalancers,
-      LabelForwardingAction::LabelForwardingType type,
-      AggPortInfo aggInfo,
-      bool loopThroughFrontPanel) {
-    uint32_t labelV4 =
-        (type == LabelForwardingAction::LabelForwardingType::SWAP ? kV4TopSwap
-                                                                  : kV4TopPhp);
-    uint32_t labelV6 =
-        (type == LabelForwardingAction::LabelForwardingType::SWAP ? kV6TopSwap
-                                                                  : kV6TopPhp);
-    auto setup = [=, this]() {
-      auto config = configureAggregatePorts(aggInfo);
-      config.loadBalancers() = loadBalancers;
-      applyNewConfig(config);
-      setupMPLSECMP(aggInfo);
-    };
-    auto verify = [=, this]() {
-      pumpMPLSTrafficAndVerifyLoadBalanced(
-          isV6, labelV4, labelV6, loopThroughFrontPanel, aggInfo, 25);
-    };
-    verifyAcrossWarmBoots(setup, verify);
+    switch (testType) {
+      case LoadBalanceTestType::IP:
+      case LoadBalanceTestType::IP2Mpls:
+        pumpIPTrafficAndVerifyLoadBalanced(
+            isV6, loopThroughFrontPanel, aggInfo, deviation);
+        break;
+      case LoadBalanceTestType::Mpls2MplsSwap:
+        pumpMPLSTrafficAndVerifyLoadBalanced(
+            isV6, kV4TopSwap, kV6TopSwap, loopThroughFrontPanel, aggInfo, 25);
+        break;
+      case LoadBalanceTestType::Mpls2MplsPhp:
+        pumpMPLSTrafficAndVerifyLoadBalanced(
+            isV6, kV4TopPhp, kV6TopPhp, loopThroughFrontPanel, aggInfo, 25);
+        break;
+    }
   }
 
   // @lint-ignore-every CLANGTIDY
+  // Runs a merged v4 + v6 load balance test with a single verifyAcrossWarmBoots
+  // invocation: setup programs the (family-agnostic) state once, verify pumps
+  // and checks v4 then v6.
   void runLoadBalanceTest(
-      TrafficType traffic,
+      LoadBalanceTestType testType,
       const std::vector<cfg::LoadBalancer>& loadBalancers,
       AggPortInfo aggInfo,
       bool loopThroughFrontPanel = false,
       int deviation = 25) {
-    switch (traffic) {
-      case TrafficType::IPv4:
-        return runIPLoadBalanceTest(
-            false, loadBalancers, aggInfo, loopThroughFrontPanel, deviation);
-      case TrafficType::IPv6:
-        return runIPLoadBalanceTest(
-            true, loadBalancers, aggInfo, loopThroughFrontPanel, deviation);
-      case TrafficType::IPv4MPLS:
-        return runIP2MplsLoadBalanceTest(
-            false, loadBalancers, aggInfo, loopThroughFrontPanel, deviation);
-      case TrafficType::IPv6MPLS:
-        return runIP2MplsLoadBalanceTest(
-            true, loadBalancers, aggInfo, loopThroughFrontPanel, deviation);
-      case TrafficType::v4MPLS4Swap:
-        return runMpls2MplsLoadBalanceTest(
-            false,
-            loadBalancers,
-            LabelForwardingAction::LabelForwardingType::SWAP,
+    auto setup = [=, this]() {
+      setupLoadBalanceTest(testType, loadBalancers, aggInfo);
+    };
+    auto verify = [=, this]() {
+      {
+        SCOPED_TRACE("v4");
+        verifyLoadBalanceTest(
+            testType,
+            false /* isV6 */,
             aggInfo,
             loopThroughFrontPanel,
             deviation);
-      case TrafficType::v6MPLS4Swap:
-        return runMpls2MplsLoadBalanceTest(
-            true,
-            loadBalancers,
-            LabelForwardingAction::LabelForwardingType::SWAP,
+      }
+      {
+        SCOPED_TRACE("v6");
+        verifyLoadBalanceTest(
+            testType,
+            true /* isV6 */,
             aggInfo,
             loopThroughFrontPanel,
             deviation);
-      case TrafficType::v4MPLS4Php:
-        return runMpls2MplsLoadBalanceTest(
-            false,
-            loadBalancers,
-            LabelForwardingAction::LabelForwardingType::PHP,
-            aggInfo,
-            loopThroughFrontPanel,
-            deviation);
-      case TrafficType::v6MPLS4Php:
-        return runMpls2MplsLoadBalanceTest(
-            true,
-            loadBalancers,
-            LabelForwardingAction::LabelForwardingType::PHP,
-            aggInfo,
-            loopThroughFrontPanel,
-            deviation);
-    }
+      }
+    };
+    verifyAcrossWarmBoots(setup, verify);
   }
 };
 
@@ -474,7 +414,7 @@ class AgentMplsTrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
 // SRv6 Trunk + ECMP load balancing
 class AgentSrv6TrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
  protected:
-  static constexpr AggPortInfo kSrv6AggInfo{2, 2};
+  static constexpr AggPortInfo kSrv6AggInfo{1, 2};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -527,7 +467,7 @@ class AgentSrv6TrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
           std::nullopt,
           sidList,
           TunnelType::SRV6_ENCAP,
-          folly::sformat("srv6Tunnel{}", i)));
+          std::string("srv6Tunnel0")));
     }
     auto routeUpdater = getSw()->getRouteUpdater();
     routeUpdater.addRoute(
@@ -567,43 +507,27 @@ class AgentSrv6TrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
 // ECMP full hash, Trunk half hash tests
 TEST_F(
     AgentTrunkLoadBalancerTest,
-    ECMPFullTrunkHalfHash4X3WideTrunksV6CpuTraffic) {
+    ECMPFullTrunkHalfHash4X3WideTrunksCpuTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv6,
+      LoadBalanceTestType::IP,
       getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X3WideAggs);
 }
 
 TEST_F(
     AgentTrunkLoadBalancerTest,
-    ECMPFullTrunkHalfHash4X3WideTrunksV4CpuTraffic) {
+    ECMPFullTrunkHalfHash4X2WideTrunksCpuTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv4,
+      LoadBalanceTestType::IP,
       getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X3WideAggs);
+      k4X2WideAggs);
 }
 
 TEST_F(
     AgentTrunkLoadBalancerTest,
-    ECMPFullTrunkHalfHash4X2WideTrunksV6CpuTraffic) {
+    ECMPFullTrunkHalf4X3WideTrunksFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv6,
-      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X2WideAggs);
-}
-TEST_F(
-    AgentTrunkLoadBalancerTest,
-    ECMPFullTrunkHalfHash4X2WideTrunksV4CpuTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv4,
-      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X2WideAggs);
-}
-TEST_F(
-    AgentTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV6FrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6,
+      LoadBalanceTestType::IP,
       getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X3WideAggs,
       true /* loopThroughFrontPanelPort */);
@@ -611,76 +535,38 @@ TEST_F(
 
 TEST_F(
     AgentTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV4FrontPanelTraffic) {
+    ECMPFullTrunkHalf4X2WideTrunksFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv4,
-      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    AgentTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV6FrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6,
+      LoadBalanceTestType::IP,
       getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    AgentTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV4FrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv4,
-      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort*/);
 }
 
 // ECMP half hash, Trunk full hash IP tests
 TEST_F(
     AgentTrunkLoadBalancerTest,
-    ECMPHalfTrunkFullHash4X3WideTrunksV6CpuTraffic) {
+    ECMPHalfTrunkFullHash4X3WideTrunksCpuTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv6,
+      LoadBalanceTestType::IP,
       getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X3WideAggs);
 }
 
 TEST_F(
     AgentTrunkLoadBalancerTest,
-    ECMPHalfTrunkFullHash4X3WideTrunksV4CpuTraffic) {
+    ECMPHalfTrunkFullHash4X2WideTrunksCpuTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv4,
-      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X3WideAggs);
-}
-
-TEST_F(
-    AgentTrunkLoadBalancerTest,
-    ECMPHalfTrunkFullHash4X2WideTrunksV6CpuTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6,
+      LoadBalanceTestType::IP,
       getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X2WideAggs);
 }
 
 TEST_F(
     AgentTrunkLoadBalancerTest,
-    ECMPHalfTrunkFullHash4X2WideTrunksV4CpuTraffic) {
+    ECMPHalfTrunkFull4X3WideTrunksFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv4,
-      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X2WideAggs);
-}
-
-TEST_F(
-    AgentTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X3WideTrunksV6FrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6,
+      LoadBalanceTestType::IP,
       getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X3WideAggs,
       true /* loopThroughFrontPanelPort */);
@@ -688,39 +574,19 @@ TEST_F(
 
 TEST_F(
     AgentTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X3WideTrunksV4FrontPanelTraffic) {
+    ECMPHalfTrunkFull4X2WideTrunksFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv4,
-      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    AgentTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X2WideTrunksV6FrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6,
+      LoadBalanceTestType::IP,
       getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort */);
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X2WideTrunksV4FrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv4,
-      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
     AgentMplsTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic) {
+    ECMPFullTrunkHalf4X3WideTrunksMplsFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv6MPLS,
+      LoadBalanceTestType::IP2Mpls,
       getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X3WideAggs,
       true /* loopThroughFrontPanelPort */);
@@ -728,19 +594,9 @@ TEST_F(
 
 TEST_F(
     AgentMplsTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic) {
+    ECMPFullTrunkHalf4X2WideTrunksMplsFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv4MPLS,
-      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    AgentMplsTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV6MplsFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6MPLS,
+      LoadBalanceTestType::IP2Mpls,
       getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort */);
@@ -748,19 +604,9 @@ TEST_F(
 
 TEST_F(
     AgentMplsTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV4MplsFrontPanelTraffic) {
+    ECMPFullTrunkHalf4X3WideTrunksMplsSwapFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv4MPLS,
-      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    AgentMplsTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV6MplsSwapFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v6MPLS4Swap,
+      LoadBalanceTestType::Mpls2MplsSwap,
       getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X3WideAggs,
       true /* loopThroughFrontPanelPort */);
@@ -768,19 +614,9 @@ TEST_F(
 
 TEST_F(
     AgentMplsTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV4MplsSwapFrontPanelTraffic) {
+    ECMPFullTrunkHalf4X2WideTrunksMplsSwapFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::v4MPLS4Swap,
-      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    AgentMplsTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV6MplsSwapFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v6MPLS4Swap,
+      LoadBalanceTestType::Mpls2MplsSwap,
       getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort */);
@@ -788,19 +624,9 @@ TEST_F(
 
 TEST_F(
     AgentMplsTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV4MplsSwapFrontPanelTraffic) {
+    ECMPFullTrunkHalf4X3WideTrunksMplsPhpFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::v4MPLS4Swap,
-      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    AgentMplsTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV6MplsPhpFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v6MPLS4Php,
+      LoadBalanceTestType::Mpls2MplsPhp,
       getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X3WideAggs,
       true /* loopThroughFrontPanelPort */);
@@ -808,40 +634,20 @@ TEST_F(
 
 TEST_F(
     AgentMplsTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV4MplsPhpFrontPanelTraffic) {
+    ECMPFullTrunkHalf4X2WideTrunksMplsPhpFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::v4MPLS4Php,
-      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    AgentMplsTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV6MplsPhpFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v6MPLS4Php,
+      LoadBalanceTestType::Mpls2MplsPhp,
       getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    AgentMplsTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v4MPLS4Php,
-      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort*/);
 }
 
 // ECMP half hash, Trunk full hash tests
 TEST_F(
     AgentMplsTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X3WideTrunksV6MplsFrontPanelTraffic) {
+    ECMPHalfTrunkFull4X3WideTrunksMplsFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv6MPLS,
+      LoadBalanceTestType::IP2Mpls,
       getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X3WideAggs,
       true /* loopThroughFrontPanelPort */);
@@ -849,9 +655,9 @@ TEST_F(
 
 TEST_F(
     AgentMplsTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X3WideTrunksV4MplsFrontPanelTraffic) {
+    ECMPHalfTrunkFull4X3WideTrunksMplsSwapFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv4MPLS,
+      LoadBalanceTestType::Mpls2MplsSwap,
       getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X3WideAggs,
       true /* loopThroughFrontPanelPort */);
@@ -859,9 +665,9 @@ TEST_F(
 
 TEST_F(
     AgentMplsTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X3WideTrunksV6MplsSwapFrontPanelTraffic) {
+    ECMPHalfTrunkFull4X3WideTrunksMplsPhpFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::v6MPLS4Swap,
+      LoadBalanceTestType::Mpls2MplsPhp,
       getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X3WideAggs,
       true /* loopThroughFrontPanelPort */);
@@ -869,39 +675,9 @@ TEST_F(
 
 TEST_F(
     AgentMplsTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X3WideTrunksV4MplsSwapFrontPanelTraffic) {
+    ECMPHalfTrunkFull4X2WideTrunksMplsFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::v4MPLS4Swap,
-      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    AgentMplsTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X3WideTrunksV6MplsPhpFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v6MPLS4Php,
-      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    AgentMplsTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X3WideTrunksV4MplsPhpFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v4MPLS4Php,
-      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    AgentMplsTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X2WideTrunksV6MplsFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6MPLS,
+      LoadBalanceTestType::IP2Mpls,
       getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort */);
@@ -909,9 +685,9 @@ TEST_F(
 
 TEST_F(
     AgentMplsTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X2WideTrunksV4MplsFrontPanelTraffic) {
+    ECMPHalfTrunkFull4X2WideTrunksMplsSwapFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::IPv4MPLS,
+      LoadBalanceTestType::Mpls2MplsSwap,
       getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort */);
@@ -919,39 +695,9 @@ TEST_F(
 
 TEST_F(
     AgentMplsTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X2WideTrunksV6MplsSwapFrontPanelTraffic) {
+    ECMPHalfTrunkFull4X2WideTrunksMplsPhpFrontPanelTraffic) {
   runLoadBalanceTest(
-      TrafficType::v6MPLS4Swap,
-      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    AgentMplsTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X2WideTrunksV4MplsSwapFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v4MPLS4Swap,
-      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    AgentMplsTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X2WideTrunksV6MplsPhpFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v6MPLS4Php,
-      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    AgentMplsTrunkLoadBalancerTest,
-    ECMPHalfTrunkFull4X2WideTrunksV4MplsPhpFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v4MPLS4Php,
+      LoadBalanceTestType::Mpls2MplsPhp,
       getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort */);

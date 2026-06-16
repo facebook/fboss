@@ -625,6 +625,10 @@
         {
           "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
           "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Flaky on jericho3 11.7: bimodal cold-boot perf (~245k vs ~300k cpu_rx_pps), ~57% of runs land below the 256k threshold. Needs debugging."
         }
     ],
     "brcm/11.7.0.0_dnx_odp/jericho3/mono": [
@@ -675,6 +679,10 @@
         {
           "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
           "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Flaky on jericho3 11.7: bimodal cold-boot perf (~245k vs ~300k cpu_rx_pps), ~57% of runs land below the 256k threshold. Needs debugging."
         }
     ],
     "brcm/11.7.0.0_dnx_odp/jericho3/multi_switch": [
@@ -725,6 +733,10 @@
         {
           "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
           "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Flaky on jericho3 11.7: bimodal cold-boot perf (~245k vs ~300k cpu_rx_pps), ~57% of runs land below the 256k threshold. Needs debugging."
         }
     ],
     "brcm/11.7.0.0_dnx_odp/ramon3": [
@@ -1273,6 +1285,36 @@
         {
           "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
           "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/ramon3": [
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitVoqBenchmark",
+          "reason": "VOQ tests not applicable to fabric"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/ramon3/mono": [
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitVoqBenchmark",
+          "reason": "VOQ tests not applicable to fabric"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/ramon3/multi_switch": [
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitVoqBenchmark",
+          "reason": "VOQ tests not applicable to fabric"
         }
     ],
     "brcm/13.0_ea_odp/tomahawk5": [
@@ -2985,7 +3027,7 @@
           "reason": "Temporary addition to known bad, needs more debugging"
         }
     ],
-    "leaba/26.2.5210/graphene200": [
+    "leaba/26.2.4210/graphene200": [
         {
           "test_name_regex": ".*Voq.*",
           "reason": "VOQ tests not applicable to NPU"
@@ -3035,7 +3077,7 @@
           "reason": "Temporary addition to known bad, needs more debugging"
         }
     ],
-    "leaba/26.2.5210/graphene200/mono": [
+    "leaba/26.2.4210/graphene200/mono": [
         {
           "test_name_regex": ".*Voq.*",
           "reason": "VOQ tests not applicable to NPU"
@@ -3085,7 +3127,7 @@
           "reason": "Temporary addition to known bad, needs more debugging"
         }
     ],
-    "leaba/26.2.5210/graphene200/multi_switch": [
+    "leaba/26.2.4210/graphene200/multi_switch": [
         {
           "test_name_regex": ".*Voq.*",
           "reason": "VOQ tests not applicable to NPU"
@@ -3483,7 +3525,45 @@
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6EcmpGroupScaleBenchmark",
-              "upper_bound": 18840000000000.0
+              "upper_bound": 29860000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6EcmpGroupScaleBenchmark",
+              "upper_bound": 22330000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6EcmpGroupScaleBenchmark",
+              "upper_bound": 16050000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6MidpointMySidScaleBenchmark": [
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
+              "upper_bound": 82960000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
+              "upper_bound": 72250000000000.0
             }
           ]
         }
@@ -3494,7 +3574,45 @@
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6MixedRouteScaleBenchmark",
-              "upper_bound": 31200000000000.0
+              "upper_bound": 28690000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MixedRouteScaleBenchmark",
+              "upper_bound": 16660000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MixedRouteScaleBenchmark",
+              "upper_bound": 12300000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6NextHopScaleBenchmark": [
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6NextHopScaleBenchmark",
+              "upper_bound": 47080000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6NextHopScaleBenchmark",
+              "upper_bound": 34350000000000.0
             }
           ]
         }
@@ -3505,7 +3623,25 @@
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6SingleNextHopRouteScaleBenchmark",
-              "upper_bound": 9790000000000.0
+              "upper_bound": 6130000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6SingleNextHopRouteScaleBenchmark",
+              "upper_bound": 8680000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6SingleNextHopRouteScaleBenchmark",
+              "upper_bound": 6570000000000.0
             }
           ]
         }
@@ -3516,7 +3652,25 @@
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6V4RouteScaleBenchmark",
-              "upper_bound": 24000000000000
+              "upper_bound": 22300000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6V4RouteScaleBenchmark",
+              "upper_bound": 14210000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6V4RouteScaleBenchmark",
+              "upper_bound": 10240000000000.0
             }
           ]
         }
@@ -3527,7 +3681,25 @@
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6V6RouteScaleBenchmark",
-              "upper_bound": 36000000000000
+              "upper_bound": 32340000000000.004
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6V6RouteScaleBenchmark",
+              "upper_bound": 15080000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6V6RouteScaleBenchmark",
+              "upper_bound": 10870000000000.0
             }
           ]
         }
@@ -4387,7 +4559,45 @@
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6EcmpGroupScaleBenchmark",
-              "upper_bound": 18840000000000.0
+              "upper_bound": 29860000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6EcmpGroupScaleBenchmark",
+              "upper_bound": 22330000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6EcmpGroupScaleBenchmark",
+              "upper_bound": 16050000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6MidpointMySidScaleBenchmark": [
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
+              "upper_bound": 82960000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
+              "upper_bound": 72250000000000.0
             }
           ]
         }
@@ -4398,7 +4608,45 @@
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6MixedRouteScaleBenchmark",
-              "upper_bound": 31200000000000.0
+              "upper_bound": 28690000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MixedRouteScaleBenchmark",
+              "upper_bound": 16660000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MixedRouteScaleBenchmark",
+              "upper_bound": 12300000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6NextHopScaleBenchmark": [
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6NextHopScaleBenchmark",
+              "upper_bound": 47080000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6NextHopScaleBenchmark",
+              "upper_bound": 34350000000000.0
             }
           ]
         }
@@ -4409,7 +4657,25 @@
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6SingleNextHopRouteScaleBenchmark",
-              "upper_bound": 9790000000000.0
+              "upper_bound": 6130000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6SingleNextHopRouteScaleBenchmark",
+              "upper_bound": 8680000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6SingleNextHopRouteScaleBenchmark",
+              "upper_bound": 6570000000000.0
             }
           ]
         }
@@ -4420,7 +4686,25 @@
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6V4RouteScaleBenchmark",
-              "upper_bound": 24000000000000
+              "upper_bound": 22300000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6V4RouteScaleBenchmark",
+              "upper_bound": 14210000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6V4RouteScaleBenchmark",
+              "upper_bound": 10240000000000.0
             }
           ]
         }
@@ -4431,7 +4715,25 @@
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6V6RouteScaleBenchmark",
-              "upper_bound": 36000000000000
+              "upper_bound": 32340000000000.004
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6V6RouteScaleBenchmark",
+              "upper_bound": 15080000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6V6RouteScaleBenchmark",
+              "upper_bound": 10870000000000.0
             }
           ]
         }
@@ -5305,6 +5607,21 @@
         }
     ],
     "brcm/12.2.0.0_dnx_odp/jericho3/multi_switch/fap": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/ramon3": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/ramon3/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/ramon3/multi_switch": [
         {
           "test_name_regex": "HwSrv6.*$"
         }

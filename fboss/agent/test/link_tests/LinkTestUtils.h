@@ -10,6 +10,9 @@
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss::utility {
+
+extern const std::string kLinkQsfpTestPortInfoForScuba;
+
 DECLARE_string(oob_asset);
 DECLARE_string(oob_flash_device_name);
 DECLARE_string(openbmc_password);

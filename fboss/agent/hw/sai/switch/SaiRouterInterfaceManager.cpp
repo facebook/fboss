@@ -365,10 +365,10 @@ void SaiRouterInterfaceManager::updateStats() {
 
   for (auto& [intfId, handle] : handles_) {
     std::visit(
-        [intfId = intfId, handle = handle.get(), now, this](auto& rif) {
+        [interfaceId = intfId, rifHandle = handle.get(), now, this](auto& rif) {
           rif->updateStats();
 
-          if (auto it = rifStats_.find(intfId); it != rifStats_.end()) {
+          if (auto it = rifStats_.find(interfaceId); it != rifStats_.end()) {
             it->second->updateStats(
                 fillHwRouterInterfaceStats(rif->getStats()), now);
           }

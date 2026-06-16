@@ -1,6 +1,8 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <folly/Conv.h>
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <chrono>
 #include <optional>
 
@@ -244,6 +246,7 @@ std::optional<phy::PhyInfo> getXphyInfo(PortID portID) {
 
 TEST_F(AgentEnsembleLinkTest, iPhyInfoTest) {
   auto cabledPorts = getCabledPorts();
+  addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
   auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());
@@ -294,6 +297,7 @@ TEST_F(AgentEnsembleLinkTest, iPhyInfoTest) {
 
 TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
   auto cabledPorts = getXphyCabledPorts();
+  addTestedPorts(cabledPorts);
   ASSERT_FALSE(cabledPorts.empty());
 
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
@@ -381,6 +385,7 @@ TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
  */
 TEST_F(AgentEnsembleLinkTest, verifyIphyFecCounters) {
   auto cabledPorts = getCabledPorts();
+  addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
   auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());
@@ -479,6 +484,7 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
   std::map<PortID, const phy::PhyInfo> previousPhyInfo;
   std::map<PortID, const phy::PhyInfo> currentPhyInfo;
   auto cabledPorts = getCabledPorts();
+  addTestedPorts(cabledPorts);
   auto getPhyInfo = [this, &cabledPorts](
                         time_t timeReference,
                         std::map<PortID, const phy::PhyInfo>& phyInfo) {
@@ -501,13 +507,21 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
   std::time_t timeReference = std::time(nullptr);
   getPhyInfo(timeReference, previousPhyInfo);
 
+  // Track the worst (highest) pre-FEC BER and the max FEC tail seen per port
+  // across all iterations (and warmboot phases). These are surfaced as per-port
+  // metadata so the link health observed during the test is recorded in Scuba.
+  std::map<PortID, double> worstPreFecBer;
+  std::map<PortID, int16_t> maxFecTail;
+
   auto verify = [this,
                  iterations,
                  preFecBerThreshold,
                  &previousPhyInfo,
                  &currentPhyInfo,
                  getPhyInfo,
-                 &cabledPorts]() {
+                 &cabledPorts,
+                 &worstPreFecBer,
+                 &maxFecTail]() {
     for (int i = 1; i <= iterations && !::testing::Test::HasFailure(); i++) {
       XLOG(INFO) << "Starting iteration " << i;
       getPhyInfo(std::time(nullptr), currentPhyInfo);
@@ -558,14 +572,21 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
         // Before 10.2 SAI, ASIC doesn't support FEC corrected bits and we
         // approximate pre-FEC BER using FEC corrected codewords.
         // 2) we cleanup existing bad links in the lab
-        EXPECT_LT(rsFecNow->get_preFECBer(), preFecBerThreshold);
+        EXPECT_LT(rsFecNow->preFECBer().value(), preFecBerThreshold);
+        // Track the worst pre-FEC BER and max FEC tail seen for this port.
+        worstPreFecBer[port] =
+            std::max(worstPreFecBer[port], rsFecNow->preFECBer().value());
+        if (rsFecNow->fecTail().has_value()) {
+          maxFecTail[port] =
+              std::max(maxFecTail[port], rsFecNow->fecTail().value());
+        }
         // If there were corrected codewords in the interval, expect pre-FEC
         // BER non-zero
         bool hasCorrectedCodewords =
             folly::copy(rsFecNow->correctedCodewords().value()) !=
             folly::copy(rsFecBefore->correctedCodewords().value());
         if (hasCorrectedCodewords) {
-          EXPECT_NE(rsFecNow->get_preFECBer(), 0);
+          EXPECT_NE(rsFecNow->preFECBer().value(), 0);
         }
         // If the codewordStats is supported, it should either have 8 keys or
         // 16. For Rs528, there are 7 codeword bins. For Rs544, there are 15.
@@ -616,12 +637,25 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
       }
       previousPhyInfo = currentPhyInfo;
     }
+    // Record the worst pre-FEC BER and max FEC tail per port as metadata. This
+    // is done inside verify() (not after verifyAcrossWarmBoots) so it is set
+    // before the metadata dump runs, which happens before the process exits on
+    // the setup_for_warmboot phase.
+    for (const auto& [port, ber] : worstPreFecBer) {
+      addTestMetadata(
+          port, "iphy_worst_pre_fec_ber", folly::to<std::string>(ber));
+    }
+    for (const auto& [port, fecTail] : maxFecTail) {
+      addTestMetadata(
+          port, "iphy_max_fec_tail", folly::to<std::string>(fecTail));
+    }
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
 TEST_F(AgentEnsembleLinkTest, clearIphyInterfaceCounters) {
   auto cabledPorts = getCabledPorts();
+  addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
   auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());

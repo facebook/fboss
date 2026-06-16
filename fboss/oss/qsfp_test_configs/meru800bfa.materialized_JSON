@@ -258,6 +258,22 @@
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {
+      "C-OS08CERNC-MT": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.1.8192"
+            }
+          ]
+      },
+      "C-OS08LERNC-MT": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.1.8192"
+            }
+          ]
+      },
       "CAC812321A1BC1MT": {
           "versions": [
             {
@@ -310,7 +326,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "110.40.13"
+              "version": "10.40.13"
             }
           ]
       },
@@ -318,7 +334,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "110.40.13"
+              "version": "10.40.13"
             }
           ]
       },
@@ -326,7 +342,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "110.40.13"
+              "version": "10.40.13"
             }
           ]
       },
@@ -495,6 +511,14 @@
             {
               "fwType": 1,
               "version": "3.4"
+            }
+          ]
+      },
+      "EOLO-16T-02-R1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.3"
             }
           ]
       },
@@ -803,6 +827,14 @@
             {
               "fwType": 1,
               "version": "86.247"
+            }
+          ]
+      },
+      "T-RL8ENT-NMM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "27.248"
             }
           ]
       }

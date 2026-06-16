@@ -254,6 +254,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
+    case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
       return false;
   }
   return false;

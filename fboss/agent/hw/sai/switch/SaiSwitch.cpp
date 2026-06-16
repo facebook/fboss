@@ -4491,20 +4491,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
        */
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::SDK_REGISTER_DUMP)) {
-        std::vector<int8_t> sdkRegDumpLogPathArray;
-        std::string sdkRegDumpLogPathStr = folly::to<std::string>(
-            FLAGS_sdk_reg_dump_path_prefix, "_", FLAGS_switchIndex, ".log");
-        std::copy(
-            sdkRegDumpLogPathStr.c_str(),
-            sdkRegDumpLogPathStr.c_str() + sdkRegDumpLogPathStr.size() + 1,
-            std::back_inserter(sdkRegDumpLogPathArray));
-
-        std::optional<SaiSwitchTraits::Attributes::SdkRegDumpLogPath>
-            sdkRegDumpLogPath{std::nullopt};
-        sdkRegDumpLogPath = sdkRegDumpLogPathArray;
-
-        auto& switchApi = SaiApiTable::getInstance()->switchApi();
-        switchApi.setAttribute(saiSwitchId_, sdkRegDumpLogPath);
+        setSdkRegDumpEnabledLocked(lock, !FLAGS_skip_sdk_reg_dump);
       }
 
       /*
@@ -4978,6 +4965,40 @@ void SaiSwitch::processRemovedRoutesDeltaInReverse(
 void SaiSwitch::dumpDebugState(const std::string& path) const {
   XLOG(INFO) << "generating debug dump at " << path;
   saiCheckError(sai_dbg_generate_dump(path.c_str()));
+}
+
+void SaiSwitch::setSdkRegDumpEnabled(bool enabled) {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  setSdkRegDumpEnabledLocked(lock, enabled);
+}
+
+void SaiSwitch::setSdkRegDumpEnabledLocked(
+    const std::lock_guard<std::mutex>& /*lock*/,
+    bool enabled) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SDK_REGISTER_DUMP)) {
+    throw FbossError("SDK register dump is not supported on this device");
+  }
+  // The SDK dumps register/state logs to this path; an empty path disables the
+  // dump. Computed here so this is the only place that builds the dump path.
+  const std::string path = enabled
+      ? folly::to<std::string>(
+            FLAGS_sdk_reg_dump_path_prefix, "_", FLAGS_switchIndex, ".log")
+      : std::string();
+  // SAI expects a null-terminated char array, so copy the trailing '\0'.
+  std::vector<int8_t> sdkRegDumpLogPathArray;
+  std::copy(
+      path.c_str(),
+      path.c_str() + path.size() + 1,
+      std::back_inserter(sdkRegDumpLogPathArray));
+  std::optional<SaiSwitchTraits::Attributes::SdkRegDumpLogPath>
+      sdkRegDumpLogPath{sdkRegDumpLogPathArray};
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  switchApi.setAttribute(saiSwitchId_, sdkRegDumpLogPath);
+  if (enabled) {
+    XLOG(INFO) << "Enabled SDK register/state dump to '" << path << "'";
+  } else {
+    XLOG(INFO) << "Disabled SDK register/state dump";
+  }
 }
 
 std::string SaiSwitch::listCachedObjectsLocked(
@@ -5540,6 +5561,11 @@ std::vector<EcmpDetails> SaiSwitch::getAllEcmpDetails() const {
 HwSwitchDropStats SaiSwitch::getSwitchDropStats() const {
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
   return managerTable_->switchManager().getSwitchDropStats();
+}
+
+HwSwitchDropBitmapStats SaiSwitch::getSwitchDropBitmapStats() const {
+  std::lock_guard<std::mutex> lk(saiSwitchMutex_);
+  return managerTable_->switchManager().getSwitchDropBitmapStats();
 }
 
 AclStats SaiSwitch::getAclStats() const {

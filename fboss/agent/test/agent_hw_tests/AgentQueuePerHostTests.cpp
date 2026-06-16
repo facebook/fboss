@@ -25,19 +25,10 @@
 
 namespace facebook::fboss {
 
-template <typename AddrType>
-struct IpAddrT {
-  using AddrT = AddrType;
-};
-
-using TestTypes =
-    ::testing::Types<IpAddrT<folly::IPAddressV4>, IpAddrT<folly::IPAddressV6>>;
-
-template <typename IpAddrT>
 class AgentQueuePerHostTest : public AgentHwTest {
-  using AddrT = typename IpAddrT::AddrT;
-  using NeighborTableT = typename std::conditional_t<
-      std::is_same<AddrT, folly::IPAddressV4>::value,
+  template <typename AddrT>
+  using NeighborTableT = std::conditional_t<
+      std::is_same_v<AddrT, folly::IPAddressV4>,
       ArpTable,
       NdpTable>;
 
@@ -62,6 +53,7 @@ class AgentQueuePerHostTest : public AgentHwTest {
     return {ProductionFeature::QUEUE_PER_HOST};
   }
 
+  template <typename AddrT>
   const std::map<AddrT, std::pair<folly::MacAddress, cfg::AclLookupClass>>&
   getIpToMacAndClassID() {
     // TODO (skhare) Use ResourceGenerator to create this map, where the number
@@ -125,17 +117,18 @@ class AgentQueuePerHostTest : public AgentHwTest {
     }
   }
 
+  template <typename AddrT>
   std::shared_ptr<SwitchState> addNeighbors(
       const std::shared_ptr<SwitchState>& inState) {
     auto outState{inState->clone()};
 
-    for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
+    for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
       auto ip = ipToMacAndClassID.first;
 
-      NeighborTableT* neighborTable;
+      NeighborTableT<AddrT>* neighborTable;
       neighborTable = outState->getInterfaces()
                           ->getNode(kIntfID)
-                          ->template getNeighborTable<NeighborTableT>()
+                          ->template getNeighborTable<NeighborTableT<AddrT>>()
                           ->modify(kIntfID, &outState);
 
       neighborTable->addPendingEntry(ip, kIntfID);
@@ -144,45 +137,49 @@ class AgentQueuePerHostTest : public AgentHwTest {
     return outState;
   }
 
-  std::shared_ptr<typename NeighborTableT::Entry> getNeighborEntry(AddrT ip) {
+  template <typename AddrT>
+  std::shared_ptr<typename NeighborTableT<AddrT>::Entry> getNeighborEntry(
+      AddrT ip) {
     return getProgrammedState()
         ->getInterfaces()
         ->getNode(kIntfID)
-        ->template getNeighborTable<NeighborTableT>()
+        ->template getNeighborTable<NeighborTableT<AddrT>>()
         ->getEntryIf(ip);
   }
 
+  template <typename AddrT>
   std::shared_ptr<SwitchState> removeNeighbors(
       const std::shared_ptr<SwitchState>& inState) {
     auto outState{inState->clone()};
-    for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
+    for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
       auto ip = ipToMacAndClassID.first;
-      NeighborTableT* neighborTable;
+      NeighborTableT<AddrT>* neighborTable;
       neighborTable = outState->getInterfaces()
                           ->getNode(kIntfID)
-                          ->template getNeighborTable<NeighborTableT>()
+                          ->template getNeighborTable<NeighborTableT<AddrT>>()
                           ->modify(kIntfID, &outState);
       neighborTable->removeEntry(ip);
     }
     return outState;
   }
 
+  template <typename AddrT>
   std::shared_ptr<SwitchState> updateNeighbors(
       const std::shared_ptr<SwitchState>& inState,
       bool setClassIDs,
       bool blockNeighbor) {
     auto outState{inState->clone()};
-    for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
+    for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
       auto ip = ipToMacAndClassID.first;
       auto macAndClassID = ipToMacAndClassID.second;
       auto neighborMac = macAndClassID.first;
       auto classID = blockNeighbor ? cfg::AclLookupClass::CLASS_DROP
                                    : macAndClassID.second;
 
-      NeighborTableT* neighborTable;
+      NeighborTableT<AddrT>* neighborTable;
       neighborTable = outState->getInterfaces()
                           ->getNode(kIntfID)
-                          ->template getNeighborTable<NeighborTableT>()
+                          ->template getNeighborTable<NeighborTableT<AddrT>>()
                           ->modify(kIntfID, &outState);
 
       auto existingEntry = neighborTable->getEntryIf(ip);
@@ -214,19 +211,21 @@ class AgentQueuePerHostTest : public AgentHwTest {
     return outState;
   }
 
+  template <typename AddrT>
   void verifyNeighborClassId(bool blockNeighbor) {
     WITH_RETRIES({
       auto state = getProgrammedState();
-      for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
+      for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
         auto ip = ipToMacAndClassID.first;
         auto macAndClassID = ipToMacAndClassID.second;
         auto classID = blockNeighbor ? cfg::AclLookupClass::CLASS_DROP
                                      : macAndClassID.second;
 
-        std::shared_ptr<NeighborTableT> neighborTable;
-        neighborTable = state->getInterfaces()
-                            ->getNode(kIntfID)
-                            ->template getNeighborTable<NeighborTableT>();
+        std::shared_ptr<NeighborTableT<AddrT>> neighborTable;
+        neighborTable =
+            state->getInterfaces()
+                ->getNode(kIntfID)
+                ->template getNeighborTable<NeighborTableT<AddrT>>();
 
         auto entry = neighborTable->getEntryIf(ip);
         XLOG(DBG2) << "Verify class id for " << ip
@@ -237,38 +236,47 @@ class AgentQueuePerHostTest : public AgentHwTest {
     });
   }
 
+  template <typename AddrT>
   std::shared_ptr<SwitchState> resolveNeighbors(
       const std::shared_ptr<SwitchState>& inState) {
-    return updateNeighbors(
+    return updateNeighbors<AddrT>(
         inState, false /* setClassIDs */, false /* blockNeighbors */);
   }
 
+  template <typename AddrT>
   std::shared_ptr<SwitchState> updateClassID(
       const std::shared_ptr<SwitchState>& inState,
       bool blockNeighbor) {
-    return updateNeighbors(inState, true /* setClassIDs */, blockNeighbor);
+    return updateNeighbors<AddrT>(
+        inState, true /* setClassIDs */, blockNeighbor);
   }
 
+  // v4 and v6 neighbors share the same MAC addresses; block both families.
   void setMacAddrsToBlock() {
     auto cfgMacAddrsToBlock = std::make_unique<std::vector<cfg::MacAndVlan>>();
-    for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
-      auto macAndClassID = ipToMacAndClassID.second;
-      auto macAddress = macAndClassID.first;
-      cfg::MacAndVlan macAndVlan;
-      macAndVlan.vlanID() = kVlanID;
-      macAndVlan.macAddress() = macAddress.toString();
-      cfgMacAddrsToBlock->emplace_back(macAndVlan);
-    }
+    auto addMacs = [&](const auto& ipToMacAndClassIDs) {
+      for (const auto& ipToMacAndClassID : ipToMacAndClassIDs) {
+        auto macAndClassID = ipToMacAndClassID.second;
+        auto macAddress = macAndClassID.first;
+        cfg::MacAndVlan macAndVlan;
+        macAndVlan.vlanID() = kVlanID;
+        macAndVlan.macAddress() = macAddress.toString();
+        cfgMacAddrsToBlock->emplace_back(macAndVlan);
+      }
+    };
+    addMacs(getIpToMacAndClassID<folly::IPAddressV4>());
+    addMacs(getIpToMacAndClassID<folly::IPAddressV6>());
     ThriftHandler handler(getSw());
     handler.setMacAddrsToBlock(std::move(cfgMacAddrsToBlock));
   }
 
+  template <typename AddrT>
   void _verifyHelper(bool frontPanel, bool blockNeighbor) {
     XLOG(DBG2) << "verify send packets "
                << (frontPanel ? "out of port" : "switched");
     // wait for pending state updates to complete
     waitForStateUpdates(getSw());
-    verifyNeighborClassId(blockNeighbor);
+    verifyNeighborClassId<AddrT>(blockNeighbor);
     auto ttlAclName = utility::getQueuePerHostTtlAclName();
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
@@ -282,7 +290,7 @@ class AgentQueuePerHostTest : public AgentHwTest {
               .at(queueId);
     }
 
-    for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
+    for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
       auto dstIP = ipToMacAndClassID.first;
       sendPacket(dstIP, frontPanel, 64 /* ttl < 128 */);
       sendPacket(dstIP, frontPanel, 128 /* ttl >= 128 */);
@@ -342,10 +350,26 @@ class AgentQueuePerHostTest : public AgentHwTest {
         return statAfter - statBefore == 0;
       } else {
         // counts ttl >= 128 packet only
-        return statAfter - statBefore == getIpToMacAndClassID().size();
+        return statAfter - statBefore == getIpToMacAndClassID<AddrT>().size();
       }
     };
     WITH_RETRIES({ EXPECT_EVENTUALLY_TRUE(aclStatsMatch()); });
+  }
+
+  // Verify both address families in a single warm-boot cycle. v4 and v6 are
+  // exercised sequentially with per-family before/after counter snapshots, so
+  // the per-queue and ACL-counter assertions remain per-family.
+  void verifyAllFamilies(bool blockNeighbor) {
+    {
+      SCOPED_TRACE("v4");
+      _verifyHelper<folly::IPAddressV4>(false, blockNeighbor);
+      _verifyHelper<folly::IPAddressV4>(true, blockNeighbor);
+    }
+    {
+      SCOPED_TRACE("v6");
+      _verifyHelper<folly::IPAddressV6>(false, blockNeighbor);
+      _verifyHelper<folly::IPAddressV6>(true, blockNeighbor);
+    }
   }
 
   void classIDAfterNeighborResolveHelper(bool blockNeighbor) {
@@ -356,17 +380,20 @@ class AgentQueuePerHostTest : public AgentHwTest {
      * with classIDs.
      */
     applyNewState([this](std::shared_ptr<SwitchState> /*in*/) {
-      auto state1 = this->addNeighbors(this->getProgrammedState());
-      auto state2 = this->resolveNeighbors(state1);
-      return state2;
+      auto state = this->addNeighbors<folly::IPAddressV4>(getProgrammedState());
+      state = this->addNeighbors<folly::IPAddressV6>(state);
+      state = this->resolveNeighbors<folly::IPAddressV4>(state);
+      state = this->resolveNeighbors<folly::IPAddressV6>(state);
+      return state;
     });
 
     if (blockNeighbor) {
       setMacAddrsToBlock();
     }
     applyNewState([this, blockNeighbor](std::shared_ptr<SwitchState> /*in*/) {
-      auto state =
-          this->updateClassID(this->getProgrammedState(), blockNeighbor);
+      auto state = this->updateClassID<folly::IPAddressV4>(
+          getProgrammedState(), blockNeighbor);
+      state = this->updateClassID<folly::IPAddressV6>(state, blockNeighbor);
       return state;
     });
   }
@@ -376,10 +403,13 @@ class AgentQueuePerHostTest : public AgentHwTest {
       setMacAddrsToBlock();
     }
     applyNewState([this, blockNeighbor](std::shared_ptr<SwitchState> /*in*/) {
-      auto state1 = this->addNeighbors(this->getProgrammedState());
-      auto state2 = this->resolveNeighbors(state1);
-      auto state3 = this->updateClassID(state2, blockNeighbor);
-      return state3;
+      auto state = this->addNeighbors<folly::IPAddressV4>(getProgrammedState());
+      state = this->addNeighbors<folly::IPAddressV6>(state);
+      state = this->resolveNeighbors<folly::IPAddressV4>(state);
+      state = this->resolveNeighbors<folly::IPAddressV6>(state);
+      state = this->updateClassID<folly::IPAddressV4>(state, blockNeighbor);
+      state = this->updateClassID<folly::IPAddressV6>(state, blockNeighbor);
+      return state;
     });
   }
 
@@ -388,8 +418,7 @@ class AgentQueuePerHostTest : public AgentHwTest {
       this->classIDAfterNeighborResolveHelper(blockNeighbor);
     };
     auto verify = [this, blockNeighbor]() {
-      this->_verifyHelper(false, blockNeighbor);
-      this->_verifyHelper(true, blockNeighbor);
+      this->verifyAllFamilies(blockNeighbor);
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -400,67 +429,81 @@ class AgentQueuePerHostTest : public AgentHwTest {
       this->classIDWithResolveHelper(blockNeighbor);
     };
     auto verify = [this, blockNeighbor]() {
-      this->_verifyHelper(false, blockNeighbor);
-      this->_verifyHelper(true, blockNeighbor);
+      this->verifyAllFamilies(blockNeighbor);
     };
 
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  template <typename AddrT>
+  void verifyTtldCounterForFamily() {
+    auto ttlAclName = utility::getQueuePerHostTtlAclName();
+    auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
+
+    for (bool frontPanel : {false, true}) {
+      auto packetsBefore = utility::getAclInOutPackets(getSw(), ttlCounterName);
+
+      auto bytesBefore =
+          utility::getAclInOutPackets(getSw(), ttlCounterName, true);
+
+      auto dstIP = getIpToMacAndClassID<AddrT>().begin()->first;
+      sendPacket(dstIP, frontPanel, 64 /* ttl < 128 */);
+      size_t packetSize = sendPacket(dstIP, frontPanel, 128 /* ttl >= 128 */);
+
+      WITH_RETRIES({
+        auto packetsAfter =
+            utility::getAclInOutPackets(getSw(), ttlCounterName);
+
+        auto bytesAfter =
+            utility::getAclInOutPackets(getSw(), ttlCounterName, true);
+
+        XLOG(DBG2) << "verify send packets "
+                   << (frontPanel ? "out of port" : "switched") << "\n"
+                   << "ttlAclPacketCounter: " << std::to_string(packetsBefore)
+                   << " -> " << std::to_string(packetsAfter) << "\n"
+                   << "ttlAclBytesCounter: " << std::to_string(bytesBefore)
+                   << " -> " << std::to_string(bytesAfter);
+
+        // counts ttl >= 128 packet only
+        EXPECT_EVENTUALLY_EQ(packetsAfter - packetsBefore, 1);
+        if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+          if (frontPanel) {
+            EXPECT_EVENTUALLY_EQ(bytesAfter - bytesBefore, packetSize);
+          }
+          // TODO: Still need to debug why we get extra 4 bytes for CPU port
+          EXPECT_EVENTUALLY_TRUE(bytesAfter - bytesBefore >= packetSize);
+        }
+      });
+    }
+  }
+
   void verifyTtldCounter() {
     auto setup = [this]() {
       applyNewState([this](std::shared_ptr<SwitchState> /*in*/) {
-        auto state1 = this->addNeighbors(this->getProgrammedState());
-        auto state2 = this->resolveNeighbors(state1);
-        return state2;
+        auto state =
+            this->addNeighbors<folly::IPAddressV4>(getProgrammedState());
+        state = this->addNeighbors<folly::IPAddressV6>(state);
+        state = this->resolveNeighbors<folly::IPAddressV4>(state);
+        state = this->resolveNeighbors<folly::IPAddressV6>(state);
+        return state;
       });
     };
 
     auto verify = [this]() {
-      auto ttlAclName = utility::getQueuePerHostTtlAclName();
-      auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
-
-      for (bool frontPanel : {false, true}) {
-        auto packetsBefore =
-            utility::getAclInOutPackets(getSw(), ttlCounterName);
-
-        auto bytesBefore =
-            utility::getAclInOutPackets(getSw(), ttlCounterName, true);
-
-        auto dstIP = getIpToMacAndClassID().begin()->first;
-        sendPacket(dstIP, frontPanel, 64 /* ttl < 128 */);
-        size_t packetSize = sendPacket(dstIP, frontPanel, 128 /* ttl >= 128 */);
-
-        WITH_RETRIES({
-          auto packetsAfter =
-              utility::getAclInOutPackets(getSw(), ttlCounterName);
-
-          auto bytesAfter =
-              utility::getAclInOutPackets(getSw(), ttlCounterName, true);
-
-          XLOG(DBG2) << "verify send packets "
-                     << (frontPanel ? "out of port" : "switched") << "\n"
-                     << "ttlAclPacketCounter: " << std::to_string(packetsBefore)
-                     << " -> " << std::to_string(packetsAfter) << "\n"
-                     << "ttlAclBytesCounter: " << std::to_string(bytesBefore)
-                     << " -> " << std::to_string(bytesAfter);
-
-          // counts ttl >= 128 packet only
-          EXPECT_EVENTUALLY_EQ(packetsAfter - packetsBefore, 1);
-          if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
-            if (frontPanel) {
-              EXPECT_EVENTUALLY_EQ(bytesAfter - bytesBefore, packetSize);
-            }
-            // TODO: Still need to debug why we get extra 4 bytes for CPU port
-            EXPECT_EVENTUALLY_TRUE(bytesAfter - bytesBefore >= packetSize);
-          }
-        });
+      {
+        SCOPED_TRACE("v4");
+        this->verifyTtldCounterForFamily<folly::IPAddressV4>();
+      }
+      {
+        SCOPED_TRACE("v6");
+        this->verifyTtldCounterForFamily<folly::IPAddressV6>();
       }
     };
 
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  template <typename AddrT>
   AddrT kSrcIP() {
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
       return folly::IPAddressV4("1.0.0.1");
@@ -470,6 +513,7 @@ class AgentQueuePerHostTest : public AgentHwTest {
   }
 
  private:
+  template <typename AddrT>
   size_t sendPacket(AddrT dstIP, bool frontPanel, uint8_t ttl) {
     auto vlanId =
         VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
@@ -480,7 +524,7 @@ class AgentQueuePerHostTest : public AgentHwTest {
         vlanId,
         srcMac, // src mac
         intfMac, // dst mac
-        kSrcIP(),
+        kSrcIP<AddrT>(),
         dstIP,
         8000, // l4 src port
         8001, // l4 dst port
@@ -508,20 +552,16 @@ class AgentQueuePerHostTest : public AgentHwTest {
   const InterfaceID kIntfID{utility::kBaseVlanId};
 };
 
-TYPED_TEST_SUITE(AgentQueuePerHostTest, TestTypes);
-
 // Verify that traffic arriving on a front panel port gets right queue-per-host
 // queue.
-TYPED_TEST(
-    AgentQueuePerHostTest,
-    VerifyHostToQueueMappingClassIDsAfterResolve) {
+TEST_F(AgentQueuePerHostTest, VerifyHostToQueueMappingClassIDsAfterResolve) {
   this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
       false /* block neighbor */);
 }
 
 // Verify that traffic arriving on a front panel port to a blocked neighbor gets
 // dropped.
-TYPED_TEST(
+TEST_F(
     AgentQueuePerHostTest,
     VerifyHostToQueueMappingClassIDsAfterResolveBlock) {
   this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
@@ -530,14 +570,14 @@ TYPED_TEST(
 
 // Verify that traffic arriving on a front panel port gets right queue-per-host
 // queue.
-TYPED_TEST(AgentQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolve) {
+TEST_F(AgentQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolve) {
   this->verifyHostToQueueMappingClassIDsWithResolveHelper(
       false /* block neighbor */);
 }
 
 // Verify that traffic arriving on a front panel port to a blocked neighbor gets
 // dropped.
-TYPED_TEST(
+TEST_F(
     AgentQueuePerHostTest,
     VerifyHostToQueueMappingClassIDsWithResolveBlock) {
   this->verifyHostToQueueMappingClassIDsWithResolveHelper(
@@ -546,7 +586,7 @@ TYPED_TEST(
 
 // Verify that TTLd traffic not going to queue-per-host has TTLd counter
 // incremented.
-TYPED_TEST(AgentQueuePerHostTest, VerifyTtldCounter) {
+TEST_F(AgentQueuePerHostTest, VerifyTtldCounter) {
   this->verifyTtldCounter();
 }
 
@@ -554,24 +594,45 @@ TYPED_TEST(AgentQueuePerHostTest, VerifyTtldCounter) {
 // is handled cleanly by LookupClassUpdater on a QPH-enabled port. Unlike
 // the other tests in this file, this one does not resolve the entries
 // between add and remove.
-TYPED_TEST(AgentQueuePerHostTest, RemovePendingNeighborDoesNotCrash) {
+TEST_F(AgentQueuePerHostTest, RemovePendingNeighborDoesNotCrash) {
   auto setup = [this]() {
     this->applyNewState(
         [this](const std::shared_ptr<SwitchState>& /*in*/) {
-          return this->addNeighbors(this->getProgrammedState());
+          auto state =
+              this->addNeighbors<folly::IPAddressV4>(getProgrammedState());
+          state = this->addNeighbors<folly::IPAddressV6>(state);
+          return state;
         },
         "inject Pending neighbors");
 
     this->applyNewState(
         [this](const std::shared_ptr<SwitchState>& /*in*/) {
-          return this->removeNeighbors(this->getProgrammedState());
+          auto state =
+              this->removeNeighbors<folly::IPAddressV4>(getProgrammedState());
+          state = this->removeNeighbors<folly::IPAddressV6>(state);
+          return state;
         },
         "remove Pending neighbors");
   };
 
   auto verify = [this]() {
-    for (const auto& ipToMacAndClassID : this->getIpToMacAndClassID()) {
-      EXPECT_EQ(this->getNeighborEntry(ipToMacAndClassID.first), nullptr);
+    {
+      SCOPED_TRACE("v4");
+      for (const auto& ipToMacAndClassID :
+           this->getIpToMacAndClassID<folly::IPAddressV4>()) {
+        EXPECT_EQ(
+            this->getNeighborEntry<folly::IPAddressV4>(ipToMacAndClassID.first),
+            nullptr);
+      }
+    }
+    {
+      SCOPED_TRACE("v6");
+      for (const auto& ipToMacAndClassID :
+           this->getIpToMacAndClassID<folly::IPAddressV6>()) {
+        EXPECT_EQ(
+            this->getNeighborEntry<folly::IPAddressV6>(ipToMacAndClassID.first),
+            nullptr);
+      }
     }
   };
 

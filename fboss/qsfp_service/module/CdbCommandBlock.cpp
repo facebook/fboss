@@ -84,13 +84,11 @@ void CdbCommandBlock::i2cWriteAndContinue(
   auto startTime = std::chrono::steady_clock::now();
 
   try {
-    // Sleep for 5 msec after every CDB memory block write to let the next
-    // command run successfully. Some of the optics need this delay
     /* sleep override */
     bus->writeTransceiver(
         {i2cAddress, offset, length, page},
         buf,
-        POST_I2C_WRITE_DELAY_CDB_US,
+        cdbWriteDelayUsec_,
         kCmisCommand);
   } catch (const std::exception& e) {
     XLOG(INFO) << "write() raised exception: Sleep for 100ms and continue: "
@@ -102,7 +100,7 @@ void CdbCommandBlock::i2cWriteAndContinue(
   auto writeTime = std::chrono::steady_clock::now() - startTime;
   memoryWriteTime_ +=
       std::chrono::duration_cast<std::chrono::milliseconds>(writeTime) -
-      std::chrono::milliseconds(POST_I2C_WRITE_DELAY_CDB_US / 1000);
+      std::chrono::milliseconds(cdbWriteDelayUsec_ / 1000);
 }
 
 /*

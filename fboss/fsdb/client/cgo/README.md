@@ -14,7 +14,7 @@ The vendor handoff is a **single static archive plus one C header**:
   libevent, zlib/zstd/lz4, libsodium, …) merged into one file. Compiled with
   `-fvisibility=hidden`, so the only globally visible symbols are the
   wrapper's entry points; everything else is local to the archive.
-- `fsdb_cgo_api.h` — pure C header (no C++ includes) declaring the 21 entry
+- `fsdb_cgo_api.h` — pure C header (no C++ includes) declaring the 19 entry
   points. The Go cgo preamble `#include`s this directly.
 
 Dynamic dependencies the vendor's hosts must provide:
@@ -46,7 +46,7 @@ The packaging script:
    because `libthrift_service_client.a`, `libfmt.a`, and others contain
    multiple `.o` members sharing a basename, which extract-then-rebundle
    approaches silently drop.
-3. Verifies the 21 entry-point symbols are present (`nm | awk`); exits
+3. Verifies the 19 entry-point symbols are present (`nm | awk`); exits
    non-zero on any miss.
 4. Copies `fsdb_cgo_api.h` next to the archive.
 5. Writes a `MANIFEST.txt` with the bundle's size, SHA-256, member count,
@@ -114,8 +114,8 @@ Designed for the most common consumer paths.
 
 | Function | Purpose |
 |---|---|
-| `SubscribeToPortMaps[WithPort]` | Subscribe to `agent.switchState.portMaps`. |
-| `WaitForStateUpdates` | Receive `FsdbPortStateUpdate` (port_name, oper_state). |
+| `SubscribeToPortMaps(host, port)` | Subscribe to `agent.switchState.portMaps`. `host` NULL/"" → localhost; pass a host string for remote subscriptions. |
+| `WaitForStateUpdates` | Receive `FsdbPortStateUpdate` (port_name, port_id, oper_state). |
 | `FreeStateUpdates` | Release borrowed-pointer buffer. |
 
 **Path APIs** — for arbitrary FSDB paths. Returns raw OperState bytes plus
@@ -124,10 +124,10 @@ bindings.
 
 | Function | Purpose |
 |---|---|
-| `SubscribeToStatsPath[WithPort](path_tokens, num_tokens)` | Subscribe to any stats path (e.g. `["agent"]`, `["qsfp_service","stats"]`). |
+| `SubscribeToStatsPath(path_tokens, num_tokens, host, port)` | Subscribe to any stats path (e.g. `["agent"]`, `["qsfp_service","stats"]`). `host` NULL/"" → localhost. |
 | `WaitForStatsUpdates` | Receive `FsdbStatsUpdate` (key, raw bytes, length, protocol). |
 | `FreeStatsUpdates` | Release borrowed-pointer buffer. |
-| `SubscribeToStatePath[WithPort](path_tokens, num_tokens)` | Subscribe to any state path (e.g. `["agent","switchState","interfaceMap"]`). |
+| `SubscribeToStatePath(path_tokens, num_tokens, host, port)` | Subscribe to any state path (e.g. `["agent","switchState","interfaceMap"]`). `host` NULL/"" → localhost. |
 | `WaitForStatePathUpdates` | Receive `FsdbStatePathUpdate` (key, raw bytes, length, protocol). |
 | `FreeStatePathUpdates` | Release borrowed-pointer buffer. |
 
@@ -176,7 +176,7 @@ bindings.
   unconsumed updates remain in the queue and are returned on the next call.
   No data loss, no truncation.
 
-## Known limitations (v1)
+## Known limitations (v2)
 
 - **Subscription-only.** No equivalent of FSDB's synchronous `getOperState`
   yet. Vendors who need a one-shot snapshot must either keep their existing
@@ -187,9 +187,11 @@ bindings.
   written to `XLOG(ERR)` but the API call returns void. Consumers should poll
   `HasStateSubscription` / `HasStatsSubscription` / `HasStatePathSubscription`
   after subscribing to confirm success.
-- **Hardcoded localhost.** All `*WithPort` variants connect to `::1` on the
-  given port. Remote-host subscriptions are not currently exposed through
-  the C surface.
+- **Remote host.** Each subscribe function takes a `host` + `port`: pass a host
+  string + explicit port to reach a remote FSDB; a NULL/empty host connects to
+  `::1`. The OSS bundle connects **plaintext** by construction (the encrypted/CPE
+  path is non-OSS and not linked into the bundle), so the remote FSDB must accept
+  plaintext.
 - **Shutdown latency ≈ 100 ms.** `WaitFor*` polls the shutdown flag every
   100 ms (instead of using a wakeup primitive) to keep the SPSC contract on
   the internal queues. A `folly::Baton`-based wakeup is on the roadmap if

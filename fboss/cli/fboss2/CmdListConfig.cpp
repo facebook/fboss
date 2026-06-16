@@ -18,6 +18,8 @@
 #include "fboss/cli/fboss2/commands/config/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
+#include "fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h"
+#include "fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
@@ -107,6 +109,9 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
+#include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
+#include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
+#include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
 
 namespace facebook::fboss {
 
@@ -153,6 +158,18 @@ const CommandTree& kConfigCommandTree() {
                "Set queuing policy for interface",
                commandHandler<CmdConfigInterfaceQueuingPolicy>,
                argRegistrar<CmdConfigInterfaceQueuingPolicyTraits>,
+           },
+           {
+               "ipv6",
+               "Configure IPv6 settings for interface",
+               commandHandler<CmdConfigInterfaceIpv6>,
+               argTypeHandler<CmdConfigInterfaceIpv6Traits>,
+               {{
+                   "ndp",
+                   "Configure IPv6 Neighbor Discovery (NDP/RA) settings",
+                   commandHandler<CmdConfigInterfaceIpv6Ndp>,
+                   argRegistrar<CmdConfigInterfaceIpv6NdpTraits>,
+               }},
            },
            {
                "switchport",
@@ -828,6 +845,26 @@ const CommandTree& kConfigCommandTree() {
               "Set global default VLAN ID for untagged traffic",
               commandHandler<CmdConfigVlanDefault>,
               argRegistrar<CmdConfigVlanDefaultTraits>,
+          }},
+      },
+
+      {
+          "delete",
+          "interface",
+          "Reset interface settings (e.g. ipv6 ndp)",
+          commandHandler<CmdDeleteInterface>,
+          argRegistrar<CmdDeleteInterfaceTraits>,
+          {{
+              "ipv6",
+              "Delete (reset to default) IPv6 settings for interface",
+              commandHandler<CmdDeleteInterfaceIpv6>,
+              argTypeHandler<CmdDeleteInterfaceIpv6Traits>,
+              {{
+                  "ndp",
+                  "Reset IPv6 Neighbor Discovery (NDP/RA) settings to defaults",
+                  commandHandler<CmdDeleteInterfaceIpv6Ndp>,
+                  argRegistrar<CmdDeleteInterfaceIpv6NdpTraits>,
+              }},
           }},
       },
 

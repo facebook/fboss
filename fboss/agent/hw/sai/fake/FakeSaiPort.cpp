@@ -1329,8 +1329,14 @@ sai_status_t set_port_serdes_attribute_fn(
   auto fs = FakeSai::getInstance();
   auto& portSerdes = fs->portSerdesManager.get(port_serdes_id);
   auto& port = fs->portManager.get(portSerdes.port);
+  // Replace (not append) the stored values: a set attribute call overwrites
+  // the serdes parameter. Using back_inserter here would accumulate across
+  // repeated sets of the same attribute (create sets it once, then
+  // SaiObjectStore::program re-sets it during reconciliation), doubling the
+  // vector and tripping the lane-count check below on platforms whose mapping
+  // carries TX FIR settings (e.g. Montblanc).
   auto fillVec = [](auto& vec, auto* list, size_t count) {
-    std::copy(list, list + count, std::back_inserter(vec));
+    vec.assign(list, list + count);
   };
   auto checkLanes = [&port](auto vec) {
     return port.lanes.size() == vec.size();

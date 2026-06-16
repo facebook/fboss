@@ -5,6 +5,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
@@ -72,13 +73,18 @@ class BgpRibTestPublisher {
    * @param nextHop Next hop address (e.g., "2001:db8:ffff::1")
    * @param localPref Local preference value (default: 100)
    * @param asPath AS path as vector of ASNs (default: {65001, 65002})
+   * @param communities BGP communities as {asn, value} pairs (default: none).
+   *        Attached to the single selected path before it is surfaced both in
+   *        paths[best_group] and as the top-level best_path copy, so the two
+   *        stay identical -- the same shape bgpd produces (RibBase.cpp).
    * @return Populated TRibEntry suitable for FSDB publishing
    */
   static bgp_thrift::TRibEntry createTestRibEntry(
       const std::string& prefix,
       const std::string& nextHop,
       int32_t localPref = 100,
-      const std::vector<int32_t>& asPath = {65001, 65002});
+      const std::vector<int32_t>& asPath = {65001, 65002},
+      const std::vector<std::pair<int32_t, int32_t>>& communities = {});
 
   /**
    * Create a batch of test RIB entries

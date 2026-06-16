@@ -119,7 +119,6 @@ add_library(montblanc_bsp
 
 target_link_libraries(montblanc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -174,7 +173,6 @@ add_library(morgan800cc_bsp
 
 target_link_libraries(morgan800cc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 

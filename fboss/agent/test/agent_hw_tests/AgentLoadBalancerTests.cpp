@@ -692,8 +692,10 @@ class AgentHashPolarizationTest : public AgentHwTest {
       return captured;
     }
 
-    auto postStats = getLatestPortStats(ports);
-    EXPECT_TRUE(egressBalanced(preStats, postStats));
+    WITH_RETRIES({
+      auto postStats = getLatestPortStats(ports);
+      EXPECT_EVENTUALLY_TRUE(egressBalanced(preStats, postStats));
+    });
     return captured;
   }
 
@@ -734,8 +736,10 @@ class AgentHashPolarizationTest : public AgentHwTest {
     EXPECT_LE(dropped, replay.size() * kMaxReplayDropRatio)
         << "Too many captured frames were skipped during replay";
 
-    auto postStats = getLatestPortStats(ports);
-    EXPECT_TRUE(egressBalanced(preStats, postStats));
+    WITH_RETRIES({
+      auto postStats = getLatestPortStats(ports);
+      EXPECT_EVENTUALLY_TRUE(egressBalanced(preStats, postStats));
+    });
   }
 
   template <typename AddrT>

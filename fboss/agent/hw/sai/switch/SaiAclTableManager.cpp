@@ -2104,6 +2104,10 @@ bool SaiAclTableManager::isQualifierSupported(
           attributes);
       return field.has_value();
     }
+    case cfg::AclTableQualifier::TC:
+    case cfg::AclTableQualifier::NEXT_HOP_GROUP_ID:
+      // PBR phase 2 qualifiers: real support is wired in a stacked diff.
+      return false;
     case cfg::AclTableQualifier::UDF:
       /* not supported */
       return false;

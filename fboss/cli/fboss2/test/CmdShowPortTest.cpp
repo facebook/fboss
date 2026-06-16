@@ -15,7 +15,6 @@
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 #ifndef IS_OSS
-#include "configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
 using namespace facebook::neteng::fboss::bgp::thrift;
 #endif

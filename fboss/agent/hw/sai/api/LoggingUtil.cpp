@@ -541,7 +541,7 @@ std::string saiSerLogTypeToString(sai_ser_log_type_t sai_ser_log_type) {
       return "SAI_SER_LOG_TYPE_ENTRY_INFO";
     case SAI_SER_LOG_TYPE_CACHE:
       return "SAI_SER_LOG_TYPE_CACHE";
-#if defined(BRCM_SAI_SDK_XGS_GTE_15_0)
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_0) || defined(TAJO_SDK_GTE_26_5)
     case SAI_SER_LOG_TYPE_NONE:
       return "SAI_SER_LOG_TYPE_NONE";
 #endif

@@ -116,7 +116,8 @@ bgp_thrift::TRibEntry BgpRibTestPublisher::createTestRibEntry(
     const std::string& prefix,
     const std::string& nextHop,
     int32_t localPref,
-    const std::vector<int32_t>& asPath) {
+    const std::vector<int32_t>& asPath,
+    const std::vector<std::pair<int32_t, int32_t>>& communities) {
   using namespace facebook::neteng::fboss::bgp::thrift;
   using namespace facebook::neteng::fboss::bgp_attr;
 
@@ -161,10 +162,21 @@ bgp_thrift::TRibEntry BgpRibTestPublisher::createTestRibEntry(
   }
   bgpPath.as_path()->push_back(segment);
 
+  // Attach communities to the selected path before it is stored, so they are
+  // present in BOTH paths[best_group] and the best_path copy below -- matching
+  // bgpd, which builds the path once and surfaces it both ways (RibBase.cpp).
+  for (const auto& [asn, value] : communities) {
+    TBgpCommunity comm;
+    comm.asn() = asn;
+    comm.value() = value;
+    bgpPath.communities().ensure().push_back(comm);
+  }
+
   std::string groupName = "best";
   ribEntry.paths()[groupName].push_back(bgpPath);
   ribEntry.best_group() = groupName;
   ribEntry.rib_version() = 1;
+  ribEntry.best_path() = bgpPath;
 
   return ribEntry;
 }

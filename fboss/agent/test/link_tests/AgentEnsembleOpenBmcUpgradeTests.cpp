@@ -113,6 +113,7 @@ class AgentEnsembleOpenBmcUpgradeTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentEnsembleOpenBmcUpgradeTest, openBmcHitlessUpgrade) {
+  addTestedPorts(getCabledPorts());
   // Do an initial sanity check on the OpenBmc
   openBmcSanityCheck();
   XLOG(DBG2) << "OpenBMC version before upgrade : " << openBmcVersion();

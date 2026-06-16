@@ -104,22 +104,23 @@ TEST_F(FsdbCgoWrapperApiTest, FreeStatsUpdatesNullHandle) {
   EXPECT_NO_THROW(FreeStatsUpdates(nullptr));
 }
 
-// SubscribeToPortMapsWithPort / SubscribeToStatsPathWithPort null-handle
-// safety
-TEST_F(FsdbCgoWrapperApiTest, SubscribeToPortMapsWithPortNullHandle) {
-  EXPECT_NO_THROW(SubscribeToPortMapsWithPort(nullptr, 5908));
-}
-
-TEST_F(FsdbCgoWrapperApiTest, SubscribeToStatsPathWithPortNullHandle) {
-  const char* tokens[] = {"agent"};
-  EXPECT_NO_THROW(SubscribeToStatsPathWithPort(nullptr, tokens, 1, 5908));
+// A null or empty host is accepted (treated as localhost) and must not crash;
+// with no reachable server it simply leaves the subscription unestablished or
+// pending — the contract here is "no throw, no crash".
+TEST_F(FsdbCgoWrapperApiTest, SubscribeToPortMapsNullHost) {
+  ASSERT_EQ(FsdbInit(FSDB_CGO_ABI_VERSION), 0);
+  FsdbWrapperHandle handle = CreateFsdbWrapper("portmaps-null-host");
+  ASSERT_NE(handle, nullptr);
+  EXPECT_NO_THROW(SubscribeToPortMaps(handle, nullptr, -1));
+  EXPECT_NO_THROW(SubscribeToPortMaps(handle, "", -1));
+  DestroyFsdbWrapper(handle);
 }
 
 TEST_F(FsdbCgoWrapperApiTest, SubscribeToStatsPathNullTokens) {
   ASSERT_EQ(FsdbInit(FSDB_CGO_ABI_VERSION), 0);
   FsdbWrapperHandle handle = CreateFsdbWrapper("stats-path-null-tokens");
   ASSERT_NE(handle, nullptr);
-  EXPECT_NO_THROW(SubscribeToStatsPath(handle, nullptr, 1));
+  EXPECT_NO_THROW(SubscribeToStatsPath(handle, nullptr, 1, nullptr, -1));
   EXPECT_EQ(HasStatsSubscription(handle), 0);
   DestroyFsdbWrapper(handle);
 }
@@ -129,7 +130,7 @@ TEST_F(FsdbCgoWrapperApiTest, SubscribeToStatsPathZeroTokens) {
   FsdbWrapperHandle handle = CreateFsdbWrapper("stats-path-zero-tokens");
   ASSERT_NE(handle, nullptr);
   const char* tokens[] = {"agent"};
-  EXPECT_NO_THROW(SubscribeToStatsPath(handle, tokens, 0));
+  EXPECT_NO_THROW(SubscribeToStatsPath(handle, tokens, 0, nullptr, -1));
   EXPECT_EQ(HasStatsSubscription(handle), 0);
   DestroyFsdbWrapper(handle);
 }
@@ -188,19 +189,14 @@ TEST_F(FsdbCgoWrapperApiTest, FullLifecycleNoSubscription) {
 // New state-path API: null safety
 TEST_F(FsdbCgoWrapperApiTest, SubscribeToStatePathNullHandle) {
   const char* tokens[] = {"agent"};
-  EXPECT_NO_THROW(SubscribeToStatePath(nullptr, tokens, 1));
-}
-
-TEST_F(FsdbCgoWrapperApiTest, SubscribeToStatePathWithPortNullHandle) {
-  const char* tokens[] = {"agent"};
-  EXPECT_NO_THROW(SubscribeToStatePathWithPort(nullptr, tokens, 1, 5908));
+  EXPECT_NO_THROW(SubscribeToStatePath(nullptr, tokens, 1, nullptr, -1));
 }
 
 TEST_F(FsdbCgoWrapperApiTest, SubscribeToStatePathNullTokens) {
   ASSERT_EQ(FsdbInit(FSDB_CGO_ABI_VERSION), 0);
   FsdbWrapperHandle handle = CreateFsdbWrapper("state-path-null-tokens");
   ASSERT_NE(handle, nullptr);
-  EXPECT_NO_THROW(SubscribeToStatePath(handle, nullptr, 1));
+  EXPECT_NO_THROW(SubscribeToStatePath(handle, nullptr, 1, nullptr, -1));
   EXPECT_EQ(HasStatePathSubscription(handle), 0);
   DestroyFsdbWrapper(handle);
 }
@@ -210,7 +206,7 @@ TEST_F(FsdbCgoWrapperApiTest, SubscribeToStatePathZeroTokens) {
   FsdbWrapperHandle handle = CreateFsdbWrapper("state-path-zero-tokens");
   ASSERT_NE(handle, nullptr);
   const char* tokens[] = {"agent"};
-  EXPECT_NO_THROW(SubscribeToStatePath(handle, tokens, 0));
+  EXPECT_NO_THROW(SubscribeToStatePath(handle, tokens, 0, nullptr, -1));
   EXPECT_EQ(HasStatePathSubscription(handle), 0);
   DestroyFsdbWrapper(handle);
 }
@@ -262,12 +258,12 @@ TEST_F(FsdbCgoWrapperApiTest, GetClientIdNullHandle) {
 }
 
 TEST_F(FsdbCgoWrapperApiTest, SubscribeToPortMapsNullHandle) {
-  EXPECT_NO_THROW(SubscribeToPortMaps(nullptr));
+  EXPECT_NO_THROW(SubscribeToPortMaps(nullptr, nullptr, -1));
 }
 
 TEST_F(FsdbCgoWrapperApiTest, SubscribeToStatsPathNullHandle) {
   const char* tokens[] = {"agent"};
-  EXPECT_NO_THROW(SubscribeToStatsPath(nullptr, tokens, 1));
+  EXPECT_NO_THROW(SubscribeToStatsPath(nullptr, tokens, 1, nullptr, -1));
 }
 
 } // namespace facebook::fboss::fsdb::test

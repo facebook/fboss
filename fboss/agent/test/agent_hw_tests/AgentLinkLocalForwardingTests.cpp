@@ -140,7 +140,8 @@ TEST_F(AgentLinkLocalForwardingTest, EcmpLinkLocalNexthopsLoadBalanced) {
           utility::pumpTraffic(
               true /* isV6 */,
               utility::getAllocatePktFn(getSw()),
-              utility::getSendPktFunc(getSw()),
+              utility::getSendPktFunc(
+                  getSw(), getSwitchIdUnderTest(*getAgentEnsemble())),
               getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
               getVlanIDForTx());
         },
