@@ -14605,7 +14605,7 @@ class ChildThriftPath<::facebook::fboss::cfg::RedirectToNextHopAction, ::faceboo
     ChildTag,
     Self
   >;
-  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::nexthops, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::nexthops_DEPRECATED, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::redirectNextHops, ChildThriftPath<::std::vector<::facebook::fboss::cfg::RedirectNextHop>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::redirectNextHopGroup, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
 
@@ -14613,13 +14613,13 @@ std::pair<apache::thrift::ident::redirectNextHopGroup, Child<::std::string, ::ap
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
   
-    STRUCT_CHILD_GETTERS(nexthops, 1);
+    STRUCT_CHILD_GETTERS(nexthops_DEPRECATED, 1);
     STRUCT_CHILD_GETTERS(redirectNextHops, 2);
     STRUCT_CHILD_GETTERS(redirectNextHopGroup, 3);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
-    if constexpr (__id == apache::thrift::FieldId{1}) { return nexthops(); }
+    if constexpr (__id == apache::thrift::FieldId{1}) { return nexthops_DEPRECATED(); }
     else if constexpr (__id == apache::thrift::FieldId{2}) { return redirectNextHops(); }
     else if constexpr (__id == apache::thrift::FieldId{3}) { return redirectNextHopGroup(); }
   }
