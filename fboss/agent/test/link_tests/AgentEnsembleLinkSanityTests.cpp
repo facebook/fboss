@@ -115,6 +115,7 @@ class AgentEnsembleLinkSanityTestDataPlaneFlood : public AgentEnsembleLinkTest {
 TEST_F(AgentEnsembleLinkTest, asicLinkFlap) {
   auto verify = [this]() {
     auto ports = getCabledPorts();
+    addTestedPorts(ports);
     int numIterations = FLAGS_link_stress_test ? 25 : 1;
     for (int iteration = 1; iteration <= numIterations; iteration++) {
       XLOG(INFO) << "Starting iteration# " << iteration;
@@ -150,6 +151,7 @@ TEST_F(AgentEnsembleLinkTest, getTransceivers) {
   auto verify = [this]() {
     WITH_RETRIES({
       auto ports = getCabledTransceiverPorts();
+      addTestedPorts(ports);
       for (const auto& port : ports) {
         auto transceiverId =
             getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(port);
@@ -172,6 +174,7 @@ TEST_F(AgentEnsembleLinkTest, getTransceivers) {
 }
 
 TEST_F(AgentEnsembleLinkTest, trafficRxTx) {
+  addTestedPorts(getCabledPorts());
   auto verify = [this]() {
     WITH_RETRIES({
       getSw()->getLldpMgr()->sendLldpOnAllPorts();
@@ -183,6 +186,7 @@ TEST_F(AgentEnsembleLinkTest, trafficRxTx) {
 }
 
 TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, warmbootIsHitLess) {
+  addTestedPorts(getCabledPorts());
   // Create a L3 data plane flood and then assert that none of the
   // traffic bearing ports loss traffic.
   // TODO: Assert that all (non downlink) cabled ports get traffic.
@@ -209,6 +213,7 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, warmbootIsHitLess) {
 }
 
 TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
+  addTestedPorts(getCabledPorts());
   // Create a L3 data plane flood and then warmboot qsfp_service. Then assert
   // that none of the traffic bearing ports loss traffic.
   verifyAcrossWarmBoots(
@@ -245,6 +250,7 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
 }
 
 TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, ptpEnableIsHitless) {
+  addTestedPorts(getCabledPorts());
   // disable PTP as by default we'll  have it enabled now
   getSw()->updateStateBlocking("ptp disable", [](auto state) {
     auto newState = state->clone();
@@ -294,6 +300,7 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, ptpEnableIsHitless) {
 TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
   auto [opticalPorts, opticalPortNames] =
       getOpticalAndActiveCabledPortsAndNames();
+  addTestedPorts(opticalPorts);
   EXPECT_FALSE(opticalPorts.empty())
       << "opticsTxDisableRandomPorts: Did not detect any optical transceivers";
 
@@ -382,6 +389,7 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
 TEST_F(AgentEnsembleLinkTest, opticsTxDisableEnable) {
   auto [opticalPorts, opticalPortNames] =
       getOpticalAndActiveCabledPortsAndNames();
+  addTestedPorts(opticalPorts);
   EXPECT_FALSE(opticalPorts.empty())
       << "opticsTxDisableEnable: Did not detect any optical transceivers";
 
@@ -442,6 +450,7 @@ TEST_F(AgentEnsembleLinkTest, testOpticsRemediation) {
       disabledPortNames += " " + portName;
       disabledPortNames += " " + peerPortName;
     }
+    addTestedPorts(disabledPorts);
 
     const std::string txDisableCmd =
         qsfpUtilPrefix() + disabledPortNames + " --tx-disable";
@@ -495,6 +504,7 @@ TEST_F(AgentEnsembleLinkTest, testOpticsRemediation) {
 }
 
 TEST_F(AgentEnsembleLinkTest, qsfpColdbootAfterAgentUp) {
+  addTestedPorts(getCabledPorts());
   // Verifies that a qsfp cold boot after agent is up can still bringup the
   // links and there is no dependency on which service starts first
   verifyAcrossWarmBoots(
@@ -525,6 +535,7 @@ TEST_F(AgentEnsembleLinkTest, fabricLinkHealth) {
   //   integrity etc) to verify and add those checks
 
   auto fabricPorts = getCabledFabricPorts();
+  addTestedPorts(fabricPorts);
 
   setForceTrafficOverFabric(true);
 

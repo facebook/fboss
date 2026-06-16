@@ -132,6 +132,10 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
    *       for LOL, so only bypass that.
    */
   auto opticalPortPairs = getConnectedOpticalPortPairs();
+  for (const auto& [p1, p2] : opticalPortPairs) {
+    addTestedPort(p1);
+    addTestedPort(p2);
+  }
   EXPECT_FALSE(opticalPortPairs.empty())
       << "Did not detect any optical transceivers";
 
@@ -348,6 +352,7 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
     allTestPorts.push_back(portPair.first);
     allTestPorts.push_back(portPair.second);
   }
+  addTestedPorts(allTestPorts);
 
   std::unordered_set<int32_t> transceiverIdSet;
   for (const auto& port : allTestPorts) {

@@ -229,6 +229,11 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
 // }
 TEST_F(AgentEnsemblePtpTests, verifyPtpTcDelayRequest) {
   auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
+  std::vector<PortID> portVec;
+  for (const auto& portDescriptor : ecmpPorts) {
+    portVec.push_back(portDescriptor.phyPortID());
+  }
+  addTestedPorts(portVec);
   // create ACL to trap any packets to CPU coming with given dst IP
   // Ideally we should have used the l4port (PTP_UDP_EVENT_PORT), but
   // SAI doesn't support this qualifier yet
@@ -256,6 +261,7 @@ TEST_F(AgentEnsemblePtpTests, verifyPtpTcAfterLinkFlap) {
       break;
     }
   }
+  addTestedPorts(portVec);
   programDefaultRoute(ecmpPorts, getSw()->getLocalMac(scope(ecmpPorts)));
 
   // 1. Disable PTP
@@ -299,6 +305,7 @@ TEST_F(AgentEnsemblePtpTests, enablePtpPortDown) {
       break;
     }
   }
+  addTestedPorts(portVec);
   programDefaultRoute(ecmpPorts, getSw()->getLocalMac(scope(ecmpPorts)));
 
   // 1. Disable PTP

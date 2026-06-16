@@ -244,6 +244,7 @@ std::optional<phy::PhyInfo> getXphyInfo(PortID portID) {
 
 TEST_F(AgentEnsembleLinkTest, iPhyInfoTest) {
   auto cabledPorts = getCabledPorts();
+  addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
   auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());
@@ -294,6 +295,7 @@ TEST_F(AgentEnsembleLinkTest, iPhyInfoTest) {
 
 TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
   auto cabledPorts = getXphyCabledPorts();
+  addTestedPorts(cabledPorts);
   ASSERT_FALSE(cabledPorts.empty());
 
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
@@ -381,6 +383,7 @@ TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
  */
 TEST_F(AgentEnsembleLinkTest, verifyIphyFecCounters) {
   auto cabledPorts = getCabledPorts();
+  addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
   auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());
@@ -479,6 +482,7 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
   std::map<PortID, const phy::PhyInfo> previousPhyInfo;
   std::map<PortID, const phy::PhyInfo> currentPhyInfo;
   auto cabledPorts = getCabledPorts();
+  addTestedPorts(cabledPorts);
   auto getPhyInfo = [this, &cabledPorts](
                         time_t timeReference,
                         std::map<PortID, const phy::PhyInfo>& phyInfo) {
@@ -622,6 +626,7 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
 
 TEST_F(AgentEnsembleLinkTest, clearIphyInterfaceCounters) {
   auto cabledPorts = getCabledPorts();
+  addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
   auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());

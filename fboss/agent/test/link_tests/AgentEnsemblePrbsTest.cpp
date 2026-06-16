@@ -123,6 +123,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
                    << " test on "
                    << apache::thrift::util::enumNameSafe(testPort.component)
                    << " on " << testPort.portName;
+        addTestedPort(getPortID(testPort.portName));
       }
     }
   }

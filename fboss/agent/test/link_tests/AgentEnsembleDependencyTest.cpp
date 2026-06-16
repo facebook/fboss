@@ -27,6 +27,7 @@ TEST_F(AgentEnsembleLinkEcmpTest, ecmpShrink) {
     for (const auto& port : ecmpPorts) {
       ports.push_back(port.phyPortID());
     }
+    addTestedPorts(ports);
     auto verifyEcmpSize = [&](const std::shared_ptr<SwitchState>& /*state*/) {
       auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
       facebook::fboss::utility::CIDRNetwork cidr;
