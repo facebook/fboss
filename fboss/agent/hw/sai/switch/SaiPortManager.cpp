@@ -3786,10 +3786,15 @@ std::vector<sai_port_err_status_t> SaiPortManager::getPortErrStatus(
 
 phy::FecMode SaiPortManager::getFECMode(PortID portId) const {
   auto handle = getPortHandle(portId);
-  auto saiFecMode = GET_OPT_ATTR(Port, FecMode, handle->port->attributes());
-  auto profileID = platform_->getPort(portId)->getCurrentProfile();
-  return utility::getFecModeFromSaiFecMode(
-      static_cast<sai_port_fec_mode_t>(saiFecMode), profileID);
+  auto attr = std::get<std::optional<SaiPortTraits::Attributes::FecMode>>(
+      handle->port->attributes());
+  if (attr.has_value()) {
+    auto saiFecMode = attr.value().value();
+    auto profileID = platform_->getPort(portId)->getCurrentProfile();
+    return utility::getFecModeFromSaiFecMode(
+        static_cast<sai_port_fec_mode_t>(saiFecMode), profileID);
+  }
+  return phy::FecMode::NONE;
 }
 
 cfg::PortSpeed SaiPortManager::getSpeed(PortID portId) const {
