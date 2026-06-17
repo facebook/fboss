@@ -687,9 +687,8 @@ cpp_library(
         "//fboss/agent:agent_features",
         "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fib_helpers",
-        "//fboss/agent:utils",
+        "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
-        "//fboss/agent/test:utils",
     ],
 )
 

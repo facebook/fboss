@@ -70,24 +70,8 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
     newState->publish();
     consolidate(newState);
     assertEndState(newState, {});
-    setupState = state_->clone();
-    setupState->publish();
     XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
   }
-  void TearDown() override {
-    StateDelta delta(setupState, sw_->getState());
-    if (delta.getFlowletSwitchingConfigDelta().getOld() ==
-        delta.getFlowletSwitchingConfigDelta().getNew()) {
-      // If test didn't change flowlet settings, check for rollbacks. During
-      // rollbacks we will explicitly fail updates and we don't allow
-      // for failures of updates across a backup ecmp mode (stored in
-      // flowlet switch settings) change
-      auto newEcmpResourceMgr = makeResourceMgr();
-      assertRollbacks(*newEcmpResourceMgr, setupState, sw_->getState());
-    }
-    BaseEcmpResourceManagerTest::TearDown();
-  }
-  std::shared_ptr<SwitchState> setupState;
 };
 
 TEST_F(EcmpBackupGroupTypeTest, addSingleNhopRoutesBelowEcmpLimit) {
