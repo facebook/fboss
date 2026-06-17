@@ -88,7 +88,7 @@ Current run path: {run_path}"""
     print(f"Starting build for {target}")
     subprocess.run(
         f"""{get_deps_path} build """
-        + f"--allow-system-packages --num-jobs 32 --extra-cmake-defines='{cmake_defines_json}' --cmake-target"
+        + f"--allow-system-packages --num-jobs 32 --extra-cmake-defines='{cmake_defines_json}' --src-dir {expected_path} --cmake-target"
         + f" {target} fboss",
         check=False,
         shell=True,
