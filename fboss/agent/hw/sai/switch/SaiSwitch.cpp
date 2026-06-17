@@ -2918,6 +2918,17 @@ void SaiSwitch::clearSignalDetectAndLockChangedStats(const PortID& portId) {
   }
 }
 
+void SaiSwitch::triggerCableLengthMeasurement(
+    const std::unique_ptr<std::vector<int32_t>>& ports) {
+  std::vector<PortID> portIds;
+  portIds.reserve(ports->size());
+  for (const auto port : *ports) {
+    portIds.emplace_back(port);
+  }
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  managerTable_->portManager().triggerCableLengthMeasurement(portIds);
+}
+
 void SaiSwitch::clearInterfacePhyCounters(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
   auto& portManager = managerTable_->portManager();

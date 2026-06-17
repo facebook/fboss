@@ -2052,6 +2052,27 @@ SaiPortHandle* SaiPortManager::getPortHandle(PortID swId) {
   return getPortHandleImpl(swId);
 }
 
+void SaiPortManager::triggerCableLengthMeasurement(
+    const std::vector<PortID>& ports) {
+  if (!SaiPortTraits::Attributes::AttributeCablePropagationDelayMeasure{}()) {
+    throw FbossError(
+        "Cable length measurement is not supported on this device");
+  }
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+  for (const auto& port : ports) {
+    auto* handle = getPortHandle(port);
+    if (!handle) {
+      throw FbossError(
+          "Cannot trigger cable length measurement on non existent port: ",
+          port);
+    }
+    portApi.setAttribute(
+        handle->port->adapterKey(),
+        SaiPortTraits::Attributes::CablePropagationDelayMeasure{true});
+    resetCableLength(port);
+  }
+}
+
 // private const getter for use by const and non-const getters
 SaiQueueHandle* SaiPortManager::getQueueHandleImpl(
     PortID swId,

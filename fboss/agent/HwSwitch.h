@@ -399,6 +399,8 @@ class HwSwitch {
   virtual void dumpDebugState(const std::string& path) const = 0;
 
   virtual void setSdkRegDumpEnabled(bool enabled);
+  virtual void triggerCableLengthMeasurement(
+      const std::unique_ptr<std::vector<int32_t>>& ports);
   virtual std::string listObjects(
       const std::vector<HwObjectType>& types,
       bool cached) const = 0;

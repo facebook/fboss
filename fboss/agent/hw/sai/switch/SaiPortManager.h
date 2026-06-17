@@ -173,6 +173,7 @@ class SaiPortManager {
 
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
+  void triggerCableLengthMeasurement(const std::vector<PortID>& ports);
   const SaiQueueHandle* getQueueHandle(
       PortID swId,
       const SaiQueueConfig& saiQueueConfig) const;

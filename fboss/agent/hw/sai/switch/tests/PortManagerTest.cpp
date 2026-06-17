@@ -226,6 +226,42 @@ TEST_F(PortManagerTest, addTwoPorts) {
   checkPort(PortID(10), handle, true);
 }
 
+TEST_F(PortManagerTest, triggerCableLengthMeasurement) {
+  auto swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+  auto port2 = makePort(p1);
+  saiManagerTable->portManager().addPort(port2);
+
+  auto& portApi = saiApiTable->portApi();
+  auto getMeasureAttr = [&](const PortID& port) {
+    auto* handle = saiManagerTable->portManager().getPortHandle(port);
+    CHECK(handle);
+    return portApi.getAttribute(
+        handle->port->adapterKey(),
+        SaiPortTraits::Attributes::CablePropagationDelayMeasure{});
+  };
+
+  const std::vector<PortID> ports{swPort->getID(), port2->getID()};
+  EXPECT_EQ(getMeasureAttr(swPort->getID()), false);
+  EXPECT_EQ(getMeasureAttr(port2->getID()), false);
+  auto* portStat = const_cast<HwPortFb303Stats*>(
+      saiManagerTable->portManager().getLastPortStat(swPort->getID()));
+  ASSERT_NE(portStat, nullptr);
+  auto cachedStats = portStat->portStats();
+  cachedStats.cableLengthMeters() = 100;
+  cachedStats.cableDelayNsec() = 500;
+  portStat->updateStats(cachedStats, std::chrono::seconds{1});
+  EXPECT_EQ(portStat->portStats().cableLengthMeters(), 100);
+  EXPECT_EQ(portStat->portStats().cableDelayNsec(), 500);
+
+  saiManagerTable->portManager().triggerCableLengthMeasurement(ports);
+
+  EXPECT_EQ(getMeasureAttr(swPort->getID()), true);
+  EXPECT_EQ(getMeasureAttr(port2->getID()), true);
+  EXPECT_FALSE(portStat->portStats().cableLengthMeters().has_value());
+  EXPECT_FALSE(portStat->portStats().cableDelayNsec().has_value());
+}
+
 TEST_F(PortManagerTest, iterator) {
   std::set<PortSaiId> addedPorts;
   auto& portMgr = saiManagerTable->portManager();
