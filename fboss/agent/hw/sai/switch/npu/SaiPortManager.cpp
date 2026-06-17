@@ -1211,12 +1211,23 @@ void SaiPortManager::programSerdes(
       std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPost3>>(
           serdesAttributes) = std::nullopt;
     }
-    // set main txfir only first to avoid programming errors, see CS00012393198
-    auto attributes = serdesAttributes;
     auto newTxFirMain =
         std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirMain>>(
             serdesAttributes);
-    if (newTxFirMain.has_value()) {
+    if (swPort->getZeroPreemphasis() && newTxFirMain.has_value()) {
+      // Broadcom rejects *creating* a port serdes object with TxFirMain set to
+      // 0. When zero preemphasis is requested (e.g. HW loopback tests) and the
+      // serdes is being created from scratch (such as during a VCO change that
+      // recreates the port), create it with only preemphasis set and leave the
+      // TX FIR taps unprogrammed. The setObject() below then programs the
+      // zeroed taps as an update, which the SDK does allow. This only matters
+      // when the profile actually has TX FIR taps; copper profiles have no
+      // TxFirMain and fall through to the path below.
+      createSerdesWithZeroPreemphasis(portHandle, swPort->getPinConfigs());
+    } else if (newTxFirMain.has_value()) {
+      // set main txfir only first to avoid programming errors, see
+      // CS00012393198
+      auto attributes = serdesAttributes;
       auto numLanes = newTxFirMain.value().value().size();
       SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
       txPre1.resize(numLanes, 0);
@@ -1784,11 +1795,16 @@ void SaiPortManager::createSerdesWithZeroPreemphasis(
   }
 
 #if !defined(CHENAB_SAI_SDK)
-  SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preemphasis;
-  preemphasis.resize(numExpectedTxLanes, 0);
-  std::get<std::optional<
-      std::decay_t<decltype(SaiPortSerdesTraits::Attributes::Preemphasis{})>>>(
-      attributes) = preemphasis;
+  // Only program Preemphasis when the profile actually has TX lanes. Setting an
+  // empty Preemphasis vector (e.g. for copper profiles with no tx pin configs)
+  // is rejected by the SDK with INVALID ATTRIBUTE MAX.
+  if (numExpectedTxLanes > 0) {
+    SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preemphasis;
+    preemphasis.resize(numExpectedTxLanes, 0);
+    std::get<std::optional<std::decay_t<
+        decltype(SaiPortSerdesTraits::Attributes::Preemphasis{})>>>(
+        attributes) = preemphasis;
+  }
 #endif
   SaiPortSerdesTraits::AdapterHostKey serdesKey{portSaiId};
   auto& store = saiStore_->get<SaiPortSerdesTraits>();
