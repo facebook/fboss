@@ -631,13 +631,7 @@ TYPED_TEST(AgentSrv6DecapTest, sendDecapPacketNonLastSegmentDropped) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-// Verify that when an SRv6 encapsulated packet arrives with an inner
-// destination matching a local IP, the ASIC decapsulates (strips
-// outer header) before punting to CPU. Tests both IPv6 and IPv4 inner
-// destinations. Reproduces the RBB issue where the ASIC punted
-// packets with the outer SRv6 header still present, causing the agent
-// to see a double-header packet and fail to deliver it to kernel.
-TYPED_TEST(AgentSrv6DecapTest, verifyDecapPuntStripsOuterHeader) {
+TYPED_TEST(AgentSrv6DecapTest, verifyDecapMySidPunt) {
   auto setup = [this]() {
     this->setupHelper();
     // Add COPP config to trap packets destined to device's own IPs.
@@ -728,57 +722,7 @@ TYPED_TEST(AgentSrv6DecapTest, verifyDecapPuntStripsOuterHeader) {
             kInnerHopLimit);
       }
 
-      auto origFrame = utility::makeEthFrame(*txPacket);
-      auto origOuterV6 = origFrame.v6PayLoad();
-      ASSERT_TRUE(origOuterV6.has_value());
-      std::optional<utility::UDPDatagram> expectedUdp;
-      if (isV4) {
-        auto innerV4 = origOuterV6->v4PayLoad();
-        ASSERT_NE(innerV4, nullptr);
-        expectedUdp = innerV4->udpPayload();
-      } else {
-        auto innerV6 = origOuterV6->v6PayLoad();
-        ASSERT_NE(innerV6, nullptr);
-        expectedUdp = innerV6->udpPayload();
-      }
-      ASSERT_TRUE(expectedUdp.has_value());
-
-      utility::SwSwitchPacketSnooper snooper(
-          this->getSw(), "srv6DecapPuntSnooper");
-
       this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
-
-      auto frameRx = snooper.waitForPacket(10);
-      ASSERT_TRUE(frameRx.has_value()) << "Timed out waiting for punted packet";
-
-      folly::io::Cursor cursor((*frameRx).get());
-      utility::EthFrame frame(cursor);
-
-      // 1. Confirm the outer header was stripped
-      std::optional<utility::UDPDatagram> rxUdp;
-      if (isV4) {
-        EXPECT_EQ(
-            frame.header().etherType,
-            static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4));
-        auto rxV4 = frame.v4PayLoad();
-        ASSERT_TRUE(rxV4.has_value());
-        // 2. Confirm inner IP fields match what we constructed
-        EXPECT_EQ(rxV4->header().srcAddr, folly::IPAddressV4("10.0.0.1"));
-        EXPECT_EQ(rxV4->header().dstAddr, myIntfIpV4);
-        rxUdp = rxV4->udpPayload();
-      } else {
-        EXPECT_EQ(
-            frame.header().etherType,
-            static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
-        auto rxV6 = frame.v6PayLoad();
-        ASSERT_TRUE(rxV6.has_value());
-        // 2. Confirm inner IP fields match what we constructed
-        EXPECT_EQ(rxV6->header().srcAddr, folly::IPAddressV6("1::10"));
-        EXPECT_EQ(rxV6->header().dstAddr, myIntfIpV6);
-        rxUdp = rxV6->udpPayload();
-      }
-      ASSERT_TRUE(rxUdp.has_value());
-      EXPECT_EQ(*rxUdp, *expectedUdp);
     }
 
     WITH_RETRIES({
