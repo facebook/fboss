@@ -60,6 +60,110 @@ AgentEnsembleSwitchConfigFn makeSrv6ConfigFn() {
   };
 }
 
+// Add numGroups SRv6 ECMP-group routes (2800:<group>::/48), each with
+// membersPerGroup unique SRv6 next hops. SIDs are numbered from sidBase so
+// multiple callers can keep disjoint SID ranges. The caller programs the
+// updater. Returns the programmed prefixes for later deletion.
+std::vector<RoutePrefix<folly::IPAddressV6>> addSrv6EcmpGroupRoutes(
+    SwSwitchRouteUpdateWrapper& updater,
+    const utility::EcmpSetupAnyNPorts6& ecmpHelper,
+    int numNhops,
+    int numGroups,
+    int membersPerGroup,
+    int sidBase = 0) {
+  std::vector<RoutePrefix<folly::IPAddressV6>> prefixes;
+  prefixes.reserve(numGroups);
+  for (int group = 0; group < numGroups; ++group) {
+    // Build members in a vector and range-construct the flat_set once (avoids
+    // O(n^2) single-element inserts into RouteNextHopSet).
+    std::vector<ResolvedNextHop> members;
+    members.reserve(membersPerGroup);
+    for (int member = 0; member < membersPerGroup; ++member) {
+      auto globalIndex = group * membersPerGroup + member;
+      auto nhop = ecmpHelper.nhop(globalIndex % numNhops);
+      members.emplace_back(
+          nhop.ip,
+          nhop.intf,
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::vector<folly::IPAddressV6>{makeSid(sidBase + globalIndex)},
+          TunnelType::SRV6_ENCAP,
+          std::string("srv6Tunnel0"));
+    }
+    RouteNextHopSet nhops(members.begin(), members.end());
+    RoutePrefix<folly::IPAddressV6> prefix(
+        folly::IPAddressV6(fmt::format("2800:{:x}::", group)), 48);
+    updater.addRoute(
+        RouterID(0),
+        folly::IPAddress(prefix.network()),
+        prefix.mask(),
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP));
+    prefixes.push_back(prefix);
+  }
+  return prefixes;
+}
+
+// Build a shared set of numShared SRv6 next hops (v4 or v6 underlay helper).
+// SIDs are numbered from sidBase.
+template <typename EcmpHelperT>
+RouteNextHopSet makeSharedSrv6Nhops(
+    const EcmpHelperT& ecmpHelper,
+    int numNhops,
+    int numShared,
+    int sidBase = 0) {
+  std::vector<ResolvedNextHop> members;
+  members.reserve(numShared);
+  for (int i = 0; i < numShared; ++i) {
+    auto nhop = ecmpHelper.nhop(i % numNhops);
+    members.emplace_back(
+        nhop.ip,
+        nhop.intf,
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::vector<folly::IPAddressV6>{makeSid(sidBase + i)},
+        TunnelType::SRV6_ENCAP,
+        std::string("srv6Tunnel0"));
+  }
+  return RouteNextHopSet(members.begin(), members.end());
+}
+
+// Add every prefix in |prefixes| pointing at the shared |nhops| set.
+template <typename AddrT>
+void addSharedSrv6Routes(
+    SwSwitchRouteUpdateWrapper& updater,
+    const std::vector<RoutePrefix<AddrT>>& prefixes,
+    const RouteNextHopSet& nhops) {
+  for (const auto& prefix : prefixes) {
+    updater.addRoute(
+        RouterID(0),
+        folly::IPAddress(prefix.network()),
+        prefix.mask(),
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP));
+  }
+}
+
+// Delete every prefix in |prefixes|.
+template <typename AddrT>
+void delSrv6Routes(
+    SwSwitchRouteUpdateWrapper& updater,
+    const std::vector<RoutePrefix<AddrT>>& prefixes) {
+  for (const auto& prefix : prefixes) {
+    updater.delRoute(
+        RouterID(0),
+        folly::IPAddress(prefix.network()),
+        prefix.mask(),
+        ClientID::BGPD);
+  }
+}
+
 // Benchmark: ECMP group scale with unique SRv6 nhops per group.
 // Programs numGroups routes, each with membersPerGroup SRv6 next hops.
 void srv6EcmpGroupScaleBenchmark(int numGroups, int membersPerGroup) {
@@ -90,47 +194,16 @@ void srv6EcmpGroupScaleBenchmark(int numGroups, int membersPerGroup) {
   // Timed: program and unprogram all routes in one shot
   suspender.dismiss();
 
-  // Program all routes with unique SRv6 nhops per group
+  std::vector<RoutePrefix<folly::IPAddressV6>> prefixes;
   {
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-    for (int group = 0; group < numGroups; ++group) {
-      RouteNextHopSet nhops;
-      for (int member = 0; member < membersPerGroup; ++member) {
-        auto globalIndex = group * membersPerGroup + member;
-        auto nhop = ecmpHelper.nhop(globalIndex % numNhops);
-        nhops.insert(ResolvedNextHop(
-            nhop.ip,
-            nhop.intf,
-            ECMP_WEIGHT,
-            std::nullopt,
-            std::nullopt,
-            std::nullopt,
-            std::nullopt,
-            std::vector<folly::IPAddressV6>{makeSid(globalIndex)},
-            TunnelType::SRV6_ENCAP,
-            std::string("srv6Tunnel0")));
-      }
-      routeUpdater.addRoute(
-          RouterID(0),
-          folly::IPAddressV6(fmt::format("2800:{:x}::", group)),
-          48,
-          ClientID::BGPD,
-          RouteNextHopEntry(nhops, AdminDistance::EBGP));
-    }
+    prefixes = addSrv6EcmpGroupRoutes(
+        routeUpdater, ecmpHelper, numNhops, numGroups, membersPerGroup);
     routeUpdater.program();
   }
-
-  // Unprogram all routes
   {
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-    for (int group = 0; group < numGroups; ++group) {
-      routeUpdater.delRoute(
-          RouterID(0),
-          folly::IPAddress(
-              folly::IPAddressV6(fmt::format("2800:{:x}::", group))),
-          48,
-          ClientID::BGPD);
-    }
+    delSrv6Routes<folly::IPAddressV6>(routeUpdater, prefixes);
     routeUpdater.program();
   }
 
@@ -286,37 +359,10 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
   });
 
   // Build shared SRv6 next hop sets (untimed)
-  RouteNextHopSet sharedV6Nhops;
-  for (int i = 0; i < kNumSharedSrv6Nhops; ++i) {
-    auto nhop = ecmpHelper6.nhop(i % numNhops);
-    sharedV6Nhops.insert(ResolvedNextHop(
-        nhop.ip,
-        nhop.intf,
-        ECMP_WEIGHT,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::vector<folly::IPAddressV6>{makeSid(i)},
-        TunnelType::SRV6_ENCAP,
-        std::string("srv6Tunnel0")));
-  }
-
-  RouteNextHopSet sharedV4Nhops;
-  for (int i = 0; i < kNumSharedSrv6Nhops; ++i) {
-    auto nhop = ecmpHelper4.nhop(i % numNhops);
-    sharedV4Nhops.insert(ResolvedNextHop(
-        nhop.ip,
-        nhop.intf,
-        ECMP_WEIGHT,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::vector<folly::IPAddressV6>{makeSid(i)},
-        TunnelType::SRV6_ENCAP,
-        std::string("srv6Tunnel0")));
-  }
+  auto sharedV6Nhops =
+      makeSharedSrv6Nhops(ecmpHelper6, numNhops, kNumSharedSrv6Nhops);
+  auto sharedV4Nhops =
+      makeSharedSrv6Nhops(ecmpHelper4, numNhops, kNumSharedSrv6Nhops);
 
   // Generate prod-like prefixes once (untimed) and reuse the same vectors for
   // both add and delete — keeps add/delete in lockstep with no duplicated
@@ -332,61 +378,100 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
   // Timed: program and unprogram all routes in one shot
   suspender.dismiss();
 
-  // Program all IPv6 routes
   {
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-    for (const auto& prefix : v6Prefixes) {
-      routeUpdater.addRoute(
-          RouterID(0),
-          folly::IPAddress(prefix.network()),
-          prefix.mask(),
-          ClientID::BGPD,
-          RouteNextHopEntry(sharedV6Nhops, AdminDistance::EBGP));
-    }
+    addSharedSrv6Routes<folly::IPAddressV6>(
+        routeUpdater, v6Prefixes, sharedV6Nhops);
     routeUpdater.program();
   }
-
-  // Program all IPv4 routes
   {
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-    for (const auto& prefix : v4Prefixes) {
-      routeUpdater.addRoute(
-          RouterID(0),
-          folly::IPAddress(prefix.network()),
-          prefix.mask(),
-          ClientID::BGPD,
-          RouteNextHopEntry(sharedV4Nhops, AdminDistance::EBGP));
-    }
+    addSharedSrv6Routes<folly::IPAddressV4>(
+        routeUpdater, v4Prefixes, sharedV4Nhops);
     routeUpdater.program();
   }
-
-  // Delete all IPv6 routes
   {
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-    for (const auto& prefix : v6Prefixes) {
-      routeUpdater.delRoute(
-          RouterID(0),
-          folly::IPAddress(prefix.network()),
-          prefix.mask(),
-          ClientID::BGPD);
-    }
+    delSrv6Routes<folly::IPAddressV6>(routeUpdater, v6Prefixes);
     routeUpdater.program();
   }
-
-  // Delete all IPv4 routes
   {
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-    for (const auto& prefix : v4Prefixes) {
-      routeUpdater.delRoute(
-          RouterID(0),
-          folly::IPAddress(prefix.network()),
-          prefix.mask(),
-          ClientID::BGPD);
-    }
+    delSrv6Routes<folly::IPAddressV4>(routeUpdater, v4Prefixes);
     routeUpdater.program();
   }
 
   suspender.rehire();
+}
+
+// Full-scale SRv6 warmboot benchmark: program numGroups x membersPerGroup
+// unique SRv6 next hops plus numV6Routes v6 routes (shared SRv6 nhops), then
+// measure warmboot init time (folly) and graceful-exit time (warm_boot_msecs).
+// The binary is run twice: a coldboot pass with --setup_for_warmboot writes the
+// state and times the exit, a warmboot pass restores the state and times init.
+void srv6FullScaleWarmbootBenchmark(
+    int numGroups,
+    int membersPerGroup,
+    int numV6Routes) {
+  folly::BenchmarkSuspender suspender;
+  constexpr int kNumSharedSrv6Nhops = 8;
+  FLAGS_ecmp_resource_percentage = 100;
+
+  // Timed: init to CONFIGURED. On the warmboot pass this restores the saved
+  // nhops + routes into hardware.
+  suspender.dismiss();
+  auto ensemble = createAgentEnsemble(
+      makeSrv6ConfigFn(), false /*disableLinkStateToggler*/);
+  suspender.rehire();
+
+  // Coldboot only: build the combined SRv6 state so gracefulExit persists it to
+  // the warmboot dir. On warmboot it is already restored above.
+  if (ensemble->getBootType() == BootType::COLD_BOOT) {
+    ensemble->applyNewState(
+        [](const std::shared_ptr<SwitchState>& in) {
+          return utility::enableTrunkPorts(in);
+        },
+        "enable trunk ports");
+
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        ensemble->getSw()->getState(),
+        ensemble->getSw()->needL2EntryForNeighbor());
+    auto numNhops =
+        std::min(static_cast<int>(ecmpHelper.getNextHops().size()), 64);
+    CHECK_GT(numNhops, 0);
+    ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(in, numNhops);
+    });
+
+    auto routeUpdater = ensemble->getSw()->getRouteUpdater();
+
+    // numGroups routes, each with membersPerGroup unique SRv6 nhops (SIDs
+    // 0..numGroups*membersPerGroup-1, base 2800::).
+    addSrv6EcmpGroupRoutes(
+        routeUpdater, ecmpHelper, numNhops, numGroups, membersPerGroup);
+
+    // numV6Routes routes sharing one SRv6 nhop set. SIDs start after the group
+    // SIDs; base under 2a00:: to avoid colliding with the 2800::/48 group
+    // routes above.
+    auto sharedV6Nhops = makeSharedSrv6Nhops(
+        ecmpHelper, numNhops, kNumSharedSrv6Nhops, numGroups * membersPerGroup);
+    auto v6Prefixes = genDistributedPrefixes<folly::IPAddressV6>(
+        scaleDistribution(kSrv6V6PrefixDistribution, numV6Routes),
+        folly::IPAddressV6("2a00::"));
+    addSharedSrv6Routes<folly::IPAddressV6>(
+        routeUpdater, v6Prefixes, sharedV6Nhops);
+    routeUpdater.program();
+  }
+
+  ensemble->stopStatsThread();
+  if (FLAGS_setup_for_warmboot) {
+    // Coldboot setup pass: persist the warmboot state so the warmboot pass can
+    // reload it, then leak the ensemble so destructors don't unprogram
+    // hardware. The warmboot pass measures the init-to-CONFIGURED time via the
+    // folly suspender above; the graceful-exit time itself is not of interest.
+    ensemble->gracefulExit();
+    __attribute__((unused)) auto leakedHwEnsemble = ensemble.release();
+  }
 }
 
 } // namespace
@@ -422,6 +507,11 @@ BENCHMARK(HwSrv6V4RouteScaleBenchmark) {
 // 3. Mixed IPv6 + IPv4 routes
 BENCHMARK(HwSrv6MixedRouteScaleBenchmark) {
   srv6RouteScaleBenchmark(25000, 25000);
+}
+
+// Full-scale warmboot: 390 groups x 20 = 7.8K SRv6 next hops + 50K v6 routes.
+BENCHMARK(HwSrv6FullScaleWarmbootBenchmark) {
+  srv6FullScaleWarmbootBenchmark(390, 20, 50000);
 }
 
 } // namespace facebook::fboss
