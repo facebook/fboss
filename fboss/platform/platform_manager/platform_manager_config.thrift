@@ -742,12 +742,16 @@ struct PmUnitConfig {
 //
 // `PmUnitConfig`: PmUnit configuration. Refer to PmUnitConfig definition above.
 //
-// `productSubVersion`: The platformVersion of the switch which this PmUnit
-// belongs to. This refers to field Type 10 in Meta EEPROM V5
-// TODO: Replace it with PmUnitVersion struct below.
+// `productSubVersion`: This refers to field Type 10 in Meta EEPROM V5.
+//
+// `pmUnitVersions`: List of PmUnit versions this config applies to. A system
+// matching any version in this list will use this config.
+// `productSubVersion` is ignored when `pmUnitVersions` is present. At least
+// one of `productSubVersion` or `pmUnitVersions` must be set.
 struct VersionedPmUnitConfig {
   1: PmUnitConfig pmUnitConfig;
-  3: i16 productSubVersion;
+  3: optional i16 productSubVersion;
+  4: optional list<PmUnitVersion> pmUnitVersions;
 }
 
 // `PmUnitInfo`: Details of a PmUnit.

@@ -1417,9 +1417,32 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
   }
 
   for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
-    if (*versionedPmUnitConfig.productSubVersion() < 0) {
+    if (const auto& pmUvs = versionedPmUnitConfig.pmUnitVersions();
+        pmUvs && !pmUvs->empty()) {
+      for (const auto& pmUv : *pmUvs) {
+        if (*pmUv.productionState() < 0 || *pmUv.productionSubState() < 0 ||
+            *pmUv.respinVariantIndicator() < 0) {
+          XLOG(ERR) << fmt::format(
+              "PmUnit {}'s VersionedPmUnitConfig has invalid pmUnitVersion "
+              "{}.{}.{}: all fields must be >= 0",
+              pmUnitName,
+              *pmUv.productionState(),
+              *pmUv.productionSubState(),
+              *pmUv.respinVariantIndicator());
+          return false;
+        }
+      }
+    } else if (versionedPmUnitConfig.productSubVersion()) {
+      if (*versionedPmUnitConfig.productSubVersion() < 0) {
+        XLOG(ERR) << fmt::format(
+            "One of PmUnit {}'s VersionedPmUnitConfig has a negative ProductSubVersion",
+            pmUnitName);
+        return false;
+      }
+    } else {
       XLOG(ERR) << fmt::format(
-          "One of PmUnit {}'s VersionedPmUnitConfig has a negative ProductSubVersion",
+          "PmUnit {}'s VersionedPmUnitConfig must set at least one of "
+          "productSubVersion or pmUnitVersions",
           pmUnitName);
       return false;
     }
