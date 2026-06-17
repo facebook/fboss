@@ -4,8 +4,16 @@
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
 #include <algorithm>
+#include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -26,6 +34,20 @@ folly::IPAddressV6 makeSid(int index) {
       fmt::format("3001:db8:{:x}:{:x}::", (index >> 8) + 1, index & 0xFF));
 }
 
+// MySID locator-block offset: keeps the /48 MySID entries
+// (3001:db8:<index+kMySidLocatorBase>::) clear of the SRv6 tunnel SID range
+// produced by makeSid (3001:db8:1:: .. 3001:db8:1f::), since this benchmark
+// programs both in one switch.
+constexpr int kMySidLocatorBase = 0x100;
+
+// MySID address (ADJACENCY_MICRO_SID), same /48 shape as
+// HwSrv6MidpointMySidScaleBenchmark, offset out of the tunnel SID range.
+folly::IPAddressV6 makeMySidAddr(int index) {
+  return folly::IPAddressV6(
+      fmt::format("3001:db8:{:x}::", index + kMySidLocatorBase));
+}
+
+constexpr int kMySidPrefixLen = 48;
 constexpr int kPortsPerLag = 2;
 
 AgentEnsembleSwitchConfigFn makeSrv6ConfigFn() {
@@ -404,18 +426,64 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
   suspender.rehire();
 }
 
+// Program numEntries ADJACENCY_MICRO_SID MySID entries (/48), each with a
+// resolved adjacency next hop. Mirrors the entry shape configured by
+// HwSrv6MidpointMySidScaleBenchmark; added one at a time via rib->update.
+void addSrv6MySidEntries(
+    SwSwitch* sw,
+    const utility::EcmpSetupAnyNPorts6& ecmpHelper,
+    int numNhops,
+    int numEntries) {
+  auto rib = sw->getRib();
+  auto ribMySidFunc = createRibMySidToSwitchStateFunction(std::nullopt);
+  for (int i = 0; i < numEntries; ++i) {
+    auto ecmpNhop = ecmpHelper.nhop(i % numNhops);
+    state::MySidFields fields;
+    fields.type() = MySidType::ADJACENCY_MICRO_SID;
+    fields.adjacencyInterfaceId() = static_cast<int32_t>(ecmpNhop.intf);
+    fields.isV6() = true;
+    fields.clientId() = ClientID::STATIC_ROUTE;
+    facebook::network::thrift::IPPrefix prefix;
+    prefix.prefixAddress() =
+        facebook::network::toBinaryAddress(makeMySidAddr(i));
+    prefix.prefixLength() = kMySidPrefixLen;
+    fields.mySid() = prefix;
+    auto mySid = std::make_shared<MySid>(fields);
+    RouteNextHopSet nhops{ResolvedNextHop(
+        folly::IPAddress(ecmpNhop.ip), ecmpNhop.intf, ECMP_WEIGHT)};
+    std::vector<MySidWithNextHops> toAdd;
+    toAdd.push_back(
+        {std::move(mySid), std::move(nhops), std::nullopt /* nhgName */});
+    rib->update(
+        sw->getScopeResolver(),
+        std::move(toAdd),
+        {} /* toUnresolveIfMatch */,
+        {} /* toDelete */,
+        "addMySidEntry",
+        ribMySidFunc,
+        sw);
+  }
+}
+
 // Full-scale SRv6 warmboot benchmark: program numGroups x membersPerGroup
-// unique SRv6 next hops plus numV6Routes v6 routes (shared SRv6 nhops), then
-// measure warmboot init time (folly) and graceful-exit time (warm_boot_msecs).
-// The binary is run twice: a coldboot pass with --setup_for_warmboot writes the
-// state and times the exit, a warmboot pass restores the state and times init.
+// unique SRv6 next hops, numV6Routes v6 routes (shared SRv6 nhops), and
+// numMySidEntries ADJACENCY_MICRO_SID MySID entries, then measure the warmboot
+// init-to-CONFIGURED time (folly). The binary is run twice: a coldboot pass
+// with
+// --setup_for_warmboot writes the state, a warmboot pass restores it and times
+// init.
 void srv6FullScaleWarmbootBenchmark(
     int numGroups,
     int membersPerGroup,
-    int numV6Routes) {
+    int numV6Routes,
+    int numMySidEntries) {
   folly::BenchmarkSuspender suspender;
   constexpr int kNumSharedSrv6Nhops = 8;
   FLAGS_ecmp_resource_percentage = 100;
+  // Don't cap MySID usage at the default percentage (match the MySID
+  // benchmark).
+  FLAGS_enable_mysid_resource_protection = true;
+  FLAGS_mysid_resource_percentage = 100;
 
   // Timed: init to CONFIGURED. On the warmboot pass this restores the saved
   // nhops + routes into hardware.
@@ -461,6 +529,11 @@ void srv6FullScaleWarmbootBenchmark(
     addSharedSrv6Routes<folly::IPAddressV6>(
         routeUpdater, v6Prefixes, sharedV6Nhops);
     routeUpdater.program();
+
+    // numMySidEntries ADJACENCY_MICRO_SID MySID entries (separate my_sid
+    // table).
+    addSrv6MySidEntries(
+        ensemble->getSw(), ecmpHelper, numNhops, numMySidEntries);
   }
 
   ensemble->stopStatsThread();
@@ -509,9 +582,10 @@ BENCHMARK(HwSrv6MixedRouteScaleBenchmark) {
   srv6RouteScaleBenchmark(25000, 25000);
 }
 
-// Full-scale warmboot: 390 groups x 20 = 7.8K SRv6 next hops + 50K v6 routes.
+// Full-scale warmboot: 390 groups x 20 = 7.8K SRv6 next hops + 50K v6 routes +
+// 2042 ADJACENCY_MICRO_SID MySID entries.
 BENCHMARK(HwSrv6FullScaleWarmbootBenchmark) {
-  srv6FullScaleWarmbootBenchmark(390, 20, 50000);
+  srv6FullScaleWarmbootBenchmark(390, 20, 50000, 2042);
 }
 
 } // namespace facebook::fboss
