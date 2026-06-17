@@ -20,7 +20,7 @@
 #     -lstdc++ -lm -lpthread -ldl -lssl -lcrypto -l:libz.so.1
 #     -lgflags -lglog -l:libunwind.so.8
 #     -l:libdouble-conversion.so.3 -l:libbz2.so.1 -l:libsnappy.so.1
-#     -l:liblz4.so.1 -l:liblzma.so.5 -lxxhash
+#     -l:liblz4.so.1 -l:liblzma.so.5 -lxxhash -lzstd
 #
 #   gflags is intentionally excluded from the bundle because libglog.so links
 #   it dynamically; bundling it as static causes a "flag defined more than
@@ -37,7 +37,7 @@
 
 set -euo pipefail
 
-# The 19 entry points that MUST be present in the bundled archive.
+# The 20 entry points that MUST be present in the bundled archive.
 EXPECTED_SYMBOLS=(
     FsdbInit
     FsdbCgoAbiVersion
@@ -46,8 +46,9 @@ EXPECTED_SYMBOLS=(
     DestroyFsdbWrapper
     ShutdownFsdbWrapper
     SubscribeToPortMaps
-    SubscribeToStatsPath
-    SubscribeToStatePath
+    SubscribeToStats
+    SubscribeToState
+    GetPortSnapshot
     HasStateSubscription
     HasStatsSubscription
     HasStatePathSubscription
@@ -78,6 +79,10 @@ EXCLUDE_PATTERNS=(
 # Naming convention is the getdeps install dir prefix; suffix is a hash.
 RUNTIME_LIB_DEPS=(
     "glog-"
+    # Matches the shipped libglog.so (NEEDED libgflags.so.2.3); host gflags
+    # versions differ, so ship the matching one even though the static .a
+    # excludes gflags.
+    "gflags-"
     "libunwind-"
     "double-conversion-"
     "fmt-"
@@ -146,19 +151,32 @@ total_members=$(ar t "$bundle" | wc -l)
 echo "    Bundled $total_members object members from ${#archives[@]} archives"
 
 echo "==> Verifying entry-point symbols are present"
+# Verify against the wrapper archive, where every FSDB_CGO_API entry point is
+# defined. nm-ing the whole multi-GB bundle overflows binutils nm (xrealloc) on
+# large builds, so scope the check to the small wrapper .a.
+wrapper_archive=""
+for a in "${archives[@]}"; do
+    case "$a" in
+        */libfsdb_cgo_pub_sub_wrapper.a) wrapper_archive="$a"; break ;;
+    esac
+done
+if [[ -z "$wrapper_archive" ]]; then
+    echo "ERROR: libfsdb_cgo_pub_sub_wrapper.a not found under $build_dir" >&2
+    exit 3
+fi
 missing=()
-nm_output=$(nm --defined-only "$bundle" 2>/dev/null || true)
+nm_output=$(nm --defined-only "$wrapper_archive" 2>/dev/null || true)
 for sym in "${EXPECTED_SYMBOLS[@]}"; do
     if ! echo "$nm_output" | awk -v s="$sym" '$2 == "T" && $3 == s {found=1} END {exit !found}'; then
         missing+=("$sym")
     fi
 done
 if [[ ${#missing[@]} -gt 0 ]]; then
-    echo "ERROR: missing entry points in bundle:" >&2
+    echo "ERROR: missing entry points in $(basename "$wrapper_archive"):" >&2
     printf '  %s\n' "${missing[@]}" >&2
     exit 3
 fi
-echo "    All ${#EXPECTED_SYMBOLS[@]} entry points present"
+echo "    All ${#EXPECTED_SYMBOLS[@]} entry points present in $(basename "$wrapper_archive")"
 
 # Note: previous versions of this script ran `objcopy --localize-hidden` here as
 # a "belt-and-braces" measure over -fvisibility=hidden on the wrapper TU. This

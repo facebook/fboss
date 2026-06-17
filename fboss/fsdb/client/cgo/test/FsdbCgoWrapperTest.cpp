@@ -413,6 +413,57 @@ TEST_F(FsdbCgoPubSubWrapperTest, ExternCRoundTrip) {
   DestroyFsdbWrapper(handle);
 }
 
+TEST_F(FsdbCgoPubSubWrapperTest, GetPortSnapshotRoundTrip) {
+  // GetPortSnapshot is a synchronous one-shot GET (no subscription) returning
+  // every port as (port_name, port_id, oper_state).
+  createStatePublisher();
+  publishState(makeSwitchStateWithPorts(/*numPorts=*/2));
+
+  FsdbInit(FSDB_CGO_ABI_VERSION);
+  FsdbWrapperHandle handle = CreateFsdbWrapper("get-port-snapshot");
+  ASSERT_NE(handle, nullptr);
+
+  // The publish may not be served the instant we connect; poll until present.
+  FsdbPortStateUpdate out[16];
+  int32_t count = 0;
+  for (int attempt = 0; attempt < 50 && count < 2; ++attempt) {
+    count = GetPortSnapshot(
+        handle, nullptr, fsdbTestServer_->getFsdbPort(), out, 16);
+    if (count < 2) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+  }
+  ASSERT_EQ(count, 2);
+
+  std::map<std::string, std::pair<int32_t, int32_t>> got;
+  for (int32_t i = 0; i < count; ++i) {
+    got[out[i].port_name] = {out[i].port_id, out[i].oper_state};
+  }
+  const std::map<std::string, std::pair<int32_t, int32_t>> expected = {
+      {"eth1/1/1", {1, 1}},
+      {"eth1/2/1", {2, 1}},
+  };
+  EXPECT_EQ(got, expected);
+
+  DestroyFsdbWrapper(handle);
+}
+
+TEST_F(FsdbCgoPubSubWrapperTest, GetPortSnapshotBadArgs) {
+  FsdbInit(FSDB_CGO_ABI_VERSION);
+  FsdbWrapperHandle handle = CreateFsdbWrapper("get-port-snapshot-badargs");
+  ASSERT_NE(handle, nullptr);
+  FsdbPortStateUpdate out[1];
+  EXPECT_EQ(GetPortSnapshot(nullptr, nullptr, 5908, out, 1), -1);
+  EXPECT_EQ(
+      GetPortSnapshot(
+          handle, nullptr, fsdbTestServer_->getFsdbPort(), nullptr, 1),
+      -1);
+  EXPECT_EQ(
+      GetPortSnapshot(handle, nullptr, fsdbTestServer_->getFsdbPort(), out, 0),
+      -1);
+  DestroyFsdbWrapper(handle);
+}
+
 TEST_F(FsdbCgoPubSubWrapperTest, ExternCExplicitHostRoundTrip) {
   // Same as ExternCRoundTrip but passes an explicit host string: it must be
   // plumbed into ConnectionOptions rather than ignored.
