@@ -27,13 +27,13 @@ FBOSS agent runs in one of two modes, and scale tests can run in either:
 
 1. **Build and package FBOSS** following the [build guide](/docs/build/building_fboss_on_docker_containers/) and copy the package to the switch per [Packaging and Running FBOSS HW Tests on Switch](/docs/build/packaging_and_running_fboss_hw_tests_on_switch/). You must be in the `/opt/fboss` directory when running tests.
 
-2. **Run the full scale suite (recommended).** `run_test.py` automatically discovers and runs **all** scale tests; pass `--skip-known-bad-tests` to skip tests known not to pass for your ASIC/SDK (key format `vendor/coldboot-sdk/warmboot-sdk/asic/mode`):
+2. **Run the full scale suite (recommended).** `run_test.py` automatically discovers and runs **all** scale tests; pass `--skip-known-bad-tests` to skip tests known not to pass for your ASIC/SDK (key format `vendor/sdk/sdk/asic/mode`):
 
     ```bash
     ./bin/run_test.py sai_agent_scale \
         --config ./share/hw_test_configs/$CONFIG \
         --agent-run-mode multi_switch \
-        --skip-known-bad-tests "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/multi_switch"
+        --skip-known-bad-tests "<vendor>/<sdk>/<sdk>/<asic>/<mode>"
     ```
 
 3. **Run a single test** (optional). `--filter` is only needed to narrow the run; the test name below is **for illustration only** — use any valid gtest name:
@@ -57,4 +57,4 @@ Common flags:
 1. `--filter`: GTEST filter passed through to the test binary ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)).
 1. `--agent-run-mode`: `mono` or `multi_switch` (default `multi_switch`).
 1. `--num-npus {1,2}`: number of NPUs to run in multi_switch mode (default 1).
-1. `--skip-known-bad-tests`: ASIC/SDK key used to skip known-bad/unsupported scale tests. Scale tests reuse the SAI Agent known-bad lists under `fboss/oss/hw_known_bad_tests` and `fboss/oss/sai_hw_unsupported_tests`.
+1. `--skip-known-bad-tests`: ASIC/SDK key used to skip known-bad/unsupported scale tests. Scale tests use the dedicated scale known-bad list `fboss/oss/hw_known_bad_tests/sai_agent_scale_known_bad_tests.materialized_JSON` (auto-synced from Meta's internal config); unsupported tests still come from `fboss/oss/sai_hw_unsupported_tests`.
