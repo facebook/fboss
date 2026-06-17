@@ -403,15 +403,13 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
       auto rxInnerV4 = v6Payload->v4PayLoad();
       ASSERT_NE(expectedInnerV4, nullptr);
       ASSERT_NE(rxInnerV4, nullptr);
-      // Uncomment after vendor bug for inner TC is fixed
-      // EXPECT_EQ(*rxInnerV4, *expectedInnerV4);
+      EXPECT_EQ(*rxInnerV4, *expectedInnerV4);
     } else {
       auto expectedInnerV6 = origOuterV6->v6PayLoad();
       auto rxInnerV6 = v6Payload->v6PayLoad();
       ASSERT_NE(expectedInnerV6, nullptr);
       ASSERT_NE(rxInnerV6, nullptr);
-      // Uncomment after vendor bug for inner TC is fixed
-      // EXPECT_EQ(*rxInnerV6, *expectedInnerV6);
+      EXPECT_EQ(*rxInnerV6, *expectedInnerV6);
     }
   }
 
