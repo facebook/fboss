@@ -367,8 +367,6 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
   computeAndPublishLastDelta(
       [&delta, inOutState, this]() { processRouteUpdates(delta, inOutState); });
   computeAndPublishLastDelta(
-      [inOutState, this]() { reclaimSingleMemberMergeGroups(inOutState); });
-  computeAndPublishLastDelta(
       [inOutState, this]() { reclaimEcmpGroups(inOutState); });
   CHECK_NE(inOutState->numDeltas(), 0);
   if (!inOutState->updated) {
@@ -766,58 +764,6 @@ void EcmpResourceManager::updateMergedGroups(
    */
   computeCandidateMergesForNewUnmergedGroups(
       unmergedGroups.begin(), unmergedGroups.end());
-}
-/*
- * During rollback we can have single member merge groups at the end.
- * Consider the following example (P = prefix, G = ECMP group), with
- * a ECMP limit of 5
- * State 1
- * P1 -> G1, P2->G2, P3->G3, P4->G4, P5->G5
- * Rolling back to
- * State 0
- * P0 -> G0, P1, P2 -> [G1,G2], P3->G3, P4->G4, P5->G5,
- * Further consider that merged nhops of [G1, G2] are same as G2
- * NOTE: The guarantee that we provide is that rollback will provide
- * a safe sequence of deltas to not overflow the HW. Due to the sequence
- * dependent nature of merge algo, you might endup with a different
- * set of merge groups at the end.
- * Here is how things pan out for this rollback.
- * Step 0, P0->G0, triggers a ECMP merge. Say we choose merge of P1, P2 -> [G1,
- * G2] Step 1, P1 update This has 2 steps P1 delete (data structure update only
- * and P1 add). During P1 delete we unmerge G1, G2 and make P2->G2 P1 add then
- * remerges these groups to make P1, P2 -> [G1, G2]. We are at ECMP group count
- * of 5. Step 2, P2 update 2.i - P2 delete (data structure update only) This
- * unmerged [G1, G2] and makes P1->G1. 2.ii P2 add with override nhops. This
- * will cause a new groupId to be allocated say G6. This is seen as new group.
- * Since we are already at ECMP limit this triggers a merge. Say we merge [P3,
- * P4] ->[G3, G4]. Following this P2 will get added as P2->[G6]. Note this G6 is
- * considered a merged group, and P2 is considered to have override nhops. Since
- * P2 came in with override nhops, we always start with a merged group. Since we
- * do not know whether there will be subsequent groups that will come and merge
- * with this group. The final state would be P0 -> G0, P1->G1, P2 -> [G6], P3,
- * P4->[G3,G4], P5->G5 This is within ECMP group limit of 5. But has a single
- * member merged group. Reclaim it
- *
- */
-void EcmpResourceManager::reclaimSingleMemberMergeGroups(
-    InputOutputState* inOutState) {
-  if (!getEcmpCompressionThresholdPct()) {
-    return;
-  }
-  std::vector<std::shared_ptr<NextHopGroupInfo>> singleMemberMergedGroups;
-  NextHopGroupIds singleMemberGids;
-  std::for_each(
-      nextHopGroupIdToInfo_.begin(),
-      nextHopGroupIdToInfo_.end(),
-      [&singleMemberMergedGroups, &singleMemberGids](const auto& idAndGrpRef) {
-        auto groupInfo = idAndGrpRef.second.lock();
-        auto gmitr = groupInfo->getMergedGroupInfoItr();
-        if (gmitr && (*gmitr)->first.size() == 1) {
-          singleMemberMergedGroups.push_back(groupInfo);
-          singleMemberGids.insert(groupInfo->getID());
-        }
-      });
-  reclaimMergeGroups(singleMemberMergedGroups, singleMemberGids, inOutState);
 }
 
 void EcmpResourceManager::reclaimMergeGroups(
