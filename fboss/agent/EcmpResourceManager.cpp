@@ -303,8 +303,7 @@ bool EcmpResourceManager::isVirtualArsGroup(
 }
 
 std::vector<StateDelta> EcmpResourceManager::consolidate(
-    const StateDelta& delta,
-    bool rollingBack) {
+    const StateDelta& delta) {
   std::optional<InputOutputState> inOutState;
   StopWatch timeIt("EcmpResourceManager::consolidate", false /*json*/);
   SCOPE_EXIT {
@@ -328,8 +327,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   }
 
   handleSwitchSettingsDelta(delta);
-  auto switchingModeChangeResult =
-      handleFlowletSwitchConfigDelta(delta, rollingBack);
+  auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
   if (switchingModeChangeResult) {
     switchingModeChangeResult->publishLastDelta();
   }
@@ -345,11 +343,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
       getPrimaryEcmpAndMemberCounts();
   if (!inOutState.has_value()) {
     inOutState = InputOutputState(
-        primaryEcmpGroupsCnt,
-        virtualEcmpGroupsCnt,
-        ecmpMemberCnt,
-        delta,
-        rollingBack);
+        primaryEcmpGroupsCnt, virtualEcmpGroupsCnt, ecmpMemberCnt, delta);
   } else {
     inOutState->primaryEcmpGroupsCnt = primaryEcmpGroupsCnt;
     inOutState->virtualEcmpGroupsCnt = virtualEcmpGroupsCnt;
@@ -991,12 +985,10 @@ EcmpResourceManager::InputOutputState::InputOutputState(
     uint32_t _primaryEcmpGroupsCnt,
     uint32_t _virtualEcmpGroupsCnt,
     uint32_t _ecmpMemberCnt,
-    const StateDelta& _in,
-    bool rollingBack)
+    const StateDelta& _in)
     : primaryEcmpGroupsCnt(_primaryEcmpGroupsCnt),
       virtualEcmpGroupsCnt(_virtualEcmpGroupsCnt),
       ecmpMemberCnt(_ecmpMemberCnt),
-      rollingBack_(rollingBack),
       inputDelta_(_in.oldState(), _in.newState()) {
   /*
    * Note that for first StateDelta we push in.oldState() for both
@@ -1437,7 +1429,6 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
     while (inOutState->primaryEcmpGroupsCnt >
                config_.getMaxPrimaryEcmpGroups() &&
            !candidateMergeGroups_.empty()) {
-      DCHECK(inOutState->rollingBack());
       XLOG(DBG2) << " Re-merging after survivor restore: primaryEcmpGroupsCnt="
                  << inOutState->primaryEcmpGroupsCnt << " > limit "
                  << config_.getMaxPrimaryEcmpGroups()
@@ -1861,16 +1852,16 @@ void EcmpResourceManager::routeAddedOrUpdated(
     std::tie(grpInfo, grpInserted) =
         routeAddedNoOverrideNhops(rid, newRoute, ecmpLimitReached, inOutState);
   } else {
-    DCHECK(!oldRoute || inOutState->rollingBack())
+    DCHECK(!oldRoute)
         << " Routes with override nhops "
-           "should only be seen during reconstructFromSwitchState (addRoute) or rollback";
-    if (!oldRoute || inOutState->rollingBack()) {
+           "should only be seen during reconstructFromSwitchState (addRoute)";
+    if (!oldRoute) {
       std::tie(grpInfo, grpInserted) = routeAddedWithOverrideNhops(
           rid, newRoute, ecmpLimitReached, inOutState);
     } else {
       XLOG(ERR)
           << " Ingoring override nhop !!!. Routes with override nhops "
-             "should only be seen during reconstructFromSwitchState (addRoute) or rollback";
+             "should only be seen during reconstructFromSwitchState (addRoute)";
       auto newerRoute = newRoute->clone();
       updateRouteOverrides(newerRoute, std::nullopt, std::nullopt);
       std::tie(grpInfo, grpInserted) = routeAddedNoOverrideNhops(
@@ -2374,9 +2365,7 @@ void EcmpResourceManager::updateFailed(
 }
 
 std::optional<EcmpResourceManager::InputOutputState>
-EcmpResourceManager::handleFlowletSwitchConfigDelta(
-    const StateDelta& delta,
-    bool rollingBack) {
+EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
   auto oldBackupEcmpMode = getBackupEcmpSwitchingMode();
   config_.handleFlowletSwitchConfigDelta(delta);
   if (!oldBackupEcmpMode.has_value()) {
@@ -2389,8 +2378,7 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(
       0 /*primaryEcmpGroupsCnt*/,
       0 /*virtualEcmpGroupsCnt*/,
       0 /*ecmpMemberCnt*/,
-      delta,
-      rollingBack);
+      delta);
   CHECK_EQ(inOutState.numDeltas(), 1);
   // Make changes on to current new state (which is essentially,
   // newState with old state's fibs). The first delta we will queue

@@ -525,6 +525,9 @@ cpp_library(
         "//fboss/agent/state:state",
         "//folly/logging:logging",
     ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
+    ],
 )
 
 cpp_library(
