@@ -3521,7 +3521,7 @@
     ],
     "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6EcmpGroupScaleBenchmark": [
         {
-          "test_config_regex": ".*/26\\.2\\.5210/graphene200.*",
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6EcmpGroupScaleBenchmark",
@@ -3548,13 +3548,63 @@
           ]
         }
     ],
+    "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6FullScaleWarmbootBenchmark": [
+        {
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6FullScaleWarmbootBenchmark",
+              "upper_bound": 189120000000000.0
+            },
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 4510.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6FullScaleWarmbootBenchmark",
+              "upper_bound": 112040000000000.0
+            },
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 3580.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6FullScaleWarmbootBenchmark",
+              "upper_bound": 83190000000000.0
+            },
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 2970.0
+            }
+          ]
+        }
+    ],
     "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6MidpointMySidScaleBenchmark": [
+        {
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
+              "upper_bound": 5770000000000.0
+            }
+          ]
+        },
         {
           "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
-              "upper_bound": 82960000000000.0
+              "upper_bound": 540000000000.00006
             }
           ]
         },
@@ -3563,14 +3613,14 @@
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
-              "upper_bound": 72250000000000.0
+              "upper_bound": 740000000000.0
             }
           ]
         }
     ],
     "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6MixedRouteScaleBenchmark": [
         {
-          "test_config_regex": ".*/26\\.2\\.5210/graphene200.*",
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6MixedRouteScaleBenchmark",
@@ -3619,7 +3669,7 @@
     ],
     "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6SingleNextHopRouteScaleBenchmark": [
         {
-          "test_config_regex": ".*/26\\.2\\.5210/graphene200.*",
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6SingleNextHopRouteScaleBenchmark",
@@ -3648,7 +3698,7 @@
     ],
     "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6V4RouteScaleBenchmark": [
         {
-          "test_config_regex": ".*/26\\.2\\.5210/graphene200.*",
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6V4RouteScaleBenchmark",
@@ -3677,7 +3727,7 @@
     ],
     "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6V6RouteScaleBenchmark": [
         {
-          "test_config_regex": ".*/26\\.2\\.5210/graphene200.*",
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6V6RouteScaleBenchmark",
@@ -4555,7 +4605,7 @@
     ],
     "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6EcmpGroupScaleBenchmark": [
         {
-          "test_config_regex": ".*/26\\.2\\.5210/graphene200.*",
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6EcmpGroupScaleBenchmark",
@@ -4582,13 +4632,63 @@
           ]
         }
     ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6FullScaleWarmbootBenchmark": [
+        {
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6FullScaleWarmbootBenchmark",
+              "upper_bound": 189120000000000.0
+            },
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 4510.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6FullScaleWarmbootBenchmark",
+              "upper_bound": 112040000000000.0
+            },
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 3580.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/15\\.4_ea_odp/tomahawk6.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6FullScaleWarmbootBenchmark",
+              "upper_bound": 83190000000000.0
+            },
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 2970.0
+            }
+          ]
+        }
+    ],
     "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6MidpointMySidScaleBenchmark": [
+        {
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
+              "upper_bound": 5770000000000.0
+            }
+          ]
+        },
         {
           "test_config_regex": ".*/15\\.4_ea_odp/tomahawk5.*",
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
-              "upper_bound": 82960000000000.0
+              "upper_bound": 540000000000.00006
             }
           ]
         },
@@ -4597,14 +4697,14 @@
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6MidpointMySidScaleBenchmark",
-              "upper_bound": 72250000000000.0
+              "upper_bound": 740000000000.0
             }
           ]
         }
     ],
     "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6MixedRouteScaleBenchmark": [
         {
-          "test_config_regex": ".*/26\\.2\\.5210/graphene200.*",
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6MixedRouteScaleBenchmark",
@@ -4653,7 +4753,7 @@
     ],
     "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6SingleNextHopRouteScaleBenchmark": [
         {
-          "test_config_regex": ".*/26\\.2\\.5210/graphene200.*",
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6SingleNextHopRouteScaleBenchmark",
@@ -4682,7 +4782,7 @@
     ],
     "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6V4RouteScaleBenchmark": [
         {
-          "test_config_regex": ".*/26\\.2\\.5210/graphene200.*",
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6V4RouteScaleBenchmark",
@@ -4711,7 +4811,7 @@
     ],
     "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6V6RouteScaleBenchmark": [
         {
-          "test_config_regex": ".*/26\\.2\\.5210/graphene200.*",
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
           "thresholds": [
             {
               "metric_key_regex": "HwSrv6V6RouteScaleBenchmark",
