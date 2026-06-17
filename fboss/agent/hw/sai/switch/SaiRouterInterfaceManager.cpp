@@ -111,13 +111,23 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
         static_cast<uint32_t>(swInterface->getMtu()));
   }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+  std::optional<SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState>
+      adminMplsStateAttribute{std::nullopt};
+#endif
+
   // create the router interface
   SaiVlanRouterInterfaceTraits::CreateAttributes attributes{
       virtualRouterIdAttribute,
       typeAttribute,
       vlanIdAttribute,
       srcMacAttribute,
-      mtuAttribute};
+      mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      ,
+      adminMplsStateAttribute
+#endif
+  };
   SaiVlanRouterInterfaceTraits::AdapterHostKey k{
       virtualRouterIdAttribute,
       vlanIdAttribute,
