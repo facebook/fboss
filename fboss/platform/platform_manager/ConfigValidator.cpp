@@ -1426,15 +1426,18 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
 
     bool fieldMismatch = false;
     apache::thrift::op::for_each_field_id<PmUnitConfig>([&]<class Id>(Id) {
-      // i2cDeviceConfigs and embeddedSensorConfigs are allowed to differ
-      // between versioned and default configs
+      // i2cDeviceConfigs, embeddedSensorConfigs and pciDeviceConfigs are
+      // allowed to differ between versioned and default configs
       if constexpr (
           std::is_same_v<
               apache::thrift::op::get_ident<PmUnitConfig, Id>,
               ident::i2cDeviceConfigs> ||
           std::is_same_v<
               apache::thrift::op::get_ident<PmUnitConfig, Id>,
-              ident::embeddedSensorConfigs>) {
+              ident::embeddedSensorConfigs> ||
+          std::is_same_v<
+              apache::thrift::op::get_ident<PmUnitConfig, Id>,
+              ident::pciDeviceConfigs>) {
         return;
       }
 
