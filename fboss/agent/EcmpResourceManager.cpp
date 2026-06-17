@@ -1119,7 +1119,7 @@ EcmpResourceManager::restoreGroupsTrimmedFromMerge(
   // Survivors are members of the erased merges that are NOT in the new
   // mergeSet. 2+ survivors stay merged as a smaller group (slot-neutral); a
   // lone survivor goes standalone. At most one pre-existing merge can have
-  // survivors per call, so at most one of the two is ever set.
+  // single survivor per call, so at most one of the two is ever set.
   GroupsTrimmedFromMerge trimmed;
   bool survivorsSeen = false;
   for (const auto& oldMergeSet : preExistingMemberMergeSets) {
@@ -1154,8 +1154,7 @@ EcmpResourceManager::restoreGroupsTrimmedFromMerge(
   //  - Unmerge [A, B] and update prefixes that originally pointed to B to point
   //    to B again.
   //  - Prefixes that originally pointed to A still point to [A, B], so [A, B]
-  //  is
-  //    still in HW.
+  //  is still in HW.
   //  - [A, B] is dropped once we program [C, D].
   // Similarly if we had a group [A, B, C] and now created a group [D, E] which
   // matches A's nexthops:
@@ -1353,35 +1352,32 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
   if (standaloneGroupAfterTrimming.has_value()) {
     computeCandidateMergesForNewUnmergedGroups({*standaloneGroupAfterTrimming});
   }
-  // Restoring a survivor above is a +1 that, while rolling back (replaying a
-  // delta whose routes already carry their merged/override nexthops), can have
-  // nothing to offset it -- leaving us one over the soft limit. When that
-  // happens, drain the overshoot with the same overflow merge the forward path
-  // uses, until back under (or out of candidates). This can only happen while
-  // rolling back (hence the DCHECK below).
-  //
-  // Example -- soft limit reached, with an existing merge {A, B}:
-  //  1. Route R is replayed through routeAddedWithOverrideNhops(); its override
-  //     nexthops equal A's, so its override group resolves to the existing A ->
-  //     overrideGrpInserted == false -> the "free a slot" merge is skipped (no
-  //     slot is freed).
-  //  2. R still forms its own merge {A, R}. To put A into {A, R}, A is pulled
-  //     out of {A, B}, leaving B as a lone survivor restored standalone (+1).
-  //  3. so B's +1 is uncompensated -> we are at soft limit + 1.
-  //  4. This loop re-merges until back under the soft limit, before control
-  //     returns to the per-route limit DCHECK.
-  if (!mergeGroupAfterTrimming.empty() ||
-      standaloneGroupAfterTrimming.has_value()) {
-    while (inOutState->primaryEcmpGroupsCnt >
-               config_.getMaxPrimaryEcmpGroups() &&
-           !candidateMergeGroups_.empty()) {
-      XLOG(DBG2) << " Re-merging after survivor restore: primaryEcmpGroupsCnt="
-                 << inOutState->primaryEcmpGroupsCnt << " > limit "
-                 << config_.getMaxPrimaryEcmpGroups()
-                 << ", candidates available: " << candidateMergeGroups_.size();
-      mergeGroupAndMigratePrefixes(inOutState);
-    }
-  }
+  // Even if had updated existing merge groups as a result of new merge set here
+  // by this time we should be below the ecmp group limit.
+  // Consider the sequence,
+  // - We reach a limit and trigger a merge. Consider that we have 2 existing
+  // merge groups [A, B] and [C, D, E]. Now imagine we create a new merge group
+  // [F, G]. To match existing merge groups, we have two possibilities
+  // 1) [F, G] matches nhops of A
+  // - We prune A from [A, B], making the merge groups [A, F, G] and leaving B
+  // as a stand alone group. Now the update steps are
+  // - Update prefixes originally pointing to B (and now pointing to [A, B] back
+  // to B. This creates +1 group. Since prefixes pointing to A still point to
+  // [A, B], so the group still exists in HW
+  // - Update prefixes pointing to A, F, G to point to [A, F, G] this removes
+  // [A, B] and F, G from HW. This removes 3 groups from HW, [A, B], F and G
+  // and adds one [A, F, G]. Net result
+  // Add [A, F, G], B. Remove [A, B], F, G = -1
+  // 2) [F, G] matches nhops of C
+  // - We prune C from [C, D, E], making the merge groups [C, F, G] and
+  // creating [F, G] as a new merge group.
+  // - Update prefixes originally pointing to D or E to point now to [D, E].
+  // This creates +1 group. Since prefixes pointing to C still point to [C, D,
+  // E].
+  // - Update prefixes pointing to C, F, G to point to [C, F, G] this removes
+  // [C, D, E] and F, G from HW. This removes 3 groups from HW, [C, D, E], F and
+  // G and adds one [C, F, G]. Net result Add [C, F, G], [D, E] . Remove [C, D,
+  // E], F, G = -1 So net result we still come up with -1 groups in HW.
   XLOG(DBG2) << "Done migrating prefixes to merged group: " << mergeSet
              << ". Incremented primary ecmp group count to : "
              << inOutState->primaryEcmpGroupsCnt
