@@ -25,17 +25,27 @@ Dynamic dependencies the vendor's hosts must provide:
 
 ## Building
 
-Inside the FBOSS OSS Docker container:
+Set up the FBOSS OSS container and dependencies per the FBOSS OSS build
+instructions: https://facebook.github.io/fboss/ . Then build just the
+`fsdb_cgo_pub_sub_wrapper` target (rather than all of FBOSS) and bundle it:
 
 ```bash
-# 1. Build the wrapper as a static library via the FBOSS OSS CMake build.
-cmake --build build/ --target fsdb_cgo_pub_sub_wrapper -j$(nproc)
+# 1. Build only the wrapper target (and its deps), scoped with --cmake-target.
+#    The build/scratch dir inside the container is /var/FBOSS/tmp_bld_dir.
+./fboss/oss/scripts/run-getdeps.py build \
+    --cmake-target fsdb_cgo_pub_sub_wrapper \
+    --scratch-path /var/FBOSS/tmp_bld_dir \
+    --src-dir fboss_src fboss
 
-# 2. Bundle every transitive .a into a single fat archive.
-./fboss/fsdb/client/cgo/oss/build_fat_archive.sh build/ ./out
+# 2. Bundle every transitive .a into a single fat archive. Pass the scratch dir.
+./fboss/fsdb/client/cgo/oss/build_fat_archive.sh /var/FBOSS/tmp_bld_dir ./out
 
-# 3. Ship out/libfsdb_cgo_bundle.a + out/fsdb_cgo_api.h to the vendor.
+# 3. Ship out/libfsdb_cgo_bundle.a, out/fsdb_cgo_api.h, and out/runtime_libs/
+#    to the vendor.
 ```
+
+Scoping to `--cmake-target fsdb_cgo_pub_sub_wrapper` keeps the bundle to the
+wrapper plus its dependency closure instead of every FBOSS component.
 
 The packaging script:
 1. Walks the build dir and finds every `*.a`, excluding `libfsdb_cgo_bundle.a`
