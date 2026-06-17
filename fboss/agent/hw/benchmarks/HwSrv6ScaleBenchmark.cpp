@@ -4,16 +4,11 @@
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
 #include <algorithm>
-#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
-#include "fboss/agent/if/gen-cpp2/common_types.h"
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/rib/RoutingInformationBase.h"
-#include "fboss/agent/state/MySid.h"
+#include "fboss/agent/Utils.h"
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -34,20 +29,13 @@ folly::IPAddressV6 makeSid(int index) {
       fmt::format("3001:db8:{:x}:{:x}::", (index >> 8) + 1, index & 0xFF));
 }
 
-// MySID locator-block offset: keeps the /48 MySID entries
-// (3001:db8:<index+kMySidLocatorBase>::) clear of the SRv6 tunnel SID range
+// MySID SID offset: keeps the /48 MySID entries
+// (3001:db8:<i+kMySidLocatorBase>::, built by
+// utility::makeAdjacencyMySidEntries) clear of the SRv6 tunnel SID range
 // produced by makeSid (3001:db8:1:: .. 3001:db8:1f::), since this benchmark
 // programs both in one switch.
 constexpr int kMySidLocatorBase = 0x100;
 
-// MySID address (ADJACENCY_MICRO_SID), same /48 shape as
-// HwSrv6MidpointMySidScaleBenchmark, offset out of the tunnel SID range.
-folly::IPAddressV6 makeMySidAddr(int index) {
-  return folly::IPAddressV6(
-      fmt::format("3001:db8:{:x}::", index + kMySidLocatorBase));
-}
-
-constexpr int kMySidPrefixLen = 48;
 constexpr int kPortsPerLag = 2;
 
 AgentEnsembleSwitchConfigFn makeSrv6ConfigFn() {
@@ -426,45 +414,6 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
   suspender.rehire();
 }
 
-// Program numEntries ADJACENCY_MICRO_SID MySID entries (/48), each with a
-// resolved adjacency next hop. Mirrors the entry shape configured by
-// HwSrv6MidpointMySidScaleBenchmark; added one at a time via rib->update.
-void addSrv6MySidEntries(
-    SwSwitch* sw,
-    const utility::EcmpSetupAnyNPorts6& ecmpHelper,
-    int numNhops,
-    int numEntries) {
-  auto rib = sw->getRib();
-  auto ribMySidFunc = createRibMySidToSwitchStateFunction(std::nullopt);
-  for (int i = 0; i < numEntries; ++i) {
-    auto ecmpNhop = ecmpHelper.nhop(i % numNhops);
-    state::MySidFields fields;
-    fields.type() = MySidType::ADJACENCY_MICRO_SID;
-    fields.adjacencyInterfaceId() = static_cast<int32_t>(ecmpNhop.intf);
-    fields.isV6() = true;
-    fields.clientId() = ClientID::STATIC_ROUTE;
-    facebook::network::thrift::IPPrefix prefix;
-    prefix.prefixAddress() =
-        facebook::network::toBinaryAddress(makeMySidAddr(i));
-    prefix.prefixLength() = kMySidPrefixLen;
-    fields.mySid() = prefix;
-    auto mySid = std::make_shared<MySid>(fields);
-    RouteNextHopSet nhops{ResolvedNextHop(
-        folly::IPAddress(ecmpNhop.ip), ecmpNhop.intf, ECMP_WEIGHT)};
-    std::vector<MySidWithNextHops> toAdd;
-    toAdd.push_back(
-        {std::move(mySid), std::move(nhops), std::nullopt /* nhgName */});
-    rib->update(
-        sw->getScopeResolver(),
-        std::move(toAdd),
-        {} /* toUnresolveIfMatch */,
-        {} /* toDelete */,
-        "addMySidEntry",
-        ribMySidFunc,
-        sw);
-  }
-}
-
 // Full-scale SRv6 warmboot benchmark: program numGroups x membersPerGroup
 // unique SRv6 next hops, numV6Routes v6 routes (shared SRv6 nhops), and
 // numMySidEntries ADJACENCY_MICRO_SID MySID entries, then measure the warmboot
@@ -531,17 +480,20 @@ void srv6FullScaleWarmbootBenchmark(
     routeUpdater.program();
 
     // numMySidEntries ADJACENCY_MICRO_SID MySID entries (separate my_sid
-    // table).
-    addSrv6MySidEntries(
-        ensemble->getSw(), ecmpHelper, numNhops, numMySidEntries);
+    // table). sidOffset keeps the /48 SIDs clear of the SRv6 tunnel SID range.
+    utility::programMySidEntries(
+        ensemble->getSw(),
+        utility::makeAdjacencyMySidEntries(
+            ecmpHelper, numNhops, numMySidEntries, kMySidLocatorBase));
   }
 
   ensemble->stopStatsThread();
   if (FLAGS_setup_for_warmboot) {
     // Coldboot setup pass: persist the warmboot state so the warmboot pass can
     // reload it, then leak the ensemble so destructors don't unprogram
-    // hardware. The warmboot pass measures the init-to-CONFIGURED time via the
-    // folly suspender above; the graceful-exit time itself is not of interest.
+    // hardware. The static StopWatch times the graceful exit (warm_boot_msecs),
+    // i.e. the warmboot state-persist time; its dtor fires at process exit.
+    static StopWatch timer("warm_boot_msecs", FLAGS_json);
     ensemble->gracefulExit();
     __attribute__((unused)) auto leakedHwEnsemble = ensemble.release();
   }
