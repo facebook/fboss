@@ -18,6 +18,7 @@ cpp_binary(
     srcs = [
         "ConfigArpTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
+        "ConfigCoppTest.cpp",
         "ConfigInterfaceDescriptionTest.cpp",
         "ConfigInterfaceIpv6NdpTest.cpp",
         "ConfigInterfaceMtuTest.cpp",
