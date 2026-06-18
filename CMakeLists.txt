@@ -887,6 +887,15 @@ add_fbthrift_cpp_library(
     phy_cpp2
     transceiver_cpp2
 )
+
+add_library(link_qsfp_test_port_info_utils
+  fboss/lib/if/LinkQsfpTestPortInfoUtils.cpp
+)
+
+target_link_libraries(link_qsfp_test_port_info_utils
+  link_qsfp_test_port_info_cpp2
+  transceiver_cpp2
+)
 add_fbthrift_cpp_library(
   i2c_controller_stats_cpp2
   fboss/lib/i2c/i2c_controller_stats.thrift

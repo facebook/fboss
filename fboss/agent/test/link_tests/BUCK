@@ -265,6 +265,7 @@ cpp_library(
         "//fboss/lib:common_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/if:link_qsfp_test_port_info-cpp2-types",
+        "//fboss/lib/if:link_qsfp_test_port_info_utils",
         "//fboss/lib/phy:phy-cpp2-serialization",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",

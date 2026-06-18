@@ -25,6 +25,7 @@
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/if/LinkQsfpTestPortInfoUtils.h"
 #include "fboss/lib/if/gen-cpp2/link_qsfp_test_port_info_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
@@ -874,45 +875,8 @@ void AgentEnsembleLinkTest::dumpTestMetadata() {
         portInfo.transceiverId() = it->second;
         if (auto tcvrIt = tcvrInfos.find(it->second);
             tcvrIt != tcvrInfos.end()) {
-          const auto& tcvrInfo = tcvrIt->second;
-          const auto& tcvrState = *tcvrInfo.tcvrState();
-          if (tcvrState.vendor().has_value()) {
-            const auto& vendor = *tcvrState.vendor();
-            portInfo.vendorName() = *vendor.name();
-            portInfo.vendorPartNumber() = *vendor.partNumber();
-            portInfo.vendorSerialNumber() = *vendor.serialNumber();
-          }
-          if (tcvrState.status().has_value()) {
-            const auto& status = *tcvrState.status();
-            if (status.fwStatus().has_value()) {
-              const auto& fwStatus = *status.fwStatus();
-              if (fwStatus.version().has_value()) {
-                portInfo.fwVersion() = *fwStatus.version();
-              }
-              if (fwStatus.dspFwVer().has_value()) {
-                portInfo.dspFwVersion() = *fwStatus.dspFwVer();
-              }
-            }
-          }
-          if (tcvrState.moduleMediaInterface().has_value()) {
-            portInfo.moduleMediaInterface() = *tcvrState.moduleMediaInterface();
-          }
-          // Per-port media interface: look up any media lane used by this port
-          // and index into the transceiver's per-lane mediaInterface settings.
-          const auto& portToMediaLanes = *tcvrState.portNameToMediaLanes();
-          auto laneIt = portToMediaLanes.find(portName);
-          if (laneIt != portToMediaLanes.end() && !laneIt->second.empty() &&
-              tcvrState.settings().has_value() &&
-              tcvrState.settings()->mediaInterface().has_value()) {
-            auto lane = laneIt->second.front();
-            for (const auto& mediaIf :
-                 *tcvrState.settings()->mediaInterface()) {
-              if (*mediaIf.lane() == lane) {
-                portInfo.portMediaInterface() = *mediaIf.code();
-                break;
-              }
-            }
-          }
+          const auto& tcvrState = *tcvrIt->second.tcvrState();
+          utility::populateTransceiverInfoFields(portInfo, tcvrState, portName);
         }
       }
 
