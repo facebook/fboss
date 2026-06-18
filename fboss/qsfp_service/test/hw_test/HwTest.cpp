@@ -379,6 +379,13 @@ void HwTest::addTestMetadata(
   perTransceiverMetadata_[id][key] = value;
 }
 
+void HwTest::addVerifiedProductionFeatures(
+    const std::vector<qsfp_production_features::QsfpProductionFeature>&
+        features) {
+  verifiedProductionFeatures_.insert(
+      verifiedProductionFeatures_.end(), features.begin(), features.end());
+}
+
 void HwTest::dumpTestMetadata() {
   // ensemble_ is nullptr in --list_production_feature mode; nothing to dump.
   if (ensemble_ == nullptr) {
@@ -391,6 +398,12 @@ void HwTest::dumpTestMetadata() {
       auto testInfo = testing::UnitTest::GetInstance()->current_test_info();
       auto testName =
           fmt::format("{}.{}", testInfo->test_suite_name(), testInfo->name());
+
+      std::vector<std::string> featureNames;
+      featureNames.reserve(verifiedProductionFeatures_.size());
+      for (const auto& feature : verifiedProductionFeatures_) {
+        featureNames.push_back(apache::thrift::util::enumNameSafe(feature));
+      }
 
       auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
 
@@ -406,6 +419,7 @@ void HwTest::dumpTestMetadata() {
 
       for (const auto& id : testedTransceivers_) {
         auto portInfo = buildPortInfoRow(wedgeManager, id, testName, tcvrInfos);
+        portInfo.verifiedProductionFeatures() = featureNames;
         if (auto it = perTransceiverMetadata_.find(id);
             it != perTransceiverMetadata_.end()) {
           portInfo.extraMetadata() = it->second;
@@ -435,6 +449,7 @@ void HwTest::dumpTestMetadata() {
   }
   testedTransceivers_.clear();
   perTransceiverMetadata_.clear();
+  verifiedProductionFeatures_.clear();
 }
 
 std::vector<qsfp_production_features::QsfpProductionFeature>
@@ -452,6 +467,8 @@ void HwTest::printProductionFeatures() const {
 }
 
 TEST_F(HwTest, CheckTcvrNameAndInterfaces) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_DETECTION});
   addTestedTransceivers(utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   std::map<int32_t, TransceiverInfo> insertedTransceiversMap;
@@ -487,6 +504,9 @@ TEST_F(HwTest, CheckTcvrNameAndInterfaces) {
   }
 }
 TEST_F(HwTest, checkCmisModuleFirmwareUpgradeCdbTimeout) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::
+           TRANSCEIVER_ADVERTISEMENTS});
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   refreshTransceiversWithRetry();
 

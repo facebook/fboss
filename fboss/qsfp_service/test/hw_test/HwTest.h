@@ -97,6 +97,15 @@ class HwTest : public ::testing::Test {
       const std::string& key,
       const std::string& value);
 
+  // Declare the production feature(s) this test verifies (e.g.
+  // DATA_PATH_PROGRAMMING, FIRMWARE_UPGRADE). Call from the test body. The
+  // feature names are recorded on every dumped Scuba row for the test. This is
+  // independent of getProductionFeatures() (the gating method consumed by
+  // --list_production_feature) and is used only for metadata/Scuba reporting.
+  void addVerifiedProductionFeatures(
+      const std::vector<qsfp_production_features::QsfpProductionFeature>&
+          features);
+
  protected:
   bool didWarmBoot() const;
   void printProductionFeatures() const;
@@ -118,5 +127,7 @@ class HwTest : public ::testing::Test {
   std::set<TransceiverID> testedTransceivers_;
   std::map<TransceiverID, std::map<std::string, std::string>>
       perTransceiverMetadata_;
+  std::vector<qsfp_production_features::QsfpProductionFeature>
+      verifiedProductionFeatures_;
 };
 } // namespace facebook::fboss
