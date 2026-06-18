@@ -94,6 +94,7 @@ class HwTransceiverResetTest : public HwTransceiverTest {
 };
 
 TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
+  addTestedTransceivers(getExpectedTransceivers());
   // Validate that the power control register has been correctly set before we
   // begin resetting the modules
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
@@ -162,6 +163,7 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
 }
 
 TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
+  addTestedTransceivers(getExpectedTransceivers());
   std::map<int32_t, TransceiverInfo> transceivers;
   std::map<int32_t, ModuleStatus> moduleStatuses;
 
@@ -298,6 +300,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   // Only work with optical transceivers
   auto opticalTransceivers = getCabledOpticalAndActiveTransceiverIDs();
+  addTestedTransceiverIds(opticalTransceivers);
 
   EXPECT_TRUE(!opticalTransceivers.empty());
 
@@ -448,6 +451,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
 TEST_F(HwTransceiverResetTest, verifyHardResetAction) {
   // Bring the ports UP, resetTransceiver with a reset_and_clear action, and
   // ensure transceivers come back to ACTIVE state
+  addTestedTransceivers(getExpectedTransceivers());
 
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();

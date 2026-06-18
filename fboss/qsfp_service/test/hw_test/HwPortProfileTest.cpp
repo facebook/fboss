@@ -79,6 +79,7 @@ class HwPortProfileTest : public HwTest {
     for (auto& [port, _] : ports.iphyPorts) {
       matchingPorts.push_back(port);
     }
+    addTestedPorts(matchingPorts);
 
     auto setup = [this, &ports]() {
       // New port programming will use state machine to program xphy ports and

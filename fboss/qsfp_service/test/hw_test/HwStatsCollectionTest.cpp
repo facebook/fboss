@@ -63,6 +63,7 @@ class HwXphyPortStatsCollectionTest : public HwExternalPhyPortTest {
 
   void runTest() {
     const auto& availableXphyPorts = findAvailableXphyPorts();
+    addTestedPorts(availableXphyPorts);
     auto setup = [this, &availableXphyPorts]() {
       for (const auto& [port, profile] : availableXphyPorts) {
         // First program the xphy port
@@ -130,6 +131,7 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
 
   void runTest() {
     const auto& availableXphyPorts = findAvailableXphyPorts();
+    addTestedPorts(availableXphyPorts);
     auto setup = [this, &availableXphyPorts]() {
       for (const auto& [port, profile] : availableXphyPorts) {
         // First program the xphy port
@@ -222,6 +224,7 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
 
   void runTest(phy::Side side) {
     const auto& availableXphyPorts = findAvailableXphyPorts();
+    addTestedPorts(availableXphyPorts);
     auto setup = [this, &availableXphyPorts, side]() {
       for (const auto& [port, profile] : availableXphyPorts) {
         // First program the xphy port
@@ -329,6 +332,7 @@ TEST_F(HwTest, transceiverIOStats) {
   qsfpServiceHandler->refreshStateMachines();
   auto tcvrs = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+  addTestedTransceiverIds(tcvrs);
 
   std::unordered_map<int32_t, TransceiverStats> tcvrStatsBefore;
 
@@ -395,6 +399,7 @@ TEST_F(PhyIOTest, phyIOStats) {
    */
   std::unordered_map<PortID, phy::PhyInfo> phyInfoBefore;
   const auto& availableXphyPorts = findAvailableXphyPorts();
+  addTestedPorts(availableXphyPorts);
 
   auto allPhyStatsUpdated =
       [&](std::unordered_map<PortID, phy::PhyInfo>& phyInfoToCompare) {

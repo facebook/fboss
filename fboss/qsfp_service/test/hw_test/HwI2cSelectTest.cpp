@@ -23,6 +23,7 @@ TEST_F(HwTest, i2cUniqueSerialNumbers) {
   WedgeManager* wedgeManager = ensemble->getWedgeManager();
   auto transceivers = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(ensemble));
+  addTestedTransceiverIds(transceivers);
 
   // Get information of all connected transceivers
   std::map<int32_t, TransceiverInfo> transceiverInfo;

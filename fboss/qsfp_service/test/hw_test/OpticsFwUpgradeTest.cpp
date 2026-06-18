@@ -263,6 +263,7 @@ TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
 
   long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
   auto tcvrsToTest = transceiversToTest();
+  addTestedTransceiverIds(tcvrsToTest);
   auto verify = [&, tcvrsToTest]() {
     if (didWarmBoot()) {
       CHECK(verifyUpgrade(
@@ -313,6 +314,7 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
   long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
 
   auto tcvrsToTest = transceiversToTest();
+  addTestedTransceiverIds(tcvrsToTest);
 
   auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
@@ -427,6 +429,7 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
    */
 
   auto tcvrsToTest = transceiversToTest();
+  addTestedTransceiverIds(tcvrsToTest);
 
   auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
@@ -566,6 +569,7 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
   long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
 
   auto tcvrsToTest = transceiversToTest();
+  addTestedTransceiverIds(tcvrsToTest);
 
   auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();

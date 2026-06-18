@@ -331,6 +331,7 @@ class HwPortPrbsTestAll : public HwExternalPhyPortTest {
 };
 
 TEST_F(HwPortPrbsTestAll, TestAll) {
+  addTestedPorts(findAvailableXphyPorts());
   runAllTests();
 }
 

@@ -37,6 +37,7 @@ TEST_F(HwXphyPortReprogramTest, ProgramRemoveReprogramCycle) {
     auto xphyPorts = findAvailableXphyPorts();
     ASSERT_FALSE(xphyPorts.empty())
         << "No available XPHY ports found for testing";
+    addTestedPorts(xphyPorts);
 
     auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
     auto* saiPhyManager = dynamic_cast<SaiPhyManager*>(phyManager);

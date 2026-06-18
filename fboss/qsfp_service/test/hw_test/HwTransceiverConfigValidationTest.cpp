@@ -22,6 +22,7 @@ class HwTransceiverConfigValidationTest : public HwTransceiverTest {
 };
 
 TEST_F(HwTransceiverConfigValidationTest, validateAllActiveTransceivers) {
+  addTestedTransceivers(getExpectedTransceivers());
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   std::vector<int32_t> invalidTransceivers, validTransceivers;
   auto all_ids = getExpectedLegacyTransceiverIds();
