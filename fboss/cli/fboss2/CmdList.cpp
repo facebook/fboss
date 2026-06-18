@@ -103,6 +103,8 @@
 #include "fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.h"
 #include "fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h"
+#include "fboss/cli/fboss2/commands/start/port/CmdStartPort.h"
+#include "fboss/cli/fboss2/commands/start/port/cable_length_measurement/CmdStartPortCableLengthMeasurement.h"
 #include "fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h"
 #include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h"
 #include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperStats.h"
@@ -593,6 +595,16 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdStartPcap>,
        argTypeHandler<CmdStartPcapTraits>,
        localOptionsHandler<CmdStartPcapTraits>},
+
+      {"start",
+       "port",
+       "Start Port event",
+       commandHandler<CmdStartPort>,
+       argTypeHandler<CmdStartPortTraits>,
+       {{"cable-length-measurement",
+         "Trigger cable length measurement",
+         commandHandler<CmdStartPortCableLengthMeasurement>,
+         argTypeHandler<CmdStartPortCableLengthMeasurementTraits>}}},
 
       {"stop",
        "pcap",

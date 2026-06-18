@@ -99,6 +99,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/config/CmdConfigTestBase.cpp
   fboss/cli/fboss2/test/config/BgpConfigSessionTest.cpp
   fboss/cli/fboss2/test/CmdStartPcapTest.cpp
+  fboss/cli/fboss2/test/CmdStartPortCableLengthMeasurementTest.cpp
   fboss/cli/fboss2/test/CmdStopPcapTest.cpp
   fboss/cli/fboss2/test/GitTest.cpp
   fboss/cli/fboss2/test/PortMapTest.cpp

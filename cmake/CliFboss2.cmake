@@ -633,6 +633,10 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/bgp/stream/subscriber/CmdShowBgpStreamSubscriberPostPolicy.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.cpp
+  fboss/cli/fboss2/commands/start/port/CmdStartPort.h
+  fboss/cli/fboss2/commands/start/port/CmdStartPort.cpp
+  fboss/cli/fboss2/commands/start/port/cable_length_measurement/CmdStartPortCableLengthMeasurement.h
+  fboss/cli/fboss2/commands/start/port/cable_length_measurement/CmdStartPortCableLengthMeasurement.cpp
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.cpp
   fboss/cli/fboss2/CmdSubcommands.cpp
