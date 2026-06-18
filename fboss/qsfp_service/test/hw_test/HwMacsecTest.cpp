@@ -339,6 +339,8 @@ class HwMacsecTest : public HwExternalPhyPortTest {
 };
 
 TEST_F(HwMacsecTest, installRemoveKeys) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
   auto xphyPorts = findAvailableXphyPorts();
   addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
@@ -388,6 +390,8 @@ TEST_F(HwMacsecTest, installRemoveKeys) {
 }
 
 TEST_F(HwMacsecTest, rotateRxKeys) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
   auto xphyPorts = findAvailableXphyPorts();
   addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
@@ -453,6 +457,8 @@ TEST_F(HwMacsecTest, rotateRxKeys) {
 // Verify that the RX SAK APIs are idempotent because MKA service may need
 // to retry in some cases.
 TEST_F(HwMacsecTest, idempotentRx) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
   auto xphyPorts = findAvailableXphyPorts();
   addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
@@ -511,6 +517,8 @@ TEST_F(HwMacsecTest, idempotentRx) {
  *    removed, SAK2 is untouched
  */
 TEST_F(HwMacsecTest, updateRxKeys) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
   auto xphyPorts = findAvailableXphyPorts();
   addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
@@ -593,6 +601,8 @@ TEST_F(HwMacsecTest, updateRxKeys) {
  * 2. Install Tx SAK3 (SC=X, AN=2, Key=W), Verify SAK3 is programmed
  */
 TEST_F(HwMacsecTest, updateTxKeys) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
   auto xphyPorts = findAvailableXphyPorts();
   addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
@@ -648,6 +658,8 @@ TEST_F(HwMacsecTest, updateTxKeys) {
 }
 
 TEST_F(HwMacsecTest, cleanupMacsec) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
   auto xphyPorts = findAvailableXphyPorts();
   addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
@@ -718,6 +730,8 @@ TEST_F(HwMacsecTest, cleanupMacsec) {
 }
 
 TEST_F(HwMacsecTest, verifyMacsecAclStates) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
   auto xphyPorts = findAvailableXphyPorts();
   addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
@@ -869,9 +883,13 @@ void HwMacsecTest::rotateKeysMultiple(bool circleThroughAN) {
 }
 
 TEST_F(HwMacsecTest, rotateKeysSameAN) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
   rotateKeysMultiple(false);
 }
 TEST_F(HwMacsecTest, rotateKeysDifferentAN) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
   rotateKeysMultiple(true);
 }
 } // namespace facebook::fboss

@@ -94,6 +94,8 @@ class HwTransceiverResetTest : public HwTransceiverTest {
 };
 
 TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_RESET});
   addTestedTransceivers(getExpectedTransceivers());
   // Validate that the power control register has been correctly set before we
   // begin resetting the modules
@@ -163,6 +165,8 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
 }
 
 TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_RESET});
   addTestedTransceivers(getExpectedTransceivers());
   std::map<int32_t, TransceiverInfo> transceivers;
   std::map<int32_t, ModuleStatus> moduleStatuses;
@@ -286,6 +290,8 @@ class HwTransceiverResetBmcLiteTest : public HwTransceiverResetTest {
 };
 
 TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_RESET});
   // 1. Put the transceivers in reset one at a time.
   // 2. Verify absence of Transceiver. Read byte 0 10 times and ensure
   //    - for sff, all reads fail
@@ -449,6 +455,8 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
 }
 
 TEST_F(HwTransceiverResetTest, verifyHardResetAction) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_RESET});
   // Bring the ports UP, resetTransceiver with a reset_and_clear action, and
   // ensure transceivers come back to ACTIVE state
   addTestedTransceivers(getExpectedTransceivers());

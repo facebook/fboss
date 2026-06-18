@@ -68,6 +68,9 @@ class HwPortProfileTest : public HwTest {
 
  protected:
   void runTest() {
+    addVerifiedProductionFeatures(
+        {qsfp_production_features::QsfpProductionFeature::
+             DATA_PATH_PROGRAMMING});
     const auto& ports =
         utility::findAvailableCabledPorts(getHwQsfpEnsemble(), Profile);
     EXPECT_TRUE(!(ports.xphyPorts.empty() && ports.iphyPorts.empty()));

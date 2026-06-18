@@ -17,6 +17,8 @@ namespace facebook::fboss {
  * same serial number.
  */
 TEST_F(HwTest, i2cUniqueSerialNumbers) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::I2C_ACCESS});
   // Get the IDs of all connected transceivers
   auto ensemble = getHwQsfpEnsemble();
   auto qsfpServiceHandler = ensemble->getQsfpServiceHandler();

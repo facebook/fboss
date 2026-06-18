@@ -18,6 +18,8 @@
 namespace facebook::fboss {
 
 TEST_F(HwTest, publishStats) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::STATS_COLLECTION});
   StatsPublisher publisher(getHwQsfpEnsemble()->getWedgeManager());
   publisher.init();
   publisher.publishStats(nullptr, 0);
@@ -112,6 +114,8 @@ class HwXphyPortStatsCollectionTest : public HwExternalPhyPortTest {
 };
 
 TEST_F(HwXphyPortStatsCollectionTest, checkXphyStatsCollectionDone) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::STATS_COLLECTION});
   runTest();
 }
 
@@ -210,6 +214,8 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
 };
 
 TEST_F(HwXphyPortInfoTest, getPortInfo) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::STATS_COLLECTION});
   runTest();
 }
 
@@ -309,13 +315,19 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
 };
 
 TEST_F(HwXphyPrbsStatsCollectionTest, getSystemPrbsStats) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_PRBS});
   runTest(phy::Side::SYSTEM);
 }
 TEST_F(HwXphyPrbsStatsCollectionTest, getLinePrbsStats) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_PRBS});
   runTest(phy::Side::LINE);
 }
 
 TEST_F(HwTest, transceiverIOStats) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::STATS_COLLECTION});
   /*
    * 1. Refresh transceivers
    * 2. Get the transceiver IO stats
@@ -388,6 +400,8 @@ class PhyIOTest : public HwExternalPhyPortTest {
 };
 
 TEST_F(PhyIOTest, phyIOStats) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::STATS_COLLECTION});
   /*
    * 1. Update all phy stats
    * 2. Get the phy IO stats

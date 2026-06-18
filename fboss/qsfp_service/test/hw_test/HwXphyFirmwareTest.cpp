@@ -27,6 +27,8 @@ class HwXphyFirmwareTest : public HwTest {
 };
 
 TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::XPHY_PROGRAMMING});
   auto platformType = getHwQsfpEnsemble()->getWedgeManager()->getPlatformType();
 
   phy::PhyFwVersion desiredFw;

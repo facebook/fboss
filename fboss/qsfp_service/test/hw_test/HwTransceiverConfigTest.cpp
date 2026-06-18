@@ -18,6 +18,8 @@ class HwTransceiverConfigTest : public HwTransceiverTest {
 };
 
 TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::CONFIG_VALIDATION});
   addTestedTransceivers(getExpectedTransceivers());
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpConfig = wedgeManager->getQsfpConfig();

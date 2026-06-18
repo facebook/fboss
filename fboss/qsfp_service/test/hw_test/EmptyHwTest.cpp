@@ -16,5 +16,7 @@ class EmptyHwTest : public HwTest {};
  * transceivers are programmed
  */
 TEST_F(EmptyHwTest, CheckInit) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::DATA_PATH_PROGRAMMING});
   verifyAcrossWarmBoots([]() {}, []() {});
 }

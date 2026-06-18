@@ -333,6 +333,8 @@ class HwStateMachineTestWithoutIphyProgramming : public HwStateMachineTest {
 };
 
 TEST_F(HwStateMachineTestWithoutIphyProgramming, CheckOpticsDetection) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_DETECTION});
   addTestedTransceivers(getPresentTransceivers());
   addTestedTransceivers(getAbsentTransceivers());
   auto verify = [&]() {
@@ -377,6 +379,8 @@ TEST_F(HwStateMachineTestWithoutIphyProgramming, CheckOpticsDetection) {
 }
 
 TEST_F(HwStateMachineTest, CheckPortsProgrammed) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::DATA_PATH_PROGRAMMING});
   addTestedTransceivers(getPresentTransceivers());
   addTestedTransceivers(getAbsentTransceivers());
   auto verify = [this]() {
@@ -458,6 +462,8 @@ TEST_F(HwStateMachineTest, CheckPortsProgrammed) {
 }
 
 TEST_F(HwStateMachineTest, CheckPortStatusUpdated) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::DATA_PATH_PROGRAMMING});
   addTestedTransceivers(getPresentTransceivers());
   auto verify = [this]() {
     std::unordered_map<TransceiverID, time_t> lastDownTimes;
@@ -541,6 +547,8 @@ TEST_F(HwStateMachineTest, CheckPortStatusUpdated) {
 }
 
 TEST_F(HwStateMachineTest, CheckTransceiverRemoved) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_REMOVAL});
   addTestedTransceivers(getPresentTransceivers());
   auto verify = [this]() {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
@@ -611,6 +619,8 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemoved) {
 }
 
 TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::REMEDIATION});
   addTestedTransceivers(getPresentTransceivers());
   auto verify = [this]() {
     std::set<TransceiverID> enabledTcvrs;
@@ -705,6 +715,8 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
 }
 
 TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::DATA_PATH_PROGRAMMING});
   addTestedTransceivers(getPresentTransceivers());
   addTestedTransceivers(getAbsentTransceivers());
   auto verify = [this]() {

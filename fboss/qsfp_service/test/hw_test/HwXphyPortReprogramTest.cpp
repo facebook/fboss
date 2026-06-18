@@ -33,6 +33,8 @@ class HwXphyPortReprogramTest : public HwExternalPhyPortTest {
  * iterations, verifying correct teardown and reprogramming each cycle.
  */
 TEST_F(HwXphyPortReprogramTest, ProgramRemoveReprogramCycle) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::XPHY_PROGRAMMING});
   auto verify = [this]() {
     auto xphyPorts = findAvailableXphyPorts();
     ASSERT_FALSE(xphyPorts.empty())
