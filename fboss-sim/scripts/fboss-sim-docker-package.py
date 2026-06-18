@@ -94,26 +94,7 @@ def verify_binaries(build_dir: Path) -> None:
     print(f"  ✓ All {len(REQUIRED_BINARIES)} required binaries present")
 
 
-def get_lib_search_paths(installed_dir: Path) -> list[str]:
-    """Find all lib/ and lib64/ directories under the getdeps installed dir.
-
-    Mirrors package-fboss.py's _update_ld_library_path logic.
-    """
-    paths = []
-    if not installed_dir.exists():
-        return paths
-    result = subprocess.run(
-        ["find", str(installed_dir), "-type", "d", "-regex", r".*/\(lib\|lib64\)"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode == 0:
-        paths = [p for p in result.stdout.strip().splitlines() if p]
-    return paths
-
-
-def resolve_dependencies(binary_path: Path, lib_search_paths: list[str]) -> set[str]:
+def resolve_dependencies(binary_path: Path) -> set[str]:
     """Use ldd to find shared library dependencies for a binary."""
     dependencies = set()
 
@@ -125,13 +106,10 @@ def resolve_dependencies(binary_path: Path, lib_search_paths: list[str]) -> set[
     except subprocess.CalledProcessError:
         return dependencies
 
-    # Set up LD_LIBRARY_PATH so ldd can find libs from the build
+    # Resolve via the binary's own RUNPATH; strip any inherited LD_LIBRARY_PATH
+    # so a stale dep generation under installed/ can't shadow the correct one.
     env = os.environ.copy()
-    extra_paths = ":".join(lib_search_paths)
-    if env.get("LD_LIBRARY_PATH"):
-        env["LD_LIBRARY_PATH"] = f"{extra_paths}:{env['LD_LIBRARY_PATH']}"
-    else:
-        env["LD_LIBRARY_PATH"] = extra_paths
+    env.pop("LD_LIBRARY_PATH", None)
 
     try:
         output = subprocess.check_output(
@@ -203,20 +181,17 @@ def copy_artifacts(
     else:
         print("    ⚠ setup_fboss_env not found in run_scripts/")
 
-    # 3. Resolve and copy shared library dependencies
-    # Mirrors package-fboss.py exactly: set LD_LIBRARY_PATH to all lib/lib64 dirs
-    # under the getdeps installed/ tree, then run ldd per binary.
+    # 3. Resolve and copy shared library dependencies. ldd resolves each binary
+    # via its own RUNPATH plus default system paths.
     # NOTE: this step must run inside the build container (CentOS) so that ldd
     # resolves system libs (libre2.so.9, libnl, libsodium, etc.) correctly.
     # The host invocation handles this via docker exec --collect-only.
     print("\n  → Resolving shared library dependencies...")
-    lib_search_paths = get_lib_search_paths(installed_dir)
-    print(f"    {len(lib_search_paths)} library search paths")
 
     all_deps: set[str] = set()
     for binary in REQUIRED_BINARIES:
         binary_path = build_dir / binary
-        all_deps.update(resolve_dependencies(binary_path, lib_search_paths))
+        all_deps.update(resolve_dependencies(binary_path))
 
     for lib_path in sorted(all_deps):
         lib_name = os.path.basename(lib_path)
