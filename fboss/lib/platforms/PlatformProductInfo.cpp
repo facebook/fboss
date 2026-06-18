@@ -11,6 +11,8 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/platforms/PlatformDescriptor.h"
 
+#include <cstdint>
+
 #include <boost/algorithm/string.hpp>
 #include <folly/FileUtil.h>
 #include <folly/MacAddress.h>
@@ -337,11 +339,37 @@ std::string PlatformProductInfo::getField(
     const std::vector<std::string>& keys) {
   for (const auto& key : keys) {
     if (info.count(key)) {
-      return folly::to<std::string>(info[key].asString());
+      try {
+        return folly::to<std::string>(info[key].asString());
+      } catch (const std::exception& err) {
+        throw FbossError(
+            "Failed to parse string field '",
+            key,
+            "' from ",
+            path_,
+            ": ",
+            err.what());
+      }
     }
   }
   // If field does not exist in fruid.json, return empty string
   return "";
+}
+
+int16_t PlatformProductInfo::getInt16Field(
+    const folly::dynamic& info,
+    StringPiece key) {
+  try {
+    return folly::to<int16_t>(info[key].asInt());
+  } catch (const std::exception& err) {
+    throw FbossError(
+        "Failed to parse integer field '",
+        key,
+        "' from ",
+        path_,
+        ": ",
+        err.what());
+  }
 }
 
 void PlatformProductInfo::parse(std::string data) {
@@ -384,16 +412,16 @@ void PlatformProductInfo::parse(std::string data) {
 
   // Optional field in Information
   if (info.count(kVersion)) {
-    productInfo_.version() = info[kVersion].asInt();
+    productInfo_.version() = getInt16Field(info, kVersion);
   }
   if (info.count(kSubVersion)) {
-    productInfo_.subVersion() = info[kSubVersion].asInt();
+    productInfo_.subVersion() = getInt16Field(info, kSubVersion);
   }
   if (info.count(kProductionState)) {
-    productInfo_.productionState() = info[kProductionState].asInt();
+    productInfo_.productionState() = getInt16Field(info, kProductionState);
   }
   if (info.count(kProdVersion)) {
-    productInfo_.productVersion() = info[kProdVersion].asInt();
+    productInfo_.productVersion() = getInt16Field(info, kProdVersion);
   }
 
   // There are different keys for these values in BMC
@@ -410,12 +438,29 @@ void PlatformProductInfo::parse(std::string data) {
       getField(info, {kFabricLocation, kFabricLocationBmcLite});
   productInfo_.bmcMac() = getField(info, {kLocalMac, kLocalMacBmcLite});
   productInfo_.mgmtMac() = getField(info, {kExtMacBase, kExtMacBaseBmcLite});
-  auto macBase = MacAddress(productInfo_.mgmtMac().value()).u64HBO() + 1;
+  uint64_t macBase = 0;
+  try {
+    macBase = MacAddress(productInfo_.mgmtMac().value()).u64HBO() + 1;
+  } catch (const std::exception& err) {
+    throw FbossError(
+        "Failed to parse MAC field '",
+        kExtMacBase,
+        "'/'",
+        kExtMacBaseBmcLite,
+        "' (value: '",
+        productInfo_.mgmtMac().value(),
+        "') from ",
+        path_,
+        ": ",
+        err.what());
+  }
   productInfo_.macRangeStart() = MacAddress::fromHBO(macBase).toString();
   if (info.count(kExtMacSize)) {
-    productInfo_.macRangeSize() = info[kExtMacSize].asInt() - 1;
+    productInfo_.macRangeSize() =
+        folly::to<int16_t>(getInt16Field(info, kExtMacSize) - 1);
   } else if (info.count(kExtMacSizeBmcLite)) {
-    productInfo_.macRangeSize() = info[kExtMacSizeBmcLite].asInt() - 1;
+    productInfo_.macRangeSize() =
+        folly::to<int16_t>(getInt16Field(info, kExtMacSizeBmcLite) - 1);
   }
 
   // Product Asset Tag is not present in BMC-Lite platforms.

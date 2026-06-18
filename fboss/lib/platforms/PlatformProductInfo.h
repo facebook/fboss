@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <cstdint>
+
 #include <folly/Range.h>
 #include <folly/json/dynamic.h>
 
@@ -53,6 +55,8 @@ class PlatformProductInfo {
   std::string getField(
       const folly::dynamic& info,
       const std::vector<std::string>& keys);
+
+  int16_t getInt16Field(const folly::dynamic& info, folly::StringPiece key);
 
   ProductInfo productInfo_;
   folly::StringPiece path_;
