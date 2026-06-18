@@ -2024,3 +2024,9 @@ device:
     DLB_ECMP_CONFIG:
       PATH_QUALITY_PROFILE_MODE: WIDE
 ...
+---
+device:
+  0:
+    PHB_CONTROL:
+      INT_PRI_TAGGED_TO_INPUT_PRI: 1
+...
