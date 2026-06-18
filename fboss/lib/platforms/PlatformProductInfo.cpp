@@ -208,7 +208,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_JANGA800BIC;
     } else if (
         modelName.find("TAHANSB800BC") == 0 ||
-        modelName.find("TAHANSB800BCM") == 0) {
+        modelName.find("TAHANSB800BCM") == 0 ||
+        modelName.find("TAHAN_SB") == 0) {
       type_ = PlatformType::PLATFORM_TAHANSB800BC;
     } else if (
         modelName.find("TAHAN") == 0 || modelName.find("TAHAN800BC") == 0 ||
