@@ -512,6 +512,12 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
         hash, programmedLoadBalancer);
 
     ecmpV4Hash_ = std::move(hash);
+  } else if (ecmpV4Hash_) {
+    // IPv4 fields cleared to empty — detach the hash from the switch and
+    // release the object so it can be freed without OBJECT_IN_USE.
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::EcmpHashV4{SAI_NULL_OBJECT_ID});
+    ecmpV4Hash_.reset();
   }
   if (newLb->getIPv6Fields().begin() != newLb->getIPv6Fields().end()) {
     // v6 ECMP
@@ -540,14 +546,17 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
         hash, programmedLoadBalancer);
 
     ecmpV6Hash_ = std::move(hash);
+  } else if (ecmpV6Hash_) {
+    // IPv6 fields cleared to empty — detach and release.
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::EcmpHashV6{SAI_NULL_OBJECT_ID});
+    ecmpV6Hash_.reset();
   }
 }
 
 void SaiSwitchManager::programLagLoadBalancerParams(
     std::optional<sai_uint32_t> seed,
     std::optional<cfg::HashingAlgorithm> algo) {
-  // TODO(skhare) setLoadBalancer is called only for ECMP today. Add similar
-  // logic for LAG.
   auto hashSeed = seed ? seed.value() : 0;
   auto hashAlgo = algo ? toSaiHashAlgo(algo.value()) : SAI_HASH_ALGORITHM_CRC;
   switch_->setOptionalAttribute(
@@ -564,8 +573,13 @@ void SaiSwitchManager::addOrUpdateLagLoadBalancer(
   }
   programLagLoadBalancerParams(newLb->getSeed(), newLb->getAlgorithm());
 
+  auto udfGroupIds = getUdfGroupIds(newLb);
+
   if (newLb->getIPv4Fields().begin() != newLb->getIPv4Fields().end()) {
     // v4 LAG
+    auto programmedLoadBalancer =
+        getProgrammedHashAttr<SaiSwitchTraits::Attributes::LagHashV4>();
+
     cfg::Fields v4LagHashFields;
     std::for_each(
         newLb->getIPv4Fields().begin(),
@@ -580,13 +594,28 @@ void SaiSwitchManager::addOrUpdateLagLoadBalancer(
         [&v4LagHashFields](const auto& entry) {
           v4LagHashFields.transportFields()->insert(entry->cref());
         });
-    lagV4Hash_ = managerTable_->hashManager().getOrCreate(v4LagHashFields);
-    // Set the new lag v4 hash attribute on switch obj
+
+    auto hash =
+        managerTable_->hashManager().getOrCreate(v4LagHashFields, udfGroupIds);
+
+    // Detach the previously-programmed hash from the switch before the old
+    // lagV4Hash_ shared_ptr is dropped, otherwise SAI fails the remove call
+    // with OBJECT_IN_USE and terminate() fires from the SaiObject destructor.
+    setLoadBalancer<SaiSwitchTraits::Attributes::LagHashV4>(
+        hash, programmedLoadBalancer);
+
+    lagV4Hash_ = std::move(hash);
+  } else if (lagV4Hash_) {
+    // IPv4 fields cleared to empty — detach and release.
     switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::LagHashV4{lagV4Hash_->adapterKey()});
+        SaiSwitchTraits::Attributes::LagHashV4{SAI_NULL_OBJECT_ID});
+    lagV4Hash_.reset();
   }
   if (newLb->getIPv6Fields().begin() != newLb->getIPv6Fields().end()) {
     // v6 LAG
+    auto programmedLoadBalancer =
+        getProgrammedHashAttr<SaiSwitchTraits::Attributes::LagHashV6>();
+
     cfg::Fields v6LagHashFields;
     std::for_each(
         newLb->getIPv6Fields().begin(),
@@ -602,10 +631,18 @@ void SaiSwitchManager::addOrUpdateLagLoadBalancer(
           v6LagHashFields.transportFields()->insert(entry->cref());
         });
 
-    lagV6Hash_ = managerTable_->hashManager().getOrCreate(v6LagHashFields);
-    // Set the new lag v6 hash attribute on switch obj
+    auto hash =
+        managerTable_->hashManager().getOrCreate(v6LagHashFields, udfGroupIds);
+
+    setLoadBalancer<SaiSwitchTraits::Attributes::LagHashV6>(
+        hash, programmedLoadBalancer);
+
+    lagV6Hash_ = std::move(hash);
+  } else if (lagV6Hash_) {
+    // IPv6 fields cleared to empty — detach and release.
     switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::LagHashV6{lagV6Hash_->adapterKey()});
+        SaiSwitchTraits::Attributes::LagHashV6{SAI_NULL_OBJECT_ID});
+    lagV6Hash_.reset();
   }
 }
 
