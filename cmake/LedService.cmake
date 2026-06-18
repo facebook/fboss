@@ -89,7 +89,6 @@ target_link_libraries(led_manager_lib
   log_thrift_call
   led_utils
   montblanc_bsp
-  icecube800banw_bsp
   icecube800bc_bsp
   icetea800bc_bsp
   meru800bia_bsp
