@@ -819,6 +819,13 @@ void AgentEnsembleLinkTest::addTestMetadata(
   perPortMetadata_[portId][key] = value;
 }
 
+void AgentEnsembleLinkTest::addVerifiedProductionFeatures(
+    const std::vector<link_test_production_features::LinkTestProductionFeature>&
+        features) {
+  verifiedProductionFeatures_.insert(
+      verifiedProductionFeatures_.end(), features.begin(), features.end());
+}
+
 void AgentEnsembleLinkTest::dumpTestMetadata() {
   if (testedPorts_.empty()) {
     return;
@@ -827,6 +834,12 @@ void AgentEnsembleLinkTest::dumpTestMetadata() {
     auto testInfo = testing::UnitTest::GetInstance()->current_test_info();
     auto testName =
         fmt::format("{}.{}", testInfo->test_suite_name(), testInfo->name());
+
+    std::vector<std::string> featureNames;
+    featureNames.reserve(verifiedProductionFeatures_.size());
+    for (const auto& feature : verifiedProductionFeatures_) {
+      featureNames.push_back(apache::thrift::util::enumNameSafe(feature));
+    }
 
     auto cabledTcvrPorts = getCabledTransceiverPorts();
     std::unordered_set<PortID> cabledTcvrPortSet(
@@ -880,6 +893,8 @@ void AgentEnsembleLinkTest::dumpTestMetadata() {
         }
       }
 
+      portInfo.verifiedProductionFeatures() = featureNames;
+
       if (auto it = perPortMetadata_.find(portId);
           it != perPortMetadata_.end()) {
         portInfo.extraMetadata() = it->second;
@@ -905,6 +920,7 @@ void AgentEnsembleLinkTest::dumpTestMetadata() {
   }
   testedPorts_.clear();
   perPortMetadata_.clear();
+  verifiedProductionFeatures_.clear();
 }
 
 int agentEnsembleLinkTestMain(
