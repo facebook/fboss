@@ -129,6 +129,8 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
   }
 
   void runTest() {
+    addVerifiedProductionFeatures(
+        {link_test_production_features::LinkTestProductionFeature::PRBS});
     prbs::InterfacePrbsState enabledState;
     enabledState.generatorEnabled() = true;
     enabledState.checkerEnabled() = true;

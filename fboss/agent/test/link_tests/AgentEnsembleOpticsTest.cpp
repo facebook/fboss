@@ -124,6 +124,9 @@ class AgentEnsembleOpticsTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::
+           TRANSCEIVER_TX_RX_LATCHES});
   /*
    * 1. Filter out ports with optics
    * 2. Set ASIC port status to false on A side
@@ -338,6 +341,8 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
  *       transceivers don't have a DSP and there are no VDM stats.
  */
 TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::VDM});
 #ifdef IS_OSS
   GTEST_SKIP() << "opticsVdmPerformanceMonitoring is currently not supported "
                   "in OSS until we add an OSS implementation for "

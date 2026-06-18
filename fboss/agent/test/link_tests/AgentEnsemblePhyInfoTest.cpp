@@ -245,6 +245,8 @@ std::optional<phy::PhyInfo> getXphyInfo(PortID portID) {
 } // namespace
 
 TEST_F(AgentEnsembleLinkTest, iPhyInfoTest) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::IPHY_DIAGS});
   auto cabledPorts = getCabledPorts();
   addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
@@ -296,6 +298,8 @@ TEST_F(AgentEnsembleLinkTest, iPhyInfoTest) {
 }
 
 TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::XPHY_DIAGS});
   auto cabledPorts = getXphyCabledPorts();
   addTestedPorts(cabledPorts);
   ASSERT_FALSE(cabledPorts.empty());
@@ -384,6 +388,8 @@ TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
  * counters increment on the corresponding snaked port
  */
 TEST_F(AgentEnsembleLinkTest, verifyIphyFecCounters) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::FEC});
   auto cabledPorts = getCabledPorts();
   addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
@@ -468,6 +474,8 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecCounters) {
 }
 
 TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::FEC});
   /*
    * Collects 5 (500 for stress test) phyInfos and verifies
    * 1. No uncorrected codewords
@@ -654,6 +662,8 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
 }
 
 TEST_F(AgentEnsembleLinkTest, clearIphyInterfaceCounters) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::IPHY_DIAGS});
   auto cabledPorts = getCabledPorts();
   addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
