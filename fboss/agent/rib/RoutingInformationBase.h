@@ -347,6 +347,13 @@ class RibRouteTables {
       const RouterIDAndNetworkToInterfaceRoutes&
           configRouterIDToInterfaceRoutes) const;
 
+  // Stamps missing clientNextHopSetID, resolvedNextHopSetID, and
+  // normalizedResolvedNextHopSetID on routes from a pre-feature warmboot
+  // snapshot. No-op when manager is null or IDs are already set.
+  // TODO: remove once FLAGS_enable_nexthop_id_manager is permanently on.
+  static void backfillNextHopIds(
+      const SynchronizedRouteTables::WLockedPtr& lockedRouteTables);
+
   SynchronizedRouteTables synchronizedRouteTables_;
 };
 

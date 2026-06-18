@@ -218,6 +218,25 @@ class NextHopMapPopulationTest : public ::testing::Test {
     updater.addRoute(kClientA, mplsRoute);
   }
 
+  // Add MPLS route with SWAP action (regular MPLS forwarding). Nexthop must
+  // be reachable via one of the configured interface subnets so the route
+  // resolves and gets a non-empty fwd nexthop set.
+  void addMplsSwapRoute(
+      SwSwitchRouteUpdateWrapper& updater,
+      MplsLabel label,
+      MplsLabel swapLabel,
+      const folly::IPAddress& nhopAddr) {
+    MplsRoute mplsRoute;
+    mplsRoute.topLabel() = label;
+    NextHopThrift nexthop;
+    nexthop.mplsAction() = MplsAction();
+    *nexthop.mplsAction()->action() = MplsActionCode::SWAP;
+    nexthop.mplsAction()->swapLabel() = swapLabel;
+    nexthop.address() = facebook::network::toBinaryAddress(nhopAddr);
+    mplsRoute.nextHops()->emplace_back(nexthop);
+    updater.addRoute(kClientA, mplsRoute);
+  }
+
   std::shared_ptr<MultiLabelForwardingInformationBase> getLabelFib() {
     auto state = sw_->getState();
     return state->getLabelForwardingInformationBase();
@@ -723,105 +742,6 @@ TEST_F(NextHopMapPopulationTest, UpdaterIncrementalRemoveViaRouteUpdater) {
   verifyIDMapsConsistency();
 }
 
-// Simulates a warmboot transition from FLAGS_enable_nexthop_id_manager=false to
-// =true: routes exist in the FIB but have no IDs assigned, and the manager is
-// empty. The fix in RouteUpdater::resolveOne should backfill both
-// resolvedNextHopSetID and normalizedResolvedNextHopSetID on the next update.
-TEST_F(NextHopMapPopulationTest, ResolveOneBackfillsMissingIdsFromWarmBoot) {
-  // 1. Allocate IDs normally via the live RIB.
-  auto updater = sw_->getRouteUpdater();
-  addStandardTestRoutes(updater);
-  updater.program();
-  verifyIdMapsMatchIdManager();
-  verifyIDMapsConsistency();
-
-  // 2. Snapshot the rib thrift and strip both IDs from every route's fwd to
-  // mirror a state where IDs were never assigned.
-  auto ribThrift = sw_->getRib()->toThrift();
-  for (auto& [_, routeTable] : ribThrift) {
-    for (auto& [__, v4Route] : *routeTable.v4NetworkToRoute()) {
-      v4Route.fwd()->resolvedNextHopSetID().reset();
-      v4Route.fwd()->normalizedResolvedNextHopSetID().reset();
-    }
-    for (auto& [__, v6Route] : *routeTable.v6NetworkToRoute()) {
-      v6Route.fwd()->resolvedNextHopSetID().reset();
-      v6Route.fwd()->normalizedResolvedNextHopSetID().reset();
-    }
-  }
-
-  // 3. Reconstruct a fresh RIB from the stripped thrift with empty FIB inputs
-  // so the new RIB's NextHopIDManager is also empty.
-  auto reconstructedRib = RoutingInformationBase::fromThrift(
-      ribThrift,
-      std::make_shared<MultiSwitchFibInfoMap>(),
-      std::make_shared<MultiLabelForwardingInformationBase>(),
-      std::make_shared<MultiSwitchMySidMap>());
-
-  // Pre-condition: every NEXTHOPS route in the reconstructed RIB lacks both
-  // IDs, and the manager is empty.
-  auto preDetails = reconstructedRib->getRouteTableDetails(kRid0);
-  ASSERT_FALSE(preDetails.empty());
-  size_t preNexthopRoutes = 0;
-  for (const auto& details : preDetails) {
-    if (*details.action() != "Nexthops") {
-      continue;
-    }
-    ++preNexthopRoutes;
-    EXPECT_FALSE(details.resolvedNextHopSetID().has_value())
-        << "Pre-condition failed: route should have nullopt "
-        << "resolvedNextHopSetID";
-    EXPECT_FALSE(details.normalizedResolvedNextHopSetID().has_value())
-        << "Pre-condition failed: route should have nullopt "
-        << "normalizedResolvedNextHopSetID";
-  }
-  EXPECT_GT(preNexthopRoutes, 0u);
-  auto preManager = reconstructedRib->getNextHopIDManagerCopy();
-  ASSERT_NE(preManager, nullptr);
-  EXPECT_TRUE(preManager->getIdToNextHop().empty());
-  EXPECT_TRUE(preManager->getIdToNextHopIdSet().empty());
-
-  // 4. Drive an empty update on the reconstructed RIB. updateDone() will mark
-  // every route for resolution, and resolveOne will hit the backfill branch
-  // for each NEXTHOPS route since nextHopIDManager_ is non-null and the
-  // route's resolvedNextHopSetID is nullopt.
-  auto switchState = std::make_shared<SwitchState>();
-  switchState->publish();
-  reconstructedRib->update(
-      sw_->getScopeResolver(),
-      kRid0,
-      kClientA,
-      DISTANCE,
-      std::vector<UnicastRoute>{},
-      std::vector<IpPrefix>{},
-      false /* resetClientsRoutes */,
-      "warmboot backfill test",
-      ribToSwitchStateUpdate,
-      &switchState);
-
-  // 5. Post-condition: every NEXTHOPS route now has BOTH IDs populated.
-  auto postDetails = reconstructedRib->getRouteTableDetails(kRid0);
-  size_t postNexthopRoutes = 0;
-  for (const auto& details : postDetails) {
-    if (*details.action() != "Nexthops") {
-      continue;
-    }
-    ++postNexthopRoutes;
-    EXPECT_TRUE(details.resolvedNextHopSetID().has_value())
-        << "Post-condition failed: NEXTHOPS route missing "
-        << "resolvedNextHopSetID after backfill";
-    EXPECT_TRUE(details.normalizedResolvedNextHopSetID().has_value())
-        << "Post-condition failed: NEXTHOPS route missing "
-        << "normalizedResolvedNextHopSetID after backfill";
-  }
-  EXPECT_EQ(postNexthopRoutes, preNexthopRoutes);
-
-  // The manager should now hold the backfilled allocations.
-  auto postManager = reconstructedRib->getNextHopIDManagerCopy();
-  ASSERT_NE(postManager, nullptr);
-  EXPECT_FALSE(postManager->getIdToNextHop().empty());
-  EXPECT_FALSE(postManager->getIdToNextHopIdSet().empty());
-}
-
 TEST_F(NextHopMapPopulationTest, UpdaterAddAndRemoveInSingleUpdate) {
   // Start with standard routes
   auto updater = sw_->getRouteUpdater();
@@ -846,6 +766,139 @@ TEST_F(NextHopMapPopulationTest, UpdaterAddAndRemoveInSingleUpdate) {
   updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
+}
+
+// fromThrift backfill stamps all three IDs on snapshot routes that lack them.
+// Mirrors the production flag-OFF -> flag-ON warmboot scenario by programming
+// routes with the manager off (so no IDs are stamped at program time), then
+// reconstructing with the manager on (backfill should fill in all IDs).
+TEST_F(NextHopMapPopulationTest, BackfillsMissingIdsFromWarmBoot) {
+  // Tear down the fixture's flag-on handle and rebuild with the flag off so
+  // routes are programmed without any IDs.
+  handle_.reset();
+  FLAGS_enable_nexthop_id_manager = false;
+  auto config = initialConfig();
+  handle_ = createTestHandle(&config);
+  sw_ = handle_->getSw();
+
+  auto updater = sw_->getRouteUpdater();
+  addStandardTestRoutes(updater);
+  updater.program();
+
+  auto ribThrift = sw_->getRib()->toThrift();
+
+  // Reconstruct under flag-on -- backfill runs inside fromThrift.
+  FLAGS_enable_nexthop_id_manager = true;
+  auto reconstructedRib = RoutingInformationBase::fromThrift(
+      ribThrift,
+      nullptr,
+      std::make_shared<MultiLabelForwardingInformationBase>(),
+      std::make_shared<MultiSwitchMySidMap>());
+
+  // Every NEXTHOPS route must have all three IDs populated.
+  auto reThrift = reconstructedRib->toThrift();
+  size_t verifiedClientEntries = 0;
+  size_t verifiedFwd = 0;
+  auto verifyRoute = [&](const auto& routeFields) {
+    if (!routeFields.fwd()->nexthops()->empty()) {
+      EXPECT_TRUE(routeFields.fwd()->resolvedNextHopSetID().has_value());
+      EXPECT_TRUE(
+          routeFields.fwd()->normalizedResolvedNextHopSetID().has_value());
+      ++verifiedFwd;
+    }
+    for (const auto& [_clientId, entry] :
+         *routeFields.nexthopsmulti()->client2NextHopEntry()) {
+      if (!entry.nexthops()->empty()) {
+        EXPECT_TRUE(entry.clientNextHopSetID().has_value());
+        ++verifiedClientEntries;
+      }
+    }
+  };
+  for (const auto& [_, routeTable] : reThrift) {
+    for (const auto& [__, v4Route] : *routeTable.v4NetworkToRoute()) {
+      verifyRoute(v4Route);
+    }
+    for (const auto& [__, v6Route] : *routeTable.v6NetworkToRoute()) {
+      verifyRoute(v6Route);
+    }
+  }
+  EXPECT_GT(verifiedClientEntries, 0u);
+  EXPECT_GT(verifiedFwd, 0u);
+
+  auto postManager = reconstructedRib->getNextHopIDManagerCopy();
+  ASSERT_NE(postManager, nullptr);
+  EXPECT_FALSE(postManager->getIdToNextHop().empty());
+  EXPECT_FALSE(postManager->getIdToNextHopIdSet().empty());
+}
+
+// MPLS variant of the warmboot backfill test. Verifies:
+//   - SWAP MPLS routes get all three IDs stamped on backfill
+//     (resolvedNextHopSetID + normalizedResolvedNextHopSetID + per-client).
+//   - POP_AND_LOOKUP MPLS routes get resolvedNextHopSetID + per-client only,
+//     NOT normalizedResolvedNextHopSetID (POP_AND_LOOKUP forwards via inner-
+//     header lookup, so there are no nexthops to normalize). Matches the
+//     RouteUpdater allocation-time asymmetry at RouteUpdater.cpp's
+//     `if (!labelPopandLookup)` guard.
+TEST_F(NextHopMapPopulationTest, BackfillsMissingMplsIdsFromWarmBoot) {
+  // Rebuild with manager-off so MPLS routes are programmed without IDs.
+  // FLAGS_mpls_rib needed so RIB carries labelToRoute the backfill can walk.
+  handle_.reset();
+  FLAGS_enable_nexthop_id_manager = false;
+  FLAGS_mpls_rib = true;
+  auto config = initialConfig();
+  handle_ = createTestHandle(&config);
+  sw_ = handle_->getSw();
+
+  auto updater = sw_->getRouteUpdater();
+  // SWAP MPLS route resolving via interface subnet 1::/48.
+  addMplsSwapRoute(updater, 100, 101, folly::IPAddress("1::10"));
+  // POP_AND_LOOKUP MPLS route.
+  addMplsPopAndLookupRoute(updater, 200);
+  updater.program();
+
+  auto ribThrift = sw_->getRib()->toThrift();
+
+  // Reconstruct under flag-on — backfill walks labelToRoute too.
+  FLAGS_enable_nexthop_id_manager = true;
+  auto reconstructedRib = RoutingInformationBase::fromThrift(
+      ribThrift,
+      nullptr,
+      std::make_shared<MultiLabelForwardingInformationBase>(),
+      std::make_shared<MultiSwitchMySidMap>());
+  auto reThrift = reconstructedRib->toThrift();
+  ASSERT_FALSE(reThrift.empty());
+  const auto& labelToRoute = *reThrift.begin()->second.labelToRoute();
+
+  auto verifyClientIdsPresent = [](const auto& routeFields) {
+    for (const auto& [_clientId, entry] :
+         *routeFields.nexthopsmulti()->client2NextHopEntry()) {
+      if (!entry.nexthops()->empty()) {
+        EXPECT_TRUE(entry.clientNextHopSetID().has_value())
+            << "MPLS per-client entry missing clientNextHopSetID";
+      }
+    }
+  };
+
+  // SWAP route at label 100: resolved + normalized + per-client all set.
+  auto swapIt = labelToRoute.find(100);
+  ASSERT_NE(swapIt, labelToRoute.end());
+  EXPECT_TRUE(swapIt->second.fwd()->resolvedNextHopSetID().has_value())
+      << "SWAP MPLS route missing resolvedNextHopSetID";
+  EXPECT_TRUE(
+      swapIt->second.fwd()->normalizedResolvedNextHopSetID().has_value())
+      << "SWAP MPLS route missing normalizedResolvedNextHopSetID";
+  verifyClientIdsPresent(swapIt->second);
+
+  // POP_AND_LOOKUP at label 200: resolved + per-client only, NO normalized.
+  auto popIt = labelToRoute.find(200);
+  ASSERT_NE(popIt, labelToRoute.end());
+  EXPECT_TRUE(popIt->second.fwd()->resolvedNextHopSetID().has_value())
+      << "POP_AND_LOOKUP MPLS route missing resolvedNextHopSetID";
+  EXPECT_FALSE(
+      popIt->second.fwd()->normalizedResolvedNextHopSetID().has_value())
+      << "POP_AND_LOOKUP MPLS route should NOT have "
+      << "normalizedResolvedNextHopSetID";
+  verifyClientIdsPresent(popIt->second);
 }
 
 // syncFib's bulk-delete path (removeAllUnclaimedRoutesFromClientImpl) must

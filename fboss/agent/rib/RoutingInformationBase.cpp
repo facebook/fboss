@@ -1160,6 +1160,111 @@ void RoutingInformationBase::updateEcmpOverrides(const StateDelta& delta) {
   ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
 }
 
+void RibRouteTables::backfillNextHopIds(
+    const SynchronizedRouteTables::WLockedPtr& lockedRouteTables) {
+  if (!lockedRouteTables->nextHopIDManager) {
+    return;
+  }
+  auto& manager = *lockedRouteTables->nextHopIDManager;
+
+  auto backfillOneRoute = [&manager](auto& route) {
+    // Per-client: snapshot updates first (route->update rebuilds the
+    // nexthopsmulti map and invalidates iterators).
+    std::vector<std::pair<ClientID, std::shared_ptr<RouteNextHopEntry>>>
+        clientUpdates;
+    for (const auto& [clientId, entry] :
+         std::as_const(route->getEntryForClients())) {
+      if (entry->getClientNextHopSetID().has_value()) {
+        continue; // already has an ID
+      }
+      const auto& nhopSet = entry->getNextHopSet();
+      if (nhopSet.empty()) {
+        continue; // DROP / TO_CPU; no nexthops to track
+      }
+      auto allocResult = manager.getOrAllocRouteNextHopSetID(nhopSet);
+      std::optional<NextHopSetID> newId(
+          allocResult.nextHopIdSetIter->second.id);
+      auto newEntry = entry->clone();
+      newEntry->setClientNextHopSetID(newId);
+      XLOG(DBG3) << "[NextHop ID Manager] backfilling clientNextHopSetID="
+                 << *newId << " for client=" << static_cast<int>(clientId)
+                 << " route=" << route->str();
+      clientUpdates.emplace_back(clientId, std::move(newEntry));
+    }
+
+    // Resolved-side: stamp on the fwd info if it has nexthops.
+    const auto& fwd = route->getForwardInfo();
+    auto fwdNexthops = fwd.getNextHopSet();
+    std::shared_ptr<RouteNextHopEntry> fwdReplacement;
+    if (!fwdNexthops.empty()) {
+      std::optional<NextHopSetID> newResolvedId = fwd.getResolvedNextHopSetID();
+      std::optional<NextHopSetID> newNormalizedId =
+          fwd.getNormalizedResolvedNextHopSetID();
+      if (!newResolvedId.has_value()) {
+        auto allocResult = manager.getOrAllocRouteNextHopSetID(fwdNexthops);
+        newResolvedId = allocResult.nextHopIdSetIter->second.id;
+        XLOG(DBG3) << "[NextHop ID Manager] backfilling resolvedNextHopSetID="
+                   << *newResolvedId << " route=" << route->str();
+      }
+      // POP_AND_LOOKUP MPLS routes forward via inner-header lookup — no
+      // mergeable nexthops, so no normalized set ID. Matches the
+      // RouteUpdater allocation path (RouteUpdater.cpp `if
+      // (!labelPopandLookup)`).
+      bool isPopAndLookup =
+          fwdNexthops.size() == 1 && fwdNexthops.begin()->isPopAndLookup();
+      if (!newNormalizedId.has_value() && !isPopAndLookup) {
+        auto allocResult = manager.getOrAllocRouteNextHopSetID(
+            fwd.nonOverrideNormalizedNextHops());
+        newNormalizedId = allocResult.nextHopIdSetIter->second.id;
+        XLOG(DBG3)
+            << "[NextHop ID Manager] backfilling normalizedResolvedNextHopSetID="
+            << *newNormalizedId << " route=" << route->str();
+      }
+      if (newResolvedId != fwd.getResolvedNextHopSetID() ||
+          newNormalizedId != fwd.getNormalizedResolvedNextHopSetID()) {
+        fwdReplacement = fwd.clone();
+        fwdReplacement->setResolvedNextHopSetID(newResolvedId);
+        fwdReplacement->setNormalizedResolvedNextHopSetID(newNormalizedId);
+      }
+    }
+
+    if (clientUpdates.empty() && !fwdReplacement) {
+      return;
+    }
+    if (route->isPublished()) {
+      route = route->clone();
+    }
+    for (auto& [clientId, newEntry] : clientUpdates) {
+      route->update(clientId, *newEntry);
+    }
+    if (fwdReplacement) {
+      route->setResolved(*fwdReplacement);
+    }
+    route->publish();
+  };
+
+  // v4/v6 NetworkToRouteMap is a RadixTree — iterator yields nodes
+  // dereferenced via .value().
+  auto backfillIpRoutes = [&backfillOneRoute](auto& routes) {
+    for (auto ritr = routes.begin(); ritr != routes.end(); ++ritr) {
+      backfillOneRoute(ritr->value());
+    }
+  };
+  // LabelToRouteMap is an unordered_map — range-for yields
+  // pair<LabelID, shared_ptr<Route<LabelID>>>.
+  auto backfillMplsRoutes = [&backfillOneRoute](auto& routes) {
+    for (auto& [_label, route] : routes) {
+      backfillOneRoute(route);
+    }
+  };
+
+  for (auto& [_vrf, table] : lockedRouteTables->routerIDToRouteTable) {
+    backfillIpRoutes(table.v4NetworkToRoute);
+    backfillIpRoutes(table.v6NetworkToRoute);
+    backfillMplsRoutes(table.labelToRoute);
+  }
+}
+
 RibRouteTables RibRouteTables::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
@@ -1198,6 +1303,9 @@ RibRouteTables RibRouteTables::fromThrift(
           routeTable.labelToRoute, &routeTable.unresolvedMplsRoutes);
     }
   }
+
+  // Stamp any missing IDs on warmboot-loaded routes before readers see them.
+  backfillNextHopIds(lockedRouteTables);
   return rib;
 }
 
