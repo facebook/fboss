@@ -285,19 +285,15 @@ TEST_F(ConfigLoadBalancingTest, EcmpHashFieldsMpls) {
 // LAG (LoadBalancerID = 2 / AGGREGATE_PORT)
 // ============================================================
 
-// LAG tests disabled pending the UDF-group-ID fix in SaiSwitchManager:
-// addOrUpdateLagLoadBalancer did not pass udfGroupIds to
-// hashManager().getOrCreate(), so any LAG hash update on a DUT with UDF groups
-// would silently drop them.
-TEST_F(ConfigLoadBalancingTest, DISABLED_LagHashAlgorithm) {
+TEST_F(ConfigLoadBalancingTest, LagHashAlgorithm) {
   testAlgorithm("lag", kLagIdValue, "crc32-lo", 3);
 }
 
-TEST_F(ConfigLoadBalancingTest, DISABLED_LagHashSeed) {
+TEST_F(ConfigLoadBalancingTest, LagHashSeed) {
   testSeed("lag", kLagIdValue, 271828);
 }
 
-TEST_F(ConfigLoadBalancingTest, DISABLED_LagHashFieldsIpv4) {
+TEST_F(ConfigLoadBalancingTest, LagHashFieldsIpv4) {
   testFields(
       "lag",
       kLagIdValue,
