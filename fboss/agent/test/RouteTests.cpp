@@ -1656,7 +1656,13 @@ TEST_F(RouteTest, withLabelForwardingAction) {
       folly::IPAddressV4("1.1.2.2"),
       this->sw_->getState());
 
-  EXPECT_EQ(route->has(kClientA, RouteNextHopEntry(nexthops, DISTANCE)), true);
+  // Add clientNextHopSetID to expectedEntry.
+  RouteNextHopEntry expectedEntry(nexthops, DISTANCE);
+  auto storedEntry = route->getEntryForClient(kClientA);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
+  EXPECT_EQ(route->has(kClientA, expectedEntry), true);
   auto entry = route->getBestEntry();
   for (const auto& nh : entry.second->getNextHopSet()) {
     EXPECT_EQ(nh.labelForwardingAction().has_value(), true);
@@ -1700,10 +1706,13 @@ TEST_F(RouteTest, unresolvedWithRouteLabels) {
   const auto& route = findLongestMatchRoute(
       this->sw_->getRib(), rid, kDestAddress, this->sw_->getState());
 
-  EXPECT_EQ(
-      route->has(
-          ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
-      true);
+  // Add clientNextHopSetID to expectedEntry.
+  RouteNextHopEntry expectedEntry(bgpNextHops, AdminDistance::EBGP);
+  auto storedEntry = route->getEntryForClient(ClientID::BGPD);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
+  EXPECT_EQ(route->has(ClientID::BGPD, expectedEntry), true);
 
   // Will resolve to DROP null routes
   EXPECT_TRUE(route->isDrop());
@@ -1764,10 +1773,12 @@ TEST_F(RouteTest, withTunnelAndRouteLabels) {
   const auto& route = findLongestMatchRoute(
       this->sw_->getRib(), rid, kDestAddress, this->sw_->getState());
 
-  EXPECT_EQ(
-      route->has(
-          ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
-      true);
+  RouteNextHopEntry expectedEntry(bgpNextHops, AdminDistance::EBGP);
+  auto storedEntry = route->getEntryForClient(ClientID::BGPD);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
+  EXPECT_EQ(route->has(ClientID::BGPD, expectedEntry), true);
 
   EXPECT_TRUE(route->isResolved());
 
@@ -1848,10 +1859,12 @@ TEST_F(RouteTest, withOnlyTunnelLabels) {
   const auto& route = findLongestMatchRoute(
       this->sw_->getRib(), rid, kDestAddress, routeState2);
 
-  EXPECT_EQ(
-      route->has(
-          ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
-      true);
+  RouteNextHopEntry expectedEntry(bgpNextHops, AdminDistance::EBGP);
+  auto storedEntry = route->getEntryForClient(ClientID::BGPD);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
+  EXPECT_EQ(route->has(ClientID::BGPD, expectedEntry), true);
 
   EXPECT_TRUE(route->isResolved());
 
@@ -1954,10 +1967,12 @@ TEST_F(RouteTest, updateTunnelLabels) {
   const auto& route = findLongestMatchRoute(
       this->sw_->getRib(), rid, kDestAddress, routeState3);
 
-  EXPECT_EQ(
-      route->has(
-          ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
-      true);
+  RouteNextHopEntry expectedEntry(bgpNextHops, AdminDistance::EBGP);
+  auto storedEntry = route->getEntryForClient(ClientID::BGPD);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
+  EXPECT_EQ(route->has(ClientID::BGPD, expectedEntry), true);
 
   EXPECT_TRUE(route->isResolved());
 
@@ -2046,12 +2061,13 @@ TEST_F(RouteTest, updateRouteLabels) {
   const auto& route = findLongestMatchRoute(
       this->sw_->getRib(), rid, kDestAddress, routeState4);
 
-  EXPECT_EQ(
-      route->has(
-          ClientID::BGPD,
-          RouteNextHopEntry(
-              static_cast<NextHop>(updatedBgpNextHop), EBGP_DISTANCE)),
-      true);
+  RouteNextHopEntry expectedEntry(
+      static_cast<NextHop>(updatedBgpNextHop), EBGP_DISTANCE);
+  auto storedEntry = route->getEntryForClient(ClientID::BGPD);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
+  EXPECT_EQ(route->has(ClientID::BGPD, expectedEntry), true);
 
   EXPECT_TRUE(route->isResolved());
 
@@ -2084,6 +2100,11 @@ TEST_F(RouteTest, withNoLabelForwardingAction) {
       folly::IPAddressV4("1.1.2.2"),
       this->sw_->getState());
 
+  // Add clientNextHopSetID to routeNextHopEntry.
+  auto storedEntry = route->getEntryForClient(kClientA);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  routeNextHopEntry.setClientNextHopSetID(storedClientNextHopSetID);
   EXPECT_EQ(route->has(kClientA, routeNextHopEntry), true);
   auto entry = route->getBestEntry();
   for (const auto& nh : entry.second->getNextHopSet()) {

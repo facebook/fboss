@@ -237,6 +237,31 @@ class NextHopMapPopulationTest : public ::testing::Test {
     updater.addRoute(kClientA, mplsRoute);
   }
 
+  // SWAP MPLS with multiple nexthops (for ECMP scenarios).
+  void addMplsSwapRouteMulti(
+      SwSwitchRouteUpdateWrapper& updater,
+      MplsLabel label,
+      const std::vector<std::pair<folly::IPAddress, MplsLabel>>& nhops) {
+    MplsRoute mplsRoute;
+    mplsRoute.topLabel() = label;
+    for (const auto& [nhopAddr, swapLabel] : nhops) {
+      NextHopThrift nexthop;
+      nexthop.mplsAction() = MplsAction();
+      *nexthop.mplsAction()->action() = MplsActionCode::SWAP;
+      nexthop.mplsAction()->swapLabel() = swapLabel;
+      nexthop.address() = facebook::network::toBinaryAddress(nhopAddr);
+      mplsRoute.nextHops()->emplace_back(nexthop);
+    }
+    updater.addRoute(kClientA, mplsRoute);
+  }
+
+  void delMplsRoute(
+      SwSwitchRouteUpdateWrapper& updater,
+      MplsLabel label,
+      ClientID clientId = kClientA) {
+    updater.delRoute(MplsLabel(label), clientId);
+  }
+
   std::shared_ptr<MultiLabelForwardingInformationBase> getLabelFib() {
     auto state = sw_->getState();
     return state->getLabelForwardingInformationBase();
@@ -328,87 +353,174 @@ class NextHopMapPopulationTest : public ::testing::Test {
     }
   }
 
-  // This verifies if the NextHop IDs present in the FIB resolves to the correct
-  // set of NextHops in the route. This will resolve the ID to set of NextHops
-  // using the FibHelper getNexthops function and compare it with the NextHopSet
-  // present in the route.
-  void verifyIDMapsConsistency() {
+  // Walks every RIB route (resolved and unresolved). For each route checks:
+  //   - per-client entries: clientNextHopSetID present iff nexthops non-empty
+  //   - forwarding info: resolvedNextHopSetID present iff fwd is resolved
+  //   - normalizedResolvedNextHopSetID: resolvability checked when present
+  // Defaults to sw_->getRib(); pass a standalone RIB (e.g. one built via
+  // RoutingInformationBase::fromThrift) to verify it directly.
+  void verifyIDMapsConsistency(const RoutingInformationBase* rib = nullptr) {
+    if (!rib) {
+      rib = sw_->getRib();
+    }
+    auto manager = rib->getNextHopIDManagerCopy();
+    ASSERT_NE(manager, nullptr);
+    auto ribThrift = rib->toThrift();
+    auto vrfIt = ribThrift.find(static_cast<int32_t>(kRid0));
+    ASSERT_NE(vrfIt, ribThrift.end()) << "VRF " << kRid0 << " not found in RIB";
+
+    auto checkRoute = [&](const auto& routeFields,
+                          const std::string& prefixStr) {
+      // Per-client check: walk every per-client entry on this route.
+      const auto& nhMulti = *routeFields.nexthopsmulti();
+      for (const auto& [clientId, perClientThrift] :
+           *nhMulti.client2NextHopEntry()) {
+        RouteNextHopEntry perClientEntry(perClientThrift);
+        const auto& nhopSet = perClientEntry.getNextHopSet();
+        auto clientSetId = perClientEntry.getClientNextHopSetID();
+        if (nhopSet.empty()) {
+          EXPECT_FALSE(clientSetId.has_value())
+              << prefixStr << " client=" << static_cast<int>(clientId)
+              << ": empty nexthop set must not have clientNextHopSetID";
+          continue;
+        }
+        ASSERT_TRUE(clientSetId.has_value())
+            << prefixStr << " client=" << static_cast<int>(clientId)
+            << ": missing clientNextHopSetID";
+        auto resolved = manager->getNextHopsIf(*clientSetId);
+        ASSERT_TRUE(resolved.has_value())
+            << prefixStr << " client=" << static_cast<int>(clientId)
+            << ": clientNextHopSetID " << *clientSetId
+            << " not found in manager";
+        EXPECT_EQ(*resolved, nhopSet)
+            << "Per-client nexthops mismatch for " << prefixStr
+            << " client=" << static_cast<int>(clientId);
+      }
+
+      // Forwarding-side check: only meaningful when the route is resolved.
+      RouteNextHopEntry fwdEntry(*routeFields.fwd());
+      const auto& fwdNhopSet = fwdEntry.getNextHopSet();
+      auto resolvedSetId = fwdEntry.getResolvedNextHopSetID();
+      auto normalizedSetId = fwdEntry.getNormalizedResolvedNextHopSetID();
+      if (fwdNhopSet.empty()) {
+        EXPECT_FALSE(resolvedSetId.has_value())
+            << prefixStr
+            << ": unresolved/DROP route must not have resolvedNextHopSetID";
+        EXPECT_FALSE(normalizedSetId.has_value())
+            << prefixStr
+            << ": unresolved/DROP route must not have normalizedResolvedNextHopSetID";
+        return;
+      }
+      ASSERT_TRUE(resolvedSetId.has_value())
+          << prefixStr << ": resolved route missing resolvedNextHopSetID";
+      auto resolvedNextHops = manager->getNextHopsIf(*resolvedSetId);
+      ASSERT_TRUE(resolvedNextHops.has_value())
+          << prefixStr << ": resolvedNextHopSetID " << *resolvedSetId
+          << " not found in manager";
+      EXPECT_EQ(*resolvedNextHops, fwdNhopSet)
+          << "Forwarding nexthops mismatch for " << prefixStr;
+
+      // Normalized ID is only stamped after ECMP normalization; verify
+      // resolvability if present, but don't require its presence.
+      if (normalizedSetId.has_value()) {
+        auto normalizedNextHops = manager->getNextHopsIf(*normalizedSetId);
+        EXPECT_TRUE(normalizedNextHops.has_value())
+            << prefixStr << ": normalizedResolvedNextHopSetID "
+            << *normalizedSetId << " not found in manager";
+      }
+    };
+
+    for (const auto& [prefixStr, routeFields] :
+         *vrfIt->second.v4NetworkToRoute()) {
+      checkRoute(routeFields, prefixStr);
+    }
+    for (const auto& [prefixStr, routeFields] :
+         *vrfIt->second.v6NetworkToRoute()) {
+      checkRoute(routeFields, prefixStr);
+    }
+    // MPLS routes share RouteNextHopsMulti/RouteNextHopEntry shape with IP,
+    // so the same checks apply.
+    for (const auto& [label, routeFields] : *vrfIt->second.labelToRoute()) {
+      checkRoute(routeFields, folly::to<std::string>("label=", label));
+    }
+  }
+
+  // Multi-client variants of addV4Route/delV4Route (the default helpers
+  // hardcode kClientA).
+  void addV4RouteForClient(
+      SwSwitchRouteUpdateWrapper& updater,
+      ClientID clientId,
+      const std::string& prefixStr,
+      const std::vector<std::string>& nexthopStrs) {
+    auto prefix = makePrefixV4(prefixStr);
+    auto nhops = makeNextHops(nexthopStrs);
+    updater.addRoute(
+        kRid0,
+        prefix.network(),
+        prefix.mask(),
+        clientId,
+        RouteNextHopEntry(nhops, DISTANCE));
+  }
+
+  void addV4DropRouteForClient(
+      SwSwitchRouteUpdateWrapper& updater,
+      ClientID clientId,
+      const std::string& prefixStr) {
+    auto prefix = makePrefixV4(prefixStr);
+    updater.addRoute(
+        kRid0,
+        prefix.network(),
+        prefix.mask(),
+        clientId,
+        RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+  }
+
+  void addV6RouteForClient(
+      SwSwitchRouteUpdateWrapper& updater,
+      ClientID clientId,
+      const std::string& prefixStr,
+      const std::vector<std::string>& nexthopStrs) {
+    auto prefix = makePrefixV6(prefixStr);
+    auto nhops = makeNextHops(nexthopStrs);
+    updater.addRoute(
+        kRid0,
+        prefix.network(),
+        prefix.mask(),
+        clientId,
+        RouteNextHopEntry(nhops, DISTANCE));
+  }
+
+  void delV4RouteForClient(
+      SwSwitchRouteUpdateWrapper& updater,
+      ClientID clientId,
+      const std::string& prefixStr) {
+    auto prefix = makePrefixV4(prefixStr);
+    updater.delRoute(kRid0, prefix.network(), prefix.mask(), clientId);
+  }
+
+  // Returns the clientNextHopSetID stored on (prefix, clientId), or nullopt.
+  std::optional<NextHopSetID> getStoredClientId(
+      const std::string& prefixStr,
+      ClientID clientId) {
     auto state = sw_->getState();
     auto fibInfo = getFibInfo();
-    ASSERT_NE(fibInfo, nullptr) << "FibInfo is null";
-
+    if (!fibInfo) {
+      return std::nullopt;
+    }
     auto fibContainer = fibInfo->getFibContainerIf(kRid0);
-    ASSERT_NE(fibContainer, nullptr) << "FibContainer is null";
-
-    // Verify all V4 routes
+    if (!fibContainer) {
+      return std::nullopt;
+    }
+    auto prefix = makePrefixV4(prefixStr);
     auto fibV4 = fibContainer->getFibV4();
     for (const auto& [_, route] : std::as_const(*fibV4)) {
-      auto prefix = route->prefix();
-      std::string prefixStr =
-          folly::sformat("{}/{}", prefix.network().str(), prefix.mask());
-      const auto& fwdInfo = route->getForwardInfo();
-      auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
-      const auto& expectedNextHopSet = fwdInfo.getNextHopSet();
-
-      // Routes with empty nexthop sets (TO_CPU/DROP) don't get IDs
-      if (expectedNextHopSet.empty()) {
-        EXPECT_FALSE(resolvedSetId.has_value())
-            << prefixStr
-            << ": Empty nexthop set should not have resolvedNextHopSetID";
-        continue;
+      if (route->prefix().network() == prefix.network() &&
+          route->prefix().mask() == prefix.mask()) {
+        auto entry = route->getEntryForClient(clientId);
+        return entry ? entry->getClientNextHopSetID() : std::nullopt;
       }
-
-      // Routes with nexthops should have a resolvedNextHopSetID
-      ASSERT_TRUE(resolvedSetId.has_value())
-          << prefixStr << ": Missing resolvedNextHopSetID";
-
-      // Use FibHelper getNexthops to resolve the ID back to NextHops
-      auto resolvedNextHops =
-          getNextHops(state, static_cast<NextHopSetId>(*resolvedSetId));
-
-      // Sort and compare as vectors
-      std::sort(resolvedNextHops.begin(), resolvedNextHops.end());
-      std::vector<NextHop> expectedNextHops(
-          expectedNextHopSet.begin(), expectedNextHopSet.end());
-
-      EXPECT_EQ(resolvedNextHops, expectedNextHops)
-          << "NextHops mismatch for route " << prefixStr;
     }
-
-    // Verify all V6 routes
-    auto fibV6 = fibContainer->getFibV6();
-    for (const auto& [_, route] : std::as_const(*fibV6)) {
-      auto prefix = route->prefix();
-      std::string prefixStr =
-          folly::sformat("{}/{}", prefix.network().str(), prefix.mask());
-      const auto& fwdInfo = route->getForwardInfo();
-      auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
-      const auto& expectedNextHopSet = fwdInfo.getNextHopSet();
-
-      // Routes with empty nexthop sets (TO_CPU/DROP) don't get IDs
-      if (expectedNextHopSet.empty()) {
-        EXPECT_FALSE(resolvedSetId.has_value())
-            << prefixStr
-            << ": Empty nexthop set should not have resolvedNextHopSetID";
-        continue;
-      }
-
-      // Routes with nexthops should have a resolvedNextHopSetID
-      ASSERT_TRUE(resolvedSetId.has_value())
-          << prefixStr << ": Missing resolvedNextHopSetID";
-
-      // Use FibHelper getNexthops to resolve the ID back to NextHops
-      auto resolvedNextHops =
-          getNextHops(state, static_cast<NextHopSetId>(*resolvedSetId));
-
-      // Sort and compare as vectors
-      std::sort(resolvedNextHops.begin(), resolvedNextHops.end());
-      std::vector<NextHop> expectedNextHops(
-          expectedNextHopSet.begin(), expectedNextHopSet.end());
-
-      EXPECT_EQ(resolvedNextHops, expectedNextHops)
-          << "NextHops mismatch for route " << prefixStr;
-    }
+    return std::nullopt;
   }
 
   void addStandardTestRoutes(
@@ -670,6 +782,42 @@ TEST_F(NextHopMapPopulationTest, PopAndLookupWithNormalRouteAddition) {
   verifyIDMapsConsistency();
 }
 
+// Verifies per-client clientNextHopSetID allocation in
+// RibRouteUpdater::addOrReplaceRoute(LabelID, ...). Both SWAP and
+// POP_AND_LOOKUP MPLS routes must get clientNextHopSetID stamped on
+// their per-client entry, mirroring the v4/v6 allocation path.
+TEST_F(NextHopMapPopulationTest, AllocatesClientIdsForMplsRoutes) {
+  FLAGS_mpls_rib = true;
+  auto updater = sw_->getRouteUpdater();
+  // SWAP MPLS route via interface subnet 1::/48.
+  addMplsSwapRoute(updater, 100, 101, folly::IPAddress("1::10"));
+  // POP_AND_LOOKUP MPLS route.
+  addMplsPopAndLookupRoute(updater, 200);
+  updater.program();
+
+  auto ribThrift = sw_->getRib()->toThrift();
+  ASSERT_FALSE(ribThrift.empty());
+  const auto& labelToRoute = *ribThrift.begin()->second.labelToRoute();
+
+  auto verifyClientIdsPresent = [](const auto& routeFields) {
+    for (const auto& [_clientId, entry] :
+         *routeFields.nexthopsmulti()->client2NextHopEntry()) {
+      if (!entry.nexthops()->empty()) {
+        EXPECT_TRUE(entry.clientNextHopSetID().has_value())
+            << "MPLS per-client entry missing clientNextHopSetID";
+      }
+    }
+  };
+
+  auto swapIt = labelToRoute.find(100);
+  ASSERT_NE(swapIt, labelToRoute.end());
+  verifyClientIdsPresent(swapIt->second);
+
+  auto popIt = labelToRoute.find(200);
+  ASSERT_NE(popIt, labelToRoute.end());
+  verifyClientIdsPresent(popIt->second);
+}
+
 // --- SwitchStateNextHopIdUpdater incremental diff tests ---
 // These verify the updater correctly diffs RIB vs FIB maps and only
 // applies the delta (adds missing entries, removes stale entries).
@@ -766,6 +914,128 @@ TEST_F(NextHopMapPopulationTest, UpdaterAddAndRemoveInSingleUpdate) {
   updater.program();
   verifyIdMapsMatchIdManager();
   verifyIDMapsConsistency();
+}
+
+// ----- Per-client clientNextHopSetID lifecycle tests -----
+
+// Covers: (1) initial alloc stamps an ID, (2) two clients with the same
+// nexthop set share the ID via refcount, (3) re-programming the same set
+// keeps the ID stable.
+TEST_F(NextHopMapPopulationTest, ClientIdAllocationAndSharing) {
+  const ClientID kClientB = ClientID(1002);
+
+  // Step 1: kClientA programs a route -> ID gets stamped.
+  auto updater = sw_->getRouteUpdater();
+  addV4RouteForClient(
+      updater, kClientA, "10.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  updater.program();
+  auto idA = getStoredClientId("10.0.0.0/24", kClientA);
+  ASSERT_TRUE(idA.has_value());
+
+  // Step 2: kClientB programs the same nexthops on a different prefix ->
+  // refcount-sharing produces the same ID.
+  updater = sw_->getRouteUpdater();
+  addV4RouteForClient(
+      updater, kClientB, "10.1.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  updater.program();
+  auto idB = getStoredClientId("10.1.0.0/24", kClientB);
+  ASSERT_TRUE(idB.has_value());
+  EXPECT_EQ(*idA, *idB);
+
+  // Step 3: kClientA re-programs the same nexthops -> same-set short-circuit
+  // keeps the original ID stable.
+  updater = sw_->getRouteUpdater();
+  addV4RouteForClient(
+      updater, kClientA, "10.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  updater.program();
+  auto idAReprogram = getStoredClientId("10.0.0.0/24", kClientA);
+  ASSERT_TRUE(idAReprogram.has_value());
+  EXPECT_EQ(*idA, *idAReprogram);
+
+  verifyIDMapsConsistency();
+}
+
+// Covers: (1) re-programming with a different set switches to a new ID,
+// (2) DROP / TO_CPU entries never get an ID.
+TEST_F(NextHopMapPopulationTest, ClientIdSwitchOnDifferentSetAndNoneOnDrop) {
+  // Step 1: program a route, then re-program with a different nexthop set.
+  auto updater = sw_->getRouteUpdater();
+  addV4RouteForClient(
+      updater, kClientA, "10.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  updater.program();
+  auto idBefore = getStoredClientId("10.0.0.0/24", kClientA);
+  ASSERT_TRUE(idBefore.has_value());
+
+  updater = sw_->getRouteUpdater();
+  addV4RouteForClient(
+      updater, kClientA, "10.0.0.0/24", {"3.3.3.10", "4.4.4.10"});
+  updater.program();
+  auto idAfter = getStoredClientId("10.0.0.0/24", kClientA);
+  ASSERT_TRUE(idAfter.has_value());
+  EXPECT_NE(*idBefore, *idAfter);
+
+  // Step 2: a DROP route gets no clientNextHopSetID.
+  updater = sw_->getRouteUpdater();
+  addV4DropRouteForClient(updater, kClientA, "10.4.0.0/24");
+  updater.program();
+  EXPECT_FALSE(getStoredClientId("10.4.0.0/24", kClientA).has_value());
+
+  verifyIDMapsConsistency();
+}
+
+// Two clients share a nexthop set; deleting one's route drops its refcount
+// but the set survives because the other client still references it.
+TEST_F(NextHopMapPopulationTest, DeleteOneClientReleasesItsIdOnly) {
+  const ClientID kClientB = ClientID(1002);
+  auto updater = sw_->getRouteUpdater();
+  addV4RouteForClient(
+      updater, kClientA, "10.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  addV4RouteForClient(
+      updater, kClientB, "10.1.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  updater.program();
+
+  auto sharedId = getStoredClientId("10.0.0.0/24", kClientA);
+  ASSERT_TRUE(sharedId.has_value());
+  ASSERT_EQ(*sharedId, *getStoredClientId("10.1.0.0/24", kClientB));
+
+  updater = sw_->getRouteUpdater();
+  delV4RouteForClient(updater, kClientA, "10.0.0.0/24");
+  updater.program();
+
+  auto idStillThere = getStoredClientId("10.1.0.0/24", kClientB);
+  ASSERT_TRUE(idStillThere.has_value());
+  EXPECT_EQ(*idStillThere, *sharedId);
+  verifyIDMapsConsistency();
+}
+
+// Full mix: resolved + DROP + TO_CPU + unresolved + multi-client routes,
+// all in a single state. Exercises the unified verifier end-to-end.
+TEST_F(NextHopMapPopulationTest, MixedResolvedAndUnresolvedRoutes) {
+  const ClientID kClientB = ClientID(1002);
+  auto updater = sw_->getRouteUpdater();
+
+  // Resolved + DROP + TO_CPU. Interfaces are on 1.1.1.0/24, 2.2.2.0/24,
+  // 3.3.3.0/24, 4.4.4.0/24 (V4) and corresponding V6 subnets.
+  addStandardTestRoutes(updater);
+
+  // Unresolved V4 routes: nexthops not on any interface subnet.
+  addV4Route(updater, "20.0.0.0/24", {"99.99.99.99"});
+  addV4Route(updater, "20.1.0.0/24", {"99.99.99.99", "88.88.88.88"});
+
+  // Unresolved V6 routes.
+  addV6Route(updater, "2002:db8::/64", {"99::1"});
+  addV6Route(updater, "2002:db8:1::/64", {"99::1", "88::1"});
+
+  // Multi-client routes from kClientB: one resolved (shared nexthop set),
+  // one unresolved.
+  addV4RouteForClient(
+      updater, kClientB, "30.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  addV4RouteForClient(updater, kClientB, "30.1.0.0/24", {"77.77.77.77"});
+
+  updater.program();
+
+  verifyIDMapsConsistency();
+  verifyIdMapsMatchIdManager();
 }
 
 // fromThrift backfill stamps all three IDs on snapshot routes that lack them.
