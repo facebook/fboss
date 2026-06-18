@@ -43,31 +43,17 @@ const std::unordered_set<std::string> kValuelessDeleteAttributes = [] {
 const std::string kValidDeleteAttrs =
     fmt::format("loopback-mode, {}", folly::join(", ", lldpAttrNames()));
 
-std::string toLower(const std::string& s) {
-  std::string lower = s;
-  std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-  return lower;
-}
-
 } // namespace
 
-bool InterfaceDeleteConfig::isValuelessAttribute(const std::string& s) {
-  return kValuelessDeleteAttributes.find(toLower(s)) !=
-      kValuelessDeleteAttributes.end();
-}
-
-bool InterfaceDeleteConfig::isKnownAttribute(const std::string& s) {
-  return isValuelessAttribute(s);
-}
-
-InterfaceDeleteConfig::InterfaceDeleteConfig(
-    const std::vector<std::string>& v) {
-  auto portNames = parseTokens(
-      v,
-      [](const std::string& s) { return isKnownAttribute(s); },
-      [](const std::string& s) { return isValuelessAttribute(s); },
-      "delete attribute",
-      kValidDeleteAttrs);
+InterfaceDeleteConfig::InterfaceDeleteConfig(const std::vector<std::string>& v)
+    // For delete, every known attribute is valueless (delete always resets to
+    // default), so the known and valueless sets are identical.
+    : InterfaceAttrArgsBase(
+          kValuelessDeleteAttributes,
+          kValuelessDeleteAttributes,
+          "delete attribute",
+          kValidDeleteAttrs) {
+  auto portNames = parseTokens(v);
 
   // If no known attribute delimited the port list, catch a mistyped attribute:
   // interface names always contain '/' (e.g. "eth1/1/1"); attribute names never

@@ -31,10 +31,6 @@ class InterfacesConfig : public InterfaceAttrArgsBase {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
   /* implicit */ InterfacesConfig(const std::vector<std::string>& v);
-
- private:
-  // Check if a string is a known attribute name
-  static bool isKnownAttribute(const std::string& s);
 };
 
 struct CmdConfigInterfaceTraits : public WriteCommandTraits {

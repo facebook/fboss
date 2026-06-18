@@ -35,12 +35,6 @@ class InterfaceDeleteConfig : public InterfaceAttrArgsBase {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
   /* implicit */ InterfaceDeleteConfig(const std::vector<std::string>& v);
-
- private:
-  // Check if a string is a known delete attribute name (valueful or valueless)
-  static bool isKnownAttribute(const std::string& s);
-  // Check if a known attribute takes no value token
-  static bool isValuelessAttribute(const std::string& s);
 };
 
 struct CmdDeleteInterfaceTraits : public WriteCommandTraits {

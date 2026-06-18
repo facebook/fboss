@@ -70,19 +70,13 @@ constexpr auto kValidConfigAttrs =
 
 } // namespace
 
-bool InterfacesConfig::isKnownAttribute(const std::string& s) {
-  std::string lower = s;
-  std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-  return kKnownAttributes.find(lower) != kKnownAttributes.end();
-}
-
-InterfacesConfig::InterfacesConfig(const std::vector<std::string>& v) {
-  auto portNames = parseTokens(
-      v,
-      [](const std::string& s) { return isKnownAttribute(s); },
-      [](const std::string& s) { return kValuelessAttributes.count(s) > 0; },
-      "attribute",
-      kValidConfigAttrs);
+InterfacesConfig::InterfacesConfig(const std::vector<std::string>& v)
+    : InterfaceAttrArgsBase(
+          kKnownAttributes,
+          kValuelessAttributes,
+          "attribute",
+          kValidConfigAttrs) {
+  auto portNames = parseTokens(v);
 
   // Now resolve the port names to InterfaceList
   // This will throw if any port is not found
