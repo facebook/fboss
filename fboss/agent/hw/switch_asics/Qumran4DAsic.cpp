@@ -84,7 +84,6 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
-    case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
     case HwAsic::Feature::RX_SERDES_PARAMETERS:
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
     case HwAsic::Feature::TECH_SUPPORT:
@@ -234,6 +233,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     // TODO (Q4D/J4/R4): Enable once SDK support is available
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
+    case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
     // TODO (Q4D/J4/R4): Following features are not currently supported
     // in SDK. Some of them are not applicable for Q4D. Will be updated
     // accordingly after BRCM confirmation. Rest of the features will be
