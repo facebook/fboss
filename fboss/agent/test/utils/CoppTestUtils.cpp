@@ -641,9 +641,11 @@ void addMidPriAclForIp2Me(
 }
 
 // J4/Q4D do not support DHCP/DHCPv6 rx reason traps. Instead, match DHCP and
-// DHCPv6 explicitly via ACLs (proto UDP + DHCP L4 ports). The multi-ACL-table
-// router places the IPv4 entries in the L2+IPv4 table and the IPv6 entries in
-// the IPv6 table.
+// DHCPv6 explicitly via ACLs (proto UDP + DHCP well-known L4 port as the
+// destination). Matching on the destination port alone covers both directions
+// (client->server and server->client) as well as replies that use an ephemeral
+// source port (e.g. DHCPv6 ADVERTISE). The multi-ACL-table router places the
+// IPv4 entries in the L2+IPv4 table and the IPv6 entries in the IPv6 table.
 void addMidPriAclForDhcp(
     const HwAsic* hwAsic,
     cfg::ToCpuAction toCpuAction,
@@ -652,24 +654,21 @@ void addMidPriAclForDhcp(
     bool isSai) {
   auto action =
       createQueueMatchAction(hwAsic, midPriQueueId, isSai, toCpuAction);
-  auto makeDhcpAcl = [&](const std::string& name,
-                         cfg::EtherType etherType,
-                         int l4SrcPort,
-                         int l4DstPort) {
-    cfg::AclEntry acl;
-    acl.name() = name;
-    acl.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
-    acl.l4SrcPort() = l4SrcPort;
-    acl.l4DstPort() = l4DstPort;
-    addEtherTypeToAcl(hwAsic, &acl, etherType);
-    acls.emplace_back(acl, action);
-  };
+  auto makeDhcpAcl =
+      [&](const std::string& name, cfg::EtherType etherType, int l4DstPort) {
+        cfg::AclEntry acl;
+        acl.name() = name;
+        acl.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
+        acl.l4DstPort() = l4DstPort;
+        addEtherTypeToAcl(hwAsic, &acl, etherType);
+        acls.emplace_back(acl, action);
+      };
   // DHCPv4: client port 68, server port 67
-  makeDhcpAcl("cpuPolicing-mid-dhcp-request", cfg::EtherType::IPv4, 68, 67);
-  makeDhcpAcl("cpuPolicing-mid-dhcp-reply", cfg::EtherType::IPv4, 67, 68);
+  makeDhcpAcl("cpuPolicing-mid-dhcp-to-server", cfg::EtherType::IPv4, 67);
+  makeDhcpAcl("cpuPolicing-mid-dhcp-to-client", cfg::EtherType::IPv4, 68);
   // DHCPv6: client port 546, server port 547
-  makeDhcpAcl("cpuPolicing-mid-dhcpv6-request", cfg::EtherType::IPv6, 546, 547);
-  makeDhcpAcl("cpuPolicing-mid-dhcpv6-reply", cfg::EtherType::IPv6, 547, 546);
+  makeDhcpAcl("cpuPolicing-mid-dhcpv6-to-server", cfg::EtherType::IPv6, 547);
+  makeDhcpAcl("cpuPolicing-mid-dhcpv6-to-client", cfg::EtherType::IPv6, 546);
 }
 
 void addLowPriAclForUnresolvedRoutes(
