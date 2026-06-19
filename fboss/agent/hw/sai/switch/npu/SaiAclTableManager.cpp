@@ -99,14 +99,22 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
     bool isChenab = platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
 
+    bool isQumran4d = platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_QUMRAN4D;
+
     std::vector<sai_int32_t> actionTypeList{
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,
         SAI_ACL_ACTION_TYPE_COUNTER,
         SAI_ACL_ACTION_TYPE_SET_TC,
-        SAI_ACL_ACTION_TYPE_SET_DSCP,
-        SAI_ACL_ACTION_TYPE_MIRROR_INGRESS};
+        SAI_ACL_ACTION_TYPE_SET_DSCP};
 
-    if (!(isTajo || isJericho2 || isJericho3 || isJericho4 || isChenab)) {
+    // TODO (Q4D/J4/R4): Enable once SDK support is available
+    if (!isQumran4d && !isJericho4) {
+      actionTypeList.push_back(SAI_ACL_ACTION_TYPE_MIRROR_INGRESS);
+    }
+
+    if (!(isTajo || isJericho2 || isJericho3 || isJericho4 || isChenab ||
+          isQumran4d)) {
       // Chenab supports egress mirror action in egress table
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_MIRROR_EGRESS);
     }
