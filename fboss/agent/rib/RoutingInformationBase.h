@@ -689,4 +689,13 @@ RouteNextHopSet getNextHopsFromRib(
     const NextHopIDManager* manager,
     NextHopSetID id);
 
+// Resolve resolved-side (FIB-resolved) nexthops from a RouteNextHopEntry
+// via the NextHopIDManager directly. Used by RIB-internal callers operating
+// before the state is published. When FLAGS_resolve_nexthops_from_id is on,
+// resolves via resolvedNextHopSetID against the manager. When off, falls
+// back to entry.getNextHopSet(). Companion to FibHelpers::getNextHops.
+RouteNextHopSet getResolvedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry);
+
 } // namespace facebook::fboss

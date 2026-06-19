@@ -2049,4 +2049,22 @@ RouteNextHopSet getNextHopsFromRib(
   return *nhops;
 }
 
+RouteNextHopSet getResolvedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry) {
+  if (FLAGS_resolve_nexthops_from_id) {
+    CHECK(FLAGS_enable_nexthop_id_manager)
+        << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
+    auto resolvedSetId = entry.getResolvedNextHopSetID();
+    if (!resolvedSetId.has_value()) {
+      CHECK(entry.getAction() != RouteForwardAction::NEXTHOPS)
+          << "FLAGS_resolve_nexthops_from_id is on but NEXTHOPS-action "
+          << "entry has no resolvedNextHopSetID";
+      return {};
+    }
+    return getNextHopsFromRib(manager, *resolvedSetId);
+  }
+  return entry.getNextHopSet();
+}
+
 } // namespace facebook::fboss
