@@ -165,6 +165,7 @@ cpp_library(
         "SwitchStateNextHopIdUpdater.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":network_to_route_map",
         ":nexthop_id_manager",
         ":standalone_rib",
