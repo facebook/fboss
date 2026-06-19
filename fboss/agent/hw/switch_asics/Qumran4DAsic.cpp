@@ -35,8 +35,6 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:
-    case HwAsic::Feature::SWITCH_DROP_STATS:
-    case HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
@@ -48,9 +46,9 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_COUNTER_LABEL:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::ACL_TABLE_GROUP:
+    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::ERSPANv6:
-    case HwAsic::Feature::RCI_WATERMARK_COUNTER:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::SAI_PRBS:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
@@ -65,16 +63,12 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
     case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
-    case HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK:
-    case HwAsic::Feature::DELETED_CREDITS_STAT:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS:
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::NO_RX_REASON_TRAP:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::FAST_LLFC_COUNTER:
-    case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
-    case HwAsic::Feature::EGRESS_CELL_ERROR_STATS:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
     case HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR:
@@ -179,7 +173,6 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::TRAFFIC_HASHING:
     case HwAsic::Feature::PORT_WRED_COUNTER:
     case HwAsic::Feature::DTL_WATERMARK_COUNTER:
-    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::DATA_CELL_FILTER:
@@ -250,6 +243,13 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
     case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
     case HwAsic::Feature::FDR_FIFO_WATERMARK:
+    case HwAsic::Feature::SWITCH_DROP_STATS:
+    case HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS:
+    case HwAsic::Feature::DELETED_CREDITS_STAT:
+    case HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK:
+    case HwAsic::Feature::RCI_WATERMARK_COUNTER:
+    case HwAsic::Feature::EGRESS_CELL_ERROR_STATS:
+    case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
     // Qumran4D has no fabric ports
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
