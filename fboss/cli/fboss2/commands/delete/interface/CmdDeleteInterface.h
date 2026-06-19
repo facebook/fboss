@@ -11,16 +11,41 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
+#include "fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h"
 
 namespace facebook::fboss {
 
+/*
+ * InterfaceDeleteConfig captures interface/port names plus the attributes to
+ * delete (reset to default) for the `delete interface` command.
+ *
+ * Usage: delete interface <port-list> [<attr> ...]
+ *
+ * Tokens before the first known attribute name are interface/port names; the
+ * rest are attribute names (valueless — delete always resets to default).
+ *
+ * Supported delete attributes (reset to default):
+ *   loopback-mode, lldp-expected-value, lldp-expected-chassis,
+ *   lldp-expected-ttl, lldp-expected-port-desc, lldp-expected-system-name,
+ *   lldp-expected-system-desc
+ */
+class InterfaceDeleteConfig : public InterfaceAttrArgsBase {
+ public:
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  /* implicit */ InterfaceDeleteConfig(const std::vector<std::string>& v);
+};
+
 struct CmdDeleteInterfaceTraits : public WriteCommandTraits {
+  using ParentCmd = void;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
-    cmd.add_option("interface_config", args, "<port-list>");
+    cmd.add_option(
+        "interface_delete_config",
+        args,
+        "<port-list> [loopback-mode|lldp-expected-*]");
   }
-  using ObjectArgType = InterfacesConfig;
+  using ObjectArgType = InterfaceDeleteConfig;
   using RetType = std::string;
 };
 
@@ -31,13 +56,10 @@ class CmdDeleteInterface
   using RetType = CmdDeleteInterfaceTraits::RetType;
 
   RetType queryClient(
-      const HostInfo& /* hostInfo */,
-      const ObjectArgType& /* interfaceConfig */) {
-    throw std::runtime_error(
-        "Incomplete command, please use one of the subcommands (e.g. ipv6 ndp)");
-  }
+      const HostInfo& hostInfo,
+      const ObjectArgType& deleteConfig);
 
-  void printOutput(const RetType& /* model */) {}
+  void printOutput(const RetType& logMsg);
 };
 
 } // namespace facebook::fboss

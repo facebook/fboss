@@ -28,6 +28,7 @@ cpp_unittest(
         "CmdConfigVlanPortTaggingModeTest.cpp",
         "CmdConfigVlanStaticMacTest.cpp",
         "CmdDeleteInterfaceIpv6NdpTest.cpp",
+        "CmdDeleteInterfaceTest.cpp",
         "ConfigSessionSystemdTest.cpp",
     ],
     headers = [
