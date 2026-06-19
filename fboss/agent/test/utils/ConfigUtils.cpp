@@ -803,14 +803,20 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
         SwitchIdScopeResolver(*config.switchSettings()->switchIdToSwitchInfo());
     CHECK_EQ(portsPerIntf, 1) << " For VOQ switches sys port to interface "
                                  "mapping must by 1:1";
-    const std::set<cfg::PortType> kCreateIntfsFor = {
+    std::set<cfg::PortType> createIntfsFor = {
         cfg::PortType::INTERFACE_PORT,
         cfg::PortType::RECYCLE_PORT,
         cfg::PortType::MANAGEMENT_PORT,
         cfg::PortType::EVENTOR_PORT,
         cfg::PortType::HYPER_PORT};
+    if (FLAGS_hide_eventor_ports) {
+      createIntfsFor.erase(cfg::PortType::EVENTOR_PORT);
+    }
+    if (FLAGS_hide_management_ports) {
+      createIntfsFor.erase(cfg::PortType::MANAGEMENT_PORT);
+    }
     for (const auto& port : *config.ports()) {
-      if (kCreateIntfsFor.find(*port.portType()) == kCreateIntfsFor.end()) {
+      if (createIntfsFor.find(*port.portType()) == createIntfsFor.end()) {
         continue;
       }
       auto mySwitchId = scopeResolver.scope(port).switchId();
@@ -975,7 +981,11 @@ cfg::SwitchConfig genPortVlanCfg(
         (FLAGS_hide_management_ports &&
          *platformPorts.find(static_cast<int32_t>(portID))
                  ->second.mapping()
-                 ->portType() == cfg::PortType::MANAGEMENT_PORT)) {
+                 ->portType() == cfg::PortType::MANAGEMENT_PORT) ||
+        (FLAGS_hide_eventor_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::EVENTOR_PORT)) {
       continue;
     }
     config.ports()->push_back(
