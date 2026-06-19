@@ -2035,4 +2035,36 @@ RibRouteTables::getRouteAndNextHops(
     RouterID vrf,
     bool normalized) const;
 
+RouteNextHopSet getNextHopsFromRib(
+    const NextHopIDManager* manager,
+    NextHopSetID id) {
+  CHECK(manager) << "Manager required for getNextHopsFromRib";
+  auto nhops = manager->getNextHopsIf(id);
+  if (!nhops.has_value()) {
+    throw FbossError(
+        "NextHopSetID ",
+        static_cast<int64_t>(id),
+        " not found in NextHopIDManager");
+  }
+  return *nhops;
+}
+
+RouteNextHopSet getResolvedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry) {
+  if (FLAGS_resolve_nexthops_from_id) {
+    CHECK(FLAGS_enable_nexthop_id_manager)
+        << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
+    auto resolvedSetId = entry.getResolvedNextHopSetID();
+    if (!resolvedSetId.has_value()) {
+      CHECK(entry.getAction() != RouteForwardAction::NEXTHOPS)
+          << "FLAGS_resolve_nexthops_from_id is on but NEXTHOPS-action "
+          << "entry has no resolvedNextHopSetID";
+      return {};
+    }
+    return getNextHopsFromRib(manager, *resolvedSetId);
+  }
+  return entry.getNextHopSet();
+}
+
 } // namespace facebook::fboss

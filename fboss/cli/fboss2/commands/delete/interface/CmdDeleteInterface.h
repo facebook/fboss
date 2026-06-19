@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/commands/config/interface/InterfaceAttrUtils.h"
+#include "fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h"
 
 namespace facebook::fboss {
 
@@ -35,12 +35,6 @@ class InterfaceDeleteConfig : public InterfaceAttrArgsBase {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
   /* implicit */ InterfaceDeleteConfig(const std::vector<std::string>& v);
-
- private:
-  // Check if a string is a known delete attribute name (valueful or valueless)
-  static bool isKnownAttribute(const std::string& s);
-  // Check if a known attribute takes no value token
-  static bool isValuelessAttribute(const std::string& s);
 };
 
 struct CmdDeleteInterfaceTraits : public WriteCommandTraits {
@@ -62,11 +56,8 @@ class CmdDeleteInterface
   using RetType = CmdDeleteInterfaceTraits::RetType;
 
   RetType queryClient(
-      const HostInfo& /* hostInfo */,
-      const ObjectArgType& /* interfaceConfig */) {
-    throw std::runtime_error(
-        "Incomplete command, please use one of the subcommands (e.g. ipv6 ndp)");
-  }
+      const HostInfo& hostInfo,
+      const ObjectArgType& deleteConfig);
 
   void printOutput(const RetType& logMsg);
 };

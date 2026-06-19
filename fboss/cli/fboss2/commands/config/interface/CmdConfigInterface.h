@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/commands/config/interface/InterfaceAttrUtils.h"
+#include "fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h"
 
 namespace facebook::fboss {
 
@@ -31,10 +31,6 @@ class InterfacesConfig : public InterfaceAttrArgsBase {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
   /* implicit */ InterfacesConfig(const std::vector<std::string>& v);
-
- private:
-  // Check if a string is a known attribute name
-  static bool isKnownAttribute(const std::string& s);
 };
 
 struct CmdConfigInterfaceTraits : public WriteCommandTraits {

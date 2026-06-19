@@ -311,6 +311,54 @@ TYPED_TEST(FibHelperTest, getNextHopsFromEntry) {
   }
 }
 
+TYPED_TEST(FibHelperTest, getClientNextHopsFromState) {
+  this->programRouteWithNexthops(
+      this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+
+  auto state = this->sw_->getState();
+  auto fibContainer = this->getFibInfo()->getFibContainerIf(this->kRid());
+  ASSERT_NE(fibContainer, nullptr);
+  auto fib = this->getFib(fibContainer);
+
+  for (const auto& [_, route] : std::as_const(*fib)) {
+    for (const auto& [_clientId, entry] :
+         std::as_const(route->getEntryForClients())) {
+      EXPECT_EQ(getClientNextHops(state, *entry), entry->getNextHopSet());
+    }
+  }
+}
+
+TYPED_TEST(FibHelperTest, getClientNextHopsEmptyForDropEntry) {
+  // DROP per-client entry has empty nexthops and no ID.
+  auto routeUpdater = this->sw_->getRouteUpdater();
+  routeUpdater.addRoute(
+      this->kRid(),
+      this->kPrefix2().first,
+      this->kPrefix2().second,
+      this->kClientID(),
+      RouteNextHopEntry(RouteForwardAction::DROP, AdminDistance::EBGP));
+  routeUpdater.program();
+
+  auto state = this->sw_->getState();
+  auto fibContainer = this->getFibInfo()->getFibContainerIf(this->kRid());
+  ASSERT_NE(fibContainer, nullptr);
+  auto fib = this->getFib(fibContainer);
+
+  bool sawDropEntry = false;
+  for (const auto& [_, route] : std::as_const(*fib)) {
+    for (const auto& [_clientId, entry] :
+         std::as_const(route->getEntryForClients())) {
+      if (!entry->getNextHopSet().empty()) {
+        continue;
+      }
+      sawDropEntry = true;
+      EXPECT_TRUE(getClientNextHops(state, *entry).empty());
+    }
+  }
+  EXPECT_TRUE(sawDropEntry)
+      << "test inspected no DROP/empty-nexthops per-client entry";
+}
+
 TYPED_TEST(FibHelperTest, getNonOverrideNormalizedNextHopsFromEntry) {
   this->programRouteWithNexthops(
       this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
