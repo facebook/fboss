@@ -349,12 +349,29 @@ void setDefaultCpuTrafficPolicyConfig(
       utility::addAcl(&config, cpuAcls[i].first, cfg::AclStage::INGRESS);
     }
   } else {
+    const bool isQumran4dOrJericho4 =
+        hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+        hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4;
     for (auto stage :
          {cfg::AclStage::INGRESS, cfg::AclStage::INGRESS_POST_LOOKUP}) {
       auto stageCpuAcls = utility::defaultCpuAcls(hwAsic, config, isSai, stage);
 
       for (int i = 0; i < stageCpuAcls.size(); i++) {
-        utility::addAcl(&config, stageCpuAcls[i].first, stage);
+        const auto& acl = stageCpuAcls[i].first;
+        // On Q4D/J4, IPv6 CPU ACLs must be installed in the dedicated IPv6
+        // table.
+        // Route-class-only entries (e.g. IP2Me / unresolved-route) carry no
+        // IPv6 next-header qualifier, so the generic router would place them in
+        // the IPv4 default table where they never match IPv6 packets on DNX;
+        // the IPv6 packets then only encounter the L4-qualified entries (BGP)
+        // in the IPv6 table and fall through to the default queue.
+        if (isQumran4dOrJericho4 && FLAGS_enable_acl_table_group &&
+            stage == cfg::AclStage::INGRESS && acl.etherType().has_value() &&
+            *acl.etherType() == cfg::EtherType::IPv6) {
+          utility::addAclEntry(&config, acl, utility::kIpv6AclTable(), stage);
+        } else {
+          utility::addAcl(&config, acl, stage);
+        }
       }
       cpuAcls.insert(
           cpuAcls.end(),
