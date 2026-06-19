@@ -31,6 +31,8 @@ std::string kDefaultAclTable();
 
 std::string kTtldAclTable();
 
+std::string kIpv6AclTable();
+
 cfg::AclEntry* addAclEntry(
     cfg::SwitchConfig* cfg,
     const cfg::AclEntry& acl,
