@@ -597,7 +597,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     uint16_t dstPort,
     uint8_t trafficClass,
     uint8_t hopLimit,
-    std::optional<std::vector<uint8_t>> payload) {
+    std::optional<std::vector<uint8_t>> payload,
+    uint32_t flowLabel) {
   // TODO: Refactor such that both tests and DHCPv6Handler to use this
   // function for constructing v6 UDP packets
   if (!payload) {
@@ -610,6 +611,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
   IPv6Hdr ipHdr(srcIp, dstIp);
   ipHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
   ipHdr.trafficClass = trafficClass;
+  ipHdr.flowLabel = flowLabel;
   ipHdr.payloadLength = UDPHeader::size() + payloadBytes.size();
   ipHdr.hopLimit = hopLimit;
   // UDPHeader
