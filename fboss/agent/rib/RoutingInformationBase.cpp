@@ -2035,4 +2035,18 @@ RibRouteTables::getRouteAndNextHops(
     RouterID vrf,
     bool normalized) const;
 
+RouteNextHopSet getNextHopsFromRib(
+    const NextHopIDManager* manager,
+    NextHopSetID id) {
+  CHECK(manager) << "Manager required for getNextHopsFromRib";
+  auto nhops = manager->getNextHopsIf(id);
+  if (!nhops.has_value()) {
+    throw FbossError(
+        "NextHopSetID ",
+        static_cast<int64_t>(id),
+        " not found in NextHopIDManager");
+  }
+  return *nhops;
+}
+
 } // namespace facebook::fboss

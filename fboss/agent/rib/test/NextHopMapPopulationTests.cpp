@@ -14,6 +14,7 @@
 #include <gflags/gflags.h>
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
@@ -1006,6 +1007,36 @@ TEST_F(NextHopMapPopulationTest, DeleteOneClientReleasesItsIdOnly) {
   ASSERT_TRUE(idStillThere.has_value());
   EXPECT_EQ(*idStillThere, *sharedId);
   verifyIDMapsConsistency();
+}
+
+// Verifies the ID-only primitive getNextHopsFromRib: returns the nexthops
+// associated with a known setId, and throws FbossError when the setId is
+// not present in the manager.
+TEST_F(NextHopMapPopulationTest, getNextHopsFromRibPrimitive) {
+  auto updater = sw_->getRouteUpdater();
+  addV4RouteForClient(
+      updater, kClientA, "10.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  updater.program();
+
+  auto manager = sw_->getRib()->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  auto fibContainer = getFibInfo()->getFibContainerIf(kRid0);
+  ASSERT_NE(fibContainer, nullptr);
+  auto route =
+      fibContainer->getFibV4()->exactMatch(makePrefixV4("10.0.0.0/24"));
+  ASSERT_NE(route, nullptr);
+  const auto& fwd = route->getForwardInfo();
+  auto setId = fwd.getResolvedNextHopSetID();
+  ASSERT_TRUE(setId.has_value());
+
+  // Lookup against valid id returns expected set.
+  EXPECT_EQ(
+      getNextHopsFromRib(manager.get(), NextHopSetID(*setId)),
+      fwd.getNextHopSet());
+
+  // Lookup against an unknown id throws FbossError.
+  NextHopSetID unknownId(static_cast<int64_t>(*setId) + 9999);
+  EXPECT_THROW(getNextHopsFromRib(manager.get(), unknownId), FbossError);
 }
 
 // Full mix: resolved + DROP + TO_CPU + unresolved + multi-client routes,

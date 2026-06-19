@@ -680,4 +680,13 @@ class RoutingInformationBase {
   RibRouteTables ribTables_;
 };
 
+// ID-only primitive: resolve a NextHopSetID directly against the
+// NextHopIDManager. Throws FbossError if the id is not present in the
+// manager (mirrors FibInfo::resolveNextHopSetFromId behavior).
+// Used by RIB-internal callers that operate before the state is published;
+// caller is responsible for the FLAGS_resolve_nexthops_from_id check.
+RouteNextHopSet getNextHopsFromRib(
+    const NextHopIDManager* manager,
+    NextHopSetID id);
+
 } // namespace facebook::fboss
