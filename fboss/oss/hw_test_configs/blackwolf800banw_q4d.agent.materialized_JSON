@@ -327,6 +327,7 @@
             "eventor_sbus_dma_channels.BCM9943X": "0,6,0,7",
             "fail_on_unsupported_attribute": "1",
             "l3_ecmp_max_group_size": "512",
+            "l3_route_dst_class_id_enable": "1",
             "macro_flow_hash_shuffle_random_seed": "34345645",
             "maximal_port_bandwidth.BCM9943X": "1000000",
             "mdb_profile.BCM9943X": "Elastic-Balanced",
