@@ -150,6 +150,16 @@ class HwMplsEcmpDataPlaneTestUtil
   MPLSHdr::Label label_;
 };
 
+class HwIpV6FlowLabelEcmpDataPlaneTestUtil
+    : public HwIpEcmpDataPlaneTestUtil<folly::IPAddressV6> {
+ public:
+  using BaseT = HwIpEcmpDataPlaneTestUtil<folly::IPAddressV6>;
+
+  HwIpV6FlowLabelEcmpDataPlaneTestUtil(TestEnsembleIf* ensemble, RouterID vrf);
+
+  void pumpTrafficThroughPort(std::optional<PortID> port) override;
+};
+
 class HwSrv6EcmpDataPlaneTestUtil
     : public HwIpEcmpDataPlaneTestUtil<folly::IPAddressV6> {
  public:
