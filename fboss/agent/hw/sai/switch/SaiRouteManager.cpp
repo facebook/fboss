@@ -190,6 +190,23 @@ void SaiRouteManager::addOrUpdateRoute(
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
     const auto nhops = getNextHops(state, fwd);
+    const bool programRouteViaNextHopGroup = [&]() -> bool {
+      if (nhops.size() > 1) {
+        return true;
+      }
+#if defined(TAJO_SDK) && SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      // Single-member SRv6 routes must use NHG at SAI so ingress ACL
+      // FIELD_ROUTE_DST (post-LPM) matches the same object as the route.
+      // Matches sai/test/python/srv6/test_srv6_svi_pbr.py create_route(...,
+      // nhg).
+      if (nhops.size() == 1) {
+        const auto swNextHop =
+            folly::poly_cast<ResolvedNextHop>(*(nhops.begin()));
+        return !swNextHop.srv6SegmentList().empty();
+      }
+#endif
+      return false;
+    }();
     /*
      * A Route which satisfies isConnected() is an interface subnet route.
      * It will have one NextHop with the ip configured for the interface
@@ -298,12 +315,11 @@ void SaiRouteManager::addOrUpdateRoute(
         XLOG(DBG3) << "Connected route: " << newRoute->str()
                    << " routerInterfaceId: " << routerInterfaceId;
       }
-    } else if (nhops.size() > 1) {
+    } else if (programRouteViaNextHopGroup) {
       /*
-       * A Route which has more than one NextHops will create or reference an
-       * existing SaiNextHopGroup corresponding to ECMP over those next hops.
-       * When no route refers to a next hop set, it will be removed in SAI as
-       * well.
+       * Routes with ECMP (>1 next hop), or single-member SRv6 sidlist routes on
+       * Tajo, create or reference a SaiNextHopGroup. When no route refers to a
+       * next hop set, it will be removed in SAI as well.
        */
       auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(

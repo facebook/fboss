@@ -101,6 +101,7 @@ std::
       std::nullopt, // fieldIcmpV6Type
       std::nullopt, // fieldIcmpV6Code
       std::nullopt, // dscp
+      std::nullopt, // tc
       true, // fieldDstMac
       std::nullopt, // ipType
       std::nullopt, // ttl

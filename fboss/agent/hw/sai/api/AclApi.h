@@ -21,6 +21,13 @@
 
 extern "C" {
 #include <sai.h>
+#if defined(TAJO_SDK)
+#include <saiaclcustom.h>
+#endif
+
+#if defined(TAJO_SDK) && defined(SAI_HAVE_ACL_FIELD_ROUTE_DST)
+#define FBOSS_SAI_ACL_FIELD_ROUTE_DST 1
+#endif
 }
 
 inline bool operator==(const sai_u32_range_t& a, const sai_u32_range_t& b) {
@@ -179,6 +186,7 @@ struct SaiAclTableTraits {
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ICMPV6_CODE, bool>;
     using FieldDscp =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_DSCP, bool>;
+    using FieldTc = SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_TC, bool>;
     using FieldDstMac =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_DST_MAC, bool>;
     using FieldIpType =
@@ -192,6 +200,12 @@ struct SaiAclTableTraits {
         EnumType,
         SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META,
         bool>;
+#if defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST)
+    using FieldRouteDst = SaiAttribute<
+        EnumType,
+        static_cast<sai_acl_table_attr_t>(SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST),
+        bool>;
+#endif
     using FieldNeighborDstUserMeta = SaiAttribute<
         EnumType,
         SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META,
@@ -269,11 +283,15 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldIcmpV6Type>,
       std::optional<Attributes::FieldIcmpV6Code>,
       std::optional<Attributes::FieldDscp>,
+      std::optional<Attributes::FieldTc>,
       std::optional<Attributes::FieldDstMac>,
       std::optional<Attributes::FieldIpType>,
       std::optional<Attributes::FieldTtl>,
       std::optional<Attributes::FieldFdbDstUserMeta>,
       std::optional<Attributes::FieldRouteDstUserMeta>,
+#if defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST)
+      std::optional<Attributes::FieldRouteDst>,
+#endif
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::FieldEthertype>,
       std::optional<Attributes::FieldOuterVlanId>,
@@ -322,11 +340,15 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldIcmpV4Code);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIcmpV6Type);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIcmpV6Code);
 SAI_ATTRIBUTE_NAME(AclTable, FieldDscp);
+SAI_ATTRIBUTE_NAME(AclTable, FieldTc);
 SAI_ATTRIBUTE_NAME(AclTable, FieldDstMac);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIpType);
 SAI_ATTRIBUTE_NAME(AclTable, FieldTtl);
 SAI_ATTRIBUTE_NAME(AclTable, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, FieldRouteDstUserMeta);
+#if defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST)
+SAI_ATTRIBUTE_NAME(AclTable, FieldRouteDst);
+#endif
 SAI_ATTRIBUTE_NAME(AclTable, FieldNeighborDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableEntry);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableCounter);
@@ -443,6 +465,8 @@ struct SaiAclEntryTraits {
         AclEntryFieldU8>;
     using FieldDscp =
         SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_FIELD_DSCP, AclEntryFieldU8>;
+    using FieldTc =
+        SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_FIELD_TC, AclEntryFieldU8>;
     using FieldDstMac = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC,
@@ -461,6 +485,12 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META,
         AclEntryFieldU32>;
+#if defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST)
+    using FieldRouteDst = SaiAttribute<
+        EnumType,
+        static_cast<sai_acl_entry_attr_t>(SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST),
+        AclEntryFieldSaiObjectIdT>;
+#endif
     using FieldNeighborDstUserMeta = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META,
@@ -612,11 +642,15 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldIcmpV6Type>,
       std::optional<Attributes::FieldIcmpV6Code>,
       std::optional<Attributes::FieldDscp>,
+      std::optional<Attributes::FieldTc>,
       std::optional<Attributes::FieldDstMac>,
       std::optional<Attributes::FieldIpType>,
       std::optional<Attributes::FieldTtl>,
       std::optional<Attributes::FieldFdbDstUserMeta>,
       std::optional<Attributes::FieldRouteDstUserMeta>,
+#if defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST)
+      std::optional<Attributes::FieldRouteDst>,
+#endif
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::FieldEthertype>,
       std::optional<Attributes::FieldOuterVlanId>,
@@ -685,11 +719,15 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldIcmpV4Code);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldIcmpV6Type);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldIcmpV6Code);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDscp);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldTc);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDstMac);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldIpType);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldTtl);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
+#if defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST)
+SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDst);
+#endif
 SAI_ATTRIBUTE_NAME(AclEntry, FieldNeighborDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldEthertype);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldOuterVlanId);

@@ -59,7 +59,7 @@ std::pair<apache::thrift::ident::qsfp_service, ChildThriftPath<::facebook::fboss
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(agent, 1);
     STRUCT_CHILD_GETTERS(bgp, 2);
     STRUCT_CHILD_GETTERS(qsfp_service, 4);
@@ -172,7 +172,7 @@ std::pair<apache::thrift::ident::pagingSupport, Child<::facebook::fboss::PagingS
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(present, 1);
     STRUCT_CHILD_GETTERS(transceiver, 2);
     STRUCT_CHILD_GETTERS(port, 3);
@@ -273,7 +273,7 @@ std::pair<apache::thrift::ident::medium, Child<::facebook::fboss::TransmitterTec
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(side, 1);
     STRUCT_CHILD_GETTERS(pcs, 2);
     STRUCT_CHILD_GETTERS(pmd, 3);
@@ -325,7 +325,7 @@ std::pair<apache::thrift::ident::minorVersion, Child<::std::int32_t, ::apache::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(version, 1);
     STRUCT_CHILD_GETTERS(crc, 2);
     STRUCT_CHILD_GETTERS(versionStr, 3);
@@ -372,7 +372,7 @@ std::pair<apache::thrift::ident::high, Child<double, ::apache::thrift::type_clas
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(low, 1);
     STRUCT_CHILD_GETTERS(high, 2);
 
@@ -413,7 +413,7 @@ std::pair<apache::thrift::ident::warn, ChildThriftPath<::facebook::fboss::Thresh
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(alarm, 1);
     STRUCT_CHILD_GETTERS(warn, 2);
 
@@ -455,7 +455,7 @@ std::pair<apache::thrift::ident::rsFecState, ChildThriftPath<::facebook::fboss::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(pcsRxStatusLive, 1);
     STRUCT_CHILD_GETTERS(pcsRxStatusLatched, 2);
     STRUCT_CHILD_GETTERS(rsFecState, 3);
@@ -497,7 +497,7 @@ class ChildThriftPath<::facebook::fboss::phy::RsFecState, ::facebook::fboss::fsd
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lanes, 1);
 
   template <apache::thrift::FieldId __id>
@@ -580,7 +580,7 @@ std::pair<apache::thrift::ident::portStates, ChildThriftPath<::std::map<::std::s
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(phyStates, 1);
     STRUCT_CHILD_GETTERS(tcvrStates, 2);
     STRUCT_CHILD_GETTERS(pimStates, 3);
@@ -627,7 +627,7 @@ std::pair<apache::thrift::ident::laserFrequencyMhz, Child<::std::int64_t, ::apac
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(tuningStatus, 1);
     STRUCT_CHILD_GETTERS(wavelengthLockingStatus, 2);
     STRUCT_CHILD_GETTERS(laserStatusFlagsByte, 3);
@@ -675,7 +675,7 @@ std::pair<apache::thrift::ident::cmisStateChanged, Child<bool, ::apache::thrift:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(dataNotReady, 1);
     STRUCT_CHILD_GETTERS(interruptL, 2);
     STRUCT_CHILD_GETTERS(cmisModuleState, 3);
@@ -726,7 +726,7 @@ std::pair<apache::thrift::ident::txAdaptEqFault, Child<bool, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lane, 1);
     STRUCT_CHILD_GETTERS(dataPathDeInit, 2);
     STRUCT_CHILD_GETTERS(cmisLaneState, 3);
@@ -775,7 +775,7 @@ std::pair<apache::thrift::ident::firmwareForUpgradeTest, ChildThriftPath<::faceb
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(cabledPortPairs, 1);
     STRUCT_CHILD_GETTERS(firmwareForUpgradeTest, 2);
 
@@ -816,7 +816,7 @@ std::pair<apache::thrift::ident::version, Child<::std::string, ::apache::thrift:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(fwType, 1);
     STRUCT_CHILD_GETTERS(version, 2);
 
@@ -878,7 +878,7 @@ std::pair<apache::thrift::ident::centerFrequencyConfig, ChildThriftPath<::facebo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(frequencyGrid, 1);
     STRUCT_CHILD_GETTERS(centerFrequencyConfig, 2);
 
@@ -929,7 +929,7 @@ std::pair<apache::thrift::ident::mediaTypeEncoding, Child<::facebook::fboss::Med
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(singleModeKm, 1);
     STRUCT_CHILD_GETTERS(singleMode, 2);
     STRUCT_CHILD_GETTERS(om3, 3);
@@ -1018,7 +1018,7 @@ std::pair<apache::thrift::ident::phyConfig, Child<::std::string, ::apache::thrif
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(defaultCommandLineArgs, 1);
     STRUCT_CHILD_GETTERS(transceiverConfigOverrides, 2);
     STRUCT_CHILD_GETTERS(sdk_version, 3);
@@ -1095,7 +1095,7 @@ std::pair<apache::thrift::ident::hostApplicationCode, Child<::facebook::fboss::A
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(transceiverPartNumber, 1);
     STRUCT_CHILD_GETTERS(applicationCode, 2);
     STRUCT_CHILD_GETTERS(hostApplicationCode, 3);
@@ -1137,7 +1137,7 @@ class ChildThriftPath<::facebook::fboss::cfg::Firmware, ::facebook::fboss::fsdb:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(versions, 1);
 
   template <apache::thrift::FieldId __id>
@@ -1176,7 +1176,7 @@ std::pair<apache::thrift::ident::config, ChildThriftPath<::facebook::fboss::cfg:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(factor, 1);
     STRUCT_CHILD_GETTERS(config, 2);
 
@@ -1216,7 +1216,7 @@ class ChildThriftPath<::facebook::fboss::cfg::TransceiverFirmware, ::facebook::f
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(versionsMap, 1);
 
   template <apache::thrift::FieldId __id>
@@ -1294,7 +1294,7 @@ std::pair<apache::thrift::ident::cdbRxErrorHistogramSystem, Child<bool, ::apache
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(diagnostics, 1);
     STRUCT_CHILD_GETTERS(vdm, 2);
     STRUCT_CHILD_GETTERS(cdb, 3);
@@ -1371,7 +1371,7 @@ std::pair<apache::thrift::ident::channelNumber, Child<::std::int32_t, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(frequencyMhz, 1);
     STRUCT_CHILD_GETTERS(channelNumber, 2);
 
@@ -1411,7 +1411,7 @@ class ChildThriftPath<::facebook::fboss::phy::RsInfo, ::facebook::fboss::fsdb::F
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(faultStatus, 1);
 
   template <apache::thrift::FieldId __id>
@@ -1452,7 +1452,7 @@ std::pair<apache::thrift::ident::rxLol, Child<::std::int32_t, ::apache::thrift::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(txLos, 1);
     STRUCT_CHILD_GETTERS(rxLos, 2);
     STRUCT_CHILD_GETTERS(txLol, 3);
@@ -1504,7 +1504,7 @@ std::pair<apache::thrift::ident::mediaInterface, ChildThriftPath<::std::vector<:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(cdrTx, 1);
     STRUCT_CHILD_GETTERS(cdrRx, 2);
     STRUCT_CHILD_GETTERS(rateSelect, 3);
@@ -1559,7 +1559,7 @@ std::pair<apache::thrift::ident::rxStatus, Child<::facebook::fboss::phy::LinkTra
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(linkTrainingEnabled, 1);
     STRUCT_CHILD_GETTERS(rxStatus, 2);
 
@@ -1601,7 +1601,7 @@ std::pair<apache::thrift::ident::fecAlignmentLockChanged, Child<bool, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lane, 1);
     STRUCT_CHILD_GETTERS(fecAlignmentLockLive, 2);
     STRUCT_CHILD_GETTERS(fecAlignmentLockChanged, 3);
@@ -1651,7 +1651,7 @@ std::pair<apache::thrift::ident::currentAppSel, Child<::std::int32_t, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lane, 1);
     STRUCT_CHILD_GETTERS(txInputEqualization, 2);
     STRUCT_CHILD_GETTERS(rxOutputEmphasis, 3);
@@ -1709,7 +1709,7 @@ std::pair<apache::thrift::ident::activeCuCode, Child<::facebook::fboss::ActiveCu
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(smfCode, 1);
     STRUCT_CHILD_GETTERS(extendedSpecificationComplianceCode, 2);
     STRUCT_CHILD_GETTERS(ethernet10GComplianceCode, 3);
@@ -1773,7 +1773,7 @@ std::pair<apache::thrift::ident::rxPfHfq, Child<::std::int32_t, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lane, 1);
     STRUCT_CHILD_GETTERS(rvga, 2);
     STRUCT_CHILD_GETTERS(dco, 3);
@@ -1912,7 +1912,7 @@ std::pair<apache::thrift::ident::txEqualization, Child<::std::int16_t, ::apache:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(rxPreemphasis, 1);
     STRUCT_CHILD_GETTERS(rxAmplitude, 2);
     STRUCT_CHILD_GETTERS(txEqualization, 3);
@@ -1955,7 +1955,7 @@ std::pair<apache::thrift::ident::dspFirmwareVersion, Child<::std::string, ::apac
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(applicationFirmwareVersion, 1);
     STRUCT_CHILD_GETTERS(dspFirmwareVersion, 2);
 
@@ -2021,7 +2021,7 @@ std::pair<apache::thrift::ident::verify_client_type, Child<::facebook::bgp::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(enable_tls, 1);
     STRUCT_CHILD_GETTERS(x509_ca_path, 2);
     STRUCT_CHILD_GETTERS(x509_cert_path, 3);
@@ -2071,7 +2071,7 @@ std::pair<apache::thrift::ident::profileID, Child<::facebook::fboss::cfg::PortPr
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(aPortName, 1);
     STRUCT_CHILD_GETTERS(zPortName, 2);
     STRUCT_CHILD_GETTERS(profileID, 3);
@@ -2116,7 +2116,7 @@ std::pair<apache::thrift::ident::value, Child<::std::int64_t, ::apache::thrift::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(type, 1);
     STRUCT_CHILD_GETTERS(sub_type, 2);
     STRUCT_CHILD_GETTERS(asn, 3);
@@ -2203,7 +2203,7 @@ std::pair<apache::thrift::ident::state, ChildThriftPath<::facebook::fboss::state
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(config, 1);
     STRUCT_CHILD_GETTERS(state, 2);
 
@@ -2243,7 +2243,7 @@ class ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TBgpExtCommUnion, 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(two_byte_asn, 1);
 
   template <apache::thrift::FieldId __id>
@@ -2281,7 +2281,7 @@ class ChildThriftPath<::facebook::bgp::rib_policy::TGoldenPrefixPolicy, ::facebo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(allowed_prefixes, 1);
 
   template <apache::thrift::FieldId __id>
@@ -2323,7 +2323,7 @@ std::pair<apache::thrift::ident::buildNumber, Child<::std::int32_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(version, 1);
     STRUCT_CHILD_GETTERS(fwFault, 2);
     STRUCT_CHILD_GETTERS(dspFwVer, 3);
@@ -2373,7 +2373,7 @@ std::pair<apache::thrift::ident::relax_bgp_min_aggregate_lbw_bps, Child<bool, ::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(criteria_list, 1);
     STRUCT_CHILD_GETTERS(bgp_native_path_selection_min_nexthop, 2);
     STRUCT_CHILD_GETTERS(drain_on_min_nexthop_violation, 3);
@@ -2420,7 +2420,7 @@ std::pair<apache::thrift::ident::set_ucmp_weights, ChildThriftPath<::facebook::b
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(set_lbw, 1);
     STRUCT_CHILD_GETTERS(set_ucmp_weights, 2);
 
@@ -2461,7 +2461,7 @@ std::pair<apache::thrift::ident::community_list, ChildThriftPath<::facebook::bgp
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(prefixes, 1);
     STRUCT_CHILD_GETTERS(community_list, 2);
 
@@ -2545,7 +2545,7 @@ std::pair<apache::thrift::ident::community, Child<::std::int64_t, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(asn, 1);
     STRUCT_CHILD_GETTERS(value, 2);
     STRUCT_CHILD_GETTERS(community, 3);
@@ -2629,7 +2629,7 @@ class ChildThriftPath<::facebook::fboss::cfg::QsfpSdkVersion, ::facebook::fboss:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(version, 2);
 
   template <apache::thrift::FieldId __id>
@@ -2672,7 +2672,7 @@ std::pair<apache::thrift::ident::min_capacity, ChildThriftPath<::facebook::neten
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(prefix, 1);
     STRUCT_CHILD_GETTERS(path_count, 2);
     STRUCT_CHILD_GETTERS(mnh_threshold, 3);
@@ -2811,7 +2811,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(type, 1);
     STRUCT_CHILD_GETTERS(as_path_len_filter, 2);
     STRUCT_CHILD_GETTERS(as_path_filters, 3);
@@ -2910,7 +2910,7 @@ std::pair<apache::thrift::ident::community_lists, ChildThriftPath<::std::vector<
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(communities, 3);
@@ -2958,7 +2958,7 @@ class ChildThriftPath<::facebook::bgp::rib_policy::TRouteAttributePolicy, ::face
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(statements, 1);
 
   template <apache::thrift::FieldId __id>
@@ -3021,7 +3021,7 @@ std::pair<apache::thrift::ident::boolean_operator, Child<::facebook::bgp::routin
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(neighbors, 3);
@@ -3070,7 +3070,7 @@ std::pair<apache::thrift::ident::key_type, Child<::facebook::bgp::rib_policy::Ke
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(statements, 1);
     STRUCT_CHILD_GETTERS(version, 2);
     STRUCT_CHILD_GETTERS(golden_prefix_policy, 3);
@@ -3136,7 +3136,7 @@ std::pair<apache::thrift::ident::next_hop, ChildThriftPath<::facebook::bgp::rout
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(set_self, 1);
     STRUCT_CHILD_GETTERS(next_hop, 2);
 
@@ -3178,7 +3178,7 @@ std::pair<apache::thrift::ident::mainAmplitude, Child<::std::int32_t, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(preCursor, 1);
     STRUCT_CHILD_GETTERS(postCursor, 2);
     STRUCT_CHILD_GETTERS(mainAmplitude, 3);
@@ -3221,7 +3221,7 @@ std::pair<apache::thrift::ident::community_name, Child<::std::string, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(community, 1);
     STRUCT_CHILD_GETTERS(community_name, 2);
 
@@ -3288,7 +3288,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(bgp_policy_statements, 1);
     STRUCT_CHILD_GETTERS(community_lists, 2);
     STRUCT_CHILD_GETTERS(aspath_lists, 3);
@@ -3340,7 +3340,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(weight_value, 1);
     STRUCT_CHILD_GETTERS(weight_action_type, 2);
     STRUCT_CHILD_GETTERS(obj_uuid, 100);
@@ -3441,7 +3441,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(type, 1);
     STRUCT_CHILD_GETTERS(set_as_path_prepend, 2);
     STRUCT_CHILD_GETTERS(community_action, 3);
@@ -3517,7 +3517,7 @@ std::pair<apache::thrift::ident::min_lbw_bps, Child<::std::int64_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(community_list, 5);
     STRUCT_CHILD_GETTERS(origin, 2);
     STRUCT_CHILD_GETTERS(as_path_length, 3);
@@ -3577,7 +3577,7 @@ std::pair<apache::thrift::ident::enable_policy_default_action, Child<bool, ::apa
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(features, 1);
     STRUCT_CHILD_GETTERS(enable_med_comparison, 2);
     STRUCT_CHILD_GETTERS(enable_med_missing_as_worst, 3);
@@ -3665,7 +3665,7 @@ std::pair<apache::thrift::ident::flow_action, Child<::facebook::bgp::bgp_policy:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(route_action, 1);
     STRUCT_CHILD_GETTERS(flow_action, 2);
 
@@ -3709,7 +3709,7 @@ std::pair<apache::thrift::ident::max_golden_vips, Child<::std::int32_t, ::apache
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ingress_path_limit, 1);
     STRUCT_CHILD_GETTERS(prefix_limit, 2);
     STRUCT_CHILD_GETTERS(total_path_limit, 3);
@@ -3761,7 +3761,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(as_paths, 3);
@@ -3816,7 +3816,7 @@ std::pair<apache::thrift::ident::graceful_restart_end_of_rib_seconds, Child<::st
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(hold_time_seconds, 1);
     STRUCT_CHILD_GETTERS(keep_alive_seconds, 2);
     STRUCT_CHILD_GETTERS(out_delay_seconds, 3);
@@ -3917,7 +3917,7 @@ std::pair<apache::thrift::ident::propagate_thrift_default_protocols, Child<bool,
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(net_service_identity, 1);
     STRUCT_CHILD_GETTERS(net_static_file_acl, 2);
     STRUCT_CHILD_GETTERS(net_auth_checker_kill_switch_file, 3);
@@ -3978,7 +3978,7 @@ std::pair<apache::thrift::ident::minimum_supporting_routes, Child<::std::int64_t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(value, 1);
     STRUCT_CHILD_GETTERS(minimum_supporting_routes, 2);
 
@@ -4019,7 +4019,7 @@ std::pair<apache::thrift::ident::version, Child<::std::int64_t, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(statements, 1);
     STRUCT_CHILD_GETTERS(version, 2);
 
@@ -4081,7 +4081,7 @@ std::pair<apache::thrift::ident::agg_lbw_bps, Child<::std::int64_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(mnh, 1);
     STRUCT_CHILD_GETTERS(agg_lbw_bps, 2);
 
@@ -4142,11 +4142,11 @@ class ChildThriftPath<::facebook::bgp::bgp_policy::AsPathToAsSetAction, ::facebo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
-    
+
   }
 };
 
@@ -4201,7 +4201,48 @@ std::pair<apache::thrift::ident::drained_prefixes, ChildThriftPath<::std::vector
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
+    STRUCT_CHILD_GETTERS(partial_drain_state, 1);
+    STRUCT_CHILD_GETTERS(drained_prefixes, 2);
+
+  template <apache::thrift::FieldId __id>
+  auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
+    if constexpr (__id == apache::thrift::FieldId{1}) { return partial_drain_state(); }
+    else if constexpr (__id == apache::thrift::FieldId{2}) { return drained_prefixes(); }
+  }
+};
+
+
+template<typename Parent>
+class ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TPartialDrainState, ::facebook::fboss::fsdb::FsdbOperStateRoot, Parent> :
+  public Path<
+   ::facebook::neteng::fboss::bgp::thrift::TPartialDrainState,
+   ::facebook::fboss::fsdb::FsdbOperStateRoot,
+   ::apache::thrift::type_class::structure,
+   ::apache::thrift::type::struct_t<::facebook::neteng::fboss::bgp::thrift::TPartialDrainState>,
+   Parent> {
+ public:
+  using Self = Path<
+   ::facebook::neteng::fboss::bgp::thrift::TPartialDrainState,
+   ::facebook::fboss::fsdb::FsdbOperStateRoot,
+   ::apache::thrift::type_class::structure,
+   ::apache::thrift::type::struct_t<::facebook::neteng::fboss::bgp::thrift::TPartialDrainState>,
+   Parent>;
+  template <typename ChildType, typename ChildTC, typename ChildTag>
+  using Child = Path<
+    ChildType,
+    ::facebook::fboss::fsdb::FsdbOperStateRoot,
+    ChildTC,
+    ChildTag,
+    Self
+  >;
+  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::partial_drain_state, ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TPartialDrainStatus, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<apache::thrift::ident::drained_prefixes, ChildThriftPath<::std::vector<::facebook::neteng::fboss::bgp::thrift::TPartiallyDrainedPrefix>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+
+  template <typename Name>
+  using TypeFor = typename Children::template type_of<Name>;
+  using Self::Self;
+
     STRUCT_CHILD_GETTERS(partial_drain_state, 1);
     STRUCT_CHILD_GETTERS(drained_prefixes, 2);
 
@@ -4245,7 +4286,7 @@ std::pair<apache::thrift::ident::boolean_operator, Child<::facebook::bgp::routin
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(tags, 3);
@@ -4355,7 +4396,7 @@ std::pair<apache::thrift::ident::heap_dump_interval_s, Child<::std::int32_t, ::a
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(enable_memory_profiling, 1);
     STRUCT_CHILD_GETTERS(heap_dump_interval_s, 2);
 
@@ -4395,7 +4436,7 @@ class ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TBgpExtCommunity, 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(u, 1);
 
   template <apache::thrift::FieldId __id>
@@ -4435,7 +4476,7 @@ std::pair<apache::thrift::ident::communities, ChildThriftPath<::std::vector<::st
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(communities, 3);
@@ -4480,7 +4521,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(med_value, 1);
     STRUCT_CHILD_GETTERS(med_action_type, 2);
     STRUCT_CHILD_GETTERS(update_pattern, 3);
@@ -4526,7 +4567,7 @@ std::pair<apache::thrift::ident::description, Child<::std::string, ::apache::thr
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(localpref, 1);
     STRUCT_CHILD_GETTERS(name, 2);
     STRUCT_CHILD_GETTERS(description, 3);
@@ -4594,7 +4635,7 @@ std::pair<apache::thrift::ident::partialDrainState, ChildThriftPath<::facebook::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(config, 1);
     STRUCT_CHILD_GETTERS(routeAttributePolicy, 2);
     STRUCT_CHILD_GETTERS(pathSelectionPolicy, 3);
@@ -4643,7 +4684,7 @@ std::pair<apache::thrift::ident::port, Child<::std::int32_t, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(macAddress, 1);
     STRUCT_CHILD_GETTERS(port, 2);
 
@@ -4688,7 +4729,7 @@ std::pair<apache::thrift::ident::type, Child<::facebook::fboss::cfg::UdfGroupTyp
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(header, 2);
     STRUCT_CHILD_GETTERS(startOffsetInBytes, 3);
@@ -4737,7 +4778,7 @@ std::pair<apache::thrift::ident::polynominal, Child<::std::int32_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(enabled, 1);
     STRUCT_CHILD_GETTERS(polynominal, 2);
 
@@ -4802,7 +4843,7 @@ std::pair<apache::thrift::ident::classID, Child<::facebook::fboss::cfg::AclLooku
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(label, 1);
     STRUCT_CHILD_GETTERS(nexthopsmulti, 2);
     STRUCT_CHILD_GETTERS(fwd, 3);
@@ -4909,7 +4950,7 @@ std::pair<apache::thrift::ident::dropPacketRateThreshold, Child<::std::int32_t, 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(mirrorPortId, 2);
     STRUCT_CHILD_GETTERS(localSrcIp, 3);
@@ -4996,7 +5037,7 @@ std::pair<apache::thrift::ident::disableTTLDecrement, Child<bool, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ipaddress, 1);
     STRUCT_CHILD_GETTERS(mac, 2);
     STRUCT_CHILD_GETTERS(portId, 3);
@@ -5073,7 +5114,7 @@ std::pair<apache::thrift::ident::bufferPoolConfig, ChildThriftPath<::facebook::f
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(weight, 2);
     STRUCT_CHILD_GETTERS(reserved, 3);
@@ -5147,7 +5188,7 @@ std::pair<apache::thrift::ident::fibV6, ChildThriftPath<::std::map<::std::string
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(vrf, 1);
     STRUCT_CHILD_GETTERS(fibV4, 2);
     STRUCT_CHILD_GETTERS(fibV6, 3);
@@ -5224,7 +5265,7 @@ std::pair<apache::thrift::ident::localSystemPortRanges, ChildThriftPath<::facebo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(switchType, 1);
     STRUCT_CHILD_GETTERS(asicType, 2);
     STRUCT_CHILD_GETTERS(switchIndex, 3);
@@ -5291,7 +5332,7 @@ std::pair<apache::thrift::ident::associationNum, Child<::std::int32_t, ::apache:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(sci, 1);
     STRUCT_CHILD_GETTERS(associationNum, 2);
 
@@ -5374,7 +5415,7 @@ std::pair<apache::thrift::ident::priorityTagged, Child<bool, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(tagged, 1);
     STRUCT_CHILD_GETTERS(priorityTagged, 2);
 
@@ -5415,7 +5456,7 @@ std::pair<apache::thrift::ident::logicalID, Child<::std::int32_t, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(logicalID, 2);
 
@@ -5458,7 +5499,7 @@ std::pair<apache::thrift::ident::reservedBytes, Child<::std::int32_t, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(headroomBytes, 2);
     STRUCT_CHILD_GETTERS(sharedBytes, 3);
@@ -5524,7 +5565,7 @@ std::pair<apache::thrift::ident::systemPriority, Child<::std::int32_t, ::apache:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(systemID, 1);
     STRUCT_CHILD_GETTERS(systemPriority, 2);
 
@@ -5568,7 +5609,7 @@ std::pair<apache::thrift::ident::configured, Child<bool, ::apache::thrift::type_
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(mac, 1);
     STRUCT_CHILD_GETTERS(portId, 2);
     STRUCT_CHILD_GETTERS(classID, 3);
@@ -5621,7 +5662,7 @@ std::pair<apache::thrift::ident::dropUnencrypted, Child<bool, ::apache::thrift::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(sci, 1);
     STRUCT_CHILD_GETTERS(l2Port, 2);
     STRUCT_CHILD_GETTERS(assocNum, 3);
@@ -5780,7 +5821,7 @@ std::pair<apache::thrift::ident::portUpHoldoffTimeMs, Child<::std::int32_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(portId, 1);
     STRUCT_CHILD_GETTERS(portName, 2);
     STRUCT_CHILD_GETTERS(portDescription, 3);
@@ -6015,7 +6056,7 @@ std::pair<apache::thrift::ident::classID, Child<::facebook::fboss::cfg::AclLooku
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(prefix, 1);
     STRUCT_CHILD_GETTERS(nexthopsmulti, 2);
     STRUCT_CHILD_GETTERS(fwd, 3);
@@ -6069,7 +6110,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(policy_match_entries, 3);
@@ -6152,7 +6193,7 @@ std::pair<apache::thrift::ident::timeCollected, Child<::std::int32_t, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(phyChip, 1);
     STRUCT_CHILD_GETTERS(fwVersion, 2);
     STRUCT_CHILD_GETTERS(speed, 3);
@@ -6417,7 +6458,7 @@ std::pair<apache::thrift::ident::entries, ChildThriftPath<::std::map<::std::int1
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(locatorPrefix, 1);
     STRUCT_CHILD_GETTERS(entries, 2);
 
@@ -6501,7 +6542,7 @@ std::pair<apache::thrift::ident::peer_as, Child<::std::int32_t, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(peer_address, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(peer_as, 3);
@@ -6566,7 +6607,7 @@ std::pair<apache::thrift::ident::tunnel, ChildThriftPath<::facebook::fboss::cfg:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(egressPort, 1);
     STRUCT_CHILD_GETTERS(ip, 2);
     STRUCT_CHILD_GETTERS(tunnel, 3);
@@ -6634,7 +6675,7 @@ std::pair<apache::thrift::ident::state, Child<::facebook::fboss::state::LacpStat
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(systemPriority, 1);
     STRUCT_CHILD_GETTERS(systemID, 2);
     STRUCT_CHILD_GETTERS(key, 3);
@@ -6729,7 +6770,7 @@ std::pair<apache::thrift::ident::udfGroups, ChildThriftPath<::std::vector<::std:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(priority, 2);
     STRUCT_CHILD_GETTERS(aclMap, 3);
@@ -6780,7 +6821,7 @@ std::pair<apache::thrift::ident::nameToNextHopSetId, ChildThriftPath<::std::map<
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(fibsMap, 1);
     STRUCT_CHILD_GETTERS(idToNextHop, 2);
     STRUCT_CHILD_GETTERS(idToNextHopIdSet, 3);
@@ -6827,7 +6868,7 @@ std::pair<apache::thrift::ident::bufferSlots, Child<::std::int32_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(writeLog, 1);
     STRUCT_CHILD_GETTERS(readLog, 2);
     STRUCT_CHILD_GETTERS(disableOnFail, 3);
@@ -6879,7 +6920,7 @@ std::pair<apache::thrift::ident::tunnelType, Child<::facebook::fboss::TunnelType
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(srv6TunnelId, 1);
     STRUCT_CHILD_GETTERS(underlayIntfId, 2);
     STRUCT_CHILD_GETTERS(srcIp, 3);
@@ -6978,7 +7019,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(asn_regexp, 3);
@@ -7050,7 +7091,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(communities, 3);
@@ -7158,7 +7199,7 @@ std::pair<apache::thrift::ident::bufferPoolName, Child<::std::string, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(streamType, 2);
     STRUCT_CHILD_GETTERS(weight, 3);
@@ -7227,7 +7268,7 @@ std::pair<apache::thrift::ident::divide_weights_by_matching_path_count, Child<bo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(nexthop_weight_map, 1);
     STRUCT_CHILD_GETTERS(nexthop_weight_actions, 2);
     STRUCT_CHILD_GETTERS(apply_all_actions_or_fallback_to_ecmp, 3);
@@ -7273,7 +7314,7 @@ std::pair<apache::thrift::ident::srcIp, Child<::std::string, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(greTunnel, 1);
     STRUCT_CHILD_GETTERS(sflowTunnel, 2);
     STRUCT_CHILD_GETTERS(srcIp, 3);
@@ -7315,11 +7356,11 @@ class ChildThriftPath<::facebook::fboss::cfg::DecapMySidConfig, ::facebook::fbos
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
-    
+
   }
 };
 
@@ -7354,7 +7395,7 @@ std::pair<apache::thrift::ident::probability, Child<::std::int32_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(minimumLength, 1);
     STRUCT_CHILD_GETTERS(maximumLength, 2);
     STRUCT_CHILD_GETTERS(probability, 3);
@@ -7399,7 +7440,7 @@ std::pair<apache::thrift::ident::highCrcErrorRateChangedCount, Child<::std::int3
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(localFault, 1);
     STRUCT_CHILD_GETTERS(remoteFault, 2);
     STRUCT_CHILD_GETTERS(highCrcErrorRateLive, 3);
@@ -7443,7 +7484,7 @@ class ChildThriftPath<::facebook::fboss::cfg::CmisOverrides, ::facebook::fboss::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(rxEqualizerSettings, 1);
 
   template <apache::thrift::FieldId __id>
@@ -7482,7 +7523,7 @@ std::pair<apache::thrift::ident::min_nexthop, Child<::std::int32_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(path_matchers, 1);
     STRUCT_CHILD_GETTERS(min_nexthop, 2);
 
@@ -7523,7 +7564,7 @@ std::pair<apache::thrift::ident::ttl, ChildThriftPath<::facebook::fboss::cfg::Tt
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ip, 1);
     STRUCT_CHILD_GETTERS(ttl, 2);
 
@@ -7567,7 +7608,7 @@ std::pair<apache::thrift::ident::enableSerializeGroupPdu, Child<bool, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(allowSlowPeerDetach, 1);
     STRUCT_CHILD_GETTERS(slowPeerTimeThresholdMs, 2);
     STRUCT_CHILD_GETTERS(slowPeerBlockCountThreshold, 3);
@@ -7629,7 +7670,7 @@ std::pair<apache::thrift::ident::pushQueueEnabled, Child<bool, ::apache::thrift:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(portId, 1);
     STRUCT_CHILD_GETTERS(switchId, 2);
     STRUCT_CHILD_GETTERS(portName, 3);
@@ -7727,7 +7768,7 @@ std::pair<apache::thrift::ident::pcpMaps, ChildThriftPath<::std::vector<::facebo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(dscpMaps, 1);
     STRUCT_CHILD_GETTERS(expMaps, 2);
     STRUCT_CHILD_GETTERS(trafficClassToQueueId, 3);
@@ -7779,7 +7820,7 @@ class ChildThriftPath<::facebook::fboss::state::Label, ::facebook::fboss::fsdb::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(value, 1);
 
   template <apache::thrift::FieldId __id>
@@ -7861,7 +7902,7 @@ std::pair<apache::thrift::ident::decap, ChildThriftPath<::facebook::fboss::cfg::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(adjacency, 1);
     STRUCT_CHILD_GETTERS(node, 2);
     STRUCT_CHILD_GETTERS(decap, 3);
@@ -7905,7 +7946,7 @@ std::pair<apache::thrift::ident::address, Child<::std::string, ::apache::thrift:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(portName, 1);
     STRUCT_CHILD_GETTERS(isV6, 2);
     STRUCT_CHILD_GETTERS(address, 3);
@@ -7948,7 +7989,7 @@ std::pair<apache::thrift::ident::agingGroup, Child<::facebook::fboss::cfg::Mirro
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(dropReasonAggregations, 1);
     STRUCT_CHILD_GETTERS(agingGroup, 2);
 
@@ -7989,7 +8030,7 @@ std::pair<apache::thrift::ident::maximum, Child<::std::int32_t, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(minimum, 1);
     STRUCT_CHILD_GETTERS(maximum, 2);
 
@@ -8073,7 +8114,7 @@ std::pair<apache::thrift::ident::queueWeight, Child<::std::int16_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(scalingFactor, 1);
     STRUCT_CHILD_GETTERS(loadWeight, 2);
     STRUCT_CHILD_GETTERS(queueWeight, 3);
@@ -8158,7 +8199,7 @@ std::pair<apache::thrift::ident::npuEntries, ChildThriftPath<::std::map<::std::i
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(common, 1);
     STRUCT_CHILD_GETTERS(npuEntries, 2);
 
@@ -8252,7 +8293,7 @@ std::pair<apache::thrift::ident::enableAlternateArsMembers, Child<bool, ::apache
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(sendToQueue, 1);
     STRUCT_CHILD_GETTERS(trafficCounter, 2);
     STRUCT_CHILD_GETTERS(setDscp, 3);
@@ -8315,7 +8356,7 @@ std::pair<apache::thrift::ident::queueId, Child<::std::int16_t, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(rxReason, 1);
     STRUCT_CHILD_GETTERS(queueId, 2);
 
@@ -8368,7 +8409,7 @@ std::pair<apache::thrift::ident::samplingRate, Child<::std::int32_t, ::apache::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(dscp, 3);
     STRUCT_CHILD_GETTERS(truncate, 4);
@@ -8434,7 +8475,7 @@ std::pair<apache::thrift::ident::qosMap, ChildThriftPath<::facebook::fboss::cfg:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(rules, 2);
     STRUCT_CHILD_GETTERS(qosMap, 3);
@@ -8483,7 +8524,7 @@ std::pair<apache::thrift::ident::routerAddress, Child<::std::string, ::apache::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(routerAdvertisementSeconds, 1);
     STRUCT_CHILD_GETTERS(curHopLimit, 2);
     STRUCT_CHILD_GETTERS(routerLifetime, 3);
@@ -8619,7 +8660,7 @@ class ChildThriftPath<::facebook::fboss::cfg::NodeMySidConfig, ::facebook::fboss
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(nodeAddress, 1);
 
   template <apache::thrift::FieldId __id>
@@ -8678,7 +8719,7 @@ class ChildThriftPath<::facebook::fboss::cfg::SetDscpMatchAction, ::facebook::fb
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(dscpValue, 1);
 
   template <apache::thrift::FieldId __id>
@@ -8720,7 +8761,7 @@ std::pair<apache::thrift::ident::vendor, ChildThriftPath<::facebook::fboss::Vend
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(cableLength, 2);
     STRUCT_CHILD_GETTERS(mediaInterface, 3);
@@ -8780,7 +8821,7 @@ std::pair<apache::thrift::ident::dropPacketRateThreshold, Child<::std::int32_t, 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(mirrorPortId, 2);
     STRUCT_CHILD_GETTERS(localSrcPort, 3);
@@ -8846,7 +8887,7 @@ class ChildThriftPath<::facebook::fboss::cfg::StaticMplsRouteNoNextHops, ::faceb
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ingressLabel, 1);
 
   template <apache::thrift::FieldId __id>
@@ -8927,7 +8968,7 @@ std::pair<apache::thrift::ident::behavior, Child<::facebook::fboss::cfg::QueueCo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(detection, 1);
     STRUCT_CHILD_GETTERS(behavior, 2);
 
@@ -8968,7 +9009,7 @@ std::pair<apache::thrift::ident::weight, Child<::std::int32_t, ::apache::thrift:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(path_matchers, 1);
     STRUCT_CHILD_GETTERS(weight, 2);
 
@@ -9045,7 +9086,7 @@ std::pair<apache::thrift::ident::route_refresh, Child<bool, ::apache::thrift::ty
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(remote_as, 1);
     STRUCT_CHILD_GETTERS(remote_as_4_byte, 35);
     STRUCT_CHILD_GETTERS(local_addr, 2);
@@ -9159,7 +9200,7 @@ std::pair<apache::thrift::ident::yamlConfig, Child<::std::string, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(config, 1);
     STRUCT_CHILD_GETTERS(jsonConfig, 2);
     STRUCT_CHILD_GETTERS(yamlConfig, 3);
@@ -9247,7 +9288,7 @@ std::pair<apache::thrift::ident::UdfL4DstPort, Child<::std::int16_t, ::apache::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(l2PktType, 2);
     STRUCT_CHILD_GETTERS(l3pktType, 3);
@@ -9303,7 +9344,7 @@ std::pair<apache::thrift::ident::clientNextHopSetID, Child<::std::int64_t, ::apa
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(adminDistance, 1);
     STRUCT_CHILD_GETTERS(action, 2);
     STRUCT_CHILD_GETTERS(counterID, 3);
@@ -9369,7 +9410,7 @@ std::pair<apache::thrift::ident::extendedKey, Child<::std::int32_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(key, 1);
     STRUCT_CHILD_GETTERS(name, 2);
     STRUCT_CHILD_GETTERS(description, 3);
@@ -9490,7 +9531,7 @@ std::pair<apache::thrift::ident::udfGroups, ChildThriftPath<::std::vector<::std:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ipv4Fields, 1);
     STRUCT_CHILD_GETTERS(ipv6Fields, 2);
     STRUCT_CHILD_GETTERS(transportFields, 3);
@@ -9579,7 +9620,7 @@ std::pair<apache::thrift::ident::mask, Child<::std::int16_t, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(value, 1);
     STRUCT_CHILD_GETTERS(mask, 2);
 
@@ -9658,7 +9699,7 @@ std::pair<apache::thrift::ident::maxArsVirtualGroups, Child<::std::int32_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(inactivityIntervalUsecs, 1);
     STRUCT_CHILD_GETTERS(flowletTableSize, 2);
     STRUCT_CHILD_GETTERS(dynamicEgressLoadExponent, 3);
@@ -9789,7 +9830,7 @@ std::pair<apache::thrift::ident::monitorQcmCfgPortsOnly, Child<bool, ::apache::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(numFlowSamplesPerView, 1);
     STRUCT_CHILD_GETTERS(flowLimit, 2);
     STRUCT_CHILD_GETTERS(numFlowsClear, 3);
@@ -9866,7 +9907,7 @@ std::pair<apache::thrift::ident::cost, Child<::std::int64_t, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(address, 1);
     STRUCT_CHILD_GETTERS(weight, 2);
     STRUCT_CHILD_GETTERS(mplsAction, 3);
@@ -9923,7 +9964,7 @@ std::pair<apache::thrift::ident::prefixLength, Child<::std::int16_t, ::apache::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(prefixAddress, 1);
     STRUCT_CHILD_GETTERS(prefixLength, 2);
 
@@ -9991,7 +10032,7 @@ std::pair<apache::thrift::ident::namedNextHopGroup, Child<::std::string, ::apach
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(type, 1);
     STRUCT_CHILD_GETTERS(mySid, 2);
     STRUCT_CHILD_GETTERS(unresolveNextHopsId, 3);
@@ -10075,7 +10116,7 @@ std::pair<apache::thrift::ident::net_service_config, ChildThriftPath<::facebook:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(router_id, 1);
     STRUCT_CHILD_GETTERS(local_as, 2);
     STRUCT_CHILD_GETTERS(networks4, 3);
@@ -10180,7 +10221,7 @@ std::pair<apache::thrift::ident::seed, Child<::std::int32_t, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(fieldSelection, 2);
     STRUCT_CHILD_GETTERS(algorithm, 3);
@@ -10246,7 +10287,7 @@ std::pair<apache::thrift::ident::remotePort, Child<::std::string, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(remoteSystem, 1);
     STRUCT_CHILD_GETTERS(remotePort, 2);
 
@@ -10308,7 +10349,7 @@ std::pair<apache::thrift::ident::cmis, ChildThriftPath<::facebook::fboss::cfg::C
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(sff, 1);
     STRUCT_CHILD_GETTERS(cmis, 2);
 
@@ -10349,7 +10390,7 @@ std::pair<apache::thrift::ident::egress_filter, ChildThriftPath<::facebook::bgp:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ingress_filter, 1);
     STRUCT_CHILD_GETTERS(egress_filter, 2);
 
@@ -10432,7 +10473,7 @@ std::pair<apache::thrift::ident::to, ChildThriftPath<::std::vector<::facebook::f
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(from, 1);
     STRUCT_CHILD_GETTERS(to, 2);
 
@@ -10494,7 +10535,7 @@ std::pair<apache::thrift::ident::permissive_mode, Child<bool, ::apache::thrift::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(prefix_list, 1);
     STRUCT_CHILD_GETTERS(permissive_mode, 2);
 
@@ -10535,7 +10576,7 @@ std::pair<apache::thrift::ident::multi_path_selector, ChildThriftPath<::facebook
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(matcher, 1);
     STRUCT_CHILD_GETTERS(multi_path_selector, 2);
 
@@ -10576,7 +10617,7 @@ std::pair<apache::thrift::ident::blockNeighborIP, ChildThriftPath<::facebook::ne
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(blockNeighborVlanID, 1);
     STRUCT_CHILD_GETTERS(blockNeighborIP, 2);
 
@@ -10617,7 +10658,7 @@ std::pair<apache::thrift::ident::communities, ChildThriftPath<::std::vector<::fa
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(boolean_operator, 1);
     STRUCT_CHILD_GETTERS(communities, 2);
 
@@ -10665,7 +10706,7 @@ std::pair<apache::thrift::ident::tunnelType, Child<::facebook::fboss::TunnelType
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(srv6TunnelId, 1);
     STRUCT_CHILD_GETTERS(underlayIntfID, 2);
     STRUCT_CHILD_GETTERS(srcIp, 3);
@@ -10733,7 +10774,7 @@ std::pair<apache::thrift::ident::staticLimitBytes, Child<::std::int64_t, ::apach
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(name, 2);
     STRUCT_CHILD_GETTERS(scalingFactor, 3);
@@ -10803,7 +10844,7 @@ std::pair<apache::thrift::ident::local_rack_capacity, Child<::std::int32_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(rack_id, 1);
     STRUCT_CHILD_GETTERS(plane_id, 2);
     STRUCT_CHILD_GETTERS(remote_rack_capacity, 3);
@@ -10850,7 +10891,7 @@ std::pair<apache::thrift::ident::prefix, Child<::std::string, ::apache::thrift::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(routerID, 1);
     STRUCT_CHILD_GETTERS(prefix, 2);
 
@@ -10976,7 +11017,7 @@ std::pair<apache::thrift::ident::egressLogicalPortID, Child<::std::int32_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(vlanID, 1);
     STRUCT_CHILD_GETTERS(macAddress, 2);
     STRUCT_CHILD_GETTERS(egressLogicalPortID, 3);
@@ -11049,7 +11090,7 @@ std::pair<apache::thrift::ident::precoding, Child<::std::int32_t, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(pre, 1);
     STRUCT_CHILD_GETTERS(pre2, 2);
     STRUCT_CHILD_GETTERS(main, 3);
@@ -11150,7 +11191,7 @@ std::pair<apache::thrift::ident::udfPacketMatcher, ChildThriftPath<::std::map<::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(udfGroups, 1);
     STRUCT_CHILD_GETTERS(udfPacketMatcher, 2);
 
@@ -11215,7 +11256,7 @@ std::pair<apache::thrift::ident::expiration_time_s, Child<::std::int64_t, ::apac
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(matcher, 1);
     STRUCT_CHILD_GETTERS(actions, 2);
     STRUCT_CHILD_GETTERS(ttl_secs, 3);
@@ -11266,7 +11307,7 @@ std::pair<apache::thrift::ident::dateCode, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(oui, 2);
     STRUCT_CHILD_GETTERS(partNumber, 3);
@@ -11337,7 +11378,7 @@ std::pair<apache::thrift::ident::firmware, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(asicSdk, 1);
     STRUCT_CHILD_GETTERS(saiSdk, 2);
     STRUCT_CHILD_GETTERS(firmware, 3);
@@ -11381,7 +11422,7 @@ std::pair<apache::thrift::ident::mask, Child<::std::int8_t, ::apache::thrift::ty
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(v6, 1);
     STRUCT_CHILD_GETTERS(prefix, 2);
     STRUCT_CHILD_GETTERS(mask, 3);
@@ -11426,7 +11467,7 @@ std::pair<apache::thrift::ident::voqs, ChildThriftPath<::std::vector<::facebook:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(queues, 1);
     STRUCT_CHILD_GETTERS(rxReasonToQueue, 2);
     STRUCT_CHILD_GETTERS(defaultQosPolicy, 3);
@@ -11514,7 +11555,7 @@ std::pair<apache::thrift::ident::stage, Child<::facebook::fboss::cfg::AclStage, 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(aclTables, 2);
     STRUCT_CHILD_GETTERS(stage, 3);
@@ -11558,7 +11599,7 @@ std::pair<apache::thrift::ident::next_hop_interface, Child<::std::string, ::apac
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(version, 1);
     STRUCT_CHILD_GETTERS(next_hop_prefix, 2);
     STRUCT_CHILD_GETTERS(next_hop_interface, 3);
@@ -11600,7 +11641,7 @@ class ChildThriftPath<::facebook::bgp::nsf_policy::NsfTeWeightEncoding, ::facebo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(l2_encoding, 1);
 
   template <apache::thrift::FieldId __id>
@@ -11683,7 +11724,7 @@ std::pair<apache::thrift::ident::rxConsActHoldOffTimerMs, Child<::std::int32_t, 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(frequencyConfig, 1);
     STRUCT_CHILD_GETTERS(txPower0P01Dbm, 2);
     STRUCT_CHILD_GETTERS(appSelCode, 3);
@@ -11733,7 +11774,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(local_pref, 3);
@@ -11789,7 +11830,7 @@ std::pair<apache::thrift::ident::interPacketGapBits, Child<::std::int32_t, ::apa
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(numLanes, 1);
     STRUCT_CHILD_GETTERS(modulation, 2);
     STRUCT_CHILD_GETTERS(fec, 3);
@@ -11844,7 +11885,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(as_path, 3);
@@ -11935,7 +11976,7 @@ std::pair<apache::thrift::ident::attr, Child<::std::int16_t, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(trafficClass, 1);
     STRUCT_CHILD_GETTERS(attr, 2);
 
@@ -12000,7 +12041,7 @@ std::pair<apache::thrift::ident::polaritySwap, ChildThriftPath<::facebook::fboss
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(tx, 2);
     STRUCT_CHILD_GETTERS(rx, 3);
@@ -12047,7 +12088,7 @@ std::pair<apache::thrift::ident::sendToCPU, Child<bool, ::apache::thrift::type_c
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(action, 1);
     STRUCT_CHILD_GETTERS(sendToCPU, 2);
 
@@ -12091,7 +12132,7 @@ std::pair<apache::thrift::ident::metric, Child<::std::int32_t, ::apache::thrift:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(wide_metrics_only, 3);
@@ -12138,7 +12179,7 @@ std::pair<apache::thrift::ident::types, ChildThriftPath<::std::vector<::facebook
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(types, 2);
 
@@ -12179,7 +12220,48 @@ std::pair<apache::thrift::ident::agg_lbw_bps, Child<::std::int64_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
+    STRUCT_CHILD_GETTERS(next_hop_count, 1);
+    STRUCT_CHILD_GETTERS(agg_lbw_bps, 2);
+
+  template <apache::thrift::FieldId __id>
+  auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
+    if constexpr (__id == apache::thrift::FieldId{1}) { return next_hop_count(); }
+    else if constexpr (__id == apache::thrift::FieldId{2}) { return agg_lbw_bps(); }
+  }
+};
+
+
+template<typename Parent>
+class ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TCapacity, ::facebook::fboss::fsdb::FsdbOperStateRoot, Parent> :
+  public Path<
+   ::facebook::neteng::fboss::bgp::thrift::TCapacity,
+   ::facebook::fboss::fsdb::FsdbOperStateRoot,
+   ::apache::thrift::type_class::variant,
+   ::apache::thrift::type::union_t<::facebook::neteng::fboss::bgp::thrift::TCapacity>,
+   Parent> {
+ public:
+  using Self = Path<
+   ::facebook::neteng::fboss::bgp::thrift::TCapacity,
+   ::facebook::fboss::fsdb::FsdbOperStateRoot,
+   ::apache::thrift::type_class::variant,
+   ::apache::thrift::type::union_t<::facebook::neteng::fboss::bgp::thrift::TCapacity>,
+   Parent>;
+  template <typename ChildType, typename ChildTC, typename ChildTag>
+  using Child = Path<
+    ChildType,
+    ::facebook::fboss::fsdb::FsdbOperStateRoot,
+    ChildTC,
+    ChildTag,
+    Self
+  >;
+  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::next_hop_count, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<apache::thrift::ident::agg_lbw_bps, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+
+  template <typename Name>
+  using TypeFor = typename Children::template type_of<Name>;
+  using Self::Self;
+
     STRUCT_CHILD_GETTERS(next_hop_count, 1);
     STRUCT_CHILD_GETTERS(agg_lbw_bps, 2);
 
@@ -12220,7 +12302,7 @@ std::pair<apache::thrift::ident::dscp, ChildThriftPath<::std::vector<::std::int1
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(queueId, 1);
     STRUCT_CHILD_GETTERS(dscp, 2);
 
@@ -12264,7 +12346,7 @@ std::pair<apache::thrift::ident::txPwr, ChildThriftPath<::facebook::fboss::Thres
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(temp, 1);
     STRUCT_CHILD_GETTERS(vcc, 2);
     STRUCT_CHILD_GETTERS(rxPwr, 3);
@@ -12332,7 +12414,7 @@ std::pair<apache::thrift::ident::yamlConfig, Child<::std::string, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(config, 1);
     STRUCT_CHILD_GETTERS(yamlConfig, 2);
 
@@ -12397,7 +12479,7 @@ std::pair<apache::thrift::ident::samplingRate, Child<::std::int32_t, ::apache::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(destination, 2);
     STRUCT_CHILD_GETTERS(dscp, 3);
@@ -12470,7 +12552,7 @@ std::pair<apache::thrift::ident::txAdaptEqFault, Child<bool, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lane, 1);
     STRUCT_CHILD_GETTERS(txLos, 2);
     STRUCT_CHILD_GETTERS(rxLos, 3);
@@ -12564,7 +12646,7 @@ std::pair<apache::thrift::ident::switchIdToLastUpdatedTimestamp, ChildThriftPath
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(fabricPortGroupMap, 1);
     STRUCT_CHILD_GETTERS(switchIdToFabricPortGroupMap, 2);
     STRUCT_CHILD_GETTERS(switchIdToLastUpdatedTimestamp, 3);
@@ -12608,7 +12690,7 @@ std::pair<apache::thrift::ident::code, Child<::facebook::fboss::MediaInterfaceCo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lane, 1);
     STRUCT_CHILD_GETTERS(media, 2);
     STRUCT_CHILD_GETTERS(code, 3);
@@ -12650,7 +12732,7 @@ class ChildThriftPath<::facebook::fboss::PimState, ::facebook::fboss::fsdb::Fsdb
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(errors, 1);
 
   template <apache::thrift::FieldId __id>
@@ -12739,7 +12821,7 @@ std::pair<apache::thrift::ident::require_nexthop_resolution, Child<bool, ::apach
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(prefix, 1);
     STRUCT_CHILD_GETTERS(communities, 2);
     STRUCT_CHILD_GETTERS(minimum_supporting_routes, 3);
@@ -12838,7 +12920,7 @@ std::pair<apache::thrift::ident::macAddrToBlockAddr, Child<::std::string, ::apac
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(macAddrToBlockVlanID, 1);
     STRUCT_CHILD_GETTERS(macAddrToBlockAddr, 2);
 
@@ -12885,7 +12967,7 @@ std::pair<apache::thrift::ident::serdesParameters, ChildThriftPath<::facebook::f
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lane, 1);
     STRUCT_CHILD_GETTERS(signalDetectLive, 2);
     STRUCT_CHILD_GETTERS(signalDetectChanged, 3);
@@ -12937,7 +13019,7 @@ class ChildThriftPath<::facebook::fboss::asic::AsicConfig, ::facebook::fboss::fs
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(config, 1);
 
   template <apache::thrift::FieldId __id>
@@ -12997,7 +13079,7 @@ std::pair<apache::thrift::ident::dstPrefix, ChildThriftPath<::facebook::fboss::I
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(srcPort, 1);
     STRUCT_CHILD_GETTERS(dstPrefix, 2);
 
@@ -13039,7 +13121,7 @@ std::pair<apache::thrift::ident::reservedBytes, Child<::std::int32_t, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(sharedBytes, 1);
     STRUCT_CHILD_GETTERS(headroomBytes, 2);
     STRUCT_CHILD_GETTERS(reservedBytes, 3);
@@ -13137,7 +13219,7 @@ std::pair<apache::thrift::ident::packetForwardingMode, Child<::facebook::fboss::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(l2LearningMode, 1);
     STRUCT_CHILD_GETTERS(qcmEnable, 2);
     STRUCT_CHILD_GETTERS(ptpTcEnable, 3);
@@ -13246,7 +13328,7 @@ std::pair<apache::thrift::ident::wrrWeight, Child<::std::int16_t, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(spPriority, 1);
     STRUCT_CHILD_GETTERS(wrrWeight, 2);
 
@@ -13286,7 +13368,7 @@ class ChildThriftPath<::facebook::fboss::cfg::SetTcAction, ::facebook::fboss::fs
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(tcValue, 1);
 
   template <apache::thrift::FieldId __id>
@@ -13376,7 +13458,7 @@ std::pair<apache::thrift::ident::tunnelType, Child<::facebook::fboss::TunnelType
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ipInIpTunnelId, 1);
     STRUCT_CHILD_GETTERS(underlayIntfID, 2);
     STRUCT_CHILD_GETTERS(dstIp, 3);
@@ -13456,7 +13538,7 @@ std::pair<apache::thrift::ident::compare_numeric_value, ChildThriftPath<::facebo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(compare_numeric_value, 2);
 
@@ -13518,7 +13600,7 @@ std::pair<apache::thrift::ident::tx, Child<::std::int8_t, ::apache::thrift::type
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(rx, 1);
     STRUCT_CHILD_GETTERS(tx, 2);
 
@@ -13581,7 +13663,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(asn, 1);
     STRUCT_CHILD_GETTERS(repeat_times, 2);
     STRUCT_CHILD_GETTERS(obj_uuid, 100);
@@ -13627,7 +13709,7 @@ std::pair<apache::thrift::ident::agentInfo, ChildThriftPath<::facebook::fboss::a
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(config, 1);
     STRUCT_CHILD_GETTERS(switchState, 2);
     STRUCT_CHILD_GETTERS(fsdbSubscriptions, 4);
@@ -13709,7 +13791,7 @@ std::pair<apache::thrift::ident::port2QosQueueIds, ChildThriftPath<::std::map<::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(agingIntervalInMsecs, 1);
     STRUCT_CHILD_GETTERS(numFlowSamplesPerView, 2);
     STRUCT_CHILD_GETTERS(flowLimit, 3);
@@ -13823,7 +13905,7 @@ std::pair<apache::thrift::ident::local_rack_capacity, Child<::std::int32_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(rack_id, 1);
     STRUCT_CHILD_GETTERS(plane_id, 2);
     STRUCT_CHILD_GETTERS(remote_rack_capacity, 3);
@@ -13870,7 +13952,7 @@ std::pair<apache::thrift::ident::lane, Child<::std::int32_t, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(chip, 1);
     STRUCT_CHILD_GETTERS(lane, 2);
 
@@ -13908,16 +13990,18 @@ class ChildThriftPath<::facebook::fboss::cfg::RedirectNextHop, ::facebook::fboss
   using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::ip, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<apache::thrift::ident::intfID, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::tunnelType, Child<::facebook::fboss::TunnelType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::TunnelType>>>,
-std::pair<apache::thrift::ident::tunnelId, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+std::pair<apache::thrift::ident::tunnelId, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+std::pair<apache::thrift::ident::srv6SegmentList, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ip, 1);
     STRUCT_CHILD_GETTERS(intfID, 2);
     STRUCT_CHILD_GETTERS(tunnelType, 3);
     STRUCT_CHILD_GETTERS(tunnelId, 4);
+    STRUCT_CHILD_GETTERS(srv6SegmentList, 5);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -13925,6 +14009,7 @@ std::pair<apache::thrift::ident::tunnelId, Child<::std::string, ::apache::thrift
     else if constexpr (__id == apache::thrift::FieldId{2}) { return intfID(); }
     else if constexpr (__id == apache::thrift::FieldId{3}) { return tunnelType(); }
     else if constexpr (__id == apache::thrift::FieldId{4}) { return tunnelId(); }
+    else if constexpr (__id == apache::thrift::FieldId{5}) { return srv6SegmentList(); }
   }
 };
 
@@ -14021,7 +14106,7 @@ std::pair<apache::thrift::ident::dstPrefixLength, Child<::std::int32_t, ::apache
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(dstPrefixLength, 2);
 
@@ -14098,7 +14183,7 @@ std::pair<apache::thrift::ident::localSystemPortRanges, ChildThriftPath<::facebo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(switchId, 2);
     STRUCT_CHILD_GETTERS(type, 3);
@@ -14216,7 +14301,7 @@ std::pair<apache::thrift::ident::fabricLinkMonitoringSystemPortMaps, ChildThrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(portMaps, 100);
     STRUCT_CHILD_GETTERS(vlanMaps, 101);
     STRUCT_CHILD_GETTERS(aclMaps, 102);
@@ -14330,7 +14415,7 @@ std::pair<apache::thrift::ident::portType, Child<::facebook::fboss::cfg::PortDes
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(portId, 1);
     STRUCT_CHILD_GETTERS(portType, 2);
 
@@ -14393,7 +14478,7 @@ std::pair<apache::thrift::ident::asns_4_byte, ChildThriftPath<::std::vector<::st
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(seg_type, 1);
     STRUCT_CHILD_GETTERS(asns, 2);
     STRUCT_CHILD_GETTERS(asns_4_byte, 3);
@@ -14481,7 +14566,7 @@ std::pair<apache::thrift::ident::desiredPeerAddressIPv4, Child<::std::string, ::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(interfaceId, 1);
     STRUCT_CHILD_GETTERS(routerId, 2);
     STRUCT_CHILD_GETTERS(vlanId, 3);
@@ -14570,7 +14655,7 @@ std::pair<apache::thrift::ident::port, Child<::std::int32_t, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(host, 1);
     STRUCT_CHILD_GETTERS(port, 2);
 
@@ -14612,7 +14697,7 @@ std::pair<apache::thrift::ident::redirectNextHopGroup, Child<::std::string, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(nexthops_DEPRECATED, 1);
     STRUCT_CHILD_GETTERS(redirectNextHops, 2);
     STRUCT_CHILD_GETTERS(redirectNextHopGroup, 3);
@@ -14697,7 +14782,7 @@ std::pair<apache::thrift::ident::sendToCPU, Child<bool, ::apache::thrift::type_c
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(action, 1);
     STRUCT_CHILD_GETTERS(sendToCPU, 2);
 
@@ -14759,7 +14844,7 @@ std::pair<apache::thrift::ident::mask, Child<::std::int16_t, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(value, 1);
     STRUCT_CHILD_GETTERS(mask, 2);
 
@@ -14843,7 +14928,7 @@ std::pair<apache::thrift::ident::supportedPortProfiles, ChildThriftPath<::std::v
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(mediaInterfaceCode, 1);
     STRUCT_CHILD_GETTERS(supportedFirmwareVersions, 2);
     STRUCT_CHILD_GETTERS(supportedPortProfiles, 3);
@@ -14885,7 +14970,7 @@ class ChildThriftPath<::facebook::bgp::rib_policy::TRouteAttributeLbwAction, ::f
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lbw, 1);
 
   template <apache::thrift::FieldId __id>
@@ -14927,7 +15012,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(type, 1);
     STRUCT_CHILD_GETTERS(name, 2);
     STRUCT_CHILD_GETTERS(description, 3);
@@ -14974,7 +15059,7 @@ std::pair<apache::thrift::ident::action, ChildThriftPath<::facebook::fboss::cfg:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(matcher, 1);
     STRUCT_CHILD_GETTERS(action, 2);
 
@@ -15015,7 +15100,7 @@ std::pair<apache::thrift::ident::prefixLength, Child<::std::int16_t, ::apache::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ip, 1);
     STRUCT_CHILD_GETTERS(prefixLength, 2);
 
@@ -15111,7 +15196,7 @@ std::pair<apache::thrift::ident::status, Child<::facebook::fboss::state::Aggrega
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(name, 2);
     STRUCT_CHILD_GETTERS(description, 3);
@@ -15248,12 +15333,13 @@ std::pair<apache::thrift::ident::roceMask, ChildThriftPath<::std::vector<::std::
 std::pair<apache::thrift::ident::udfTable, ChildThriftPath<::std::vector<::facebook::fboss::cfg::AclUdfEntry>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::l4DstPortRange, ChildThriftPath<::facebook::fboss::cfg::Range, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::trafficClass, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
-std::pair<apache::thrift::ident::namedNextHopGroup, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+std::pair<apache::thrift::ident::namedNextHopGroup, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+std::pair<apache::thrift::ident::routeDst, ChildThriftPath<::facebook::fboss::cfg::RedirectNextHop, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(priority, 1);
     STRUCT_CHILD_GETTERS(name, 2);
     STRUCT_CHILD_GETTERS(srcIp, 3);
@@ -15289,6 +15375,7 @@ std::pair<apache::thrift::ident::namedNextHopGroup, Child<::std::string, ::apach
     STRUCT_CHILD_GETTERS(l4DstPortRange, 33);
     STRUCT_CHILD_GETTERS(trafficClass, 34);
     STRUCT_CHILD_GETTERS(namedNextHopGroup, 35);
+    STRUCT_CHILD_GETTERS(routeDst, 36);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -15327,6 +15414,7 @@ std::pair<apache::thrift::ident::namedNextHopGroup, Child<::std::string, ::apach
     else if constexpr (__id == apache::thrift::FieldId{33}) { return l4DstPortRange(); }
     else if constexpr (__id == apache::thrift::FieldId{34}) { return trafficClass(); }
     else if constexpr (__id == apache::thrift::FieldId{35}) { return namedNextHopGroup(); }
+    else if constexpr (__id == apache::thrift::FieldId{36}) { return routeDst(); }
   }
 };
 
@@ -15360,7 +15448,7 @@ std::pair<apache::thrift::ident::tx, Child<bool, ::apache::thrift::type_class::i
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(rx, 1);
     STRUCT_CHILD_GETTERS(tx, 2);
 
@@ -15523,7 +15611,7 @@ std::pair<apache::thrift::ident::ecmpWidth, Child<::std::int32_t, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(l2LearningMode, 1);
     STRUCT_CHILD_GETTERS(qcmEnable, 2);
     STRUCT_CHILD_GETTERS(ptpTcEnable, 3);
@@ -15703,7 +15791,7 @@ std::pair<apache::thrift::ident::compare_operator, Child<::facebook::bgp::routin
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(value, 1);
     STRUCT_CHILD_GETTERS(compare_operator, 2);
 
@@ -15793,7 +15881,7 @@ std::pair<apache::thrift::ident::pcpMap, ChildThriftPath<::facebook::fboss::stat
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(dscpMap, 2);
     STRUCT_CHILD_GETTERS(expMap, 3);
@@ -15852,7 +15940,7 @@ std::pair<apache::thrift::ident::rxPfcDurationEnable, Child<bool, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(tx, 1);
     STRUCT_CHILD_GETTERS(rx, 2);
     STRUCT_CHILD_GETTERS(portPgConfigName, 3);
@@ -15901,7 +15989,7 @@ std::pair<apache::thrift::ident::ip, Child<::std::string, ::apache::thrift::type
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(asn, 1);
     STRUCT_CHILD_GETTERS(ip, 2);
 
@@ -16040,7 +16128,7 @@ std::pair<apache::thrift::ident::staticLimitBytes, Child<::std::int64_t, ::apach
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(minLimitBytes, 2);
     STRUCT_CHILD_GETTERS(headroomLimitBytes, 3);
@@ -16109,7 +16197,7 @@ std::pair<apache::thrift::ident::client2NextHopEntry, ChildThriftPath<::std::map
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lowestAdminDistanceClientId, 1);
     STRUCT_CHILD_GETTERS(client2NextHopEntry, 2);
 
@@ -16151,7 +16239,7 @@ std::pair<apache::thrift::ident::fixed_quantized_bps_list, ChildThriftPath<::std
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(min_step_bps, 1);
     STRUCT_CHILD_GETTERS(error_pct_threshold, 2);
     STRUCT_CHILD_GETTERS(fixed_quantized_bps_list, 3);
@@ -16217,7 +16305,7 @@ std::pair<apache::thrift::ident::ttl, ChildThriftPath<::facebook::fboss::cfg::Tt
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ip, 1);
     STRUCT_CHILD_GETTERS(udpSrcPort, 2);
     STRUCT_CHILD_GETTERS(udpDstPort, 3);
@@ -16316,7 +16404,7 @@ std::pair<apache::thrift::ident::portsInfo, ChildThriftPath<::std::map<::std::in
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(vlanId, 1);
     STRUCT_CHILD_GETTERS(vlanName, 2);
     STRUCT_CHILD_GETTERS(intfID, 3);
@@ -16449,7 +16537,7 @@ std::pair<apache::thrift::ident::ttl, Child<::std::int16_t, ::apache::thrift::ty
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(srcIp, 1);
     STRUCT_CHILD_GETTERS(dstIp, 2);
     STRUCT_CHILD_GETTERS(srcMac, 3);
@@ -16503,7 +16591,7 @@ std::pair<apache::thrift::ident::emitPriorityTags, Child<bool, ::apache::thrift:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(vlanID, 1);
     STRUCT_CHILD_GETTERS(logicalPort, 2);
     STRUCT_CHILD_GETTERS(spanningTreeState, 3);
@@ -16551,7 +16639,7 @@ std::pair<apache::thrift::ident::warning_limit, Child<::std::int64_t, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(max_routes, 1);
     STRUCT_CHILD_GETTERS(warning_only, 2);
     STRUCT_CHILD_GETTERS(warning_limit, 3);
@@ -16615,7 +16703,7 @@ std::pair<apache::thrift::ident::ipAddress, Child<::std::string, ::apache::thrif
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(vlanID, 1);
     STRUCT_CHILD_GETTERS(ipAddress, 2);
 
@@ -16699,7 +16787,7 @@ std::pair<apache::thrift::ident::pushLabels, ChildThriftPath<::std::vector<::std
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(action, 1);
     STRUCT_CHILD_GETTERS(swapLabel, 2);
     STRUCT_CHILD_GETTERS(pushLabels, 3);
@@ -16742,7 +16830,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ext_communities, 1);
     STRUCT_CHILD_GETTERS(obj_uuid, 100);
 
@@ -16825,7 +16913,7 @@ std::pair<apache::thrift::ident::community_list_name, Child<::std::string, ::apa
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(community_list, 1);
     STRUCT_CHILD_GETTERS(community_list_name, 2);
 
@@ -16924,7 +17012,7 @@ std::pair<apache::thrift::ident::mySidConfig, ChildThriftPath<::facebook::fboss:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(version, 1);
     STRUCT_CHILD_GETTERS(ports, 2);
     STRUCT_CHILD_GETTERS(vlans, 3);
@@ -17084,7 +17172,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(match_logic_type, 3);
@@ -17131,7 +17219,7 @@ std::pair<apache::thrift::ident::prefix_list_name, Child<::std::string, ::apache
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(prefix_list, 1);
     STRUCT_CHILD_GETTERS(prefix_list_name, 2);
 
@@ -17218,7 +17306,7 @@ std::pair<apache::thrift::ident::path_id_to_send, Child<::std::int64_t, ::apache
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(next_hop, 1);
     STRUCT_CHILD_GETTERS(as_path, 2);
     STRUCT_CHILD_GETTERS(communities, 3);
@@ -17332,7 +17420,7 @@ std::pair<apache::thrift::ident::queueWeight, Child<::std::int16_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(scalingFactor, 2);
     STRUCT_CHILD_GETTERS(loadWeight, 3);
@@ -17398,7 +17486,7 @@ std::pair<apache::thrift::ident::resolvedNexthops, ChildThriftPath<::std::vector
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(action, 1);
     STRUCT_CHILD_GETTERS(resolvedNexthops, 2);
 
@@ -17439,7 +17527,7 @@ std::pair<apache::thrift::ident::address, ChildThriftPath<::facebook::fboss::sta
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(address, 2);
 
@@ -17501,7 +17589,7 @@ std::pair<apache::thrift::ident::linkPercentage, Child<double, ::apache::thrift:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(linkCount, 1);
     STRUCT_CHILD_GETTERS(linkPercentage, 2);
 
@@ -17545,7 +17633,7 @@ std::pair<apache::thrift::ident::txSquelchForce, Child<bool, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lane, 1);
     STRUCT_CHILD_GETTERS(txDisable, 2);
     STRUCT_CHILD_GETTERS(txSquelch, 3);
@@ -17612,7 +17700,7 @@ class ChildThriftPath<::facebook::fboss::cfg::SystemPortRanges, ::facebook::fbos
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(systemPortRanges, 1);
 
   template <apache::thrift::FieldId __id>
@@ -17673,7 +17761,7 @@ std::pair<apache::thrift::ident::invert, Child<bool, ::apache::thrift::type_clas
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(min, 1);
     STRUCT_CHILD_GETTERS(max, 2);
     STRUCT_CHILD_GETTERS(invert, 3);
@@ -17716,7 +17804,7 @@ std::pair<apache::thrift::ident::nexthops, ChildThriftPath<::std::vector<::faceb
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ingressLabel, 1);
     STRUCT_CHILD_GETTERS(nexthops, 2);
 
@@ -17758,7 +17846,7 @@ std::pair<apache::thrift::ident::aclTableMap, ChildThriftPath<::std::map<::std::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(stage, 1);
     STRUCT_CHILD_GETTERS(name, 2);
     STRUCT_CHILD_GETTERS(aclTableMap, 3);
@@ -17844,7 +17932,7 @@ std::pair<apache::thrift::ident::fromTrafficClassToPcp, Child<::std::int8_t, ::a
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(internalTrafficClass, 1);
     STRUCT_CHILD_GETTERS(fromPcpToTrafficClass, 2);
     STRUCT_CHILD_GETTERS(fromTrafficClassToPcp, 3);
@@ -17888,7 +17976,7 @@ std::pair<apache::thrift::ident::roceMask, ChildThriftPath<::std::vector<::std::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(udfGroup, 1);
     STRUCT_CHILD_GETTERS(roceBytes, 2);
     STRUCT_CHILD_GETTERS(roceMask, 3);
@@ -17932,7 +18020,7 @@ std::pair<apache::thrift::ident::shelPeriodicIntervalMS, Child<::std::int32_t, :
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(shelSrcIp, 1);
     STRUCT_CHILD_GETTERS(shelDstIp, 2);
     STRUCT_CHILD_GETTERS(shelPeriodicIntervalMS, 3);
@@ -17983,7 +18071,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(base_prefix, 1);
     STRUCT_CHILD_GETTERS(seq_num, 2);
     STRUCT_CHILD_GETTERS(prefix_len_ranges, 3);
@@ -18044,7 +18132,7 @@ std::pair<apache::thrift::ident::udfGroups, ChildThriftPath<::std::vector<::std:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(priority, 2);
     STRUCT_CHILD_GETTERS(aclEntries, 3);
@@ -18094,7 +18182,7 @@ std::pair<apache::thrift::ident::fromTrafficClassToExp, Child<::std::int8_t, ::a
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(internalTrafficClass, 1);
     STRUCT_CHILD_GETTERS(fromExpToTrafficClass, 2);
     STRUCT_CHILD_GETTERS(fromTrafficClassToExp, 3);
@@ -18310,12 +18398,14 @@ std::pair<apache::thrift::ident::roceOpcode, Child<::std::int8_t, ::apache::thri
 std::pair<apache::thrift::ident::roceBytes, ChildThriftPath<::std::vector<::std::int8_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::roceMask, ChildThriftPath<::std::vector<::std::int8_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::udfTable, ChildThriftPath<::std::vector<::facebook::fboss::cfg::AclUdfEntry>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<apache::thrift::ident::l4DstPortRange, ChildThriftPath<::facebook::fboss::cfg::Range, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<apache::thrift::ident::l4DstPortRange, ChildThriftPath<::facebook::fboss::cfg::Range, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<apache::thrift::ident::tc, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
+std::pair<apache::thrift::ident::routeDst, ChildThriftPath<::facebook::fboss::cfg::RedirectNextHop, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(srcIp, 3);
     STRUCT_CHILD_GETTERS(dstIp, 4);
     STRUCT_CHILD_GETTERS(srcL4PortRange_DEPRECATED, 5);
@@ -18349,6 +18439,8 @@ std::pair<apache::thrift::ident::l4DstPortRange, ChildThriftPath<::facebook::fbo
     STRUCT_CHILD_GETTERS(roceMask, 34);
     STRUCT_CHILD_GETTERS(udfTable, 35);
     STRUCT_CHILD_GETTERS(l4DstPortRange, 36);
+    STRUCT_CHILD_GETTERS(tc, 37);
+    STRUCT_CHILD_GETTERS(routeDst, 38);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -18385,6 +18477,8 @@ std::pair<apache::thrift::ident::l4DstPortRange, ChildThriftPath<::facebook::fbo
     else if constexpr (__id == apache::thrift::FieldId{34}) { return roceMask(); }
     else if constexpr (__id == apache::thrift::FieldId{35}) { return udfTable(); }
     else if constexpr (__id == apache::thrift::FieldId{36}) { return l4DstPortRange(); }
+    else if constexpr (__id == apache::thrift::FieldId{37}) { return tc(); }
+    else if constexpr (__id == apache::thrift::FieldId{38}) { return routeDst(); }
   }
 };
 
@@ -18461,7 +18555,7 @@ std::pair<apache::thrift::ident::portIdToQosPolicy, ChildThriftPath<::std::map<:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(matchToAction, 1);
     STRUCT_CHILD_GETTERS(defaultQosPolicy, 2);
     STRUCT_CHILD_GETTERS(portIdToQosPolicy, 3);
@@ -18527,7 +18621,7 @@ std::pair<apache::thrift::ident::thriftApiToRateLimitInQps, ChildThriftPath<::st
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(defaultCommandLineArgs, 1);
     STRUCT_CHILD_GETTERS(sw, 2);
     STRUCT_CHILD_GETTERS(platform, 3);
@@ -18638,7 +18732,7 @@ std::pair<apache::thrift::ident::holdTimerMultiplier, Child<::std::int16_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(memberPortID, 1);
     STRUCT_CHILD_GETTERS(priority, 2);
     STRUCT_CHILD_GETTERS(rate, 3);
@@ -18707,7 +18801,7 @@ std::pair<apache::thrift::ident::encoding_id, Child<::std::int32_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(type, 1);
     STRUCT_CHILD_GETTERS(encoding_scheme, 2);
     STRUCT_CHILD_GETTERS(encoding_id, 3);
@@ -18751,7 +18845,7 @@ std::pair<apache::thrift::ident::asicConfig, ChildThriftPath<::facebook::fboss::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(bcm, 1);
     STRUCT_CHILD_GETTERS(asic, 2);
     STRUCT_CHILD_GETTERS(asicConfig, 3);
@@ -18793,7 +18887,7 @@ class ChildThriftPath<::facebook::fboss::cfg::QueueCongestionDetection, ::facebo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(linear, 1);
 
   template <apache::thrift::FieldId __id>
@@ -18855,7 +18949,7 @@ std::pair<apache::thrift::ident::firmwareLoadType, Child<::facebook::fboss::cfg:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(coreToUse, 1);
     STRUCT_CHILD_GETTERS(path, 2);
     STRUCT_CHILD_GETTERS(logPath, 3);
@@ -18933,7 +19027,7 @@ std::pair<apache::thrift::ident::route_refresh, Child<bool, ::apache::thrift::ty
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(remote_as, 3);
@@ -19048,7 +19142,7 @@ std::pair<apache::thrift::ident::intfID, Child<::std::int32_t, ::apache::thrift:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(id, 2);
     STRUCT_CHILD_GETTERS(recordStats, 3);
@@ -19127,7 +19221,7 @@ std::pair<apache::thrift::ident::fromTrafficClassToDscp, Child<::std::int8_t, ::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(internalTrafficClass, 1);
     STRUCT_CHILD_GETTERS(fromDscpToTrafficClass, 2);
     STRUCT_CHILD_GETTERS(fromTrafficClassToDscp, 3);
@@ -19191,7 +19285,7 @@ std::pair<apache::thrift::ident::tcvrProgrammingCompleteTs, Child<::std::int64_t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(tcvrProgrammingStartTs, 1);
     STRUCT_CHILD_GETTERS(tcvrProgrammingCompleteTs, 2);
 
@@ -19232,7 +19326,7 @@ std::pair<apache::thrift::ident::community, ChildThriftPath<::facebook::neteng::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(match_type, 1);
     STRUCT_CHILD_GETTERS(community, 2);
 
@@ -19277,7 +19371,7 @@ std::pair<apache::thrift::ident::statEnabled, Child<bool, ::apache::thrift::type
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(flow, 1);
     STRUCT_CHILD_GETTERS(nexthops, 3);
     STRUCT_CHILD_GETTERS(resolvedNexthops, 4);
@@ -19346,7 +19440,7 @@ class ChildThriftPath<::facebook::fboss::cfg::UserDefinedTrapAction, ::facebook:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(queueId, 1);
 
   template <apache::thrift::FieldId __id>
@@ -19406,7 +19500,7 @@ std::pair<apache::thrift::ident::linkTrainingStatus, ChildThriftPath<::facebook:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lanes, 1);
     STRUCT_CHILD_GETTERS(linkTrainingStatus, 2);
 
@@ -19469,7 +19563,7 @@ std::pair<apache::thrift::ident::ifName, Child<::std::string, ::apache::thrift::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(addr, 1);
     STRUCT_CHILD_GETTERS(port, 2);
     STRUCT_CHILD_GETTERS(ifName, 3);
@@ -19513,7 +19607,7 @@ std::pair<apache::thrift::ident::nexthops, ChildThriftPath<::std::vector<::std::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(routerID, 1);
     STRUCT_CHILD_GETTERS(prefix, 2);
     STRUCT_CHILD_GETTERS(nexthops, 3);
@@ -19579,7 +19673,7 @@ std::pair<apache::thrift::ident::coreId, Child<::std::int32_t, ::apache::thrift:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(type, 2);
     STRUCT_CHILD_GETTERS(physicalID, 3);
@@ -19655,7 +19749,7 @@ std::pair<apache::thrift::ident::srcIpMask, Child<::std::string, ::apache::thrif
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ipTunnelId, 1);
     STRUCT_CHILD_GETTERS(underlayIntfId, 2);
     STRUCT_CHILD_GETTERS(mode, 3);
@@ -19715,7 +19809,7 @@ class ChildThriftPath<::facebook::fboss::cfg::QueueMatchAction, ::facebook::fbos
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(queueId, 1);
 
   template <apache::thrift::FieldId __id>
@@ -19754,7 +19848,7 @@ std::pair<apache::thrift::ident::macAddress, Child<::std::string, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(vlanID, 1);
     STRUCT_CHILD_GETTERS(macAddress, 2);
 
@@ -19794,7 +19888,7 @@ class ChildThriftPath<::facebook::fboss::cfg::PacketCounterMatchAction, ::facebo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(counterName, 1);
 
   template <apache::thrift::FieldId __id>
@@ -19908,7 +20002,7 @@ std::pair<apache::thrift::ident::enableAlternateArsMembers, Child<bool, ::apache
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(sendToQueue, 1);
     STRUCT_CHILD_GETTERS(packetCounter_DEPRECATED, 2);
     STRUCT_CHILD_GETTERS(setDscp, 3);
@@ -19973,7 +20067,7 @@ std::pair<apache::thrift::ident::action, Child<::facebook::fboss::cfg::MacsecFlo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(flowId, 1);
     STRUCT_CHILD_GETTERS(action, 2);
 
@@ -20014,7 +20108,7 @@ std::pair<apache::thrift::ident::rx, Child<bool, ::apache::thrift::type_class::i
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(tx, 1);
     STRUCT_CHILD_GETTERS(rx, 2);
 
@@ -20055,7 +20149,7 @@ std::pair<apache::thrift::ident::fsdbStatsPublishIntervalMsec, Child<::std::int6
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(startTime, 1);
     STRUCT_CHILD_GETTERS(fsdbStatsPublishIntervalMsec, 2);
 
@@ -20142,7 +20236,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(type_high, 1);
     STRUCT_CHILD_GETTERS(type_low, 2);
     STRUCT_CHILD_GETTERS(value, 3);
@@ -20213,7 +20307,7 @@ std::pair<apache::thrift::ident::recoveryAction, Child<::facebook::fboss::cfg::P
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(detectionTimeMsecs, 1);
     STRUCT_CHILD_GETTERS(recoveryTimeMsecs, 2);
     STRUCT_CHILD_GETTERS(recoveryAction, 3);
@@ -20256,7 +20350,7 @@ std::pair<apache::thrift::ident::as_path_name, Child<::std::string, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(as_path, 1);
     STRUCT_CHILD_GETTERS(as_path_name, 2);
 
@@ -20322,7 +20416,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(policy_version, 3);
@@ -20377,7 +20471,7 @@ std::pair<apache::thrift::ident::udfGroups, ChildThriftPath<::std::vector<::std:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(algorithm, 2);
     STRUCT_CHILD_GETTERS(seed, 3);
@@ -20452,7 +20546,7 @@ std::pair<apache::thrift::ident::invert, Child<bool, ::apache::thrift::type_clas
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(min, 1);
     STRUCT_CHILD_GETTERS(max, 2);
     STRUCT_CHILD_GETTERS(invert, 3);
@@ -20502,7 +20596,7 @@ std::pair<apache::thrift::ident::best_path, ChildThriftPath<::facebook::neteng::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(prefix, 1);
     STRUCT_CHILD_GETTERS(paths, 2);
     STRUCT_CHILD_GETTERS(best_group, 3);
@@ -20640,7 +20734,7 @@ std::pair<apache::thrift::ident::precoding, Child<::std::int32_t, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ctlCode, 1);
     STRUCT_CHILD_GETTERS(dspMode, 2);
     STRUCT_CHILD_GETTERS(afeTrim, 3);
@@ -20787,7 +20881,7 @@ std::pair<apache::thrift::ident::switchIndexToPlatformSettings, ChildThriftPath<
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(chip, 1);
     STRUCT_CHILD_GETTERS(platformSettings, 3);
     STRUCT_CHILD_GETTERS(switchIndexToSwitchId, 4);
@@ -20856,7 +20950,7 @@ std::pair<apache::thrift::ident::interfaceId, Child<::std::int32_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ipAddress, 1);
     STRUCT_CHILD_GETTERS(mac, 2);
     STRUCT_CHILD_GETTERS(interfaceId, 3);
@@ -20919,7 +21013,7 @@ class ChildThriftPath<::facebook::fboss::cfg::SetEcmpHashAction, ::facebook::fbo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(switchingMode, 1);
 
   template <apache::thrift::FieldId __id>
@@ -20958,7 +21052,7 @@ std::pair<apache::thrift::ident::partNumberToTransceiverAttributes, ChildThriftP
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(vendorName, 1);
     STRUCT_CHILD_GETTERS(partNumberToTransceiverAttributes, 2);
 
@@ -21080,7 +21174,7 @@ std::pair<apache::thrift::ident::desiredPeerAddressIPv4, Child<::std::string, ::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(intfID, 1);
     STRUCT_CHILD_GETTERS(routerID, 2);
     STRUCT_CHILD_GETTERS(vlanID, 3);
@@ -21200,7 +21294,7 @@ std::pair<apache::thrift::ident::partial_drain_transition_count, Child<::std::in
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(is_partially_drained, 1);
     STRUCT_CHILD_GETTERS(num_affected_prefixes, 2);
     STRUCT_CHILD_GETTERS(partial_drain_transition_count, 3);
@@ -21280,7 +21374,7 @@ std::pair<apache::thrift::ident::portUpHoldoffTimeMs, Child<::std::int32_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(logicalID, 1);
     STRUCT_CHILD_GETTERS(state, 2);
     STRUCT_CHILD_GETTERS(minFrameSize, 3);
@@ -21417,7 +21511,7 @@ std::pair<apache::thrift::ident::nexthops, ChildThriftPath<::std::vector<::faceb
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(routerID, 1);
     STRUCT_CHILD_GETTERS(prefix, 2);
     STRUCT_CHILD_GETTERS(nexthops, 3);
@@ -21523,7 +21617,7 @@ std::pair<apache::thrift::ident::kbitsPerSec, ChildThriftPath<::facebook::fboss:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(pktsPerSec, 1);
     STRUCT_CHILD_GETTERS(kbitsPerSec, 2);
 
@@ -21585,7 +21679,7 @@ std::pair<apache::thrift::ident::port, Child<::std::int16_t, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ip, 1);
     STRUCT_CHILD_GETTERS(port, 2);
 
@@ -21647,7 +21741,7 @@ std::pair<apache::thrift::ident::maximum, Child<::std::int64_t, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(minimum, 1);
     STRUCT_CHILD_GETTERS(maximum, 2);
 
@@ -21689,7 +21783,7 @@ std::pair<apache::thrift::ident::num_bits, Child<::std::int16_t, ::apache::thrif
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(afi, 1);
     STRUCT_CHILD_GETTERS(prefix_bin, 2);
     STRUCT_CHILD_GETTERS(num_bits, 3);
@@ -21732,7 +21826,7 @@ std::pair<apache::thrift::ident::sak, ChildThriftPath<::facebook::fboss::mka::MK
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(sakKey, 1);
     STRUCT_CHILD_GETTERS(sak, 2);
 
@@ -21776,7 +21870,7 @@ std::pair<apache::thrift::ident::holdTimerMultiplier, Child<::std::int32_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(id, 1);
     STRUCT_CHILD_GETTERS(priority, 2);
     STRUCT_CHILD_GETTERS(lacpPortRate, 3);
@@ -21830,7 +21924,7 @@ std::pair<apache::thrift::ident::obj_uuid, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(description, 2);
     STRUCT_CHILD_GETTERS(version, 3);
@@ -21886,7 +21980,7 @@ std::pair<apache::thrift::ident::rxReasonToQueueOrderedList, ChildThriftPath<::s
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(trafficPolicy, 1);
     STRUCT_CHILD_GETTERS(rxReasonToCPUQueue, 2);
     STRUCT_CHILD_GETTERS(rxReasonToQueueOrderedList, 3);
@@ -21947,7 +22041,7 @@ std::pair<apache::thrift::ident::sensor_service, ChildThriftPath<::facebook::fbo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(agent, 1);
     STRUCT_CHILD_GETTERS(qsfp_service, 3);
     STRUCT_CHILD_GETTERS(sensor_service, 4);
@@ -21992,7 +22086,7 @@ std::pair<apache::thrift::ident::lowerCriticalVal, Child<double, ::apache::thrif
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(maxAlarmVal, 3);
     STRUCT_CHILD_GETTERS(minAlarmVal, 4);
     STRUCT_CHILD_GETTERS(upperCriticalVal, 5);
@@ -22037,7 +22131,7 @@ std::pair<apache::thrift::ident::low, Child<bool, ::apache::thrift::type_class::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(high, 1);
     STRUCT_CHILD_GETTERS(low, 2);
 
@@ -22104,7 +22198,7 @@ std::pair<apache::thrift::ident::fecTailHostCurr, Child<::std::int16_t, ::apache
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(preFecBerMediaMin, 1);
     STRUCT_CHILD_GETTERS(preFecBerMediaMax, 2);
     STRUCT_CHILD_GETTERS(preFecBerMediaAvg, 3);
@@ -22212,7 +22306,7 @@ std::pair<apache::thrift::ident::tcvrName, Child<::std::string, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(sensor, 1);
     STRUCT_CHILD_GETTERS(channels, 2);
     STRUCT_CHILD_GETTERS(stats, 3);
@@ -22288,7 +22382,7 @@ std::pair<apache::thrift::ident::sysfsPath, Child<::std::string, ::apache::thrif
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(value, 2);
     STRUCT_CHILD_GETTERS(timeStamp, 3);
@@ -22339,7 +22433,7 @@ std::pair<apache::thrift::ident::flags, ChildThriftPath<::facebook::fboss::FlagL
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(value, 1);
     STRUCT_CHILD_GETTERS(flags, 2);
 
@@ -22382,7 +22476,7 @@ std::pair<apache::thrift::ident::intervalStartTime, Child<::std::int64_t, ::apac
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(mediaPortVdmStats, 1);
     STRUCT_CHILD_GETTERS(hostPortVdmStats, 2);
     STRUCT_CHILD_GETTERS(statsCollectionTme, 3);
@@ -22460,7 +22554,7 @@ std::pair<apache::thrift::ident::coherentVdmStats, ChildThriftPath<::facebook::f
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(datapathBER, 1);
     STRUCT_CHILD_GETTERS(datapathErroredFrames, 2);
     STRUCT_CHILD_GETTERS(laneSNR, 3);
@@ -22592,7 +22686,7 @@ std::pair<apache::thrift::ident::numWriteFailed, Child<::std::int64_t, ::apache:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(readDownTime, 1);
     STRUCT_CHILD_GETTERS(writeDownTime, 2);
     STRUCT_CHILD_GETTERS(numReadAttempted, 3);
@@ -22656,7 +22750,7 @@ std::pair<apache::thrift::ident::qMargin, ChildThriftPath<::facebook::fboss::lin
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(cd, 1);
     STRUCT_CHILD_GETTERS(dgd, 2);
     STRUCT_CHILD_GETTERS(sopmd, 3);
@@ -22727,7 +22821,7 @@ std::pair<apache::thrift::ident::vcc, ChildThriftPath<::facebook::fboss::Sensor,
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(temp, 1);
     STRUCT_CHILD_GETTERS(vcc, 2);
 
@@ -22768,7 +22862,7 @@ std::pair<apache::thrift::ident::warn, ChildThriftPath<::facebook::fboss::Flags,
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(alarm, 1);
     STRUCT_CHILD_GETTERS(warn, 2);
 
@@ -22811,7 +22905,7 @@ std::pair<apache::thrift::ident::cur, Child<double, ::apache::thrift::type_class
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(min, 1);
     STRUCT_CHILD_GETTERS(max, 2);
     STRUCT_CHILD_GETTERS(avg, 3);
@@ -22857,7 +22951,7 @@ std::pair<apache::thrift::ident::statsCollectionTme, Child<::std::int64_t, ::apa
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(mediaPortVdmStats, 1);
     STRUCT_CHILD_GETTERS(hostPortVdmStats, 2);
     STRUCT_CHILD_GETTERS(statsCollectionTme, 3);
@@ -22908,7 +23002,7 @@ std::pair<apache::thrift::ident::rxMaxFramesUncorrErrSubIntPm, Child<::std::int3
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(rxBitsPm, 1);
     STRUCT_CHILD_GETTERS(rxBitsSubIntPm, 2);
     STRUCT_CHILD_GETTERS(rxCorrBitsPm, 3);
@@ -22965,7 +23059,7 @@ std::pair<apache::thrift::ident::host, ChildThriftPath<::std::map<::std::int32_t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(media, 1);
     STRUCT_CHILD_GETTERS(host, 2);
 
@@ -23027,7 +23121,7 @@ std::pair<apache::thrift::ident::sensors, ChildThriftPath<::facebook::fboss::Cha
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(channel, 1);
     STRUCT_CHILD_GETTERS(sensors, 6);
 
@@ -23073,7 +23167,7 @@ std::pair<apache::thrift::ident::txPwrdBm, ChildThriftPath<::facebook::fboss::Se
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(rxPwr, 1);
     STRUCT_CHILD_GETTERS(txBias, 2);
     STRUCT_CHILD_GETTERS(txPwr, 3);
@@ -23132,7 +23226,7 @@ std::pair<apache::thrift::ident::fecTailMax, Child<::std::int16_t, ::apache::thr
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(datapathBERMax, 1);
     STRUCT_CHILD_GETTERS(datapathErroredFramesMax, 2);
     STRUCT_CHILD_GETTERS(laneSNRMin, 3);
@@ -23197,7 +23291,7 @@ std::pair<apache::thrift::ident::fabricInterCellJitterWatermarkUsec, Child<::std
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(fdrRciWatermarkBytes, 1);
     STRUCT_CHILD_GETTERS(coreRciWatermarkBytes, 2);
     STRUCT_CHILD_GETTERS(dtlQueueWatermarkBytes, 3);
@@ -23316,7 +23410,7 @@ std::pair<apache::thrift::ident::switchTunnelInDrops, Child<::std::int64_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(globalDrops, 1);
     STRUCT_CHILD_GETTERS(globalReachabilityDrops, 2);
     STRUCT_CHILD_GETTERS(packetIntegrityDrops, 3);
@@ -23441,7 +23535,7 @@ std::pair<apache::thrift::ident::portStats_, ChildThriftPath<::facebook::fboss::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(queueInPackets_, 1);
     STRUCT_CHILD_GETTERS(queueDiscardPackets_, 2);
     STRUCT_CHILD_GETTERS(queueToName_, 3);
@@ -23532,7 +23626,7 @@ std::pair<apache::thrift::ident::numWriteFailed, Child<::std::int64_t, ::apache:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(readDownTime, 1);
     STRUCT_CHILD_GETTERS(writeDownTime, 2);
     STRUCT_CHILD_GETTERS(numReadAttempted, 3);
@@ -23602,7 +23696,7 @@ std::pair<apache::thrift::ident::packets, Child<::std::int64_t, ::apache::thrift
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(bytes, 1);
     STRUCT_CHILD_GETTERS(packets, 2);
 
@@ -23643,7 +23737,7 @@ std::pair<apache::thrift::ident::port, Child<::std::int32_t, ::apache::thrift::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(macAddress, 1);
     STRUCT_CHILD_GETTERS(port, 2);
 
@@ -23704,7 +23798,7 @@ class ChildThriftPath<::facebook::fboss::stats::SensorServiceStats, ::facebook::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(sensorData, 1);
 
   template <apache::thrift::FieldId __id>
@@ -23811,7 +23905,7 @@ std::pair<apache::thrift::ident::maxSupportedFecTail, Child<::std::int16_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(correctedCodewords, 1);
     STRUCT_CHILD_GETTERS(uncorrectedCodewords, 2);
     STRUCT_CHILD_GETTERS(correctedBits, 3);
@@ -23891,7 +23985,7 @@ std::pair<apache::thrift::ident::linkPm, ChildThriftPath<::facebook::fboss::Link
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(modulatorBiasXI, 1);
     STRUCT_CHILD_GETTERS(modulatorBiasXQ, 2);
     STRUCT_CHILD_GETTERS(modulatorBiasYI, 3);
@@ -23954,7 +24048,7 @@ std::pair<apache::thrift::ident::portName_, Child<::std::string, ::apache::thrif
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(queueOutDiscardBytes_, 1);
     STRUCT_CHILD_GETTERS(queueOutBytes_, 2);
     STRUCT_CHILD_GETTERS(queueWatermarkBytes_, 3);
@@ -24019,7 +24113,7 @@ std::pair<apache::thrift::ident::switchReachabilityChangeEventSyncDisconnects, C
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(statsEventSyncActive, 1);
     STRUCT_CHILD_GETTERS(fdbEventSyncActive, 2);
     STRUCT_CHILD_GETTERS(linkEventSyncActive, 3);
@@ -24115,7 +24209,7 @@ std::pair<apache::thrift::ident::switchDropBitmapStatsMap, ChildThriftPath<::std
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(hwPortStats, 1);
     STRUCT_CHILD_GETTERS(hwTrunkStats, 2);
     STRUCT_CHILD_GETTERS(hwResourceStats, 3);
@@ -24239,7 +24333,90 @@ std::pair<apache::thrift::ident::height, Child<::std::int32_t, ::apache::thrift:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
+    STRUCT_CHILD_GETTERS(width, 1);
+    STRUCT_CHILD_GETTERS(height, 2);
+
+  template <apache::thrift::FieldId __id>
+  auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
+    if constexpr (__id == apache::thrift::FieldId{1}) { return width(); }
+    else if constexpr (__id == apache::thrift::FieldId{2}) { return height(); }
+  }
+};
+
+template<typename Parent>
+class ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::HwSwitchDropStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Parent> :
+  public Path<
+   ::std::map<::std::int16_t, ::facebook::fboss::HwSwitchDropStats>,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::map<::apache::thrift::type_class::integral, ::apache::thrift::type_class::structure>,
+   ::apache::thrift::type::map<::apache::thrift::type::i16_t, ::apache::thrift::type::struct_t<::facebook::fboss::HwSwitchDropStats>>,
+   Parent> {
+ public:
+  using Self = Path<
+   ::std::map<::std::int16_t, ::facebook::fboss::HwSwitchDropStats>,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::map<::apache::thrift::type_class::integral, ::apache::thrift::type_class::structure>,
+   ::apache::thrift::type::map<::apache::thrift::type::i16_t, ::apache::thrift::type::struct_t<::facebook::fboss::HwSwitchDropStats>>,
+   Parent>;
+  using Child = ChildThriftPath<::facebook::fboss::HwSwitchDropStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>;
+  using Self::Self;
+
+  CONTAINER_CHILD_GETTERS(::std::int16_t);
+};
+
+template<typename Parent>
+class ChildThriftPath<folly::F14FastMap<::std::string, ::facebook::fboss::HwPortStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Parent> :
+  public Path<
+   folly::F14FastMap<::std::string, ::facebook::fboss::HwPortStats>,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::map<::apache::thrift::type_class::string, ::apache::thrift::type_class::structure>,
+   ::apache::thrift::type::map<::apache::thrift::type::string_t, ::apache::thrift::type::struct_t<::facebook::fboss::HwPortStats>>,
+   Parent> {
+ public:
+  using Self = Path<
+   folly::F14FastMap<::std::string, ::facebook::fboss::HwPortStats>,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::map<::apache::thrift::type_class::string, ::apache::thrift::type_class::structure>,
+   ::apache::thrift::type::map<::apache::thrift::type::string_t, ::apache::thrift::type::struct_t<::facebook::fboss::HwPortStats>>,
+   Parent>;
+  using Child = ChildThriftPath<::facebook::fboss::HwPortStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>;
+  using Self::Self;
+
+  CONTAINER_CHILD_GETTERS(::std::string);
+};
+
+
+template<typename Parent>
+class ChildThriftPath<::facebook::fboss::phy::EyeInfo, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Parent> :
+  public Path<
+   ::facebook::fboss::phy::EyeInfo,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::structure,
+   ::apache::thrift::type::struct_t<::facebook::fboss::phy::EyeInfo>,
+   Parent> {
+ public:
+  using Self = Path<
+   ::facebook::fboss::phy::EyeInfo,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::structure,
+   ::apache::thrift::type::struct_t<::facebook::fboss::phy::EyeInfo>,
+   Parent>;
+  template <typename ChildType, typename ChildTC, typename ChildTag>
+  using Child = Path<
+    ChildType,
+    ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+    ChildTC,
+    ChildTag,
+    Self
+  >;
+  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::width, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<apache::thrift::ident::height, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+
+  template <typename Name>
+  using TypeFor = typename Children::template type_of<Name>;
+  using Self::Self;
+
     STRUCT_CHILD_GETTERS(width, 1);
     STRUCT_CHILD_GETTERS(height, 2);
 
@@ -24342,7 +24519,7 @@ class ChildThriftPath<::facebook::fboss::phy::PcsStats, ::facebook::fboss::fsdb:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(rsFec, 1);
 
   template <apache::thrift::FieldId __id>
@@ -24402,7 +24579,7 @@ std::pair<apache::thrift::ident::macsecStats, ChildThriftPath<::facebook::fboss:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(capacity_, 1);
     STRUCT_CHILD_GETTERS(inBytes_, 2);
     STRUCT_CHILD_GETTERS(inUnicastPkts_, 3);
@@ -24488,7 +24665,7 @@ std::pair<apache::thrift::ident::bogusCount, Child<::std::int64_t, ::apache::thr
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(mismatchCount, 1);
     STRUCT_CHILD_GETTERS(missingCount, 2);
     STRUCT_CHILD_GETTERS(virtualDevicesWithAsymmetricConnectivity, 3);
@@ -24536,7 +24713,7 @@ std::pair<apache::thrift::ident::portStats, ChildThriftPath<::std::map<::std::st
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(phyStats, 1);
     STRUCT_CHILD_GETTERS(tcvrStats, 2);
     STRUCT_CHILD_GETTERS(portStats, 3);
@@ -24579,7 +24756,7 @@ std::pair<apache::thrift::ident::timestamp, Child<::std::int64_t, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(hwTeFlowStats, 1);
     STRUCT_CHILD_GETTERS(timestamp, 2);
 
@@ -24672,7 +24849,7 @@ std::pair<apache::thrift::ident::hostDropBitmap, Child<::std::int64_t, ::apache:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ingressMacDropBitmap, 1);
     STRUCT_CHILD_GETTERS(egressPipeDropBitmap, 2);
     STRUCT_CHILD_GETTERS(egressMacDropBitmap, 3);
@@ -24797,7 +24974,7 @@ std::pair<apache::thrift::ident::timeStamp, Child<::std::int64_t, ::apache::thri
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(value, 2);
     STRUCT_CHILD_GETTERS(timeStamp, 3);
@@ -24839,7 +25016,7 @@ class ChildThriftPath<::facebook::fboss::HwTeFlowStats, ::facebook::fboss::fsdb:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(bytes, 1);
 
   template <apache::thrift::FieldId __id>
@@ -24937,7 +25114,7 @@ std::pair<apache::thrift::ident::asicSoftResetErrors, Child<::std::int64_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(parityErrors, 1);
     STRUCT_CHILD_GETTERS(correctedParityErrors, 2);
     STRUCT_CHILD_GETTERS(uncorrectedParityErrors, 3);
@@ -25114,7 +25291,7 @@ std::pair<apache::thrift::ident::overrunPkts, Child<::std::int64_t, ::apache::th
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(directionIngress, 1);
     STRUCT_CHILD_GETTERS(ucastUncontrolledPkts, 2);
     STRUCT_CHILD_GETTERS(ucastControlledPkts, 3);
@@ -25254,7 +25431,7 @@ std::pair<apache::thrift::ident::saStats, ChildThriftPath<::facebook::fboss::mka
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(saId, 1);
     STRUCT_CHILD_GETTERS(saStats, 2);
 
@@ -25357,7 +25534,108 @@ class ChildThriftPath<::facebook::fboss::HwBufferPoolStats, ::facebook::fboss::f
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
+    STRUCT_CHILD_GETTERS(deviceWatermarkBytes, 1);
+
+  template <apache::thrift::FieldId __id>
+  auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
+    if constexpr (__id == apache::thrift::FieldId{1}) { return deviceWatermarkBytes(); }
+  }
+};
+
+template<typename Parent>
+class ChildThriftPath<::std::set<::std::string>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Parent> :
+  public Path<
+   ::std::set<::std::string>,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::set<::apache::thrift::type_class::string>,
+   ::apache::thrift::type::set<::apache::thrift::type::string_t>,
+   Parent> {
+ public:
+  using Self = Path<
+   ::std::set<::std::string>,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::set<::apache::thrift::type_class::string>,
+   ::apache::thrift::type::set<::apache::thrift::type::string_t>,
+   Parent>;
+  using Child = Path<::std::string, ::facebook::fboss::fsdb::FsdbOperStatsRoot, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t, Self>;
+  using Self::Self;
+
+  CONTAINER_CHILD_GETTERS(::std::string);
+};
+
+template<typename Parent>
+class ChildThriftPath<::std::map<::std::string, ::facebook::fboss::HwTrunkStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Parent> :
+  public Path<
+   ::std::map<::std::string, ::facebook::fboss::HwTrunkStats>,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::map<::apache::thrift::type_class::string, ::apache::thrift::type_class::structure>,
+   ::apache::thrift::type::map<::apache::thrift::type::string_t, ::apache::thrift::type::struct_t<::facebook::fboss::HwTrunkStats>>,
+   Parent> {
+ public:
+  using Self = Path<
+   ::std::map<::std::string, ::facebook::fboss::HwTrunkStats>,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::map<::apache::thrift::type_class::string, ::apache::thrift::type_class::structure>,
+   ::apache::thrift::type::map<::apache::thrift::type::string_t, ::apache::thrift::type::struct_t<::facebook::fboss::HwTrunkStats>>,
+   Parent>;
+  using Child = ChildThriftPath<::facebook::fboss::HwTrunkStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>;
+  using Self::Self;
+
+  CONTAINER_CHILD_GETTERS(::std::string);
+};
+
+template<typename Parent>
+class ChildThriftPath<::std::map<::std::int32_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Parent> :
+  public Path<
+   ::std::map<::std::int32_t, ::std::int64_t>,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::map<::apache::thrift::type_class::integral, ::apache::thrift::type_class::integral>,
+   ::apache::thrift::type::map<::apache::thrift::type::i32_t, ::apache::thrift::type::i64_t>,
+   Parent> {
+ public:
+  using Self = Path<
+   ::std::map<::std::int32_t, ::std::int64_t>,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::map<::apache::thrift::type_class::integral, ::apache::thrift::type_class::integral>,
+   ::apache::thrift::type::map<::apache::thrift::type::i32_t, ::apache::thrift::type::i64_t>,
+   Parent>;
+  using Child = Path<::std::int64_t, ::facebook::fboss::fsdb::FsdbOperStatsRoot, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t, Self>;
+  using Self::Self;
+
+  CONTAINER_CHILD_GETTERS(::std::int32_t);
+};
+
+
+template<typename Parent>
+class ChildThriftPath<::facebook::fboss::HwBufferPoolStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Parent> :
+  public Path<
+   ::facebook::fboss::HwBufferPoolStats,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::structure,
+   ::apache::thrift::type::struct_t<::facebook::fboss::HwBufferPoolStats>,
+   Parent> {
+ public:
+  using Self = Path<
+   ::facebook::fboss::HwBufferPoolStats,
+   ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+   ::apache::thrift::type_class::structure,
+   ::apache::thrift::type::struct_t<::facebook::fboss::HwBufferPoolStats>,
+   Parent>;
+  template <typename ChildType, typename ChildTC, typename ChildTag>
+  using Child = Path<
+    ChildType,
+    ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+    ChildTC,
+    ChildTag,
+    Self
+  >;
+  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::deviceWatermarkBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+
+  template <typename Name>
+  using TypeFor = typename Children::template type_of<Name>;
+  using Self::Self;
+
     STRUCT_CHILD_GETTERS(deviceWatermarkBytes, 1);
 
   template <apache::thrift::FieldId __id>
@@ -25527,7 +25805,7 @@ std::pair<apache::thrift::ident::cableDelayNsec, Child<::std::int64_t, ::apache:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(inBytes_, 1);
     STRUCT_CHILD_GETTERS(inUnicastPkts_, 2);
     STRUCT_CHILD_GETTERS(inMulticastPkts_, 3);
@@ -25798,7 +26076,7 @@ std::pair<apache::thrift::ident::my_sid_entries_free, Child<::std::int32_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(hw_table_stats_stale, 1);
     STRUCT_CHILD_GETTERS(l3_host_max, 2);
     STRUCT_CHILD_GETTERS(l3_host_used, 3);
@@ -25965,7 +26243,7 @@ std::pair<apache::thrift::ident::flowAclStats, Child<::std::int64_t, ::apache::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(defaultAclStats, 1);
     STRUCT_CHILD_GETTERS(controlAclStats, 2);
     STRUCT_CHILD_GETTERS(flowAclStats, 3);
@@ -26008,7 +26286,7 @@ std::pair<apache::thrift::ident::l3EcmpDlbPortReassignmentCount, Child<::std::in
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(l3EcmpDlbFailPackets, 1);
     STRUCT_CHILD_GETTERS(l3EcmpDlbPortReassignmentCount, 2);
 
@@ -26070,7 +26348,7 @@ std::pair<apache::thrift::ident::assocNum, Child<::std::int16_t, ::apache::thrif
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(sci, 1);
     STRUCT_CHILD_GETTERS(assocNum, 2);
 
@@ -26110,7 +26388,7 @@ class ChildThriftPath<::facebook::fboss::HwSwitchCounterStats, ::facebook::fboss
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(routeCounters, 1);
 
   template <apache::thrift::FieldId __id>
@@ -26165,7 +26443,7 @@ std::pair<apache::thrift::ident::noMacsecTagPkts, Child<::std::int64_t, ::apache
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(preMacsecDropPkts, 1);
     STRUCT_CHILD_GETTERS(controlPkts, 2);
     STRUCT_CHILD_GETTERS(dataPkts, 3);
@@ -26251,7 +26529,7 @@ std::pair<apache::thrift::ident::inCurrentXpn, Child<::std::int64_t, ::apache::t
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(directionIngress, 1);
     STRUCT_CHILD_GETTERS(octetsEncrypted, 2);
     STRUCT_CHILD_GETTERS(octetsProtected, 3);
@@ -26321,7 +26599,7 @@ std::pair<apache::thrift::ident::cdrLockChangedCount, Child<::std::int32_t, ::ap
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lane, 1);
     STRUCT_CHILD_GETTERS(eyes, 2);
     STRUCT_CHILD_GETTERS(snr, 3);
@@ -26458,7 +26736,7 @@ std::pair<apache::thrift::ident::outErrorPkts_, Child<::std::int64_t, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(inBytes_, 1);
     STRUCT_CHILD_GETTERS(inPkts_, 2);
     STRUCT_CHILD_GETTERS(outBytes_, 3);
@@ -26511,7 +26789,7 @@ std::pair<apache::thrift::ident::flowStats, ChildThriftPath<::facebook::fboss::m
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(sci, 1);
     STRUCT_CHILD_GETTERS(flowStats, 2);
 
@@ -26558,7 +26836,7 @@ std::pair<apache::thrift::ident::globalDrops, ChildThriftPath<::std::map<::std::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(rxCells, 1);
     STRUCT_CHILD_GETTERS(txCells, 2);
     STRUCT_CHILD_GETTERS(rxBytes, 3);
@@ -26617,7 +26895,7 @@ std::pair<apache::thrift::ident::egressAclStats, ChildThriftPath<::facebook::fbo
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(ingressPortStats, 1);
     STRUCT_CHILD_GETTERS(egressPortStats, 2);
     STRUCT_CHILD_GETTERS(ingressFlowStats, 3);
@@ -26671,7 +26949,7 @@ std::pair<apache::thrift::ident::pmd, ChildThriftPath<::facebook::fboss::phy::Pm
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(side, 1);
     STRUCT_CHILD_GETTERS(pcs, 2);
     STRUCT_CHILD_GETTERS(pmd, 3);
@@ -26759,7 +27037,7 @@ std::pair<apache::thrift::ident::timeCollected, Child<::std::int32_t, ::apache::
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(system, 1);
     STRUCT_CHILD_GETTERS(line, 2);
     STRUCT_CHILD_GETTERS(linkFlapCount, 3);
@@ -26828,7 +27106,7 @@ std::pair<apache::thrift::ident::nbitSymbolErrorCur, Child<double, ::apache::thr
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(nbitSymbolErrorMax, 1);
     STRUCT_CHILD_GETTERS(nbitSymbolErrorAvg, 2);
     STRUCT_CHILD_GETTERS(nbitSymbolErrorCur, 3);
@@ -26870,7 +27148,7 @@ class ChildThriftPath<::facebook::fboss::phy::PmdStats, ::facebook::fboss::fsdb:
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
   using Self::Self;
-  
+
     STRUCT_CHILD_GETTERS(lanes, 1);
 
   template <apache::thrift::FieldId __id>

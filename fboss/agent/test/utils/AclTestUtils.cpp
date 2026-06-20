@@ -1029,6 +1029,14 @@ std::set<cfg::AclTableQualifier> getRequiredQualifers(
         addQualifier(aclEntry.dscp().has_value(), qualifier);
         break;
 
+      case cfg::AclTableQualifier::TC:
+        addQualifier(aclEntry.tc().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::ROUTE_DST:
+        addQualifier(aclEntry.routeDst().has_value(), qualifier);
+        break;
+
       case cfg::AclTableQualifier::DST_MAC:
         addQualifier(aclEntry.dstMac().has_value(), qualifier);
         break;

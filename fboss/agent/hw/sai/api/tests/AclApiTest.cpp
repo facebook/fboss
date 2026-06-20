@@ -179,6 +179,10 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(10, 0x3F);
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kTc() const {
+    return std::make_pair(1, 0xFF);
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kDscp2() const {
     return std::make_pair(20, 0x3F);
   }
@@ -402,6 +406,7 @@ class AclApiTest : public ::testing::Test {
             true, // icmpV6Type
             true, // icmpV6Code
             true, // dscp
+            true, // tc
             true, // dstMac
             true, // ipType
             true, // ttl
@@ -480,6 +485,8 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldU8(kIcmpV6Code())};
     SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
         AclEntryFieldU8(kDscp())};
+    SaiAclEntryTraits::Attributes::FieldTc aclFieldTcAttribute{
+        AclEntryFieldU8(kTc())};
     SaiAclEntryTraits::Attributes::FieldDstMac aclFieldDstMacAttribute{
         AclEntryFieldMac(kDstMac())};
     SaiAclEntryTraits::Attributes::FieldIpType aclFieldIpTypeAttribute{
@@ -560,6 +567,7 @@ class AclApiTest : public ::testing::Test {
          aclFieldIcmpV6TypeAttribute,
          aclFieldIcmpV6CodeAttribute,
          aclFieldDscpAttribute,
+         aclFieldTcAttribute,
          aclFieldDstMacAttribute,
          aclFieldIpTypeAttribute,
          aclFieldTtlAttribute,
@@ -1093,6 +1101,7 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kIcmpV6Type(),
       kIcmpV6Code(),
       kDscp(),
+      kTc(),
       kDstMac(),
       kIpType(),
       kTtl(),

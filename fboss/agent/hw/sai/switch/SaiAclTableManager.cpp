@@ -21,18 +21,23 @@
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 
 #include <folly/MacAddress.h>
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <thread>
 
 extern "C" {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
@@ -43,6 +48,82 @@ extern "C" {
 using namespace std::chrono;
 
 namespace facebook::fboss {
+
+namespace {
+
+constexpr auto kSrv6AclNhgMemberWaitTimeout = milliseconds(2000);
+constexpr auto kSrv6AclNhgMemberPollInterval = milliseconds(10);
+
+void waitForSrv6NextHopGroupMembers(
+    const std::shared_ptr<SaiNextHopGroupHandle>& nhgHandle,
+    const char* context) {
+  if (!nhgHandle || !nhgHandle->nextHopGroup) {
+    throw FbossError(context, ": missing SRv6 next-hop group handle");
+  }
+  const auto deadline = steady_clock::now() + kSrv6AclNhgMemberWaitTimeout;
+  while (nhgHandle->nextHopGroupSize() == 0) {
+    if (steady_clock::now() >= deadline) {
+      throw FbossError(
+          context,
+          ": SRv6 next-hop group ",
+          nhgHandle->nextHopGroup->adapterKey(),
+          " has no members; resolve the underlay neighbor and install the "
+          "route/NHG before programming FIELD_ROUTE_DST or REDIRECT ACE");
+    }
+    std::this_thread::sleep_for(kSrv6AclNhgMemberPollInterval);
+  }
+}
+
+// Build the same normalized NHG key SaiRouteManager uses for SRv6 routes so
+// FIELD_ROUTE_DST matches post-LPM destination (test_srv6_svi_pbr.py uses one
+// nhg_gold object for route + ACL match + redirect).
+RouteNextHopEntry::NextHopSet buildNormalizedSrv6RedirectNhSet(
+    const cfg::RedirectNextHop& nhStruct) {
+  if (!nhStruct.srv6SegmentList().has_value() ||
+      nhStruct.srv6SegmentList()->empty()) {
+    throw FbossError(
+        "SRV6_ENCAP next-hop group requires non-empty srv6SegmentList");
+  }
+  if (!nhStruct.intfID().has_value()) {
+    throw FbossError("SRV6_ENCAP next-hop group requires intfID");
+  }
+  if (!nhStruct.tunnelId().has_value()) {
+    throw FbossError("SRV6_ENCAP next-hop group requires tunnelId");
+  }
+  std::vector<folly::IPAddressV6> segList;
+  segList.reserve(nhStruct.srv6SegmentList()->size());
+  for (const auto& seg : *nhStruct.srv6SegmentList()) {
+    segList.push_back(folly::IPAddress(seg).asV6());
+  }
+  RouteNextHopEntry::NextHopSet rawNhSet;
+  rawNhSet.insert(ResolvedNextHop(
+      folly::IPAddress(*nhStruct.ip()),
+      InterfaceID(nhStruct.intfID().value()),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::move(segList),
+      TunnelType::SRV6_ENCAP,
+      nhStruct.tunnelId().value()));
+  return RouteNextHopEntry::normalizeNextHops(rawNhSet);
+}
+
+std::shared_ptr<SaiNextHopGroupHandle> incRefOrAddSrv6RedirectNextHopGroup(
+    SaiManagerTable* managerTable,
+    const RouteNextHopEntry::NextHopSet& nhSet,
+    const char* context) {
+  auto nhgHandle = managerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+      SaiNextHopGroupKey(nhSet, std::nullopt));
+  if (!nhgHandle || !nhgHandle->nextHopGroup) {
+    throw FbossError("Failed to create SRv6 next-hop group for ", context);
+  }
+  waitForSrv6NextHopGroupMembers(nhgHandle, context);
+  return nhgHandle;
+}
+
+} // namespace
 
 sai_u32_range_t SaiAclTableManager::getFdbDstUserMetaDataRange() const {
   std::optional<SaiSwitchTraits::Attributes::FdbDstUserMetaDataRange> range =
@@ -953,6 +1034,12 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         std::make_pair(addedAclEntry->getDscp().value(), kDscpMask))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldTc> fieldTc{std::nullopt};
+  if (addedAclEntry->getTrafficClass()) {
+    fieldTc = SaiAclEntryTraits::Attributes::FieldTc{AclEntryFieldU8(
+        std::make_pair(addedAclEntry->getTrafficClass().value(), kTcMask))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldDstMac> fieldDstMac{
       std::nullopt};
   if (addedAclEntry->getDstMac()) {
@@ -984,6 +1071,12 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             AclEntryFieldU32(cfgLookupClassToSaiRouteMetaDataAndMask(
                 addedAclEntry->getLookupClassRoute().value()))};
   }
+
+#if defined(TAJO_SDK) && defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST) && \
+    SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  std::optional<SaiAclEntryTraits::Attributes::FieldRouteDst> fieldRouteDst{
+      std::nullopt};
+#endif
 
   std::optional<SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta>
       fieldNeighborDstUserMeta{std::nullopt};
@@ -1067,6 +1160,38 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionRedirect{std::nullopt};
   std::shared_ptr<SaiObject<SaiTunnelEncapNextHopTraits>> tunnelEncapNextHop{
       nullptr};
+  std::shared_ptr<SaiNextHopGroupHandle> srv6PbrNextHopGroup{nullptr};
+  std::shared_ptr<SaiNextHopGroupHandle> routeDstNextHopGroup{nullptr};
+
+#if defined(TAJO_SDK) && defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST) && \
+    SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  if (addedAclEntry->getRouteDst()) {
+    const auto nhStruct = addedAclEntry->getRouteDst().value();
+    if (nhStruct.tunnelType().has_value() &&
+        nhStruct.tunnelType().value() == TunnelType::SRV6_ENCAP &&
+        nhStruct.tunnelId().has_value()) {
+      auto tunnelHandle =
+          managerTable_->srv6TunnelManager().getSrv6TunnelHandle(
+              nhStruct.tunnelId().value());
+      if (!tunnelHandle || !tunnelHandle->tunnel) {
+        throw FbossError(
+            "Missing SRv6 tunnel for FIELD_ROUTE_DST match: ",
+            nhStruct.tunnelId().value());
+      }
+      const auto nhSet = buildNormalizedSrv6RedirectNhSet(nhStruct);
+      routeDstNextHopGroup = incRefOrAddSrv6RedirectNextHopGroup(
+          managerTable_, nhSet, "FIELD_ROUTE_DST match");
+      fieldRouteDst = SaiAclEntryTraits::Attributes::FieldRouteDst{
+          AclEntryFieldSaiObjectIdT(
+              std::make_pair(
+                  routeDstNextHopGroup->nextHopGroup->adapterKey(),
+                  kMaskDontCare))};
+    } else {
+      throw FbossError(
+          "FIELD_ROUTE_DST match currently requires SRV6_ENCAP RedirectNextHop");
+    }
+  }
+#endif
 
   std::shared_ptr<SaiAclCounter> saiAclCounter{nullptr};
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
@@ -1383,9 +1508,45 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
               AclEntryActionSaiObjectIdT(
                   NextHopSaiId{tunnelEncapNextHop->adapterKey()})};
           break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+        } else if (
+            nhStruct.tunnelType().has_value() &&
+            nhStruct.tunnelType().value() == TunnelType::SRV6_ENCAP &&
+            nhStruct.tunnelId().has_value()) {
+          auto tunnelHandle =
+              managerTable_->srv6TunnelManager().getSrv6TunnelHandle(
+                  nhStruct.tunnelId().value());
+          if (!tunnelHandle || !tunnelHandle->tunnel) {
+            throw FbossError(
+                "Missing SRv6 tunnel for redirect: ",
+                nhStruct.tunnelId().value());
+          }
+          const auto nhSet = buildNormalizedSrv6RedirectNhSet(nhStruct);
+          if (routeDstNextHopGroup && addedAclEntry->getRouteDst() &&
+              nhSet ==
+                  buildNormalizedSrv6RedirectNhSet(
+                      addedAclEntry->getRouteDst().value())) {
+            srv6PbrNextHopGroup = routeDstNextHopGroup;
+          } else {
+            srv6PbrNextHopGroup = incRefOrAddSrv6RedirectNextHopGroup(
+                managerTable_, nhSet, "ACL REDIRECT to SRv6");
+          }
+          aclActionRedirect = SaiAclEntryTraits::Attributes::ActionRedirect{
+              AclEntryActionSaiObjectIdT(
+                  NextHopGroupSaiId{
+                      srv6PbrNextHopGroup->nextHopGroup->adapterKey()})};
+          break;
+#endif
         }
       }
     }
+  }
+
+  // PBR / redirect ACEs (test_srv6_svi_pbr.py) use only COUNTER + REDIRECT;
+  // tables like Srv6PbrAclTable omit PACKET_ACTION. Do not program packet
+  // action together with REDIRECT.
+  if (aclActionRedirect.has_value()) {
+    aclActionPacketAction = std::nullopt;
   }
 
   // TODO(skhare) At least one field and one action must be specified.
@@ -1400,9 +1561,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldTcpFlags.has_value() || fieldIpFrag.has_value() ||
        fieldIcmpV4Type.has_value() || fieldIcmpV4Code.has_value() ||
        fieldIcmpV6Type.has_value() || fieldIcmpV6Code.has_value() ||
-       fieldDscp.has_value() || fieldDstMac.has_value() ||
-       fieldIpType.has_value() || fieldTtl.has_value() ||
-       fieldFdbDstUserMeta.has_value() || fieldRouteDstUserMeta.has_value() ||
+       fieldDscp.has_value() || fieldTc.has_value() ||
+       fieldDstMac.has_value() || fieldIpType.has_value() ||
+       fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
+       fieldRouteDstUserMeta.has_value() ||
+#if defined(TAJO_SDK) && defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST) && \
+    SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+       fieldRouteDst.has_value() ||
+#endif
        fieldEtherType.has_value() || fieldNeighborDstUserMeta.has_value() ||
        fieldOuterVlanId.has_value() ||
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
@@ -1430,8 +1596,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   }
   auto actionIsValid =
       (aclActionPacketAction.has_value() || aclActionCounter.has_value() ||
-       aclActionSetTC.has_value() || aclActionSetDSCP.has_value() ||
-       aclActionMirrorIngress.has_value() ||
+       aclActionRedirect.has_value() || aclActionSetTC.has_value() ||
+       aclActionSetDSCP.has_value() || aclActionMirrorIngress.has_value() ||
        aclActionMirrorEgress.has_value() || aclActionMacsecFlow.has_value()
 #if !defined(TAJO_SDK)
        || aclActionSetUserTrap.has_value()
@@ -1474,11 +1640,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIcmpV6Type,
       fieldIcmpV6Code,
       fieldDscp,
+      fieldTc,
       fieldDstMac,
       fieldIpType,
       fieldTtl,
       fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,
+#if defined(TAJO_SDK) && defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST) && \
+    SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      fieldRouteDst,
+#endif
       fieldNeighborDstUserMeta,
       fieldEtherType,
       fieldOuterVlanId,
@@ -1531,6 +1702,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   entryHandle->aclEntry = saiAclEntry;
   entryHandle->aclCounter = saiAclCounter;
   entryHandle->tunnelEncapNextHop = tunnelEncapNextHop;
+  entryHandle->srv6PbrNextHopGroup = srv6PbrNextHopGroup;
+  entryHandle->routeDstNextHopGroup = routeDstNextHopGroup;
   entryHandle->aclCounterTypeAndName = aclCounterTypeAndName;
   entryHandle->ingressMirror = ingressMirror;
   entryHandle->egressMirror = egressMirror;
@@ -1775,6 +1948,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::DST_IPV4,
         cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
         cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::TC,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::TTL,
         cfg::AclTableQualifier::LOOKUP_CLASS_L2,
@@ -1809,6 +1983,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::DST_IPV6,
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::TC,
         cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::TTL,
@@ -1823,6 +1998,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::DST_IPV4,
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::TC,
         cfg::AclTableQualifier::TTL,
         cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
         cfg::AclTableQualifier::IPV6_NEXT_HEADER,
@@ -1853,6 +2029,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
           cfg::AclTableQualifier::IPV6_NEXT_HEADER,
           cfg::AclTableQualifier::SRC_PORT,
           cfg::AclTableQualifier::DSCP,
+          cfg::AclTableQualifier::TC,
           cfg::AclTableQualifier::TTL,
           cfg::AclTableQualifier::IP_TYPE,
           cfg::AclTableQualifier::ETHER_TYPE,
@@ -1866,6 +2043,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     } else {
       return {
           cfg::AclTableQualifier::DSCP,
+          cfg::AclTableQualifier::TC,
           cfg::AclTableQualifier::OUT_PORT,
           cfg::AclTableQualifier::LOOKUP_CLASS_L2,
           cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
@@ -1889,6 +2067,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::ICMPV6_TYPE,
         cfg::AclTableQualifier::ICMPV6_CODE,
         cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::TC,
         cfg::AclTableQualifier::DST_MAC,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::TTL,
@@ -2044,6 +2223,10 @@ bool SaiAclTableManager::isQualifierSupported(
       return hasField(
           std::get<std::optional<SaiAclTableTraits::Attributes::FieldDscp>>(
               attributes));
+    case cfg::AclTableQualifier::TC:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldTc>>(
+              attributes));
     case cfg::AclTableQualifier::DST_MAC:
       return hasField(
           std::get<std::optional<SaiAclTableTraits::Attributes::FieldDstMac>>(
@@ -2070,6 +2253,12 @@ bool SaiAclTableManager::isQualifierSupported(
           std::get<std::optional<
               SaiAclTableTraits::Attributes::FieldRouteDstUserMeta>>(
               attributes));
+#if defined(TAJO_SDK) && defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST)
+    case cfg::AclTableQualifier::ROUTE_DST:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldRouteDst>>(
+              attributes));
+#endif
     case cfg::AclTableQualifier::ETHER_TYPE:
       return hasField(
           std::get<

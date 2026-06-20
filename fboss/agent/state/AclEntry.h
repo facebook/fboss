@@ -251,6 +251,28 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     set<switch_state_tags::dscp>(dscp);
   }
 
+  std::optional<uint8_t> getTrafficClass() const {
+    if (auto tc = cref<switch_state_tags::trafficClass>()) {
+      return tc->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setTrafficClass(uint8_t tc) {
+    set<switch_state_tags::trafficClass>(tc);
+  }
+
+  std::optional<cfg::RedirectNextHop> getRouteDst() const {
+    if (auto routeDst = cref<switch_state_tags::routeDst>()) {
+      return routeDst->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setRouteDst(const cfg::RedirectNextHop& routeDst) {
+    set<switch_state_tags::routeDst>(routeDst);
+  }
+
   std::optional<cfg::IpType> getIpType() const {
     if (auto ipType = cref<switch_state_tags::ipType>()) {
       return ipType->cref();
@@ -450,12 +472,13 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     // at least one qualifier must be specified
     return getSrcIp().first || getDstIp().first || getProto() ||
         getTcpFlagsBitMap() || getSrcPort() || getDstPort() || getIpFrag() ||
-        getIcmpType() || getDscp() || getIpType() || getTtl() || getDstMac() ||
-        getL4SrcPort() || getL4DstPort() || getL4DstPortRange() ||
-        getLookupClassL2() || getLookupClassNeighbor() ||
-        getLookupClassRoute() || getPacketLookupResult() || getEtherType() ||
-        getVlanID() || getUdfGroups() || getRoceOpcode() || getRoceBytes() ||
-        getRoceMask() || getUdfTable();
+        getIcmpType() || getDscp() || getTrafficClass() || getRouteDst() ||
+        getIpType() || getTtl() || getDstMac() || getL4SrcPort() ||
+        getL4DstPort() || getL4DstPortRange() || getLookupClassL2() ||
+        getLookupClassNeighbor() || getLookupClassRoute() ||
+        getPacketLookupResult() || getEtherType() || getVlanID() ||
+        getUdfGroups() || getRoceOpcode() || getRoceBytes() || getRoceMask() ||
+        getUdfTable();
   }
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;

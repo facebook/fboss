@@ -148,6 +148,15 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // MySid handles reference managed next hops and next hop groups,
   // so must be reset before those managers
   srv6MySidManager_.reset();
+  // ACL entries with REDIRECT / FIELD_ROUTE_DST hold references to next-hop
+  // groups (SRv6 PBR). Remove ACL tables before NHG/NH teardown so
+  // remove_acl_entry still sees valid redirect targets.
+  if (!skipSwitchManager) {
+    switchManager_->resetIngressAcl();
+    switchManager_->resetEgressAcl();
+  }
+  aclTableGroupManager_.reset();
+  aclTableManager_.reset();
   // Reset neighbor mgr before reseting rif mgr, since the
   // neighbor entries refer to rifs. While at it, also reset fdb
   // and next hop mgrs. Fdb is reset after neighbor mgr since
@@ -194,18 +203,6 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // Qos map manager is going away, reset global qos maps
   switchManager_->resetQosMaps();
   samplePacketManager_.reset();
-
-  // ACL Table Group is going away, reset ingressACL pointing to it
-  if (!skipSwitchManager) {
-    switchManager_->resetIngressAcl();
-    switchManager_->resetEgressAcl();
-  }
-
-  // Reset ACL Table group before Acl Table, since ACL Table group members
-  // refer to ACL Table and those references to ACL Table must be released
-  // before attempting to reset (remove) ACL Table.
-  aclTableGroupManager_.reset();
-  aclTableManager_.reset();
 
   if (!skipSwitchManager) {
     switchManager_->resetArsProfile();

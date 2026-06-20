@@ -244,11 +244,15 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::ICMPV6_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::ICMPV6_CODE),
       qualifierExistsFn(cfg::AclTableQualifier::DSCP),
+      qualifierExistsFn(cfg::AclTableQualifier::TC),
       qualifierExistsFn(cfg::AclTableQualifier::DST_MAC),
       qualifierExistsFn(cfg::AclTableQualifier::IP_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::TTL),
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_L2),
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE),
+#if defined(TAJO_SDK) && defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST)
+      qualifierExistsFn(cfg::AclTableQualifier::ROUTE_DST),
+#endif
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),
       qualifierExistsFn(cfg::AclTableQualifier::ETHER_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::OUTER_VLAN),

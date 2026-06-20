@@ -4133,7 +4133,8 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
           bool hasTunnelRedirect = false;
           for (const auto& nh : *redirectToNextHop->redirectNextHops()) {
             if (nh.tunnelType().has_value() &&
-                nh.tunnelType().value() == TunnelType::IP_IN_IP_ENCAP) {
+                (nh.tunnelType().value() == TunnelType::IP_IN_IP_ENCAP ||
+                 nh.tunnelType().value() == TunnelType::SRV6_ENCAP)) {
               hasTunnelRedirect = true;
               break;
             }
@@ -4405,6 +4406,12 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   }
   if (auto dscp = config->dscp()) {
     newAcl->setDscp(*dscp);
+  }
+  if (auto tc = config->tc()) {
+    newAcl->setTrafficClass(*tc);
+  }
+  if (auto routeDst = config->routeDst()) {
+    newAcl->setRouteDst(*routeDst);
   }
   if (auto dstMac = config->dstMac()) {
     newAcl->setDstMac(MacAddress(*dstMac));

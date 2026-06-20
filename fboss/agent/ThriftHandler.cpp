@@ -548,6 +548,9 @@ AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry) {
   if (aclEntry.getDscp()) {
     aclEntryThrift.dscp() = aclEntry.getDscp().value();
   }
+  if (aclEntry.getTrafficClass()) {
+    aclEntryThrift.tc() = aclEntry.getTrafficClass().value();
+  }
   if (aclEntry.getTtl()) {
     aclEntryThrift.ttl() = aclEntry.getTtl().value().getValue();
   }
@@ -3084,6 +3087,32 @@ void ThriftHandler::getHwDebugDump(std::string& out) {
           sw_->getHwSwitchThriftClientTable()->getHwDebugDump(switchId);
     }
     out = folly::toPrettyJson(json);
+  }
+}
+
+void ThriftHandler::setSdkRegDumpEnabled(bool enabled) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  if (sw_->isRunModeMonolithic()) {
+    sw_->getMonolithicHwSwitchHandler()->setSdkRegDumpEnabled(enabled);
+    return;
+  }
+  // Multi-switch: apply to every switch best-effort so that one unsupported or
+  // unreachable switch does not prevent updating the others. Collect failures
+  // and surface them together.
+  std::string failures;
+  for (const auto& switchId : sw_->getSwitchInfoTable().getSwitchIDs()) {
+    try {
+      sw_->getHwSwitchThriftClientTable()->setSdkRegDumpEnabled(
+          switchId, enabled);
+    } catch (const std::exception& ex) {
+      failures += folly::to<std::string>(
+          failures.empty() ? "" : "; ", switchId, ": ", ex.what());
+    }
+  }
+  if (!failures.empty()) {
+    throw FbossError(
+        "Failed to set SDK register dump on switch(es): ", failures);
   }
 }
 
