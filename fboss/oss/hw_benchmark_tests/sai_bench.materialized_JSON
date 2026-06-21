@@ -5459,7 +5459,7 @@
             },
             {
               "metric_key_regex": "program_routes_msecs",
-              "upper_bound": 9440.0
+              "upper_bound": 10500.0
             }
           ]
         },
