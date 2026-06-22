@@ -5584,6 +5584,11 @@ AclStats SaiSwitch::getAclStats() const {
   return managerTable_->aclTableManager().getAclStats();
 }
 
+void SaiSwitch::updateAclStats() {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  managerTable_->aclTableManager().updateStats();
+}
+
 cfg::SwitchingMode SaiSwitch::getFwdSwitchingMode(
     const RouteNextHopEntry& fwd) {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);

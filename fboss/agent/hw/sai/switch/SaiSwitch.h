@@ -293,6 +293,9 @@ class SaiSwitch : public HwSwitch {
 
   AclStats getAclStats() const override;
 
+  // Poll ACL counters from SAI/SDK only (no port/queue/switch stat collection).
+  void updateAclStats();
+
   std::shared_ptr<SwitchState> reconstructSwitchState() const override;
 
   std::shared_ptr<SwitchState> constructSwitchStateWithFib() noexcept override;

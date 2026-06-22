@@ -9,11 +9,11 @@
 // is 448 lines (896 total).
 //
 //   HwSrv6PbrCounterScaleBenchmark_Configure -- times applyNewConfig() for 448
-//   ACEs. HwSrv6PbrCounterScaleBenchmark_Read      -- times updateStats() (448
-//   SAI byte
-//                                              counter reads) + reading byte
-//                                              counters from stats cache
-//                                              (install is untimed).
+//   ACEs. HwSrv6PbrCounterScaleBenchmark_Read      -- times ACL-only stat poll
+//                                              (448 SAI byte counter reads) +
+//                                              reading byte counters from the
+//                                              ACL stats cache (install is
+//                                              untimed).
 
 #include <algorithm>
 
@@ -28,8 +28,10 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -444,6 +446,27 @@ void programPbrAcesUntimed(PbrScalePreparedRun& run) {
   waitForStateUpdates(run.ctx.sw);
 }
 
+void updatePbrAclStatsOnly(SwSwitch* sw) {
+  auto* monoHandler = sw->getMonolithicHwSwitchHandler();
+  auto* saiSwitch = static_cast<SaiSwitch*>(monoHandler->getHwSwitch());
+  saiSwitch->updateAclStats();
+}
+
+uint64_t sumAclByteCounters(
+    const AclStats& aclStats,
+    const std::vector<std::string>& counterNames) {
+  uint64_t totalBytes = 0;
+  const auto& counterMap = *aclStats.statNameToCounterMap();
+  for (const auto& counterName : counterNames) {
+    const auto statStr = counterName + ".bytes";
+    const auto entry = counterMap.find(statStr);
+    if (entry != counterMap.end()) {
+      totalBytes += entry->second;
+    }
+  }
+  return totalBytes;
+}
+
 void srv6PbrCounterConfigureScaleBenchmark(int numEntries) {
   folly::BenchmarkSuspender suspender;
 
@@ -460,7 +483,7 @@ void srv6PbrCounterReadScaleBenchmark(int numEntries) {
   folly::BenchmarkSuspender suspender;
 
   // Untimed: ensemble, NHGs, route, ACE config build, and hardware programming.
-  // Byte-only counters so updateStats() issues one SAI read per ACE.
+  // Byte-only counters so ACL stat poll issues one SAI read per ACE.
   auto ctx = setupPbrScaleEnsemble();
   auto aceCfg = buildPbrAceConfig(ctx, numEntries, kBytesOnlyCounterTypes);
   logPbrAceProgramming(numEntries);
@@ -473,14 +496,11 @@ void srv6PbrCounterReadScaleBenchmark(int numEntries) {
     counterNames.push_back(makeAceNames(i).counter);
   }
 
-  // Timed: SAI/SDK poll (updateStats) + byte counter reads from stats cache.
+  // Timed: ACL-only SAI/SDK poll + byte counter reads from ACL stats cache.
   suspender.dismiss();
-  ctx.sw->updateStats();
-  uint64_t totalBytes = 0;
-  for (const auto& counterName : counterNames) {
-    totalBytes +=
-        utility::getAclInOutPackets(ctx.sw, counterName, true /*bytes*/);
-  }
+  updatePbrAclStatsOnly(ctx.sw);
+  const auto aclStats = ctx.sw->getMonolithicHwSwitchHandler()->getAclStats();
+  const uint64_t totalBytes = sumAclByteCounters(aclStats, counterNames);
   folly::doNotOptimizeAway(totalBytes);
   suspender.rehire();
 
