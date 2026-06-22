@@ -22,6 +22,8 @@
 #include <exception>
 #include <iostream>
 #include <optional>
+#include <ostream>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
@@ -71,6 +73,18 @@ constexpr auto kValidConfigAttrs =
     "flow-control-rx, flow-control-tx, lldp-expected-*, type, shutdown, "
     "no-shutdown";
 
+// Result of applying a profile change: the user-facing message plus the
+// minimum agent action level needed to make the change take effect safely.
+// Profile changes go through the BCM SAI flexport path which only applies
+// reliably on a cold boot (the live-delta recreate path leaves the port
+// macro in a half-configured state — see
+// SaiPortManager::changePortByRecreate). Cold boot reconstructs SAI ports
+// from the on-disk config, where the SDK accepts the new layout.
+struct ProfileApplyResult {
+  std::string message;
+  cli::ConfigActionLevel actionLevel = cli::ConfigActionLevel::HITLESS;
+};
+
 } // namespace
 
 InterfacesConfig::InterfacesConfig(const std::vector<std::string>& v)
@@ -86,44 +100,158 @@ InterfacesConfig::InterfacesConfig(const std::vector<std::string>& v)
   interfaces_ = utils::InterfaceList(std::move(portNames));
 }
 
-std::string applyProfile(
+ProfileApplyResult applyProfile(
     const HostInfo& hostInfo,
     const utils::InterfaceList& interfaces,
     const std::string& value) {
-  // Parse first — fast error for completely invalid strings
+  // Phase 0: Parse profile string — fast fail for completely invalid strings.
   cfg::PortProfileID requestedProfile = ProfileValidator::parseProfile(value);
 
-  // Validate against hardware + optics.
-  // Build validator once (queries Agent + QSFP); reuse across all ports.
+  // Detect a no-op re-apply: every target port already has this profile.
+  // We skip the coldboot in that case — the on-disk and live configs are
+  // already equivalent, so HITLESS (reloadConfig) suffices.
+  bool isNoOp = true;
+  for (const utils::Intf& intf : interfaces) {
+    const cfg::Port* port = intf.getPort();
+    if (port && *port->profileID() != requestedProfile) {
+      isNoOp = false;
+      break;
+    }
+  }
+
+  // Phase 1: Build validator once (queries Agent + QSFP).
   ProfileValidator validator(hostInfo);
 
-  // Speed is a property of the profile, not the port — look it up once
-  // using the first port's ID to avoid rebuilding PlatformMapping per port.
-  const cfg::Port* firstPort = interfaces.begin()->getPort();
-  if (!firstPort) {
-    throw std::runtime_error("No port found for the specified interface");
+  // Phase 2: Build the full change list without mutating anything yet.
+  std::vector<ProfileValidator::ProfileChange> changes;
+  for (const utils::Intf& intf : interfaces) {
+    const cfg::Port* port = intf.getPort();
+    if (!port) {
+      continue;
+    }
+    changes.push_back(
+        {apache::thrift::can_throw(*port->name()), requestedProfile});
   }
-  PortID firstPortId(static_cast<uint32_t>(*firstPort->logicalID()));
-  cfg::PortSpeed profileSpeed =
-      validator.getProfileSpeed(firstPortId, requestedProfile);
+
+  // No interface in the list resolved to a port — nothing to apply. Fail
+  // loudly rather than silently "succeeding" with an empty batch (which
+  // validateBatch() would pass vacuously, returning speed=0 / HITLESS).
+  if (changes.empty()) {
+    throw std::runtime_error(
+        "No port found for the specified interface(s); profile change cannot "
+        "be applied");
+  }
+
+  // Phase 3: Validate all — NO mutation yet.
+  // validateBatch() checks per-port profile membership AND parent-subsumption
+  // (a port whose parent's profile subsumes it cannot be configured) in one
+  // pass.
+  auto result = validator.validateBatch(changes);
+
+  // If any errors, throw with the full aggregated message.  Zero mutations
+  // have occurred at this point — atomicity is guaranteed.  Check this before
+  // emitting warnings: a rejected batch applies nothing, so its subsumed-port
+  // "will be disabled" notices would be misleading.
+  if (!result.errors.empty()) {
+    throw std::invalid_argument(folly::join("\n", result.errors));
+  }
+
+  // Emit warnings (e.g. subsumed-port notices) to stderr — the batch is valid
+  // and about to be applied.
+  for (const auto& w : result.warnings) {
+    std::cerr << "Warning: " << w << std::endl;
+  }
+
+  // Phase 4: Mutation — only reached when the whole batch is valid.
+  // Speed is a property of the profile, not the port — look it up once.
+  cfg::PortSpeed profileSpeed = cfg::PortSpeed::DEFAULT;
+  for (const utils::Intf& intf : interfaces) {
+    const cfg::Port* port = intf.getPort();
+    if (port) {
+      PortID portId(static_cast<uint32_t>(*port->logicalID()));
+      profileSpeed = validator.getProfileSpeed(portId, requestedProfile);
+      break;
+    }
+  }
+
+  // getProfileSpeed() returns DEFAULT (0) when PlatformMapping has no
+  // profile-config entry for this port/profile. Writing speed=0 to the config
+  // makes the agent reject it on apply, so fail here instead.
+  if (profileSpeed == cfg::PortSpeed::DEFAULT) {
+    throw std::runtime_error(
+        fmt::format(
+            "Could not determine speed for profile '{}' from PlatformMapping",
+            value));
+  }
 
   for (const utils::Intf& intf : interfaces) {
     cfg::Port* port = intf.getPort();
     if (!port) {
       continue;
     }
-    const std::string& portName = apache::thrift::can_throw(*port->name());
-    validator.validateProfile(portName, value);
     port->profileID() = requestedProfile;
     port->speed() = profileSpeed;
   }
 
-  // Normalize to uppercase for display
+  // Phase 5: remove subsumed ports from config. When a profile absorbs
+  // neighbor lanes (PlatformPortConfig.subsumedPorts), those ports must be
+  // absent from the agent config; leaving them present (even DISABLED)
+  // aborts the sw agent on apply. Mirrors patcher.py:remove_subsumed_ports
+  // (filter ports, vlanPorts, interfaces by subsumed-port IDs).
+  if (!result.subsumedPorts.empty()) {
+    auto& agentConfig = ConfigSession::getInstance().getAgentConfig();
+    std::set<int32_t> subsumedIds;
+    for (const auto& pid : result.subsumedPorts) {
+      subsumedIds.insert(static_cast<int32_t>(pid));
+    }
+    auto isSubsumed = [&](int32_t portId) {
+      return subsumedIds.count(portId) > 0;
+    };
+
+    auto& ports = *agentConfig.sw()->ports();
+    ports.erase(
+        std::remove_if(
+            ports.begin(),
+            ports.end(),
+            [&](const cfg::Port& p) { return isSubsumed(*p.logicalID()); }),
+        ports.end());
+
+    auto& vlanPorts = *agentConfig.sw()->vlanPorts();
+    vlanPorts.erase(
+        std::remove_if(
+            vlanPorts.begin(),
+            vlanPorts.end(),
+            [&](const cfg::VlanPort& vp) {
+              return isSubsumed(*vp.logicalPort());
+            }),
+        vlanPorts.end());
+
+    // Strip cfg::Interface entries that reference a subsumed port. Only
+    // InterfaceType::PORT entries carry portID; VLAN-type interfaces are
+    // untouched. Leaving an orphan PORT-type interface pointing to a
+    // removed port aborts the agent on apply.
+    auto& interfaces = *agentConfig.sw()->interfaces();
+    interfaces.erase(
+        std::remove_if(
+            interfaces.begin(),
+            interfaces.end(),
+            [&](const cfg::Interface& intf) {
+              return intf.portID().has_value() && isSubsumed(*intf.portID());
+            }),
+        interfaces.end());
+  }
+
+  // Normalize to uppercase for display.
   std::string upperValue = value;
   std::transform(
       upperValue.begin(), upperValue.end(), upperValue.begin(), ::toupper);
-  return fmt::format(
-      "profile={}, speed={}", upperValue, static_cast<int64_t>(profileSpeed));
+  return ProfileApplyResult{
+      fmt::format(
+          "profile={}, speed={}",
+          upperValue,
+          static_cast<int64_t>(profileSpeed)),
+      isNoOp ? cli::ConfigActionLevel::HITLESS
+             : cli::ConfigActionLevel::AGENT_COLDBOOT};
 }
 
 // Configures a port as a routed (L3) port.
@@ -268,7 +396,8 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
 
   std::vector<std::string> results;
   bool changed = false;
-
+  cli::ConfigActionLevel maxActionLevel = cli::ConfigActionLevel::HITLESS;
+  // Process each attribute
   for (const auto& [attr, value] : attributes) {
     if (attr == "description") {
       for (const utils::Intf& intf : interfaces) {
@@ -322,8 +451,13 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
       }
       results.push_back(fmt::format("mtu={}", mtu));
     } else if (attr == "profile") {
-      results.push_back(applyProfile(hostInfo, interfaces, value));
+      auto profileResult = applyProfile(hostInfo, interfaces, value);
+      results.push_back(std::move(profileResult.message));
       changed = true;
+      if (static_cast<int>(profileResult.actionLevel) >
+          static_cast<int>(maxActionLevel)) {
+        maxActionLevel = profileResult.actionLevel;
+      }
     } else if (attr == "loopback-mode") {
       changed |= applyLoopbackMode(value, interfaces);
       results.push_back(fmt::format("loopback-mode={}", value));
@@ -369,7 +503,8 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
   // Save the updated config (skip the write/commit cycle if no port or
   // interface was actually modified).
   if (changed) {
-    ConfigSession::getInstance().saveConfig();
+    ConfigSession::getInstance().saveConfig(
+        cli::ServiceType::AGENT, maxActionLevel);
   }
 
   std::string interfaceList = folly::join(", ", interfaces.getNames());

@@ -178,6 +178,7 @@ cpp_unittest(
         "CmdStopPcapTest.cpp",
         "GitTest.cpp",
         "PortMapTest.cpp",
+        "ProfileValidationTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
     network_access = network_access_utils.all(),
