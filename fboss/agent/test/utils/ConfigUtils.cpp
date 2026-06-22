@@ -65,6 +65,7 @@ int getRdswSysPortBlockSize(
         return 22;
       case PlatformType::PLATFORM_BLACKWOLF800BANW:
       case PlatformType::PLATFORM_J4SIM:
+      case PlatformType::PLATFORM_SAINTPAUL:
         return 1024;
       default:
         break;
