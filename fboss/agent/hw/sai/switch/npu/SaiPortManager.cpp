@@ -1061,7 +1061,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       linkUpDebounce, // LinkUpDebouncePeriodMs
       linkDownDebounce, // LinkDownDebouncePeriodMs
 #endif
-#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_8_ea)
+#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea)
       0xffff, // PfcPauseDurationOverride
 #else
       std::nullopt, // PfcPauseDurationOverride

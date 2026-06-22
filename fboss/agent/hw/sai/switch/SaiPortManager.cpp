@@ -462,7 +462,7 @@ void fillHwPortStats(
         break;
       }
 #endif
-#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_8_ea)
+#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea)
       case SAI_PORT_STAT_IF_OUT_DISCARDS_SLL:
         hwPortStats.outDiscardsSll_() = value;
         break;
