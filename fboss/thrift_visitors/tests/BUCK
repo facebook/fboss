@@ -19,6 +19,7 @@ cpp_unittest(
     srcs = [
         "DeltaVisitorTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
