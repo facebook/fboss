@@ -1037,9 +1037,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 1,
-          "productSubVersion": 0
+          "productionState": 1,
+          "productionSubState": 1,
+          "respinVariantIndicator": 0
         },
         {
           "sensors": [
@@ -1186,9 +1186,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 1,
-          "productSubVersion": 0
+          "productionState": 2,
+          "productionSubState": 1,
+          "respinVariantIndicator": 0
         }
       ]
     },
