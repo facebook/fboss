@@ -34,6 +34,7 @@
 
 #include <exception>
 #include <memory>
+#include <optional>
 #include <type_traits>
 #include <utility>
 
@@ -469,7 +470,9 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
     const RouterIDAndNetworkToInterfaceRoutes& toAdd,
     const boost::container::flat_map<
         facebook::fboss::RouterID,
-        std::vector<folly::CIDRNetwork>>& toDel,
+        std::vector<
+            std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>>>&
+        toDel,
     const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie) {
   auto makeNhop = [](const auto& interfaceIDAndAddr) {
@@ -482,6 +485,35 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
     return nextHop;
   };
 
+  auto routeIntfMatches = [](const auto& routeTable,
+                             const folly::CIDRNetwork& network,
+                             InterfaceID intfID) -> std::optional<bool> {
+    auto check = [&intfID](const auto& rib, const auto& addr, uint8_t mask) {
+      auto it = rib.exactMatch(addr, mask);
+      if (it == rib.end()) {
+        return std::optional<bool>{};
+      }
+      auto entry =
+          it->value()->getEntryForClient(ClientID::REMOTE_INTERFACE_ROUTE);
+      if (!entry) {
+        return std::optional<bool>{};
+      }
+      const auto& nhops = entry->getNextHopSet();
+      if (nhops.empty()) {
+        return std::optional<bool>{};
+      }
+      return std::optional<bool>{nhops.begin()->intfID() == intfID};
+    };
+    return network.first.isV4() ? check(
+                                      routeTable.v4NetworkToRoute,
+                                      network.first.asV4().mask(network.second),
+                                      network.second)
+                                : check(
+                                      routeTable.v6NetworkToRoute,
+                                      network.first.asV6().mask(network.second),
+                                      network.second);
+  };
+
   for (auto& vrf : getVrfList()) {
     std::vector<RibRouteUpdater::RouteEntry> toAddRoutes;
     std::vector<folly::CIDRNetwork> toDelRoutes;
@@ -492,14 +524,32 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
       }
     }
     const auto& toDelIter = toDel.find(vrf);
-    if (toDelIter != toDel.end()) {
-      for (const auto& network : toDelIter->second) {
-        toDelRoutes.push_back(network);
-      }
-    }
-    if (!toAddRoutes.empty() || !toDelRoutes.empty()) {
+    if (!toAddRoutes.empty() || toDelIter != toDel.end()) {
       updateRib(
           vrf, [&](auto& routeTable, auto* mySidTable, auto* nextHopIDManager) {
+            if (toDelIter != toDel.end()) {
+              for (const auto& [network, intfID] : toDelIter->second) {
+                // Remote interface route deletion is guarded by the
+                // originating interface to avoid removing a prefix that was
+                // already replaced by another remote interface update.
+                auto intfMatches =
+                    routeIntfMatches(routeTable, network, intfID);
+                if (!intfMatches.has_value()) {
+                  continue;
+                }
+                if (*intfMatches) {
+                  toDelRoutes.push_back(network);
+                } else {
+                  XLOG(ERR) << "Skipping remote interface route delete for "
+                            << "interface " << intfID
+                            << " because the existing route does not belong "
+                               "to that interface";
+                }
+              }
+            }
+            if (toAddRoutes.empty() && toDelRoutes.empty()) {
+              return;
+            }
             RibRouteUpdater updater(
                 &(routeTable.v4NetworkToRoute),
                 &(routeTable.v6NetworkToRoute),
@@ -1062,7 +1112,9 @@ void RoutingInformationBase::updateRemoteInterfaceRoutes(
     const RouterIDAndNetworkToInterfaceRoutes& toAdd,
     const boost::container::flat_map<
         facebook::fboss::RouterID,
-        std::vector<folly::CIDRNetwork>>& toDel,
+        std::vector<
+            std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>>>&
+        toDel,
     const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie) {
   ribTables_.updateRemoteInterfaceRoutes(

@@ -109,6 +109,14 @@ std::shared_ptr<Interface> makeRemoteIntf(
   intf->setScope(cfg::Scope::GLOBAL);
   return intf;
 }
+
+bool toDelContainsPrefix(
+    const std::vector<PrefixWithIntf>& toDel,
+    const folly::CIDRNetwork& prefix) {
+  return std::find_if(toDel.begin(), toDel.end(), [&prefix](const auto& entry) {
+           return entry.first == prefix;
+         }) != toDel.end();
+}
 } // namespace
 
 template <uint16_t NumRemoteAsics, bool SubscribePatch>
@@ -1679,8 +1687,8 @@ TYPED_TEST(DsfSubscriptionTest, RouteDeleteCancelsRouteAdd) {
     EXPECT_NE(toAdd.find(prefixY_v4), toAdd.end());
     EXPECT_NE(toAdd.find(prefixY_v6), toAdd.end());
     auto& toDel = remoteIntfRoutesToDel[RouterID(0)];
-    EXPECT_NE(std::find(toDel.begin(), toDel.end(), prefixX_v4), toDel.end());
-    EXPECT_NE(std::find(toDel.begin(), toDel.end(), prefixX_v6), toDel.end());
+    EXPECT_TRUE(toDelContainsPrefix(toDel, prefixX_v4));
+    EXPECT_TRUE(toDelContainsPrefix(toDel, prefixX_v6));
   }
 
   // Removed RIF 6043: delete routes (prefix Y)
@@ -1765,8 +1773,8 @@ TYPED_TEST(DsfSubscriptionTest, RouteAddCancelsRouteDelete) {
   // Verify intermediate state: prefix X in toDel
   {
     auto& toDel = remoteIntfRoutesToDel[RouterID(0)];
-    EXPECT_NE(std::find(toDel.begin(), toDel.end(), prefixX_v4), toDel.end());
-    EXPECT_NE(std::find(toDel.begin(), toDel.end(), prefixX_v6), toDel.end());
+    EXPECT_TRUE(toDelContainsPrefix(toDel, prefixX_v4));
+    EXPECT_TRUE(toDelContainsPrefix(toDel, prefixX_v6));
   }
 
   // Added RIF 6043: add routes (prefix X)
@@ -1797,10 +1805,10 @@ TYPED_TEST(DsfSubscriptionTest, RouteAddCancelsRouteDelete) {
   // Having prefix X in both toAdd and toDel would cause the delete to win
   // (RIB processes adds first, then deletes), removing the route entirely.
   auto& toDel = remoteIntfRoutesToDel[RouterID(0)];
-  EXPECT_EQ(std::find(toDel.begin(), toDel.end(), prefixX_v4), toDel.end())
+  EXPECT_FALSE(toDelContainsPrefix(toDel, prefixX_v4))
       << "Route delete for 42.42.42.100/31 should have been cancelled "
       << "because the add for RIF 6043 will replace the route";
-  EXPECT_EQ(std::find(toDel.begin(), toDel.end(), prefixX_v6), toDel.end())
+  EXPECT_FALSE(toDelContainsPrefix(toDel, prefixX_v6))
       << "Route delete for 42::100/127 should have been cancelled "
       << "because the add for RIF 6043 will replace the route";
 }

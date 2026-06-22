@@ -230,7 +230,9 @@ class RibRouteTables {
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
       const boost::container::flat_map<
           facebook::fboss::RouterID,
-          std::vector<folly::CIDRNetwork>>& toDel,
+          std::vector<
+              std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>>>&
+          toDel,
       const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
 
@@ -517,7 +519,9 @@ class RoutingInformationBase {
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
       const boost::container::flat_map<
           facebook::fboss::RouterID,
-          std::vector<folly::CIDRNetwork>>& toDel,
+          std::vector<
+              std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>>>&
+          toDel,
       const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
 
