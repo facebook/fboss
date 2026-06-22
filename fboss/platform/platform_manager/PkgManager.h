@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
@@ -9,6 +12,8 @@
 DECLARE_bool(enable_pkg_mgmnt);
 DECLARE_bool(reload_kmods);
 DECLARE_string(local_rpm_path);
+DECLARE_int32(kmod_unload_retries);
+DECLARE_int32(kmod_unload_retry_backoff_s);
 
 namespace facebook::fboss::platform::platform_manager {
 namespace package_manager {
@@ -71,6 +76,10 @@ class PkgManager {
   std::string getKmodsRpmName() const;
   std::string getKmodsRpmBaseWithKernelName() const;
   void closeWatchdogs() const;
+  // Makes a single pass over the BSP and shared kmods, unloading each one that
+  // is currently loaded. Returns false as soon as an unload fails, so the
+  // caller can retry the whole pass.
+  bool unloadKmodsOnce(const BspKmodsFile& bspKmodsFile) const;
 
   const PlatformConfig& platformConfig_;
   const std::shared_ptr<package_manager::SystemInterface> systemInterface_;
