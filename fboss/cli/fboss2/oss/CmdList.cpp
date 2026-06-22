@@ -18,6 +18,11 @@
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedPrePolicy.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedRejected.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/CmdShowBgpNeighborsByName.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejected.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejectedCrf.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejected.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejectedCrf.h"
 #include "fboss/cli/fboss2/commands/show/bgp/nexthopinfo/CmdShowBgpNexthopInfo.h"
 #include "fboss/cli/fboss2/commands/show/bgp/policy/CmdShowBgpPolicy.h"
 #include "fboss/cli/fboss2/commands/show/bgp/profiler/CmdShowBgpProfiler.h"
@@ -115,6 +120,33 @@ const CommandTree& kBaseAdditionalCommandTree() {
            "Show BGP neighbor by session ID",
            commandHandler<CmdBgpNeighborsSessionId>,
            argTypeHandler<CmdBgpNeighborsSessionIdTraits>}}},
+
+        {"neighbors-by-name",
+         "Show BGP neighbor information by name regex match",
+         commandHandler<CmdShowBgpNeighborsByName>,
+         argTypeHandler<CmdShowBgpNeighborsByNameTraits>,
+         {{"advertised",
+           "Routes advertised to matching peers",
+           {{"rejected",
+             "Rejected routes grouped by prefix",
+             commandHandler<BgpNeighborsByNameAdvertisedRejected>,
+             argTypeHandler<BgpNeighborsByNameAdvertisedRejectedTraits>,
+             {{"crf",
+               "Show only CRF-rejected routes",
+               commandHandler<BgpNeighborsByNameAdvertisedRejectedCrf>,
+               argTypeHandler<
+                   BgpNeighborsByNameAdvertisedRejectedCrfTraits>}}}}},
+          {"received",
+           "Routes received from matching peers",
+           {{"rejected",
+             "Rejected routes grouped by prefix",
+             commandHandler<BgpNeighborsByNameReceivedRejected>,
+             argTypeHandler<BgpNeighborsByNameReceivedRejectedTraits>,
+             {{"crf",
+               "Show only CRF-rejected routes",
+               commandHandler<BgpNeighborsByNameReceivedRejectedCrf>,
+               argTypeHandler<
+                   BgpNeighborsByNameReceivedRejectedCrfTraits>}}}}}}},
 
         {"nexthopinfo",
          "Show nexthop information for a given IP",

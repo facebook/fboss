@@ -609,6 +609,16 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/bgp/policy/CmdShowBgpPolicy.cpp
   fboss/cli/fboss2/commands/show/bgp/updategroup/CmdShowBgpUpdateGroup.h
   fboss/cli/fboss2/commands/show/bgp/updategroup/CmdShowBgpUpdateGroup.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/CmdShowBgpNeighborsByName.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/CmdShowBgpNeighborsByName.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejected.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejected.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejectedCrf.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejectedCrf.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejected.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejected.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejectedCrf.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejectedCrf.cpp
   fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h
   fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.cpp
   fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.h
@@ -705,6 +715,7 @@ target_link_libraries(fboss2_lib
   bgp_summary_cpp2
   bgp_config_cpp2
   bgp_update_group_cpp2
+  bgp_attr_cpp2
   show_acl_model
   show_agent_model
   show_aggregateport_model
