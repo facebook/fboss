@@ -3,6 +3,7 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_agent")
@@ -363,6 +364,7 @@ python_unittest(
     srcs = [
         "facebook/tests/test_process_known_bad_test.py",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":process_known_bad_test_lib",
         "//libfb/py/asyncio:tasks",
