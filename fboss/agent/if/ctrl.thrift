@@ -725,6 +725,10 @@ struct AclEntryThrift {
   22: optional byte lookupClassL2;
   23: optional bool enabled;
   24: optional list<string> udfGroups;
+  /*
+   * Match on internal traffic class (post-DSCP-to-TC classification).
+   */
+  25: optional byte tc;
 }
 
 struct AclTableThrift {

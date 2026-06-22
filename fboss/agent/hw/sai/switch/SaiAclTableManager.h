@@ -33,6 +33,7 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
+struct SaiNextHopGroupHandle;
 struct SaiHostifUserDefinedTrapHandle;
 
 using SaiAclTable = SaiObject<SaiAclTableTraits>;
@@ -82,6 +83,8 @@ struct SaiAclEntryHandle {
   std::shared_ptr<SaiHostifUserDefinedTrapHandle> userDefinedTrap;
   std::shared_ptr<SaiAclCounter> aclCounter;
   std::shared_ptr<SaiObject<SaiTunnelEncapNextHopTraits>> tunnelEncapNextHop;
+  std::shared_ptr<SaiNextHopGroupHandle> srv6PbrNextHopGroup;
+  std::shared_ptr<SaiNextHopGroupHandle> routeDstNextHopGroup;
   std::shared_ptr<SaiAclEntry> aclEntry;
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
   std::optional<std::string> ingressMirror;
@@ -113,6 +116,7 @@ class SaiAclTableManager {
    * Thus, match all mask is  0b111111 i.e. 0x3F.
    */
   static auto constexpr kDscpMask = 0x3F;
+  static auto constexpr kTcMask = 0xFF;
 
   static auto constexpr kMaxUdfGroups = 5;
 

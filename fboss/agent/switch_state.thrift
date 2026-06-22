@@ -269,6 +269,7 @@ struct AclEntryFields {
   33: optional switch_config.Range l4DstPortRange;
   34: optional byte trafficClass;
   35: optional string namedNextHopGroup;
+  36: optional switch_config.RedirectNextHop routeDst;
 }
 
 enum NeighborState {

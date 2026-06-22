@@ -40,11 +40,15 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
     SAI_ATTR_MAP(AclTable, FieldIcmpV6Type),
     SAI_ATTR_MAP(AclTable, FieldIcmpV6Code),
     SAI_ATTR_MAP(AclTable, FieldDscp),
+    SAI_ATTR_MAP(AclTable, FieldTc),
     SAI_ATTR_MAP(AclTable, FieldDstMac),
     SAI_ATTR_MAP(AclTable, FieldIpType),
     SAI_ATTR_MAP(AclTable, FieldTtl),
     SAI_ATTR_MAP(AclTable, FieldFdbDstUserMeta),
     SAI_ATTR_MAP(AclTable, FieldRouteDstUserMeta),
+#if defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST)
+    SAI_ATTR_MAP(AclTable, FieldRouteDst),
+#endif
     SAI_ATTR_MAP(AclTable, FieldNeighborDstUserMeta),
     SAI_ATTR_MAP(AclTable, AvailableEntry),
     SAI_ATTR_MAP(AclTable, AvailableCounter),
@@ -118,11 +122,15 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, FieldIcmpV6Type),
     SAI_ATTR_MAP(AclEntry, FieldIcmpV6Code),
     SAI_ATTR_MAP(AclEntry, FieldDscp),
+    SAI_ATTR_MAP(AclEntry, FieldTc),
     SAI_ATTR_MAP(AclEntry, FieldDstMac),
     SAI_ATTR_MAP(AclEntry, FieldIpType),
     SAI_ATTR_MAP(AclEntry, FieldTtl),
     SAI_ATTR_MAP(AclEntry, FieldFdbDstUserMeta),
     SAI_ATTR_MAP(AclEntry, FieldRouteDstUserMeta),
+#if defined(FBOSS_SAI_ACL_FIELD_ROUTE_DST)
+    SAI_ATTR_MAP(AclEntry, FieldRouteDst),
+#endif
     SAI_ATTR_MAP(AclEntry, FieldNeighborDstUserMeta),
     SAI_ATTR_MAP(AclEntry, FieldEthertype),
     SAI_ATTR_MAP(AclEntry, FieldOuterVlanId),

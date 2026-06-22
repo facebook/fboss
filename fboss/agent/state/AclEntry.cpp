@@ -84,6 +84,12 @@ std::set<cfg::AclTableQualifier> AclEntry::getRequiredAclTableQualifiers()
   if (getDscp()) {
     qualifiers.insert(cfg::AclTableQualifier::DSCP);
   }
+  if (getTrafficClass()) {
+    qualifiers.insert(cfg::AclTableQualifier::TC);
+  }
+  if (getRouteDst()) {
+    qualifiers.insert(cfg::AclTableQualifier::ROUTE_DST);
+  }
   if (getIpType()) {
     qualifiers.insert(cfg::AclTableQualifier::IP_TYPE);
   }

@@ -663,6 +663,16 @@ struct AclEntry {
   35: optional list<AclUdfEntry> udfTable;
 
   36: optional Range l4DstPortRange;
+  /*
+   * Match on internal traffic class (post-DSCP-to-TC classification).
+   * Requires AclTableQualifier::TC on the ACL table.
+   */
+  37: optional byte tc;
+  /*
+   * Match on route destination NH/NHG (SAI FIELD_ROUTE_DST). For SRv6 PBR,
+   * use SRV6_ENCAP RedirectNextHop matching the gold route next-hop group.
+   */
+  38: optional RedirectNextHop routeDst;
 }
 
 enum AclTableActionType {
