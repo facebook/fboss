@@ -2,6 +2,7 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_platform")
@@ -116,6 +117,7 @@ cpp_unittest(
     srcs = [
         "RuntimeConfigBuilderTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":bsp_test_environment",
         "//fboss/platform/config_lib:config_lib",

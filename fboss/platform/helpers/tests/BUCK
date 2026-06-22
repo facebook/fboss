@@ -8,6 +8,7 @@ cpp_unittest(
     srcs = [
         "PlatformNameLibTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fb303:service_data",
         "//fboss/platform/helpers:mock_platform_fs_utils",
@@ -23,6 +24,7 @@ cpp_unittest(
     srcs = [
         "PlatformFsUtilsTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/helpers:platform_fs_utils",
         "//folly:file_util",
