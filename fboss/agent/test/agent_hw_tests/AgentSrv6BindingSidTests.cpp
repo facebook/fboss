@@ -38,6 +38,12 @@ struct AggregatePortBindingSid {
 using Srv6BindingSidPortTypes =
     ::testing::Types<PhysicalPortBindingSid, AggregatePortBindingSid>;
 
+// Drop-counter expectations for multiHopUnresolvedToResolved only.
+enum class BindingSidDropCounterExpectation {
+  kNullEcmpNhg,
+  kOpenrNbrUnresolved,
+};
+
 template <typename PortType>
 class AgentSrv6BindingSidTest : public AgentHwTest {
  protected:
@@ -470,6 +476,79 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     }
   }
 
+  void assertBindingSidDropWithCounterExpectation(
+      PortID injectPort,
+      const std::vector<PortID>& egressPorts,
+      bool isV4,
+      BindingSidDropCounterExpectation expectation,
+      std::optional<folly::IPAddressV6> outerDst = std::nullopt,
+      const std::string& phase = "") {
+    XLOG(DBG2) << "assertBindingSidDropWithCounterExpectation: phase="
+               << (phase.empty() ? "unspecified" : phase)
+               << " inner=" << (isV4 ? "v4" : "v6") << " inject port "
+               << injectPort << " outerDst="
+               << (outerDst.has_value() ? outerDst->str() : "default");
+    auto injectStatsBefore = this->getLatestPortStats(injectPort);
+    std::map<PortID, int64_t> egressBytesBefore;
+    for (const auto& port : egressPorts) {
+      egressBytesBefore[port] = *this->getLatestPortStats(port).outBytes_();
+    }
+
+    sendBindingSidPacket(false, isV4, injectPort, outerDst);
+
+    WITH_RETRIES({
+      auto injectStatsAfter = this->getLatestPortStats(injectPort);
+      const auto inDiscardsRawDelta = *injectStatsAfter.inDiscardsRaw_() -
+          *injectStatsBefore.inDiscardsRaw_();
+      const auto inDstNullDiscardsDelta =
+          *injectStatsAfter.inDstNullDiscards_() -
+          *injectStatsBefore.inDstNullDiscards_();
+      const auto inDiscardsDelta =
+          *injectStatsAfter.inDiscards_() - *injectStatsBefore.inDiscards_();
+      const auto inSrv6MySidDiscardsDelta =
+          injectStatsAfter.inSrv6MySidDiscards_().value_or(0) -
+          injectStatsBefore.inSrv6MySidDiscards_().value_or(0);
+      XLOG(INFO) << "assertBindingSidDropWithCounterExpectation stats"
+                 << " phase=" << (phase.empty() ? "unspecified" : phase)
+                 << " inject port=" << injectPort
+                 << " inner=" << (isV4 ? "v4" : "v6")
+                 << " inDiscardsRaw delta=" << inDiscardsRawDelta
+                 << " inDstNullDiscards delta=" << inDstNullDiscardsDelta
+                 << " inDiscards delta=" << inDiscardsDelta
+                 << " inSrv6MySidDiscards delta=" << inSrv6MySidDiscardsDelta;
+      EXPECT_EVENTUALLY_GT(
+          *injectStatsAfter.inDiscardsRaw_(),
+          *injectStatsBefore.inDiscardsRaw_());
+      if (expectation == BindingSidDropCounterExpectation::kNullEcmpNhg) {
+        EXPECT_EVENTUALLY_GT(
+            injectStatsAfter.inSrv6MySidDiscards_().value_or(0),
+            injectStatsBefore.inSrv6MySidDiscards_().value_or(0));
+        EXPECT_EVENTUALLY_GT(
+            *injectStatsAfter.inDiscards_(), *injectStatsBefore.inDiscards_());
+      } else {
+        EXPECT_EVENTUALLY_GT(
+            *injectStatsAfter.inDstNullDiscards_(),
+            *injectStatsBefore.inDstNullDiscards_());
+      }
+      for (auto port : egressPorts) {
+        auto egressBytesAfter = *this->getLatestPortStats(port).outBytes_();
+        EXPECT_EVENTUALLY_EQ(egressBytesAfter, egressBytesBefore[port]);
+      }
+    });
+  }
+
+  void verifyBindingSidDropFrontPanelWithCounterExpectation(
+      const std::vector<PortID>& egressPorts,
+      BindingSidDropCounterExpectation expectation,
+      std::optional<folly::IPAddressV6> outerDst = std::nullopt,
+      const std::string& phase = "") {
+    auto injectPort = findInjectPort(egressPorts);
+    for (bool isV4 : {false, true}) {
+      assertBindingSidDropWithCounterExpectation(
+          injectPort, egressPorts, isV4, expectation, outerDst, phase);
+    }
+  }
+
   void addEncapRouteToBindingSid(
       const folly::CIDRNetwork& prefix,
       const folly::IPAddressV6& bindingSidAddr) {
@@ -823,12 +902,22 @@ TYPED_TEST(AgentSrv6BindingSidTest, multiHopUnresolvedToResolved) {
         this->getEgressPort(ecmpHelper.nhop(0).portDesc),
         this->getEgressPort(ecmpHelper.nhop(1).portDesc)};
 
-    // Phase 1: Add OpenR routes (BGP routes now resolve recursively),
-    // but neighbors are still unresolved — packets should be dropped.
-    this->programOpenrRoutes();
-    this->verifyBindingSidDropFrontPanel(egressPorts);
+    // Phase 1: BGP-only binding SID ECMP (OpenR removed) — null ECMP NHG.
+    this->verifyBindingSidDropFrontPanelWithCounterExpectation(
+        egressPorts,
+        BindingSidDropCounterExpectation::kNullEcmpNhg,
+        std::nullopt,
+        "setup_ecmp_null_no_openr");
 
-    // Phase 2: Resolve neighbors — forwarding should work.
+    // Phase 2: OpenR re-added, neighbors still unresolved.
+    this->programOpenrRoutes();
+    this->verifyBindingSidDropFrontPanelWithCounterExpectation(
+        egressPorts,
+        BindingSidDropCounterExpectation::kOpenrNbrUnresolved,
+        std::nullopt,
+        "setup_openr_added_nbr_unresolved");
+
+    // Phase 3: Resolve neighbors — forwarding should work.
     this->resolveNextHops(this->kNumNextHops);
   };
 
