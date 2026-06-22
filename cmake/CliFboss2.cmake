@@ -607,6 +607,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/bgp/profiler/CmdShowBgpProfiler.cpp
   fboss/cli/fboss2/commands/show/bgp/policy/CmdShowBgpPolicy.h
   fboss/cli/fboss2/commands/show/bgp/policy/CmdShowBgpPolicy.cpp
+  fboss/cli/fboss2/commands/show/bgp/updategroup/CmdShowBgpUpdateGroup.h
+  fboss/cli/fboss2/commands/show/bgp/updategroup/CmdShowBgpUpdateGroup.cpp
   fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h
   fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.cpp
   fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.h
@@ -702,6 +704,7 @@ target_link_libraries(fboss2_lib
   bgp_thrift_cpp2
   bgp_summary_cpp2
   bgp_config_cpp2
+  bgp_update_group_cpp2
   show_acl_model
   show_agent_model
   show_aggregateport_model

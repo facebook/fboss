@@ -36,6 +36,7 @@
 #include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.h"
 #include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.h"
 #include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.h"
+#include "fboss/cli/fboss2/commands/show/bgp/updategroup/CmdShowBgpUpdateGroup.h"
 #include "fboss/cli/fboss2/commands/show/config/CmdShowConfigHistoryAgent.h"
 #include "fboss/cli/fboss2/commands/show/config/CmdShowConfigRunningAgent.h"
 #include "fboss/cli/fboss2/commands/show/config/CmdShowConfigTraits.h"
@@ -203,6 +204,11 @@ const CommandTree& kBaseAdditionalCommandTree() {
            "Show BGP routes by prefix",
            commandHandler<CmdShowBgpTablePrefix>,
            argTypeHandler<CmdShowBgpTablePrefixTraits>}}},
+
+        {"update-group",
+         "Show update-group details",
+         commandHandler<CmdShowBgpUpdateGroup>,
+         argTypeHandler<CmdShowBgpUpdateGroupTraits>},
 
         {"version",
          "Show BGP version",
