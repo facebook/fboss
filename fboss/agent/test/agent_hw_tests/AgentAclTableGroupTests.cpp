@@ -3,6 +3,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/agent_hw_test_ctrl_types.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
@@ -33,16 +34,23 @@ class AgentAclTableGroupTest : public AgentHwTest {
   }
 
  protected:
+  // Ebro (wedge400c) derives the shared ACL key profile from the first table,
+  // so the first table must carry every qualifier used across the group.
+  bool isEbroAsic() const {
+    return checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+               ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO;
+  }
+
   void addAclTable1(cfg::SwitchConfig& cfg) {
     std::vector<cfg::AclTableQualifier> qualifiers = {
         cfg::AclTableQualifier::DSCP};
     std::vector<cfg::AclTableActionType> actions = {
         cfg::AclTableActionType::PACKET_ACTION,
         cfg::AclTableActionType::COUNTER};
-#if defined(TAJO_SDK_GTE_24_8_3001)
-    qualifiers.push_back(cfg::AclTableQualifier::TTL);
-    actions.push_back(cfg::AclTableActionType::COUNTER);
-#endif
+    if (isEbroAsic()) {
+      qualifiers.push_back(cfg::AclTableQualifier::TTL);
+      actions.push_back(cfg::AclTableActionType::COUNTER);
+    }
     utility::addAclTable(
         &cfg, kAclTable1(), 1 /* priority */, actions, qualifiers);
   }
@@ -187,9 +195,9 @@ class AgentAclTableGroupTest : public AgentHwTest {
       qualifiers.push_back(cfg::AclTableQualifier::OUTER_VLAN);
     }
 
-#if defined(TAJO_SDK_GTE_24_8_3001)
-    qualifiers.push_back(cfg::AclTableQualifier::TTL);
-#endif
+    if (isEbroAsic()) {
+      qualifiers.push_back(cfg::AclTableQualifier::TTL);
+    }
 
     utility::addAclTable(
         newCfg,
@@ -234,9 +242,9 @@ class AgentAclTableGroupTest : public AgentHwTest {
       qualifiers.push_back(cfg::AclTableQualifier::OUTER_VLAN);
     }
 
-#if defined(TAJO_SDK_GTE_24_8_3001)
-    qualifiers.push_back(cfg::AclTableQualifier::TTL);
-#endif
+    if (isEbroAsic()) {
+      qualifiers.push_back(cfg::AclTableQualifier::TTL);
+    }
 
     utility::addAclTable(
         newCfg,
