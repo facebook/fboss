@@ -1124,6 +1124,23 @@ void populateSwitchInfo(
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
       auto dsfNode = dsfNodeConfig(*firstHwAsic, switchId, platformType);
       dsfNode.name() = folly::sformat("hwTestSwitch{}", deviceSwitchId);
+      if (platformType == PlatformType::PLATFORM_SAINTPAUL &&
+          hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
+        dsfNode.systemPortRanges() = *switchInfo.systemPortRanges();
+        if (switchInfo.localSystemPortOffset().has_value()) {
+          dsfNode.localSystemPortOffset() = *switchInfo.localSystemPortOffset();
+        }
+        if (switchInfo.globalSystemPortOffset().has_value()) {
+          dsfNode.globalSystemPortOffset() =
+              *switchInfo.globalSystemPortOffset();
+        }
+        if (switchInfo.inbandPortId().has_value()) {
+          dsfNode.inbandPortId() = *switchInfo.inbandPortId();
+        }
+        if (switchInfo.switchMac().has_value()) {
+          dsfNode.nodeMac() = *switchInfo.switchMac();
+        }
+      }
       newDsfNodes.insert({switchId, std::move(dsfNode)});
     }
   }
