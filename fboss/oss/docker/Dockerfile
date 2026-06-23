@@ -57,6 +57,8 @@ RUN if [ "$FBOSS_META_ENV" = "1" ]; then \
 # must use the same Python version consistently.
 RUN dnf install -y python3.12 python3.12-devel python3.12-pip && \
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 100
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -sf /usr/bin/pip3.12 /usr/bin/pip
 
 # Necessary for using update-alternatives.
 RUN rpm -e binutils --nodeps
@@ -116,7 +118,7 @@ RUN git clone https://github.com/yaml/libyaml.git && \
 RUN dnf install -y perl-diagnostics perl-sort perl-English perl-Clone perl-Data-Compare \
     perl-List-MoreUtils perl-Moose perl-YAML perl-namespace-autoclean perl-JSON-XS perl-FindBin \
     perl-Math-BigInt perl-YAML-LibYAML perl-Sys-Hostname perl-Time
-RUN ln -s /usr/bin/python3 /usr/bin/python
+
 # ============================================================
 COPY ${GITHUB_ROOT}/requirements-dev.txt /tmp/requirements-dev.txt
 RUN python3 -m pip install -r /tmp/requirements-dev.txt && rm /tmp/requirements-dev.txt
