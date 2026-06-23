@@ -2081,12 +2081,14 @@ void ThriftHandler::getRouteTableByClient(
   ensureConfigured(__func__);
   auto state = sw_->getState();
   forAllRoutes(
-      state, [&routes, client](const RouterID& /*rid*/, const auto& route) {
+      state,
+      [&routes, &state, client](const RouterID& /*rid*/, const auto& route) {
         auto entry = route->getEntryForClient(ClientID(client));
         if (!entry) {
           return;
         }
-        auto nextHops = util::fromRouteNextHopSet(entry->getNextHopSet());
+        auto nextHops =
+            util::fromRouteNextHopSet(getClientNextHops(state, *entry));
         std::vector<network::thrift::BinaryAddress> nextHopAddrs;
         for (const auto& nh : nextHops) {
           nextHopAddrs.emplace_back(*nh.address());
