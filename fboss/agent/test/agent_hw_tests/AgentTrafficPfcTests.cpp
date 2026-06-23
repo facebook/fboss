@@ -45,6 +45,7 @@ static const std::vector<int> kLossyPgIds{0};
 static constexpr auto kNonIdentityPcp{0};
 static constexpr auto kNonIdentityTrafficClass{2};
 static constexpr auto kNonIdentityPgId{2};
+static constexpr auto kNonIdentityPfcPriority{0};
 static const auto kTxForVlanForChenab = facebook::fboss::VlanID(4094);
 
 // On DNX, PFC deadlock cannot be triggered by our test, instead we have to
@@ -1596,5 +1597,32 @@ class AgentTrafficPfcNonIdentityMapTest : public AgentTrafficPfcGenTest {
     }
   }
 };
+
+TEST_F(AgentTrafficPfcNonIdentityMapTest, verifyPfcWithNonIdentityMap) {
+  auto ports = masterLogicalInterfacePortIds();
+  const PortID& injectPort = ports[0];
+  const PortID& txOffPort = ports[1];
+  auto cfg = getNonIdentityPfcConfig(injectPort, txOffPort);
+  auto setup = [&]() {
+    applyNewConfig(cfg);
+    // Ensure counters are 0 before we start traffic.
+    validateInitPfcCounters({injectPort}, kNonIdentityPfcPriority);
+  };
+  auto verify = [&]() {
+    // Disable TX on the forwarding port so its queue/PG builds up.
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPort, false);
+    pumpL2PriorityTaggedTraffic(kNonIdentityPcp, injectPort);
+    // PFC must be generated on the mapped priority (not the traffic class) and
+    // the mapped lossless PG shared buffer must fill on the inject port.
+    validateNonIdentityPfc(
+        injectPort, kNonIdentityPfcPriority, kNonIdentityPgId);
+    // Re-enable TX so the queued traffic drains, then confirm it egressed the
+    // mapped queue. The egress queue equals the traffic class under the default
+    // 1:1 TC -> queue map.
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPort, true);
+    validateEgressQueueTraffic(txOffPort, kNonIdentityTrafficClass);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 } // namespace facebook::fboss
