@@ -311,6 +311,14 @@
             }
           ]
       },
+      "EOLO-138HG-5H-7B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.6"
+            }
+          ]
+      },
       "EOLO-138HG-5H-B": {
           "versions": [
             {
@@ -324,6 +332,14 @@
             {
               "fwType": 1,
               "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-E5HSD": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.6"
             }
           ]
       },
