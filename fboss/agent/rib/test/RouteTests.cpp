@@ -208,7 +208,7 @@ TEST(Route, addRouteWithSrv6NextHops) {
   auto v4Route = v4It->value();
   auto v4Nhops = v4Route->getEntryForClient(kClientA);
   ASSERT_TRUE(v4Nhops);
-  for (const auto& nh : v4Nhops->getNextHopSet()) {
+  for (const auto& nh : getClientNextHopsFromRib(&nhopIds, *v4Nhops)) {
     EXPECT_EQ(nh.srv6SegmentList(), segList);
     EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
     EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
@@ -262,7 +262,7 @@ TEST(Route, serializeRouteTableWithSrv6) {
   auto route = it->value();
   auto entry = route->getEntryForClient(kClientA);
   ASSERT_TRUE(entry);
-  const auto& nhops = entry->getNextHopSet();
+  auto nhops = getClientNextHopsFromRib(&nhopIds, *entry);
   ASSERT_EQ(nhops.size(), 1);
   const auto& nh = *nhops.begin();
   EXPECT_EQ(nh.srv6SegmentList(), segList);
@@ -275,7 +275,7 @@ TEST(Route, serializeRouteTableWithSrv6) {
   auto route2 = it2->value();
   auto entry2 = route2->getEntryForClient(kClientA);
   ASSERT_TRUE(entry2);
-  const auto& nhops2 = entry2->getNextHopSet();
+  auto nhops2 = getClientNextHopsFromRib(&nhopIds, *entry2);
   ASSERT_EQ(nhops2.size(), 1);
   const auto& nh2 = *nhops2.begin();
   EXPECT_TRUE(nh2.srv6SegmentList().empty());
@@ -355,7 +355,7 @@ TEST(Route, resolveEcmpRouteWithSrv6NextHops) {
   EXPECT_TRUE(route->isResolved());
 
   const auto& fwdInfo = route->getForwardInfo();
-  const auto& resolvedNhops = fwdInfo.getNextHopSet();
+  auto resolvedNhops = getResolvedNextHopsFromRib(&nhopIds, fwdInfo);
   ASSERT_EQ(resolvedNhops.size(), 2);
 
   for (const auto& nh : resolvedNhops) {
@@ -442,7 +442,7 @@ TEST(Route, resolveUcmpRouteWithSrv6NextHops) {
   EXPECT_TRUE(route->isResolved());
 
   const auto& fwdInfo = route->getForwardInfo();
-  const auto& resolvedNhops = fwdInfo.getNextHopSet();
+  auto resolvedNhops = getResolvedNextHopsFromRib(&nhopIds, fwdInfo);
   ASSERT_EQ(resolvedNhops.size(), 2);
 
   for (const auto& nh : resolvedNhops) {
@@ -518,7 +518,7 @@ TEST(Route, resolveV6RouteWithSrv6NextHops) {
   EXPECT_TRUE(route->isResolved());
 
   const auto& fwdInfo = route->getForwardInfo();
-  const auto& resolvedNhops = fwdInfo.getNextHopSet();
+  auto resolvedNhops = getResolvedNextHopsFromRib(&nhopIds, fwdInfo);
   ASSERT_EQ(resolvedNhops.size(), 1);
 
   const auto& nh = *resolvedNhops.begin();
@@ -591,7 +591,7 @@ TEST(Route, resolveEcmpMixedSrv6AndPlainNextHops) {
   EXPECT_TRUE(route->isResolved());
 
   const auto& fwdInfo = route->getForwardInfo();
-  const auto& resolvedNhops = fwdInfo.getNextHopSet();
+  auto resolvedNhops = getResolvedNextHopsFromRib(&nhopIds, fwdInfo);
   ASSERT_EQ(resolvedNhops.size(), 2);
 
   bool foundSrv6Nhop = false;
@@ -685,7 +685,7 @@ TEST(Route, resolveUcmpDistinctSrv6SegmentLists) {
   EXPECT_TRUE(route->isResolved());
 
   const auto& fwdInfo = route->getForwardInfo();
-  const auto& resolvedNhops = fwdInfo.getNextHopSet();
+  auto resolvedNhops = getResolvedNextHopsFromRib(&nhopIds, fwdInfo);
   // Both should be present as distinct nexthops
   ASSERT_EQ(resolvedNhops.size(), 2);
 
@@ -769,7 +769,8 @@ TEST(Route, resolveEcmpRouteWithCost) {
   auto route = it->value();
   EXPECT_TRUE(route->isResolved());
 
-  const auto& resolvedNhops = route->getForwardInfo().getNextHopSet();
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, route->getForwardInfo());
   ASSERT_EQ(resolvedNhops.size(), 2);
 
   for (const auto& nh : resolvedNhops) {
@@ -846,7 +847,8 @@ TEST(Route, resolveUcmpRouteWithCost) {
   auto route = it->value();
   EXPECT_TRUE(route->isResolved());
 
-  const auto& resolvedNhops = route->getForwardInfo().getNextHopSet();
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, route->getForwardInfo());
   ASSERT_EQ(resolvedNhops.size(), 2);
 
   for (const auto& nh : resolvedNhops) {
@@ -918,7 +920,8 @@ TEST(Route, resolveUcmpDistinctCosts) {
   auto route = it->value();
   EXPECT_TRUE(route->isResolved());
 
-  const auto& resolvedNhops = route->getForwardInfo().getNextHopSet();
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, route->getForwardInfo());
   ASSERT_EQ(resolvedNhops.size(), 2);
 
   bool foundCost100 = false;
@@ -989,7 +992,8 @@ TEST(Route, resolveMixedCostAndNoCost) {
   auto route = it->value();
   EXPECT_TRUE(route->isResolved());
 
-  const auto& resolvedNhops = route->getForwardInfo().getNextHopSet();
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, route->getForwardInfo());
   ASSERT_EQ(resolvedNhops.size(), 2);
 
   for (const auto& nh : resolvedNhops) {
@@ -1065,7 +1069,8 @@ TEST(Route, resolveRecursiveRouteWithCost) {
   auto route = it->value();
   EXPECT_TRUE(route->isResolved());
 
-  const auto& resolvedNhops = route->getForwardInfo().getNextHopSet();
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, route->getForwardInfo());
   ASSERT_EQ(resolvedNhops.size(), 1);
 
   const auto& nh = *resolvedNhops.begin();
@@ -1145,7 +1150,8 @@ TEST(Route, resolveRecursiveUcmpRouteWithCost) {
   auto route = it->value();
   EXPECT_TRUE(route->isResolved());
 
-  const auto& resolvedNhops = route->getForwardInfo().getNextHopSet();
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, route->getForwardInfo());
   ASSERT_EQ(resolvedNhops.size(), 2);
 
   for (const auto& nh : resolvedNhops) {
@@ -1220,7 +1226,8 @@ TEST(Route, resolveRecursiveEcmpIntermediateCostDropped) {
   ASSERT_NE(v6Routes.end(), intIt);
   auto intRoute = intIt->value();
   EXPECT_TRUE(intRoute->isResolved());
-  for (const auto& nh : intRoute->getForwardInfo().getNextHopSet()) {
+  for (const auto& nh :
+       getResolvedNextHopsFromRib(&nhopIds, intRoute->getForwardInfo())) {
     EXPECT_TRUE(nh.cost().has_value());
   }
 
@@ -1243,7 +1250,8 @@ TEST(Route, resolveRecursiveEcmpIntermediateCostDropped) {
   auto route = it->value();
   EXPECT_TRUE(route->isResolved());
 
-  const auto& resolvedNhops = route->getForwardInfo().getNextHopSet();
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, route->getForwardInfo());
   ASSERT_EQ(resolvedNhops.size(), 2);
 
   // Intermediate costs (333, 444) are not inherited — the immediate next
@@ -1317,7 +1325,8 @@ TEST(Route, resolveRecursiveUcmpIntermediateCostDropped) {
   ASSERT_NE(v6Routes.end(), intIt);
   auto intRoute = intIt->value();
   EXPECT_TRUE(intRoute->isResolved());
-  for (const auto& nh : intRoute->getForwardInfo().getNextHopSet()) {
+  for (const auto& nh :
+       getResolvedNextHopsFromRib(&nhopIds, intRoute->getForwardInfo())) {
     EXPECT_TRUE(nh.cost().has_value());
   }
 
@@ -1340,7 +1349,8 @@ TEST(Route, resolveRecursiveUcmpIntermediateCostDropped) {
   auto route = it->value();
   EXPECT_TRUE(route->isResolved());
 
-  const auto& resolvedNhops = route->getForwardInfo().getNextHopSet();
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, route->getForwardInfo());
   ASSERT_EQ(resolvedNhops.size(), 2);
 
   // Intermediate costs (111, 222) are not inherited — the immediate next
@@ -1435,14 +1445,16 @@ TEST(Route, resolveRecursiveSrv6WithIntermediateLinkLocalCost) {
   auto covDIt = v6Routes.exactMatch(IPAddressV6("fdad:ff02:10b::d:0"), 112);
   ASSERT_NE(v6Routes.end(), covDIt);
   EXPECT_TRUE(covDIt->value()->isResolved());
-  for (const auto& nh : covDIt->value()->getForwardInfo().getNextHopSet()) {
+  for (const auto& nh : getResolvedNextHopsFromRib(
+           &nhopIds, covDIt->value()->getForwardInfo())) {
     EXPECT_TRUE(nh.cost().has_value());
   }
 
   auto covCIt = v6Routes.exactMatch(IPAddressV6("fdad:ff02:10b::c:0"), 112);
   ASSERT_NE(v6Routes.end(), covCIt);
   EXPECT_TRUE(covCIt->value()->isResolved());
-  for (const auto& nh : covCIt->value()->getForwardInfo().getNextHopSet()) {
+  for (const auto& nh : getResolvedNextHopsFromRib(
+           &nhopIds, covCIt->value()->getForwardInfo())) {
     EXPECT_TRUE(nh.cost().has_value());
   }
 
@@ -1486,7 +1498,8 @@ TEST(Route, resolveRecursiveSrv6WithIntermediateLinkLocalCost) {
   auto route = it->value();
   EXPECT_TRUE(route->isResolved());
 
-  const auto& resolvedNhops = route->getForwardInfo().getNextHopSet();
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, route->getForwardInfo());
   ASSERT_EQ(resolvedNhops.size(), 4);
 
   int segListACount = 0;
@@ -1564,7 +1577,8 @@ TEST(Route, resolveRecursiveSrv6OpenrRouteChange) {
     auto it = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
     ASSERT_NE(v6Routes.end(), it);
     EXPECT_TRUE(it->value()->isResolved());
-    const auto& resolved = it->value()->getForwardInfo().getNextHopSet();
+    auto resolved =
+        getResolvedNextHopsFromRib(&nhopIds, it->value()->getForwardInfo());
     ASSERT_EQ(resolved.size(), 2);
     std::set<InterfaceID> intfs;
     for (const auto& nh : resolved) {
@@ -1597,7 +1611,8 @@ TEST(Route, resolveRecursiveSrv6OpenrRouteChange) {
   auto it = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
   ASSERT_NE(v6Routes.end(), it);
   EXPECT_TRUE(it->value()->isResolved());
-  const auto& resolvedNhops = it->value()->getForwardInfo().getNextHopSet();
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, it->value()->getForwardInfo());
   ASSERT_EQ(resolvedNhops.size(), 2);
 
   std::set<InterfaceID> intfs;
