@@ -372,61 +372,67 @@ void addDefaultAclTable(
         qualifiers,
         udfGroups);
   } else if (isQumran4dOrJericho4) {
+    auto aclMetadataQualifierSupported =
+        asic->isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER);
+    std::vector<cfg::AclTableQualifier> ipv4Qualifiers = {
+        cfg::AclTableQualifier::DST_MAC,
+        cfg::AclTableQualifier::ETHER_TYPE,
+        cfg::AclTableQualifier::IP_TYPE,
+        cfg::AclTableQualifier::SRC_IPV4,
+        cfg::AclTableQualifier::DST_IPV4,
+        cfg::AclTableQualifier::SRC_PORT,
+        cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+        cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::L4_SRC_PORT,
+        cfg::AclTableQualifier::L4_DST_PORT,
+        cfg::AclTableQualifier::TCP_FLAGS,
+        cfg::AclTableQualifier::ICMPV4_TYPE,
+        cfg::AclTableQualifier::ICMPV4_CODE,
+    };
+    std::vector<cfg::AclTableQualifier> ipv6Qualifiers = {
+        cfg::AclTableQualifier::SRC_IPV6,
+        cfg::AclTableQualifier::DST_IPV6,
+        cfg::AclTableQualifier::IP_TYPE,
+        cfg::AclTableQualifier::SRC_PORT,
+        // NOTE (Q4D/J4): OUT_PORT (FIELD_OUT_PORT) intentionally omitted.
+        // It is not part of the shared DNX supported-qualifier set
+        // (jericho3Qualifiers, used by J3/J4/Q4D) and no ACL entry matches
+        // on egress out-port. On Q4D 16.x a table created with
+        // FIELD_OUT_PORT=true reads back FIELD_OUT_PORT=false on
+        // get_acl_table_attribute, which breaks warmboot/rollback
+        // reconciliation (set -> NOT IMPLEMENTED -> recreate ->
+        // OBJECT IN USE -> crash). J3AI never hits this because its table
+        // is built from the supported-qualifier set, which omits OUT_PORT.
+        cfg::AclTableQualifier::IPV6_NEXT_HEADER,
+        cfg::AclTableQualifier::ETHER_TYPE,
+        cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::L4_SRC_PORT,
+        cfg::AclTableQualifier::L4_DST_PORT,
+        cfg::AclTableQualifier::TCP_FLAGS,
+        cfg::AclTableQualifier::ICMPV6_TYPE,
+        cfg::AclTableQualifier::ICMPV6_CODE,
+    };
+    if (aclMetadataQualifierSupported) {
+      ipv4Qualifiers.push_back(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR);
+      ipv4Qualifiers.push_back(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE);
+      ipv6Qualifiers.push_back(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR);
+      ipv6Qualifiers.push_back(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE);
+    }
     addAclTable(
         &cfg,
         cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
         0 /* priority */,
         actions,
-        {
-            cfg::AclTableQualifier::DST_MAC,
-            cfg::AclTableQualifier::ETHER_TYPE,
-            cfg::AclTableQualifier::IP_TYPE,
-            cfg::AclTableQualifier::SRC_IPV4,
-            cfg::AclTableQualifier::DST_IPV4,
-            cfg::AclTableQualifier::SRC_PORT,
-            cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
-            cfg::AclTableQualifier::DSCP,
-            cfg::AclTableQualifier::TTL,
-            cfg::AclTableQualifier::L4_SRC_PORT,
-            cfg::AclTableQualifier::L4_DST_PORT,
-            cfg::AclTableQualifier::TCP_FLAGS,
-            cfg::AclTableQualifier::ICMPV4_TYPE,
-            cfg::AclTableQualifier::ICMPV4_CODE,
-            cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
-            cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
-        },
+        ipv4Qualifiers,
         udfGroups);
     addAclTable(
         &cfg,
         kIpv6AclTable(),
         1 /* priority */,
         actions,
-        {
-            cfg::AclTableQualifier::SRC_IPV6,
-            cfg::AclTableQualifier::DST_IPV6,
-            cfg::AclTableQualifier::IP_TYPE,
-            cfg::AclTableQualifier::SRC_PORT,
-            // NOTE (Q4D/J4): OUT_PORT (FIELD_OUT_PORT) intentionally omitted.
-            // It is not part of the shared DNX supported-qualifier set
-            // (jericho3Qualifiers, used by J3/J4/Q4D) and no ACL entry matches
-            // on egress out-port. On Q4D 16.x a table created with
-            // FIELD_OUT_PORT=true reads back FIELD_OUT_PORT=false on
-            // get_acl_table_attribute, which breaks warmboot/rollback
-            // reconciliation (set -> NOT IMPLEMENTED -> recreate ->
-            // OBJECT IN USE -> crash). J3AI never hits this because its table
-            // is built from the supported-qualifier set, which omits OUT_PORT.
-            cfg::AclTableQualifier::IPV6_NEXT_HEADER,
-            cfg::AclTableQualifier::ETHER_TYPE,
-            cfg::AclTableQualifier::DSCP,
-            cfg::AclTableQualifier::TTL,
-            cfg::AclTableQualifier::L4_SRC_PORT,
-            cfg::AclTableQualifier::L4_DST_PORT,
-            cfg::AclTableQualifier::TCP_FLAGS,
-            cfg::AclTableQualifier::ICMPV6_TYPE,
-            cfg::AclTableQualifier::ICMPV6_CODE,
-            cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
-            cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
-        },
+        ipv6Qualifiers,
         udfGroups);
   } else if (!split) {
     addAclTable(
