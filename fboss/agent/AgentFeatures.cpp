@@ -560,3 +560,8 @@ DEFINE_bool(
     enable_acl_table_redirect_action,
     false,
     "Add redirect action type to ACL table");
+
+DEFINE_bool(
+    enable_pfc_priority_to_pg_map,
+    false,
+    "Enable programming the PFC priority to priority group QoS map on ports");

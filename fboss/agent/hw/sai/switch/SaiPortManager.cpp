@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/BufferUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/CounterUtils.h"
@@ -2883,6 +2884,13 @@ void SaiPortManager::setQosMapsOnPort(
               SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{mapping});
         }
         break;
+      case SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_PRIORITY_GROUP:
+        if (isPfcSupported && FLAGS_enable_pfc_priority_to_pg_map) {
+          port->setOptionalAttribute(
+              SaiPortTraits::Attributes::QosPfcPriorityToPriorityGroupMap{
+                  mapping});
+        }
+        break;
       default:
         throw FbossError("Unhandled qos map ", qosMapTypeToSaiId.first);
     }
@@ -2908,6 +2916,10 @@ SaiPortManager::getNullSaiIdsForQosMaps() {
     }
     if (qosMapHandle->pfcPriorityToQueueMap) {
       qosMaps.emplace_back(SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE, nullObjId);
+    }
+    if (qosMapHandle->pfcPriorityToPgMap) {
+      qosMaps.emplace_back(
+          SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_PRIORITY_GROUP, nullObjId);
     }
   }
 
@@ -2943,6 +2955,11 @@ SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
     qosMaps.emplace_back(
         SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE,
         qosMapHandle->pfcPriorityToQueueMap->adapterKey());
+  }
+  if (qosMapHandle->pfcPriorityToPgMap) {
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_PRIORITY_GROUP,
+        qosMapHandle->pfcPriorityToPgMap->adapterKey());
   }
   return qosMaps;
 }

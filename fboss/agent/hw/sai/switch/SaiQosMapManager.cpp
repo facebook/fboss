@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/QosMapApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -227,6 +228,28 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setPfcPriorityToQueueQosMap(
   return store.setObject(k, c);
 }
 
+std::shared_ptr<SaiQosMap> SaiQosMapManager::setPfcPriorityToPgQosMap(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  const auto& newPfcPriorityToPgMap = qosPolicy->getPfcPriorityToPgId();
+  std::vector<sai_qos_map_t> mapToValueList;
+  mapToValueList.reserve(newPfcPriorityToPgMap->size());
+  for (const auto& [pfcPriority, pg] : std::as_const(*newPfcPriorityToPgMap)) {
+    sai_qos_map_t mapping{};
+    mapping.key.prio = pfcPriority;
+    mapping.value.pg = pg->cref();
+    mapToValueList.push_back(mapping);
+  }
+  // set the pfcPriority->pg mapping in SAI
+  SaiQosMapTraits::Attributes::Type typeAttribute{
+      SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_PRIORITY_GROUP};
+  SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
+      mapToValueList};
+  auto& store = saiStore_->get<SaiQosMapTraits>();
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute, mapToValueListAttribute};
+  const SaiQosMapTraits::CreateAttributes& c = k;
+  return store.setObject(k, c);
+}
+
 void SaiQosMapManager::setQosMaps(
     const std::shared_ptr<QosPolicy>& newQosPolicy,
     bool isDefault) {
@@ -243,6 +266,12 @@ void SaiQosMapManager::setQosMaps(
     }
     if (newQosPolicy->getPfcPriorityToQueueId()) {
       handle->pfcPriorityToQueueMap = setPfcPriorityToQueueQosMap(newQosPolicy);
+    }
+    // Programming this map type in SAI is new and unsupported on some
+    // platforms, so it is gated behind a feature flag.
+    if (FLAGS_enable_pfc_priority_to_pg_map &&
+        newQosPolicy->getPfcPriorityToPgId()) {
+      handle->pfcPriorityToPgMap = setPfcPriorityToPgQosMap(newQosPolicy);
     }
     if (newQosPolicy->getPcpMap()) {
       handle->pcpToTcMap = setPcpToTcQosMap(newQosPolicy);
