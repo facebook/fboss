@@ -823,11 +823,14 @@ TYPED_TEST(AgentSrv6BindingSidTest, multiHopUnresolvedToResolved) {
         this->getEgressPort(ecmpHelper.nhop(0).portDesc),
         this->getEgressPort(ecmpHelper.nhop(1).portDesc)};
 
-    // Phase 1: Add OpenR routes (BGP routes now resolve recursively),
-    // but neighbors are still unresolved — packets should be dropped.
-    this->programOpenrRoutes();
+    // Phase 0: BGP routes are resolved to null route, so packets
+    // matching it will get discarded
     this->verifyBindingSidDropFrontPanel(egressPorts);
 
+    // Phase 1: Add OpenR routes (BGP routes now resolve recursively),
+    // but neighbors are still unresolved — packets will now get trapped
+    // to CPU.
+    this->programOpenrRoutes();
     // Phase 2: Resolve neighbors — forwarding should work.
     this->resolveNextHops(this->kNumNextHops);
   };
