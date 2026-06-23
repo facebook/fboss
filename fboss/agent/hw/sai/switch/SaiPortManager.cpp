@@ -13,6 +13,7 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/BufferUtils.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/PfcUtils.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/StatsConstants.h"
@@ -949,9 +950,8 @@ std::pair<sai_uint8_t, sai_uint8_t> SaiPortManager::preparePfcConfigs(
   if (pfc.has_value()) {
     sai_uint8_t enabledPriorities = 0; // Bitmap of enabled PFC priorities
     for (auto pri : swPort->getPfcPriorities()) {
-      enabledPriorities |= (1 << static_cast<PfcPriority>(pri));
+      enabledPriorities |= (1 << static_cast<int>(pri));
     }
-    // PFC is enabled for priorities specified in PG configs
     txPfc = (*pfc->tx()) ? enabledPriorities : 0;
     rxPfc = (*pfc->rx()) ? enabledPriorities : 0;
   }
@@ -1045,10 +1045,12 @@ void SaiPortManager::programPfcWatchdogPerQueueEnable(
   // Enabled PFC priorities cannot be changed without a cold boot
   // and hence in this flow, just take care of a case where PFC
   // WD is being enabled or disabled for queues.
-  for (auto pfcPri : enabledPfcPriorities) {
-    // Assume 1:1 mapping b/w pfcPriority and queueId
-    auto queueHandle =
-        getQueueHandle(swPort->getID(), static_cast<uint8_t>(pfcPri));
+  auto pfcPriorityToQueueId =
+      managerTable_->qosMapManager().getPfcPriorityToQueueId(
+          swPort->getQosPolicy());
+  for (auto queueId : utility::findPfcEnabledQueues(
+           enabledPfcPriorities, pfcPriorityToQueueId)) {
+    auto queueHandle = getQueueHandle(swPort->getID(), queueId);
     managerTable_->queueManager().queuePfcDeadlockDetectionRecoveryEnable(
         queueHandle, portPfcWdEnabled);
   }
@@ -1611,6 +1613,8 @@ void SaiPortManager::changeQueue(
   auto pitr = portStats_.find(swId);
   portHandle->configuredQueues.clear();
   const auto asic = platform_->getAsic();
+  auto enabledPfcQueues =
+      managerTable_->queueManager().getPfcEnabledQueues(swPort.get());
   for (auto newPortQueue : std::as_const(newQueueConfig)) {
     // Queue create or update
     SaiQueueConfig saiQueueConfig =
@@ -1652,7 +1656,11 @@ void SaiPortManager::changeQueue(
       throw FbossError("Reserved bytes, scaling factor setting not supported");
     }
     managerTable_->queueManager().changeQueue(
-        queueHandle, *portQueue, swPort.get(), swPort->getPortType());
+        queueHandle,
+        *portQueue,
+        swPort.get(),
+        swPort->getPortType(),
+        enabledPfcQueues);
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()
         : folly::to<std::string>("queue", newPortQueue->getID());

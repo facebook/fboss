@@ -257,6 +257,27 @@ TEST_F(QosMapManagerTest, pfcPriorityToPgQosMapProgrammedWhenEnabled) {
   EXPECT_EQ(gotPfcPriorityToPg, pfcPriorityToPg);
 }
 
+TEST_F(QosMapManagerTest, getPfcPriorityToQueueId) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qp = makeQosPolicy("default", testQosPolicy);
+  const std::map<int16_t, int16_t> pfcPriorityToQueue{{3, 7}, {4, 2}};
+  qp->setPfcPriorityToQueueIdMap(pfcPriorityToQueue);
+
+  saiManagerTable->qosMapManager().addQosMap(qp, true);
+  EXPECT_EQ(
+      saiManagerTable->qosMapManager().getPfcPriorityToQueueId(),
+      pfcPriorityToQueue);
+}
+
+TEST_F(QosMapManagerTest, getPfcPriorityToQueueIdEmptyWhenAbsent) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qp = makeQosPolicy("default", testQosPolicy);
+  // No pfcPriorityToQueueId on the policy => empty.
+  saiManagerTable->qosMapManager().addQosMap(qp, true);
+  EXPECT_TRUE(
+      saiManagerTable->qosMapManager().getPfcPriorityToQueueId().empty());
+}
+
 TEST_F(QosMapManagerTest, changAddsPortQos) {
   TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
   auto oldState = makeSwitchState(makeQosPolicy("qos", testQosPolicy));

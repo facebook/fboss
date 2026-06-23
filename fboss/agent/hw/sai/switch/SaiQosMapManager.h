@@ -18,6 +18,7 @@
 
 #include "folly/container/F14Map.h"
 
+#include <map>
 #include <memory>
 
 namespace facebook::fboss {
@@ -39,6 +40,8 @@ struct SaiQosMapHandle {
   std::shared_ptr<SaiQosMap> pfcPriorityToQueueMap;
   std::shared_ptr<SaiQosMap> pfcPriorityToPgMap;
   std::shared_ptr<SaiQosMap> tcToVoqMap;
+  // Cached state-side PFC priority -> queue id map (empty if unset).
+  std::map<int16_t, int16_t> pfcPriorityToQueueId;
   std::string name;
   bool isDefault;
 };
@@ -63,6 +66,11 @@ class SaiQosMapManager {
   SaiQosMapHandle* FOLLY_NULLABLE
   getQosMap(const std::optional<std::string>& qosPolicyName = std::nullopt);
   const SaiQosMapHandle* FOLLY_NULLABLE getQosMap(
+      const std::optional<std::string>& qosPolicyName = std::nullopt) const;
+
+  // PFC priority -> queue id map for the given (or default) QoS policy; empty
+  // if not found or unset.
+  std::map<int16_t, int16_t> getPfcPriorityToQueueId(
       const std::optional<std::string>& qosPolicyName = std::nullopt) const;
 
  private:

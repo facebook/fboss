@@ -266,6 +266,11 @@ void SaiQosMapManager::setQosMaps(
     }
     if (newQosPolicy->getPfcPriorityToQueueId()) {
       handle->pfcPriorityToQueueMap = setPfcPriorityToQueueQosMap(newQosPolicy);
+      // Cache the state-side map for getPfcPriorityToQueueId().
+      for (const auto& [pfcPriority, queue] :
+           std::as_const(*newQosPolicy->getPfcPriorityToQueueId())) {
+        handle->pfcPriorityToQueueId[pfcPriority] = queue->cref();
+      }
     }
     // Programming this map type in SAI is new and unsupported on some
     // platforms, so it is gated behind a feature flag.
@@ -359,5 +364,14 @@ SaiQosMapHandle* FOLLY_NULLABLE SaiQosMapManager::getQosMapImpl(
   }
   XLOG(DBG2) << "unable to find default QoS policy";
   return nullptr;
+}
+
+std::map<int16_t, int16_t> SaiQosMapManager::getPfcPriorityToQueueId(
+    const std::optional<std::string>& qosPolicyName) const {
+  auto handle = getQosMapImpl(qosPolicyName);
+  if (!handle) {
+    return {};
+  }
+  return handle->pfcPriorityToQueueId;
 }
 } // namespace facebook::fboss
