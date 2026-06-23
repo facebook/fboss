@@ -258,6 +258,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
+    case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
       return false;
   }
   return false;

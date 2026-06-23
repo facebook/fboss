@@ -239,6 +239,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
+    case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
       return false;
   }
   return false;

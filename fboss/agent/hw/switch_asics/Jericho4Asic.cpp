@@ -251,6 +251,7 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
+    case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
       return false;
   }
   return false;

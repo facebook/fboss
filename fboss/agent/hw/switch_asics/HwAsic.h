@@ -260,6 +260,7 @@ class HwAsic {
     SAI_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
     ECMP_DLB_OFFSET,
+    ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL,
 
     // MPLS Features::
     // ================

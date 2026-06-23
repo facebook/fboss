@@ -1,7 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
-#include "fboss/agent/AgentFeatures.h"
 
 namespace facebook::fboss {
 
@@ -102,6 +101,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
+    case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
