@@ -1291,8 +1291,8 @@ class AgentSflowMirrorWithLineRateTrafficTest
           portIds,
           losslessPgIds,
           lossyPgIds,
-          tcToPgOverride,
-          bufferParams);
+          bufferParams,
+          utility::PfcQosMapParams{.tcToPg = tcToPgOverride});
       // Make sure that traffic is going to loop for ever!
       utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), config);
       applyNewConfig(config);

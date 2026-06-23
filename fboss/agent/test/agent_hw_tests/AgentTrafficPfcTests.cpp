@@ -645,8 +645,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
         portIds,
         kLosslessPgIds,
         lossyPgIds,
-        tcToPgOverride,
-        testParams.buffer);
+        testParams.buffer,
+        utility::PfcQosMapParams{.tcToPg = tcToPgOverride});
     auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     if (isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL)) {
       utility::setupMultipleEgressPoolAndQueueConfigs(
@@ -836,13 +836,7 @@ class AgentTrafficPfcGenTest : public AgentTrafficPfcTest {
     PfcBufferParams buffer = defaultPfcBufferParams();
     buffer.scalingFactor = cfg::MMUScalingFactor::ONE_128TH;
     utility::setupPfcBuffers(
-        getAgentEnsemble(),
-        cfg,
-        {portId},
-        kLosslessPgIds,
-        kLossyPgIds,
-        {},
-        buffer);
+        getAgentEnsemble(), cfg, {portId}, kLosslessPgIds, kLossyPgIds, buffer);
 
     setupTxVlanForChenab(cfg, portId, kTxForVlanForChenab);
 

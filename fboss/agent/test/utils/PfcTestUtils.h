@@ -35,15 +35,15 @@ struct PfcBufferParams {
       int globalHeadroom = kGlobalHeadroomBytes);
 };
 
-void setupPfcBuffers(
-    const TestEnsembleIf* ensemble,
-    cfg::SwitchConfig& cfg,
-    const std::vector<PortID>& ports,
-    const std::vector<int>& losslessPgIds,
-    const std::vector<int>& lossyPgIds,
-    const std::map<int, int>& tcToPgOverride = {},
-    // Overrides the default identity pfcPriorityToPgId mapping.
-    const std::map<int, int>& pfcPriToPgOverride = {});
+// Overrides for the QoS maps programmed by the PFC setup helpers. Each map is
+// merged on top of the corresponding default identity mapping; specify only the
+// entries that differ.
+struct PfcQosMapParams {
+  // Traffic class -> priority group.
+  std::map<int, int> tcToPg;
+  // PFC priority -> priority group.
+  std::map<int, int> pfcPriToPg;
+};
 
 void setupPfcBuffers(
     const TestEnsembleIf* ensemble,
@@ -51,9 +51,16 @@ void setupPfcBuffers(
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
     const std::vector<int>& lossyPgIds,
-    const std::map<int, int>& tcToPgOverride,
+    const PfcQosMapParams& qosMapParams = {});
+
+void setupPfcBuffers(
+    const TestEnsembleIf* ensemble,
+    cfg::SwitchConfig& cfg,
+    const std::vector<PortID>& ports,
+    const std::vector<int>& losslessPgIds,
+    const std::vector<int>& lossyPgIds,
     PfcBufferParams buffer,
-    const std::map<int, int>& pfcPriToPgOverride = {});
+    const PfcQosMapParams& qosMapParams = {});
 
 void addPuntPfcPacketAcl(cfg::SwitchConfig& cfg, uint16_t queueId);
 

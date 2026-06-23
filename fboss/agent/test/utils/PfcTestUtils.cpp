@@ -30,8 +30,7 @@ namespace {
 void setupQosMapForPfc(
     cfg::QosMap& qosMap,
     bool isCpuQosMap,
-    const std::map<int, int>& tc2PgOverride = {},
-    const std::map<int, int>& pfcPri2PgOverride = {}) {
+    const PfcQosMapParams& qosMapParams = {}) {
   // update pfc maps
   std::map<int16_t, int16_t> tc2PgId;
   std::map<int16_t, int16_t> tc2QueueId;
@@ -52,10 +51,10 @@ void setupQosMapForPfc(
     pfcPri2QueueId.emplace(i, i);
   }
 
-  for (auto& tc2Pg : tc2PgOverride) {
+  for (auto& tc2Pg : qosMapParams.tcToPg) {
     tc2PgId[tc2Pg.first] = tc2Pg.second;
   }
-  for (auto& pfcPri2Pg : pfcPri2PgOverride) {
+  for (auto& pfcPri2Pg : qosMapParams.pfcPriToPg) {
     pfcPri2PgId[pfcPri2Pg.first] = pfcPri2Pg.second;
   }
 
@@ -76,8 +75,7 @@ void setupPfc(
     const TestEnsembleIf* ensemble,
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
-    const std::map<int, int>& tcToPgOverride,
-    const std::map<int, int>& pfcPriToPgOverride) {
+    const PfcQosMapParams& qosMapParams) {
   cfg::PortPfc pfc;
   pfc.tx() = true;
   pfc.rx() = true;
@@ -94,7 +92,7 @@ void setupPfc(
   // setup qosPolicy
   auto setupQosPolicy = [&](bool isCpuQosMap, const std::string& name) {
     cfg::QosMap qosMap;
-    setupQosMapForPfc(qosMap, isCpuQosMap, tcToPgOverride, pfcPriToPgOverride);
+    setupQosMapForPfc(qosMap, isCpuQosMap, qosMapParams);
     auto qosPolicy = cfg::QosPolicy();
     *qosPolicy.name() = name;
     qosPolicy.qosMap() = std::move(qosMap);
@@ -319,8 +317,7 @@ void setupPfcBuffers(
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
     const std::vector<int>& lossyPgIds,
-    const std::map<int, int>& tcToPgOverride,
-    const std::map<int, int>& pfcPriToPgOverride) {
+    const PfcQosMapParams& qosMapParams) {
   auto asicType = checkSameAndGetAsicType(cfg);
   setupPfcBuffers(
       ensemble,
@@ -328,9 +325,8 @@ void setupPfcBuffers(
       ports,
       losslessPgIds,
       lossyPgIds,
-      tcToPgOverride,
       PfcBufferParams::getPfcBufferParams(asicType),
-      pfcPriToPgOverride);
+      qosMapParams);
 }
 
 void setupPfcBuffers(
@@ -339,10 +335,9 @@ void setupPfcBuffers(
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
     const std::vector<int>& lossyPgIds,
-    const std::map<int, int>& tcToPgOverride,
     PfcBufferParams buffer,
-    const std::map<int, int>& pfcPriToPgOverride) {
-  setupPfc(ensemble, cfg, ports, tcToPgOverride, pfcPriToPgOverride);
+    const PfcQosMapParams& qosMapParams) {
+  setupPfc(ensemble, cfg, ports, qosMapParams);
 
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
   setupPortPgConfig(

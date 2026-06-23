@@ -76,7 +76,7 @@ class AgentPfcConfigTest : public AgentHwTest {
     auto buffer = utility::PfcBufferParams::getPfcBufferParams(
         getAgentEnsemble()->getL3Asics().front()->getAsicType());
     utility::setupPfcBuffers(
-        getAgentEnsemble(), cfg, ports, kLosslessPgs(), {}, {}, buffer);
+        getAgentEnsemble(), cfg, ports, kLosslessPgs(), {}, buffer);
 
     for (const auto& portID : ports) {
       auto portCfg = utility::findCfgPort(cfg, portID);
