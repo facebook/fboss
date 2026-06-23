@@ -15,7 +15,7 @@ _FSDB_SERVICE_FOR_TESTING = "fsdb_service_for_testing"
 # Introduce an oss version of fsdb_service to run in oss environment.
 _FSDB_SERVICE_OSS = "fsdb_service_oss"
 
-_FSDB_SERVICE_UNIT_FILE_PATH = f"/tmp/{_FSDB_SERVICE_OSS}.service"
+_FSDB_SERVICE_UNIT_FILE_PATH = f"/run/systemd/system/{_FSDB_SERVICE_OSS}.service"
 
 
 def _setup_fsdb_service(
