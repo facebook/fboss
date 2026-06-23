@@ -70,9 +70,12 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
       desiredFw.minorVersion() = 0;
       break;
     case PlatformType::PLATFORM_LADAKH800BCLS:
-      // PAI fw does not Firmware Minor version
-      desiredFw.version() = 0xE006;
-      desiredFw.versionStr() = "57350"; // 0xE006 = 57350 decimal
+    case PlatformType::PLATFORM_LEH800BCLS:
+      // PAI fw does not support Firmware Minor version
+      // Both Ladakh and Leh platforms are on PAI SDK 4.1 and expect 0xD003
+      // (from AGR3_1_1)
+      desiredFw.version() = 0xD003;
+      desiredFw.versionStr() = "53251"; // 0xD003 = 53251 decimal
       break;
     default:
       throw FbossError("No xphys to check FW version on");
