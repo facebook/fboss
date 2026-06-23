@@ -56,6 +56,7 @@ class PortStoreTest : public SaiStoreTest {
 #endif
         std::nullopt, // TC to Priority Group map
         std::nullopt, // PFC Priority to Queue map
+        std::nullopt, // PFC Priority to Priority Group map
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
         std::nullopt, // Inter Frame Gap
 #endif
