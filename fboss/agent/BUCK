@@ -444,6 +444,21 @@ cpp_library(
 )
 
 cpp_library(
+    name = "pfc_utils",
+    srcs = [
+        "PfcUtils.cpp",
+    ],
+    headers = [
+        "PfcUtils.h",
+    ],
+    exported_deps = [
+        ":buffer_utils",
+        ":fboss-types",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
     name = "dsfnode_utils",
     srcs = [
         "DsfNodeUtils.cpp",
