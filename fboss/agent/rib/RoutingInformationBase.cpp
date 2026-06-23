@@ -2137,4 +2137,22 @@ RouteNextHopSet getResolvedNextHopsFromRib(
   return entry.getNextHopSet();
 }
 
+RouteNextHopSet getNormalizedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry) {
+  if (FLAGS_resolve_nexthops_from_id) {
+    CHECK(FLAGS_enable_nexthop_id_manager)
+        << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
+    auto normalizedSetId = entry.getNormalizedResolvedNextHopSetID();
+    if (!normalizedSetId.has_value()) {
+      CHECK(entry.getAction() != RouteForwardAction::NEXTHOPS)
+          << "FLAGS_resolve_nexthops_from_id is on but NEXTHOPS-action "
+          << "entry has no normalizedResolvedNextHopSetID";
+      return {};
+    }
+    return getNextHopsFromRib(manager, NextHopSetID(*normalizedSetId));
+  }
+  return entry.nonOverrideNormalizedNextHops();
+}
+
 } // namespace facebook::fboss

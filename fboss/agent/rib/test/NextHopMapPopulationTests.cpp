@@ -1039,6 +1039,43 @@ TEST_F(NextHopMapPopulationTest, getNextHopsFromRibPrimitive) {
   EXPECT_THROW(getNextHopsFromRib(manager.get(), unknownId), FbossError);
 }
 
+// Verifies getNormalizedNextHopsFromRib: returns inline non-override
+// normalized nexthops when flag is off, resolves via manager
+// (normalizedResolvedNextHopSetID) when flag is on. For NEXTHOPS-action
+// entries the two paths produce the same set; DROP/TO_CPU entries return
+// empty in both paths.
+TEST_F(NextHopMapPopulationTest, getNormalizedNextHopsFromRibWrapper) {
+  auto updater = sw_->getRouteUpdater();
+  addV4RouteForClient(
+      updater, kClientA, "10.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  addV4DropRouteForClient(updater, kClientA, "10.4.0.0/24");
+  updater.program();
+
+  auto manager = sw_->getRib()->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  auto fibContainer = getFibInfo()->getFibContainerIf(kRid0);
+  ASSERT_NE(fibContainer, nullptr);
+  auto fibV4 = fibContainer->getFibV4();
+
+  auto runChecks = [&]() {
+    for (const auto& [_, route] : std::as_const(*fibV4)) {
+      const auto& fwd = route->getForwardInfo();
+      EXPECT_EQ(
+          getNormalizedNextHopsFromRib(manager.get(), fwd),
+          fwd.nonOverrideNormalizedNextHops());
+    }
+  };
+
+  // Flag OFF (test fixture default): returns inline normalized.
+  FLAGS_resolve_nexthops_from_id = false;
+  runChecks();
+
+  // Flag ON: resolves via manager. Must equal inline by invariant.
+  FLAGS_resolve_nexthops_from_id = true;
+  runChecks();
+  FLAGS_resolve_nexthops_from_id = false;
+}
+
 // Verifies getResolvedNextHopsFromRib: returns inline fwd nexthops when
 // flag is off, resolves via manager (resolvedNextHopSetID) when flag is
 // on, and returns empty for DROP/TO_CPU entries (no resolvedSetId).

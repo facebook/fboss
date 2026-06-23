@@ -712,4 +712,14 @@ RouteNextHopSet getResolvedNextHopsFromRib(
     const NextHopIDManager* manager,
     const RouteNextHopEntry& entry);
 
+// Resolve the non-override normalized nexthops from a RouteNextHopEntry
+// via the NextHopIDManager directly. Used by RIB-internal callers operating
+// before the state is published. When FLAGS_resolve_nexthops_from_id is on,
+// resolves via normalizedResolvedNextHopSetID against the manager. When
+// off, falls back to entry.nonOverrideNormalizedNextHops(). Companion to
+// FibHelpers::getNonOverrideNormalizedNextHops.
+RouteNextHopSet getNormalizedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry);
+
 } // namespace facebook::fboss
