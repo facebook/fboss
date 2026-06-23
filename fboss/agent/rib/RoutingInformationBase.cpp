@@ -1403,17 +1403,20 @@ std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
   synchronizedRouteTables_.withRLock([&](const auto& synchronizedRouteTables) {
     const auto it = synchronizedRouteTables.routerIDToRouteTable.find(rid);
     if (it != synchronizedRouteTables.routerIDToRouteTable.end()) {
+      auto* manager = synchronizedRouteTables.nextHopIDManager.get();
       for (auto rit = it->second.v4NetworkToRoute.begin();
            rit != it->second.v4NetworkToRoute.end();
            ++rit) {
-        routeDetails.emplace_back(rit->value()->toRouteDetails(
-            rit->value()->getForwardInfo().getNextHopSet()));
+        routeDetails.emplace_back(
+            rit->value()->toRouteDetails(getResolvedNextHopsFromRib(
+                manager, rit->value()->getForwardInfo())));
       }
       for (auto rit = it->second.v6NetworkToRoute.begin();
            rit != it->second.v6NetworkToRoute.end();
            ++rit) {
-        routeDetails.emplace_back(rit->value()->toRouteDetails(
-            rit->value()->getForwardInfo().getNextHopSet()));
+        routeDetails.emplace_back(
+            rit->value()->toRouteDetails(getResolvedNextHopsFromRib(
+                manager, rit->value()->getForwardInfo())));
       }
     }
   });
