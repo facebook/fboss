@@ -35,7 +35,7 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
     pkgconf pkgconf-m4 pkgconf-pkg-config redhat-rpm-config rpm-build rpm-sign strace \
     byacc diffstat intltool ltrace patchutils \
     pesign valgrind valgrind-devel \
-    bzip2 bzip2-devel cmake double-conversion double-conversion-devel gperf \
+    bzip2 bzip2-devel cmake gperf \
     libcurl-devel libcurl-minimal libdwarf libdwarf-devel libevent-devel \
     libffi libffi-devel libnghttp2 libnghttp2-devel libnl3 libnl3-devel \
     libsodium-devel libsodium-static libunwind libunwind-devel libusb libusb-devel \
