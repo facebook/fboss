@@ -2101,6 +2101,24 @@ RouteNextHopSet getNextHopsFromRib(
   return *nhops;
 }
 
+RouteNextHopSet getClientNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry) {
+  if (FLAGS_resolve_nexthops_from_id) {
+    CHECK(FLAGS_enable_nexthop_id_manager)
+        << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
+    auto clientSetId = entry.getClientNextHopSetID();
+    if (!clientSetId.has_value()) {
+      CHECK(entry.getNextHopSet().empty())
+          << "FLAGS_resolve_nexthops_from_id is on but per-client entry "
+          << "has nexthops and no clientNextHopSetID";
+      return {};
+    }
+    return getNextHopsFromRib(manager, NextHopSetID(*clientSetId));
+  }
+  return entry.getNextHopSet();
+}
+
 RouteNextHopSet getResolvedNextHopsFromRib(
     const NextHopIDManager* manager,
     const RouteNextHopEntry& entry) {

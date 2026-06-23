@@ -693,6 +693,16 @@ RouteNextHopSet getNextHopsFromRib(
     const NextHopIDManager* manager,
     NextHopSetID id);
 
+// Resolve per-client nexthops from a per-client RouteNextHopEntry via the
+// NextHopIDManager directly. Used by RIB-internal callers that operate
+// before the state is published. When FLAGS_resolve_nexthops_from_id is on,
+// resolves via clientNextHopSetID against the manager. When off, falls
+// back to entry.getNextHopSet(). Companion to the state-based overload
+// `getClientNextHops(state, entry)` in FibHelpers.h.
+RouteNextHopSet getClientNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry);
+
 // Resolve resolved-side (FIB-resolved) nexthops from a RouteNextHopEntry
 // via the NextHopIDManager directly. Used by RIB-internal callers operating
 // before the state is published. When FLAGS_resolve_nexthops_from_id is on,

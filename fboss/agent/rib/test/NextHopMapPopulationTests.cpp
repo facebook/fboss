@@ -1073,6 +1073,37 @@ TEST_F(NextHopMapPopulationTest, getResolvedNextHopsFromRibWrapper) {
   FLAGS_resolve_nexthops_from_id = false;
 }
 
+// Verifies getClientNextHopsFromRib: returns inline per-client nexthops
+// when flag is off, and resolves via manager (clientNextHopSetID) when flag
+// is on. Both paths must return the same set by invariant.
+TEST_F(NextHopMapPopulationTest, getClientNextHopsFromRibWrapper) {
+  auto updater = sw_->getRouteUpdater();
+  addV4RouteForClient(
+      updater, kClientA, "10.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  updater.program();
+
+  auto manager = sw_->getRib()->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  auto fibContainer = getFibInfo()->getFibContainerIf(kRid0);
+  ASSERT_NE(fibContainer, nullptr);
+  auto route =
+      fibContainer->getFibV4()->exactMatch(makePrefixV4("10.0.0.0/24"));
+  ASSERT_NE(route, nullptr);
+  auto entry = route->getEntryForClient(kClientA);
+  ASSERT_NE(entry, nullptr);
+
+  // Flag OFF (test fixture default): returns inline.
+  FLAGS_resolve_nexthops_from_id = false;
+  EXPECT_EQ(
+      getClientNextHopsFromRib(manager.get(), *entry), entry->getNextHopSet());
+
+  // Flag ON: resolves via manager. Must equal inline by invariant.
+  FLAGS_resolve_nexthops_from_id = true;
+  EXPECT_EQ(
+      getClientNextHopsFromRib(manager.get(), *entry), entry->getNextHopSet());
+  FLAGS_resolve_nexthops_from_id = false;
+}
+
 // Full mix: resolved + DROP + TO_CPU + unresolved + multi-client routes,
 // all in a single state. Exercises the unified verifier end-to-end.
 TEST_F(NextHopMapPopulationTest, MixedResolvedAndUnresolvedRoutes) {
