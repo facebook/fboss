@@ -220,6 +220,83 @@ TEST(PortPgConfig, TestStaticLimitBytesConfig) {
       pgCfgs->at(0)->cref<switch_state_tags::staticLimitBytes>()->cref());
 }
 
+namespace {
+// Build a config with one PFC port whose PG config has PG0 lossless (non-zero
+// headroom) and PG1 lossy. Optionally attach a default QoS policy carrying a
+// pfcPriorityToPgId map.
+cfg::SwitchConfig makePfcPgConfig(
+    const std::optional<std::map<int16_t, int16_t>>& pfcPriorityToPgId) {
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+
+  std::vector<cfg::PortPgConfig> portPgConfigs;
+  cfg::PortPgConfig pg0;
+  pg0.id() = 0;
+  pg0.headroomLimitBytes() = 1000; // non-zero headroom => lossless
+  portPgConfigs.emplace_back(pg0);
+  cfg::PortPgConfig pg1;
+  pg1.id() = 1; // no headroom => lossy
+  portPgConfigs.emplace_back(pg1);
+  std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
+  portPgConfigMap["foo"] = portPgConfigs;
+  config.portPgConfigs() = portPgConfigMap;
+
+  cfg::PortPfc pfc;
+  pfc.portPgConfigName() = "foo";
+  config.ports()[0].pfc() = pfc;
+
+  if (pfcPriorityToPgId) {
+    cfg::QosMap qosMap;
+    qosMap.pfcPriorityToPgId() = *pfcPriorityToPgId;
+    cfg::QosPolicy qosPolicy;
+    qosPolicy.name() = "qos";
+    qosPolicy.qosMap() = qosMap;
+    config.qosPolicies()->push_back(qosPolicy);
+    cfg::TrafficPolicyConfig dataPlane;
+    dataPlane.defaultQosPolicy() = "qos";
+    config.dataPlaneTrafficPolicy() = dataPlane;
+  }
+  return config;
+}
+} // namespace
+
+// With no pfcPriorityToPgId map, the producer falls back to identity: the
+// lossless PG id is stored directly as the PFC priority (legacy behavior).
+TEST(PortPgConfig, PfcPrioritiesIdentityWhenNoQosMap) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = makePfcPgConfig(std::nullopt);
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  // Only PG0 is lossless; identity => priority 0.
+  EXPECT_EQ(
+      stateV1->getPort(PortID(1))->getPfcPriorities(),
+      std::vector<PfcPriority>{PfcPriority(0)});
+
+  // Re-applying the identical config is a no-op: the pfcPriorities diff gate
+  // must not spuriously flip.
+  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
+}
+
+// With a non-identity pfcPriorityToPgId map, the stored value is the true PFC
+// priority whose mapped PG is lossless, not the PG id.
+TEST(PortPgConfig, PfcPrioritiesNonIdentityPgMap) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  // pfc priority 3 -> PG0 (lossless), 4 -> PG1 (lossy).
+  auto config = makePfcPgConfig(std::map<int16_t, int16_t>{{3, 0}, {4, 1}});
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  // Priority 3 maps to lossless PG0; priority 4 maps to lossy PG1 (excluded).
+  // The stored value is 3 (true priority), not 0 (PG id).
+  EXPECT_EQ(
+      stateV1->getPort(PortID(1))->getPfcPriorities(),
+      std::vector<PfcPriority>{PfcPriority(3)});
+}
+
 TEST(PortPgConfig, applyConfig) {
   int pgId = 0;
   auto platform = createMockPlatform();

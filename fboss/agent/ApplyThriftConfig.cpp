@@ -31,6 +31,7 @@
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/LoadBalancerUtils.h"
 #include "fboss/agent/MacTableUtils.h"
+#include "fboss/agent/PfcUtils.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
@@ -496,7 +497,8 @@ class ThriftConfigApplier {
       std::shared_ptr<PortQueue> newQueue,
       const cfg::PortQueue* cfg);
   std::optional<std::vector<int16_t>> findEnabledPfcPriorities(
-      PortPgConfigs& portPgConfigs);
+      PortPgConfigs& portPgConfigs,
+      const std::map<int16_t, int16_t>& pfcPriorityToPgId);
   std::shared_ptr<PortQueue> updatePortQueue(
       const std::shared_ptr<PortQueue>& orig,
       const cfg::PortQueue* cfg,
@@ -2532,23 +2534,20 @@ PortPgConfigs ThriftConfigApplier::updatePortPgConfigs(
 }
 
 std::optional<std::vector<int16_t>>
-ThriftConfigApplier::findEnabledPfcPriorities(PortPgConfigs& portPgCfgs) {
-  if (portPgCfgs.empty()) {
+ThriftConfigApplier::findEnabledPfcPriorities(
+    PortPgConfigs& portPgCfgs,
+    const std::map<int16_t, int16_t>& pfcPriorityToPgId) {
+  auto enabledPriorities =
+      utility::findPfcEnabledPriorities(portPgCfgs, pfcPriorityToPgId);
+  if (enabledPriorities.empty()) {
     return std::nullopt;
   }
-
-  std::vector<int16_t> tmpPfcPri;
-  for (auto& portPgCfg : portPgCfgs) {
-    // If we have non-zero value in headroom, then its a lossless PG
-    if (utility::isLosslessPg(*portPgCfg)) {
-      tmpPfcPri.push_back(static_cast<int16_t>(portPgCfg->getID()));
-    }
+  std::vector<int16_t> pfcPri;
+  pfcPri.reserve(enabledPriorities.size());
+  for (auto priority : enabledPriorities) {
+    pfcPri.push_back(static_cast<int16_t>(priority));
   }
-  if (tmpPfcPri.empty()) {
-    return std::nullopt;
-  }
-
-  return tmpPfcPri;
+  return pfcPri;
 }
 
 bool ThriftConfigApplier::isPortFlowletConfigUnchanged(
@@ -2905,11 +2904,13 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       validateUpdatePgBufferPoolName(
           portPgCfgs.value(), orig, *portPgConfigName);
 
-      /*
-       * Keep track of enabled pfcPriorities which are 1:1
-       * mapped to PG id.
-       */
-      newPfcPriorities = findEnabledPfcPriorities(portPgCfgs.value());
+      // Enabled PFC priorities; empty pfcPriorityToPgId => identity.
+      std::map<int16_t, int16_t> pfcPriorityToPgId;
+      if (qosMap && qosMap->pfcPriorityToPgId().has_value()) {
+        pfcPriorityToPgId = *qosMap->pfcPriorityToPgId();
+      }
+      newPfcPriorities =
+          findEnabledPfcPriorities(portPgCfgs.value(), pfcPriorityToPgId);
     } else if (!(*portPgConfigName).empty()) {
       throw FbossError(
           "Port: ",
