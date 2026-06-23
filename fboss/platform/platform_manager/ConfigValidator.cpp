@@ -1502,7 +1502,8 @@ bool ConfigValidator::isValidLedCtrlBlockXcvrCoverage(
   const auto& platformName = *config.platformName();
 
   // TODO: Remove once ladakh/leh ledCtrlBlockConfigs cover all xcvrs
-  if (platformName == "LADAKH800BCLS" || platformName == "LEH800BCLS") {
+  if (platformName == "LADAKH800BCLS" || platformName == "LEH800BCLS" ||
+      platformName == "LADAKH800BCLSM") {
     return true;
   }
 

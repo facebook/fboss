@@ -215,7 +215,8 @@ void XcvrLib::validateXcvrInfos() {
   const auto& platformName = *pmConfig_.platformName();
 
   // TODO: Remove once ladakh/lei ledCtrlBlockConfigs cover all xcvrs
-  if (platformName == "LADAKH800BCLS" || platformName == "LEH800BCLS") {
+  if (platformName == "LADAKH800BCLS" || platformName == "LEH800BCLS" ||
+      platformName == "LADAKH800BCLSM") {
     return;
   }
 

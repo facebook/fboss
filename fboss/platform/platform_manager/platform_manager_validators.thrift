@@ -64,6 +64,7 @@ const list<string> ALLOWED_PMUNIT_NAMES = [
   // This is for platforms reliant on NETLAKE BIOS.
   "ICECUBE_MCB",
   "LADAKH800BCLS_MCB",
+  "LADAKH800BCLSM_MCB",
   "LEH800BCLS_MCB",
   "MINIPACK3_MCB",
   "MINIPACK3M_MCB",
