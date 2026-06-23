@@ -1725,7 +1725,8 @@ TEST_F(RouteTest, withLabelForwardingAction) {
   expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
   EXPECT_EQ(route->has(kClientA, expectedEntry), true);
   auto entry = route->getBestEntry();
-  for (const auto& nh : entry.second->getNextHopSet()) {
+  for (const auto& nh :
+       getClientNextHops(this->sw_->getState(), *entry.second)) {
     EXPECT_EQ(nh.labelForwardingAction().has_value(), true);
     EXPECT_EQ(
         nh.labelForwardingAction()->type(),
@@ -2168,7 +2169,8 @@ TEST_F(RouteTest, withNoLabelForwardingAction) {
   routeNextHopEntry.setClientNextHopSetID(storedClientNextHopSetID);
   EXPECT_EQ(route->has(kClientA, routeNextHopEntry), true);
   auto entry = route->getBestEntry();
-  for (const auto& nh : entry.second->getNextHopSet()) {
+  for (const auto& nh :
+       getClientNextHops(this->sw_->getState(), *entry.second)) {
     EXPECT_EQ(nh.labelForwardingAction().has_value(), false);
   }
   EXPECT_EQ(*entry.second, routeNextHopEntry);
@@ -2858,7 +2860,8 @@ TEST_F(RouteTest, addRouteWithSingleSrv6NextHop) {
   auto rt = this->findRoute6(this->sw_->getState(), rid, "2800:1::/64");
   ASSERT_NE(nullptr, rt);
 
-  const auto& fwdNhops = rt->getBestEntry().second->getNextHopSet();
+  auto fwdNhops =
+      getClientNextHops(this->sw_->getState(), *rt->getBestEntry().second);
   ASSERT_EQ(fwdNhops.size(), 1);
   const auto& nh = *fwdNhops.begin();
   EXPECT_EQ(nh.addr(), folly::IPAddress("1::10"));
@@ -2908,7 +2911,8 @@ TEST_F(RouteTest, addRouteWithMultipleSrv6NextHops) {
   auto rt = this->findRoute6(this->sw_->getState(), rid, "2800:2::/64");
   ASSERT_NE(nullptr, rt);
 
-  const auto& fwdNhops = rt->getBestEntry().second->getNextHopSet();
+  auto fwdNhops =
+      getClientNextHops(this->sw_->getState(), *rt->getBestEntry().second);
   ASSERT_EQ(fwdNhops.size(), 2);
 
   for (const auto& nh : fwdNhops) {
@@ -2988,7 +2992,8 @@ TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
   auto rt = this->findRoute6(this->sw_->getState(), rid, "2800:3::/64");
   ASSERT_NE(nullptr, rt);
 
-  const auto& fwdNhops = rt->getBestEntry().second->getNextHopSet();
+  auto fwdNhops =
+      getClientNextHops(this->sw_->getState(), *rt->getBestEntry().second);
   ASSERT_EQ(fwdNhops.size(), 4);
 
   for (const auto& nh : fwdNhops) {
@@ -3061,7 +3066,7 @@ TEST_F(RouteTest, resolveRouteWithSrv6NextHopToMultipleResolvedNextHops) {
   ASSERT_NE(nullptr, rt);
   EXPECT_TRUE(rt->isResolved());
 
-  const auto& fwdNhops = rt->getForwardInfo().getNextHopSet();
+  auto fwdNhops = getNextHops(this->sw_->getState(), rt->getForwardInfo());
   ASSERT_EQ(2, fwdNhops.size());
 
   // Build expected resolved next hops with SRv6 fields
@@ -3211,7 +3216,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
   ASSERT_NE(nullptr, rt);
   EXPECT_TRUE(rt->isResolved());
 
-  const auto& fwdNhops = rt->getForwardInfo().getNextHopSet();
+  auto fwdNhops = getNextHops(this->sw_->getState(), rt->getForwardInfo());
   ASSERT_EQ(4, fwdNhops.size());
 
   RouteNextHopSet expectedNhops;
