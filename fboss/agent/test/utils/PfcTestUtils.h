@@ -41,7 +41,9 @@ void setupPfcBuffers(
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
     const std::vector<int>& lossyPgIds,
-    const std::map<int, int>& tcToPgOverride = {});
+    const std::map<int, int>& tcToPgOverride = {},
+    // Overrides the default identity pfcPriorityToPgId mapping.
+    const std::map<int, int>& pfcPriToPgOverride = {});
 
 void setupPfcBuffers(
     const TestEnsembleIf* ensemble,
@@ -50,7 +52,8 @@ void setupPfcBuffers(
     const std::vector<int>& losslessPgIds,
     const std::vector<int>& lossyPgIds,
     const std::map<int, int>& tcToPgOverride,
-    PfcBufferParams buffer);
+    PfcBufferParams buffer,
+    const std::map<int, int>& pfcPriToPgOverride = {});
 
 void addPuntPfcPacketAcl(cfg::SwitchConfig& cfg, uint16_t queueId);
 
