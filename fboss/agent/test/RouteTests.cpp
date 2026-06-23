@@ -543,6 +543,67 @@ TEST_F(RouteTest, resolve) {
   }
 }
 
+TEST_F(RouteTest, resolveV4AndV6BgpOverIpv6LinkLocalNextHops) {
+  const auto rid = RouterID(0);
+  const auto bgpV6Route = IPAddressV6("2000::1");
+  const auto bgpV4Route = IPAddressV4("200.10.0.0");
+  const std::array<IPAddressV6, 2> bgpNextHopAddrs{
+      IPAddressV6("fdad:db00::1"),
+      IPAddressV6("fdad:dbff::1"),
+  };
+  const auto linkLocalNextHopAddr = IPAddressV6("fe80:face:b00c::1");
+
+  RouteNextHopSet bgpNextHops;
+  for (const auto& bgpNextHopAddr : bgpNextHopAddrs) {
+    bgpNextHops.emplace(UnresolvedNextHop(bgpNextHopAddr, ECMP_WEIGHT));
+  }
+
+  RouteNextHopSet expectedLinkLocalNextHops;
+  for (const auto& intf : kInterfaces) {
+    expectedLinkLocalNextHops.emplace(
+        ResolvedNextHop(linkLocalNextHopAddr, intf, ECMP_WEIGHT));
+  }
+
+  auto updater = this->sw_->getRouteUpdater();
+  updater.addRoute(
+      rid,
+      bgpV6Route,
+      64,
+      ClientID::BGPD,
+      RouteNextHopEntry(bgpNextHops, DISTANCE));
+  updater.addRoute(
+      rid,
+      bgpV4Route,
+      24,
+      ClientID::BGPD,
+      RouteNextHopEntry(bgpNextHops, DISTANCE));
+  for (const auto& bgpNextHopAddr : bgpNextHopAddrs) {
+    updater.addRoute(
+        rid,
+        bgpNextHopAddr,
+        128,
+        ClientID::OPENR,
+        RouteNextHopEntry(
+            expectedLinkLocalNextHops, AdminDistance::DIRECTLY_CONNECTED));
+  }
+  updater.program();
+
+  const auto routeState = this->sw_->getState();
+  const auto& routeV6 =
+      findLongestMatchRoute(this->sw_->getRib(), rid, bgpV6Route, routeState);
+  EXPECT_RESOLVED(routeV6);
+  EXPECT_EQ(
+      expectedLinkLocalNextHops,
+      getNextHops(routeState, routeV6->getForwardInfo()));
+
+  const auto& routeV4 =
+      findLongestMatchRoute(this->sw_->getRib(), rid, bgpV4Route, routeState);
+  EXPECT_RESOLVED(routeV4);
+  EXPECT_EQ(
+      expectedLinkLocalNextHops,
+      getNextHops(routeState, routeV4->getForwardInfo()));
+}
+
 TEST_F(RouteTest, resolveDropToCPUMix) {
   auto rid = RouterID(0);
 
