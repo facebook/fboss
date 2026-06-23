@@ -23,7 +23,11 @@ class NextHopGroupStoreTest : public SaiStoreTest {
   NextHopGroupSaiId createNextHopGroup() {
     auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
     return nextHopGroupApi.create<SaiNextHopGroupTraits>(
-        {SAI_NEXT_HOP_GROUP_TYPE_ECMP, std::nullopt, std::nullopt}, 0);
+        {SAI_NEXT_HOP_GROUP_TYPE_ECMP,
+         std::nullopt,
+         std::nullopt,
+         std::nullopt},
+        0);
   }
 
   NextHopGroupSaiId createArsNextHopGroup(ArsSaiId arsSaiId) {
@@ -31,7 +35,8 @@ class NextHopGroupStoreTest : public SaiStoreTest {
     std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> arsObjectId{
         arsSaiId};
     return nextHopGroupApi.create<SaiNextHopGroupTraits>(
-        {SAI_NEXT_HOP_GROUP_TYPE_ECMP, arsObjectId, std::nullopt}, 0);
+        {SAI_NEXT_HOP_GROUP_TYPE_ECMP, arsObjectId, std::nullopt, std::nullopt},
+        0);
   }
 
   ArsSaiId createArs() {
@@ -219,7 +224,7 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupMemberLoadCtor) {
 TEST_F(NextHopGroupStoreTest, nextHopGroupCreateCtor) {
   SaiNextHopGroupTraits::AdapterHostKey k;
   SaiNextHopGroupTraits::CreateAttributes c{
-      SAI_NEXT_HOP_GROUP_TYPE_ECMP, std::nullopt, std::nullopt};
+      SAI_NEXT_HOP_GROUP_TYPE_ECMP, std::nullopt, std::nullopt, std::nullopt};
   auto obj = createObj<SaiNextHopGroupTraits>(k, c, 0);
 }
 
