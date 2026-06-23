@@ -1813,4 +1813,106 @@ TYPED_TEST(DsfSubscriptionTest, RouteAddCancelsRouteDelete) {
       << "because the add for RIF 6043 will replace the route";
 }
 
+TYPED_TEST(
+    DsfSubscriptionTest,
+    CrossSwitchRouteDeleteDoesNotRemoveOtherSwitchRoute) {
+  // Reproduce cross-switch stale route bug: when two remote switches swap
+  // interface prefixes and restart independently, the second switch's DSF
+  // update deletes the first switch's route because deletes only match by
+  // prefix, not interface ID.
+  //
+  // Symmetric swap scenario (3 DSF switches: A, B, C; C subscribes to both):
+  //   Initial: Switch A has intf 401 with prefix 100.0.0.0/24
+  //            Switch B has intf 402 with prefix 101.0.0.0/24
+  //   After:   Switch A has intf 401 with prefix 101.0.0.0/24 (was B's)
+  //            Switch B has intf 402 with prefix 100.0.0.0/24 (was A's)
+  //
+  // A's old = B's new, B's old = A's new. Whichever switch restarts
+  // second triggers the bug.
+  //
+  // On switch C, updates arrive as separate getUpdatedState() calls:
+  //   Call 1 (switch A restarts): changed intf 401 deletes 100/24, adds 101/24
+  //   Call 2 (switch B restarts): changed intf 402 deletes 101/24, adds 100/24
+  //
+  // Without the fix, call 2's delete of 101/24 removes switch A's newly
+  // added route (from call 1) because the RIB only matches by prefix.
+  // The fix carries InterfaceID in the delete entry so the RIB can verify
+  // ownership before deleting.
+
+  auto state = this->sw_->getState();
+
+  // --- Call 1: Switch A update (intf 401: 100/24 -> 101/24) ---
+  auto oldRifA = makeRemoteIntf(
+      InterfaceID(401),
+      folly::IPAddressV4("100.0.0.1"),
+      24,
+      folly::IPAddressV6("100::1"),
+      64);
+  auto newRifA = makeRemoteIntf(
+      InterfaceID(401),
+      folly::IPAddressV4("101.0.0.1"),
+      24,
+      folly::IPAddressV6("101::1"),
+      64);
+
+  IntfRouteTable toAddCall1;
+  RouterIDToPrefixes toDelCall1;
+
+  processRemoteInterfaceRoutes(oldRifA, state, false, toAddCall1, toDelCall1);
+  processRemoteInterfaceRoutes(newRifA, state, true, toAddCall1, toDelCall1);
+
+  auto prefix100_v4 = folly::IPAddress::createNetwork("100.0.0.0/24");
+  auto prefix101_v4 = folly::IPAddress::createNetwork("101.0.0.0/24");
+
+  // Verify call 1: add 101/24 for intf 401, delete 100/24 from intf 401
+  EXPECT_NE(
+      toAddCall1[RouterID(0)].find(prefix101_v4),
+      toAddCall1[RouterID(0)].end());
+  EXPECT_EQ(toAddCall1[RouterID(0)][prefix101_v4].first, InterfaceID(401));
+  EXPECT_TRUE(toDelContainsPrefix(toDelCall1[RouterID(0)], prefix100_v4));
+  // Verify the delete carries the correct interface ID
+  auto& delEntries1 = toDelCall1[RouterID(0)];
+  auto delIt1 = std::find_if(
+      delEntries1.begin(), delEntries1.end(), [&prefix100_v4](const auto& e) {
+        return e.first == prefix100_v4;
+      });
+  ASSERT_NE(delIt1, delEntries1.end());
+  EXPECT_EQ(delIt1->second, InterfaceID(401));
+
+  // --- Call 2: Switch B update (intf 402: 101/24 -> 100/24) ---
+  auto oldRifB = makeRemoteIntf(
+      InterfaceID(402),
+      folly::IPAddressV4("101.0.0.1"),
+      24,
+      folly::IPAddressV6("101::1"),
+      64);
+  auto newRifB = makeRemoteIntf(
+      InterfaceID(402),
+      folly::IPAddressV4("100.0.0.1"),
+      24,
+      folly::IPAddressV6("100::1"),
+      64);
+
+  IntfRouteTable toAddCall2;
+  RouterIDToPrefixes toDelCall2;
+
+  processRemoteInterfaceRoutes(oldRifB, state, false, toAddCall2, toDelCall2);
+  processRemoteInterfaceRoutes(newRifB, state, true, toAddCall2, toDelCall2);
+
+  // Verify call 2: add 100/24 for intf 402, delete 101/24 from intf 402
+  EXPECT_NE(
+      toAddCall2[RouterID(0)].find(prefix100_v4),
+      toAddCall2[RouterID(0)].end());
+  EXPECT_EQ(toAddCall2[RouterID(0)][prefix100_v4].first, InterfaceID(402));
+  EXPECT_TRUE(toDelContainsPrefix(toDelCall2[RouterID(0)], prefix101_v4));
+  // Verify the delete carries intf 402 (not 401)
+  auto& delEntries2 = toDelCall2[RouterID(0)];
+  auto delIt2 = std::find_if(
+      delEntries2.begin(), delEntries2.end(), [&prefix101_v4](const auto& e) {
+        return e.first == prefix101_v4;
+      });
+  ASSERT_NE(delIt2, delEntries2.end());
+  EXPECT_EQ(delIt2->second, InterfaceID(402));
+}
+
 } // namespace facebook::fboss
