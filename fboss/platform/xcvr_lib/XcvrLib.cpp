@@ -3,11 +3,38 @@
 #include "fboss/platform/xcvr_lib/XcvrLib.h"
 
 #include <fmt/format.h>
+#include <folly/Conv.h>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
+#include <folly/small_vector.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <string_view>
 #include "fboss/platform/config_lib/ConfigLib.h"
 
 namespace {
+
+// Returns true if the BSP RPM version string (validated upstream as
+// MAJOR.MINOR.PATCH-RELEASE) is >= the given major.minor.patch.
+bool bspVersionAtLeast(
+    const std::string& rpmVersion,
+    int major,
+    int minor,
+    int patch) {
+  folly::small_vector<std::string_view, 2> verAndRelease;
+  folly::split('-', rpmVersion, verAndRelease);
+  folly::small_vector<std::string_view, 3> nums;
+  if (!verAndRelease.empty()) {
+    folly::split('.', verAndRelease[0], nums);
+  }
+  if (nums.size() != 3) {
+    return false;
+  }
+  auto toInt = [](std::string_view s) {
+    return folly::tryTo<int>(s).value_or(0);
+  };
+  return std::tuple(toInt(nums[0]), toInt(nums[1]), toInt(nums[2])) >=
+      std::tuple(major, minor, patch);
+}
 
 facebook::fboss::platform::platform_manager::PlatformConfig getPMConfig(
     const std::string& platformName) {
@@ -77,9 +104,13 @@ int XcvrLib::getPresenceMask() const {
 
 int XcvrLib::getResetHoldHi() const {
   const auto& bspKmodsRpmName = *pmConfig_.bspKmodsRpmName();
-  if (bspKmodsRpmName == "arista_bsp_kmods" ||
-      bspKmodsRpmName == "cisco_bsp_kmods") {
+  // Arista BSPs flipped transceiver reset to active-high (resetHoldHi=1) as of
+  // the 0.7.25 kmods; only Cisco remains active-low.
+  if (bspKmodsRpmName == "cisco_bsp_kmods") {
     return 0;
+  }
+  if (bspKmodsRpmName == "arista_bsp_kmods") {
+    return bspVersionAtLeast(*pmConfig_.bspKmodsRpmVersion(), 0, 7, 25) ? 1 : 0;
   }
   return 1;
 }
