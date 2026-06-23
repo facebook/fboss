@@ -493,7 +493,8 @@
         105,
         89,
         87,
-        78
+        78,
+        116
     ],
     "tomahawkultra1": [
         2,
@@ -1107,7 +1108,8 @@
         "L4_DST_PORT_RANGE",
         "AM_IDLES",
         "UDF_HASH",
-        "ECMP_RANDOM_SPRAY"
+        "ECMP_RANDOM_SPRAY",
+        "PFC_NON_IDENTITY_PRIORITY_MAP"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
