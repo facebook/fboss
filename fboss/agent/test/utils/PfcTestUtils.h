@@ -35,6 +35,15 @@ struct PfcBufferParams {
       int globalHeadroom = kGlobalHeadroomBytes);
 };
 
+// Selects how ingress traffic is classified into traffic classes. Pcp
+// classifies by 802.1p priority and, because the two are mutually exclusive at
+// the QoS-map level, also suppresses the DSCP -> TC map (which would otherwise
+// bind switch-wide on platforms with global QoS maps and take precedence).
+enum class PfcIngressClassification {
+  Dscp,
+  Pcp,
+};
+
 // Overrides for the QoS maps programmed by the PFC setup helpers. Each map is
 // merged on top of the corresponding default identity mapping; specify only the
 // entries that differ.
@@ -43,6 +52,12 @@ struct PfcQosMapParams {
   std::map<int, int> tcToPg;
   // PFC priority -> priority group.
   std::map<int, int> pfcPriToPg;
+  // PFC priority -> queue.
+  std::map<int, int> pfcPriToQueue;
+  // How ingress traffic is classified into traffic classes.
+  PfcIngressClassification classification = PfcIngressClassification::Dscp;
+  // PCP (802.1p) -> traffic class (only used when classification is Pcp).
+  std::map<int, int> pcpToTc;
 };
 
 void setupPfcBuffers(
