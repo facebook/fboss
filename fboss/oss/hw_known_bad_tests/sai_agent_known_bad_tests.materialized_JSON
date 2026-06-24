@@ -18550,6 +18550,9 @@
           "test_name_regex": "AgentFlexPortTest.FlexPortFOURX25G$"
         },
         {
+          "test_name_regex": "AgentFlexPortTest.FlexPortONEX100G$"
+        },
+        {
           "test_name_regex": "AgentTest_PROFILE_25G_.*$"
         },
         {
@@ -18970,6 +18973,9 @@
         },
         {
           "test_name_regex": "AgentFlexPortTest.FlexPortFOURX25G$"
+        },
+        {
+          "test_name_regex": "AgentFlexPortTest.FlexPortONEX100G$"
         },
         {
           "test_name_regex": "AgentTest_PROFILE_25G_.*$"
