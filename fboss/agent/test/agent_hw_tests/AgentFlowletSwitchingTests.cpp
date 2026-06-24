@@ -798,6 +798,7 @@ class AgentFlowletWideArsSwitchingTest : public AgentFlowletSwitchingTest {
     const auto& platformPorts =
         ensemble.getSw()->getPlatformMapping()->getPlatformPorts();
     std::vector<PortID> ports;
+    const SwitchID currentSwitchId = getCurrentSwitchIdForTesting();
     for (const auto& [controllingPort, subPorts] : portsByControllingPort) {
       if (ports.size() >= kWideEcmpWidth) {
         break;
@@ -806,6 +807,10 @@ class AgentFlowletWideArsSwitchingTest : public AgentFlowletSwitchingTest {
       if (ctrlIt == platformPorts.end() ||
           *ctrlIt->second.mapping()->portType() !=
               cfg::PortType::INTERFACE_PORT) {
+        continue;
+      }
+      if (ensemble.scopeResolver().scope(PortID(controllingPort)).switchId() !=
+          currentSwitchId) {
         continue;
       }
       for (auto subPort : subPorts) {
@@ -818,6 +823,7 @@ class AgentFlowletWideArsSwitchingTest : public AgentFlowletSwitchingTest {
         ports.push_back(subPort);
       }
     }
+    CHECK_GE(ports.size(), kWideEcmpWidth);
     return ports;
   }
 
