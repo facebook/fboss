@@ -106,6 +106,7 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::VOQ:
+    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -127,7 +128,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
       return getAsicMode() == AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
-    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_LAG_HASH:
