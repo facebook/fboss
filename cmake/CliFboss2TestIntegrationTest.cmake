@@ -34,6 +34,7 @@ add_executable(fboss2_integration_test
   fboss/cli/fboss2/test/integration_test/ConfigVlanStaticMacTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanSwitchportAccessTest.cpp
   fboss/cli/fboss2/test/integration_test/DeleteInterfaceIpv6NdpTest.cpp
+  fboss/cli/fboss2/test/integration_test/TunnelIpInIpTest.cpp
   fboss/cli/fboss2/utils/CmdInitUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdInitUtils.cpp
 )

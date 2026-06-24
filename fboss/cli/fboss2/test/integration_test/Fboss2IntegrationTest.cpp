@@ -36,10 +36,14 @@
 #include <utility>
 #include <vector>
 
+#include <folly/IPAddressV6.h>
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/CmdArgsLists.h"
+#include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
+#include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/CmdInitUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -90,6 +94,10 @@ void Fboss2IntegrationTest::discardSession() const {
       XLOG(WARN) << "Failed to remove session metadata: " << ec.message();
     }
   }
+
+  // Reset the in-memory singleton so the next CLI command starts a fresh
+  // session from the current system config, not stale in-process state.
+  ConfigSession::resetInstance();
 }
 
 Fboss2IntegrationTest::Result Fboss2IntegrationTest::executeCliCommand(
@@ -620,6 +628,55 @@ folly::dynamic Fboss2IntegrationTest::getNdpConfig(
     }
   }
   return folly::dynamic::object();
+}
+
+int Fboss2IntegrationTest::ensureUnderlayIntfId(int vlanId) const {
+  auto& session = ConfigSession::getInstance();
+  auto& swConfig = *session.getAgentConfig().sw();
+  auto [created, vlan] = VlanManager::createVlan(swConfig, VlanID(vlanId));
+  // Pointer into swConfig.vlans() — do not hold across further mutations.
+  (void)vlan;
+
+  // VlanManager either created a new cfg::Interface for this VLAN or left
+  // an existing one in place. Either way, look it up by vlanID.
+  for (const auto& intf : *swConfig.interfaces()) {
+    if (*intf.vlanID() == vlanId) {
+      if (created) {
+        XLOG(INFO) << "Created VLAN " << vlanId << " with interface "
+                   << *intf.intfID() << " for tunnel underlay";
+        session.saveConfig();
+      }
+      return *intf.intfID();
+    }
+  }
+  throw std::runtime_error(
+      fmt::format(
+          "VlanManager did not produce a backing interface for VLAN {}",
+          vlanId));
+}
+
+std::string Fboss2IntegrationTest::findIpv6OnIntf(int intfId) const {
+  auto& session = ConfigSession::getInstance();
+  auto& swConfig = *session.getAgentConfig().sw();
+  for (const auto& intf : *swConfig.interfaces()) {
+    if (*intf.intfID() != intfId) {
+      continue;
+    }
+    for (const auto& addr : *intf.ipAddresses()) {
+      auto slashPos = addr.find('/');
+      std::string ip =
+          (slashPos != std::string::npos) ? addr.substr(0, slashPos) : addr;
+      if (folly::IPAddressV6::validate(ip)) {
+        return ip;
+      }
+    }
+    break;
+  }
+  // Test devices (e.g. NH-4010-F lab units) may have a virtual interface with
+  // no configured addresses. Fall back to a documentation IPv6 (RFC 3849) so
+  // tests still exercise the CLI path; the agent does not validate that dstIp
+  // exists on the underlay interface.
+  return "2001:db8::1";
 }
 
 } // namespace facebook::fboss

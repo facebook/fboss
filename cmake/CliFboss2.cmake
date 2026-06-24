@@ -975,6 +975,26 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.cpp
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.cpp
+  fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.cpp
+  fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.cpp
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/TunnelIpInIpConfigUtils.cpp
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/TunnelIpInIpConfigUtils.h
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.cpp
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.h
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/encap/CmdConfigTunnelIpInIpEncap.cpp
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/encap/CmdConfigTunnelIpInIpEncap.h
+  fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.cpp
+  fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.cpp
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/TunnelIpInIpDeleteUtils.cpp
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/TunnelIpInIpDeleteUtils.h
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.cpp
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.cpp
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.h
   fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.cpp
   fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h
   fboss/cli/fboss2/commands/config/vlan/CmdConfigVlanDefault.cpp

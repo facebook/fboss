@@ -102,6 +102,10 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/encap/CmdConfigTunnelIpInIpEncap.h"
 #include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h"
 #include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlanDefault.h"
 #include "fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h"
@@ -113,6 +117,10 @@
 #include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.h"
 
 namespace facebook::fboss {
 
@@ -826,6 +834,30 @@ const CommandTree& kConfigCommandTree() {
        commandHandler<CmdConfigRollback>,
        argRegistrar<CmdConfigRollbackTraits>},
 
+      {"config",
+       "tunnel",
+       "Configure tunnel settings",
+       commandHandler<CmdConfigTunnel>,
+       argTypeHandler<CmdConfigTunnelTraits>,
+       {{
+           "ip-in-ip",
+           "Configure IP-in-IP tunnel (use 'encap' or 'decap')",
+           commandHandler<CmdConfigTunnelIpInIp>,
+           argTypeHandler<CmdConfigTunnelIpInIpTraits>,
+           {{
+                "encap",
+                "Configure IP-in-IP encap tunnel",
+                commandHandler<CmdConfigTunnelIpInIpEncap>,
+                argRegistrar<CmdConfigTunnelIpInIpEncapTraits>,
+            },
+            {
+                "decap",
+                "Configure IP-in-IP decap tunnel",
+                commandHandler<CmdConfigTunnelIpInIpDecap>,
+                argRegistrar<CmdConfigTunnelIpInIpDecapTraits>,
+            }},
+       }}},
+
       {
           "config",
           "vlan",
@@ -906,6 +938,32 @@ const CommandTree& kConfigCommandTree() {
        "Delete config objects",
        commandHandler<CmdDeleteConfig>,
        argRegistrar<CmdDeleteConfigTraits>},
+
+      {"delete",
+       "tunnel",
+       "Delete (reset to default) tunnel settings",
+       commandHandler<CmdDeleteTunnel>,
+       argTypeHandler<CmdDeleteTunnelTraits>,
+       {{
+           "ip-in-ip",
+           "Delete IP-in-IP tunnel or reset its attributes (use 'encap' or "
+           "'decap')",
+           commandHandler<CmdDeleteTunnelIpInIp>,
+           argTypeHandler<CmdDeleteTunnelIpInIpTraits>,
+           {{
+                "encap",
+                "Delete IP-in-IP encap tunnel or reset its attributes",
+                commandHandler<CmdDeleteTunnelIpInIpEncap>,
+                argRegistrar<CmdDeleteTunnelIpInIpEncapTraits>,
+            },
+            {
+                "decap",
+                "Delete IP-in-IP decap tunnel or reset its attributes",
+                commandHandler<CmdDeleteTunnelIpInIpDecap>,
+                argRegistrar<CmdDeleteTunnelIpInIpDecapTraits>,
+            }},
+       }}},
+
   };
   sort(root.begin(), root.end());
   return root;
