@@ -84,6 +84,7 @@ class ConfigValidator {
       const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
       const std::string& slotType,
       const PmUnitConfig& pmUnitConfig);
+  bool isValidRtmCtrlBlockConfig(const RtmCtrlBlockConfig& rtmCtrlBlockConfig);
 
   // Used by other platform services config validation.
   virtual bool isValidSlotPath(
@@ -98,6 +99,7 @@ class ConfigValidator {
       const std::string& slotPath,
       const std::string& pmUnitName);
   int16_t numXcvrs_ = 0;
+  int16_t numRtms_ = 0;
 
  private:
   void buildDeviceNameCache(const PlatformConfig& platformConfig);

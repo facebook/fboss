@@ -816,6 +816,17 @@ void PlatformExplorer::explorePciDevices(
                   slotPath, *mdioBusConfig.pmUnitScopedName()),
               mdioBusSysfsPath);
         });
+    createPciSubDevices(
+        slotPath,
+        Utils::createRtmCtrlConfigs(pciDeviceConfig),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_RTM_CTRL,
+        [&](const auto& rtmCtrlConfig) {
+          auto devicePath = Utils().createDevicePath(
+              slotPath, *rtmCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName());
+          auto rtmCtrlSysfsPath =
+              pciExplorer_.createRtmCtrl(pciDevice, rtmCtrlConfig, instId++);
+          dataStore_.updateSysfsPath(devicePath, rtmCtrlSysfsPath);
+        });
   }
 }
 
@@ -884,6 +895,11 @@ void PlatformExplorer::createDeviceSymLink(
             devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
       }
       if (mdioBusName.starts_with("mdio_bus_ctrl")) {
+        targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
+      }
+    } else if (linkParentPath.string() == "/run/devmap/rtms") {
+      auto rtmName = linkPath.substr(linkParentPath.string().length() + 1);
+      if (rtmName.starts_with("rtm_ctrl")) {
         targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
       }
     } else {
