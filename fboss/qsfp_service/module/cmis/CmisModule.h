@@ -218,8 +218,9 @@ class CmisModule : public QsfpModule {
   // Check if the module is in READY state
   bool isModuleInReadyState();
 
-  // Poll until the module reaches READY state (up to 5s)
-  bool moduleReadyStatePoll();
+  // Poll until the module reaches READY state (up to 60s for tunable optics,
+  // else 5s)
+  bool moduleReadyStatePoll() override;
 
   // Read the datapath init max delay time from the module spec (in usec)
   std::optional<uint64_t> getDatapathMaxDelayFromModuleSpec(bool init);

@@ -163,27 +163,46 @@ PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
         pmUnitName);
     return platformConfig_.pmUnitConfigs()->at(pmUnitName);
   }
-  auto respinVariantIndicator = *version->respinVariantIndicator();
   if (platformConfig_.versionedPmUnitConfigs()->contains(pmUnitName)) {
     for (const auto& versionedPmUnitConfig :
          platformConfig_.versionedPmUnitConfigs()->at(pmUnitName)) {
-      if (*versionedPmUnitConfig.productSubVersion() ==
-          respinVariantIndicator) {
+      bool matches = false;
+      if (const auto& pmUvs = versionedPmUnitConfig.pmUnitVersions();
+          pmUvs && !pmUvs->empty()) {
+        for (const auto& pmUv : *pmUvs) {
+          if (*pmUv.productionState() == *version->productionState() &&
+              *pmUv.productionSubState() == *version->productionSubState() &&
+              *pmUv.respinVariantIndicator() ==
+                  *version->respinVariantIndicator()) {
+            matches = true;
+            break;
+          }
+        }
+      } else {
+        matches = versionedPmUnitConfig.productSubVersion() &&
+            *versionedPmUnitConfig.productSubVersion() ==
+                *version->respinVariantIndicator();
+      }
+      if (matches) {
         XLOG(INFO) << fmt::format(
-            "Resolved {} to PmUnitConfig of {} with RespinVariantIndicator {}",
+            "Resolved {} to versioned PmUnitConfig of {} with version {}.{}.{}",
             slotPath,
             pmUnitName,
-            respinVariantIndicator);
+            *version->productionState(),
+            *version->productionSubState(),
+            *version->respinVariantIndicator());
         return *versionedPmUnitConfig.pmUnitConfig();
       }
     }
   }
   XLOG(INFO) << fmt::format(
-      "Resolved {} to default PmUnitConfig of {}. No versioned config for "
-      "RespinVariantIndicator {}",
+      "Resolved {} to default PmUnitConfig of {}. No versioned config matches "
+      "version {}.{}.{}",
       slotPath,
       pmUnitName,
-      respinVariantIndicator);
+      *version->productionState(),
+      *version->productionSubState(),
+      *version->respinVariantIndicator());
   return platformConfig_.pmUnitConfigs()->at(pmUnitName);
 }
 

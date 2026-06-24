@@ -34,6 +34,7 @@
 
 #include <exception>
 #include <memory>
+#include <optional>
 #include <type_traits>
 #include <utility>
 
@@ -469,7 +470,9 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
     const RouterIDAndNetworkToInterfaceRoutes& toAdd,
     const boost::container::flat_map<
         facebook::fboss::RouterID,
-        std::vector<folly::CIDRNetwork>>& toDel,
+        std::vector<
+            std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>>>&
+        toDel,
     const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie) {
   auto makeNhop = [](const auto& interfaceIDAndAddr) {
@@ -482,6 +485,35 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
     return nextHop;
   };
 
+  auto routeIntfMatches = [](const auto& routeTable,
+                             const folly::CIDRNetwork& network,
+                             InterfaceID intfID) -> std::optional<bool> {
+    auto check = [&intfID](const auto& rib, const auto& addr, uint8_t mask) {
+      auto it = rib.exactMatch(addr, mask);
+      if (it == rib.end()) {
+        return std::optional<bool>{};
+      }
+      auto entry =
+          it->value()->getEntryForClient(ClientID::REMOTE_INTERFACE_ROUTE);
+      if (!entry) {
+        return std::optional<bool>{};
+      }
+      const auto& nhops = entry->getNextHopSet();
+      if (nhops.empty()) {
+        return std::optional<bool>{};
+      }
+      return std::optional<bool>{nhops.begin()->intfID() == intfID};
+    };
+    return network.first.isV4() ? check(
+                                      routeTable.v4NetworkToRoute,
+                                      network.first.asV4().mask(network.second),
+                                      network.second)
+                                : check(
+                                      routeTable.v6NetworkToRoute,
+                                      network.first.asV6().mask(network.second),
+                                      network.second);
+  };
+
   for (auto& vrf : getVrfList()) {
     std::vector<RibRouteUpdater::RouteEntry> toAddRoutes;
     std::vector<folly::CIDRNetwork> toDelRoutes;
@@ -492,14 +524,32 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
       }
     }
     const auto& toDelIter = toDel.find(vrf);
-    if (toDelIter != toDel.end()) {
-      for (const auto& network : toDelIter->second) {
-        toDelRoutes.push_back(network);
-      }
-    }
-    if (!toAddRoutes.empty() || !toDelRoutes.empty()) {
+    if (!toAddRoutes.empty() || toDelIter != toDel.end()) {
       updateRib(
           vrf, [&](auto& routeTable, auto* mySidTable, auto* nextHopIDManager) {
+            if (toDelIter != toDel.end()) {
+              for (const auto& [network, intfID] : toDelIter->second) {
+                // Remote interface route deletion is guarded by the
+                // originating interface to avoid removing a prefix that was
+                // already replaced by another remote interface update.
+                auto intfMatches =
+                    routeIntfMatches(routeTable, network, intfID);
+                if (!intfMatches.has_value()) {
+                  continue;
+                }
+                if (*intfMatches) {
+                  toDelRoutes.push_back(network);
+                } else {
+                  XLOG(ERR) << "Skipping remote interface route delete for "
+                            << "interface " << intfID
+                            << " because the existing route does not belong "
+                               "to that interface";
+                }
+              }
+            }
+            if (toAddRoutes.empty() && toDelRoutes.empty()) {
+              return;
+            }
             RibRouteUpdater updater(
                 &(routeTable.v4NetworkToRoute),
                 &(routeTable.v6NetworkToRoute),
@@ -1062,7 +1112,9 @@ void RoutingInformationBase::updateRemoteInterfaceRoutes(
     const RouterIDAndNetworkToInterfaceRoutes& toAdd,
     const boost::container::flat_map<
         facebook::fboss::RouterID,
-        std::vector<folly::CIDRNetwork>>& toDel,
+        std::vector<
+            std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>>>&
+        toDel,
     const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie) {
   ribTables_.updateRemoteInterfaceRoutes(
@@ -1160,6 +1212,111 @@ void RoutingInformationBase::updateEcmpOverrides(const StateDelta& delta) {
   ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
 }
 
+void RibRouteTables::backfillNextHopIds(
+    const SynchronizedRouteTables::WLockedPtr& lockedRouteTables) {
+  if (!lockedRouteTables->nextHopIDManager) {
+    return;
+  }
+  auto& manager = *lockedRouteTables->nextHopIDManager;
+
+  auto backfillOneRoute = [&manager](auto& route) {
+    // Per-client: snapshot updates first (route->update rebuilds the
+    // nexthopsmulti map and invalidates iterators).
+    std::vector<std::pair<ClientID, std::shared_ptr<RouteNextHopEntry>>>
+        clientUpdates;
+    for (const auto& [clientId, entry] :
+         std::as_const(route->getEntryForClients())) {
+      if (entry->getClientNextHopSetID().has_value()) {
+        continue; // already has an ID
+      }
+      const auto& nhopSet = entry->getNextHopSet();
+      if (nhopSet.empty()) {
+        continue; // DROP / TO_CPU; no nexthops to track
+      }
+      auto allocResult = manager.getOrAllocRouteNextHopSetID(nhopSet);
+      std::optional<NextHopSetID> newId(
+          allocResult.nextHopIdSetIter->second.id);
+      auto newEntry = entry->clone();
+      newEntry->setClientNextHopSetID(newId);
+      XLOG(DBG3) << "[NextHop ID Manager] backfilling clientNextHopSetID="
+                 << *newId << " for client=" << static_cast<int>(clientId)
+                 << " route=" << route->str();
+      clientUpdates.emplace_back(clientId, std::move(newEntry));
+    }
+
+    // Resolved-side: stamp on the fwd info if it has nexthops.
+    const auto& fwd = route->getForwardInfo();
+    auto fwdNexthops = fwd.getNextHopSet();
+    std::shared_ptr<RouteNextHopEntry> fwdReplacement;
+    if (!fwdNexthops.empty()) {
+      std::optional<NextHopSetID> newResolvedId = fwd.getResolvedNextHopSetID();
+      std::optional<NextHopSetID> newNormalizedId =
+          fwd.getNormalizedResolvedNextHopSetID();
+      if (!newResolvedId.has_value()) {
+        auto allocResult = manager.getOrAllocRouteNextHopSetID(fwdNexthops);
+        newResolvedId = allocResult.nextHopIdSetIter->second.id;
+        XLOG(DBG3) << "[NextHop ID Manager] backfilling resolvedNextHopSetID="
+                   << *newResolvedId << " route=" << route->str();
+      }
+      // POP_AND_LOOKUP MPLS routes forward via inner-header lookup — no
+      // mergeable nexthops, so no normalized set ID. Matches the
+      // RouteUpdater allocation path (RouteUpdater.cpp `if
+      // (!labelPopandLookup)`).
+      bool isPopAndLookup =
+          fwdNexthops.size() == 1 && fwdNexthops.begin()->isPopAndLookup();
+      if (!newNormalizedId.has_value() && !isPopAndLookup) {
+        auto allocResult = manager.getOrAllocRouteNextHopSetID(
+            fwd.nonOverrideNormalizedNextHops());
+        newNormalizedId = allocResult.nextHopIdSetIter->second.id;
+        XLOG(DBG3)
+            << "[NextHop ID Manager] backfilling normalizedResolvedNextHopSetID="
+            << *newNormalizedId << " route=" << route->str();
+      }
+      if (newResolvedId != fwd.getResolvedNextHopSetID() ||
+          newNormalizedId != fwd.getNormalizedResolvedNextHopSetID()) {
+        fwdReplacement = fwd.clone();
+        fwdReplacement->setResolvedNextHopSetID(newResolvedId);
+        fwdReplacement->setNormalizedResolvedNextHopSetID(newNormalizedId);
+      }
+    }
+
+    if (clientUpdates.empty() && !fwdReplacement) {
+      return;
+    }
+    if (route->isPublished()) {
+      route = route->clone();
+    }
+    for (auto& [clientId, newEntry] : clientUpdates) {
+      route->update(clientId, *newEntry);
+    }
+    if (fwdReplacement) {
+      route->setResolved(*fwdReplacement);
+    }
+    route->publish();
+  };
+
+  // v4/v6 NetworkToRouteMap is a RadixTree — iterator yields nodes
+  // dereferenced via .value().
+  auto backfillIpRoutes = [&backfillOneRoute](auto& routes) {
+    for (auto ritr = routes.begin(); ritr != routes.end(); ++ritr) {
+      backfillOneRoute(ritr->value());
+    }
+  };
+  // LabelToRouteMap is an unordered_map — range-for yields
+  // pair<LabelID, shared_ptr<Route<LabelID>>>.
+  auto backfillMplsRoutes = [&backfillOneRoute](auto& routes) {
+    for (auto& [_label, route] : routes) {
+      backfillOneRoute(route);
+    }
+  };
+
+  for (auto& [_vrf, table] : lockedRouteTables->routerIDToRouteTable) {
+    backfillIpRoutes(table.v4NetworkToRoute);
+    backfillIpRoutes(table.v6NetworkToRoute);
+    backfillMplsRoutes(table.labelToRoute);
+  }
+}
+
 RibRouteTables RibRouteTables::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
@@ -1198,6 +1355,9 @@ RibRouteTables RibRouteTables::fromThrift(
           routeTable.labelToRoute, &routeTable.unresolvedMplsRoutes);
     }
   }
+
+  // Stamp any missing IDs on warmboot-loaded routes before readers see them.
+  backfillNextHopIds(lockedRouteTables);
   return rib;
 }
 
@@ -1243,17 +1403,20 @@ std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
   synchronizedRouteTables_.withRLock([&](const auto& synchronizedRouteTables) {
     const auto it = synchronizedRouteTables.routerIDToRouteTable.find(rid);
     if (it != synchronizedRouteTables.routerIDToRouteTable.end()) {
+      auto* manager = synchronizedRouteTables.nextHopIDManager.get();
       for (auto rit = it->second.v4NetworkToRoute.begin();
            rit != it->second.v4NetworkToRoute.end();
            ++rit) {
-        routeDetails.emplace_back(rit->value()->toRouteDetails(
-            rit->value()->getForwardInfo().getNextHopSet()));
+        routeDetails.emplace_back(
+            rit->value()->toRouteDetails(getResolvedNextHopsFromRib(
+                manager, rit->value()->getForwardInfo())));
       }
       for (auto rit = it->second.v6NetworkToRoute.begin();
            rit != it->second.v6NetworkToRoute.end();
            ++rit) {
-        routeDetails.emplace_back(rit->value()->toRouteDetails(
-            rit->value()->getForwardInfo().getNextHopSet()));
+        routeDetails.emplace_back(
+            rit->value()->toRouteDetails(getResolvedNextHopsFromRib(
+                manager, rit->value()->getForwardInfo())));
       }
     }
   });
@@ -1926,5 +2089,73 @@ RibRouteTables::getRouteAndNextHops(
     const folly::IPAddressV6& address,
     RouterID vrf,
     bool normalized) const;
+
+RouteNextHopSet getNextHopsFromRib(
+    const NextHopIDManager* manager,
+    NextHopSetID id) {
+  CHECK(manager) << "Manager required for getNextHopsFromRib";
+  auto nhops = manager->getNextHopsIf(id);
+  if (!nhops.has_value()) {
+    throw FbossError(
+        "NextHopSetID ",
+        static_cast<int64_t>(id),
+        " not found in NextHopIDManager");
+  }
+  return *nhops;
+}
+
+RouteNextHopSet getClientNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry) {
+  if (FLAGS_resolve_nexthops_from_id) {
+    CHECK(FLAGS_enable_nexthop_id_manager)
+        << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
+    auto clientSetId = entry.getClientNextHopSetID();
+    if (!clientSetId.has_value()) {
+      CHECK(entry.getNextHopSet().empty())
+          << "FLAGS_resolve_nexthops_from_id is on but per-client entry "
+          << "has nexthops and no clientNextHopSetID";
+      return {};
+    }
+    return getNextHopsFromRib(manager, NextHopSetID(*clientSetId));
+  }
+  return entry.getNextHopSet();
+}
+
+RouteNextHopSet getResolvedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry) {
+  if (FLAGS_resolve_nexthops_from_id) {
+    CHECK(FLAGS_enable_nexthop_id_manager)
+        << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
+    auto resolvedSetId = entry.getResolvedNextHopSetID();
+    if (!resolvedSetId.has_value()) {
+      CHECK(entry.getAction() != RouteForwardAction::NEXTHOPS)
+          << "FLAGS_resolve_nexthops_from_id is on but NEXTHOPS-action "
+          << "entry has no resolvedNextHopSetID";
+      return {};
+    }
+    return getNextHopsFromRib(manager, *resolvedSetId);
+  }
+  return entry.getNextHopSet();
+}
+
+RouteNextHopSet getNormalizedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry) {
+  if (FLAGS_resolve_nexthops_from_id) {
+    CHECK(FLAGS_enable_nexthop_id_manager)
+        << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
+    auto normalizedSetId = entry.getNormalizedResolvedNextHopSetID();
+    if (!normalizedSetId.has_value()) {
+      CHECK(entry.getAction() != RouteForwardAction::NEXTHOPS)
+          << "FLAGS_resolve_nexthops_from_id is on but NEXTHOPS-action "
+          << "entry has no normalizedResolvedNextHopSetID";
+      return {};
+    }
+    return getNextHopsFromRib(manager, NextHopSetID(*normalizedSetId));
+  }
+  return entry.nonOverrideNormalizedNextHops();
+}
 
 } // namespace facebook::fboss

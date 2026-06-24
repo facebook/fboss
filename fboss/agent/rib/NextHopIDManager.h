@@ -298,6 +298,52 @@ class NextHopIDManager {
   static constexpr int64_t kNextHopIDStart = 1;
   static constexpr int64_t kNextHopSetIDStart = 1LL << 62;
 
+  // Mutable state threaded through the reconstructFromSwitchStateMaps passes.
+  // The member maps the passes update are reached directly; only these running
+  // values are shared across the passes.
+  struct ReconstructionContext {
+    // Highest persisted NextHopID / NextHopSetID seen across all passes; used
+    // to seed the next-available watermarks once reconstruction completes.
+    NextHopID maxNextHopId{kNextHopIDStart - 1};
+    NextHopSetID maxNextHopSetId{kNextHopSetIDStart - 1};
+    // FibInfo id maps (identical across switches), cached from the first
+    // FibInfo by the FIB pass and reused by the MySid / MPLS / unresolved-RIB
+    // passes (whose sets may not be referenced by any FIB route).
+    std::shared_ptr<IdToNextHopMap> fibId2NhopMap;
+    std::shared_ptr<IdToNextHopIdSetMap> fibId2NhopIdSetMap;
+  };
+
+  // Reconstruct a single persisted SetID: rebuild its member NextHopIDSet from
+  // FibInfo, refcount its nexthops and the set, and advance the ctx watermarks.
+  void processNextHopSetIdForReconstruction(
+      NextHopSetID setId,
+      const std::shared_ptr<IdToNextHopMap>& id2NhopMap,
+      const std::shared_ptr<IdToNextHopIdSetMap>& id2NhopIdSetMap,
+      ReconstructionContext& ctx);
+
+  // FIB pass: reconstruct route nexthop sets and named next-hop groups from
+  // every FibInfo, caching the (cross-switch-identical) id maps into ctx.
+  void reconstructFibPass(
+      const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
+      ReconstructionContext& ctx);
+
+  // MySid pass: refcount nexthop sets referenced by MySid entries (which may
+  // not be referenced by any FIB route).
+  void reconstructMySidPass(
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+      ReconstructionContext& ctx);
+
+  // MPLS FIB pass: refcount resolved/normalized/per-client sets of MPLS routes.
+  void reconstructMplsFibPass(
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+      ReconstructionContext& ctx);
+
+  // Unresolved-RIB pass: per-client setIDs on unresolved routes that the FIB
+  // walk does not see.
+  void reconstructUnresolvedRibPass(
+      const RibRouteTables* ribTables,
+      ReconstructionContext& ctx);
+
   // Counter for generating NextHop IDs, starting from 1
   // allocate 0 - (2^62 -1) IDs for NextHops.
   NextHopID nextAvailableNextHopID_{kNextHopIDStart};

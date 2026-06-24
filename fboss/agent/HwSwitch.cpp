@@ -168,6 +168,11 @@ void HwSwitch::setSdkRegDumpEnabled(bool /*enabled*/) {
   throw FbossError("SDK register dump is not supported on this device");
 }
 
+void HwSwitch::triggerCableLengthMeasurement(
+    const std::unique_ptr<std::vector<int32_t>>& /*ports*/) {
+  throw FbossError("Cable length measurement is not supported on this device");
+}
+
 HwSwitchFb303Stats* HwSwitch::getSwitchStats() const {
   if (!hwSwitchStats_) {
     hwSwitchStats_.reset(new HwSwitchFb303Stats(

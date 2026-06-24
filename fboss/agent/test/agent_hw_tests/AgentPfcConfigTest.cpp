@@ -76,7 +76,7 @@ class AgentPfcConfigTest : public AgentHwTest {
     auto buffer = utility::PfcBufferParams::getPfcBufferParams(
         getAgentEnsemble()->getL3Asics().front()->getAsicType());
     utility::setupPfcBuffers(
-        getAgentEnsemble(), cfg, ports, kLosslessPgs(), {}, {}, buffer);
+        getAgentEnsemble(), cfg, ports, kLosslessPgs(), {}, buffer);
 
     for (const auto& portID : ports) {
       auto portCfg = utility::findCfgPort(cfg, portID);
@@ -431,6 +431,28 @@ TEST_F(AgentPfcConfigTest, PfcWatchdogProgrammingSequence) {
            600,
            cfg::PfcWatchdogRecoveryAction::DROP,
            "Change just the recovery timer and ensure programming"});
+    } else if (
+        getAgentEnsemble()->getL3Asics().front()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_YUBA ||
+        getAgentEnsemble()->getL3Asics().front()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_G202X) {
+      // Cisco Silicon One (YUBA/G202X) requires timer values to be a multiple
+      // of the 25ms HW polling granularity.
+      configTest.push_back(
+          {25,
+           400,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog is enabled with specified configs"});
+      configTest.push_back(
+          {150,
+           400,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Change just the detection timer and ensure programming"});
+      configTest.push_back(
+          {150,
+           200,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Change just the recovery timer and ensure programming"});
     } else {
       configTest.push_back(
           {5,
@@ -485,6 +507,20 @@ TEST_F(AgentPfcConfigTest, PfcWatchdogProgrammingSequence) {
       // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
       setupPfcWdAndValidateProgramming(
           {200,
+           500,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Enable PFC watchdog on more ports and validate programming"},
+          portId2,
+          currentConfig);
+    } else if (
+        getAgentEnsemble()->getL3Asics().front()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_YUBA ||
+        getAgentEnsemble()->getL3Asics().front()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_G202X) {
+      // Cisco Silicon One (YUBA/G202X) requires timer values to be a multiple
+      // of the 25ms HW polling granularity.
+      setupPfcWdAndValidateProgramming(
+          {150,
            500,
            cfg::PfcWatchdogRecoveryAction::DROP,
            "Enable PFC watchdog on more ports and validate programming"},

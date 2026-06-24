@@ -21,7 +21,6 @@
 #include "fboss/thrift_cow/storage/tests/SwitchStateBuilders.h"
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 
 namespace facebook::fboss::test_data {
 

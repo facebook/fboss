@@ -306,8 +306,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt,
       std::nullopt,
 #endif
-      std::nullopt,
-      std::nullopt,
+      std::nullopt, // TC to Priority Group map
+      std::nullopt, // PFC Priority to Queue map
+      std::nullopt, // PFC Priority to Priority Group map
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::nullopt,
 #endif

@@ -468,6 +468,310 @@ bool assertNextHopIdMapsSame(
 
 } // namespace
 
+void NextHopIDManager::processNextHopSetIdForReconstruction(
+    NextHopSetID setId,
+    const std::shared_ptr<IdToNextHopMap>& id2NhopMap,
+    const std::shared_ptr<IdToNextHopIdSetMap>& id2NhopIdSetMap,
+    ReconstructionContext& ctx) {
+  // Lookup NextHopIDSet from FibInfo's idToNextHopIdSetMap
+  auto nextHopIdSetNode = id2NhopIdSetMap->getNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId));
+  CHECK(nextHopIdSetNode);
+  // Build NextHopIDSet and process each NextHop. Iterate directly over the
+  // node; elements are wrapped, so unwrap with .toThrift().
+  NextHopIDSet nextHopIDSet;
+  for (const auto& elem : std::as_const(*nextHopIdSetNode)) {
+    NextHopID nextHopID((*elem).toThrift());
+    nextHopIDSet.insert(nextHopID);
+
+    // Lookup NextHop from FibInfo's idToNextHopMap
+    auto nhNode =
+        id2NhopMap->getNextHopIf(static_cast<state::NextHopIdType>(nextHopID));
+    if (!nhNode) {
+      throw FbossError(
+          "Inconsistent state: NextHopID ",
+          nextHopID,
+          " not found in FibInfo's idToNextHopMap for SetID ",
+          setId);
+    }
+
+    auto nextHop =
+        util::fromThrift(nhNode->toThrift(), true /* allowV6NonLinkLocal */);
+
+    // Update NextHop maps and refcounts
+    auto nhIt = nextHopToID_.find(nextHop);
+    if (nhIt == nextHopToID_.end()) {
+      nextHopToID_.emplace(nextHop, nextHopID);
+      idToNextHop_.emplace(nextHopID, NextHopEntry(nextHop, 1));
+    } else {
+      idToNextHop_.at(nhIt->second).refCount++;
+    }
+    ctx.maxNextHopId = std::max(ctx.maxNextHopId, nextHopID);
+  }
+
+  // Update NextHopIDSet maps and refcounts
+  auto setInfoIt = nextHopIdSetToIDInfo_.find(nextHopIDSet);
+  if (setInfoIt == nextHopIdSetToIDInfo_.end()) {
+    nextHopIdSetToIDInfo_.emplace(nextHopIDSet, NextHopSetIDInfo(setId, 1));
+    idToNextHopIdSet_[setId] = nextHopIDSet;
+  } else {
+    setInfoIt->second.count++;
+  }
+  ctx.maxNextHopSetId = std::max(ctx.maxNextHopSetId, setId);
+}
+
+void NextHopIDManager::reconstructFibPass(
+    const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
+    ReconstructionContext& ctx) {
+  if (!fibsInfoMap || fibsInfoMap->empty()) {
+    return;
+  }
+
+  // Track named next-hop groups that we've already processed. We only need to
+  // process them once since they're the same across switches.
+  std::unordered_set<std::string> processedNamedGroups;
+
+  for (const auto& [switchId, fibInfo] : std::as_const(*fibsInfoMap)) {
+    auto id2NhopMapInFib = fibInfo->getIdToNextHopMap();
+    auto id2NhopIdSetMapInFib = fibInfo->getIdToNextHopIdSetMap();
+    auto fibsMap = fibInfo->getfibsMap();
+
+    if (!fibsMap || !id2NhopMapInFib || !id2NhopIdSetMapInFib) {
+      continue;
+    }
+
+    // FibInfo's id maps contain all allocated nexthop IDs including those for
+    // MySid entries, and are consistent across switches. Cache the first
+    // switch's copy for the MySid / MPLS / unresolved-RIB passes.
+    if (!ctx.fibId2NhopMap) {
+      ctx.fibId2NhopMap = id2NhopMapInFib;
+      ctx.fibId2NhopIdSetMap = id2NhopIdSetMapInFib;
+    }
+
+    // process routes from a FIB
+    auto processRoutes = [&](const auto& fib, RouterID rid) {
+      for (const auto& [prefix, route] : std::as_const(*fib)) {
+        const auto& fwdInfo = route->getForwardInfo();
+
+        // Process resolvedNextHopSetID
+        if (auto setIdOpt = fwdInfo.getResolvedNextHopSetID()) {
+          processNextHopSetIdForReconstruction(
+              NextHopSetID(*setIdOpt),
+              id2NhopMapInFib,
+              id2NhopIdSetMapInFib,
+              ctx);
+        }
+
+        // Process normalizedResolvedNextHopSetID
+        if (auto normalizedSetIdOpt =
+                fwdInfo.getNormalizedResolvedNextHopSetID()) {
+          processNextHopSetIdForReconstruction(
+              NextHopSetID(*normalizedSetIdOpt),
+              id2NhopMapInFib,
+              id2NhopIdSetMapInFib,
+              ctx);
+        }
+
+        // Reconstruct named NHG reverse mapping from per-client entries,
+        // and rebuild refcounts for any per-client clientNextHopSetID.
+        const auto& nhopsMulti = route->getEntryForClients();
+        for (const auto& entry : nhopsMulti) {
+          auto nhgName = entry.second->getNamedNextHopGroup();
+          if (nhgName.has_value()) {
+            auto cidr = route->prefix().toCidrNetwork();
+            nameToRoutes_[*nhgName].emplace(rid, cidr);
+          }
+          if (auto clientSetIdOpt = entry.second->getClientNextHopSetID()) {
+            processNextHopSetIdForReconstruction(
+                NextHopSetID(*clientSetIdOpt),
+                id2NhopMapInFib,
+                id2NhopIdSetMapInFib,
+                ctx);
+          }
+        }
+      }
+    };
+
+    // Iterate over all VRFs in this FibInfo
+    for (const auto& [routerId, fibContainer] : std::as_const(*fibsMap)) {
+      RouterID rid(routerId);
+      processRoutes(fibContainer->getFibV4(), rid);
+      processRoutes(fibContainer->getFibV6(), rid);
+    }
+
+    // Reconstruct named next-hop groups from FibInfo. Only process each name
+    // once (they should be the same across switches).
+    auto nameToSetIdMap =
+        fibInfo->safe_cref<switch_state_tags::nameToNextHopSetId>();
+    if (nameToSetIdMap) {
+      for (const auto& [name, setIdNode] : std::as_const(*nameToSetIdMap)) {
+        if (processedNamedGroups.count(name) > 0) {
+          continue;
+        }
+        processedNamedGroups.insert(name);
+
+        NextHopSetID setId = NextHopSetID(setIdNode->toThrift());
+
+        // Increment reference counts via processNextHopSetIdForReconstruction
+        // so that deallocateNamedNextHopGroup() can properly decrement them.
+        processNextHopSetIdForReconstruction(
+            setId, id2NhopMapInFib, id2NhopIdSetMapInFib, ctx);
+
+        auto nextHopIdSetIt = idToNextHopIdSet_.find(setId);
+        CHECK(nextHopIdSetIt != idToNextHopIdSet_.end())
+            << "NextHopSetId " << setId
+            << " not found in idToNextHopIdSet_ after processNhopSetId";
+
+        std::vector<NextHop> nextHopVec;
+        nextHopVec.reserve(nextHopIdSetIt->second.size());
+        for (const auto& nextHopID : nextHopIdSetIt->second) {
+          auto nextHopIt = idToNextHop_.find(nextHopID);
+          CHECK(nextHopIt != idToNextHop_.end())
+              << "NextHopId " << nextHopID
+              << " not found in idToNextHop_ after processNhopSetId";
+          nextHopVec.push_back(nextHopIt->second.nextHop);
+        }
+        RouteNextHopSet nextHopSet(nextHopVec.begin(), nextHopVec.end());
+
+        nameToNextHopSet_[name] = nextHopSet;
+        nameToNextHopSetID_[name] = setId;
+      }
+    }
+  }
+}
+
+void NextHopIDManager::reconstructMySidPass(
+    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+    ReconstructionContext& ctx) {
+  // MySid pass: register/bump refcounts for MySid entries' nexthop set IDs.
+  // FibInfo contains all MySid nexthop IDs in its id maps, but those sets may
+  // not be referenced by any routes. processNextHopSetIdForReconstruction
+  // handles both new registration and refcount-bumping for already-registered
+  // sets.
+  if (!mySidMap || !ctx.fibId2NhopMap || !ctx.fibId2NhopIdSetMap) {
+    return;
+  }
+  for (const auto& miter : std::as_const(*mySidMap)) {
+    for (const auto& [key, mySid] : std::as_const(*miter.second)) {
+      if (auto setIdOpt = mySid->getResolvedNextHopsId()) {
+        processNextHopSetIdForReconstruction(
+            *setIdOpt, ctx.fibId2NhopMap, ctx.fibId2NhopIdSetMap, ctx);
+      }
+      if (auto setIdOpt = mySid->getUnresolveNextHopsId()) {
+        processNextHopSetIdForReconstruction(
+            *setIdOpt, ctx.fibId2NhopMap, ctx.fibId2NhopIdSetMap, ctx);
+      }
+    }
+  }
+}
+
+void NextHopIDManager::reconstructMplsFibPass(
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+    ReconstructionContext& ctx) {
+  // MPLS FIB pass: resolved setIDs + per-client clientNextHopSetIDs.
+  if (!labelFib || !ctx.fibId2NhopMap || !ctx.fibId2NhopIdSetMap) {
+    return;
+  }
+  for (const auto& [switchId, labelFibInner] : std::as_const(*labelFib)) {
+    for (const auto& [label, route] : std::as_const(*labelFibInner)) {
+      const auto& fwdInfo = route->getForwardInfo();
+      if (auto setIdOpt = fwdInfo.getResolvedNextHopSetID()) {
+        processNextHopSetIdForReconstruction(
+            NextHopSetID(*setIdOpt),
+            ctx.fibId2NhopMap,
+            ctx.fibId2NhopIdSetMap,
+            ctx);
+      }
+      if (auto normalizedSetIdOpt =
+              fwdInfo.getNormalizedResolvedNextHopSetID()) {
+        processNextHopSetIdForReconstruction(
+            NextHopSetID(*normalizedSetIdOpt),
+            ctx.fibId2NhopMap,
+            ctx.fibId2NhopIdSetMap,
+            ctx);
+      }
+      for (const auto& [_clientId, entry] :
+           std::as_const(route->getEntryForClients())) {
+        if (auto clientSetIdOpt = entry->getClientNextHopSetID()) {
+          processNextHopSetIdForReconstruction(
+              NextHopSetID(*clientSetIdOpt),
+              ctx.fibId2NhopMap,
+              ctx.fibId2NhopIdSetMap,
+              ctx);
+        }
+      }
+    }
+  }
+}
+
+void NextHopIDManager::reconstructUnresolvedRibPass(
+    const RibRouteTables* ribTables,
+    ReconstructionContext& ctx) {
+  // Unresolved-RIB pass: per-client setIDs invisible to the FIB walk.
+  if (!ribTables || !ctx.fibId2NhopMap || !ctx.fibId2NhopIdSetMap) {
+    return;
+  }
+  // We use unsafeGetUnlocked() because the caller already holds the
+  // synchronizedRouteTables_ wlock — re-locking would self-deadlock.
+  //
+  // The obvious-looking alternative — drop the unsafe access and pass
+  // lockedRouteTables->routerIDToRouteTable straight in as a parameter
+  // — falls apart for two reasons. First, RouterIDToRouteTable /
+  // VrfRouteTable / RouteTables are private nested types in
+  // RibRouteTables, so naming them in this header's signature would
+  // force them all public and require moving them to a shared header.
+  // Second, the moment NextHopIDManager.h mentions a RibRouteTables
+  // type it has to include RoutingInformationBase.h, which already
+  // includes this header back (RibRouteTables owns a NextHopIDManager
+  // member) — circular include.
+  //
+  // Rather than reorganize that type hierarchy for one refcount walk,
+  // we stuck with unsafeGetUnlocked + a friend declaration on
+  // RibRouteTables. Minimal blast radius, no public surface change.
+  const auto& routeTables =
+      ribTables->synchronizedRouteTables_.unsafeGetUnlocked();
+  auto bumpClientSetIdsOnRoute = [&](const auto& route) {
+    if (route->isResolved()) {
+      return;
+    }
+    for (const auto& [_clientId, entry] :
+         std::as_const(route->getEntryForClients())) {
+      if (auto setIdOpt = entry->getClientNextHopSetID()) {
+        processNextHopSetIdForReconstruction(
+            NextHopSetID(*setIdOpt),
+            ctx.fibId2NhopMap,
+            ctx.fibId2NhopIdSetMap,
+            ctx);
+      }
+    }
+  };
+  // v4/v6 NetworkToRouteMap is a RadixTree — iterator yields nodes
+  // dereferenced via .value().
+  auto processUnresolvedIpRoutes = [&](const auto& routes) {
+    for (auto ritr = routes.begin(); ritr != routes.end(); ++ritr) {
+      bumpClientSetIdsOnRoute(ritr->value());
+    }
+  };
+  // LabelToRouteMap is an unordered_map — range-for yields
+  // pair<LabelID, shared_ptr<Route<LabelID>>>.
+  auto processUnresolvedMplsRoutes = [&](const auto& routes) {
+    for (const auto& [_label, route] : routes) {
+      bumpClientSetIdsOnRoute(route);
+    }
+  };
+  for (const auto& [_vrf, vrfTable] : routeTables.routerIDToRouteTable) {
+    processUnresolvedIpRoutes(vrfTable.v4NetworkToRoute);
+    processUnresolvedIpRoutes(vrfTable.v6NetworkToRoute);
+    // Mirror every other MPLS-touching path in the RIB (FibUpdater,
+    // ConfigApplier, rollback, fromThrift): only walk labelToRoute when
+    // FLAGS_mpls_rib is on, otherwise it may carry stale entries no
+    // decrement path will ever match.
+    if (FLAGS_mpls_rib) {
+      processUnresolvedMplsRoutes(vrfTable.labelToRoute);
+    }
+  }
+}
+
 void NextHopIDManager::reconstructFromSwitchStateMaps(
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
     const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
@@ -476,282 +780,18 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
   DCHECK(assertNextHopIdMapsSame(fibsInfoMap));
   clearNhopIdManagerState();
 
-  NextHopID maxNextHopId = NextHopID(kNextHopIDStart - 1);
-  NextHopSetID maxNextHopSetId = NextHopSetID(kNextHopSetIDStart - 1);
+  ReconstructionContext ctx;
 
-  // Track named next-hop groups that we've already processed
-  // We only need to process them once since they're the same across switches
-  std::unordered_set<std::string> processedNamedGroups;
-
-  // function to process a single SetID from FibInfo data structures
-  auto processNhopSetId = [&](NextHopSetID setId,
-                              const auto& id2NhopMapInFib,
-                              const auto& id2NhopIdSetMapInFib) {
-    // Lookup NextHopIDSet from FibInfo's idToNextHopIdSetMap
-    auto nextHopIdSetNode = id2NhopIdSetMapInFib->getNextHopIdSet(
-        static_cast<state::NextHopSetIdType>(setId));
-    CHECK(nextHopIdSetNode);
-    // Build NextHopIDSet and process each NextHop
-    // Iterate directly over the node; elements are wrapped, so unwrap with
-    // .toThrift()
-    NextHopIDSet nextHopIDSet;
-    for (const auto& elem : std::as_const(*nextHopIdSetNode)) {
-      NextHopID nextHopID((*elem).toThrift());
-      nextHopIDSet.insert(nextHopID);
-
-      // Lookup NextHop from FibInfo's idToNextHopMap
-      auto nhNode = id2NhopMapInFib->getNextHopIf(
-          static_cast<state::NextHopIdType>(nextHopID));
-      if (!nhNode) {
-        throw FbossError(
-            "Inconsistent state: NextHopID ",
-            nextHopID,
-            " not found in FibInfo's idToNextHopMap for SetID ",
-            setId);
-      }
-
-      auto nextHop =
-          util::fromThrift(nhNode->toThrift(), true /* allowV6NonLinkLocal */);
-
-      // Update NextHop maps and refcounts
-      auto nhIt = nextHopToID_.find(nextHop);
-      if (nhIt == nextHopToID_.end()) {
-        nextHopToID_.emplace(nextHop, nextHopID);
-        idToNextHop_.emplace(nextHopID, NextHopEntry(nextHop, 1));
-      } else {
-        idToNextHop_.at(nhIt->second).refCount++;
-      }
-      maxNextHopId = std::max(maxNextHopId, nextHopID);
-    }
-
-    // Update NextHopIDSet maps and refcounts
-    auto setInfoIt = nextHopIdSetToIDInfo_.find(nextHopIDSet);
-    if (setInfoIt == nextHopIdSetToIDInfo_.end()) {
-      nextHopIdSetToIDInfo_.emplace(nextHopIDSet, NextHopSetIDInfo(setId, 1));
-      idToNextHopIdSet_[setId] = nextHopIDSet;
-    } else {
-      setInfoIt->second.count++;
-    }
-    maxNextHopSetId = std::max(maxNextHopSetId, setId);
-  };
-
-  // FibInfo's id maps contain all allocated nexthop IDs including those for
-  // MySid entries. Save a reference for use in the MySid pass below.
-  // The id maps are consistent across switches so any switch's copy suffices.
-  std::shared_ptr<IdToNextHopMap> fibId2NhopMap;
-  std::shared_ptr<IdToNextHopIdSetMap> fibId2NhopIdSetMap;
-
-  // FIB pass: reconstruct all route nexthop sets from FibInfo
-  if (fibsInfoMap && !fibsInfoMap->empty()) {
-    for (const auto& [switchId, fibInfo] : std::as_const(*fibsInfoMap)) {
-      auto id2NhopMapInFib = fibInfo->getIdToNextHopMap();
-      auto id2NhopIdSetMapInFib = fibInfo->getIdToNextHopIdSetMap();
-      auto fibsMap = fibInfo->getfibsMap();
-
-      if (!fibsMap || !id2NhopMapInFib || !id2NhopIdSetMapInFib) {
-        continue;
-      }
-
-      if (!fibId2NhopMap) {
-        fibId2NhopMap = id2NhopMapInFib;
-        fibId2NhopIdSetMap = id2NhopIdSetMapInFib;
-      }
-
-      // process routes from a FIB
-      auto processRoutes = [&](const auto& fib, RouterID rid) {
-        for (const auto& [prefix, route] : std::as_const(*fib)) {
-          const auto& fwdInfo = route->getForwardInfo();
-
-          // Process resolvedNextHopSetID
-          if (auto setIdOpt = fwdInfo.getResolvedNextHopSetID()) {
-            processNhopSetId(
-                NextHopSetID(*setIdOpt), id2NhopMapInFib, id2NhopIdSetMapInFib);
-          }
-
-          // Process normalizedResolvedNextHopSetID
-          if (auto normalizedSetIdOpt =
-                  fwdInfo.getNormalizedResolvedNextHopSetID()) {
-            processNhopSetId(
-                NextHopSetID(*normalizedSetIdOpt),
-                id2NhopMapInFib,
-                id2NhopIdSetMapInFib);
-          }
-
-          // Reconstruct named NHG reverse mapping from per-client entries,
-          // and rebuild refcounts for any per-client clientNextHopSetID.
-          const auto& nhopsMulti = route->getEntryForClients();
-          for (const auto& entry : nhopsMulti) {
-            auto nhgName = entry.second->getNamedNextHopGroup();
-            if (nhgName.has_value()) {
-              auto cidr = route->prefix().toCidrNetwork();
-              nameToRoutes_[*nhgName].emplace(rid, cidr);
-            }
-            if (auto clientSetIdOpt = entry.second->getClientNextHopSetID()) {
-              processNhopSetId(
-                  NextHopSetID(*clientSetIdOpt),
-                  id2NhopMapInFib,
-                  id2NhopIdSetMapInFib);
-            }
-          }
-        }
-      };
-
-      // Iterate over all VRFs in this FibInfo
-      for (const auto& [routerId, fibContainer] : std::as_const(*fibsMap)) {
-        RouterID rid(routerId);
-        processRoutes(fibContainer->getFibV4(), rid);
-        processRoutes(fibContainer->getFibV6(), rid);
-      }
-
-      // Reconstruct named next-hop groups from FibInfo
-      // Only process each name once (they should be the same across switches)
-      auto nameToSetIdMap =
-          fibInfo->safe_cref<switch_state_tags::nameToNextHopSetId>();
-      if (nameToSetIdMap) {
-        for (const auto& [name, setIdNode] : std::as_const(*nameToSetIdMap)) {
-          if (processedNamedGroups.count(name) > 0) {
-            continue;
-          }
-          processedNamedGroups.insert(name);
-
-          NextHopSetID setId = NextHopSetID(setIdNode->toThrift());
-
-          // Increment reference counts via processNhopSetId so that
-          // deallocateNamedNextHopGroup() can properly decrement them.
-          processNhopSetId(setId, id2NhopMapInFib, id2NhopIdSetMapInFib);
-
-          auto nextHopIdSetIt = idToNextHopIdSet_.find(setId);
-          CHECK(nextHopIdSetIt != idToNextHopIdSet_.end())
-              << "NextHopSetId " << setId
-              << " not found in idToNextHopIdSet_ after processNhopSetId";
-
-          std::vector<NextHop> nextHopVec;
-          nextHopVec.reserve(nextHopIdSetIt->second.size());
-          for (const auto& nextHopID : nextHopIdSetIt->second) {
-            auto nextHopIt = idToNextHop_.find(nextHopID);
-            CHECK(nextHopIt != idToNextHop_.end())
-                << "NextHopId " << nextHopID
-                << " not found in idToNextHop_ after processNhopSetId";
-            nextHopVec.push_back(nextHopIt->second.nextHop);
-          }
-          RouteNextHopSet nextHopSet(nextHopVec.begin(), nextHopVec.end());
-
-          nameToNextHopSet_[name] = nextHopSet;
-          nameToNextHopSetID_[name] = setId;
-        }
-      }
-    }
-  }
-
-  // MySid pass: register/bump refcounts for MySid entries' nexthop set IDs.
-  // FibInfo contains all MySid nexthop IDs in its id maps, but those sets may
-  // not be referenced by any routes. processNhopSetId handles both new
-  // registration and refcount-bumping for already-registered sets.
-  if (mySidMap && fibId2NhopMap && fibId2NhopIdSetMap) {
-    for (const auto& miter : std::as_const(*mySidMap)) {
-      for (const auto& [key, mySid] : std::as_const(*miter.second)) {
-        if (auto setIdOpt = mySid->getResolvedNextHopsId()) {
-          processNhopSetId(*setIdOpt, fibId2NhopMap, fibId2NhopIdSetMap);
-        }
-        if (auto setIdOpt = mySid->getUnresolveNextHopsId()) {
-          processNhopSetId(*setIdOpt, fibId2NhopMap, fibId2NhopIdSetMap);
-        }
-      }
-    }
-  }
-
-  // MPLS FIB pass: resolved setIDs + per-client clientNextHopSetIDs.
-  if (labelFib && fibId2NhopMap && fibId2NhopIdSetMap) {
-    for (const auto& [switchId, labelFibInner] : std::as_const(*labelFib)) {
-      for (const auto& [label, route] : std::as_const(*labelFibInner)) {
-        const auto& fwdInfo = route->getForwardInfo();
-        if (auto setIdOpt = fwdInfo.getResolvedNextHopSetID()) {
-          processNhopSetId(
-              NextHopSetID(*setIdOpt), fibId2NhopMap, fibId2NhopIdSetMap);
-        }
-        if (auto normalizedSetIdOpt =
-                fwdInfo.getNormalizedResolvedNextHopSetID()) {
-          processNhopSetId(
-              NextHopSetID(*normalizedSetIdOpt),
-              fibId2NhopMap,
-              fibId2NhopIdSetMap);
-        }
-        for (const auto& [_clientId, entry] :
-             std::as_const(route->getEntryForClients())) {
-          if (auto clientSetIdOpt = entry->getClientNextHopSetID()) {
-            processNhopSetId(
-                NextHopSetID(*clientSetIdOpt),
-                fibId2NhopMap,
-                fibId2NhopIdSetMap);
-          }
-        }
-      }
-    }
-  }
-
-  // Unresolved-RIB pass: per-client setIDs invisible to the FIB walk.
-  if (ribTables && fibId2NhopMap && fibId2NhopIdSetMap) {
-    // We use unsafeGetUnlocked() because the caller already holds the
-    // synchronizedRouteTables_ wlock — re-locking would self-deadlock.
-    //
-    // The obvious-looking alternative — drop the unsafe access and pass
-    // lockedRouteTables->routerIDToRouteTable straight in as a parameter
-    // — falls apart for two reasons. First, RouterIDToRouteTable /
-    // VrfRouteTable / RouteTables are private nested types in
-    // RibRouteTables, so naming them in this header's signature would
-    // force them all public and require moving them to a shared header.
-    // Second, the moment NextHopIDManager.h mentions a RibRouteTables
-    // type it has to include RoutingInformationBase.h, which already
-    // includes this header back (RibRouteTables owns a NextHopIDManager
-    // member) — circular include.
-    //
-    // Rather than reorganize that type hierarchy for one refcount walk,
-    // we stuck with unsafeGetUnlocked + a friend declaration on
-    // RibRouteTables. Minimal blast radius, no public surface change.
-    const auto& routeTables =
-        ribTables->synchronizedRouteTables_.unsafeGetUnlocked();
-    auto bumpClientSetIdsOnRoute = [&](const auto& route) {
-      if (route->isResolved()) {
-        return;
-      }
-      for (const auto& [_clientId, entry] :
-           std::as_const(route->getEntryForClients())) {
-        if (auto setIdOpt = entry->getClientNextHopSetID()) {
-          processNhopSetId(
-              NextHopSetID(*setIdOpt), fibId2NhopMap, fibId2NhopIdSetMap);
-        }
-      }
-    };
-    // v4/v6 NetworkToRouteMap is a RadixTree — iterator yields nodes
-    // dereferenced via .value().
-    auto processUnresolvedIpRoutes = [&](const auto& routes) {
-      for (auto ritr = routes.begin(); ritr != routes.end(); ++ritr) {
-        bumpClientSetIdsOnRoute(ritr->value());
-      }
-    };
-    // LabelToRouteMap is an unordered_map — range-for yields
-    // pair<LabelID, shared_ptr<Route<LabelID>>>.
-    auto processUnresolvedMplsRoutes = [&](const auto& routes) {
-      for (const auto& [_label, route] : routes) {
-        bumpClientSetIdsOnRoute(route);
-      }
-    };
-    for (const auto& [_vrf, vrfTable] : routeTables.routerIDToRouteTable) {
-      processUnresolvedIpRoutes(vrfTable.v4NetworkToRoute);
-      processUnresolvedIpRoutes(vrfTable.v6NetworkToRoute);
-      // Mirror every other MPLS-touching path in the RIB (FibUpdater,
-      // ConfigApplier, rollback, fromThrift): only walk labelToRoute when
-      // FLAGS_mpls_rib is on, otherwise it may carry stale entries no
-      // decrement path will ever match.
-      if (FLAGS_mpls_rib) {
-        processUnresolvedMplsRoutes(vrfTable.labelToRoute);
-      }
-    }
-  }
+  // The FIB pass also caches the (cross-switch-identical) id maps into ctx for
+  // the remaining passes, whose sets may not be referenced by any FIB route.
+  reconstructFibPass(fibsInfoMap, ctx);
+  reconstructMySidPass(mySidMap, ctx);
+  reconstructMplsFibPass(labelFib, ctx);
+  reconstructUnresolvedRibPass(ribTables, ctx);
 
   // Set next available IDs
-  nextAvailableNextHopID_ = NextHopID(maxNextHopId + 1);
-  nextAvailableNextHopSetID_ = NextHopSetID(maxNextHopSetId + 1);
+  nextAvailableNextHopID_ = NextHopID(ctx.maxNextHopId + 1);
+  nextAvailableNextHopSetID_ = NextHopSetID(ctx.maxNextHopSetId + 1);
 
   XLOG(INFO) << "[NextHop ID Manager] reconstruction done:"
              << " nhopCount=" << idToNextHop_.size()

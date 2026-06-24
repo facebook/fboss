@@ -350,10 +350,6 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
                                       const std::vector<PortID>& ports,
                                       bool loadBalanceExpected,
                                       bool is_dlb = false) {
-      auto dlbAclCountBefore = utility::getAclInOutPackets(
-          getSw(), getCounterName(AclType::UDF_FLOWLET));
-      auto cancelAclCountBefore = utility::getAclInOutPackets(
-          getSw(), getCounterName(AclType::ECMP_HASH_CANCEL));
       auto switchId = getSw()
                           ->getScopeResolver()
                           ->scope(masterLogicalPortIds()[0])
@@ -374,6 +370,11 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
 
       auto reassignmentCounterBefore =
           flowletStats.l3EcmpDlbPortReassignmentCount().value();
+
+      auto dlbAclCountBefore = utility::getAclInOutPackets(
+          getSw(), getCounterName(AclType::UDF_FLOWLET));
+      auto cancelAclCountBefore = utility::getAclInOutPackets(
+          getSw(), getCounterName(AclType::ECMP_HASH_CANCEL));
 
       auto egressPort =
           helper_->ecmpPortDescriptorAt(kFrontPanelPortForTest).phyPortID();

@@ -103,6 +103,11 @@ void clearNextHopSetIDsFromThrift(
       v6Route.fwd()->normalizedResolvedNextHopSetID().reset();
       clearClientIds(v6Route);
     }
+    for (auto& [__, mplsRoute] : *routeTable.labelToRoute()) {
+      mplsRoute.fwd()->resolvedNextHopSetID().reset();
+      mplsRoute.fwd()->normalizedResolvedNextHopSetID().reset();
+      clearClientIds(mplsRoute);
+    }
   }
 }
 

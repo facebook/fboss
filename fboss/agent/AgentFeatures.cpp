@@ -42,6 +42,8 @@ DEFINE_bool(hide_fabric_ports, false, "Elide ports of type fabric");
 
 DEFINE_bool(hide_management_ports, false, "Elide ports of type management");
 
+DEFINE_bool(hide_eventor_ports, false, "Elide ports of type eventor");
+
 DEFINE_bool(hide_interface_ports, false, "Elide ports of type interface");
 
 // DSF Subscriber flags
@@ -558,3 +560,8 @@ DEFINE_bool(
     enable_acl_table_redirect_action,
     false,
     "Add redirect action type to ACL table");
+
+DEFINE_bool(
+    enable_pfc_priority_to_pg_map,
+    false,
+    "Enable programming the PFC priority to priority group QoS map on ports");

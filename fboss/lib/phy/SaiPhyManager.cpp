@@ -141,10 +141,10 @@ void SaiPhyManager::updateAllXphyPortsStats() {
         // Spawn a task for each xphy in this pim
         auto evb = getXphyEventBase(xphy);
         folly::via(evb).thenValue([xphy,
-                                   platformInfo = platformInfo.get(),
+                                   platformInfoPtr = platformInfo.get(),
                                    this](auto&&) {
           steady_clock::time_point begin = steady_clock::now();
-          collectXphyStats(xphy, platformInfo);
+          collectXphyStats(xphy, platformInfoPtr);
           XLOG(DBG3) << "Xphy " << static_cast<int>(xphy)
                      << " stat collection took "
                      << duration_cast<milliseconds>(steady_clock::now() - begin)

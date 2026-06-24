@@ -219,6 +219,14 @@ bool QsfpModule::upgradeFirmwareLocked(
       TransceiverSettings settings = getTransceiverSettingsInfo();
       setPowerOverrideIfSupportedLocked(*settings.powerControl());
 
+      // Step 2b: Wait for the module to be ready after exiting low power before
+      // starting the firmware download; CDB operations are unreliable
+      // otherwise.
+      if (!moduleReadyStatePoll()) {
+        QSFP_LOG(ERR, this)
+            << "Module not in ready state before firmware upgrade. Continuing anyway";
+      }
+
       // Step 3: Mark the module dirty so that we can refresh the entire cache
       // later
       dirty_ = true;

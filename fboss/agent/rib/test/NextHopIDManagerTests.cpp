@@ -75,6 +75,9 @@ void addV6RouteWithSetId(
 // Helper function to create a V4 route with a per-client entry that carries
 // clientNextHopSetID, and add it to a FIB. Used to exercise the per-client
 // reconstruction path in NextHopIDManager::reconstructFromSwitchStateMaps.
+// Also stamps resolvedNextHopSetID + normalizedResolvedNextHopSetID on the
+// fwd info so the backfill pass in RibRouteTables::fromThrift is a no-op
+// (the test focuses on reconstruct behavior, not backfill).
 void addV4RouteWithClientId(
     const std::shared_ptr<ForwardingInformationBaseV4>& fibV4,
     const std::string& prefixStr,
@@ -94,7 +97,10 @@ void addV4RouteWithClientId(
       std::optional<NextHopSetID>(std::nullopt),
       std::optional<NextHopSetID>(clientSetId));
   route->update(clientId, entry);
-  route->setResolved(RouteNextHopEntry(nhops, AdminDistance::EBGP));
+  auto fwdInfo = RouteNextHopEntry(nhops, AdminDistance::EBGP).toThrift();
+  fwdInfo.resolvedNextHopSetID() = static_cast<uint64_t>(clientSetId);
+  fwdInfo.normalizedResolvedNextHopSetID() = static_cast<uint64_t>(clientSetId);
+  route->setResolved(RouteNextHopEntry(std::move(fwdInfo)));
   route->publish();
   fibV4->addNode(route);
 }
@@ -119,7 +125,10 @@ void addV6RouteWithClientId(
       std::optional<NextHopSetID>(std::nullopt),
       std::optional<NextHopSetID>(clientSetId));
   route->update(clientId, entry);
-  route->setResolved(RouteNextHopEntry(nhops, AdminDistance::EBGP));
+  auto fwdInfo = RouteNextHopEntry(nhops, AdminDistance::EBGP).toThrift();
+  fwdInfo.resolvedNextHopSetID() = static_cast<uint64_t>(clientSetId);
+  fwdInfo.normalizedResolvedNextHopSetID() = static_cast<uint64_t>(clientSetId);
+  route->setResolved(RouteNextHopEntry(std::move(fwdInfo)));
   route->publish();
   fibV6->addNode(route);
 }
@@ -1254,22 +1263,27 @@ TEST_F(NextHopIDManagerTest, reconstructFromSwitchStateMapsClientNextHopSetID) {
   EXPECT_EQ(manager->getIdToNextHopIdSet().at(setIdD), setD);
   EXPECT_EQ(manager->getIdToNextHopIdSet().at(setIdE), setE);
 
-  // Set refcounts: A is shared by 2 resolved routes, the rest by 1 each.
-  EXPECT_EQ(manager->getNextHopIDSetRefCount(setA), 2);
-  EXPECT_EQ(manager->getNextHopIDSetRefCount(setB), 1);
-  EXPECT_EQ(manager->getNextHopIDSetRefCount(setC), 1);
+  // Set refcounts:
+  //   Each FIB route contributes 3 bumps to its setId (resolved +
+  //   normalized + per-client). Each unresolved RIB route contributes 1
+  //   bump (per-client only). A is on 2 FIB routes (V4+V6), so A=6.
+  //   B, C are each on 1 FIB route, so each=3. D, E are each on 1
+  //   unresolved RIB route, so each=1.
+  EXPECT_EQ(manager->getNextHopIDSetRefCount(setA), 6);
+  EXPECT_EQ(manager->getNextHopIDSetRefCount(setB), 3);
+  EXPECT_EQ(manager->getNextHopIDSetRefCount(setC), 3);
   EXPECT_EQ(manager->getNextHopIDSetRefCount(setD), 1);
   EXPECT_EQ(manager->getNextHopIDSetRefCount(setE), 1);
 
   // Per-nexthop refcounts: each set-ref bumps every member nh once.
-  //   nh1: A(*2) + B + C = 4
-  //   nh2: A(*2) + D + E = 4
-  //   nh3: B + D = 2
-  //   nh4: C + E = 2
-  EXPECT_EQ(manager->getNextHopRefCount(nh1), 4);
-  EXPECT_EQ(manager->getNextHopRefCount(nh2), 4);
-  EXPECT_EQ(manager->getNextHopRefCount(nh3), 2);
-  EXPECT_EQ(manager->getNextHopRefCount(nh4), 2);
+  //   nh1: in A(*6) + B(*3) + C(*3) = 12
+  //   nh2: in A(*6) + D(*1) + E(*1) = 8
+  //   nh3: in B(*3) + D(*1) = 4
+  //   nh4: in C(*3) + E(*1) = 4
+  EXPECT_EQ(manager->getNextHopRefCount(nh1), 12);
+  EXPECT_EQ(manager->getNextHopRefCount(nh2), 8);
+  EXPECT_EQ(manager->getNextHopRefCount(nh3), 4);
+  EXPECT_EQ(manager->getNextHopRefCount(nh4), 4);
 }
 
 // This tests reconstructFromFib with multiple switches.

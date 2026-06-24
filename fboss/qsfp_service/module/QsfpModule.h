@@ -722,6 +722,12 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  // Poll until the module reaches a state where it is ready to accept
+  // operations. Module types without such a state (e.g. SFF) are always ready.
+  virtual bool moduleReadyStatePoll() {
+    return true;
+  }
+
   void triggerModuleReset();
 
   // Map key = laneId, value = last datapath reset time for that lane

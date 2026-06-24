@@ -25,8 +25,10 @@ using IntfAddress = std::pair<facebook::fboss::InterfaceID, folly::IPAddress>;
 using IntfRoute = boost::container::flat_map<folly::CIDRNetwork, IntfAddress>;
 using IntfRouteTable =
     boost::container::flat_map<facebook::fboss::RouterID, IntfRoute>;
+using PrefixWithIntf =
+    std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>;
 using RouterIDToPrefixes = boost::container::
-    flat_map<facebook::fboss::RouterID, std::vector<folly::CIDRNetwork>>;
+    flat_map<facebook::fboss::RouterID, std::vector<PrefixWithIntf>>;
 
 int getLocalPortNumVoqs(cfg::PortType portType, cfg::Scope portScope);
 

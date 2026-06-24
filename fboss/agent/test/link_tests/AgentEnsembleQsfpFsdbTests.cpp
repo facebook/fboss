@@ -157,6 +157,8 @@ class AgentEnsembleQsfpFsdbTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentEnsembleQsfpFsdbTest, tcvr) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::FSDB_PUBLISH});
   addTestedPorts(getCabledPorts());
   auto statesIn = subscribe(stateRoot.qsfp_service().state().tcvrStates());
   auto statsIn = subscribeStat(statsRoot.qsfp_service().tcvrStats());
@@ -188,6 +190,8 @@ TEST_F(AgentEnsembleQsfpFsdbTest, tcvr) {
 }
 
 TEST_F(AgentEnsembleQsfpFsdbTest, phy) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::FSDB_PUBLISH});
   addTestedPorts(getCabledPorts());
   auto statesIn = subscribe(stateRoot.qsfp_service().state().phyStates());
   auto statsIn = subscribeStat(statsRoot.qsfp_service().phyStats());
@@ -225,6 +229,8 @@ TEST_F(AgentEnsembleQsfpFsdbTest, phy) {
 }
 
 TEST_F(AgentEnsembleQsfpFsdbTest, portState) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::FSDB_PUBLISH});
   addTestedPorts(getCabledPorts());
   std::map<std::string, portstate::PortState> portStateMapBefore;
   std::map<std::string, portstate::PortState> portStateMapAfter;
@@ -249,6 +255,8 @@ TEST_F(AgentEnsembleQsfpFsdbTest, portState) {
 }
 
 TEST_F(AgentEnsembleQsfpFsdbTest, portStateWithResetHold) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::FSDB_PUBLISH});
   addTestedPorts(getCabledPorts());
   std::map<std::string, portstate::PortState> portStateMapBefore;
   std::map<std::string, portstate::PortState> portStateMapAfter;

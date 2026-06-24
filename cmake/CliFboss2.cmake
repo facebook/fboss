@@ -597,6 +597,28 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.cpp
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpInitializationEvents.h
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpInitializationEvents.cpp
+  fboss/cli/fboss2/commands/show/bgp/health/CmdShowBgpHealth.h
+  fboss/cli/fboss2/commands/show/bgp/health/CmdShowBgpHealth.cpp
+  fboss/cli/fboss2/commands/show/bgp/holdtimers/CmdShowBgpHoldTimers.h
+  fboss/cli/fboss2/commands/show/bgp/holdtimers/CmdShowBgpHoldTimers.cpp
+  fboss/cli/fboss2/commands/show/bgp/nexthopinfo/CmdShowBgpNexthopInfo.h
+  fboss/cli/fboss2/commands/show/bgp/nexthopinfo/CmdShowBgpNexthopInfo.cpp
+  fboss/cli/fboss2/commands/show/bgp/profiler/CmdShowBgpProfiler.h
+  fboss/cli/fboss2/commands/show/bgp/profiler/CmdShowBgpProfiler.cpp
+  fboss/cli/fboss2/commands/show/bgp/policy/CmdShowBgpPolicy.h
+  fboss/cli/fboss2/commands/show/bgp/policy/CmdShowBgpPolicy.cpp
+  fboss/cli/fboss2/commands/show/bgp/updategroup/CmdShowBgpUpdateGroup.h
+  fboss/cli/fboss2/commands/show/bgp/updategroup/CmdShowBgpUpdateGroup.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/CmdShowBgpNeighborsByName.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/CmdShowBgpNeighborsByName.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejected.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejected.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejectedCrf.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejectedCrf.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejected.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejected.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejectedCrf.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejectedCrf.cpp
   fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h
   fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.cpp
   fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.h
@@ -633,6 +655,10 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/bgp/stream/subscriber/CmdShowBgpStreamSubscriberPostPolicy.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.cpp
+  fboss/cli/fboss2/commands/start/port/CmdStartPort.h
+  fboss/cli/fboss2/commands/start/port/CmdStartPort.cpp
+  fboss/cli/fboss2/commands/start/port/cable_length_measurement/CmdStartPortCableLengthMeasurement.h
+  fboss/cli/fboss2/commands/start/port/cable_length_measurement/CmdStartPortCableLengthMeasurement.cpp
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.cpp
   fboss/cli/fboss2/CmdSubcommands.cpp
@@ -687,6 +713,9 @@ target_link_libraries(fboss2_lib
   cli_model
   bgp_thrift_cpp2
   bgp_summary_cpp2
+  bgp_config_cpp2
+  bgp_update_group_cpp2
+  bgp_attr_cpp2
   show_acl_model
   show_agent_model
   show_aggregateport_model
@@ -764,10 +793,13 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.cpp
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h
+  fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.cpp
+  fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h
   fboss/cli/fboss2/commands/config/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.cpp
   fboss/cli/fboss2/commands/config/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
+  fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.cpp
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp
@@ -789,6 +821,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h
   fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.cpp
   fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h
+  fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.cpp
+  fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.h
   fboss/cli/fboss2/commands/config/mac/CmdConfigMac.cpp
   fboss/cli/fboss2/commands/config/mac/CmdConfigMac.h
   fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.cpp

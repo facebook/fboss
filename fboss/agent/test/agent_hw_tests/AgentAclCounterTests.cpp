@@ -500,6 +500,41 @@ class AgentAclCounterTest : public AgentHwTest {
             // to trap any packet since intention of the test is to verify if
             // packet ingressing on a specific port is trapped
             acl->ipType() = cfg::IpType::ANY;
+          } else if (
+              asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+              asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+            // Q4D/J4 (DNX) reject FIELD_SRC_PORT + FIELD_ACL_IP_TYPE=NON_IP.
+            // Per Broadcom, install the source-port entry in both ACL tables:
+            // an etherType=IPv4 copy in the default table and an etherType=IPv6
+            // copy in the IPv6 table, so the source-port ACL matches both v4
+            // and v6 traffic. The test sends IPv6 traffic, so the IPv6 copy
+            // keeps the canonical name/counter (the one verifyAclType checks);
+            // the IPv4 copy gets a "-v4" suffix.
+            std::vector<cfg::CounterType> counterTypes{
+                cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+            auto addSrcPortEntry = [&](const std::string& name,
+                                       const std::string& counter,
+                                       cfg::EtherType etherType,
+                                       const std::string& tableName) {
+              cfg::AclEntry entry;
+              entry.name() = name;
+              entry.actionType() = aclActionType_;
+              entry.srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
+              entry.etherType() = etherType;
+              utility::addAclEntry(config, entry, tableName);
+              utility::addAclStat(config, name, counter, counterTypes);
+            };
+            addSrcPortEntry(
+                aclName + "-v4",
+                counterName + "-v4",
+                cfg::EtherType::IPv4,
+                utility::kDefaultAclTable());
+            addSrcPortEntry(
+                aclName,
+                counterName,
+                cfg::EtherType::IPv6,
+                utility::kIpv6AclTable());
+            return;
           } else {
             // Set the IP type to NON_IP to match all ingress packets in ASIC
             // SRC port

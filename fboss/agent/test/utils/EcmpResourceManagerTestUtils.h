@@ -62,11 +62,6 @@ void assertAllRouteIdsResolvable(
 
 void assertAllDeltaIdsResolvable(const std::vector<StateDelta>& deltas);
 
-void assertRollbacks(
-    EcmpResourceManager& newEcmpResourceMgr,
-    const std::shared_ptr<SwitchState>& startState,
-    const std::shared_ptr<SwitchState>& endState);
-
 void assertRibFibEquivalence(
     const std::shared_ptr<SwitchState>& state,
     const RoutingInformationBase* rib);

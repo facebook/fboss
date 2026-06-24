@@ -111,13 +111,29 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
         static_cast<uint32_t>(swInterface->getMtu()));
   }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+  // Ebro (Cisco/leaba) disables MPLS on a router interface by default. Enable
+  // it explicitly so MPLS traffic is routed on the RIF.
+  std::optional<SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState>
+      adminMplsStateAttribute{std::nullopt};
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+    adminMplsStateAttribute =
+        SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState{true};
+  }
+#endif
+
   // create the router interface
   SaiVlanRouterInterfaceTraits::CreateAttributes attributes{
       virtualRouterIdAttribute,
       typeAttribute,
       vlanIdAttribute,
       srcMacAttribute,
-      mtuAttribute};
+      mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      ,
+      adminMplsStateAttribute
+#endif
+  };
   SaiVlanRouterInterfaceTraits::AdapterHostKey k{
       virtualRouterIdAttribute,
       vlanIdAttribute,

@@ -532,6 +532,10 @@ void SaiPortManager::attributesFromSaiStore(
       port->attributes(),
       attributes,
       SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::QosPfcPriorityToPriorityGroupMap{});
 #if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
   getAndSetAttribute(
       port->attributes(),
@@ -914,8 +918,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt,
         std::nullopt,
 #endif
-        std::nullopt,
-        std::nullopt,
+        std::nullopt, // TC to Priority Group map
+        std::nullopt, // PFC Priority to Queue map
+        std::nullopt, // PFC Priority to Priority Group map
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
         std::nullopt,
 #endif
@@ -1018,6 +1023,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
       std::nullopt, // TC to Priority Group map
       std::nullopt, // PFC Priority to Queue map
+      std::nullopt, // PFC Priority to Priority Group map
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       interFrameGap, // Inter Frame Gap
 #endif
@@ -1061,7 +1067,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       linkUpDebounce, // LinkUpDebouncePeriodMs
       linkDownDebounce, // LinkDownDebouncePeriodMs
 #endif
-#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_8_ea)
+#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea)
       0xffff, // PfcPauseDurationOverride
 #else
       std::nullopt, // PfcPauseDurationOverride

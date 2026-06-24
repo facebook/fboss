@@ -331,6 +331,9 @@ class HwPortPrbsTestAll : public HwExternalPhyPortTest {
 };
 
 TEST_F(HwPortPrbsTestAll, TestAll) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_PRBS});
+  addTestedPorts(findAvailableXphyPorts());
   runAllTests();
 }
 

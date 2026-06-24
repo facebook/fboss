@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -27,6 +28,7 @@ cpp_unittest(
     srcs = [
         "tests/PlatformConfigUtilsTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":fboss_config_utils",
         "//fboss/agent:fboss-error",

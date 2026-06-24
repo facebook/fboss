@@ -176,7 +176,10 @@ EthHdr makeEthHdr(
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     std::optional<VlanID> vlan,
-    ETHERTYPE etherType);
+    ETHERTYPE etherType,
+    // 802.1p priority (PCP); valid range is 0-7 and it is only emitted when a
+    // VLAN tag is present.
+    uint8_t pcp = 0);
 
 } // namespace utility
 } // namespace facebook::fboss

@@ -139,6 +139,9 @@ class AgentEnsembleSpeedChangeTest : public AgentEnsembleLinkTest {
   }
 
   void runSpeedChangeTest(cfg::PortSpeed fromSpeed, cfg::PortSpeed toSpeed) {
+    addVerifiedProductionFeatures(
+        {link_test_production_features::LinkTestProductionFeature::
+             SPEED_CHANGE});
     auto setup = [this, fromSpeed, toSpeed]() {
       auto newConfig = createSpeedChangeConfig(fromSpeed, toSpeed);
 

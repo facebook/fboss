@@ -4,6 +4,7 @@
 
 import os
 import subprocess
+import time
 from argparse import ArgumentParser
 
 import run_test
@@ -36,11 +37,23 @@ class Fboss2IntegrationTestRunner(TestRunner):
     Agent lifecycle: uses production service names (fboss_sw_agent, fboss_hw_agent@N)
     because fboss2-dev may restart agents during config commits. Detects whether the
     device has production multi-switch services running or needs service setup from scratch.
-    Cold boots both agents before each test for isolation.
+    Cold boots both agents once to establish a clean state, then reuses the running
+    agents between tests and only cold boots again when an agent is no longer up.
     """
 
     _AGENT_CONFIG_PATH = "/etc/coop/agent.conf"
     _CONFIG_SNAPSHOT_PATH = "/tmp/agent.conf.fboss2_test_snapshot"
+
+    # Grace window we allow an agent that is still coming up (systemd
+    # "activating", e.g. fboss2-dev bounced it during a config commit) to reach
+    # "active" before we give up and cold boot. A healthy agent passes on the
+    # first poll, and a dead agent ("failed"/"inactive") is cold booted
+    # immediately without waiting, so this window only applies while an agent is
+    # genuinely mid-restart.
+    _AGENT_READY_GRACE_RETRIES: int = 30
+    _AGENT_READY_GRACE_SLEEP_SEC: int = 1
+    _SYSTEMD_ACTIVE: str = "active"
+    _SYSTEMD_ACTIVATING: str = "activating"
 
     def __init__(self) -> None:
         super().__init__()
@@ -48,9 +61,10 @@ class Fboss2IntegrationTestRunner(TestRunner):
         self._is_prod_multi_switch: bool = False
         self._switch_indexes: list[int] = []
         self._test_config_source: str = self._AGENT_CONFIG_PATH
-        # Tracks whether the one-time initial cold boot has run, so that
-        # --skip-coldboot can still bootstrap the test config/clean state once
-        # before skipping the per-test cold boots.
+        # Tracks whether the one-time initial cold boot has run. The first cold
+        # boot always happens (to load the test config and a clean state); after
+        # that we health-gate per-test cold boots (or skip them entirely with
+        # --skip-coldboot).
         self._initial_coldboot_done: bool = False
 
     def add_subcommand_arguments(self, sub_parser: ArgumentParser) -> None:
@@ -68,7 +82,9 @@ class Fboss2IntegrationTestRunner(TestRunner):
             "--skip-coldboot",
             action="store_true",
             default=False,
-            help="Skip per-test cold boots (one initial cold boot still runs).",
+            help="Aggressively skip all per-test cold boots after the initial "
+            "one, even if an agent is down (default behavior already skips the "
+            "cold boot when the agents are still up).",
         )
 
     def _get_config_path(self) -> str:
@@ -147,14 +163,22 @@ class Fboss2IntegrationTestRunner(TestRunner):
             )
 
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None) -> None:
-        # With --skip-coldboot, cold boot only once (to bootstrap the test
-        # config and a clean state) and skip the per-test cold boots that
-        # follow. Most fboss2 integration tests self-revert their config
-        # changes, so rebooting between every test is largely wasted.
-        args = run_test.args
-        if getattr(args, "skip_coldboot", False) and self._initial_coldboot_done:
-            print("########## Skipping per-test cold boot (--skip-coldboot).")
-            return
+        # The first cold boot always runs: it loads the test config and
+        # establishes a clean state (in prod multi-switch the running agents
+        # still hold the old config until rebooted).
+        if self._initial_coldboot_done:
+            args = run_test.args
+            # Aggressive override: skip all per-test cold boots after the first.
+            if getattr(args, "skip_coldboot", False):
+                print("########## Skipping per-test cold boot (--skip-coldboot).")
+                return
+            # Default: reuse the already-running agents and only cold boot when
+            # an agent is down (e.g. a prior test crashed/wedged it). Most fboss2
+            # integration tests self-revert their config changes, so rebooting
+            # between every test is largely wasted.
+            if self._agents_ready():
+                print("########## Agents still up, skipping per-test cold boot.")
+                return
 
         if self._test_config_source != self._AGENT_CONFIG_PATH:
             subprocess.run(
@@ -166,6 +190,63 @@ class Fboss2IntegrationTestRunner(TestRunner):
             sw_agent_service_name=SW_AGENT_SERVICE_PROD,
         )
         self._initial_coldboot_done = True
+
+    def _agent_services(self) -> list[str]:
+        """systemd unit names for the sw_agent and every hw_agent."""
+        services = [SW_AGENT_SERVICE_PROD]
+        services += [
+            f"{HW_AGENT_SERVICE_PROD}{switch_index}"
+            for switch_index in self._switch_indexes
+        ]
+        return services
+
+    def _agents_ready(self) -> bool:
+        """Return True only if the sw_agent and every hw_agent service is active.
+
+        We poll only while an agent is still coming up (systemd "activating").
+        A dead agent ("failed"/"inactive"/etc. -- e.g. a prior test crashed it)
+        will not recover on its own, so we return immediately and let the caller
+        cold boot rather than waste the grace window polling it; this is what
+        makes recovery after a failed test fast.
+
+        The sw_agent and each hw_agent are checked independently, so in
+        multi-switch mode a crashed hw_agent is not masked by a healthy sw_agent.
+
+        Note: this is a liveness (systemd active) check. The OSS agent utils do
+        not expose a thrift run-state query, so unlike the netcastle path we
+        cannot additionally require CONFIGURED here.
+        """
+        services = self._agent_services()
+        for attempt in range(self._AGENT_READY_GRACE_RETRIES):
+            states = self._service_states(services)
+            if states == [self._SYSTEMD_ACTIVE] * len(services):
+                return True
+            if self._SYSTEMD_ACTIVATING not in states:
+                # Nothing is coming up -> a cold boot is required now; do not
+                # waste the grace window polling a dead agent.
+                return False
+            if attempt + 1 < self._AGENT_READY_GRACE_RETRIES:
+                time.sleep(self._AGENT_READY_GRACE_SLEEP_SEC)
+        return False
+
+    def _service_states(self, services: list[str]) -> list[str]:
+        """Return the `systemctl is-active` state of each service (one call).
+
+        `systemctl is-active s1 s2 ...` prints one state per unit ("active",
+        "activating", "failed", "inactive", ...). Returns an empty list on any
+        error, which the caller treats as not-ready.
+        """
+        try:
+            result = subprocess.run(
+                ["systemctl", "is-active", *services],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+        except Exception as e:
+            print(f"Warning: failed to query agent service states: {e}")
+            return []
 
     def _end_run(self) -> None:
         if self._is_prod_multi_switch:

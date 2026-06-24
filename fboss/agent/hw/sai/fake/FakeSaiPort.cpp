@@ -68,6 +68,7 @@ sai_status_t create_port_fn(
   std::optional<sai_uint32_t> numberOfIngressPriorityGroups;
   std::optional<sai_object_id_t> qosTcToPriorityGroupMap;
   std::optional<sai_object_id_t> qosPfcPriorityToQueueMap;
+  std::optional<sai_object_id_t> qosPfcPriorityToPriorityGroupMap;
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   std::optional<sai_uint32_t> interFrameGap;
 #endif
@@ -238,6 +239,9 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         qosPfcPriorityToQueueMap = attr_list[i].value.oid;
         break;
+      case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_PRIORITY_GROUP_MAP:
+        qosPfcPriorityToPriorityGroupMap = attr_list[i].value.oid;
+        break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       case SAI_PORT_ATTR_IPG:
         interFrameGap = attr_list[i].value.u32;
@@ -395,6 +399,10 @@ sai_status_t create_port_fn(
   }
   if (qosPfcPriorityToQueueMap.has_value()) {
     port.qosPfcPriorityToQueueMap = qosPfcPriorityToQueueMap.value();
+  }
+  if (qosPfcPriorityToPriorityGroupMap.has_value()) {
+    port.qosPfcPriorityToPriorityGroupMap =
+        qosPfcPriorityToPriorityGroupMap.value();
   }
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   if (interFrameGap.has_value()) {
@@ -749,6 +757,9 @@ sai_status_t set_port_attribute_fn(
       break;
     case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
       port.qosPfcPriorityToQueueMap = attr->value.oid;
+      break;
+    case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_PRIORITY_GROUP_MAP:
+      port.qosPfcPriorityToPriorityGroupMap = attr->value.oid;
       break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
     case SAI_PORT_ATTR_IPG:
@@ -1121,6 +1132,9 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         attr[i].value.oid = port.qosPfcPriorityToQueueMap;
+        break;
+      case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_PRIORITY_GROUP_MAP:
+        attr[i].value.oid = port.qosPfcPriorityToPriorityGroupMap;
         break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       case SAI_PORT_ATTR_IPG:

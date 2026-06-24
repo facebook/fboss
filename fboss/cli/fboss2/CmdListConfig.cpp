@@ -14,6 +14,7 @@
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h"
+#include "fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
@@ -26,6 +27,7 @@
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
 #include "fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h"
 #include "fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h"
+#include "fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.h"
 #include "fboss/cli/fboss2/commands/config/mac/CmdConfigMac.h"
 #include "fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.h"
 #include "fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h"
@@ -123,6 +125,26 @@ const CommandTree& kConfigCommandTree() {
        commandHandler<CmdConfigAppliedInfo>,
        argRegistrar<CmdConfigAppliedInfoTraits>},
 
+      {
+          "config",
+          "copp",
+          "Configure CoPP (control-plane policing) settings",
+          commandHandler<CmdConfigCopp>,
+          argRegistrar<CmdConfigCoppTraits>,
+          {{
+               "cpu-queue",
+               "Configure a CPU queue (bandwidth shaping)",
+               commandHandler<CmdConfigCoppCpuQueue>,
+               argRegistrar<CmdConfigCoppCpuQueueTraits>,
+           },
+           {
+               "reason",
+               "Map a packet-rx reason to a CPU queue",
+               commandHandler<CmdConfigCoppReason>,
+               argRegistrar<CmdConfigCoppReasonTraits>,
+           }},
+      },
+
       {"config",
        "arp",
        "Configure ARP settings",
@@ -218,6 +240,24 @@ const CommandTree& kConfigCommandTree() {
               commandHandler<CmdConfigMacAgingTime>,
               argRegistrar<CmdConfigMacAgingTimeTraits>,
           }},
+      },
+
+      {
+          "config",
+          "load-balancing",
+          "Configure load-balancing (ECMP/LAG) settings",
+          {{
+               "ecmp",
+               "Configure ECMP hash fields, algorithm, and seed",
+               commandHandler<CmdConfigLoadBalancingEcmp>,
+               argRegistrar<CmdConfigLoadBalancingEcmpTraits>,
+           },
+           {
+               "lag",
+               "Configure LAG hash fields, algorithm, and seed",
+               commandHandler<CmdConfigLoadBalancingLag>,
+               argRegistrar<CmdConfigLoadBalancingLagTraits>,
+           }},
       },
 
       {

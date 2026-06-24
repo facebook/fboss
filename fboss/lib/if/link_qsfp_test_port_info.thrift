@@ -28,4 +28,9 @@ struct LinkQsfpTestPortInfo {
   11: transceiver.MediaInterfaceCode portMediaInterface;
   12: optional phy.FecMode fecMode;
   13: map<string, string> extraMetadata;
+  // Production feature(s) the test verifies (enum names from
+  // QsfpProductionFeature). Populated by qsfp hw tests via
+  // HwTest::addVerifiedProductionFeatures(); empty for tests that do not declare
+  // any.
+  14: list<string> verifiedProductionFeatures;
 }

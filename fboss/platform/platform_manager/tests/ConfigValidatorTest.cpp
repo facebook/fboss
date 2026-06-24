@@ -189,13 +189,24 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 3: Mismatched pluggedInSlotType
+  // Test 3: Negative field in pmUnitVersion
+  auto versionedPmUnitConfigNegPmUv = VersionedPmUnitConfig();
+  PmUnitVersion negPmUv;
+  negPmUv.productionState() = 0;
+  negPmUv.productionSubState() = -1;
+  negPmUv.respinVariantIndicator() = 0;
+  versionedPmUnitConfigNegPmUv.pmUnitVersions() = {negPmUv};
+  versionedPmUnitConfigNegPmUv.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfigNegPmUv}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 4: Mismatched pluggedInSlotType
   versionedPmUnitConfig.productSubVersion() = 1;
   versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "PIM_SLOT";
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 4: Mismatched outgoingSlotConfigs
+  // Test 5: Mismatched outgoingSlotConfigs
   versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
   auto slotConfig = SlotConfig();
   slotConfig.slotType() = "EXTRA_SLOT";
@@ -204,14 +215,14 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 5: Mismatched pciDeviceConfigs
+  // Test 6: Mismatched pciDeviceConfigs
   versionedPmUnitConfig.pmUnitConfig()->outgoingSlotConfigs() = {};
   versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {
       getValidPciDeviceConfig()};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 6: Mismatched pciDeviceConfigs (via differing ledCtrlBlockConfigs)
+  // Test 7: Mismatched pciDeviceConfigs (via differing ledCtrlBlockConfigs)
   versionedPmUnitConfig.pmUnitConfig()->embeddedSensorConfigs() = {};
   config.numXcvrs() = 1;
   auto defaultPciDev = getValidPciDeviceConfig();
@@ -238,6 +249,41 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {versionedPciDev};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, VersionedPmUnitConfigMissingVersion) {
+  auto config = getBasicConfig();
+
+  // A VersionedPmUnitConfig that sets neither productSubVersion nor
+  // pmUnitVersions is invalid.
+  auto versionedPmUnitConfig = VersionedPmUnitConfig();
+  versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigWithPmUnitVersions) {
+  auto config = getBasicConfig();
+
+  // Valid with a single pmUnitVersion entry.
+  auto versionedPmUnitConfig = VersionedPmUnitConfig();
+  PmUnitVersion pmUv;
+  pmUv.productionState() = 1;
+  pmUv.productionSubState() = 2;
+  pmUv.respinVariantIndicator() = 3;
+  versionedPmUnitConfig.pmUnitVersions() = {pmUv};
+  versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Valid with multiple pmUnitVersion entries.
+  PmUnitVersion pmUv2;
+  pmUv2.productionState() = 4;
+  pmUv2.productionSubState() = 5;
+  pmUv2.respinVariantIndicator() = 6;
+  versionedPmUnitConfig.pmUnitVersions() = {pmUv, pmUv2};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
@@ -353,6 +399,7 @@ TEST(ConfigValidatorTest, PmUnitNameReferentialIntegrity) {
 
   // Test 4: versionedPmUnitConfigs references non-existent PMUnit name
   auto versionedPmUnitConfig = VersionedPmUnitConfig();
+  versionedPmUnitConfig.productSubVersion() = 1;
   versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
   config.versionedPmUnitConfigs() = {
       {"NON_EXISTENT_PMUNIT", {versionedPmUnitConfig}}};

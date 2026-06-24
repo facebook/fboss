@@ -256,6 +256,15 @@ struct TBgpSession {
   // Peer's state in the update-group state machine (e.g., JOINED_RUNNING)
   25: optional string peer_state_update_group;
   26: i64 postpolicy_rcvd_prefix_count;
+  /*
+   * Per-peer count of received routes dropped because the peer reached its
+   * configured pre-filter max prefix limit (RouteLimit.max_routes), reset when
+   * the session goes down. A non-zero value means the peer is actively shedding
+   * received (PR) routes. Surfaced as the PRD column in `show bgp summary` and
+   * reused by the health validator, so operators can spot drops without digging
+   * through logs.
+   */
+  27: optional i64 prepolicy_rcvd_dropped_prefix_count;
 }
 
 struct TPeerEgressStats {

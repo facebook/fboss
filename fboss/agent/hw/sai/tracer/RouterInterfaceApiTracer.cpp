@@ -29,6 +29,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _RouterInterfaceMap{
     SAI_ATTR_MAP(PortRouterInterface, VirtualRouterId),
     SAI_ATTR_MAP(PortRouterInterface, PortId),
     SAI_ATTR_MAP(PortRouterInterface, Mtu),
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    SAI_ATTR_MAP(VlanRouterInterface, AdminMplsState),
+#endif
 };
 } // namespace
 

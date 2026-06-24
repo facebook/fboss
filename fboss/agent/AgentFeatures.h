@@ -37,6 +37,7 @@ DECLARE_bool(enable_acl_table_chain_group);
 DECLARE_int32(oper_sync_req_timeout);
 DECLARE_bool(hide_fabric_ports);
 DECLARE_bool(hide_management_ports);
+DECLARE_bool(hide_eventor_ports);
 DECLARE_bool(hide_interface_ports);
 
 DECLARE_bool(dsf_subscribe);
@@ -160,3 +161,4 @@ DECLARE_bool(verify_fib_nexthop_id_consistency);
 DECLARE_bool(enforce_single_nbr_mac_per_intf);
 DECLARE_int32(max_tx_packets);
 DECLARE_bool(enable_acl_table_redirect_action);
+DECLARE_bool(enable_pfc_priority_to_pg_map);

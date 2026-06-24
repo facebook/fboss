@@ -195,6 +195,14 @@ service FbossHwCtrl {
   );
 
   /*
+   * Trigger cable length measurement on the given ports by setting
+   * SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE.
+   */
+  void triggerCableLengthMeasurement(1: list<i32> ports) throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
    * Get the current programmed switch state from HwAgent.
    * This returns the in-memory state that HwAgent maintains,
    * which can be used for SW Agent warmboot recovery.

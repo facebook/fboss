@@ -461,4 +461,27 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithDifferentDrainStates) {
 }
 #endif // IS_OSS
 
+TEST_F(CmdShowBgpSummaryTestFixture, printOutputPrePolicyPrefixDrops) {
+  // A non-zero pre-policy dropped count surfaces the PRD column.
+  std::stringstream ss;
+  auto model = getModelBgpSummary();
+  model.sessions()[0].prepolicy_rcvd_dropped_prefix_count() = 50;
+  CmdShowBgpSummary().printOutput(model, ss);
+  std::string output = ss.str();
+
+  EXPECT_THAT(output, HasSubstr("PRD"));
+  EXPECT_THAT(output, HasSubstr("50"));
+  EXPECT_THAT(output, HasSubstr("PRD - Prefixes Received Dropped"));
+}
+
+TEST_F(CmdShowBgpSummaryTestFixture, printOutputNoPrefixDrops) {
+  // With no dropped routes, the PRD column and legend are omitted.
+  std::stringstream ss;
+  auto model = getModelBgpSummary();
+  CmdShowBgpSummary().printOutput(model, ss);
+  std::string output = ss.str();
+
+  EXPECT_THAT(output, Not(HasSubstr("PRD")));
+}
+
 } // namespace facebook::fboss

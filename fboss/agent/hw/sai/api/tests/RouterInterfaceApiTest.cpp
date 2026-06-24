@@ -36,7 +36,12 @@ class RouterInterfaceApiTest : public ::testing::Test {
          typeAttribute,
          vlanIdAttribute,
          std::nullopt,
-         std::nullopt},
+         std::nullopt
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+         ,
+         std::nullopt
+#endif
+        },
         0);
     EXPECT_EQ(rifId, fs->routeInterfaceManager.get(rifId).id);
     EXPECT_EQ(vr, fs->routeInterfaceManager.get(rifId).virtualRouterId);
@@ -142,6 +147,17 @@ TEST_F(RouterInterfaceApiTest, setMtu) {
   routerInterfaceApi->setAttribute(rifId, mtu1);
   EXPECT_EQ(mtu, routerInterfaceApi->getAttribute(rifId, mtu2));
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+TEST_F(RouterInterfaceApiTest, setAdminMplsState) {
+  auto rifId = createRouterInterface();
+  SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState getMplsState;
+  EXPECT_FALSE(routerInterfaceApi->getAttribute(rifId, getMplsState));
+  routerInterfaceApi->setAttribute(
+      rifId, SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState{true});
+  EXPECT_TRUE(routerInterfaceApi->getAttribute(rifId, getMplsState));
+}
+#endif
 
 TEST_F(RouterInterfaceApiTest, formatRouterInterfaceAttributes) {
   std::string macStr{"42:42:42:42:42:42"};

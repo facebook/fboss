@@ -1,9 +1,19 @@
 load("@fbcode//fboss/lib/phy:sai_xphy.bzl", "all_sai_xphy_libs")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 load("//fboss/lib/phy:sai_phy_management.bzl", "all_sai_phy_management_libs")
 
 oncall("fboss_agent_push")
+
+# Exported so the NPI launcher readiness suite (CHK-060) can bundle this
+# source into its binary via buck `resources` and read it at runtime with
+# parutil — the readiness server runs in a prod Tupperware container with no
+# fbcode source checkout on disk.
+export_file(
+    name = "SaiPhyRetimer.cpp",
+    visibility = ["//rtp/npi/npi_launcher/..."],
+)
 
 thrift_library(
     name = "phy",

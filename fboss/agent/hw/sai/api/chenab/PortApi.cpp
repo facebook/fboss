@@ -412,7 +412,7 @@ std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
-#if !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_8_ea)
+#if !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea)
   return SAI_PORT_ATTR_PFC_PAUSE_DURATION_OVERRIDE;
 #else
   return std::nullopt;

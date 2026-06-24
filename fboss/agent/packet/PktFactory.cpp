@@ -9,6 +9,7 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/packet/TCPPacket.h"
@@ -27,8 +28,15 @@ void writeEthHeader(
     std::vector<VlanTag> vlanTags,
     uint16_t protocol) {
   if (vlanTags.size() != 0) {
-    txPacket->writeEthHeader(
-        cursor, dst, src, VlanID(vlanTags[0].vid()), protocol);
+    // Write the VLAN tag directly rather than via the VlanID-only
+    // TxPacket::writeEthHeader overload, so the tag's 802.1p PCP / DEI bits
+    // (the upper bits of the TCI) are preserved on the wire.
+    const auto& vlanTag = vlanTags[0];
+    cursor->push(dst.bytes(), folly::MacAddress::SIZE);
+    cursor->push(src.bytes(), folly::MacAddress::SIZE);
+    cursor->template writeBE<uint16_t>(vlanTag.tpid());
+    cursor->template writeBE<uint16_t>(static_cast<uint16_t>(vlanTag.value));
+    cursor->template writeBE<uint16_t>(protocol);
   } else {
     txPacket->writeEthHeader(cursor, dst, src, protocol);
   }
@@ -172,12 +180,19 @@ EthHdr makeEthHdr(
     MacAddress srcMac,
     MacAddress dstMac,
     std::optional<VlanID> vlan,
-    ETHERTYPE etherType) {
+    ETHERTYPE etherType,
+    uint8_t pcp) {
+  // 802.1p PCP is a 3-bit field; reject out-of-range values rather than
+  // silently masking them into a different priority (VlanTag masks with 0x7).
+  CHECK_LE(pcp, 7);
   EthHdr::VlanTags_t vlanTags;
 
   if (vlan.has_value()) {
     vlanTags.emplace_back(
-        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
+        vlan.value(),
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN),
+        0 /* dropEligibility */,
+        pcp);
   }
 
   EthHdr ethHdr(dstMac, srcMac, vlanTags, static_cast<uint16_t>(etherType));
@@ -190,22 +205,25 @@ std::unique_ptr<TxPacket> makeEthTxPacket(
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     facebook::fboss::ETHERTYPE etherType,
-    std::optional<std::vector<uint8_t>> payload) {
+    std::optional<std::vector<uint8_t>> payload,
+    uint8_t pcp) {
   if (!payload) {
     payload = kDefaultPayload;
   }
   const auto& payloadBytes = payload.value();
   // EthHdr
-  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, etherType);
+  auto ethHdr = makeEthHdr(srcMac, dstMac, std::move(vlan), etherType, pcp);
   auto txPacket = allocatePacket(EthHdr::SIZE + payloadBytes.size());
 
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
-  // Write EthHdr
-  txPacket->writeEthHeader(
+  // Write EthHdr. Use the VlanTag-aware helper so the 802.1p PCP carried in the
+  // header is emitted on the wire.
+  writeEthHeader(
+      txPacket,
       &rwCursor,
       ethHdr.getDstMac(),
       ethHdr.getSrcMac(),
-      vlan,
+      ethHdr.getVlanTags(),
       ethHdr.getEtherType());
   rwCursor.push(payloadBytes.data(), payloadBytes.size());
   return txPacket;
@@ -597,7 +615,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     uint16_t dstPort,
     uint8_t trafficClass,
     uint8_t hopLimit,
-    std::optional<std::vector<uint8_t>> payload) {
+    std::optional<std::vector<uint8_t>> payload,
+    uint32_t flowLabel) {
   // TODO: Refactor such that both tests and DHCPv6Handler to use this
   // function for constructing v6 UDP packets
   if (!payload) {
@@ -610,6 +629,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
   IPv6Hdr ipHdr(srcIp, dstIp);
   ipHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
   ipHdr.trafficClass = trafficClass;
+  ipHdr.flowLabel = flowLabel;
   ipHdr.payloadLength = UDPHeader::size() + payloadBytes.size();
   ipHdr.hopLimit = hopLimit;
   // UDPHeader

@@ -155,6 +155,8 @@ class AgentEnsembleMacLearningTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentEnsembleMacLearningTest, l2EntryFlap) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::MAC_LEARNING});
   auto verify = [this]() {
     auto macAddr = MacAddress("02:00:00:00:00:05");
     // After warm boot, the ASIC may still have a stale FDB entry for this

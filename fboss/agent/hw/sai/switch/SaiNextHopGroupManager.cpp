@@ -127,6 +127,8 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   std::optional<SaiNextHopGroupTraits::Attributes::HashAlgorithm> hashAlgorithm{
       std::nullopt};
+  std::optional<SaiNextHopGroupTraits::Attributes::HierarchicalNextHop>
+      hierarchicalNextHop{std::nullopt};
 #endif
 
   if (FLAGS_flowletSwitchingEnable &&
@@ -164,6 +166,11 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
           hashAlgorithm = SaiNextHopGroupTraits::Attributes::HashAlgorithm{
               SAI_HASH_ALGORITHM_RANDOM};
         }
+        if (platform_->getAsic()->isSupported(
+                HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL)) {
+          hierarchicalNextHop =
+              SaiNextHopGroupTraits::Attributes::HierarchicalNextHop{false};
+        }
 #endif
       }
     }
@@ -184,7 +191,8 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       ,
-      hashAlgorithm
+      hashAlgorithm,
+      hierarchicalNextHop
 #endif
   };
   nextHopGroupHandle->nextHopGroup =
