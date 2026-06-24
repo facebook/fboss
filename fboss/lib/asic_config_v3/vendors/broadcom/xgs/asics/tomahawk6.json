@@ -1,0 +1,131 @@
+{
+  "vendor": "broadcom",
+  "asic": "tomahawk6",
+
+  "port_architecture": {
+    "num_cores": 64,
+    "num_lanes_per_core": 8,
+    "num_logical_ports_per_datapath": 10,
+    "num_physical_ports_per_datapath": 16,
+    "num_lp_ports_on_even_core_default": 8
+  },
+
+  "mmu_size": 9416,
+  "table_names": [
+    "PC_PM_CORE",
+    "PC_PORT_PHYS_MAP",
+    "PC_PORT",
+    "PORT_CONFIG",
+    "global",
+    "port",
+    "TM_THD_CONFIG",
+    "PORT",
+    "DEVICE_CONFIG",
+    "FP_CONFIG",
+    "CTR_EFLEX_CONFIG",
+    "DLB_ECMP_CONFIG"
+  ],
+  "mgmt_port_defaults": {
+    "logical_id": 76,
+    "physical_id": 513,
+    "speed": 100000,
+    "num_lanes": 4,
+    "fec": "PC_FEC_RS528"
+  },
+  "preamble_support": false,
+
+  "global_defaults": {
+    "l3_alpm_template": 1,
+    "l3_alpm_hit_mode": 1,
+    "ipv6_lpm_128b_enable": 1,
+    "pktio_driver_type": 1,
+    "qos_map_multi_get_mode": 1,
+    "rx_cosq_mapping_management_mode": 0,
+    "l3_iif_reservation_skip": 0
+  },
+  "sai_overrides": {
+    "sai_field_group_auto_prioritize": 1,
+    "bcm_tunnel_term_compatible_mode": 1,
+    "sai_l2_cpu_fdb_event_suppress": 1,
+    "sai_port_phy_time_sync_en": 1,
+    "sai_stats_support_mask": "0x2",
+    "sai_disable_internal_port_serdes": 1
+  },
+  "flex_counter_settings": {
+    "global_flexctr_ing_action_num_reserved": 20,
+    "global_flexctr_ing_pool_num_reserved": 8,
+    "global_flexctr_ing_op_profile_num_reserved": 20,
+    "global_flexctr_ing_group_num_reserved": 2,
+    "global_flexctr_egr_action_num_reserved": 8,
+    "global_flexctr_egr_pool_num_reserved": 5,
+    "global_flexctr_egr_op_profile_num_reserved": 10,
+    "global_flexctr_egr_group_num_reserved": 1
+  },
+  "ctr_eflex_config": {
+    "CTR_ING_EFLEX_OPERMODE_PIPEUNIQUE": 1,
+    "CTR_ING_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE": 1,
+    "CTR_EGR_EFLEX_OPERMODE_PIPEUNIQUE": 1,
+    "CTR_EGR_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE": 1
+  },
+  "dlb_defaults": {
+    "ecmp_dlb_port_speeds": 1,
+    "l3_ecmp_member_secondary_mem_size": 4096
+  },
+  "dlb_ecmp_config_defaults": {
+    "PATH_QUALITY_PROFILE_MODE": "WIDE"
+  },
+
+  "port_config_defaults": {"PORT_SYSTEM_PROFILE_OPERMODE_PIPEUNIQUE": 1},
+  "fp_config_defaults": {"FP_ING_OPERMODE": "GLOBAL_PIPE_AWARE"},
+  "tm_thd_config_defaults": {"THRESHOLD_MODE": "LOSSY"},
+
+  "pass_through_settings": [
+    {"source": "port_config_defaults", "target_table": "PORT_CONFIG"},
+    {"source": "fp_config_defaults", "target_table": "FP_CONFIG"},
+    {"source": "tm_thd_config_defaults", "target_table": "TM_THD_CONFIG"},
+    {"source": "flex_counter_settings", "target_table": "global"},
+    {"source": "ctr_eflex_config", "target_table": "CTR_EFLEX_CONFIG"}
+  ],
+
+  "conditional_settings": [
+    {
+      "name": "mmu_lossless",
+      "description": "Enables MMU lossless mode for PFC and RDMA workloads.",
+      "condition": {"source": "asic_config_params", "param": "mmu_lossless", "equals": true},
+      "apply": {
+        "TM_THD_CONFIG": {
+          "THRESHOLD_MODE": "LOSSY_AND_LOSSLESS",
+          "SKIP_BUFFER_RESERVATION": 1
+        }
+      }
+    },
+    {
+      "name": "exact_match",
+      "description": "Enables exact-match forwarding table entries.",
+      "condition": {"source": "asic_config_params", "param": "exact_match", "equals": true},
+      "apply": {
+        "global": {"fpem_mem_entries_width": 1, "fpem_mem_entries": 65536}
+      }
+    },
+    {
+      "name": "dlb_config",
+      "description": "Enables Dynamic Load Balancing settings for ECMP groups.",
+      "condition": {"source": "features", "param": "generate_dlb_config", "equals": true},
+      "apply_from": {"source": "dlb_defaults", "target_table": "global"}
+    },
+    {
+      "name": "dlb_ecmp_config",
+      "description": "Emits the DLB_ECMP_CONFIG path-quality profile settings.",
+      "condition": {"source": "features", "param": "generate_dlb_ecmp_config", "equals": true},
+      "apply_from": {"source": "dlb_ecmp_config_defaults", "target_table": "DLB_ECMP_CONFIG"}
+    },
+    {
+      "name": "autoload_board_settings",
+      "description": "Disables board auto-loading by setting AUTOLOAD_BOARD_SETTINGS to 0.",
+      "condition": {"source": "features", "param": "generate_autoload_board_settings", "equals": true},
+      "apply": {
+        "DEVICE_CONFIG": {"AUTOLOAD_BOARD_SETTINGS": 0}
+      }
+    }
+  ]
+}
