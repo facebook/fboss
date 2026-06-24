@@ -26,6 +26,8 @@ constexpr auto kCpuI2cBusNumsWaitSecs = 1;
 const std::map<std::string, int> kAmdAcpiPathToBusIndex = {
     {R"(\_SB_.I2CA)", 1},
     {R"(\_SB_.I2CB)", 0},
+    {R"(\_SB_.I2CC)", 2},
+    {R"(\_SB_.I2CD)", 3},
 };
 
 std::string getI2cAdapterName(const fs::path& busPath) {
