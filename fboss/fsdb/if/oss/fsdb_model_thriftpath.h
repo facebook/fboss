@@ -3572,7 +3572,8 @@ std::pair<apache::thrift::ident::memory_profiling_config, ChildThriftPath<::face
 std::pair<apache::thrift::ident::enable_optimized_GR, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<apache::thrift::ident::enable_eibgp_multipath, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<apache::thrift::ident::update_group_config, ChildThriftPath<::facebook::bgp::thrift::UpdateGroupConfig, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<apache::thrift::ident::enable_policy_default_action, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+std::pair<apache::thrift::ident::enable_policy_default_action, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<apache::thrift::ident::next_hop_tracking_use_openr_igp_cost, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -3593,6 +3594,7 @@ std::pair<apache::thrift::ident::enable_policy_default_action, Child<bool, ::apa
     STRUCT_CHILD_GETTERS(enable_eibgp_multipath, 14);
     STRUCT_CHILD_GETTERS(update_group_config, 15);
     STRUCT_CHILD_GETTERS(enable_policy_default_action, 16);
+    STRUCT_CHILD_GETTERS(next_hop_tracking_use_openr_igp_cost, 17);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -3611,6 +3613,7 @@ std::pair<apache::thrift::ident::enable_policy_default_action, Child<bool, ::apa
     else if constexpr (__id == apache::thrift::FieldId{14}) { return enable_eibgp_multipath(); }
     else if constexpr (__id == apache::thrift::FieldId{15}) { return update_group_config(); }
     else if constexpr (__id == apache::thrift::FieldId{16}) { return enable_policy_default_action(); }
+    else if constexpr (__id == apache::thrift::FieldId{17}) { return next_hop_tracking_use_openr_igp_cost(); }
   }
 };
 
