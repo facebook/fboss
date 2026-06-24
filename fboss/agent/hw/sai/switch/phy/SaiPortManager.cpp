@@ -430,7 +430,8 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     const std::vector<phy::PinConfig>& pinConfigs,
     const std::shared_ptr<SaiPortSerdes>& /* serdes */,
     bool /* zeroPreemphasis */,
-    const std::optional<std::string>& customCollection) {
+    const std::optional<std::string>& customCollection,
+    bool /* skipSerdesProgramming */) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
