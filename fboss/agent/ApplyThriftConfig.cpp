@@ -4603,6 +4603,12 @@ ThriftConfigApplier::updateRemoteInterfaces(
       if (intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
         continue;
       }
+      if (intf->getScope() != cfg::Scope::GLOBAL) {
+        if (remoteInterfaces->getNodeIf(intfID)) {
+          remoteInterfaces->removeNode(intfID);
+        }
+        continue;
+      }
       auto remoteIntfScope = scopeResolver_.scope(cfg::SwitchType::VOQ);
       remoteIntfScope.exclude(scopeResolver_.scope(intf, *cfg_).switchIds());
       auto remoteIntf = std::make_shared<Interface>();
@@ -4627,6 +4633,9 @@ ThriftConfigApplier::updateRemoteInterfaces(
        std::as_const(*orig_->getInterfaces())) {
     for (const auto& [intfID, intf] : std::as_const(*interfaceMap)) {
       if (intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
+        continue;
+      }
+      if (intf->getScope() != cfg::Scope::GLOBAL) {
         continue;
       }
       if (!interfaces->getNodeIf(intfID)) {
