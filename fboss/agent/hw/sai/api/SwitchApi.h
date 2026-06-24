@@ -979,6 +979,7 @@ struct SaiSwitchTraits {
 #endif
       std::optional<Attributes::PfcMonitorEnable>,
       std::optional<Attributes::CablePropagationDelayMeasurement>,
+      std::optional<Attributes::PortCl72RetryEnable>,
       std::optional<Attributes::SwitchingMode>>;
 
   // Avoid using SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP as that counts

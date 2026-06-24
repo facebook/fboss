@@ -572,3 +572,8 @@ DEFINE_bool(
     enable_pfc_priority_to_pg_map,
     false,
     "Enable programming the PFC priority to priority group QoS map on ports");
+
+DEFINE_bool(
+    enable_port_cl72_retry,
+    false,
+    "Enable CL72 link training retry on the switch (XGS, BRCM SDK >= 14.2 only)");
