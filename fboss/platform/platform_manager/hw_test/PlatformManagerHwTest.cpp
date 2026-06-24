@@ -225,8 +225,11 @@ TEST_F(PlatformManagerHwTest, XcvrLedFiles) {
   auto secondaryColor = fboss::XcvrLib::LedColor::AMBER;
 
   for (auto xcvrNum = 1; xcvrNum <= xcvrLib_.getNumTransceivers(); xcvrNum++) {
-    auto numLeds = xcvrLib_.getNumLedsForTransceiver(xcvrNum).value();
-    for (auto ledNum = 1; ledNum <= numLeds; ledNum++) {
+    auto numLeds = xcvrLib_.getNumLedsForTransceiver(xcvrNum);
+    if (!numLeds) {
+      continue;
+    }
+    for (auto ledNum = 1; ledNum <= *numLeds; ledNum++) {
       auto primaryLedDir = fs::path(
           xcvrLib_.getLedSysfsPath(xcvrNum, ledNum, primaryColor).value());
       auto secondaryLedDir = fs::path(
