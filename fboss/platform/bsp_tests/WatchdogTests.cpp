@@ -14,6 +14,8 @@
 #include "fboss/platform/bsp_tests/utils/I2CUtils.h"
 #include "fboss/platform/bsp_tests/utils/KmodUtils.h"
 #include "fboss/platform/bsp_tests/utils/WatchdogUtils.h"
+#include "fboss/platform/platform_manager/FanCpldManager.h"
+#include "fboss/platform/platform_manager/I2cAddr.h"
 
 namespace facebook::fboss::platform::bsp_tests {
 
@@ -104,6 +106,21 @@ class WatchdogTest : public BspTest {
     return std::nullopt;
   }
 
+  // The fbfancpld driver only registers its watchdog after userspace issues
+  // the FBFANCPLD_IOC_CONFIGURE ioctl on /dev/fbfancpld-<bus>-<addr>. The real
+  // platform_manager service does this from FanCpldManager; mirror it here so
+  // bsp tests work against fbfancpld-based platforms.
+  void maybeConfigureFanCpld(const I2CDevice& device, int busNum) {
+    if (*device.deviceName() != "fbfancpld" ||
+        !device.fanCpldConfig().has_value()) {
+      return;
+    }
+    platform_manager::configureFanCpld(
+        static_cast<uint16_t>(busNum),
+        platform_manager::I2cAddr(*device.address()),
+        *device.fanCpldConfig());
+  }
+
   std::set<std::string> setupDeviceAndGetWatchdogs(
       const I2CDevice& device,
       int busNum) {
@@ -111,6 +128,7 @@ class WatchdogTest : public BspTest {
     EXPECT_TRUE(I2CUtils::createI2CDevice(device, busNum))
         << "Failed to create I2C device " << *device.deviceName() << " on bus "
         << busNum;
+    maybeConfigureFanCpld(device, busNum);
     return getNewWatchdogs(existingWdts);
   }
 
@@ -236,6 +254,7 @@ TEST_F(WatchdogTest, WatchdogDriverUnload) {
         EXPECT_TRUE(I2CUtils::createI2CDevice(device, busNum))
             << "Failed to create I2C device " << *device.deviceName()
             << " on bus " << busNum;
+        maybeConfigureFanCpld(device, busNum);
       }
     } catch (const std::exception& e) {
       FAIL() << "Exception during watchdog driver unload test setup: "
