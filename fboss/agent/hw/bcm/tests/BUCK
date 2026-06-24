@@ -678,9 +678,6 @@ cpp_library(
         "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:mirror_test_utils",
         "//fboss/agent/test/utils:udf_test_utils",
-        "//folly:synchronized",
-        "//folly/logging:log_handler",
-        "//folly/logging:logging",
     ],
     exported_external_deps = [
         ("broadcom-xgs-robo", None, "xgs_robo"),
