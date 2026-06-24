@@ -34,6 +34,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
 struct SaiHostifUserDefinedTrapHandle;
+struct SaiNextHopGroupHandle;
 
 using SaiAclTable = SaiObject<SaiAclTableTraits>;
 using SaiAclEntry = SaiObject<SaiAclEntryTraits>;
@@ -82,6 +83,8 @@ struct SaiAclEntryHandle {
   std::shared_ptr<SaiHostifUserDefinedTrapHandle> userDefinedTrap;
   std::shared_ptr<SaiAclCounter> aclCounter;
   std::shared_ptr<SaiObject<SaiTunnelEncapNextHopTraits>> tunnelEncapNextHop;
+  std::shared_ptr<SaiNextHopGroupHandle> matchNhgHandle;
+  std::shared_ptr<SaiNextHopGroupHandle> redirectNhgHandle;
   std::shared_ptr<SaiAclEntry> aclEntry;
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
   std::optional<std::string> ingressMirror;
