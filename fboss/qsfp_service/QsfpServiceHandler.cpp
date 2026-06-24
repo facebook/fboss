@@ -6,6 +6,7 @@
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
+#include "fboss/qsfp_service/SdkDumpPath.h"
 
 #include <fboss/lib/LogThriftCall.h>
 #include <folly/logging/xlog.h>
@@ -31,38 +32,6 @@ DEFINE_int32(
 
 namespace facebook {
 namespace fboss {
-
-namespace {
-// Service-owned directory that SDK debug dumps are confined to. API-provided
-// filenames are reduced to their basename and joined onto this fixed root so a
-// network caller cannot direct the (root-privileged) SDK write to an arbitrary
-// path (e.g. /etc/cron.d/x, authorized_keys).
-constexpr char kSdkDumpDir[] = "/var/facebook/fboss/sdk_dump/";
-
-// Validate the API-provided filename and return the safe, confined path the SDK
-// dump should be written to. Rejects empty, absolute, and parent-traversing
-// inputs rather than silently falling back.
-std::string sanitizeSdkDumpPath(const std::string& fileName) {
-  if (fileName.empty()) {
-    throw FbossError("getSdkState: fileName must not be empty");
-  }
-  if (fileName.front() == '/') {
-    throw FbossError(
-        "getSdkState: absolute fileName is not allowed: ", fileName);
-  }
-  // Confine to the service-owned directory using only the basename, so even a
-  // crafted relative path (including one with '..' components) cannot escape
-  // kSdkDumpDir. Reducing to the basename first also avoids falsely rejecting
-  // legitimate names that merely contain ".." as a substring (e.g. "..bar").
-  auto slashPos = fileName.find_last_of('/');
-  auto basename =
-      slashPos == std::string::npos ? fileName : fileName.substr(slashPos + 1);
-  if (basename.empty() || basename == "." || basename == "..") {
-    throw FbossError("getSdkState: invalid fileName: ", fileName);
-  }
-  return std::string(kSdkDumpDir) + basename;
-}
-} // namespace
 
 template <typename Type>
 static void valid(const Type& val) {
