@@ -834,6 +834,26 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
       classID);
 }
 
+TEST_F(ThriftTest, addUnicastRouteWithNonexistentLinkLocalInterfaceThrows) {
+  ThriftHandler handler(sw_);
+  auto route = std::make_unique<UnicastRoute>();
+  route->dest() = ipPrefix("2001:db8::/64");
+  route->adminDistance() = AdminDistance::OPENR;
+
+  for (auto i = 0; i < 4; ++i) {
+    NextHopThrift nexthop;
+    nexthop.address() = toBinaryAddress(IPAddress("fe80:face:b00c::1"));
+    nexthop.address()->ifName() = i == 2 ? "fboss9999" : "fboss1";
+    nexthop.weight() = ECMP_WEIGHT;
+    route->nextHops()->push_back(std::move(nexthop));
+  }
+
+  EXPECT_THROW(
+      handler.addUnicastRoute(
+          static_cast<int16_t>(ClientID::OPENR), std::move(route)),
+      FbossError);
+}
+
 // Test for the ThriftHandler::syncFib method
 TYPED_TEST(ThriftTestAllSwitchTypes, multipleClientSyncFib) {
   if (this->isFabric()) {
