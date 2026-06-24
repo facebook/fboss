@@ -122,6 +122,7 @@ DEFINE_string(
     "Turn on SAI SDK logging. Options are DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL");
 
 DECLARE_bool(enable_acl_table_group);
+DECLARE_bool(srv6);
 
 DEFINE_bool(
     force_recreate_acl_tables,
@@ -1770,7 +1771,13 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
         saiSwitchId_,
         SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
-    if (platform_->getAsic()->isSupported(
+    // AvailableMySidEntry is only queryable when the SDK is initialized with
+    // mySid stat support (sai_stats_support), which is config dependent and
+    // independent of the static ASIC capability. Gate on FLAGS_srv6 so
+    // non-SRv6 configs do not issue a get that would mark all resource stats
+    // stale.
+    if (FLAGS_srv6 &&
+        platform_->getAsic()->isSupported(
             HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER)) {
       hwResourceStats_.my_sid_entries_free() = switchApi.getAttribute(
           saiSwitchId_, SaiSwitchTraits::Attributes::AvailableMySidEntry{});

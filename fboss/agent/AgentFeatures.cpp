@@ -297,6 +297,13 @@ DEFINE_int32(
     "Percentage of MySID resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
 
 DEFINE_bool(
+    srv6,
+    false,
+    "Enable SRv6 features, e.g. collecting the SRv6 MySID resource counter. "
+    "Only valid on configs whose SDK is initialized with SRv6/mySid support "
+    "(sai_stats_support); leave off otherwise.");
+
+DEFINE_bool(
     enable_srv6_nexthop_resource_protection,
     true,
     "Enable SRv6 next hop resource protection in ResourceAccountant");

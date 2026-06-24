@@ -99,6 +99,7 @@ DECLARE_int32(ecmp_resource_percentage);
 DECLARE_int32(ars_resource_percentage);
 DECLARE_bool(enable_mysid_resource_protection);
 DECLARE_int32(mysid_resource_percentage);
+DECLARE_bool(srv6);
 DECLARE_bool(enable_srv6_nexthop_resource_protection);
 DECLARE_int32(srv6_nexthop_resource_percentage);
 DECLARE_bool(enable_route_counter_resource_protection);
