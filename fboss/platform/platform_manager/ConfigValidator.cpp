@@ -367,10 +367,11 @@ bool ConfigValidator::isValidI2cAdaptersFromCpu(
   std::set<std::string> seen;
   for (const auto& name : i2cAdaptersFromCpu) {
     if (re2::RE2::FullMatch(name, kCpuBusNameRegex)) {
-      if (name != "CPU_BUS@0" && name != "CPU_BUS@1") {
+      static const re2::RE2 kSupportedCpuBusNameRegex{"CPU_BUS@[0-3]"};
+      if (!re2::RE2::FullMatch(name, kSupportedCpuBusNameRegex)) {
         XLOG(ERR) << fmt::format(
             "Invalid virtual bus name '{}'. "
-            "Only CPU_BUS@0 and CPU_BUS@1 are supported",
+            "Only CPU_BUS@0 through CPU_BUS@3 are supported",
             name);
         return false;
       }

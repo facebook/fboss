@@ -117,17 +117,18 @@ TEST(ConfigValidatorTest, I2cAdaptersFromCpuValidation) {
   // CPU_BUS@1 — valid (AMD second bus)
   EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@1"}));
 
-  // CPU_BUS@0 + CPU_BUS@1 — valid (AMD two-bus config)
+  // CPU_BUS@0 through CPU_BUS@3 — valid (AMD four-bus config)
   EXPECT_TRUE(
-      ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0", "CPU_BUS@1"}));
+      ConfigValidator().isValidI2cAdaptersFromCpu(
+          {"CPU_BUS@0", "CPU_BUS@1", "CPU_BUS@2", "CPU_BUS@3"}));
 
   // Exact names only — valid
   EXPECT_TRUE(
       ConfigValidator().isValidI2cAdaptersFromCpu(
           {"SMBus I801 adapter at 5000"}));
 
-  // CPU_BUS@2 — invalid (only @0 and @1 supported)
-  EXPECT_FALSE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@2"}));
+  // CPU_BUS@4 — invalid (only @0 through @3 supported)
+  EXPECT_FALSE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@4"}));
 
   // Duplicate CPU_BUS@0 — invalid
   EXPECT_FALSE(
