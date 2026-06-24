@@ -43,7 +43,54 @@
         82,
         83,
         87,
-        98
+        98,
+        115
+    ],
+    "chenab2": [
+        2,
+        3,
+        4,
+        5,
+        7,
+        8,
+        10,
+        11,
+        61,
+        66,
+        12,
+        13,
+        16,
+        17,
+        19,
+        20,
+        21,
+        23,
+        26,
+        27,
+        28,
+        31,
+        91,
+        32,
+        33,
+        34,
+        35,
+        42,
+        43,
+        50,
+        51,
+        53,
+        59,
+        60,
+        63,
+        69,
+        72,
+        73,
+        74,
+        82,
+        83,
+        87,
+        98,
+        115
     ],
     "ebro": [
         2,
@@ -493,8 +540,7 @@
         105,
         89,
         87,
-        78,
-        116
+        78
     ],
     "tomahawkultra1": [
         2,
@@ -510,7 +556,6 @@
         13,
         16,
         17,
-        19,
         20,
         21,
         23,
@@ -539,26 +584,18 @@
         33,
         59,
         60,
-        62,
-        63,
         69,
         71,
         72,
         80,
-        81,
-        82,
         84,
-        86,
         87,
         88,
-        89,
-        90,
         94,
         93,
         49,
         96,
-        97,
-        101
+        97
     ],
     "yuba": [
         2,
@@ -658,7 +695,54 @@
         "ARS_SPRAY",
         "ROUTER_INTERFACE_COUNTERS",
         "UDF_HASH",
-        "PFC_RX_TX_DURATION"
+        "PFC_RX_TX_DURATION",
+        "CUSTOM_DROP_BITMAP_SUPPORT"
+    ],
+    "chenab2": [
+        "CPU_RX_TX",
+        "L3_FORWARDING",
+        "ACL_PORT_IN_DISCARDS_COUNTER",
+        "NULL_ROUTE_IN_DISCARDS_COUNTER",
+        "PRBS",
+        "COPP",
+        "DSCP_REMARKING",
+        "L3_QOS",
+        "NETWORKAI_QOS",
+        "OLYMPIC_QOS",
+        "ACL_COUNTER",
+        "ECMP_LOAD_BALANCER",
+        "SINGLE_ACL_TABLE",
+        "MULTI_ACL_TABLE",
+        "DLB",
+        "ECN",
+        "WRED",
+        "JUMBO_FRAMES",
+        "SCHEDULER_PPS",
+        "ROUTE_COUNTERS",
+        "PORT_TX_DISABLE",
+        "MIRROR_PACKET_TRUNCATION",
+        "EGRESS_MIRROR_PACKET_TRUNCATION",
+        "WIDE_ECMP",
+        "INTERFACE_NEIGHBOR_TABLE",
+        "INGRESS_MIRRORING",
+        "EGRESS_MIRRORING",
+        "PFC",
+        "UDF_WR_IMMEDIATE_ACL",
+        "PAUSE",
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
+        "ERSPANV6_MIRRORING",
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
+        "UCMP",
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS",
+        "ERSPANv4_SAMPLING",
+        "ERSPANv6_SAMPLING",
+        "ARS_SPRAY",
+        "ROUTER_INTERFACE_COUNTERS",
+        "UDF_HASH",
+        "PFC_RX_TX_DURATION",
+        "CUSTOM_DROP_BITMAP_SUPPORT"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -1108,8 +1192,7 @@
         "L4_DST_PORT_RANGE",
         "AM_IDLES",
         "UDF_HASH",
-        "ECMP_RANDOM_SPRAY",
-        "PFC_NON_IDENTITY_PRIORITY_MAP"
+        "ECMP_RANDOM_SPRAY"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
@@ -1125,7 +1208,6 @@
         "ECMP_LOAD_BALANCER",
         "SINGLE_ACL_TABLE",
         "MULTI_ACL_TABLE",
-        "DLB",
         "ECN",
         "WRED",
         "JUMBO_FRAMES",
@@ -1154,26 +1236,18 @@
         "INTERFACE_NEIGHBOR_TABLE",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
-        "EAPOL_TRAP",
-        "UCMP",
         "PTP_TC",
         "L4_DST_PORT_ACL",
         "MODIFY_ACL_QUALIFIERS",
         "PFC_WATCHDOG_GRANULARITY",
-        "ARS_FLOWLET",
-        "ARS_SPRAY",
         "STATIC_PG_SHARED_LIMIT",
-        "CLASS_ID_FOR_NEIGHBOR",
         "UDF_HASH",
         "INTER_PACKET_GAP",
-        "AM_IDLES",
-        "ALTERNATE_ARS_MEMBERS",
         "L2_QOS",
         "PFC_TX_DURATION",
         "MIRROR_ON_DROP",
         "MIRROR_ON_DROP_XGS",
-        "ECN_PROBABILISTIC_MARKING",
-        "AIFM_PACKET_STREAM_HANDLER"
+        "ECN_PROBABILISTIC_MARKING"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -1269,6 +1343,48 @@
           "sdk": 2,
           "minSdkVersion": "26.2.4210",
           "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.4210"
+        }
+      ]
+    },
+    {
+      "feature": 100,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "15.4_ea_odp",
+          "note": "SRv6 encap/decap/midpoint are supported on BRCM_SAI ASICs starting SDK 15.4_ea_odp"
+        }
+      ]
+    },
+    {
+      "feature": 102,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "15.4_ea_odp",
+          "note": "SRv6 encap/decap/midpoint are supported on BRCM_SAI ASICs starting SDK 15.4_ea_odp"
+        }
+      ]
+    },
+    {
+      "feature": 104,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "15.4_ea_odp",
+          "note": "SRv6 encap/decap/midpoint are supported on BRCM_SAI ASICs starting SDK 15.4_ea_odp"
         }
       ]
     },
