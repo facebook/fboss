@@ -130,6 +130,10 @@
 #define BRCM_SAI_SDK_XGS_GTE_15_0
 #endif
 
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_0) || defined(SAI_VERSION_14_2_0_0_ODP)
+#define BRCM_SAI_SDK_XGS_GTE_14_2
+#endif
+
 #if defined(BRCM_SAI_SDK_XGS_GTE_15_0) || defined(SAI_VERSION_14_0_EA_ODP) || \
     defined(SAI_VERSION_14_2_0_0_ODP)
 #define BRCM_SAI_SDK_XGS_GTE_14_0

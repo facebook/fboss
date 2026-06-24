@@ -864,6 +864,13 @@ struct SaiSwitchTraits {
         bool,
         AttributeCablePropagationDelayMeasurement,
         SaiBoolDefaultFalse>;
+    struct AttributePortCl72RetryEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PortCl72RetryEnable = SaiExtensionAttribute<
+        bool,
+        AttributePortCl72RetryEnable,
+        SaiBoolDefaultFalse>;
     using SwitchingMode = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_SWITCHING_MODE,
@@ -1166,6 +1173,7 @@ SAI_ATTRIBUTE_NAME(Switch, TriggerSimulatedEccUnCorrectableError)
 SAI_ATTRIBUTE_NAME(Switch, DefaultCpuEgressBufferPool)
 SAI_ATTRIBUTE_NAME(Switch, PfcMonitorEnable)
 SAI_ATTRIBUTE_NAME(Switch, CablePropagationDelayMeasurement)
+SAI_ATTRIBUTE_NAME(Switch, PortCl72RetryEnable)
 SAI_ATTRIBUTE_NAME(Switch, SwitchingMode)
 SAI_ATTRIBUTE_NAME(Switch, TechSupportType)
 SAI_ATTRIBUTE_NAME(Switch, ModuleIdFabricPortList)
