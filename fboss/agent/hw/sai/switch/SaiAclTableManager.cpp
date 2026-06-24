@@ -218,7 +218,7 @@ void SaiAclTableManager::addAclEntriesToTable(
       continue;
     }
     auto aclEntry = aclMap->getEntry(entry->getID());
-    addAclEntry(aclEntry, aclTable->getID());
+    addAclEntry(aclEntry, aclTable->getID(), nullptr /*state*/);
   }
 }
 
@@ -689,7 +689,8 @@ std::shared_ptr<SaiAclRange> SaiAclTableManager::getOrCreateAclRange(
 
 AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    const std::shared_ptr<SwitchState>& state) {
   // If we attempt to add entry to a table that does not exist, fail.
   auto aclTableHandle = getAclTableHandle(aclTableName);
   if (!aclTableHandle) {
@@ -1559,7 +1560,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
 void SaiAclTableManager::removeAclEntry(
     const std::shared_ptr<AclEntry>& removedAclEntry,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    const std::shared_ptr<SwitchState>& /*state*/) {
   // If we attempt to remove entry for a table that does not exist, fail.
   auto aclTableHandle = getAclTableHandle(aclTableName);
   if (!aclTableHandle) {
@@ -1613,14 +1615,15 @@ void SaiAclTableManager::removeAclCounter(
 void SaiAclTableManager::changedAclEntry(
     const std::shared_ptr<AclEntry>& oldAclEntry,
     const std::shared_ptr<AclEntry>& newAclEntry,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    const std::shared_ptr<SwitchState>& state) {
   /*
    * ASIC/SAI implementation typically does not allow modifying an ACL entry.
    * Thus, remove and re-add.
    */
   XLOG(DBG2) << "changing acl entry " << oldAclEntry->getID();
-  removeAclEntry(oldAclEntry, aclTableName);
-  addAclEntry(newAclEntry, aclTableName);
+  removeAclEntry(oldAclEntry, aclTableName, state);
+  addAclEntry(newAclEntry, aclTableName, state);
 }
 
 const SaiAclEntryHandle* FOLLY_NULLABLE SaiAclTableManager::getAclEntryHandle(

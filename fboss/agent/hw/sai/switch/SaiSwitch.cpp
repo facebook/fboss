@@ -1692,7 +1692,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiAclTableManager::changedAclEntry,
         &SaiAclTableManager::addAclEntry,
         &SaiAclTableManager::removeAclEntry,
-        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        delta.newState());
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -5274,7 +5275,8 @@ void SaiSwitch::processAclTableGroupDelta(
             &SaiAclTableManager::changedAclEntry,
             &SaiAclTableManager::addAclEntry,
             &SaiAclTableManager::removeAclEntry,
-            tableName);
+            tableName,
+            delta.newState());
       }
     }
   }

@@ -35,6 +35,7 @@ class SaiPlatform;
 class SaiStore;
 struct SaiHostifUserDefinedTrapHandle;
 struct SaiNextHopGroupHandle;
+class SwitchState;
 
 using SaiAclTable = SaiObject<SaiAclTableTraits>;
 using SaiAclEntry = SaiObject<SaiAclEntryTraits>;
@@ -189,14 +190,17 @@ class SaiAclTableManager {
 #endif
   AclEntrySaiId addAclEntry(
       const std::shared_ptr<AclEntry>& addedAclEntry,
-      const std::string& aclTableName);
+      const std::string& aclTableName,
+      const std::shared_ptr<SwitchState>& state);
   void removeAclEntry(
       const std::shared_ptr<AclEntry>& removedAclEntry,
-      const std::string& aclTableName);
+      const std::string& aclTableName,
+      const std::shared_ptr<SwitchState>& state = nullptr);
   void changedAclEntry(
       const std::shared_ptr<AclEntry>& oldAclEntry,
       const std::shared_ptr<AclEntry>& newAclEntry,
-      const std::string& aclTableName);
+      const std::string& aclTableName,
+      const std::shared_ptr<SwitchState>& state);
 
   const SaiAclEntryHandle* FOLLY_NULLABLE getAclEntryHandle(
       const SaiAclTableHandle* aclTableHandle,
