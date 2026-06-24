@@ -346,6 +346,14 @@ class AclApiTest : public ::testing::Test {
     return true;
   }
 
+  std::pair<sai_object_id_t, sai_uint32_t> kNextHopGroupId() const {
+    return std::make_pair(81, 0);
+  }
+
+  std::pair<sai_object_id_t, sai_uint32_t> kNextHopGroupId2() const {
+    return std::make_pair(810, 0);
+  }
+
   const std::vector<sai_object_id_t>& kMirrorIngress() const {
     static const std::vector<sai_object_id_t> mirrorIngress{10, 11};
 
@@ -550,6 +558,8 @@ class AclApiTest : public ::testing::Test {
             AclEntryActionU32(kSetEcmpHashAlgorithm())};
     SaiAclEntryTraits::Attributes::ActionL3SwitchCancel aclActionL3SwitchCancel{
         AclEntryActionBool(kL3SwitchCancel())};
+    SaiAclEntryTraits::Attributes::FieldNextHopGroupId aclFieldNextHopGroupId{
+        AclEntryFieldSaiObjectIdT(kNextHopGroupId())};
 
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
@@ -600,7 +610,8 @@ class AclApiTest : public ::testing::Test {
          aclActionSetArsObject,
          aclActionDisableArsForwarding,
          aclActionSetEcmpHashAlgorithm,
-         aclActionL3SwitchCancel},
+         aclActionL3SwitchCancel,
+         aclFieldNextHopGroupId},
         kSwitchID());
   }
 
@@ -742,6 +753,7 @@ class AclApiTest : public ::testing::Test {
       bool disableArsForwarding,
       sai_uint32_t setEcmpHashAlgorithm,
       bool l3SwitchCancel,
+      const std::pair<sai_object_id_t, sai_uint32_t>& nextHopGroupId,
       bool enabled = true) const {
     auto aclPriorityGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::Priority());
@@ -839,6 +851,8 @@ class AclApiTest : public ::testing::Test {
         SaiAclEntryTraits::Attributes::ActionSetEcmpHashAlgorithm());
     auto aclActionL3SwitchCancelGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionL3SwitchCancel());
+    auto aclFieldNextHopGroupIdGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldNextHopGroupId());
 
     EXPECT_EQ(aclPriorityGot, priority);
     EXPECT_EQ(aclEnabledGot, enabled);
@@ -889,6 +903,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclActionDisableArsForwardingGot.getData(), disableArsForwarding);
     EXPECT_EQ(aclActionSetEcmpHashAlgorithmGot.getData(), setEcmpHashAlgorithm);
     EXPECT_EQ(aclActionL3SwitchCancelGot.getData(), l3SwitchCancel);
+    EXPECT_EQ(aclFieldNextHopGroupIdGot.getDataAndMask(), nextHopGroupId);
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -1136,7 +1151,8 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kSetArsObject(),
       kDisableArsForwarding(),
       kSetEcmpHashAlgorithm(),
-      kL3SwitchCancel());
+      kL3SwitchCancel(),
+      kNextHopGroupId());
 }
 
 TEST_F(AclApiTest, getAclCounterAttribute) {
@@ -1352,6 +1368,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       aclActionSetEcmpHashAlgorithm{AclEntryActionU32(kSetEcmpHashAlgorithm())};
   SaiAclEntryTraits::Attributes::ActionL3SwitchCancel aclActionL3SwitchCancel{
       AclEntryActionBool(kL3SwitchCancel())};
+  SaiAclEntryTraits::Attributes::FieldNextHopGroupId aclFieldNextHopGroupId2{
+      AclEntryFieldSaiObjectIdT(kNextHopGroupId2())};
 
   aclApi->setAttribute(aclEntryId, aclPriorityAttribute2);
 
@@ -1399,6 +1417,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclActionDisableArsForwarding);
   aclApi->setAttribute(aclEntryId, aclActionSetEcmpHashAlgorithm);
   aclApi->setAttribute(aclEntryId, aclActionL3SwitchCancel);
+  aclApi->setAttribute(aclEntryId, aclFieldNextHopGroupId2);
 
   getAndVerifyAclEntryAttribute(
       aclEntryId,
@@ -1446,7 +1465,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kSetArsObject(),
       kDisableArsForwarding(),
       kSetEcmpHashAlgorithm(),
-      kL3SwitchCancel());
+      kL3SwitchCancel(),
+      kNextHopGroupId2());
 
   SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction3{
       AclEntryActionU32(kPacketAction3())};

@@ -101,6 +101,8 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return true;
     case SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL:
       return true;
+    case SAI_ACL_ENTRY_ATTR_FIELD_NEXT_HOP_GROUP_ID:
+      return true;
     default:
       return false;
   }
@@ -904,6 +906,12 @@ sai_status_t set_acl_entry_attribute_fn(
           attr->value.aclaction.parameter.booldata;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_NEXT_HOP_GROUP_ID:
+      aclEntry.fieldNextHopGroupIdEnable = attr->value.aclfield.enable;
+      aclEntry.fieldNextHopGroupIdData = attr->value.aclfield.data.oid;
+      aclEntry.fieldNextHopGroupIdMask = attr->value.aclfield.mask.u32;
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_NOT_SUPPORTED;
       break;
@@ -1207,6 +1215,11 @@ sai_status_t get_acl_entry_attribute_fn(
             aclEntry.actionL3SwitchCancelEnable;
         attr_list[i].value.aclaction.parameter.booldata =
             aclEntry.actionL3SwitchCancelData;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_NEXT_HOP_GROUP_ID:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldNextHopGroupIdEnable;
+        attr_list[i].value.aclfield.data.oid = aclEntry.fieldNextHopGroupIdData;
+        attr_list[i].value.aclfield.mask.u32 = aclEntry.fieldNextHopGroupIdMask;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

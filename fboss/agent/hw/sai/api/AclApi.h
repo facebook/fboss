@@ -599,6 +599,13 @@ struct SaiAclEntryTraits {
         AclEntryActionBool,
         AttributeActionL3SwitchCancel,
         SaiAclEntryActionBoolFalse>;
+    struct AttributeFieldNextHopGroupId {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FieldNextHopGroupId = SaiExtensionAttribute<
+        AclEntryFieldSaiObjectIdT,
+        AttributeFieldNextHopGroupId,
+        SaiAclEntryFieldSaiObjectIdTDefault>;
   };
 
   using AdapterKey = AclEntrySaiId;
@@ -673,7 +680,8 @@ struct SaiAclEntryTraits {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       ,
       std::optional<Attributes::ActionSetEcmpHashAlgorithm>,
-      std::optional<Attributes::ActionL3SwitchCancel>>;
+      std::optional<Attributes::ActionL3SwitchCancel>,
+      std::optional<Attributes::FieldNextHopGroupId>>;
 #else
       >;
 #endif
@@ -744,6 +752,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionDisableArsForwarding);
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetEcmpHashAlgorithm);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionL3SwitchCancel);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldNextHopGroupId);
 #endif
 
 struct SaiAclCounterTraits {

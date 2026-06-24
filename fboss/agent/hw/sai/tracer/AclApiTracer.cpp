@@ -171,6 +171,7 @@ void handleExtensionAttributes() {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
   SAI_EXT_ATTR_MAP(AclEntry, ActionL3SwitchCancel);
 #endif
+  SAI_EXT_ATTR_MAP(AclEntry, FieldNextHopGroupId);
 }
 
 } // namespace
