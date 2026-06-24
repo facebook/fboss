@@ -953,6 +953,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         std::make_pair(addedAclEntry->getDscp().value(), kDscpMask))};
   }
 
+  // PBR phase 2: populated from AclEntry::getTrafficClass() in a stacked diff;
+  // nullopt here keeps the positional tuple well-formed.
+  std::optional<SaiAclEntryTraits::Attributes::FieldTc> fieldTc{std::nullopt};
+
   std::optional<SaiAclEntryTraits::Attributes::FieldDstMac> fieldDstMac{
       std::nullopt};
   if (addedAclEntry->getDstMac()) {
@@ -1474,6 +1478,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIcmpV6Type,
       fieldIcmpV6Code,
       fieldDscp,
+      fieldTc,
       fieldDstMac,
       fieldIpType,
       fieldTtl,

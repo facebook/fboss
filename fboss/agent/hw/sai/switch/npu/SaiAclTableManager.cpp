@@ -244,6 +244,7 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::ICMPV6_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::ICMPV6_CODE),
       qualifierExistsFn(cfg::AclTableQualifier::DSCP),
+      qualifierExistsFn(cfg::AclTableQualifier::TC),
       qualifierExistsFn(cfg::AclTableQualifier::DST_MAC),
       qualifierExistsFn(cfg::AclTableQualifier::IP_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::TTL),

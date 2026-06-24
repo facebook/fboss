@@ -143,6 +143,10 @@ class FakeAclEntry {
   sai_uint8_t fieldDscpData;
   sai_uint8_t fieldDscpMask;
 
+  bool fieldTcEnable{false};
+  sai_uint8_t fieldTcData{};
+  sai_uint8_t fieldTcMask{};
+
   bool fieldDstMacEnable{false};
   folly::MacAddress fieldDstMacData;
   folly::MacAddress fieldDstMacMask;
@@ -269,6 +273,7 @@ class FakeAclTable {
       bool fieldIcmpV6Type,
       bool fieldIcmpV6Code,
       bool fieldDscp,
+      bool fieldTc,
       bool fieldDstMac,
       bool fieldIpType,
       bool fieldTtl,
@@ -304,6 +309,7 @@ class FakeAclTable {
         fieldIcmpV6Type(fieldIcmpV6Type),
         fieldIcmpV6Code(fieldIcmpV6Code),
         fieldDscp(fieldDscp),
+        fieldTc(fieldTc),
         fieldDstMac(fieldDstMac),
         fieldIpType(fieldIpType),
         fieldTtl(fieldTtl),
@@ -345,6 +351,7 @@ class FakeAclTable {
   bool fieldIcmpV6Type;
   bool fieldIcmpV6Code;
   bool fieldDscp;
+  bool fieldTc;
   bool fieldDstMac;
   bool fieldIpType;
   bool fieldTtl;

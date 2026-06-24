@@ -107,6 +107,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return std::make_pair(10, 0x3F);
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kTc() const {
+    return std::make_pair(6, 0xFF);
+  }
+
   std::pair<folly::MacAddress, folly::MacAddress> kDstMac() const {
     return std::make_pair(
         folly::MacAddress{"00:11:22:33:44:55"},
@@ -253,6 +257,7 @@ class AclTableStoreTest : public SaiStoreTest {
             true, // icmpv6Type
             true, // icmpv6Code
             true, // dscp
+            true, // tc
             true, // dstMac
             true, // ipType
             true, // ttl
@@ -296,6 +301,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU8(this->kIcmpV6Type()),
             AclEntryFieldU8(this->kIcmpV6Code()),
             AclEntryFieldU8(this->kDscp()),
+            AclEntryFieldU8(this->kTc()),
             AclEntryFieldMac(this->kDstMac()),
             AclEntryFieldU32(this->kIpType()),
             AclEntryFieldU8(this->kTtl()),
@@ -449,6 +455,7 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // icmpv6Type
       true, // icmpv6Code
       true, // dscp
+      true, // tc
       true, // dstMac
       true, // ipType
       true, // ttl
@@ -499,6 +506,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kIcmpV6Type(),
       this->kIcmpV6Code(),
       this->kDscp(),
+      this->kTc(),
       this->kDstMac(),
       this->kIpType(),
       this->kTtl(),

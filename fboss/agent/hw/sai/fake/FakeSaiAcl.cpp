@@ -55,6 +55,8 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return fieldIcmpV6Code;
     case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
       return fieldDscp;
+    case SAI_ACL_ENTRY_ATTR_FIELD_TC:
+      return fieldTc;
     case SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC:
       return fieldDstMac;
     case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_TYPE:
@@ -131,6 +133,7 @@ sai_status_t create_acl_table_fn(
   bool fieldIcmpV6Type = 0;
   bool fieldIcmpV6Code = 0;
   bool fieldDscp = 0;
+  bool fieldTc = 0;
   bool fieldDstMac = 0;
   bool fieldIpType = 0;
   bool fieldTtl = 0;
@@ -213,6 +216,9 @@ sai_status_t create_acl_table_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_DSCP:
         fieldDscp = attr_list[i].value.booldata;
         break;
+      case SAI_ACL_TABLE_ATTR_FIELD_TC:
+        fieldTc = attr_list[i].value.booldata;
+        break;
       case SAI_ACL_TABLE_ATTR_FIELD_DST_MAC:
         fieldDstMac = attr_list[i].value.booldata;
         break;
@@ -292,6 +298,7 @@ sai_status_t create_acl_table_fn(
       fieldIcmpV6Type,
       fieldIcmpV6Code,
       fieldDscp,
+      fieldTc,
       fieldDstMac,
       fieldIpType,
       fieldTtl,
@@ -453,6 +460,10 @@ sai_status_t get_acl_table_attribute_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_DSCP: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldDscp;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_TC: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.booldata = aclTable.fieldTc;
       } break;
       case SAI_ACL_TABLE_ATTR_FIELD_DST_MAC: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
@@ -692,6 +703,12 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldDscpEnable = attr->value.aclfield.enable;
       aclEntry.fieldDscpData = attr->value.aclfield.data.u8;
       aclEntry.fieldDscpMask = attr->value.aclfield.mask.u8;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_TC:
+      aclEntry.fieldTcEnable = attr->value.aclfield.enable;
+      aclEntry.fieldTcData = attr->value.aclfield.data.u8;
+      aclEntry.fieldTcMask = attr->value.aclfield.mask.u8;
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC:
@@ -1026,6 +1043,11 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.enable = aclEntry.fieldDscpEnable;
         attr_list[i].value.aclfield.data.u8 = aclEntry.fieldDscpData;
         attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldDscpMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_TC:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldTcEnable;
+        attr_list[i].value.aclfield.data.u8 = aclEntry.fieldTcData;
+        attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldTcMask;
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC:
         attr_list[i].value.aclfield.enable = aclEntry.fieldDstMacEnable;

@@ -179,6 +179,11 @@ struct SaiAclTableTraits {
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ICMPV6_CODE, bool>;
     using FieldDscp =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_DSCP, bool>;
+    using FieldTc = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_TC,
+        bool,
+        SaiBoolDefaultFalse>;
     using FieldDstMac =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_DST_MAC, bool>;
     using FieldIpType =
@@ -269,6 +274,7 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldIcmpV6Type>,
       std::optional<Attributes::FieldIcmpV6Code>,
       std::optional<Attributes::FieldDscp>,
+      std::optional<Attributes::FieldTc>,
       std::optional<Attributes::FieldDstMac>,
       std::optional<Attributes::FieldIpType>,
       std::optional<Attributes::FieldTtl>,
@@ -322,6 +328,7 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldIcmpV4Code);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIcmpV6Type);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIcmpV6Code);
 SAI_ATTRIBUTE_NAME(AclTable, FieldDscp);
+SAI_ATTRIBUTE_NAME(AclTable, FieldTc);
 SAI_ATTRIBUTE_NAME(AclTable, FieldDstMac);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIpType);
 SAI_ATTRIBUTE_NAME(AclTable, FieldTtl);
@@ -443,6 +450,11 @@ struct SaiAclEntryTraits {
         AclEntryFieldU8>;
     using FieldDscp =
         SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_FIELD_DSCP, AclEntryFieldU8>;
+    using FieldTc = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_TC,
+        AclEntryFieldU8,
+        StdNullOptDefault<AclEntryFieldU8>>;
     using FieldDstMac = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC,
@@ -612,6 +624,7 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldIcmpV6Type>,
       std::optional<Attributes::FieldIcmpV6Code>,
       std::optional<Attributes::FieldDscp>,
+      std::optional<Attributes::FieldTc>,
       std::optional<Attributes::FieldDstMac>,
       std::optional<Attributes::FieldIpType>,
       std::optional<Attributes::FieldTtl>,
@@ -685,6 +698,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldIcmpV4Code);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldIcmpV6Type);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldIcmpV6Code);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDscp);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldTc);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDstMac);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldIpType);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldTtl);
