@@ -343,6 +343,14 @@ void QsfpServiceHandler::writeTransceiverRegister(
   if (page_ref.has_value() && *page_ref < 0) {
     throw FbossError("Page cannot be < 0");
   }
+  auto length_ref = param.length();
+  if (length_ref.has_value()) {
+    if (*length_ref < 0 || *length_ref > 255) {
+      throw FbossError("Length cannot be < 0 or > 255");
+    } else if (*length_ref + offset > 256) {
+      throw FbossError("Offset + Length cannot be > 256");
+    }
+  }
   tcvrManager_->writeTransceiverRegister(response, std::move(request));
 }
 
