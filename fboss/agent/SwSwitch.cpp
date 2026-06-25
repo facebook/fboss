@@ -1270,7 +1270,9 @@ void SwSwitch::getAllHwSysPortStats(
   for (const auto& [switchIdx, hwSwitchStats] : *hwswitchStatsMap) {
     for (const auto& [portName, hwSysPortStatsEntry] :
          *hwSwitchStats.sysPortStats()) {
-      hwSysPortStats.emplace(portName, hwSysPortStatsEntry);
+      hwSysPortStats.emplace(
+          folly::to<std::string>("switch.", switchIdx, ".", portName),
+          hwSysPortStatsEntry);
     }
   }
 }
