@@ -51,7 +51,16 @@ class CanonicalExamplesTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             configs_root = Path(tmp)
             for platform in _CANONICAL_PLATFORMS:
-                spec_text = (files(package) / f"{platform}.json").read_text()
+                try:
+                    spec_text = (files(package) / f"{platform}.json").read_text()
+                except (FileNotFoundError, ModuleNotFoundError):
+                    src_spec = (
+                        Path(__file__).resolve().parents[2]
+                        / "configs"
+                        / platform
+                        / "spec.json"
+                    )
+                    spec_text = src_spec.read_text()
                 spec_dir = configs_root / platform
                 spec_dir.mkdir(parents=True, exist_ok=True)
                 (spec_dir / "spec.json").write_text(spec_text)
