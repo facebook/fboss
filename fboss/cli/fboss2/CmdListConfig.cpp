@@ -14,15 +14,19 @@
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h"
+#include "fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
+#include "fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h"
+#include "fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
 #include "fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h"
 #include "fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h"
+#include "fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.h"
 #include "fboss/cli/fboss2/commands/config/mac/CmdConfigMac.h"
 #include "fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.h"
 #include "fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h"
@@ -98,6 +102,10 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/encap/CmdConfigTunnelIpInIpEncap.h"
 #include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h"
 #include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlanDefault.h"
 #include "fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h"
@@ -106,6 +114,13 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
+#include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
+#include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
+#include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.h"
 
 namespace facebook::fboss {
 
@@ -116,6 +131,26 @@ const CommandTree& kConfigCommandTree() {
        "Show config applied information",
        commandHandler<CmdConfigAppliedInfo>,
        argRegistrar<CmdConfigAppliedInfoTraits>},
+
+      {
+          "config",
+          "copp",
+          "Configure CoPP (control-plane policing) settings",
+          commandHandler<CmdConfigCopp>,
+          argRegistrar<CmdConfigCoppTraits>,
+          {{
+               "cpu-queue",
+               "Configure a CPU queue (bandwidth shaping)",
+               commandHandler<CmdConfigCoppCpuQueue>,
+               argRegistrar<CmdConfigCoppCpuQueueTraits>,
+           },
+           {
+               "reason",
+               "Map a packet-rx reason to a CPU queue",
+               commandHandler<CmdConfigCoppReason>,
+               argRegistrar<CmdConfigCoppReasonTraits>,
+           }},
+      },
 
       {"config",
        "arp",
@@ -146,6 +181,18 @@ const CommandTree& kConfigCommandTree() {
                "Set queuing policy for interface",
                commandHandler<CmdConfigInterfaceQueuingPolicy>,
                argRegistrar<CmdConfigInterfaceQueuingPolicyTraits>,
+           },
+           {
+               "ipv6",
+               "Configure IPv6 settings for interface",
+               commandHandler<CmdConfigInterfaceIpv6>,
+               argTypeHandler<CmdConfigInterfaceIpv6Traits>,
+               {{
+                   "ndp",
+                   "Configure IPv6 Neighbor Discovery (NDP/RA) settings",
+                   commandHandler<CmdConfigInterfaceIpv6Ndp>,
+                   argRegistrar<CmdConfigInterfaceIpv6NdpTraits>,
+               }},
            },
            {
                "switchport",
@@ -194,6 +241,24 @@ const CommandTree& kConfigCommandTree() {
               commandHandler<CmdConfigMacAgingTime>,
               argRegistrar<CmdConfigMacAgingTimeTraits>,
           }},
+      },
+
+      {
+          "config",
+          "load-balancing",
+          "Configure load-balancing (ECMP/LAG) settings",
+          {{
+               "ecmp",
+               "Configure ECMP hash fields, algorithm, and seed",
+               commandHandler<CmdConfigLoadBalancingEcmp>,
+               argRegistrar<CmdConfigLoadBalancingEcmpTraits>,
+           },
+           {
+               "lag",
+               "Configure LAG hash fields, algorithm, and seed",
+               commandHandler<CmdConfigLoadBalancingLag>,
+               argRegistrar<CmdConfigLoadBalancingLagTraits>,
+           }},
       },
 
       {
@@ -769,6 +834,30 @@ const CommandTree& kConfigCommandTree() {
        commandHandler<CmdConfigRollback>,
        argRegistrar<CmdConfigRollbackTraits>},
 
+      {"config",
+       "tunnel",
+       "Configure tunnel settings",
+       commandHandler<CmdConfigTunnel>,
+       argTypeHandler<CmdConfigTunnelTraits>,
+       {{
+           "ip-in-ip",
+           "Configure IP-in-IP tunnel (use 'encap' or 'decap')",
+           commandHandler<CmdConfigTunnelIpInIp>,
+           argTypeHandler<CmdConfigTunnelIpInIpTraits>,
+           {{
+                "encap",
+                "Configure IP-in-IP encap tunnel",
+                commandHandler<CmdConfigTunnelIpInIpEncap>,
+                argRegistrar<CmdConfigTunnelIpInIpEncapTraits>,
+            },
+            {
+                "decap",
+                "Configure IP-in-IP decap tunnel",
+                commandHandler<CmdConfigTunnelIpInIpDecap>,
+                argRegistrar<CmdConfigTunnelIpInIpDecapTraits>,
+            }},
+       }}},
+
       {
           "config",
           "vlan",
@@ -824,11 +913,57 @@ const CommandTree& kConfigCommandTree() {
           }},
       },
 
+      {
+          "delete",
+          "interface",
+          "Reset interface settings (e.g. ipv6 ndp)",
+          commandHandler<CmdDeleteInterface>,
+          argRegistrar<CmdDeleteInterfaceTraits>,
+          {{
+              "ipv6",
+              "Delete (reset to default) IPv6 settings for interface",
+              commandHandler<CmdDeleteInterfaceIpv6>,
+              argTypeHandler<CmdDeleteInterfaceIpv6Traits>,
+              {{
+                  "ndp",
+                  "Reset IPv6 Neighbor Discovery (NDP/RA) settings to defaults",
+                  commandHandler<CmdDeleteInterfaceIpv6Ndp>,
+                  argRegistrar<CmdDeleteInterfaceIpv6NdpTraits>,
+              }},
+          }},
+      },
+
       {"delete",
        "config",
        "Delete config objects",
        commandHandler<CmdDeleteConfig>,
        argRegistrar<CmdDeleteConfigTraits>},
+
+      {"delete",
+       "tunnel",
+       "Delete (reset to default) tunnel settings",
+       commandHandler<CmdDeleteTunnel>,
+       argTypeHandler<CmdDeleteTunnelTraits>,
+       {{
+           "ip-in-ip",
+           "Delete IP-in-IP tunnel or reset its attributes (use 'encap' or "
+           "'decap')",
+           commandHandler<CmdDeleteTunnelIpInIp>,
+           argTypeHandler<CmdDeleteTunnelIpInIpTraits>,
+           {{
+                "encap",
+                "Delete IP-in-IP encap tunnel or reset its attributes",
+                commandHandler<CmdDeleteTunnelIpInIpEncap>,
+                argRegistrar<CmdDeleteTunnelIpInIpEncapTraits>,
+            },
+            {
+                "decap",
+                "Delete IP-in-IP decap tunnel or reset its attributes",
+                commandHandler<CmdDeleteTunnelIpInIpDecap>,
+                argRegistrar<CmdDeleteTunnelIpInIpDecapTraits>,
+            }},
+       }}},
+
   };
   sort(root.begin(), root.end());
   return root;

@@ -93,6 +93,7 @@ add_library(sai_platform ${SAI_PLATFORM_SRC})
 
 target_link_libraries(sai_platform
   handler
+  agent_features
   dsfnode_utils
   Folly::folly
   product_info

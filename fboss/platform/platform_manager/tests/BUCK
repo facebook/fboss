@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_platform")
 
@@ -7,6 +8,7 @@ cpp_unittest(
     srcs = [
         "CpldManagerTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/platform_manager:cpld_manager",
         "//fboss/platform/platform_manager:fbcpld_ioctl_h",
@@ -18,6 +20,7 @@ cpp_unittest(
     srcs = [
         "ConfigValidatorTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/fmt:fmt",
         "//fboss/platform/platform_manager:config_validator",
@@ -31,6 +34,7 @@ cpp_unittest(
     srcs = [
         "ConfigUtilsTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/fmt:fmt",
         "//fboss/platform/config_lib:mock_config_lib",
@@ -49,6 +53,7 @@ cpp_unittest(
     srcs = [
         "I2cExplorerTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/helpers:mock_platform_fs_utils",
         "//fboss/platform/platform_manager:i2c_explorer",
@@ -60,6 +65,7 @@ cpp_unittest(
     srcs = [
         "PlatformExplorerTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fb303:service_data",
         "//fboss/platform/helpers:platform_fs_utils",
@@ -74,6 +80,7 @@ cpp_unittest(
     srcs = [
         "UtilsTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/platform_manager:utils",
     ],
@@ -84,6 +91,7 @@ cpp_unittest(
     srcs = [
         "DataStoreTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/platform_manager:data_store",
     ],
@@ -94,6 +102,7 @@ cpp_unittest(
     srcs = [
         "DevicePathResolverTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/platform/platform_manager:device_path_resolver",
@@ -105,6 +114,7 @@ cpp_unittest(
     srcs = [
         "PresenceCheckerTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/platform/helpers:mock_platform_fs_utils",
@@ -118,6 +128,7 @@ cpp_unittest(
     srcs = [
         "ExplorationErrorsTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/platform_manager:exploration_errors",
     ],
@@ -128,6 +139,7 @@ cpp_unittest(
     srcs = [
         "ExplorationSummaryTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fb303:service_data",
@@ -141,6 +153,7 @@ cpp_unittest(
         "PkgManagerTest.cpp",
         "SystemInterfaceTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
@@ -156,6 +169,7 @@ cpp_unittest(
     srcs = [
         "PciExplorerTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/platform/helpers:mock_platform_fs_utils",
@@ -168,6 +182,7 @@ cpp_unittest(
     srcs = [
         "PlatformManagerHandlerTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     supports_static_listing = False,
     deps = [
         "//fboss/platform/platform_manager:platform_manager_handler",

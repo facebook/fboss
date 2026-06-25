@@ -195,6 +195,48 @@ void RibRouteUpdater::releaseFwdSideNexthopSetIDs(
   }
 }
 
+std::optional<RouteNextHopEntry> RibRouteUpdater::stampClientNextHopSetID(
+    ClientID clientID,
+    const std::shared_ptr<const RouteNextHopEntry>& existingRouteForClient,
+    const RouteNextHopEntry& entry,
+    const std::string& routeDescription) {
+  if (!nextHopIDManager_) {
+    return std::nullopt;
+  }
+  std::optional<NextHopSetID> oldClientNextHopSetID = existingRouteForClient
+      ? existingRouteForClient->getClientNextHopSetID()
+      : std::nullopt;
+  // Existing per-client entry with non-empty nexthops must already carry
+  // an ID (allocated here or backfilled at warmboot).
+  if (existingRouteForClient &&
+      !existingRouteForClient->getNextHopSet().empty()) {
+    CHECK(oldClientNextHopSetID.has_value())
+        << "Existing per-client entry for " << routeDescription << " client "
+        << static_cast<int>(clientID)
+        << " has non-empty nexthops but no clientNextHopSetID";
+  }
+  RouteNextHopEntry entryWithId(entry.toThrift());
+  std::optional<NextHopSetID> newClientNextHopSetID;
+  if (existingRouteForClient && oldClientNextHopSetID.has_value() &&
+      existingRouteForClient->getNextHopSet() == entry.getNextHopSet()) {
+    // Same nexthops as before: reuse existing ID, no manager call.
+    newClientNextHopSetID = oldClientNextHopSetID;
+  } else if (!entry.getNextHopSet().empty()) {
+    // Nexthop changes: alloc new (refcount++), then release old (refcount--).
+    auto allocResult =
+        nextHopIDManager_->getOrAllocRouteNextHopSetID(entry.getNextHopSet());
+    newClientNextHopSetID = allocResult.nextHopIdSetIter->second.id;
+    if (oldClientNextHopSetID.has_value()) {
+      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldClientNextHopSetID);
+    }
+  } else if (oldClientNextHopSetID.has_value()) {
+    // New entry has empty nexthops (DROP / TO_CPU); release old ID.
+    nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldClientNextHopSetID);
+  }
+  entryWithId.setClientNextHopSetID(newClientNextHopSetID);
+  return entryWithId;
+}
+
 template <typename AddressT>
 void RibRouteUpdater::addOrReplaceRouteImpl(
     const Prefix<AddressT>& prefix,
@@ -203,18 +245,28 @@ void RibRouteUpdater::addOrReplaceRouteImpl(
     const RouteNextHopEntry& entry) {
   auto it = routes->exactMatch(prefix.network(), prefix.mask());
 
+  std::shared_ptr<const RouteNextHopEntry> existingRouteForClient;
+  if (it != routes->end()) {
+    existingRouteForClient = it->value()->getEntryForClient(clientID);
+  }
+  auto stamped = stampClientNextHopSetID(
+      clientID, existingRouteForClient, entry, prefix.str());
+  const RouteNextHopEntry& finalEntry = stamped ? *stamped : entry;
+
   if (it != routes->end()) {
     auto route = it->value();
-    auto existingRouteForClient = route->getEntryForClient(clientID);
-    if (!existingRouteForClient || !(*existingRouteForClient == entry)) {
+    // Compare against the (possibly enriched) finalEntry so the no-op
+    // short-circuit still works after the ID has been stamped (operator==
+    // includes the ID).
+    if (!existingRouteForClient || *existingRouteForClient != finalEntry) {
       route = writableRoute<AddressT>(it);
-      route->update(clientID, entry);
+      route->update(clientID, finalEntry);
     }
     return;
   }
 
   routes->insert(
-      prefix, std::make_shared<Route<AddressT>>(prefix, clientID, entry));
+      prefix, std::make_shared<Route<AddressT>>(prefix, clientID, finalEntry));
 }
 
 void RibRouteUpdater::addOrReplaceRoute(
@@ -237,18 +289,28 @@ void RibRouteUpdater::addOrReplaceRoute(
     const RouteNextHopEntry& entry) {
   XLOG(DBG3) << "Add mpls route for label " << label << " nh " << entry.str();
   auto iter = mplsRoutes_->find(label);
+  std::shared_ptr<const RouteNextHopEntry> existingRouteForClient;
+  if (iter != mplsRoutes_->end()) {
+    existingRouteForClient = iter->second->getEntryForClient(clientID);
+  }
+  auto stamped = stampClientNextHopSetID(
+      clientID,
+      existingRouteForClient,
+      entry,
+      folly::to<std::string>("label=", static_cast<int>(label)));
+  const RouteNextHopEntry& finalEntry = stamped ? *stamped : entry;
+
   if (iter == mplsRoutes_->end()) {
     mplsRoutes_->emplace(
         std::make_pair(
             label,
             std::make_shared<Route<LabelID>>(
-                Route<LabelID>::makeThrift(label, clientID, entry))));
+                Route<LabelID>::makeThrift(label, clientID, finalEntry))));
   } else {
     auto& route = iter->second;
-    auto existingRouteForClient = route->getEntryForClient(clientID);
-    if (!existingRouteForClient || !(*existingRouteForClient == entry)) {
+    if (!existingRouteForClient || *existingRouteForClient != finalEntry) {
       route = writableRoute<LabelID>(route);
-      route->update(clientID, entry);
+      route->update(clientID, finalEntry);
     }
   }
 }
@@ -1067,24 +1129,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
                << " route " << updatedRoute->str();
   };
   if (fwd && !fwd->empty()) {
-    if (nextHopIDManager_ &&
-        !route->getForwardInfo().getResolvedNextHopSetID().has_value()) {
-      CHECK(!route->getForwardInfo()
-                 .getNormalizedResolvedNextHopSetID()
-                 .has_value())
-          << "If resolvedNextHopSetID is empty, "
-          << "normalizedResolvedNextHopSetID must also be empty; route="
-          << route->str();
-      // Re-resolve to assign IDs for the first time. UpdateRoute will
-      // allocate IDs since NextHopSetId is nullopt.
-      XLOG(DBG3) << "[NextHop ID Manager] assigning IDs for"
-                 << " first time route=" << route->str();
-      updateRoute(
-          ritr,
-          std::make_optional<RouteNextHopEntry>(
-              *fwd, bestEntry->getAdminDistance(), counterID, classID));
-    } else if (
-        route->getForwardInfo().getNextHopSet() != *fwd ||
+    if (route->getForwardInfo().getNextHopSet() != *fwd ||
         route->getForwardInfo().getCounterID() != counterID ||
         route->getForwardInfo().getClassID() != classID) {
       updateRoute(

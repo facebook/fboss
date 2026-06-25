@@ -127,6 +127,8 @@ enum ProductionFeature {
   PORT_DEBOUNCE = 112,
   SRV6_BINDING_SID = 113,
   MPLS_BINDING_SID = 114,
+  CUSTOM_DROP_BITMAP_SUPPORT = 115,
+  PFC_NON_IDENTITY_PRIORITY_MAP = 116,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

@@ -6,6 +6,7 @@
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
+#include "fboss/qsfp_service/SdkDumpPath.h"
 
 #include <fboss/lib/LogThriftCall.h>
 #include <folly/logging/xlog.h>
@@ -311,6 +312,14 @@ void QsfpServiceHandler::writeTransceiverRegister(
   if (page_ref.has_value() && *page_ref < 0) {
     throw FbossError("Page cannot be < 0");
   }
+  auto length_ref = param.length();
+  if (length_ref.has_value()) {
+    if (*length_ref < 0 || *length_ref > 255) {
+      throw FbossError("Length cannot be < 0 or > 255");
+    } else if (*length_ref + offset > 256) {
+      throw FbossError("Offset + Length cannot be > 256");
+    }
+  }
   tcvrManager_->writeTransceiverRegister(response, std::move(request));
 }
 
@@ -514,10 +523,16 @@ void QsfpServiceHandler::listHwObjects(
 
 bool QsfpServiceHandler::getSdkState(std::unique_ptr<std::string> fileName) {
   auto log = LOG_THRIFT_CALL(INFO);
+  // Confine the SDK debug dump to a service-owned directory. This rejects
+  // empty/absolute/parent-traversing inputs and reduces the request to a
+  // basename so a caller cannot overwrite arbitrary root-owned files.
+  auto safePath = sanitizeSdkDumpPath(*fileName);
   if (FLAGS_port_manager_mode) {
-    return portManager_->getSdkState(*fileName);
+    return portManager_->getSdkState(safePath);
   } else {
-    return tcvrManager_->getSdkState(*fileName);
+    // TransceiverManager::getSdkState takes its argument by value; move into it
+    // to avoid an unnecessary copy of the sanitized path.
+    return tcvrManager_->getSdkState(std::move(safePath));
   }
 }
 

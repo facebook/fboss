@@ -86,6 +86,7 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
     "ladakh800bcls": [
         "ladakh800bcls_rack",
         "ladakh800bcls_test_fixture",
+        "ladakh800bcls_osfp_tray",
     ],
     "leh800bcls": [
         "leh800bcls_rack",

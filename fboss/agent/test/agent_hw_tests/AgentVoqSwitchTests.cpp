@@ -220,8 +220,14 @@ int AgentVoqSwitchTest::sendPacket(
 
 void AgentVoqSwitchTest::addDscpAclWithCounter() {
   auto newCfg = initialConfig(*getAgentEnsemble());
-  auto* acl = utility::addAcl_DEPRECATED(&newCfg, kDscpAclName());
   auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+  std::optional<std::string> tableName;
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+    tableName = utility::kIpv6AclTable();
+  }
+  auto* acl = utility::addAcl_DEPRECATED(
+      &newCfg, kDscpAclName(), cfg::AclActionType::PERMIT, tableName);
   acl->dscp() = 0x24;
   utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
   utility::addAclStat(

@@ -98,10 +98,14 @@ class CmdShowBgpSummary
       out << std::endl;
     }
     // Add BGP drain status
-    const auto& drain_state_value = drain_state.drain_state().value();
-    out << fmt::format(
-               "BGP Switch Drain State: {}", enumNameSafe(drain_state_value))
-        << std::endl;
+    if (drain_state.drain_state().has_value()) {
+      out << fmt::format(
+                 "BGP Switch Drain State: {}",
+                 enumNameSafe(*drain_state.drain_state()))
+          << std::endl;
+    } else {
+      out << "BGP Switch Drain State: N/A" << std::endl;
+    }
 
     // Add UCMP config header
     out << "UCMP weight programming is ";
@@ -122,21 +126,32 @@ class CmdShowBgpSummary
 
     // Add Summary
     const uint64_t total_neighbors = sessions.size();
-    uint64_t up_neighbors = 0, paths_rcvd = 0, paths_sent = 0;
+    uint64_t up_neighbors = 0, paths_rcvd = 0, paths_accepted = 0,
+             paths_sent = 0;
 
-    Table table;
-    table.setHeader(
-        {"Peer",
-         "AS",
-         "State",
-         "GR",
-         "PR",
-         "PS",
-         "Uptime",
-         "Downtime",
-         "Description",
-         "Session ID",
-         "Flaps"});
+    // First pass: collect row data and detect whether any peer has downtime, so
+    // the Downtime column can be omitted entirely when no peer is down.
+    struct PeerRowData {
+      std::string peerAddr;
+      std::string remoteAs;
+      std::string state;
+      std::string gr;
+      std::string pr;
+      std::string pa;
+      std::string ps;
+      std::string prd;
+      std::string ug;
+      std::string ugps;
+      std::string uptime;
+      std::string downtime;
+      std::string description;
+      std::string sessionId;
+      std::string flaps;
+    };
+    std::vector<PeerRowData> rows;
+    bool hasAnyDowntime = false;
+    bool hasAnyPreDrops = false;
+
     for (const auto& bgpSession : sessions) {
       const auto& peer = bgpSession.peer().value();
       up_neighbors +=
@@ -144,9 +159,24 @@ class CmdShowBgpSummary
            TBgpPeerState::ESTABLISHED);
 
       auto rcvd_prefix = *bgpSession.prepolicy_rcvd_prefix_count();
+      auto accepted_prefix = *bgpSession.postpolicy_rcvd_prefix_count();
       auto sent_prefix = *bgpSession.postpolicy_sent_prefix_count();
 
+      /*
+       * Per-peer routes dropped because the peer reached its configured
+       * pre-filter prefix limit (server reports this count). Surfaced as the
+       * PRD column, shown only when some peer actually dropped routes. A
+       * non-zero count is reliable even when the live prefix count has churned
+       * back below the limit, so it avoids digging through logs.
+       */
+      auto pre_dropped =
+          bgpSession.prepolicy_rcvd_dropped_prefix_count().value_or(0);
+      if (pre_dropped > 0) {
+        hasAnyPreDrops = true;
+      }
+
       paths_rcvd += rcvd_prefix;
+      paths_accepted += accepted_prefix;
       paths_sent += sent_prefix;
 
       const uint32_t peer_remote_as =
@@ -155,7 +185,6 @@ class CmdShowBgpSummary
           : folly::copy(peer.remote_as().value());
 
       std::string uptimeDurationString;
-
       if (*peer.peer_state() == TBgpPeerState::ESTABLISHED) {
         uptimeDurationString = utils::getPrettyElapsedTime(
             utils::getEpochFromDuration(*bgpSession.uptime()));
@@ -165,34 +194,118 @@ class CmdShowBgpSummary
       if (((*peer.peer_state() == TBgpPeerState::IDLE ||
             *peer.peer_state() == TBgpPeerState::IDLE_ADMIN)) &&
           (*bgpSession.num_resets() > 0)) {
-        // If the peer is IDLE but the num_resets() == 0, then the peer has
-        // never been in ESTABLISHED state and hence does not have the
-        // downtime yet.
+        // If the peer is IDLE but num_resets() == 0, then the peer has never
+        // been in ESTABLISHED state and hence does not have downtime yet.
         downtimeDurationString = utils::getPrettyElapsedTime(
             utils::getEpochFromDuration(*bgpSession.reset_time()));
       }
+      if (!downtimeDurationString.empty()) {
+        hasAnyDowntime = true;
+      }
 
-      table.addRow({
-          bgpSession.peer_addr().value(),
-          folly::to<std::string>(peer_remote_as),
-          enumNameSafe(folly::copy(peer.peer_state().value())).substr(0, 4),
-          folly::copy(peer.graceful().value()) ? "Y" : "N",
-          folly::to<std::string>(rcvd_prefix),
-          folly::to<std::string>(sent_prefix),
-          uptimeDurationString,
-          downtimeDurationString,
-          bgpSession.description().value(),
-          bgpSession.peer_bgp_id().value(),
-          folly::to<std::string>(folly::copy(bgpSession.num_resets().value())),
-      });
+      // Update-group ID: show value or "-" if not set.
+      std::string ugStr = "-";
+      if (auto ugId =
+              apache::thrift::get_pointer(bgpSession.update_group_id())) {
+        ugStr = folly::to<std::string>(*ugId);
+      }
+
+      // Peer update-group state: show value or "-" if not set.
+      std::string peerStateStr = "-";
+      if (auto ps = apache::thrift::get_pointer(
+              bgpSession.peer_state_update_group())) {
+        peerStateStr = *ps;
+      }
+
+      rows.push_back(
+          {bgpSession.peer_addr().value(),
+           folly::to<std::string>(peer_remote_as),
+           enumNameSafe(folly::copy(peer.peer_state().value())).substr(0, 4),
+           folly::copy(peer.graceful().value()) ? "Y" : "N",
+           folly::to<std::string>(rcvd_prefix),
+           folly::to<std::string>(accepted_prefix),
+           folly::to<std::string>(sent_prefix),
+           folly::to<std::string>(pre_dropped),
+           ugStr,
+           peerStateStr,
+           uptimeDurationString,
+           downtimeDurationString,
+           bgpSession.description().value(),
+           bgpSession.peer_bgp_id().value(),
+           folly::to<std::string>(
+               folly::copy(bgpSession.num_resets().value()))});
+    }
+
+    // Build the table with conditional columns:
+    //  - UG/UGPS: only when update-group is enabled
+    //  - Downtime: only when at least one peer has downtime
+    const bool enableUpdateGroup = config.enable_update_group().value();
+
+    auto buildRow = [&](const PeerRowData& row) {
+      std::vector<Table::RowData> fields = {
+          row.peerAddr,
+          row.remoteAs,
+          row.state,
+          row.gr,
+          row.pr,
+          row.pa,
+          row.ps};
+      // PRD: per-peer dropped count, shown only when some peer actually dropped
+      // routes.
+      if (hasAnyPreDrops) {
+        fields.emplace_back(row.prd);
+      }
+      if (enableUpdateGroup) {
+        fields.emplace_back(row.ug);
+        fields.emplace_back(row.ugps);
+      }
+      fields.emplace_back(row.uptime);
+      if (hasAnyDowntime) {
+        fields.emplace_back(row.downtime);
+      }
+      fields.emplace_back(row.description);
+      fields.emplace_back(row.sessionId);
+      fields.emplace_back(row.flaps);
+      return fields;
+    };
+
+    std::vector<std::string> header = {
+        "Peer", "AS", "State", "GR", "PR", "PA", "PS"};
+    if (hasAnyPreDrops) {
+      header.emplace_back("PRD");
+    }
+    if (enableUpdateGroup) {
+      header.emplace_back("UG");
+      header.emplace_back("UGPS");
+    }
+    header.emplace_back("Uptime");
+    if (hasAnyDowntime) {
+      header.emplace_back("Downtime");
+    }
+    header.emplace_back("Description");
+    header.emplace_back("Session ID");
+    header.emplace_back("Flaps");
+
+    Table table;
+    table.setHeader({header.begin(), header.end()});
+    for (const auto& row : rows) {
+      auto fields = buildRow(row);
+      table.addRow({fields.begin(), fields.end()});
     }
 
     out << "Peers: UP - " << up_neighbors << ", TOTAL - " << total_neighbors
         << std::endl;
-    out << "Paths: Received - " << paths_rcvd << ", Sent - " << paths_sent
-        << std::endl;
-    out << "Acronyms: PS - Prefixes Sent, PR - Prefixes Received, HT - Hold Time\n"
-        << std::endl;
+    out << "Paths: Received - " << paths_rcvd << ", Accepted - "
+        << paths_accepted << ", Sent - " << paths_sent << std::endl;
+    std::string acronyms =
+        "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent";
+    if (hasAnyPreDrops) {
+      acronyms += ", PRD - Prefixes Received Dropped";
+    }
+    if (enableUpdateGroup) {
+      acronyms += ", UG - Update Group, UGPS - Update Group Peer State";
+    }
+    out << acronyms << "\n" << std::endl;
     out << table << std::endl;
   }
 

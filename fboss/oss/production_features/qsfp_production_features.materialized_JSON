@@ -114,6 +114,10 @@
         7,
         8
     ],
+    "tahansb800bc_fp_only": [
+        7,
+        8
+    ],
     "wedge100s": [
         
     ],
@@ -259,6 +263,10 @@
         "BMC_LITE"
     ],
     "tahansb800bc": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "tahansb800bc_fp_only": [
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
     ],

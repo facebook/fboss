@@ -36,6 +36,13 @@ class AgentAclTableGroupTrafficTest : public AgentHwTest {
     FLAGS_enable_acl_table_group = true;
   }
 
+  // Ebro (wedge400c) derives the shared ACL key profile from the first table,
+  // so every table's qualifiers must be added up front.
+  bool isEbroAsic() const {
+    return checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+               ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO;
+  }
+
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = utility::onePortPerInterfaceConfig(
@@ -278,10 +285,7 @@ class AgentAclTableGroupTrafficTest : public AgentHwTest {
     ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
     auto setup = [this]() {
-      bool addAllQualifiers = false;
-#if defined(TAJO_SDK_GTE_24_8_3001)
-      addAllQualifiers = true;
-#endif
+      bool addAllQualifiers = isEbroAsic();
 
       auto newCfg{initialConfig(*getAgentEnsemble())};
       utility::addQueuePerHostQueueConfig(&newCfg);
@@ -385,10 +389,7 @@ class AgentAclTableGroupTrafficTest : public AgentHwTest {
     ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
     auto setup = [this]() {
-      bool addAllQualifiers = false;
-#if defined(TAJO_SDK_GTE_24_8_3001)
-      addAllQualifiers = true;
-#endif
+      bool addAllQualifiers = isEbroAsic();
 
       auto newCfg{initialConfig(*getAgentEnsemble())};
       utility::addOlympicQosMaps(newCfg, getAgentEnsemble()->getL3Asics());

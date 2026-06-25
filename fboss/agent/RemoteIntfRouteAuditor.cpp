@@ -170,7 +170,7 @@ RemoteIntfRouteAudit auditRemoteInterfaceRoutes(
       if (routeInMissingSet(audit.missing, vrf, prefix)) {
         continue;
       }
-      audit.extra[vrf].push_back(prefix);
+      audit.extra[vrf].emplace_back(prefix, intf);
     }
   }
 

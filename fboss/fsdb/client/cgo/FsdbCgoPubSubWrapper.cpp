@@ -15,7 +15,9 @@
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/fsdb/if/FsdbModel.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_types.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 namespace facebook::fboss::fsdb {
 
@@ -55,6 +57,27 @@ std::vector<T> waitAndDrain(
   }
   return updates;
 }
+
+// Deserialize a portMaps blob into (portName, portId, portOperState) per port.
+// portId is read from the PortFields field, not the (switch-local) map key.
+template <typename Buf>
+std::vector<std::tuple<std::string, int32_t, bool>> decodePortMaps(
+    const Buf& contents) {
+  using PortMaps = std::
+      map<std::string, std::map<int16_t, facebook::fboss::state::PortFields>>;
+  auto portMaps =
+      apache::thrift::BinarySerializer::deserialize<PortMaps>(contents);
+  std::vector<std::tuple<std::string, int32_t, bool>> ports;
+  for (const auto& [switchId, portMap] : portMaps) {
+    for (const auto& [mapKey, portFields] : portMap) {
+      ports.emplace_back(
+          *portFields.portName(),
+          *portFields.portId(),
+          *portFields.portOperState());
+    }
+  }
+  return ports;
+}
 } // namespace
 
 FsdbCgoPubSubWrapper::FsdbCgoPubSubWrapper(const std::string& clientId)
@@ -71,7 +94,8 @@ FsdbCgoPubSubWrapper::~FsdbCgoPubSubWrapper() {
 }
 
 void FsdbCgoPubSubWrapper::subscribeToOperState_portMaps(
-    std::optional<int> serverPort) {
+    std::optional<int> serverPort,
+    const std::optional<std::string>& host) {
   if (stateSubscribed_) {
     XLOG(WARNING) << "Already subscribed to portMaps state";
     return;
@@ -94,15 +118,16 @@ void FsdbCgoPubSubWrapper::subscribeToOperState_portMaps(
 
   try {
     if (serverPort.has_value()) {
-      utils::ConnectionOptions connOptions("::1", *serverPort);
+      const std::string dstHost = host.value_or("::1");
+      utils::ConnectionOptions connOptions(dstHost, *serverPort);
       pubSubMgr_->addStatePathSubscription(
           path.tokens(),
           std::move(subscriptionStateCb),
           std::move(operStateCb),
           std::move(connOptions));
 
-      XLOG(INFO) << "Successfully subscribed to portMaps state on port "
-                 << *serverPort;
+      XLOG(INFO) << "Successfully subscribed to portMaps state on " << dstHost
+                 << ":" << *serverPort;
     } else {
       pubSubMgr_->addStatePathSubscription(
           path.tokens(),
@@ -122,7 +147,8 @@ void FsdbCgoPubSubWrapper::subscribeToOperState_portMaps(
 
 void FsdbCgoPubSubWrapper::subscribeStatsPath(
     const std::vector<std::string>& path,
-    std::optional<int> serverPort) {
+    std::optional<int> serverPort,
+    const std::optional<std::string>& host) {
   if (statsSubscribed_) {
     XLOG(WARNING) << "Already subscribed to a stats path; ignoring";
     return;
@@ -153,7 +179,8 @@ void FsdbCgoPubSubWrapper::subscribeStatsPath(
 
   try {
     if (serverPort.has_value()) {
-      utils::ConnectionOptions connOptions("::1", *serverPort);
+      const std::string dstHost = host.value_or("::1");
+      utils::ConnectionOptions connOptions(dstHost, *serverPort);
       pubSubMgr_->addStatPathSubscription(
           path,
           std::move(subscriptionStateCb),
@@ -161,7 +188,7 @@ void FsdbCgoPubSubWrapper::subscribeStatsPath(
           std::move(connOptions));
 
       XLOG(INFO) << "Successfully subscribed to stats path " << pathStr
-                 << " on port " << *serverPort;
+                 << " on " << dstHost << ":" << *serverPort;
     } else {
       pubSubMgr_->addStatPathSubscription(
           path, std::move(subscriptionStateCb), std::move(operStatsCb));
@@ -179,13 +206,13 @@ void FsdbCgoPubSubWrapper::subscribeStatsPath(
   }
 }
 
-std::vector<std::tuple<std::string, bool>>
+std::vector<std::tuple<std::string, int32_t, bool>>
 FsdbCgoPubSubWrapper::waitForStateUpdates(int maxCount) {
   if (!stateSubscribed_.load()) {
     throw std::runtime_error("No active state subscription");
   }
   constexpr size_t kStateBatchHint = 128;
-  auto updates = waitAndDrain<std::tuple<std::string, bool>>(
+  auto updates = waitAndDrain<std::tuple<std::string, int32_t, bool>>(
       stateQueue_, shuttingDown_, maxCount, kStateBatchHint);
   XLOG(DBG2) << "Returning " << updates.size() << " state updates";
   return updates;
@@ -206,12 +233,14 @@ FsdbCgoPubSubWrapper::waitForStatsUpdates(int maxCount) {
 
 void FsdbCgoPubSubWrapper::enqueueState(
     const std::string& key,
+    int32_t portId,
     bool portOperState) {
   XLOG(DBG2) << "Received state update for key: " << key
+             << ", portId: " << portId
              << ", portOperState: " << (portOperState ? "UP" : "DOWN");
 
   if (!stateQueue_.try_enqueue_for(
-          std::make_tuple(key, portOperState), kEnqueueTimeout)) {
+          std::make_tuple(key, portId, portOperState), kEnqueueTimeout)) {
     XLOG(ERR) << "stateQueue_ full after " << kEnqueueTimeout.count()
               << "ms; dropping update for key: " << key;
   }
@@ -234,7 +263,8 @@ void FsdbCgoPubSubWrapper::enqueueStats(
 
 void FsdbCgoPubSubWrapper::subscribeStatePath(
     const std::vector<std::string>& path,
-    std::optional<int> serverPort) {
+    std::optional<int> serverPort,
+    const std::optional<std::string>& host) {
   if (statePathSubscribed_) {
     XLOG(WARNING) << "Already subscribed to a state path; ignoring";
     return;
@@ -265,7 +295,8 @@ void FsdbCgoPubSubWrapper::subscribeStatePath(
 
   try {
     if (serverPort.has_value()) {
-      utils::ConnectionOptions connOptions("::1", *serverPort);
+      const std::string dstHost = host.value_or("::1");
+      utils::ConnectionOptions connOptions(dstHost, *serverPort);
       pubSubMgr_->addStatePathSubscription(
           path,
           std::move(subscriptionStateCb),
@@ -273,7 +304,7 @@ void FsdbCgoPubSubWrapper::subscribeStatePath(
           std::move(connOptions));
 
       XLOG(INFO) << "Successfully subscribed to state path " << pathStr
-                 << " on port " << *serverPort;
+                 << " on " << dstHost << ":" << *serverPort;
     } else {
       pubSubMgr_->addStatePathSubscription(
           path, std::move(subscriptionStateCb), std::move(operStateCb));
@@ -289,6 +320,34 @@ void FsdbCgoPubSubWrapper::subscribeStatePath(
     throw std::runtime_error(
         std::string("Failed to subscribe to state path: ") + e.what());
   }
+}
+
+std::vector<std::tuple<std::string, int32_t, bool>>
+FsdbCgoPubSubWrapper::getPortSnapshot(
+    std::optional<int> serverPort,
+    const std::optional<std::string>& host) {
+  thriftpath::RootThriftPath<FsdbOperStateRoot> rootPath;
+  auto path = rootPath.agent().switchState().portMaps();
+
+  utils::ConnectionOptions connOptions = serverPort.has_value()
+      ? utils::ConnectionOptions(host.value_or("::1"), *serverPort)
+      : utils::ConnectionOptions::defaultOptions<FsdbService>();
+  auto client =
+      utils::createPlaintextClient<FsdbService>(std::move(connOptions));
+  if (!client) {
+    throw std::runtime_error("getPortSnapshot: failed to create FSDB client");
+  }
+
+  OperGetRequest req;
+  req.path()->raw() = path.tokens();
+  req.protocol() = OperProtocol::BINARY;
+
+  OperState result;
+  client->sync_getOperState(result, req);
+  if (!result.contents()) {
+    return {};
+  }
+  return decodePortMaps(*result.contents());
 }
 
 std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
@@ -326,25 +385,13 @@ void FsdbCgoPubSubWrapper::processPortMapsUpdate(fsdb::OperState&& operState) {
   }
 
   try {
-    using PortMaps = std::
-        map<std::string, std::map<int16_t, facebook::fboss::state::PortFields>>;
-
-    PortMaps portMaps = apache::thrift::BinarySerializer::deserialize<PortMaps>(
-        *operState.contents());
-
-    // Process each port and check if state changed
-    for (const auto& [switchId, portMap] : portMaps) {
-      for (const auto& [portId, portFields] : portMap) {
-        // Use port name as the key
-        const auto& portName = *portFields.portName();
-        bool currentState = *portFields.portOperState();
-
-        // Enqueue update if this is a new port or if state changed
-        auto it = portName2OperState_.find(portName);
-        if (it == portName2OperState_.end() || it->second != currentState) {
-          enqueueState(portName, currentState);
-          portName2OperState_[portName] = currentState;
-        }
+    // Enqueue an update only for a new port or one whose state changed.
+    for (const auto& [portName, portId, currentState] :
+         decodePortMaps(*operState.contents())) {
+      auto it = portName2OperState_.find(portName);
+      if (it == portName2OperState_.end() || it->second != currentState) {
+        enqueueState(portName, portId, currentState);
+        portName2OperState_[portName] = currentState;
       }
     }
   } catch (const std::exception& e) {
@@ -405,20 +452,25 @@ int32_t ShutdownFsdbWrapper(FsdbWrapperHandle handle) {
   }
 }
 
-/**
- * Subscribe to portMaps state using default connection
- * @param handle Opaque handle to the wrapper
- */
-void SubscribeToPortMaps(FsdbWrapperHandle handle) {
-  if (!handle) {
-    return;
+// NULL or empty host => localhost; non-empty host => remote.
+static std::optional<std::string> hostToOptional(const char* host) {
+  if (host && host[0] != '\0') {
+    return std::string(host);
   }
+  return std::nullopt;
+}
 
-  try {
-    auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
-    wrapper->subscribeToOperState_portMaps();
-  } catch (const std::exception&) {
-    // Subscription failed - error already logged
+// Negative server_port => default FSDB port.
+static std::optional<int> portToOptional(int32_t serverPort) {
+  return serverPort >= 0 ? std::optional<int>(serverPort) : std::nullopt;
+}
+
+// A default port (server_port < 0) routes to the host-less path, dropping host.
+static void warnIfHostIgnored(const char* fn, const char* host, int32_t port) {
+  if (host && host[0] != '\0' && port < 0) {
+    XLOG(WARNING) << fn << ": host '" << host
+                  << "' ignored because server_port < 0; pass an explicit port "
+                     "to reach a remote host";
   }
 }
 
@@ -437,33 +489,103 @@ static std::vector<std::string> tokensToPath(
   return path;
 }
 
-void SubscribeToStatsPath(
+void SubscribeToPortMaps(
     FsdbWrapperHandle handle,
-    const char** path_tokens,
-    int32_t num_tokens) {
-  if (!handle || !path_tokens || num_tokens <= 0) {
+    const char* host,
+    int32_t server_port) {
+  if (!handle) {
     return;
   }
   try {
+    warnIfHostIgnored("SubscribeToPortMaps", host, server_port);
     auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
-    wrapper->subscribeStatsPath(tokensToPath(path_tokens, num_tokens));
+    wrapper->subscribeToOperState_portMaps(
+        portToOptional(server_port), hostToOptional(host));
   } catch (const std::exception&) {
     // Subscription failed - error already logged
   }
 }
 
-void SubscribeToStatePath(
+void SubscribeToStats(
     FsdbWrapperHandle handle,
     const char** path_tokens,
-    int32_t num_tokens) {
+    int32_t num_tokens,
+    const char* host,
+    int32_t server_port) {
   if (!handle || !path_tokens || num_tokens <= 0) {
     return;
   }
   try {
+    warnIfHostIgnored("SubscribeToStats", host, server_port);
     auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
-    wrapper->subscribeStatePath(tokensToPath(path_tokens, num_tokens));
+    wrapper->subscribeStatsPath(
+        tokensToPath(path_tokens, num_tokens),
+        portToOptional(server_port),
+        hostToOptional(host));
   } catch (const std::exception&) {
     // Subscription failed - error already logged
+  }
+}
+
+void SubscribeToState(
+    FsdbWrapperHandle handle,
+    const char** path_tokens,
+    int32_t num_tokens,
+    const char* host,
+    int32_t server_port) {
+  if (!handle || !path_tokens || num_tokens <= 0) {
+    return;
+  }
+  try {
+    warnIfHostIgnored("SubscribeToState", host, server_port);
+    auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
+    wrapper->subscribeStatePath(
+        tokensToPath(path_tokens, num_tokens),
+        portToOptional(server_port),
+        hostToOptional(host));
+  } catch (const std::exception&) {
+    // Subscription failed - error already logged
+  }
+}
+
+// Returns ports written (>=0), or -1 on error. See header for lifetime of the
+// borrowed port_name pointers.
+int32_t GetPortSnapshot(
+    FsdbWrapperHandle handle,
+    const char* host,
+    int32_t server_port,
+    FsdbPortStateUpdate* out,
+    int32_t max_count) {
+  if (!handle || !out || max_count <= 0) {
+    return -1;
+  }
+  try {
+    warnIfHostIgnored("GetPortSnapshot", host, server_port);
+    auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
+
+    // Stash on wrapper so c_str() pointers stay live across the C boundary.
+    wrapper->lastSnapshot_ = wrapper->getPortSnapshot(
+        portToOptional(server_port), hostToOptional(host));
+
+    if (static_cast<int32_t>(wrapper->lastSnapshot_.size()) > max_count) {
+      XLOG(WARNING) << "GetPortSnapshot: " << wrapper->lastSnapshot_.size()
+                    << " ports exceed caller buffer (" << max_count
+                    << "); truncating";
+    }
+    int32_t i = 0;
+    for (const auto& [portName, portId, operState] : wrapper->lastSnapshot_) {
+      if (i >= max_count) {
+        break;
+      }
+      out[i].port_name = portName.c_str();
+      out[i].port_id = portId;
+      out[i].oper_state = operState ? 1 : 0;
+      ++i;
+    }
+    return i;
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "GetPortSnapshot error: " << e.what();
+    return -1;
   }
 }
 
@@ -612,8 +734,10 @@ int32_t WaitForStateUpdates(
     wrapper->lastStateUpdates_ = wrapper->waitForStateUpdates(max_count);
 
     int32_t i = 0;
-    for (const auto& [portName, operState] : wrapper->lastStateUpdates_) {
+    for (const auto& [portName, portId, operState] :
+         wrapper->lastStateUpdates_) {
       out[i].port_name = portName.c_str();
+      out[i].port_id = portId;
       out[i].oper_state = operState ? 1 : 0;
       ++i;
     }
@@ -731,72 +855,6 @@ void FreeStatePathUpdates(FsdbWrapperHandle handle) {
   }
   auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
   wrapper->lastStatePathUpdates_.clear();
-}
-
-/**
- * Subscribe to portMaps state with an explicit server port
- * @param handle Opaque handle to the wrapper
- * @param server_port Port number, or -1 for default
- */
-void SubscribeToPortMapsWithPort(
-    FsdbWrapperHandle handle,
-    int32_t server_port) {
-  if (!handle) {
-    return;
-  }
-
-  try {
-    auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
-    if (server_port >= 0) {
-      wrapper->subscribeToOperState_portMaps(server_port);
-    } else {
-      wrapper->subscribeToOperState_portMaps(std::nullopt);
-    }
-  } catch (const std::exception&) {
-    // Subscription failed - error already logged
-  }
-}
-
-void SubscribeToStatsPathWithPort(
-    FsdbWrapperHandle handle,
-    const char** path_tokens,
-    int32_t num_tokens,
-    int32_t server_port) {
-  if (!handle || !path_tokens || num_tokens <= 0) {
-    return;
-  }
-  try {
-    auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
-    auto path = tokensToPath(path_tokens, num_tokens);
-    if (server_port >= 0) {
-      wrapper->subscribeStatsPath(path, server_port);
-    } else {
-      wrapper->subscribeStatsPath(path, std::nullopt);
-    }
-  } catch (const std::exception&) {
-    // Subscription failed - error already logged
-  }
-}
-
-void SubscribeToStatePathWithPort(
-    FsdbWrapperHandle handle,
-    const char** path_tokens,
-    int32_t num_tokens,
-    int32_t server_port) {
-  if (!handle || !path_tokens || num_tokens <= 0) {
-    return;
-  }
-  try {
-    auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
-    auto path = tokensToPath(path_tokens, num_tokens);
-    if (server_port >= 0) {
-      wrapper->subscribeStatePath(path, server_port);
-    } else {
-      wrapper->subscribeStatePath(path, std::nullopt);
-    }
-  } catch (const std::exception&) {
-    // Subscription failed - error already logged
-  }
 }
 
 } // extern "C"

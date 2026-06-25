@@ -874,8 +874,8 @@ void SaiMacsecManager::setupMacsec(
           std::nullopt /* dstMac */,
           ethTypeMacsec);
 
-      auto aclEntryId =
-          managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+      auto aclEntryId = managerTable_->aclTableManager().addAclEntry(
+          aclEntry, aclName, nullptr /*state*/);
       XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
                  << direction << " ACL entry " << aclEntryId;
     } else {
@@ -888,8 +888,8 @@ void SaiMacsecManager::setupMacsec(
           std::nullopt /* dstMac */,
           std::nullopt /* etherType */);
 
-      auto aclEntryId =
-          managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+      auto aclEntryId = managerTable_->aclTableManager().addAclEntry(
+          aclEntry, aclName, nullptr /*state*/);
       XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
                  << direction << " ACL entry " << aclEntryId;
     }
@@ -1075,8 +1075,8 @@ void SaiMacsecManager::setupAclControlPacketRules(
   cfg::EtherType ethTypeMka{cfg::EtherType::EAPOL};
   auto aclEntry = createMacsecControlAclEntry(
       kMacsecMkaAclPriority, aclName, std::nullopt /* dstMac */, ethTypeMka);
-  auto aclEntryId =
-      managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+  auto aclEntryId = managerTable_->aclTableManager().addAclEntry(
+      aclEntry, aclName, nullptr /*state*/);
   XLOG(DBG2) << "For linePort: " << linePort << ", direction "
              << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
                                                            : "Egress")
@@ -1086,7 +1086,8 @@ void SaiMacsecManager::setupAclControlPacketRules(
   cfg::EtherType ethTypeLldp{cfg::EtherType::LLDP};
   aclEntry = createMacsecControlAclEntry(
       kMacsecLldpAclPriority, aclName, std::nullopt /* dstMac */, ethTypeLldp);
-  aclEntryId = managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+  aclEntryId = managerTable_->aclTableManager().addAclEntry(
+      aclEntry, aclName, nullptr /*state*/);
   XLOG(DBG2) << "For linePort: " << linePort << ", direction "
              << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
                                                            : "Egress")
@@ -1142,8 +1143,8 @@ void SaiMacsecManager::setupDropUnencryptedRule(
 
     auto aclEntry = createMacsecRxDefaultAclEntry(
         kMacsecDefaultAclPriority, aclName, action);
-    auto aclEntryId =
-        managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+    auto aclEntryId = managerTable_->aclTableManager().addAclEntry(
+        aclEntry, aclName, nullptr /*state*/);
     XLOG(DBG2) << "For linePort " << linePort << " direction "
                << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
                                                              : "Egress")

@@ -73,4 +73,5 @@ struct AgentStats {
   31: map<string, hardware_stats.HwRouterInterfaceStats> hwRouterInterfaceStats;
   32: i16 ecmpOverShelDisabledPort;
   33: hardware_stats.HwSwitchCounterStats counterStats;
+  34: map<i16, hardware_stats.HwSwitchDropBitmapStats> switchDropBitmapStatsMap;
 }

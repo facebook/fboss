@@ -12,7 +12,6 @@ cpp_library(
         "Meru800bfaBspPlatformMapping.h",
     ],
     exported_deps = [
-        "//fboss/lib/bsp:bsp_platform_mapping-cpp2-types",
         "//fboss/lib/bsp:bsp_platform_mapping_lib",
         "//thrift/lib/cpp2/protocol:protocol",
     ],

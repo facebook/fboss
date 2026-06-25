@@ -320,11 +320,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "26": {
+    "64": {
         "mapping": {
-          "id": 26,
+          "id": 64,
           "name": "rcy1/1/538",
-          "controllingPort": 26,
+          "controllingPort": 64,
           "pins": [
             {
               "a": {
@@ -15652,11 +15652,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1050": {
+    "1088": {
         "mapping": {
-          "id": 1050,
+          "id": 1088,
           "name": "rcy1/2/538",
-          "controllingPort": 1050,
+          "controllingPort": 1088,
           "pins": [
             {
               "a": {

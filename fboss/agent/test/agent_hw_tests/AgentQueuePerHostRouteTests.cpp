@@ -25,11 +25,7 @@ const static int kInterfaceID = 2000;
 
 namespace facebook::fboss {
 
-template <typename AddrT>
 class AgentQueuePerHostRouteTest : public AgentHwTest {
- public:
-  using Type = AddrT;
-
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -61,6 +57,7 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
     return cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2;
   }
 
+  template <typename AddrT>
   RoutePrefix<AddrT> kGetRoutePrefix() const {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       return RoutePrefix<folly::IPAddressV4>{
@@ -71,6 +68,7 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
     }
   }
 
+  template <typename AddrT>
   void addRoutes(const std::vector<RoutePrefix<AddrT>>& routePrefixes) {
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor(), kRouterID());
@@ -78,6 +76,7 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
     ecmpHelper.programRoutes(&wrapper, kDefaultEcmpWidth, routePrefixes);
   }
 
+  template <typename AddrT>
   void resolveNeighborAndVerifyClassID(
       AddrT ipAddress,
       MacAddress macAddress,
@@ -126,6 +125,7 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
     }
   }
 
+  template <typename AddrT>
   AddrT kSrcIP() {
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
       return folly::IPAddressV4("1.0.0.1");
@@ -134,6 +134,7 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
     }
   }
 
+  template <typename AddrT>
   AddrT kDstIP() {
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
       return folly::IPAddressV4("10.10.1.2");
@@ -142,6 +143,7 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
     }
   }
 
+  template <typename AddrT>
   std::vector<std::pair<AddrT, MacAddress>> kNeighborIPs() {
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
       return {
@@ -158,42 +160,53 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
 
   void setMacAddrsToBlock() {
     auto cfgMacAddrsToBlock = std::make_unique<std::vector<cfg::MacAndVlan>>();
-    for (const auto& ipAndMac : kNeighborIPs()) {
-      cfg::MacAndVlan macAndVlan;
-      macAndVlan.vlanID() = kVlanID;
-      macAndVlan.macAddress() = ipAndMac.second.toString();
-      cfgMacAddrsToBlock->emplace_back(macAndVlan);
-    }
+    auto addMacs = [&](const auto& neighborIPs) {
+      for (const auto& ipAndMac : neighborIPs) {
+        cfg::MacAndVlan macAndVlan;
+        macAndVlan.vlanID() = kVlanID;
+        macAndVlan.macAddress() = ipAndMac.second.toString();
+        cfgMacAddrsToBlock->emplace_back(macAndVlan);
+      }
+    };
+    // v4 and v6 neighbors share the same MAC addresses; block both families.
+    addMacs(kNeighborIPs<folly::IPAddressV4>());
+    addMacs(kNeighborIPs<folly::IPAddressV6>());
     ThriftHandler handler(getSw());
     handler.setMacAddrsToBlock(std::move(cfgMacAddrsToBlock));
+  }
+
+  template <typename AddrT>
+  void resolveNeighborsAndAddRoutes() {
+    for (const auto& neighborIpAndMac : kNeighborIPs<AddrT>()) {
+      resolveNeighborAndVerifyClassID<AddrT>(
+          neighborIpAndMac.first,
+          neighborIpAndMac.second,
+          masterLogicalPortIds()[0]);
+    }
+    addRoutes<AddrT>({kGetRoutePrefix<AddrT>()});
   }
 
   void setupHelper(bool blockNeighbor) {
     // Disable neighbor updates to prevent stats increment
     FLAGS_disable_neighbor_updates = true;
-    this->getAgentEnsemble()->bringDownPort(this->masterLogicalPortIds()[1]);
+    getAgentEnsemble()->bringDownPort(masterLogicalPortIds()[1]);
     if (blockNeighbor) {
-      this->setMacAddrsToBlock();
+      setMacAddrsToBlock();
     }
-    for (const auto& neighborIpAndMac : kNeighborIPs()) {
-      this->resolveNeighborAndVerifyClassID(
-          neighborIpAndMac.first,
-          neighborIpAndMac.second,
-          this->masterLogicalPortIds()[0]);
-    }
-    this->addRoutes({this->kGetRoutePrefix()});
+    resolveNeighborsAndAddRoutes<folly::IPAddressV4>();
+    resolveNeighborsAndAddRoutes<folly::IPAddressV6>();
   }
 
+  template <typename AddrT>
   void verifyHelper(bool useFrontPanel, bool blockNeighbor) {
     // Disable neighbor updates to prevent stats increment
     FLAGS_disable_neighbor_updates = true;
-    this->getNextUpdatedPortStats(this->masterLogicalPortIds()[0]);
+    getNextUpdatedPortStats(masterLogicalPortIds()[0]);
     XLOG(DBG2) << "verify send packets "
                << (useFrontPanel ? "out of port" : "switched");
-    auto vlanId = VlanID(*this->initialConfig(*this->getAgentEnsemble())
-                              .vlanPorts()[0]
-                              .vlanID());
-    auto intfMac = utility::getInterfaceMac(this->getProgrammedState(), vlanId);
+    auto vlanId =
+        VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
     utility::verifyQueuePerHostMapping(
@@ -201,42 +214,49 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
         vlanId,
         srcMac,
         intfMac,
-        this->kSrcIP(),
-        this->kDstIP(),
+        kSrcIP<AddrT>(),
+        kDstIP<AddrT>(),
         useFrontPanel,
         blockNeighbor,
         std::nullopt, /* l4SrcPort */
         std::nullopt, /* l4DstPort */
         std::nullopt); /* dscp */
   }
+
+  void verifyAllFamilies(bool useFrontPanel, bool blockNeighbor) {
+    {
+      SCOPED_TRACE("v4");
+      verifyHelper<folly::IPAddressV4>(useFrontPanel, blockNeighbor);
+    }
+    {
+      SCOPED_TRACE("v6");
+      verifyHelper<folly::IPAddressV6>(useFrontPanel, blockNeighbor);
+    }
+  }
 };
 
-using IpTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
-
-TYPED_TEST_SUITE(AgentQueuePerHostRouteTest, IpTypes);
-
-TYPED_TEST(AgentQueuePerHostRouteTest, VerifyHostToQueueMappingClassID) {
-  auto setup = [=, this]() { this->setupHelper(false /* blockNeighbor */); };
+TEST_F(AgentQueuePerHostRouteTest, VerifyHostToQueueMappingClassID) {
+  auto setup = [=, this]() { setupHelper(false /* blockNeighbor */); };
   auto verify = [=, this]() {
-    this->getAgentEnsemble()->bringUpPort(this->masterLogicalPortIds()[1]);
-    this->verifyHelper(true /* front panel port */, false /* block neighbor */);
-    this->getAgentEnsemble()->bringDownPort(this->masterLogicalPortIds()[1]);
-    this->verifyHelper(false /* cpu port */, false /* block neighbor */);
+    getAgentEnsemble()->bringUpPort(masterLogicalPortIds()[1]);
+    verifyAllFamilies(true /* front panel port */, false /* block neighbor */);
+    getAgentEnsemble()->bringDownPort(masterLogicalPortIds()[1]);
+    verifyAllFamilies(false /* cpu port */, false /* block neighbor */);
   };
 
-  this->verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(AgentQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDBlock) {
-  auto setup = [=, this]() { this->setupHelper(true /* blockNeighbor */); };
+TEST_F(AgentQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDBlock) {
+  auto setup = [=, this]() { setupHelper(true /* blockNeighbor */); };
   auto verify = [=, this]() {
-    this->getAgentEnsemble()->bringUpPort(this->masterLogicalPortIds()[1]);
-    this->verifyHelper(true /* front panel port */, true /* block neighbor */);
-    this->getAgentEnsemble()->bringDownPort(this->masterLogicalPortIds()[1]);
-    this->verifyHelper(false /* cpu port */, true /* block neighbor */);
+    getAgentEnsemble()->bringUpPort(masterLogicalPortIds()[1]);
+    verifyAllFamilies(true /* front panel port */, true /* block neighbor */);
+    getAgentEnsemble()->bringDownPort(masterLogicalPortIds()[1]);
+    verifyAllFamilies(false /* cpu port */, true /* block neighbor */);
   };
 
-  this->verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

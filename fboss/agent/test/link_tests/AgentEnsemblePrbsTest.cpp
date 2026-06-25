@@ -123,11 +123,14 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
                    << " test on "
                    << apache::thrift::util::enumNameSafe(testPort.component)
                    << " on " << testPort.portName;
+        addTestedPort(getPortID(testPort.portName));
       }
     }
   }
 
   void runTest() {
+    addVerifiedProductionFeatures(
+        {link_test_production_features::LinkTestProductionFeature::PRBS});
     prbs::InterfacePrbsState enabledState;
     enabledState.generatorEnabled() = true;
     enabledState.checkerEnabled() = true;

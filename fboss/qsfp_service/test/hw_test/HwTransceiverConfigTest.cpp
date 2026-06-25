@@ -18,6 +18,9 @@ class HwTransceiverConfigTest : public HwTransceiverTest {
 };
 
 TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::CONFIG_VALIDATION});
+  addTestedTransceivers(getExpectedTransceivers());
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpConfig = wedgeManager->getQsfpConfig();
   // After syncPorts, the module should have the expected configuration settings

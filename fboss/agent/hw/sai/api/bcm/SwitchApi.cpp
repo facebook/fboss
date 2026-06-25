@@ -757,7 +757,20 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
+#if defined(BRCM_SAI_SDK_XGS_GTE_14_2)
+  return SAI_SWITCH_ATTR_PORT_CL72_RETRY_ENABLE;
+#endif
+  return std::nullopt;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::deviceWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::customDropBitmapStats() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }

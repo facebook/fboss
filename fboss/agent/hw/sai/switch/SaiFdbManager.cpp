@@ -298,18 +298,18 @@ PortDescriptorSaiId SaiFdbManager::getPortDescriptorSaiId(
       auto const portHandle =
           managerTable_->portManager().getPortHandle(portDesc.phyPortID());
       return PortDescriptorSaiId(portHandle->port->adapterKey());
-    } break;
+    }
     case PortDescriptor::PortType::AGGREGATE: {
       auto lagHandle =
           managerTable_->lagManager().getLagHandle(portDesc.aggPortID());
       return PortDescriptorSaiId(lagHandle->lag->adapterKey());
-    } break;
+    }
     case PortDescriptor::PortType::SYSTEM_PORT: {
       auto sysPortHandle =
           managerTable_->systemPortManager().getSystemPortHandle(
               portDesc.sysPortID());
       return PortDescriptorSaiId(sysPortHandle->systemPort->adapterKey());
-    } break;
+    }
   }
   XLOG(FATAL) << " Unknown port type";
 }

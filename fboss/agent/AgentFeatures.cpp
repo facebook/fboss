@@ -9,6 +9,8 @@ DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
 
 DEFINE_bool(test_fixture, false, "Enable test fixture platform mapping");
 
+DEFINE_bool(osfp_tray, false, "Enable OSFP tray platform mapping");
+
 // TODO: Remove once rifs limitation is fixed
 DEFINE_bool(
     minipack3bta_16rifs,
@@ -39,6 +41,8 @@ DEFINE_bool(
 DEFINE_bool(hide_fabric_ports, false, "Elide ports of type fabric");
 
 DEFINE_bool(hide_management_ports, false, "Elide ports of type management");
+
+DEFINE_bool(hide_eventor_ports, false, "Elide ports of type eventor");
 
 DEFINE_bool(hide_interface_ports, false, "Elide ports of type interface");
 
@@ -291,6 +295,13 @@ DEFINE_int32(
     mysid_resource_percentage,
     75,
     "Percentage of MySID resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
+DEFINE_bool(
+    srv6,
+    false,
+    "Enable SRv6 features, e.g. collecting the SRv6 MySID resource counter. "
+    "Only valid on configs whose SDK is initialized with SRv6/mySid support "
+    "(sai_stats_support); leave off otherwise.");
 
 DEFINE_bool(
     enable_srv6_nexthop_resource_protection,
@@ -556,3 +567,13 @@ DEFINE_bool(
     enable_acl_table_redirect_action,
     false,
     "Add redirect action type to ACL table");
+
+DEFINE_bool(
+    enable_pfc_priority_to_pg_map,
+    false,
+    "Enable programming the PFC priority to priority group QoS map on ports");
+
+DEFINE_bool(
+    enable_port_cl72_retry,
+    false,
+    "Enable CL72 link training retry on the switch (XGS, BRCM SDK >= 14.2 only)");

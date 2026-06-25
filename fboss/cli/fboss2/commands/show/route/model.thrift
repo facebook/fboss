@@ -45,6 +45,7 @@ struct ClientAndNextHops {
   5: bool isPreferred;
   6: string counterID;
   7: string classID;
+  8: optional i64 clientNextHopSetID;
 }
 
 struct RouteEntry {

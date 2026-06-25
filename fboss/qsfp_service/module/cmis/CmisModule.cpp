@@ -1428,8 +1428,13 @@ bool CmisModule::isModuleInReadyState() {
 
 bool CmisModule::moduleReadyStatePoll() {
   auto retries = 0;
-  constexpr int kUsecModuleReadyStateUpdateTimeMax = 5000000; // 5 seconds
   constexpr int kUsecModuleReadyStatePollTime = 100000; // 100 ms
+  // Tunable (coherent/ZR) optics take much longer to settle than fixed
+  // wavelength optics, so give them a longer ready timeout.
+  constexpr int kUsecModuleReadyTunable = 60000000; // 60 seconds
+  constexpr int kUsecModuleReadyNonTunable = 5000000; // 5 seconds
+  const int kUsecModuleReadyStateUpdateTimeMax =
+      isTunableOptics() ? kUsecModuleReadyTunable : kUsecModuleReadyNonTunable;
   auto maxRetriesReady =
       kUsecModuleReadyStateUpdateTimeMax / kUsecModuleReadyStatePollTime;
 

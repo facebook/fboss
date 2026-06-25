@@ -8,6 +8,7 @@
  *
  */
 
+#include <charconv>
 #include <filesystem>
 
 #include <fb303/ServiceData.h>
@@ -29,6 +30,34 @@ DEFINE_int32(
     "Interval at which stats subscriptions are served");
 
 namespace {
+
+// CPLD regbit sysfs attributes can emit hex (e.g. "0x1"), which
+// folly::to<float> rejects. Parse hex explicitly, decimal otherwise, and
+// return nullopt on any unparseable value so a single bad sensor degrades to a
+// read failure instead of throwing out of the entire poll cycle.
+//
+// This hex-parsing path exists solely to address SEV S649086. A forthcoming BSP
+// update will make the CPLD attrs emit decimal values, after which hex handling
+// here can be removed.
+std::optional<float> parseSensorValue(const std::string& raw) {
+  auto trimmed = folly::trimWhitespace(raw);
+  if (trimmed.empty()) {
+    return std::nullopt;
+  }
+  if (trimmed.startsWith("0x") || trimmed.startsWith("0X")) {
+    int64_t hexValue{};
+    auto body = trimmed.subpiece(2);
+    auto [ptr, ec] = std::from_chars(body.begin(), body.end(), hexValue, 16);
+    if (ec == std::errc() && ptr == body.end()) {
+      return static_cast<float>(hexValue);
+    }
+    return std::nullopt;
+  }
+  if (auto parsed = folly::tryTo<float>(trimmed)) {
+    return *parsed;
+  }
+  return std::nullopt;
+}
 
 struct SensorStatsResult {
   int readFailure{0};
@@ -319,14 +348,26 @@ SensorData SensorServiceImpl::fetchSensorDataImpl(
   bool sysfsFileExists =
       std::filesystem::exists(std::filesystem::path(sysfsPath));
   if (sysfsFileExists && folly::readFile(sysfsPath.c_str(), sensorValue)) {
-    sensorData.value() = folly::to<float>(sensorValue);
-    sensorData.timeStamp() = Utils::nowInSecs();
-    if (compute) {
-      sensorData.value() =
-          Utils::computeExpression(*compute, *sensorData.value());
+    if (auto parsedValue = parseSensorValue(sensorValue)) {
+      sensorData.value() = *parsedValue;
+      sensorData.timeStamp() = Utils::nowInSecs();
+      if (compute) {
+        sensorData.value() =
+            Utils::computeExpression(*compute, *sensorData.value());
+      }
+      XLOG(DBG1) << fmt::format(
+          "{} ({}) : {}", sensorName, sysfsPath, *sensorData.value());
+    } else {
+      XLOG(ERR) << fmt::format(
+          "Could not parse value '{}' for {} from path:{}",
+          folly::trimWhitespace(sensorValue).str(),
+          sensorName,
+          sysfsPath);
+      structuredLogger_.logAlert(
+          "sensor_sysfs_read_failure",
+          "Unparseable sensor value",
+          {{"sensor_name", sensorName}, {"sysfs_path", sysfsPath}});
     }
-    XLOG(DBG1) << fmt::format(
-        "{} ({}) : {}", sensorName, sysfsPath, *sensorData.value());
   } else {
     XLOG(ERR) << fmt::format(
         "Could not read data for {} from path:{}, error:{}",

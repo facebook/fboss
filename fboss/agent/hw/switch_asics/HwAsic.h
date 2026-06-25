@@ -260,6 +260,7 @@ class HwAsic {
     SAI_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
     ECMP_DLB_OFFSET,
+    ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL,
 
     // MPLS Features::
     // ================
@@ -539,6 +540,14 @@ class HwAsic {
     SRV6_MYSID_DISCARD_COUNTER,
     SRV6_MYSID_RESOURCE_COUNTER,
     DEVICE_WATERMARK_SUPPORT,
+    // Per-stage HW drop cause bitmaps via custom SAI switch stats
+    // (SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_*). Each bitmap is an i64
+    // where set bits indicate specific drop reasons within that pipeline
+    // stage. Currently supported on Chenab with SDK >= 2511.36.
+    SWITCH_CUSTOM_DROP_BITMAP_SUPPORT,
+    // Policy based routing via a dedicated ACL table matching on next hop
+    // group and traffic class, redirecting to a per-TC next hop group.
+    PBR_ACL,
   };
 
   enum class AsicMode {

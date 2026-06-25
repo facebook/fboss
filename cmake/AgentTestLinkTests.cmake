@@ -42,6 +42,8 @@ target_link_libraries(agent_ensemble_link_tests
   trunk_utils
   hyper_port_test_utils
   link_test_production_features_cpp2
+  link_qsfp_test_port_info_cpp2
+  link_qsfp_test_port_info_utils
   fsdb_pub_sub
   fsdb_model
   thrift_service_client

@@ -88,6 +88,7 @@ target_link_libraries(bsp_tests
   ${LIBGMOCK_LIBRARIES}
   bsp_test_environment
   bsp_test_utils
+  platform_manager_fan_cpld_manager
   platform_manager_i2c_explorer
   platform_manager_config_cpp2
   device_mdio

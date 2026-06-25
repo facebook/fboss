@@ -136,6 +136,7 @@ class SaiSwitch : public HwSwitch {
   FabricReachabilityStats getFabricReachabilityStats() const override;
   CpuPortStats getCpuPortStats() const override;
   HwSwitchDropStats getSwitchDropStats() const override;
+  HwSwitchDropBitmapStats getSwitchDropBitmapStats() const override;
   HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
   HwSwitchPipelineStats getSwitchPipelineStats() const override;
   HwSwitchTemperatureStats getSwitchTemperatureStats() const override;
@@ -161,6 +162,8 @@ class SaiSwitch : public HwSwitch {
   bool isPortUp(PortID port) const override;
 
   void clearPortStats(
+      const std::unique_ptr<std::vector<int32_t>>& ports) override;
+  void triggerCableLengthMeasurement(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
 
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId) override;

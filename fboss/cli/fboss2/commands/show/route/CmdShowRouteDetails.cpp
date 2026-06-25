@@ -131,6 +131,11 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
             "      Named Next Hop Group: {}\n",
             *clAndNxthops.namedNextHopGroup());
       }
+      if (clAndNxthops.clientNextHopSetID().has_value()) {
+        out << fmt::format(
+            "      Client NextHop Set ID: {}\n",
+            clAndNxthops.clientNextHopSetID().value());
+      }
       out << "      Nexthops:\n";
       for (const auto& nextHop : clAndNxthops.nextHops().value()) {
         out << fmt::format(
@@ -240,6 +245,10 @@ CmdShowRouteDetails::RetType CmdShowRouteDetails::createModel(
         cli::ClientAndNextHops clAndNxthopsCli;
         clAndNxthopsCli.clientId() =
             folly::copy(clAndNxthops.clientId().value());
+        if (clAndNxthops.clientNextHopSetID().has_value()) {
+          clAndNxthopsCli.clientNextHopSetID() =
+              clAndNxthops.clientNextHopSetID().value();
+        }
         auto& nextHopAddrs = clAndNxthops.nextHopAddrs().value();
         auto& nextHops = clAndNxthops.nextHops().value();
         if (nextHopAddrs.size() > 0) {

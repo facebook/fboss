@@ -308,15 +308,29 @@
               "pmUnitScopedNamePrefix": "RTM_L_MDIO_BUS",
               "deviceName": "mdio_controller",
               "csrOffsetCalc": "0x48200 + {busIndex}*0x20",
-              "numBuses": 16,
-              "iobufOffsetCalc": "0x480c0 + {busIndex}*0x4"
+              "numBuses": 16
             },
             {
               "pmUnitScopedNamePrefix": "RTM_R_MDIO_BUS",
               "deviceName": "mdio_controller",
               "csrOffsetCalc": "0x40200 + {busIndex}*0x20",
-              "numBuses": 16,
-              "iobufOffsetCalc": "0x400c0 + {busIndex}*0x4"
+              "numBuses": 16
+            }
+          ],
+          "rtmCtrlBlockConfigs": [
+            {
+              "pmUnitScopedNamePrefix": "RTM_L",
+              "deviceName": "rtm_ctrl",
+              "csrOffsetCalc": "0x480c0 + ({portNum} - {startPort})*0x4",
+              "numPorts": 16,
+              "startPort": 1
+            },
+            {
+              "pmUnitScopedNamePrefix": "RTM_R",
+              "deviceName": "rtm_ctrl",
+              "csrOffsetCalc": "0x400c0 + ({portNum} - {startPort})*0x4",
+              "numPorts": 16,
+              "startPort": 17
             }
           ]
         }
@@ -1662,6 +1676,38 @@
     "/run/devmap/mdio-busses/mdio_bus_io_r_14": "/[RTM_R_MDIO_BUS_14]",
     "/run/devmap/mdio-busses/mdio_bus_io_r_15": "/[RTM_R_MDIO_BUS_15]",
     "/run/devmap/mdio-busses/mdio_bus_io_r_16": "/[RTM_R_MDIO_BUS_16]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_1_1": "/[RTM_L_RTM_CTRL_PORT_1]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_2_1": "/[RTM_L_RTM_CTRL_PORT_2]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_3_1": "/[RTM_L_RTM_CTRL_PORT_3]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_4_1": "/[RTM_L_RTM_CTRL_PORT_4]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_5_1": "/[RTM_L_RTM_CTRL_PORT_5]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_6_1": "/[RTM_L_RTM_CTRL_PORT_6]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_7_1": "/[RTM_L_RTM_CTRL_PORT_7]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_8_1": "/[RTM_L_RTM_CTRL_PORT_8]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_9_1": "/[RTM_L_RTM_CTRL_PORT_9]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_10_1": "/[RTM_L_RTM_CTRL_PORT_10]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_11_1": "/[RTM_L_RTM_CTRL_PORT_11]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_12_1": "/[RTM_L_RTM_CTRL_PORT_12]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_13_1": "/[RTM_L_RTM_CTRL_PORT_13]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_14_1": "/[RTM_L_RTM_CTRL_PORT_14]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_15_1": "/[RTM_L_RTM_CTRL_PORT_15]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_l_16_1": "/[RTM_L_RTM_CTRL_PORT_16]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_1_1": "/[RTM_R_RTM_CTRL_PORT_17]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_2_1": "/[RTM_R_RTM_CTRL_PORT_18]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_3_1": "/[RTM_R_RTM_CTRL_PORT_19]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_4_1": "/[RTM_R_RTM_CTRL_PORT_20]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_5_1": "/[RTM_R_RTM_CTRL_PORT_21]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_6_1": "/[RTM_R_RTM_CTRL_PORT_22]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_7_1": "/[RTM_R_RTM_CTRL_PORT_23]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_8_1": "/[RTM_R_RTM_CTRL_PORT_24]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_9_1": "/[RTM_R_RTM_CTRL_PORT_25]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_10_1": "/[RTM_R_RTM_CTRL_PORT_26]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_11_1": "/[RTM_R_RTM_CTRL_PORT_27]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_12_1": "/[RTM_R_RTM_CTRL_PORT_28]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_13_1": "/[RTM_R_RTM_CTRL_PORT_29]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_14_1": "/[RTM_R_RTM_CTRL_PORT_30]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_15_1": "/[RTM_R_RTM_CTRL_PORT_31]",
+    "/run/devmap/rtms/rtm_ctrl_mdio_r_16_1": "/[RTM_R_RTM_CTRL_PORT_32]",
     "/run/devmap/sensors/RUNBMC_THERMAL_SENSOR": "/RUNBMC_SLOT@0/[RUNBMC_THERMAL_SENSOR]",
     "/run/devmap/sensors/COME_HWMON1": "/COMESE_SLOT@0/[COME_HWMON1]",
     "/run/devmap/sensors/COME_HWMON2": "/COMESE_SLOT@0/[COME_HWMON2]",
@@ -1733,8 +1779,9 @@
   },
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 2,
+  "numRtms": 32,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.3.0-1",
+  "bspKmodsRpmVersion": "4.4.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",
@@ -1742,6 +1789,7 @@
     "fboss_iob_i2c",
     "fboss_iob_spi",
     "fboss_iob_gpio",
+    "fboss_iob_led",
     "ledtrig_timer"
   ]
 }

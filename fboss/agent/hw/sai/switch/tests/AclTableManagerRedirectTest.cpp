@@ -66,7 +66,9 @@ TEST_F(AclTableManagerRedirectTest, addAclEntryWithTunnelEncapRedirect) {
   aclEntry->setAclAction(matchAction);
 
   AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
 
   auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
@@ -105,7 +107,9 @@ TEST_F(AclTableManagerRedirectTest, removeAclEntryWithTunnelEncapRedirect) {
   aclEntry->setAclAction(matchAction);
 
   saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
 
   auto& nhStore = saiStore->get<SaiTunnelEncapNextHopTraits>();
   EXPECT_EQ(nhStore.size(), 1);
@@ -141,6 +145,8 @@ TEST_F(AclTableManagerRedirectTest, aclEntryRedirectMissingTunnel) {
 
   EXPECT_THROW(
       saiManagerTable->aclTableManager().addAclEntry(
-          aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()),
+          aclEntry,
+          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+          nullptr /*state*/),
       FbossError);
 }

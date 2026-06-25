@@ -54,58 +54,49 @@ facebook::fboss::utility::NeighborInfo getNeighborInfo(
 
 namespace facebook::fboss {
 
-template <typename AddrType, bool trunk = false>
-struct NeighborT {
-  using IPAddrT = AddrType;
-  static constexpr auto isTrunk = trunk;
-  template <typename AddrT = IPAddrT>
-  std::enable_if_t<
-      std::is_same<AddrT, folly::IPAddressV4>::value,
-      folly::IPAddressV4> static getNeighborAddress() {
-    return folly::IPAddressV4("1.0.0.2");
-  }
-  template <typename AddrT = IPAddrT>
-  std::enable_if_t<
-      std::is_same<AddrT, folly::IPAddressV4>::value,
-      folly::IPAddressV4> static getLinkLocalNeighborAddress() {
-    return folly::IPAddressV4("192.168.0.1");
-  }
-
-  template <typename AddrT = IPAddrT>
-  std::enable_if_t<
-      std::is_same<AddrT, folly::IPAddressV6>::value,
-      folly::IPAddressV6> static getNeighborAddress() {
-    return folly::IPAddressV6("1::2");
-  }
-  template <typename AddrT = IPAddrT>
-  std::enable_if_t<
-      std::is_same<AddrT, folly::IPAddressV6>::value,
-      folly::IPAddressV6> static getLinkLocalNeighborAddress() {
-    return folly::IPAddressV6("fe80::2ae7:1dff:fe73:f21a");
-  }
+// The typed test parameter now encodes only the Port-vs-Trunk axis. Address
+// family (v4/v6) is no longer a type parameter; each test exercises both
+// families in a single setup/verify cycle via the template member helpers
+// below.
+struct PortNeighbor {
+  static constexpr bool isTrunk = false;
 };
-
-using PortNeighborV4 = NeighborT<folly::IPAddressV4, false>;
-using TrunkNeighborV4 = NeighborT<folly::IPAddressV4, true>;
-using PortNeighborV6 = NeighborT<folly::IPAddressV6, false>;
-using TrunkNeighborV6 = NeighborT<folly::IPAddressV6, true>;
+struct TrunkNeighbor {
+  static constexpr bool isTrunk = true;
+};
 
 const facebook::fboss::AggregatePortID kAggID{1};
 
-using NeighborTypes = ::testing::
-    Types<PortNeighborV4, TrunkNeighborV4, PortNeighborV6, TrunkNeighborV6>;
+using NeighborTypes = ::testing::Types<PortNeighbor, TrunkNeighbor>;
 
 template <typename NeighborT>
 class AgentNeighborTest : public AgentHwTest {
  protected:
-  using IPAddrT = typename NeighborT::IPAddrT;
   static auto constexpr programToTrunk = NeighborT::isTrunk;
-  using NTable = typename std::conditional_t<
-      std::is_same<IPAddrT, folly::IPAddressV4>::value,
+  template <typename AddrT>
+  using NeighborTableT = std::conditional_t<
+      std::is_same_v<AddrT, folly::IPAddressV4>,
       ArpTable,
       NdpTable>;
 
- protected:
+  template <typename AddrT>
+  static AddrT getNeighborAddressForFamily() {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return folly::IPAddressV4("1.0.0.2");
+    } else {
+      return folly::IPAddressV6("1::2");
+    }
+  }
+
+  template <typename AddrT>
+  static AddrT getLinkLocalNeighborAddressForFamily() {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return folly::IPAddressV4("192.168.0.1");
+    } else {
+      return folly::IPAddressV6("fe80::2ae7:1dff:fe73:f21a");
+    }
+  }
+
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
   }
@@ -127,9 +118,21 @@ class AgentNeighborTest : public AgentHwTest {
     auto switchId = getSwitchIdUnderTest(ensemble);
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto ports = ensemble.masterLogicalPortIds({switchId});
-    auto cfg = programToTrunk
-        ? utility::oneL3IntfTwoPortConfig(ensemble.getSw(), ports[0], ports[1])
-        : utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
+    auto cfg = programToTrunk ? utility::oneL3IntfTwoPortConfig(
+                                    ensemble.getPlatformMapping(),
+                                    asic,
+                                    ports[0],
+                                    ports[1],
+                                    ensemble.supportsAddRemovePort(),
+                                    asic->desiredLoopbackModes(),
+                                    ensemble.getSw()->getPlatformType())
+                              : utility::onePortPerInterfaceConfig(
+                                    ensemble.getPlatformMapping(),
+                                    asic,
+                                    ports,
+                                    ensemble.supportsAddRemovePort(),
+                                    asic->desiredLoopbackModes(),
+                                    ensemble.getSw()->getPlatformType());
     if (programToTrunk) {
       // Keep member size to be less than/equal to HW limitation, but first add
       // the two ports for testing. Only use ports from masterLogicalPortIds()
@@ -189,6 +192,7 @@ class AgentNeighborTest : public AgentHwTest {
     return PortDescriptor(portIdsForTest()[0]);
   }
 
+  template <typename AddrT>
   auto getNeighborTable(std::shared_ptr<SwitchState> state) {
     auto switchType =
         checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
@@ -198,29 +202,31 @@ class AgentNeighborTest : public AgentHwTest {
         switchType == cfg::SwitchType::NPU) {
       return state->getInterfaces()
           ->getNode(kIntfID())
-          ->template getNeighborEntryTable<IPAddrT>()
+          ->template getNeighborEntryTable<AddrT>()
           ->modify(kIntfID(), &state);
     }
 
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
+  template <typename AddrT>
   std::shared_ptr<SwitchState> addNeighbor(
       const std::shared_ptr<SwitchState>& inState,
       bool linkLocal = false) {
-    auto ip = getNeighborAddress(linkLocal);
+    auto ip = getNeighborAddress<AddrT>(linkLocal);
     auto outState{inState->clone()};
-    auto neighborTable = getNeighborTable(outState);
+    auto neighborTable = getNeighborTable<AddrT>(outState);
     neighborTable->addPendingEntry(ip, kIntfID());
     return outState;
   }
 
+  template <typename AddrT>
   std::shared_ptr<SwitchState> removeNeighbor(
       const std::shared_ptr<SwitchState>& inState,
       bool linkLocal = false) {
-    auto ip = getNeighborAddress(linkLocal);
+    auto ip = getNeighborAddress<AddrT>(linkLocal);
     auto outState{inState->clone()};
 
-    auto neighborTable = getNeighborTable(outState);
+    auto neighborTable = getNeighborTable<AddrT>(outState);
     auto intf = outState->getInterfaces()->getNode(kIntfID());
     if (getSw()->needL2EntryForNeighbor() &&
         intf->getType() == cfg::InterfaceType::VLAN) {
@@ -231,13 +237,14 @@ class AgentNeighborTest : public AgentHwTest {
     return outState;
   }
 
+  template <typename AddrT>
   std::shared_ptr<SwitchState> resolveNeighbor(
       const std::shared_ptr<SwitchState>& inState,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt,
       bool linkLocal = false) {
-    auto ip = getNeighborAddress(linkLocal);
+    auto ip = getNeighborAddress<AddrT>(linkLocal);
     auto outState{inState->clone()};
-    auto neighborTable = getNeighborTable(outState);
+    auto neighborTable = getNeighborTable<AddrT>(outState);
     auto switchType =
         checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics())
             ->getSwitchType();
@@ -266,12 +273,15 @@ class AgentNeighborTest : public AgentHwTest {
     return outState;
   }
 
+  template <typename AddrT>
   std::shared_ptr<SwitchState> unresolveNeighbor(
       const std::shared_ptr<SwitchState>& inState,
       bool linkLocal = false) {
-    return addNeighbor(removeNeighbor(inState, linkLocal), linkLocal);
+    return addNeighbor<AddrT>(
+        removeNeighbor<AddrT>(inState, linkLocal), linkLocal);
   }
 
+  template <typename AddrT>
   void verifyClassId(int classID, bool linkLocal = false) {
     /*
      * Queue-per-host classIDs are only supported for physical ports.
@@ -280,7 +290,7 @@ class AgentNeighborTest : public AgentHwTest {
      */
     WITH_RETRIES({
       auto neighborInfo = getNeighborInfo(
-          kIntfID(), getNeighborAddress(linkLocal), *getAgentEnsemble());
+          kIntfID(), getNeighborAddress<AddrT>(linkLocal), *getAgentEnsemble());
       EXPECT_EVENTUALLY_TRUE(neighborInfo.classId().has_value());
       if (neighborInfo.classId().has_value()) {
         EXPECT_EVENTUALLY_TRUE(
@@ -289,19 +299,22 @@ class AgentNeighborTest : public AgentHwTest {
     });
   }
 
+  template <typename AddrT>
   bool nbrExists(bool linkLocal = false) {
     auto neighborInfo = getNeighborInfo(
-        kIntfID(), getNeighborAddress(linkLocal), *getAgentEnsemble());
+        kIntfID(), getNeighborAddress<AddrT>(linkLocal), *getAgentEnsemble());
     return *neighborInfo.exists();
   }
-  IPAddrT getNeighborAddress(bool linkLocal) const {
-    return linkLocal ? NeighborT::getLinkLocalNeighborAddress()
-                     : NeighborT::getNeighborAddress();
+  template <typename AddrT>
+  AddrT getNeighborAddress(bool linkLocal) const {
+    return linkLocal ? getLinkLocalNeighborAddressForFamily<AddrT>()
+                     : getNeighborAddressForFamily<AddrT>();
   }
 
+  template <typename AddrT>
   bool isProgrammedToCPU(bool linkLocal = false) {
     auto neighborInfo = getNeighborInfo(
-        kIntfID(), getNeighborAddress(linkLocal), *getAgentEnsemble());
+        kIntfID(), getNeighborAddress<AddrT>(linkLocal), *getAgentEnsemble());
     return *neighborInfo.isProgrammedToCpu();
   }
 
@@ -315,12 +328,6 @@ class AgentNeighborTest : public AgentHwTest {
 template <typename NeighborT>
 class AgentNeighborResolutionTest : public AgentNeighborTest<NeighborT> {
  protected:
-  using IPAddrT = typename NeighborT::IPAddrT;
-  using NTable = typename std::conditional_t<
-      std::is_same<IPAddrT, folly::IPAddressV4>::value,
-      ArpTable,
-      NdpTable>;
-
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     // Enable neighbor cache so that class id is set
@@ -330,7 +337,7 @@ class AgentNeighborResolutionTest : public AgentNeighborTest<NeighborT> {
   }
 
   // Get the neighbor cache for the given address family
-  template <typename AddrT = IPAddrT>
+  template <typename AddrT>
   auto getNeighborCache(std::shared_ptr<SwitchState> state) {
     auto switchType =
         checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics())
@@ -365,18 +372,19 @@ class AgentNeighborResolutionTest : public AgentNeighborTest<NeighborT> {
 
   // Verify that neighbor entries are programmed in the neighbor cache and
   // switchState neighbor table has the correct port
+  template <typename AddrT>
   void verifyNeighborCache(
       const PortDescriptor& port,
       const std::shared_ptr<SwitchState>& inState) {
     auto outState{inState->clone()};
-    auto ipAddress = this->getNeighborAddress(false);
-    auto neighborTable = this->getNeighborTable(outState);
+    auto ipAddress = this->template getNeighborAddress<AddrT>(false);
+    auto neighborTable = this->template getNeighborTable<AddrT>(outState);
     auto switchType =
         checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics())
             ->getSwitchType();
 
     WITH_RETRIES({
-      auto neighborCache = getNeighborCache(outState);
+      auto neighborCache = getNeighborCache<AddrT>(outState);
 
       auto cacheEntry = std::find_if(
           neighborCache.begin(),
@@ -410,7 +418,7 @@ class AgentNeighborResolutionTest : public AgentNeighborTest<NeighborT> {
   }
 
   // Populate the neighbor cache from the switchState
-  template <typename AddrT = IPAddrT>
+  template <typename AddrT>
   void populateNeighborsCache(const PortDescriptor& port) {
     auto interface =
         this->getProgrammedState()->getInterfaces()->getNodeIf(this->kIntfID());
@@ -427,21 +435,42 @@ TYPED_TEST_SUITE(AgentNeighborTest, NeighborTypes);
 TYPED_TEST(AgentNeighborTest, AddPendingEntry) {
   auto setup = [this]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return this->addNeighbor(in);
+      auto state = this->template addNeighbor<folly::IPAddressV4>(in);
+      return this->template addNeighbor<folly::IPAddressV6>(state);
     });
   };
-  auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
+  auto verify = [this]() {
+    {
+      SCOPED_TRACE("v4");
+      EXPECT_TRUE(this->template isProgrammedToCPU<folly::IPAddressV4>());
+    }
+    {
+      SCOPED_TRACE("v6");
+      EXPECT_TRUE(this->template isProgrammedToCPU<folly::IPAddressV6>());
+    }
+  };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(AgentNeighborTest, ResolvePendingEntry) {
   auto setup = [this]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto state = this->addNeighbor(in);
-      return this->resolveNeighbor(state);
+      auto state = this->template addNeighbor<folly::IPAddressV4>(in);
+      state = this->template resolveNeighbor<folly::IPAddressV4>(state);
+      state = this->template addNeighbor<folly::IPAddressV6>(state);
+      return this->template resolveNeighbor<folly::IPAddressV6>(state);
     });
   };
-  auto verify = [this]() { EXPECT_FALSE(this->isProgrammedToCPU()); };
+  auto verify = [this]() {
+    {
+      SCOPED_TRACE("v4");
+      EXPECT_FALSE(this->template isProgrammedToCPU<folly::IPAddressV4>());
+    }
+    {
+      SCOPED_TRACE("v6");
+      EXPECT_FALSE(this->template isProgrammedToCPU<folly::IPAddressV6>());
+    }
+  };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -449,8 +478,13 @@ TYPED_TEST(AgentNeighborTest, ResolveLinkLocalEntry) {
   bool linkLocal = true;
   auto setup = [this, linkLocal]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto state = this->addNeighbor(in, linkLocal);
-      return this->resolveNeighbor(state, std::nullopt, linkLocal);
+      auto state =
+          this->template addNeighbor<folly::IPAddressV4>(in, linkLocal);
+      state = this->template resolveNeighbor<folly::IPAddressV4>(
+          state, std::nullopt, linkLocal);
+      state = this->template addNeighbor<folly::IPAddressV6>(state, linkLocal);
+      return this->template resolveNeighbor<folly::IPAddressV6>(
+          state, std::nullopt, linkLocal);
     });
   };
   // LL neighbors are not programmed in HW. So
@@ -463,57 +497,112 @@ TYPED_TEST(AgentNeighborTest, ResolveLinkLocalEntry) {
 TYPED_TEST(AgentNeighborTest, UnresolveResolvedEntry) {
   auto setup = [this]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto state = this->resolveNeighbor(this->addNeighbor(in));
-      return this->unresolveNeighbor(state);
+      auto state = this->template resolveNeighbor<folly::IPAddressV4>(
+          this->template addNeighbor<folly::IPAddressV4>(in));
+      state = this->template unresolveNeighbor<folly::IPAddressV4>(state);
+      state = this->template resolveNeighbor<folly::IPAddressV6>(
+          this->template addNeighbor<folly::IPAddressV6>(state));
+      return this->template unresolveNeighbor<folly::IPAddressV6>(state);
     });
   };
-  auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
+  auto verify = [this]() {
+    {
+      SCOPED_TRACE("v4");
+      EXPECT_TRUE(this->template isProgrammedToCPU<folly::IPAddressV4>());
+    }
+    {
+      SCOPED_TRACE("v6");
+      EXPECT_TRUE(this->template isProgrammedToCPU<folly::IPAddressV6>());
+    }
+  };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(AgentNeighborTest, ResolveThenUnresolveEntry) {
   auto setup = [this]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return this->resolveNeighbor(this->addNeighbor(in));
+      auto state = this->template resolveNeighbor<folly::IPAddressV4>(
+          this->template addNeighbor<folly::IPAddressV4>(in));
+      return this->template resolveNeighbor<folly::IPAddressV6>(
+          this->template addNeighbor<folly::IPAddressV6>(state));
     });
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return this->unresolveNeighbor(in);
+      auto state = this->template unresolveNeighbor<folly::IPAddressV4>(in);
+      return this->template unresolveNeighbor<folly::IPAddressV6>(state);
     });
   };
-  auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
+  auto verify = [this]() {
+    {
+      SCOPED_TRACE("v4");
+      EXPECT_TRUE(this->template isProgrammedToCPU<folly::IPAddressV4>());
+    }
+    {
+      SCOPED_TRACE("v6");
+      EXPECT_TRUE(this->template isProgrammedToCPU<folly::IPAddressV6>());
+    }
+  };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(AgentNeighborTest, RemoveResolvedEntry) {
   auto setup = [this]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto state = this->resolveNeighbor(this->addNeighbor(in));
-      return this->removeNeighbor(state);
+      auto state = this->template resolveNeighbor<folly::IPAddressV4>(
+          this->template addNeighbor<folly::IPAddressV4>(in));
+      state = this->template removeNeighbor<folly::IPAddressV4>(state);
+      state = this->template resolveNeighbor<folly::IPAddressV6>(
+          this->template addNeighbor<folly::IPAddressV6>(state));
+      return this->template removeNeighbor<folly::IPAddressV6>(state);
     });
   };
-  auto verify = [this]() { EXPECT_FALSE(this->nbrExists()); };
+  auto verify = [this]() {
+    {
+      SCOPED_TRACE("v4");
+      EXPECT_FALSE(this->template nbrExists<folly::IPAddressV4>());
+    }
+    {
+      SCOPED_TRACE("v6");
+      EXPECT_FALSE(this->template nbrExists<folly::IPAddressV6>());
+    }
+  };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(AgentNeighborTest, AddPendingRemovedEntry) {
   auto setup = [this]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto state = this->resolveNeighbor(this->addNeighbor(in));
-      return this->removeNeighbor(state);
+      auto state = this->template resolveNeighbor<folly::IPAddressV4>(
+          this->template addNeighbor<folly::IPAddressV4>(in));
+      state = this->template removeNeighbor<folly::IPAddressV4>(state);
+      state = this->template resolveNeighbor<folly::IPAddressV6>(
+          this->template addNeighbor<folly::IPAddressV6>(state));
+      return this->template removeNeighbor<folly::IPAddressV6>(state);
     });
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return this->addNeighbor(in);
+      auto state = this->template addNeighbor<folly::IPAddressV4>(in);
+      return this->template addNeighbor<folly::IPAddressV6>(state);
     });
   };
-  auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
+  auto verify = [this]() {
+    {
+      SCOPED_TRACE("v4");
+      EXPECT_TRUE(this->template isProgrammedToCPU<folly::IPAddressV4>());
+    }
+    {
+      SCOPED_TRACE("v6");
+      EXPECT_TRUE(this->template isProgrammedToCPU<folly::IPAddressV6>());
+    }
+  };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(AgentNeighborTest, LinkDownOnResolvedEntry) {
   auto setup = [this]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto state = this->addNeighbor(in);
-      return this->resolveNeighbor(state);
+      auto state = this->template addNeighbor<folly::IPAddressV4>(in);
+      state = this->template resolveNeighbor<folly::IPAddressV4>(state);
+      state = this->template addNeighbor<folly::IPAddressV6>(state);
+      return this->template resolveNeighbor<folly::IPAddressV6>(state);
     });
     this->bringDownPort(this->portIdsForTest()[0]);
   };
@@ -522,10 +611,19 @@ TYPED_TEST(AgentNeighborTest, LinkDownOnResolvedEntry) {
     // w.r.t. to neighbor entries. In BcmSwitch, we leave the nbr entries
     // intact and rely on SwSwitch to prune them. In SaiSwitch we prune
     // the fdb and neighbor entries on in SaiSwitch itself
-    if (this->nbrExists()) {
-      // egress to neighbor entry is not updated on link down
-      // if it is not part of ecmp group
-      EXPECT_FALSE(this->isProgrammedToCPU());
+    {
+      SCOPED_TRACE("v4");
+      if (this->template nbrExists<folly::IPAddressV4>()) {
+        // egress to neighbor entry is not updated on link down
+        // if it is not part of ecmp group
+        EXPECT_FALSE(this->template isProgrammedToCPU<folly::IPAddressV4>());
+      }
+    }
+    {
+      SCOPED_TRACE("v6");
+      if (this->template nbrExists<folly::IPAddressV6>()) {
+        EXPECT_FALSE(this->template isProgrammedToCPU<folly::IPAddressV6>());
+      }
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -534,8 +632,10 @@ TYPED_TEST(AgentNeighborTest, LinkDownOnResolvedEntry) {
 TYPED_TEST(AgentNeighborTest, LinkDownAndUpOnResolvedEntry) {
   auto setup = [this]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto state = this->addNeighbor(in);
-      return this->resolveNeighbor(state);
+      auto state = this->template addNeighbor<folly::IPAddressV4>(in);
+      state = this->template resolveNeighbor<folly::IPAddressV4>(state);
+      state = this->template addNeighbor<folly::IPAddressV6>(state);
+      return this->template resolveNeighbor<folly::IPAddressV6>(state);
     });
     this->bringDownPort(this->portIdsForTest()[0]);
     this->bringUpPort(this->portIdsForTest()[0]);
@@ -545,10 +645,19 @@ TYPED_TEST(AgentNeighborTest, LinkDownAndUpOnResolvedEntry) {
     // w.r.t. to neighbor entries. In BcmSwitch, we leave the nbr entries
     // intact and rely on SwSwitch to prune them. In SaiSwitch we prune
     // the fdb and neighbor entries on in SaiSwitch itself
-    if (this->nbrExists()) {
-      // egress to neighbor entry is not updated on link down
-      // if it is not part of ecmp group
-      EXPECT_FALSE(this->isProgrammedToCPU());
+    {
+      SCOPED_TRACE("v4");
+      if (this->template nbrExists<folly::IPAddressV4>()) {
+        // egress to neighbor entry is not updated on link down
+        // if it is not part of ecmp group
+        EXPECT_FALSE(this->template isProgrammedToCPU<folly::IPAddressV4>());
+      }
+    }
+    {
+      SCOPED_TRACE("v6");
+      if (this->template nbrExists<folly::IPAddressV6>()) {
+        EXPECT_FALSE(this->template isProgrammedToCPU<folly::IPAddressV6>());
+      }
     }
   };
 
@@ -563,14 +672,28 @@ TYPED_TEST_SUITE(AgentNeighborResolutionTest, NeighborTypes);
 TYPED_TEST(AgentNeighborResolutionTest, ResolveNeighborAndCheckCache) {
   auto setup = [this]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return this->resolveNeighbor(this->addNeighbor(in));
+      auto state = this->template resolveNeighbor<folly::IPAddressV4>(
+          this->template addNeighbor<folly::IPAddressV4>(in));
+      return this->template resolveNeighbor<folly::IPAddressV6>(
+          this->template addNeighbor<folly::IPAddressV6>(state));
     });
 
-    this->populateNeighborsCache(this->portDescriptor());
+    this->template populateNeighborsCache<folly::IPAddressV4>(
+        this->portDescriptor());
+    this->template populateNeighborsCache<folly::IPAddressV6>(
+        this->portDescriptor());
   };
   auto verify = [this]() {
-    this->verifyNeighborCache(
-        this->portDescriptor(), this->getProgrammedState());
+    {
+      SCOPED_TRACE("v4");
+      this->template verifyNeighborCache<folly::IPAddressV4>(
+          this->portDescriptor(), this->getProgrammedState());
+    }
+    {
+      SCOPED_TRACE("v6");
+      this->template verifyNeighborCache<folly::IPAddressV6>(
+          this->portDescriptor(), this->getProgrammedState());
+    }
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -689,14 +812,8 @@ TEST_F(AgentNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
 template <typename NeighborT>
 class AgentNeighborMetadataTest : public AgentNeighborTest<NeighborT> {
  protected:
-  using IPAddrT = typename NeighborT::IPAddrT;
   static auto constexpr programToTrunk = NeighborT::isTrunk;
-  using NTable = typename std::conditional_t<
-      std::is_same<IPAddrT, folly::IPAddressV4>::value,
-      ArpTable,
-      NdpTable>;
 
- protected:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     std::vector<ProductionFeature> features = {
@@ -718,18 +835,38 @@ TYPED_TEST(
     ResolvePendingEntryThenChangeLookupClass) {
   auto setup = [this]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto state = this->addNeighbor(in);
-      return this->resolveNeighbor(state, this->kLookupClass);
+      auto state = this->template addNeighbor<folly::IPAddressV4>(in);
+      state = this->template resolveNeighbor<folly::IPAddressV4>(
+          state, this->kLookupClass);
+      state = this->template addNeighbor<folly::IPAddressV6>(state);
+      return this->template resolveNeighbor<folly::IPAddressV6>(
+          state, this->kLookupClass);
     });
 
-    this->verifyClassId(static_cast<int>(this->kLookupClass));
+    this->template verifyClassId<folly::IPAddressV4>(
+        static_cast<int>(this->kLookupClass));
+    this->template verifyClassId<folly::IPAddressV6>(
+        static_cast<int>(this->kLookupClass));
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return this->resolveNeighbor(in, this->kLookupClass2);
+      auto state = this->template resolveNeighbor<folly::IPAddressV4>(
+          in, this->kLookupClass2);
+      return this->template resolveNeighbor<folly::IPAddressV6>(
+          state, this->kLookupClass2);
     });
   };
   auto verify = [this]() {
-    EXPECT_FALSE(this->isProgrammedToCPU());
-    this->verifyClassId(static_cast<int>(this->kLookupClass2));
+    {
+      SCOPED_TRACE("v4");
+      EXPECT_FALSE(this->template isProgrammedToCPU<folly::IPAddressV4>());
+      this->template verifyClassId<folly::IPAddressV4>(
+          static_cast<int>(this->kLookupClass2));
+    }
+    {
+      SCOPED_TRACE("v6");
+      EXPECT_FALSE(this->template isProgrammedToCPU<folly::IPAddressV6>());
+      this->template verifyClassId<folly::IPAddressV6>(
+          static_cast<int>(this->kLookupClass2));
+    }
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

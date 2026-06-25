@@ -26,6 +26,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _NextHopGroupMap{
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
     SAI_ATTR_MAP(NextHopGroup, HashAlgorithm),
+    SAI_ATTR_MAP(NextHopGroup, HierarchicalNextHop),
 #endif
 };
 

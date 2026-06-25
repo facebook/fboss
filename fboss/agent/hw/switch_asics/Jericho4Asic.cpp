@@ -69,7 +69,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PQP_ERROR_EGRESS_DROP_COUNTER:
     case HwAsic::Feature::FABRIC_LINK_DOWN_CELL_DROP_COUNTER:
     case HwAsic::Feature::CRC_ERROR_DETECT:
-    case HwAsic::Feature::ACL_METADATA_QUALIFER:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
@@ -81,7 +80,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK:
     case HwAsic::Feature::DELETED_CREDITS_STAT:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS:
-    case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::NO_RX_REASON_TRAP:
     case HwAsic::Feature::EGRESS_GVOQ_WATERMARK_BYTES:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
@@ -106,7 +104,9 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
+    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::VOQ:
+    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -128,7 +128,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
       return getAsicMode() == AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
-    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_LAG_HASH:
@@ -198,7 +197,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TRAFFIC_HASHING:
     case HwAsic::Feature::PORT_WRED_COUNTER:
     case HwAsic::Feature::DTL_WATERMARK_COUNTER:
-    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::DATA_CELL_FILTER:
@@ -233,9 +231,11 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
+    case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
+    case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     // Disabling some counters for the time being.
     // This will result in an early return in
     // SaiDebugCounterManager::setupTrapDropCounter(), which is currently
@@ -250,6 +250,10 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
+    case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    // TODO(J4): re-enable metadata qualifiers once SDK support is validated.
+    case HwAsic::Feature::ACL_METADATA_QUALIFER:
+    case HwAsic::Feature::ROUTE_METADATA:
       return false;
   }
   return false;

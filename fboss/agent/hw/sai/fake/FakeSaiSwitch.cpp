@@ -329,6 +329,9 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT:
       sw.setCablePropagationDelayMeasurement(attr->value.booldata);
       break;
+    case SAI_SWITCH_ATTR_PORT_CL72_RETRY_ENABLE:
+      sw.setPortCl72RetryEnable(attr->value.booldata);
+      break;
     case SAI_SWITCH_ATTR_SWITCHING_MODE:
       sw.setSwitchingMode(attr->value.s32);
       break;
@@ -605,6 +608,9 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT:
         attr[i].value.booldata = sw.getCablePropagationDelayMeasurement();
+        break;
+      case SAI_SWITCH_ATTR_PORT_CL72_RETRY_ENABLE:
+        attr[i].value.booldata = sw.getPortCl72RetryEnable();
         break;
       case SAI_SWITCH_ATTR_SWITCHING_MODE:
         attr[i].value.s32 = sw.getSwitchingMode();

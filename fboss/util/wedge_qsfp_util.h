@@ -73,6 +73,7 @@ DECLARE_bool(module_io_stats);
 DECLARE_bool(capabilities);
 DECLARE_bool(dump_tcvr_i2c_log);
 DECLARE_bool(port_info_summary);
+DECLARE_string(ssl_policy);
 
 enum LoopbackMode { noLoopback, electricalLoopback, opticalLoopback };
 

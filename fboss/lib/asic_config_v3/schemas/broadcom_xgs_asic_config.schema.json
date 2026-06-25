@@ -1,0 +1,271 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Broadcom XGS ASIC Config",
+    "description": "Per-ASIC configuration defining the chip's port architecture, output table layout, and SDK / SAI default settings used by the asic_config_v3 generator.",
+    "type": "object",
+    "required": [
+        "vendor",
+        "asic",
+        "port_architecture",
+        "mmu_size",
+        "table_names",
+        "mgmt_port_defaults",
+        "preamble_support",
+        "global_defaults",
+        "sai_overrides",
+        "flex_counter_settings",
+        "ctr_eflex_config",
+        "dlb_defaults",
+        "port_config_defaults",
+        "fp_config_defaults",
+        "tm_thd_config_defaults",
+        "pass_through_settings",
+        "conditional_settings"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "vendor": {
+            "type": "string",
+            "description": "ASIC vendor identifier (e.g. \"broadcom\")."
+        },
+        "asic": {
+            "type": "string",
+            "description": "ASIC chip identifier (e.g. \"tomahawk5\", \"tomahawk6\")."
+        },
+        "port_architecture": {
+            "type": "object",
+            "description": "Core, lane, and datapath layout consumed by the logical-to-physical port mapping logic.",
+            "required": [
+                "num_cores",
+                "num_lanes_per_core",
+                "num_logical_ports_per_datapath",
+                "num_physical_ports_per_datapath",
+                "num_lp_ports_on_even_core_default"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "num_cores": {
+                    "type": "integer",
+                    "description": "Total number of MAC cores on the ASIC."
+                },
+                "num_lanes_per_core": {
+                    "type": "integer",
+                    "enum": [4, 8],
+                    "description": "Number of physical SerDes lanes per core."
+                },
+                "num_logical_ports_per_datapath": {
+                    "type": "integer",
+                    "description": "Number of logical ports per datapath. Used to derive logical port identifiers."
+                },
+                "num_physical_ports_per_datapath": {
+                    "type": "integer",
+                    "description": "Number of physical ports per datapath. Used to derive physical port identifiers."
+                },
+                "num_lp_ports_on_even_core_default": {
+                    "type": "integer",
+                    "description": "Default number of logical ports placed on even-numbered cores. May be overridden per platform variant."
+                }
+            }
+        },
+        "mmu_size": {
+            "type": "integer",
+            "description": "Memory Management Unit (MMU) buffer size in bytes. Also used as the MAX_FRAME_SIZE and PORT MTU values."
+        },
+        "table_names": {
+            "type": "array",
+            "description": "Ordered list of output YAML table names. Controls which tables appear in the generated config and the order in which they are emitted.",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 1
+        },
+        "mgmt_port_defaults": {
+            "type": "object",
+            "description": "Default settings for the management (out-of-band) port.",
+            "required": ["logical_id", "physical_id", "speed", "num_lanes", "fec"],
+            "additionalProperties": false,
+            "properties": {
+                "logical_id": {
+                    "type": "integer",
+                    "description": "Logical port identifier for the management port."
+                },
+                "physical_id": {
+                    "type": "integer",
+                    "description": "Physical port identifier for the management port."
+                },
+                "speed": {
+                    "type": "integer",
+                    "description": "Default port speed in Mbps (e.g. 100000 for 100 GbE)."
+                },
+                "num_lanes": {
+                    "type": "integer",
+                    "description": "Number of physical lanes used by the management port."
+                },
+                "fec": {
+                    "type": "string",
+                    "description": "Forward Error Correction (FEC) mode (e.g. \"PC_FEC_RS528\")."
+                }
+            }
+        },
+        "preamble_support": {
+            "type": "boolean",
+            "description": "Whether this ASIC supports a preamble section prepended to the output YAML. When false, any preamble_file declared by a platform variant is ignored."
+        },
+        "global_defaults": {
+            "type": "object",
+            "description": "ASIC-specific SDK global settings copied verbatim into the \"global\" output table.",
+            "additionalProperties": {
+                "type": ["integer", "string"]
+            }
+        },
+        "sai_overrides": {
+            "type": "object",
+            "description": "ASIC-specific SAI settings layered on top of the vendor sai_common values in the \"global\" output table.",
+            "additionalProperties": {
+                "type": ["integer", "string"]
+            }
+        },
+        "flex_counter_settings": {
+            "type": "object",
+            "description": "Flex counter reservation settings. Routed to an output table via pass_through_settings.",
+            "additionalProperties": {
+                "type": "integer"
+            }
+        },
+        "ctr_eflex_config": {
+            "type": "object",
+            "description": "Enhanced flex counter settings emitted into the CTR_EFLEX_CONFIG output table. Routed via pass_through_settings.",
+            "additionalProperties": {
+                "type": "integer"
+            }
+        },
+        "dlb_defaults": {
+            "type": "object",
+            "description": "Dynamic Load Balancing (DLB) settings applied conditionally via conditional_settings (typically gated by the generate_dlb_config feature).",
+            "additionalProperties": {
+                "type": ["integer", "string"]
+            }
+        },
+        "dlb_ecmp_config_defaults": {
+            "type": "object",
+            "description": "Defaults for the DLB_ECMP_CONFIG output table. Applied conditionally via conditional_settings, gated by the generate_dlb_ecmp_config feature.",
+            "additionalProperties": {
+                "type": ["integer", "string"]
+            }
+        },
+        "pass_through_settings": {
+            "type": "array",
+            "description": "Declarative list of data blocks copied to output tables after the layered global settings have been applied.",
+            "items": {
+                "type": "object",
+                "required": ["source", "target_table"],
+                "additionalProperties": false,
+                "properties": {
+                    "source": {
+                        "type": "string",
+                        "description": "Key of the data block in this ASIC config to copy from."
+                    },
+                    "target_table": {
+                        "type": "string",
+                        "description": "Output table name to copy the settings into."
+                    }
+                }
+            }
+        },
+        "port_config_defaults": {
+            "type": "object",
+            "description": "Default values for the PORT_CONFIG output table. Routed via pass_through_settings.",
+            "additionalProperties": {
+                "type": ["integer", "string"]
+            }
+        },
+        "fp_config_defaults": {
+            "type": "object",
+            "description": "Default values for the FP_CONFIG output table. Routed via pass_through_settings.",
+            "additionalProperties": {
+                "type": ["integer", "string"]
+            }
+        },
+        "tm_thd_config_defaults": {
+            "type": "object",
+            "description": "Default values for the TM_THD_CONFIG output table. Routed via pass_through_settings.",
+            "additionalProperties": {
+                "type": ["integer", "string"]
+            }
+        },
+        "conditional_settings": {
+            "type": "array",
+            "description": "Declarative conditional settings. Each entry is evaluated against the variant config; matching entries are applied to the named output tables.",
+            "items": {
+                "$ref": "#/$defs/conditional_setting"
+            }
+        }
+    },
+    "$defs": {
+        "conditional_setting": {
+            "type": "object",
+            "required": ["name", "condition"],
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for this conditional setting; must be unique within the surrounding list."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Free-form description of the conditional setting and the configuration it produces."
+                },
+                "condition": {
+                    "type": "object",
+                    "required": ["source", "param", "equals"],
+                    "additionalProperties": false,
+                    "properties": {
+                        "source": {
+                            "type": "string",
+                            "enum": ["asic_config_params", "features"],
+                            "description": "Variant-config section holding the parameter to evaluate."
+                        },
+                        "param": {
+                            "type": "string",
+                            "description": "Name of the parameter to compare."
+                        },
+                        "equals": {
+                            "description": "Expected value; the condition is satisfied when the parameter equals this value."
+                        }
+                    }
+                },
+                "apply": {
+                    "type": "object",
+                    "description": "Inline settings applied when the condition is satisfied. Keyed by target output table name.",
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": ["integer", "string"]
+                        }
+                    }
+                },
+                "apply_from": {
+                    "type": "object",
+                    "description": "Reference to a data block elsewhere in this ASIC config. The named source block is copied into the named target table when the condition is satisfied.",
+                    "required": ["source", "target_table"],
+                    "additionalProperties": false,
+                    "properties": {
+                        "source": {
+                            "type": "string"
+                        },
+                        "target_table": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "skip_from_sai_common": {
+                    "type": "array",
+                    "description": "Keys to omit from the vendor sai_common block when this condition is satisfied.",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -31,6 +31,7 @@
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/LoadBalancerUtils.h"
 #include "fboss/agent/MacTableUtils.h"
+#include "fboss/agent/PfcUtils.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
@@ -468,7 +469,7 @@ class ThriftConfigApplier {
       const std::shared_ptr<MultiSwitchPortMap>& ports,
       const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings);
   std::shared_ptr<MultiSwitchSystemPortMap> updateRemoteSystemPorts(
-      const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
+      const std::shared_ptr<SystemPortMap>& systemPorts);
   bool needFabricLinkMonSystemPortUpdate(
       const std::shared_ptr<MultiSwitchSettings>& origMultiSwitchSettings,
       const std::shared_ptr<MultiSwitchSettings>& newMultiSwitchSettings,
@@ -496,7 +497,8 @@ class ThriftConfigApplier {
       std::shared_ptr<PortQueue> newQueue,
       const cfg::PortQueue* cfg);
   std::optional<std::vector<int16_t>> findEnabledPfcPriorities(
-      PortPgConfigs& portPgConfigs);
+      PortPgConfigs& portPgConfigs,
+      const std::map<int16_t, int16_t>& pfcPriorityToPgId);
   std::shared_ptr<PortQueue> updatePortQueue(
       const std::shared_ptr<PortQueue>& orig,
       const cfg::PortQueue* cfg,
@@ -804,12 +806,12 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newPorts) {
       new_->resetPorts(
           toMultiSwitchMap<MultiSwitchPortMap>(newPorts, scopeResolver_));
+      auto newSystemPorts =
+          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings());
       new_->resetSystemPorts(
           toMultiSwitchMap<MultiSwitchSystemPortMap>(
-              updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
-              scopeResolver_));
-      new_->resetRemoteSystemPorts(
-          updateRemoteSystemPorts(new_->getSystemPorts()));
+              newSystemPorts, scopeResolver_));
+      new_->resetRemoteSystemPorts(updateRemoteSystemPorts(newSystemPorts));
       changed = true;
     }
   }
@@ -2156,7 +2158,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
 
 std::shared_ptr<MultiSwitchSystemPortMap>
 ThriftConfigApplier::updateRemoteSystemPorts(
-    const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts) {
+    const std::shared_ptr<SystemPortMap>& systemPorts) {
   if (scopeResolver_.hasVoq() &&
       scopeResolver_.scope(cfg::SwitchType::VOQ).size() <= 1) {
     // remote system ports are applicable only for voq switches
@@ -2164,9 +2166,20 @@ ThriftConfigApplier::updateRemoteSystemPorts(
     // switches are configured on a given SwSwitch
     return new_->getRemoteSystemPorts();
   }
+  auto globalSystemPorts = std::make_shared<SystemPortMap>();
+  // Remote system port state represents ports owned by other switches. Local
+  // scoped system ports are valid on every switch, so exclude them from this
+  // per-remote-switch map to avoid resolving them to all switch IDs.
+  for (const auto& [_, sysPort] : std::as_const(*systemPorts)) {
+    if (sysPort->getScope() == cfg::Scope::GLOBAL) {
+      globalSystemPorts->addSystemPort(sysPort);
+    }
+  }
   auto remoteSystemPorts = new_->getRemoteSystemPorts()->clone();
+  auto globalSystemPortMap = toMultiSwitchMap<MultiSwitchSystemPortMap>(
+      globalSystemPorts, scopeResolver_);
   for (const auto& [matcherStr, singleSwitchIdSysPorts] :
-       std::as_const(*systemPorts)) {
+       std::as_const(*globalSystemPortMap)) {
     auto matcher = HwSwitchMatcher(matcherStr);
     CHECK_EQ(matcher.switchIds().size(), 1);
     auto remoteSystemPortMapMatcher =
@@ -2532,23 +2545,20 @@ PortPgConfigs ThriftConfigApplier::updatePortPgConfigs(
 }
 
 std::optional<std::vector<int16_t>>
-ThriftConfigApplier::findEnabledPfcPriorities(PortPgConfigs& portPgCfgs) {
-  if (portPgCfgs.empty()) {
+ThriftConfigApplier::findEnabledPfcPriorities(
+    PortPgConfigs& portPgCfgs,
+    const std::map<int16_t, int16_t>& pfcPriorityToPgId) {
+  auto enabledPriorities =
+      utility::findPfcEnabledPriorities(portPgCfgs, pfcPriorityToPgId);
+  if (enabledPriorities.empty()) {
     return std::nullopt;
   }
-
-  std::vector<int16_t> tmpPfcPri;
-  for (auto& portPgCfg : portPgCfgs) {
-    // If we have non-zero value in headroom, then its a lossless PG
-    if (utility::isLosslessPg(*portPgCfg)) {
-      tmpPfcPri.push_back(static_cast<int16_t>(portPgCfg->getID()));
-    }
+  std::vector<int16_t> pfcPri;
+  pfcPri.reserve(enabledPriorities.size());
+  for (auto priority : enabledPriorities) {
+    pfcPri.push_back(static_cast<int16_t>(priority));
   }
-  if (tmpPfcPri.empty()) {
-    return std::nullopt;
-  }
-
-  return tmpPfcPri;
+  return pfcPri;
 }
 
 bool ThriftConfigApplier::isPortFlowletConfigUnchanged(
@@ -2905,11 +2915,13 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       validateUpdatePgBufferPoolName(
           portPgCfgs.value(), orig, *portPgConfigName);
 
-      /*
-       * Keep track of enabled pfcPriorities which are 1:1
-       * mapped to PG id.
-       */
-      newPfcPriorities = findEnabledPfcPriorities(portPgCfgs.value());
+      // Enabled PFC priorities; empty pfcPriorityToPgId => identity.
+      std::map<int16_t, int16_t> pfcPriorityToPgId;
+      if (qosMap && qosMap->pfcPriorityToPgId().has_value()) {
+        pfcPriorityToPgId = *qosMap->pfcPriorityToPgId();
+      }
+      newPfcPriorities =
+          findEnabledPfcPriorities(portPgCfgs.value(), pfcPriorityToPgId);
     } else if (!(*portPgConfigName).empty()) {
       throw FbossError(
           "Port: ",
@@ -4591,6 +4603,12 @@ ThriftConfigApplier::updateRemoteInterfaces(
       if (intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
         continue;
       }
+      if (intf->getScope() != cfg::Scope::GLOBAL) {
+        if (remoteInterfaces->getNodeIf(intfID)) {
+          remoteInterfaces->removeNode(intfID);
+        }
+        continue;
+      }
       auto remoteIntfScope = scopeResolver_.scope(cfg::SwitchType::VOQ);
       remoteIntfScope.exclude(scopeResolver_.scope(intf, *cfg_).switchIds());
       auto remoteIntf = std::make_shared<Interface>();
@@ -4615,6 +4633,9 @@ ThriftConfigApplier::updateRemoteInterfaces(
        std::as_const(*orig_->getInterfaces())) {
     for (const auto& [intfID, intf] : std::as_const(*interfaceMap)) {
       if (intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
+        continue;
+      }
+      if (intf->getScope() != cfg::Scope::GLOBAL) {
         continue;
       }
       if (!interfaces->getNodeIf(intfID)) {

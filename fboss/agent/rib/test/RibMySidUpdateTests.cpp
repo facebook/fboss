@@ -1693,8 +1693,12 @@ TEST_F(RibMySidNextHopTest, routeDeleteUnresolvesMySidNextHops) {
       rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
 
   // Delete the interface route. MySid nexthop should become unresolved.
-  boost::container::flat_map<RouterID, std::vector<folly::CIDRNetwork>> toDel;
-  toDel[kRid].push_back({folly::IPAddress("2001:db8::"), 64});
+  boost::container::flat_map<
+      RouterID,
+      std::vector<std::pair<folly::CIDRNetwork, InterfaceID>>>
+      toDel;
+  toDel[kRid].emplace_back(
+      folly::CIDRNetwork{folly::IPAddress("2001:db8::"), 64}, InterfaceID(1));
   rib_->updateRemoteInterfaceRoutes(
       scopeResolver(), {}, toDel, noopFibUpdate, &switchState_);
 

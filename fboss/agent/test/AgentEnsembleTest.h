@@ -144,6 +144,13 @@ class AgentEnsembleTest : public ::testing::Test {
   void reloadConfig(std::string reason) const;
   virtual void logLinkDbgMessage(std::vector<PortID>& /* portIDs */) const {}
 
+  // Hook invoked once per test phase from tearDownAgentEnsemble(), before the
+  // agent is (potentially) gracefully exited for warmboot. Subclasses override
+  // this to persist any end-of-test metadata that must be captured on both the
+  // cold-boot (setup_for_warmboot) and warm-boot phases, since gtest TearDown()
+  // is skipped on the setup_for_warmboot phase (the process exits first).
+  virtual void dumpTestMetadata() {}
+
   SwitchID scope(const boost::container::flat_set<PortDescriptor>& ports);
   SwitchID scope(
       const std::shared_ptr<SwitchState>& state,

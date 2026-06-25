@@ -38,11 +38,16 @@ class FakeNextHopGroup {
   FakeNextHopGroup(
       int32_t type,
       sai_object_id_t ars_id,
-      sai_int32_t hash_algorithm)
-      : type(type), ars_id(ars_id), hash_algorithm(hash_algorithm) {}
+      sai_int32_t hash_algorithm,
+      bool hierarchical_nexthop)
+      : type(type),
+        ars_id(ars_id),
+        hash_algorithm(hash_algorithm),
+        hierarchical_nexthop(hierarchical_nexthop) {}
   int32_t type;
   sai_object_id_t ars_id;
   sai_int32_t hash_algorithm;
+  bool hierarchical_nexthop;
   sai_object_id_t id;
   FakeManager<sai_object_id_t, FakeNextHopGroupMember>& fm() {
     return fm_;

@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 import run_test
 from fboss_test_runner.constants import (
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
-    SAI_AGENT_TEST_KNOWN_BAD_TESTS,
+    SAI_AGENT_SCALE_KNOWN_BAD_TESTS,
     SAI_AGENT_UNSUPPORTED_TESTS,
     SUB_ARG_AGENT_RUN_MODE,
     SUB_ARG_AGENT_RUN_MODE_MONO,
@@ -58,7 +58,7 @@ class SaiAgentScaleTestRunner(TestRunner):
     def _get_known_bad_tests_file(self) -> str:
         args = run_test.args
         if not args.known_bad_tests_file:
-            return SAI_AGENT_TEST_KNOWN_BAD_TESTS
+            return SAI_AGENT_SCALE_KNOWN_BAD_TESTS
         return args.known_bad_tests_file
 
     def _get_unsupported_tests_file(self) -> str:

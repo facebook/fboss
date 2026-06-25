@@ -482,7 +482,7 @@ TEST_F(SaiObjectEventPublisherTest, aggregateSetAndGetObject) {
   // Create a NextHopGroup so we can create a member under it
   SaiNextHopGroupTraits::AdapterHostKey nhGroupKey;
   SaiNextHopGroupTraits::CreateAttributes nhGroupAttrs{
-      SAI_NEXT_HOP_GROUP_TYPE_ECMP, std::nullopt, std::nullopt};
+      SAI_NEXT_HOP_GROUP_TYPE_ECMP, std::nullopt, std::nullopt, std::nullopt};
   auto& nhGroupStore = saiStore->get<SaiNextHopGroupTraits>();
   auto nhGroupObj = nhGroupStore.setObject(nhGroupKey, nhGroupAttrs);
   auto nhGroupId = nhGroupObj->adapterKey();

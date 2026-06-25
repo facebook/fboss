@@ -747,6 +747,49 @@ size_t pumpTraffic(
   return pktSize;
 }
 
+size_t pumpTrafficWithFlowLabel(
+    const AllocatePktFunc& allocateFn,
+    SendPktFunc sendFn,
+    folly::MacAddress dstMac,
+    const std::optional<VlanID>& vlan,
+    std::optional<PortID> frontPanelPortToLoopTraffic,
+    int hopLimit,
+    int numPackets,
+    std::optional<folly::MacAddress> srcMacAddr) {
+  size_t pktSize = 0;
+  folly::MacAddress srcMac(
+      srcMacAddr.has_value() ? *srcMacAddr
+                             : MacAddressGenerator().get(dstMac.u64HBO() + 1));
+  auto srcIp = folly::IPAddressV6("1001::1");
+  auto dstIp = folly::IPAddressV6("2001::1");
+  uint16_t srcPort = 10000;
+  uint16_t dstPort = 20000;
+  for (int i = 0; i < numPackets; ++i) {
+    uint32_t flowLabel = (i + 1) & 0xFFFFF;
+    auto pkt = makeUDPTxPacket(
+        allocateFn,
+        vlan,
+        srcMac,
+        dstMac,
+        srcIp,
+        dstIp,
+        srcPort,
+        dstPort,
+        0,
+        hopLimit,
+        std::nullopt,
+        flowLabel);
+    pktSize = pkt->buf()->length();
+    if (frontPanelPortToLoopTraffic) {
+      sendFn(
+          std::move(pkt), PortDescriptor(frontPanelPortToLoopTraffic.value()));
+    } else {
+      sendFn(std::move(pkt));
+    }
+  }
+  return pktSize;
+}
+
 void pumpTraffic(
     const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,

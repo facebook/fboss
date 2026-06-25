@@ -14,7 +14,7 @@
 // Bump on any change to a struct layout, function signature, or enum value.
 // Pass this value to FsdbInit() — the library compares it against its own
 // baked-in version and refuses to initialize on mismatch.
-#define FSDB_CGO_ABI_VERSION 1
+#define FSDB_CGO_ABI_VERSION 2
 
 // Returns the ABI version baked into the shipped library. Most consumers
 // should not call this directly — pass FSDB_CGO_ABI_VERSION to FsdbInit() and
@@ -29,6 +29,7 @@ typedef void* FsdbWrapperHandle;
 
 typedef struct {
   const char* port_name;
+  int32_t port_id;
   int32_t oper_state;
 } FsdbPortStateUpdate;
 
@@ -85,30 +86,41 @@ FSDB_CGO_API void DestroyFsdbWrapper(FsdbWrapperHandle handle);
 // success, 1 if an exception was caught. Idempotent and null-safe.
 FSDB_CGO_API int32_t ShutdownFsdbWrapper(FsdbWrapperHandle handle);
 
-FSDB_CGO_API void SubscribeToPortMaps(FsdbWrapperHandle handle);
-FSDB_CGO_API void SubscribeToPortMapsWithPort(
+// All subscribe entry points take a host + port. host == NULL or "" connects
+// to localhost (::1). server_port < 0 uses the default FSDB port (in which case
+// host is ignored — pass an explicit port to reach a remote host).
+FSDB_CGO_API void SubscribeToPortMaps(
     FsdbWrapperHandle handle,
+    const char* host,
     int32_t server_port);
 
-FSDB_CGO_API void SubscribeToStatsPath(
-    FsdbWrapperHandle handle,
-    const char** path_tokens,
-    int32_t num_tokens);
-FSDB_CGO_API void SubscribeToStatsPathWithPort(
+FSDB_CGO_API void SubscribeToStats(
     FsdbWrapperHandle handle,
     const char** path_tokens,
     int32_t num_tokens,
+    const char* host,
     int32_t server_port);
 
-FSDB_CGO_API void SubscribeToStatePath(
-    FsdbWrapperHandle handle,
-    const char** path_tokens,
-    int32_t num_tokens);
-FSDB_CGO_API void SubscribeToStatePathWithPort(
+FSDB_CGO_API void SubscribeToState(
     FsdbWrapperHandle handle,
     const char** path_tokens,
     int32_t num_tokens,
+    const char* host,
     int32_t server_port);
+
+// Synchronous one-shot snapshot of all ports (no subscription required), for
+// reconciliation. Fetches agent/switchState/portMaps from FSDB, decodes it, and
+// fills up to max_count records into out. host/server_port follow the same rule
+// as the subscribe calls (host NULL/"" => localhost; server_port < 0 => default
+// port, host ignored). Returns the number of ports written (>=0), or -1 on
+// error. Borrowed port_name pointers stay valid until the next GetPortSnapshot
+// call on this handle or DestroyFsdbWrapper.
+FSDB_CGO_API int32_t GetPortSnapshot(
+    FsdbWrapperHandle handle,
+    const char* host,
+    int32_t server_port,
+    FsdbPortStateUpdate* out,
+    int32_t max_count);
 
 FSDB_CGO_API int32_t HasStateSubscription(FsdbWrapperHandle handle);
 FSDB_CGO_API int32_t HasStatsSubscription(FsdbWrapperHandle handle);

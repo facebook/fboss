@@ -40,8 +40,9 @@ class RouteUpdateWrapper {
       flat_map<folly::CIDRNetwork, std::pair<InterfaceID, folly::IPAddress>>;
   using RouterIDAndNetworkToInterfaceRoutes =
       boost::container::flat_map<RouterID, PrefixToInterfaceIDAndIP>;
-  using RouterIDToPrefixes = boost::container::
-      flat_map<facebook::fboss::RouterID, std::vector<folly::CIDRNetwork>>;
+  using RouterIDToPrefixes = boost::container::flat_map<
+      facebook::fboss::RouterID,
+      std::vector<std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>>>;
 
   struct ConfigRoutes {
     RouterIDAndNetworkToInterfaceRoutes configRouterIDToInterfaceRoutes;

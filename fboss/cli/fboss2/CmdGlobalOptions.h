@@ -476,6 +476,13 @@ class CmdGlobalOptions {
     agentThriftPort_ = port;
   }
 
+  void setHwAgentThriftPort(int switchIndex, int port) {
+    if (switchIndex >= hwAgentThriftPort_.size()) {
+      hwAgentThriftPort_.resize(switchIndex + 1);
+    }
+    hwAgentThriftPort_[switchIndex] = port;
+  }
+
   void setQsfpThriftPort(int port) {
     qsfpThriftPort_ = port;
   }

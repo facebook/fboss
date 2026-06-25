@@ -8,6 +8,7 @@ cpp_library(
         "Ladakh800bclsPlatformMapping.cpp",
     ],
     headers = [
+        "Ladakh800bclsOsfpTrayPlatformMapping.h",
         "Ladakh800bclsPlatformMapping.h",
         "Ladakh800bclsProdPlatformMapping.h",
         "Ladakh800bclsTestPlatformMapping.h",

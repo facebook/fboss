@@ -916,6 +916,22 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchManager::supportedCustomDropBitmapStats() const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    return stats;
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::customDropBitmapStats().begin(),
+        SaiSwitchTraits::customDropBitmapStats().end());
+  }
+  return stats;
+}
+
 const std::vector<sai_attr_id_t>& SaiSwitchManager::supportedTemperatureStats()
     const {
   static std::vector<sai_stat_id_t> stats;
@@ -1415,6 +1431,21 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchWatermarkStats_ = getHwSwitchWatermarkStats();
     publishSwitchWatermarks(switchWatermarkStats_);
     updateSramLowBufferLimitHitCounter();
+    // Read drop cause bitmaps in the watermark block (once per ~60s) with
+    // READ_AND_CLEAR so each read captures only fresh drops since the last
+    // collection. This cadence is intentional: reading more frequently
+    // risks flooding logs with repeated drop reasons in high-drop
+    // scenarios, while aggregate drop counters already provide real-time
+    // visibility. The per-cause bitmaps supplement those counters by
+    // narrowing down the specific drop reason.
+    const auto& customDropBitmapStatIds = supportedCustomDropBitmapStats();
+    if (customDropBitmapStatIds.size()) {
+      switch_->updateStats(
+          customDropBitmapStatIds, SAI_STATS_MODE_READ_AND_CLEAR);
+      fillHwSwitchDropBitmapStats(
+          switch_->getStats(customDropBitmapStatIds), switchDropBitmapStats_);
+      logDropBitmapReasons(switchDropBitmapStats_);
+    }
   }
   switchTemperatureStats_ = getHwSwitchTemperatureStats();
   publishSwitchTemperatureStats(switchTemperatureStats_);

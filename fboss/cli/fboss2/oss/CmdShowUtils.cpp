@@ -169,6 +169,13 @@ void printBgpNeighborsOutput(
     out << "Confed Peer: " << (*details->confed_peer() ? "" : "not ")
         << "configured" << std::endl;
     out << "  Description: " << description << std::endl;
+    if (neighbor.ingress_policy_name().has_value()) {
+      out << "  Ingress Policy: " << *neighbor.ingress_policy_name()
+          << std::endl;
+    }
+    if (neighbor.egress_policy_name().has_value()) {
+      out << "  Egress Policy: " << *neighbor.egress_policy_name() << std::endl;
+    }
     out << "  BGP version 4, remote router ID "
         << IPAddress::fromLong(*details->remote_bgp_id()) << std::endl;
     if (neighbor.rib_version().has_value() && *neighbor.rib_version() > 0) {
@@ -292,6 +299,12 @@ void printBgpNeighborsOutput(
 
     out << "TCP connection-mode is " << enumNameSafe(*details->connect_mode())
         << std::endl;
+    if (details->ttl_security_enabled().has_value() &&
+        *details->ttl_security_enabled() &&
+        details->ttl_security_hops().has_value()) {
+      out << "TTL Security (GTSM): enabled, hops: "
+          << *details->ttl_security_hops() << std::endl;
+    }
     if (auto flaps = *details->num_of_flaps()) {
       out << "Number of session terminations: " << flaps << std::endl;
     }

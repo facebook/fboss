@@ -126,6 +126,11 @@ int main(int argc, char* argv[]) {
     return EX_OK;
   }
 
+  if (FLAGS_ssl_policy != "encrypted" && FLAGS_ssl_policy != "plaintext") {
+    fprintf(stderr, "--ssl-policy must be either encrypted or plaintext\n");
+    return EX_USAGE;
+  }
+
   if (FLAGS_set_100g && FLAGS_set_40g) {
     fprintf(stderr, "Cannot set both 40g and 100g\n");
     return EX_USAGE;

@@ -113,8 +113,11 @@ class AgentEnsembleLinkSanityTestDataPlaneFlood : public AgentEnsembleLinkTest {
 
 // Tests that the link comes up after a flap on the ASIC
 TEST_F(AgentEnsembleLinkTest, asicLinkFlap) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::LINK_BRINGUP});
   auto verify = [this]() {
     auto ports = getCabledPorts();
+    addTestedPorts(ports);
     int numIterations = FLAGS_link_stress_test ? 25 : 1;
     for (int iteration = 1; iteration <= numIterations; iteration++) {
       XLOG(INFO) << "Starting iteration# " << iteration;
@@ -147,9 +150,12 @@ TEST_F(AgentEnsembleLinkTest, asicLinkFlap) {
 }
 
 TEST_F(AgentEnsembleLinkTest, getTransceivers) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::LINK_BRINGUP});
   auto verify = [this]() {
     WITH_RETRIES({
       auto ports = getCabledTransceiverPorts();
+      addTestedPorts(ports);
       for (const auto& port : ports) {
         auto transceiverId =
             getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(port);
@@ -172,6 +178,10 @@ TEST_F(AgentEnsembleLinkTest, getTransceivers) {
 }
 
 TEST_F(AgentEnsembleLinkTest, trafficRxTx) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::
+           TRAFFIC_FORWARDING});
+  addTestedPorts(getCabledPorts());
   auto verify = [this]() {
     WITH_RETRIES({
       getSw()->getLldpMgr()->sendLldpOnAllPorts();
@@ -183,6 +193,9 @@ TEST_F(AgentEnsembleLinkTest, trafficRxTx) {
 }
 
 TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, warmbootIsHitLess) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::WARMBOOT});
+  addTestedPorts(getCabledPorts());
   // Create a L3 data plane flood and then assert that none of the
   // traffic bearing ports loss traffic.
   // TODO: Assert that all (non downlink) cabled ports get traffic.
@@ -209,6 +222,9 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, warmbootIsHitLess) {
 }
 
 TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::WARMBOOT});
+  addTestedPorts(getCabledPorts());
   // Create a L3 data plane flood and then warmboot qsfp_service. Then assert
   // that none of the traffic bearing ports loss traffic.
   verifyAcrossWarmBoots(
@@ -245,6 +261,9 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
 }
 
 TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, ptpEnableIsHitless) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::PTP});
+  addTestedPorts(getCabledPorts());
   // disable PTP as by default we'll  have it enabled now
   getSw()->updateStateBlocking("ptp disable", [](auto state) {
     auto newState = state->clone();
@@ -292,8 +311,12 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, ptpEnableIsHitless) {
  * 7. Make sure all the ports come up again
  */
 TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::
+           TRANSCEIVER_TX_DISABLE});
   auto [opticalPorts, opticalPortNames] =
       getOpticalAndActiveCabledPortsAndNames();
+  addTestedPorts(opticalPorts);
   EXPECT_FALSE(opticalPorts.empty())
       << "opticsTxDisableRandomPorts: Did not detect any optical transceivers";
 
@@ -380,8 +403,12 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
 }
 
 TEST_F(AgentEnsembleLinkTest, opticsTxDisableEnable) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::
+           TRANSCEIVER_TX_DISABLE});
   auto [opticalPorts, opticalPortNames] =
       getOpticalAndActiveCabledPortsAndNames();
+  addTestedPorts(opticalPorts);
   EXPECT_FALSE(opticalPorts.empty())
       << "opticsTxDisableEnable: Did not detect any optical transceivers";
 
@@ -417,6 +444,8 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableEnable) {
 
 // Tests that when link goes down then remediation is triggered
 TEST_F(AgentEnsembleLinkTest, testOpticsRemediation) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::REMEDIATION});
   auto verify = [this]() {
     std::vector<int32_t> transceiverIds;
     // Bring down the link on all the optical cabled ports having tx_disable
@@ -442,6 +471,7 @@ TEST_F(AgentEnsembleLinkTest, testOpticsRemediation) {
       disabledPortNames += " " + portName;
       disabledPortNames += " " + peerPortName;
     }
+    addTestedPorts(disabledPorts);
 
     const std::string txDisableCmd =
         qsfpUtilPrefix() + disabledPortNames + " --tx-disable";
@@ -495,6 +525,9 @@ TEST_F(AgentEnsembleLinkTest, testOpticsRemediation) {
 }
 
 TEST_F(AgentEnsembleLinkTest, qsfpColdbootAfterAgentUp) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::LINK_BRINGUP});
+  addTestedPorts(getCabledPorts());
   // Verifies that a qsfp cold boot after agent is up can still bringup the
   // links and there is no dependency on which service starts first
   verifyAcrossWarmBoots(
@@ -513,6 +546,8 @@ TEST_F(AgentEnsembleLinkTest, qsfpColdbootAfterAgentUp) {
 }
 
 TEST_F(AgentEnsembleLinkTest, fabricLinkHealth) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::FABRIC_LINK});
   //  Test for verifying fabric link health
   //   1. Enable traffic spray over fabric
   //   2. Generate traffic on the CPU and pump them out a front panel port. The
@@ -525,6 +560,7 @@ TEST_F(AgentEnsembleLinkTest, fabricLinkHealth) {
   //   integrity etc) to verify and add those checks
 
   auto fabricPorts = getCabledFabricPorts();
+  addTestedPorts(fabricPorts);
 
   setForceTrafficOverFabric(true);
 

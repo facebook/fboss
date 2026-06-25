@@ -58,6 +58,17 @@ class SensorServiceImplTest : public ::testing::Test {
     }
   }
 
+  std::string sensorPath(const std::string& name) {
+    for (const auto& pmUnitSensors : *config_.pmUnitSensorsList()) {
+      for (const auto& sensor : *pmUnitSensors.sensors()) {
+        if (sensor.name() == name) {
+          return *sensor.sysfsPath();
+        }
+      }
+    }
+    return {};
+  }
+
  protected:
   SensorConfig config_;
   // the tmpDir should remain present throughout the lifetime of the test
@@ -107,6 +118,34 @@ TEST_F(SensorServiceImplTest, getSomeSensors) {
   EXPECT_EQ(*sensorData[0].name(), mockSensorName);
   EXPECT_FLOAT_EQ(*sensorData[0].value(), mockSensorData[mockSensorName]);
   EXPECT_GE(*sensorData[0].timeStamp(), now);
+}
+
+TEST_F(SensorServiceImplTest, fetchParsesHexSensorValue) {
+  // CPLD regbit sysfs attrs can emit hex (e.g. "0xff"); these must parse
+  // rather than be rejected. MOCK_FRU_SENSOR2 has no compute, so 0xff -> 255.
+  const auto path = sensorPath("MOCK_FRU_SENSOR2");
+  ASSERT_FALSE(path.empty());
+  ASSERT_TRUE(folly::writeFile(std::string{"0xff"}, path.c_str()));
+
+  impl_->fetchSensorData();
+  auto sensorData = impl_->getAllSensorData();
+  auto it = sensorData.find("MOCK_FRU_SENSOR2");
+  ASSERT_TRUE(it != sensorData.end());
+  ASSERT_TRUE(it->second.value().has_value());
+  EXPECT_FLOAT_EQ(*it->second.value(), 255.0f);
+}
+
+TEST_F(SensorServiceImplTest, fetchHandlesUnparseableSensorValue) {
+  // A single unparseable value must not throw out of the poll cycle: the bad
+  // sensor degrades to a read failure while the others still publish.
+  ASSERT_TRUE(
+      folly::writeFile(
+          std::string{"garbage"}, sensorPath("MOCK_FRU_SENSOR2").c_str()));
+
+  ASSERT_NO_THROW(impl_->fetchSensorData());
+  auto sensorData = impl_->getAllSensorData();
+  EXPECT_FALSE(sensorData.at("MOCK_FRU_SENSOR2").value().has_value());
+  EXPECT_TRUE(sensorData.at("MOCK_FRU_SENSOR1").value().has_value());
 }
 
 TEST_F(SensorServiceImplTest, publishPerSensorStats) {

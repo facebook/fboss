@@ -88,3 +88,7 @@ SAI_AGENT_TEST_KNOWN_BAD_TESTS = (
 SAI_AGENT_UNSUPPORTED_TESTS = (
     "./share/sai_hw_unsupported_tests/sai_agent_hw_unsupported_tests.materialized_JSON"
 )
+# Scale-specific known-bad list (scale test names differ from functional ones).
+SAI_AGENT_SCALE_KNOWN_BAD_TESTS = (
+    "./share/hw_known_bad_tests/sai_agent_scale_known_bad_tests.materialized_JSON"
+)

@@ -173,6 +173,13 @@ class Fboss2IntegrationTest : public ::testing::Test {
   }
 
   /**
+   * Return the L3 interfaceId for the L3 interface associated with the named
+   * port. Looks up the agent's getAllInterfaces() and matches on portNames.
+   * @throws std::runtime_error if no interface is associated with the port.
+   */
+  int getInterfaceIdForPort(const std::string& portName) const;
+
+  /**
    * Find a (vlanId, portName) pair where vlanId appears in sw.vlans and the
    * port is a member of that VLAN via sw.vlanPorts. Returns nullopt on
    * switches configured in a port-based / L3-routed style with no L2 VLAN
@@ -215,6 +222,14 @@ class Fboss2IntegrationTest : public ::testing::Test {
    * of piling test load onto the same port across back-to-back runs.
    */
   Interface findFirstEthInterface() const;
+
+  /**
+   * Find the first ethernet interface that has a non-zero MTU reported by
+   * 'show interface'. This implies the interface has a configured L3
+   * cfg::Interface entry in the agent, making it suitable for MTU tests.
+   * Returns std::nullopt if no such interface exists (test should GTEST_SKIP).
+   */
+  std::optional<Interface> findFirstEthInterfaceWithMtu() const;
 
   /**
    * Commit the current configuration session.
@@ -281,6 +296,29 @@ class Fboss2IntegrationTest : public ::testing::Test {
       std::chrono::seconds interval = std::chrono::seconds(2)) const;
 
   /**
+   * Poll getRunningConfig() until condition(config) is true or timeout
+   * expires. Thrift exceptions during a poll are swallowed and treated as
+   * condition-not-met — the agent may still be coming back up after a
+   * commit-triggered restart. Returns the last successfully fetched config
+   * (or an empty object if none was fetched) so callers can assert on the
+   * observed value when the condition was not met in time.
+   */
+  folly::dynamic waitForRunningConfig(
+      const std::function<bool(const folly::dynamic&)>& condition,
+      std::chrono::seconds timeout = std::chrono::seconds(30),
+      std::chrono::seconds interval = std::chrono::seconds(2)) const;
+
+  /**
+   * Look up the ndp sub-object for the L3 interface with the given intfID in
+   * a running config (as returned by getRunningConfig()). Returns an empty
+   * object if the interface or its ndp block is absent. Obtain the intfID
+   * via getInterfaceIdForPort().
+   */
+  static folly::dynamic getNdpConfig(
+      const folly::dynamic& runningConfig,
+      int intfID);
+
+  /**
    * Discard any pending config session by deleting session files.
    * This ensures each test starts with a fresh session based on current HEAD.
    */
@@ -294,6 +332,28 @@ class Fboss2IntegrationTest : public ::testing::Test {
    */
   void waitForAgentReady(
       std::chrono::seconds timeout = std::chrono::seconds(120)) const;
+
+  /**
+   * Ensure a VLAN + backing cfg::Interface exists in the staged config, then
+   * return that interface's intfID for use as the IP-in-IP tunnel underlay.
+   *
+   * If the VLAN is already present, the existing interface's intfID is
+   * returned and the staged config is left unchanged. Otherwise the VLAN and
+   * a barebone interface are inserted via VlanManager, the staged config is
+   * persisted, and the new intfID is returned.
+   *
+   * The VLAN ID 3998 is reserved for tunnel-test use.
+   */
+  int ensureUnderlayIntfId(int vlanId = 3998) const;
+
+  /**
+   * Return the first IPv6 address (without prefix length) configured on the
+   * interface with the given intfID. If the interface has no IPv6 address
+   * (e.g. one freshly created by ensureUnderlayIntfId), a documentation IPv6
+   * (RFC 3849) is returned as a safe stand-in — the agent does not validate
+   * that dstIp exists on the underlay interface.
+   */
+  std::string findIpv6OnIntf(int intfId) const;
 
  private:
   Interface parseInterfaceJson(const folly::dynamic& data) const;
