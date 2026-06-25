@@ -49,6 +49,12 @@ class AgentVoqSwitchTest : public AgentHwTest {
     return {ProductionFeature::VOQ};
   }
 
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Hyper-port VoQ latency tests need the full interface-port set for
+    // valid queue-number resolution at the CGM.
+    return std::nullopt;
+  }
+
  protected:
   void
   rxPacketToCpuHelper(uint16_t l4SrcPort, uint16_t l4DstPort, uint8_t queueId);
