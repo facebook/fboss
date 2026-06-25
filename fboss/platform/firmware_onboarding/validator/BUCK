@@ -29,3 +29,13 @@ python_unittest(
     network_access = network_access_utils.none(),
     deps = [":spec_validator"],
 )
+
+python_unittest(
+    name = "test_canonical_examples",
+    srcs = ["tests/test_canonical_examples.py"],
+    network_access = network_access_utils.none(),
+    resources = {
+        "//fboss/platform/firmware_onboarding/configs/icecube800bc:spec": "tests/icecube800bc.json",
+    },
+    deps = [":spec_validator"],
+)
