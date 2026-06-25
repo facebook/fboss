@@ -11,7 +11,6 @@
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include <exception>
 #include <iostream>
-#include <ostream>
 #include <stdexcept>
 #include <string>
 

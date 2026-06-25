@@ -22,7 +22,6 @@
 #include <exception>
 #include <iostream>
 #include <optional>
-#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
