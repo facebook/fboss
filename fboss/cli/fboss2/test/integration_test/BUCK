@@ -26,6 +26,7 @@ cpp_binary(
         "ConfigInterfaceLoopbackModeTest.cpp",
         "ConfigInterfaceMtuTest.cpp",
         "ConfigInterfaceProfileTest.cpp",
+        "ConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp",
         "ConfigInterfaceTypeTest.cpp",
         "ConfigL2LearningModeTest.cpp",
         "ConfigLoadBalancingTest.cpp",
