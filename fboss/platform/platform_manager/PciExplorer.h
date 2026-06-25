@@ -129,11 +129,6 @@ class PciExplorer {
       const FpgaIpBlockConfig& mdioBusConfig,
       uint32_t instanceId);
 
-  std::string createRtmCtrl(
-      const PciDevice& pciDevice,
-      const RtmCtrlConfig& rtmCtrlConfig,
-      uint32_t instanceId);
-
   // Create the generic device block based on the given FpgaIpBlockConfig
   // residing at the given PciDevice. Throw std::runtime_error on failure.
   void createFpgaIpBlock(
@@ -154,11 +149,6 @@ class PciExplorer {
       uint32_t instanceId);
 
   std::string getMdioBusSysfsPath(
-      const PciDevice& pciDevice,
-      const FpgaIpBlockConfig& fpgaIpBlockConfig,
-      uint32_t instanceId);
-
-  std::string getRtmCtrlSysfsPath(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
