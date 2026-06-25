@@ -23,11 +23,30 @@ python_binary(
     deps = [":spec_validator"],
 )
 
+python_library(
+    name = "preflight",
+    srcs = ["preflight.py"],
+    deps = [":spec_validator"],
+)
+
+python_binary(
+    name = "run_preflight",
+    main_function = "fboss.platform.firmware_onboarding.validator.preflight.main",
+    deps = [":preflight"],
+)
+
 python_unittest(
     name = "test_spec_validator",
     srcs = ["tests/test_spec_validator.py"],
     network_access = network_access_utils.none(),
     deps = [":spec_validator"],
+)
+
+python_unittest(
+    name = "test_preflight",
+    srcs = ["tests/test_preflight.py"],
+    network_access = network_access_utils.none(),
+    deps = [":preflight"],
 )
 
 python_unittest(
@@ -37,5 +56,5 @@ python_unittest(
     resources = {
         "//fboss/platform/firmware_onboarding/configs/icecube800bc:spec": "tests/icecube800bc.json",
     },
-    deps = [":spec_validator"],
+    deps = [":preflight"],
 )
