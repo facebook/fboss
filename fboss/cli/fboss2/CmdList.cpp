@@ -91,6 +91,8 @@
 #endif
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProduct.h"
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h"
+#include "fboss/cli/fboss2/commands/show/reboot_cause/CmdShowRebootCause.h"
+#include "fboss/cli/fboss2/commands/show/reboot_cause/CmdShowRebootCauseHistory.h"
 #include "fboss/cli/fboss2/commands/show/rif/CmdShowRif.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
@@ -629,6 +631,16 @@ const CommandTree& kCommandTree() {
          "Show Product Detail Information",
          commandHandler<CmdShowProductDetails>,
          argTypeHandler<CmdShowProductDetailsTraits>}}},
+
+      {"show",
+       "reboot-cause",
+       "Show reboot cause information",
+       commandHandler<CmdShowRebootCause>,
+       argTypeHandler<CmdShowRebootCauseTraits>,
+       {{"history",
+         "Show reboot cause history",
+         commandHandler<CmdShowRebootCauseHistory>,
+         argTypeHandler<CmdShowRebootCauseHistoryTraits>}}},
 
       {"stream",
        "fsdb",
