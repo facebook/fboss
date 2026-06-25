@@ -668,25 +668,52 @@ CmisModule::CmisModule(
 
 CmisModule::~CmisModule() {}
 
+namespace {
+bool isBankedPage(CmisPages page) {
+  // Module-level pages (lower, 00h, 01h, 02h, 04h) describe the whole module
+  // and are not banked. All per-lane/per-datapath pages are banked.
+  return page != CmisPages::LOWER && page != CmisPages::PAGE00 &&
+      page != CmisPages::PAGE01 && page != CmisPages::PAGE02 &&
+      page != CmisPages::PAGE04;
+}
+} // namespace
+
+void CmisModule::selectBankAndPage(int dataPage, std::optional<uint8_t> bank) {
+  auto page = static_cast<CmisPages>(dataPage);
+  if (page == CmisPages::LOWER || flatMem_) {
+    return;
+  }
+  if (bank.has_value() && isBankedPage(page)) {
+    uint8_t bankVal = *bank;
+    qsfpImpl_->writeTransceiver(
+        {TransceiverAccessParameter::ADDR_QSFP,
+         126,
+         sizeof(bankVal),
+         static_cast<int>(CmisPages::LOWER)},
+        &bankVal,
+        POST_I2C_WRITE_DELAY_US,
+        CAST_TO_INT(CmisField::BANK_SELECT));
+  }
+  uint8_t pageVal = static_cast<uint8_t>(dataPage);
+  qsfpImpl_->writeTransceiver(
+      {TransceiverAccessParameter::ADDR_QSFP,
+       127,
+       sizeof(pageVal),
+       static_cast<int>(CmisPages::LOWER)},
+      &pageVal,
+      POST_I2C_WRITE_DELAY_US,
+      CAST_TO_INT(CmisField::PAGE_CHANGE));
+}
+
 void CmisModule::readCmisField(
     CmisField field,
     uint8_t* data,
-    bool skipPageChange) {
+    bool skipBankAndPageChange,
+    std::optional<uint8_t> bank) {
   int dataLength, dataPage, dataOffset;
   getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
-  if (static_cast<CmisPages>(dataPage) != CmisPages::LOWER && !flatMem_ &&
-      !skipPageChange) {
-    // Only change page when it's not a flatMem module (which don't allow
-    // changing page) and when the skipPageChange argument is not true
-    uint8_t page = static_cast<uint8_t>(dataPage);
-    qsfpImpl_->writeTransceiver(
-        {TransceiverAccessParameter::ADDR_QSFP,
-         127,
-         sizeof(page),
-         static_cast<int>(CmisPages::LOWER)},
-        &page,
-        POST_I2C_WRITE_DELAY_US,
-        CAST_TO_INT(CmisField::PAGE_CHANGE));
+  if (!skipBankAndPageChange) {
+    selectBankAndPage(dataPage, bank);
   }
   qsfpImpl_->readTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
@@ -697,22 +724,12 @@ void CmisModule::readCmisField(
 void CmisModule::writeCmisField(
     CmisField field,
     uint8_t* data,
-    bool skipPageChange) {
+    bool skipBankAndPageChange,
+    std::optional<uint8_t> bank) {
   int dataLength, dataPage, dataOffset;
   getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
-  if (static_cast<CmisPages>(dataPage) != CmisPages::LOWER && !flatMem_ &&
-      !skipPageChange) {
-    // Only change page when it's not a flatMem module (which don't allow
-    // changing page) and when the skipPageChange argument is not true
-    uint8_t page = static_cast<uint8_t>(dataPage);
-    qsfpImpl_->writeTransceiver(
-        {TransceiverAccessParameter::ADDR_QSFP,
-         127,
-         sizeof(page),
-         static_cast<int>(CmisPages::LOWER)},
-        &page,
-        POST_I2C_WRITE_DELAY_US,
-        CAST_TO_INT(CmisField::PAGE_CHANGE));
+  if (!skipBankAndPageChange) {
+    selectBankAndPage(dataPage, bank);
   }
   qsfpImpl_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
@@ -4147,7 +4164,7 @@ void CmisModule::setModuleRxEqualizerLocked(
     writeCmisField(
         laneToAppSelField(lanesToConfigure),
         stageControlToWrite.data(),
-        true /* skipPageChange */);
+        true /* skipBankAndPageChange */);
 
     // Trigger the stage 0 control values to be operational in optics
     uint8_t stage0ControlTrigger = laneMask(startHostLane, hostLaneCount);

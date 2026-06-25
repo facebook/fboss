@@ -737,18 +737,33 @@ class CmisModule : public QsfpModule {
   // VDM data location of each VDM config types
   std::map<VdmConfigType, VdmDiagsLocationStatus> vdmConfigDataLocations_;
 
-  /* Helper function to read/write a CmisField. The function will extract the
-   * page number, offset and length information from the CmisField and then
-   * make the corresponding qsfpImpl->readTransceiver and
-   * qsfpImpl->writeTransceiver calls. The user should avoid making direct
-   * calls to qsfpImpl->read/writeTransceiver and instead do register IO using
-   * readCmisField/writeCmisField helper functions. The helper function will
-   * also change the page when it's supported by the transceiver and when not
-   * specifically asked to skip page change (for batch operations). */
-  void
-  readCmisField(CmisField field, uint8_t* data, bool skipPageChange = false);
-  void
-  writeCmisField(CmisField field, uint8_t* data, bool skipPageChange = false);
+  /* Helper functions to read/write a CmisField. They extract the page number,
+   * offset and length information from the CmisField and then make the
+   * corresponding qsfpImpl->readTransceiver/writeTransceiver calls. Callers
+   * should avoid direct qsfpImpl->read/writeTransceiver calls and instead do
+   * register IO via these helpers.
+   *
+   * Before the access, the helper selects the bank and page via
+   * selectBankAndPage: it writes the bank-select register (byte 126) before
+   * the page-select register (byte 127), since a banked page's contents depend
+   * on the active bank. This is skipped for flatMem modules (no paging) and
+   * when skipBankAndPageChange is set (batch operations where bank/page is
+   * already selected).
+   *
+   * bank: optional bank to select. It only takes effect for banked pages (see
+   * isBankedPage); it is ignored for non-banked pages. Defaults to
+   * std::nullopt, which leaves the bank-select register untouched. */
+  void selectBankAndPage(int dataPage, std::optional<uint8_t> bank);
+  void readCmisField(
+      CmisField field,
+      uint8_t* data,
+      bool skipBankAndPageChange = false,
+      std::optional<uint8_t> bank = std::nullopt);
+  void writeCmisField(
+      CmisField field,
+      uint8_t* data,
+      bool skipBankAndPageChange = false,
+      std::optional<uint8_t> bank = std::nullopt);
 
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*
