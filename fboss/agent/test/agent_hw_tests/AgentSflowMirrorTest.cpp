@@ -237,6 +237,14 @@ device:
   // Index in the sample ports where data traffic is expected!
   const int kDataTrafficPortIndex{0};
   inline static const folly::MacAddress kMirrorDstMac{"06:00:00:00:00:01"};
+
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Tajo (EBRO) hard-requires 16 sampling ports
+    // (getPortsForSampling: ports.begin() + 16). Egress-congestion subtest
+    // uses kNumDataTrafficPorts=6 + 1 non-sampled trap port = 7.
+    return 16;
+  }
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {

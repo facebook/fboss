@@ -37,6 +37,12 @@ class AgentArsBase : public AgentHwTest {
   void SetUp() override;
   void TearDown() override;
   cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const override;
+  // generatePrefixes() requires 1024 ECMP combinations. With 12 ports
+  // (2^12 - 12 - 1 = 4083 distinct size>=2 subsets) we have headroom; the
+  // 8-port default (247) is insufficient.
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return 12;
+  }
   std::string getAclName(
       AclType aclType,
       bool enableArsAlternateMembers = false) const;
