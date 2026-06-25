@@ -239,7 +239,7 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
           i2cAdapterConfigs.end());
 
       for (const auto& adapter : allI2cAdapters) {
-        const auto& auxDev = adapter.fpgaIpBlockConfig();
+        auto auxDev = adapter.fpgaIpBlockConfig();
 
         fbiob::AuxData auxData;
         auxData.name() = *auxDev->pmUnitScopedName();
