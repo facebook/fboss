@@ -6,7 +6,11 @@
 #include <filesystem>
 
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
+#include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
+
+#include <string>
+#include <vector>
 
 using namespace ::testing;
 
@@ -311,6 +315,25 @@ TEST_F(CmdConfigSessionDiffTestFixture, printOutputNoDifferences) {
   std::string output = buffer.str();
 
   EXPECT_NE(output.find("No differences"), std::string::npos);
+}
+
+TEST_F(CmdConfigSessionDiffTestFixture, diffBgpSession) {
+  setupTestableConfigSession();
+  // Remove the agent session so only a BGP session is staged.
+  std::filesystem::remove(getSessionConfigPath());
+
+  auto& session = ConfigSession::getInstance();
+  session.getBgpConfig().router_id() = "9.9.9.9";
+  session.saveBgpConfig();
+
+  auto cmd = CmdConfigSessionDiff();
+  utils::RevisionList emptyRevisions(std::vector<std::string>{});
+  auto result = cmd.queryClient(localhost(), emptyRevisions);
+
+  // A BGP-only session must be visible (not gated out as "no session"), and
+  // the staged router_id must show up in the diff.
+  EXPECT_EQ(result.find("No config session exists"), std::string::npos);
+  EXPECT_NE(result.find("9.9.9.9"), std::string::npos);
 }
 
 } // namespace facebook::fboss
