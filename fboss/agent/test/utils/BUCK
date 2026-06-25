@@ -235,8 +235,11 @@ cpp_library(
     ],
     headers = ["MacTestUtils.h"],
     exported_deps = [
+        "//fboss/agent:agent_features",
         "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
         "//fboss/agent:hw_switch_thrift_client_table",
+        "//fboss/agent:hwswitch_matcher",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
