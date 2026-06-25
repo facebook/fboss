@@ -428,6 +428,16 @@ class NextHopIDManager {
   FRIEND_TEST(NextHopIDManagerTest, delOrDecrRouteNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, updateRouteNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMaps);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructMemberDedupMintsFreshSetId);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructMemberDedupUnresolvedRoute);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructFullCollapseRemapsToSurvivor);
+  FRIEND_TEST(
+      NextHopIDManagerTest,
+      reconstructMultipleRoutesToRetiredSetIdAccumulateFreshCount);
+  FRIEND_TEST(
+      NextHopIDManagerTest,
+      reconstructIntraSetDuplicateShrinksGroupAndDeallocsCleanly);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructMySidSetDedupRecordsRemap);
   FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMapsMultiSwitch);
   FRIEND_TEST(
       NextHopIDManagerTest,
