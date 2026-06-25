@@ -1,0 +1,31 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_platform")
+
+python_library(
+    name = "spec_validator",
+    srcs = ["spec_validator.py"],
+    resources = {
+        "//fboss/platform/firmware_onboarding/schemas:platform_spec_v1": "platform-spec.v1.json",
+    },
+    deps = [
+        "fbsource//third-party/pypi/jsonschema:jsonschema",
+        "fbsource//third-party/pypi/pydantic:pydantic",
+    ],
+)
+
+python_binary(
+    name = "validate",
+    main_function = "fboss.platform.firmware_onboarding.validator.spec_validator.main",
+    deps = [":spec_validator"],
+)
+
+python_unittest(
+    name = "test_spec_validator",
+    srcs = ["tests/test_spec_validator.py"],
+    network_access = network_access_utils.none(),
+    deps = [":spec_validator"],
+)
