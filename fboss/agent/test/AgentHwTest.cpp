@@ -71,6 +71,8 @@ void AgentHwTest::SetUp() {
   // overrideTestEnsembleInitInfo
   TestEnsembleInitInfo initInfo;
   initInfo.failHwCallsOnWarmboot = failHwCallsOnWarmboot();
+  initInfo.maxRequiredInterfacePorts = maxRequiredInterfacePorts();
+  initInfo.maxRequiredFabricPorts = maxRequiredFabricPorts();
   overrideTestEnsembleInitInfo(initInfo);
 
   agentEnsemble_ = createAgentEnsemble(
