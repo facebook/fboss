@@ -1050,6 +1050,7 @@ target_link_libraries(fboss2_config_lib
   agent_dir_util
   common_file_utils
   switch_config_cpp2
+  bgp_config_cpp2
   switchinfo_utils
   platform_mapping
   Folly::folly

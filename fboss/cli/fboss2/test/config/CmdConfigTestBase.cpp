@@ -52,9 +52,15 @@ CmdConfigTestBase::CmdConfigTestBase(
   // Create session config path
   sessionConfigPath_ = testHomeDir_ / ".fboss2" / "agent.conf";
 
-  // Initialize Git repository and create initial commit
+  // Initialize Git repository and create initial commit. Mirror
+  // ConfigSession::initializeGit(): the baseline commit also touches
+  // cli/cli_metadata.json so it shows up in `git log -- cli/cli_metadata.json`,
+  // which no-arg rollback() walks (so the baseline is reachable after the very
+  // first real commit).
+  std::filesystem::path metadataPath = cliConfigDir_ / "cli_metadata.json";
+  createTestConfig(metadataPath, "{}");
   git_.init();
-  git_.commit({"cli/agent.conf"}, "Initial commit");
+  git_.commit({"cli/agent.conf", "cli/cli_metadata.json"}, "Initial commit");
 }
 
 void CmdConfigTestBase::SetUp() {
