@@ -468,6 +468,25 @@ bool assertNextHopIdMapsSame(
 
 } // namespace
 
+NextHopSetID NextHopIDManager::computeFreshSetIdSeed(
+    const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap) {
+  NextHopSetID maxPersistedSetId = NextHopSetID(kNextHopSetIDStart - 1);
+  if (fibsInfoMap) {
+    for (const auto& [_switchId, fibInfo] : std::as_const(*fibsInfoMap)) {
+      auto setMap = fibInfo->getIdToNextHopIdSetMap();
+      if (!setMap || setMap->cbegin() == setMap->cend()) {
+        continue; // null or empty; skip
+      }
+      // idToNextHopIdSetMap is backed by a sorted std::map, so the last entry
+      // holds the largest SetID -- no need to scan. Take the max across all
+      // switches (the id maps are identical, but accumulate defensively).
+      maxPersistedSetId = std::max(
+          maxPersistedSetId, NextHopSetID(std::prev(setMap->cend())->first));
+    }
+  }
+  return NextHopSetID(maxPersistedSetId + 1);
+}
+
 void NextHopIDManager::processNextHopSetIdForReconstruction(
     NextHopSetID setId,
     const std::shared_ptr<IdToNextHopMap>& id2NhopMap,
@@ -480,17 +499,20 @@ void NextHopIDManager::processNextHopSetIdForReconstruction(
   // Build NextHopIDSet and process each NextHop. Iterate directly over the
   // node; elements are wrapped, so unwrap with .toThrift().
   NextHopIDSet nextHopIDSet;
+  // Tracks whether any member's persisted id was remapped onto a different
+  // primary id. If so, this set's members differ from what was persisted under
+  // setId, so setId must not be rebound.
+  bool membersRemapped = false;
   for (const auto& elem : std::as_const(*nextHopIdSetNode)) {
-    NextHopID nextHopID((*elem).toThrift());
-    nextHopIDSet.insert(nextHopID);
+    NextHopID persistedNextHopID((*elem).toThrift());
 
     // Lookup NextHop from FibInfo's idToNextHopMap
-    auto nhNode =
-        id2NhopMap->getNextHopIf(static_cast<state::NextHopIdType>(nextHopID));
+    auto nhNode = id2NhopMap->getNextHopIf(
+        static_cast<state::NextHopIdType>(persistedNextHopID));
     if (!nhNode) {
       throw FbossError(
           "Inconsistent state: NextHopID ",
-          nextHopID,
+          persistedNextHopID,
           " not found in FibInfo's idToNextHopMap for SetID ",
           setId);
     }
@@ -498,24 +520,62 @@ void NextHopIDManager::processNextHopSetIdForReconstruction(
     auto nextHop =
         util::fromThrift(nhNode->toThrift(), true /* allowV6NonLinkLocal */);
 
-    // Update NextHop maps and refcounts
+    // Dedup: if a different persisted ID already maps to this NextHop (a field
+    // was added to the NextHop thrift that the writer build used to tell them
+    // apart but this build does not read, so they deserialize to the same
+    // NextHop), reuse the primary ID and drop the duplicate. The set is always
+    // built from primary IDs, so it can never reference a member that is absent
+    // from idToNextHop_.
     auto nhIt = nextHopToID_.find(nextHop);
+    NextHopID primaryNextHopID = persistedNextHopID;
     if (nhIt == nextHopToID_.end()) {
-      nextHopToID_.emplace(nextHop, nextHopID);
-      idToNextHop_.emplace(nextHopID, NextHopEntry(nextHop, 1));
+      nextHopToID_.emplace(nextHop, persistedNextHopID);
+      idToNextHop_.emplace(persistedNextHopID, NextHopEntry(nextHop, 1));
     } else {
-      idToNextHop_.at(nhIt->second).refCount++;
+      primaryNextHopID = nhIt->second;
+      if (primaryNextHopID != persistedNextHopID) {
+        membersRemapped = true;
+      }
+      // Ref at most once per set. If two persisted members of THIS set map onto
+      // the same primary id (an intra-set duplicate), the set holds it once, so
+      // bumping per element would over-count and leak it on dealloc (which
+      // decrements once per set member).
+      if (nextHopIDSet.find(primaryNextHopID) == nextHopIDSet.end()) {
+        idToNextHop_.at(primaryNextHopID).refCount++;
+      }
     }
-    ctx.maxNextHopId = std::max(ctx.maxNextHopId, nextHopID);
+    nextHopIDSet.insert(primaryNextHopID);
+    ctx.maxNextHopId = std::max(ctx.maxNextHopId, persistedNextHopID);
   }
 
-  // Update NextHopIDSet maps and refcounts
+  // Register the deduped member set and maintain refcounts. A SetID's
+  // membership is immutable, so we never rebind setId to a different member
+  // set; instead we retire setId and remap route references onto a surviving
+  // (or freshly minted) primary SetID.
   auto setInfoIt = nextHopIdSetToIDInfo_.find(nextHopIDSet);
-  if (setInfoIt == nextHopIdSetToIDInfo_.end()) {
+  if (setInfoIt != nextHopIdSetToIDInfo_.end()) {
+    // The deduped member set already exists under a surviving SetID. This
+    // persisted SetID is a duplicate of it: ref the survivor and (unless it is
+    // the survivor itself) record the collapse so callers repoint routes.
+    setInfoIt->second.count++;
+    if (setInfoIt->second.id != setId) {
+      ctx.setIdRemap[setId] = setInfoIt->second.id;
+    }
+  } else if (!membersRemapped) {
+    // Members are unchanged, so setId still means exactly the members it was
+    // persisted with. Register it under its own id.
     nextHopIdSetToIDInfo_.emplace(nextHopIDSet, NextHopSetIDInfo(setId, 1));
     idToNextHopIdSet_[setId] = nextHopIDSet;
   } else {
-    setInfoIt->second.count++;
+    // Members were remapped, so binding setId to them would silently change its
+    // membership. Mint a fresh SetID for the deduped set and remap setId onto
+    // it, retiring the persisted SetID.
+    NextHopSetID freshSetId = ctx.nextFreshSetId;
+    ctx.nextFreshSetId = NextHopSetID(ctx.nextFreshSetId + 1);
+    nextHopIdSetToIDInfo_.emplace(
+        nextHopIDSet, NextHopSetIDInfo(freshSetId, 1));
+    idToNextHopIdSet_[freshSetId] = nextHopIDSet;
+    ctx.setIdRemap[setId] = freshSetId;
   }
   ctx.maxNextHopSetId = std::max(ctx.maxNextHopSetId, setId);
 }
@@ -617,9 +677,17 @@ void NextHopIDManager::reconstructFibPass(
         processNextHopSetIdForReconstruction(
             setId, id2NhopMapInFib, id2NhopIdSetMapInFib, ctx);
 
-        auto nextHopIdSetIt = idToNextHopIdSet_.find(setId);
+        // processNextHopSetIdForReconstruction may have retired this SetID
+        // (duplicate collapse or member dedup). Resolve to the surviving
+        // primary id for all lookups and reverse-map storage below.
+        NextHopSetID primarySetId = setId;
+        if (ctx.setIdRemap.contains(setId)) {
+          primarySetId = ctx.setIdRemap.at(setId);
+        }
+
+        auto nextHopIdSetIt = idToNextHopIdSet_.find(primarySetId);
         CHECK(nextHopIdSetIt != idToNextHopIdSet_.end())
-            << "NextHopSetId " << setId
+            << "NextHopSetId " << primarySetId
             << " not found in idToNextHopIdSet_ after processNhopSetId";
 
         std::vector<NextHop> nextHopVec;
@@ -634,7 +702,7 @@ void NextHopIDManager::reconstructFibPass(
         RouteNextHopSet nextHopSet(nextHopVec.begin(), nextHopVec.end());
 
         nameToNextHopSet_[name] = nextHopSet;
-        nameToNextHopSetID_[name] = setId;
+        nameToNextHopSetID_[name] = primarySetId;
       }
     }
   }
@@ -776,11 +844,17 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
     const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
-    const RibRouteTables* ribTables) {
+    const RibRouteTables* ribTables,
+    std::unordered_map<NextHopSetID, NextHopSetID>* setIdRemapOut) {
   DCHECK(assertNextHopIdMapsSame(fibsInfoMap));
   clearNhopIdManagerState();
 
   ReconstructionContext ctx;
+  // Fresh SetID watermark for deduped member sets whose persisted SetID had
+  // to be retired (see processNextHopSetIdForReconstruction). Seeded above the
+  // highest persisted SetID so a fresh id can never collide with a persisted
+  // one.
+  ctx.nextFreshSetId = computeFreshSetIdSeed(fibsInfoMap);
 
   // The FIB pass also caches the (cross-switch-identical) id maps into ctx for
   // the remaining passes, whose sets may not be referenced by any FIB route.
@@ -789,9 +863,18 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
   reconstructMplsFibPass(labelFib, ctx);
   reconstructUnresolvedRibPass(ribTables, ctx);
 
-  // Set next available IDs
+  // Set next available IDs. The SetID watermark must clear both the highest
+  // persisted SetID and any fresh SetIDs minted for deduped member sets.
   nextAvailableNextHopID_ = NextHopID(ctx.maxNextHopId + 1);
-  nextAvailableNextHopSetID_ = NextHopSetID(ctx.maxNextHopSetId + 1);
+  nextAvailableNextHopSetID_ =
+      std::max(NextHopSetID(ctx.maxNextHopSetId + 1), ctx.nextFreshSetId);
+
+  // Hand the collapsed -> surviving SetID remap to the caller (warm-boot
+  // fromThrift) so it can repoint route references off retired SetIDs. Empty on
+  // a same-version boot; callers that do not repoint pass nullptr.
+  if (setIdRemapOut) {
+    *setIdRemapOut = std::move(ctx.setIdRemap);
+  }
 
   XLOG(INFO) << "[NextHop ID Manager] reconstruction done:"
              << " nhopCount=" << idToNextHop_.size()
