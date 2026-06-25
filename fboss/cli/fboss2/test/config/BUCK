@@ -51,7 +51,6 @@ cpp_unittest(
         "//fboss/cli/fboss2:fboss2-config-lib",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2/test:cmd_test_utils",
-        "//folly:dynamic",
         "//folly:file_util",
         "//folly/json:dynamic",
         "//thrift/lib/cpp2/protocol:protocol",
