@@ -743,9 +743,9 @@ void validateAndDefaultSrv6NextHops(
 }
 
 void validateLinkLocalNextHopInterfaces(
-    const UnicastRoute& route,
+    const std::vector<NextHopThrift>& nextHops,
     const std::shared_ptr<SwitchState>& state) {
-  for (const auto& nhop : *route.nextHops()) {
+  for (const auto& nhop : nextHops) {
     const auto& address = toIPAddress(*nhop.address());
     auto ifName = apache::thrift::get_pointer(nhop.address()->ifName());
     if (!ifName || !address.isV6() || !address.isLinkLocal()) {
@@ -974,7 +974,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
           "Override nhops or switching mode cannot be set by clients");
     }
     validateAndDefaultSrv6NextHops(*route.nextHops(), defaultSrv6TunnelId);
-    validateLinkLocalNextHopInterfaces(route, state);
+    validateLinkLocalNextHopInterfaces(*route.nextHops(), state);
     if (FLAGS_enable_route_counters_for_named_nhg &&
         route.namedRouteDestination()->getType() ==
             NamedRouteDestination::Type::nextHopGroup) {
@@ -3321,6 +3321,7 @@ void ThriftHandler::addOrUpdateNamedNextHopGroups(
    */
   static constexpr size_t kMaxGroupNameLen = 31;
   auto defaultSrv6TunnelId = getDefaultSrv6TunnelId(sw_->getConfig());
+  auto state = sw_->getState();
   std::vector<std::pair<std::string, RouteNextHopSet>> groups;
   for (auto& group : *nextHopGroups) {
     if (!group.name().has_value() || group.name()->empty()) {
@@ -3334,6 +3335,7 @@ void ThriftHandler::addOrUpdateNamedNextHopGroups(
           *group.name());
     }
     validateAndDefaultSrv6NextHops(*group.nexthops(), defaultSrv6TunnelId);
+    validateLinkLocalNextHopInterfaces(*group.nexthops(), state);
     groups.emplace_back(
         *group.name(),
         util::toRouteNextHopSet(

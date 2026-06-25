@@ -3652,6 +3652,27 @@ TEST_F(NamedNextHopGroupThriftTest, rejectGroupNameExceedingMaxLength) {
       handler.addOrUpdateNamedNextHopGroups(std::move(groups2)), FbossError);
 }
 
+TEST_F(
+    NamedNextHopGroupThriftTest,
+    addGroupWithNonexistentLinkLocalInterfaceThrows) {
+  ThriftHandler handler(sw_);
+
+  NextHopGroup group;
+  group.name() = "group1";
+  std::vector<NextHopThrift> nhops;
+  for (auto i = 0; i < 4; ++i) {
+    auto nh = makeNextHopThrift("fe80:face:b00c::1");
+    nh.address()->ifName() = i == 2 ? "fboss9999" : "fboss1";
+    nhops.push_back(std::move(nh));
+  }
+  group.nexthops() = std::move(nhops);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(group);
+  EXPECT_THROW(
+      handler.addOrUpdateNamedNextHopGroups(std::move(groups)), FbossError);
+}
+
 TEST_F(NamedNextHopGroupThriftTest, rejectsMplsAndSrv6) {
   ThriftHandler handler(sw_);
 
