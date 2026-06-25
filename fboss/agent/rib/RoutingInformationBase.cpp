@@ -279,6 +279,64 @@ void refreshUnresolvedMplsIndex(
   *index = std::move(next);
 }
 
+// Rewrites one optional NextHopSetID through `remap`; returns true if changed.
+bool remapNextHopSetId(
+    std::optional<NextHopSetID>& id,
+    const std::unordered_map<NextHopSetID, NextHopSetID>& remap) {
+  if (!id) {
+    return false;
+  }
+  auto it = remap.find(*id);
+  if (it == remap.end()) {
+    return false;
+  }
+  id = it->second;
+  return true;
+}
+
+// Repoints every NextHopSetID a route carries (resolved fwd + per-client
+// entries) onto its primary id. Returns the rewritten route, or the original
+// shared_ptr if nothing changed. Refcounts are untouched: reconstruct already
+// counted each reference on the primary set.
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> remapRouteNextHopSetIds(
+    const std::shared_ptr<Route<AddressT>>& route,
+    const std::unordered_map<NextHopSetID, NextHopSetID>& remap) {
+  auto resolvedId = route->getForwardInfo().getResolvedNextHopSetID();
+  auto normalizedId =
+      route->getForwardInfo().getNormalizedResolvedNextHopSetID();
+  bool fwdChanged = remapNextHopSetId(resolvedId, remap);
+  fwdChanged |= remapNextHopSetId(normalizedId, remap);
+
+  std::vector<std::pair<ClientID, RouteNextHopEntry>> rewrittenClients;
+  for (const auto& [clientId, entry] :
+       std::as_const(route->getEntryForClients())) {
+    auto clientSetId = entry->getClientNextHopSetID();
+    if (remapNextHopSetId(clientSetId, remap)) {
+      RouteNextHopEntry newEntry(entry->toThrift());
+      newEntry.setClientNextHopSetID(clientSetId);
+      rewrittenClients.emplace_back(clientId, std::move(newEntry));
+    }
+  }
+
+  if (!fwdChanged && rewrittenClients.empty()) {
+    return route;
+  }
+
+  auto writable = route->isPublished() ? route->clone() : route;
+  if (fwdChanged) {
+    RouteNextHopEntry fwd(route->getForwardInfo().toThrift());
+    fwd.setResolvedNextHopSetID(resolvedId);
+    fwd.setNormalizedResolvedNextHopSetID(normalizedId);
+    writable->setResolved(fwd);
+  }
+  for (auto& [clientId, newEntry] : rewrittenClients) {
+    writable->update(clientId, newEntry);
+  }
+  writable->publish();
+  return writable;
+}
+
 } // namespace
 
 template <typename AddressT, typename FibType, typename IndexT>
@@ -1341,8 +1399,55 @@ RibRouteTables RibRouteTables::fromThrift(
   // Reconstruct NextHopIDManager state from FIB and MySid table during warm
   // boot
   if (lockedRouteTables->nextHopIDManager && fibsInfoMap) {
+    // setIdRemap is non-empty ONLY on a cross-version warm boot where a field
+    // was added to the NextHop thrift: the writer build sets that field and
+    // uses it to tell two nexthops apart, but this build predates it and
+    // deserializes both to the same NextHop. reconstruct then sees two
+    // persisted NextHopIDs mapping to one NextHop, so it keeps a single
+    // primary NextHopID and reclaims the duplicate. Because members collapse
+    // like that, two persisted NextHopSetIDs can end up with identical member
+    // sets, so a SetID is retired and remapped -- onto the surviving SetID if
+    // its primary members already exist, or onto a freshly minted SetID if
+    // its members changed but match no existing set. The RIB routes (and MySid
+    // entries) still reference the retired SetIDs, so here we repoint each
+    // reference onto its surviving SetID, leaving the RIB consistent with the
+    // rebuilt manager.
+    //
+    // On a same-version warm boot no nexthops collapse, the remap is empty, and
+    // this whole block is skipped. Refcounts are left untouched -- reconstruct
+    // already counted each reference against the surviving SetID. The remap is
+    // reconstruction scratch local to this warm boot: reconstruct fills it via
+    // the out-param and it dies when this scope exits.
+    std::unordered_map<NextHopSetID, NextHopSetID> setIdRemap;
     lockedRouteTables->nextHopIDManager->reconstructFromSwitchStateMaps(
-        fibsInfoMap, mySidMap, labelFib, &rib);
+        fibsInfoMap, mySidMap, labelFib, &rib, &setIdRemap);
+    if (!setIdRemap.empty()) {
+      for (auto& [_vrf, routeTable] : lockedRouteTables->routerIDToRouteTable) {
+        routeTable.v4NetworkToRoute.forAll([&setIdRemap](auto& ritr) {
+          ritr.value() = remapRouteNextHopSetIds(ritr.value(), setIdRemap);
+        });
+        routeTable.v6NetworkToRoute.forAll([&setIdRemap](auto& ritr) {
+          ritr.value() = remapRouteNextHopSetIds(ritr.value(), setIdRemap);
+        });
+        if (FLAGS_mpls_rib) {
+          for (auto& [_label, route] : routeTable.labelToRoute) {
+            route = remapRouteNextHopSetIds(route, setIdRemap);
+          }
+        }
+      }
+      for (auto& [_prefix, mySid] : lockedRouteTables->mySidTable) {
+        auto resolvedId = mySid->getResolvedNextHopsId();
+        auto unresolvedId = mySid->getUnresolveNextHopsId();
+        bool changed = remapNextHopSetId(resolvedId, setIdRemap);
+        changed |= remapNextHopSetId(unresolvedId, setIdRemap);
+        if (changed) {
+          mySid = mySid->clone();
+          mySid->setResolvedNextHopsId(resolvedId);
+          mySid->setUnresolveNextHopsId(unresolvedId);
+          mySid->publish();
+        }
+      }
+    }
   }
   // Seed the per-VRF unresolved-routes index from the loaded RIB.
   for (auto& [_, routeTable] : lockedRouteTables->routerIDToRouteTable) {
