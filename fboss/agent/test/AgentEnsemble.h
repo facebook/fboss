@@ -40,7 +40,6 @@ class AgentEnsemble : public TestEnsembleIf {
   AgentEnsemble() : AgentEnsemble("agent.conf") {}
   explicit AgentEnsemble(const std::string& configFileName);
   virtual ~AgentEnsemble() override;
-  using TestEnsembleIf::masterLogicalPortIds;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
   using TestEnsembleIf::getLatestInterfaceStats;
   using TestEnsembleIf::getLatestPortStats;
@@ -106,9 +105,10 @@ class AgentEnsemble : public TestEnsembleIf {
       const std::string& name = "test-update",
       bool transaction = false) override;
 
-  std::vector<PortID> masterLogicalPortIds() const override;
+  std::vector<PortID> getAllMasterLogicalPortIds() const override;
 
-  std::vector<PortID> masterLogicalPortIds(SwitchID switchID) const;
+  std::optional<size_t> getMaxRequiredPorts(
+      cfg::PortType portType) const override;
 
   void switchRunStateChanged(SwitchRunState runState) override;
 
@@ -422,9 +422,12 @@ class AgentEnsemble : public TestEnsembleIf {
 
   cfg::SwitchConfig initialConfig_;
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
-  std::vector<PortID> masterLogicalPortIds_; /* all ports */
   std::map<SwitchID, std::vector<PortID>>
-      switchId2PortIds_; /* per switch ports */
+      switchId2PortIds_; /* per switch ports; the sole master-port store */
+  // Per-switch caps applied dynamically by the typed masterLogical*PortIds()
+  // accessors (see getMaxRequiredPorts). nullopt means no cap.
+  std::optional<size_t> maxRequiredInterfacePorts_;
+  std::optional<size_t> maxRequiredFabricPorts_;
   std::string configFile_{};
   std::unique_ptr<LinkStateToggler> linkToggler_;
   cfg::PortLoopbackMode mode_{cfg::PortLoopbackMode::MAC};
