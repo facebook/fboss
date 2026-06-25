@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_qsfp_sdk_version",
-        "@generated SignedSource<<605e05437d82619d95da93b744a15736>>"
+        "@generated SignedSource<<191c347c9cfd22b15a7a19d977ab63af>>"
     ],
     "MINIPACK": [
         {
@@ -21,6 +21,10 @@
         {
             "rolloutType": "PRODUCTION",
             "version": "credo\/0.7.2"
+        },
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "credo\/1.2.8"
         },
         {
             "rolloutType": "PRODUCTION",
