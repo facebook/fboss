@@ -23,6 +23,9 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+        # asic_config_v3 generated outputs are multi-document YAML with complex
+        # mapping keys that PyYAML cannot load; they are generated artifacts.
+        exclude: ^fboss/lib/asic_config_v3/generated_asic_configs/
       - id: check-json
       - id: check-merge-conflict
   - repo: https://github.com/astral-sh/ruff-pre-commit
