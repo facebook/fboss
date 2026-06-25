@@ -76,13 +76,15 @@ class AgentVoqSwitchTest : public AgentHwTest {
       cfg::Scope portScope) {
     auto switchId =
         scopeResolver().scope(getProgrammedState(), port).switchId();
-    const auto& dsfNode =
-        getProgrammedState()->getDsfNodes()->getNodeIf(switchId);
-    auto sysPortOffset = portScope == cfg::Scope::GLOBAL
-        ? dsfNode->getGlobalSystemPortOffset()
-        : dsfNode->getLocalSystemPortOffset();
-    CHECK(sysPortOffset.has_value());
-    return SystemPortID(port.intID() + *sysPortOffset);
+    return facebook::fboss::getSystemPortID(
+        PortID(port.intID()),
+        portScope,
+        getProgrammedState()
+            ->getSwitchSettings()
+            ->getSwitchSettings(
+                HwSwitchMatcher(std::unordered_set<SwitchID>({switchId})))
+            ->getSwitchIdToSwitchInfo(),
+        switchId);
   }
 
   std::string kDscpAclName() const {
