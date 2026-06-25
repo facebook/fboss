@@ -12,6 +12,7 @@ add_executable(fboss2_cmd_config_test
   fboss/cli/fboss2/test/config/CmdConfigInterfaceSwitchportAccessVlanTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigInterfaceTest.cpp
+  fboss/cli/fboss2/test/config/CmdConfigIpRouteTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigL2LearningModeTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigPtpTransparentClockTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigMacAgingTimeTest.cpp
@@ -27,6 +28,7 @@ add_executable(fboss2_cmd_config_test
   fboss/cli/fboss2/test/config/CmdConfigVlanManagerTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigVlanPortTaggingModeTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigVlanStaticMacTest.cpp
+  fboss/cli/fboss2/test/config/CmdDeleteConfigInterfaceTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteInterfaceIpv6NdpTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteInterfaceTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteTunnelIpInIpTest.cpp

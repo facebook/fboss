@@ -28,6 +28,7 @@ cpp_binary(
         "ConfigInterfaceProfileTest.cpp",
         "ConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp",
         "ConfigInterfaceTypeTest.cpp",
+        "ConfigIpRouteTest.cpp",
         "ConfigL2LearningModeTest.cpp",
         "ConfigLoadBalancingTest.cpp",
         "ConfigMacTest.cpp",

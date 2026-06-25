@@ -39,7 +39,7 @@ struct CmdConfigInterfaceTraits : public WriteCommandTraits {
         "interface_config",
         args,
         "<port-list> [<attr> <value> ...] where <attr> is one "
-        "of: description, mtu");
+        "of: description, mtu, ip-address, ipv6-address, ...");
   }
   using ObjectArgType = InterfacesConfig;
   using RetType = std::string;

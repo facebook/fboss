@@ -27,6 +27,7 @@
 #include <unordered_set>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h"
 #include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
@@ -43,6 +44,8 @@ const std::unordered_set<std::string> kKnownAttributes = [] {
   std::unordered_set<std::string> attrs = {
       "description",
       "mtu",
+      "ip-address",
+      "ipv6-address",
       "profile",
       "loopback-mode",
       "flow-control-rx",
@@ -64,8 +67,9 @@ const std::unordered_set<std::string> kValuelessAttributes = {
 };
 
 constexpr auto kValidConfigAttrs =
-    "description, mtu, profile, loopback-mode, flow-control-rx, "
-    "flow-control-tx, lldp-expected-*, type, shutdown, no-shutdown";
+    "description, mtu, ip-address, ipv6-address, profile, loopback-mode, "
+    "flow-control-rx, flow-control-tx, lldp-expected-*, type, shutdown, "
+    "no-shutdown";
 
 } // namespace
 
@@ -275,6 +279,22 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
         }
       }
       results.push_back(fmt::format("description=\"{}\"", value));
+    } else if (attr == "ip-address" || attr == "ipv6-address") {
+      validateInterfaceIpAttr(attr, value);
+
+      // Add IP address to all interfaces
+      for (const utils::Intf& intf : interfaces) {
+        cfg::Interface* interface = intf.getInterface();
+        if (interface) {
+          auto& ipAddresses = *interface->ipAddresses();
+          // Only add if not already present
+          if (std::find(ipAddresses.begin(), ipAddresses.end(), value) ==
+              ipAddresses.end()) {
+            ipAddresses.push_back(value);
+          }
+        }
+      }
+      results.push_back(fmt::format("{}={}", attr, value));
     } else if (attr == "mtu") {
       int32_t mtu = 0;
       try {
