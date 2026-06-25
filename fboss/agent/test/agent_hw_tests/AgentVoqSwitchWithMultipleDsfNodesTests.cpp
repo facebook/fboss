@@ -1155,29 +1155,26 @@ class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
 
   void verifyShelPortState(bool enabled) {
     WITH_RETRIES({
-      auto stats = getAllHwSwitchStats();
+      auto hwSwitchStats = getHwSwitchStats();
+      auto sysPortShelState = hwSwitchStats.sysPortShelState();
       auto state = getProgrammedState();
       for (const auto& portMap : std::as_const(*state->getPorts())) {
         for (const auto& port : std::as_const(*portMap.second)) {
-          if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
-              port.second->getPortType() == cfg::PortType::HYPER_PORT) {
-            auto switchId = scopeResolver().scope(port.second).switchId();
-            EXPECT_EVENTUALLY_TRUE(stats.contains(switchId));
-            auto globalSystemPortOffset = *getSw()
-                                               ->getSwitchInfoTable()
-                                               .getSwitchInfo(switchId)
-                                               .globalSystemPortOffset();
-            if (stats.contains(switchId)) {
-              auto sysPortShelState = stats.at(switchId).sysPortShelState();
-              auto systemPortId = globalSystemPortOffset + port.first;
-              EXPECT_EVENTUALLY_TRUE(sysPortShelState->contains(systemPortId));
-              if (sysPortShelState->contains(systemPortId)) {
-                EXPECT_EVENTUALLY_EQ(
-                    sysPortShelState->at(systemPortId),
-                    (enabled ? cfg::PortState::ENABLED
-                             : cfg::PortState::DISABLED));
-              }
-            }
+          if ((port.second->getPortType() != cfg::PortType::INTERFACE_PORT &&
+               port.second->getPortType() != cfg::PortType::HYPER_PORT) ||
+              scopeResolver().scope(port.second).switchId() !=
+                  getCurrentSwitchIdForTesting()) {
+            continue;
+          }
+
+          auto systemPortId = getSystemPortID(
+              PortDescriptor(port.second->getID()), cfg::Scope::GLOBAL);
+          auto systemPortIdKey = static_cast<int>(systemPortId);
+          EXPECT_EVENTUALLY_TRUE(sysPortShelState->contains(systemPortIdKey));
+          if (sysPortShelState->contains(systemPortIdKey)) {
+            EXPECT_EVENTUALLY_EQ(
+                sysPortShelState->at(systemPortIdKey),
+                (enabled ? cfg::PortState::ENABLED : cfg::PortState::DISABLED));
           }
         }
       }
