@@ -6,7 +6,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cerrno>
-#include <fstream>
 #include "fboss/platform/fw_util/FwUtilImpl.h"
 #include "fboss/platform/fw_util/fw_util_helpers.h"
 
@@ -203,22 +202,44 @@ bool FwUtilImpl::createCustomContentFile(
     const std::string& customContent,
     const int& customContentOffset,
     const std::string& customContentFileName) {
-  std::uintmax_t customContentFileSize;
-  std::ofstream customContentFile;
-
   if (!std::filesystem::exists(fwBinaryFile_)) {
     return false;
   }
 
   /* Use firmware image size to determine the flash chip size.
      The custom content file should have the same size as the image */
-  customContentFileSize = std::filesystem::file_size(fwBinaryFile_);
-  customContentFile.open(
-      customContentFileName, std::ofstream::out | std::ofstream::binary);
-  std::filesystem::resize_file(customContentFileName, customContentFileSize);
-  customContentFile.seekp(customContentOffset);
-  customContentFile << customContent;
-  customContentFile.close();
+  std::uintmax_t customContentFileSize =
+      std::filesystem::file_size(fwBinaryFile_);
+
+  // fw_util runs as root and customContentFileName is a predictable /tmp path,
+  // so an unprivileged user could pre-create it as a symlink or escape /tmp via
+  // the fpd name. The symlink-safe helper validates and confines the path and
+  // returns an owning fd; remove the partial file if anything below fails.
+  folly::File outFile = secureCreateRootTmpFile(customContentFileName);
+  auto removeOnError =
+      folly::makeGuard([&] { unlink(customContentFileName.c_str()); });
+
+  // Size the file to match the firmware image (resize_file equivalent).
+  if (ftruncate(outFile.fd(), static_cast<off_t>(customContentFileSize)) != 0) {
+    throw std::runtime_error(
+        "Failed to size custom content file " + customContentFileName + ": " +
+        folly::errnoStr(errno));
+  }
+
+  // Write the custom content at the requested offset.
+  if (folly::pwriteFull(
+          outFile.fd(),
+          customContent.data(),
+          customContent.size(),
+          static_cast<off_t>(customContentOffset)) !=
+      static_cast<ssize_t>(customContent.size())) {
+    throw std::runtime_error(
+        "Failed to write custom content file " + customContentFileName + ": " +
+        folly::errnoStr(errno));
+  }
+  // Surface deferred write errors that some filesystems only report at close.
+  outFile.close();
+  removeOnError.dismiss();
   return true;
 }
 
