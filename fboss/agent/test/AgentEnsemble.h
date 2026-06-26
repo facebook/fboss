@@ -266,6 +266,10 @@ class AgentEnsemble : public TestEnsembleIf {
       std::optional<PortDescriptor> portDescriptor,
       std::optional<uint8_t> queueId) override;
 
+  void sendPacketSwitchedAsync(
+      std::unique_ptr<TxPacket> pkt,
+      const std::optional<SwitchID>& switchId) override;
+
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
 
   bool supportsAddRemovePort() const override {
@@ -288,7 +292,9 @@ class AgentEnsemble : public TestEnsembleIf {
   cfg::SwitchConfig getCurrentConfig() const override {
     return getSw()->getConfig();
   }
-  bool ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt);
+  bool ensureSendPacketSwitched(
+      std::unique_ptr<TxPacket> pkt,
+      const std::optional<SwitchID>& switchId = std::nullopt);
   bool ensureSendPacketOutOfPort(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,

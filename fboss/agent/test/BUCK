@@ -859,6 +859,7 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:hw_asic_table",
         "//fboss/agent:hw_switch",
+        "//fboss/agent:packet",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/state:state",

@@ -696,6 +696,18 @@ void AgentEnsemble::sendPacketAsync(
       std::move(pkt), portDescriptor->phyPortID(), queueId);
 }
 
+void AgentEnsemble::sendPacketSwitchedAsync(
+    std::unique_ptr<TxPacket> pkt,
+    const std::optional<SwitchID>& switchId) {
+  if (switchId.has_value()) {
+    getSw()->sendPacketSwitchedAsync(std::move(pkt), {*switchId});
+  } else {
+    // Preserve the prior untargeted behavior: route to the switch owning the
+    // first master logical port (switch 0 on multi-NPU platforms).
+    sendPacketAsync(std::move(pkt), std::nullopt, std::nullopt);
+  }
+}
+
 std::unique_ptr<TxPacket> AgentEnsemble::allocatePacket(uint32_t size) {
   return getSw()->allocatePacket(size);
 }
@@ -727,7 +739,9 @@ void AgentEnsemble::clearPortStats(
       std::make_unique<std::vector<int32_t>>(std::move(*ports)));
 }
 
-bool AgentEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
+bool AgentEnsemble::ensureSendPacketSwitched(
+    std::unique_ptr<TxPacket> pkt,
+    const std::optional<SwitchID>& switchId) {
   // lambda that returns HwPortStats for the given port(s)
   auto getPortStats =
       [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
@@ -743,16 +757,23 @@ bool AgentEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
     return getLatestSysPortStats(portIds);
   };
 
+  // On multi-NPU platforms, scope the verified ports to the switch under test
+  // so stats are checked on the same NPU the packet is routed to.
+  auto portIds = switchId.has_value()
+      ? masterLogicalInterfaceOrHyperPortIds(*switchId)
+      : masterLogicalPortIds(
+            std::set<cfg::PortType>{
+                cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
+
   return utility::ensureSendPacketSwitched(
       this,
       std::move(pkt),
-      masterLogicalPortIds(
-          std::set<cfg::PortType>{
-              cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}),
+      portIds,
       getPortStats,
       masterLogicalSysPortIds(),
       getSysPortStats,
-      kMsWaitForStatsRetry);
+      kMsWaitForStatsRetry,
+      switchId);
 }
 
 bool AgentEnsemble::ensureSendPacketOutOfPort(

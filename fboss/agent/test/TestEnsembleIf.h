@@ -187,6 +187,12 @@ class TestEnsembleIf : public HwSwitchCallback {
       std::unique_ptr<TxPacket> pkt,
       std::optional<PortDescriptor> portDescriptor = std::nullopt,
       std::optional<uint8_t> queueId = std::nullopt) = 0;
+  // Send a packet switched, optionally targeted at a specific switch (NPU).
+  // Default ignores the switchId and is suitable for single-switch ensembles;
+  // multi-switch ensembles override this to route to the target NPU.
+  virtual void sendPacketSwitchedAsync(
+      std::unique_ptr<TxPacket> pkt,
+      const std::optional<SwitchID>& switchId = std::nullopt);
   virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) = 0;
   virtual bool supportsAddRemovePort() const = 0;
   virtual const PlatformMapping* getPlatformMapping() const = 0;

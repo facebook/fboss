@@ -2,12 +2,20 @@
 
 #include "fboss/agent/test/TestEnsembleIf.h"
 
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/gen/Base.h>
 
 namespace facebook::fboss {
+
+void TestEnsembleIf::sendPacketSwitchedAsync(
+    std::unique_ptr<TxPacket> pkt,
+    const std::optional<SwitchID>& /*switchId*/) {
+  // Default: single-switch ensembles send switched without switch targeting.
+  sendPacketAsync(std::move(pkt));
+}
 
 std::vector<PortID> TestEnsembleIf::masterLogicalPortIdsImpl(
     const std::set<cfg::PortType>& portTypesFilter,
