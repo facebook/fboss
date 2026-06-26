@@ -1386,7 +1386,8 @@ TransceiverManagementInterface QsfpModule::getTransceiverManagementInterface(
   if (moduleId ==
           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
       moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::OSFP)) {
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::OSFP) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::CPO)) {
     return TransceiverManagementInterface::CMIS;
   } else if (
       moduleId ==

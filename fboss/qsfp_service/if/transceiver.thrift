@@ -267,6 +267,8 @@ enum TransceiverModuleIdentifier {
   QSFP_DD = 0x18,
   QSFP_PLUS_CMIS = 0x1E,
   OSFP = 0x19,
+  // 0x80: Co-packaged OE Engine (co-packaged optics)
+  CPO = 0x80,
   MINIPHOTON_OBO = 0x91,
 }
 
