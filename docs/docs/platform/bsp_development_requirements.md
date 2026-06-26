@@ -114,17 +114,20 @@ explicitly stated by the chip vendor.
 
 ## 3. Compatible Kernel Versions
 
-The BSP kernel modules must be compatible with following kernel versions
-(updated in May 2026):
+The BSP kernel modules must be compatible with the supported kernel versions.
+The current list of supported versions, along with planned/upcoming versions, is
+maintained on a dedicated page:
 
-* Linux v6.4.3
-* Linux v6.11.1
-* Linux v6.16.1
+* [Supported and Planned Kernel Versions](./kernel_versions.md)
 
 Being compatible means:
 
 1. The kernel modules can be compiled against the kernel version successfully.
 2. The kernel modules can be loaded in the above kernel versions and behave as expected.
+
+The per-driver test requirements that must pass on each supported kernel version
+are defined in the "Test Requirement(s)" subsections under each driver type
+below (see sections [6](#6-i2csmbus-adapter-drivers)–[13](#13-mdio-controller-drivers)).
 
 ## 4. Common Requirements
 
