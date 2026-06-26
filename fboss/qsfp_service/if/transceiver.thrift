@@ -241,6 +241,8 @@ enum MediaInterfaceCode {
   FR1_200G = 33,
   DR2_200G = 34,
   DR4_800G_GEARBOX = 35,
+  // 8x800G over DR4: 4 banks, each a 2x800G-DR4
+  DR4_8x800G = 36,
 }
 
 // The extended specification compliance code of the transceiver module.
