@@ -200,6 +200,33 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
   cfg::SwitchConfig configureAggregatePorts(AggPortInfo aggInfo) {
     auto config = initialConfig(*getAgentEnsemble());
     addAggregatePorts(&config, aggInfo);
+
+    // Prune vlans and interfaces that are no longer in use
+    std::set<VlanID> activeVlans;
+    for (const auto& vlanPort : *config.vlanPorts()) {
+      activeVlans.insert(VlanID(*vlanPort.vlanID()));
+    }
+
+    auto& vlans = *config.vlans();
+    vlans.erase(
+        std::remove_if(
+            vlans.begin(),
+            vlans.end(),
+            [&](const cfg::Vlan& vlan) {
+              return activeVlans.find(VlanID(*vlan.id())) == activeVlans.end();
+            }),
+        vlans.end());
+
+    auto& interfaces = *config.interfaces();
+    interfaces.erase(
+        std::remove_if(
+            interfaces.begin(),
+            interfaces.end(),
+            [&](const cfg::Interface& intf) {
+              return activeVlans.find(VlanID(*intf.vlanID())) ==
+                  activeVlans.end();
+            }),
+        interfaces.end());
     return config;
   }
 
