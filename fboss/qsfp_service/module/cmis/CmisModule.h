@@ -266,6 +266,16 @@ class CmisModule : public QsfpModule {
   // Cached CDB I2C write delay for firmware upgrade, computed from media type
   std::optional<uint64_t> cachedCdbWriteDelayUsec_;
 
+  // Cached maximum number of CMIS banks supported by the module, read from
+  // Lower Page 00h byte 70. See cacheMaxNumBanks()/getMaxNumBanks().
+  std::optional<uint8_t> maxNumBanks_;
+
+  /* Maximum number of CMIS banks supported by the module. Returns 1 until
+   * cacheMaxNumBanks() has populated the cache. */
+  uint8_t getMaxNumBanks() const {
+    return maxNumBanks_.value_or(1);
+  }
+
   /*
    * Structure to hold datapath init/deinit state per port using timers
    * progStartTimer: Time point when datapath programming started.
@@ -764,6 +774,13 @@ class CmisModule : public QsfpModule {
       uint8_t* data,
       bool skipBankAndPageChange = false,
       std::optional<uint8_t> bank = std::nullopt);
+
+  /* Read the maximum number of CMIS banks supported by the module from Lower
+   * Page 00h byte 70 and cache it in maxNumBanks_. The register holds the bank
+   * count directly (e.g. 4 for a 32-lane module); legacy/non-CPO modules that
+   * report 0 fall back to a single bank. Expects the lower page to be cached
+   * (i.e. call after the lower page read in updateQsfpData). */
+  void cacheMaxNumBanks();
 
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*

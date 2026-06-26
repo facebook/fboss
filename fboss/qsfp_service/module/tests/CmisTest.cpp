@@ -52,6 +52,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::getChannelNumFromFrequency;
   using CmisModule::getCurrentAppSelCode;
   using CmisModule::getInterfaceCodeForAppSel;
+  using CmisModule::getMaxNumBanks;
   using CmisModule::getQsfpValuePtr;
   using CmisModule::getTunableLaserStatus;
   using CmisModule::isRxConsActHoldOffTmrImplSupported;
@@ -89,6 +90,23 @@ class CmisTest : public TransceiverManagerTestHelper {
     return xcvr;
   }
 };
+
+// Existing (non-CPO) CMIS modules don't advertise a multi-bank capacity in
+// Lower Page 00h byte 70, so getMaxNumBanks() must fall back to a single bank.
+TEST_F(CmisTest, getMaxNumBanksDefaultsToOne) {
+  EXPECT_EQ(
+      overrideCmisModule<Cmis200GTransceiver>(TransceiverID(0))
+          ->getMaxNumBanks(),
+      1);
+  EXPECT_EQ(
+      overrideCmisModule<Cmis400GLr4Transceiver>(TransceiverID(1))
+          ->getMaxNumBanks(),
+      1);
+  EXPECT_EQ(
+      overrideCmisModule<CmisFlatMemTransceiver>(TransceiverID(2))
+          ->getMaxNumBanks(),
+      1);
+}
 
 // Tests that the transceiverInfo object is correctly populated
 TEST_F(CmisTest, cmis200GTransceiverInfoTest) {

@@ -148,6 +148,7 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::MODULE_CONTROL, {CmisPages::LOWER, 26, 1}},
     {CmisField::FIRMWARE_REVISION, {CmisPages::LOWER, 39, 2}},
     {CmisField::FEC_SAMPLING_PCT, {CmisPages::LOWER, 65, 1}},
+    {CmisField::MAX_BANK_CAPACITY, {CmisPages::LOWER, 70, 1}},
     {CmisField::MEDIA_TYPE_ENCODINGS, {CmisPages::LOWER, 85, 1}},
     {CmisField::APPLICATION_ADVERTISING1, {CmisPages::LOWER, 86, 4}},
     {CmisField::BANK_SELECT, {CmisPages::LOWER, 126, 1}},
@@ -677,6 +678,14 @@ bool isBankedPage(CmisPages page) {
       page != CmisPages::PAGE04;
 }
 } // namespace
+
+void CmisModule::cacheMaxNumBanks() {
+  // Lower Page 00h byte 70 holds the module's max CMIS bank count directly
+  // (e.g. 4 for a 32-lane module). Legacy/non-CPO modules report 0 here, so
+  // fall back to a single bank.
+  uint8_t banks = getSettingsValue(CmisField::MAX_BANK_CAPACITY);
+  maxNumBanks_ = banks ? banks : 1;
+}
 
 void CmisModule::selectBankAndPage(int dataPage, std::optional<uint8_t> bank) {
   auto page = static_cast<CmisPages>(dataPage);
@@ -2506,6 +2515,7 @@ void CmisModule::updateQsfpData(bool allPages) {
     lastRefreshTime_ = std::time(nullptr);
     dirty_ = false;
     setQsfpFlatMem();
+    cacheMaxNumBanks();
 
     readCmisField(CmisField::PAGE_UPPER00H, page0_);
     if (!flatMem_) {
