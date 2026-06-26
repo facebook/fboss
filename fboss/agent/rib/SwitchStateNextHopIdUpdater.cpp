@@ -26,6 +26,7 @@ SwitchStateNextHopIdUpdater::SwitchStateNextHopIdUpdater(
 
 std::shared_ptr<SwitchState> SwitchStateNextHopIdUpdater::operator()(
     const std::shared_ptr<SwitchState>& state) {
+  invalidLinkLocalNextHop_ = std::nullopt;
   if (!nextHopIDManager_) {
     return state;
   }
@@ -68,11 +69,20 @@ std::shared_ptr<SwitchState> SwitchStateNextHopIdUpdater::operator()(
   // Diff set maps: clone FIB, add missing from RIB, remove stale from FIB
   auto updatedSetMap =
       fibSetMap ? fibSetMap->clone() : std::make_shared<IdToNextHopIdSetMap>();
+  auto isInvalidLinkLocalNextHop = [&state](const auto& nextHop) {
+    return nextHop.addr().isV6() && nextHop.addr().isLinkLocal() &&
+        (!nextHop.intfID().has_value() ||
+         !state->getInterfaces()->getNodeIf(*nextHop.intfID()));
+  };
   for (const auto& [id, nextHopIdSet] : ribSetMap) {
     if (!fibSetMap || !fibSetMap->getNextHopIdSetIf(id)) {
       std::set<int64_t> nhopIds;
       for (auto nhopId : nextHopIdSet) {
         nhopIds.insert(static_cast<int64_t>(nhopId));
+        const auto& nextHop = ribNhopMap.at(nhopId).nextHop;
+        if (!invalidLinkLocalNextHop_ && isInvalidLinkLocalNextHop(nextHop)) {
+          invalidLinkLocalNextHop_ = nextHop.str();
+        }
       }
       updatedSetMap->addNextHopIdSet(id, nhopIds);
       setChanged = true;

@@ -16,6 +16,7 @@
 #include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RibToSwitchStateUpdater.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"
@@ -133,7 +134,7 @@ class RibRollbackTest : public ::testing::Test {
   void SetUp() override {
     FLAGS_mpls_rib = true;
     rib_.ensureVrf(kRid);
-    switchState_ = std::make_shared<SwitchState>();
+    switchState_ = makeSwitchState();
     auto origSwitchState = switchState_;
     switchState_->publish();
     rib_.update(
@@ -165,6 +166,24 @@ class RibRollbackTest : public ::testing::Test {
     EXPECT_EQ(2, switchState_->getGeneration());
     assertRouteCount(0, 1, 1);
   }
+
+  std::shared_ptr<SwitchState> makeSwitchState() const {
+    auto switchState = std::make_shared<SwitchState>();
+    auto intf = std::make_shared<Interface>(
+        InterfaceID(1),
+        kRid,
+        std::optional<VlanID>(VlanID(1)),
+        folly::StringPiece("intf1"),
+        folly::MacAddress("00:00:00:00:00:01"),
+        9000,
+        false,
+        false);
+    auto intfs = std::make_shared<MultiSwitchInterfaceMap>();
+    intfs->addNode(intf, scope());
+    switchState->resetIntfs(intfs);
+    return switchState;
+  }
+
   void TearDown() override {
     switchState_->publish();
     auto curSwitchState = switchState_;

@@ -23,6 +23,7 @@
 
 #include <gtest/gtest.h>
 #include <optional>
+#include <set>
 
 using namespace facebook::fboss;
 using facebook::network::toBinaryAddress;
@@ -114,6 +115,31 @@ RouteNextHopSet newNextHops(int n, std::string prefix) {
     h.emplace(UnresolvedNextHop(IPAddress(ipStr), UCMP_DEFAULT_WEIGHT));
   }
   return h;
+}
+
+std::set<std::string> routePrefixesFromState(
+    const std::shared_ptr<SwitchState>& state,
+    RouterID rid) {
+  std::set<std::string> routes;
+  forAllRoutes(state, [&routes, rid](const RouterID& routeRid, auto& route) {
+    if (routeRid != rid) {
+      return;
+    }
+    routes.insert(route->prefix().str());
+  });
+  return routes;
+}
+
+std::set<std::string> routePrefixesFromRouteDetails(
+    const std::vector<RouteDetails>& routeDetails) {
+  std::set<std::string> routes;
+  for (const auto& route : routeDetails) {
+    auto ip = facebook::network::toIPAddress(*route.dest()->ip());
+    routes.insert(
+        folly::IPAddress::networkToString(
+            {ip, static_cast<uint8_t>(*route.dest()->prefixLength())}));
+  }
+  return routes;
 }
 
 } // namespace
@@ -1955,6 +1981,50 @@ TEST_F(RouteTest, withOnlyTunnelLabels) {
           nhop.labelForwardingAction()->pushStack().value(), kLabelStacks[3]);
     }
   }
+}
+
+TEST_F(RouteTest, invalidLinkLocalNextHopIntfDoesNotUpdateState) {
+  auto rid = RouterID(0);
+  auto stateBeforeUpdate = this->sw_->getState();
+  const auto routePrefixesBeforeUpdate =
+      routePrefixesFromState(stateBeforeUpdate, rid);
+  EXPECT_EQ(
+      routePrefixesBeforeUpdate,
+      routePrefixesFromRouteDetails(
+          this->sw_->getRib()->getRouteTableDetails(rid)));
+
+  RouteNextHopSet linkLocalNextHops;
+  for (auto i = 0; i < 4; i++) {
+    linkLocalNextHops.emplace(ResolvedNextHop(
+        kIgpAddrs[i], i == 2 ? InterfaceID(999) : kInterfaces[i], ECMP_WEIGHT));
+  }
+
+  auto updater = this->sw_->getRouteUpdater();
+  updater.addRoute(
+      rid,
+      IPAddress("10.10.10.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(makeNextHops({"1.1.1.10"}), DISTANCE));
+  updater.addRoute(
+      rid,
+      IPAddress("2001::0"),
+      48,
+      kClientA,
+      RouteNextHopEntry(makeNextHops({"1::10"}), DISTANCE));
+  updater.addRoute(
+      rid,
+      IPAddress("3001::0"),
+      48,
+      kClientA,
+      RouteNextHopEntry(linkLocalNextHops, DISTANCE));
+
+  EXPECT_THROW(updater.program(), FbossError);
+  EXPECT_EQ(stateBeforeUpdate, this->sw_->getState());
+  EXPECT_EQ(
+      routePrefixesBeforeUpdate,
+      routePrefixesFromRouteDetails(
+          this->sw_->getRib()->getRouteTableDetails(rid)));
 }
 
 TEST_F(RouteTest, updateTunnelLabels) {

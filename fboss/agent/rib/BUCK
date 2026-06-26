@@ -175,6 +175,7 @@ cpp_library(
         ":nexthop_id_manager",
         ":standalone_rib",
         "//fboss/agent:agent_features",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fib_helpers",
         "//fboss/agent:switchid_scope_resolver",

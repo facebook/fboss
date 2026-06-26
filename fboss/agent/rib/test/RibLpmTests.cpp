@@ -8,12 +8,14 @@
  *
  */
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -23,6 +25,7 @@
 #include <folly/IPAddressV6.h>
 #include <gtest/gtest.h>
 #include <memory>
+#include <unordered_set>
 
 using namespace facebook::fboss;
 
@@ -373,8 +376,7 @@ class GetRouteAndNextHopsTest : public ::testing::Test {
     FLAGS_resolve_nexthops_from_id = kResolveFromId;
 
     rib_ = std::make_unique<RoutingInformationBase>();
-    switchState_ = std::make_shared<SwitchState>();
-    switchState_->publish();
+    switchState_ = makeSwitchState();
 
     // Add interface route so nexthops can resolve
     RibRouteTables::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
@@ -393,7 +395,7 @@ class GetRouteAndNextHopsTest : public ::testing::Test {
         {},
         {},
         {} /* staticMySids */,
-        ribToSwitchStateUpdate,
+        noopFibUpdate,
         &switchState_);
 
     // Add DROP routes
@@ -411,8 +413,31 @@ class GetRouteAndNextHopsTest : public ::testing::Test {
         {},
         false,
         "add route with nexthops",
-        ribToSwitchStateUpdate,
+        noopFibUpdate,
         &switchState_);
+  }
+
+  std::shared_ptr<SwitchState> makeSwitchState() const {
+    auto switchState = std::make_shared<SwitchState>();
+    const HwSwitchMatcher matcher(std::unordered_set<SwitchID>{SwitchID(0)});
+
+    auto intf = std::make_shared<Interface>(
+        InterfaceID(1),
+        kRid0,
+        std::optional<VlanID>(VlanID(1)),
+        folly::StringPiece("intf1"),
+        folly::MacAddress("00:00:00:00:00:01"),
+        9000,
+        false,
+        false);
+    intf->setAddresses({{TD::intfAddr(), TD::intfPrefix().second}});
+
+    auto intfs = std::make_shared<MultiSwitchInterfaceMap>();
+    intfs->addNode(intf, matcher);
+    switchState->resetIntfs(intfs);
+
+    switchState->publish();
+    return switchState;
   }
 
   // When resolve_nexthops_from_id is true, verify that toggling the flag
