@@ -168,21 +168,27 @@ with any changes made to the BSP.
 and this file contains a list of kmods (as named in `lsmod`) in the following
 format:
 
-```json
-{
-    "bspKmods": [
-        "kmod_A",
-        "kmod_B",
-    ],
-    "sharedKmods": [
-        "shared_kmod_C",
-        "shared_kmod_D"
-    ]
-}
-```
+    ```json
+    {
+        "bspKmods": [
+            "kmod_A",
+            "kmod_B",
+        ],
+        "sharedKmods": [
+            "shared_kmod_C",
+            "shared_kmod_D"
+        ]
+    }
+    ```
 
-`fbsp-remove.sh` must read `kmods.json` and remove `bspKmods` before `sharedKmods`.
-A "shared" kmod is any kmod which other kmods depend upon.
+    `fbsp-remove.sh` must read `kmods.json` and remove `bspKmods` before `sharedKmods`.
+    A "shared" kmod is any kmod which other kmods depend upon.
+
+12. No driver shall use any auto-probing mechanisms.  When a module is loaded it must
+not do any transactions to detect devices to attempt to automatically probe and attach.
+This applies to backported drivers as well.  If they support auto-probing and detection,
+that functionality must be removed before backporting. An example is the `.address_list`
+entry in i2c drivers.
 
 ### 4.1 Source Code Repository Structure
 
