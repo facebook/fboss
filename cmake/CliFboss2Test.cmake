@@ -73,6 +73,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/config/CmdDeleteConfigInterfaceTest.cpp
   fboss/cli/fboss2/test/CmdShowRouteDetailsTest.cpp
   fboss/cli/fboss2/test/CmdShowRouteSummaryTest.cpp
+  fboss/cli/fboss2/test/CmdShowSystemPortTest.cpp
   fboss/cli/fboss2/test/CmdShowTeFlowTest.cpp
   # fboss/cli/fboss2/test/CmdShowTransceiverTest.cpp - excluded (depends on configerator bgp namespace)
   fboss/cli/fboss2/test/CmdBgpTestUtils.cpp

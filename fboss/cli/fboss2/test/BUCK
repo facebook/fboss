@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -94,6 +95,7 @@ cpp_unittest(
         "FilterValidationTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
+    network_access = network_access_utils.all(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":cmd_test_utils",
@@ -167,6 +169,7 @@ cpp_unittest(
         "CmdShowProductTest.cpp",
         "CmdShowRouteDetailsTest.cpp",
         "CmdShowRouteSummaryTest.cpp",
+        "CmdShowSystemPortTest.cpp",
         "CmdShowTeFlowTest.cpp",
         "CmdShowTransceiverTest.cpp",
         "CmdStartPcapTest.cpp",
@@ -176,6 +179,7 @@ cpp_unittest(
         "PortMapTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
+    network_access = network_access_utils.all(),
     # Config files for PortMapTest parameterized tests
     resources = [
         "//fboss/oss/link_test_configs:link_test_configs",
@@ -222,6 +226,7 @@ cpp_unittest(
         "//fboss/cli/fboss2/commands/show/port:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/product:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/route:model-cpp2-types",
+        "//fboss/cli/fboss2/commands/show/systemport:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/teflow:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/transceiver:model-cpp2-types",
         "//folly:dynamic",
