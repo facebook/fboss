@@ -41,13 +41,6 @@ class AgentLoadBalancerTest
     Runner::setEcmpHelper();
   }
 
-  // FrontPanel variants inject traffic from masterLogicalInterfacePortIds()
-  // at index ecmpWidth (=8), so we need at least 9 INTERFACE_PORTs. CPU and
-  // spray variants are unaffected but harmless at 9.
-  std::optional<size_t> maxRequiredInterfacePorts() const override {
-    return 9;
-  }
-
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (!kWideEcmp) {
@@ -531,12 +524,6 @@ template <typename TestType>
 class AgentHashPolarizationTest : public AgentHwTest {
  protected:
   static constexpr auto isTrunk = std::is_same_v<TestType, AggregatePortID>;
-
-  // AggregatePortID instantiation needs 4*3 trunk fanout + 1 injection = 13
-  // INTERFACE_PORTs. PortID instantiation only needs 9 but 13 is harmless.
-  std::optional<size_t> maxRequiredInterfacePorts() const override {
-    return 13;
-  }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {

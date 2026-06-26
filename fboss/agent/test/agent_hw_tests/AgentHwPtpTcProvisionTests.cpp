@@ -53,14 +53,6 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
         ProductionFeature::PTP_TC_PROVISIONING_TIME_HW_VALIDATION};
   }
 
-  // The test exercises every enabled interface port
-  // (configurePortGroupsForMaxSpeed enables the full port set), so each must
-  // have an L3 interface/nhop. Opt out of the default interface-port cap to
-  // configure the full port set.
-  std::optional<size_t> maxRequiredInterfacePorts() const override {
-    return std::nullopt;
-  }
-
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();

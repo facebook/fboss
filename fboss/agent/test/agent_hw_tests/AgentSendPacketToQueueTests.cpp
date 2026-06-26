@@ -39,13 +39,6 @@ class AgentSendPacketToQueueTest : public AgentHwTest {
     return {ProductionFeature::L3_FORWARDING};
   }
 
-  // OUT_OF_PORT send on J3 EDSW dual-stage 3Q+2Q needs the high-ID
-  // system/recycle ports in the configured port set. Opt out of the default
-  // interface-port cap so the initial config keeps the full port set.
-  std::optional<size_t> maxRequiredInterfacePorts() const override {
-    return std::nullopt;
-  }
-
  protected:
   void checkSendPacket(std::optional<uint8_t> ucQueue, bool isOutOfPort);
 };

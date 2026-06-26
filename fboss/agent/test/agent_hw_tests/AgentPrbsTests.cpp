@@ -30,11 +30,6 @@ class AgentPrbsTest : public AgentHwTest {
     return {ProductionFeature::PRBS};
   }
 
-  std::optional<size_t> maxRequiredInterfacePorts() const override {
-    // PRBS is enabled/verified on every interface, fabric, and management port.
-    return std::nullopt;
-  }
-
   std::vector<PortID> getTestPortIds() const {
     return masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT,

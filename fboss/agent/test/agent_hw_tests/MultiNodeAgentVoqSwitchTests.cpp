@@ -43,11 +43,6 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     return {ProductionFeature::VOQ};
   }
 
-  std::optional<size_t> maxRequiredInterfacePorts() const override {
-    // Multinode VoQ topology exercises the full agent config port set.
-    return std::nullopt;
-  }
-
   bool isTestDriver() const {
     // Each nodes in a DSF Multi Node Test setup runs this binary. However,
     // only one node (SwitchID 0) is the primary driver of the test. Test

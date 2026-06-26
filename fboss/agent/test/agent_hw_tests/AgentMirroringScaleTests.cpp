@@ -47,12 +47,6 @@ class AgentMirroringScaleTest : public AgentHwTest {
   // exercised opportunistically (see addMirrorConfig), gated at runtime on
   // HwAsic::Feature::ERSPANv6, so it is not listed as a required feature here
   // (that would skip v4 ERSPAN coverage on platforms without v6 ERSPAN).
-  //
-  std::optional<size_t> maxRequiredInterfacePorts() const override {
-    // Scale tests build one mirror session per port pair.
-    return std::nullopt;
-  }
-
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (

@@ -18,11 +18,6 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
     return config;
   }
 
-  std::optional<size_t> maxRequiredInterfacePorts() const override {
-    // Line-rate verification loops over every interface port.
-    return std::nullopt;
-  }
-
   folly::MacAddress getIntfMac() const {
     return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
