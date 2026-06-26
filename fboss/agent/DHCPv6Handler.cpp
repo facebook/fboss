@@ -380,7 +380,20 @@ void DHCPv6Handler::processDHCPv6RelayReply(
   for (int i = 0; i < dhcpOptions.size(); i++) {
     if (dhcpOptions[i].op ==
         static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID)) {
-      DCHECK(dhcpOptions[i].len == MacAddress::SIZE);
+      // The INTERFACE_ID option supplies the outbound destination MAC. We read
+      // a fixed MacAddress::SIZE (6) bytes from the option data, so the option
+      // must actually carry that many bytes. A shorter attacker-supplied option
+      // would otherwise over-read past the end of the parsed options buffer
+      // (the DCHECK previously here is a no-op in opt builds). Drop the packet
+      // on a length mismatch, mirroring the runtime validation on the
+      // RELAY_MSG path below.
+      if (dhcpOptions[i].len != MacAddress::SIZE) {
+        sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
+        XLOG(DBG2)
+            << "Bad dhcp relay reply message: INTERFACE_ID option length "
+            << dhcpOptions[i].len << " != " << MacAddress::SIZE;
+        return;
+      }
       destMac = MacAddress::fromBinary(
           folly::ByteRange(dhcpOptions[i].data, MacAddress::SIZE));
     } else if (
