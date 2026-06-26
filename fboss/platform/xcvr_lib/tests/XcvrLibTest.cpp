@@ -26,8 +26,7 @@ platform::platform_manager::PlatformConfig makeTestConfig(
     const std::vector<platform::platform_manager::LedCtrlBlockConfig>&
         ledBlocks = {},
     const std::map<std::string, std::string>& symbolicLinks = {},
-    const std::string& bspKmodsRpmName = "fboss_bsp_kmods",
-    const std::string& bspKmodsRpmVersion = "1.0.0-1") {
+    const std::string& bspKmodsRpmName = "fboss_bsp_kmods") {
   platform::platform_manager::PciDeviceConfig pciDevice;
   pciDevice.ledCtrlBlockConfigs() = ledBlocks;
 
@@ -40,7 +39,6 @@ platform::platform_manager::PlatformConfig makeTestConfig(
   pmConfig.symbolicLinkToDevicePath() = symbolicLinks;
   pmConfig.pmUnitConfigs() = {{"test_unit", pmUnit}};
   pmConfig.bspKmodsRpmName() = bspKmodsRpmName;
-  pmConfig.bspKmodsRpmVersion() = bspKmodsRpmVersion;
   return pmConfig;
 }
 
@@ -188,47 +186,15 @@ TEST(XcvrLibTest, GetResetHoldHiFbossBsp) {
   EXPECT_EQ(xcvr.getResetHoldHi(), 1);
 }
 
-TEST(XcvrLibTest, GetResetHoldHiAristaBspOldVersion) {
+TEST(XcvrLibTest, GetResetHoldHiAristaBsp) {
   XcvrLib xcvr(makeTestConfig(
-      "TEST_PLATFORM",
-      1,
-      {makeLedBlock(1, 1, 2, 8)},
-      {},
-      "arista_bsp_kmods",
-      "0.7.22-1"));
+      "TEST_PLATFORM", 1, {makeLedBlock(1, 1, 2, 8)}, {}, "arista_bsp_kmods"));
   EXPECT_EQ(xcvr.getResetHoldHi(), 0);
-}
-
-TEST(XcvrLibTest, GetResetHoldHiAristaBspMinVersion) {
-  XcvrLib xcvr(makeTestConfig(
-      "TEST_PLATFORM",
-      1,
-      {makeLedBlock(1, 1, 2, 8)},
-      {},
-      "arista_bsp_kmods",
-      "0.7.25-1"));
-  EXPECT_EQ(xcvr.getResetHoldHi(), 1);
-}
-
-TEST(XcvrLibTest, GetResetHoldHiAristaBspNewerVersion) {
-  XcvrLib xcvr(makeTestConfig(
-      "TEST_PLATFORM",
-      1,
-      {makeLedBlock(1, 1, 2, 8)},
-      {},
-      "arista_bsp_kmods",
-      "0.8.0-1"));
-  EXPECT_EQ(xcvr.getResetHoldHi(), 1);
 }
 
 TEST(XcvrLibTest, GetResetHoldHiCiscoBsp) {
   XcvrLib xcvr(makeTestConfig(
-      "TEST_PLATFORM",
-      1,
-      {makeLedBlock(1, 1, 2, 8)},
-      {},
-      "cisco_bsp_kmods",
-      "0.7.23-1"));
+      "TEST_PLATFORM", 1, {makeLedBlock(1, 1, 2, 8)}, {}, "cisco_bsp_kmods"));
   EXPECT_EQ(xcvr.getResetHoldHi(), 0);
 }
 
