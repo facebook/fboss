@@ -6174,8 +6174,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core0",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core1",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -6194,8 +6194,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core0",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core1",
+                      "lane": 0
                     }
                   }
                 ],
@@ -6219,8 +6219,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core0",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core1",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -6239,8 +6239,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core0",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core1",
+                      "lane": 1
                     }
                   }
                 ],
@@ -6264,8 +6264,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core0",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core1",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -6284,8 +6284,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core0",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core1",
+                      "lane": 2
                     }
                   }
                 ],
@@ -6309,8 +6309,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core0",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core1",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -6329,8 +6329,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core0",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core1",
+                      "lane": 3
                     }
                   }
                 ],
@@ -6354,7 +6354,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core1",
+                "chip": "NPU-J4_FE-slot1/chip1/core2",
                 "lane": 0
               },
               "z": {
@@ -6374,7 +6374,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core1",
+                      "chip": "NPU-J4_FE-slot1/chip1/core2",
                       "lane": 0
                     }
                   }
@@ -6399,7 +6399,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core1",
+                "chip": "NPU-J4_FE-slot1/chip1/core2",
                 "lane": 1
               },
               "z": {
@@ -6419,7 +6419,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core1",
+                      "chip": "NPU-J4_FE-slot1/chip1/core2",
                       "lane": 1
                     }
                   }
@@ -6444,7 +6444,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core1",
+                "chip": "NPU-J4_FE-slot1/chip1/core2",
                 "lane": 2
               },
               "z": {
@@ -6464,7 +6464,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core1",
+                      "chip": "NPU-J4_FE-slot1/chip1/core2",
                       "lane": 2
                     }
                   }
@@ -6489,7 +6489,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core1",
+                "chip": "NPU-J4_FE-slot1/chip1/core2",
                 "lane": 3
               },
               "z": {
@@ -6509,7 +6509,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core1",
+                      "chip": "NPU-J4_FE-slot1/chip1/core2",
                       "lane": 3
                     }
                   }
@@ -6534,8 +6534,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core1",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core3",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -6554,8 +6554,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core1",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core3",
+                      "lane": 0
                     }
                   }
                 ],
@@ -6579,8 +6579,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core1",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core3",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -6599,8 +6599,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core1",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core3",
+                      "lane": 1
                     }
                   }
                 ],
@@ -6624,8 +6624,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core1",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core3",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -6644,8 +6644,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core1",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core3",
+                      "lane": 2
                     }
                   }
                 ],
@@ -6669,8 +6669,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core1",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core3",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -6689,8 +6689,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core1",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core3",
+                      "lane": 3
                     }
                   }
                 ],
@@ -6714,7 +6714,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core2",
+                "chip": "NPU-J4_FE-slot1/chip1/core4",
                 "lane": 0
               },
               "z": {
@@ -6734,7 +6734,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core2",
+                      "chip": "NPU-J4_FE-slot1/chip1/core4",
                       "lane": 0
                     }
                   }
@@ -6759,7 +6759,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core2",
+                "chip": "NPU-J4_FE-slot1/chip1/core4",
                 "lane": 1
               },
               "z": {
@@ -6779,7 +6779,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core2",
+                      "chip": "NPU-J4_FE-slot1/chip1/core4",
                       "lane": 1
                     }
                   }
@@ -6804,7 +6804,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core2",
+                "chip": "NPU-J4_FE-slot1/chip1/core4",
                 "lane": 2
               },
               "z": {
@@ -6824,7 +6824,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core2",
+                      "chip": "NPU-J4_FE-slot1/chip1/core4",
                       "lane": 2
                     }
                   }
@@ -6849,7 +6849,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core2",
+                "chip": "NPU-J4_FE-slot1/chip1/core4",
                 "lane": 3
               },
               "z": {
@@ -6869,7 +6869,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core2",
+                      "chip": "NPU-J4_FE-slot1/chip1/core4",
                       "lane": 3
                     }
                   }
@@ -6894,8 +6894,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core2",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core5",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -6914,8 +6914,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core2",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core5",
+                      "lane": 0
                     }
                   }
                 ],
@@ -6939,8 +6939,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core2",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core5",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -6959,8 +6959,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core2",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core5",
+                      "lane": 1
                     }
                   }
                 ],
@@ -6984,8 +6984,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core2",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core5",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -7004,8 +7004,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core2",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core5",
+                      "lane": 2
                     }
                   }
                 ],
@@ -7029,8 +7029,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core2",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core5",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -7049,8 +7049,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core2",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core5",
+                      "lane": 3
                     }
                   }
                 ],
@@ -7074,7 +7074,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core3",
+                "chip": "NPU-J4_FE-slot1/chip1/core6",
                 "lane": 0
               },
               "z": {
@@ -7094,7 +7094,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core3",
+                      "chip": "NPU-J4_FE-slot1/chip1/core6",
                       "lane": 0
                     }
                   }
@@ -7119,7 +7119,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core3",
+                "chip": "NPU-J4_FE-slot1/chip1/core6",
                 "lane": 1
               },
               "z": {
@@ -7139,7 +7139,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core3",
+                      "chip": "NPU-J4_FE-slot1/chip1/core6",
                       "lane": 1
                     }
                   }
@@ -7164,7 +7164,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core3",
+                "chip": "NPU-J4_FE-slot1/chip1/core6",
                 "lane": 2
               },
               "z": {
@@ -7184,7 +7184,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core3",
+                      "chip": "NPU-J4_FE-slot1/chip1/core6",
                       "lane": 2
                     }
                   }
@@ -7209,7 +7209,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core3",
+                "chip": "NPU-J4_FE-slot1/chip1/core6",
                 "lane": 3
               },
               "z": {
@@ -7229,7 +7229,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core3",
+                      "chip": "NPU-J4_FE-slot1/chip1/core6",
                       "lane": 3
                     }
                   }
@@ -7254,8 +7254,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core3",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core7",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -7274,8 +7274,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core3",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core7",
+                      "lane": 0
                     }
                   }
                 ],
@@ -7299,8 +7299,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core3",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core7",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -7319,8 +7319,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core3",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core7",
+                      "lane": 1
                     }
                   }
                 ],
@@ -7344,8 +7344,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core3",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core7",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -7364,8 +7364,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core3",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core7",
+                      "lane": 2
                     }
                   }
                 ],
@@ -7389,8 +7389,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core3",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core7",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -7409,8 +7409,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core3",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core7",
+                      "lane": 3
                     }
                   }
                 ],
@@ -7434,7 +7434,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core4",
+                "chip": "NPU-J4_FE-slot1/chip1/core8",
                 "lane": 0
               },
               "z": {
@@ -7454,7 +7454,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core4",
+                      "chip": "NPU-J4_FE-slot1/chip1/core8",
                       "lane": 0
                     }
                   }
@@ -7479,7 +7479,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core4",
+                "chip": "NPU-J4_FE-slot1/chip1/core8",
                 "lane": 1
               },
               "z": {
@@ -7499,7 +7499,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core4",
+                      "chip": "NPU-J4_FE-slot1/chip1/core8",
                       "lane": 1
                     }
                   }
@@ -7524,7 +7524,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core4",
+                "chip": "NPU-J4_FE-slot1/chip1/core8",
                 "lane": 2
               },
               "z": {
@@ -7544,7 +7544,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core4",
+                      "chip": "NPU-J4_FE-slot1/chip1/core8",
                       "lane": 2
                     }
                   }
@@ -7569,7 +7569,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core4",
+                "chip": "NPU-J4_FE-slot1/chip1/core8",
                 "lane": 3
               },
               "z": {
@@ -7589,7 +7589,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core4",
+                      "chip": "NPU-J4_FE-slot1/chip1/core8",
                       "lane": 3
                     }
                   }
@@ -7614,8 +7614,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core4",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core9",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -7634,8 +7634,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core4",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core9",
+                      "lane": 0
                     }
                   }
                 ],
@@ -7659,8 +7659,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core4",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core9",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -7679,8 +7679,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core4",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core9",
+                      "lane": 1
                     }
                   }
                 ],
@@ -7704,8 +7704,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core4",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core9",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -7724,8 +7724,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core4",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core9",
+                      "lane": 2
                     }
                   }
                 ],
@@ -7749,8 +7749,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core4",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core9",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -7769,8 +7769,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core4",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core9",
+                      "lane": 3
                     }
                   }
                 ],
@@ -7794,7 +7794,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core5",
+                "chip": "NPU-J4_FE-slot1/chip1/core10",
                 "lane": 0
               },
               "z": {
@@ -7814,7 +7814,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core5",
+                      "chip": "NPU-J4_FE-slot1/chip1/core10",
                       "lane": 0
                     }
                   }
@@ -7839,7 +7839,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core5",
+                "chip": "NPU-J4_FE-slot1/chip1/core10",
                 "lane": 1
               },
               "z": {
@@ -7859,7 +7859,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core5",
+                      "chip": "NPU-J4_FE-slot1/chip1/core10",
                       "lane": 1
                     }
                   }
@@ -7884,7 +7884,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core5",
+                "chip": "NPU-J4_FE-slot1/chip1/core10",
                 "lane": 2
               },
               "z": {
@@ -7904,7 +7904,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core5",
+                      "chip": "NPU-J4_FE-slot1/chip1/core10",
                       "lane": 2
                     }
                   }
@@ -7929,7 +7929,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core5",
+                "chip": "NPU-J4_FE-slot1/chip1/core10",
                 "lane": 3
               },
               "z": {
@@ -7949,7 +7949,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core5",
+                      "chip": "NPU-J4_FE-slot1/chip1/core10",
                       "lane": 3
                     }
                   }
@@ -7974,8 +7974,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core5",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core11",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -7994,8 +7994,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core5",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core11",
+                      "lane": 0
                     }
                   }
                 ],
@@ -8019,8 +8019,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core5",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core11",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -8039,8 +8039,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core5",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core11",
+                      "lane": 1
                     }
                   }
                 ],
@@ -8064,8 +8064,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core5",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core11",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -8084,8 +8084,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core5",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core11",
+                      "lane": 2
                     }
                   }
                 ],
@@ -8109,8 +8109,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core5",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core11",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -8129,8 +8129,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core5",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core11",
+                      "lane": 3
                     }
                   }
                 ],
@@ -8154,7 +8154,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core6",
+                "chip": "NPU-J4_FE-slot1/chip1/core12",
                 "lane": 0
               },
               "z": {
@@ -8174,7 +8174,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core6",
+                      "chip": "NPU-J4_FE-slot1/chip1/core12",
                       "lane": 0
                     }
                   }
@@ -8199,7 +8199,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core6",
+                "chip": "NPU-J4_FE-slot1/chip1/core12",
                 "lane": 1
               },
               "z": {
@@ -8219,7 +8219,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core6",
+                      "chip": "NPU-J4_FE-slot1/chip1/core12",
                       "lane": 1
                     }
                   }
@@ -8244,7 +8244,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core6",
+                "chip": "NPU-J4_FE-slot1/chip1/core12",
                 "lane": 2
               },
               "z": {
@@ -8264,7 +8264,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core6",
+                      "chip": "NPU-J4_FE-slot1/chip1/core12",
                       "lane": 2
                     }
                   }
@@ -8289,7 +8289,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core6",
+                "chip": "NPU-J4_FE-slot1/chip1/core12",
                 "lane": 3
               },
               "z": {
@@ -8309,7 +8309,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core6",
+                      "chip": "NPU-J4_FE-slot1/chip1/core12",
                       "lane": 3
                     }
                   }
@@ -8334,8 +8334,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core6",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core13",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -8354,8 +8354,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core6",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core13",
+                      "lane": 0
                     }
                   }
                 ],
@@ -8379,8 +8379,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core6",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core13",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -8399,8 +8399,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core6",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core13",
+                      "lane": 1
                     }
                   }
                 ],
@@ -8424,8 +8424,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core6",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core13",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -8444,8 +8444,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core6",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core13",
+                      "lane": 2
                     }
                   }
                 ],
@@ -8469,8 +8469,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core6",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core13",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -8489,8 +8489,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core6",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core13",
+                      "lane": 3
                     }
                   }
                 ],
@@ -8514,7 +8514,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core7",
+                "chip": "NPU-J4_FE-slot1/chip1/core14",
                 "lane": 0
               },
               "z": {
@@ -8534,7 +8534,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core7",
+                      "chip": "NPU-J4_FE-slot1/chip1/core14",
                       "lane": 0
                     }
                   }
@@ -8559,7 +8559,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core7",
+                "chip": "NPU-J4_FE-slot1/chip1/core14",
                 "lane": 1
               },
               "z": {
@@ -8579,7 +8579,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core7",
+                      "chip": "NPU-J4_FE-slot1/chip1/core14",
                       "lane": 1
                     }
                   }
@@ -8604,7 +8604,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core7",
+                "chip": "NPU-J4_FE-slot1/chip1/core14",
                 "lane": 2
               },
               "z": {
@@ -8624,7 +8624,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core7",
+                      "chip": "NPU-J4_FE-slot1/chip1/core14",
                       "lane": 2
                     }
                   }
@@ -8649,7 +8649,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core7",
+                "chip": "NPU-J4_FE-slot1/chip1/core14",
                 "lane": 3
               },
               "z": {
@@ -8669,7 +8669,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core7",
+                      "chip": "NPU-J4_FE-slot1/chip1/core14",
                       "lane": 3
                     }
                   }
@@ -8694,8 +8694,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core7",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core15",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -8714,8 +8714,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core7",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core15",
+                      "lane": 0
                     }
                   }
                 ],
@@ -8739,8 +8739,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core7",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core15",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -8759,8 +8759,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core7",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core15",
+                      "lane": 1
                     }
                   }
                 ],
@@ -8784,8 +8784,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core7",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core15",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -8804,8 +8804,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core7",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core15",
+                      "lane": 2
                     }
                   }
                 ],
@@ -8829,8 +8829,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core7",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core15",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -8849,8 +8849,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core7",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core15",
+                      "lane": 3
                     }
                   }
                 ],
@@ -8874,7 +8874,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core8",
+                "chip": "NPU-J4_FE-slot1/chip1/core16",
                 "lane": 0
               },
               "z": {
@@ -8894,7 +8894,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core8",
+                      "chip": "NPU-J4_FE-slot1/chip1/core16",
                       "lane": 0
                     }
                   }
@@ -8919,7 +8919,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core8",
+                "chip": "NPU-J4_FE-slot1/chip1/core16",
                 "lane": 1
               },
               "z": {
@@ -8939,7 +8939,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core8",
+                      "chip": "NPU-J4_FE-slot1/chip1/core16",
                       "lane": 1
                     }
                   }
@@ -8964,7 +8964,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core8",
+                "chip": "NPU-J4_FE-slot1/chip1/core16",
                 "lane": 2
               },
               "z": {
@@ -8984,7 +8984,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core8",
+                      "chip": "NPU-J4_FE-slot1/chip1/core16",
                       "lane": 2
                     }
                   }
@@ -9009,7 +9009,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core8",
+                "chip": "NPU-J4_FE-slot1/chip1/core16",
                 "lane": 3
               },
               "z": {
@@ -9029,7 +9029,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core8",
+                      "chip": "NPU-J4_FE-slot1/chip1/core16",
                       "lane": 3
                     }
                   }
@@ -9054,8 +9054,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core8",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core17",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -9074,8 +9074,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core8",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core17",
+                      "lane": 0
                     }
                   }
                 ],
@@ -9099,8 +9099,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core8",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core17",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -9119,8 +9119,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core8",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core17",
+                      "lane": 1
                     }
                   }
                 ],
@@ -9144,8 +9144,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core8",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core17",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -9164,8 +9164,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core8",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core17",
+                      "lane": 2
                     }
                   }
                 ],
@@ -9189,8 +9189,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core8",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core17",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -9209,8 +9209,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core8",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core17",
+                      "lane": 3
                     }
                   }
                 ],
@@ -9234,7 +9234,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core9",
+                "chip": "NPU-J4_FE-slot1/chip1/core18",
                 "lane": 0
               },
               "z": {
@@ -9254,7 +9254,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core9",
+                      "chip": "NPU-J4_FE-slot1/chip1/core18",
                       "lane": 0
                     }
                   }
@@ -9279,7 +9279,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core9",
+                "chip": "NPU-J4_FE-slot1/chip1/core18",
                 "lane": 1
               },
               "z": {
@@ -9299,7 +9299,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core9",
+                      "chip": "NPU-J4_FE-slot1/chip1/core18",
                       "lane": 1
                     }
                   }
@@ -9324,7 +9324,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core9",
+                "chip": "NPU-J4_FE-slot1/chip1/core18",
                 "lane": 2
               },
               "z": {
@@ -9344,7 +9344,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core9",
+                      "chip": "NPU-J4_FE-slot1/chip1/core18",
                       "lane": 2
                     }
                   }
@@ -9369,7 +9369,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core9",
+                "chip": "NPU-J4_FE-slot1/chip1/core18",
                 "lane": 3
               },
               "z": {
@@ -9389,7 +9389,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core9",
+                      "chip": "NPU-J4_FE-slot1/chip1/core18",
                       "lane": 3
                     }
                   }
@@ -9414,8 +9414,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core9",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core19",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -9434,8 +9434,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core9",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core19",
+                      "lane": 0
                     }
                   }
                 ],
@@ -9459,8 +9459,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core9",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core19",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -9479,8 +9479,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core9",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core19",
+                      "lane": 1
                     }
                   }
                 ],
@@ -9504,8 +9504,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core9",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core19",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -9524,8 +9524,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core9",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core19",
+                      "lane": 2
                     }
                   }
                 ],
@@ -9549,8 +9549,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core9",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core19",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -9569,8 +9569,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core9",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core19",
+                      "lane": 3
                     }
                   }
                 ],
@@ -9594,7 +9594,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core10",
+                "chip": "NPU-J4_FE-slot1/chip1/core20",
                 "lane": 0
               },
               "z": {
@@ -9614,7 +9614,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core10",
+                      "chip": "NPU-J4_FE-slot1/chip1/core20",
                       "lane": 0
                     }
                   }
@@ -9639,7 +9639,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core10",
+                "chip": "NPU-J4_FE-slot1/chip1/core20",
                 "lane": 1
               },
               "z": {
@@ -9659,7 +9659,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core10",
+                      "chip": "NPU-J4_FE-slot1/chip1/core20",
                       "lane": 1
                     }
                   }
@@ -9684,7 +9684,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core10",
+                "chip": "NPU-J4_FE-slot1/chip1/core20",
                 "lane": 2
               },
               "z": {
@@ -9704,7 +9704,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core10",
+                      "chip": "NPU-J4_FE-slot1/chip1/core20",
                       "lane": 2
                     }
                   }
@@ -9729,7 +9729,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core10",
+                "chip": "NPU-J4_FE-slot1/chip1/core20",
                 "lane": 3
               },
               "z": {
@@ -9749,7 +9749,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core10",
+                      "chip": "NPU-J4_FE-slot1/chip1/core20",
                       "lane": 3
                     }
                   }
@@ -9774,8 +9774,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core10",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core21",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -9794,8 +9794,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core10",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core21",
+                      "lane": 0
                     }
                   }
                 ],
@@ -9819,8 +9819,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core10",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core21",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -9839,8 +9839,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core10",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core21",
+                      "lane": 1
                     }
                   }
                 ],
@@ -9864,8 +9864,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core10",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core21",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -9884,8 +9884,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core10",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core21",
+                      "lane": 2
                     }
                   }
                 ],
@@ -9909,8 +9909,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core10",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core21",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -9929,8 +9929,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core10",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core21",
+                      "lane": 3
                     }
                   }
                 ],
@@ -9954,7 +9954,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core11",
+                "chip": "NPU-J4_FE-slot1/chip1/core22",
                 "lane": 0
               },
               "z": {
@@ -9974,7 +9974,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core11",
+                      "chip": "NPU-J4_FE-slot1/chip1/core22",
                       "lane": 0
                     }
                   }
@@ -9999,7 +9999,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core11",
+                "chip": "NPU-J4_FE-slot1/chip1/core22",
                 "lane": 1
               },
               "z": {
@@ -10019,7 +10019,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core11",
+                      "chip": "NPU-J4_FE-slot1/chip1/core22",
                       "lane": 1
                     }
                   }
@@ -10044,7 +10044,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core11",
+                "chip": "NPU-J4_FE-slot1/chip1/core22",
                 "lane": 2
               },
               "z": {
@@ -10064,7 +10064,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core11",
+                      "chip": "NPU-J4_FE-slot1/chip1/core22",
                       "lane": 2
                     }
                   }
@@ -10089,7 +10089,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core11",
+                "chip": "NPU-J4_FE-slot1/chip1/core22",
                 "lane": 3
               },
               "z": {
@@ -10109,7 +10109,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core11",
+                      "chip": "NPU-J4_FE-slot1/chip1/core22",
                       "lane": 3
                     }
                   }
@@ -10134,8 +10134,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core11",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core23",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -10154,8 +10154,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core11",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core23",
+                      "lane": 0
                     }
                   }
                 ],
@@ -10179,8 +10179,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core11",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core23",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -10199,8 +10199,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core11",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core23",
+                      "lane": 1
                     }
                   }
                 ],
@@ -10224,8 +10224,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core11",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core23",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -10244,8 +10244,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core11",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core23",
+                      "lane": 2
                     }
                   }
                 ],
@@ -10269,8 +10269,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core11",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core23",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -10289,8 +10289,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core11",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core23",
+                      "lane": 3
                     }
                   }
                 ],
@@ -10314,7 +10314,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core12",
+                "chip": "NPU-J4_FE-slot1/chip1/core24",
                 "lane": 0
               },
               "z": {
@@ -10334,7 +10334,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core12",
+                      "chip": "NPU-J4_FE-slot1/chip1/core24",
                       "lane": 0
                     }
                   }
@@ -10359,7 +10359,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core12",
+                "chip": "NPU-J4_FE-slot1/chip1/core24",
                 "lane": 1
               },
               "z": {
@@ -10379,7 +10379,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core12",
+                      "chip": "NPU-J4_FE-slot1/chip1/core24",
                       "lane": 1
                     }
                   }
@@ -10404,7 +10404,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core12",
+                "chip": "NPU-J4_FE-slot1/chip1/core24",
                 "lane": 2
               },
               "z": {
@@ -10424,7 +10424,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core12",
+                      "chip": "NPU-J4_FE-slot1/chip1/core24",
                       "lane": 2
                     }
                   }
@@ -10449,7 +10449,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core12",
+                "chip": "NPU-J4_FE-slot1/chip1/core24",
                 "lane": 3
               },
               "z": {
@@ -10469,7 +10469,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core12",
+                      "chip": "NPU-J4_FE-slot1/chip1/core24",
                       "lane": 3
                     }
                   }
@@ -10494,8 +10494,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core12",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core25",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -10514,8 +10514,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core12",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core25",
+                      "lane": 0
                     }
                   }
                 ],
@@ -10539,8 +10539,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core12",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core25",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -10559,8 +10559,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core12",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core25",
+                      "lane": 1
                     }
                   }
                 ],
@@ -10584,8 +10584,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core12",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core25",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -10604,8 +10604,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core12",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core25",
+                      "lane": 2
                     }
                   }
                 ],
@@ -10629,8 +10629,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core12",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core25",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -10649,8 +10649,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core12",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core25",
+                      "lane": 3
                     }
                   }
                 ],
@@ -10674,7 +10674,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core13",
+                "chip": "NPU-J4_FE-slot1/chip1/core26",
                 "lane": 0
               },
               "z": {
@@ -10694,7 +10694,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core13",
+                      "chip": "NPU-J4_FE-slot1/chip1/core26",
                       "lane": 0
                     }
                   }
@@ -10719,7 +10719,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core13",
+                "chip": "NPU-J4_FE-slot1/chip1/core26",
                 "lane": 1
               },
               "z": {
@@ -10739,7 +10739,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core13",
+                      "chip": "NPU-J4_FE-slot1/chip1/core26",
                       "lane": 1
                     }
                   }
@@ -10764,7 +10764,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core13",
+                "chip": "NPU-J4_FE-slot1/chip1/core26",
                 "lane": 2
               },
               "z": {
@@ -10784,7 +10784,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core13",
+                      "chip": "NPU-J4_FE-slot1/chip1/core26",
                       "lane": 2
                     }
                   }
@@ -10809,7 +10809,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core13",
+                "chip": "NPU-J4_FE-slot1/chip1/core26",
                 "lane": 3
               },
               "z": {
@@ -10829,7 +10829,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core13",
+                      "chip": "NPU-J4_FE-slot1/chip1/core26",
                       "lane": 3
                     }
                   }
@@ -10854,8 +10854,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core13",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core27",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -10874,8 +10874,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core13",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core27",
+                      "lane": 0
                     }
                   }
                 ],
@@ -10899,8 +10899,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core13",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core27",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -10919,8 +10919,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core13",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core27",
+                      "lane": 1
                     }
                   }
                 ],
@@ -10944,8 +10944,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core13",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core27",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -10964,8 +10964,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core13",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core27",
+                      "lane": 2
                     }
                   }
                 ],
@@ -10989,8 +10989,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core13",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core27",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -11009,8 +11009,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core13",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core27",
+                      "lane": 3
                     }
                   }
                 ],
@@ -11034,7 +11034,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core14",
+                "chip": "NPU-J4_FE-slot1/chip1/core28",
                 "lane": 0
               },
               "z": {
@@ -11054,7 +11054,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core14",
+                      "chip": "NPU-J4_FE-slot1/chip1/core28",
                       "lane": 0
                     }
                   }
@@ -11079,7 +11079,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core14",
+                "chip": "NPU-J4_FE-slot1/chip1/core28",
                 "lane": 1
               },
               "z": {
@@ -11099,7 +11099,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core14",
+                      "chip": "NPU-J4_FE-slot1/chip1/core28",
                       "lane": 1
                     }
                   }
@@ -11124,7 +11124,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core14",
+                "chip": "NPU-J4_FE-slot1/chip1/core28",
                 "lane": 2
               },
               "z": {
@@ -11144,7 +11144,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core14",
+                      "chip": "NPU-J4_FE-slot1/chip1/core28",
                       "lane": 2
                     }
                   }
@@ -11169,7 +11169,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core14",
+                "chip": "NPU-J4_FE-slot1/chip1/core28",
                 "lane": 3
               },
               "z": {
@@ -11189,7 +11189,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core14",
+                      "chip": "NPU-J4_FE-slot1/chip1/core28",
                       "lane": 3
                     }
                   }
@@ -11214,8 +11214,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core14",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core29",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -11234,8 +11234,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core14",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core29",
+                      "lane": 0
                     }
                   }
                 ],
@@ -11259,8 +11259,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core14",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core29",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -11279,8 +11279,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core14",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core29",
+                      "lane": 1
                     }
                   }
                 ],
@@ -11304,8 +11304,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core14",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core29",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -11324,8 +11324,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core14",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core29",
+                      "lane": 2
                     }
                   }
                 ],
@@ -11349,8 +11349,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core14",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core29",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -11369,8 +11369,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core14",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core29",
+                      "lane": 3
                     }
                   }
                 ],
@@ -11394,7 +11394,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core15",
+                "chip": "NPU-J4_FE-slot1/chip1/core30",
                 "lane": 0
               },
               "z": {
@@ -11414,7 +11414,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core15",
+                      "chip": "NPU-J4_FE-slot1/chip1/core30",
                       "lane": 0
                     }
                   }
@@ -11439,7 +11439,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core15",
+                "chip": "NPU-J4_FE-slot1/chip1/core30",
                 "lane": 1
               },
               "z": {
@@ -11459,7 +11459,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core15",
+                      "chip": "NPU-J4_FE-slot1/chip1/core30",
                       "lane": 1
                     }
                   }
@@ -11484,7 +11484,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core15",
+                "chip": "NPU-J4_FE-slot1/chip1/core30",
                 "lane": 2
               },
               "z": {
@@ -11504,7 +11504,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core15",
+                      "chip": "NPU-J4_FE-slot1/chip1/core30",
                       "lane": 2
                     }
                   }
@@ -11529,7 +11529,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core15",
+                "chip": "NPU-J4_FE-slot1/chip1/core30",
                 "lane": 3
               },
               "z": {
@@ -11549,7 +11549,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core15",
+                      "chip": "NPU-J4_FE-slot1/chip1/core30",
                       "lane": 3
                     }
                   }
@@ -11574,8 +11574,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core15",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core31",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -11594,8 +11594,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core15",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core31",
+                      "lane": 0
                     }
                   }
                 ],
@@ -11619,8 +11619,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core15",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core31",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -11639,8 +11639,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core15",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core31",
+                      "lane": 1
                     }
                   }
                 ],
@@ -11664,8 +11664,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core15",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core31",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -11684,8 +11684,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core15",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core31",
+                      "lane": 2
                     }
                   }
                 ],
@@ -11709,8 +11709,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core15",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core31",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -11729,8 +11729,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core15",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core31",
+                      "lane": 3
                     }
                   }
                 ],
@@ -11754,7 +11754,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core16",
+                "chip": "NPU-J4_FE-slot1/chip1/core32",
                 "lane": 0
               },
               "z": {
@@ -11774,7 +11774,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core16",
+                      "chip": "NPU-J4_FE-slot1/chip1/core32",
                       "lane": 0
                     }
                   }
@@ -11799,7 +11799,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core16",
+                "chip": "NPU-J4_FE-slot1/chip1/core32",
                 "lane": 1
               },
               "z": {
@@ -11819,7 +11819,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core16",
+                      "chip": "NPU-J4_FE-slot1/chip1/core32",
                       "lane": 1
                     }
                   }
@@ -11844,7 +11844,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core16",
+                "chip": "NPU-J4_FE-slot1/chip1/core32",
                 "lane": 2
               },
               "z": {
@@ -11864,7 +11864,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core16",
+                      "chip": "NPU-J4_FE-slot1/chip1/core32",
                       "lane": 2
                     }
                   }
@@ -11889,7 +11889,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core16",
+                "chip": "NPU-J4_FE-slot1/chip1/core32",
                 "lane": 3
               },
               "z": {
@@ -11909,7 +11909,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core16",
+                      "chip": "NPU-J4_FE-slot1/chip1/core32",
                       "lane": 3
                     }
                   }
@@ -11934,8 +11934,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core16",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core33",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -11954,8 +11954,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core16",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core33",
+                      "lane": 0
                     }
                   }
                 ],
@@ -11979,8 +11979,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core16",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core33",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -11999,8 +11999,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core16",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core33",
+                      "lane": 1
                     }
                   }
                 ],
@@ -12024,8 +12024,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core16",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core33",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -12044,8 +12044,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core16",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core33",
+                      "lane": 2
                     }
                   }
                 ],
@@ -12069,8 +12069,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core16",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core33",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -12089,8 +12089,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core16",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core33",
+                      "lane": 3
                     }
                   }
                 ],
@@ -12114,7 +12114,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core17",
+                "chip": "NPU-J4_FE-slot1/chip1/core34",
                 "lane": 0
               },
               "z": {
@@ -12134,7 +12134,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core17",
+                      "chip": "NPU-J4_FE-slot1/chip1/core34",
                       "lane": 0
                     }
                   }
@@ -12159,7 +12159,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core17",
+                "chip": "NPU-J4_FE-slot1/chip1/core34",
                 "lane": 1
               },
               "z": {
@@ -12179,7 +12179,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core17",
+                      "chip": "NPU-J4_FE-slot1/chip1/core34",
                       "lane": 1
                     }
                   }
@@ -12204,7 +12204,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core17",
+                "chip": "NPU-J4_FE-slot1/chip1/core34",
                 "lane": 2
               },
               "z": {
@@ -12224,7 +12224,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core17",
+                      "chip": "NPU-J4_FE-slot1/chip1/core34",
                       "lane": 2
                     }
                   }
@@ -12249,7 +12249,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core17",
+                "chip": "NPU-J4_FE-slot1/chip1/core34",
                 "lane": 3
               },
               "z": {
@@ -12269,7 +12269,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core17",
+                      "chip": "NPU-J4_FE-slot1/chip1/core34",
                       "lane": 3
                     }
                   }
@@ -12294,8 +12294,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core17",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip1/core35",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -12314,8 +12314,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core17",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip1/core35",
+                      "lane": 0
                     }
                   }
                 ],
@@ -12339,8 +12339,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core17",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip1/core35",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -12359,8 +12359,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core17",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip1/core35",
+                      "lane": 1
                     }
                   }
                 ],
@@ -12384,8 +12384,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core17",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip1/core35",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -12404,8 +12404,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core17",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip1/core35",
+                      "lane": 2
                     }
                   }
                 ],
@@ -12429,8 +12429,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip1/core17",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip1/core35",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -12449,8 +12449,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip1/core17",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip1/core35",
+                      "lane": 3
                     }
                   }
                 ],
@@ -18626,8 +18626,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core0",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core1",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -18646,8 +18646,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core0",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core1",
+                      "lane": 0
                     }
                   }
                 ],
@@ -18671,8 +18671,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core0",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core1",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -18691,8 +18691,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core0",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core1",
+                      "lane": 1
                     }
                   }
                 ],
@@ -18716,8 +18716,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core0",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core1",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -18736,8 +18736,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core0",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core1",
+                      "lane": 2
                     }
                   }
                 ],
@@ -18761,8 +18761,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core0",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core1",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -18781,8 +18781,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core0",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core1",
+                      "lane": 3
                     }
                   }
                 ],
@@ -18806,7 +18806,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core1",
+                "chip": "NPU-J4_FE-slot1/chip2/core2",
                 "lane": 0
               },
               "z": {
@@ -18826,7 +18826,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core1",
+                      "chip": "NPU-J4_FE-slot1/chip2/core2",
                       "lane": 0
                     }
                   }
@@ -18851,7 +18851,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core1",
+                "chip": "NPU-J4_FE-slot1/chip2/core2",
                 "lane": 1
               },
               "z": {
@@ -18871,7 +18871,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core1",
+                      "chip": "NPU-J4_FE-slot1/chip2/core2",
                       "lane": 1
                     }
                   }
@@ -18896,7 +18896,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core1",
+                "chip": "NPU-J4_FE-slot1/chip2/core2",
                 "lane": 2
               },
               "z": {
@@ -18916,7 +18916,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core1",
+                      "chip": "NPU-J4_FE-slot1/chip2/core2",
                       "lane": 2
                     }
                   }
@@ -18941,7 +18941,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core1",
+                "chip": "NPU-J4_FE-slot1/chip2/core2",
                 "lane": 3
               },
               "z": {
@@ -18961,7 +18961,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core1",
+                      "chip": "NPU-J4_FE-slot1/chip2/core2",
                       "lane": 3
                     }
                   }
@@ -18986,8 +18986,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core1",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core3",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -19006,8 +19006,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core1",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core3",
+                      "lane": 0
                     }
                   }
                 ],
@@ -19031,8 +19031,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core1",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core3",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -19051,8 +19051,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core1",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core3",
+                      "lane": 1
                     }
                   }
                 ],
@@ -19076,8 +19076,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core1",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core3",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -19096,8 +19096,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core1",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core3",
+                      "lane": 2
                     }
                   }
                 ],
@@ -19121,8 +19121,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core1",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core3",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -19141,8 +19141,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core1",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core3",
+                      "lane": 3
                     }
                   }
                 ],
@@ -19166,7 +19166,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core2",
+                "chip": "NPU-J4_FE-slot1/chip2/core4",
                 "lane": 0
               },
               "z": {
@@ -19186,7 +19186,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core2",
+                      "chip": "NPU-J4_FE-slot1/chip2/core4",
                       "lane": 0
                     }
                   }
@@ -19211,7 +19211,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core2",
+                "chip": "NPU-J4_FE-slot1/chip2/core4",
                 "lane": 1
               },
               "z": {
@@ -19231,7 +19231,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core2",
+                      "chip": "NPU-J4_FE-slot1/chip2/core4",
                       "lane": 1
                     }
                   }
@@ -19256,7 +19256,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core2",
+                "chip": "NPU-J4_FE-slot1/chip2/core4",
                 "lane": 2
               },
               "z": {
@@ -19276,7 +19276,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core2",
+                      "chip": "NPU-J4_FE-slot1/chip2/core4",
                       "lane": 2
                     }
                   }
@@ -19301,7 +19301,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core2",
+                "chip": "NPU-J4_FE-slot1/chip2/core4",
                 "lane": 3
               },
               "z": {
@@ -19321,7 +19321,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core2",
+                      "chip": "NPU-J4_FE-slot1/chip2/core4",
                       "lane": 3
                     }
                   }
@@ -19346,8 +19346,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core2",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core5",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -19366,8 +19366,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core2",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core5",
+                      "lane": 0
                     }
                   }
                 ],
@@ -19391,8 +19391,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core2",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core5",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -19411,8 +19411,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core2",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core5",
+                      "lane": 1
                     }
                   }
                 ],
@@ -19436,8 +19436,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core2",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core5",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -19456,8 +19456,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core2",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core5",
+                      "lane": 2
                     }
                   }
                 ],
@@ -19481,8 +19481,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core2",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core5",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -19501,8 +19501,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core2",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core5",
+                      "lane": 3
                     }
                   }
                 ],
@@ -19526,7 +19526,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core3",
+                "chip": "NPU-J4_FE-slot1/chip2/core6",
                 "lane": 0
               },
               "z": {
@@ -19546,7 +19546,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core3",
+                      "chip": "NPU-J4_FE-slot1/chip2/core6",
                       "lane": 0
                     }
                   }
@@ -19571,7 +19571,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core3",
+                "chip": "NPU-J4_FE-slot1/chip2/core6",
                 "lane": 1
               },
               "z": {
@@ -19591,7 +19591,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core3",
+                      "chip": "NPU-J4_FE-slot1/chip2/core6",
                       "lane": 1
                     }
                   }
@@ -19616,7 +19616,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core3",
+                "chip": "NPU-J4_FE-slot1/chip2/core6",
                 "lane": 2
               },
               "z": {
@@ -19636,7 +19636,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core3",
+                      "chip": "NPU-J4_FE-slot1/chip2/core6",
                       "lane": 2
                     }
                   }
@@ -19661,7 +19661,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core3",
+                "chip": "NPU-J4_FE-slot1/chip2/core6",
                 "lane": 3
               },
               "z": {
@@ -19681,7 +19681,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core3",
+                      "chip": "NPU-J4_FE-slot1/chip2/core6",
                       "lane": 3
                     }
                   }
@@ -19706,8 +19706,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core3",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core7",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -19726,8 +19726,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core3",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core7",
+                      "lane": 0
                     }
                   }
                 ],
@@ -19751,8 +19751,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core3",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core7",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -19771,8 +19771,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core3",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core7",
+                      "lane": 1
                     }
                   }
                 ],
@@ -19796,8 +19796,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core3",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core7",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -19816,8 +19816,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core3",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core7",
+                      "lane": 2
                     }
                   }
                 ],
@@ -19841,8 +19841,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core3",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core7",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -19861,8 +19861,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core3",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core7",
+                      "lane": 3
                     }
                   }
                 ],
@@ -19886,7 +19886,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core4",
+                "chip": "NPU-J4_FE-slot1/chip2/core8",
                 "lane": 0
               },
               "z": {
@@ -19906,7 +19906,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core4",
+                      "chip": "NPU-J4_FE-slot1/chip2/core8",
                       "lane": 0
                     }
                   }
@@ -19931,7 +19931,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core4",
+                "chip": "NPU-J4_FE-slot1/chip2/core8",
                 "lane": 1
               },
               "z": {
@@ -19951,7 +19951,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core4",
+                      "chip": "NPU-J4_FE-slot1/chip2/core8",
                       "lane": 1
                     }
                   }
@@ -19976,7 +19976,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core4",
+                "chip": "NPU-J4_FE-slot1/chip2/core8",
                 "lane": 2
               },
               "z": {
@@ -19996,7 +19996,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core4",
+                      "chip": "NPU-J4_FE-slot1/chip2/core8",
                       "lane": 2
                     }
                   }
@@ -20021,7 +20021,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core4",
+                "chip": "NPU-J4_FE-slot1/chip2/core8",
                 "lane": 3
               },
               "z": {
@@ -20041,7 +20041,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core4",
+                      "chip": "NPU-J4_FE-slot1/chip2/core8",
                       "lane": 3
                     }
                   }
@@ -20066,8 +20066,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core4",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core9",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -20086,8 +20086,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core4",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core9",
+                      "lane": 0
                     }
                   }
                 ],
@@ -20111,8 +20111,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core4",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core9",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -20131,8 +20131,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core4",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core9",
+                      "lane": 1
                     }
                   }
                 ],
@@ -20156,8 +20156,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core4",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core9",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -20176,8 +20176,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core4",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core9",
+                      "lane": 2
                     }
                   }
                 ],
@@ -20201,8 +20201,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core4",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core9",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -20221,8 +20221,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core4",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core9",
+                      "lane": 3
                     }
                   }
                 ],
@@ -20246,7 +20246,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core5",
+                "chip": "NPU-J4_FE-slot1/chip2/core10",
                 "lane": 0
               },
               "z": {
@@ -20266,7 +20266,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core5",
+                      "chip": "NPU-J4_FE-slot1/chip2/core10",
                       "lane": 0
                     }
                   }
@@ -20291,7 +20291,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core5",
+                "chip": "NPU-J4_FE-slot1/chip2/core10",
                 "lane": 1
               },
               "z": {
@@ -20311,7 +20311,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core5",
+                      "chip": "NPU-J4_FE-slot1/chip2/core10",
                       "lane": 1
                     }
                   }
@@ -20336,7 +20336,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core5",
+                "chip": "NPU-J4_FE-slot1/chip2/core10",
                 "lane": 2
               },
               "z": {
@@ -20356,7 +20356,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core5",
+                      "chip": "NPU-J4_FE-slot1/chip2/core10",
                       "lane": 2
                     }
                   }
@@ -20381,7 +20381,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core5",
+                "chip": "NPU-J4_FE-slot1/chip2/core10",
                 "lane": 3
               },
               "z": {
@@ -20401,7 +20401,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core5",
+                      "chip": "NPU-J4_FE-slot1/chip2/core10",
                       "lane": 3
                     }
                   }
@@ -20426,8 +20426,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core5",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core11",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -20446,8 +20446,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core5",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core11",
+                      "lane": 0
                     }
                   }
                 ],
@@ -20471,8 +20471,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core5",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core11",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -20491,8 +20491,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core5",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core11",
+                      "lane": 1
                     }
                   }
                 ],
@@ -20516,8 +20516,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core5",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core11",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -20536,8 +20536,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core5",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core11",
+                      "lane": 2
                     }
                   }
                 ],
@@ -20561,8 +20561,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core5",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core11",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -20581,8 +20581,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core5",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core11",
+                      "lane": 3
                     }
                   }
                 ],
@@ -20606,7 +20606,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core6",
+                "chip": "NPU-J4_FE-slot1/chip2/core12",
                 "lane": 0
               },
               "z": {
@@ -20626,7 +20626,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core6",
+                      "chip": "NPU-J4_FE-slot1/chip2/core12",
                       "lane": 0
                     }
                   }
@@ -20651,7 +20651,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core6",
+                "chip": "NPU-J4_FE-slot1/chip2/core12",
                 "lane": 1
               },
               "z": {
@@ -20671,7 +20671,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core6",
+                      "chip": "NPU-J4_FE-slot1/chip2/core12",
                       "lane": 1
                     }
                   }
@@ -20696,7 +20696,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core6",
+                "chip": "NPU-J4_FE-slot1/chip2/core12",
                 "lane": 2
               },
               "z": {
@@ -20716,7 +20716,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core6",
+                      "chip": "NPU-J4_FE-slot1/chip2/core12",
                       "lane": 2
                     }
                   }
@@ -20741,7 +20741,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core6",
+                "chip": "NPU-J4_FE-slot1/chip2/core12",
                 "lane": 3
               },
               "z": {
@@ -20761,7 +20761,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core6",
+                      "chip": "NPU-J4_FE-slot1/chip2/core12",
                       "lane": 3
                     }
                   }
@@ -20786,8 +20786,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core6",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core13",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -20806,8 +20806,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core6",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core13",
+                      "lane": 0
                     }
                   }
                 ],
@@ -20831,8 +20831,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core6",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core13",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -20851,8 +20851,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core6",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core13",
+                      "lane": 1
                     }
                   }
                 ],
@@ -20876,8 +20876,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core6",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core13",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -20896,8 +20896,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core6",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core13",
+                      "lane": 2
                     }
                   }
                 ],
@@ -20921,8 +20921,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core6",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core13",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -20941,8 +20941,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core6",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core13",
+                      "lane": 3
                     }
                   }
                 ],
@@ -20966,7 +20966,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core7",
+                "chip": "NPU-J4_FE-slot1/chip2/core14",
                 "lane": 0
               },
               "z": {
@@ -20986,7 +20986,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core7",
+                      "chip": "NPU-J4_FE-slot1/chip2/core14",
                       "lane": 0
                     }
                   }
@@ -21011,7 +21011,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core7",
+                "chip": "NPU-J4_FE-slot1/chip2/core14",
                 "lane": 1
               },
               "z": {
@@ -21031,7 +21031,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core7",
+                      "chip": "NPU-J4_FE-slot1/chip2/core14",
                       "lane": 1
                     }
                   }
@@ -21056,7 +21056,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core7",
+                "chip": "NPU-J4_FE-slot1/chip2/core14",
                 "lane": 2
               },
               "z": {
@@ -21076,7 +21076,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core7",
+                      "chip": "NPU-J4_FE-slot1/chip2/core14",
                       "lane": 2
                     }
                   }
@@ -21101,7 +21101,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core7",
+                "chip": "NPU-J4_FE-slot1/chip2/core14",
                 "lane": 3
               },
               "z": {
@@ -21121,7 +21121,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core7",
+                      "chip": "NPU-J4_FE-slot1/chip2/core14",
                       "lane": 3
                     }
                   }
@@ -21146,8 +21146,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core7",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core15",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -21166,8 +21166,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core7",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core15",
+                      "lane": 0
                     }
                   }
                 ],
@@ -21191,8 +21191,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core7",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core15",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -21211,8 +21211,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core7",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core15",
+                      "lane": 1
                     }
                   }
                 ],
@@ -21236,8 +21236,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core7",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core15",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -21256,8 +21256,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core7",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core15",
+                      "lane": 2
                     }
                   }
                 ],
@@ -21281,8 +21281,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core7",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core15",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -21301,8 +21301,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core7",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core15",
+                      "lane": 3
                     }
                   }
                 ],
@@ -21326,7 +21326,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core8",
+                "chip": "NPU-J4_FE-slot1/chip2/core16",
                 "lane": 0
               },
               "z": {
@@ -21346,7 +21346,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core8",
+                      "chip": "NPU-J4_FE-slot1/chip2/core16",
                       "lane": 0
                     }
                   }
@@ -21371,7 +21371,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core8",
+                "chip": "NPU-J4_FE-slot1/chip2/core16",
                 "lane": 1
               },
               "z": {
@@ -21391,7 +21391,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core8",
+                      "chip": "NPU-J4_FE-slot1/chip2/core16",
                       "lane": 1
                     }
                   }
@@ -21416,7 +21416,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core8",
+                "chip": "NPU-J4_FE-slot1/chip2/core16",
                 "lane": 2
               },
               "z": {
@@ -21436,7 +21436,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core8",
+                      "chip": "NPU-J4_FE-slot1/chip2/core16",
                       "lane": 2
                     }
                   }
@@ -21461,7 +21461,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core8",
+                "chip": "NPU-J4_FE-slot1/chip2/core16",
                 "lane": 3
               },
               "z": {
@@ -21481,7 +21481,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core8",
+                      "chip": "NPU-J4_FE-slot1/chip2/core16",
                       "lane": 3
                     }
                   }
@@ -21506,8 +21506,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core8",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core17",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -21526,8 +21526,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core8",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core17",
+                      "lane": 0
                     }
                   }
                 ],
@@ -21551,8 +21551,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core8",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core17",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -21571,8 +21571,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core8",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core17",
+                      "lane": 1
                     }
                   }
                 ],
@@ -21596,8 +21596,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core8",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core17",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -21616,8 +21616,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core8",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core17",
+                      "lane": 2
                     }
                   }
                 ],
@@ -21641,8 +21641,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core8",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core17",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -21661,8 +21661,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core8",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core17",
+                      "lane": 3
                     }
                   }
                 ],
@@ -21686,7 +21686,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core9",
+                "chip": "NPU-J4_FE-slot1/chip2/core18",
                 "lane": 0
               },
               "z": {
@@ -21706,7 +21706,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core9",
+                      "chip": "NPU-J4_FE-slot1/chip2/core18",
                       "lane": 0
                     }
                   }
@@ -21731,7 +21731,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core9",
+                "chip": "NPU-J4_FE-slot1/chip2/core18",
                 "lane": 1
               },
               "z": {
@@ -21751,7 +21751,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core9",
+                      "chip": "NPU-J4_FE-slot1/chip2/core18",
                       "lane": 1
                     }
                   }
@@ -21776,7 +21776,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core9",
+                "chip": "NPU-J4_FE-slot1/chip2/core18",
                 "lane": 2
               },
               "z": {
@@ -21796,7 +21796,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core9",
+                      "chip": "NPU-J4_FE-slot1/chip2/core18",
                       "lane": 2
                     }
                   }
@@ -21821,7 +21821,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core9",
+                "chip": "NPU-J4_FE-slot1/chip2/core18",
                 "lane": 3
               },
               "z": {
@@ -21841,7 +21841,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core9",
+                      "chip": "NPU-J4_FE-slot1/chip2/core18",
                       "lane": 3
                     }
                   }
@@ -21866,8 +21866,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core9",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core19",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -21886,8 +21886,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core9",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core19",
+                      "lane": 0
                     }
                   }
                 ],
@@ -21911,8 +21911,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core9",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core19",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -21931,8 +21931,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core9",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core19",
+                      "lane": 1
                     }
                   }
                 ],
@@ -21956,8 +21956,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core9",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core19",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -21976,8 +21976,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core9",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core19",
+                      "lane": 2
                     }
                   }
                 ],
@@ -22001,8 +22001,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core9",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core19",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -22021,8 +22021,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core9",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core19",
+                      "lane": 3
                     }
                   }
                 ],
@@ -22046,7 +22046,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core10",
+                "chip": "NPU-J4_FE-slot1/chip2/core20",
                 "lane": 0
               },
               "z": {
@@ -22066,7 +22066,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core10",
+                      "chip": "NPU-J4_FE-slot1/chip2/core20",
                       "lane": 0
                     }
                   }
@@ -22091,7 +22091,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core10",
+                "chip": "NPU-J4_FE-slot1/chip2/core20",
                 "lane": 1
               },
               "z": {
@@ -22111,7 +22111,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core10",
+                      "chip": "NPU-J4_FE-slot1/chip2/core20",
                       "lane": 1
                     }
                   }
@@ -22136,7 +22136,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core10",
+                "chip": "NPU-J4_FE-slot1/chip2/core20",
                 "lane": 2
               },
               "z": {
@@ -22156,7 +22156,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core10",
+                      "chip": "NPU-J4_FE-slot1/chip2/core20",
                       "lane": 2
                     }
                   }
@@ -22181,7 +22181,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core10",
+                "chip": "NPU-J4_FE-slot1/chip2/core20",
                 "lane": 3
               },
               "z": {
@@ -22201,7 +22201,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core10",
+                      "chip": "NPU-J4_FE-slot1/chip2/core20",
                       "lane": 3
                     }
                   }
@@ -22226,8 +22226,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core10",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core21",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -22246,8 +22246,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core10",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core21",
+                      "lane": 0
                     }
                   }
                 ],
@@ -22271,8 +22271,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core10",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core21",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -22291,8 +22291,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core10",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core21",
+                      "lane": 1
                     }
                   }
                 ],
@@ -22316,8 +22316,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core10",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core21",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -22336,8 +22336,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core10",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core21",
+                      "lane": 2
                     }
                   }
                 ],
@@ -22361,8 +22361,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core10",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core21",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -22381,8 +22381,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core10",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core21",
+                      "lane": 3
                     }
                   }
                 ],
@@ -22406,7 +22406,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core11",
+                "chip": "NPU-J4_FE-slot1/chip2/core22",
                 "lane": 0
               },
               "z": {
@@ -22426,7 +22426,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core11",
+                      "chip": "NPU-J4_FE-slot1/chip2/core22",
                       "lane": 0
                     }
                   }
@@ -22451,7 +22451,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core11",
+                "chip": "NPU-J4_FE-slot1/chip2/core22",
                 "lane": 1
               },
               "z": {
@@ -22471,7 +22471,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core11",
+                      "chip": "NPU-J4_FE-slot1/chip2/core22",
                       "lane": 1
                     }
                   }
@@ -22496,7 +22496,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core11",
+                "chip": "NPU-J4_FE-slot1/chip2/core22",
                 "lane": 2
               },
               "z": {
@@ -22516,7 +22516,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core11",
+                      "chip": "NPU-J4_FE-slot1/chip2/core22",
                       "lane": 2
                     }
                   }
@@ -22541,7 +22541,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core11",
+                "chip": "NPU-J4_FE-slot1/chip2/core22",
                 "lane": 3
               },
               "z": {
@@ -22561,7 +22561,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core11",
+                      "chip": "NPU-J4_FE-slot1/chip2/core22",
                       "lane": 3
                     }
                   }
@@ -22586,8 +22586,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core11",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core23",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -22606,8 +22606,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core11",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core23",
+                      "lane": 0
                     }
                   }
                 ],
@@ -22631,8 +22631,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core11",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core23",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -22651,8 +22651,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core11",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core23",
+                      "lane": 1
                     }
                   }
                 ],
@@ -22676,8 +22676,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core11",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core23",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -22696,8 +22696,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core11",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core23",
+                      "lane": 2
                     }
                   }
                 ],
@@ -22721,8 +22721,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core11",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core23",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -22741,8 +22741,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core11",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core23",
+                      "lane": 3
                     }
                   }
                 ],
@@ -22766,7 +22766,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core12",
+                "chip": "NPU-J4_FE-slot1/chip2/core24",
                 "lane": 0
               },
               "z": {
@@ -22786,7 +22786,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core12",
+                      "chip": "NPU-J4_FE-slot1/chip2/core24",
                       "lane": 0
                     }
                   }
@@ -22811,7 +22811,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core12",
+                "chip": "NPU-J4_FE-slot1/chip2/core24",
                 "lane": 1
               },
               "z": {
@@ -22831,7 +22831,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core12",
+                      "chip": "NPU-J4_FE-slot1/chip2/core24",
                       "lane": 1
                     }
                   }
@@ -22856,7 +22856,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core12",
+                "chip": "NPU-J4_FE-slot1/chip2/core24",
                 "lane": 2
               },
               "z": {
@@ -22876,7 +22876,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core12",
+                      "chip": "NPU-J4_FE-slot1/chip2/core24",
                       "lane": 2
                     }
                   }
@@ -22901,7 +22901,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core12",
+                "chip": "NPU-J4_FE-slot1/chip2/core24",
                 "lane": 3
               },
               "z": {
@@ -22921,7 +22921,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core12",
+                      "chip": "NPU-J4_FE-slot1/chip2/core24",
                       "lane": 3
                     }
                   }
@@ -22946,8 +22946,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core12",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core25",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -22966,8 +22966,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core12",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core25",
+                      "lane": 0
                     }
                   }
                 ],
@@ -22991,8 +22991,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core12",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core25",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -23011,8 +23011,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core12",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core25",
+                      "lane": 1
                     }
                   }
                 ],
@@ -23036,8 +23036,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core12",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core25",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -23056,8 +23056,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core12",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core25",
+                      "lane": 2
                     }
                   }
                 ],
@@ -23081,8 +23081,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core12",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core25",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -23101,8 +23101,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core12",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core25",
+                      "lane": 3
                     }
                   }
                 ],
@@ -23126,7 +23126,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core13",
+                "chip": "NPU-J4_FE-slot1/chip2/core26",
                 "lane": 0
               },
               "z": {
@@ -23146,7 +23146,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core13",
+                      "chip": "NPU-J4_FE-slot1/chip2/core26",
                       "lane": 0
                     }
                   }
@@ -23171,7 +23171,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core13",
+                "chip": "NPU-J4_FE-slot1/chip2/core26",
                 "lane": 1
               },
               "z": {
@@ -23191,7 +23191,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core13",
+                      "chip": "NPU-J4_FE-slot1/chip2/core26",
                       "lane": 1
                     }
                   }
@@ -23216,7 +23216,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core13",
+                "chip": "NPU-J4_FE-slot1/chip2/core26",
                 "lane": 2
               },
               "z": {
@@ -23236,7 +23236,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core13",
+                      "chip": "NPU-J4_FE-slot1/chip2/core26",
                       "lane": 2
                     }
                   }
@@ -23261,7 +23261,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core13",
+                "chip": "NPU-J4_FE-slot1/chip2/core26",
                 "lane": 3
               },
               "z": {
@@ -23281,7 +23281,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core13",
+                      "chip": "NPU-J4_FE-slot1/chip2/core26",
                       "lane": 3
                     }
                   }
@@ -23306,8 +23306,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core13",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core27",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -23326,8 +23326,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core13",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core27",
+                      "lane": 0
                     }
                   }
                 ],
@@ -23351,8 +23351,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core13",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core27",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -23371,8 +23371,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core13",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core27",
+                      "lane": 1
                     }
                   }
                 ],
@@ -23396,8 +23396,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core13",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core27",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -23416,8 +23416,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core13",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core27",
+                      "lane": 2
                     }
                   }
                 ],
@@ -23441,8 +23441,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core13",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core27",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -23461,8 +23461,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core13",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core27",
+                      "lane": 3
                     }
                   }
                 ],
@@ -23486,7 +23486,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core14",
+                "chip": "NPU-J4_FE-slot1/chip2/core28",
                 "lane": 0
               },
               "z": {
@@ -23506,7 +23506,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core14",
+                      "chip": "NPU-J4_FE-slot1/chip2/core28",
                       "lane": 0
                     }
                   }
@@ -23531,7 +23531,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core14",
+                "chip": "NPU-J4_FE-slot1/chip2/core28",
                 "lane": 1
               },
               "z": {
@@ -23551,7 +23551,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core14",
+                      "chip": "NPU-J4_FE-slot1/chip2/core28",
                       "lane": 1
                     }
                   }
@@ -23576,7 +23576,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core14",
+                "chip": "NPU-J4_FE-slot1/chip2/core28",
                 "lane": 2
               },
               "z": {
@@ -23596,7 +23596,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core14",
+                      "chip": "NPU-J4_FE-slot1/chip2/core28",
                       "lane": 2
                     }
                   }
@@ -23621,7 +23621,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core14",
+                "chip": "NPU-J4_FE-slot1/chip2/core28",
                 "lane": 3
               },
               "z": {
@@ -23641,7 +23641,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core14",
+                      "chip": "NPU-J4_FE-slot1/chip2/core28",
                       "lane": 3
                     }
                   }
@@ -23666,8 +23666,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core14",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core29",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -23686,8 +23686,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core14",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core29",
+                      "lane": 0
                     }
                   }
                 ],
@@ -23711,8 +23711,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core14",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core29",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -23731,8 +23731,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core14",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core29",
+                      "lane": 1
                     }
                   }
                 ],
@@ -23756,8 +23756,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core14",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core29",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -23776,8 +23776,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core14",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core29",
+                      "lane": 2
                     }
                   }
                 ],
@@ -23801,8 +23801,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core14",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core29",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -23821,8 +23821,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core14",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core29",
+                      "lane": 3
                     }
                   }
                 ],
@@ -23846,7 +23846,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core15",
+                "chip": "NPU-J4_FE-slot1/chip2/core30",
                 "lane": 0
               },
               "z": {
@@ -23866,7 +23866,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core15",
+                      "chip": "NPU-J4_FE-slot1/chip2/core30",
                       "lane": 0
                     }
                   }
@@ -23891,7 +23891,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core15",
+                "chip": "NPU-J4_FE-slot1/chip2/core30",
                 "lane": 1
               },
               "z": {
@@ -23911,7 +23911,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core15",
+                      "chip": "NPU-J4_FE-slot1/chip2/core30",
                       "lane": 1
                     }
                   }
@@ -23936,7 +23936,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core15",
+                "chip": "NPU-J4_FE-slot1/chip2/core30",
                 "lane": 2
               },
               "z": {
@@ -23956,7 +23956,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core15",
+                      "chip": "NPU-J4_FE-slot1/chip2/core30",
                       "lane": 2
                     }
                   }
@@ -23981,7 +23981,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core15",
+                "chip": "NPU-J4_FE-slot1/chip2/core30",
                 "lane": 3
               },
               "z": {
@@ -24001,7 +24001,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core15",
+                      "chip": "NPU-J4_FE-slot1/chip2/core30",
                       "lane": 3
                     }
                   }
@@ -24026,8 +24026,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core15",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core31",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -24046,8 +24046,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core15",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core31",
+                      "lane": 0
                     }
                   }
                 ],
@@ -24071,8 +24071,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core15",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core31",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -24091,8 +24091,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core15",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core31",
+                      "lane": 1
                     }
                   }
                 ],
@@ -24116,8 +24116,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core15",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core31",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -24136,8 +24136,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core15",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core31",
+                      "lane": 2
                     }
                   }
                 ],
@@ -24161,8 +24161,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core15",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core31",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -24181,8 +24181,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core15",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core31",
+                      "lane": 3
                     }
                   }
                 ],
@@ -24206,7 +24206,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core16",
+                "chip": "NPU-J4_FE-slot1/chip2/core32",
                 "lane": 0
               },
               "z": {
@@ -24226,7 +24226,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core16",
+                      "chip": "NPU-J4_FE-slot1/chip2/core32",
                       "lane": 0
                     }
                   }
@@ -24251,7 +24251,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core16",
+                "chip": "NPU-J4_FE-slot1/chip2/core32",
                 "lane": 1
               },
               "z": {
@@ -24271,7 +24271,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core16",
+                      "chip": "NPU-J4_FE-slot1/chip2/core32",
                       "lane": 1
                     }
                   }
@@ -24296,7 +24296,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core16",
+                "chip": "NPU-J4_FE-slot1/chip2/core32",
                 "lane": 2
               },
               "z": {
@@ -24316,7 +24316,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core16",
+                      "chip": "NPU-J4_FE-slot1/chip2/core32",
                       "lane": 2
                     }
                   }
@@ -24341,7 +24341,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core16",
+                "chip": "NPU-J4_FE-slot1/chip2/core32",
                 "lane": 3
               },
               "z": {
@@ -24361,7 +24361,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core16",
+                      "chip": "NPU-J4_FE-slot1/chip2/core32",
                       "lane": 3
                     }
                   }
@@ -24386,8 +24386,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core16",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core33",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -24406,8 +24406,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core16",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core33",
+                      "lane": 0
                     }
                   }
                 ],
@@ -24431,8 +24431,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core16",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core33",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -24451,8 +24451,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core16",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core33",
+                      "lane": 1
                     }
                   }
                 ],
@@ -24476,8 +24476,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core16",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core33",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -24496,8 +24496,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core16",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core33",
+                      "lane": 2
                     }
                   }
                 ],
@@ -24521,8 +24521,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core16",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core33",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -24541,8 +24541,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core16",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core33",
+                      "lane": 3
                     }
                   }
                 ],
@@ -24566,7 +24566,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core17",
+                "chip": "NPU-J4_FE-slot1/chip2/core34",
                 "lane": 0
               },
               "z": {
@@ -24586,7 +24586,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core17",
+                      "chip": "NPU-J4_FE-slot1/chip2/core34",
                       "lane": 0
                     }
                   }
@@ -24611,7 +24611,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core17",
+                "chip": "NPU-J4_FE-slot1/chip2/core34",
                 "lane": 1
               },
               "z": {
@@ -24631,7 +24631,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core17",
+                      "chip": "NPU-J4_FE-slot1/chip2/core34",
                       "lane": 1
                     }
                   }
@@ -24656,7 +24656,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core17",
+                "chip": "NPU-J4_FE-slot1/chip2/core34",
                 "lane": 2
               },
               "z": {
@@ -24676,7 +24676,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core17",
+                      "chip": "NPU-J4_FE-slot1/chip2/core34",
                       "lane": 2
                     }
                   }
@@ -24701,7 +24701,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core17",
+                "chip": "NPU-J4_FE-slot1/chip2/core34",
                 "lane": 3
               },
               "z": {
@@ -24721,7 +24721,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core17",
+                      "chip": "NPU-J4_FE-slot1/chip2/core34",
                       "lane": 3
                     }
                   }
@@ -24746,8 +24746,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core17",
-                "lane": 4
+                "chip": "NPU-J4_FE-slot1/chip2/core35",
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -24766,8 +24766,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core17",
-                      "lane": 4
+                      "chip": "NPU-J4_FE-slot1/chip2/core35",
+                      "lane": 0
                     }
                   }
                 ],
@@ -24791,8 +24791,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core17",
-                "lane": 5
+                "chip": "NPU-J4_FE-slot1/chip2/core35",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -24811,8 +24811,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core17",
-                      "lane": 5
+                      "chip": "NPU-J4_FE-slot1/chip2/core35",
+                      "lane": 1
                     }
                   }
                 ],
@@ -24836,8 +24836,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core17",
-                "lane": 6
+                "chip": "NPU-J4_FE-slot1/chip2/core35",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -24856,8 +24856,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core17",
-                      "lane": 6
+                      "chip": "NPU-J4_FE-slot1/chip2/core35",
+                      "lane": 2
                     }
                   }
                 ],
@@ -24881,8 +24881,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "NPU-J4_FE-slot1/chip2/core17",
-                "lane": 7
+                "chip": "NPU-J4_FE-slot1/chip2/core35",
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -24901,8 +24901,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J4_FE-slot1/chip2/core17",
-                      "lane": 7
+                      "chip": "NPU-J4_FE-slot1/chip2/core35",
+                      "lane": 3
                     }
                   }
                 ],
@@ -25259,6 +25259,186 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "name": "NPU-J4_FE-slot1/chip2/core17",
       "type": 1,
       "physicalID": 17
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core18",
+      "type": 1,
+      "physicalID": 18
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core18",
+      "type": 1,
+      "physicalID": 18
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core19",
+      "type": 1,
+      "physicalID": 19
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core19",
+      "type": 1,
+      "physicalID": 19
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core20",
+      "type": 1,
+      "physicalID": 20
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core20",
+      "type": 1,
+      "physicalID": 20
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core21",
+      "type": 1,
+      "physicalID": 21
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core21",
+      "type": 1,
+      "physicalID": 21
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core22",
+      "type": 1,
+      "physicalID": 22
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core22",
+      "type": 1,
+      "physicalID": 22
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core23",
+      "type": 1,
+      "physicalID": 23
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core23",
+      "type": 1,
+      "physicalID": 23
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core24",
+      "type": 1,
+      "physicalID": 24
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core24",
+      "type": 1,
+      "physicalID": 24
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core25",
+      "type": 1,
+      "physicalID": 25
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core25",
+      "type": 1,
+      "physicalID": 25
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core26",
+      "type": 1,
+      "physicalID": 26
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core26",
+      "type": 1,
+      "physicalID": 26
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core27",
+      "type": 1,
+      "physicalID": 27
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core27",
+      "type": 1,
+      "physicalID": 27
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core28",
+      "type": 1,
+      "physicalID": 28
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core28",
+      "type": 1,
+      "physicalID": 28
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core29",
+      "type": 1,
+      "physicalID": 29
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core29",
+      "type": 1,
+      "physicalID": 29
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core30",
+      "type": 1,
+      "physicalID": 30
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core30",
+      "type": 1,
+      "physicalID": 30
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core31",
+      "type": 1,
+      "physicalID": 31
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core31",
+      "type": 1,
+      "physicalID": 31
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core32",
+      "type": 1,
+      "physicalID": 32
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core32",
+      "type": 1,
+      "physicalID": 32
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core33",
+      "type": 1,
+      "physicalID": 33
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core33",
+      "type": 1,
+      "physicalID": 33
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core34",
+      "type": 1,
+      "physicalID": 34
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core34",
+      "type": 1,
+      "physicalID": 34
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip1/core35",
+      "type": 1,
+      "physicalID": 35
+    },
+    {
+      "name": "NPU-J4_FE-slot1/chip2/core35",
+      "type": 1,
+      "physicalID": 35
     },
     {
       "name": "NPU-J3_RCY-slot1/chip1/core521",
