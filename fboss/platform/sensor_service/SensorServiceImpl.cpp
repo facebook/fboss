@@ -288,6 +288,8 @@ void SensorServiceImpl::fetchSensorData() {
 
   publishAggStats(polledData);
 
+  logSensorValues(polledData);
+
   polledData_.swap(polledData);
 
   if (FLAGS_publish_stats_to_fsdb) {
@@ -411,6 +413,42 @@ void SensorServiceImpl::publishPerSensorStats(const SensorData& sensorData) {
     fb303::fbData->setCounter(
         fmt::format(kAlarmThresholdViolation, sensorName),
         stats.alarmViolation);
+  }
+}
+
+void SensorServiceImpl::logSensorValues(
+    const std::map<std::string, SensorData>& polledData) {
+  const auto& loggedSensorNames = *sensorConfig_.loggedSensorNames();
+  if (loggedSensorNames.empty()) {
+    return;
+  }
+  for (const auto& sensorName : loggedSensorNames) {
+    auto it = polledData.find(sensorName);
+    if (it == polledData.end()) {
+      // ConfigValidator guarantees the name resolves on every hardware
+      // version, but a sensor can still be missing from a given cycle — e.g.
+      // it lives on a PSU/PEM slot that platform_manager reported absent, so
+      // collection was skipped. Surface it rather than dropping the configured
+      // log line silently.
+      XLOG(WARN) << fmt::format(
+          "{} {}: sensor data missing", kLoggedSensorPrefix, sensorName);
+      continue;
+    }
+    const auto& sensorData = it->second;
+    if (auto value = sensorData.value().to_optional()) {
+      XLOG(INFO) << fmt::format(
+          "{} {} = {} (sysfs: {})",
+          kLoggedSensorPrefix,
+          sensorName,
+          *value,
+          *sensorData.sysfsPath());
+    } else {
+      XLOG(WARN) << fmt::format(
+          "{} {} = READ_FAILED (sysfs: {})",
+          kLoggedSensorPrefix,
+          sensorName,
+          *sensorData.sysfsPath());
+    }
   }
 }
 

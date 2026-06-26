@@ -1305,3 +1305,54 @@ TEST(ConfigValidatorTest, VersionedTemperatureSensorWithoutThresholds) {
 
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, ValidLoggedSensorNames) {
+  auto config = createBasicSensorConfig();
+
+  // Empty list (feature disabled) is valid.
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Base sensors are valid. A versioned sensor present in EVERY versioned
+  // entry (guaranteed on all hardware versions) is also valid.
+  auto shared =
+      createPmSensor("SHARED_RESPIN_SENSOR", "/run/devmap/sensors/SHARED");
+  auto respinA = createVersionedPmSensor("RESPIN_A", {shared});
+  auto respinB = createVersionedPmSensor("RESPIN_B", {shared});
+  respinB.productionState() = 1;
+  config.pmUnitSensorsList()->at(0).versionedSensors() = {respinA, respinB};
+  config.loggedSensorNames() = {
+      "VOLTAGE_SENSOR", "TEMP_SENSOR", "SHARED_RESPIN_SENSOR"};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidLoggedSensorNamesUndefined) {
+  auto config = createBasicSensorConfig();
+
+  config.loggedSensorNames() = {"VOLTAGE_SENSOR", "NONEXISTENT_SENSOR"};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidLoggedSensorNamesDuplicate) {
+  auto config = createBasicSensorConfig();
+
+  config.loggedSensorNames() = {"VOLTAGE_SENSOR", "VOLTAGE_SENSOR"};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidLoggedSensorNamesNotInAllVersions) {
+  // A logged sensor present in only one of two versioned entries is NOT
+  // guaranteed on every hardware version, so it must be rejected — otherwise
+  // it would log "sensor data missing" every cycle on the other version.
+  auto config = createBasicSensorConfig();
+  auto respinA = createVersionedPmSensor(
+      "RESPIN_A",
+      {createPmSensor("RESPIN_A_ONLY", "/run/devmap/sensors/RESPIN_A")});
+  auto respinB = createVersionedPmSensor(
+      "RESPIN_B",
+      {createPmSensor("RESPIN_B_ONLY", "/run/devmap/sensors/RESPIN_B")});
+  respinB.productionState() = 1;
+  config.pmUnitSensorsList()->at(0).versionedSensors() = {respinA, respinB};
+
+  config.loggedSensorNames() = {"RESPIN_A_ONLY"};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}

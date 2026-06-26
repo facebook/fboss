@@ -30,6 +30,7 @@ cpp_unittest(
         "//fboss/platform/sensor_service:service",
         "//fboss/platform/sensor_service:utils",
         "//folly:file_util",
+        "//folly/logging:logging",
         "//folly/testing:test_util",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
