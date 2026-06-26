@@ -5,6 +5,7 @@ import os
 from typing import Any
 
 import yaml
+
 from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator, MODULE_DIR
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
 from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
@@ -40,10 +41,14 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
         self.num_ports_per_core: int = self.platform_config.get("num_ports_per_core", 2)
         self.mmu_size: int = self.asic_config.get("mmu_size", 9416)
 
-        # Compute lanes_per_port from ASIC port_architecture and platform num_ports_per_core
+        # lanes_per_port is derived from the ASIC port architecture unless the
+        # platform wires only a subset of chip lanes per port and overrides it
+        # explicitly via num_lanes_per_port.
         port_arch = self.asic_config.get("port_architecture", {})
         num_lanes_per_core = port_arch.get("num_lanes_per_core", 8)
-        self.lanes_per_port: int = num_lanes_per_core // self.num_ports_per_core
+        self.lanes_per_port: int = self.platform_config.get(
+            "num_lanes_per_port", num_lanes_per_core // self.num_ports_per_core
+        )
 
     @property
     def output_extension(self) -> str:
@@ -241,6 +246,10 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
           * ``lp_offset_simple``: when true, compute the per-port logical-port
             offset as ``i * lanes_per_port`` on all cores rather than using
             the default even / odd conditional.
+          * ``special_core_offset_apply_all``: special-case compat flag. When
+            true, apply the +1 core offset to every core rather than only
+            cores 0 and 1, to reproduce a platform's pre-existing linear-stride
+            mapping. The offset is only physically meaningful on cores 0/1.
         """
         port_arch = self.asic_config.get("port_architecture", {})
         port_mapping_overrides = self.variant_config.get("port_mapping_overrides", {})
@@ -257,12 +266,15 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
         lanes_per_core = port_arch.get("num_lanes_per_core", 8)
         lp_start_step_offset = port_mapping_overrides.get("lp_start_step_offset", 1)
         lp_offset_simple = port_mapping_overrides.get("lp_offset_simple", False)
+        special_core_offset_apply_all = port_mapping_overrides.get(
+            "special_core_offset_apply_all", False
+        )
 
         logical_to_physical_port_mapping = []
         cores = self._get_core_range()
 
         for core_num in cores:
-            core_offset = 1 if core_num <= 1 else 0
+            core_offset = 1 if (special_core_offset_apply_all or core_num <= 1) else 0
             lp_start_offset = 0 if core_num % 2 == 0 else lp_on_even_core
             lp_start = (
                 (core_num // 2) * (lp_per_dp + lp_start_step_offset)
