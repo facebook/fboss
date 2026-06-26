@@ -25027,6 +25027,95 @@
           "test_name_regex": "AgentQphRollbackTest.*$"
         }
     ],
+    "leaba/26.5.5211/26.5.5211/palladium2/simulator/mono": [
+        {
+          "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
+        },
+        {
+          "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
+        },
+        {
+          "test_name_regex": "AgentHwAclQualifierTest.AclIcmp6Qualifiers$"
+        },
+        {
+          "test_name_regex": "AgentHwAclQualifierTest.AclIp4TcpQualifiers$"
+        },
+        {
+          "test_name_regex": "AgentHwAclQualifierTest.AclIp6TcpQualifiers$"
+        },
+        {
+          "test_name_regex": "AgentHwAclQualifierTest.AclModifyQualifier$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest.*$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassID$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostRouteTest.VerifyHostToQueueMappingClassID$"
+        },
+        {
+          "test_name_regex": "AgentAclTableRecreateTest.AclEntryCount$"
+        },
+        {
+          "test_name_regex": "AgentPfcConfigTest.*$"
+        },
+        {
+          "test_name_regex": "AgentInPauseDiscardsCounterTest.rxPauseDisabled$"
+        },
+        {
+          "test_name_regex": "AgentInPauseFloodTest.rxPauseDisabledValidateFlooding$"
+        },
+        {
+          "test_name_regex": "AgentMPLSTest/[01].AclRedirectToNexthop$"
+        },
+        {
+          "test_name_regex": "AgentMPLSTest/[01].AclRedirectToNexthopDrop$"
+        },
+        {
+          "test_name_regex": "AgentMPLSTest/[01].AclRedirectToNexthopMismatch$"
+        },
+        {
+          "test_name_regex": "AgentMPLSTest/[01].AclRedirectToNexthopMultipleNexthops$"
+        },
+        {
+          "test_name_regex": "AgentMPLSTest/[01].MplsMatchPktsNottrapped$"
+        },
+        {
+          "test_name_regex": "AgentMPLSTest/[01].MplsNoMatchPktsToLowPriQ$"
+        },
+        {
+          "test_name_regex": "AgentMPLSTest/[01].Pop2Cpu$"
+        },
+        {
+          "test_name_regex": "AgentMPLSTest/[01].punt2Cpu$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentTest_PROFILE_.*$"
+        }
+    ],
     "nvda/2505.34/2505.34/spectrum4/mono": [
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
