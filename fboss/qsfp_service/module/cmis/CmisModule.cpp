@@ -680,9 +680,15 @@ bool isBankedPage(CmisPages page) {
 } // namespace
 
 void CmisModule::cacheMaxNumBanks() {
-  // Lower Page 00h byte 70 holds the module's max CMIS bank count directly
-  // (e.g. 4 for a 32-lane module). Legacy/non-CPO modules report 0 here, so
-  // fall back to a single bank.
+  // The max bank capacity register (Lower Page 00h byte 70) is only defined for
+  // co-packaged optics (CPO). On other modules that byte can carry unrelated
+  // data, so treat every non-CPO module as single-bank.
+  if (getIdentifier() != TransceiverModuleIdentifier::CPO) {
+    maxNumBanks_ = 1;
+    return;
+  }
+  // For CPO the register holds the max CMIS bank count directly (e.g. 4 for a
+  // 32-lane module); fall back to a single bank if it reads 0.
   uint8_t banks = getSettingsValue(CmisField::MAX_BANK_CAPACITY);
   maxNumBanks_ = banks ? banks : 1;
 }
@@ -4031,12 +4037,15 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         firstModuleCapability->hostStartLanes.begin(),
         firstModuleCapability->hostStartLanes.end());
     auto smfLength = static_cast<int>(getQsfpSMFLength());
-    // Config-driven SMF derivation
+    // Config-driven SMF derivation. The bank count (Lower Page 00h byte 70)
+    // disambiguates two codes whose application advertisement is otherwise
+    // identical, e.g. a multi-bank DR4_8x800G from a single-bank DR4_2x800G.
     moduleMediaInterface = TransceiverPropertiesManager::deriveSmfCode(
         static_cast<uint8_t>(smfCode),
         hostStartLanes,
         firstModuleCapability->moduleHostInterface,
-        smfLength);
+        smfLength,
+        getMaxNumBanks());
     if (moduleMediaInterface == MediaInterfaceCode::UNKNOWN) {
       // Fallback to existing mapping for unrecognized modules
       moduleMediaInterface =
