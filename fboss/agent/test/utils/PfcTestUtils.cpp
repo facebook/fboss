@@ -510,8 +510,9 @@ void triggerPfcGeneration(
               std::vector<uint8_t>(2000, 0xff));
 
           if (vlanId.has_value()) {
-            ensemble->sendPacketAsync(
-                std::move(txPacket), std::nullopt, pfcPriority);
+            ensemble->getSw()->sendPacketSwitchedAsync(
+                std::move(txPacket),
+                {ensemble->scopeResolver().scope(port).switchId()});
           } else {
             ensemble->sendPacketAsync(
                 std::move(txPacket), PortDescriptor(port), pfcPriority);
