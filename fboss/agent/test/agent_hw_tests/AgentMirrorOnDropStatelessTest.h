@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include <folly/IPAddress.h>
+#include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
 #include <folly/io/IOBuf.h>
 
@@ -79,6 +79,11 @@ class MirrorOnDropImpl {
   // Check ASIC-specific wire-format invariants
   // (e.g., IPFIX version for XGS).
   virtual void verifyInvariants(const folly::IOBuf* buf) const = 0;
+
+  // True if the MoD packet's ingress-port field carries the hardware logical
+  // port id rather than the FBOSS PortID, so the framework translates the
+  // injection PortID via SwSwitch::getHwLogicalPortId before comparing.
+  virtual bool ingressPortIsHwLogicalPort() const = 0;
 
   // ASIC-specific raw drop-reason code for each category. The framework
   // packs these into the ingress-vs-egress slot expected by the wire format.

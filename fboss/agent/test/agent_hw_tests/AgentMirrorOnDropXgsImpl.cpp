@@ -116,6 +116,12 @@ void XgsMirrorOnDropImpl::verifyInvariants(const folly::IOBuf* buf) const {
       psamp::XGS_PSAMP_VAR_LEN_INDICATOR);
 }
 
+bool XgsMirrorOnDropImpl::ingressPortIsHwLogicalPort() const {
+  // XGS PSAMP carries the Broadcom hardware logical port id, not the FBOSS
+  // logical PortID.
+  return true;
+}
+
 uint16_t XgsMirrorOnDropImpl::getDefaultRouteDropReason() const {
   return kBcmDropReasonL3DstDiscard;
 }
