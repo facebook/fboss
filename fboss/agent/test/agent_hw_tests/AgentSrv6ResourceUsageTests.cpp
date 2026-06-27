@@ -1,9 +1,11 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/SwSwitchMySidUpdater.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/Srv6TestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/AddressUtil.h"
@@ -15,8 +17,15 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
   const folly::IPAddressV6 kDecapMySidAddr{"3001:db8:efff::"};
   static constexpr uint8_t kDecapMySidPrefixLen{48};
 
-  const folly::IPAddressV6 kMidpointMySidPrefix{"3001:db8:1::"};
-  static constexpr uint8_t kMidpointMySidPrefixLen{48};
+  // SID offset for the adjacency (uA) mySid: 3001:db8:1::/48, kept clear of the
+  // decap SID above. Matches utility::makeAdjacencyMySidEntries' SID layout.
+  static constexpr int kAdjSidOffset{1};
+
+  // Yuba G200 uDT installs two HW endpoints (exact /128 match + prefix miss
+  // action).
+  static constexpr int32_t kDecapMySidSlotsPerEntry{2};
+  // uA mySid consumes one HW slot.
+  static constexpr int32_t kAdjacencyMySidSlotsPerEntry{1};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -36,27 +45,6 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
         getLocalMacAddress());
   }
 
-  void addDecapMySidEntry() {
-    MySidEntry entry;
-    entry.type() = MySidType::DECAPSULATE_AND_LOOKUP;
-    facebook::network::thrift::IPPrefix prefix;
-    prefix.prefixAddress() =
-        facebook::network::toBinaryAddress(kDecapMySidAddr);
-    prefix.prefixLength() = kDecapMySidPrefixLen;
-    entry.mySid() = prefix;
-    auto sw = getSw();
-    auto rib = sw->getRib();
-    auto ribMySidToSwitchStateFunc =
-        createRibMySidToSwitchStateFunction(std::nullopt);
-    rib->update(
-        sw->getScopeResolver(),
-        {entry},
-        {} /* toDelete */,
-        "addDecapMySidEntry",
-        ribMySidToSwitchStateFunc,
-        sw);
-  }
-
   void removeDecapMySidEntry() {
     IpPrefix ipPrefix;
     ipPrefix.ip() = facebook::network::toBinaryAddress(kDecapMySidAddr);
@@ -74,50 +62,6 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
         sw);
   }
 
-  void addAdjacencyMySidEntry(const folly::IPAddress& nexthopIp) {
-    MySidEntry entry;
-    entry.type() = MySidType::ADJACENCY_MICRO_SID;
-    facebook::network::thrift::IPPrefix prefix;
-    prefix.prefixAddress() = facebook::network::toBinaryAddress(
-        folly::IPAddress(kMidpointMySidPrefix));
-    prefix.prefixLength() = kMidpointMySidPrefixLen;
-    entry.mySid() = prefix;
-
-    NextHopThrift nhop;
-    nhop.address() = facebook::network::toBinaryAddress(nexthopIp);
-    entry.nextHops()->push_back(nhop);
-
-    auto sw = getSw();
-    auto rib = sw->getRib();
-    auto ribMySidToSwitchStateFunc =
-        createRibMySidToSwitchStateFunction(std::nullopt);
-    rib->update(
-        sw->getScopeResolver(),
-        {entry},
-        {} /* toDelete */,
-        "addAdjacencyMySidEntry",
-        ribMySidToSwitchStateFunc,
-        sw);
-  }
-
-  void removeAdjacencyMySidEntry() {
-    IpPrefix ipPrefix;
-    ipPrefix.ip() = facebook::network::toBinaryAddress(
-        folly::IPAddress(kMidpointMySidPrefix));
-    ipPrefix.prefixLength() = kMidpointMySidPrefixLen;
-    auto sw = getSw();
-    auto rib = sw->getRib();
-    auto ribMySidToSwitchStateFunc =
-        createRibMySidToSwitchStateFunction(std::nullopt);
-    rib->update(
-        sw->getScopeResolver(),
-        std::vector<MySidEntry>{} /* toAdd */,
-        {ipPrefix},
-        "removeAdjacencyMySidEntry",
-        ribMySidToSwitchStateFunc,
-        sw);
-  }
-
   int32_t getMySidEntriesFree() {
     auto switchId = getCurrentSwitchIdForTesting();
     getLatestPortStats(masterLogicalPortIds());
@@ -131,23 +75,40 @@ TEST_F(AgentSrv6ResourceUsageTest, verifyMySidResourceUsage) {
 
   auto verify = [this]() {
     auto mySidFreeBefore = getMySidEntriesFree();
+    if (mySidFreeBefore == hardware_stats_constants::STAT_UNINITIALIZED()) {
+      GTEST_SKIP()
+          << "my_sid_entries_free unavailable (STAT_UNINITIALIZED). "
+          << "Ensure srv6 is enabled in agent config defaultCommandLineArgs "
+          << "and the ASIC supports SRV6_MYSID_RESOURCE_COUNTER.";
+    }
 
-    // Add decap mySid, verify counter decreases by 1.
-    addDecapMySidEntry();
-    WITH_RETRIES(
-        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBefore - 1); });
+    // Add decap (uDT) mySid — consumes 2 slots on Yuba G200.
+    utility::addDecapMySidEntry(getSw(), kDecapMySidAddr, kDecapMySidPrefixLen);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          getMySidEntriesFree(), mySidFreeBefore - kDecapMySidSlotsPerEntry);
+    });
 
-    // Add adjacency mySid, verify counter decreases by 2 total.
+    // Add adjacency (uA) mySid — one slot; decap + uA = 3 total.
     auto ecmpHelper = makeEcmpHelper();
     resolveNeighbors(ecmpHelper, 1);
-    addAdjacencyMySidEntry(ecmpHelper.nhop(0).ip);
-    WITH_RETRIES(
-        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBefore - 2); });
+    utility::programMySidEntries(
+        getSw(),
+        utility::makeAdjacencyMySidEntries(
+            ecmpHelper, 1 /*numNhops*/, 1 /*numEntries*/, kAdjSidOffset));
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          getMySidEntriesFree(),
+          mySidFreeBefore - kDecapMySidSlotsPerEntry -
+              kAdjacencyMySidSlotsPerEntry);
+    });
 
-    // Remove adjacency mySid, verify counter goes back to -1.
-    removeAdjacencyMySidEntry();
-    WITH_RETRIES(
-        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBefore - 1); });
+    // Remove adjacency mySid — only decap (2 slots) remain.
+    utility::deleteScaleMySidEntries(getSw(), 1 /*numEntries*/, kAdjSidOffset);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          getMySidEntriesFree(), mySidFreeBefore - kDecapMySidSlotsPerEntry);
+    });
 
     // Remove decap mySid, verify counter returns to baseline.
     removeDecapMySidEntry();
