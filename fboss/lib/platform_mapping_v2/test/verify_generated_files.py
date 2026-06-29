@@ -45,6 +45,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "meru800bia_800g_fabric_uniform_local_offset",
             "meru800bia_hyperport_fabric_uniform_local_offset",
             "janga800bic_dctype1_prod",
+            "janga800bic_dctype1_prod_fabric_uniform_local_offset",
             "janga800bic_dctype1_test_fixture",
             "tahan800bc_test_fixture",
             "tahan800bc_chassis",

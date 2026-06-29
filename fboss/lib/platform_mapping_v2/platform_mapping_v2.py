@@ -61,6 +61,7 @@ from neteng.fboss.switch_config.thrift_types import PortProfileID, PortType
 _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
     "janga800bic": [
         "janga800bic_dctype1_prod",
+        "janga800bic_dctype1_prod_fabric_uniform_local_offset",
         "janga800bic_dctype1_test_fixture",
         "janga800bic_dctypef_prod",
         "janga800bic_dctypef_test_fixture",
