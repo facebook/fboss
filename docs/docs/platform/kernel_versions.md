@@ -4,26 +4,28 @@ This page is the single source of truth for the Linux kernel versions that FBOSS
 BSP kernel modules must support. This page should be used to plan kmod
 builds and qualification against current and upcoming kernels.
 
-## Supported Kernel Versions
+## Kernel Versions Status
 
-BSP kernel modules must be compatible with the following kernel versions
-(updated in May 2026):
+FBOSS maintains multiple kernel versions in the production fleet at a time
+(the current version and the previous one). kmods must be compatible with the
+following kernel versions (updated in June 2026):
 
-| Kernel Version | Status    |
-|----------------|-----------|
-| Linux v6.4.3   | Supported |
-| Linux v6.11.1  | Supported |
-| Linux v6.16.1  | Supported |
+| Kernel Version | Status             |
+|----------------|--------------------|
+| Linux v6.4.3   | Actively Supported |
+| Linux v6.11.1  | Actively Supported |
+| Linux v6.16.1  | Evaluating         |
+| Linux v7.1     | Planned            |
 
-## Planned Kernel Versions
+Status definitions:
 
-The following kernel versions are planned for adoption. Exact patch version and
-timelines are subject to change; vendors should begin planning kmod builds and
-qualification against these versions ahead of the migration.
-
-| Kernel Version | Status  |
-|----------------|---------|
-| Linux v7.1     | Planned |
+- **Actively Supported**: Running in the production fleet. kmods must be fully
+  compatible and pass all test requirements.
+- **Evaluating**: Under active evaluation for adoption. Vendors should begin
+  building and qualifying kmods so issues are surfaced early.
+- **Planned**: Targeted for future adoption. Exact patch version and timelines
+  are subject to change; vendors should begin planning kmod builds and
+  qualification ahead of the migration.
 
 ## What "Compatible" Means
 
