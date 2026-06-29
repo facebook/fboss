@@ -127,7 +127,10 @@ void BaseWedgeI2CBus::write(
   address <<= 1;
 
   // The CP2112 can only write 61 bytes at a time, and we burn one for
-  // the offset
+  // the offset. Reject negative lengths explicitly: a signed `len` of -1
+  // would pass `CHECK_LE(len, 60)` but become SIZE_MAX when implicitly
+  // converted in the memcpy below, smashing the stack.
+  CHECK_GE(len, 0);
   CHECK_LE(len, 60);
 
   // XXX:  surely there's an easier way to do this?

@@ -117,6 +117,10 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl>,
 
   void getHwDebugDump(std::string& out) override;
 
+  void setSdkRegDumpEnabled(bool enabled) override;
+  void triggerCableLengthMeasurement(
+      std::unique_ptr<std::vector<int32_t>> ports) override;
+
   void getPortPrbsState(prbs::InterfacePrbsState& prbsState, int32_t portId)
       override;
   void getPortAsicPrbsStats(

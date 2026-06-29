@@ -103,6 +103,10 @@ class FakeAclEntry {
   sai_object_id_t fieldOutPortData;
   sai_uint32_t fieldOutPortMask;
 
+  bool fieldNextHopGroupIdEnable{false};
+  sai_object_id_t fieldNextHopGroupIdData{};
+  sai_uint32_t fieldNextHopGroupIdMask{};
+
   bool fieldL4SrcPortEnable{false};
   sai_uint16_t fieldL4SrcPortData;
   sai_uint16_t fieldL4SrcPortMask;
@@ -142,6 +146,10 @@ class FakeAclEntry {
   bool fieldDscpEnable{false};
   sai_uint8_t fieldDscpData;
   sai_uint8_t fieldDscpMask;
+
+  bool fieldTcEnable{false};
+  sai_uint8_t fieldTcData{};
+  sai_uint8_t fieldTcMask{};
 
   bool fieldDstMacEnable{false};
   folly::MacAddress fieldDstMacData;
@@ -269,6 +277,7 @@ class FakeAclTable {
       bool fieldIcmpV6Type,
       bool fieldIcmpV6Code,
       bool fieldDscp,
+      bool fieldTc,
       bool fieldDstMac,
       bool fieldIpType,
       bool fieldTtl,
@@ -304,6 +313,7 @@ class FakeAclTable {
         fieldIcmpV6Type(fieldIcmpV6Type),
         fieldIcmpV6Code(fieldIcmpV6Code),
         fieldDscp(fieldDscp),
+        fieldTc(fieldTc),
         fieldDstMac(fieldDstMac),
         fieldIpType(fieldIpType),
         fieldTtl(fieldTtl),
@@ -345,6 +355,7 @@ class FakeAclTable {
   bool fieldIcmpV6Type;
   bool fieldIcmpV6Code;
   bool fieldDscp;
+  bool fieldTc;
   bool fieldDstMac;
   bool fieldIpType;
   bool fieldTtl;

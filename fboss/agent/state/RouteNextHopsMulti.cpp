@@ -21,7 +21,8 @@ namespace facebook::fboss {
 // RouteNextHop Class
 //
 
-std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy() const {
+std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy(
+    std::optional<ClientID> preferredClient) const {
   std::vector<ClientAndNextHops> list;
   auto mapRef = map();
   for (const auto& srcPair : *mapRef) {
@@ -35,6 +36,19 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy() const {
       NamedRouteDestination namedDest;
       namedDest.nextHopGroup() = *nhgName;
       destPair.namedRouteDestination() = namedDest;
+    }
+    destPair.adminDistance() = srcPair.second->getAdminDistance();
+    if (srcPair.second->getCounterID().has_value()) {
+      destPair.counterID() = *srcPair.second->getCounterID();
+    }
+    if (srcPair.second->getClassID().has_value()) {
+      destPair.classID() = *srcPair.second->getClassID();
+    }
+    if (preferredClient.has_value()) {
+      destPair.isPreferred() = (srcPair.first == *preferredClient);
+    }
+    if (auto clientSetId = srcPair.second->getClientNextHopSetID()) {
+      destPair.clientNextHopSetID() = static_cast<int64_t>(*clientSetId);
     }
     list.push_back(destPair);
   }

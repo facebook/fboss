@@ -186,6 +186,11 @@ class Cmis2x800GDr4Transceiver : public FakeTransceiverImpl {
   explicit Cmis2x800GDr4Transceiver(int module, TransceiverManager* mgr);
 };
 
+class CmisCpo6P4TDrTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit CmisCpo6P4TDrTransceiver(int module, TransceiverManager* mgr);
+};
+
 class CmisCredo800AEC : public FakeTransceiverImpl {
  public:
   explicit CmisCredo800AEC(int module, TransceiverManager* mgr);

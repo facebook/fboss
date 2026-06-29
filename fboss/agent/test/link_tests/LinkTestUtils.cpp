@@ -32,6 +32,13 @@ const std::string kForceColdbootQsfpSvcFileName =
 const std::string kTransceiverConfigJsonsForScuba =
     "/tmp/transceiver_config_jsons_for_scuba.log";
 
+// Per-port info (transceiver info, FEC, media interface) dumped by link/qsfp
+// test TearDown for Scuba ingestion. Overwritten per test; Netcastle downloads
+// after each test run. Matching definition will be in
+// fbcode/neteng/netcastle/teams/fboss/constants.py.
+const std::string kLinkQsfpTestPortInfoForScuba =
+    "/tmp/link_qsfp_test_port_info_for_scuba.log";
+
 void restartQsfpService(bool coldboot) {
   if (coldboot) {
     createFile(kForceColdbootQsfpSvcFileName);

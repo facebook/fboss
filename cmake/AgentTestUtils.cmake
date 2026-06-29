@@ -264,6 +264,7 @@ add_library(srv6_test_utils
 target_link_libraries(srv6_test_utils
   agent_ensemble
   config_utils
+  ecmp_helper
   fboss_types
   load_balancer_test_utils
   packet_snooper

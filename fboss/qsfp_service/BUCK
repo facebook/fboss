@@ -44,6 +44,7 @@ cpp_library(
     undefined_symbols = True,
     exported_deps = [
         ":port-manager",
+        ":sdk_dump_path",
         ":transceiver-manager",
         "//common/fb303/cpp:fb303",
         "//fboss/agent:fboss-error",
@@ -60,6 +61,19 @@ cpp_library(
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//folly/futures:core",
         "//folly/logging:logging",
+    ],
+)
+
+# Header-only helper that sanitizes the API-provided getSdkState dump filename
+# and confines it to a service-owned directory. Split out so it can be unit
+# tested without linking the full qsfp_service handler.
+cpp_library(
+    name = "sdk_dump_path",
+    headers = [
+        "SdkDumpPath.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
     ],
 )
 

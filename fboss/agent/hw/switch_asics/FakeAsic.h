@@ -51,6 +51,7 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
       case HwAsic::Feature::NO_RX_REASON_TRAP:
       case HwAsic::Feature::SDK_REGISTER_DUMP:
+      case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
         return false;
 
       default:

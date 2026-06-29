@@ -21,12 +21,13 @@
 #include <cstdint>
 #include <exception>
 #include <iostream>
-#include <ostream>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h"
 #include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
@@ -36,80 +37,49 @@
 namespace facebook::fboss {
 
 namespace {
-// Set of known attribute names (lowercase for case-insensitive comparison)
-const std::unordered_set<std::string> kKnownAttributes = {
-    "description",
-    "mtu",
-    "profile",
+// Set of known attribute names (lowercase for case-insensitive comparison).
+// The lldp-expected-* names come from the shared lldpAttrToTag() list so the
+// config and delete commands cannot drift apart.
+const std::unordered_set<std::string> kKnownAttributes = [] {
+  std::unordered_set<std::string> attrs = {
+      "description",
+      "mtu",
+      "ip-address",
+      "ipv6-address",
+      "profile",
+      "loopback-mode",
+      "flow-control-rx",
+      "flow-control-tx",
+      "type",
+      "shutdown",
+      "no-shutdown",
+  };
+  for (const auto& name : lldpAttrNames()) {
+    attrs.insert(name);
+  }
+  return attrs;
+}();
+
+// Attributes that take no value token (boolean/action flags)
+const std::unordered_set<std::string> kValuelessAttributes = {
+    "shutdown",
+    "no-shutdown",
 };
+
+constexpr auto kValidConfigAttrs =
+    "description, mtu, ip-address, ipv6-address, profile, loopback-mode, "
+    "flow-control-rx, flow-control-tx, lldp-expected-*, type, shutdown, "
+    "no-shutdown";
+
 } // namespace
 
-bool InterfacesConfig::isKnownAttribute(const std::string& s) {
-  std::string lower = s;
-  std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-  return kKnownAttributes.find(lower) != kKnownAttributes.end();
-}
-
-InterfacesConfig::InterfacesConfig(std::vector<std::string> v)
-    : interfaces_(std::vector<std::string>{}) {
-  if (v.empty()) {
-    throw std::invalid_argument("No interface name provided");
-  }
-
-  // Find where port names end and attributes begin
-  // Ports are all tokens before the first known attribute name
-  size_t attrStart = v.size();
-  for (size_t i = 0; i < v.size(); ++i) {
-    if (isKnownAttribute(v[i])) {
-      attrStart = i;
-      break;
-    }
-  }
-
-  // Must have at least one port name
-  if (attrStart == 0) {
-    throw std::invalid_argument(
-        fmt::format(
-            "No interface name provided. First token '{}' is an attribute name.",
-            v[0]));
-  }
-
-  // Extract port names
-  std::vector<std::string> portNames(v.begin(), v.begin() + attrStart);
-
-  // Parse attribute-value pairs
-  for (size_t i = attrStart; i < v.size(); i += 2) {
-    const std::string& attr = v[i];
-
-    if (!isKnownAttribute(attr)) {
-      throw std::invalid_argument(
-          fmt::format(
-              "Unknown attribute '{}'. Valid attributes are: description, mtu, profile",
-              attr));
-    }
-
-    if (i + 1 >= v.size()) {
-      throw std::invalid_argument(
-          fmt::format("Missing value for attribute '{}'", attr));
-    }
-
-    const std::string& value = v[i + 1];
-
-    // Check if "value" is actually another attribute name (user forgot value)
-    if (isKnownAttribute(value)) {
-      throw std::invalid_argument(
-          fmt::format(
-              "Missing value for attribute '{}'. Got another attribute '{}' instead.",
-              attr,
-              value));
-    }
-
-    // Normalize attribute name to lowercase
-    std::string attrLower = attr;
-    std::transform(
-        attrLower.begin(), attrLower.end(), attrLower.begin(), ::tolower);
-    attributes_.emplace_back(attrLower, value);
-  }
+InterfacesConfig::InterfacesConfig(const std::vector<std::string>& v)
+    : InterfaceAttrArgsBase(
+          kKnownAttributes,
+          kValuelessAttributes,
+          "attribute",
+          kValidConfigAttrs) {
+  auto portNames = parseTokens(v);
 
   // Now resolve the port names to InterfaceList
   // This will throw if any port is not found
@@ -156,6 +126,128 @@ std::string applyProfile(
       "profile={}, speed={}", upperValue, static_cast<int64_t>(profileSpeed));
 }
 
+// Configures a port as a routed (L3) port.
+void configureAsRoutedPort(cfg::Port& port, cfg::SwitchConfig& swConfig) {
+  port.portType() = cfg::PortType::INTERFACE_PORT;
+  port.routable() = true;
+  port.ingressVlan() = 0;
+
+  const int32_t logicalId = *port.logicalID();
+  auto& vps = *swConfig.vlanPorts();
+  vps.erase(
+      std::remove_if(
+          vps.begin(),
+          vps.end(),
+          [logicalId](const cfg::VlanPort& vp) {
+            return *vp.logicalPort() == logicalId;
+          }),
+      vps.end());
+}
+
+// Applies flow-control enable/disable to all ports for the given attribute
+// ("flow-control-rx" or "flow-control-tx"). Returns true if any port was
+// modified.
+bool applyFlowControl(
+    const std::string& attr,
+    const std::string& value,
+    const utils::InterfaceList& interfaces) {
+  std::string valueLower = value;
+  std::transform(
+      valueLower.begin(), valueLower.end(), valueLower.begin(), ::tolower);
+
+  bool enabled = false;
+  if (valueLower == "enable") {
+    enabled = true;
+  } else if (valueLower == "disable") {
+    enabled = false;
+  } else {
+    throw std::invalid_argument(
+        fmt::format(
+            "Invalid {} value '{}'. Valid values: enable, disable",
+            attr,
+            value));
+  }
+
+  bool changed = false;
+  const bool isRx = (attr == "flow-control-rx");
+  for (const utils::Intf& intf : interfaces) {
+    cfg::Port* port = intf.getPort();
+    if (port) {
+      if (isRx) {
+        port->pause()->rx() = enabled;
+      } else {
+        port->pause()->tx() = enabled;
+      }
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+// Validates that value is "routed-port" and applies configureAsRoutedPort.
+// Returns true if any port was modified.
+bool applyPortType(
+    const std::string& value,
+    const utils::InterfaceList& interfaces) {
+  std::string valueLower = value;
+  std::transform(
+      valueLower.begin(), valueLower.end(), valueLower.begin(), ::tolower);
+
+  if (valueLower != "routed-port") {
+    throw std::invalid_argument(
+        fmt::format(
+            "Invalid type value '{}'. Valid value: routed-port", value));
+  }
+
+  bool changed = false;
+  auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+  for (const utils::Intf& intf : interfaces) {
+    cfg::Port* port = intf.getPort();
+    if (port) {
+      configureAsRoutedPort(*port, swConfig);
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+// Parses and applies loopback-mode to all ports. Returns true if any port
+// was modified.
+bool applyLoopbackMode(
+    const std::string& value,
+    const utils::InterfaceList& interfaces) {
+  // Parse loopback mode (case-insensitive)
+  std::string valueLower = value;
+  std::transform(
+      valueLower.begin(), valueLower.end(), valueLower.begin(), ::tolower);
+
+  cfg::PortLoopbackMode loopbackMode{cfg::PortLoopbackMode::NONE};
+  if (valueLower == "none") {
+    loopbackMode = cfg::PortLoopbackMode::NONE;
+  } else if (valueLower == "phy") {
+    loopbackMode = cfg::PortLoopbackMode::PHY;
+  } else if (valueLower == "nif") {
+    loopbackMode = cfg::PortLoopbackMode::NIF;
+  } else if (valueLower == "mac") {
+    loopbackMode = cfg::PortLoopbackMode::MAC;
+  } else {
+    throw std::invalid_argument(
+        fmt::format(
+            "Invalid loopback-mode value '{}'. Valid values: none, PHY, NIF, MAC",
+            value));
+  }
+
+  bool changed = false;
+  for (const utils::Intf& intf : interfaces) {
+    cfg::Port* port = intf.getPort();
+    if (port) {
+      port->loopbackMode() = loopbackMode;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& interfaceConfig) {
@@ -166,28 +258,44 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
     throw std::invalid_argument("No interface name provided");
   }
 
-  // If no attributes provided, this is a pass-through to subcommands
   if (!interfaceConfig.hasAttributes()) {
     throw std::runtime_error(
-        "Incomplete command. Either provide attributes (description, mtu, profile) "
-        "or use a subcommand (switchport)");
+        fmt::format(
+            "Incomplete command. Either provide attributes ({}) "
+            "or use a subcommand (switchport)",
+            kValidConfigAttrs));
   }
 
   std::vector<std::string> results;
+  bool changed = false;
 
-  // Process each attribute
   for (const auto& [attr, value] : attributes) {
     if (attr == "description") {
-      // Set description for all ports
       for (const utils::Intf& intf : interfaces) {
         cfg::Port* port = intf.getPort();
         if (port) {
           port->description() = value;
+          changed = true;
         }
       }
       results.push_back(fmt::format("description=\"{}\"", value));
+    } else if (attr == "ip-address" || attr == "ipv6-address") {
+      validateInterfaceIpAttr(attr, value);
+
+      // Add IP address to all interfaces
+      for (const utils::Intf& intf : interfaces) {
+        cfg::Interface* interface = intf.getInterface();
+        if (interface) {
+          auto& ipAddresses = *interface->ipAddresses();
+          // Only add if not already present
+          if (std::find(ipAddresses.begin(), ipAddresses.end(), value) ==
+              ipAddresses.end()) {
+            ipAddresses.push_back(value);
+          }
+        }
+      }
+      results.push_back(fmt::format("{}={}", attr, value));
     } else if (attr == "mtu") {
-      // Validate and set MTU for all interfaces
       int32_t mtu = 0;
       try {
         mtu = folly::to<int32_t>(value);
@@ -209,16 +317,60 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
         cfg::Interface* interface = intf.getInterface();
         if (interface) {
           interface->mtu() = mtu;
+          changed = true;
         }
       }
       results.push_back(fmt::format("mtu={}", mtu));
     } else if (attr == "profile") {
       results.push_back(applyProfile(hostInfo, interfaces, value));
+      changed = true;
+    } else if (attr == "loopback-mode") {
+      changed |= applyLoopbackMode(value, interfaces);
+      results.push_back(fmt::format("loopback-mode={}", value));
+    } else if (attr == "flow-control-rx" || attr == "flow-control-tx") {
+      changed |= applyFlowControl(attr, value, interfaces);
+      results.push_back(fmt::format("{}={}", attr, value));
+    } else if (auto lldpTag = lldpTagForAttr(attr); lldpTag.has_value()) {
+      if (value.empty()) {
+        throw std::invalid_argument(fmt::format("{} cannot be empty", attr));
+      }
+      for (const utils::Intf& intf : interfaces) {
+        cfg::Port* port = intf.getPort();
+        if (port) {
+          port->expectedLLDPValues()[*lldpTag] = value;
+          changed = true;
+        }
+      }
+      results.push_back(fmt::format("{}=\"{}\"", attr, value));
+    } else if (attr == "type") {
+      changed |= applyPortType(value, interfaces);
+      results.push_back(fmt::format("type={}", value));
+    } else if (attr == "shutdown") {
+      for (const utils::Intf& intf : interfaces) {
+        cfg::Port* port = intf.getPort();
+        if (port) {
+          port->state() = cfg::PortState::DISABLED;
+          changed = true;
+        }
+      }
+      results.emplace_back("state=disabled");
+    } else if (attr == "no-shutdown") {
+      for (const utils::Intf& intf : interfaces) {
+        cfg::Port* port = intf.getPort();
+        if (port) {
+          port->state() = cfg::PortState::ENABLED;
+          changed = true;
+        }
+      }
+      results.emplace_back("state=enabled");
     }
   }
 
-  // Save the updated config
-  ConfigSession::getInstance().saveConfig();
+  // Save the updated config (skip the write/commit cycle if no port or
+  // interface was actually modified).
+  if (changed) {
+    ConfigSession::getInstance().saveConfig();
+  }
 
   std::string interfaceList = folly::join(", ", interfaces.getNames());
   std::string attrList = folly::join(", ", results);

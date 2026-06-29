@@ -307,10 +307,11 @@ void Utils::printNvmeDetails() {
 void Utils::printPowerGoodDetails() {
   std::cout << "##### Power Good Information #####" << std::endl;
 
-  if (config_.scPowerGood() && config_.scPowerGood()->sysfsAttribute()) {
+  if (config_.scPowerGood() && config_.scPowerGood()->sysfsAttributes()) {
     std::cout << "Reading scPowerGood from sysfs" << std::endl;
-    auto pgSysfs = *config_.scPowerGood()->sysfsAttribute();
-    printSysfsAttribute(*pgSysfs.name(), *pgSysfs.path());
+    for (const auto& pgSysfs : *config_.scPowerGood()->sysfsAttributes()) {
+      printSysfsAttribute(*pgSysfs.name(), *pgSysfs.path());
+    }
   } else if (config_.scPowerGood() && config_.scPowerGood()->gpioAttribute()) {
     std::cout << "Reading scPowerGood from gpio" << std::endl;
     auto pgGpio = *config_.scPowerGood()->gpioAttribute();

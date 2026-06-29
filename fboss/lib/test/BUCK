@@ -2,6 +2,7 @@ load("@fbcode_macros//build_defs:cpp_benchmark.bzl", "cpp_benchmark")
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -13,6 +14,7 @@ cpp_unittest(
     headers = [
         "FakePhysicalMemory.h",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/lib:physical_memory",
     ],
@@ -24,6 +26,7 @@ cpp_unittest(
     srcs = [
         "RadixTreeTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":py_radix_wrapper",
         "//common/base:random",
@@ -37,6 +40,7 @@ cpp_unittest(
     srcs = [
         "TimeSeriesWithMinMaxTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/lib:time_series_with_min_max",
     ],
@@ -83,6 +87,7 @@ cpp_unittest(
     srcs = [
         "PciDeviceTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/glog:glog",
         "//fboss/lib:pci_device",
@@ -98,6 +103,7 @@ cpp_unittest(
     srcs = [
         "RefMapTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/lib:ref_map",
     ],
@@ -108,6 +114,7 @@ cpp_unittest(
     srcs = [
         "UniqueRefMapTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/lib:unique_ref_map",
     ],
@@ -118,6 +125,7 @@ cpp_unittest(
     srcs = [
         "TupleUtilsTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/lib:tuple_utils",
     ],
@@ -128,6 +136,7 @@ cpp_unittest(
     srcs = [
         "ExponentialBackoffTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/glog:glog",
         "//fboss/lib:exponential_back_off",
@@ -142,6 +151,7 @@ cpp_unittest(
     srcs = [
         "ThriftMethodRateLimitTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/lib:thrift_method_rate_limit",
         "//thrift/lib/cpp2/server:cpp2_conn_context",
@@ -178,6 +188,7 @@ cpp_unittest(
     srcs = [
         "ThreadHeartbeatTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/lib:thread_heartbeat",
         "//folly/system:thread_name",
@@ -191,6 +202,7 @@ cpp_unittest(
         "CommonPortUtilsTest.cpp",
         "CommonThriftUtilsTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/glog:glog",

@@ -374,9 +374,10 @@ TYPED_TEST(AgentHwMirrorTest, ResolvedToUnresolvedUpdate) {
   };
   auto verify = [=, this]() {
     auto client = this->getClient();
-    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
-    auto fields = mirror->toThrift();
     WITH_RETRIES({
+      auto mirror =
+          this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
+      auto fields = mirror->toThrift();
       EXPECT_EVENTUALLY_TRUE(client->sync_verifyUnResolvedMirror(fields));
     });
   };

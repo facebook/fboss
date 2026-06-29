@@ -28,13 +28,39 @@ struct TestEnsembleInitInfo {
   std::optional<TransceiverInfo> overrideTransceiverInfo;
   std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes;
   bool failHwCallsOnWarmboot{false};
+  // Per-switch INTERFACE_PORT cap honored by AgentEnsemble::setupEnsemble.
+  // nullopt means no trimming.
+  std::optional<size_t> maxRequiredInterfacePorts;
+  // Per-switch FABRIC_PORT cap honored by AgentEnsemble::setupEnsemble.
+  // nullopt means no trimming.
+  std::optional<size_t> maxRequiredFabricPorts;
 };
 
 class TestEnsembleIf : public HwSwitchCallback {
  public:
   using StateUpdateFn = FunctionStateUpdate::StateUpdateFn;
   ~TestEnsembleIf() override {}
-  virtual std::vector<PortID> masterLogicalPortIds() const = 0;
+
+  // Per-switch cap on the number of ports of the given type returned by the
+  // masterLogicalPortIds(...) views. nullopt (the default) means no cap. Lets
+  // us trim the ports each test (and its initial config) uses dynamically
+  // instead of destructively trimming the master port list at init time.
+  virtual std::optional<size_t> getMaxRequiredPorts(
+      cfg::PortType /*portType*/) const {
+    return std::nullopt;
+  }
+
+  // All masterLogicalPortIds(...) overloads funnel through
+  // masterLogicalPortIdsImpl, which filters getAllMasterLogicalPortIds() by
+  // port type / switch and applies getMaxRequiredPorts() uniformly. These
+  // (capped) views are what tests and initial config consume.
+  std::vector<PortID> masterLogicalPortIds() const {
+    return masterLogicalPortIdsImpl(
+        {}, {SwitchID(FLAGS_switch_id_for_testing)});
+  }
+  std::vector<PortID> masterLogicalPortIds(SwitchID switchId) const {
+    return masterLogicalPortIdsImpl({}, {switchId});
+  }
   std::vector<PortID> masterLogicalPortIds(
       const std::set<cfg::PortType>& portTypes) const {
     return masterLogicalPortIdsImpl(
@@ -161,6 +187,12 @@ class TestEnsembleIf : public HwSwitchCallback {
       std::unique_ptr<TxPacket> pkt,
       std::optional<PortDescriptor> portDescriptor = std::nullopt,
       std::optional<uint8_t> queueId = std::nullopt) = 0;
+  // Send a packet switched, optionally targeted at a specific switch (NPU).
+  // Default ignores the switchId and is suitable for single-switch ensembles;
+  // multi-switch ensembles override this to route to the target NPU.
+  virtual void sendPacketSwitchedAsync(
+      std::unique_ptr<TxPacket> pkt,
+      const std::optional<SwitchID>& switchId = std::nullopt);
   virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) = 0;
   virtual bool supportsAddRemovePort() const = 0;
   virtual const PlatformMapping* getPlatformMapping() const = 0;
@@ -171,6 +203,12 @@ class TestEnsembleIf : public HwSwitchCallback {
   virtual std::vector<FirmwareInfo> getAllFirmwareInfo(
       SwitchID switchId) const = 0;
   virtual bool needL2EntryForNeighbor() const = 0;
+
+ protected:
+  // Full, uncapped master logical port list across all switches -- the single
+  // raw source masterLogicalPortIdsImpl filters and caps. Internal plumbing:
+  // callers use the (capped) masterLogicalPortIds(...) views instead.
+  virtual std::vector<PortID> getAllMasterLogicalPortIds() const = 0;
 
  private:
   std::vector<PortID> masterLogicalPortIdsImpl(

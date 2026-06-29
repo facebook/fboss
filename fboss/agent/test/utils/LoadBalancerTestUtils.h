@@ -36,7 +36,9 @@ struct SendPktFunc {
   const FuncType3 func3_;
 };
 SendPktFunc getSendPktFunc(TestEnsembleIf* ensemble);
-SendPktFunc getSendPktFunc(SwSwitch* sw);
+SendPktFunc getSendPktFunc(
+    SwSwitch* sw,
+    const std::optional<SwitchID>& switchId = std::nullopt);
 
 using AllocatePktFunc = std::function<std::unique_ptr<TxPacket>(uint32_t size)>;
 AllocatePktFunc getAllocatePktFn(TestEnsembleIf* ensemble);
@@ -44,6 +46,16 @@ AllocatePktFunc getAllocatePktFn(SwSwitch* sw);
 
 size_t pumpTraffic(
     bool isV6,
+    const AllocatePktFunc& allocateFn,
+    SendPktFunc sendFn,
+    folly::MacAddress dstMac,
+    const std::optional<VlanID>& vlan,
+    std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
+    int hopLimit = 255,
+    int numPackets = 10000,
+    std::optional<folly::MacAddress> srcMac = std::nullopt);
+
+size_t pumpTrafficWithFlowLabel(
     const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     folly::MacAddress dstMac,

@@ -15,6 +15,7 @@
 #include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
@@ -25,6 +26,7 @@ SwitchStateNextHopIdUpdater::SwitchStateNextHopIdUpdater(
 
 std::shared_ptr<SwitchState> SwitchStateNextHopIdUpdater::operator()(
     const std::shared_ptr<SwitchState>& state) {
+  invalidLinkLocalNextHop_ = std::nullopt;
   if (!nextHopIDManager_) {
     return state;
   }
@@ -67,11 +69,20 @@ std::shared_ptr<SwitchState> SwitchStateNextHopIdUpdater::operator()(
   // Diff set maps: clone FIB, add missing from RIB, remove stale from FIB
   auto updatedSetMap =
       fibSetMap ? fibSetMap->clone() : std::make_shared<IdToNextHopIdSetMap>();
+  auto isInvalidLinkLocalNextHop = [&state](const auto& nextHop) {
+    return nextHop.addr().isV6() && nextHop.addr().isLinkLocal() &&
+        (!nextHop.intfID().has_value() ||
+         !state->getInterfaces()->getNodeIf(*nextHop.intfID()));
+  };
   for (const auto& [id, nextHopIdSet] : ribSetMap) {
     if (!fibSetMap || !fibSetMap->getNextHopIdSetIf(id)) {
       std::set<int64_t> nhopIds;
       for (auto nhopId : nextHopIdSet) {
         nhopIds.insert(static_cast<int64_t>(nhopId));
+        const auto& nextHop = ribNhopMap.at(nhopId).nextHop;
+        if (!invalidLinkLocalNextHop_ && isInvalidLinkLocalNextHop(nextHop)) {
+          invalidLinkLocalNextHop_ = nextHop.str();
+        }
       }
       updatedSetMap->addNextHopIdSet(id, nhopIds);
       setChanged = true;
@@ -173,39 +184,71 @@ bool SwitchStateNextHopIdUpdater::verifyNextHopIdConsistency(
 
   auto verifyRoutes = [&](const auto& fib) -> bool {
     for (const auto& [_, route] : std::as_const(*fib)) {
-      if (!route->isResolved()) {
-        continue;
-      }
-      const auto& fwdInfo = route->getForwardInfo();
+      // Resolved-side IDs only exist on resolved routes.
+      if (route->isResolved()) {
+        const auto& fwdInfo = route->getForwardInfo();
 
-      // Every resolved NEXTHOPS route must have IDs assigned
-      if (fwdInfo.getAction() == RouteForwardAction::NEXTHOPS) {
-        if (!fwdInfo.getResolvedNextHopSetID().has_value()) {
-          XLOG(ERR) << "Resolved NEXTHOPS route " << route->str()
-                    << " is missing resolvedNextHopSetID";
-          return false;
+        // Every resolved NEXTHOPS route must have IDs assigned
+        if (fwdInfo.getAction() == RouteForwardAction::NEXTHOPS) {
+          if (!fwdInfo.getResolvedNextHopSetID().has_value()) {
+            XLOG(ERR) << "Resolved NEXTHOPS route " << route->str()
+                      << " is missing resolvedNextHopSetID";
+            return false;
+          }
+          if (!fwdInfo.getNormalizedResolvedNextHopSetID().has_value()) {
+            XLOG(ERR) << "Resolved NEXTHOPS route " << route->str()
+                      << " is missing normalizedResolvedNextHopSetID";
+            return false;
+          }
         }
-        if (!fwdInfo.getNormalizedResolvedNextHopSetID().has_value()) {
-          XLOG(ERR) << "Resolved NEXTHOPS route " << route->str()
-                    << " is missing normalizedResolvedNextHopSetID";
-          return false;
-        }
-      }
 
-      if (!verifyNextHopIds(
-              route,
-              fwdInfo.getResolvedNextHopSetID(),
-              fwdInfo.getNextHopSet(),
-              "resolvedNextHopSetID")) {
-        return false;
-      }
-      if (fwdInfo.getNormalizedResolvedNextHopSetID() !=
-          fwdInfo.getResolvedNextHopSetID()) {
         if (!verifyNextHopIds(
                 route,
-                fwdInfo.getNormalizedResolvedNextHopSetID(),
-                RouteNextHopEntry::normalizeNextHops(fwdInfo.getNextHopSet()),
-                "normalizedResolvedNextHopSetID")) {
+                fwdInfo.getResolvedNextHopSetID(),
+                fwdInfo.getNextHopSet(),
+                "resolvedNextHopSetID")) {
+          return false;
+        }
+        if (fwdInfo.getNormalizedResolvedNextHopSetID() !=
+            fwdInfo.getResolvedNextHopSetID()) {
+          if (!verifyNextHopIds(
+                  route,
+                  fwdInfo.getNormalizedResolvedNextHopSetID(),
+                  fwdInfo.nonOverrideNormalizedNextHops(),
+                  "normalizedResolvedNextHopSetID")) {
+            return false;
+          }
+        }
+      }
+
+      // Per-client check. Only covers FIB routes -- the verifier walks
+      // state->getFibsInfoMap(), so RIB-only unresolved routes are skipped.
+      // TODO: extend to walk the RIB for full per-client coverage.
+      for (const auto& [clientId, entry] :
+           std::as_const(route->getEntryForClients())) {
+        if (entry->getNextHopSet().empty()) {
+          if (entry->getClientNextHopSetID().has_value()) {
+            XLOG(ERR) << "Per-client entry on route " << route->str()
+                      << " for client " << static_cast<int>(clientId)
+                      << " has empty nexthops but a non-null"
+                      << " clientNextHopSetID";
+            return false;
+          }
+          continue;
+        }
+        if (!entry->getClientNextHopSetID().has_value()) {
+          XLOG(ERR) << "Per-client entry on route " << route->str()
+                    << " for client " << static_cast<int>(clientId)
+                    << " has nexthops but is missing clientNextHopSetID";
+          return false;
+        }
+        if (!verifyNextHopIds(
+                route,
+                entry->getClientNextHopSetID(),
+                entry->getNextHopSet(),
+                fmt::format(
+                    "clientNextHopSetID(client={})",
+                    static_cast<int>(clientId)))) {
           return false;
         }
       }

@@ -2,13 +2,16 @@
 
 #include "fboss/platform/platform_manager/PkgManager.h"
 
+#include <algorithm>
 #include <chrono>
+#include <thread>
 
 #include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <range/v3/range/conversion.hpp>
+#include <range/v3/view/concat.hpp>
 #include <range/v3/view/drop.hpp>
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/split.hpp>
@@ -35,6 +38,18 @@ DEFINE_string(
     local_rpm_path,
     "",
     "Path to the local rpm file that needs to be installed on the system.");
+
+DEFINE_int32(
+    kmod_unload_retries,
+    10,
+    "Number of times to attempt the BSP kmod unload pass before giving up. "
+    "Retrying lets a transient holder release a module so the unload (and thus "
+    "the BSP reload) can succeed instead of crashing.");
+
+DEFINE_int32(
+    kmod_unload_retry_backoff_s,
+    3,
+    "Seconds to wait between kmod unload retries.");
 
 namespace fs = std::filesystem;
 namespace facebook::fboss::platform::platform_manager {
@@ -373,6 +388,24 @@ void PkgManager::closeWatchdogs() const {
   }
 }
 
+bool PkgManager::unloadKmodsOnce(const BspKmodsFile& bspKmodsFile) const {
+  const auto loadedKmods = systemInterface_->lsmod();
+  for (const auto& kmod : ranges::views::concat(
+           *bspKmodsFile.bspKmods(), *bspKmodsFile.sharedKmods())) {
+    if (!loadedKmods.contains(kmod)) {
+      XLOG(INFO) << fmt::format(
+          "Skipping to unload {}. Reason: Already unloaded", kmod);
+      continue;
+    }
+    XLOG(INFO) << fmt::format("Unloading {}", kmod);
+    if (!systemInterface_->unloadKmod(kmod)) {
+      XLOG(WARN) << fmt::format("Failed to unload {}", kmod);
+      return false;
+    }
+  }
+  return true;
+}
+
 void PkgManager::unloadBspKmods() const {
   SCOPE_SUCCESS {
     fb303::fbData->setCounter(kUnloadKmodsFailure, 0);
@@ -417,31 +450,23 @@ void PkgManager::unloadBspKmods() const {
   // Try to close all of them before proceeding. This will help in cases where
   // the watchdog managing service crashed.
   closeWatchdogs();
-  const auto loadedKmods = systemInterface_->lsmod();
-  for (const auto& kmod : *bspKmodsFile.bspKmods()) {
-    if (loadedKmods.contains(kmod)) {
-      XLOG(INFO) << fmt::format("Unloading {}", kmod);
-      if (!systemInterface_->unloadKmod(kmod)) {
-        throw std::runtime_error(fmt::format("Failed to unload ({})", kmod));
-      }
-    } else {
-      XLOG(INFO) << fmt::format(
-          "Skipping to unload {}. Reason: Already unloaded", kmod);
+
+  // A kmod unload can fail if another process loads shared kmods at the same
+  // time as PM unloads them. To avoid this, just retry a few times.
+  const int maxAttempts = std::max(1, FLAGS_kmod_unload_retries);
+  for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
+    if (unloadKmodsOnce(bspKmodsFile)) {
+      kmodsUnloaded_ = true;
+      return;
+    }
+    if (attempt < maxAttempts && FLAGS_kmod_unload_retry_backoff_s > 0) {
+      // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep_for
+      std::this_thread::sleep_for(
+          std::chrono::seconds(FLAGS_kmod_unload_retry_backoff_s));
     }
   }
-  XLOG(INFO) << "Unloading shared kernel modules";
-  for (const auto& kmod : *bspKmodsFile.sharedKmods()) {
-    if (loadedKmods.contains(kmod)) {
-      XLOG(INFO) << fmt::format("Unloading {}", kmod);
-      if (!systemInterface_->unloadKmod(kmod)) {
-        throw std::runtime_error(fmt::format("Failed to unload ({})", kmod));
-      }
-    } else {
-      XLOG(INFO) << fmt::format(
-          "Skipping to unload {}. Reason: Already unloaded", kmod);
-    }
-  }
-  kmodsUnloaded_ = true;
+  throw std::runtime_error(
+      fmt::format("Failed to unload BSP kmods after {} attempts", maxAttempts));
 }
 
 void PkgManager::loadRequiredKmods() const {

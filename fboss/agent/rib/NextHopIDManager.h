@@ -284,11 +284,16 @@ class NextHopIDManager {
   // ribTables: when non-null, also walks unresolved RIB routes to reconstruct
   // refcounts for clientNextHopSetIDs that the FIB walk cannot see. Pass
   // nullptr from callsites that have no RIB to consult.
+  // setIdRemapOut: when non-null, receives the collapsed -> surviving SetID
+  // remap built during reconstruction so the caller can repoint route
+  // references. Non-empty only on a cross-version warm boot; left empty
+  // otherwise. Callers that do not repoint (e.g. rollback) pass nullptr.
   void reconstructFromSwitchStateMaps(
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
-      const RibRouteTables* ribTables);
+      const RibRouteTables* ribTables,
+      std::unordered_map<NextHopSetID, NextHopSetID>* setIdRemapOut = nullptr);
 
  private:
   // Decrement reference count for a NextHopID and deallocate if count reaches 0
@@ -297,6 +302,72 @@ class NextHopIDManager {
 
   static constexpr int64_t kNextHopIDStart = 1;
   static constexpr int64_t kNextHopSetIDStart = 1LL << 62;
+
+  // Mutable state threaded through the reconstructFromSwitchStateMaps passes.
+  // The member maps the passes update are reached directly; only these running
+  // values are shared across the passes.
+  struct ReconstructionContext {
+    // Highest persisted NextHopID / NextHopSetID seen across all passes; used
+    // to seed the next-available watermarks once reconstruction completes.
+    NextHopID maxNextHopId{kNextHopIDStart - 1};
+    NextHopSetID maxNextHopSetId{kNextHopSetIDStart - 1};
+    // Next fresh SetID to mint for a deduped set whose persisted SetID
+    // was retired; reseeded above every persisted SetID at the start of
+    // reconstruction (see computeFreshSetIdSeed).
+    NextHopSetID nextFreshSetId{kNextHopSetIDStart};
+    // Collapsed -> surviving NextHopSetID remap for SetIDs retired during
+    // cross-version reconstruction (two persisted nexthops rehash to one,
+    // collapsing their distinct sets). reconstructFromSwitchStateMaps hands
+    // this out via setIdRemapOut so the caller repoints route references;
+    // empty on a same-version boot.
+    std::unordered_map<NextHopSetID, NextHopSetID> setIdRemap;
+    // FibInfo id maps (identical across switches), cached from the first
+    // FibInfo by the FIB pass and reused by the MySid / MPLS / unresolved-RIB
+    // passes (whose sets may not be referenced by any FIB route).
+    std::shared_ptr<IdToNextHopMap> fibId2NhopMap;
+    std::shared_ptr<IdToNextHopIdSetMap> fibId2NhopIdSetMap;
+  };
+
+  // Reconstruct a single persisted SetID: rebuild its member NextHopIDSet from
+  // FibInfo, dedup duplicate members, register/collapse/mint the set,
+  // and advance the ctx watermarks.
+  void processNextHopSetIdForReconstruction(
+      NextHopSetID setId,
+      const std::shared_ptr<IdToNextHopMap>& id2NhopMap,
+      const std::shared_ptr<IdToNextHopIdSetMap>& id2NhopIdSetMap,
+      ReconstructionContext& ctx);
+
+  // FIB pass: reconstruct route nexthop sets and named next-hop groups from
+  // every FibInfo, caching the (cross-switch-identical) id maps into ctx.
+  void reconstructFibPass(
+      const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
+      ReconstructionContext& ctx);
+
+  // MySid pass: refcount nexthop sets referenced by MySid entries (which may
+  // not be referenced by any FIB route).
+  void reconstructMySidPass(
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+      ReconstructionContext& ctx);
+
+  // MPLS FIB pass: refcount resolved/normalized/per-client sets of MPLS routes.
+  void reconstructMplsFibPass(
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+      ReconstructionContext& ctx);
+
+  // Unresolved-RIB pass: per-client setIDs on unresolved routes that the FIB
+  // walk does not see.
+  void reconstructUnresolvedRibPass(
+      const RibRouteTables* ribTables,
+      ReconstructionContext& ctx);
+
+  // Returns the first SetID strictly above every persisted SetID. Used by
+  // reconstructFromSwitchStateMaps to mint fresh SetIDs for deduped
+  // member sets whose persisted SetID was retired. The FibInfo
+  // idToNextHopIdSetMap is the complete registry of allocated SetIDs
+  // (consistent across switches), so its global max + 1 can never collide with
+  // a persisted id.
+  static NextHopSetID computeFreshSetIdSeed(
+      const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap);
 
   // Counter for generating NextHop IDs, starting from 1
   // allocate 0 - (2^62 -1) IDs for NextHops.
@@ -357,6 +428,16 @@ class NextHopIDManager {
   FRIEND_TEST(NextHopIDManagerTest, delOrDecrRouteNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, updateRouteNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMaps);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructMemberDedupMintsFreshSetId);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructMemberDedupUnresolvedRoute);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructFullCollapseRemapsToSurvivor);
+  FRIEND_TEST(
+      NextHopIDManagerTest,
+      reconstructMultipleRoutesToRetiredSetIdAccumulateFreshCount);
+  FRIEND_TEST(
+      NextHopIDManagerTest,
+      reconstructIntraSetDuplicateShrinksGroupAndDeallocsCleanly);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructMySidSetDedupRecordsRemap);
   FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMapsMultiSwitch);
   FRIEND_TEST(
       NextHopIDManagerTest,

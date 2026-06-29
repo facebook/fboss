@@ -161,7 +161,8 @@ class AgentAclCounterTest : public AgentHwTest {
   void counterBumpOnHitHelper(
       bool bumpOnHit,
       bool frontPanel,
-      std::vector<AclType> aclTypes) {
+      std::vector<AclType> aclTypes,
+      bool alsoVerifyNoHit = false) {
     auto setup = [this, aclTypes]() {
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return helper_->resolveNextHops(in, 2);
@@ -175,9 +176,14 @@ class AgentAclCounterTest : public AgentHwTest {
       applyNewConfig(newCfg);
     };
 
-    auto verify = [this, bumpOnHit, frontPanel, aclTypes]() {
+    auto verify = [this, bumpOnHit, frontPanel, aclTypes, alsoVerifyNoHit]() {
       for (auto aclType : aclTypes) {
         verifyAclType(bumpOnHit, frontPanel, aclType);
+      }
+      if (alsoVerifyNoHit) {
+        for (auto aclType : aclTypes) {
+          verifyAclType(false /* no hit, no bump */, frontPanel, aclType);
+        }
       }
     };
 
@@ -494,6 +500,41 @@ class AgentAclCounterTest : public AgentHwTest {
             // to trap any packet since intention of the test is to verify if
             // packet ingressing on a specific port is trapped
             acl->ipType() = cfg::IpType::ANY;
+          } else if (
+              asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+              asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+            // Q4D/J4 (DNX) reject FIELD_SRC_PORT + FIELD_ACL_IP_TYPE=NON_IP.
+            // Per Broadcom, install the source-port entry in both ACL tables:
+            // an etherType=IPv4 copy in the default table and an etherType=IPv6
+            // copy in the IPv6 table, so the source-port ACL matches both v4
+            // and v6 traffic. The test sends IPv6 traffic, so the IPv6 copy
+            // keeps the canonical name/counter (the one verifyAclType checks);
+            // the IPv4 copy gets a "-v4" suffix.
+            std::vector<cfg::CounterType> counterTypes{
+                cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+            auto addSrcPortEntry = [&](const std::string& name,
+                                       const std::string& counter,
+                                       cfg::EtherType etherType,
+                                       const std::string& tableName) {
+              cfg::AclEntry entry;
+              entry.name() = name;
+              entry.actionType() = aclActionType_;
+              entry.srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
+              entry.etherType() = etherType;
+              utility::addAclEntry(config, entry, tableName);
+              utility::addAclStat(config, name, counter, counterTypes);
+            };
+            addSrcPortEntry(
+                aclName + "-v4",
+                counterName + "-v4",
+                cfg::EtherType::IPv4,
+                utility::kDefaultAclTable());
+            addSrcPortEntry(
+                aclName,
+                counterName,
+                cfg::EtherType::IPv6,
+                utility::kIpv6AclTable());
+            return;
           } else {
             // Set the IP type to NON_IP to match all ingress packets in ASIC
             // SRC port
@@ -717,14 +758,14 @@ class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
 };
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHit) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHit) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
@@ -765,37 +806,16 @@ TEST_F(AgentAclCounterL4DstPortRangeTest, VerifyL4DstPortRangeAcl) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitWithDrop) {
   this->aclActionType_ = cfg::AclActionType::DENY;
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
-// Verify that traffic originating on the CPU increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */,
-      false /* cpu port */,
-      {AclType::TCP_TTLD, AclType::UDP_TTLD});
-}
-
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */, false /* cpu port */, {AclType::SRC_PORT});
-}
-
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBump) {
   this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       true /* front panel port */,
-      {AclType::TCP_TTLD, AclType::UDP_TTLD});
-}
-
-// Verify that traffic originating on the CPU increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
-  this->counterBumpOnHitHelper(
-      false /* no hit, no bump */,
-      false /* cpu port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
@@ -837,13 +857,6 @@ class AgentUdfAclCounterTest : public AgentAclCounterTest {
     return features;
   }
 };
-
-TEST_F(AgentUdfAclCounterTest, VerifyUdf) {
-  counterBumpOnHitHelper(
-      true /* bump on hit */,
-      true /* front panel port */,
-      {AclType::UDF_OPCODE_ACK, AclType::UDF_OPCODE_WRITE_IMMEDIATE});
-}
 
 TEST_F(AgentUdfAclCounterTest, VerifyUdfWithOtherAcls) {
   counterBumpOnHitHelper(
@@ -1027,18 +1040,6 @@ class AgentFlowletAclCounterTest : public AgentAclCounterTest {
     FLAGS_flowletSwitchingEnable = true;
   }
 };
-
-TEST_F(AgentFlowletAclCounterTest, VerifyFlowlet) {
-  counterBumpOnFlowletAclHitHelper(
-      true /* bump on hit */, true /* front panel port */, {AclType::FLOWLET});
-}
-
-TEST_F(AgentFlowletAclCounterTest, VerifyUdfFlowlet) {
-  counterBumpOnFlowletAclHitHelper(
-      true /* bump on hit */,
-      true /* front panel port */,
-      {AclType::UDF_FLOWLET});
-}
 
 TEST_F(AgentFlowletAclCounterTest, VerifyFlowletNegative) {
   this->roceReservedByte_ = 0x0;

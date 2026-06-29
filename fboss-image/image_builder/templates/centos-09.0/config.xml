@@ -128,7 +128,6 @@
         <package name="nvme-cli"/>
         <package name="re2"/>
         <package name="libsodium"/>
-        <package name="double-conversion"/>
         <package name="libdwarf"/>
         <package name="libunwind"/>
         <package name="xxhash-libs"/>
@@ -144,6 +143,7 @@
         <package name="tcpdump"/>
         <package name="usbutils"/>
         <package name="ndisc6"/>
+        <package name="chrony"/>
     </packages>
 
     <packages type="bootstrap">

@@ -293,6 +293,10 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
       swPort->setProfileId(
           cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL);
       break;
+    case cfg::PortSpeed::TWOHUNDREDANDTWELVEPOINTFIVEG:
+      swPort->setProfileId(
+          cfg::PortProfileID::PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL);
+      break;
     case cfg::PortSpeed::FOURHUNDREDG:
       swPort->setProfileId(
           cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL);

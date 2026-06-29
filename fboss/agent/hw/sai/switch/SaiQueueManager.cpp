@@ -12,6 +12,7 @@
 #include <fboss/agent/hw/sai/api/QueueApi.h>
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include "fboss/agent/PfcUtils.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -298,18 +299,31 @@ void SaiQueueManager::queuePfcDeadlockDetectionRecoveryEnable(
   }
 }
 
+std::vector<uint8_t> SaiQueueManager::getPfcEnabledQueues(
+    const Port* swPort) const {
+  if (!swPort || !swPort->getPfc().has_value()) {
+    return {};
+  }
+  return utility::findPfcEnabledQueues(
+      swPort->getPfcPriorities(),
+      managerTable_->qosMapManager().getPfcPriorityToQueueId(
+          swPort->getQosPolicy()));
+}
+
 void SaiQueueManager::changeQueueDeadlockEnable(
     SaiQueueHandle* queueHandle,
-    const Port* swPort) {
+    const Port* swPort,
+    const std::optional<std::vector<uint8_t>>& enabledPfcQueues) {
   if (swPort && swPort->getPfc().has_value()) {
     // Enabled PFC priorities cannot be changed without a cold boot
     // and hence in this flow, just take care of a case where PFC
     // WD is being enabled or disabled for queues.
-    auto pfcPris = swPort->getPfcPriorities();
     auto queueId = GET_ATTR(Queue, Index, queueHandle->queue->attributes());
-    if (pfcPris.size() &&
-        (std::find(pfcPris.begin(), pfcPris.end(), queueId) != pfcPris.end())) {
-      // Assume 1:1 mapping between queue ID and PFC priorities
+    auto enabledQueues = enabledPfcQueues.has_value()
+        ? *enabledPfcQueues
+        : getPfcEnabledQueues(swPort);
+    if (std::find(enabledQueues.begin(), enabledQueues.end(), queueId) !=
+        enabledQueues.end()) {
       bool portPfcWdEnabled = swPort->getPfc()->watchdog().has_value();
       queuePfcDeadlockDetectionRecoveryEnable(queueHandle, portPfcWdEnabled);
       auto pfcWdEnabledStatus = portPfcWdEnabled ? "enabled" : "disabled";
@@ -323,7 +337,8 @@ void SaiQueueManager::changeQueue(
     SaiQueueHandle* queueHandle,
     const PortQueue& newPortQueue,
     const Port* swPort,
-    const std::optional<cfg::PortType> portType) {
+    const std::optional<cfg::PortType> portType,
+    const std::optional<std::vector<uint8_t>>& enabledPfcQueues) {
   CHECK(queueHandle);
   // the method configures queues for CPU port as well as front panel port,
   // front panel port would have swPort but CPU port does not have swPort. In
@@ -377,7 +392,7 @@ void SaiQueueManager::changeQueue(
     }
   }
   if (queueType == SAI_QUEUE_TYPE_UNICAST) {
-    changeQueueDeadlockEnable(queueHandle, swPort);
+    changeQueueDeadlockEnable(queueHandle, swPort, enabledPfcQueues);
   }
 }
 
@@ -386,6 +401,7 @@ void SaiQueueManager::ensurePortQueueConfig(
     const SaiQueueHandles& queueHandles,
     const QueueConfig& queues,
     const Port* swPort) {
+  auto enabledPfcQueues = getPfcEnabledQueues(swPort);
   for (const auto& portQueue : queues) {
     SaiQueueTraits::CreateAttributes attributes =
         detail::makeQueueAttributes(portSaiId, *portQueue);
@@ -405,7 +421,12 @@ void SaiQueueManager::ensurePortQueueConfig(
       throw FbossError(
           "failed to find queue handle for queue id: ", (*portQueue).getID());
     }
-    changeQueue(queueHandleEntry->second.get(), *portQueue, swPort);
+    changeQueue(
+        queueHandleEntry->second.get(),
+        *portQueue,
+        swPort,
+        std::nullopt /* portType */,
+        enabledPfcQueues);
   }
 }
 

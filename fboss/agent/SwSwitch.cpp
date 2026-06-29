@@ -986,6 +986,8 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.sysPortStats()});
       agentStats.switchDropStatsMap()->insert(
           {switchIdx, *hwSwitchStats.switchDropStats()});
+      agentStats.switchDropBitmapStatsMap()->insert(
+          {switchIdx, *hwSwitchStats.switchDropBitmapStats()});
       for (auto& [_, phyInfo] : *hwSwitchStats.phyInfo()) {
         auto portName = phyInfo.state()->name().value();
         agentStats.phyStats()->insert({portName, phyInfo.stats().value()});
@@ -1268,7 +1270,9 @@ void SwSwitch::getAllHwSysPortStats(
   for (const auto& [switchIdx, hwSwitchStats] : *hwswitchStatsMap) {
     for (const auto& [portName, hwSysPortStatsEntry] :
          *hwSwitchStats.sysPortStats()) {
-      hwSysPortStats.emplace(portName, hwSysPortStatsEntry);
+      hwSysPortStats.emplace(
+          folly::to<std::string>("switch.", switchIdx, ".", portName),
+          hwSysPortStatsEntry);
     }
   }
 }

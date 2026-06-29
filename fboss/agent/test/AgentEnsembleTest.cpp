@@ -86,6 +86,12 @@ void AgentEnsembleTest::tearDownAgentEnsemble(bool doWarmboot) {
   if (!agentEnsemble_) {
     return;
   }
+  // Dump end-of-test metadata before any graceful exit. This runs on both the
+  // cold-boot (setup_for_warmboot) and warm-boot phases, since gracefulExit()
+  // below hard-exits the process on the setup_for_warmboot phase and gtest
+  // TearDown() would otherwise be skipped.
+  dumpTestMetadata();
+
   if (FLAGS_enable_sdk_dump) {
     agentEnsemble_->getHwDebugDump();
   }

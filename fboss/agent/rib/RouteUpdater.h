@@ -155,6 +155,17 @@ class RibRouteUpdater {
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID,
       const RouteNextHopEntry& entry);
+
+  // Stamp clientNextHopSetID on `entry` by either reusing the existing ID
+  // (when nexthops haven't changed), allocating a new ID and releasing the
+  // old, or releasing the old when the new entry has empty nexthops. Returns
+  // nullopt when there's nothing to stamp (no manager). `routeDescription`
+  // is used only for the CHECK message.
+  std::optional<RouteNextHopEntry> stampClientNextHopSetID(
+      ClientID clientID,
+      const std::shared_ptr<const RouteNextHopEntry>& existingRouteForClient,
+      const RouteNextHopEntry& entry,
+      const std::string& routeDescription);
   template <typename AddressT>
   void delRouteImpl(
       const Prefix<AddressT>& prefix,

@@ -27,6 +27,7 @@ sai_status_t create_router_interface_fn(
   std::optional<sai_object_id_t> vrId;
   std::optional<folly::MacAddress> mac;
   std::optional<sai_uint32_t> mtu;
+  std::optional<bool> adminMplsState;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS:
@@ -48,6 +49,11 @@ sai_status_t create_router_interface_fn(
       case SAI_ROUTER_INTERFACE_ATTR_MTU:
         mtu = attr_list[i].value.u32;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      case SAI_ROUTER_INTERFACE_ATTR_ADMIN_MPLS_STATE:
+        adminMplsState = attr_list[i].value.booldata;
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -78,6 +84,10 @@ sai_status_t create_router_interface_fn(
     auto& ri = fs->routeInterfaceManager.get(*router_interface_id);
     ri.mtu = mtu.value();
   }
+  if (adminMplsState) {
+    auto& ri = fs->routeInterfaceManager.get(*router_interface_id);
+    ri.adminMplsState = adminMplsState.value();
+  }
   return SAI_STATUS_SUCCESS;
 }
 
@@ -99,6 +109,11 @@ sai_status_t set_router_interface_attribute_fn(
     case SAI_ROUTER_INTERFACE_ATTR_MTU:
       ri.mtu = attr->value.u32;
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    case SAI_ROUTER_INTERFACE_ATTR_ADMIN_MPLS_STATE:
+      ri.adminMplsState = attr->value.booldata;
+      break;
+#endif
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -137,6 +152,11 @@ sai_status_t get_router_interface_attribute_fn(
       case SAI_ROUTER_INTERFACE_ATTR_MTU:
         attr[i].value.u32 = ri.mtu;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      case SAI_ROUTER_INTERFACE_ATTR_ADMIN_MPLS_STATE:
+        attr[i].value.booldata = ri.adminMplsState;
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

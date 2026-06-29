@@ -113,6 +113,9 @@ class SaiSwitchManager {
   HwSwitchTemperatureStats getSwitchTemperatureStats() const {
     return switchTemperatureStats_;
   }
+  HwSwitchDropBitmapStats getSwitchDropBitmapStats() const {
+    return switchDropBitmapStats_;
+  }
   void setLocalCapsuleSwitchIds(
       const std::map<SwitchID, int>& switchIdToNumCores);
   void setReachabilityGroupList(const std::vector<int>& reachabilityGroups);
@@ -176,6 +179,7 @@ class SaiSwitchManager {
   const std::vector<sai_stat_id_t>& supportedSaiExtensionDropStats() const;
   const std::vector<sai_stat_id_t>& supportedPipelineWatermarkStats() const;
   const std::vector<sai_stat_id_t>& supportedPipelineStats() const;
+  const std::vector<sai_stat_id_t>& supportedCustomDropBitmapStats() const;
   const std::vector<sai_attr_id_t>& supportedTemperatureStats() const;
   const HwSwitchWatermarkStats getHwSwitchWatermarkStats() const;
   const HwSwitchPipelineStats getHwSwitchPipelineStats(
@@ -203,6 +207,7 @@ class SaiSwitchManager {
   // since this is an optional attribute in SAI
   std::optional<bool> isPtpTcEnabled_{std::nullopt};
   HwSwitchDropStats switchDropStats_;
+  HwSwitchDropBitmapStats switchDropBitmapStats_;
   HwSwitchWatermarkStats switchWatermarkStats_;
   HwSwitchPipelineStats switchPipelineStats_;
   HwSwitchTemperatureStats switchTemperatureStats_;
@@ -227,6 +232,10 @@ void fillHwSwitchPipelineStats(
 void fillHwSwitchSaiExtensionDropStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchDropStats& dropStats);
+void fillHwSwitchDropBitmapStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropBitmapStats& dropBitmapStats);
+void logDropBitmapReasons(const HwSwitchDropBitmapStats& stats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
 void publishSwitchPipelineStats(HwSwitchPipelineStats& pipelineStats);
 void publishSwitchTemperatureStats(HwSwitchTemperatureStats& temperatureStats);

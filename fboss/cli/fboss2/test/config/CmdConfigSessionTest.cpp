@@ -14,8 +14,6 @@
 #include <stdexcept>
 #include <string>
 
-#include <folly/json.h>
-
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
 
 namespace fs = std::filesystem;

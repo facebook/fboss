@@ -99,7 +99,6 @@ add_library(meru800bia_bsp
 
 target_link_libraries(meru800bia_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -109,7 +108,6 @@ add_library(meru800bfa_bsp
 
 target_link_libraries(meru800bfa_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -182,7 +180,6 @@ add_library(janga800bic_bsp
 
 target_link_libraries(janga800bic_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -192,7 +189,6 @@ add_library(tahan800bc_bsp
 
 target_link_libraries(tahan800bc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 

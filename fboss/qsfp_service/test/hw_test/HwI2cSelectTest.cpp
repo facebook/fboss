@@ -17,12 +17,15 @@ namespace facebook::fboss {
  * same serial number.
  */
 TEST_F(HwTest, i2cUniqueSerialNumbers) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::I2C_ACCESS});
   // Get the IDs of all connected transceivers
   auto ensemble = getHwQsfpEnsemble();
   auto qsfpServiceHandler = ensemble->getQsfpServiceHandler();
   WedgeManager* wedgeManager = ensemble->getWedgeManager();
   auto transceivers = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(ensemble));
+  addTestedTransceiverIds(transceivers);
 
   // Get information of all connected transceivers
   std::map<int32_t, TransceiverInfo> transceiverInfo;

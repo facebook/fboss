@@ -5,6 +5,7 @@
 
 #include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
+#include <folly/logging/LoggerDB.h>
 #include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -58,6 +59,30 @@ class SensorServiceImplTest : public ::testing::Test {
     }
   }
 
+  // Rebuilds impl_ from config_ with loggedSensorNames set, captures stderr
+  // (where folly XLOG writes the service log) across one poll cycle, and
+  // returns the captured text. flushAllHandlers() forces the async log writer
+  // to drain into the captured fd before we read it.
+  std::string fetchAndCaptureLog(const std::vector<std::string>& loggedNames) {
+    config_.loggedSensorNames() = loggedNames;
+    impl_ = std::make_shared<SensorServiceImpl>(config_);
+    folly::test::CaptureFD stderrCapture(STDERR_FILENO);
+    impl_->fetchSensorData();
+    folly::LoggerDB::get().flushAllHandlers();
+    return stderrCapture.readIncremental();
+  }
+
+  std::string sensorPath(const std::string& name) {
+    for (const auto& pmUnitSensors : *config_.pmUnitSensorsList()) {
+      for (const auto& sensor : *pmUnitSensors.sensors()) {
+        if (sensor.name() == name) {
+          return *sensor.sysfsPath();
+        }
+      }
+    }
+    return {};
+  }
+
  protected:
   SensorConfig config_;
   // the tmpDir should remain present throughout the lifetime of the test
@@ -107,6 +132,81 @@ TEST_F(SensorServiceImplTest, getSomeSensors) {
   EXPECT_EQ(*sensorData[0].name(), mockSensorName);
   EXPECT_FLOAT_EQ(*sensorData[0].value(), mockSensorData[mockSensorName]);
   EXPECT_GE(*sensorData[0].timeStamp(), now);
+}
+
+TEST_F(SensorServiceImplTest, fetchParsesHexSensorValue) {
+  // CPLD regbit sysfs attrs can emit hex (e.g. "0xff"); these must parse
+  // rather than be rejected. MOCK_FRU_SENSOR2 has no compute, so 0xff -> 255.
+  const auto path = sensorPath("MOCK_FRU_SENSOR2");
+  ASSERT_FALSE(path.empty());
+  ASSERT_TRUE(folly::writeFile(std::string{"0xff"}, path.c_str()));
+
+  impl_->fetchSensorData();
+  auto sensorData = impl_->getAllSensorData();
+  auto it = sensorData.find("MOCK_FRU_SENSOR2");
+  ASSERT_TRUE(it != sensorData.end());
+  ASSERT_TRUE(it->second.value().has_value());
+  EXPECT_FLOAT_EQ(*it->second.value(), 255.0f);
+}
+
+TEST_F(SensorServiceImplTest, fetchHandlesUnparseableSensorValue) {
+  // A single unparseable value must not throw out of the poll cycle: the bad
+  // sensor degrades to a read failure while the others still publish.
+  ASSERT_TRUE(
+      folly::writeFile(
+          std::string{"garbage"}, sensorPath("MOCK_FRU_SENSOR2").c_str()));
+
+  ASSERT_NO_THROW(impl_->fetchSensorData());
+  auto sensorData = impl_->getAllSensorData();
+  EXPECT_FALSE(sensorData.at("MOCK_FRU_SENSOR2").value().has_value());
+  EXPECT_TRUE(sensorData.at("MOCK_FRU_SENSOR1").value().has_value());
+}
+
+TEST_F(SensorServiceImplTest, logsConfiguredSensorValue) {
+  // A configured logged sensor with a successful read emits its value to the
+  // log, tagged so a single sensor's history can be grepped out (SEV S649086).
+  auto log = fetchAndCaptureLog({"MOCK_FRU_SENSOR1"});
+  EXPECT_NE(
+      log.find(
+          fmt::format(
+              "{} MOCK_FRU_SENSOR1 = 0.025",
+              SensorServiceImpl::kLoggedSensorPrefix)),
+      std::string::npos)
+      << log;
+  // Sensors not in the list are not logged with the tag.
+  EXPECT_EQ(
+      log.find(
+          fmt::format(
+              "{} MOCK_FRU_SENSOR2", SensorServiceImpl::kLoggedSensorPrefix)),
+      std::string::npos);
+}
+
+TEST_F(SensorServiceImplTest, logsReadFailureForConfiguredSensor) {
+  // When a logged sensor cannot be read, the failure is surfaced explicitly
+  // rather than dropped — this is the case the SEV needs to never lose.
+  ASSERT_TRUE(std::filesystem::remove(sensorPath("MOCK_FRU_SENSOR1")));
+  auto log = fetchAndCaptureLog({"MOCK_FRU_SENSOR1"});
+  EXPECT_NE(
+      log.find(
+          fmt::format(
+              "{} MOCK_FRU_SENSOR1 = READ_FAILED",
+              SensorServiceImpl::kLoggedSensorPrefix)),
+      std::string::npos)
+      << log;
+}
+
+TEST_F(SensorServiceImplTest, logsNotCollectedForUnknownSensor) {
+  // A configured name that is not collected this cycle is reported, not
+  // silently skipped. (ConfigValidator rejects undefined names in production;
+  // this exercises the runtime fail-safe directly.)
+  auto log = fetchAndCaptureLog({"SENSOR_NOT_IN_THIS_CYCLE"});
+  EXPECT_NE(
+      log.find(
+          fmt::format(
+              "{} SENSOR_NOT_IN_THIS_CYCLE: sensor data missing",
+              SensorServiceImpl::kLoggedSensorPrefix)),
+      std::string::npos)
+      << log;
 }
 
 TEST_F(SensorServiceImplTest, publishPerSensorStats) {

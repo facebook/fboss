@@ -40,6 +40,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
     SAI_ATTR_MAP(AclTable, FieldIcmpV6Type),
     SAI_ATTR_MAP(AclTable, FieldIcmpV6Code),
     SAI_ATTR_MAP(AclTable, FieldDscp),
+    SAI_ATTR_MAP(AclTable, FieldTc),
     SAI_ATTR_MAP(AclTable, FieldDstMac),
     SAI_ATTR_MAP(AclTable, FieldIpType),
     SAI_ATTR_MAP(AclTable, FieldTtl),
@@ -118,6 +119,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, FieldIcmpV6Type),
     SAI_ATTR_MAP(AclEntry, FieldIcmpV6Code),
     SAI_ATTR_MAP(AclEntry, FieldDscp),
+    SAI_ATTR_MAP(AclEntry, FieldTc),
     SAI_ATTR_MAP(AclEntry, FieldDstMac),
     SAI_ATTR_MAP(AclEntry, FieldIpType),
     SAI_ATTR_MAP(AclEntry, FieldTtl),
@@ -169,6 +171,7 @@ void handleExtensionAttributes() {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
   SAI_EXT_ATTR_MAP(AclEntry, ActionL3SwitchCancel);
 #endif
+  SAI_EXT_ATTR_MAP(AclEntry, FieldNextHopGroupId);
 }
 
 } // namespace

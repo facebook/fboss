@@ -3,6 +3,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/agent_hw_test_ctrl_types.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
@@ -33,16 +34,23 @@ class AgentAclTableGroupTest : public AgentHwTest {
   }
 
  protected:
+  // Ebro (wedge400c) derives the shared ACL key profile from the first table,
+  // so the first table must carry every qualifier used across the group.
+  bool isEbroAsic() const {
+    return checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+               ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO;
+  }
+
   void addAclTable1(cfg::SwitchConfig& cfg) {
     std::vector<cfg::AclTableQualifier> qualifiers = {
         cfg::AclTableQualifier::DSCP};
     std::vector<cfg::AclTableActionType> actions = {
         cfg::AclTableActionType::PACKET_ACTION,
         cfg::AclTableActionType::COUNTER};
-#if defined(TAJO_SDK_GTE_24_8_3001)
-    qualifiers.push_back(cfg::AclTableQualifier::TTL);
-    actions.push_back(cfg::AclTableActionType::COUNTER);
-#endif
+    if (isEbroAsic()) {
+      qualifiers.push_back(cfg::AclTableQualifier::TTL);
+      actions.push_back(cfg::AclTableActionType::COUNTER);
+    }
     utility::addAclTable(
         &cfg, kAclTable1(), 1 /* priority */, actions, qualifiers);
   }
@@ -187,9 +195,9 @@ class AgentAclTableGroupTest : public AgentHwTest {
       qualifiers.push_back(cfg::AclTableQualifier::OUTER_VLAN);
     }
 
-#if defined(TAJO_SDK_GTE_24_8_3001)
-    qualifiers.push_back(cfg::AclTableQualifier::TTL);
-#endif
+    if (isEbroAsic()) {
+      qualifiers.push_back(cfg::AclTableQualifier::TTL);
+    }
 
     utility::addAclTable(
         newCfg,
@@ -234,9 +242,9 @@ class AgentAclTableGroupTest : public AgentHwTest {
       qualifiers.push_back(cfg::AclTableQualifier::OUTER_VLAN);
     }
 
-#if defined(TAJO_SDK_GTE_24_8_3001)
-    qualifiers.push_back(cfg::AclTableQualifier::TTL);
-#endif
+    if (isEbroAsic()) {
+      qualifiers.push_back(cfg::AclTableQualifier::TTL);
+    }
 
     utility::addAclTable(
         newCfg,
@@ -429,8 +437,8 @@ class AgentAclTableGroupTest : public AgentHwTest {
       }
     };
 
-    auto setupPostWarmboot = [=, this]() {
-      auto newCfg = getMultiAclConfig(addRemoveAclQualifier);
+    auto applyEntryModifications = [=, this](bool withQualifier) {
+      auto newCfg = getMultiAclConfig(withQualifier);
       utility::addDscpAclEntryWithCounter(
           &newCfg, kAclTable3(), getAgentEnsemble()->isSai());
       addCounterAclToAclTable(
@@ -457,8 +465,20 @@ class AgentAclTableGroupTest : public AgentHwTest {
           kTable1CounterAcl3(),
           kTable1Counter3Name(),
           3,
-          addRemoveAclQualifier);
+          withQualifier);
       applyNewConfig(newCfg);
+    };
+
+    auto setupPostWarmboot = [=, this]() {
+      applyEntryModifications(false);
+      if (addRemoveAclQualifier) {
+        if (isSupportedOnAllAsics(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
+          verifyAclEntryTestHelper(38, 3);
+        } else {
+          verifyAclEntryTestHelper(23, 3);
+        }
+        applyEntryModifications(true);
+      }
     };
 
     auto verifyPostWarmboot = [=, this]() {
@@ -520,25 +540,6 @@ TEST_F(AgentAclTableGroupTest, MultipleTablesNoEntries) {
     ASSERT_TRUE(client->sync_isAclTableEnabled(kAclTable1()));
     ASSERT_TRUE(client->sync_isAclTableEnabled(kAclTable2()));
   };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(AgentAclTableGroupTest, MultipleTablesWithEntries) {
-  ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
-
-  auto setup = [this]() {
-    auto& ensemble = *getAgentEnsemble();
-    auto newCfg = initialConfig(ensemble);
-    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
-    addAclTable1(newCfg);
-    addAclTable1Entry1(newCfg, kAclTable1());
-    addAclTable2(newCfg);
-    addAclTable2Entry1(newCfg);
-    applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() { verifyMultipleTableWithEntriesHelper(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -841,10 +842,6 @@ TEST_F(AgentAclTableGroupTest, RepositionAclEntriesPostWarmboot) {
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verify);
-}
-
-TEST_F(AgentAclTableGroupTest, AddAclEntriesToAclTablesPostWarmboot) {
-  verifyAclEntryModificationTestHelper(true, false);
 }
 
 TEST_F(

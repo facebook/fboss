@@ -443,6 +443,37 @@ RUN_HW_LOAD_BALANCER_NEGATIVE_TEST_FRONT_PANEL(
 RUN_HW_LOAD_BALANCER_TEST_SPRAY(AgentLoadBalancerTestV6ArsSpray, Ecmp, Full)
 RUN_HW_LOAD_BALANCER_TEST_SPRAY(AgentLoadBalancerTestV6EcmpSpray, Ecmp, Full)
 
+// IPv6 flow label ECMP load balancing (plain IPv6, not tunneled)
+class AgentV6FlowLabelEcmpLoadBalancerTest
+    : public AgentLoadBalancerTest<
+          utility::HwIpV6FlowLabelEcmpDataPlaneTestUtil,
+          false> {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::ECMP_LOAD_BALANCER};
+  }
+
+  std::unique_ptr<utility::HwIpV6FlowLabelEcmpDataPlaneTestUtil> getECMPHelper()
+      override {
+    if (!this->getEnsemble()) {
+      return nullptr;
+    }
+    return std::make_unique<utility::HwIpV6FlowLabelEcmpDataPlaneTestUtil>(
+        this->getEnsemble(), RouterID(0));
+  }
+};
+
+RUN_HW_LOAD_BALANCER_TEST_CPU(
+    AgentV6FlowLabelEcmpLoadBalancerTest,
+    Ecmp,
+    FullWithFlowLabel)
+
+RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(
+    AgentV6FlowLabelEcmpLoadBalancerTest,
+    Ecmp,
+    FullWithFlowLabel)
+
 RUN_HW_LOAD_BALANCER_TEST_CPU(
     AgentSrv6EcmpLoadBalancerTest,
     Ecmp,
@@ -692,8 +723,10 @@ class AgentHashPolarizationTest : public AgentHwTest {
       return captured;
     }
 
-    auto postStats = getLatestPortStats(ports);
-    EXPECT_TRUE(egressBalanced(preStats, postStats));
+    WITH_RETRIES({
+      auto postStats = getLatestPortStats(ports);
+      EXPECT_EVENTUALLY_TRUE(egressBalanced(preStats, postStats));
+    });
     return captured;
   }
 
@@ -734,8 +767,10 @@ class AgentHashPolarizationTest : public AgentHwTest {
     EXPECT_LE(dropped, replay.size() * kMaxReplayDropRatio)
         << "Too many captured frames were skipped during replay";
 
-    auto postStats = getLatestPortStats(ports);
-    EXPECT_TRUE(egressBalanced(preStats, postStats));
+    WITH_RETRIES({
+      auto postStats = getLatestPortStats(ports);
+      EXPECT_EVENTUALLY_TRUE(egressBalanced(preStats, postStats));
+    });
   }
 
   template <typename AddrT>

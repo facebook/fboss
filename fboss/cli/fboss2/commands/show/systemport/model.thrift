@@ -19,6 +19,7 @@ struct SystemPortEntry {
   10: string remoteSystemPortType;
   11: string remoteSystemPortLivenessStatus;
   12: string scope;
+  13: optional i32 switchIndex;
 }
 
 struct SystemPortHwStatsEntry {

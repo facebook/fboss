@@ -129,6 +129,12 @@ struct ClientAndNextHops {
   3: list<common.NextHopThrift> nextHops;
   // will be populated if policy based route or named next hop group is used
   4: optional common.NamedRouteDestination namedRouteDestination;
+  5: optional AdminDistance adminDistance;
+  6: optional bool isPreferred;
+  7: optional RouteCounterID counterID;
+  8: optional switch_config.AclLookupClass classID;
+  // ID assigned by NextHopIDManager to this per-client nexthop set.
+  9: optional i64 clientNextHopSetID;
 }
 
 struct IfAndIP {
@@ -1292,6 +1298,16 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * on a box
    */
   string getHwDebugDump();
+
+  /*
+   * Enable or disable the SDK dumping register/state logs to disk
+   * (SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME). Disabling clears the attribute so
+   * the SDK stops dumping. Throws if the device/ASIC does not support this.
+   */
+  void setSdkRegDumpEnabled(1: bool enabled) throws (
+    1: fboss.FbossBaseError error,
+  );
+
   /*
    * String formatted information of givens Hw Objects.
    */

@@ -166,7 +166,8 @@ TEST_F(AuditRemoteInterfaceRoutesTest, DetectsExtra) {
   EXPECT_EQ(audit.totalMismatchCount(), 1);
   ASSERT_EQ(audit.extra.size(), 1);
   ASSERT_EQ(audit.extra.at(kVrf).size(), 1);
-  EXPECT_EQ(audit.extra.at(kVrf).front(), kPrefix3);
+  EXPECT_EQ(audit.extra.at(kVrf).front().first, kPrefix3);
+  EXPECT_EQ(audit.extra.at(kVrf).front().second, kIntf3);
   EXPECT_TRUE(audit.missing.empty());
 }
 
@@ -239,7 +240,8 @@ TEST_F(AuditRemoteInterfaceRoutesTest, MultipleVrfs) {
   ASSERT_EQ(audit.missing.size(), 1);
   EXPECT_EQ(audit.missing.at(kVrf).size(), 1);
   ASSERT_EQ(audit.extra.size(), 1);
-  EXPECT_EQ(audit.extra.at(kVrf2).front(), kPrefix2);
+  EXPECT_EQ(audit.extra.at(kVrf2).front().first, kPrefix2);
+  EXPECT_EQ(audit.extra.at(kVrf2).front().second, kIntf2);
 }
 
 TEST_F(AuditRemoteInterfaceRoutesTest, MalformedCountIsZeroOnCleanFib) {

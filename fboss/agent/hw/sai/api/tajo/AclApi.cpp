@@ -9,4 +9,9 @@ SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiAclEntryTraits::Attributes::AttributeFieldNextHopGroupId::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

@@ -230,7 +230,9 @@ class RibRouteTables {
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
       const boost::container::flat_map<
           facebook::fboss::RouterID,
-          std::vector<folly::CIDRNetwork>>& toDel,
+          std::vector<
+              std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>>>&
+          toDel,
       const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
 
@@ -346,6 +348,13 @@ class RibRouteTables {
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
       const RouterIDAndNetworkToInterfaceRoutes&
           configRouterIDToInterfaceRoutes) const;
+
+  // Stamps missing clientNextHopSetID, resolvedNextHopSetID, and
+  // normalizedResolvedNextHopSetID on routes from a pre-feature warmboot
+  // snapshot. No-op when manager is null or IDs are already set.
+  // TODO: remove once FLAGS_enable_nexthop_id_manager is permanently on.
+  static void backfillNextHopIds(
+      const SynchronizedRouteTables::WLockedPtr& lockedRouteTables);
 
   SynchronizedRouteTables synchronizedRouteTables_;
 };
@@ -510,7 +519,9 @@ class RoutingInformationBase {
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
       const boost::container::flat_map<
           facebook::fboss::RouterID,
-          std::vector<folly::CIDRNetwork>>& toDel,
+          std::vector<
+              std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>>>&
+          toDel,
       const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
 
@@ -672,5 +683,43 @@ class RoutingInformationBase {
   FbossEventBase ribUpdateEventBase_{"RibUpdateEventBase"};
   RibRouteTables ribTables_;
 };
+
+// ID-only primitive: resolve a NextHopSetID directly against the
+// NextHopIDManager. Throws FbossError if the id is not present in the
+// manager (mirrors FibInfo::resolveNextHopSetFromId behavior).
+// Used by RIB-internal callers that operate before the state is published;
+// caller is responsible for the FLAGS_resolve_nexthops_from_id check.
+RouteNextHopSet getNextHopsFromRib(
+    const NextHopIDManager* manager,
+    NextHopSetID id);
+
+// Resolve per-client nexthops from a per-client RouteNextHopEntry via the
+// NextHopIDManager directly. Used by RIB-internal callers that operate
+// before the state is published. When FLAGS_resolve_nexthops_from_id is on,
+// resolves via clientNextHopSetID against the manager. When off, falls
+// back to entry.getNextHopSet(). Companion to the state-based overload
+// `getClientNextHops(state, entry)` in FibHelpers.h.
+RouteNextHopSet getClientNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry);
+
+// Resolve resolved-side (FIB-resolved) nexthops from a RouteNextHopEntry
+// via the NextHopIDManager directly. Used by RIB-internal callers operating
+// before the state is published. When FLAGS_resolve_nexthops_from_id is on,
+// resolves via resolvedNextHopSetID against the manager. When off, falls
+// back to entry.getNextHopSet(). Companion to FibHelpers::getNextHops.
+RouteNextHopSet getResolvedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry);
+
+// Resolve the non-override normalized nexthops from a RouteNextHopEntry
+// via the NextHopIDManager directly. Used by RIB-internal callers operating
+// before the state is published. When FLAGS_resolve_nexthops_from_id is on,
+// resolves via normalizedResolvedNextHopSetID against the manager. When
+// off, falls back to entry.nonOverrideNormalizedNextHops(). Companion to
+// FibHelpers::getNonOverrideNormalizedNextHops.
+RouteNextHopSet getNormalizedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry);
 
 } // namespace facebook::fboss

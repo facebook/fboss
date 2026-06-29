@@ -222,8 +222,8 @@ class IPv6Handler : public StateObserver {
   void rebuildDecapMySidCache(const std::shared_ptr<SwitchState>& state);
 
   struct DecapMySidCache {
-    std::unordered_set<folly::IPAddressV6> exactAddrs;
-    facebook::network::RadixTree<folly::IPAddressV6, bool> prefixTree;
+    std::unordered_set<folly::IPAddressV6> decapMySids;
+    facebook::network::RadixTree<folly::IPAddressV6, bool> decapMySidSubnets;
   };
 
   SwSwitch* sw_{nullptr};

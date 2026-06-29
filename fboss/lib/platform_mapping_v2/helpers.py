@@ -71,6 +71,11 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
     ]:
         return [PortSpeed.TWOHUNDREDG]
     if profile in [
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER,
+    ]:
+        return [PortSpeed.TWOHUNDREDANDTWELVEPOINTFIVEG]
+    if profile in [
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
@@ -130,6 +135,8 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER,
     ]:
         return 1
     if profile in [
@@ -1037,6 +1044,7 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL,
     ]:
         return [TransmitterTechnology.OPTICAL, TransmitterTechnology.BACKPLANE]
@@ -1063,6 +1071,7 @@ def transmitter_tech_from_profile(
         return [TransmitterTechnology.COPPER]
     if profile in [
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
     ]:
@@ -1143,6 +1152,8 @@ def fec_from_profile(profile: PortProfileID) -> FecMode:
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_OPTICAL,

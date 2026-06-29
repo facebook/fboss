@@ -285,6 +285,9 @@ class HwSwitch {
   virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
   virtual TeFlowStats getTeFlowStats() const = 0;
   virtual HwSwitchDropStats getSwitchDropStats() const = 0;
+  virtual HwSwitchDropBitmapStats getSwitchDropBitmapStats() const {
+    return HwSwitchDropBitmapStats{};
+  }
   virtual HwFlowletStats getHwFlowletStats() const = 0;
   virtual std::vector<EcmpDetails> getAllEcmpDetails() const = 0;
   virtual HwSwitchWatermarkStats getSwitchWatermarkStats() const = 0;
@@ -394,6 +397,10 @@ class HwSwitch {
 
   std::string getDebugDump() const;
   virtual void dumpDebugState(const std::string& path) const = 0;
+
+  virtual void setSdkRegDumpEnabled(bool enabled);
+  virtual void triggerCableLengthMeasurement(
+      const std::unique_ptr<std::vector<int32_t>>& ports);
   virtual std::string listObjects(
       const std::vector<HwObjectType>& types,
       bool cached) const = 0;

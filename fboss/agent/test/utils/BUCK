@@ -8,6 +8,7 @@ cpp_library(
         "Srv6TestUtils.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":config_utils",
         ":load_balancer_test_utils",
         ":packet_snooper",
@@ -18,10 +19,12 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:handler",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
         "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test:ecmp_helper",
         "//fboss/lib:common_utils",
         "//folly:network_address",
     ],
@@ -232,8 +235,11 @@ cpp_library(
     ],
     headers = ["MacTestUtils.h"],
     exported_deps = [
+        "//fboss/agent:agent_features",
         "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
         "//fboss/agent:hw_switch_thrift_client_table",
+        "//fboss/agent:hwswitch_matcher",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
@@ -687,9 +693,8 @@ cpp_library(
         "//fboss/agent:agent_features",
         "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fib_helpers",
-        "//fboss/agent:utils",
+        "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
-        "//fboss/agent/test:utils",
     ],
 )
 

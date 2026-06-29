@@ -182,7 +182,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.1.8449"
+              "version": "1.1.8192"
             }
           ]
       },
@@ -190,7 +190,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.1.8448"
+              "version": "1.1.8192"
             }
           ]
       },
@@ -246,7 +246,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "110.40.13"
+              "version": "10.40.13"
             }
           ]
       },
@@ -254,7 +254,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "110.40.13"
+              "version": "10.40.13"
             }
           ]
       },
@@ -262,7 +262,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "110.40.13"
+              "version": "10.40.13"
             }
           ]
       },
@@ -298,6 +298,14 @@
             }
           ]
       },
+      "EOLO-138HG-5H-7B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.6"
+            }
+          ]
+      },
       "EOLO-138HG-5H-B": {
           "versions": [
             {
@@ -314,11 +322,19 @@
             }
           ]
       },
+      "EOLO-138HG-E5HSD": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.6"
+            }
+          ]
+      },
       "EOLO-13T-5H-1B": {
           "versions": [
             {
               "fwType": 1,
-              "version": "3.2"
+              "version": "3.3"
             }
           ]
       },
@@ -326,7 +342,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.2"
+              "version": "3.3"
             }
           ]
       },
@@ -334,7 +350,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.2"
+              "version": "3.3"
             }
           ]
       },
@@ -502,7 +518,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "2.5"
+              "version": "2.6"
             }
           ]
       },

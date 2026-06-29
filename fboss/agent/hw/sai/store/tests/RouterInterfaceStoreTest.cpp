@@ -25,7 +25,17 @@ class RouterInterfaceStoreTest : public SaiStoreTest {
       sai_uint32_t mtu) {
     return saiApiTable->routerInterfaceApi()
         .create<SaiVlanRouterInterfaceTraits>(
-            {0, SAI_ROUTER_INTERFACE_TYPE_VLAN, vlanId, mac, mtu}, 0);
+            {0,
+             SAI_ROUTER_INTERFACE_TYPE_VLAN,
+             vlanId,
+             mac,
+             mtu
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+             ,
+             std::nullopt
+#endif
+            },
+            0);
   }
   RouterInterfaceSaiId createPortRouterInterface(
       sai_object_id_t portId,
@@ -123,7 +133,16 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceCreateCtor) {
   {
     SaiVlanRouterInterfaceTraits::AdapterHostKey k{0, 41};
     SaiVlanRouterInterfaceTraits::CreateAttributes c{
-        0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000};
+        0,
+        SAI_ROUTER_INTERFACE_TYPE_VLAN,
+        41,
+        srcMac,
+        9000
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ,
+        std::nullopt
+#endif
+    };
 
     auto obj = createObj<SaiVlanRouterInterfaceTraits>(k, c, 0);
     EXPECT_EQ(GET_ATTR(VlanRouterInterface, VlanId, obj.attributes()), 41);
@@ -162,7 +181,16 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceSetSrcMac) {
   {
     SaiVlanRouterInterfaceTraits::AdapterHostKey k{0, 41};
     SaiVlanRouterInterfaceTraits::CreateAttributes c{
-        0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000};
+        0,
+        SAI_ROUTER_INTERFACE_TYPE_VLAN,
+        41,
+        srcMac,
+        9000
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ,
+        std::nullopt
+#endif
+    };
 
     auto obj = createObj<SaiVlanRouterInterfaceTraits>(k, c, 0);
     EXPECT_EQ(GET_ATTR(VlanRouterInterface, VlanId, obj.attributes()), 41);
@@ -172,7 +200,16 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceSetSrcMac) {
 
     folly::MacAddress srcMac2{"42:42:42:42:42:42"};
     SaiVlanRouterInterfaceTraits::CreateAttributes newAttrs{
-        0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac2, 1514};
+        0,
+        SAI_ROUTER_INTERFACE_TYPE_VLAN,
+        41,
+        srcMac2,
+        1514
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ,
+        std::nullopt
+#endif
+    };
     obj.setAttributes(newAttrs);
     EXPECT_EQ(GET_ATTR(VlanRouterInterface, VlanId, obj.attributes()), 41);
     EXPECT_EQ(
@@ -201,6 +238,24 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceSetSrcMac) {
   }
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+TEST_F(RouterInterfaceStoreTest, routerInterfaceAdminMplsState) {
+  folly::MacAddress srcMac{"41:41:41:41:41:41"};
+  SaiVlanRouterInterfaceTraits::AdapterHostKey k{0, 41};
+  SaiVlanRouterInterfaceTraits::CreateAttributes c{
+      0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000, true};
+
+  auto obj = createObj<SaiVlanRouterInterfaceTraits>(k, c, 0);
+  EXPECT_EQ(
+      GET_OPT_ATTR(VlanRouterInterface, AdminMplsState, obj.attributes()),
+      true);
+  auto apiAdminMplsState = saiApiTable->routerInterfaceApi().getAttribute(
+      obj.adapterKey(),
+      SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState{});
+  EXPECT_TRUE(apiAdminMplsState);
+}
+#endif
+
 TEST_F(RouterInterfaceStoreTest, serDeserTest) {
   auto routerInterfaceSaiId =
       createRouterInterface(41, folly::MacAddress{"41:41:41:41:41:41"}, 1514);
@@ -224,12 +279,25 @@ TEST_F(RouterInterfaceStoreTest, routerFormatTest) {
   {
     SaiVlanRouterInterfaceTraits::AdapterHostKey k{0, 41};
     SaiVlanRouterInterfaceTraits::CreateAttributes c{
-        0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000};
+        0,
+        SAI_ROUTER_INTERFACE_TYPE_VLAN,
+        41,
+        srcMac,
+        9000
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ,
+        std::nullopt
+#endif
+    };
     auto obj = createObj<SaiVlanRouterInterfaceTraits>(k, c, 0);
-    auto expected =
+    std::string expected =
         "RouterInterfaceSaiId(0): "
         "(VirtualRouterId: 0, Type: 1, VlanId: 41, "
-        "SrcMac: 41:41:41:41:41:41, Mtu: 9000)";
+        "SrcMac: 41:41:41:41:41:41, Mtu: 9000"
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        ", nullopt"
+#endif
+        ")";
     EXPECT_EQ(expected, fmt::format("{}", obj));
   }
   {
