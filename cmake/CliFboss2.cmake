@@ -634,6 +634,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.h
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.h
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableSummary.h
   fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h
   fboss/cli/fboss2/commands/show/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h
   fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedDryRun.h
@@ -707,6 +708,7 @@ target_link_libraries(fboss2_lib
   cli_model
   bgp_thrift_cpp2
   bgp_summary_cpp2
+  bgp_table_summary_cpp2
   bgp_config_cpp2
   bgp_update_group_cpp2
   bgp_attr_cpp2

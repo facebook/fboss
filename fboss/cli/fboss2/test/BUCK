@@ -144,6 +144,7 @@ cpp_unittest(
         "CmdShowBgpTableDetailTest.cpp",
         "CmdShowBgpTableMoreSpecificsTest.cpp",
         "CmdShowBgpTablePrefixTest.cpp",
+        "CmdShowBgpTableSummaryTest.cpp",
         "CmdShowBgpTableTest.cpp",
         "CmdShowConfigRunningTest.cpp",
         "CmdShowCpuPortTest.cpp",

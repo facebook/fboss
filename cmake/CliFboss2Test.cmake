@@ -98,6 +98,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowBgpTableDetailTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpTableMoreSpecificsTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpTablePrefixTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpTableSummaryTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpTableTest.cpp
   fboss/cli/fboss2/test/CmdShowConfigTestUtils.cpp
   fboss/cli/fboss2/test/config/CmdConfigTestBase.cpp

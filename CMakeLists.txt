@@ -913,6 +913,15 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  bgp_table_summary_cpp2
+  fboss/cli/fboss2/commands/show/bgp/table/bgp_table_summary.thrift
+  OPTIONS
+    json
+  DEPENDS
+    bgp_thrift_cpp2
+)
+
+add_fbthrift_cpp_library(
   bgp_update_group_cpp2
   fboss/cli/fboss2/commands/show/bgp/updategroup/bgp_update_group.thrift
   OPTIONS

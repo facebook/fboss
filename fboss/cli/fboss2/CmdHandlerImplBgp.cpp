@@ -40,6 +40,7 @@
 #include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.h"
 #include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.h"
 #include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.h"
+#include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableSummary.h"
 // IWYU pragma: end_keep
 // NOLINTEND(misc-include-cleaner)
 
@@ -102,6 +103,8 @@ template void
 CmdHandler<CmdShowBgpTableCommunity, CmdShowBgpTableCommunityTraits>::run();
 template void
 CmdHandler<CmdShowBgpTableDetail, CmdShowBgpTableDetailTraits>::run();
+template void
+CmdHandler<CmdShowBgpTableSummary, CmdShowBgpTableSummaryTraits>::run();
 template void CmdHandler<
     CmdShowBgpTableMoreSpecifics,
     CmdShowBgpTableMoreSpecificsTraits>::run();
