@@ -187,7 +187,7 @@ void SaiSrv6MySidManager::addMySidEntry(
     const std::shared_ptr<MySid>& mySid,
     const std::shared_ptr<SwitchState>& state) {
   auto adapterHostKey = getMySidAdapterHostKey(*mySid, managerTable_);
-  if (handles_.find(adapterHostKey) != handles_.end()) {
+  if (handles_.contains(adapterHostKey)) {
     throw FbossError("MySid entry already exists for ", mySid->getID());
   }
 
