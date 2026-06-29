@@ -12,12 +12,40 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
 namespace facebook::fboss {
 
+// Parsed `config protocol bgp global <attribute> [value ...]`, validated at
+// construction. values() is greedy to keep network6's multi-token tail.
+class BgpGlobalConfig : public utils::BaseObjectArgType<std::string> {
+ public:
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  /* implicit */ BgpGlobalConfig(std::vector<std::string> v);
+  const std::string& attr() const {
+    return attr_;
+  }
+  const std::vector<std::string>& values() const {
+    return values_;
+  }
+  const static utils::ObjectArgTypeId id =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
+
+ private:
+  std::string attr_;
+  std::vector<std::string> values_;
+};
+
+// Single handler for the whole `config protocol bgp global` family. The
+// attribute name is the first positional token and the remaining tokens are
+// its value(s); dispatch and per-attribute parsing live in the .cpp so adding
+// a new global tunable is a one-entry change rather than a new command class.
 struct CmdConfigProtocolBgpGlobalTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigProtocolBgp;
-  using ObjectArgType = std::monostate;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("args", args, "<attribute> <value> [value ...]");
+  }
+  using ObjectArgType = BgpGlobalConfig;
   using RetType = std::string;
 };
 
@@ -28,7 +56,7 @@ class CmdConfigProtocolBgpGlobal : public CmdHandler<
   using ObjectArgType = CmdConfigProtocolBgpGlobalTraits::ObjectArgType;
   using RetType = CmdConfigProtocolBgpGlobalTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo);
+  RetType queryClient(const HostInfo& hostInfo, const ObjectArgType& args);
 
   void printOutput(const RetType& output);
 };
