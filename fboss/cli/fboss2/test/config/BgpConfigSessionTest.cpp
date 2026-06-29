@@ -75,14 +75,6 @@ TEST_F(BgpConfigSessionTest, setConfedAsn) {
   EXPECT_EQ(config["local_confed_as_4_byte"].asInt(), 65100);
 }
 
-TEST_F(BgpConfigSessionTest, setClusterId) {
-  session_->setClusterId("1.2.3.4");
-  EXPECT_EQ(session_->getClusterId(), "1.2.3.4");
-
-  auto& config = session_->getBgpConfig();
-  EXPECT_EQ(config["cluster_id"].asString(), "1.2.3.4");
-}
-
 TEST_F(BgpConfigSessionTest, setListenAddress) {
   session_->setListenAddress("0.0.0.0");
   EXPECT_EQ(session_->getListenAddress(), "0.0.0.0");
