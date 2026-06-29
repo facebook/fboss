@@ -19,6 +19,7 @@ cpp_binary(
         "ConfigArpTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",
+        "ConfigIcmpV4UnavailableSrcAddrTest.cpp",
         "ConfigInterfaceDescriptionTest.cpp",
         "ConfigInterfaceFlowControlTest.cpp",
         "ConfigInterfaceIpv6NdpTest.cpp",
