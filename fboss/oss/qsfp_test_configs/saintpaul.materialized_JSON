@@ -1,0 +1,12 @@
+{
+  "defaultCommandLineArgs": {
+    "mode": "saintpaul"
+  },
+  "transceiverConfigOverrides": [
+
+  ],
+  "qsfpTestConfig": {
+    "cabledPortPairs": [
+    ]
+  }
+}

@@ -238,7 +238,6 @@ target_link_libraries(leh800bcls_bsp
   bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
-
 add_library(saintpaul_bsp
   fboss/lib/bsp/saintpaul/SaintpaulBspPlatformMapping.cpp
 )
