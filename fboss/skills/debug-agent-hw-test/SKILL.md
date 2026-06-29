@@ -230,7 +230,7 @@ This routing is client-agnostic:
 | Analyze SAI Replayer logs, read code for root cause | — | `references/analyze-logs.md` |
 | Enable SAI logging, replayer logging, packet tx logs | — | `references/enable-logging.md` |
 | Debug crashes — non-stripped binaries, GDB, stack traces | — | `references/crash-debug.md` |
-| Vendor diagnostic shell — counters, routes, neighbors | — | `references/vendor-diag-shell.md` |
+| Vendor diagnostic shell — counters, routes, neighbors, techsupport dumps | `facebook/vendor-diag-shell.md` | `references/vendor-diag-shell.md` |
 | Insert XLOGs, re-run, validate hypotheses | — | `references/hypothesis-driven-debug.md` |
 | Full categorization guide and tracking template | — | `references/test-categorization.md` |
 | Build a vendor-escalation package (SAI replayer log + hw_config + case report) for `FAIL_VENDOR` | — | `references/vendor-escalation.md` |
