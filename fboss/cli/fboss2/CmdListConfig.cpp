@@ -37,16 +37,6 @@
 #include "fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalClusterId.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalConfedAsn.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalHoldTime.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalLocalAsn.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalNetwork6Add.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalRouterId.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitMaxGoldenVips.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitOverloadProtectionMode.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitPrefixLimit.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitTotalPathLimit.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupConfedPeer.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupDescription.h"
@@ -358,91 +348,14 @@ const CommandTree& kConfigCommandTree() {
                   {
                       {
                           "global",
-                          "Configure BGP global settings",
+                          "Configure BGP global settings: <attribute> <value> "
+                          "(router-id, local-asn, hold-time, confed-asn, "
+                          "count-confeds-in-as-path-len, "
+                          "graceful-restart-time, rib-allocated-path-ids, "
+                          "network6, switch-limit[-total-path|"
+                          "-max-golden-vips|-overload-protection-mode])",
                           commandHandler<CmdConfigProtocolBgpGlobal>,
                           argRegistrar<CmdConfigProtocolBgpGlobalTraits>,
-                          {
-                              {
-                                  "router-id",
-                                  "Set BGP router identifier",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalRouterId>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalRouterIdTraits>,
-                              },
-                              {
-                                  "local-asn",
-                                  "Set local AS number",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalLocalAsn>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalLocalAsnTraits>,
-                              },
-                              {
-                                  "hold-time",
-                                  "Set BGP hold time in seconds",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalHoldTime>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalHoldTimeTraits>,
-                              },
-                              {
-                                  "confed-asn",
-                                  "Set BGP confederation AS number",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalConfedAsn>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalConfedAsnTraits>,
-                              },
-                              {
-                                  "cluster-id",
-                                  "Set route reflector cluster ID",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalClusterId>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalClusterIdTraits>,
-                              },
-                              {
-                                  "network6",
-                                  "Add IPv6 network to advertise",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalNetwork6Add>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalNetwork6AddTraits>,
-                              },
-                              {
-                                  "switch-limit",
-                                  "Set switch limit prefix-limit",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitPrefixLimit>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitPrefixLimitTraits>,
-                              },
-                              {
-                                  "switch-limit-total-path",
-                                  "Set switch limit total-path-limit",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitTotalPathLimit>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitTotalPathLimitTraits>,
-                              },
-                              {
-                                  "switch-limit-max-golden-vips",
-                                  "Set switch limit max-golden-vips",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitMaxGoldenVips>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitMaxGoldenVipsTraits>,
-                              },
-                              {
-                                  "switch-limit-overload-protection-mode",
-                                  "Set switch limit overload-protection-mode",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitOverloadProtectionMode>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitOverloadProtectionModeTraits>,
-                              },
-                          },
                       },
                       {
                           "peer-group",
