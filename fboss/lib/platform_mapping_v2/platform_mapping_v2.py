@@ -75,6 +75,9 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
         "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw",
         "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw_800g",
         "meru800bia_uniform_local_offset",
+        "meru800bia_fabric_uniform_local_offset",
+        "meru800bia_800g_fabric_uniform_local_offset",
+        "meru800bia_hyperport_fabric_uniform_local_offset",
     ],
     "tahan800bc": [
         "tahan800bc_chassis",
@@ -523,6 +526,11 @@ class PlatformMappingV2:
                 )
                 all_connection_pairs = all_connection_pairs + profile_connections
 
+                lane_speed = (
+                    0
+                    if speed_setting.num_lanes == 0
+                    else speed_setting.speed / speed_setting.num_lanes
+                )
                 [
                     pins,
                     platform_port_config_override,
@@ -531,9 +539,7 @@ class PlatformMappingV2:
                     si_settings=self.pm_parser.get_si_settings(),
                     profile=profile,
                     # pyre-fixme[6]: Expected `PortSpeed` for 4th param, but got `float`.
-                    lane_speed=0
-                    if speed_setting.num_lanes == 0
-                    else speed_setting.speed / speed_setting.num_lanes,
+                    lane_speed=lane_speed,
                     port_id=port_detail.global_port_id,
                     integrated_tcvr_mapping=self.pm_parser.get_integrated_transceiver_mapping(),
                 )

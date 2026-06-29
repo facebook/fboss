@@ -459,6 +459,13 @@ DEFINE_bool(
     false,
     "Enable fabric link monitoring feature in DSF");
 
+// Relocates fabric port logical IDs into the local port-ID range (uniform
+// local offset). Currently scoped to meru800bia and janga800bic.
+DEFINE_bool(
+    fabric_ports_uniform_local_offset,
+    false,
+    "Relocate fabric port logical IDs into the local port-ID range");
+
 DEFINE_bool(
     enable_cpu_latency_monitoring,
     false,

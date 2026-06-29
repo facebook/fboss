@@ -141,6 +141,7 @@ DECLARE_uint32(ecmp_width);
 DECLARE_bool(enable_th5_ars_scale_mode);
 DECLARE_bool(check_wb_handles);
 DECLARE_bool(enable_fabric_link_monitoring);
+DECLARE_bool(fabric_ports_uniform_local_offset);
 DECLARE_bool(enable_cpu_latency_monitoring);
 DECLARE_bool(lldp_port_drain_state);
 DECLARE_bool(enable_agent_drain);
