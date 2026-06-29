@@ -30,8 +30,9 @@ This document describes all of the locations in the code where you need to add c
    - Then add this library name to `sai_platform` link libraries in [cmake/AgentPlatformsSai.cmake](https://github.com/facebook/fboss/blob/main/cmake/AgentPlatformsSai.cmake#L104)
 
 ### Qsfp Service Code Changes
-1. Create BspPlatformMapping header and source files under
+1. Create BspPlatformMapping BUCK, header and source files under
    `fboss/lib/bsp/{PLATFORM}/`
+   - `fboss/lib/bsp/{PLATFORM}/{PLATFORM}BUCK` [BUCK example](https://github.com/facebook/fboss/blob/main/fboss/lib/bsp/montblanc/BUCK)
    - `fboss/lib/bsp/{PLATFORM}/{PLATFORM}BspPlatformMapping.h` [Header example](https://github.com/facebook/fboss/blob/main/fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h)
    - `fboss/lib/bsp/{PLATFORM}/{PLATFORM}BspPlatformMapping.cpp` [Source example](https://github.com/facebook/fboss/blob/main/fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.cpp)
 
@@ -39,6 +40,7 @@ This document describes all of the locations in the code where you need to add c
    - `fboss/led_service/{PLATFORM}LedManager.h` [Header example](https://github.com/facebook/fboss/blob/main/fboss/led_service/MontblancLedManager.h)
    - `fboss/led_service/{PLATFORM}LedManager.cpp` [Source example](https://github.com/facebook/fboss/blob/main/fboss/led_service/MontblancLedManager.cpp)
    - Add to [fboss/led_service/LedManagerInit.cpp](https://github.com/facebook/fboss/blob/main/fboss/led_service/LedManagerInit.cpp).
+   - Add header and source file to [fboss/led_service/BUCK](https://github.com/facebook/fboss/blob/main/fboss/led_service/BUCK#L43).
 
 3. In `fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp`, add a function called `create{PLATFORM}WedgeManager` that instantiates a `WedgeManager` object with the platform mapping JSON file.
    - `fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h` [Header example](https://github.com/facebook/fboss/blob/main/fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h#L59)
@@ -48,3 +50,15 @@ This document describes all of the locations in the code where you need to add c
    - Add BSP library definition to [cmake/QsfpService.cmake](https://github.com/facebook/fboss/blob/main/cmake/QsfpService.cmake) and link to `qsfp_bsp_core`
    - Add LED Manager source file to `led_manager_lib` in [cmake/LedService.cmake](https://github.com/facebook/fboss/blob/main/cmake/LedService.cmake) and link BSP and platform mapping libraries
    - Add platform mapping library to `qsfp_platforms_wedge` in [cmake/QsfpServicePlatformsWedge.cmake](https://github.com/facebook/fboss/blob/main/cmake/QsfpServicePlatformsWedge.cmake)
+
+5. Include the following code to enable support for the new platform:
+   - Add BspPlatformMapping to [fboss/lib/bsp/BUCK](https://github.com/facebook/fboss/blob/main/fboss/lib/bsp/BUCK)
+   - Add `{PLATFORM}SystemContainer` to [fboss/lib/bsp/BspGenericSystemContainer.cpp](https://github.com/facebook/fboss/blob/main/fboss/lib/bsp/BspGenericSystemContainer.cpp#L99)
+   - Create `fboss/lib/bsp/bspmapping/input/{PLATFORM}_BspMapping.csv` [Csv example](https://github.com/facebook/fboss/blob/main/fboss/lib/bsp/bspmapping/input/Montblanc_BspMapping.csv)
+   - Add platform to [fboss/lib/bsp/bspmapping/Main.cpp](https://github.com/facebook/fboss/blob/main/fboss/lib/bsp/bspmapping/Main.cpp#L22) for generate csv to json file
+   - Add platform to [fboss/lib/bsp/bspmapping/Parser.h](https://github.com/facebook/fboss/blob/main/fboss/lib/bsp/bspmapping/Parser.h#L16) for generate csv to json file
+   - Add platform csv file to [fboss/lib/bsp/bspmapping/test/ParserTest.cpp](https://github.com/facebook/fboss/blob/main/fboss/lib/bsp/bspmapping/test/ParserTest.cpp#L12)
+   - Add platform mapping library to [fboss/qsfp_service/test/BUCK](https://github.com/facebook/fboss/blob/main/fboss/qsfp_service/test/BUCK#L83)
+   - Add platform mapping library to [fboss/qsfp_service/test/BspPlatformMapTest.cpp](https://github.com/facebook/fboss/blob/main/fboss/qsfp_service/test/BspPlatformMapTest.cpp#L25)
+   - Add platform mapping library to [fboss/util/BUCK](https://github.com/facebook/fboss/blob/main/fboss/util/BUCK#L90)
+   - Add platform mapping library to [fboss/util/wedge_qsfp_util.cpp](https://github.com/facebook/fboss/blob/main/fboss/util/wedge_qsfp_util.cpp#L57)
