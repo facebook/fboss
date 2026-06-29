@@ -148,6 +148,7 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::MODULE_CONTROL, {CmisPages::LOWER, 26, 1}},
     {CmisField::FIRMWARE_REVISION, {CmisPages::LOWER, 39, 2}},
     {CmisField::FEC_SAMPLING_PCT, {CmisPages::LOWER, 65, 1}},
+    {CmisField::MAX_BANK_CAPACITY, {CmisPages::LOWER, 70, 1}},
     {CmisField::MEDIA_TYPE_ENCODINGS, {CmisPages::LOWER, 85, 1}},
     {CmisField::APPLICATION_ADVERTISING1, {CmisPages::LOWER, 86, 4}},
     {CmisField::BANK_SELECT, {CmisPages::LOWER, 126, 1}},
@@ -668,25 +669,66 @@ CmisModule::CmisModule(
 
 CmisModule::~CmisModule() {}
 
+namespace {
+bool isBankedPage(CmisPages page) {
+  // Module-level pages (lower, 00h, 01h, 02h, 04h) describe the whole module
+  // and are not banked. All per-lane/per-datapath pages are banked.
+  return page != CmisPages::LOWER && page != CmisPages::PAGE00 &&
+      page != CmisPages::PAGE01 && page != CmisPages::PAGE02 &&
+      page != CmisPages::PAGE04;
+}
+} // namespace
+
+void CmisModule::cacheMaxNumBanks() {
+  // The max bank capacity register (Lower Page 00h byte 70) is only defined for
+  // co-packaged optics (CPO). On other modules that byte can carry unrelated
+  // data, so treat every non-CPO module as single-bank.
+  if (getIdentifier() != TransceiverModuleIdentifier::CPO) {
+    maxNumBanks_ = 1;
+    return;
+  }
+  // For CPO the register holds the max CMIS bank count directly (e.g. 4 for a
+  // 32-lane module); fall back to a single bank if it reads 0.
+  uint8_t banks = getSettingsValue(CmisField::MAX_BANK_CAPACITY);
+  maxNumBanks_ = banks ? banks : 1;
+}
+
+void CmisModule::selectBankAndPage(int dataPage, std::optional<uint8_t> bank) {
+  auto page = static_cast<CmisPages>(dataPage);
+  if (page == CmisPages::LOWER || flatMem_) {
+    return;
+  }
+  if (bank.has_value() && isBankedPage(page)) {
+    uint8_t bankVal = *bank;
+    qsfpImpl_->writeTransceiver(
+        {TransceiverAccessParameter::ADDR_QSFP,
+         126,
+         sizeof(bankVal),
+         static_cast<int>(CmisPages::LOWER)},
+        &bankVal,
+        POST_I2C_WRITE_DELAY_US,
+        CAST_TO_INT(CmisField::BANK_SELECT));
+  }
+  uint8_t pageVal = static_cast<uint8_t>(dataPage);
+  qsfpImpl_->writeTransceiver(
+      {TransceiverAccessParameter::ADDR_QSFP,
+       127,
+       sizeof(pageVal),
+       static_cast<int>(CmisPages::LOWER)},
+      &pageVal,
+      POST_I2C_WRITE_DELAY_US,
+      CAST_TO_INT(CmisField::PAGE_CHANGE));
+}
+
 void CmisModule::readCmisField(
     CmisField field,
     uint8_t* data,
-    bool skipPageChange) {
+    bool skipBankAndPageChange,
+    std::optional<uint8_t> bank) {
   int dataLength, dataPage, dataOffset;
   getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
-  if (static_cast<CmisPages>(dataPage) != CmisPages::LOWER && !flatMem_ &&
-      !skipPageChange) {
-    // Only change page when it's not a flatMem module (which don't allow
-    // changing page) and when the skipPageChange argument is not true
-    uint8_t page = static_cast<uint8_t>(dataPage);
-    qsfpImpl_->writeTransceiver(
-        {TransceiverAccessParameter::ADDR_QSFP,
-         127,
-         sizeof(page),
-         static_cast<int>(CmisPages::LOWER)},
-        &page,
-        POST_I2C_WRITE_DELAY_US,
-        CAST_TO_INT(CmisField::PAGE_CHANGE));
+  if (!skipBankAndPageChange) {
+    selectBankAndPage(dataPage, bank);
   }
   qsfpImpl_->readTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
@@ -697,22 +739,12 @@ void CmisModule::readCmisField(
 void CmisModule::writeCmisField(
     CmisField field,
     uint8_t* data,
-    bool skipPageChange) {
+    bool skipBankAndPageChange,
+    std::optional<uint8_t> bank) {
   int dataLength, dataPage, dataOffset;
   getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
-  if (static_cast<CmisPages>(dataPage) != CmisPages::LOWER && !flatMem_ &&
-      !skipPageChange) {
-    // Only change page when it's not a flatMem module (which don't allow
-    // changing page) and when the skipPageChange argument is not true
-    uint8_t page = static_cast<uint8_t>(dataPage);
-    qsfpImpl_->writeTransceiver(
-        {TransceiverAccessParameter::ADDR_QSFP,
-         127,
-         sizeof(page),
-         static_cast<int>(CmisPages::LOWER)},
-        &page,
-        POST_I2C_WRITE_DELAY_US,
-        CAST_TO_INT(CmisField::PAGE_CHANGE));
+  if (!skipBankAndPageChange) {
+    selectBankAndPage(dataPage, bank);
   }
   qsfpImpl_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
@@ -1428,8 +1460,13 @@ bool CmisModule::isModuleInReadyState() {
 
 bool CmisModule::moduleReadyStatePoll() {
   auto retries = 0;
-  constexpr int kUsecModuleReadyStateUpdateTimeMax = 5000000; // 5 seconds
   constexpr int kUsecModuleReadyStatePollTime = 100000; // 100 ms
+  // Tunable (coherent/ZR) optics take much longer to settle than fixed
+  // wavelength optics, so give them a longer ready timeout.
+  constexpr int kUsecModuleReadyTunable = 60000000; // 60 seconds
+  constexpr int kUsecModuleReadyNonTunable = 5000000; // 5 seconds
+  const int kUsecModuleReadyStateUpdateTimeMax =
+      isTunableOptics() ? kUsecModuleReadyTunable : kUsecModuleReadyNonTunable;
   auto maxRetriesReady =
       kUsecModuleReadyStateUpdateTimeMax / kUsecModuleReadyStatePollTime;
 
@@ -2484,6 +2521,7 @@ void CmisModule::updateQsfpData(bool allPages) {
     lastRefreshTime_ = std::time(nullptr);
     dirty_ = false;
     setQsfpFlatMem();
+    cacheMaxNumBanks();
 
     readCmisField(CmisField::PAGE_UPPER00H, page0_);
     if (!flatMem_) {
@@ -3999,12 +4037,15 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         firstModuleCapability->hostStartLanes.begin(),
         firstModuleCapability->hostStartLanes.end());
     auto smfLength = static_cast<int>(getQsfpSMFLength());
-    // Config-driven SMF derivation
+    // Config-driven SMF derivation. The bank count (Lower Page 00h byte 70)
+    // disambiguates two codes whose application advertisement is otherwise
+    // identical, e.g. a multi-bank DR4_8x800G from a single-bank DR4_2x800G.
     moduleMediaInterface = TransceiverPropertiesManager::deriveSmfCode(
         static_cast<uint8_t>(smfCode),
         hostStartLanes,
         firstModuleCapability->moduleHostInterface,
-        smfLength);
+        smfLength,
+        getMaxNumBanks());
     if (moduleMediaInterface == MediaInterfaceCode::UNKNOWN) {
       // Fallback to existing mapping for unrecognized modules
       moduleMediaInterface =
@@ -4142,7 +4183,7 @@ void CmisModule::setModuleRxEqualizerLocked(
     writeCmisField(
         laneToAppSelField(lanesToConfigure),
         stageControlToWrite.data(),
-        true /* skipPageChange */);
+        true /* skipBankAndPageChange */);
 
     // Trigger the stage 0 control values to be operational in optics
     uint8_t stage0ControlTrigger = laneMask(startHostLane, hostLaneCount);

@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"

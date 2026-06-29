@@ -252,9 +252,11 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
+    case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
+    case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
       return false;
   }
   return false;

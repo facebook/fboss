@@ -121,7 +121,6 @@ void AgentEnsemble::setupEnsemble(
         FLAGS_hide_interface_ports) {
       continue;
     }
-    masterLogicalPortIds_.push_back(port.first);
     auto switchId = getSw()->getScopeResolver()->scope(port.first).switchId();
     switchId2PortIds_[switchId].push_back(port.first);
   }
@@ -129,6 +128,14 @@ void AgentEnsemble::setupEnsemble(
   // For multi-die ASICs (e.g. Q4D), interleave ports across dies so that
   // tests using 2+ ports automatically exercise both dies.
   interleavePortsAcrossDies(platformPorts);
+
+  // The per-type caps are applied dynamically in the masterLogicalPortIds()
+  // views (see getMaxRequiredPorts / masterLogicalPortIdsImpl);
+  // switchId2PortIds_ stays the full master-port store. Those capped views are
+  // what tests and the initial config consume, so the config is trimmed to
+  // maxRequired*Ports.
+  maxRequiredInterfacePorts_ = initInfo.maxRequiredInterfacePorts;
+  maxRequiredFabricPorts_ = initInfo.maxRequiredFabricPorts;
 
   for (auto switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
     HwAsic* asic = getHwAsicTable()->getHwAsicIf(switchId);
@@ -167,13 +174,11 @@ void AgentEnsemble::setupEnsemble(
 
 void AgentEnsemble::interleavePortsAcrossDies(
     const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts) {
-  bool needsReorder = false;
   for (auto& [switchId, portIds] : switchId2PortIds_) {
     auto* asic = getHwAsicTable()->getHwAsicIf(switchId);
     if (!asic || asic->getNumDies() <= 1) {
       continue;
     }
-    needsReorder = true;
     auto numDies = asic->getNumDies();
     // Separate non-interface ports (keep original order) from interface ports
     // (interleave across dies). Non-interface ports (recycle, management) may
@@ -217,14 +222,6 @@ void AgentEnsemble::interleavePortsAcrossDies(
       }
     }
     portIds = std::move(reordered);
-  }
-  if (needsReorder) {
-    // Rebuild masterLogicalPortIds_ from the reordered per-switch lists
-    masterLogicalPortIds_.clear();
-    for (const auto& [switchId, portIds] : switchId2PortIds_) {
-      masterLogicalPortIds_.insert(
-          masterLogicalPortIds_.end(), portIds.begin(), portIds.end());
-    }
   }
 }
 
@@ -327,8 +324,33 @@ void AgentEnsemble::applyNewConfig(
   }
 }
 
-std::vector<PortID> AgentEnsemble::masterLogicalPortIds() const {
-  return masterLogicalPortIds(SwitchID(FLAGS_switch_id_for_testing));
+std::vector<PortID> AgentEnsemble::getAllMasterLogicalPortIds() const {
+  std::vector<PortID> all;
+  for (const auto& [switchId, portIds] : switchId2PortIds_) {
+    all.insert(all.end(), portIds.begin(), portIds.end());
+  }
+  return all;
+}
+
+std::optional<size_t> AgentEnsemble::getMaxRequiredPorts(
+    cfg::PortType portType) const {
+  // Enumerate every PortType explicitly (no default) so that adding a new
+  // port type forces a deliberate decision here about whether it should be
+  // capped.
+  switch (portType) {
+    case cfg::PortType::INTERFACE_PORT:
+      return maxRequiredInterfacePorts_;
+    case cfg::PortType::FABRIC_PORT:
+      return maxRequiredFabricPorts_;
+    case cfg::PortType::CPU_PORT:
+    case cfg::PortType::RECYCLE_PORT:
+    case cfg::PortType::MANAGEMENT_PORT:
+    case cfg::PortType::EVENTOR_PORT:
+    case cfg::PortType::HYPER_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
+      return std::nullopt;
+  }
+  return std::nullopt;
 }
 
 void AgentEnsemble::switchRunStateChanged(SwitchRunState runState) {}
@@ -674,6 +696,18 @@ void AgentEnsemble::sendPacketAsync(
       std::move(pkt), portDescriptor->phyPortID(), queueId);
 }
 
+void AgentEnsemble::sendPacketSwitchedAsync(
+    std::unique_ptr<TxPacket> pkt,
+    const std::optional<SwitchID>& switchId) {
+  if (switchId.has_value()) {
+    getSw()->sendPacketSwitchedAsync(std::move(pkt), {*switchId});
+  } else {
+    // Preserve the prior untargeted behavior: route to the switch owning the
+    // first master logical port (switch 0 on multi-NPU platforms).
+    sendPacketAsync(std::move(pkt), std::nullopt, std::nullopt);
+  }
+}
+
 std::unique_ptr<TxPacket> AgentEnsemble::allocatePacket(uint32_t size) {
   return getSw()->allocatePacket(size);
 }
@@ -686,12 +720,6 @@ void AgentEnsemble::bringUpPorts(const std::vector<PortID>& ports) {
 void AgentEnsemble::bringDownPorts(const std::vector<PortID>& ports) {
   CHECK(linkToggler_);
   linkToggler_->bringDownPorts(ports);
-}
-
-std::vector<PortID> AgentEnsemble::masterLogicalPortIds(
-    SwitchID switchId) const {
-  auto it = switchId2PortIds_.find(switchId);
-  return it != switchId2PortIds_.end() ? it->second : std::vector<PortID>{};
 }
 
 void AgentEnsemble::clearPortStats() {
@@ -711,7 +739,9 @@ void AgentEnsemble::clearPortStats(
       std::make_unique<std::vector<int32_t>>(std::move(*ports)));
 }
 
-bool AgentEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
+bool AgentEnsemble::ensureSendPacketSwitched(
+    std::unique_ptr<TxPacket> pkt,
+    const std::optional<SwitchID>& switchId) {
   // lambda that returns HwPortStats for the given port(s)
   auto getPortStats =
       [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
@@ -727,16 +757,23 @@ bool AgentEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
     return getLatestSysPortStats(portIds);
   };
 
+  // On multi-NPU platforms, scope the verified ports to the switch under test
+  // so stats are checked on the same NPU the packet is routed to.
+  auto portIds = switchId.has_value()
+      ? masterLogicalInterfaceOrHyperPortIds(*switchId)
+      : masterLogicalPortIds(
+            std::set<cfg::PortType>{
+                cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
+
   return utility::ensureSendPacketSwitched(
       this,
       std::move(pkt),
-      masterLogicalPortIds(
-          std::set<cfg::PortType>{
-              cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}),
+      portIds,
       getPortStats,
       masterLogicalSysPortIds(),
       getSysPortStats,
-      kMsWaitForStatsRetry);
+      kMsWaitForStatsRetry,
+      switchId);
 }
 
 bool AgentEnsemble::ensureSendPacketOutOfPort(

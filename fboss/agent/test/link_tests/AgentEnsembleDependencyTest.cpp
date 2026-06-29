@@ -16,6 +16,9 @@ class AgentEnsembleLinkEcmpTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentEnsembleLinkEcmpTest, ecmpShrink) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::
+           TRAFFIC_FORWARDING});
   auto setup = [this]() {
     const auto cabledPorts = getSingleVlanOrRoutedCabledPorts(SwitchID(0));
     programDefaultRoute(cabledPorts, getSw()->getLocalMac(scope(cabledPorts)));

@@ -55,6 +55,16 @@ size_t pumpTraffic(
     int numPackets = 10000,
     std::optional<folly::MacAddress> srcMac = std::nullopt);
 
+size_t pumpTrafficWithFlowLabel(
+    const AllocatePktFunc& allocateFn,
+    SendPktFunc sendFn,
+    folly::MacAddress dstMac,
+    const std::optional<VlanID>& vlan,
+    std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
+    int hopLimit = 255,
+    int numPackets = 10000,
+    std::optional<folly::MacAddress> srcMac = std::nullopt);
+
 size_t pumpRoCETraffic(
     bool isV6,
     const AllocatePktFunc& allocateFn,

@@ -4,6 +4,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/Srv6TestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/AddressUtil.h"
@@ -15,8 +16,12 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
   const folly::IPAddressV6 kDecapMySidAddr{"3001:db8:efff::"};
   static constexpr uint8_t kDecapMySidPrefixLen{48};
 
-  const folly::IPAddressV6 kMidpointMySidPrefix{"3001:db8:1::"};
-  static constexpr uint8_t kMidpointMySidPrefixLen{48};
+  // SID offset for the adjacency (uA) mySid: 3001:db8:1::/48, kept clear of the
+  // decap SID above. Matches utility::makeAdjacencyMySidEntries' SID layout.
+  static constexpr int kAdjSidOffset{1};
+
+  // Each mySid entry (decap or adjacency) consumes one HW slot.
+  static constexpr int kMySidEntryCost{1};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -36,27 +41,6 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
         getLocalMacAddress());
   }
 
-  void addDecapMySidEntry() {
-    MySidEntry entry;
-    entry.type() = MySidType::DECAPSULATE_AND_LOOKUP;
-    facebook::network::thrift::IPPrefix prefix;
-    prefix.prefixAddress() =
-        facebook::network::toBinaryAddress(kDecapMySidAddr);
-    prefix.prefixLength() = kDecapMySidPrefixLen;
-    entry.mySid() = prefix;
-    auto sw = getSw();
-    auto rib = sw->getRib();
-    auto ribMySidToSwitchStateFunc =
-        createRibMySidToSwitchStateFunction(std::nullopt);
-    rib->update(
-        sw->getScopeResolver(),
-        {entry},
-        {} /* toDelete */,
-        "addDecapMySidEntry",
-        ribMySidToSwitchStateFunc,
-        sw);
-  }
-
   void removeDecapMySidEntry() {
     IpPrefix ipPrefix;
     ipPrefix.ip() = facebook::network::toBinaryAddress(kDecapMySidAddr);
@@ -70,50 +54,6 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
         std::vector<MySidEntry>{} /* toAdd */,
         {ipPrefix},
         "removeDecapMySidEntry",
-        ribMySidToSwitchStateFunc,
-        sw);
-  }
-
-  void addAdjacencyMySidEntry(const folly::IPAddress& nexthopIp) {
-    MySidEntry entry;
-    entry.type() = MySidType::ADJACENCY_MICRO_SID;
-    facebook::network::thrift::IPPrefix prefix;
-    prefix.prefixAddress() = facebook::network::toBinaryAddress(
-        folly::IPAddress(kMidpointMySidPrefix));
-    prefix.prefixLength() = kMidpointMySidPrefixLen;
-    entry.mySid() = prefix;
-
-    NextHopThrift nhop;
-    nhop.address() = facebook::network::toBinaryAddress(nexthopIp);
-    entry.nextHops()->push_back(nhop);
-
-    auto sw = getSw();
-    auto rib = sw->getRib();
-    auto ribMySidToSwitchStateFunc =
-        createRibMySidToSwitchStateFunction(std::nullopt);
-    rib->update(
-        sw->getScopeResolver(),
-        {entry},
-        {} /* toDelete */,
-        "addAdjacencyMySidEntry",
-        ribMySidToSwitchStateFunc,
-        sw);
-  }
-
-  void removeAdjacencyMySidEntry() {
-    IpPrefix ipPrefix;
-    ipPrefix.ip() = facebook::network::toBinaryAddress(
-        folly::IPAddress(kMidpointMySidPrefix));
-    ipPrefix.prefixLength() = kMidpointMySidPrefixLen;
-    auto sw = getSw();
-    auto rib = sw->getRib();
-    auto ribMySidToSwitchStateFunc =
-        createRibMySidToSwitchStateFunction(std::nullopt);
-    rib->update(
-        sw->getScopeResolver(),
-        std::vector<MySidEntry>{} /* toAdd */,
-        {ipPrefix},
-        "removeAdjacencyMySidEntry",
         ribMySidToSwitchStateFunc,
         sw);
   }
@@ -132,22 +72,33 @@ TEST_F(AgentSrv6ResourceUsageTest, verifyMySidResourceUsage) {
   auto verify = [this]() {
     auto mySidFreeBefore = getMySidEntriesFree();
 
-    // Add decap mySid, verify counter decreases by 1.
-    addDecapMySidEntry();
-    WITH_RETRIES(
-        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBefore - 1); });
+    // Add decap mySid, verify counter drops by one entry.
+    utility::addDecapMySidEntry(getSw(), kDecapMySidAddr, kDecapMySidPrefixLen);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          getMySidEntriesFree(), mySidFreeBefore - kMySidEntryCost);
+    });
 
-    // Add adjacency mySid, verify counter decreases by 2 total.
+    // Add adjacency mySid (interface baked into the resolved next hop so the
+    // unresolved/resolved next-hop-set IDs coincide), verify counter drops by
+    // another entry.
     auto ecmpHelper = makeEcmpHelper();
     resolveNeighbors(ecmpHelper, 1);
-    addAdjacencyMySidEntry(ecmpHelper.nhop(0).ip);
-    WITH_RETRIES(
-        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBefore - 2); });
+    utility::programMySidEntries(
+        getSw(),
+        utility::makeAdjacencyMySidEntries(
+            ecmpHelper, 1 /*numNhops*/, 1 /*numEntries*/, kAdjSidOffset));
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          getMySidEntriesFree(), mySidFreeBefore - 2 * kMySidEntryCost);
+    });
 
-    // Remove adjacency mySid, verify counter goes back to -1.
-    removeAdjacencyMySidEntry();
-    WITH_RETRIES(
-        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBefore - 1); });
+    // Remove adjacency mySid, verify counter returns to the post-decap level.
+    utility::deleteScaleMySidEntries(getSw(), 1 /*numEntries*/, kAdjSidOffset);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          getMySidEntriesFree(), mySidFreeBefore - kMySidEntryCost);
+    });
 
     // Remove decap mySid, verify counter returns to baseline.
     removeDecapMySidEntry();

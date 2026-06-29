@@ -163,6 +163,8 @@ class SaiSwitch : public HwSwitch {
 
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
+  void triggerCableLengthMeasurement(
+      const std::unique_ptr<std::vector<int32_t>>& ports) override;
 
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId) override;
   void clearPortAsicPrbsStats(PortID portId) override;

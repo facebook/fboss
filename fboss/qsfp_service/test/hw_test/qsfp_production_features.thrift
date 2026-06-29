@@ -24,6 +24,23 @@ enum QsfpProductionFeature {
   XPHY_LINE_PAM4_PROFILE = 6,
   TRANSCEIVER_PRBS = 7,
   BMC_LITE = 8,
+  // Functional features describing what a test verifies. Unlike the values
+  // above (platform-capability gates consumed by --list_production_feature for
+  // test selection), these are surfaced only via
+  // HwTest::addVerifiedProductionFeatures() for per-test metadata/Scuba
+  // reporting and are NOT used for test gating.
+  DATA_PATH_PROGRAMMING = 9,
+  FIRMWARE_UPGRADE = 10,
+  CONFIG_VALIDATION = 11,
+  TRANSCEIVER_RESET = 12,
+  TRANSCEIVER_DETECTION = 13,
+  TRANSCEIVER_REMOVAL = 14,
+  REMEDIATION = 15,
+  STATS_COLLECTION = 16,
+  I2C_ACCESS = 17,
+  XPHY_PROGRAMMING = 18,
+  THERMAL_VALIDATION = 19,
+  TRANSCEIVER_ADVERTISEMENTS = 20,
 }
 
 struct PlatformConfigToQsfpProductionFeatures {

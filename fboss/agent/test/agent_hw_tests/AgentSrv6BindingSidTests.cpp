@@ -403,15 +403,13 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
       auto rxInnerV4 = v6Payload->v4PayLoad();
       ASSERT_NE(expectedInnerV4, nullptr);
       ASSERT_NE(rxInnerV4, nullptr);
-      // Uncomment after vendor bug for inner TC is fixed
-      // EXPECT_EQ(*rxInnerV4, *expectedInnerV4);
+      EXPECT_EQ(*rxInnerV4, *expectedInnerV4);
     } else {
       auto expectedInnerV6 = origOuterV6->v6PayLoad();
       auto rxInnerV6 = v6Payload->v6PayLoad();
       ASSERT_NE(expectedInnerV6, nullptr);
       ASSERT_NE(rxInnerV6, nullptr);
-      // Uncomment after vendor bug for inner TC is fixed
-      // EXPECT_EQ(*rxInnerV6, *expectedInnerV6);
+      EXPECT_EQ(*rxInnerV6, *expectedInnerV6);
     }
   }
 
@@ -825,11 +823,14 @@ TYPED_TEST(AgentSrv6BindingSidTest, multiHopUnresolvedToResolved) {
         this->getEgressPort(ecmpHelper.nhop(0).portDesc),
         this->getEgressPort(ecmpHelper.nhop(1).portDesc)};
 
-    // Phase 1: Add OpenR routes (BGP routes now resolve recursively),
-    // but neighbors are still unresolved — packets should be dropped.
-    this->programOpenrRoutes();
+    // Phase 0: BGP routes are resolved to null route, so packets
+    // matching it will get discarded
     this->verifyBindingSidDropFrontPanel(egressPorts);
 
+    // Phase 1: Add OpenR routes (BGP routes now resolve recursively),
+    // but neighbors are still unresolved — packets will now get trapped
+    // to CPU.
+    this->programOpenrRoutes();
     // Phase 2: Resolve neighbors — forwarding should work.
     this->resolveNextHops(this->kNumNextHops);
   };

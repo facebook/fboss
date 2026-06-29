@@ -104,6 +104,12 @@ class AgentCoppTest : public AgentHwTest {
         ensemble.masterLogicalPortIds(switchId),
         ensemble.supportsAddRemovePort(),
         asic->desiredLoopbackModes(),
+        true /*interfaceHasSubnet*/,
+        true /*setInterfaceMac*/,
+        utility::kBaseVlanId,
+        false /*enableFabricPorts*/,
+        ensemble.getSw()->getSwitchInfoTable().getSwitchIdToSwitchInfo(),
+        ensemble.getSw()->getHwAsicTable()->getHwAsics(),
         ensemble.getSw()->getPlatformType());
 
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
@@ -1507,6 +1513,12 @@ class AgentCoppQosTest : public AgentHwTest {
         ensemble.masterLogicalPortIds(switchId),
         ensemble.supportsAddRemovePort(),
         asic->desiredLoopbackModes(),
+        true /*interfaceHasSubnet*/,
+        true /*setInterfaceMac*/,
+        utility::kBaseVlanId,
+        false /*enableFabricPorts*/,
+        ensemble.getSw()->getSwitchInfoTable().getSwitchIdToSwitchInfo(),
+        ensemble.getSw()->getHwAsicTable()->getHwAsics(),
         ensemble.getSw()->getPlatformType());
     utility::setDefaultCpuTrafficPolicyConfig(
         cfg, ensemble.getL3Asics(), ensemble.isSai());

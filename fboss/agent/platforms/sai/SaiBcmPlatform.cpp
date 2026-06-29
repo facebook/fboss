@@ -176,6 +176,8 @@ phy::VCOFrequency SaiBcmPlatform::getPortVcoFrequency(
   switch (speed) {
     case cfg::PortSpeed::FOURHUNDREDG:
       [[fallthrough]];
+    case cfg::PortSpeed::TWOHUNDREDANDTWELVEPOINTFIVEG:
+      [[fallthrough]];
     case cfg::PortSpeed::TWOHUNDREDG:
       return phy::VCOFrequency::VCO_26_5625GHZ;
     case cfg::PortSpeed::HUNDREDG:

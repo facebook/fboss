@@ -139,6 +139,7 @@ class CmdShowBgpSummary
       std::string pr;
       std::string pa;
       std::string ps;
+      std::string prd;
       std::string ug;
       std::string ugps;
       std::string uptime;
@@ -149,6 +150,7 @@ class CmdShowBgpSummary
     };
     std::vector<PeerRowData> rows;
     bool hasAnyDowntime = false;
+    bool hasAnyPreDrops = false;
 
     for (const auto& bgpSession : sessions) {
       const auto& peer = bgpSession.peer().value();
@@ -159,6 +161,19 @@ class CmdShowBgpSummary
       auto rcvd_prefix = *bgpSession.prepolicy_rcvd_prefix_count();
       auto accepted_prefix = *bgpSession.postpolicy_rcvd_prefix_count();
       auto sent_prefix = *bgpSession.postpolicy_sent_prefix_count();
+
+      /*
+       * Per-peer routes dropped because the peer reached its configured
+       * pre-filter prefix limit (server reports this count). Surfaced as the
+       * PRD column, shown only when some peer actually dropped routes. A
+       * non-zero count is reliable even when the live prefix count has churned
+       * back below the limit, so it avoids digging through logs.
+       */
+      auto pre_dropped =
+          bgpSession.prepolicy_rcvd_dropped_prefix_count().value_or(0);
+      if (pre_dropped > 0) {
+        hasAnyPreDrops = true;
+      }
 
       paths_rcvd += rcvd_prefix;
       paths_accepted += accepted_prefix;
@@ -210,6 +225,7 @@ class CmdShowBgpSummary
            folly::to<std::string>(rcvd_prefix),
            folly::to<std::string>(accepted_prefix),
            folly::to<std::string>(sent_prefix),
+           folly::to<std::string>(pre_dropped),
            ugStr,
            peerStateStr,
            uptimeDurationString,
@@ -226,7 +242,7 @@ class CmdShowBgpSummary
     const bool enableUpdateGroup = config.enable_update_group().value();
 
     auto buildRow = [&](const PeerRowData& row) {
-      std::vector<std::string> fields = {
+      std::vector<Table::RowData> fields = {
           row.peerAddr,
           row.remoteAs,
           row.state,
@@ -234,6 +250,11 @@ class CmdShowBgpSummary
           row.pr,
           row.pa,
           row.ps};
+      // PRD: per-peer dropped count, shown only when some peer actually dropped
+      // routes.
+      if (hasAnyPreDrops) {
+        fields.emplace_back(row.prd);
+      }
       if (enableUpdateGroup) {
         fields.emplace_back(row.ug);
         fields.emplace_back(row.ugps);
@@ -250,6 +271,9 @@ class CmdShowBgpSummary
 
     std::vector<std::string> header = {
         "Peer", "AS", "State", "GR", "PR", "PA", "PS"};
+    if (hasAnyPreDrops) {
+      header.emplace_back("PRD");
+    }
     if (enableUpdateGroup) {
       header.emplace_back("UG");
       header.emplace_back("UGPS");
@@ -273,13 +297,15 @@ class CmdShowBgpSummary
         << std::endl;
     out << "Paths: Received - " << paths_rcvd << ", Accepted - "
         << paths_accepted << ", Sent - " << paths_sent << std::endl;
-    if (enableUpdateGroup) {
-      out << "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n"
-          << std::endl;
-    } else {
-      out << "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent\n"
-          << std::endl;
+    std::string acronyms =
+        "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent";
+    if (hasAnyPreDrops) {
+      acronyms += ", PRD - Prefixes Received Dropped";
     }
+    if (enableUpdateGroup) {
+      acronyms += ", UG - Update Group, UGPS - Update Group Peer State";
+    }
+    out << acronyms << "\n" << std::endl;
     out << table << std::endl;
   }
 

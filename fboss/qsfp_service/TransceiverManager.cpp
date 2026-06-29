@@ -1784,6 +1784,9 @@ void TransceiverManager::programTransceiver(
           apache::thrift::util::enumNameSafe(portProfile));
     }
     const auto speed = *profileCfgOpt->speed();
+    auto bankId = platformMapping_->getTransceiverBankId(
+        PlatformPortProfileConfigMatcher(
+            portProfile, portToPortInfo.first, std::nullopt));
     TransceiverPortState portState;
     portState.portName = *portName;
     portState.startHostLane = tcvrStartLane;
@@ -1792,6 +1795,7 @@ void TransceiverManager::programTransceiver(
     portState.opticalChannelConfig = opticalChannelConfig;
     portState.driverPeaking =
         getDriverPeakingOverrides(id, portProfile, tcvrHostLanes.size());
+    portState.bankId = bankId;
     programTcvrState.ports.emplace(*portName, portState);
   }
 

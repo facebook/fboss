@@ -305,6 +305,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    using QosPfcPriorityToPriorityGroupMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_PRIORITY_GROUP_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
     using RxSignalDetect = SaiAttribute<
         EnumType,
@@ -679,6 +684,7 @@ struct SaiPortTraits {
 #endif
       std::optional<Attributes::QosTcToPriorityGroupMap>,
       std::optional<Attributes::QosPfcPriorityToQueueMap>,
+      std::optional<Attributes::QosPfcPriorityToPriorityGroupMap>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::optional<Attributes::InterFrameGap>,
 #endif
@@ -838,6 +844,7 @@ SAI_ATTRIBUTE_NAME(Port, IngressPriorityGroupList)
 SAI_ATTRIBUTE_NAME(Port, NumberOfIngressPriorityGroups)
 SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
 SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToQueueMap)
+SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToPriorityGroupMap)
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
 SAI_ATTRIBUTE_NAME(Port, RxSignalDetect)
 SAI_ATTRIBUTE_NAME(Port, RxLockStatus)

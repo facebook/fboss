@@ -13,7 +13,6 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/core.h>
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.h"
 
 namespace facebook::fboss {
 

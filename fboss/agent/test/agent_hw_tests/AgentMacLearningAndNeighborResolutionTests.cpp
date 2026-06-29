@@ -187,7 +187,7 @@ class AgentMacLearningAndNeighborResolutionTest
       const AgentEnsemble& ensemble) const override {
     auto switchId = getSwitchIdUnderTest(ensemble);
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
-    auto configPorts = allConfigPorts(ensemble);
+    auto configPorts = allConfigPorts(ensemble, switchId);
     auto inConfig = utility::oneL3IntfNPortConfig(
         ensemble.getPlatformMapping(),
         asic,
@@ -330,7 +330,9 @@ class AgentMacLearningAndNeighborResolutionTest
   std::vector<PortID> physicalPortsExcluding(PortDescriptor& port) {
     std::vector<PortID> otherPorts;
     auto portDescrPorts = physicalPortsFor(port);
-    for (auto configPort : allConfigPorts(*getAgentEnsemble())) {
+    auto ensemble = getAgentEnsemble();
+    for (const auto& configPort :
+         allConfigPorts(*ensemble, getSwitchIdUnderTest(*ensemble))) {
       if (std::find(portDescrPorts.begin(), portDescrPorts.end(), configPort) ==
           portDescrPorts.end()) {
         otherPorts.emplace_back(configPort);
@@ -340,8 +342,15 @@ class AgentMacLearningAndNeighborResolutionTest
   }
 
  private:
-  std::vector<PortID> allConfigPorts(const AgentEnsemble& ensemble) const {
-    auto masterLogicalPorts = ensemble.masterLogicalPortIds();
+  std::vector<PortID> allConfigPorts(
+      const AgentEnsemble& ensemble,
+      const SwitchID& switchId) const {
+    auto masterLogicalPorts = ensemble.masterLogicalPortIds({switchId});
+    // The test (notably the kIsTrunk path, which indexes ports [2] and [3])
+    // requires 4 ports on the switch under test; fail loudly rather than
+    // truncate and index out of bounds downstream.
+    CHECK_GE(masterLogicalPorts.size(), 4u)
+        << "Switch " << switchId << " has fewer than 4 master logical ports";
     return std::vector<PortID>(
         masterLogicalPorts.begin(), masterLogicalPorts.begin() + 4);
   }
@@ -374,8 +383,10 @@ class AgentMacLearningAndNeighborResolutionTest
         8000, // l4 src port
         8001 // l4 dst port
     );
+    auto switchId = getSwitchIdUnderTest(*getAgentEnsemble());
     EXPECT_TRUE(
-        getAgentEnsemble()->ensureSendPacketSwitched(std::move(txPacket)));
+        getAgentEnsemble()->ensureSendPacketSwitched(
+            std::move(txPacket), switchId));
   }
 
   void applyNewStateWithProtectionIfSupported(

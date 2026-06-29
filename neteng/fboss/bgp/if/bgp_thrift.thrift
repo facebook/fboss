@@ -256,6 +256,15 @@ struct TBgpSession {
   // Peer's state in the update-group state machine (e.g., JOINED_RUNNING)
   25: optional string peer_state_update_group;
   26: i64 postpolicy_rcvd_prefix_count;
+  /*
+   * Per-peer count of received routes dropped because the peer reached its
+   * configured pre-filter max prefix limit (RouteLimit.max_routes), reset when
+   * the session goes down. A non-zero value means the peer is actively shedding
+   * received (PR) routes. Surfaced as the PRD column in `show bgp summary` and
+   * reused by the health validator, so operators can spot drops without digging
+   * through logs.
+   */
+  27: optional i64 prepolicy_rcvd_dropped_prefix_count;
 }
 
 struct TPeerEgressStats {
@@ -709,6 +718,21 @@ struct TEntryStats {
 }
 
 /**
+ * Compact, server-computed summary of the BGP++ RIB for one address family,
+ * analogous to Arista's "show ipv6 route summary". Returned by getRibSummary so
+ * operators can see RIB scale without dumping the entire table.
+ */
+struct TRibSummary {
+  // The address family this summary covers.
+  1: bgp_attr.TBgpAfi afi;
+  // Total number of prefixes in the RIB for this address family.
+  2: i64 total_prefixes;
+  // Histogram of prefix counts keyed by prefix (mask) length. Example: an entry
+  // {64: 3751} means 3751 /64 prefixes. Only non-zero lengths are present.
+  3: map<i16, i64> prefix_length_counts;
+}
+
+/**
  * BGP Profiler Statistics
  *
  * Lightweight coroutine profiler stats for performance monitoring.
@@ -900,6 +924,7 @@ enum HealthCheckId {
   PEER_CHANGELIST_SIZE = 508,
   PEER_CONSUMER_LAG = 509,
   PEER_STUCK_BATONS = 510,
+  PEER_PREFIX_LIMIT_DROPS = 511,
 
   /* RIB */
   RIB_ORIGINATED_ROUTES = 601,
@@ -1385,6 +1410,14 @@ service TBgpService extends fb303.FacebookService {
    * @param afi - The afi to dump RIB for
    */
   list<bgp_route_types.TRibEntry> getRibEntries(1: bgp_attr.TBgpAfi afi);
+
+  /**
+   * Get a compact summary of the BGP RIB (total prefixes + per-prefix-length
+   * histogram) for one address family, without dumping the full table.
+   *
+   * @param afi - The afi to summarize the RIB for
+   */
+  TRibSummary getRibSummary(1: bgp_attr.TBgpAfi afi);
 
   /**
    * Dump the current Shadow RIB (prefixes learned from the RIB)

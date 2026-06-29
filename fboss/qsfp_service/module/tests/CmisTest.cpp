@@ -52,6 +52,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::getChannelNumFromFrequency;
   using CmisModule::getCurrentAppSelCode;
   using CmisModule::getInterfaceCodeForAppSel;
+  using CmisModule::getMaxNumBanks;
   using CmisModule::getQsfpValuePtr;
   using CmisModule::getTunableLaserStatus;
   using CmisModule::isRxConsActHoldOffTmrImplSupported;
@@ -89,6 +90,76 @@ class CmisTest : public TransceiverManagerTestHelper {
     return xcvr;
   }
 };
+
+// Existing (non-CPO) CMIS modules don't advertise a multi-bank capacity in
+// Lower Page 00h byte 70, so getMaxNumBanks() must fall back to a single bank.
+TEST_F(CmisTest, getMaxNumBanksDefaultsToOne) {
+  EXPECT_EQ(
+      overrideCmisModule<Cmis200GTransceiver>(TransceiverID(0))
+          ->getMaxNumBanks(),
+      1);
+  EXPECT_EQ(
+      overrideCmisModule<Cmis400GLr4Transceiver>(TransceiverID(1))
+          ->getMaxNumBanks(),
+      1);
+  EXPECT_EQ(
+      overrideCmisModule<CmisFlatMemTransceiver>(TransceiverID(2))
+          ->getMaxNumBanks(),
+      1);
+}
+
+// A CPO module reports identifier 0x80 and 4 banks (Lower Page 00h byte 70).
+// Its first application advertises a per-bank 2x800G-DR4 (media 0x77, host
+// 0x82), identical to a DR4_2x800G module; the bank count is what
+// disambiguates it, yielding MediaInterfaceCode::DR4_8x800G.
+TEST_F(CmisTest, cpoModuleIdentifiedByBankCount) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  EXPECT_EQ(xcvr->getMaxNumBanks(), 4);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::DR4_8x800G);
+
+  // Verify the 5 advertised application modes (per the CPO datapath
+  // application mode table).
+  struct ExpectedApp {
+    SMFMediaInterfaceCode media;
+    uint8_t host;
+    int hostLaneCount;
+    int mediaLaneCount;
+    uint8_t apSelCode;
+    std::vector<int> startLanes;
+  };
+  const std::vector<ExpectedApp> expectedApps = {
+      {SMFMediaInterfaceCode::DR4_800G, 0x82, 4, 4, 1, {0, 4}},
+      {SMFMediaInterfaceCode::DR2_400G, 0x81, 2, 2, 2, {0, 2, 4, 6}},
+      {SMFMediaInterfaceCode::DR1_200G,
+       0x80,
+       1,
+       1,
+       3,
+       {0, 1, 2, 3, 4, 5, 6, 7}},
+      {SMFMediaInterfaceCode::DR4_400G, 0x50, 4, 4, 4, {0, 4}},
+      {SMFMediaInterfaceCode::DR1_100G,
+       0x4b,
+       1,
+       1,
+       5,
+       {0, 1, 2, 3, 4, 5, 6, 7}},
+  };
+  for (const auto& app : expectedApps) {
+    auto field = xcvr->getApplicationField(static_cast<uint8_t>(app.media), 0);
+    ASSERT_NE(field, std::nullopt);
+    EXPECT_EQ(field->moduleMediaInterface, static_cast<uint8_t>(app.media));
+    EXPECT_EQ(field->moduleHostInterface, app.host);
+    EXPECT_EQ(field->hostLaneCount, app.hostLaneCount);
+    EXPECT_EQ(field->mediaLaneCount, app.mediaLaneCount);
+    EXPECT_EQ(field->ApSelCode, app.apSelCode);
+    EXPECT_EQ(field->hostStartLanes, app.startLanes);
+    EXPECT_EQ(field->mediaStartLanes, app.startLanes);
+  }
+}
 
 // Tests that the transceiverInfo object is correctly populated
 TEST_F(CmisTest, cmis200GTransceiverInfoTest) {

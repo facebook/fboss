@@ -253,6 +253,8 @@ class OpticsFwUpgradeTestNoIPhySetup : public OpticsFwUpgradeTest {
 };
 
 TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::FIRMWARE_UPGRADE});
   // In this test, firmware versions in qsfp config is not changed. Hence, the
   // firmware upgrade shouldn't be triggered under any circumstances.
   // 1. Coldboot init might still trigger firmware upgrade depending on what
@@ -263,6 +265,7 @@ TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
 
   long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
   auto tcvrsToTest = transceiversToTest();
+  addTestedTransceiverIds(tcvrsToTest);
   auto verify = [&, tcvrsToTest]() {
     if (didWarmBoot()) {
       CHECK(verifyUpgrade(
@@ -290,6 +293,8 @@ TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
 }
 
 TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::FIRMWARE_UPGRADE});
   /*
    * This test verifies that a link down event successfully triggers and
    * completes the firmware upgrade
@@ -313,6 +318,7 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
   long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
 
   auto tcvrsToTest = transceiversToTest();
+  addTestedTransceiverIds(tcvrsToTest);
 
   auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
@@ -415,6 +421,8 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
 }
 
 TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::FIRMWARE_UPGRADE});
   /*
    * This test verifies that a warmboot does not trigger any firmware upgrade
    * Step 1: Coldboot
@@ -427,6 +435,7 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
    */
 
   auto tcvrsToTest = transceiversToTest();
+  addTestedTransceiverIds(tcvrsToTest);
 
   auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
@@ -543,6 +552,8 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
 }
 
 TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::FIRMWARE_UPGRADE});
   /*
    * This test verifies that triggerOpticsFwUpgrade and
    * triggerAllOpticsFwUpgrade functions work correctly.
@@ -566,6 +577,7 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
   long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
 
   auto tcvrsToTest = transceiversToTest();
+  addTestedTransceiverIds(tcvrsToTest);
 
   auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();

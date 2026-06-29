@@ -228,6 +228,8 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
 //    else EXPECT_GT(CF_field, 0)
 // }
 TEST_F(AgentEnsemblePtpTests, verifyPtpTcDelayRequest) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::PTP});
   auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
   std::vector<PortID> portVec;
   for (const auto& portDescriptor : ecmpPorts) {
@@ -247,6 +249,8 @@ TEST_F(AgentEnsemblePtpTests, verifyPtpTcDelayRequest) {
 }
 
 TEST_F(AgentEnsemblePtpTests, verifyPtpTcAfterLinkFlap) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::PTP});
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   this->trapPackets(dstPrefix);
   auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
@@ -291,6 +295,8 @@ TEST_F(AgentEnsemblePtpTests, verifyPtpTcAfterLinkFlap) {
 
 // Validate PTP TC when PTP is enabled while port is down.
 TEST_F(AgentEnsemblePtpTests, enablePtpPortDown) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::PTP});
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   this->trapPackets(dstPrefix);
   auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();

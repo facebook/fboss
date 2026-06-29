@@ -94,19 +94,33 @@ FSDB_CGO_API void SubscribeToPortMaps(
     const char* host,
     int32_t server_port);
 
-FSDB_CGO_API void SubscribeToStatsPath(
+FSDB_CGO_API void SubscribeToStats(
     FsdbWrapperHandle handle,
     const char** path_tokens,
     int32_t num_tokens,
     const char* host,
     int32_t server_port);
 
-FSDB_CGO_API void SubscribeToStatePath(
+FSDB_CGO_API void SubscribeToState(
     FsdbWrapperHandle handle,
     const char** path_tokens,
     int32_t num_tokens,
     const char* host,
     int32_t server_port);
+
+// Synchronous one-shot snapshot of all ports (no subscription required), for
+// reconciliation. Fetches agent/switchState/portMaps from FSDB, decodes it, and
+// fills up to max_count records into out. host/server_port follow the same rule
+// as the subscribe calls (host NULL/"" => localhost; server_port < 0 => default
+// port, host ignored). Returns the number of ports written (>=0), or -1 on
+// error. Borrowed port_name pointers stay valid until the next GetPortSnapshot
+// call on this handle or DestroyFsdbWrapper.
+FSDB_CGO_API int32_t GetPortSnapshot(
+    FsdbWrapperHandle handle,
+    const char* host,
+    int32_t server_port,
+    FsdbPortStateUpdate* out,
+    int32_t max_count);
 
 FSDB_CGO_API int32_t HasStateSubscription(FsdbWrapperHandle handle);
 FSDB_CGO_API int32_t HasStatsSubscription(FsdbWrapperHandle handle);

@@ -10,14 +10,18 @@
 #pragma once
 
 #include <bits/types/struct_timeval.h>
+#include <fmt/format.h>
 #include <folly/IPAddress.h>
 #include <folly/stop_watch.h>
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <tuple>
+#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -134,6 +138,140 @@ class NoneArgType : public BaseObjectArgType<std::string> {
       : BaseObjectArgType(std::move(v)) {}
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+};
+
+/*
+ * Common base for CLI argument types that parse a token list of the form
+ *   <object-names> [<attr> [<value>] ...]
+ * into a leading list of object names plus (attribute, value) pairs. Tokens
+ * before the first known attribute name are object names; valueful attributes
+ * consume the following token, valueless attributes do not.
+ *
+ * The per-command grammar is supplied as data (a Spec) rather than via virtual
+ * hooks: which attribute names exist, which are valueless, and the nouns used
+ * in error messages. parseTokens() carries no command- or object-specific
+ * terms, so it can be reused by any `config <object> ...` /
+ * `delete <object> ...` argument type. Concrete arg types pass their Spec
+ * through the constructor (see InterfaceAttrArgsBase for an example).
+ */
+class MultiArgsConfigType : public BaseObjectArgType<std::string> {
+ public:
+  // Per-command grammar. Attribute sets are stored lowercase; lookups
+  // lowercase the input, so matching is case-insensitive.
+  struct Spec {
+    std::unordered_set<std::string> knownAttrs;
+    std::unordered_set<std::string> valuelessAttrs; // subset of knownAttrs
+    std::string objectKind; // e.g. "interface" -- used in error messages
+    std::string attrKind; // e.g. "attribute" / "delete attribute"
+    std::string validAttrs; // human-readable list, for error messages
+  };
+
+  /* (attribute, value) pairs. value is empty for valueless attributes. */
+  const std::vector<std::pair<std::string, std::string>>& getAttributes()
+      const {
+    return attributes_;
+  }
+
+  /* Whether any attributes were provided. */
+  bool hasAttributes() const {
+    return !attributes_.empty();
+  }
+
+ protected:
+  explicit MultiArgsConfigType(Spec spec) : spec_(std::move(spec)) {}
+
+  bool isKnownAttribute(const std::string& s) const {
+    return spec_.knownAttrs.count(toLower(s)) > 0;
+  }
+
+  bool isValuelessAttribute(const std::string& s) const {
+    return spec_.valuelessAttrs.count(toLower(s)) > 0;
+  }
+
+  /*
+   * Splits v into object names and attribute/value pairs (stored into
+   * attributes_, names lowercased). Returns the leading object names so the
+   * caller can resolve/validate them.
+   */
+  std::vector<std::string> parseTokens(const std::vector<std::string>& v) {
+    if (v.empty()) {
+      throw std::invalid_argument(
+          fmt::format("No {} name provided", spec_.objectKind));
+    }
+
+    // Tokens before the first known attribute name are object names.
+    size_t attrStart = v.size();
+    for (size_t i = 0; i < v.size(); ++i) {
+      if (isKnownAttribute(v[i])) {
+        attrStart = i;
+        break;
+      }
+    }
+
+    // Must have at least one object name.
+    if (attrStart == 0) {
+      throw std::invalid_argument(
+          fmt::format(
+              "No {} name provided. First token '{}' is an attribute name.",
+              spec_.objectKind,
+              v[0]));
+    }
+
+    std::vector<std::string> objectNames(v.begin(), v.begin() + attrStart);
+
+    // Parse attribute-value pairs (valueless attributes consume no value
+    // token).
+    for (size_t i = attrStart; i < v.size();) {
+      const std::string& attr = v[i];
+      if (!isKnownAttribute(attr)) {
+        throw std::invalid_argument(
+            fmt::format(
+                "Unknown {} '{}'. Valid attributes are: {}",
+                spec_.attrKind,
+                attr,
+                spec_.validAttrs));
+      }
+
+      std::string attrLower = toLower(attr);
+
+      if (isValuelessAttribute(attrLower)) {
+        attributes_.emplace_back(std::move(attrLower), "");
+        ++i;
+        continue;
+      }
+
+      if (i + 1 >= v.size()) {
+        throw std::invalid_argument(
+            fmt::format("Missing value for attribute '{}'", attr));
+      }
+
+      const std::string& value = v[i + 1];
+
+      // Check if "value" is actually another attribute name (user forgot the
+      // value).
+      if (isKnownAttribute(value)) {
+        throw std::invalid_argument(
+            fmt::format(
+                "Missing value for attribute '{}'. Got another attribute '{}' instead.",
+                attr,
+                value));
+      }
+
+      attributes_.emplace_back(std::move(attrLower), value);
+      i += 2;
+    }
+
+    return objectNames;
+  }
+
+  static std::string toLower(const std::string& s) {
+    std::string lower = s;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    return lower;
+  }
+
+  Spec spec_;
+  std::vector<std::pair<std::string, std::string>> attributes_;
 };
 
 template <typename T, size_t N, size_t... Indices>

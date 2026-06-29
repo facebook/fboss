@@ -15,6 +15,7 @@
 #include <thrift/lib/cpp/transport/TTransportException.h>
 #include <map>
 #include <string>
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/commands/show/systemport/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/commands/show/systemport/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
@@ -45,8 +46,9 @@ class CmdShowSystemPort
   RetType createModel(
       std::map<int64_t, facebook::fboss::SystemPortThrift> systemPortEntries,
       const ObjectArgType& queriedSystemPorts,
-      std::map<std::string, facebook::fboss::HwSysPortStats>&
-          systemportHwStats);
+      const std::map<std::string, facebook::fboss::HwSysPortStats>&
+          systemportHwStats,
+      const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
 };
 
 } // namespace facebook::fboss

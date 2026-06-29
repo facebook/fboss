@@ -16,6 +16,12 @@
 
 #include <folly/logging/xlog.h>
 
+#include <map>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
 DECLARE_bool(setup_for_warmboot);
 DECLARE_bool(list_production_feature);
 
@@ -61,12 +67,55 @@ class HwTest : public ::testing::Test {
 
   std::vector<int> getCabledOpticalAndActiveTransceiverIDs();
 
+  // Register the transceivers a test actually exercises. At TearDown we dump
+  // per-transceiver metadata (vendor, firmware, media interface, etc.) for the
+  // registered transceivers to a file that Netcastle ingests into Scuba. Tests
+  // that register nothing dump nothing.
+  void addTestedTransceiver(const TransceiverID& id);
+  void addTestedTransceivers(const std::vector<TransceiverID>& ids);
+  // Overload for helpers that return legacy int32_t transceiver ids.
+  void addTestedTransceiverIds(const std::vector<int32_t>& ids);
+  // Convenience overload for tests that operate in port space: maps each port
+  // to its transceiver via the platform mapping and registers that transceiver.
+  void addTestedPorts(const std::vector<PortID>& portIds);
+  // Convenience overload for tests that work with (port, profile) pairs, e.g.
+  // xphy tests using findAvailableXphyPorts(). Registers the transceiver behind
+  // each port.
+  template <typename ProfileT>
+  void addTestedPorts(
+      const std::vector<std::pair<PortID, ProfileT>>& portsAndProfiles) {
+    std::vector<PortID> portIds;
+    portIds.reserve(portsAndProfiles.size());
+    for (const auto& portAndProfile : portsAndProfiles) {
+      portIds.push_back(portAndProfile.first);
+    }
+    addTestedPorts(portIds);
+  }
+  // Attach a free-form key/value to a tested transceiver's Scuba row.
+  void addTestMetadata(
+      const TransceiverID& id,
+      const std::string& key,
+      const std::string& value);
+
+  // Declare the production feature(s) this test verifies (e.g.
+  // DATA_PATH_PROGRAMMING, FIRMWARE_UPGRADE). Call from the test body. The
+  // feature names are recorded on every dumped Scuba row for the test. This is
+  // independent of getProductionFeatures() (the gating method consumed by
+  // --list_production_feature) and is used only for metadata/Scuba reporting.
+  void addVerifiedProductionFeatures(
+      const std::vector<qsfp_production_features::QsfpProductionFeature>&
+          features);
+
  protected:
   bool didWarmBoot() const;
   void printProductionFeatures() const;
 
  private:
   void setupForWarmboot() const;
+  // Dump per-transceiver metadata for registered transceivers to the
+  // Scuba-ingestion file. Called from TearDown(). Best effort: never fails the
+  // test.
+  void dumpTestMetadata();
   virtual std::vector<qsfp_production_features::QsfpProductionFeature>
   getProductionFeatures() const;
   // Forbidden copy constructor and assignment operator
@@ -75,5 +124,10 @@ class HwTest : public ::testing::Test {
 
   std::unique_ptr<HwQsfpEnsemble> ensemble_;
   const bool setupOverrideTcvrToPortAndProfile_{false};
+  std::set<TransceiverID> testedTransceivers_;
+  std::map<TransceiverID, std::map<std::string, std::string>>
+      perTransceiverMetadata_;
+  std::vector<qsfp_production_features::QsfpProductionFeature>
+      verifiedProductionFeatures_;
 };
 } // namespace facebook::fboss

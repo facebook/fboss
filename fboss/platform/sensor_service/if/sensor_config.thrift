@@ -224,10 +224,27 @@ struct TemperatureConfig {
 }
 
 // The configuration for sensor mapping.
+//
+// `loggedSensorNames`: Names of sensors whose polled values must be written to
+// the sensor_service log file on every poll cycle, in addition to the usual
+// ODS/fb303 publication.
+//
+// Motivation (SEV S649086): some CPLD status/alarm registers are read-clear —
+// the very act of reading them to publish to ODS clears them in hardware. ODS
+// aggregation and down-sampling can then drop the transient value before it is
+// ever observed, so an abnormal event leaves no durable trace. Emitting the raw
+// polled value to the log file on each cycle guarantees every sample is captured
+// for offline debugging, independent of ODS retention.
+//
+// Each name must reference a sensor that exists on every hardware version of
+// this platform — i.e. a base sensor, an asicCommand sensor, or a versioned
+// sensor present in every versionedSensors entry (ConfigValidator enforces
+// this). An empty list disables the feature.
 struct SensorConfig {
   1: string platformName;
   6: list<PmUnitSensors> pmUnitSensorsList;
   7: optional AsicCommand asicCommand;
   11: PowerConfig powerConfig;
   12: list<TemperatureConfig> temperatureConfigs;
+  13: list<string> loggedSensorNames;
 }

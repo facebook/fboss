@@ -133,6 +133,8 @@ struct ClientAndNextHops {
   6: optional bool isPreferred;
   7: optional RouteCounterID counterID;
   8: optional switch_config.AclLookupClass classID;
+  // ID assigned by NextHopIDManager to this per-client nexthop set.
+  9: optional i64 clientNextHopSetID;
 }
 
 struct IfAndIP {

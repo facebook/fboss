@@ -367,6 +367,50 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
 }
 } // namespace
 
+// Per-PG counters are keyed by PG id, so a PG id outside the enabled PFC
+// priorities ({2,3}) is still registered and published.
+TEST(HwPortFb303StatsTest, PgCongestionCountersKeyedByPgIdNotPriority) {
+  HwPortFb303Stats stats(
+      kPortName,
+      {},
+      kEnabledPfcPriorities, // {2, 3}
+      std::nullopt,
+      true /* inCongestionDiscardCountSupported */,
+      true /* inCongestionDiscardSeenSupported */);
+  // Registration covers all PG ids, e.g. PG 5 and PG 0 (not in {2,3}).
+  for (auto statKey : stats.kPriorityGroupMonotonicCounterStatKeys()) {
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::pgStatName(statKey, kPortName, 5)));
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::pgStatName(statKey, kPortName, 0)));
+  }
+
+  // Update path: congestion on PG 5 (outside {2,3}) is published under .pg5.
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  // Baseline first (monotonic counters need a prior data point).
+  HwPortStats baseline = getInitedStats();
+  baseline.pgInCongestionDiscards_() = {{5, 0}};
+  baseline.pgInCongestionDiscardSeen_() = {{5, false}};
+  HwPortStats inited = getInitedStats();
+  inited.pgInCongestionDiscards_() = {{5, 42}};
+  inited.pgInCongestionDiscardSeen_() = {{5, true}};
+  stats.updateStats(baseline, now);
+  stats.updateStats(inited, now);
+
+  for (auto counterName : stats.kPriorityGroupMonotonicCounterStatKeys()) {
+    EXPECT_EQ(
+        stats.getCounterLastIncrement(
+            HwPortFb303Stats::pgStatName(counterName, kPortName, 5)),
+        42);
+  }
+  for (auto counterName : stats.kPriorityGroupCounterStatKeys()) {
+    EXPECT_EQ(
+        fbData->getCounter(
+            HwPortFb303Stats::pgStatName(counterName, kPortName, 5)),
+        1);
+  }
+}
+
 TEST(HwPortFb303StatsTest, StatName) {
   EXPECT_EQ(
       HwPortFb303Stats::statName(kOutBytes(), kPortName),

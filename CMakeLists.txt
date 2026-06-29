@@ -887,6 +887,15 @@ add_fbthrift_cpp_library(
     phy_cpp2
     transceiver_cpp2
 )
+
+add_library(link_qsfp_test_port_info_utils
+  fboss/lib/if/LinkQsfpTestPortInfoUtils.cpp
+)
+
+target_link_libraries(link_qsfp_test_port_info_utils
+  link_qsfp_test_port_info_cpp2
+  transceiver_cpp2
+)
 add_fbthrift_cpp_library(
   i2c_controller_stats_cpp2
   fboss/lib/i2c/i2c_controller_stats.thrift
@@ -899,6 +908,24 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
+  DEPENDS
+    bgp_thrift_cpp2
+)
+
+add_fbthrift_cpp_library(
+  bgp_table_summary_cpp2
+  fboss/cli/fboss2/commands/show/bgp/table/bgp_table_summary.thrift
+  OPTIONS
+    json
+  DEPENDS
+    bgp_thrift_cpp2
+)
+
+add_fbthrift_cpp_library(
+  bgp_update_group_cpp2
+  fboss/cli/fboss2/commands/show/bgp/updategroup/bgp_update_group.thrift
+  OPTIONS
+    json
   DEPENDS
     bgp_thrift_cpp2
 )

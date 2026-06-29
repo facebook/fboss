@@ -35,6 +35,10 @@ def _make_mock_args(**overrides):
     mock_args.coldboot_only = True
     mock_args.sandcastle = False
     mock_args.extra_gflags = None
+    # Must be a real int: `_run_tests` does `max(1, getattr(args,
+    # "num_warmboot_iterations", 1))`, and a bare MagicMock attribute would make
+    # that comparison raise TypeError.
+    mock_args.num_warmboot_iterations = 1
     for k, v in overrides.items():
         setattr(mock_args, k, v)
     return mock_args
@@ -215,6 +219,126 @@ class TestSetupColdbootTest(unittest.TestCase):
         self.runner._switch_indexes = [0]
         with self.assertRaisesRegex(Exception, "stopping agents"):
             self.runner._setup_coldboot_test()
+
+    @patch.object(Fboss2IntegrationTestRunner, "_agents_ready")
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
+    @patch(
+        "fboss_test_runner.runners.fboss2_integration_test_runner.cold_boot_agents",
+        return_value=None,
+    )
+    def test_first_call_always_cold_boots(
+        self, mock_cold_boot, mock_run, mock_agents_ready
+    ):
+        # Even with --skip-coldboot, the very first call must cold boot to load
+        # the test config / clean state; the health gate is not consulted.
+        self.runner._switch_indexes = [0]
+        with patch("run_test.args", _make_mock_args(skip_coldboot=True), create=True):
+            self.runner._setup_coldboot_test()
+        mock_cold_boot.assert_called_once()
+        mock_agents_ready.assert_not_called()
+        self.assertTrue(self.runner._initial_coldboot_done)
+
+    @patch.object(Fboss2IntegrationTestRunner, "_agents_ready", return_value=True)
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
+    @patch(
+        "fboss_test_runner.runners.fboss2_integration_test_runner.cold_boot_agents",
+        return_value=None,
+    )
+    def test_skips_cold_boot_when_agents_healthy(
+        self, mock_cold_boot, mock_run, mock_agents_ready
+    ):
+        self.runner._switch_indexes = [0]
+        self.runner._initial_coldboot_done = True
+        with patch("run_test.args", _make_mock_args(skip_coldboot=False), create=True):
+            self.runner._setup_coldboot_test()
+        mock_cold_boot.assert_not_called()
+        mock_run.assert_not_called()
+
+    @patch.object(Fboss2IntegrationTestRunner, "_agents_ready", return_value=False)
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
+    @patch(
+        "fboss_test_runner.runners.fboss2_integration_test_runner.cold_boot_agents",
+        return_value=None,
+    )
+    def test_cold_boots_when_agents_not_ready(
+        self, mock_cold_boot, mock_run, mock_agents_ready
+    ):
+        self.runner._switch_indexes = [0]
+        self.runner._initial_coldboot_done = True
+        with patch("run_test.args", _make_mock_args(skip_coldboot=False), create=True):
+            self.runner._setup_coldboot_test()
+        mock_cold_boot.assert_called_once()
+
+    @patch.object(Fboss2IntegrationTestRunner, "_agents_ready")
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
+    @patch(
+        "fboss_test_runner.runners.fboss2_integration_test_runner.cold_boot_agents",
+        return_value=None,
+    )
+    def test_skip_coldboot_flag_skips_after_initial(
+        self, mock_cold_boot, mock_run, mock_agents_ready
+    ):
+        self.runner._switch_indexes = [0]
+        self.runner._initial_coldboot_done = True
+        with patch("run_test.args", _make_mock_args(skip_coldboot=True), create=True):
+            self.runner._setup_coldboot_test()
+        mock_cold_boot.assert_not_called()
+        # The aggressive override does not even consult agent health.
+        mock_agents_ready.assert_not_called()
+
+
+class TestAgentsReady(unittest.TestCase):
+    def setUp(self):
+        self.runner = Fboss2IntegrationTestRunner()
+        # sw_agent + hw_agent@0 -> two services.
+        self.runner._switch_indexes = [0]
+
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
+    def test_service_states_parses_output(self, mock_run):
+        # `systemctl is-active s1 s2` prints one state per unit, in order.
+        mock_run.return_value = MagicMock(stdout="active\nactivating\n")
+        states = self.runner._service_states(["fboss_sw_agent", "fboss_hw_agent@0"])
+        self.assertEqual(states, ["active", "activating"])
+
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
+    def test_service_states_returns_empty_on_error(self, mock_run):
+        mock_run.side_effect = Exception("boom")
+        self.assertEqual(self.runner._service_states(["fboss_sw_agent"]), [])
+
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.time.sleep")
+    @patch.object(Fboss2IntegrationTestRunner, "_service_states")
+    def test_true_when_all_active(self, mock_states, mock_sleep):
+        mock_states.return_value = ["active", "active"]
+        self.assertTrue(self.runner._agents_ready())
+        mock_sleep.assert_not_called()
+
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.time.sleep")
+    @patch.object(Fboss2IntegrationTestRunner, "_service_states")
+    def test_cold_boots_immediately_when_failed(self, mock_states, mock_sleep):
+        # A failed agent will not recover on its own: return False without
+        # wasting the grace window (no sleep, single state query).
+        mock_states.return_value = ["failed", "active"]
+        self.assertFalse(self.runner._agents_ready())
+        self.assertEqual(mock_states.call_count, 1)
+        mock_sleep.assert_not_called()
+
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.time.sleep")
+    @patch.object(Fboss2IntegrationTestRunner, "_service_states")
+    def test_waits_while_activating_then_succeeds(self, mock_states, mock_sleep):
+        mock_states.side_effect = [["activating", "active"], ["active", "active"]]
+        self.assertTrue(self.runner._agents_ready())
+        self.assertEqual(mock_states.call_count, 2)
+        self.assertEqual(mock_sleep.call_count, 1)
+
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.time.sleep")
+    @patch.object(Fboss2IntegrationTestRunner, "_service_states")
+    def test_gives_up_after_grace_while_activating(self, mock_states, mock_sleep):
+        self.runner._AGENT_READY_GRACE_RETRIES = 3
+        mock_states.return_value = ["activating", "active"]
+        self.assertFalse(self.runner._agents_ready())
+        self.assertEqual(mock_states.call_count, 3)
+        # Sleeps between attempts, but not after the last one.
+        self.assertEqual(mock_sleep.call_count, 2)
 
 
 class TestEndRun(unittest.TestCase):

@@ -14,7 +14,7 @@ The vendor handoff is a **single static archive plus one C header**:
   libevent, zlib/zstd/lz4, libsodium, …) merged into one file. Compiled with
   `-fvisibility=hidden`, so the only globally visible symbols are the
   wrapper's entry points; everything else is local to the archive.
-- `fsdb_cgo_api.h` — pure C header (no C++ includes) declaring the 19 entry
+- `fsdb_cgo_api.h` — pure C header (no C++ includes) declaring the 20 entry
   points. The Go cgo preamble `#include`s this directly.
 
 Dynamic dependencies the vendor's hosts must provide:
@@ -25,17 +25,27 @@ Dynamic dependencies the vendor's hosts must provide:
 
 ## Building
 
-Inside the FBOSS OSS Docker container:
+Set up the FBOSS OSS container and dependencies per the FBOSS OSS build
+instructions: https://facebook.github.io/fboss/ . Then build just the
+`fsdb_cgo_pub_sub_wrapper` target (rather than all of FBOSS) and bundle it:
 
 ```bash
-# 1. Build the wrapper as a static library via the FBOSS OSS CMake build.
-cmake --build build/ --target fsdb_cgo_pub_sub_wrapper -j$(nproc)
+# 1. Build only the wrapper target (and its deps), scoped with --cmake-target.
+#    The build/scratch dir inside the container is /var/FBOSS/tmp_bld_dir.
+./fboss/oss/scripts/run-getdeps.py build \
+    --cmake-target fsdb_cgo_pub_sub_wrapper \
+    --scratch-path /var/FBOSS/tmp_bld_dir \
+    --src-dir fboss_src fboss
 
-# 2. Bundle every transitive .a into a single fat archive.
-./fboss/fsdb/client/cgo/oss/build_fat_archive.sh build/ ./out
+# 2. Bundle every transitive .a into a single fat archive. Pass the scratch dir.
+./fboss/fsdb/client/cgo/oss/build_fat_archive.sh /var/FBOSS/tmp_bld_dir ./out
 
-# 3. Ship out/libfsdb_cgo_bundle.a + out/fsdb_cgo_api.h to the vendor.
+# 3. Ship out/libfsdb_cgo_bundle.a, out/fsdb_cgo_api.h, and out/runtime_libs/
+#    to the vendor.
 ```
+
+Scoping to `--cmake-target fsdb_cgo_pub_sub_wrapper` keeps the bundle to the
+wrapper plus its dependency closure instead of every FBOSS component.
 
 The packaging script:
 1. Walks the build dir and finds every `*.a`, excluding `libfsdb_cgo_bundle.a`
@@ -46,7 +56,7 @@ The packaging script:
    because `libthrift_service_client.a`, `libfmt.a`, and others contain
    multiple `.o` members sharing a basename, which extract-then-rebundle
    approaches silently drop.
-3. Verifies the 19 entry-point symbols are present (`nm | awk`); exits
+3. Verifies the 20 entry-point symbols are present (`nm | awk`); exits
    non-zero on any miss.
 4. Copies `fsdb_cgo_api.h` next to the archive.
 5. Writes a `MANIFEST.txt` with the bundle's size, SHA-256, member count,
@@ -70,7 +80,7 @@ Sample `cgo` preamble (see `fsdb_cgo_example.go` for a complete CLI client):
               -lstdc++ -lm -lpthread -ldl -lssl -lcrypto -l:libz.so.1 \
               -lgflags -lglog -l:libunwind.so.8 \
               -l:libdouble-conversion.so.3 -l:libbz2.so.1 -l:libsnappy.so.1 \
-              -l:liblz4.so.1 -l:liblzma.so.5 -lxxhash
+              -l:liblz4.so.1 -l:liblzma.so.5 -lxxhash -lzstd
 
 #include <stdlib.h>
 #include "fsdb_cgo_api.h"
@@ -85,7 +95,7 @@ Place `fsdb_cgo_api.h` and `libfsdb_cgo_bundle.a` next to the Go source file
 
 The bundle is a closed *static* link unit for FBOSS code, but a few system
 shared libs are still needed at link time: zlib, double-conversion, the
-compression family (bz2/snappy/lz4/lzma), xxhash, libunwind, gflags, glog.
+compression family (bz2/snappy/lz4/lzma/zstd), xxhash, libunwind, gflags, glog.
 gflags is intentionally excluded from the bundle because libglog.so links it
 dynamically — bundling it as static causes a runtime "flag defined more than
 once" double-registration error.
@@ -116,6 +126,7 @@ Designed for the most common consumer paths.
 |---|---|
 | `SubscribeToPortMaps(host, port)` | Subscribe to `agent.switchState.portMaps`. `host` NULL/"" → localhost; pass a host string for remote subscriptions. |
 | `WaitForStateUpdates` | Receive `FsdbPortStateUpdate` (port_name, port_id, oper_state). |
+| `GetPortSnapshot(host, port, out, max_count)` | Synchronous one-shot GET of all ports (no subscription) as `FsdbPortStateUpdate[]`, for reconciliation. Returns count or -1. |
 | `FreeStateUpdates` | Release borrowed-pointer buffer. |
 
 **Path APIs** — for arbitrary FSDB paths. Returns raw OperState bytes plus
@@ -124,10 +135,10 @@ bindings.
 
 | Function | Purpose |
 |---|---|
-| `SubscribeToStatsPath(path_tokens, num_tokens, host, port)` | Subscribe to any stats path (e.g. `["agent"]`, `["qsfp_service","stats"]`). `host` NULL/"" → localhost. |
+| `SubscribeToStats(path_tokens, num_tokens, host, port)` | Subscribe to any stats path (e.g. `["agent"]`, `["qsfp_service","stats"]`). `host` NULL/"" → localhost. |
 | `WaitForStatsUpdates` | Receive `FsdbStatsUpdate` (key, raw bytes, length, protocol). |
 | `FreeStatsUpdates` | Release borrowed-pointer buffer. |
-| `SubscribeToStatePath(path_tokens, num_tokens, host, port)` | Subscribe to any state path (e.g. `["agent","switchState","interfaceMap"]`). `host` NULL/"" → localhost. |
+| `SubscribeToState(path_tokens, num_tokens, host, port)` | Subscribe to any state path (e.g. `["agent","switchState","interfaceMap"]`). `host` NULL/"" → localhost. |
 | `WaitForStatePathUpdates` | Receive `FsdbStatePathUpdate` (key, raw bytes, length, protocol). |
 | `FreeStatePathUpdates` | Release borrowed-pointer buffer. |
 
@@ -178,11 +189,11 @@ bindings.
 
 ## Known limitations (v2)
 
-- **Subscription-only.** No equivalent of FSDB's synchronous `getOperState`
-  yet. Vendors who need a one-shot snapshot must either keep their existing
-  direct-thrift polling path or wait for a future API addition.
+- **Snapshot is ports-only.** `GetPortSnapshot` covers the synchronous
+  `getOperState` use case for `portMaps`; there is no generic one-shot GET for
+  arbitrary stats/state paths yet (subscribe to those instead).
 - **Subscription failures are logged, not returned.** If
-  `SubscribeToPortMaps`/`SubscribeToStatsPath`/`SubscribeToStatePath`
+  `SubscribeToPortMaps`/`SubscribeToStats`/`SubscribeToState`
   fails (network error, FSDB rejected the subscription, etc.), the failure is
   written to `XLOG(ERR)` but the API call returns void. Consumers should poll
   `HasStateSubscription` / `HasStatsSubscription` / `HasStatePathSubscription`

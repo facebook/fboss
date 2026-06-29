@@ -69,6 +69,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, NumberOfIngressPriorityGroups),
     SAI_ATTR_MAP(Port, QosTcToPriorityGroupMap),
     SAI_ATTR_MAP(Port, QosPfcPriorityToQueueMap),
+    SAI_ATTR_MAP(Port, QosPfcPriorityToPriorityGroupMap),
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     SAI_ATTR_MAP(Port, PortLoopbackMode),
     SAI_ATTR_MAP(Port, UseExtendedFec),

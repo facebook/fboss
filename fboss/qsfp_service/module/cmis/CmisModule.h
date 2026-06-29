@@ -218,8 +218,9 @@ class CmisModule : public QsfpModule {
   // Check if the module is in READY state
   bool isModuleInReadyState();
 
-  // Poll until the module reaches READY state (up to 5s)
-  bool moduleReadyStatePoll();
+  // Poll until the module reaches READY state (up to 60s for tunable optics,
+  // else 5s)
+  bool moduleReadyStatePoll() override;
 
   // Read the datapath init max delay time from the module spec (in usec)
   std::optional<uint64_t> getDatapathMaxDelayFromModuleSpec(bool init);
@@ -264,6 +265,16 @@ class CmisModule : public QsfpModule {
 
   // Cached CDB I2C write delay for firmware upgrade, computed from media type
   std::optional<uint64_t> cachedCdbWriteDelayUsec_;
+
+  // Cached maximum number of CMIS banks supported by the module, read from
+  // Lower Page 00h byte 70. See cacheMaxNumBanks()/getMaxNumBanks().
+  std::optional<uint8_t> maxNumBanks_;
+
+  /* Maximum number of CMIS banks supported by the module. Returns 1 until
+   * cacheMaxNumBanks() has populated the cache. */
+  uint8_t getMaxNumBanks() const {
+    return maxNumBanks_.value_or(1);
+  }
 
   /*
    * Structure to hold datapath init/deinit state per port using timers
@@ -736,18 +747,40 @@ class CmisModule : public QsfpModule {
   // VDM data location of each VDM config types
   std::map<VdmConfigType, VdmDiagsLocationStatus> vdmConfigDataLocations_;
 
-  /* Helper function to read/write a CmisField. The function will extract the
-   * page number, offset and length information from the CmisField and then
-   * make the corresponding qsfpImpl->readTransceiver and
-   * qsfpImpl->writeTransceiver calls. The user should avoid making direct
-   * calls to qsfpImpl->read/writeTransceiver and instead do register IO using
-   * readCmisField/writeCmisField helper functions. The helper function will
-   * also change the page when it's supported by the transceiver and when not
-   * specifically asked to skip page change (for batch operations). */
-  void
-  readCmisField(CmisField field, uint8_t* data, bool skipPageChange = false);
-  void
-  writeCmisField(CmisField field, uint8_t* data, bool skipPageChange = false);
+  /* Helper functions to read/write a CmisField. They extract the page number,
+   * offset and length information from the CmisField and then make the
+   * corresponding qsfpImpl->readTransceiver/writeTransceiver calls. Callers
+   * should avoid direct qsfpImpl->read/writeTransceiver calls and instead do
+   * register IO via these helpers.
+   *
+   * Before the access, the helper selects the bank and page via
+   * selectBankAndPage: it writes the bank-select register (byte 126) before
+   * the page-select register (byte 127), since a banked page's contents depend
+   * on the active bank. This is skipped for flatMem modules (no paging) and
+   * when skipBankAndPageChange is set (batch operations where bank/page is
+   * already selected).
+   *
+   * bank: optional bank to select. It only takes effect for banked pages (see
+   * isBankedPage); it is ignored for non-banked pages. Defaults to
+   * std::nullopt, which leaves the bank-select register untouched. */
+  void selectBankAndPage(int dataPage, std::optional<uint8_t> bank);
+  void readCmisField(
+      CmisField field,
+      uint8_t* data,
+      bool skipBankAndPageChange = false,
+      std::optional<uint8_t> bank = std::nullopt);
+  void writeCmisField(
+      CmisField field,
+      uint8_t* data,
+      bool skipBankAndPageChange = false,
+      std::optional<uint8_t> bank = std::nullopt);
+
+  /* Read the maximum number of CMIS banks supported by the module from Lower
+   * Page 00h byte 70 and cache it in maxNumBanks_. The register holds the bank
+   * count directly (e.g. 4 for a 32-lane module); legacy/non-CPO modules that
+   * report 0 fall back to a single bank. Expects the lower page to be cached
+   * (i.e. call after the lower page read in updateQsfpData). */
+  void cacheMaxNumBanks();
 
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*

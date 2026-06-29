@@ -147,7 +147,6 @@ void AgentMirrorOnDropStatelessTest::configureMmuDropBuffers(
       {injectionPortId},
       {}, // losslessPgIds
       {priority}, // lossyPgIds
-      {}, // tcToPgOverride
       utility::PfcBufferParams::getPfcBufferParams(
           hwAsic->getAsicType(), kDefaultGlobalSharedBytes));
 }

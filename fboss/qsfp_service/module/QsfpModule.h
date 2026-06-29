@@ -305,6 +305,10 @@ class QsfpModule : public Transceiver {
     return portNameToMediaLanes_;
   }
 
+  const std::unordered_map<std::string, uint8_t>& getPortNameToBankId() const {
+    return portNameToBankId_;
+  }
+
   virtual bool setTransceiverTx(
       const std::string& portName,
       phy::Side side,
@@ -722,6 +726,12 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  // Poll until the module reaches a state where it is ready to accept
+  // operations. Module types without such a state (e.g. SFF) are always ready.
+  virtual bool moduleReadyStatePoll() {
+    return true;
+  }
+
   void triggerModuleReset();
 
   // Map key = laneId, value = last datapath reset time for that lane
@@ -839,6 +849,7 @@ class QsfpModule : public Transceiver {
 
   std::unordered_map<std::string, std::set<uint8_t>> portNameToHostLanes_;
   std::unordered_map<std::string, std::set<uint8_t>> portNameToMediaLanes_;
+  std::unordered_map<std::string, uint8_t> portNameToBankId_;
 
   time_t lastFwUpgradeStartTime_{0};
   time_t lastFwUpgradeEndTime_{0};

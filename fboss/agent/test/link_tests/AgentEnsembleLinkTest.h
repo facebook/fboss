@@ -164,6 +164,15 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
       const std::string& key,
       const std::string& value);
 
+  // Declare the production feature(s) this test verifies (e.g. LINK_BRINGUP,
+  // FEC). Call from the test body. The feature names are recorded on every
+  // dumped Scuba row for the test. This is independent of
+  // getProductionFeatures() (the L1/L2 gating method consumed by
+  // --list_production_feature) and is used only for metadata/Scuba reporting.
+  void addVerifiedProductionFeatures(
+      const std::vector<
+          link_test_production_features::LinkTestProductionFeature>& features);
+
  private:
   void initializeCabledPorts();
   void logLinkDbgMessage(std::vector<PortID>& portIDs) const override;
@@ -180,6 +189,8 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   std::vector<PortID> qsfpServiceManagedPorts_;
   std::set<PortID> testedPorts_;
   std::map<PortID, std::map<std::string, std::string>> perPortMetadata_;
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+      verifiedProductionFeatures_;
 };
 int agentEnsembleLinkTestMain(
     int argc,

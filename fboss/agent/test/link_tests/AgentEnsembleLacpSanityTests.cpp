@@ -114,6 +114,8 @@ class AgentEnsembleLacpTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentEnsembleLacpTest, lacpFlap) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::LACP});
   auto setup = [this]() { programCabledAggPorts(); };
   auto verify = [this]() {
     const auto aggPort = getAggPorts()[0];

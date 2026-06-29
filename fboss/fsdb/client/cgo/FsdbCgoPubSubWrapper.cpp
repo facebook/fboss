@@ -15,7 +15,9 @@
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/fsdb/if/FsdbModel.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_types.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 namespace facebook::fboss::fsdb {
 
@@ -54,6 +56,27 @@ std::vector<T> waitAndDrain(
     updates.emplace_back(std::move(update));
   }
   return updates;
+}
+
+// Deserialize a portMaps blob into (portName, portId, portOperState) per port.
+// portId is read from the PortFields field, not the (switch-local) map key.
+template <typename Buf>
+std::vector<std::tuple<std::string, int32_t, bool>> decodePortMaps(
+    const Buf& contents) {
+  using PortMaps = std::
+      map<std::string, std::map<int16_t, facebook::fboss::state::PortFields>>;
+  auto portMaps =
+      apache::thrift::BinarySerializer::deserialize<PortMaps>(contents);
+  std::vector<std::tuple<std::string, int32_t, bool>> ports;
+  for (const auto& [switchId, portMap] : portMaps) {
+    for (const auto& [mapKey, portFields] : portMap) {
+      ports.emplace_back(
+          *portFields.portName(),
+          *portFields.portId(),
+          *portFields.portOperState());
+    }
+  }
+  return ports;
 }
 } // namespace
 
@@ -299,6 +322,34 @@ void FsdbCgoPubSubWrapper::subscribeStatePath(
   }
 }
 
+std::vector<std::tuple<std::string, int32_t, bool>>
+FsdbCgoPubSubWrapper::getPortSnapshot(
+    std::optional<int> serverPort,
+    const std::optional<std::string>& host) {
+  thriftpath::RootThriftPath<FsdbOperStateRoot> rootPath;
+  auto path = rootPath.agent().switchState().portMaps();
+
+  utils::ConnectionOptions connOptions = serverPort.has_value()
+      ? utils::ConnectionOptions(host.value_or("::1"), *serverPort)
+      : utils::ConnectionOptions::defaultOptions<FsdbService>();
+  auto client =
+      utils::createPlaintextClient<FsdbService>(std::move(connOptions));
+  if (!client) {
+    throw std::runtime_error("getPortSnapshot: failed to create FSDB client");
+  }
+
+  OperGetRequest req;
+  req.path()->raw() = path.tokens();
+  req.protocol() = OperProtocol::BINARY;
+
+  OperState result;
+  client->sync_getOperState(result, req);
+  if (!result.contents()) {
+    return {};
+  }
+  return decodePortMaps(*result.contents());
+}
+
 std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
 FsdbCgoPubSubWrapper::waitForStatePathUpdates(int maxCount) {
   if (!statePathSubscribed_.load()) {
@@ -334,25 +385,13 @@ void FsdbCgoPubSubWrapper::processPortMapsUpdate(fsdb::OperState&& operState) {
   }
 
   try {
-    using PortMaps = std::
-        map<std::string, std::map<int16_t, facebook::fboss::state::PortFields>>;
-
-    PortMaps portMaps = apache::thrift::BinarySerializer::deserialize<PortMaps>(
-        *operState.contents());
-
-    // Process each port and check if state changed
-    for (const auto& [switchId, portMap] : portMaps) {
-      for (const auto& [mapKey, portFields] : portMap) {
-        const auto& portName = *portFields.portName();
-        const int32_t portId = *portFields.portId();
-        bool currentState = *portFields.portOperState();
-
-        // Enqueue update if this is a new port or if state changed
-        auto it = portName2OperState_.find(portName);
-        if (it == portName2OperState_.end() || it->second != currentState) {
-          enqueueState(portName, portId, currentState);
-          portName2OperState_[portName] = currentState;
-        }
+    // Enqueue an update only for a new port or one whose state changed.
+    for (const auto& [portName, portId, currentState] :
+         decodePortMaps(*operState.contents())) {
+      auto it = portName2OperState_.find(portName);
+      if (it == portName2OperState_.end() || it->second != currentState) {
+        enqueueState(portName, portId, currentState);
+        portName2OperState_[portName] = currentState;
       }
     }
   } catch (const std::exception& e) {
@@ -467,7 +506,7 @@ void SubscribeToPortMaps(
   }
 }
 
-void SubscribeToStatsPath(
+void SubscribeToStats(
     FsdbWrapperHandle handle,
     const char** path_tokens,
     int32_t num_tokens,
@@ -477,7 +516,7 @@ void SubscribeToStatsPath(
     return;
   }
   try {
-    warnIfHostIgnored("SubscribeToStatsPath", host, server_port);
+    warnIfHostIgnored("SubscribeToStats", host, server_port);
     auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
     wrapper->subscribeStatsPath(
         tokensToPath(path_tokens, num_tokens),
@@ -488,7 +527,7 @@ void SubscribeToStatsPath(
   }
 }
 
-void SubscribeToStatePath(
+void SubscribeToState(
     FsdbWrapperHandle handle,
     const char** path_tokens,
     int32_t num_tokens,
@@ -498,7 +537,7 @@ void SubscribeToStatePath(
     return;
   }
   try {
-    warnIfHostIgnored("SubscribeToStatePath", host, server_port);
+    warnIfHostIgnored("SubscribeToState", host, server_port);
     auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
     wrapper->subscribeStatePath(
         tokensToPath(path_tokens, num_tokens),
@@ -506,6 +545,47 @@ void SubscribeToStatePath(
         hostToOptional(host));
   } catch (const std::exception&) {
     // Subscription failed - error already logged
+  }
+}
+
+// Returns ports written (>=0), or -1 on error. See header for lifetime of the
+// borrowed port_name pointers.
+int32_t GetPortSnapshot(
+    FsdbWrapperHandle handle,
+    const char* host,
+    int32_t server_port,
+    FsdbPortStateUpdate* out,
+    int32_t max_count) {
+  if (!handle || !out || max_count <= 0) {
+    return -1;
+  }
+  try {
+    warnIfHostIgnored("GetPortSnapshot", host, server_port);
+    auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
+
+    // Stash on wrapper so c_str() pointers stay live across the C boundary.
+    wrapper->lastSnapshot_ = wrapper->getPortSnapshot(
+        portToOptional(server_port), hostToOptional(host));
+
+    if (static_cast<int32_t>(wrapper->lastSnapshot_.size()) > max_count) {
+      XLOG(WARNING) << "GetPortSnapshot: " << wrapper->lastSnapshot_.size()
+                    << " ports exceed caller buffer (" << max_count
+                    << "); truncating";
+    }
+    int32_t i = 0;
+    for (const auto& [portName, portId, operState] : wrapper->lastSnapshot_) {
+      if (i >= max_count) {
+        break;
+      }
+      out[i].port_name = portName.c_str();
+      out[i].port_id = portId;
+      out[i].oper_state = operState ? 1 : 0;
+      ++i;
+    }
+    return i;
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "GetPortSnapshot error: " << e.what();
+    return -1;
   }
 }
 

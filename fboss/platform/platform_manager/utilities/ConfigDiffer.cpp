@@ -175,8 +175,32 @@ void ConfigDiffer::compareVersionedConfigs(
 
   // Compare each versioned config against the default config
   for (const auto& versionedConfig : versionedConfigs) {
-    auto versionInfo = fmt::format(
-        "default{}v{}", kArrow, *versionedConfig.productSubVersion());
+    std::string versionInfo;
+    if (const auto& pmUvs = versionedConfig.pmUnitVersions();
+        pmUvs && !pmUvs->empty()) {
+      std::string versions;
+      for (const auto& pmUv : *pmUvs) {
+        if (!versions.empty()) {
+          versions += ",";
+        }
+        versions += fmt::format(
+            "v{}.{}.{}",
+            *pmUv.productionState(),
+            *pmUv.productionSubState(),
+            *pmUv.respinVariantIndicator());
+      }
+      versionInfo = fmt::format("default{}{}", kArrow, versions);
+    } else if (versionedConfig.productSubVersion()) {
+      versionInfo = fmt::format(
+          "default{}v{}", kArrow, *versionedConfig.productSubVersion());
+    } else {
+      XLOGF(
+          WARN,
+          "VersionedPmUnitConfig for PmUnit '{}' sets neither productSubVersion "
+          "nor pmUnitVersions",
+          pmUnitName);
+      versionInfo = fmt::format("default{}v?", kArrow);
+    }
 
     comparePmUnitConfigs(
         defaultConfig,

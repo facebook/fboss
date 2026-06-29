@@ -16,10 +16,8 @@
 #include <vector>
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
-#include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h" // NOLINT(misc-include-cleaner)
 #include "fboss/cli/fboss2/commands/show/bgp/shadowrib/CmdShowBgpShadowRib.h"
 #include "fboss/cli/fboss2/test/CmdBgpTestUtils.h"
-#include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 #ifndef IS_OSS
 // Avoid EXPECT_THRIFT_EQ clash with <thrift/lib/cpp2/reflection/testing.h>
 #undef EXPECT_THRIFT_EQ

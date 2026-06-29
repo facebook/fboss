@@ -107,6 +107,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return std::make_pair(10, 0x3F);
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kTc() const {
+    return std::make_pair(6, 0xFF);
+  }
+
   std::pair<folly::MacAddress, folly::MacAddress> kDstMac() const {
     return std::make_pair(
         folly::MacAddress{"00:11:22:33:44:55"},
@@ -181,6 +185,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return true;
   }
 
+  std::pair<sai_object_id_t, sai_uint32_t> kNextHopGroupId() const {
+    return std::make_pair(81, 0);
+  }
+
   sai_uint8_t kSetTC() const {
     return 1;
   }
@@ -253,6 +261,7 @@ class AclTableStoreTest : public SaiStoreTest {
             true, // icmpv6Type
             true, // icmpv6Code
             true, // dscp
+            true, // tc
             true, // dstMac
             true, // ipType
             true, // ttl
@@ -296,6 +305,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU8(this->kIcmpV6Type()),
             AclEntryFieldU8(this->kIcmpV6Code()),
             AclEntryFieldU8(this->kDscp()),
+            AclEntryFieldU8(this->kTc()),
             AclEntryFieldMac(this->kDstMac()),
             AclEntryFieldU32(this->kIpType()),
             AclEntryFieldU8(this->kTtl()),
@@ -325,6 +335,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryActionBool(this->kDisableArsForwarding()),
             AclEntryActionU32(this->kHashAlgorithm()),
             AclEntryActionBool(this->kL3SwitchCancel()),
+            AclEntryFieldSaiObjectIdT(this->kNextHopGroupId()),
         },
         0);
   }
@@ -449,6 +460,7 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // icmpv6Type
       true, // icmpv6Code
       true, // dscp
+      true, // tc
       true, // dstMac
       true, // ipType
       true, // ttl
@@ -499,6 +511,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kIcmpV6Type(),
       this->kIcmpV6Code(),
       this->kDscp(),
+      this->kTc(),
       this->kDstMac(),
       this->kIpType(),
       this->kTtl(),
@@ -527,7 +540,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kSetArsObject(),
       this->kDisableArsForwarding(),
       this->kHashAlgorithm(),
-      this->kL3SwitchCancel()};
+      this->kL3SwitchCancel(),
+      this->kNextHopGroupId()};
 
   SaiObject<SaiAclEntryTraits> obj = createObj<SaiAclEntryTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);

@@ -24,6 +24,8 @@ class HwPimTest : public HwTest {
 };
 
 TEST_F(HwPimTest, CheckPimPresent) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::PIM});
   auto phyManager = getHwQsfpEnsemble()->getPhyManager();
 
   auto lastPimState = getHwQsfpEnsemble()->getWedgeManager()->getLastPimState();

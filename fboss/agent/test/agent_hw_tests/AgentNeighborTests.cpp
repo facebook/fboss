@@ -118,9 +118,21 @@ class AgentNeighborTest : public AgentHwTest {
     auto switchId = getSwitchIdUnderTest(ensemble);
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto ports = ensemble.masterLogicalPortIds({switchId});
-    auto cfg = programToTrunk
-        ? utility::oneL3IntfTwoPortConfig(ensemble.getSw(), ports[0], ports[1])
-        : utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
+    auto cfg = programToTrunk ? utility::oneL3IntfTwoPortConfig(
+                                    ensemble.getPlatformMapping(),
+                                    asic,
+                                    ports[0],
+                                    ports[1],
+                                    ensemble.supportsAddRemovePort(),
+                                    asic->desiredLoopbackModes(),
+                                    ensemble.getSw()->getPlatformType())
+                              : utility::onePortPerInterfaceConfig(
+                                    ensemble.getPlatformMapping(),
+                                    asic,
+                                    ports,
+                                    ensemble.supportsAddRemovePort(),
+                                    asic->desiredLoopbackModes(),
+                                    ensemble.getSw()->getPlatformType());
     if (programToTrunk) {
       // Keep member size to be less than/equal to HW limitation, but first add
       // the two ports for testing. Only use ports from masterLogicalPortIds()

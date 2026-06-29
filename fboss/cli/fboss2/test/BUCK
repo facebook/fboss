@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -15,8 +16,10 @@ cpp_library(
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
         ":bgp_mock_client",
+        "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/if:hw_ctrl-cpp2-services",
         "//fboss/cli/fboss2:cmd-common-utils",
         "//fboss/cli/fboss2:cmd-global-options",
         "//fboss/cli/fboss2:fboss2-config-lib",
@@ -92,6 +95,7 @@ cpp_unittest(
         "FilterValidationTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
+    network_access = network_access_utils.all(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":cmd_test_utils",
@@ -140,6 +144,7 @@ cpp_unittest(
         "CmdShowBgpTableDetailTest.cpp",
         "CmdShowBgpTableMoreSpecificsTest.cpp",
         "CmdShowBgpTablePrefixTest.cpp",
+        "CmdShowBgpTableSummaryTest.cpp",
         "CmdShowBgpTableTest.cpp",
         "CmdShowConfigRunningTest.cpp",
         "CmdShowCpuPortTest.cpp",
@@ -165,14 +170,17 @@ cpp_unittest(
         "CmdShowProductTest.cpp",
         "CmdShowRouteDetailsTest.cpp",
         "CmdShowRouteSummaryTest.cpp",
+        "CmdShowSystemPortTest.cpp",
         "CmdShowTeFlowTest.cpp",
         "CmdShowTransceiverTest.cpp",
         "CmdStartPcapTest.cpp",
+        "CmdStartPortCableLengthMeasurementTest.cpp",
         "CmdStopPcapTest.cpp",
         "GitTest.cpp",
         "PortMapTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
+    network_access = network_access_utils.all(),
     # Config files for PortMapTest parameterized tests
     resources = [
         "//fboss/oss/link_test_configs:link_test_configs",
@@ -219,6 +227,7 @@ cpp_unittest(
         "//fboss/cli/fboss2/commands/show/port:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/product:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/route:model-cpp2-types",
+        "//fboss/cli/fboss2/commands/show/systemport:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/teflow:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/transceiver:model-cpp2-types",
         "//folly:dynamic",
@@ -255,9 +264,14 @@ cpp_binary(
     deps = [
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/lib:thrift_service_utils_oss",  # @manual
+        "//folly/executors:io_thread_pool_executor",
+        "//folly/executors/thread_factory:named_thread_factory",
         "//folly/init:init",
         "//folly/io/async:async_base",
         "//folly/io/async:epoll",
+        "//folly/io/async:event_base_manager",
+        "//folly/io/async:io_uring_backend",
+        "//folly/system:hardware_concurrency",
         "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/async:rocket_client_channel",
         "//thrift/lib/cpp2/util:util",

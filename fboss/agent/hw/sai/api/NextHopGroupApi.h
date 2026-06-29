@@ -86,6 +86,11 @@ struct SaiNextHopGroupTraits {
         SAI_NEXT_HOP_GROUP_ATTR_HASH_ALGORITHM,
         sai_int32_t,
         StdNullOptDefault<sai_int32_t>>;
+    using HierarchicalNextHop = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_GROUP_ATTR_HIERARCHICAL_NEXTHOP,
+        bool,
+        StdNullOptDefault<bool>>;
 #endif
     struct AttributeArsNextHopGroupMetaData {
       std::optional<sai_attr_id_t> operator()();
@@ -106,7 +111,8 @@ struct SaiNextHopGroupTraits {
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       ,
-      std::optional<Attributes::HashAlgorithm>
+      std::optional<Attributes::HashAlgorithm>,
+      std::optional<Attributes::HierarchicalNextHop>
 #endif
       >;
 };
@@ -118,6 +124,7 @@ SAI_ATTRIBUTE_NAME(NextHopGroup, ArsObjectId)
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 SAI_ATTRIBUTE_NAME(NextHopGroup, HashAlgorithm)
+SAI_ATTRIBUTE_NAME(NextHopGroup, HierarchicalNextHop)
 #endif
 SAI_ATTRIBUTE_NAME(NextHopGroup, ArsNextHopGroupMetaData)
 

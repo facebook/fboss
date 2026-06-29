@@ -28,6 +28,7 @@ LIB_NAME_OVERRIDES = {
 # Global definitions describing what we package for each target.
 
 COMMON_LIBS = [
+    "gflags",
     "glog",
     "folly",
     "fmt-python",

@@ -364,11 +364,11 @@
             {
               "pmUnitScopedNamePrefix": "MCB_LED",
               "deviceName": "port_led",
-              "csrOffsetCalc": "0x48510 + ({portNum} - {startPort})*0x8 - ({ledNum} - 1)*0x08000",
+              "csrOffsetCalc": "0x48510 - ({ledNum} - 1)*0x08000",
               "numPorts": 1,
-              "ledPerPort": 1,
+              "ledPerPort": 2,
               "startPort": 65,
-              "lanesPerPort": 4
+              "lanesPerPort": 2
             }
           ],
           "infoRomConfigs": [
@@ -1356,7 +1356,7 @@
   "chassisEepromDevicePath": "/FCBTOP_SLOT@0/[CHASSIS_EEPROM]",
   "numXcvrs": 65,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.3.0-1",
+  "bspKmodsRpmVersion": "4.4.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

@@ -276,6 +276,49 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
         });
   }
 
+  void pumpIPv6FlowLabelTraffic(
+      bool loopThroughFrontPanel,
+      AggPortInfo aggInfo) {
+    std::optional<PortID> frontPanelPortToLoopTraffic;
+    if (loopThroughFrontPanel) {
+      // Next port to loop back traffic through
+      frontPanelPortToLoopTraffic =
+          PortID(masterLogicalPortIds()[aggInfo.numPhysicalPorts()]);
+    }
+    auto firstVlanID = getVlanIDForTx();
+    auto mac = getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    // Vary only the IPv6 flow label (fixed src/dst addr + L4 ports) so the
+    // test exercises flow-label based hashing specifically.
+    utility::pumpTrafficWithFlowLabel(
+        utility::getAllocatePktFn(getAgentEnsemble()),
+        utility::getSendPktFunc(getAgentEnsemble()),
+        mac,
+        firstVlanID,
+        frontPanelPortToLoopTraffic,
+        255,
+        20000);
+  }
+
+  void pumpIPv6FlowLabelTrafficAndVerifyLoadBalanced(
+      bool loopThroughFrontPanel,
+      AggPortInfo aggInfo,
+      int deviation) {
+    utility::pumpTrafficAndVerifyLoadBalanced(
+        [=, this]() {
+          pumpIPv6FlowLabelTraffic(loopThroughFrontPanel, aggInfo);
+        },
+        [=, this]() { clearPortStats(aggInfo); },
+        [=, this]() {
+          return utility::isLoadBalanced<PortID, HwPortStats>(
+              getPhysicalPorts(aggInfo),
+              std::vector<NextHopWeight>(),
+              [=, this](const std::vector<PortID>& portIds) {
+                return this->getLatestPortStats(portIds);
+              },
+              deviation);
+        });
+  }
+
   void pumpMPLSTrafficAndVerifyLoadBalanced(
       bool isV6,
       uint32_t labelV4,
@@ -477,6 +520,21 @@ class AgentSrv6TrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
         ClientID::BGPD,
         RouteNextHopEntry(nhops, AdminDistance::EBGP));
     routeUpdater.program();
+  }
+};
+
+// IPv6 flow label Trunk + ECMP load balancing
+class AgentV6FlowLabelTrunkLoadBalancerTest
+    : public AgentTrunkLoadBalancerTest {
+ protected:
+  void setupV6FlowLabelTrunkECMP(AggPortInfo aggInfo) {
+    auto config = configureAggregatePorts(aggInfo);
+    // Hash on the IPv6 flow label for both ECMP and trunk (AGGREGATE_PORT).
+    config.loadBalancers() =
+        getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
+            getAgentEnsemble()->getL3Asics());
+    applyConfigAndEnableTrunks(config);
+    setupIPECMP(aggInfo);
   }
 };
 
@@ -711,6 +769,28 @@ TEST_F(AgentSrv6TrunkLoadBalancerTest, Srv6TrunkEcmpLoadBalance) {
         false /* loopThroughFrontPanel */,
         kSrv6AggInfo,
         25 /* deviation */);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(
+    AgentV6FlowLabelTrunkLoadBalancerTest,
+    V6FlowLabelEcmpTrunk4X3WideTrunksCpuTraffic) {
+  auto setup = [this]() { setupV6FlowLabelTrunkECMP(k4X3WideAggs); };
+  auto verify = [this]() {
+    pumpIPv6FlowLabelTrafficAndVerifyLoadBalanced(
+        false /* loopThroughFrontPanel */, k4X3WideAggs, 25 /* deviation */);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(
+    AgentV6FlowLabelTrunkLoadBalancerTest,
+    V6FlowLabelEcmpTrunk4X3WideTrunksFrontPanelTraffic) {
+  auto setup = [this]() { setupV6FlowLabelTrunkECMP(k4X3WideAggs); };
+  auto verify = [this]() {
+    pumpIPv6FlowLabelTrafficAndVerifyLoadBalanced(
+        true /* loopThroughFrontPanel */, k4X3WideAggs, 25 /* deviation */);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

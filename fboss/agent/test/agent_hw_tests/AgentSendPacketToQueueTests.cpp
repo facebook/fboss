@@ -8,6 +8,7 @@
  *
  */
 #include <folly/IPAddress.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -19,6 +20,7 @@
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace {
@@ -69,6 +71,13 @@ void AgentSendPacketToQueueTest::checkSendPacket(
     if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB &&
         isOutOfPort) {
       queueID = kChenabTxQueue;
+    } else if (
+        ucQueue && asic->isSupported(HwAsic::Feature::VOQ) &&
+        isDualStage3Q2QQos()) {
+      // Dual-stage 3Q+2Q EDSW programs only queues 0/1/2; queue 7 is unmapped
+      // and the packet processor rejects packets targeted at it
+      // (bcmCosqDropReasonPpErrorReject). Remap to the equivalent VOQ.
+      queueID = utility::getTrafficClassToVoqId(asic, queueID);
     }
 
     auto beforeOutPkts =
@@ -91,7 +100,7 @@ void AgentSendPacketToQueueTest::checkSendPacket(
     if (isOutOfPort) {
       if (ucQueue) {
         getAgentEnsemble()->ensureSendPacketOutOfPort(
-            std::move(pkt), port, *ucQueue);
+            std::move(pkt), port, queueID);
       } else {
         getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), port);
       }

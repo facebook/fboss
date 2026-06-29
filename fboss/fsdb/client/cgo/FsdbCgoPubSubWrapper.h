@@ -45,6 +45,12 @@ class FsdbCgoPubSubWrapper {
       std::optional<int> serverPort = std::nullopt,
       const std::optional<std::string>& host = std::nullopt);
 
+  // Synchronous one-shot GET of agent/switchState/portMaps; returns every port
+  // as (portName, portId, portOperState). No subscription required.
+  std::vector<std::tuple<std::string, int32_t, bool>> getPortSnapshot(
+      std::optional<int> serverPort = std::nullopt,
+      const std::optional<std::string>& host = std::nullopt);
+
   // Blocks for >=1 update, then non-blocking-drains up to maxCount.
   // Throws if no subscription. Empty on shutdown.
   std::vector<std::tuple<std::string, int32_t, bool>> waitForStateUpdates(
@@ -83,6 +89,7 @@ class FsdbCgoPubSubWrapper {
       lastStatsUpdates_;
   std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
       lastStatePathUpdates_;
+  std::vector<std::tuple<std::string, int32_t, bool>> lastSnapshot_;
 
  private:
   void enqueueState(const std::string& key, int32_t portId, bool portOperState);

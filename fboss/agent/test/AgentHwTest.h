@@ -341,6 +341,24 @@ class AgentHwTest : public ::testing::Test {
   virtual void overrideTestEnsembleInitInfo(
       TestEnsembleInitInfo& /*initInfo*/) const {}
 
+  /*
+   * Override to cap the number of front-panel INTERFACE_PORTs the test
+   * uses per switch. nullopt (default) means "no per-test cap" — the
+   * ensemble's own default applies. FLAGS_test_max_ports overrides this
+   * at runtime when > 0.
+   */
+  virtual std::optional<size_t> maxRequiredInterfacePorts() const {
+    return std::nullopt;
+  }
+
+  /*
+   * Override to cap the number of FABRIC_PORTs the test uses per switch.
+   * Defaults to std::nullopt (no cap, use the entire fabric port set).
+   */
+  virtual std::optional<size_t> maxRequiredFabricPorts() const {
+    return std::nullopt;
+  }
+
  private:
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };

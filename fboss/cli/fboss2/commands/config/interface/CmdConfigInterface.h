@@ -11,11 +11,9 @@
 #pragma once
 
 #include <string>
-#include <utility>
 #include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
-#include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include "fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h"
 
 namespace facebook::fboss {
 
@@ -23,48 +21,16 @@ namespace facebook::fboss {
  * InterfacesConfig captures both port/interface names and optional
  * attribute key-value pairs from the CLI.
  *
- * Usage: config interface <port-list> [<attr> <value> ...]
+ * Usage: config interface <port-list> [<attr> [<value>] ...]
  *
  * The first tokens (until a known attribute name is encountered) are
  * treated as port/interface names. The remaining tokens are parsed
- * as attribute-value pairs.
- *
- * Supported attributes: description, mtu
+ * as attribute-value pairs (see InterfaceAttrArgsBase).
  */
-class InterfacesConfig : public utils::BaseObjectArgType<std::string> {
+class InterfacesConfig : public InterfaceAttrArgsBase {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
-  /* implicit */ InterfacesConfig(std::vector<std::string> v);
-
-  /* Get the resolved interfaces. */
-  const utils::InterfaceList& getInterfaces() const {
-    return interfaces_;
-  }
-
-  /* Implicit conversion to InterfaceList so that child commands can accept
-   * const InterfaceList& without knowing about InterfacesConfig. */
-  // NOLINTNEXTLINE(google-explicit-constructor)
-  /* implicit */ operator const utils::InterfaceList&() const {
-    return interfaces_;
-  }
-
-  /* Get the attribute-value pairs. */
-  const std::vector<std::pair<std::string, std::string>>& getAttributes()
-      const {
-    return attributes_;
-  }
-
-  /* Check if any attributes were provided. */
-  bool hasAttributes() const {
-    return !attributes_.empty();
-  }
-
- private:
-  utils::InterfaceList interfaces_;
-  std::vector<std::pair<std::string, std::string>> attributes_;
-
-  // Check if a string is a known attribute name
-  static bool isKnownAttribute(const std::string& s);
+  /* implicit */ InterfacesConfig(const std::vector<std::string>& v);
 };
 
 struct CmdConfigInterfaceTraits : public WriteCommandTraits {
@@ -73,7 +39,7 @@ struct CmdConfigInterfaceTraits : public WriteCommandTraits {
         "interface_config",
         args,
         "<port-list> [<attr> <value> ...] where <attr> is one "
-        "of: description, mtu");
+        "of: description, mtu, ip-address, ipv6-address, ...");
   }
   using ObjectArgType = InterfacesConfig;
   using RetType = std::string;

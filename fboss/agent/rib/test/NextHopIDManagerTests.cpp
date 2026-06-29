@@ -75,6 +75,9 @@ void addV6RouteWithSetId(
 // Helper function to create a V4 route with a per-client entry that carries
 // clientNextHopSetID, and add it to a FIB. Used to exercise the per-client
 // reconstruction path in NextHopIDManager::reconstructFromSwitchStateMaps.
+// Also stamps resolvedNextHopSetID + normalizedResolvedNextHopSetID on the
+// fwd info so the backfill pass in RibRouteTables::fromThrift is a no-op
+// (the test focuses on reconstruct behavior, not backfill).
 void addV4RouteWithClientId(
     const std::shared_ptr<ForwardingInformationBaseV4>& fibV4,
     const std::string& prefixStr,
@@ -94,7 +97,10 @@ void addV4RouteWithClientId(
       std::optional<NextHopSetID>(std::nullopt),
       std::optional<NextHopSetID>(clientSetId));
   route->update(clientId, entry);
-  route->setResolved(RouteNextHopEntry(nhops, AdminDistance::EBGP));
+  auto fwdInfo = RouteNextHopEntry(nhops, AdminDistance::EBGP).toThrift();
+  fwdInfo.resolvedNextHopSetID() = static_cast<uint64_t>(clientSetId);
+  fwdInfo.normalizedResolvedNextHopSetID() = static_cast<uint64_t>(clientSetId);
+  route->setResolved(RouteNextHopEntry(std::move(fwdInfo)));
   route->publish();
   fibV4->addNode(route);
 }
@@ -119,7 +125,10 @@ void addV6RouteWithClientId(
       std::optional<NextHopSetID>(std::nullopt),
       std::optional<NextHopSetID>(clientSetId));
   route->update(clientId, entry);
-  route->setResolved(RouteNextHopEntry(nhops, AdminDistance::EBGP));
+  auto fwdInfo = RouteNextHopEntry(nhops, AdminDistance::EBGP).toThrift();
+  fwdInfo.resolvedNextHopSetID() = static_cast<uint64_t>(clientSetId);
+  fwdInfo.normalizedResolvedNextHopSetID() = static_cast<uint64_t>(clientSetId);
+  route->setResolved(RouteNextHopEntry(std::move(fwdInfo)));
   route->publish();
   fibV6->addNode(route);
 }
@@ -1119,6 +1128,124 @@ TEST_F(NextHopIDManagerTest, reconstructFromSwitchStateMaps) {
   EXPECT_EQ(newSetIter->second.id, NextHopSetID(kSetIdOffset + 3));
 }
 
+// Simulates a cross-version warm boot where the persisted state was written by
+// a build that distinguished two nexthops this build treats as equal (e.g. they
+// differ only by a field this build ignores), so the same NextHop appears under
+// two different persisted NextHopIDs. Here ids {1,4} both map to nh1 and {2,5}
+// both map to nh2:
+//   SID1 -> {1,2,3}   (route R1)
+//   SID2 -> {4,5,6}   (route R2)
+// On reconstruct the duplicate ids 4,5 dedup onto 1,2, so SID2's
+// primary membership becomes {1,2,6} -- different from what was persisted
+// under SID2, but NOT equal to SID1's {1,2,3} (nh3 != nh6), so the two sets do
+// NOT collapse. Because a SetID's membership is immutable, SID2 must not be
+// rebound to {1,2,6}: reconstruct mints a FRESH SetID for {1,2,6}, retires
+// SID2, and records SID2 -> fresh in the remap so callers repoint routes.
+TEST_F(NextHopIDManagerTest, reconstructMemberDedupMintsFreshSetId) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+  NextHop nh6 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.6", UCMP_DEFAULT_WEIGHT);
+
+  NextHopID nhId1 = NextHopID(1);
+  NextHopID nhId2 = NextHopID(2);
+  NextHopID nhId3 = NextHopID(3);
+  NextHopID nhId4 = NextHopID(4);
+  NextHopID nhId5 = NextHopID(5);
+  NextHopID nhId6 = NextHopID(6);
+
+  // ids 4,5 are duplicates of 1,2 (same NextHop after this build's fromThrift).
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId1), nh1.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId2), nh2.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId3), nh3.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId4), nh1.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId5), nh2.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId6), nh6.toThrift());
+
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  NextHopSetID setId1 = NextHopSetID(kSetIdOffset + 1);
+  NextHopSetID setId2 = NextHopSetID(kSetIdOffset + 2);
+  std::set<state::NextHopIdType> set1{
+      static_cast<state::NextHopIdType>(nhId1),
+      static_cast<state::NextHopIdType>(nhId2),
+      static_cast<state::NextHopIdType>(nhId3)};
+  std::set<state::NextHopIdType> set2{
+      static_cast<state::NextHopIdType>(nhId4),
+      static_cast<state::NextHopIdType>(nhId5),
+      static_cast<state::NextHopIdType>(nhId6)};
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1), set1);
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2), set2);
+
+  auto fibsMap = createFibsMap();
+  auto fibV4 = getFibV4(fibsMap);
+  addV4RouteWithSetId(fibV4, "10.0.0.0/24", {nh1, nh2, nh3}, setId1);
+  addV4RouteWithSetId(fibV4, "10.1.0.0/24", {nh1, nh2, nh6}, setId2);
+
+  auto multiSwitchFibInfoMap =
+      createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap);
+  std::unordered_map<NextHopSetID, NextHopSetID> remap;
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, nullptr, nullptr, nullptr, &remap);
+
+  // Duplicate ids 4,5 reclaimed: only 1,2,3,6 survive.
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId1).nextHop, nh1);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId2).nextHop, nh2);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId3).nextHop, nh3);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId6).nextHop, nh6);
+  EXPECT_EQ(manager_->getIdToNextHop().count(nhId4), 0);
+  EXPECT_EQ(manager_->getIdToNextHop().count(nhId5), 0);
+
+  // SID2 was retired and remapped onto a fresh id minted above the highest
+  // persisted SetID (setId2 == kSetIdOffset + 2 -> fresh == kSetIdOffset + 3).
+  NextHopSetID freshSetId = NextHopSetID(kSetIdOffset + 3);
+  EXPECT_EQ(remap.size(), 1);
+  ASSERT_EQ(remap.count(setId2), 1);
+  EXPECT_EQ(remap.at(setId2), freshSetId);
+
+  // SID1 keeps its own (unchanged) members; SID2 is gone; fresh holds {1,2,6}.
+  const auto& idToSet = manager_->getIdToNextHopIdSet();
+  EXPECT_EQ(idToSet.size(), 2);
+  EXPECT_EQ(idToSet.count(setId2), 0);
+  NextHopIDSet expectedSet1 = {nhId1, nhId2, nhId3};
+  NextHopIDSet expectedFreshSet = {nhId1, nhId2, nhId6};
+  EXPECT_EQ(idToSet.at(setId1), expectedSet1);
+  EXPECT_EQ(idToSet.at(freshSetId), expectedFreshSet);
+
+  // No set references a member absent from idToNextHop_ (the invariant the
+  // dedup protects).
+  for (const auto& [_setId, members] : idToSet) {
+    for (const auto& member : members) {
+      EXPECT_EQ(manager_->getIdToNextHop().count(member), 1);
+    }
+  }
+
+  // Refcounts: nh1/nh2 referenced by both sets, nh3/nh6 by one each.
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedSet1), 1);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedFreshSet), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh3), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh6), 1);
+
+  // Runtime allocation resumes above every minted/persisted SetID.
+  auto newSetIter = manager_->getOrAllocateNextHopSetID(NextHopIDSet{nhId3});
+  EXPECT_EQ(newSetIter->second.id, NextHopSetID(kSetIdOffset + 4));
+}
+
 // Verifies that reconstructFromSwitchStateMaps rebuilds per-client
 // clientNextHopSetID refcounts from BOTH sources of truth:
 //   (a) resolved routes carried in the FIB (the per-client entry walk
@@ -1254,22 +1381,158 @@ TEST_F(NextHopIDManagerTest, reconstructFromSwitchStateMapsClientNextHopSetID) {
   EXPECT_EQ(manager->getIdToNextHopIdSet().at(setIdD), setD);
   EXPECT_EQ(manager->getIdToNextHopIdSet().at(setIdE), setE);
 
-  // Set refcounts: A is shared by 2 resolved routes, the rest by 1 each.
-  EXPECT_EQ(manager->getNextHopIDSetRefCount(setA), 2);
-  EXPECT_EQ(manager->getNextHopIDSetRefCount(setB), 1);
-  EXPECT_EQ(manager->getNextHopIDSetRefCount(setC), 1);
+  // Set refcounts:
+  //   Each FIB route contributes 3 bumps to its setId (resolved +
+  //   normalized + per-client). Each unresolved RIB route contributes 1
+  //   bump (per-client only). A is on 2 FIB routes (V4+V6), so A=6.
+  //   B, C are each on 1 FIB route, so each=3. D, E are each on 1
+  //   unresolved RIB route, so each=1.
+  EXPECT_EQ(manager->getNextHopIDSetRefCount(setA), 6);
+  EXPECT_EQ(manager->getNextHopIDSetRefCount(setB), 3);
+  EXPECT_EQ(manager->getNextHopIDSetRefCount(setC), 3);
   EXPECT_EQ(manager->getNextHopIDSetRefCount(setD), 1);
   EXPECT_EQ(manager->getNextHopIDSetRefCount(setE), 1);
 
   // Per-nexthop refcounts: each set-ref bumps every member nh once.
-  //   nh1: A(*2) + B + C = 4
-  //   nh2: A(*2) + D + E = 4
-  //   nh3: B + D = 2
-  //   nh4: C + E = 2
-  EXPECT_EQ(manager->getNextHopRefCount(nh1), 4);
-  EXPECT_EQ(manager->getNextHopRefCount(nh2), 4);
-  EXPECT_EQ(manager->getNextHopRefCount(nh3), 2);
-  EXPECT_EQ(manager->getNextHopRefCount(nh4), 2);
+  //   nh1: in A(*6) + B(*3) + C(*3) = 12
+  //   nh2: in A(*6) + D(*1) + E(*1) = 8
+  //   nh3: in B(*3) + D(*1) = 4
+  //   nh4: in C(*3) + E(*1) = 4
+  EXPECT_EQ(manager->getNextHopRefCount(nh1), 12);
+  EXPECT_EQ(manager->getNextHopRefCount(nh2), 8);
+  EXPECT_EQ(manager->getNextHopRefCount(nh3), 4);
+  EXPECT_EQ(manager->getNextHopRefCount(nh4), 4);
+}
+
+// Member dedup driven by an UNRESOLVED route. The retired SetID is referenced
+// only by an unresolved RIB route's per-client clientNextHopSetID, so the
+// unresolved-RIB walk in reconstructFromSwitchStateMaps -- not the FIB walk --
+// must trigger the dedup, mint the fresh SetID, and record the remap.
+//
+// Mirrors reconstructMemberDedupMintsFreshSetId, but setId2 lives on an
+// unresolved RIB route (fed via the ribTables arg) instead of a resolved FIB
+// route:
+//   ids 4,5 are cross-version duplicates of 1,2 (same NextHop this build).
+//   setId1 {1,2,3} on a resolved FIB route    -> binds primaries 1,2,3 first.
+//   setId2 {4,5,6} on an unresolved RIB route  -> dedups to {1,2,6}, retired.
+TEST_F(NextHopIDManagerTest, reconstructMemberDedupUnresolvedRoute) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+  NextHop nh6 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.6", UCMP_DEFAULT_WEIGHT);
+
+  NextHopID nhId1 = NextHopID(1);
+  NextHopID nhId2 = NextHopID(2);
+  NextHopID nhId3 = NextHopID(3);
+  NextHopID nhId4 = NextHopID(4);
+  NextHopID nhId5 = NextHopID(5);
+  NextHopID nhId6 = NextHopID(6);
+
+  // ids 4,5 are duplicates of 1,2 (same NextHop after this build's fromThrift).
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  for (const auto& [id, nh] : std::vector<std::pair<NextHopID, NextHop>>{
+           {nhId1, nh1},
+           {nhId2, nh2},
+           {nhId3, nh3},
+           {nhId4, nh1},
+           {nhId5, nh2},
+           {nhId6, nh6}}) {
+    idToNextHopMap->addNextHop(
+        static_cast<state::NextHopIdType>(id), nh.toThrift());
+  }
+  auto makeIdSet = [](std::initializer_list<NextHopID> ids) {
+    std::set<state::NextHopIdType> s;
+    for (auto id : ids) {
+      s.insert(static_cast<state::NextHopIdType>(id));
+    }
+    return s;
+  };
+  NextHopSetID setId1 = NextHopSetID(kSetIdOffset + 1);
+  NextHopSetID setId2 = NextHopSetID(kSetIdOffset + 2);
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1),
+      makeIdSet({nhId1, nhId2, nhId3}));
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2),
+      makeIdSet({nhId4, nhId5, nhId6}));
+
+  // FIB: one resolved route on setId1 so primaries 1,2,3 are bound before the
+  // unresolved-RIB walk processes setId2 (the FIB pass runs first).
+  auto fibsMap = createFibsMap();
+  auto fibV4 = getFibV4(fibsMap);
+  addV4RouteWithSetId(fibV4, "10.0.0.0/24", {nh1, nh2, nh3}, setId1);
+  auto multiSwitchFibInfoMap =
+      createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap);
+
+  // RIB: one unresolved V4 route whose per-client entry references setId2. The
+  // single-arg fromThrift only deserializes route tables (no reconstruct, no
+  // repoint), so setId2 reaches the unresolved-RIB walk unmodified.
+  state::RouteNextHopEntry perClient;
+  *perClient.adminDistance() = AdminDistance::EBGP;
+  *perClient.action() = RouteForwardAction::NEXTHOPS;
+  *perClient.nexthops() = util::fromRouteNextHopSet({nh1, nh2, nh6});
+  perClient.clientNextHopSetID() = static_cast<int64_t>(setId2);
+  state::RouteFields v4Unresolved;
+  *v4Unresolved.prefix() = makePrefixV4("20.0.0.0/24").toThrift();
+  *v4Unresolved.flags() = 0;
+  v4Unresolved.nexthopsmulti()->client2NextHopEntry()->emplace(
+      ClientID::BGPD, perClient);
+  state::RouteTableFields vrfTable;
+  vrfTable.v4NetworkToRoute()->emplace("20.0.0.0/24", v4Unresolved);
+  std::map<int32_t, state::RouteTableFields> ribThrift;
+  ribThrift.emplace(0, vrfTable);
+  auto ribTables = RibRouteTables::fromThrift(ribThrift);
+
+  std::unordered_map<NextHopSetID, NextHopSetID> remap;
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, nullptr, nullptr, &ribTables, &remap);
+
+  // Duplicate ids 4,5 reclaimed: only 1,2,3,6 survive.
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId1).nextHop, nh1);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId2).nextHop, nh2);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId3).nextHop, nh3);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhId6).nextHop, nh6);
+  EXPECT_EQ(manager_->getIdToNextHop().count(nhId4), 0);
+  EXPECT_EQ(manager_->getIdToNextHop().count(nhId5), 0);
+
+  // setId2 (referenced only by the unresolved route) was retired and remapped
+  // onto a fresh id minted above the highest persisted SetID (setId2 ==
+  // kSetIdOffset + 2 -> fresh == kSetIdOffset + 3).
+  NextHopSetID freshSetId = NextHopSetID(kSetIdOffset + 3);
+  EXPECT_EQ(remap.size(), 1);
+  ASSERT_EQ(remap.count(setId2), 1);
+  EXPECT_EQ(remap.at(setId2), freshSetId);
+
+  // SID1 keeps its own (unchanged) members; SID2 is gone; fresh holds {1,2,6}.
+  const auto& idToSet = manager_->getIdToNextHopIdSet();
+  EXPECT_EQ(idToSet.size(), 2);
+  EXPECT_EQ(idToSet.count(setId2), 0);
+  NextHopIDSet expectedSet1 = {nhId1, nhId2, nhId3};
+  NextHopIDSet expectedFreshSet = {nhId1, nhId2, nhId6};
+  EXPECT_EQ(idToSet.at(setId1), expectedSet1);
+  EXPECT_EQ(idToSet.at(freshSetId), expectedFreshSet);
+
+  // No set references a member absent from idToNextHop_.
+  for (const auto& [_setId, members] : idToSet) {
+    for (const auto& member : members) {
+      EXPECT_EQ(manager_->getIdToNextHop().count(member), 1);
+    }
+  }
+
+  // setId1 referenced by the FIB route, the fresh set by the unresolved route.
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedSet1), 1);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedFreshSet), 1);
+  // nh1/nh2 are shared (setId1 + fresh); nh3 only in setId1; nh6 only in fresh.
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh3), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh6), 1);
 }
 
 // This tests reconstructFromFib with multiple switches.
@@ -2133,6 +2396,556 @@ TEST_F(NextHopIDManagerTest, namedNhgRouteReverseMappingWarmBoot) {
   EXPECT_EQ(routes.count({RouterID(0), expectedPrefix}), 1);
 
   EXPECT_FALSE(manager_->hasRoutesForNamedNhg("other-nhg"));
+}
+
+// Full collapse: every member of SID2 is a duplicate of SID1's members, so
+// SID2's primary set equals the already-registered SID1. SID1 survives and
+// SID2 collapses onto it -- NO fresh id is minted (this is the existing
+// duplicate-set path, which member dedup must still route through).
+TEST_F(NextHopIDManagerTest, reconstructFullCollapseRemapsToSurvivor) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+  NextHopID id1(1), id2(2), id3(3), id4(4), id5(5), id6(6);
+
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  for (const auto& [id, nh] : std::vector<std::pair<NextHopID, NextHop>>{
+           {id1, nh1},
+           {id2, nh2},
+           {id3, nh3},
+           {id4, nh1},
+           {id5, nh2},
+           {id6, nh3}}) {
+    idToNextHopMap->addNextHop(
+        static_cast<state::NextHopIdType>(id), nh.toThrift());
+  }
+  NextHopSetID setId1(kSetIdOffset + 1), setId2(kSetIdOffset + 2);
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1),
+      {static_cast<state::NextHopIdType>(id1),
+       static_cast<state::NextHopIdType>(id2),
+       static_cast<state::NextHopIdType>(id3)});
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2),
+      {static_cast<state::NextHopIdType>(id4),
+       static_cast<state::NextHopIdType>(id5),
+       static_cast<state::NextHopIdType>(id6)});
+
+  auto fibsMap = createFibsMap();
+  addV4RouteWithSetId(
+      getFibV4(fibsMap), "10.0.0.0/24", {nh1, nh2, nh3}, setId1);
+  addV4RouteWithSetId(
+      getFibV4(fibsMap), "10.1.0.0/24", {nh1, nh2, nh3}, setId2);
+
+  std::unordered_map<NextHopSetID, NextHopSetID> remap;
+  manager_->reconstructFromSwitchStateMaps(
+      createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap),
+      nullptr,
+      nullptr,
+      nullptr,
+      &remap);
+
+  ASSERT_EQ(remap.size(), 1);
+  EXPECT_EQ(remap.at(setId2), setId1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().count(setId2), 0);
+  NextHopIDSet expected = {id1, id2, id3};
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setId1), expected);
+
+  // Both routes reference the survivor: set count 2, each member rc 2.
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expected), 2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh3), 2);
+
+  // Both references drain cleanly.
+  EXPECT_FALSE(manager_->decrOrDeallocRouteNextHopSetID(setId1)
+                   .removedSetId.has_value());
+  EXPECT_TRUE(manager_->decrOrDeallocRouteNextHopSetID(setId1)
+                  .removedSetId.has_value());
+  EXPECT_TRUE(manager_->getIdToNextHop().empty());
+  EXPECT_TRUE(manager_->getIdToNextHopIdSet().empty());
+}
+
+// A retired SetID referenced by MULTIPLE routes (the common ECMP case where
+// several prefixes share one nexthop group). setId2's members dedup to a
+// new set, so setId2 is retired; because two routes reference setId2,
+// reconstruct processes it twice. Verifies that:
+//   - the first reference mints the fresh SetID and the second COLLAPSES onto
+//     that same fresh id (no second/duplicate set is created), and
+//   - the fresh set's refcount (2) and the member refcounts (nh1/nh2 = 3 from
+//     setId1 + two fresh refs, nh6 = 2 from two fresh refs) accumulate across
+//     both references, so a later delete drains cleanly.
+TEST_F(
+    NextHopIDManagerTest,
+    reconstructMultipleRoutesToRetiredSetIdAccumulateFreshCount) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+  NextHop nh6 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.6", UCMP_DEFAULT_WEIGHT);
+  NextHopID id1(1), id2(2), id3(3), id4(4), id5(5), id6(6);
+
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  for (const auto& [id, nh] : std::vector<std::pair<NextHopID, NextHop>>{
+           {id1, nh1},
+           {id2, nh2},
+           {id3, nh3},
+           {id4, nh1},
+           {id5, nh2},
+           {id6, nh6}}) {
+    idToNextHopMap->addNextHop(
+        static_cast<state::NextHopIdType>(id), nh.toThrift());
+  }
+  NextHopSetID setId1(kSetIdOffset + 1), setId2(kSetIdOffset + 2);
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1),
+      {static_cast<state::NextHopIdType>(id1),
+       static_cast<state::NextHopIdType>(id2),
+       static_cast<state::NextHopIdType>(id3)});
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2),
+      {static_cast<state::NextHopIdType>(id4),
+       static_cast<state::NextHopIdType>(id5),
+       static_cast<state::NextHopIdType>(id6)});
+
+  auto fibsMap = createFibsMap();
+  addV4RouteWithSetId(
+      getFibV4(fibsMap), "10.0.0.0/24", {nh1, nh2, nh3}, setId1);
+  addV4RouteWithSetId(
+      getFibV4(fibsMap), "10.1.0.0/24", {nh1, nh2, nh6}, setId2);
+  addV4RouteWithSetId(
+      getFibV4(fibsMap), "10.2.0.0/24", {nh1, nh2, nh6}, setId2);
+
+  std::unordered_map<NextHopSetID, NextHopSetID> remap;
+  manager_->reconstructFromSwitchStateMaps(
+      createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap),
+      nullptr,
+      nullptr,
+      nullptr,
+      &remap);
+
+  NextHopSetID freshSetId(kSetIdOffset + 3);
+  ASSERT_EQ(remap.size(), 1);
+  EXPECT_EQ(remap.at(setId2), freshSetId);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 2);
+
+  NextHopIDSet freshSet = {id1, id2, id6};
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(freshSetId), freshSet);
+  // Fresh set referenced by 2 routes.
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(freshSet), 2);
+  // nh1/nh2: SID1 (1) + fresh x2 (2) = 3; nh3: SID1 only; nh6: fresh x2.
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 3);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 3);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh3), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh6), 2);
+}
+
+// Intra-set duplicate: a single persisted set contains two member ids that this
+// build maps to the same NextHop. The primary set shrinks (the duplicate is
+// dropped), a fresh id is minted, and -- critically -- the surviving member is
+// reffed only ONCE so dealloc drains it with no leak.
+TEST_F(
+    NextHopIDManagerTest,
+    reconstructIntraSetDuplicateShrinksGroupAndDeallocsCleanly) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHopID id1(1), id2(2);
+
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id1), nh1.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id2), nh1.toThrift()); // duplicate
+
+  NextHopSetID setId1(kSetIdOffset + 1);
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1),
+      {static_cast<state::NextHopIdType>(id1),
+       static_cast<state::NextHopIdType>(id2)});
+
+  auto fibsMap = createFibsMap();
+  addV4RouteWithSetId(getFibV4(fibsMap), "10.0.0.0/24", {nh1}, setId1);
+
+  std::unordered_map<NextHopSetID, NextHopSetID> remap;
+  manager_->reconstructFromSwitchStateMaps(
+      createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap),
+      nullptr,
+      nullptr,
+      nullptr,
+      &remap);
+
+  // SID1 retired onto a fresh id; the group shrank to a single member. Which of
+  // id1/id2 survives as primary depends on persisted-set iteration order, so
+  // assert structurally rather than on a specific id.
+  NextHopSetID freshSetId(kSetIdOffset + 2);
+  ASSERT_EQ(remap.size(), 1);
+  EXPECT_EQ(remap.at(setId1), freshSetId);
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 1);
+  ASSERT_EQ(manager_->getIdToNextHopIdSet().size(), 1);
+  const auto& freshSet = manager_->getIdToNextHopIdSet().at(freshSetId);
+  EXPECT_EQ(freshSet.size(), 1);
+  // The surviving member must exist in idToNextHop_ (the invariant).
+  EXPECT_EQ(manager_->getIdToNextHop().count(*freshSet.begin()), 1);
+
+  // Leak guard: nh1 is reffed exactly once despite appearing twice in the
+  // persisted set, and the fresh set is reffed once.
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 1);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(freshSet), 1);
+
+  // Dealloc drains everything -- no stranded member.
+  auto result = manager_->decrOrDeallocRouteNextHopSetID(freshSetId);
+  ASSERT_TRUE(result.removedSetId.has_value());
+  EXPECT_EQ(*result.removedSetId, freshSetId);
+  EXPECT_TRUE(manager_->getIdToNextHop().empty());
+  EXPECT_TRUE(manager_->getIdToNextHopIdSet().empty());
+}
+
+// MySid pass: a MySid entry's unresolved set is a duplicate of its resolved set
+// (members dedup), so it collapses onto the resolved set's id and the
+// collapse is recorded in the remap -- exercised with an empty FIB.
+TEST_F(NextHopIDManagerTest, reconstructMySidSetDedupRecordsRemap) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHopID id1(1), id2(2), id3(3), id4(4);
+
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  for (const auto& [id, nh] : std::vector<std::pair<NextHopID, NextHop>>{
+           {id1, nh1}, {id2, nh2}, {id3, nh1}, {id4, nh2}}) {
+    idToNextHopMap->addNextHop(
+        static_cast<state::NextHopIdType>(id), nh.toThrift());
+  }
+  NextHopSetID setId1(kSetIdOffset + 1); // resolved
+  NextHopSetID setId2(kSetIdOffset + 2); // unresolved (duplicate of resolved)
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1),
+      {static_cast<state::NextHopIdType>(id1),
+       static_cast<state::NextHopIdType>(id2)});
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2),
+      {static_cast<state::NextHopIdType>(id3),
+       static_cast<state::NextHopIdType>(id4)});
+
+  auto multiSwitchFibInfoMap = createMultiSwitchFibInfoMap(
+      createFibsMap(), idToNextHopMap, idToNextHopIdSetMap);
+  auto mySid = makeMySidEntry(setId1, setId2);
+  auto mySidMap = makeMySidMap(mySid);
+
+  std::unordered_map<NextHopSetID, NextHopSetID> remap;
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, mySidMap, nullptr, nullptr, &remap);
+
+  ASSERT_EQ(remap.size(), 1);
+  EXPECT_EQ(remap.at(setId2), setId1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().count(setId2), 0);
+  NextHopIDSet expected = {id1, id2};
+  // Both the resolved and unresolved references land on setId1.
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expected), 2);
+}
+
+// When a retired SetID is remapped to a freshly minted id, that fresh id must
+// be seeded from the HIGHEST SetID anywhere in the persisted state, so it can
+// never collide with a healthy set that kept its id. Here setId2 (offset+2) is
+// retired, but a healthy setIdHigh (offset+50) is still alive at its high
+// number. The fresh id must therefore be offset+51 (global max + 1), NOT
+// offset+3 (retired set + 1) -- otherwise the next allocation could re-issue an
+// id setIdHigh already owns.
+TEST_F(NextHopIDManagerTest, reconstructFreshSetIdClearsGlobalMaxSetId) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+  NextHop nh6 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.6", UCMP_DEFAULT_WEIGHT);
+  NextHop nh7 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.7", UCMP_DEFAULT_WEIGHT);
+  NextHopID id1(1), id2(2), id3(3), id4(4), id5(5), id6(6), id7(7);
+
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  for (const auto& [id, nh] : std::vector<std::pair<NextHopID, NextHop>>{
+           {id1, nh1},
+           {id2, nh2},
+           {id3, nh3},
+           {id4, nh1},
+           {id5, nh2},
+           {id6, nh6},
+           {id7, nh7}}) {
+    idToNextHopMap->addNextHop(
+        static_cast<state::NextHopIdType>(id), nh.toThrift());
+  }
+  NextHopSetID setId1(kSetIdOffset + 1);
+  NextHopSetID setId2(kSetIdOffset + 2); // dedups
+  NextHopSetID setIdHigh(kSetIdOffset + 50); // healthy, defines global max
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1),
+      {static_cast<state::NextHopIdType>(id1),
+       static_cast<state::NextHopIdType>(id2),
+       static_cast<state::NextHopIdType>(id3)});
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2),
+      {static_cast<state::NextHopIdType>(id4),
+       static_cast<state::NextHopIdType>(id5),
+       static_cast<state::NextHopIdType>(id6)});
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setIdHigh),
+      {static_cast<state::NextHopIdType>(id7)});
+
+  auto fibsMap = createFibsMap();
+  addV4RouteWithSetId(
+      getFibV4(fibsMap), "10.0.0.0/24", {nh1, nh2, nh3}, setId1);
+  addV4RouteWithSetId(
+      getFibV4(fibsMap), "10.1.0.0/24", {nh1, nh2, nh6}, setId2);
+  addV4RouteWithSetId(getFibV4(fibsMap), "10.2.0.0/24", {nh7}, setIdHigh);
+
+  std::unordered_map<NextHopSetID, NextHopSetID> remap;
+  manager_->reconstructFromSwitchStateMaps(
+      createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap),
+      nullptr,
+      nullptr,
+      nullptr,
+      &remap);
+
+  // Fresh id is global-max (kSetIdOffset + 50) + 1, NOT setId2 + 1.
+  ASSERT_EQ(remap.size(), 1);
+  EXPECT_EQ(remap.at(setId2), NextHopSetID(kSetIdOffset + 51));
+}
+
+// Named-group dedup: a route registers the primary id under SID1,
+// and a named group "grp" is persisted pointing at SID2 whose only member is a
+// duplicate of the same nexthop (as produced by a cost-aware writer read by a
+// cost-unaware reader). On reconstruct SID2 collapses onto SID1; the
+// named-group path must resolve through the remap so "grp" ends up on the
+// surviving SID1 -- without the remap resolution the post-processNhopSetId
+// CHECK would fire.
+TEST_F(NextHopIDManagerTest, reconstructNamedGroupSetIdDedupResolves) {
+  NextHop nh =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHopID id1(1), id2(2);
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id1), nh.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id2), nh.toThrift()); // duplicate
+
+  NextHopSetID setId1(kSetIdOffset + 1), setId2(kSetIdOffset + 2);
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1),
+      {static_cast<state::NextHopIdType>(id1)});
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2),
+      {static_cast<state::NextHopIdType>(id2)});
+
+  // A route references setId1 (processed first in the FIB pass) so id1 is the
+  // primary id by the time the named-group pass processes setId2.
+  auto fibsMap = createFibsMap();
+  addV4RouteWithSetId(getFibV4(fibsMap), "10.0.0.0/24", {nh}, setId1);
+
+  auto fibInfo = std::make_shared<FibInfo>();
+  fibInfo->resetFibsMap(fibsMap);
+  fibInfo->setIdToNextHopMap(idToNextHopMap);
+  fibInfo->setIdToNextHopIdSetMap(idToNextHopIdSetMap);
+  fibInfo->setNameToNextHopSetId({{"grp", static_cast<NextHopSetId>(setId2)}});
+  auto multiSwitchFibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+  multiSwitchFibInfoMap->addNode("id=0", fibInfo);
+
+  std::unordered_map<NextHopSetID, NextHopSetID> remap;
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, nullptr, nullptr, nullptr, &remap);
+
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 1);
+  ASSERT_EQ(remap.count(setId2), 1);
+  EXPECT_EQ(remap.at(setId2), setId1);
+
+  ASSERT_TRUE(manager_->hasNamedNextHopGroup("grp"));
+  auto nameSetId = manager_->getNextHopSetIDForName("grp");
+  ASSERT_TRUE(nameSetId.has_value());
+  EXPECT_EQ(*nameSetId, setId1);
+  // The named group resolves to a SetID that still exists in the manager.
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().count(*nameSetId), 1);
+}
+
+// Named-group dedup, FRESH-id variant: the named group's set, after
+// member dedup, becomes a set that is NOT already registered (it
+// differs from the route's set), so a fresh SetID is minted. The named-group
+// path must resolve "grp" onto the fresh id.
+TEST_F(NextHopIDManagerTest, reconstructNamedGroupSetIdDedupFreshId) {
+  NextHop nhA =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nhB =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nhC =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+  NextHopID id1(1), id2(2), id3(3), id4(4);
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id1), nhA.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id2), nhA.toThrift()); // dup of nhA
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id3), nhB.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id4), nhC.toThrift());
+
+  NextHopSetID setId1(kSetIdOffset + 1), setId2(kSetIdOffset + 2);
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1),
+      {static_cast<state::NextHopIdType>(id1),
+       static_cast<state::NextHopIdType>(id3)});
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2),
+      {static_cast<state::NextHopIdType>(id2),
+       static_cast<state::NextHopIdType>(id4)});
+
+  auto fibsMap = createFibsMap();
+  addV4RouteWithSetId(getFibV4(fibsMap), "10.0.0.0/24", {nhA, nhB}, setId1);
+
+  auto fibInfo = std::make_shared<FibInfo>();
+  fibInfo->resetFibsMap(fibsMap);
+  fibInfo->setIdToNextHopMap(idToNextHopMap);
+  fibInfo->setIdToNextHopIdSetMap(idToNextHopIdSetMap);
+  fibInfo->setNameToNextHopSetId({{"grp", static_cast<NextHopSetId>(setId2)}});
+  auto multiSwitchFibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+  multiSwitchFibInfoMap->addNode("id=0", fibInfo);
+
+  std::unordered_map<NextHopSetID, NextHopSetID> remap;
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, nullptr, nullptr, nullptr, &remap);
+
+  // setId2 deduped to {id1,id4} (new) -> retired onto fresh id.
+  NextHopSetID freshSetId(kSetIdOffset + 3);
+  ASSERT_EQ(remap.count(setId2), 1);
+  EXPECT_EQ(remap.at(setId2), freshSetId);
+
+  ASSERT_TRUE(manager_->hasNamedNextHopGroup("grp"));
+  auto nameSetId = manager_->getNextHopSetIDForName("grp");
+  ASSERT_TRUE(nameSetId.has_value());
+  EXPECT_EQ(*nameSetId, freshSetId);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().count(*nameSetId), 1);
+  NextHopIDSet expectedFresh = {id1, id4};
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(freshSetId), expectedFresh);
+}
+
+// A reclaimed (duplicate) NextHopID must NOT be reused by a later allocation.
+// nextAvailableNextHopID_ is seeded from the highest PERSISTED id (4 here), not
+// the highest surviving id (2), even though the duplicate ids 3/4 were dropped
+// from idToNextHop_. If it regressed to the surviving max, a new nexthop would
+// reuse id 3 -- but the persisted FibInfo still maps id3->nhA, and the key-only
+// diff in SwitchStateNextHopIdUpdater would never overwrite it, leaving the
+// manager and switch state permanently inconsistent. (NextHopID-space mirror of
+// reconstructFreshSetIdClearsGlobalMaxSetId.)
+TEST_F(NextHopIDManagerTest, reconstructReclaimedNextHopIdNotReused) {
+  NextHop nhA =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nhB =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  // Persisted: id1=nhA, id2=nhB, id3=nhA(dup), id4=nhB(dup). 3,4 reclaimed.
+  NextHopID id1(1), id2(2), id3(3), id4(4);
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id1), nhA.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id2), nhB.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id3), nhA.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id4), nhB.toThrift());
+
+  NextHopSetID setId1(kSetIdOffset + 1), setId2(kSetIdOffset + 2);
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1),
+      {static_cast<state::NextHopIdType>(id1),
+       static_cast<state::NextHopIdType>(id2)});
+  // setId2 = {id3,id4} dedups to {id1,id2} == setId1 -> collapse.
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2),
+      {static_cast<state::NextHopIdType>(id3),
+       static_cast<state::NextHopIdType>(id4)});
+
+  auto fibsMap = createFibsMap();
+  addV4RouteWithSetId(getFibV4(fibsMap), "10.0.0.0/24", {nhA, nhB}, setId1);
+  addV4RouteWithSetId(getFibV4(fibsMap), "10.1.0.0/24", {nhA, nhB}, setId2);
+
+  manager_->reconstructFromSwitchStateMaps(
+      createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap),
+      nullptr,
+      nullptr,
+      nullptr);
+
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 2); // id3,id4 reclaimed
+
+  // Allocating a brand-new nexthop must yield an id ABOVE the highest persisted
+  // id (4), never reusing the reclaimed 3 or 4.
+  NextHop nhC =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+  auto result = manager_->getOrAllocRouteNextHopSetID({nhC});
+  ASSERT_EQ(result.addedNextHopIds.size(), 1);
+  EXPECT_EQ(result.addedNextHopIds[0], NextHopID(5));
+}
+
+// Per-client clientNextHopSetID cost collision: two routes carry per-client
+// entries whose clientNextHopSetIDs reference duplicate-of-the-same-nexthop
+// sets. Reconstruct must dedup via the per-client walk and collapse the
+// duplicate SetID with no dangling member.
+TEST_F(NextHopIDManagerTest, reconstructPerClientCostCollisionCollapse) {
+  NextHop nh =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHopID id1(1), id2(2);
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id1), nh.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(id2), nh.toThrift()); // duplicate
+
+  NextHopSetID setIdA(kSetIdOffset + 1), setIdB(kSetIdOffset + 2);
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setIdA),
+      {static_cast<state::NextHopIdType>(id1)});
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setIdB),
+      {static_cast<state::NextHopIdType>(id2)});
+
+  auto fibsMap = createFibsMap();
+  addV4RouteWithClientId(
+      getFibV4(fibsMap), "10.0.0.0/24", {nh}, ClientID::BGPD, setIdA);
+  addV4RouteWithClientId(
+      getFibV4(fibsMap), "10.1.0.0/24", {nh}, ClientID::BGPD, setIdB);
+
+  std::unordered_map<NextHopSetID, NextHopSetID> remap;
+  manager_->reconstructFromSwitchStateMaps(
+      createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap),
+      nullptr,
+      nullptr,
+      nullptr,
+      &remap);
+
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 1);
+  ASSERT_EQ(remap.count(setIdB), 1);
+  EXPECT_EQ(remap.at(setIdB), setIdA);
+  for (const auto& [_sid, members] : manager_->getIdToNextHopIdSet()) {
+    for (const auto& m : members) {
+      EXPECT_EQ(manager_->getIdToNextHop().count(m), 1);
+    }
+  }
 }
 
 } // namespace facebook::fboss

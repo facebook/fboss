@@ -250,6 +250,9 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
   bool pcsRxLinkStatusSupportedInSdk() override;
   bool fecAlignmentLockSupportedInSdk() override;
 
+  // Platform-agnostic; defined once in HwTestLogCaptureThriftHandler.cpp. New
+  // platforms get these by depending on
+  // //fboss/agent/hw/test:hw_test_thrift_handler.
   void installLogCapture() override;
   void getMatchingLogMessages(
       std::vector<std::string>& out,

@@ -4,6 +4,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -16,6 +17,7 @@ namespace facebook::fboss {
 class AgentEnsemble;
 class SwSwitch;
 class SwitchState;
+struct MySidWithNextHops;
 } // namespace facebook::fboss
 
 namespace facebook::fboss::utility {
@@ -78,5 +80,24 @@ NextHopThrift makeSrv6NextHopThrift(
     const folly::IPAddressV6& nhopAddr,
     const folly::IPAddressV6& sid,
     const std::string& tunnelId = "srv6Tunnel0");
+
+// Build numEntries ADJACENCY_MICRO_SID MySID entries, each a /48 at
+// 3001:db8:<i + sidOffset>:: with one resolved adjacency next hop cycling
+// through the first numNhops resolved ecmp next hops. Shared by the SRv6 MySID
+// scale and full-scale warmboot benchmarks. sidOffset lets callers keep the SID
+// range clear of other SIDs (e.g. SRv6 tunnel SIDs) in the same switch.
+std::vector<MySidWithNextHops> makeAdjacencyMySidEntries(
+    const EcmpSetupAnyNPorts6& ecmpHelper,
+    int numNhops,
+    int numEntries,
+    int sidOffset);
+
+// Program the given MySID entries in a single batched rib->update (a per-entry
+// update reprocesses the whole RIB, which is O(entries x routes) at scale).
+void programMySidEntries(SwSwitch* sw, std::vector<MySidWithNextHops> entries);
+
+// Delete numEntries MySID entries previously added at 3001:db8:<i +
+// sidOffset>::.
+void deleteScaleMySidEntries(SwSwitch* sw, int numEntries, int sidOffset);
 
 } // namespace facebook::fboss::utility

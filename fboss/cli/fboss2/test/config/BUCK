@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_oss")
 
@@ -8,11 +9,15 @@ cpp_unittest(
         "BgpConfigSessionTest.cpp",
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigArpTest.cpp",
+        "CmdConfigCoppTest.cpp",
         "CmdConfigHistoryTest.cpp",
         "CmdConfigInterfaceIpv6NdpTest.cpp",
         "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
+        "CmdConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp",
         "CmdConfigInterfaceTest.cpp",
+        "CmdConfigIpRouteTest.cpp",
         "CmdConfigL2LearningModeTest.cpp",
+        "CmdConfigLoadBalancingTest.cpp",
         "CmdConfigMacAgingTimeTest.cpp",
         "CmdConfigPtpTransparentClockTest.cpp",
         "CmdConfigQosBufferPoolTest.cpp",
@@ -21,17 +26,22 @@ cpp_unittest(
         "CmdConfigSessionDiffTest.cpp",
         "CmdConfigSessionTest.cpp",
         "CmdConfigTestBase.cpp",
+        "CmdConfigTunnelIpInIpTest.cpp",
         "CmdConfigVlanDefaultTest.cpp",
         "CmdConfigVlanManagerTest.cpp",
         "CmdConfigVlanPortTaggingModeTest.cpp",
         "CmdConfigVlanStaticMacTest.cpp",
+        "CmdDeleteConfigInterfaceTest.cpp",
         "CmdDeleteInterfaceIpv6NdpTest.cpp",
+        "CmdDeleteInterfaceTest.cpp",
+        "CmdDeleteTunnelIpInIpTest.cpp",
         "ConfigSessionSystemdTest.cpp",
     ],
     headers = [
         "MockFbossServiceUtil.h",
         "MockSystemdInterface.h",
     ],
+    network_access = network_access_utils.all(),
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
@@ -44,7 +54,6 @@ cpp_unittest(
         "//fboss/cli/fboss2:fboss2-config-lib",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2/test:cmd_test_utils",
-        "//folly:dynamic",
         "//folly:file_util",
         "//folly/json:dynamic",
         "//thrift/lib/cpp2/protocol:protocol",

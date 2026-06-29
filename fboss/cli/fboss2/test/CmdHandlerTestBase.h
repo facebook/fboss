@@ -22,6 +22,7 @@ class CmdHandlerTestBase : public ::testing::Test {
  public:
   void SetUp() override {
     mockedAgent_ = std::make_shared<MockFbossCtrlAgent>();
+    mockedHwAgent_ = std::make_shared<MockFbossHwCtrlAgent>();
     mockedQsfpService_ = std::make_shared<MockFbossQsfpService>();
     // mockedBgpService_ is created in setupMockedBgpServer() when needed
     mockedFsdb_ = std::make_shared<MockFsdb>();
@@ -59,6 +60,14 @@ class CmdHandlerTestBase : public ::testing::Test {
         mockedFsdbServer_->getAddress().getPort());
   }
 
+  void setupMockedHwAgentServer() {
+    mockedHwAgentServer_ =
+        std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
+            mockedHwAgent_, "::1", 0, createFastMockServerConfig());
+    CmdGlobalOptions::getInstance()->setHwAgentThriftPort(
+        0, mockedHwAgentServer_->getAddress().getPort());
+  }
+
   void setupMockedBgpServer() {
     // Create a fresh mock service to avoid stale expectations between tests
     mockedBgpService_ = std::make_shared<MockBgpClient>();
@@ -72,6 +81,7 @@ class CmdHandlerTestBase : public ::testing::Test {
   void TearDown() override {
     // stop agent and BGP servers
     mockedAgentServer_.reset();
+    mockedHwAgentServer_.reset();
     mockedFsdbServer_.reset();
     mockedBgpServer_.reset();
     // Reset BGP mnemonic caches to ensure fresh data for next test
@@ -80,6 +90,10 @@ class CmdHandlerTestBase : public ::testing::Test {
 
   auto& getMockAgent() {
     return *mockedAgent_;
+  }
+
+  auto& getMockHwAgent() {
+    return *mockedHwAgent_;
   }
 
   auto& getQsfpService() {
@@ -106,6 +120,8 @@ class CmdHandlerTestBase : public ::testing::Test {
   std::unique_ptr<apache::thrift::ScopedServerInterfaceThread>
       mockedAgentServer_;
   std::unique_ptr<apache::thrift::ScopedServerInterfaceThread>
+      mockedHwAgentServer_;
+  std::unique_ptr<apache::thrift::ScopedServerInterfaceThread>
       mockedQsfpServer_;
   std::unique_ptr<apache::thrift::ScopedServerInterfaceThread> mockedBgpServer_;
   std::unique_ptr<apache::thrift::ScopedServerInterfaceThread>
@@ -113,6 +129,8 @@ class CmdHandlerTestBase : public ::testing::Test {
 
  private:
   std::shared_ptr<MockFbossCtrlAgent> mockedAgent_;
+
+  std::shared_ptr<MockFbossHwCtrlAgent> mockedHwAgent_;
 
   std::shared_ptr<MockFbossQsfpService> mockedQsfpService_;
 
