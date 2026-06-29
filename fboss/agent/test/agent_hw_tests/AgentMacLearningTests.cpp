@@ -376,38 +376,6 @@ class AgentMacLearningTest : public AgentHwTest {
 
   L2LearningUpdateObserverUtil l2LearningObserver_;
 
-  /*
-   * Helper to safely bring down a port that may already be DOWN after warmboot.
-   * Polls for the port to come UP (with timeout), then calls bringDownPort().
-   * If the port stays DOWN (already in desired state), skips the call to avoid
-   * LinkStateToggler hanging indefinitely waiting for a DOWN notification that
-   * SDK won't generate.
-   */
-  void bringDownPortIfUp(PortID port) {
-    constexpr int kMaxWaitMs = 10000;
-    constexpr int kPollIntervalMs = 100;
-    XLOG(DBG2) << "Waiting up to " << kMaxWaitMs << "ms for port " << port
-               << " to come UP before bringDown";
-    for (int elapsed = 0; elapsed < kMaxWaitMs; elapsed += kPollIntervalMs) {
-      auto ports = getProgrammedState()->getPorts();
-      auto portState = ports->getNodeIf(port);
-      if (portState && portState->isUp()) {
-        XLOG(DBG2) << "Port " << port << " is UP after " << elapsed
-                   << "ms, proceeding with bringDownPort";
-        getAgentEnsemble()->bringDownPort(port);
-        return;
-      }
-      /* sleep override */
-      std::this_thread::sleep_for(std::chrono::milliseconds(kPollIntervalMs));
-    }
-    // Port never came UP ??this is expected after warmboot if the port was
-    // already DOWN in coldboot state. Log at WARN level so it's visible in
-    // test output for debugging warmboot regressions.
-    XLOG(WARN) << "Port " << port << " still DOWN after " << kMaxWaitMs
-               << "ms ??skipping bringDownPort. If this port should have come "
-               << "UP, investigate a potential warmboot regression.";
-  }
-
  private:
   bool wasMacLearntInHw(bool shouldExist, MacAddress mac) {
     bringUpPort(masterLogicalPortIds()[1]);
@@ -943,14 +911,7 @@ TEST_F(AgentMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
     // Disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
     enum class MacOp { ASSOCIATE, DISSOASSOCIATE, DELETE };
-
-    // After warmboot, the flood-prevention port may remain DOWN (preserved from
-    // coldboot state) or may be in a transient state due to link flap. If we
-    // call bringDownPort directly and the port is already DOWN, SDK won't
-    // generate a new DOWN notification, causing LinkStateToggler to wait
-    // indefinitely.
-    bringDownPortIfUp(masterLogicalPortIds()[1]);
-
+    getAgentEnsemble()->bringDownPort(masterLogicalPortIds()[1]);
     l2LearningObserver_.startObserving(getAgentEnsemble());
     induceMacLearning(physPortDescr());
     auto doMacOp = [this, isTH3](MacOp op) {
