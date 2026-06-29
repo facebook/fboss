@@ -1124,7 +1124,8 @@ void populateSwitchInfo(
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
       auto dsfNode = dsfNodeConfig(*firstHwAsic, switchId, platformType);
       dsfNode.name() = folly::sformat("hwTestSwitch{}", deviceSwitchId);
-      if (platformType == PlatformType::PLATFORM_SAINTPAUL &&
+      if ((platformType == PlatformType::PLATFORM_SAINTPAUL ||
+           platformType == PlatformType::PLATFORM_JANGA800BIC) &&
           hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
         dsfNode.systemPortRanges() = *switchInfo.systemPortRanges();
         if (switchInfo.localSystemPortOffset().has_value()) {
