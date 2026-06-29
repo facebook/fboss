@@ -42,7 +42,6 @@ namespace facebook::fboss {
  *   - local_as_4_byte: i64 - Local AS number (RFC 6793)
  *   - hold_time: i32 - Hold time in seconds (default 30)
  *   - local_confed_as_4_byte: i64 - Confederation AS number
- *   - cluster_id: string - Route reflector cluster ID
  *   - peers: list<BgpPeer> - List of BGP peers
  *   - peer_groups: list<PeerGroup> - List of peer groups
  *
@@ -102,10 +101,6 @@ class BgpConfigSession {
   // local_confed_as_4_byte: i64 - Confederation ASN
   void setConfedAsn(uint64_t asn);
   std::optional<uint64_t> getConfedAsn() const;
-
-  // cluster_id: string - Route reflector cluster ID
-  void setClusterId(const std::string& clusterId);
-  std::optional<std::string> getClusterId() const;
 
   // listen_addr: string - Listen address for BGP sessions
   void setListenAddress(const std::string& listenAddr);
