@@ -431,7 +431,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
           getSw(),
           getProgrammedState(),
           getCurrentSwitchIndexForTesting(),
-          kRemoteSysPortId);
+          kRemoteSysPortId,
+          true /* refreshStats */);
       if (!sysPortStats.has_value()) {
         return std::nullopt;
       }
@@ -755,7 +756,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
             getSw(),
             getProgrammedState(),
             getCurrentSwitchIndexForTesting(),
-            kRemoteSysPortId);
+            kRemoteSysPortId,
+            true /* refreshStats */);
         ASSERT_EVENTUALLY_TRUE(statsBefore.has_value());
       });
       auto queueBytesBefore = statsBefore->queueOutBytes_()->at(voqId) +
@@ -774,7 +776,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
             getSw(),
             getProgrammedState(),
             getCurrentSwitchIndexForTesting(),
-            kRemoteSysPortId);
+            kRemoteSysPortId,
+            true /* refreshStats */);
         ASSERT_EVENTUALLY_TRUE(statsAfter.has_value());
         auto queueBytesAfter = statsAfter->queueOutBytes_()->at(voqId) +
             statsAfter->queueOutDiscardBytes_()->at(voqId);
