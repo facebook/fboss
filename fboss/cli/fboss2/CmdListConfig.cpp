@@ -15,6 +15,9 @@
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h"
 #include "fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h"
+#include "fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.h"
+#include "fboss/cli/fboss2/commands/config/dhcp/relay_source_override/CmdConfigDhcpRelaySourceOverride.h"
+#include "fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
@@ -165,6 +168,26 @@ const CommandTree& kConfigCommandTree() {
        "Configure ARP settings",
        commandHandler<CmdConfigArp>,
        argRegistrar<CmdConfigArpTraits>},
+
+      {
+          "config",
+          "dhcp",
+          "Configure DHCP settings",
+          commandHandler<CmdConfigDhcp>,
+          argRegistrar<CmdConfigDhcpTraits>,
+          {{
+               "relay-source-override",
+               "Override source IP for DHCP relay packets to the DHCP server (ipv4|ipv6 <IP>)",
+               commandHandler<CmdConfigDhcpRelaySourceOverride>,
+               argRegistrar<CmdConfigDhcpRelaySourceOverrideTraits>,
+           },
+           {
+               "reply-source-override",
+               "Override source IP for DHCP reply packets to the client (ipv4|ipv6 <IP>)",
+               commandHandler<CmdConfigDhcpReplySourceOverride>,
+               argRegistrar<CmdConfigDhcpReplySourceOverrideTraits>,
+           }},
+      },
 
       {"config",
        "history",

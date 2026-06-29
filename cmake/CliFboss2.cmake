@@ -791,6 +791,12 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h
   fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.cpp
   fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h
+  fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.cpp
+  fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.h
+  fboss/cli/fboss2/commands/config/dhcp/relay_source_override/CmdConfigDhcpRelaySourceOverride.cpp
+  fboss/cli/fboss2/commands/config/dhcp/relay_source_override/CmdConfigDhcpRelaySourceOverride.h
+  fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.cpp
+  fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
   fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h
