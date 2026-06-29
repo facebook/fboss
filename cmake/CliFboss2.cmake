@@ -968,6 +968,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.cpp
+  fboss/cli/fboss2/commands/config/hostname/CmdConfigHostname.h
+  fboss/cli/fboss2/commands/config/hostname/CmdConfigHostname.cpp
   fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.cpp
   fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h
   fboss/cli/fboss2/commands/config/protocol/static/route/StaticRouteUtils.h
