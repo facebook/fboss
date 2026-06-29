@@ -474,6 +474,49 @@ RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(
     Ecmp,
     FullWithFlowLabel)
 
+// Verify that enabling IPv6 flow label hashing via config change
+// (ApplyThriftConfig path) takes effect at runtime.
+// Start with standard full hash (no flow label) where flow-label-only
+// traffic is NOT load balanced, then apply config with flow label and
+// verify traffic IS load balanced.
+TEST_F(
+    AgentV6FlowLabelEcmpLoadBalancerTest,
+    EcmpFlowLabelHashEnabledViaConfigChange) {
+  if (skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+  constexpr unsigned int kEcmpWidth = 8;
+  auto* helper = getEcmpSetupHelper();
+  auto setup = [=, this]() {
+    auto fullHashNoFlowLabel = utility::getEcmpFullHashConfig({getHwAsic()});
+    helper->programRoutesAndLoadBalancer(kEcmpWidth, {}, fullHashNoFlowLabel);
+  };
+  auto verify = [=, this]() {
+    auto fullHashNoFlowLabel = utility::getEcmpFullHashConfig({getHwAsic()});
+    auto fullHashWithFlowLabel =
+        utility::getEcmpFullWithFlowLabelHashConfig({getHwAsic()});
+
+    // With standard full hash, flow-label-only traffic should NOT
+    // be load balanced (all packets hash to the same port)
+    helper->pumpTrafficPortAndVerifyLoadBalanced(
+        kEcmpWidth, false, {}, 25, false /* loadBalanceExpected */);
+
+    // Enable flow label via config change (ApplyThriftConfig path)
+    helper->programLoadBalancer(fullHashWithFlowLabel);
+
+    // Same traffic should now be load balanced
+    helper->pumpTrafficPortAndVerifyLoadBalanced(
+        kEcmpWidth, false, {}, 25, true /* loadBalanceExpected */);
+
+    // Reset to original hash so verify is idempotent across warmboot
+    helper->programLoadBalancer(fullHashNoFlowLabel);
+  };
+  runTestAcrossWarmBoots(setup, verify, []() {}, []() {});
+}
+
 RUN_HW_LOAD_BALANCER_TEST_CPU(
     AgentSrv6EcmpLoadBalancerTest,
     Ecmp,
