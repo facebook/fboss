@@ -208,20 +208,6 @@ std::optional<uint64_t> BgpConfigSession::getConfedAsn() const {
   return std::nullopt;
 }
 
-void BgpConfigSession::setClusterId(const std::string& clusterId) {
-  ensureConfigLoaded();
-  bgpConfig_["cluster_id"] = clusterId;
-}
-
-std::optional<std::string> BgpConfigSession::getClusterId() const {
-  const_cast<BgpConfigSession*>(this)->ensureConfigLoaded();
-  if (bgpConfig_.count("cluster_id") &&
-      !bgpConfig_["cluster_id"].asString().empty()) {
-    return bgpConfig_["cluster_id"].asString();
-  }
-  return std::nullopt;
-}
-
 void BgpConfigSession::setListenAddress(const std::string& listenAddr) {
   ensureConfigLoaded();
   bgpConfig_["listen_addr"] = listenAddr;
