@@ -25,17 +25,48 @@ std::string SaiBcmPlatform::getHwConfig() {
   if (getAsic()->isSupported(HwAsic::Feature::HSDK)) {
     std::string yamlConfig;
     try {
-      yamlConfig = config()
-                       ->thrift.platform()
-                       ->chip()
-                       ->get_asicConfig()
-                       .common()
-                       ->get_yamlConfig();
-    } catch (const std::exception&) {
+      auto asicConfig = config()->thrift.platform()->chip()->get_asicConfig();
+      try {
+        if (asicConfig.npuEntries()) {
+          int16_t switchIndex = getAsic()->getSwitchIndex();
+          XLOG(INFO)
+              << "Loading HSDK config: found npuEntries, current switchIndex="
+              << switchIndex;
+          auto& npuEntries = asicConfig.npuEntries().value();
+          auto npuEntry = npuEntries.find(switchIndex);
+          if ((npuEntry != npuEntries.end()) &&
+              (npuEntry->second.getType() ==
+               cfg::AsicConfigEntry::Type::yamlConfig)) {
+            XLOG(INFO) << "Loading NPU-specific yamlConfig for switchIndex="
+                       << switchIndex;
+            yamlConfig = npuEntry->second.get_yamlConfig();
+          } else {
+            XLOG(INFO) << "No NPU-specific yamlConfig found for switchIndex="
+                       << switchIndex << ", falling back to common config";
+          }
+        }
+      } catch (const std::exception& e) {
+        XLOG(WARN) << "Failed to read NPU-specific config: " << e.what()
+                   << ", falling back to common config";
+      }
+      if (yamlConfig.empty()) {
+        if (asicConfig.common()->getType() ==
+            cfg::AsicConfigEntry::Type::yamlConfig) {
+          yamlConfig = asicConfig.common()->get_yamlConfig();
+        } else {
+          XLOG(INFO) << "No common HSDK yamlConfig found";
+        }
+      }
+      if (yamlConfig.empty()) {
+        throw FbossError("No HSDK yamlConfig found in asicConfig");
+      }
+    } catch (const std::exception& e) {
       /*
        * (TODO): Once asic config v2 is rolled out to the fleet, we
        * should remove this fallback and always use the config v2
        */
+      XLOG(INFO) << "Exception in SaiBcmPlatform::getHwConfig: " << e.what()
+                 << ", falling back to bcm.yamlConfig()";
       yamlConfig =
           *(config()->thrift.platform()->chip()->get_bcm().yamlConfig());
     }
