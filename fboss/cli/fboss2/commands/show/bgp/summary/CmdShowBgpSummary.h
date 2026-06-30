@@ -61,7 +61,41 @@ class CmdShowBgpSummary
     client->sync_getBgpLocalConfig(config);
     client->sync_getDrainState(drain_state);
 
-    return createModel(sessions, config, drain_state);
+    const int64_t processUptimeSeconds = client->sync_getProcessUptimeSeconds();
+    const int64_t totalPrefixCount = client->sync_getNumPrefixes();
+    const int64_t ribVersion = client->sync_getRibVersion();
+
+    return createModel(
+        sessions,
+        config,
+        drain_state,
+        processUptimeSeconds,
+        totalPrefixCount,
+        ribVersion);
+  }
+
+  // Format process uptime, omitting leading zero units so a short uptime reads
+  // naturally: 45 -> "45s", 330 -> "5m 30s", 3661 -> "1h 1m 1s",
+  // 90061 -> "1d 1h 1m 1s". Units below the largest non-zero one are kept
+  // (e.g. "3h 0m 5s") so the value stays unambiguous.
+  static std::string formatUptime(int64_t totalSeconds) {
+    if (totalSeconds < 0) {
+      totalSeconds = 0;
+    }
+    const int64_t days = totalSeconds / 86400;
+    const int64_t hours = (totalSeconds % 86400) / 3600;
+    const int64_t minutes = (totalSeconds % 3600) / 60;
+    const int64_t seconds = totalSeconds % 60;
+    if (days > 0) {
+      return fmt::format("{}d {}h {}m {}s", days, hours, minutes, seconds);
+    }
+    if (hours > 0) {
+      return fmt::format("{}h {}m {}s", hours, minutes, seconds);
+    }
+    if (minutes > 0) {
+      return fmt::format("{}m {}s", minutes, seconds);
+    }
+    return fmt::format("{}s", seconds);
   }
 
   void printOutput(const RetType& bgpSummary, std::ostream& out = std::cout) {
@@ -73,6 +107,15 @@ class CmdShowBgpSummary
     out.imbue(std::locale("C"));
 
     out << "BGP summary information for VRF default" << std::endl;
+
+    // Process uptime one-liner, e.g. "BGP is up for 1d 1h 1m 1s". formatUptime
+    // omits leading zero units so a short uptime reads naturally ("45s",
+    // "5m 30s") instead of "0h 0m 45s".
+    out << "BGP is up for "
+        << formatUptime(
+               folly::copy(bgpSummary.process_uptime_seconds().value()))
+        << std::endl;
+
     // Retrive the router's Ip Address from its ID.
     char ip_buff[INET_ADDRSTRLEN];
     auto id = folly::copy(config.my_router_id().value());
@@ -297,6 +340,10 @@ class CmdShowBgpSummary
         << std::endl;
     out << "Paths: Received - " << paths_rcvd << ", Accepted - "
         << paths_accepted << ", Sent - " << paths_sent << std::endl;
+    out << "Prefix count: "
+        << folly::copy(bgpSummary.total_prefix_count().value()) << std::endl;
+    out << "RIB Version: " << folly::copy(bgpSummary.rib_version().value())
+        << std::endl;
     std::string acronyms =
         "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent";
     if (hasAnyPreDrops) {
@@ -314,7 +361,10 @@ class CmdShowBgpSummary
   RetType createModel(
       std::vector<TBgpSession>& sessions,
       TBgpLocalConfig& config,
-      TBgpDrainState& drain_state) {
+      TBgpDrainState& drain_state,
+      int64_t processUptimeSeconds,
+      int64_t totalPrefixCount,
+      int64_t ribVersion) {
     std::sort(
         sessions.begin(),
         sessions.end(),
@@ -326,6 +376,9 @@ class CmdShowBgpSummary
     model.sessions() = sessions;
     model.config() = config;
     model.drain_state() = drain_state;
+    model.process_uptime_seconds() = processUptimeSeconds;
+    model.total_prefix_count() = totalPrefixCount;
+    model.rib_version() = ribVersion;
     return model;
   }
 };

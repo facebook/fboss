@@ -1132,6 +1132,20 @@ service TBgpService extends fb303.FacebookService {
    */
   i64 getRibVersion();
 
+  /**
+   * Get the total number of prefixes currently installed in the loc-RIB
+   * (i.e. the number of entries in RibBase::ribEntries_). This is a
+   * device-wide count across all address families.
+   */
+  i64 getNumPrefixes();
+
+  /**
+   * Get the BGP++ process uptime in seconds (time since the daemon started).
+   * Sourced from the Watchdog process start time, mirroring the
+   * bgpd.process.uptime.seconds ODS counter.
+   */
+  i64 getProcessUptimeSeconds();
+
   /*
    * Get locally originated routes
    */

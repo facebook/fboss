@@ -76,6 +76,9 @@ class MockBgpClient : public apache::thrift::ServiceHandler<TBgpService> {
       getRibEntriesForCommunity,
       (std::vector<TRibEntry>&, TBgpAfi, std::unique_ptr<std::string>));
   MOCK_METHOD(void, getBgpStreamSessions, (std::vector<TBgpStreamSession>&));
+  MOCK_METHOD(int64_t, getRibVersion, ());
+  MOCK_METHOD(int64_t, getNumPrefixes, ());
+  MOCK_METHOD(int64_t, getProcessUptimeSeconds, ());
   MOCK_METHOD(
       void,
       getSubscriberNetworkInfo,
