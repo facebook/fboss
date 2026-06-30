@@ -115,6 +115,28 @@ def collect_result_csvs(run_dir: str, since: float, source_dir: str = ".") -> No
             print(f"Could not collect result CSV {csv_path}: {e}")
 
 
+def collect_system_logs(run_dir: str, messages_path: str = "/var/log/messages") -> None:
+    """Collect host system logs into ``run_dir``: the kernel ring buffer
+    (``dmesg -T``) as ``dmesg.log`` and a copy of ``messages_path``
+    (``/var/log/messages``). Best-effort -- a missing command/file, permission
+    error, or non-zero exit is reported and skipped rather than failing the run.
+    """
+    try:
+        # Fully hardcoded command; ``dmesg -T`` renders human-readable timestamps.
+        result = subprocess.run(
+            ["dmesg", "-T"], capture_output=True, text=True, check=True
+        )
+        with open(os.path.join(run_dir, "dmesg.log"), "w") as f:
+            f.write(result.stdout)
+    except (OSError, subprocess.SubprocessError) as e:
+        print(f"Could not collect dmesg: {e}")
+
+    try:
+        shutil.copy2(messages_path, run_dir)
+    except OSError as e:
+        print(f"Could not collect {messages_path}: {e}")
+
+
 class _OutputTee:
     """Tee this process's stdout+stderr to a file while keeping terminal output.
 
@@ -224,10 +246,12 @@ class LogCapture:
     def stop(self) -> None:
         if self._tee is not None:
             self._tee.stop()
-        # Pull the systemd service logs (hw_agent/fsdb/qsfp/...) and this run's
-        # result CSVs into the run dir so the bundle is self-contained, then zip.
+        # Pull the systemd service logs (hw_agent/fsdb/qsfp/...), host system logs
+        # (dmesg, /var/log/messages), and this run's result CSVs into the run dir
+        # so the bundle is self-contained, then zip the whole directory.
         collect_service_logs(self._run_dir)
         collect_result_csvs(self._run_dir, self._run_start)
+        collect_system_logs(self._run_dir)
         try:
             print(f"Run logs bundled at: {create_log_bundle(self._run_dir)}")
         except OSError as e:

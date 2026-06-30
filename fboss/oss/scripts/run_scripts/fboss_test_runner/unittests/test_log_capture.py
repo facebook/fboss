@@ -26,6 +26,7 @@ from fboss_test_runner.log_capture import (
     build_run_dir_name,
     collect_result_csvs,
     collect_service_logs,
+    collect_system_logs,
     create_log_bundle,
     derive_test_type,
     LogCapture,
@@ -246,6 +247,7 @@ class LogCaptureOrchestrationTest(unittest.TestCase):
             patch("fboss_test_runner.log_capture._OutputTee") as tee,
             patch("fboss_test_runner.log_capture.collect_service_logs") as collect_svc,
             patch("fboss_test_runner.log_capture.collect_result_csvs") as collect_csv,
+            patch("fboss_test_runner.log_capture.collect_system_logs") as collect_sys,
             patch("fboss_test_runner.log_capture.create_log_bundle") as create_bundle,
         ):
             with LogCapture("sai", root=root):
@@ -263,12 +265,47 @@ class LogCaptureOrchestrationTest(unittest.TestCase):
             tee.return_value.start.assert_called_once()
             tee.return_value.stop.assert_called_once()
 
-            # __exit__ collected the logs/CSVs and zipped the dir.
+            # __exit__ collected the logs/CSVs/system logs and zipped the dir.
             collect_svc.assert_called_once_with(run_dir)
             collect_csv.assert_called_once()
             self.assertEqual(collect_csv.call_args.args[0], run_dir)
             self.assertIsInstance(collect_csv.call_args.args[1], float)
+            collect_sys.assert_called_once_with(run_dir)
             create_bundle.assert_called_once_with(run_dir)
+
+
+class CollectSystemLogsTest(unittest.TestCase):
+    def test_writes_dmesg_output_to_run_dir(self):
+        completed = subprocess.CompletedProcess(
+            ["dmesg", "-T"], 0, stdout="[Tue Jun 26] kernel: hello\n", stderr=""
+        )
+        with tempfile.TemporaryDirectory() as run_dir:
+            with patch("subprocess.run", return_value=completed) as run:
+                collect_system_logs(run_dir, messages_path="/no/such/file")
+            run.assert_called_once()
+            self.assertEqual(run.call_args[0][0], ["dmesg", "-T"])
+            with open(os.path.join(run_dir, "dmesg.log")) as f:
+                self.assertIn("kernel: hello", f.read())
+
+    def test_copies_var_log_messages(self):
+        with (
+            tempfile.TemporaryDirectory() as src,
+            tempfile.TemporaryDirectory() as run_dir,
+        ):
+            messages_path = os.path.join(src, "messages")
+            with open(messages_path, "w") as f:
+                f.write("syslog line\n")
+            # dmesg unavailable: the messages copy must still happen.
+            with patch("subprocess.run", side_effect=FileNotFoundError("no dmesg")):
+                collect_system_logs(run_dir, messages_path=messages_path)
+            with open(os.path.join(run_dir, "messages")) as f:
+                self.assertEqual(f.read(), "syslog line\n")
+
+    def test_missing_sources_are_noop(self):
+        with tempfile.TemporaryDirectory() as run_dir:
+            with patch("subprocess.run", side_effect=FileNotFoundError("no dmesg")):
+                collect_system_logs(run_dir, messages_path="/no/such/file")
+            self.assertEqual(os.listdir(run_dir), [])
 
 
 if __name__ == "__main__":
