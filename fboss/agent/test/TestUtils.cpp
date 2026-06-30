@@ -1721,9 +1721,10 @@ folly::MacAddress getMacForFirstInterfaceWithPortsForTesting(
 }
 
 InterfaceID firstInterfaceIDWithPortsForTesting(
-    const std::shared_ptr<SwitchState>& state) {
+    const std::shared_ptr<SwitchState>& state,
+    std::optional<cfg::Scope> scope) {
   return utility::firstInterfaceIDWithPorts(
-      state, SwitchID(FLAGS_switch_id_for_testing));
+      state, SwitchID(FLAGS_switch_id_for_testing), scope);
 }
 
 std::shared_ptr<Interface> firstInterfaceWithPortsForTesting(
