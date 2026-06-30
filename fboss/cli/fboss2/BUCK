@@ -1040,6 +1040,8 @@ cpp_library(
         "CmdListConfig.cpp",
         "commands/config/CmdConfigAppliedInfo.cpp",
         "commands/config/CmdConfigReload.cpp",
+        "commands/config/switch/CmdConfigSwitch.cpp",
+        "commands/config/switch/admin_distance/CmdConfigAdminDistance.cpp",
         "commands/config/arp/CmdConfigArp.cpp",
         "commands/config/copp/CmdConfigCopp.cpp",
         "commands/config/dhcp/CmdConfigDhcp.cpp",
@@ -1172,6 +1174,8 @@ cpp_library(
     headers = [
         "commands/config/CmdConfigAppliedInfo.h",
         "commands/config/CmdConfigReload.h",
+        "commands/config/switch/CmdConfigSwitch.h",
+        "commands/config/switch/admin_distance/CmdConfigAdminDistance.h",
         "commands/config/arp/CmdConfigArp.h",
         "commands/config/copp/CmdConfigCopp.h",
         "commands/config/dhcp/CmdConfigDhcp.h",
