@@ -49,6 +49,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::enableRxLfInsertionForTunableOptics;
   using CmisModule::frequencyGridToGridSelection;
   using CmisModule::getApplicationField;
+  using CmisModule::getBankedQsfpValuePtr;
   using CmisModule::getChannelNumFromFrequency;
   using CmisModule::getCurrentAppSelCode;
   using CmisModule::getInterfaceCodeForAppSel;
@@ -158,6 +159,23 @@ TEST_F(CmisTest, cpoModuleIdentifiedByBankCount) {
     EXPECT_EQ(field->ApSelCode, app.apSelCode);
     EXPECT_EQ(field->hostStartLanes, app.startLanes);
     EXPECT_EQ(field->mediaStartLanes, app.startLanes);
+  }
+}
+
+// updateQsfpData reads banked page 11h for every bank on a CPO module. The fake
+// gives each bank a distinct page 11h (byte 2 = bank index), so verify each
+// bank's cached copy is the one that was read.
+TEST_F(CmisTest, cpoReadsAllBanksOfBankedPage) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+
+  // Page 11h byte 2 (absolute offset 128 + 2) is the per-bank marker.
+  const int page11 = static_cast<int>(CmisPages::PAGE11);
+  for (uint8_t bank = 0; bank < 4; ++bank) {
+    const uint8_t* data = xcvr->getBankedQsfpValuePtr(
+        page11, QsfpModule::MAX_QSFP_PAGE_SIZE + 2, 1, bank);
+    EXPECT_EQ(data[0], bank);
   }
 }
 

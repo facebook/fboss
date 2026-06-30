@@ -44,11 +44,24 @@ class FakeTransceiverImpl : public TransceiverImpl {
   void triggerQsfpHardReset() override;
   void updateTransceiverState(TransceiverStateMachineEvent event) override;
 
+ protected:
+  // Provide distinct EEPROM contents for a specific (bank, page) so multi-bank
+  // (CPO) reads can be exercised. When the bank-select register (byte 126) is
+  // set to a bank registered here, reads of that page return this data;
+  // otherwise reads fall back to the bank-agnostic upperPages_ contents.
+  void setBankedPage(uint8_t bank, int page, std::array<uint8_t, 128> data) {
+    bankedPages_[bank][page] = data;
+  }
+
  private:
   int module_{0};
   std::string moduleName_;
   int page_{0};
+  uint8_t selectedBank_{0};
   std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>> upperPages_;
+  // Optional per-bank page overrides, indexed [bank][page]. Empty by default,
+  // so single-bank fixtures behave exactly as before.
+  std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>> bankedPages_;
   std::map<uint8_t, std::array<uint8_t, 128>> lowerPages_;
   TransceiverManager* tcvrManager_;
 };

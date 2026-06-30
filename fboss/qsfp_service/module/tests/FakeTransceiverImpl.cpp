@@ -89,12 +89,24 @@ int FakeTransceiverImpl::readTransceiver(
   if (len > 0 && offset >= QsfpModule::MAX_QSFP_PAGE_SIZE) {
     offset -= QsfpModule::MAX_QSFP_PAGE_SIZE;
     EXPECT_LE(len + offset, QsfpModule::MAX_QSFP_PAGE_SIZE);
-    assert(
-        upperPages_[dataAddress].find(page_) != upperPages_[dataAddress].end());
-    std::copy(
-        upperPages_[dataAddress][page_].begin() + offset,
-        upperPages_[dataAddress][page_].begin() + offset + len,
-        fieldValue + read);
+    // If a non-zero bank is selected and we have per-bank data for that page,
+    // serve it; otherwise fall back to the bank-agnostic page contents.
+    auto bankIt = bankedPages_.find(selectedBank_);
+    if (selectedBank_ != 0 && bankIt != bankedPages_.end() &&
+        bankIt->second.find(page_) != bankIt->second.end()) {
+      std::copy(
+          bankIt->second[page_].begin() + offset,
+          bankIt->second[page_].begin() + offset + len,
+          fieldValue + read);
+    } else {
+      assert(
+          upperPages_[dataAddress].find(page_) !=
+          upperPages_[dataAddress].end());
+      std::copy(
+          upperPages_[dataAddress][page_].begin() + offset,
+          upperPages_[dataAddress][page_].begin() + offset + len,
+          fieldValue + read);
+    }
     read += len;
   }
   return read;
@@ -111,6 +123,10 @@ int FakeTransceiverImpl::writeTransceiver(
   auto len = param.len;
   if (offset == 127) {
     page_ = *fieldValue;
+  }
+  if (offset == 126) {
+    // Bank-select register.
+    selectedBank_ = *fieldValue;
   }
   if (offset < QsfpModule::MAX_QSFP_PAGE_SIZE) {
     EXPECT_LE(offset + len, QsfpModule::MAX_QSFP_PAGE_SIZE);
@@ -3237,7 +3253,15 @@ CmisCpo6P4TDrTransceiver::CmisCpo6P4TDrTransceiver(
           module,
           kCmisCpo6P4TDrLower,
           kCmisCpo6P4TDrUpperPages,
-          mgr) {}
+          mgr) {
+  // Give each bank a distinct page 11h so per-bank caching can be verified.
+  // Byte 2 of page 11h is used as a per-bank marker; bank 0 keeps the base 0.
+  for (uint8_t bank = 1; bank < 4; ++bank) {
+    auto page11 = kCmisCpo6P4TDrPage11;
+    page11[2] = bank;
+    setBankedPage(bank, 0x11, page11);
+  }
+}
 
 CmisCredo800AEC::CmisCredo800AEC(int module, TransceiverManager* mgr)
     : FakeTransceiverImpl(
