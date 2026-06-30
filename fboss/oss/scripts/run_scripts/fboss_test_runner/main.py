@@ -4,7 +4,7 @@
 
 import os
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 
 from fboss_test_runner.constants import (
     OPT_ARG_FILTER,
@@ -20,6 +20,12 @@ from fboss_test_runner.constants import (
     SUB_CMD_SAI_AGENT,
     SUB_CMD_SAI_AGENT_SCALE,
     SUB_CMD_SAI_INVARIANT_AGENT,
+)
+from fboss_test_runner.log_capture import (
+    derive_test_type,
+    LOG_BUNDLE_FLAG,
+    LogCapture,
+    RUN_TEST_LOG_ROOT,
 )
 from fboss_test_runner.runners.bcm_test_runner import BcmTestRunner
 from fboss_test_runner.runners.benchmark_test_runner import BenchmarkTestRunner
@@ -43,10 +49,9 @@ from fboss_test_runner.runners.test_runner import TestRunner
 from setup import setup_fboss_env
 
 
-def main() -> None:
-    os.chdir("/opt/fboss")
-    setup_fboss_env()
-
+def _build_parser() -> ArgumentParser:
+    """Build the CLI parser. Instantiates the runners, which snapshot the
+    environment, so this must be called after ``setup_fboss_env()``."""
     ap = ArgumentParser(
         description="FBOSS Hardware Test Runner",
     )
@@ -56,6 +61,16 @@ def main() -> None:
         cmd: str, help_text: str, runner_cls: type[TestRunner]
     ) -> None:
         parser = subparsers.add_parser(cmd, help=help_text)
+        # Per-subcommand flag: pass it after the test type, e.g. `sai --log-bundle`.
+        parser.add_argument(
+            LOG_BUNDLE_FLAG,
+            action="store_true",
+            help=(
+                "Capture this run's output and the systemd service logs into a "
+                f"per-run directory under {RUN_TEST_LOG_ROOT}/ and zip it. "
+                "Off by default."
+            ),
+        )
         runner = runner_cls()
         parser.set_defaults(func=runner.run_test)
         runner.add_subcommand_arguments(parser)
@@ -82,16 +97,15 @@ def main() -> None:
         Fboss2IntegrationTestRunner,
     )
     _register_runner(SUB_CMD_BENCHMARK, "run benchmark tests", BenchmarkTestRunner)
+    return ap
 
-    if len(sys.argv) < 2:
-        ap.print_help()
-        sys.exit(1)
 
-    args = ap.parse_args()
-
-    if ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ):
-        print("FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'")
-        sys.exit(0)
+def _parse_args(argv: list[str] | None = None) -> Namespace:
+    """Build the parser, parse ``argv`` (defaults to ``sys.argv``), and validate
+    cross-argument constraints. Must run after ``setup_fboss_env()`` because
+    building the parser instantiates the runners, which snapshot the environment.
+    """
+    args = _build_parser().parse_args(argv)
 
     if args.filter and args.filter_file:
         raise ValueError(
@@ -103,4 +117,33 @@ def main() -> None:
             f"{OPT_ARG_PROFILE} requires {OPT_ARG_FILTER_FILE} to be specified"
         )
 
-    args.func(args)
+    return args
+
+
+def main() -> None:
+    os.chdir("/opt/fboss")
+
+    # A test-type subcommand is required; derive it from argv before the (slower)
+    # env setup so a bare invocation fails fast with help.
+    test_type = derive_test_type(sys.argv)
+    if test_type is None:
+        _build_parser().print_help()
+        sys.exit(1)
+
+    setup_fboss_env()
+    if ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ):
+        print("FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'")
+        sys.exit(0)
+
+    args = _parse_args()
+
+    # Log bundling is opt-in via the per-subcommand --log-bundle flag. Without it,
+    # run plainly: no per-run dir, no tee, no zip; result CSVs go to the cwd.
+    if not args.log_bundle:
+        args.func(args)
+        return
+
+    # LogCapture owns the per-run bundle: it creates the dir, tees output, records
+    # the command, and on exit collects the logs/CSVs and zips -- even on failure.
+    with LogCapture(test_type):
+        args.func(args)
