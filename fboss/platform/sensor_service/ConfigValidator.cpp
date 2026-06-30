@@ -39,11 +39,10 @@ bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
   if (!isValidAsicCommand(sensorConfig)) {
     return false;
   }
-<<<<<<< HEAD
   if (!isValidLoggedSensorNames(sensorConfig)) {
-=======
+    return false;
+  }
   if (!isValidLoadLineConfig(sensorConfig)) {
->>>>>>> 3d9678bcd3 (NOS-10438: load-line droop compensation for AVS rail in FBOSS (#1231))
     return false;
   }
   return true;
