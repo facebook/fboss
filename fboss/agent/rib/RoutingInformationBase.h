@@ -33,7 +33,6 @@ DECLARE_bool(mpls_rib);
 
 namespace facebook::fboss {
 class SwitchState;
-class MultiSwitchForwardingInformationBaseMap;
 class MultiSwitchFibInfoMap;
 class MultiSwitchMySidMap;
 class SwitchIdScopeResolver;

@@ -316,11 +316,6 @@ const std::shared_ptr<MultiSwitchFibInfoMap>& SwitchState::getFibsInfoMap()
   return safe_cref<switch_state_tags::fibsInfoMap>();
 }
 
-const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>&
-SwitchState::getFibs() const {
-  return safe_cref<switch_state_tags::fibsMap>();
-}
-
 const std::shared_ptr<MultiControlPlane>& SwitchState::getControlPlane() const {
   return safe_cref<switch_state_tags::controlPlaneMap>();
 }
@@ -333,11 +328,6 @@ SwitchState::getLabelForwardingInformationBase() const {
 void SwitchState::resetLabelForwardingInformationBase(
     std::shared_ptr<MultiLabelForwardingInformationBase> labelFib) {
   ref<switch_state_tags::labelFibMap>() = labelFib;
-}
-
-void SwitchState::resetForwardingInformationBases(
-    std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs) {
-  ref<switch_state_tags::fibsMap>() = fibs;
 }
 
 void SwitchState::resetFibsInfoMap(
