@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
@@ -90,11 +92,6 @@ std::shared_ptr<facebook::fboss::ForwardingInformationBaseV6> getFibV6() {
   return fibV6.clone();
 }
 
-facebook::fboss::HwSwitchMatcher scope() {
-  return facebook::fboss::HwSwitchMatcher{
-      std::unordered_set<facebook::fboss::SwitchID>{
-          facebook::fboss::SwitchID(10)}};
-}
 } // namespace
 
 namespace facebook::fboss {
@@ -142,15 +139,22 @@ TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixFound) {
 TEST(ForwardingInformationBaseContainer, Thrifty) {
   auto fibV4 = getFibV4();
   auto fibV6 = getFibV4();
-  ForwardingInformationBaseContainer container(RouterID(0));
-  container.setFib(fibV4);
-  container.setFib(fibV6);
-  validateNodeSerialization(container);
+  auto container =
+      std::make_shared<ForwardingInformationBaseContainer>(RouterID(0));
+  container->setFib(fibV4);
+  container->setFib(fibV6);
+  validateNodeSerialization(*container);
 
-  std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs =
-      std::make_shared<MultiSwitchForwardingInformationBaseMap>();
-  fibs->addNode(container.clone(), scope());
-  validateThriftMapMapSerialization(*fibs);
+  auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
+  fibsMap->updateForwardingInformationBaseContainer(container);
+
+  auto fibInfo = std::make_shared<FibInfo>();
+  fibInfo->resetFibsMap(fibsMap);
+
+  auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+  HwSwitchMatcher matcher(std::unordered_set<SwitchID>{SwitchID(0)});
+  fibInfoMap->addNode(matcher.matcherString(), fibInfo);
+  validateThriftMapMapSerialization(*fibInfoMap);
 }
 
 } // namespace facebook::fboss
