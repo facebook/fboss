@@ -19992,6 +19992,9 @@
           "test_name_regex": "AgentTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentV6FlowLabelEcmpLoadBalancerTest.EcmpFlowLabelHashEnabledViaConfigChange$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -20384,6 +20387,9 @@
           "test_name_regex": "AgentTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentV6FlowLabelEcmpLoadBalancerTest.EcmpFlowLabelHashEnabledViaConfigChange$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -20729,6 +20735,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelEcmpLoadBalancerTest.EcmpFlowLabelHashEnabledViaConfigChange$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -21097,6 +21106,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelEcmpLoadBalancerTest.EcmpFlowLabelHashEnabledViaConfigChange$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -22230,6 +22242,9 @@
           "test_name_regex": "AgentTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentV6FlowLabelEcmpLoadBalancerTest.EcmpFlowLabelHashEnabledViaConfigChange$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -22512,6 +22527,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelEcmpLoadBalancerTest.EcmpFlowLabelHashEnabledViaConfigChange$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -25114,6 +25132,9 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelEcmpLoadBalancerTest.EcmpFlowLabelHashEnabledViaConfigChange$"
         }
     ],
     "nvda/2505.34/2505.34/spectrum4/mono": [
