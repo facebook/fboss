@@ -824,7 +824,8 @@ struct PlatformConfig {
   //          name.  Only CPU_BUS@0 is supported today.
   //        - AMD: identifies DesignWare I2C buses via ACPI
   //          firmware_node/path under /sys/devices/platform/AMDI0010:*.
-  //          CPU_BUS@0 maps to \_SB_.I2CB, CPU_BUS@1 to \_SB_.I2CA.
+  //          CPU_BUS@0 maps to \_SB_.I2CB, CPU_BUS@1 to \_SB_.I2CA,
+  //          CPU_BUS@2 to \_SB_.I2CC, CPU_BUS@3 to \_SB_.I2CD.
   //  (b) Exact adapter name matching /sys/bus/i2c/devices/i2c-N/name
   //      (e.g. "SMBus I801 adapter at 5000").
   // All entries in a single config must use the same style.
