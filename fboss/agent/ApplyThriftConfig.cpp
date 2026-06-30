@@ -2103,9 +2103,23 @@ ThriftConfigApplier::updateFabricLinkMonitoringSystemPorts(
         // Not a valid port for fabric link monitoring
         continue;
       }
-      auto sysPort =
-          std::make_shared<SystemPort>(getFabricLinkMonitoringSystemPortID(
-              port.second->getID(), switchSettings));
+      // When fabric port logical IDs are relocated into the local port-ID
+      // range, their system ports use the same allocation as every other local
+      // port; otherwise fall back to the legacy offset-based scheme.
+      // TODO(fabric_ports_uniform_local_offset): drop the legacy branch once
+      // all users migrate. The only remaining user is
+      // AgentMultiNodeFabricLinkMonitoringTest, which scrapes remote DSF agents
+      // whose platform mapping + flag are owned by Configerator/netcastle, so
+      // migrating it is a cross-repo change, not a pure fbcode flip.
+      auto sysPortId = FLAGS_fabric_ports_uniform_local_offset
+          ? getSystemPortID(
+                port.second->getID(),
+                port.second->getScope(),
+                switchSettings->getSwitchIdToSwitchInfo(),
+                switchId)
+          : getFabricLinkMonitoringSystemPortID(
+                port.second->getID(), switchSettings);
+      auto sysPort = std::make_shared<SystemPort>(sysPortId);
       sysPort->setSwitchId(SwitchID(*fabricLinkSwitchId));
       // Last 2 bits in the SwitchID determines the core ID
       int64_t coreIdx = *fabricLinkSwitchId & 0x3;

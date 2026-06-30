@@ -1235,7 +1235,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       delta.getFabricLinkMonitoringSystemPortsDelta(),
       managerTable_->systemPortManager(),
       lockPolicy,
-      &SaiSystemPortManager::removeFabricLinkMonitoringSystemPort);
+      &SaiSystemPortManager::removeFabricLinkMonitoringSystemPort,
+      delta.oldState());
   processRemovedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
@@ -1285,7 +1286,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       delta.getFabricLinkMonitoringSystemPortsDelta(),
       managerTable_->systemPortManager(),
       lockPolicy,
-      &SaiSystemPortManager::addFabricLinkMonitoringSystemPort);
+      &SaiSystemPortManager::addFabricLinkMonitoringSystemPort,
+      delta.newState());
   processAddedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
