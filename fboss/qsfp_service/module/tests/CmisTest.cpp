@@ -197,6 +197,24 @@ TEST_F(CmisTest, cpoReadsSnrDiagPagePerBank) {
   }
 }
 
+// On a READY VDM-capable multi-bank (CPO) module, the VDM data page (24h) is
+// read for every bank. The READY fixture marks each bank's page 24h byte 0 with
+// the bank index, so verify each bank's cached copy.
+TEST_F(CmisTest, cpoReadsVdmDataPagePerBank) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+  ASSERT_TRUE(xcvr->isVdmSupported());
+
+  // Page 24h byte 0 (absolute offset 128) is the per-bank marker.
+  const int page24 = static_cast<int>(CmisPages::PAGE24);
+  for (uint8_t bank = 0; bank < 4; ++bank) {
+    const uint8_t* data = xcvr->getBankedQsfpValuePtr(
+        page24, QsfpModule::MAX_QSFP_PAGE_SIZE, 1, bank);
+    EXPECT_EQ(data[0], bank);
+  }
+}
+
 // Tests that the transceiverInfo object is correctly populated
 TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   auto xcvrID = TransceiverID(0);

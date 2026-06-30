@@ -250,14 +250,17 @@ class CmisModule : public QsfpModule {
   uint8_t page12_[MAX_QSFP_PAGE_SIZE]{};
   BankedPage page13_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
   BankedPage page14_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
+  // VDM config pages 20h-23h are bank-invariant (they describe the data
+  // layout), so they stay flat. VDM data pages 24h-27h hold per-lane values and
+  // are read per-bank on multi-bank (CPO) modules (bank 0 at index 0).
   uint8_t page20_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page21_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page22_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page23_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page24_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page25_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page26_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page27_[MAX_QSFP_PAGE_SIZE]{};
+  BankedPage page24_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
+  BankedPage page25_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
+  BankedPage page26_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
+  BankedPage page27_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
   // C-CMIS Performance Monitoring pages (coherent optics)
   uint8_t page34_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page35_[MAX_QSFP_PAGE_SIZE]{};
@@ -967,7 +970,8 @@ class CmisModule : public QsfpModule {
 
   double f16ToDouble(uint8_t byte0, uint8_t byte1);
   std::pair<std::optional<const uint8_t*>, int> getVdmDataValPtr(
-      VdmConfigType vdmConf);
+      VdmConfigType vdmConf,
+      uint8_t bank = 0);
 
   // VDM value reading helper methods - read 2 bytes from VDM data
   std::optional<double> readU16VdmValue(VdmConfigType vdmConf, double lsb);

@@ -705,6 +705,10 @@ void CmisModule::cacheMaxNumBanks() {
   page11_.assign(numBanks, {});
   page13_.assign(numBanks, {});
   page14_.assign(numBanks, {});
+  page24_.assign(numBanks, {});
+  page25_.assign(numBanks, {});
+  page26_.assign(numBanks, {});
+  page27_.assign(numBanks, {});
 }
 
 void CmisModule::selectPageAndBank(int dataPage, std::optional<uint8_t> bank) {
@@ -2427,17 +2431,17 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
         CHECK_LE(offset + length, sizeof(page23_));
         return (page23_ + offset);
       case CmisPages::PAGE24:
-        CHECK_LE(offset + length, sizeof(page24_));
-        return (page24_ + offset);
+        CHECK_LE(offset + length, MAX_QSFP_PAGE_SIZE);
+        return (page24_[0].data() + offset);
       case CmisPages::PAGE25:
-        CHECK_LE(offset + length, sizeof(page25_));
-        return (page25_ + offset);
+        CHECK_LE(offset + length, MAX_QSFP_PAGE_SIZE);
+        return (page25_[0].data() + offset);
       case CmisPages::PAGE26:
-        CHECK_LE(offset + length, sizeof(page26_));
-        return (page26_ + offset);
+        CHECK_LE(offset + length, MAX_QSFP_PAGE_SIZE);
+        return (page26_[0].data() + offset);
       case CmisPages::PAGE27:
-        CHECK_LE(offset + length, sizeof(page27_));
-        return (page27_ + offset);
+        CHECK_LE(offset + length, MAX_QSFP_PAGE_SIZE);
+        return (page27_[0].data() + offset);
       case CmisPages::PAGE34:
         CHECK_LE(offset + length, sizeof(page34_));
         return (page34_ + offset);
@@ -2484,6 +2488,18 @@ const uint8_t* CmisModule::getBankedQsfpValuePtr(
       break;
     case CmisPages::PAGE14:
       page = &page14_;
+      break;
+    case CmisPages::PAGE24:
+      page = &page24_;
+      break;
+    case CmisPages::PAGE25:
+      page = &page25_;
+      break;
+    case CmisPages::PAGE26:
+      page = &page26_;
+      break;
+    case CmisPages::PAGE27:
+      page = &page27_;
       break;
     default:
       throw FbossError(
@@ -2614,10 +2630,14 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
       cmisData.page21() = IOBuf::wrapBufferAsValue(page21_, MAX_QSFP_PAGE_SIZE);
       cmisData.page22() = IOBuf::wrapBufferAsValue(page22_, MAX_QSFP_PAGE_SIZE);
       cmisData.page23() = IOBuf::wrapBufferAsValue(page23_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page24() = IOBuf::wrapBufferAsValue(page24_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page25() = IOBuf::wrapBufferAsValue(page25_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page26() = IOBuf::wrapBufferAsValue(page26_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page27() = IOBuf::wrapBufferAsValue(page27_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page24() =
+          IOBuf::wrapBufferAsValue(page24_[0].data(), MAX_QSFP_PAGE_SIZE);
+      cmisData.page25() =
+          IOBuf::wrapBufferAsValue(page25_[0].data(), MAX_QSFP_PAGE_SIZE);
+      cmisData.page26() =
+          IOBuf::wrapBufferAsValue(page26_[0].data(), MAX_QSFP_PAGE_SIZE);
+      cmisData.page27() =
+          IOBuf::wrapBufferAsValue(page27_[0].data(), MAX_QSFP_PAGE_SIZE);
     }
   }
   cmisData.timeCollected() = lastRefreshTime_;
@@ -4550,12 +4570,12 @@ void CmisModule::latchAndReadVdmDataLocked() {
   /* sleep override */
   usleep(kUsecVdmLatchHold);
 
-  // Read data for publishing to ODS
-  std::array<uint8_t*, 4> dataPageBuffers = {
-      page24_, page25_, page26_, page27_};
+  // Read data for publishing to ODS, for every bank on multi-bank modules.
+  std::array<BankedPage*, 4> dataPageBuffers = {
+      &page24_, &page25_, &page26_, &page27_};
 
   for (uint8_t group = 1; group <= vdmSupportedGroupsMax_; group++) {
-    readCmisField(kVdmDataPages[group - 1], dataPageBuffers[group - 1]);
+    readBankedPage(kVdmDataPages[group - 1], *dataPageBuffers[group - 1]);
   }
 
   // Write Byte 2F.144, bit 7 to 0 (clear latch)
@@ -5311,17 +5331,18 @@ void CmisModule::updateVdmCacheLocked() {
 
   std::array<uint8_t*, 4> confPageBuffers = {
       page20_, page21_, page22_, page23_};
-  std::array<uint8_t*, 4> dataPageBuffers = {
-      page24_, page25_, page26_, page27_};
+  std::array<BankedPage*, 4> dataPageBuffers = {
+      &page24_, &page25_, &page26_, &page27_};
 
   for (uint8_t group = 1; group <= vdmSupportedGroupsMax_; group++) {
     uint8_t idx = group - 1;
-    // Cache config pages only once (static)
+    // Cache config pages only once (static). Config (20h-23h) is bank-invariant
+    // and read on bank 0 (readBankedPage below leaves the module on bank 0).
     if (!staticPagesCached_) {
       readCmisField(kVdmConfPages[idx], confPageBuffers[idx]);
     }
-    // Always read data pages (dynamic)
-    readCmisField(kVdmDataPages[idx], dataPageBuffers[idx]);
+    // Always read data pages (dynamic), for every bank on multi-bank modules.
+    readBankedPage(kVdmDataPages[idx], *dataPageBuffers[idx]);
   }
 
   if (vdmSupportedGroupsMax_ >= 1) {
@@ -5519,7 +5540,8 @@ double CmisModule::f16ToDouble(uint8_t byte0, uint8_t byte1) {
  * length, otherwise returns null
  */
 std::pair<std::optional<const uint8_t*>, int> CmisModule::getVdmDataValPtr(
-    VdmConfigType vdmConf) {
+    VdmConfigType vdmConf,
+    uint8_t bank) {
   const uint8_t* data;
   int offset;
   int length;
@@ -5533,7 +5555,9 @@ std::pair<std::optional<const uint8_t*>, int> CmisModule::getVdmDataValPtr(
     dataAddress = static_cast<int>(vdmDiagsValLocation.vdmValPage);
     offset = vdmDiagsValLocation.vdmValOffset;
     length = vdmDiagsValLocation.vdmValLength;
-    data = getQsfpValuePtr(dataAddress, offset, length);
+    // The VDM config (and thus the location) is bank-invariant; the data lives
+    // per-bank on pages 24h-27h. bank 0 resolves to the same bytes as before.
+    data = getBankedQsfpValuePtr(dataAddress, offset, length, bank);
     return std::make_pair(data, length);
   }
   return std::make_pair(std::nullopt, 0);

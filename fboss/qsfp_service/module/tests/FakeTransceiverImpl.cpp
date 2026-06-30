@@ -3104,6 +3104,10 @@ std::array<uint8_t, 128> kCmisCpo6P4TDrPage11 = {
 // identification; the sample spreadsheet does not include it, so use zeros.
 std::array<uint8_t, 128> kCmisCpo6P4TDrPage13 = {};
 const std::array<uint8_t, 128> kCmisCpo6P4TDrPage14 = {};
+// VDM config page 20h, data page 24h, and 2Fh (byte 128 = 0 -> 1 VDM group).
+const std::array<uint8_t, 128> kCmisCpo6P4TDrPage20 = {};
+const std::array<uint8_t, 128> kCmisCpo6P4TDrPage24 = {};
+const std::array<uint8_t, 128> kCmisCpo6P4TDrPage2f = {};
 
 std::map<uint8_t, std::array<uint8_t, 128>> kCmisCpo6P4TDrLower = {
     {TransceiverAccessParameter::ADDR_QSFP, kCmisCpo6P4TDrLowerA0},
@@ -3117,6 +3121,9 @@ std::map<int, std::array<uint8_t, 128>> kCmisCpo6P4TDrUpperPagesA0 = {
     {0x11, kCmisCpo6P4TDrPage11},
     {0x13, kCmisCpo6P4TDrPage13},
     {0x14, kCmisCpo6P4TDrPage14},
+    {0x20, kCmisCpo6P4TDrPage20},
+    {0x24, kCmisCpo6P4TDrPage24},
+    {0x2f, kCmisCpo6P4TDrPage2f},
 };
 
 std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>>
@@ -3283,6 +3290,26 @@ CmisCpo6P4TDrReadyTransceiver::CmisCpo6P4TDrReadyTransceiver(
     auto page14 = kCmisCpo6P4TDrPage14;
     page14[kMediaSnrPageIndex] = bank;
     setBankedPage(bank, 0x14, page14);
+  }
+
+  // Advertise VDM support (page 01h byte 142 bit 6) so updateQsfpData reads the
+  // VDM data pages. Preserve the existing low bits of that byte.
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  uint8_t page01 = 0x01;
+  writeTransceiver(pageParam, &page01, 0, 0);
+  TransceiverAccessParameter vdmParam(
+      TransceiverAccessParameter::ADDR_QSFP, 142, 1);
+  uint8_t vdmSupport =
+      kCmisCpo6P4TDrPage1[142 - QsfpModule::MAX_QSFP_PAGE_SIZE] | 0x40;
+  writeTransceiver(vdmParam, &vdmSupport, 0, 0);
+
+  // Give each bank a distinct VDM data page 24h (byte 0 = per-bank marker) so
+  // per-bank VDM data reads can be verified. Bank 0 keeps the base 0.
+  for (uint8_t bank = 1; bank < 4; ++bank) {
+    auto page24 = kCmisCpo6P4TDrPage24;
+    page24[0] = bank;
+    setBankedPage(bank, 0x24, page24);
   }
 }
 
