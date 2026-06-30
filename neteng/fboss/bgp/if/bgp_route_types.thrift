@@ -271,3 +271,264 @@ struct TPartialDrainState {
   /** Per-prefix detail — subscribe to full path when prefix-level visibility needed */
   2: list<TPartiallyDrainedPrefix> drained_prefixes;
 }
+
+/**
+ * Dictionary of unique list-valued sub-attributes -- AS_PATH, communities,
+ * extended-communities, and cluster-lists. Each TBgpDedupedPath references an
+ * entry here by i32 index instead of inlining the list, so a list shared by
+ * many paths is stored once.
+ *
+ * Dedup unit is the WHOLE list (matching BGP++'s
+ * DeDuplicatedAttribute<BgpAttrCommunitiesC etc.> infrastructure --
+ * shared_ptr identity at list level is the natural cache key).
+ */
+struct TBgpAttrDict {
+  /** Unique whole-list COMMUNITY values (RFC 1997). */
+  1: list<list<bgp_attr.TBgpCommunity>> community_lists;
+  /** Unique whole-list AS_PATH values (RFC 4271). */
+  2: list<list<bgp_attr.TAsPathSeg>> as_path_lists;
+  /** Unique whole-list EXTENDED COMMUNITIES values (RFC 4360). */
+  3: list<list<TBgpExtCommunity>> ext_community_lists;
+  /** Unique whole-list CLUSTER_LIST values (RFC 4456). */
+  4: list<list<i64>> cluster_lists;
+}
+
+/**
+ * A unique (deduplicated) BGP path, interned in
+ * TCanonicalRibState.deduped_paths -- one entry per distinct path observed by
+ * bgpd (the dedup unit is BGP++'s DeDuplicatedBgpPath). Cardinality is bounded
+ * by the distinct (attributes, next_hop) combinations and is typically small
+ * (hundreds to tens of thousands) even on devices with millions of paths,
+ * because policy domains tag many prefixes with identical attributes.
+ *
+ * The list-valued sub-attributes (AS_PATH, communities, ext-communities,
+ * cluster_list) are stored as indices into the shared TBgpAttrDict carried by
+ * TCanonicalRibState.attr_dict; consumers resolve the actual values via one
+ * dereference (deduped_paths[i].as_path_idx -> attr_dict.as_path_lists[idx]).
+ * NEXT_HOP and the scalars are stored inline.
+ *
+ * Scalars are stored inline because they're already small (8 bytes or less
+ * per field) and per-attribute dedup overhead would exceed the savings.
+ *
+ * Field-placement rule: a field lives here iff it is part of the path's dedup
+ * identity -- identical for every prefix that received this path (NEXT_HOP, the
+ * RFC attributes, topology_info, and the Cisco-local weight). Anything that
+ * varies per (prefix, path) instance lives on TBgpPathCanonical instead; peer
+ * attribution lives in TCanonicalPeer (referenced per path via
+ * TBgpPathCanonical.peer_idx).
+ */
+struct TBgpDedupedPath {
+  /**
+   * RFC 4271 NEXT_HOP, stored inline. Unlike the list-valued sub-attributes
+   * below, the next-hop is a plain value (not a DeDuplicatedAttribute), so it
+   * has no stable pointer to intern on; it rides this entry, which is already
+   * deduped per distinct whole-path.
+   */
+  1: bgp_attr.TIpPrefix next_hop;
+  /**
+   * RFC 4271 AS_PATH, as an index into TBgpAttrDict.as_path_lists. Unset when
+   * the AS_PATH is empty (e.g. locally-originated routes) -- an empty list has
+   * no deduplicated pointer to intern, so it carries no dict entry.
+   */
+  2: optional i32 as_path_idx;
+  /**
+   * RFC 1997 COMMUNITIES, as an index into TBgpAttrDict.community_lists.
+   * Unset when the path has no communities (the converter skips the dict
+   * lookup in that case for cheap empty-handling).
+   */
+  3: optional i32 communities_idx;
+  /**
+   * RFC 4360 EXTENDED COMMUNITIES, as an index into
+   * TBgpAttrDict.ext_community_lists. Unset when none (typical for eBGP).
+   */
+  4: optional i32 ext_communities_idx;
+  /**
+   * RFC 4456 CLUSTER_LIST, as an index into TBgpAttrDict.cluster_lists.
+   * Unset when empty (typical for eBGP; only iBGP routes through route
+   * reflectors carry a non-empty cluster_list).
+   */
+  5: optional i32 cluster_list_idx;
+  /** RFC 4271 ORIGIN. */
+  6: optional i32 origin;
+  /** RFC 4271 LOCAL_PREF. */
+  7: optional i32 local_pref;
+  /** RFC 4271 MULTI_EXIT_DISC. */
+  8: optional i64 med;
+  /** RFC 4271 ATOMIC_AGGREGATE. */
+  9: optional bool atomic_aggregate;
+  /** RFC 4456 ORIGINATOR_ID. */
+  10: optional i64 originator_id;
+  /**
+   * RFC 4271 AGGREGATOR. Inline (rarely populated and the value-set is
+   * bounded by aggregation points, so dict overhead isn't worth it).
+   */
+  11: optional TBgpAggregator aggregator;
+  /**
+   * Topology information for the control plane to make routing decisions
+   * (e.g., NSF GAR). Mirrors TBgpPath.topologyInfo.
+   */
+  @cpp.Type{template = "std::unordered_map"}
+  12: optional map<string, i64> topology_info;
+  /** Cisco-style local BGP weight (path-selection attr). Mirrors TBgpPath.weight. */
+  13: optional i32 weight;
+}
+
+/**
+ * Per-prefix BGP path in the canonical RIB: an index into the shared
+ * TCanonicalRibState.deduped_paths pool, plus the fields that vary per
+ * (prefix, path) instance even when the underlying deduped path is identical,
+ * so they cannot be deduplicated (the converse of TBgpDedupedPath's rule):
+ * bestpath selection state, the UCMP next_hop_weight, Add-Path ids, igp_cost,
+ * last_modified_time, and the advertising peer.
+ *
+ * Mirrors legacy TBgpPath semantically; the per-attribute payload is
+ * retrieved by indirection through TCanonicalRibState.deduped_paths[path_idx].
+ */
+struct TBgpPathCanonical {
+  /** Index into TCanonicalRibState.deduped_paths. Always set; consumers dereference it. */
+  1: i32 path_idx;
+  /**
+   * Marks the selected best path within the "bestPath" group. Typically set
+   * on at most one path per entry (or none, when no bestpath is currently
+   * selected). Mirrors TBgpPath.is_best_path.
+   */
+  2: optional bool is_best_path;
+  /**
+   * UCMP nexthop weight for this path (Meta-specific, not RFC). Mirrors
+   * TBgpPath.next_hop_weight; unset when the prefix is not UCMP-weighted.
+   */
+  3: optional i64 next_hop_weight;
+  /** RFC 7911 received path ID. Disambiguates Add-Path entries from the same peer. */
+  4: optional i64 path_id;
+  /**
+   * Index into TCanonicalRibState.peers identifying the peer that advertised
+   * this path. Unset when peer attribution is not exported (e.g. best-path
+   * views that don't need per-path peer info).
+   */
+  5: optional i32 peer_idx;
+  /** IGP cost to the nexthop. Mirrors TBgpPath.igp_cost. */
+  6: optional i64 igp_cost;
+  /** Last modified time in microseconds. Mirrors TBgpPath.last_modified_time. */
+  7: optional i64 last_modified_time;
+  /** RFC 7911 allocated path ID to send to peers. Mirrors TBgpPath.path_id_to_send. */
+  8: optional i64 path_id_to_send;
+  /** BGP path selection/rejection reason. Mirrors TBgpPath.bestpath_filter_descr. */
+  9: optional string bestpath_filter_descr;
+  /**
+   * Name of the policy (and term) that accepted / rejected / modified this path
+   * in a given direction. Per (peer, direction); populated by the post-policy
+   * export path (shown by `fboss bgp postfilter-received` / `-advertised`) and
+   * left unset by the loc-RIB getters. Mirrors TBgpPath.policy_name.
+   */
+  10: optional string policy_name;
+}
+
+/**
+ * Canonical (compressed) RIB entry: a prefix + its set of paths. Holds the same
+ * content as TRibEntry, but its paths reference the shared attr / path / peer
+ * pools by index instead of inlining every attribute, so the encoded RIB is far
+ * smaller on the wire. It is a compact ENCODING of TRibEntry, not a
+ * reduced-attribute view -- prefer it over TRibEntry when payload size matters.
+ */
+struct TRibEntryCanonical {
+  1: bgp_attr.TIpPrefix prefix;
+  /**
+   * Paths grouped by selection role, mirroring TRibEntry.paths.
+   * Key "bestPath" holds the ECMP multipath set (the entry with
+   * `is_best_path = true` is the selected bestpath); key "default" holds the
+   * other paths (e.g. received paths that did not make the bestpath group).
+   * Constants: facebook::bgp::kBestPathGroup, facebook::bgp::kDefaultPathGroup.
+   */
+  2: map<string, list<TBgpPathCanonical>> paths;
+  /**
+   * RIB version when this entry was last modified. Monotonically increasing
+   * per material routing change. Mirrors TRibEntry.rib_version.
+   */
+  3: optional i64 rib_version;
+  /**
+   * Indicates path selection is pending for this entry. Mirrors
+   * TRibEntry.path_selection_pending.
+   */
+  4: optional bool path_selection_pending;
+  /**
+   * If the path selection of the route is overridden by CPS, the corresponding
+   * active criteria is set here. Mirrors TRibEntry.active_cps_criteria.
+   */
+  5: optional rib_policy.TPathSelector active_cps_criteria;
+  /**
+   * If the route's weights are overridden by CTE (route attribute policy),
+   * the corresponding active UCMP action is set here. Mirrors
+   * TRibEntry.active_cte_ucmp_action.
+   */
+  6: optional rib_policy.TRouteAttributeUcmpAction active_cte_ucmp_action;
+  /**
+   * The selected best path, for consumers that read only the best path. A
+   * self-contained TBgpDedupedPath: its sub-attrs resolve through attr_dict, so
+   * a best-path-only subscriber need not pull the deduped_paths pool. Carries no
+   * peer attribution. Left unset by the get-rib getters (fboss2 finds the best
+   * path via is_best_path in `paths`). Mirrors TRibEntry.best_path.
+   */
+  7: optional TBgpDedupedPath best_path;
+}
+
+/**
+ * A BGP peer that advertised one or more paths, interned in
+ * TCanonicalRibState.peers. Mirrors BGP++'s BgpPeerId: the dedup identity is
+ * (peer_id, router_id), so all paths from the same peer share one entry.
+ * Cardinality is bounded by the device's peer count (hundreds), so this pool
+ * is negligible next to the path pool.
+ */
+struct TCanonicalPeer {
+  /** Peer (BGP neighbor) address. Mirrors TBgpPath.peer_id. */
+  1: bgp_attr.TIpPrefix peer_id;
+  /** Peer's BGP router-id (remote BGP identifier). Mirrors TBgpPath.router_id. */
+  2: optional i64 router_id;
+  /**
+   * Human-readable peer description. Carried for display; not part of the
+   * dedup identity. Mirrors TBgpPath.peer_description.
+   */
+  3: optional string peer_description;
+}
+
+/**
+ * Top-level wrapper for the canonical RIB -- a compact, deduplicated form of
+ * BGP RIB entries (prefix -> paths). Holds the shared TBgpDedupedPath and
+ * TCanonicalPeer pools (plus the TBgpAttrDict sub-attribute dictionary) and
+ * the per-prefix entries that reference them by index. An index stays stable
+ * while it is referenced; once the last referencing path is gone the slot is
+ * reclaimed and may be reused for a different value (freed slots appear as
+ * default-valued holes that no live entry references). Indices reset on
+ * restart.
+ *
+ * CONSUMER CONTRACT: resolve values only by following the indices on a live
+ * TBgpPathCanonical (path_idx -> deduped_paths, peer_idx -> peers) and the
+ * sub-attr indices on the paths so reached -- never iterate deduped_paths /
+ * peers / attr_dict lists directly. A freed slot is default-constructed and is
+ * indistinguishable from a real default-valued entry, so a direct scan would
+ * surface phantom rows. (The incremental encoder is what reclaims/reuses slots;
+ * the one-shot get-rib converter emits a dense, hole-free state.)
+ */
+struct TCanonicalRibState {
+  /**
+   * Dictionary of unique list-valued sub-attributes. Each TBgpDedupedPath in
+   * deduped_paths references entries here via index. Slots are reclaimed and
+   * reused once no path references a value.
+   */
+  1: TBgpAttrDict attr_dict;
+  /**
+   * Shared pool of unique (deduplicated) paths. Each TBgpPathCanonical in
+   * rib_entries references one entry here via path_idx.
+   */
+  2: list<TBgpDedupedPath> deduped_paths;
+  /**
+   * Shared pool of unique peers. Each TBgpPathCanonical references the peer
+   * that advertised it via peer_idx. Bounded by the device's peer count, so
+   * negligible relative to deduped_paths.
+   */
+  3: list<TCanonicalPeer> peers;
+  /**
+   * Per-prefix entries. Key is str() of folly::CIDRNetwork (matches the
+   * prefix in TRibEntryCanonical.prefix).
+   */
+  4: map<string, TRibEntryCanonical> rib_entries;
+}
