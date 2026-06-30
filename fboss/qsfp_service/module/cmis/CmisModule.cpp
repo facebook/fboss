@@ -46,6 +46,11 @@ DEFINE_bool(
 
 namespace {
 
+// Lower Page 00h register offsets used to switch the active bank/page before a
+// paged access (CMIS bank-select is byte 126, page-select is byte 127).
+constexpr uint8_t kBankSelectByteOffset = 126;
+constexpr uint8_t kPageSelectByteOffset = 127;
+
 constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kUsecVdmLatchHold = 100000;
@@ -685,34 +690,59 @@ void CmisModule::cacheMaxNumBanks() {
   // data, so treat every non-CPO module as single-bank.
   if (getIdentifier() != TransceiverModuleIdentifier::CPO) {
     maxNumBanks_ = 1;
-    return;
+  } else {
+    // For CPO the register holds the max CMIS bank count directly (e.g. 4 for a
+    // 32-lane module); fall back to a single bank if it reads 0.
+    uint8_t banks = getSettingsValue(CmisField::MAX_BANK_CAPACITY);
+    maxNumBanks_ = banks ? banks : 1;
   }
-  // For CPO the register holds the max CMIS bank count directly (e.g. 4 for a
-  // 32-lane module); fall back to a single bank if it reads 0.
-  uint8_t banks = getSettingsValue(CmisField::MAX_BANK_CAPACITY);
-  maxNumBanks_ = banks ? banks : 1;
+  // Size the per-bank page buffers once, now that the bank count is known, and
+  // zero-initialize them. The per-refresh reads then index these directly,
+  // without reallocating, and any allocation failure surfaces here (once)
+  // rather than on every read.
+  uint8_t numBanks = getMaxNumBanks();
+  page10_.assign(numBanks, {});
+  page11_.assign(numBanks, {});
+  page13_.assign(numBanks, {});
 }
 
-void CmisModule::selectBankAndPage(int dataPage, std::optional<uint8_t> bank) {
+void CmisModule::selectPageAndBank(int dataPage, std::optional<uint8_t> bank) {
   auto page = static_cast<CmisPages>(dataPage);
   if (page == CmisPages::LOWER || flatMem_) {
     return;
   }
-  if (bank.has_value() && isBankedPage(page)) {
-    uint8_t bankVal = *bank;
-    qsfpImpl_->writeTransceiver(
-        {TransceiverAccessParameter::ADDR_QSFP,
-         126,
-         sizeof(bankVal),
-         static_cast<int>(CmisPages::LOWER)},
-        &bankVal,
-        POST_I2C_WRITE_DELAY_US,
-        CAST_TO_INT(CmisField::BANK_SELECT));
+  // The conditions for driving the bank-select register are broken out (rather
+  // than &&'d together) so each case is explicit and easy to attribute when
+  // debugging.
+  if (bank.has_value()) {
+    if (!isBankedPage(page)) {
+      // A bank only selects a sub-region of a banked page; supplying one for a
+      // non-banked (module-level) page is a caller bug, so fail loudly rather
+      // than silently ignoring it.
+      throw FbossError(
+          fmt::format(
+              "Bank {} supplied for non-banked page {:#x}", *bank, dataPage));
+    } else if (getMaxNumBanks() > 1) {
+      // Multi-bank (CPO): drive the (sticky) bank-select register.
+      uint8_t bankVal = *bank;
+      qsfpImpl_->writeTransceiver(
+          {TransceiverAccessParameter::ADDR_QSFP,
+           kBankSelectByteOffset,
+           sizeof(bankVal),
+           static_cast<int>(CmisPages::LOWER)},
+          &bankVal,
+          POST_I2C_WRITE_DELAY_US,
+          CAST_TO_INT(CmisField::BANK_SELECT));
+    }
+    // else: single-bank module -- bank 0 is the only bank, so reading bank 0 of
+    // a banked page needs no bank-select write. This is a valid case (e.g. the
+    // page-13h PRBS reads done on every refresh), not an error; skipping the
+    // write also avoids POST_I2C_WRITE_DELAY_US (20ms) per banked-page access.
   }
   uint8_t pageVal = static_cast<uint8_t>(dataPage);
   qsfpImpl_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP,
-       127,
+       kPageSelectByteOffset,
        sizeof(pageVal),
        static_cast<int>(CmisPages::LOWER)},
       &pageVal,
@@ -728,7 +758,7 @@ void CmisModule::readCmisField(
   int dataLength, dataPage, dataOffset;
   getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
   if (!skipBankAndPageChange) {
-    selectBankAndPage(dataPage, bank);
+    selectPageAndBank(dataPage, bank);
   }
   qsfpImpl_->readTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
@@ -744,7 +774,7 @@ void CmisModule::writeCmisField(
   int dataLength, dataPage, dataOffset;
   getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
   if (!skipBankAndPageChange) {
-    selectBankAndPage(dataPage, bank);
+    selectPageAndBank(dataPage, bank);
   }
   qsfpImpl_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
@@ -2365,18 +2395,21 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
       case CmisPages::PAGE04:
         CHECK_LE(offset + length, sizeof(page04_));
         return (page04_ + offset);
+      // Pages 10h/11h/13h are stored per bank; index [0] is bank 0, which is
+      // also the value seen by non-banked (bank-agnostic) reads. Per-bank
+      // access for banks > 0 goes through getBankedQsfpValuePtr.
       case CmisPages::PAGE10:
-        CHECK_LE(offset + length, sizeof(page10_));
-        return (page10_ + offset);
+        CHECK_LE(offset + length, MAX_QSFP_PAGE_SIZE);
+        return (page10_[0].data() + offset);
       case CmisPages::PAGE11:
-        CHECK_LE(offset + length, sizeof(page11_));
-        return (page11_ + offset);
+        CHECK_LE(offset + length, MAX_QSFP_PAGE_SIZE);
+        return (page11_[0].data() + offset);
       case CmisPages::PAGE12:
         CHECK_LE(offset + length, sizeof(page12_));
         return (page12_ + offset);
       case CmisPages::PAGE13:
-        CHECK_LE(offset + length, sizeof(page13_));
-        return (page13_ + offset);
+        CHECK_LE(offset + length, MAX_QSFP_PAGE_SIZE);
+        return (page13_[0].data() + offset);
       case CmisPages::PAGE14:
         CHECK_LE(offset + length, sizeof(page14_));
         return (page14_ + offset);
@@ -2422,6 +2455,69 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
   }
 }
 
+const uint8_t* CmisModule::getBankedQsfpValuePtr(
+    int dataAddress,
+    int offset,
+    int length,
+    uint8_t bank) const {
+  // Bank 0 is index 0 of the same per-bank buffer; reuse the common accessor.
+  if (bank == 0) {
+    return getQsfpValuePtr(dataAddress, offset, length);
+  }
+  if (!cacheIsValid()) {
+    throw FbossError("Qsfp is either not present or the data is not read");
+  }
+  const BankedPage* page = nullptr;
+  // Only the per-bank pages have cases here; the default handles every other
+  // CmisPages value, so the unlisted enumerators are intentional.
+  // NOLINTNEXTLINE(clang-diagnostic-switch-enum)
+  switch (static_cast<CmisPages>(dataAddress)) {
+    case CmisPages::PAGE10:
+      page = &page10_;
+      break;
+    case CmisPages::PAGE11:
+      page = &page11_;
+      break;
+    case CmisPages::PAGE13:
+      page = &page13_;
+      break;
+    default:
+      throw FbossError(
+          fmt::format("Page {:#x}", dataAddress),
+          " is not cached per-bank; bank ",
+          static_cast<int>(bank),
+          " is unavailable");
+  }
+  if (bank >= page->size()) {
+    throw FbossError(
+        "No cached data for bank ",
+        static_cast<int>(bank),
+        fmt::format(" of page {:#x}", dataAddress));
+  }
+  offset -= MAX_QSFP_PAGE_SIZE;
+  CHECK_GE(offset, 0);
+  CHECK_LE(offset + length, MAX_QSFP_PAGE_SIZE);
+  return (*page)[bank].data() + offset;
+}
+
+void CmisModule::readBankedPage(CmisField field, BankedPage& dest) {
+  // dest is pre-sized to getMaxNumBanks() (>= 1) by cacheMaxNumBanks().
+  uint8_t numBanks = getMaxNumBanks();
+  if (numBanks <= 1) {
+    // Single-bank module: legacy behavior, no bank-select write.
+    readCmisField(field, dest.at(0).data());
+  } else {
+    // Multi-bank: every read must explicitly select its bank (the bank-select
+    // register is sticky). Read bank 0 last so the module is left selected on
+    // bank 0 -- pages that are still read bank-agnostically (12h/14h/VDM) rely
+    // on bank 0 being the active selection.
+    for (int bank = numBanks - 1; bank >= 0; --bank) {
+      readCmisField(
+          field, dest.at(bank).data(), /*skipBankAndPageChange=*/false, bank);
+    }
+  }
+}
+
 /*
  * readFromCacheOrHw
  *
@@ -2450,8 +2546,10 @@ RawDOMData CmisModule::getRawDOMData() {
   if (present_) {
     *data.lower() = IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
     *data.page0() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
-    data.page10() = IOBuf::wrapBufferAsValue(page10_, MAX_QSFP_PAGE_SIZE);
-    data.page11() = IOBuf::wrapBufferAsValue(page11_, MAX_QSFP_PAGE_SIZE);
+    data.page10() =
+        IOBuf::wrapBufferAsValue(page10_[0].data(), MAX_QSFP_PAGE_SIZE);
+    data.page11() =
+        IOBuf::wrapBufferAsValue(page11_[0].data(), MAX_QSFP_PAGE_SIZE);
   }
   return data;
 }
@@ -2466,13 +2564,16 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
     if (!flatMem_) {
       cmisData.page01() = IOBuf::wrapBufferAsValue(page01_, MAX_QSFP_PAGE_SIZE);
       cmisData.page02() = IOBuf::wrapBufferAsValue(page02_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page10() = IOBuf::wrapBufferAsValue(page10_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page11() = IOBuf::wrapBufferAsValue(page11_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page10() =
+          IOBuf::wrapBufferAsValue(page10_[0].data(), MAX_QSFP_PAGE_SIZE);
+      cmisData.page11() =
+          IOBuf::wrapBufferAsValue(page11_[0].data(), MAX_QSFP_PAGE_SIZE);
       if (isTunableOptics()) {
         cmisData.page12() =
             IOBuf::wrapBufferAsValue(page12_, MAX_QSFP_PAGE_SIZE);
       }
-      cmisData.page13() = IOBuf::wrapBufferAsValue(page13_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page13() =
+          IOBuf::wrapBufferAsValue(page13_[0].data(), MAX_QSFP_PAGE_SIZE);
       cmisData.page14() = IOBuf::wrapBufferAsValue(page14_, MAX_QSFP_PAGE_SIZE);
       cmisData.page20() = IOBuf::wrapBufferAsValue(page20_, MAX_QSFP_PAGE_SIZE);
       cmisData.page21() = IOBuf::wrapBufferAsValue(page21_, MAX_QSFP_PAGE_SIZE);
@@ -2525,8 +2626,12 @@ void CmisModule::updateQsfpData(bool allPages) {
 
     readCmisField(CmisField::PAGE_UPPER00H, page0_);
     if (!flatMem_) {
-      readCmisField(CmisField::PAGE_UPPER10H, page10_);
-      readCmisField(CmisField::PAGE_UPPER11H, page11_);
+      // 10h/11h carry per-lane/per-datapath data; on multi-bank (CPO) modules
+      // they are read for every bank. 12h/14h/VDM remain bank-0 for now (12h is
+      // tunable-only; 14h needs a per-bank DIAG_SEL write; VDM needs per-bank
+      // location handling) -- tracked as follow-up.
+      readBankedPage(CmisField::PAGE_UPPER10H, page10_);
+      readBankedPage(CmisField::PAGE_UPPER11H, page11_);
       if (isTunableOptics()) {
         readCmisField(CmisField::PAGE_UPPER12H, page12_);
       }
@@ -2559,7 +2664,7 @@ void CmisModule::updateQsfpData(bool allPages) {
     if (!flatMem_) {
       readCmisField(CmisField::PAGE_UPPER01H, page01_);
       readCmisField(CmisField::PAGE_UPPER02H, page02_);
-      readCmisField(CmisField::PAGE_UPPER13H, page13_);
+      readBankedPage(CmisField::PAGE_UPPER13H, page13_);
 
       // Cache firmware build number from CDB Get Firmware Info command
       cachedFwBuildNumber_ = fetchFwBuildNumberFromCdb();

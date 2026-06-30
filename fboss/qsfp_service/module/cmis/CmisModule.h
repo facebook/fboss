@@ -10,8 +10,11 @@
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+#include <array>
 #include <chrono>
+#include <map>
 #include <optional>
+#include <vector>
 
 namespace facebook {
 namespace fboss {
@@ -236,10 +239,16 @@ class CmisModule : public QsfpModule {
   uint8_t page01_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page02_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page04_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page10_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page11_[MAX_QSFP_PAGE_SIZE]{};
+  // Per-bank page buffer: one 128-byte array per CMIS bank (index = bank).
+  using BankedPage = std::vector<std::array<uint8_t, MAX_QSFP_PAGE_SIZE>>;
+  // Pages 10h/11h/13h carry per-lane data and are read for every bank on
+  // multi-bank (CPO) modules; stored per-bank with bank 0 at index 0. Sized to
+  // getMaxNumBanks() at refresh; default 1 bank (zeroed) for
+  // single-bank/flatMem modules.
+  BankedPage page10_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
+  BankedPage page11_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
   uint8_t page12_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page13_[MAX_QSFP_PAGE_SIZE]{};
+  BankedPage page13_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
   uint8_t page14_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page20_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page21_[MAX_QSFP_PAGE_SIZE]{};
@@ -323,6 +332,17 @@ class CmisModule : public QsfpModule {
    */
   const uint8_t* getQsfpValuePtr(int dataAddress, int offset, int length)
       const override;
+
+  /* Like getQsfpValuePtr but returns the cached bytes for a specific bank of a
+   * banked page (pages 10h/11h/13h). bank 0 is index 0 of the same per-bank
+   * buffer (equivalent to getQsfpValuePtr). Throws if the page isn't cached
+   * per-bank or that bank wasn't read. */
+  const uint8_t* getBankedQsfpValuePtr(
+      int dataAddress,
+      int offset,
+      int length,
+      uint8_t bank) const;
+
   /*
    * Perform transceiver customization
    * This must be called with a lock held on qsfpModuleMutex_
@@ -753,17 +773,20 @@ class CmisModule : public QsfpModule {
    * should avoid direct qsfpImpl->read/writeTransceiver calls and instead do
    * register IO via these helpers.
    *
-   * Before the access, the helper selects the bank and page via
-   * selectBankAndPage: it writes the bank-select register (byte 126) before
+   * Before the access, the helper selects the page and bank via
+   * selectPageAndBank: it writes the bank-select register (byte 126) before
    * the page-select register (byte 127), since a banked page's contents depend
    * on the active bank. This is skipped for flatMem modules (no paging) and
    * when skipBankAndPageChange is set (batch operations where bank/page is
    * already selected).
    *
-   * bank: optional bank to select. It only takes effect for banked pages (see
-   * isBankedPage); it is ignored for non-banked pages. Defaults to
-   * std::nullopt, which leaves the bank-select register untouched. */
-  void selectBankAndPage(int dataPage, std::optional<uint8_t> bank);
+   * bank: optional bank to select, only valid for banked pages (see
+   * isBankedPage) -- supplying one for a non-banked page throws. The
+   * bank-select register is only written for multi-bank modules
+   * (getMaxNumBanks() > 1); on a single-bank module bank 0 is the only bank, so
+   * the register is left untouched. Defaults to std::nullopt, which also leaves
+   * it untouched. */
+  void selectPageAndBank(int dataPage, std::optional<uint8_t> bank);
   void readCmisField(
       CmisField field,
       uint8_t* data,
@@ -781,6 +804,13 @@ class CmisModule : public QsfpModule {
    * report 0 fall back to a single bank. Expects the lower page to be cached
    * (i.e. call after the lower page read in updateQsfpData). */
   void cacheMaxNumBanks();
+
+  /* Read a banked page for every bank into its per-bank buffer (dest), sized to
+   * getMaxNumBanks(). On a single-bank module this is exactly
+   * readCmisField(field, dest[0]) (no bank-select write). On a multi-bank (CPO)
+   * module it reads each bank with an explicit bank select (the bank-select
+   * register is sticky) into dest[bank], with bank 0 at index 0. */
+  void readBankedPage(CmisField field, BankedPage& dest);
 
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*
