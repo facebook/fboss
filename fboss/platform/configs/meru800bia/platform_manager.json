@@ -634,6 +634,7 @@
     "spidev",
     "i2c_i801",
     "scd",
-    "ledtrig_timer"
+    "ledtrig_timer",
+    "scd_info"
   ]
 }
