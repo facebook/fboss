@@ -241,7 +241,7 @@ class CmisModule : public QsfpModule {
   uint8_t page04_[MAX_QSFP_PAGE_SIZE]{};
   // Per-bank page buffer: one 128-byte array per CMIS bank (index = bank).
   using BankedPage = std::vector<std::array<uint8_t, MAX_QSFP_PAGE_SIZE>>;
-  // Pages 10h/11h/13h carry per-lane data and are read for every bank on
+  // Pages 10h/11h/13h/14h carry per-lane data and are read for every bank on
   // multi-bank (CPO) modules; stored per-bank with bank 0 at index 0. Sized to
   // getMaxNumBanks() at refresh; default 1 bank (zeroed) for
   // single-bank/flatMem modules.
@@ -249,7 +249,7 @@ class CmisModule : public QsfpModule {
   BankedPage page11_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
   uint8_t page12_[MAX_QSFP_PAGE_SIZE]{};
   BankedPage page13_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
-  uint8_t page14_[MAX_QSFP_PAGE_SIZE]{};
+  BankedPage page14_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
   uint8_t page20_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page21_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page22_[MAX_QSFP_PAGE_SIZE]{};
@@ -811,6 +811,12 @@ class CmisModule : public QsfpModule {
    * module it reads each bank with an explicit bank select (the bank-select
    * register is sticky) into dest[bank], with bank 0 at index 0. */
   void readBankedPage(CmisField field, BankedPage& dest);
+
+  /* Read page 14h (SNR diagnostics) into dest for every bank. Page 14h is a
+   * multiplexed diagnostic page selected by DIAG_SEL, which itself lives on the
+   * banked page, so DIAG_SEL=SNR is written under each bank's selection before
+   * reading. Reads bank 0 last so the module is left selected on bank 0. */
+  void readSnrDiagPageLocked(BankedPage& dest);
 
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*

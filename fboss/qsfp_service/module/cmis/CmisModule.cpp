@@ -704,6 +704,7 @@ void CmisModule::cacheMaxNumBanks() {
   page10_.assign(numBanks, {});
   page11_.assign(numBanks, {});
   page13_.assign(numBanks, {});
+  page14_.assign(numBanks, {});
 }
 
 void CmisModule::selectPageAndBank(int dataPage, std::optional<uint8_t> bank) {
@@ -2411,8 +2412,8 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
         CHECK_LE(offset + length, MAX_QSFP_PAGE_SIZE);
         return (page13_[0].data() + offset);
       case CmisPages::PAGE14:
-        CHECK_LE(offset + length, sizeof(page14_));
-        return (page14_ + offset);
+        CHECK_LE(offset + length, MAX_QSFP_PAGE_SIZE);
+        return (page14_[0].data() + offset);
       case CmisPages::PAGE20:
         CHECK_LE(offset + length, sizeof(page20_));
         return (page20_ + offset);
@@ -2481,6 +2482,9 @@ const uint8_t* CmisModule::getBankedQsfpValuePtr(
     case CmisPages::PAGE13:
       page = &page13_;
       break;
+    case CmisPages::PAGE14:
+      page = &page14_;
+      break;
     default:
       throw FbossError(
           fmt::format("Page {:#x}", dataAddress),
@@ -2509,11 +2513,41 @@ void CmisModule::readBankedPage(CmisField field, BankedPage& dest) {
   } else {
     // Multi-bank: every read must explicitly select its bank (the bank-select
     // register is sticky). Read bank 0 last so the module is left selected on
-    // bank 0 -- pages that are still read bank-agnostically (12h/14h/VDM) rely
+    // bank 0 -- pages that are still read bank-agnostically (12h/VDM) rely
     // on bank 0 being the active selection.
     for (int bank = numBanks - 1; bank >= 0; --bank) {
       readCmisField(
           field, dest.at(bank).data(), /*skipBankAndPageChange=*/false, bank);
+    }
+  }
+}
+
+void CmisModule::readSnrDiagPageLocked(BankedPage& dest) {
+  // Page 14h is a multiplexed diagnostic page; DIAG_SEL selects which feature
+  // (SNR vs BER) its data region reflects. DIAG_SEL lives on the banked page
+  // itself, so it must be written under each bank's selection before the read.
+  uint8_t diagFeature = static_cast<uint8_t>(DiagnosticFeatureEncoding::SNR);
+  // dest is pre-sized to getMaxNumBanks() (>= 1) by cacheMaxNumBanks().
+  uint8_t numBanks = getMaxNumBanks();
+  if (numBanks <= 1) {
+    // Single-bank module: legacy behavior, no bank-select write.
+    writeCmisField(CmisField::DIAG_SEL, &diagFeature);
+    readCmisField(CmisField::PAGE_UPPER14H, dest.at(0).data());
+  } else {
+    // Multi-bank: select SNR and read 14h for each bank. Bank 0 is done last so
+    // the module is left selected on bank 0 for the subsequent bank-agnostic
+    // reads (VDM).
+    for (int bank = numBanks - 1; bank >= 0; --bank) {
+      writeCmisField(
+          CmisField::DIAG_SEL,
+          &diagFeature,
+          /*skipBankAndPageChange=*/false,
+          bank);
+      readCmisField(
+          CmisField::PAGE_UPPER14H,
+          dest.at(bank).data(),
+          /*skipBankAndPageChange=*/false,
+          bank);
     }
   }
 }
@@ -2574,7 +2608,8 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
       }
       cmisData.page13() =
           IOBuf::wrapBufferAsValue(page13_[0].data(), MAX_QSFP_PAGE_SIZE);
-      cmisData.page14() = IOBuf::wrapBufferAsValue(page14_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page14() =
+          IOBuf::wrapBufferAsValue(page14_[0].data(), MAX_QSFP_PAGE_SIZE);
       cmisData.page20() = IOBuf::wrapBufferAsValue(page20_, MAX_QSFP_PAGE_SIZE);
       cmisData.page21() = IOBuf::wrapBufferAsValue(page21_, MAX_QSFP_PAGE_SIZE);
       cmisData.page22() = IOBuf::wrapBufferAsValue(page22_, MAX_QSFP_PAGE_SIZE);
@@ -2626,10 +2661,10 @@ void CmisModule::updateQsfpData(bool allPages) {
 
     readCmisField(CmisField::PAGE_UPPER00H, page0_);
     if (!flatMem_) {
-      // 10h/11h carry per-lane/per-datapath data; on multi-bank (CPO) modules
-      // they are read for every bank. 12h/14h/VDM remain bank-0 for now (12h is
-      // tunable-only; 14h needs a per-bank DIAG_SEL write; VDM needs per-bank
-      // location handling) -- tracked as follow-up.
+      // 10h/11h/13h/14h carry per-lane/per-datapath data and are read for every
+      // bank on multi-bank (CPO) modules. 12h/VDM remain bank-0 for now (12h is
+      // tunable-only; VDM needs per-bank location handling) -- tracked as
+      // follow-up.
       readBankedPage(CmisField::PAGE_UPPER10H, page10_);
       readBankedPage(CmisField::PAGE_UPPER11H, page11_);
       if (isTunableOptics()) {
@@ -2640,9 +2675,7 @@ void CmisModule::updateQsfpData(bool allPages) {
           ((CmisModuleState)(getSettingsValue(CmisField::MODULE_STATE) >> 1) ==
            CmisModuleState::READY);
       if (isReady) {
-        auto diagFeature = (uint8_t)DiagnosticFeatureEncoding::SNR;
-        writeCmisField(CmisField::DIAG_SEL, &diagFeature);
-        readCmisField(CmisField::PAGE_UPPER14H, page14_);
+        readSnrDiagPageLocked(page14_);
         updateVdmCacheLocked();
       }
     }

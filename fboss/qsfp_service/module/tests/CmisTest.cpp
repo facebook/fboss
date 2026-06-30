@@ -179,6 +179,24 @@ TEST_F(CmisTest, cpoReadsAllBanksOfBankedPage) {
   }
 }
 
+// On a READY multi-bank (CPO) module, page 14h (SNR diagnostics) is read for
+// every bank: DIAG_SEL=SNR is written under each bank's selection, then 14h is
+// read into that bank's buffer. The READY fixture marks each bank's MEDIA_SNR
+// byte with the bank index, so verify each bank's cached copy.
+TEST_F(CmisTest, cpoReadsSnrDiagPagePerBank) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+
+  // MEDIA_SNR is page 14h, absolute offset 240; the fake marks its first byte
+  // with the bank index.
+  const int page14 = static_cast<int>(CmisPages::PAGE14);
+  for (uint8_t bank = 0; bank < 4; ++bank) {
+    const uint8_t* data = xcvr->getBankedQsfpValuePtr(page14, 240, 1, bank);
+    EXPECT_EQ(data[0], bank);
+  }
+}
+
 // Tests that the transceiverInfo object is correctly populated
 TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   auto xcvrID = TransceiverID(0);

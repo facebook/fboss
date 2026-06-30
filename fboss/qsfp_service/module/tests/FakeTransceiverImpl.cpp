@@ -3103,6 +3103,7 @@ std::array<uint8_t, 128> kCmisCpo6P4TDrPage11 = {
 // Page 13h is read in the full-refresh path but is not relevant to CPO
 // identification; the sample spreadsheet does not include it, so use zeros.
 std::array<uint8_t, 128> kCmisCpo6P4TDrPage13 = {};
+const std::array<uint8_t, 128> kCmisCpo6P4TDrPage14 = {};
 
 std::map<uint8_t, std::array<uint8_t, 128>> kCmisCpo6P4TDrLower = {
     {TransceiverAccessParameter::ADDR_QSFP, kCmisCpo6P4TDrLowerA0},
@@ -3115,6 +3116,7 @@ std::map<int, std::array<uint8_t, 128>> kCmisCpo6P4TDrUpperPagesA0 = {
     {0x10, kCmisCpo6P4TDrPage10},
     {0x11, kCmisCpo6P4TDrPage11},
     {0x13, kCmisCpo6P4TDrPage13},
+    {0x14, kCmisCpo6P4TDrPage14},
 };
 
 std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>>
@@ -3260,6 +3262,27 @@ CmisCpo6P4TDrTransceiver::CmisCpo6P4TDrTransceiver(
     auto page11 = kCmisCpo6P4TDrPage11;
     page11[2] = bank;
     setBankedPage(bank, 0x11, page11);
+  }
+}
+
+CmisCpo6P4TDrReadyTransceiver::CmisCpo6P4TDrReadyTransceiver(
+    int module,
+    TransceiverManager* mgr)
+    : CmisCpo6P4TDrTransceiver(module, mgr) {
+  // Put the module in READY state (MODULE_STATE = lower byte 3, bits 3:1 = 011)
+  // so updateQsfpData reads the SNR diagnostics page (14h).
+  TransceiverAccessParameter param(TransceiverAccessParameter::ADDR_QSFP, 3, 1);
+  uint8_t moduleStateReady = 0x06;
+  writeTransceiver(param, &moduleStateReady, 0, 0);
+
+  // Give each bank a distinct page 14h so per-bank SNR reads can be verified.
+  // MEDIA_SNR is at page 14h offset 240 (upper-page index 112); use its first
+  // byte as a per-bank marker. Bank 0 keeps the base 0.
+  constexpr int kMediaSnrPageIndex = 240 - QsfpModule::MAX_QSFP_PAGE_SIZE;
+  for (uint8_t bank = 1; bank < 4; ++bank) {
+    auto page14 = kCmisCpo6P4TDrPage14;
+    page14[kMediaSnrPageIndex] = bank;
+    setBankedPage(bank, 0x14, page14);
   }
 }
 

@@ -204,6 +204,13 @@ class CmisCpo6P4TDrTransceiver : public FakeTransceiverImpl {
   explicit CmisCpo6P4TDrTransceiver(int module, TransceiverManager* mgr);
 };
 
+// CPO module in READY state with distinct per-bank page 14h, for exercising the
+// per-bank SNR (14h) read path.
+class CmisCpo6P4TDrReadyTransceiver : public CmisCpo6P4TDrTransceiver {
+ public:
+  explicit CmisCpo6P4TDrReadyTransceiver(int module, TransceiverManager* mgr);
+};
+
 class CmisCredo800AEC : public FakeTransceiverImpl {
  public:
   explicit CmisCredo800AEC(int module, TransceiverManager* mgr);
