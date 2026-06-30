@@ -10,7 +10,7 @@
         "busName": "CPU_BUS@3",
         "address": "0x50",
         "kernelDeviceName": "24c64"
-      },
+      }
     },
     "SMB_SLOT": {
       "numOutgoingI2cBuses": 0,
