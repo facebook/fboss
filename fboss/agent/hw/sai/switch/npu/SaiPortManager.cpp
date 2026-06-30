@@ -1267,7 +1267,8 @@ void SaiPortManager::programSerdes(
         }
       }
     }
-    if (!rxReachVals.empty()) {
+    // RX reach is handled by link training
+    if (!rxReachVals.empty() && !linkTrainingEnabled) {
       SaiPortSerdesTraits::Attributes::RxReach rxReach;
       rxReach = getSaiRxReach(rxReachVals);
       SaiApiTable::getInstance()->portApi().setAttribute(
