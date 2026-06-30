@@ -27,6 +27,11 @@ class LinkStateToggler;
 struct TestEnsembleInitInfo {
   std::optional<TransceiverInfo> overrideTransceiverInfo;
   std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes;
+  // Patched into every switchInfo entry of the on-disk config before SwSwitch
+  // is created, so the scope resolver sees a portIdRange/localSystemPortOffset
+  // consistent with a relocated (uniform_local_offset) port layout.
+  std::optional<cfg::Range64> overridePortIdRange;
+  std::optional<int32_t> overrideLocalSystemPortOffset;
   bool failHwCallsOnWarmboot{false};
   // Per-switch INTERFACE_PORT cap honored by AgentEnsemble::setupEnsemble.
   // nullopt means no trimming.

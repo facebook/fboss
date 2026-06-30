@@ -19,6 +19,9 @@ class AgentVoqSwitchFabricLinkMonitoringTest : public AgentVoqSwitchTest {
  private:
   void setCmdLineFlagOverrides() const override;
 
+  void overrideTestEnsembleInitInfo(
+      TestEnsembleInitInfo& initInfo) const override;
+
   void addFabricLinkMonitoringDsfNodes(
       cfg::SwitchConfig& config,
       const AgentEnsemble& ensemble) const;

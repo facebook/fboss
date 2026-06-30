@@ -77,6 +77,20 @@ void AgentEnsemble::setupEnsemble(
       inputAgentConfig.sw()->dsfNodes() = *initInfo.overrideDsfNodes;
     }
 
+    if (initInfo.overridePortIdRange.has_value() ||
+        initInfo.overrideLocalSystemPortOffset.has_value()) {
+      for (auto& [_, switchInfo] :
+           *inputAgentConfig.sw()->switchSettings()->switchIdToSwitchInfo()) {
+        if (initInfo.overridePortIdRange.has_value()) {
+          switchInfo.portIdRange() = *initInfo.overridePortIdRange;
+        }
+        if (initInfo.overrideLocalSystemPortOffset.has_value()) {
+          switchInfo.localSystemPortOffset() =
+              *initInfo.overrideLocalSystemPortOffset;
+        }
+      }
+    }
+
     if (platformConfigFn) {
       platformConfigFn(
           *(inputAgentConfig.sw()), *(inputAgentConfig.platform()));
