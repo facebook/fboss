@@ -3,10 +3,15 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
 
 import neteng.fboss.platform_mapping_config.thrift_types as pm_types
-from neteng.fboss.platform_mapping_config.thrift_types import ChipType
+from neteng.fboss.platform_mapping_config.thrift_types import ChipType, CoreType
 
 TX = "TX"
 RX = "RX"
+
+# Number of lanes per bank for banked (CPO) transceivers. A banked module is
+# modeled as a single core carrying global lane ids; the front-panel port name's
+# middle index selects an 8-lane bank within that module.
+LANES_PER_BANK = 8
 
 
 class StaticMapping:
@@ -18,7 +23,12 @@ class StaticMapping:
         ]
         self._virtual_tcvr_map: Dict[int, Tuple[int, int]] = {}
         self._reverse_tcvr_map: Dict[Tuple[int, int], int] = {}
+        # Maps a front-panel port virtual id to the (chip_id, lane_offset) of the
+        # bank it addresses on a banked (CPO) transceiver. Empty for platforms
+        # without banked transceivers.
+        self._port_virtual_tcvr_map: Dict[int, Tuple[int, int]] = {}
         self._build_virtual_transceiver_maps()
+        self._build_port_virtual_transceiver_map()
 
     def _build_virtual_transceiver_maps(self) -> None:
         by_chip: Dict[int, Set[int]] = defaultdict(set)
@@ -77,6 +87,42 @@ class StaticMapping:
 
     def get_reverse_transceiver_map(self) -> Dict[Tuple[int, int], int]:
         return self._reverse_tcvr_map
+
+    def _build_port_virtual_transceiver_map(self) -> None:
+        lanes_by_chip: Dict[int, Set[int]] = defaultdict(set)
+        banked_chips: Set[int] = set()
+        for connection_pair in self._az_connections:
+            for connection_end in [connection_pair.a, connection_pair.z]:
+                if (
+                    connection_end
+                    and connection_end.chip
+                    and connection_end.chip.chip_type == ChipType.TRANSCEIVER
+                ):
+                    lanes_by_chip[connection_end.chip.chip_id].add(
+                        connection_end.lane.logical_id
+                    )
+                    if connection_end.chip.core_type == CoreType.BANKED_CMIS_INTEGRATED:
+                        banked_chips.add(connection_end.chip.chip_id)
+
+        # Only banked platforms use bank-addressed port names; leave the map empty
+        # otherwise so the default (virtual_id == chip_id) decode is preserved.
+        if not banked_chips:
+            return
+
+        port_map: Dict[int, Tuple[int, int]] = {}
+        virtual_id = 1
+        for chip_id in sorted(lanes_by_chip):
+            if chip_id in banked_chips:
+                num_banks = max(lanes_by_chip[chip_id]) // LANES_PER_BANK + 1
+            else:
+                num_banks = 1
+            for bank in range(num_banks):
+                port_map[virtual_id] = (chip_id, bank * LANES_PER_BANK)
+                virtual_id += 1
+        self._port_virtual_tcvr_map = port_map
+
+    def get_port_virtual_transceiver_map(self) -> Dict[int, Tuple[int, int]]:
+        return self._port_virtual_tcvr_map
 
     # Given a connection endpoint, return the other connected end
     def get_other_connection_end(

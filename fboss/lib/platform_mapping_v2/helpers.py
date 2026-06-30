@@ -486,9 +486,20 @@ def get_start_connection_end(
         )
     # Front panel ports are named "eth|fab{slot_id}/{virtual_transceiver_id}/{lane_id}"
     # Backplane ports are named "eth{slot_id}/{backplane_chip_id}/{backplane_lane_id}"
-    # For multi-core transceivers (CPO), virtual_transceiver_id maps to
-    # (physical_chip_id, core_id) via the virtual transceiver map.
     virtual_id = int(match[3])
+    # Banked (CPO) transceivers are modeled as a single core with global lane ids.
+    # The port virtual id selects a bank on a module, so recover the global lane as
+    # bank_lane_offset + lane_in_bank.
+    port_virtual_map = static_mapping.get_port_virtual_transceiver_map()
+    if virtual_id in port_virtual_map:
+        chip_id, lane_offset = port_virtual_map[virtual_id]
+        return static_mapping.find_connection_end(
+            slot_id=int(match[2]),
+            chip_id=chip_id,
+            chip_types={ChipType.TRANSCEIVER, ChipType.BACKPLANE},
+            core_id=0,
+            logical_lane_id=lane_offset + int(match[4]) - 1,  # Lanes are 0 indexed
+        )
     virtual_map = static_mapping.get_virtual_transceiver_map()
     if virtual_id in virtual_map:
         chip_id, core_id = virtual_map[virtual_id]
