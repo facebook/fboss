@@ -13,6 +13,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//folly:network_address",
         "//folly/logging:logging",
+        "//neteng/fboss/bgp/if:bgp_route_types-cpp2-types",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
     ],
 )
