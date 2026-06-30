@@ -20,6 +20,7 @@ cpp_unittest(
         "CmdConfigL2LearningModeTest.cpp",
         "CmdConfigLoadBalancingTest.cpp",
         "CmdConfigMacAgingTimeTest.cpp",
+        "CmdConfigNeedL2EntryForNeighborTest.cpp",
         "CmdConfigPtpTransparentClockTest.cpp",
         "CmdConfigQosBufferPoolTest.cpp",
         "CmdConfigReloadTest.cpp",

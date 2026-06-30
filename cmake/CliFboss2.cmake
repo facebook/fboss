@@ -834,6 +834,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/mac/CmdConfigMac.h
   fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.cpp
   fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.h
+  fboss/cli/fboss2/commands/config/need_l2_entry_for_neighbor/CmdConfigNeedL2EntryForNeighbor.cpp
+  fboss/cli/fboss2/commands/config/need_l2_entry_for_neighbor/CmdConfigNeedL2EntryForNeighbor.h
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.cpp
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h
   fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.cpp

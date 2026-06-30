@@ -35,6 +35,7 @@
 #include "fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.h"
 #include "fboss/cli/fboss2/commands/config/mac/CmdConfigMac.h"
 #include "fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.h"
+#include "fboss/cli/fboss2/commands/config/need_l2_entry_for_neighbor/CmdConfigNeedL2EntryForNeighbor.h"
 #include "fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.h"
@@ -295,6 +296,12 @@ const CommandTree& kConfigCommandTree() {
               argRegistrar<CmdConfigMacAgingTimeTraits>,
           }},
       },
+
+      {"config",
+       "need-l2-entry-for-neighbor",
+       "Enable or disable requirement for L2 entry before neighbor installation",
+       commandHandler<CmdConfigNeedL2EntryForNeighbor>,
+       argRegistrar<CmdConfigNeedL2EntryForNeighborTraits>},
 
       {
           "config",
