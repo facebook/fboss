@@ -422,7 +422,9 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmLadakh800bclsPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_LEH800BCLS) {
       saiPort = std::make_unique<SaiBcmLeh800bclsPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_WEDGE800BACT) {
+    } else if (
+        platformMode == PlatformType::PLATFORM_WEDGE800BACT ||
+        platformMode == PlatformType::PLATFORM_WEDGE800BNHP) {
       saiPort = std::make_unique<SaiBcmWedge800BACTPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE800CACT) {
       saiPort = std::make_unique<SaiWedge800CACTPlatformPort>(portId, this);

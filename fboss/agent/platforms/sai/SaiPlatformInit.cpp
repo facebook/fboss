@@ -243,7 +243,9 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   } else if (productInfo->getType() == PlatformType::PLATFORM_LEH800BCLS) {
     return std::make_unique<SaiBcmLeh800bclsPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE800BACT) {
+  } else if (
+      productInfo->getType() == PlatformType::PLATFORM_WEDGE800BACT ||
+      productInfo->getType() == PlatformType::PLATFORM_WEDGE800BNHP) {
     return std::make_unique<SaiBcmWedge800BACTPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE800CACT) {

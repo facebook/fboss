@@ -100,6 +100,10 @@ void PlatformProductInfo::initMode() {
         modelName.find("WEDGE800BACT") == 0) {
       type_ = PlatformType::PLATFORM_WEDGE800BACT;
     } else if (
+        modelName.find("Wedge800BNHP") == 0 ||
+        modelName.find("WEDGE800BNHP") == 0) {
+      type_ = PlatformType::PLATFORM_WEDGE800BNHP;
+    } else if (
         modelName.find("Wedge800CACT") == 0 ||
         modelName.find("WEDGE800CACT") == 0) {
       type_ = PlatformType::PLATFORM_WEDGE800CACT;
@@ -335,6 +339,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_SAINTPAUL;
     } else if (FLAGS_mode == "m4062nhp") {
       type_ = PlatformType::PLATFORM_M4062NHP;
+    } else if (FLAGS_mode == "wedge800bnhp") {
+      type_ = PlatformType::PLATFORM_WEDGE800BNHP;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
