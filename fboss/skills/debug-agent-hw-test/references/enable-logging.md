@@ -60,6 +60,22 @@ Add to the test command (or, in multi mode, to the `fboss_hw_agent` processes):
 
 **When to use sparingly**: to rule out whether packets are being sent at all, or to include packet-send calls in a vendor-escalation replayer log. Tests that send large numbers of packets can overwhelm the logs with this option enabled.
 
+### (E) SAI Call Elapsed-Time Logging — `--enable_elapsed_time_log`
+
+Appends the real SDK wall-clock duration to each logged SAI call in the replayer log
+(`... rv: 0 elapsed time 873 μs`). Requires `--enable_replayer`.
+
+```bash
+--enable_replayer --enable_elapsed_time_log
+```
+
+**When to use**: to profile per-call SDK latency — e.g. find which SAI primitive dominates a
+slow warmboot or a scale operation.
+
+> **Full reference**: for the complete SAI Replayer capability list (all flags), plus how to
+> capture, post-process, build, and run the `sai_replayer-<impl>-<ver>` binary, see
+> [sai-replayer.md](sai-replayer.md).
+
 ## Example: Combining Options
 
 Re-run a failing cold boot test with SDK and FBOSS verbose logging:

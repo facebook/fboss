@@ -229,6 +229,7 @@ This routing is client-agnostic:
 | Run tests (cold/warm, mono/multi), parse results | — | `references/run-tests.md` |
 | Analyze SAI Replayer logs, read code for root cause | — | `references/analyze-logs.md` |
 | Enable SAI logging, replayer logging, packet tx logs | — | `references/enable-logging.md` |
+| SAI Replayer — capabilities/flags (packet/get/elapsed-time log), capture, build, run | `facebook/sai-replayer.md` | `references/sai-replayer.md` |
 | Debug crashes — non-stripped binaries, GDB, stack traces | — | `references/crash-debug.md` |
 | Vendor diagnostic shell — counters, routes, neighbors, techsupport dumps | `facebook/vendor-diag-shell.md` | `references/vendor-diag-shell.md` |
 | Insert XLOGs, re-run, validate hypotheses | — | `references/hypothesis-driven-debug.md` |
