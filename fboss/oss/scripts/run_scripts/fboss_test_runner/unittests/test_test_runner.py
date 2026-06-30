@@ -104,9 +104,9 @@ class TestRunTestGtestFallback:
     ):
         """End-to-end: a SKIPPED gtest result must not be rewritten as OK."""
         mock_check_output.return_value = b"[  SKIPPED ] HwFooTest.Bar (5 ms)\n"
-        # _get_test_run_cmd reads the module-level `args` global, which is only
-        # bound under `if __name__ == "__main__":` — use create=True to inject it.
-        with patch("run_test.args", new=mock_args, create=True):
+        # _get_test_run_cmd reads args off the runner instance (self.args);
+        # patch it on the runner for the duration of the call.
+        with patch.object(runner, "args", new=mock_args):
             outcome = runner._run_test(
                 conf_file="dummy.conf",
                 test_prefix="cold_boot.",
@@ -128,7 +128,7 @@ class TestRunTestGtestFallback:
         exit) should still synthesize an OK result so the test isn't lost from
         the summary."""
         mock_check_output.return_value = b""
-        with patch("run_test.args", new=mock_args, create=True):
+        with patch.object(runner, "args", new=mock_args, create=True):
             outcome = runner._run_test(
                 conf_file="dummy.conf",
                 test_prefix="warm_boot.",
@@ -153,7 +153,7 @@ class TestRunTestTimeout:
             cmd=["dummy"], timeout=300
         )
         mock_args.test_run_timeout = 300
-        with patch("run_test.args", new=mock_args, create=True):
+        with patch.object(runner, "args", new=mock_args, create=True):
             outcome = runner._run_test(
                 conf_file="dummy.conf",
                 test_prefix="cold_boot.",
@@ -321,7 +321,7 @@ class TestBackupAndModifyConfig:
         try:
             args = MagicMock()
             args.run_on_reference_board = True
-            with patch("run_test.args", new=args, create=True):
+            with patch.object(runner, "args", new=args, create=True):
                 returned = runner._backup_and_modify_config(str(conf))
 
             assert returned == modified_path
@@ -341,7 +341,7 @@ class TestBackupAndModifyConfig:
         conf.write_text("AUTOLOAD_BOARD_SETTINGS: 0\n")
         args = MagicMock()
         args.run_on_reference_board = False
-        with patch("run_test.args", new=args, create=True):
+        with patch.object(runner, "args", new=args, create=True):
             returned = runner._backup_and_modify_config(str(conf))
         # Should return original path, unchanged contents.
         assert returned == str(conf)
@@ -371,7 +371,7 @@ class TestGetTestsToRunFilter:
                 profile="default",
             )
             with (
-                patch("run_test.args", new=args, create=True),
+                patch.object(runner, "args", new=args, create=True),
                 patch.object(
                     runner, "_list_tests_to_run", return_value=["HwVlanTest.A"]
                 ) as mock_list,
@@ -396,7 +396,7 @@ class TestGetTestsToRunFilter:
 
         args = self._make_args()
         with (
-            patch("run_test.args", new=args, create=True),
+            patch.object(runner, "args", new=args, create=True),
             patch.object(
                 runner, "_list_tests_to_run", side_effect=[listed, ["HwRouteTest.Add"]]
             ) as mock_list,

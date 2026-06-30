@@ -6,7 +6,6 @@ import os
 import sys
 from argparse import ArgumentParser
 
-import run_test
 from fboss_test_runner.constants import (
     OPT_ARG_FILTER,
     OPT_ARG_FILTER_FILE,
@@ -104,5 +103,4 @@ def main() -> None:
             f"{OPT_ARG_PROFILE} requires {OPT_ARG_FILTER_FILE} to be specified"
         )
 
-    run_test.args = args
     args.func(args)

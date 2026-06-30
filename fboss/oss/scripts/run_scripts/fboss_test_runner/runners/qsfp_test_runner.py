@@ -5,7 +5,6 @@
 import subprocess
 from argparse import ArgumentParser
 
-import run_test
 from fboss_test_runner.constants import (
     OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH,
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
@@ -43,7 +42,7 @@ class QsfpTestRunner(TestRunner):
         )
 
     def _get_known_bad_tests_file(self) -> str:
-        args = run_test.args
+        args = self.args
         if not args.known_bad_tests_file:
             return QSFP_KNOWN_BAD_TESTS
         return args.known_bad_tests_file
@@ -58,7 +57,7 @@ class QsfpTestRunner(TestRunner):
         return QSFP_WARMBOOT_CHECK_FILE
 
     def _get_test_run_args(self, conf_file: str) -> list[str]:
-        args = run_test.args
+        args = self.args
         arg_list = ["--qsfp-config", args.qsfp_config]
         if args.platform_mapping_override_path is not None:
             arg_list.extend(

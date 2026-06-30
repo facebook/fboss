@@ -74,8 +74,6 @@
 # - Link: ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON
 #         ./share/link_known_bad_tests/agent_ensemble_link_unsupported_tests.materialized_JSON
 
-args = None
-
 if __name__ == "__main__":
     from fboss_test_runner.main import main
 

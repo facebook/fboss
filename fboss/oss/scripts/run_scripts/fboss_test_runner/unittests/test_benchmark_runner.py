@@ -113,7 +113,7 @@ def test_load_requested_with_empty_file(runner, capsys):
 def test_get_test_binary_name_mono(runner, mock_args):
     """Default agent_run_mode (mono) returns the mono binary"""
     mock_args.agent_run_mode = "mono"
-    with patch("run_test.args", mock_args):
+    with patch.object(runner, "args", mock_args):
         path = runner._get_test_binary_name()
     assert path == "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
 
@@ -121,7 +121,7 @@ def test_get_test_binary_name_mono(runner, mock_args):
 def test_get_test_binary_name_multi_switch(runner, mock_args):
     """agent_run_mode=multi_switch returns the multi-switch binary"""
     mock_args.agent_run_mode = "multi_switch"
-    with patch("run_test.args", mock_args):
+    with patch.object(runner, "args", mock_args):
         path = runner._get_test_binary_name()
     assert path == "/opt/fboss/bin/sai_multi_switch_all_benchmarks-sai_impl"
 
@@ -132,7 +132,7 @@ def test_get_test_binary_name_defaults_to_mono_when_attr_missing(runner):
     class _NoAgentRunMode:
         pass
 
-    with patch("run_test.args", _NoAgentRunMode()):
+    with patch.object(runner, "args", _NoAgentRunMode()):
         path = runner._get_test_binary_name()
     assert path == "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
 

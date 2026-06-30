@@ -4,7 +4,6 @@
 
 from argparse import ArgumentParser
 
-import run_test
 from fboss_test_runner.constants import OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH
 from fboss_test_runner.runners.test_runner import TestRunner
 from fboss_test_runner.runners.utils import run_script
@@ -31,13 +30,13 @@ class SaiTestRunner(TestRunner):
         )
 
     def _get_known_bad_tests_file(self) -> str:
-        args = run_test.args
+        args = self.args
         if not args.known_bad_tests_file:
             return SAI_HW_KNOWN_BAD_TESTS
         return args.known_bad_tests_file
 
     def _get_unsupported_tests_file(self) -> str:
-        args = run_test.args
+        args = self.args
         if not args.unsupported_tests_file:
             return SAI_UNSUPPORTED_TESTS
         return args.unsupported_tests_file
@@ -59,13 +58,13 @@ class SaiTestRunner(TestRunner):
         ]
 
     def _get_sai_logging_flags(self) -> list[str]:
-        return ["--enable_sai_log", run_test.args.sai_logging]
+        return ["--enable_sai_log", self.args.sai_logging]
 
     def _get_warmboot_check_file(self) -> str:
         return agent_can_warm_boot_file_path(switch_index=0)
 
     def _get_test_run_args(self, conf_file: str) -> list[str]:
-        args = run_test.args
+        args = self.args
         args_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
         if args.platform_mapping_override_path is not None:
             args_list.extend(
@@ -77,11 +76,11 @@ class SaiTestRunner(TestRunner):
         return args_list
 
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None) -> None:
-        args = run_test.args
+        args = self.args
         if args.setup_for_coldboot:
             run_script(args.setup_for_coldboot)
 
     def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None) -> None:
-        args = run_test.args
+        args = self.args
         if args.setup_for_warmboot:
             run_script(args.setup_for_warmboot)

@@ -71,7 +71,7 @@ class TestPrintOutputSummary:
                     ["HwGoodTest.B"],
                 ],
             ),
-            patch("run_test.args", new=mock_args, create=True),
+            patch.object(runner, "args", new=mock_args),
         ):
             mock_args.filter = None
             mock_args.filter_file = None

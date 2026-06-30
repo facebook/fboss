@@ -9,7 +9,6 @@ import subprocess
 import threading
 from argparse import ArgumentParser, Namespace
 
-import run_test
 from fboss_test_runner.constants import (
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
     SUB_ARG_AGENT_RUN_MODE,
@@ -42,7 +41,7 @@ class BenchmarkTestRunner(TestRunner):
 
     def _get_test_binary_name(self) -> str:
         if (
-            getattr(run_test.args, "agent_run_mode", SUB_ARG_AGENT_RUN_MODE_MONO)
+            getattr(self.args, "agent_run_mode", SUB_ARG_AGENT_RUN_MODE_MONO)
             == SUB_ARG_AGENT_RUN_MODE_MULTI
         ):
             return "/opt/fboss/bin/sai_multi_switch_all_benchmarks-sai_impl"
@@ -641,6 +640,7 @@ class BenchmarkTestRunner(TestRunner):
 
     def run_test(self, args: Namespace) -> None:
         """Run benchmark tests."""
+        self.args = args
         is_multi_switch = (
             getattr(args, "agent_run_mode", SUB_ARG_AGENT_RUN_MODE_MONO)
             == SUB_ARG_AGENT_RUN_MODE_MULTI

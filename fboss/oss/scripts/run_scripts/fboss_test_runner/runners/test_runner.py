@@ -12,7 +12,6 @@ import time
 from argparse import ArgumentParser, Namespace
 from datetime import datetime
 
-import run_test
 from fboss_test_runner.constants import (
     ALL_SIMUALTOR_ASICS_STR,
     DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
@@ -72,13 +71,14 @@ class TestRunner(abc.ABC):
         self._known_bad_test_regexes: list[str] | None = None
         self._unsupported_test_regexes: list[str] | None = None
         self.env_var: dict[str, str] = dict(os.environ)
+        self.args: Namespace | None = None
 
     def _get_common_gflags(self) -> list[str]:
         """
         Return pass-through gflags appended to every test binary invocation.
         No parsing or validation - just forward whatever the user provides.
         """
-        args = run_test.args
+        args = self.args
         if hasattr(args, "extra_gflags") and args.extra_gflags:
             return args.extra_gflags.split()
         return []
@@ -297,7 +297,7 @@ class TestRunner(abc.ABC):
     def _get_test_run_cmd(
         self, conf_file: str, test_to_run: str, flags: list[str]
     ) -> list[str]:
-        args = run_test.args
+        args = self.args
         test_binary_name = self._get_test_binary_name()
         run_cmd = [
             test_binary_name,
@@ -475,7 +475,7 @@ class TestRunner(abc.ABC):
         # 2. Tests by filter with known bad
         # 3. All tests with known bad
         # 4. All tests without known bad
-        args = run_test.args
+        args = self.args
         test_names = []
         if args.filter or args.filter_file:
             if args.filter_file:
@@ -521,7 +521,7 @@ class TestRunner(abc.ABC):
         setup_warmboot: bool,
         sai_replayer_logging_path: str | None = None,
     ) -> RunOutcome:
-        args = run_test.args
+        args = self.args
         # Setup flags for the test binary before running the tests
         flags = [self.WARMBOOT_SETUP_OPTION] if setup_warmboot else []
         flags += self._get_sai_replayer_logging_flags(sai_replayer_logging_path)
@@ -611,7 +611,7 @@ class TestRunner(abc.ABC):
 
     def _backup_and_modify_config(self, conf_file: str) -> str:
         """Create a copy of the config and modify settings"""
-        args = run_test.args
+        args = self.args
         if getattr(args, "run_on_reference_board", False):
             # Create a copy of the config file for modification
             try:
@@ -750,6 +750,7 @@ class TestRunner(abc.ABC):
         CsvReporter().write_gtest_results(results)
 
     def run_test(self, args: Namespace) -> None:
+        self.args = args
         test_binary = self._get_test_binary_name()
         # Some runners return an absolute path (e.g. /opt/fboss/bin/sai_test-sai_impl);
         # others return a bare binary name resolved via $PATH (e.g. platform_hw_test).
