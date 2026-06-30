@@ -1407,9 +1407,10 @@ class AgentSflowMirrorWithLineRateTrafficTest
   void validateEventorPortQueueLimitRespected() {
     auto config{initialConfig(*getAgentEnsemble())};
     uint32_t maxExpectedQueueLimitBytes{0};
-    PortID eventorPortId;
+    const PortID eventorPortId =
+        masterLogicalPortIds({cfg::PortType::EVENTOR_PORT})[0];
     for (auto& port : *config.ports()) {
-      if (*port.portType() == cfg::PortType::EVENTOR_PORT) {
+      if (PortID(*port.logicalID()) == eventorPortId) {
         auto voqConfigName = *port.portVoqConfigName();
         for (auto& voqConfig : config.portQueueConfigs()[voqConfigName]) {
           // Set the expected queue limit bytes to be 15% higher than
@@ -1421,15 +1422,12 @@ class AgentSflowMirrorWithLineRateTrafficTest
             break;
           }
         }
-        eventorPortId = *port.logicalID();
         break;
       }
     }
     EXPECT_GT(maxExpectedQueueLimitBytes, 0);
     auto eventorSysPortId = getSystemPortID(
-        eventorPortId,
-        getProgrammedState(),
-        SwitchID(*checkSameAndGetAsic()->getSwitchId()));
+        eventorPortId, getProgrammedState(), switchIdForPort(eventorPortId));
     WITH_RETRIES({
       auto latestSysPortStats = getLatestSysPortStats(eventorSysPortId);
       auto watermarkBytes = latestSysPortStats.queueWatermarkBytes_()->at(0);
