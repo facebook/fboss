@@ -108,6 +108,7 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+#include "fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.h"
@@ -173,11 +174,19 @@ const CommandTree& kConfigCommandTree() {
        commandHandler<CmdConfigHistory>,
        argRegistrar<CmdConfigHistoryTraits>},
 
-      {"config",
-       "hostname",
-       "Set switch hostname",
-       commandHandler<CmdConfigHostname>,
-       argRegistrar<CmdConfigHostnameTraits>},
+      {
+          "config",
+          "switch",
+          "Configure switch-level settings",
+          commandHandler<CmdConfigSwitch>,
+          argRegistrar<CmdConfigSwitchTraits>,
+          {{
+              "hostname",
+              "Set switch hostname",
+              commandHandler<CmdConfigHostname>,
+              argRegistrar<CmdConfigHostnameTraits>,
+          }},
+      },
 
       {
           "config",
