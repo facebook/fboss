@@ -47,6 +47,10 @@ std::string sanitizePlatformName(const std::string& platformNameFromBios) {
     return "MINIPACK3BA";
   }
 
+  if (platformNameUpper == "WEDGE800BNHP") {
+    return "WEDGE800BACT";
+  }
+
   return platformNameUpper;
 }
 
