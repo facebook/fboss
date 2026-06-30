@@ -72,12 +72,21 @@ struct Thresholds {
 // `compute`: Compute method, same format and calculation approach as lm_sensor, e.g. @*0.1
 //
 // `type`: See SensorType definition above.
+//
+// `loadLineCurrentSensor`: For AVS rails that use load-line regulation (Adaptive Voltage
+//                          Positioning), the name of the sensor supplying the load current. This is set
+//                          together with loadLineuOhms below to enable droop compensation on this sensor.
+//
+// `loadLineuOhms`: Load-line resistance in micro ohms. When set, this sensor's reported
+//                  voltage is droop-compensated.
 struct PmSensor {
   1: string name;
   2: string sysfsPath;
   3: optional Thresholds thresholds;
   4: optional string compute;
   5: SensorType type;
+  6: optional string loadLineCurrentSensor;
+  7: optional i32 loadLineuOhms;
 }
 
 // `VersionedPmSensor`: Describes a set of sensors which would exist in Platforms with

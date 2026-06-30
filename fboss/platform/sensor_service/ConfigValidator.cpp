@@ -7,6 +7,8 @@
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/FieldRef.h>
 
+#include <unordered_map>
+
 #include "fboss/platform/sensor_service/utilities/PowerConfigUtils.h"
 
 namespace facebook::fboss::platform::sensor_service {
@@ -37,7 +39,11 @@ bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
   if (!isValidAsicCommand(sensorConfig)) {
     return false;
   }
+<<<<<<< HEAD
   if (!isValidLoggedSensorNames(sensorConfig)) {
+=======
+  if (!isValidLoadLineConfig(sensorConfig)) {
+>>>>>>> 3d9678bcd3 (NOS-10438: load-line droop compensation for AVS rail in FBOSS (#1231))
     return false;
   }
   return true;
@@ -83,6 +89,91 @@ bool ConfigValidator::isValidPmSensor(const sensor_config::PmSensor& pmSensor) {
   if (!pmSensor.sysfsPath().has_value() || pmSensor.sysfsPath()->empty()) {
     XLOG(ERR) << "PmSensor sysfsPath must be non-empty";
     return false;
+  }
+
+  // Load-line droop compensation fields must be set together, only on a
+  // VOLTAGE sensor, with a positive resistance. The referenced current
+  // sensor's existence and type are validated in isValidLoadLineConfig.
+  bool hasLoadLineCurrentSensor = pmSensor.loadLineCurrentSensor().has_value();
+  bool hasLoadLineuOhms = pmSensor.loadLineuOhms().has_value();
+  if (hasLoadLineCurrentSensor != hasLoadLineuOhms) {
+    XLOG(ERR) << fmt::format(
+        "PmSensor '{}' must set loadLineCurrentSensor and loadLineuOhms "
+        "together",
+        name);
+    return false;
+  }
+  if (hasLoadLineCurrentSensor) {
+    if (pmSensor.loadLineCurrentSensor()->empty()) {
+      XLOG(ERR) << fmt::format(
+          "PmSensor '{}' loadLineCurrentSensor must be non-empty", name);
+      return false;
+    }
+    if (*pmSensor.type() != SensorType::VOLTAGE) {
+      XLOG(ERR) << fmt::format(
+          "PmSensor '{}' sets load-line fields but is not a VOLTAGE sensor",
+          name);
+      return false;
+    }
+    if (*pmSensor.loadLineuOhms() <= 0) {
+      XLOG(ERR) << fmt::format(
+          "PmSensor '{}' loadLineuOhms must be positive", name);
+      return false;
+    }
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidLoadLineConfig(const SensorConfig& sensorConfig) {
+  XLOG(DBG1) << "Validating load-line config";
+  auto universalSensorNames = getAllUniversalSensorNames(sensorConfig);
+  std::unordered_map<std::string, SensorType> sensorTypes;
+  for (const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
+    for (const auto& pmSensor : *pmUnitSensors.sensors()) {
+      sensorTypes[*pmSensor.name()] = *pmSensor.type();
+    }
+    for (const auto& versionedPmSensor : *pmUnitSensors.versionedSensors()) {
+      for (const auto& pmSensor : *versionedPmSensor.sensors()) {
+        sensorTypes[*pmSensor.name()] = *pmSensor.type();
+      }
+    }
+  }
+  auto validateRef = [&](const PmSensor& pmSensor) {
+    if (!pmSensor.loadLineCurrentSensor().has_value()) {
+      return true;
+    }
+    const auto& currentSensorName = *pmSensor.loadLineCurrentSensor();
+    if (universalSensorNames.count(currentSensorName) == 0) {
+      XLOG(ERR) << fmt::format(
+          "loadLineCurrentSensor {} referenced by {} is not defined in "
+          "SensorConfig",
+          currentSensorName,
+          *pmSensor.name());
+      return false;
+    }
+    auto it = sensorTypes.find(currentSensorName);
+    if (it != sensorTypes.end() && it->second != SensorType::CURRENT) {
+      XLOG(ERR) << fmt::format(
+          "loadLineCurrentSensor {} referenced by {} is not a CURRENT sensor",
+          currentSensorName,
+          *pmSensor.name());
+      return false;
+    }
+    return true;
+  };
+  for (const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
+    for (const auto& pmSensor : *pmUnitSensors.sensors()) {
+      if (!validateRef(pmSensor)) {
+        return false;
+      }
+    }
+    for (const auto& versionedPmSensor : *pmUnitSensors.versionedSensors()) {
+      for (const auto& pmSensor : *versionedPmSensor.sensors()) {
+        if (!validateRef(pmSensor)) {
+          return false;
+        }
+      }
+    }
   }
   return true;
 }
