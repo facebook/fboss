@@ -19,6 +19,7 @@ cpp_library(
 cpp_unittest(
     name = "sensor_service_sw_test",
     srcs = [
+        "SensorServiceImplLoadLineTest.cpp",
         "SensorServiceImplTest.cpp",
         "SensorServiceThriftHandlerTest.cpp",
     ],
