@@ -18,6 +18,8 @@
 #include "fboss/platform/fw_util/if/gen-cpp2/fw_util_config_types.h"
 #include "fboss/platform/platform_manager/ConfigValidator.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
+#include "fboss/platform/reboot_cause_service/ConfigValidator.h"
+#include "fboss/platform/reboot_cause_service/if/gen-cpp2/reboot_cause_config_types.h"
 #include "fboss/platform/rma-showtech/gen-cpp2/showtech_config_types.h"
 #include "fboss/platform/sensor_service/ConfigValidator.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_config_types.h"
@@ -40,6 +42,7 @@ using namespace facebook::fboss::platform::weutil_config;
 using namespace facebook::fboss::platform::fw_util_config;
 using namespace facebook::fboss::platform::bsp_tests;
 using namespace facebook::fboss::platform::showtech_config;
+using namespace facebook::fboss::platform::reboot_cause_config;
 using namespace apache::thrift;
 
 namespace {
@@ -64,6 +67,9 @@ std::any deserialize(
       return SimpleJSONSerializer::deserialize<BspTestsConfig>(jsonConfigStr);
     } else if (serviceName == "rma_showtech") {
       return SimpleJSONSerializer::deserialize<ShowtechConfig>(jsonConfigStr);
+    } else if (serviceName == "reboot_cause_service") {
+      return SimpleJSONSerializer::deserialize<RebootCauseConfig>(
+          jsonConfigStr);
     }
     LOG(FATAL) << fmt::format("Unsupported service {}", serviceName);
   } catch (std::exception& ex) {
@@ -83,7 +89,8 @@ const auto kX86Services = std::set<std::string>{
     "fw_util",
     "led_manager",
     "bsp_tests",
-    "rma_showtech"};
+    "rma_showtech",
+    "reboot_cause_service"};
 constexpr auto kHdrName = "GeneratedConfig.h";
 constexpr auto kHdrBegin = R"(#pragma once
 
@@ -179,6 +186,13 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
           deserializedConfigs.at("led_manager"));
       if (!data_corral_service::ConfigValidator().isValid(config)) {
         throw std::runtime_error("Invalid led_manager configuration");
+      }
+    }
+    if (deserializedConfigs.contains("reboot_cause_service")) {
+      auto config = std::any_cast<RebootCauseConfig>(
+          deserializedConfigs.at("reboot_cause_service"));
+      if (!reboot_cause_service::ConfigValidator().isValid(config)) {
+        throw std::runtime_error("Invalid reboot_cause_service configuration");
       }
     }
     if (deserializedConfigs.contains("weutil")) {

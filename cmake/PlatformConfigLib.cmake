@@ -62,6 +62,8 @@ target_link_libraries(platform_config_lib_config_generator
   platform_manager_config_validator
   platform_manager_config_cpp2
   platform_manager_presence_cpp2
+  reboot_cause_config_cpp2
+  reboot_cause_service_config_validator
   sensor_service_config_validator
   data_corral_service_config_validator
   sensor_config_cpp2

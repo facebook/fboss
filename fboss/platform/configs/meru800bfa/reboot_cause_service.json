@@ -1,0 +1,16 @@
+{
+  "rebootCauseProviderConfigs": {
+    "SMB_UCD90320": {
+      "type": 0,
+      "priority": 1,
+      "sysfsReadPath": "/run/devmap/sensors/SMB_UCD90320/reboot_causes",
+      "sysfsClearPath": "/run/devmap/sensors/SMB_UCD90320/clear_reboot_causes"
+    },
+    "MERU_SCM_CPLD": {
+      "type": 0,
+      "priority": 2,
+      "sysfsReadPath": "/run/devmap/fpgas/MERU_SCM_CPLD/reboot_causes",
+      "sysfsClearPath": "/run/devmap/fpgas/MERU_SCM_CPLD/clear_reboot_causes"
+    }
+  }
+}
