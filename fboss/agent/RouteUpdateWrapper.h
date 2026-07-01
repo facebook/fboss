@@ -70,12 +70,19 @@ class RouteUpdateWrapper {
   };
   virtual ~RouteUpdateWrapper() = default;
   using UpdateStatistics = RoutingInformationBase::UpdateStatistics;
+  // Add an IP route. When `nhops` is provided it is used as the route's
+  // nexthop set; otherwise the wrapper falls back to `entry.getNextHopSet()`.
+  // Callers that derive `entry` from an existing route's forward info must
+  // pass `nhops` explicitly (resolved via `getNextHops(state, fwd)` or
+  // similar) — once inline nexthop storage is removed, `entry.getNextHopSet()`
+  // on such entries will return empty.
   void addRoute(
       RouterID id,
       const folly::IPAddress& network,
       uint8_t mask,
       ClientID clientId,
-      const RouteNextHopEntry& entry);
+      const RouteNextHopEntry& entry,
+      std::optional<RouteNextHopSet> nhops = std::nullopt);
 
   void addRoute(RouterID id, ClientID clientId, const UnicastRoute& route);
   void addRoute(ClientID clientId, const MplsRoute& route);
