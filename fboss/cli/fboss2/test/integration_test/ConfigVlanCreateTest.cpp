@@ -12,15 +12,15 @@
  *    This is the primary use case for static-mac add/delete.
  *
  * 2. AutoCreateVlanInSession
- *    - Ensure VLAN 3999 does not exist (cleanup from any prior run)
- *    - Add a static MAC entry to non-existent VLAN 3999
- *    - VlanManager auto-creates VLAN 3999 and a barebone cfg::Interface
+ *    - Ensure VLAN 3101 does not exist (cleanup from any prior run)
+ *    - Add a static MAC entry to non-existent VLAN 3101
+ *    - VlanManager auto-creates VLAN 3101 and a barebone cfg::Interface
  *    - Verify "Created VLAN" message appears on first command
  *    - Verify second command does NOT print the creation message again
  *    - Commit the session (both VLAN and interface are present, so the agent
  *      accepts the commit)
  *    - Clean up: delete the static MAC entry and commit
- *    - VLAN 3999 + interface remain (no delete-VLAN command yet); next run
+ *    - VLAN 3101 + interface remain (no delete-VLAN command yet); next run
  *      starts by removing them for idempotency
  *
  * 3. DeleteOnNonExistentVlanIsIdempotent
@@ -72,8 +72,10 @@ class ConfigVlanCreateTest : public Fboss2IntegrationTest {
  protected:
   // An existing VLAN with a proper L3 interface — safe to add static MACs to
   static constexpr int kExistingVlanId = 2001;
-  // A VLAN ID used to test auto-create; cleaned up before each run
-  static constexpr int kNewVlanId = 3999;
+  // A VLAN ID used to test auto-create; cleaned up before each run.
+  // Must be in range 3000-3152 so that getTableIdForNpu() maps it to a
+  // Linux routing table ID in [1, 253] (3000+N → 101+N; max safe N = 152).
+  static constexpr int kNewVlanId = 3101;
   static constexpr const char* kTestMac = "02:00:00:00:27:01";
 
   // Interface name cached by SetUpTestSuite — valid for the lifetime of
