@@ -1188,6 +1188,25 @@ add_fbthrift_python_library(
     phy_python
     prbs_python
 )
+add_fbthrift_python_library(
+  qsfp_python
+  fboss/qsfp_service/if/qsfp.thrift
+  SERVICES
+    QsfpService
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    ctrl_python
+    common_python
+    fboss_python
+    transceiver_python
+    switch_config_python
+    mka_structs_python
+    hardware_stats_python
+    phy_python
+    prbs_python
+)
 
 add_fbthrift_cpp_library(
   hal_test_config_cpp2
