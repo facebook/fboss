@@ -28,6 +28,11 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
     return {ProductionFeature::SRV6_DECAP, ProductionFeature::SRV6_MIDPOINT};
   }
 
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // SRv6 SID scale uses all interface ports as ECMP next-hops.
+    return std::nullopt;
+  }
+
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_enable_nexthop_id_manager = true;

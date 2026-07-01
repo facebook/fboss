@@ -930,6 +930,11 @@ class AgentAqmEcnOnlyTest : public AgentAqmTest {
       const override {
     return {ProductionFeature::ECN};
   }
+
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // AQM tests need full port set for health check
+    return std::nullopt;
+  }
 };
 
 class AgentAqmEcnProbabilisticMarkingTest : public AgentAqmTest {

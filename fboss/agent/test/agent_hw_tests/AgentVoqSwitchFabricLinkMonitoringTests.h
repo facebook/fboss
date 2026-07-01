@@ -16,6 +16,11 @@ class AgentVoqSwitchFabricLinkMonitoringTest : public AgentVoqSwitchTest {
     return {ProductionFeature::VOQ};
   }
 
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Verifies fabric link monitoring across every fabric port.
+    return std::nullopt;
+  }
+
  private:
   void setCmdLineFlagOverrides() const override;
 

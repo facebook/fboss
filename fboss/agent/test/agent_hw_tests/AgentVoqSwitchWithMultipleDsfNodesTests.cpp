@@ -1263,6 +1263,12 @@ class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
     return getShelEnabledConfig(config);
   }
 
+  // SHEL (self-healing ECMP lag) is exercised across all NIF ports, so opt out
+  // of the default interface-port cap and configure the full port set.
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return std::nullopt;
+  }
+
  protected:
   void verifyShelEnabled(bool desiredShelEnable, bool shelEnabled) {
     auto state = getProgrammedState();

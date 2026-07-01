@@ -28,6 +28,11 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     return utility::addRemoteIntfNodeCfg(curDsfNodes);
   }
 
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Full-scale DSF tests require the entire VoQ NIF port set.
+    return std::nullopt;
+  }
+
  protected:
   int getMaxEcmpWidth() const {
     return isDualStage3Q2QMode() ? 2048 : 512;

@@ -237,6 +237,12 @@ device:
   // Index in the sample ports where data traffic is expected!
   const int kDataTrafficPortIndex{0};
   inline static const folly::MacAddress kMirrorDstMac{"06:00:00:00:00:01"};
+
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Multi-switch Gibraltar needs system/recycle ports in config
+    return std::nullopt;
+  }
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
