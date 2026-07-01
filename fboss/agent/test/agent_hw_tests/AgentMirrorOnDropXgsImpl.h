@@ -27,6 +27,8 @@ class XgsMirrorOnDropImpl : public MirrorOnDropImpl {
 
   void verifyInvariants(const folly::IOBuf* buf) const override;
 
+  bool ingressPortIsHwLogicalPort() const override;
+
   uint16_t getDefaultRouteDropReason() const override;
   uint16_t getAclDropReason() const override;
   uint16_t getMmuDropReason() const override;

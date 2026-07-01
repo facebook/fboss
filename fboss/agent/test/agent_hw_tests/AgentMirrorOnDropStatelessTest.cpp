@@ -6,8 +6,8 @@
 
 #include <folly/ScopeGuard.h>
 
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -176,7 +176,20 @@ void AgentMirrorOnDropStatelessTest::validateMirrorOnDropPacket(
   EXPECT_EQ(fields.outerDstIp, kCollectorIp_);
   EXPECT_EQ(fields.outerSrcPort, static_cast<uint16_t>(kMirrorSrcPort));
   EXPECT_EQ(fields.outerDstPort, static_cast<uint16_t>(kMirrorDstPort));
-  EXPECT_EQ(fields.ingressPort, static_cast<uint16_t>(injectionPortId));
+  // Some ASICs report the hardware logical port id (not the FBOSS PortID) in
+  // the MoD packet; translate the injection PortID to match. The mapping comes
+  // from port stats, which lag a warm boot, so retry until it's populated.
+  auto expectedIngressPort = static_cast<uint16_t>(injectionPortId);
+  if (impl()->ingressPortIsHwLogicalPort()) {
+    std::optional<uint32_t> hwLogicalPortId;
+    WITH_RETRIES({
+      hwLogicalPortId = getSw()->getHwLogicalPortId(injectionPortId);
+      EXPECT_EVENTUALLY_TRUE(hwLogicalPortId.has_value());
+    });
+    ASSERT_TRUE(hwLogicalPortId.has_value());
+    expectedIngressPort = static_cast<uint16_t>(*hwLogicalPortId);
+  }
+  EXPECT_EQ(fields.ingressPort, expectedIngressPort);
   EXPECT_EQ(fields.dropReasonIngress, expectedReasons.ingressDropReason);
   EXPECT_EQ(fields.dropReasonEgress, expectedReasons.egressDropReason);
   EXPECT_EQ(fields.innerSrcIp, expectedInnerSrcIp.value_or(kPacketSrcIp_));
