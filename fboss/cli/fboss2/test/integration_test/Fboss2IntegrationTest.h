@@ -348,14 +348,6 @@ class Fboss2IntegrationTest : public ::testing::Test {
   std::string findIpv6OnIntf(int intfId) const;
 
   /**
-   * Dump systemd unit status and the tail of the agent log to stderr.
-   * Called from waitForAgentReady() on timeout so CI output captures why the
-   * agent never became reachable (otherwise we only see "connection refused"
-   * polls and have nothing to triage from).
-   */
-  void dumpAgentDiagnostics() const;
-
-  /**
    * Static counterpart to waitForAgentReady() for use from
    * `SetUpTestSuite` / `TearDownTestSuite` and other contexts that don't
    * have a fixture instance. Polls `systemctl is-active fboss_sw_agent`

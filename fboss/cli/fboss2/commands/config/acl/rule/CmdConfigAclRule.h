@@ -85,28 +85,11 @@ class AclRuleConfigArgs : public utils::BaseObjectArgType<std::string> {
   // rule name on dataPlaneTrafficPolicy.matchToAction.
   void applyActionTo(cfg::MatchAction& ma) const;
 
-  const std::string& getActionSubattr() const {
-    return actionSubattr_;
-  }
-
  private:
-  // Parse a match-field <attr>'s value (v[3], plus v[4] mask for ttl) and
-  // populate applyEntryFn_. Arity is validated by the caller.
-  void parseMatchField(const std::vector<std::string>& v);
-
-  // Parse `action <sub> [value]` (v[3..5]); permit/deny populate
-  // applyEntryFn_, every other action populates applyActionFn_. Validates the
-  // sub-attribute name and its arity.
-  void parseAction(const std::vector<std::string>& v);
-
   std::string tableName_;
   std::string ruleName_;
   std::string attribute_;
   std::string rawValue_;
-
-  // For attribute_ == "action": the sub-attribute (permit/send-to-queue/...).
-  // Read by isMatchAction(); empty for match-field attributes.
-  std::string actionSubattr_;
 
   // The parsed mutation, captured at parse time and replayed by applyTo() /
   // applyActionTo(). Keeping parse-and-apply together (one lambda per

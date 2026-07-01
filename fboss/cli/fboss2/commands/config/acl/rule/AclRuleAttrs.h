@@ -12,18 +12,15 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <set>
 #include <string>
 #include <string_view>
 #include <utility>
-#include <vector>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-// Single source of truth for the set of <attr> values accepted by both
-// `config acl rule` and `delete acl rule`. The two commands must accept the
-// same attributes (delete clears whatever config can set), so keeping the
-// list here avoids the three-way drift the strings used to invite.
+// Shared <attr>/<action> keywords, value ranges, and token positions for
+// `config acl rule` / `delete acl rule`. The grammar itself (which keyword
+// takes which value) lives in the descriptor tables in CmdConfigAclRule.cpp.
 
 namespace facebook::fboss {
 
@@ -91,44 +88,21 @@ inline constexpr AclRuleRange kSendToQueueRange{
 inline constexpr AclRuleRange kSetDscpRange{0, 63}; // 6-bit DSCP codepoint
 inline constexpr AclRuleRange kTrafficClassRange{0, 7}; // 8 traffic classes
 
-// Ordered list of every supported <attr>. Drives the validity check, the
-// `--help` description, and the "Unknown attribute" error message.
-const std::vector<std::string_view>& aclRuleAttrsOrdered();
+// Positions within a `config acl rule` argument vector:
+//   match field:  <table> <rule> <attr>   <value> [<mask>]
+//   action:       <table> <rule> action   <sub>   [<value> | nexthop <ip>]
+inline constexpr std::size_t kAclRuleIdxTable = 0;
+inline constexpr std::size_t kAclRuleIdxRule = 1;
+inline constexpr std::size_t kAclRuleIdxAttr = 2;
 
-// O(log n) lookup view over aclRuleAttrsOrdered().
-const std::set<std::string_view>& aclRuleValidAttrs();
+// Fixed tokens preceding the value(s): three for a match field, four for an
+// action (the extra token is the action <sub>). Value tokens follow the prefix,
+// so v[kAclRule*Prefix] is always the first value.
+inline constexpr std::size_t kAclRuleMatchPrefix = 3;
+inline constexpr std::size_t kAclRuleActionPrefix = 4;
 
-// Ordered list of every supported action sub-attribute (the token that
-// follows `action`).
-const std::vector<std::string_view>& aclRuleActionsOrdered();
-
-// O(log n) lookup view over aclRuleActionsOrdered().
-const std::set<std::string_view>& aclRuleValidActions();
-
-// "source-ip, destination-ip, protocol, ..." — the ordered list joined
-// with ", ".
-std::string aclRuleAttrsCsv();
-
-// "permit, deny, send-to-queue, ..." — joined with ", ".
-std::string aclRuleActionsCsv();
-
-// Inclusive [min, max] total token count for a complete `config acl rule`
-// invocation (table, rule, attr, value, [extras]). Drives arity validation so
-// the rules live as data next to the attribute list rather than as a special-
-// case ladder in the parser.
-struct AclRuleArity {
-  std::size_t min;
-  std::size_t max;
-};
-
-// Arity for a match-field <attr>. `ttl` accepts an optional 5th mask token;
-// `action` is a placeholder ({4, 6}) refined by aclRuleActionArity(); every
-// other attribute takes exactly one value (4 tokens).
-AclRuleArity aclRuleAttrArity(std::string_view attr);
-
-// Arity for an `action <sub>`: no-value actions (permit/deny/trap/copy) are 4
-// tokens, `redirect nexthop <ip>` is 6, single-value actions are 5.
-AclRuleArity aclRuleActionArity(std::string_view sub);
+// The action <sub> occupies the slot a match value would (index 3).
+inline constexpr std::size_t kAclRuleIdxActionSub = kAclRuleMatchPrefix;
 
 // Locate the AclTable named `tableName` across every AclTableGroup in
 // `swConfig` (ACL table names are unique within a group, so we walk all
