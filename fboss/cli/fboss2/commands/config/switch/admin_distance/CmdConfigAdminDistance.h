@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h"
 
 namespace facebook::fboss {
 
@@ -40,6 +41,12 @@ class AdminDistanceArg : public utils::BaseObjectArgType<std::string> {
 };
 
 struct CmdConfigAdminDistanceTraits : public WriteCommandTraits {
+  // admin-distance is nested under `config switch`, so its positional args are
+  // stored one depth level deeper (data_[1]). resolve_arg_types walks the
+  // ParentCmd chain to compute that index; without this the args are read back
+  // from data_[0] (empty) and the handler sees zero arguments. See
+  // CmdArgsLists / resolve_arg_types in CmdHandler.h.
+  using ParentCmd = CmdConfigSwitch;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
     cmd.add_option(
         "client_distance",
