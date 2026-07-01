@@ -304,6 +304,7 @@ cpp_library(
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:hw_asic_table",
         "//fboss/agent:utils",
         "//fboss/agent/hw/switch_asics:switch_asics",
