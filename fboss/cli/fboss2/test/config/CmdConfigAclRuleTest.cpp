@@ -121,16 +121,26 @@ TEST_F(CmdConfigAclRuleTestFixture, argValidation_extraTokenOnlyForTtl) {
 
 TEST_F(CmdConfigAclRuleTestFixture, argValidation_outOfRange) {
   EXPECT_THROW(
-      AclRuleConfigArgs({"AclTable1", "rule-1", "dscp", "64"}),
+      AclRuleConfigArgs(
+          {"AclTable1", "rule-1", "dscp", std::to_string(kDscpRange.max + 1)}),
       std::invalid_argument);
   EXPECT_THROW(
-      AclRuleConfigArgs({"AclTable1", "rule-1", "dscp", "-1"}),
+      AclRuleConfigArgs(
+          {"AclTable1", "rule-1", "dscp", std::to_string(kDscpRange.min - 1)}),
       std::invalid_argument);
   EXPECT_THROW(
-      AclRuleConfigArgs({"AclTable1", "rule-1", "vlan", "0"}),
+      AclRuleConfigArgs(
+          {"AclTable1",
+           "rule-1",
+           "vlan",
+           std::to_string(utils::kVlanIdMin - 1)}),
       std::invalid_argument);
   EXPECT_THROW(
-      AclRuleConfigArgs({"AclTable1", "rule-1", "vlan", "4095"}),
+      AclRuleConfigArgs(
+          {"AclTable1",
+           "rule-1",
+           "vlan",
+           std::to_string(utils::kVlanIdMax + 1)}),
       std::invalid_argument);
 }
 
@@ -179,7 +189,11 @@ TEST_F(CmdConfigAclRuleTestFixture, argValidation_etherTypeNumericOrName) {
   EXPECT_NO_THROW(
       AclRuleConfigArgs({"AclTable1", "rule-1", "ethertype", "2048"}));
   EXPECT_THROW(
-      AclRuleConfigArgs({"AclTable1", "rule-1", "ethertype", "0x10000"}),
+      AclRuleConfigArgs(
+          {"AclTable1",
+           "rule-1",
+           "ethertype",
+           std::to_string(kU16Range.max + 1)}),
       std::invalid_argument);
 }
 
@@ -321,7 +335,7 @@ TEST_F(CmdConfigAclRuleTestFixture, setTtlDefaultMask) {
   AclRuleConfigArgs args({"AclTable1", "rule-1", "ttl", "64"});
   cmd.queryClient(host, args);
   EXPECT_EQ(*getRule("rule-1").ttl()->value(), 64);
-  EXPECT_EQ(*getRule("rule-1").ttl()->mask(), 0xFF);
+  EXPECT_EQ(*getRule("rule-1").ttl()->mask(), kTtlMaskDefault);
 }
 
 TEST_F(CmdConfigAclRuleTestFixture, setTtlExplicitMask) {
@@ -398,14 +412,28 @@ TEST_F(CmdConfigAclRuleTestFixture, argValidation_actionRequiresValue) {
 
 TEST_F(CmdConfigAclRuleTestFixture, argValidation_actionRangeChecks) {
   EXPECT_THROW(
-      AclRuleConfigArgs({"AclTable1", "rule-1", "action", "set-dscp", "64"}),
-      std::invalid_argument);
-  EXPECT_THROW(
-      AclRuleConfigArgs({"AclTable1", "rule-1", "action", "set-tc", "8"}),
+      AclRuleConfigArgs(
+          {"AclTable1",
+           "rule-1",
+           "action",
+           "set-dscp",
+           std::to_string(kSetDscpRange.max + 1)}),
       std::invalid_argument);
   EXPECT_THROW(
       AclRuleConfigArgs(
-          {"AclTable1", "rule-1", "action", "send-to-queue", "-1"}),
+          {"AclTable1",
+           "rule-1",
+           "action",
+           "set-tc",
+           std::to_string(kTrafficClassRange.max + 1)}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      AclRuleConfigArgs(
+          {"AclTable1",
+           "rule-1",
+           "action",
+           "send-to-queue",
+           std::to_string(kSendToQueueRange.min - 1)}),
       std::invalid_argument);
 }
 

@@ -472,45 +472,8 @@ void Fboss2IntegrationTest::waitForAgentReady(
     // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
     std::this_thread::sleep_for(std::chrono::seconds(10));
   }
-  dumpAgentDiagnostics();
   FAIL() << "Agent did not become ready within " << timeout.count()
          << " seconds";
-}
-
-void Fboss2IntegrationTest::dumpAgentDiagnostics() const {
-  // Print to std::cerr (not XLOG) so the dump is unconditional and not
-  // reordered/buffered by folly's async logger relative to the FAIL() output.
-  std::cerr << "=== Agent diagnostics (waitForAgentReady timed out) ==="
-            << std::endl;
-
-  for (const auto* unit : {"fboss_sw_agent", "fboss_hw_agent@0"}) {
-    std::cerr << "--- systemctl status " << unit << " ---" << std::endl;
-    auto status =
-        runCmd({"/usr/bin/systemctl", "--no-pager", "-l", "status", unit});
-    if (!status.stdout.empty()) {
-      std::cerr << status.stdout;
-    }
-    if (!status.stderr.empty()) {
-      std::cerr << status.stderr;
-    }
-  }
-
-  // Both fboss_sw_agent and fboss_hw_agent@0 are configured to append to
-  // /var/facebook/logs/fboss/wedge_agent.log (see fboss_sw_agent.service /
-  // fboss_hw_agent@.service). Tail enough lines to capture the start of the
-  // most recent boot.
-  constexpr auto kAgentLogPath = "/var/facebook/logs/fboss/wedge_agent.log";
-  constexpr auto kTailLines = "500";
-  std::cerr << "--- tail -n " << kTailLines << " " << kAgentLogPath << " ---"
-            << std::endl;
-  auto tail = runCmd({"/usr/bin/tail", "-n", kTailLines, kAgentLogPath});
-  if (!tail.stdout.empty()) {
-    std::cerr << tail.stdout;
-  }
-  if (tail.exitCode != 0 && !tail.stderr.empty()) {
-    std::cerr << "tail stderr: " << tail.stderr;
-  }
-  std::cerr << "=== End agent diagnostics ===" << std::endl;
 }
 
 void Fboss2IntegrationTest::waitForAgentReadyViaSystemd(int timeoutSec) {
