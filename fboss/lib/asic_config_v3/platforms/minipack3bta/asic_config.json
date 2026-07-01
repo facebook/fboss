@@ -1,0 +1,46 @@
+{
+  "platform_name": "minipack3bta",
+  "vendor": "broadcom",
+  "asic": "tomahawk5",
+  "num_ports_per_core": 1,
+  "num_lanes_per_port": 4,
+  "defaults": {
+    "asic_config_params": {
+      "config_type": "YAML_CONFIG",
+      "exact_match": false,
+      "mmu_lossless": false,
+      "config_gen_type": "DEFAULT"
+    },
+    "port_config": {
+      "default_speed": 400000,
+      "speed_to_fec": {
+        "100000": "PC_FEC_RS544",
+        "400000": "PC_FEC_RS544_2XN"
+      }
+    },
+    "cpu_port": {
+      "speed": 10000,
+      "num_lanes": 1
+    },
+    "mgmt_port": {
+      "enabled": false
+    },
+    "port_mapping_overrides": {
+      "num_logical_ports_per_datapath": 8,
+      "lp_start_step_offset": 0,
+      "num_lp_ports_on_even_core": 4,
+      "special_core_offset_apply_all": true
+    },
+    "features": {
+      "generate_dlb_config": true,
+      "generate_autoload_board_settings": true
+    },
+    "ctr_eflex_config": {
+      "CTR_ING_EFLEX_OPERMODE_PIPEUNIQUE": 1,
+      "CTR_EGR_EFLEX_OPERMODE_PIPEUNIQUE": 1
+    }
+  },
+  "variants": {
+    "internal": {}
+  }
+}
