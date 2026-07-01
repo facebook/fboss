@@ -512,7 +512,10 @@ void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
       fmt::format(kLedWriteFailure, *fan.fanName()), !ret);
 }
 
-int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
+int16_t ControlLogic::calculateZonePwm(
+    const Zone& zone,
+    bool boostMode,
+    std::optional<int16_t> pwmOverride) {
   auto zoneType = *zone.zoneType();
   int16_t zonePwm{0};
   int totalPwmConsidered{0};
@@ -541,6 +544,9 @@ int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
   }
   if (boostMode) {
     zonePwm = std::max(zonePwm, *config_.pwmBoostValue());
+  }
+  if (pwmOverride) {
+    zonePwm = *pwmOverride;
   }
 
   XLOG(INFO) << fmt::format(
@@ -707,11 +713,31 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
         "boost_mode_activated", {{"reason", boostModeReason}});
   }
 
+  std::optional<int16_t> pwmOverride;
+  if (config_.deadFanShutdownCondition()) {
+    const auto& deadFanShutdownCondition = *config_.deadFanShutdownCondition();
+    bool previousDeadFanShutdownMode = deadFanShutdownMode_;
+    deadFanShutdownMode_ =
+        numFanFailed >= *deadFanShutdownCondition.numDeadFans();
+    if (deadFanShutdownMode_) {
+      auto reason = fmt::format(
+          "Dead fan shutdown mode enabled for {} fan failures", numFanFailed);
+      XLOG(ERR) << reason;
+      if (deadFanShutdownCondition.fanDeadPwmValue()) {
+        pwmOverride = *deadFanShutdownCondition.fanDeadPwmValue();
+      }
+      if (!previousDeadFanShutdownMode) {
+        structuredLogger_.logEvent(
+            "dead_fan_shutdown_mode_activated", {{"reason", reason}});
+      }
+    }
+  }
+
   // STEP 5: Calculate and program fan PWMs
   bool hasAnyPwmFailure{false};
   fanStatuses_.withWLock([&](auto& fanStatuses) {
     for (const auto& zone : *config_.zones()) {
-      int16_t zonePwm = calculateZonePwm(zone, boostMode_);
+      int16_t zonePwm = calculateZonePwm(zone, boostMode_, pwmOverride);
       std::unordered_set<std::string> zoneFans(
           zone.fanNames()->begin(), zone.fanNames()->end());
       for (const auto& fan : *config_.fans()) {
@@ -719,10 +745,12 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
           continue;
         }
 
-        int16_t fanPwm = calculateFanPwm(
-            *zone.slope(),
-            *fanStatuses[*fan.fanName()].pwmToProgram(),
-            zonePwm);
+        int16_t fanPwm = pwmOverride
+            ? *pwmOverride
+            : calculateFanPwm(
+                  *zone.slope(),
+                  *fanStatuses[*fan.fanName()].pwmToProgram(),
+                  zonePwm);
         bool fanFailed = programFan(zone, fan, fanPwm);
         hasAnyPwmFailure = hasAnyPwmFailure || fanFailed;
         updatePwmState(zone, fanPwm);
@@ -743,6 +771,11 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
     fb303::fbData->setCounter(kHasFanPwmWriteFailure, hasAnyPwmFailure ? 1 : 0);
     fb303::fbData->setCounter(kHasFanAbsent, hasAnyFanAbsent ? 1 : 0);
   });
+
+  if (deadFanShutdownMode_ && config_.deadFanShutdownCondition()) {
+    pBsp_->runFanDeadShutdownCmds(
+        *config_.deadFanShutdownCondition()->fanDeadShutdownCmds());
+  }
 }
 
 int16_t ControlLogic::calculateFanPwm(
