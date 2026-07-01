@@ -37,11 +37,8 @@ class AgentArsBase : public AgentHwTest {
   void SetUp() override;
   void TearDown() override;
   cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const override;
-  // generatePrefixes() requires 1024 ECMP combinations. With 12 ports
-  // (2^12 - 12 - 1 = 4083 distinct size>=2 subsets) we have headroom; the
-  // 8-port default (247) is insufficient.
   std::optional<size_t> maxRequiredInterfacePorts() const override {
-    return 12;
+    return kMaxEcmpWidthForTest;
   }
   std::string getAclName(
       AclType aclType,
@@ -155,6 +152,11 @@ class AgentArsBase : public AgentHwTest {
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> helper_;
   std::vector<boost::container::flat_set<PortDescriptor>> nhopSets;
   std::vector<RoutePrefixV6> prefixes;
+
+ private:
+  // Max ECMP group width generatePrefixes() builds, and the per-switch
+  // interface-port count this test needs to form them.
+  static constexpr size_t kMaxEcmpWidthForTest = 12;
 };
 
 } // namespace facebook::fboss

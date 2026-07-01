@@ -760,9 +760,14 @@ void AgentArsBase::generatePrefixes() {
       std::back_inserter(portDescriptorIds),
       [](const PortID& portId) { return PortDescriptor(portId); });
 
+  // Request all size>=2 ECMP groups the ports allow
+  // (2^kMaxEcmpWidthForTest - kMaxEcmpWidthForTest - 1); generateEcmpGroupScale
+  // does not build the empty set or single-port subsets.
   std::vector<std::vector<PortDescriptor>> allCombinations =
       utility::generateEcmpGroupScale(
-          portDescriptorIds, 1024, portDescriptorIds.size());
+          portDescriptorIds,
+          (1 << kMaxEcmpWidthForTest) - kMaxEcmpWidthForTest - 1,
+          kMaxEcmpWidthForTest);
   for (const auto& combination : allCombinations) {
     nhopSets.emplace_back(combination.begin(), combination.end());
   }
