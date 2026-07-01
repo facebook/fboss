@@ -53,6 +53,7 @@ cpp_binary(
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-clients",
