@@ -357,6 +357,8 @@ add_fbthrift_cpp_library(
 add_fbthrift_python_library(
   fb303_python
   common/fb303/if/fb303.thrift
+  SERVICES
+    FacebookService
   OPTIONS
     json
 )
@@ -669,6 +671,8 @@ add_fbthrift_cpp_library(
 add_fbthrift_python_library(
   phy_python
   fboss/lib/phy/phy.thrift
+  SERVICES
+    FbossCommonPhyCtrl
   NAMESPACE "neteng.fboss.phy"
   OPTIONS
     json
