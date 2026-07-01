@@ -296,6 +296,9 @@ class SaiSwitch : public HwSwitch {
   // Poll ACL counters from SAI/SDK only (no port/queue/switch stat collection).
   void updateAclStats();
 
+  // Poll ACL counters for a single named ACL table only.
+  void updateAclStatsForTable(const std::string& aclTableName);
+
   std::shared_ptr<SwitchState> reconstructSwitchState() const override;
 
   std::shared_ptr<SwitchState> constructSwitchStateWithFib() noexcept override;

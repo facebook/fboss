@@ -5589,6 +5589,11 @@ void SaiSwitch::updateAclStats() {
   managerTable_->aclTableManager().updateStats();
 }
 
+void SaiSwitch::updateAclStatsForTable(const std::string& aclTableName) {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  managerTable_->aclTableManager().updateStatsForAclTable(aclTableName);
+}
+
 cfg::SwitchingMode SaiSwitch::getFwdSwitchingMode(
     const RouteNextHopEntry& fwd) {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);

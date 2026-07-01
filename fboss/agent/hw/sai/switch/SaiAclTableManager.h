@@ -236,6 +236,9 @@ class SaiAclTableManager {
 
   void updateStats();
 
+  // Poll ACL counters for one table only (used by PBR scale read benchmark).
+  void updateStatsForAclTable(const std::string& aclTableName);
+
   std::pair<int32_t, int32_t> getAclResourceUsage();
 
   std::set<cfg::AclTableQualifier> getSupportedQualifierSet(

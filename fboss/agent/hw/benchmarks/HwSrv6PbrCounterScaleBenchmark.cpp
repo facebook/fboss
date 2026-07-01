@@ -449,7 +449,11 @@ void programPbrAcesUntimed(PbrScalePreparedRun& run) {
 void updatePbrAclStatsOnly(SwSwitch* sw) {
   auto* monoHandler = sw->getMonolithicHwSwitchHandler();
   auto* saiSwitch = static_cast<SaiSwitch*>(monoHandler->getHwSwitch());
-  saiSwitch->updateAclStats();
+  if (kUseSrv6PbrTcRouteDstPath) {
+    saiSwitch->updateAclStatsForTable(kPbrAclTableName);
+  } else {
+    saiSwitch->updateAclStats();
+  }
 }
 
 uint64_t sumAclByteCounters(
