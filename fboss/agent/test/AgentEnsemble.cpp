@@ -182,6 +182,15 @@ void AgentEnsemble::setupEnsemble(
   startAgent(initInfo.failHwCallsOnWarmboot);
 
   for (const auto& switchId : getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    if (switchIndex >= FLAGS_num_npus_for_testing) {
+      XLOG(DBG2) << "Skipping hw switch connection wait for switchId: "
+                 << static_cast<int64_t>(switchId)
+                 << " switchIndex: " << switchIndex
+                 << " numNpusForTesting: " << FLAGS_num_npus_for_testing;
+      continue;
+    }
     ensureHwSwitchConnected(switchId);
   }
 }

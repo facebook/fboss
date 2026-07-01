@@ -333,6 +333,11 @@ DEFINE_int32(
     0,
     "switch ID under test. Used for testing NPU specific features.");
 
+DEFINE_int32(
+    num_npus_for_testing,
+    1,
+    "Number of hw agent NPUs started by the test runner.");
+
 DEFINE_uint32(
     counter_refresh_interval,
     1,
