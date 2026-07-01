@@ -326,8 +326,9 @@ void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
   auto served = metadata.getAllPublishersMetadata();
   if (served.has_value()) {
     for (auto& [root, md] : served.value()) {
-      auto it = registeredPublisherRoots_.rlock()->find(root);
-      if (it == registeredPublisherRoots_.rlock()->end()) {
+      auto lockedRegisteredPublisherRoots = registeredPublisherRoots_.rlock();
+      auto it = lockedRegisteredPublisherRoots->find(root);
+      if (it == lockedRegisteredPublisherRoots->end()) {
         continue;
       }
 
