@@ -1,5 +1,6 @@
 # pyre-strict
 
+import argparse
 import json
 import os
 import sys
@@ -58,55 +59,113 @@ def discover_platforms() -> dict:
     return platforms
 
 
-def generate_all_asic_configs() -> None:
-    """Generate ASIC configs for every discovered platform and variant."""
+def _generate_platform(platform_name: str, platform_config: dict) -> None:
+    """Generate ASIC configs for every variant of a single platform.
+
+    Output files are written to ``OUTPUT_DIR``. Platforms whose (vendor, asic)
+    pair has no registered generator are skipped.
+    """
+    vendor = platform_config.get("vendor", "")
+    asic = platform_config.get("asic", "")
+
+    if (vendor, asic) not in _GENERATOR_REGISTRY:
+        print(
+            f"Skipping {platform_name} (no generator for vendor={vendor}, asic={asic})",
+            file=sys.stderr,
+        )
+        return
+
+    variants = platform_config.get("variants", {})
+
+    for variant_name in variants:
+        print(
+            f"Generating ASIC config for {platform_name}/{variant_name}...",
+            file=sys.stderr,
+        )
+
+        try:
+            generator = get_generator(platform_name, variant_name, platform_config)
+            output = generator.generate()
+
+            output_filename = (
+                f"{platform_name}_{variant_name}{generator.output_extension}"
+            )
+            output_path = os.path.join(OUTPUT_DIR, output_filename)
+
+            print(f"Writing to {output_path}", file=sys.stderr)
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(output)
+
+        except Exception as e:
+            print(
+                f"Error generating config for {platform_name}/{variant_name}: {e}",
+                file=sys.stderr,
+            )
+            raise
+
+
+def _clean_output(platform_name: str | None = None) -> None:
+    """Remove previously generated outputs.
+
+    When ``platform_name`` is given, only that platform's outputs are removed
+    (files named ``<platform_name>_*``); otherwise all generated outputs are
+    removed.
+    """
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+    prefix = f"{platform_name}_" if platform_name else None
     for filename in os.listdir(OUTPUT_DIR):
-        if filename.endswith((".json", ".yml")):
-            os.remove(os.path.join(OUTPUT_DIR, filename))
+        if not filename.endswith((".json", ".yml")):
+            continue
+        if prefix is not None and not filename.startswith(prefix):
+            continue
+        os.remove(os.path.join(OUTPUT_DIR, filename))
+
+
+def generate_all_asic_configs() -> None:
+    """Generate ASIC configs for every discovered platform and variant."""
+    _clean_output()
 
     platforms = discover_platforms()
 
     for platform_name, platform_config in platforms.items():
-        vendor = platform_config.get("vendor", "")
-        asic = platform_config.get("asic", "")
+        _generate_platform(platform_name, platform_config)
 
-        if (vendor, asic) not in _GENERATOR_REGISTRY:
-            print(
-                f"Skipping {platform_name} (no generator for vendor={vendor}, asic={asic})",
-                file=sys.stderr,
-            )
-            continue
 
-        variants = platform_config.get("variants", {})
+def generate_single_platform(platform_name: str) -> None:
+    """Generate ASIC configs for a single platform's variants."""
+    platforms = discover_platforms()
 
-        for variant_name in variants:
-            print(
-                f"Generating ASIC config for {platform_name}/{variant_name}...",
-                file=sys.stderr,
-            )
+    if platform_name not in platforms:
+        available = "\n".join(f"  - {p}" for p in sorted(platforms)) or "  (none)"
+        raise ValueError(
+            f"Unknown platform '{platform_name}'.\nAvailable platforms:\n{available}"
+        )
 
-            try:
-                generator = get_generator(platform_name, variant_name, platform_config)
-                output = generator.generate()
+    _clean_output(platform_name)
+    _generate_platform(platform_name, platforms[platform_name])
 
-                output_filename = (
-                    f"{platform_name}_{variant_name}{generator.output_extension}"
-                )
-                output_path = os.path.join(OUTPUT_DIR, output_filename)
 
-                print(f"Writing to {output_path}", file=sys.stderr)
-                with open(output_path, "w", encoding="utf-8") as f:
-                    f.write(output)
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Generate asic_config_v3 ASIC config YAML."
+    )
+    parser.add_argument(
+        "--platform",
+        type=str,
+        default=None,
+        help=(
+            "Generate only this platform (matches a platforms/<name> dir). "
+            "Defaults to generating all discovered platforms."
+        ),
+    )
+    args = parser.parse_args()
 
-            except Exception as e:
-                print(
-                    f"Error generating config for {platform_name}/{variant_name}: {e}",
-                    file=sys.stderr,
-                )
-                raise
+    if args.platform:
+        generate_single_platform(args.platform)
+    else:
+        generate_all_asic_configs()
 
 
 if __name__ == "__main__":
-    generate_all_asic_configs()
+    main()
