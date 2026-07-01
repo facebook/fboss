@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h"
 
 namespace facebook::fboss {
 
@@ -40,6 +41,7 @@ class AdminDistanceArg : public utils::BaseObjectArgType<std::string> {
 };
 
 struct CmdConfigAdminDistanceTraits : public WriteCommandTraits {
+  using ParentCmd = CmdConfigSwitch;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
     cmd.add_option(
         "client_distance",
