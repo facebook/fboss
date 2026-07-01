@@ -9,6 +9,7 @@ add_executable(platform_manager_config_validator_test
 
 target_link_libraries(platform_manager_config_validator_test
   platform_manager_config_validator
+  platform_config_lib
   Folly::folly
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
