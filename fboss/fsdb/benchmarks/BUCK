@@ -30,7 +30,9 @@ cpp_library(
         "//fboss/thrift_cow/nodes:nodes",
         "//folly:subprocess",
         "//folly:utility",
+        "//folly/executors:io_thread_pool_executor",
         "//folly/synchronization:baton",
+        "//folly/system:hardware_concurrency",
         "//thrift/lib/cpp2/op:get",
     ],
     exported_external_deps = [
@@ -69,6 +71,7 @@ cpp_benchmark(
         "VoqCounterScaleBench.cpp",
     ],
     deps = [
+        "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
         ":fsdb_benchmark_helper",
         ":state_generator",
