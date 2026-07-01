@@ -70,7 +70,8 @@ std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs) {
 
 UnicastRoute toUnicastRoute(
     const folly::CIDRNetwork& nw,
-    const RouteNextHopEntry& nhopEntry) {
+    const RouteNextHopEntry& nhopEntry,
+    const RouteNextHopSet& nhops) {
   UnicastRoute thriftRoute;
   thriftRoute.dest()->ip() = network::toBinaryAddress(nw.first);
   thriftRoute.dest()->prefixLength() = nw.second;
@@ -82,9 +83,15 @@ UnicastRoute toUnicastRoute(
     thriftRoute.classID() = nhopEntry.getClassID().value();
   }
   if (nhopEntry.getAction() == RouteForwardAction::NEXTHOPS) {
-    thriftRoute.nextHops() = fromRouteNextHopSet(nhopEntry.getNextHopSet());
+    thriftRoute.nextHops() = fromRouteNextHopSet(nhops);
   }
   return thriftRoute;
+}
+
+UnicastRoute toUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    const RouteNextHopEntry& nhopEntry) {
+  return toUnicastRoute(nw, nhopEntry, nhopEntry.getNextHopSet());
 }
 
 } // namespace util
