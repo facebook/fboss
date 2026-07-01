@@ -1211,6 +1211,43 @@ add_fbthrift_python_library(
     phy_python
     prbs_python
 )
+add_fbthrift_python_library(
+  fsdb_common_python
+  fboss/fsdb/if/fsdb_common.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  patch_python
+  fboss/thrift_cow/patch.thrift
+  NAMESPACE "neteng.fboss.thrift_cow"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  fsdb_oper_python
+  fboss/fsdb/if/fsdb_oper.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    fsdb_common_python
+    patch_python
+)
+add_fbthrift_python_library(
+  fsdb_python
+  fboss/fsdb/if/fsdb.thrift
+  SERVICES
+    FsdbService
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    fb303_python
+    fsdb_common_python
+    fsdb_oper_python
+)
 
 add_fbthrift_cpp_library(
   hal_test_config_cpp2
