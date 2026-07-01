@@ -36,6 +36,7 @@
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
+#include <folly/ScopeGuard.h>
 
 DECLARE_bool(enable_nexthop_id_manager);
 
@@ -1176,10 +1177,19 @@ TEST_F(NextHopMapPopulationTest, MixedResolvedAndUnresolvedRoutes) {
 // routes with the manager off (so no IDs are stamped at program time), then
 // reconstructing with the manager on (backfill should fill in all IDs).
 TEST_F(NextHopMapPopulationTest, BackfillsMissingIdsFromWarmBoot) {
-  // Tear down the fixture's flag-on handle and rebuild with the flag off so
-  // routes are programmed without any IDs.
+  // Tear down the fixture's flag-on handle and rebuild with both flags off so
+  // routes are programmed without any IDs. resolve_nexthops_from_id requires
+  // enable_nexthop_id_manager, so the flag-OFF world must turn both off.
+  // Restore flags on exit so they don't leak to subsequent tests.
+  auto savedEnable = FLAGS_enable_nexthop_id_manager;
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  SCOPE_EXIT {
+    FLAGS_enable_nexthop_id_manager = savedEnable;
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
   handle_.reset();
   FLAGS_enable_nexthop_id_manager = false;
+  FLAGS_resolve_nexthops_from_id = false;
   auto config = initialConfig();
   handle_ = createTestHandle(&config);
   sw_ = handle_->getSw();
@@ -1192,6 +1202,7 @@ TEST_F(NextHopMapPopulationTest, BackfillsMissingIdsFromWarmBoot) {
 
   // Reconstruct under flag-on -- backfill runs inside fromThrift.
   FLAGS_enable_nexthop_id_manager = true;
+  FLAGS_resolve_nexthops_from_id = true;
   auto reconstructedRib = RoutingInformationBase::fromThrift(
       ribThrift,
       nullptr,
@@ -1243,10 +1254,22 @@ TEST_F(NextHopMapPopulationTest, BackfillsMissingIdsFromWarmBoot) {
 //     RouteUpdater allocation-time asymmetry at RouteUpdater.cpp's
 //     `if (!labelPopandLookup)` guard.
 TEST_F(NextHopMapPopulationTest, BackfillsMissingMplsIdsFromWarmBoot) {
-  // Rebuild with manager-off so MPLS routes are programmed without IDs.
+  // Rebuild with both flags off so MPLS routes are programmed without IDs.
+  // resolve_nexthops_from_id requires enable_nexthop_id_manager, so the
+  // flag-OFF world must turn both off.
   // FLAGS_mpls_rib needed so RIB carries labelToRoute the backfill can walk.
+  // Restore flags on exit so they don't leak to subsequent tests.
+  auto savedEnable = FLAGS_enable_nexthop_id_manager;
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  auto savedMplsRib = FLAGS_mpls_rib;
+  SCOPE_EXIT {
+    FLAGS_enable_nexthop_id_manager = savedEnable;
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+    FLAGS_mpls_rib = savedMplsRib;
+  };
   handle_.reset();
   FLAGS_enable_nexthop_id_manager = false;
+  FLAGS_resolve_nexthops_from_id = false;
   FLAGS_mpls_rib = true;
   auto config = initialConfig();
   handle_ = createTestHandle(&config);
@@ -1263,6 +1286,7 @@ TEST_F(NextHopMapPopulationTest, BackfillsMissingMplsIdsFromWarmBoot) {
 
   // Reconstruct under flag-on — backfill walks labelToRoute too.
   FLAGS_enable_nexthop_id_manager = true;
+  FLAGS_resolve_nexthops_from_id = true;
   auto reconstructedRib = RoutingInformationBase::fromThrift(
       ribThrift,
       nullptr,

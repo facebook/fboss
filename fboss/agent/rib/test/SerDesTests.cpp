@@ -15,10 +15,12 @@
 #include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddress.h>
+#include <folly/ScopeGuard.h>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
 
 DECLARE_bool(enable_nexthop_id_manager);
+DECLARE_bool(resolve_nexthops_from_id);
 
 using namespace facebook::fboss;
 
@@ -150,6 +152,13 @@ class RibSerializationTest : public ::testing::Test {
 };
 
 TEST_F(RibSerializationTest, fullRibSerDeser) {
+  // Deserializes without FIB info, so the reconstructed manager has no ID maps
+  // to resolve against. Compare via inline nexthops.
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  FLAGS_resolve_nexthops_from_id = false;
+  SCOPE_EXIT {
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
   auto deserializedRib = RoutingInformationBase::fromThrift(
       rib.toThrift(), nullptr, nullptr, nullptr);
 
@@ -167,6 +176,13 @@ TEST_F(RibSerializationTest, serializeOnlyUnresolvedRoutes) {
 }
 
 TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
+  // The empty/null-FIB deserializations below have no ID maps to resolve
+  // against, so getRouteTableDetails must read inline nexthops.
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  FLAGS_resolve_nexthops_from_id = false;
+  SCOPE_EXIT {
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
   auto deserializedRibEmptyFibThrift = RoutingInformationBase::fromThrift(
       rib.warmBootState(),
       std::make_shared<MultiSwitchFibInfoMap>(),
