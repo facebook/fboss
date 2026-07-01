@@ -1071,6 +1071,83 @@ add_fbthrift_python_library(
     json
 )
 
+add_fbthrift_python_library(
+  mka_structs_python
+  fboss/mka_service/if/mka_structs.thrift
+  NAMESPACE "neteng.fboss.mka"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  hardware_stats_python
+  fboss/agent/hw/hardware_stats.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    mka_structs_python
+)
+add_fbthrift_python_library(
+  asic_temp_python
+  fboss/agent/if/asic_temp.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    fboss_python
+)
+add_fbthrift_python_library(
+  agent_stats_python
+  fboss/agent/agent_stats.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    hardware_stats_python
+    switch_config_python
+    phy_python
+    asic_temp_python
+)
+add_fbthrift_python_library(
+  product_info_python
+  fboss/agent/if/product_info.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  cfgr_fboss_common_python
+  configerator/structs/neteng/fboss/thrift/common.thrift
+  NAMESPACE "neteng.fboss.configerator"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  ctrl_python
+  fboss/agent/if/ctrl.thrift
+  SERVICES
+    FbossCtrl
+    NeighborListenerClient
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    fboss_python
+    fb303_python
+    network_address_python
+    agent_stats_python
+    mpls_python
+    cfgr_fboss_common_python
+    common_python
+    product_info_python
+    transceiver_python
+    switch_config_python
+    platform_config_python
+    phy_python
+    prbs_python
+    hardware_stats_python
+)
+
 add_fbthrift_cpp_library(
   hal_test_config_cpp2
   fboss/qsfp_service/test/hal_test/hal_test_config.thrift
