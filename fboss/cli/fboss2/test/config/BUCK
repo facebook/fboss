@@ -7,6 +7,7 @@ cpp_unittest(
     name = "cmd_config_test",
     srcs = [
         "BgpConfigSessionTest.cpp",
+        "CmdConfigAclRuleTest.cpp",
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigArpTest.cpp",
         "CmdConfigCoppTest.cpp",
@@ -32,6 +33,7 @@ cpp_unittest(
         "CmdConfigVlanManagerTest.cpp",
         "CmdConfigVlanPortTaggingModeTest.cpp",
         "CmdConfigVlanStaticMacTest.cpp",
+        "CmdDeleteAclRuleTest.cpp",
         "CmdDeleteConfigInterfaceTest.cpp",
         "CmdDeleteInterfaceIpv6NdpTest.cpp",
         "CmdDeleteInterfaceTest.cpp",

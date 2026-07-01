@@ -66,9 +66,6 @@ void Fboss2IntegrationTest::TearDown() {
 }
 
 void Fboss2IntegrationTest::discardSession() const {
-  // Delete the session files to ensure we start with a fresh session
-  // based on the current HEAD. ConfigSession::initializeSession() will
-  // reset internal state when it detects no session file exists.
   // NOLINTNEXTLINE(concurrency-mt-unsafe): HOME is read-only in practice
   const char* home = std::getenv("HOME");
   if (home == nullptr) {
@@ -477,6 +474,20 @@ void Fboss2IntegrationTest::waitForAgentReady(
   }
   FAIL() << "Agent did not become ready within " << timeout.count()
          << " seconds";
+}
+
+void Fboss2IntegrationTest::waitForAgentReadyViaSystemd(int timeoutSec) {
+  for (int i = 0; i < timeoutSec; ++i) {
+    // NOLINTNEXTLINE(concurrency-mt-unsafe,bugprone-unsafe-functions)
+    if (std::system(
+            "sudo systemctl is-active --quiet fboss_sw_agent && "
+            "timeout 3 fboss2-dev show interface >/dev/null 2>&1") == 0) {
+      return;
+    }
+    // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
+  FAIL() << "fboss_sw_agent did not become ready within " << timeoutSec << "s";
 }
 
 int Fboss2IntegrationTest::getKernelInterfaceMtu(int vlanId) const {
