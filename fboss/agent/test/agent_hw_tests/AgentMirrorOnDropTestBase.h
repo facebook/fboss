@@ -17,11 +17,13 @@
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
+#include <folly/io/IOBuf.h>
 
 #include "fboss/agent/test/AgentHwTest.h"
 
 namespace facebook::fboss {
 
+class HwSwitch;
 class TxPacket;
 
 // Base class for Mirror on Drop tests.
@@ -88,7 +90,14 @@ class AgentMirrorOnDropTestBase : public AgentHwTest {
       int priority = 0,
       size_t payloadSize = 512);
 
-  SystemPortID systemPortId(const PortID& portId);
+  SystemPortID systemPortId(const PortID& portId) const;
+
+  uint16_t expectedTajoModIngressPort(const PortID& portId, const HwSwitch* hw)
+      const;
+
+  // True when the frame has the MOD export outer transport: IPv6 dst is the
+  // configured collector and UDP dport is the mirror collector port.
+  static bool looksLikeMirrorOnDropOuterPacket(const folly::IOBuf* buf);
 };
 
 } // namespace facebook::fboss

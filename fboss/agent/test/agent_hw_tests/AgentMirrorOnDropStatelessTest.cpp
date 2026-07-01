@@ -4,12 +4,16 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+
 #include <folly/ScopeGuard.h>
+#include <folly/logging/xlog.h>
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTajoImpl.h"
 #include "fboss/agent/test/agent_hw_tests/AgentMirrorOnDropXgsImpl.h"
@@ -28,12 +32,6 @@ namespace {
 // format's two-slot drop-reason struct.
 MirrorOnDropDropReasonCodes ingressOnly(uint16_t code) {
   return {.ingressDropReason = code, .egressDropReason = 0};
-}
-
-// Pack an MMU/egress drop code into the wire format's two-slot drop-reason
-// struct.
-MirrorOnDropDropReasonCodes egressOnly(uint16_t code) {
-  return {.ingressDropReason = 0, .egressDropReason = code};
 }
 
 } // namespace
@@ -113,7 +111,7 @@ AgentMirrorOnDropStatelessTest::getAclDropReasons() {
 
 MirrorOnDropDropReasonCodes
 AgentMirrorOnDropStatelessTest::getMmuDropReasons() {
-  return egressOnly(impl()->getMmuDropReason());
+  return impl()->packMmuDropReason(impl()->getMmuDropReason());
 }
 
 MirrorOnDropDropReasonCodes
@@ -151,6 +149,13 @@ void AgentMirrorOnDropStatelessTest::configureMmuDropBuffers(
           hwAsic->getAsicType(), kDefaultGlobalSharedBytes));
 }
 
+utility::PacketFilterFn
+AgentMirrorOnDropStatelessTest::mirrorOnDropRxPacketFilter() {
+  return [](const folly::IOBuf* buf) {
+    return looksLikeMirrorOnDropOuterPacket(buf);
+  };
+}
+
 void AgentMirrorOnDropStatelessTest::configureErspanMirror(
     cfg::SwitchConfig& config,
     const std::string& mirrorName,
@@ -161,22 +166,81 @@ void AgentMirrorOnDropStatelessTest::configureErspanMirror(
       config, mirrorName, tunnelDstIp, tunnelSrcIp, srcPortId);
 }
 
+std::optional<std::unique_ptr<folly::IOBuf>>
+AgentMirrorOnDropStatelessTest::waitForMirrorOnDropPacket(
+    utility::SwSwitchPacketSnooper& snooper,
+    uint32_t timeout_s) {
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(timeout_s);
+  while (true) {
+    const auto now = std::chrono::steady_clock::now();
+    if (now >= deadline) {
+      return std::nullopt;
+    }
+    const auto remainingSec =
+        std::chrono::duration_cast<std::chrono::seconds>(deadline - now)
+            .count();
+    const uint32_t waitSec =
+        remainingSec > 0 ? static_cast<uint32_t>(remainingSec) : 1;
+    auto frameRx = snooper.waitForPacket(waitSec);
+    if (!frameRx) {
+      return std::nullopt;
+    }
+    if (looksLikeMirrorOnDropOuterPacket(frameRx->get())) {
+      return frameRx;
+    }
+    XLOG(DBG2) << "Ignoring non-MOD CPU packet while waiting for MOD export "
+               << "(expected outer IPv6 dst " << kCollectorIp_.str()
+               << ", UDP dport " << kMirrorDstPort << ")";
+  }
+}
+
 void AgentMirrorOnDropStatelessTest::validateMirrorOnDropPacket(
     const folly::IOBuf* captured,
     const PortID& injectionPortId,
     const MirrorOnDropDropReasonCodes& expectedReasons,
     std::optional<folly::IPAddressV6> expectedInnerDstIp,
-    std::optional<folly::IPAddressV6> expectedInnerSrcIp) {
+    std::optional<folly::IPAddressV6> expectedInnerSrcIp,
+    std::optional<PortID> expectedIngressPortId) {
+  EXPECT_TRUE(looksLikeMirrorOnDropOuterPacket(captured))
+      << "Captured CPU packet is not a MOD export (expected outer IPv6 dst "
+      << kCollectorIp_.str() << ", UDP dport " << kMirrorDstPort << ")";
   verifyAsicSpecificInvariants(captured);
   auto fields = parseMirrorOnDropPacket(captured);
 
-  EXPECT_EQ(fields.outerSrcMac, getLocalMacAddress());
+  folly::MacAddress expectedOuterSrcMac = getLocalMacAddress();
+  const bool isTajoImpl =
+      dynamic_cast<TajoMirrorOnDropImpl*>(impl()) != nullptr;
+  if (isTajoImpl) {
+    expectedOuterSrcMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    const auto& cfg = getAgentEnsemble()->getCurrentConfig();
+    if (cfg.switchSettings().has_value()) {
+      const auto& infoRef = cfg.switchSettings().value().switchIdToSwitchInfo();
+      if (infoRef.has_value() && !infoRef.value().empty()) {
+        const auto& switchInfo = infoRef.value().begin()->second;
+        if (switchInfo.switchMac().has_value()) {
+          expectedOuterSrcMac =
+              folly::MacAddress(switchInfo.switchMac().value());
+        }
+      }
+    }
+  }
+  EXPECT_EQ(fields.outerSrcMac, expectedOuterSrcMac);
   EXPECT_EQ(fields.outerDstMac, kCollectorNextHopMac_);
   EXPECT_EQ(fields.outerSrcIp, kSwitchIp_);
   EXPECT_EQ(fields.outerDstIp, kCollectorIp_);
-  EXPECT_EQ(fields.outerSrcPort, static_cast<uint16_t>(kMirrorSrcPort));
   EXPECT_EQ(fields.outerDstPort, static_cast<uint16_t>(kMirrorDstPort));
-  EXPECT_EQ(fields.ingressPort, static_cast<uint16_t>(injectionPortId));
+  const HwSwitch* hwSwitch = nullptr;
+  if (auto* monoHandler = getSw()->getMonolithicHwSwitchHandler()) {
+    hwSwitch = monoHandler->getHwSwitch();
+  }
+  const PortID& ingressPortForCheck =
+      expectedIngressPortId.value_or(injectionPortId);
+  const uint16_t expectedIngress = isTajoImpl
+      ? expectedTajoModIngressPort(ingressPortForCheck, hwSwitch)
+      : impl()->expectedIngressPort(hwSwitch, ingressPortForCheck);
+  EXPECT_EQ(fields.ingressPort, expectedIngress);
   EXPECT_EQ(fields.dropReasonIngress, expectedReasons.ingressDropReason);
   EXPECT_EQ(fields.dropReasonEgress, expectedReasons.egressDropReason);
   EXPECT_EQ(fields.innerSrcIp, expectedInnerSrcIp.value_or(kPacketSrcIp_));
@@ -233,15 +297,22 @@ void AgentMirrorOnDropStatelessTest::testDefaultRouteDrop() {
   };
 
   auto verify = [&]() {
-    utility::SwSwitchPacketSnooper snooper(getSw(), "mod-snooper");
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        utility::packetSnooperReceivePacketType::PACKET_TYPE_ALL,
+        mirrorOnDropRxPacketFilter());
     snooper.ignoreUnclaimedRxPkts();
     sendPackets(1, injectionPortId, kDropDestIp);
 
     WITH_RETRIES_N(5, {
-      auto frameRx = snooper.waitForPacket(1);
+      auto frameRx = waitForMirrorOnDropPacket(snooper, 1);
       EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
       if (frameRx.has_value()) {
-        XLOG(INFO) << "Captured MirrorOnDrop packet:\n"
+        XLOG(INFO) << "Captured MirrorOnDrop packet for default-route drop:\n"
                    << PktUtil::hexDump(frameRx->get());
         validateMirrorOnDropPacket(
             frameRx->get(),
@@ -284,14 +355,21 @@ void AgentMirrorOnDropStatelessTest::testAclDrop() {
   };
 
   auto verify = [&]() {
-    utility::SwSwitchPacketSnooper snooper(getSw(), "mod-acl-snooper");
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-acl-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        utility::packetSnooperReceivePacketType::PACKET_TYPE_ALL,
+        mirrorOnDropRxPacketFilter());
     snooper.ignoreUnclaimedRxPkts();
     auto pkt = sendPackets(1, injectionPortId, kAclDropDestIp);
     XLOG(INFO) << "Sent packet to trigger ACL drop:\n"
                << PktUtil::hexDump(pkt->buf());
 
     WITH_RETRIES_N(5, {
-      auto frameRx = snooper.waitForPacket(1);
+      auto frameRx = waitForMirrorOnDropPacket(snooper, 1);
       EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
       if (frameRx.has_value()) {
         XLOG(INFO) << "Captured MirrorOnDrop packet for ACL drop:\n"
@@ -347,7 +425,14 @@ void AgentMirrorOnDropStatelessTest::testMmuDrop() {
           getAgentEnsemble(), txOffPortId, true);
     };
 
-    utility::SwSwitchPacketSnooper snooper(getSw(), "mod-mmu-snooper");
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-mmu-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        utility::packetSnooperReceivePacketType::PACKET_TYPE_ALL,
+        mirrorOnDropRxPacketFilter());
     snooper.ignoreUnclaimedRxPkts();
 
     // Snapshot inCongestionDiscards before sending. The counter is monotonic
@@ -364,9 +449,22 @@ void AgentMirrorOnDropStatelessTest::testMmuDrop() {
     });
 
     WITH_RETRIES_N(5, {
-      auto frameRx = snooper.waitForPacket(1);
+      auto frameRx = waitForMirrorOnDropPacket(snooper, 1);
       EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
       if (frameRx.has_value()) {
+        XLOG(INFO) << "Captured MirrorOnDrop packet for MMU drop:\n"
+                   << PktUtil::hexDump(frameRx->get());
+        auto fields = parseMirrorOnDropPacket(frameRx->get());
+        if (auto puntCodeIt = fields.asicMetadata.find("puntCode");
+            puntCodeIt != fields.asicMetadata.end()) {
+          XLOG(INFO) << fmt::format(
+              "MMU punt code on wire: {} (0x{:x}), parsed ingressDrop={} "
+              "egressDrop={}, expected ingress=0 egress=0x12",
+              puntCodeIt->second,
+              puntCodeIt->second,
+              fields.dropReasonIngress,
+              fields.dropReasonEgress);
+        }
         validateMirrorOnDropPacket(
             frameRx->get(), injectionPortId, getMmuDropReasons());
       }

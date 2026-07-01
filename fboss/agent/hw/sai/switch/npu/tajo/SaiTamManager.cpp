@@ -2,15 +2,10 @@
 
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 
-extern "C" {
-#if defined(TAJO_SDK_GTE_26_5)
-#include <saiextensions.h>
-#else
-#include <experimental/sai_attr_ext.h>
-#endif
-}
+#include "fboss/agent/hw/sai/api/tajo/TajoSaiIncludes.h"
 
 #include <folly/logging/xlog.h>
+#include <limits>
 
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -25,9 +20,6 @@ namespace facebook::fboss {
 
 namespace {
 
-// Tajo TAM bind-point list per the Tajo SAI MoD design (Tajo TAM API doc):
-// the BIND_POINT_TYPE_LIST attribute on the TAM object only declares SWITCH.
-// The TAM is still attached to a port for MoD egress via the port manager.
 const std::vector<sai_int32_t> kTajoTamBindpoints = {
     SAI_TAM_BIND_POINT_TYPE_SWITCH};
 
@@ -55,15 +47,6 @@ std::vector<sai_object_id_t> gatherAllEventIds(
   return eventIds;
 }
 
-// Tajo SAI permits at most one TAM object on the device. To add or remove
-// a MoD event we must (a) detach the live TAM from switch and ports,
-// (b) drop our references so the SAI object is destroyed,
-// (c) create a fresh one whose EventObjectList carries the union of every
-// handle's events, and (d) re-bind it to the switch and to every MoD
-// egress port. The destroy-before-create ordering is forced by Tajo's
-// single-TAM limit (a create-before-destroy would fail at the SAI layer
-// because the old TAM still holds the slot). If step (c) throws, the
-// system is left without a TAM until the next state delta retry.
 void rebuildAndRebindTam(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
@@ -108,35 +91,37 @@ void rebuildAndRebindTam(
              << " port(s)";
 }
 
-// Build a TAM_EVENT_THRESHOLD object whose UNIT is packets and RATE is the
-// configured packet-per-second cap. Returns nullptr if no rate is configured
-// or the configured value is non-positive — SAI_TAM_EVENT_ATTR_THRESHOLD
-// will then be left unset on the TAM_EVENT, which is the most permissive
-// default (no rate limiting).
 std::shared_ptr<SaiTamEventThreshold> createTamEventThreshold(
     SaiStore* saiStore,
     std::optional<int32_t> rateThreshold) {
-  if (!rateThreshold.has_value() || *rateThreshold <= 0) {
-    if (rateThreshold.has_value()) {
-      XLOG(WARN) << "MirrorOnDropReport dropPacketRateThreshold="
-                 << *rateThreshold
-                 << " is non-positive; ignoring (no rate limiting will apply)";
-    }
-    return nullptr;
-  }
   SaiTamEventThresholdTraits::CreateAttributes thresholdTraits;
-  std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Unit>>(
-      thresholdTraits) =
-      static_cast<sai_int32_t>(SAI_TAM_EVENT_THRESHOLD_UNIT_PACKETS);
-  std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Rate>>(
-      thresholdTraits) = static_cast<sai_uint32_t>(*rateThreshold);
+  if (rateThreshold.has_value() && *rateThreshold > 0) {
+    std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Unit>>(
+        thresholdTraits) =
+        static_cast<sai_int32_t>(SAI_TAM_EVENT_THRESHOLD_UNIT_PACKETS);
+    std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Rate>>(
+        thresholdTraits) = static_cast<sai_uint32_t>(*rateThreshold);
+  } else if (rateThreshold.has_value()) {
+    XLOG(WARN) << "MirrorOnDropReport dropPacketRateThreshold="
+               << *rateThreshold
+               << " is non-positive; using threshold object without explicit "
+               << "rate limit";
+    std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Unit>>(
+        thresholdTraits) =
+        static_cast<sai_int32_t>(SAI_TAM_EVENT_THRESHOLD_UNIT_PACKETS);
+    std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Rate>>(
+        thresholdTraits) = std::numeric_limits<sai_uint32_t>::max();
+  } else {
+    std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Unit>>(
+        thresholdTraits) =
+        static_cast<sai_int32_t>(SAI_TAM_EVENT_THRESHOLD_UNIT_PACKETS);
+    std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Rate>>(
+        thresholdTraits) = std::numeric_limits<sai_uint32_t>::max();
+  }
   auto& store = saiStore->get<SaiTamEventThresholdTraits>();
   return store.setObject(thresholdTraits, thresholdTraits);
 }
 
-// Build the single all-drop-events TAM_EVENT for MoD. Per the Tajo TAM API
-// doc, Tajo does not implement modEventToConfigMap — drops are captured all
-// or nothing, so we create one PACKET_DROP event covering everything.
 std::shared_ptr<SaiTamEvent> createMirrorOnDropEvent(
     SaiStore* saiStore,
     sai_object_id_t actionId,
@@ -164,10 +149,6 @@ std::shared_ptr<SaiTamEvent> createMirrorOnDropEvent(
   return eventStore.setObject(eventAdapterHostKey, eventTraits);
 }
 
-// Tajo-specific TamReport: vendor-extn type plus optional sample-rate /
-// max-report-rate / max-report-burst attributes (Tajo SDK 25.5+, SAI v1.16+).
-// SampleRate maps to MoD samplingRate; the max-rate / max-burst caps are not
-// currently surfaced by MirrorOnDropReport so they default to nullopt.
 std::shared_ptr<SaiTamReport> createMirrorOnDropReport(
     SaiStore* saiStore,
     std::optional<int32_t> samplingRate) {
@@ -224,13 +205,39 @@ std::shared_ptr<SaiTamTransport> SaiTamManager::createTamTransport(
     sai_int32_t transportType,
     std::optional<folly::MacAddress> dstMac) {
   auto& transportStore = saiStore_->get<SaiTamTransportTraits>();
+  std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress> srcMacAttr =
+      std::nullopt;
+  if (SaiTamTransportTraits::Attributes::SrcMacAddress::
+          optionalExtensionAttributeId()
+              .has_value()) {
+    srcMacAttr = SaiTamTransportTraits::Attributes::SrcMacAddress(
+        folly::MacAddress(report->getSwitchMac()));
+  } else {
+    XLOG(INFO) << "Skipping TAM transport srcMac extension attribute "
+               << "(unsupported on this SAI implementation)";
+  }
+
+  std::optional<SaiTamTransportTraits::Attributes::DstMacAddress> dstMacAttr =
+      std::nullopt;
+  if (dstMac.has_value()) {
+    if (SaiTamTransportTraits::Attributes::DstMacAddress::
+            optionalExtensionAttributeId()
+                .has_value()) {
+      dstMacAttr =
+          SaiTamTransportTraits::Attributes::DstMacAddress(dstMac.value());
+    } else {
+      XLOG(INFO) << "Skipping TAM transport dstMac extension attribute "
+                 << "(unsupported on this SAI implementation)";
+    }
+  }
+
   auto transportTraits = SaiTamTransportTraits::AdapterHostKey{
       transportType,
       report->getLocalSrcPort(),
       report->getCollectorPort(),
       report->getMtu(),
-      folly::MacAddress(report->getSwitchMac()),
-      dstMac,
+      srcMacAttr,
+      dstMacAttr,
   };
   return transportStore.setObject(transportTraits, transportTraits);
 }
@@ -360,8 +367,6 @@ void SaiTamManager::addMirrorOnDropReport(
                << " already exists; skipping add";
     return;
   }
-  // Per Tajo TAM API doc, MoD packets are routed out a front-panel port.
-  // Wait for collector IP resolution to know which port that is.
   if (!report->isResolved()) {
     XLOG(INFO) << "Skipping Tajo MirrorOnDropReport " << report->getID()
                << " - collector IP not yet resolved";
