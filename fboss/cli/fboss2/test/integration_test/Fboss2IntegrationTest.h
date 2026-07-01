@@ -79,38 +79,6 @@ class Fboss2IntegrationTest : public ::testing::Test {
   folly::dynamic getRunningConfig() const;
 
   /**
-   * Read a top-level field from the running config's "sw" object.
-   *
-   * The return type is controlled by the template parameter:
-   *   getSwConfigField<int>("arpTimeoutSeconds")
-   *   getSwConfigField<bool>("enableLldp")
-   *   getSwConfigField<std::string>("loadBalancerPoolName")
-   */
-  template <typename T>
-  T getSwConfigField(const std::string& field) const {
-    auto config = getRunningConfig();
-    if (!config.isObject() || !config.count("sw")) {
-      throw std::runtime_error("Running config missing 'sw' object");
-    }
-    const auto& sw = config["sw"];
-    if (!sw.isObject() || !sw.count(field)) {
-      throw std::runtime_error(
-          "Running config 'sw' missing field '" + field + "'");
-    }
-    if constexpr (std::is_same_v<T, bool>) {
-      return sw[field].asBool();
-    } else if constexpr (std::is_integral_v<T>) {
-      return static_cast<T>(sw[field].asInt());
-    } else if constexpr (std::is_same_v<T, std::string>) {
-      return sw[field].asString();
-    } else if constexpr (std::is_same_v<T, double>) {
-      return sw[field].asDouble();
-    } else {
-      static_assert(!sizeof(T), "Unsupported type for getSwConfigField");
-    }
-  }
-
-  /**
    * Fetch the agent's switch state for the given thrift path via
    * getCurrentStateJSON and return it parsed.
    */

@@ -19,6 +19,7 @@
 #include "fboss/cli/fboss2/commands/config/dhcp/relay_source_override/CmdConfigDhcpRelaySourceOverride.h"
 #include "fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
+#include "fboss/cli/fboss2/commands/config/hostname/CmdConfigHostname.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h"
@@ -110,6 +111,7 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+#include "fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.h"
@@ -194,6 +196,20 @@ const CommandTree& kConfigCommandTree() {
        "Show history of committed config revisions",
        commandHandler<CmdConfigHistory>,
        argRegistrar<CmdConfigHistoryTraits>},
+
+      {
+          "config",
+          "switch",
+          "Configure switch-level settings",
+          commandHandler<CmdConfigSwitch>,
+          argRegistrar<CmdConfigSwitchTraits>,
+          {{
+              "hostname",
+              "Set switch hostname",
+              commandHandler<CmdConfigHostname>,
+              argRegistrar<CmdConfigHostnameTraits>,
+          }},
+      },
 
       {
           "config",
