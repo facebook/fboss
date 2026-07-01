@@ -144,7 +144,15 @@ class SaiAgentTestRunner(TestRunner):
 
     def _get_test_run_args(self, conf_file: str) -> list[str]:
         args = self.args
-        args_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        args_list = [
+            "--config",
+            conf_file,
+            "--mgmt-if",
+            args.mgmt_if,
+            "--undefok=num_npus_for_testing",
+            "--num_npus_for_testing",
+            str(args.num_npus),
+        ]
         # Multi switch mode is using hw agent as a service, so the override platform mapping needs
         # to be specified in the systemd unit file instead of the test binary flags
         if (
