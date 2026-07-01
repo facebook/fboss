@@ -12,6 +12,7 @@
 
 #include <array>
 #include <chrono>
+#include <functional>
 #include <map>
 #include <optional>
 #include <vector>
@@ -302,6 +303,17 @@ class CmisModule : public QsfpModule {
   getLaneValuePtr(CmisField field, int globalLane, int bytesPerLane) const;
   bool getLaneFlagSet(CmisField field, int globalLane) const;
   uint8_t getLaneNibble(CmisField field, int globalLane) const;
+
+  // Convenience wrappers over getVdmLaneValues/getVdmLaneValue for the two
+  // common per-lane VDM decodings, keeping the decode lambdas in one place:
+  // U16 (integer byte + fractional byte / 256) and F16 (CMIS half-precision
+  // used for BER / PM values). Values are keyed by global lane across all
+  // banks.
+  std::map<int, double> getVdmLaneValuesU16(VdmConfigType vdmConf);
+  std::map<int, double> getVdmLaneValuesF16(VdmConfigType vdmConf);
+  std::optional<double> getVdmLaneValueF16(
+      VdmConfigType vdmConf,
+      int globalLane);
 
   /*
    * Structure to hold datapath init/deinit state per port using timers
@@ -987,6 +999,20 @@ class CmisModule : public QsfpModule {
   std::pair<std::optional<const uint8_t*>, int> getVdmDataValPtr(
       VdmConfigType vdmConf,
       uint8_t bank = 0);
+
+  /* Per-lane VDM accessors that span all banks. The VDM config (and thus the
+   * data location) is bank-invariant; each bank's data page holds that bank's
+   * lanes. getVdmLaneValues returns a map keyed by global lane (bank *
+   * kMaxOsfpNumLanes + intra-bank lane); getVdmLaneValue returns a single
+   * global lane's decoded value. `decode` turns the lane's 2 bytes into a
+   * double. */
+  std::map<int, double> getVdmLaneValues(
+      VdmConfigType vdmConf,
+      const std::function<double(const std::array<uint8_t, 2>&)>& decode);
+  std::optional<double> getVdmLaneValue(
+      VdmConfigType vdmConf,
+      int globalLane,
+      const std::function<double(const std::array<uint8_t, 2>&)>& decode);
 
   // VDM value reading helper methods - read 2 bytes from VDM data
   std::optional<double> readU16VdmValue(VdmConfigType vdmConf, double lsb);

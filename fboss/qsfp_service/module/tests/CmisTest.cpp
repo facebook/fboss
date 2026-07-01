@@ -58,6 +58,9 @@ class MockCmisModule : public CmisModule {
   using CmisModule::getMaxNumBanks;
   using CmisModule::getQsfpValuePtr;
   using CmisModule::getTunableLaserStatus;
+  using CmisModule::getVdmLaneValueF16;
+  using CmisModule::getVdmLaneValuesF16;
+  using CmisModule::getVdmLaneValuesU16;
   using CmisModule::isRxConsActHoldOffTmrImplSupported;
   using CmisModule::isRxConsActImplSupported;
   using CmisModule::isTunableOptics;
@@ -214,6 +217,27 @@ TEST_F(CmisTest, cpoReadsVdmDataPagePerBank) {
     const uint8_t* data = xcvr->getBankedQsfpValuePtr(
         page24, QsfpModule::MAX_QSFP_PAGE_SIZE, 1, bank);
     EXPECT_EQ(data[0], bank);
+  }
+}
+
+// getVdmLaneValues keys per-lane VDM values by GLOBAL lane (bank * 8 + intra)
+// across all banks. The READY fixture configures SNR_MEDIA_IN on data page 24h
+// and marks each bank's page 24h byte 0 (lane 0's high byte) with the bank
+// index, so lane 0 of bank N decodes (byte0 + byte1/256) to N.
+TEST_F(CmisTest, cpoGetVdmLaneValuesKeyedByGlobalLane) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+  ASSERT_TRUE(xcvr->isVdmSupported());
+
+  auto snr = xcvr->getVdmLaneValuesU16(SNR_MEDIA_IN);
+
+  // 8 configured lanes per bank across all 4 banks -> 32 global lanes.
+  EXPECT_EQ(snr.size(), 4 * CmisModule::kMaxOsfpNumLanes);
+  for (int bank = 0; bank < 4; ++bank) {
+    int firstLaneOfBank = bank * CmisModule::kMaxOsfpNumLanes;
+    ASSERT_TRUE(snr.find(firstLaneOfBank) != snr.end());
+    EXPECT_EQ(snr.at(firstLaneOfBank), static_cast<double>(bank));
   }
 }
 

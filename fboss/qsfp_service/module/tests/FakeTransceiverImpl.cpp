@@ -3317,12 +3317,44 @@ CmisCpo6P4TDrReadyTransceiver::CmisCpo6P4TDrReadyTransceiver(
   writeTransceiver(vdmParam, &vdmSupport, 0, 0);
 
   // Give each bank a distinct VDM data page 24h (byte 0 = per-bank marker) so
-  // per-bank VDM data reads can be verified. Bank 0 keeps the base 0.
+  // per-bank VDM data reads can be verified. Bank 0 keeps the base 0. Byte 0 is
+  // also the high byte of lane 0's SNR_MEDIA_IN value (see the VDM config
+  // below), so lane 0 of bank N decodes to N.
   for (uint8_t bank = 1; bank < 4; ++bank) {
     auto page24 = kCmisCpo6P4TDrPage24;
     page24[0] = bank;
     setBankedPage(bank, 0x24, page24);
   }
+
+  // Advertise SNR_MEDIA_IN in VDM config group 1 (page 20h) so it resolves to
+  // data page 24h at offset 128, length 16 (8 lanes x 2 bytes). Each 2-byte
+  // descriptor's odd byte carries the VdmConfigType id; eight consecutive
+  // SNR_MEDIA_IN (0x05) descriptors cover the bank's 8 lanes. This lets the
+  // per-bank VDM read path be exercised through getVdmDiagsStatsInfo().
+  TransceiverAccessParameter page20Param(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  uint8_t page20 = 0x20;
+  writeTransceiver(page20Param, &page20, 0, 0);
+  std::array<uint8_t, 16> snrVdmConfig = {
+      0x00,
+      0x05,
+      0x00,
+      0x05,
+      0x00,
+      0x05,
+      0x00,
+      0x05,
+      0x00,
+      0x05,
+      0x00,
+      0x05,
+      0x00,
+      0x05,
+      0x00,
+      0x05};
+  TransceiverAccessParameter snrConfigParam(
+      TransceiverAccessParameter::ADDR_QSFP, 128, snrVdmConfig.size());
+  writeTransceiver(snrConfigParam, snrVdmConfig.data(), 0, 0);
 }
 
 CmisCredo800AEC::CmisCredo800AEC(int module, TransceiverManager* mgr)

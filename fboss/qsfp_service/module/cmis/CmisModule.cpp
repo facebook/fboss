@@ -1899,10 +1899,6 @@ CmisModule::getCdbSymbolErrorHistogramLocked() {
 
 std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
   VdmDiagsStats vdmStats;
-  const uint8_t* data;
-  int offset;
-  int length;
-  int dataAddress;
 
   if (!isVdmSupported() || !cacheIsValid()) {
     return std::nullopt;
@@ -1910,30 +1906,18 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
 
   vdmStats.statsCollectionTme() = WallClockUtil::NowInSecFast();
 
-  // Fill in channel SNR Media In
-  auto vdmDiagsValLocation = getVdmDiagsValLocation(SNR_MEDIA_IN);
-  if (vdmDiagsValLocation.vdmConfImplementedByModule) {
-    dataAddress = static_cast<int>(vdmDiagsValLocation.vdmValPage);
-    offset = vdmDiagsValLocation.vdmValOffset;
-    length = vdmDiagsValLocation.vdmValLength;
-    data = getQsfpValuePtr(dataAddress, offset, length);
-    for (auto lanes = 0; lanes < length / 2; lanes++) {
-      double snr;
-      snr = data[lanes * 2] + (data[lanes * 2 + 1] / kU16TypeLsbDivisor);
-      vdmStats.eSnrMediaChannel()[lanes] = snr;
-    }
+  // Fill in channel SNR Media In (per global lane across all banks).
+  for (const auto& [lane, snr] : getVdmLaneValuesU16(SNR_MEDIA_IN)) {
+    vdmStats.eSnrMediaChannel()[lane] = snr;
   }
 
-  // Lambda to extract BER or Frame Error values for a given VDM config type
+  // Lambda to extract a module-level BER or Frame Error value for a given VDM
+  // config type (these are single values, not per-lane).
   auto captureVdmBerFrameErrorValues =
       [&](VdmConfigType vdmConfType) -> std::optional<double> {
-    vdmDiagsValLocation = getVdmDiagsValLocation(vdmConfType);
-    if (vdmDiagsValLocation.vdmConfImplementedByModule) {
-      dataAddress = static_cast<int>(vdmDiagsValLocation.vdmValPage);
-      offset = vdmDiagsValLocation.vdmValOffset;
-      length = vdmDiagsValLocation.vdmValLength;
-      data = getQsfpValuePtr(dataAddress, offset, length);
-      return f16ToDouble(data[0], data[1]);
+    auto [data, length] = getVdmDataValPtr(vdmConfType);
+    if (data) {
+      return f16ToDouble(data.value()[0], data.value()[1]);
     }
     return std::nullopt;
   };
@@ -2025,23 +2009,9 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
 
   // Fill in VDM Advance group3 performance monitoring info
   if (isVdmSupported(3)) {
-    // Lambda to read the VDM PM value for the given VDM Config
-    auto getVdmPmLaneValues =
-        [&](VdmConfigType vdmConf) -> std::map<int, double> {
-      std::map<int, double> pmMap;
-      vdmDiagsValLocation = getVdmDiagsValLocation(vdmConf);
-      if (vdmDiagsValLocation.vdmConfImplementedByModule) {
-        dataAddress = static_cast<int>(vdmDiagsValLocation.vdmValPage);
-        offset = vdmDiagsValLocation.vdmValOffset;
-        length = vdmDiagsValLocation.vdmValLength;
-        data = getQsfpValuePtr(dataAddress, offset, length);
-        for (auto lanes = 0; lanes < length / 2; lanes++) {
-          double pmVal;
-          pmVal = f16ToDouble(data[lanes * 2], data[lanes * 2 + 1]);
-          pmMap[lanes] = pmVal;
-        }
-      }
-      return pmMap;
+    // Lambda to read the per-global-lane VDM PM value for the given VDM Config
+    auto getVdmPmLaneValues = [this](VdmConfigType vdmConf) {
+      return getVdmLaneValuesF16(vdmConf);
     };
 
     // PAM4 Level0
@@ -2075,18 +2045,9 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
     }
   }
 
-  // Fill in channel LTP Media In
-  vdmDiagsValLocation = getVdmDiagsValLocation(PAM4_LTP_MEDIA_IN);
-  if (vdmDiagsValLocation.vdmConfImplementedByModule) {
-    dataAddress = static_cast<int>(vdmDiagsValLocation.vdmValPage);
-    offset = vdmDiagsValLocation.vdmValOffset;
-    length = vdmDiagsValLocation.vdmValLength;
-    data = getQsfpValuePtr(dataAddress, offset, length);
-    for (auto lanes = 0; lanes < length / 2; lanes++) {
-      double ltp;
-      ltp = data[lanes * 2] + (data[lanes * 2 + 1] / kU16TypeLsbDivisor);
-      vdmStats.pam4LtpMediaChannel()[lanes] = ltp;
-    }
+  // Fill in channel LTP Media In (per global lane across all banks).
+  for (const auto& [lane, ltp] : getVdmLaneValuesU16(PAM4_LTP_MEDIA_IN)) {
+    vdmStats.pam4LtpMediaChannel()[lane] = ltp;
   }
 
   return vdmStats;
@@ -4910,69 +4871,67 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
     return prbsStats;
   }
 
-  // Step1: Get the lane locked mask for PRBS checker
-  uint8_t checkerLockMask;
-  auto cmisRegister = (side == phy::Side::LINE)
+  int numLanes = (side == phy::Side::LINE) ? numMediaLanes() : numHostLanes();
+  bool snrSupported = isSnrSupported(side);
+  auto lockField = (side == phy::Side::LINE)
       ? CmisField::MEDIA_LANE_CHECKER_LOL_LATCH
       : CmisField::HOST_LANE_CHECKER_LOL_LATCH;
-  readCmisField(cmisRegister, &checkerLockMask);
+  auto berField = (side == phy::Side::LINE) ? CmisField::MEDIA_BER_HOST_SNR
+                                            : CmisField::HOST_BER;
+  auto snrField = (side == phy::Side::LINE) ? CmisField::MEDIA_SNR
+                                            : CmisField::MEDIA_BER_HOST_SNR;
 
-  // Step 2: Get BER values for all the lanes
-  int numLanes = (side == phy::Side::LINE) ? numMediaLanes() : numHostLanes();
-
-  // Step 2.a: Set the Diag Sel register to collect the BER values and wait
-  // for some time
-  uint8_t diagSel =
-      DiagnosticFeatureEncoding::BER; // Diag Sel 1 is to obtain BER values
-  writeCmisField(CmisField::DIAG_SEL, &diagSel);
-  /* sleep override */
-  usleep(kUsecDiagSelectLatchWait);
-
-  // Step 2.b: Read the BER values for all lanes
-  cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_BER_HOST_SNR
-                                           : CmisField::HOST_BER;
-  std::array<uint8_t, 16> laneBerList;
-  readCmisField(cmisRegister, laneBerList.data());
-
-  // Get the SNR values
-  std::array<uint8_t, 16> laneSnrList;
-  if (isSnrSupported(side)) {
-    // Step 2.c: Set the Diag Sel register to collect the SNR values and wait
-    // for some time
-    diagSel =
-        DiagnosticFeatureEncoding::SNR; // Diag Sel 6 is to obtain SNR values
-    writeCmisField(CmisField::DIAG_SEL, &diagSel);
-    /* sleep override */
-    usleep(kUsecDiagSelectLatchWait);
-
-    // Step 2.d: Read the SNR values for all lanes
-    cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_SNR
-                                             : CmisField::MEDIA_BER_HOST_SNR;
-
-    readCmisField(cmisRegister, laneSnrList.data());
+  std::vector<phy::PrbsLaneStats> laneStatsList(numLanes);
+  for (int laneId = 0; laneId < numLanes; laneId++) {
+    laneStatsList[laneId].laneId() = laneId;
   }
 
-  // Step 3: Put all the lane info in return structure and return
-  for (auto laneId = 0; laneId < numLanes; laneId++) {
-    phy::PrbsLaneStats laneStats;
-    laneStats.laneId() = laneId;
-    // Put the lock value
-    laneStats.locked() = (checkerLockMask & (1 << laneId)) == 0;
+  // The checker-lock latch and the BER/SNR diagnostic page (14h, selected by
+  // DIAG_SEL) are per-bank. Read each bank explicitly; iterate banks in reverse
+  // so the module is left selected on bank 0. Single-bank modules pass no bank
+  // (legacy behavior, no bank-select write).
+  uint8_t numBanks = getMaxNumBanks();
+  for (int bank = numBanks - 1; bank >= 0; bank--) {
+    auto bankArg = (numBanks > 1) ? std::optional<uint8_t>(bank) : std::nullopt;
 
-    // Put the BER value
-    uint8_t lsb, msb;
-    lsb = laneBerList.at(laneId * 2);
-    msb = laneBerList.at((laneId * 2) + 1);
-    laneStats.ber() = QsfpModule::getBerFloatValue(lsb, msb);
+    uint8_t checkerLockMask;
+    readCmisField(lockField, &checkerLockMask, false, bankArg);
 
-    // Put the SNR value
-    if (isSnrSupported(side)) {
-      lsb = laneSnrList.at(laneId * 2);
-      msb = laneSnrList.at((laneId * 2) + 1);
-      uint16_t snrRawVal = (msb << 8) | lsb;
-      laneStats.snr() = CmisFieldInfo::getSnr(snrRawVal);
+    uint8_t diagSel = DiagnosticFeatureEncoding::BER;
+    writeCmisField(CmisField::DIAG_SEL, &diagSel, false, bankArg);
+    /* sleep override */
+    usleep(kUsecDiagSelectLatchWait);
+    std::array<uint8_t, 16> laneBerList{};
+    readCmisField(berField, laneBerList.data(), false, bankArg);
+
+    std::array<uint8_t, 16> laneSnrList{};
+    if (snrSupported) {
+      diagSel = DiagnosticFeatureEncoding::SNR;
+      writeCmisField(CmisField::DIAG_SEL, &diagSel, false, bankArg);
+      /* sleep override */
+      usleep(kUsecDiagSelectLatchWait);
+      readCmisField(snrField, laneSnrList.data(), false, bankArg);
     }
-    laneStats.timeCollected() = std::time(nullptr);
+
+    for (int intra = 0; intra < kMaxOsfpNumLanes; intra++) {
+      int laneId = bank * kMaxOsfpNumLanes + intra;
+      if (laneId >= numLanes) {
+        break;
+      }
+      auto& laneStats = laneStatsList[laneId];
+      laneStats.locked() = (checkerLockMask & (1 << intra)) == 0;
+      laneStats.ber() = QsfpModule::getBerFloatValue(
+          laneBerList.at(intra * 2), laneBerList.at(intra * 2 + 1));
+      if (snrSupported) {
+        uint16_t snrRawVal =
+            (laneSnrList.at(intra * 2 + 1) << 8) | laneSnrList.at(intra * 2);
+        laneStats.snr() = CmisFieldInfo::getSnr(snrRawVal);
+      }
+      laneStats.timeCollected() = std::time(nullptr);
+    }
+  }
+
+  for (auto& laneStats : laneStatsList) {
     prbsStats.laneStats()->push_back(laneStats);
   }
   prbsStats.timeCollected() = std::time(nullptr);
@@ -5571,6 +5530,64 @@ std::pair<std::optional<const uint8_t*>, int> CmisModule::getVdmDataValPtr(
   return std::make_pair(std::nullopt, 0);
 }
 
+std::map<int, double> CmisModule::getVdmLaneValues(
+    VdmConfigType vdmConf,
+    const std::function<double(const std::array<uint8_t, 2>&)>& decode) {
+  std::map<int, double> result;
+  for (uint8_t bank = 0; bank < getMaxNumBanks(); bank++) {
+    auto [data, length] = getVdmDataValPtr(vdmConf, bank);
+    if (!data) {
+      continue;
+    }
+    // Each lane's value occupies kVdmDescriptorLength (2) consecutive bytes;
+    // iterate while a full 2-byte lane entry fits within the returned region.
+    for (int intra = 0; (intra + 1) * kVdmDescriptorLength <= length; intra++) {
+      int globalLane = bank * kMaxOsfpNumLanes + intra;
+      const int byteOffset = intra * kVdmDescriptorLength;
+      result[globalLane] =
+          decode({data.value()[byteOffset], data.value()[byteOffset + 1]});
+    }
+  }
+  return result;
+}
+
+std::optional<double> CmisModule::getVdmLaneValue(
+    VdmConfigType vdmConf,
+    int globalLane,
+    const std::function<double(const std::array<uint8_t, 2>&)>& decode) {
+  uint8_t bank = globalLane / kMaxOsfpNumLanes;
+  int intra = globalLane % kMaxOsfpNumLanes;
+  auto [data, length] = getVdmDataValPtr(vdmConf, bank);
+  // The lane's full 2-byte entry (bytes byteOffset and byteOffset + 1) must be
+  // present in the returned region.
+  const int byteOffset = intra * kVdmDescriptorLength;
+  if (data && length >= byteOffset + kVdmDescriptorLength) {
+    return decode({data.value()[byteOffset], data.value()[byteOffset + 1]});
+  }
+  return std::nullopt;
+}
+
+std::map<int, double> CmisModule::getVdmLaneValuesU16(VdmConfigType vdmConf) {
+  return getVdmLaneValues(vdmConf, [](const std::array<uint8_t, 2>& d) {
+    return d[0] + (d[1] / kU16TypeLsbDivisor);
+  });
+}
+
+std::map<int, double> CmisModule::getVdmLaneValuesF16(VdmConfigType vdmConf) {
+  return getVdmLaneValues(vdmConf, [this](const std::array<uint8_t, 2>& d) {
+    return f16ToDouble(d[0], d[1]);
+  });
+}
+
+std::optional<double> CmisModule::getVdmLaneValueF16(
+    VdmConfigType vdmConf,
+    int globalLane) {
+  return getVdmLaneValue(
+      vdmConf, globalLane, [this](const std::array<uint8_t, 2>& d) {
+        return f16ToDouble(d[0], d[1]);
+      });
+}
+
 /*
  * readU16VdmValue
  *
@@ -5616,17 +5633,8 @@ bool CmisModule::fillVdmPerfMonitorSnr(VdmPerfMonitorStats& vdmStats) {
   // Get the SW Ports and the Channels for each port
   auto& portNameToMediaLanes = getPortNameToMediaLanes();
 
-  // Fill in channel SNR Media In
-  std::map<int, double> channelSnrMap;
-  auto [data, length] = getVdmDataValPtr(SNR_MEDIA_IN);
-  if (data) {
-    for (auto lanes = 0; lanes < length / 2; lanes++) {
-      double snr;
-      snr = data.value()[lanes * 2] +
-          (data.value()[lanes * 2 + 1] / kU16TypeLsbDivisor);
-      channelSnrMap[lanes] = snr;
-    }
-  }
+  // Fill in channel SNR Media In (keyed by global lane across all banks).
+  std::map<int, double> channelSnrMap = getVdmLaneValuesU16(SNR_MEDIA_IN);
   for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
     for (auto& mediaLane : mediaLanes) {
       vdmStats.mediaPortVdmStats()[portName].laneSNR()[mediaLane] =
@@ -5652,18 +5660,12 @@ bool CmisModule::fillVdmPerfMonitorBer(VdmPerfMonitorStats& vdmStats) {
   auto& portNameToMediaLanes = getPortNameToMediaLanes();
   auto& portNameToHostLanes = getPortNameToHostLanes();
 
-  // Lambda to extract BER or Frame Error values for a given VDM config type
-  // on a SW Port
+  // Lambda to extract a BER / Frame Error value for a given VDM config type at
+  // a SW Port's (global) start lane, selecting that lane's bank.
   auto captureVdmBerFrameErrorValues =
-      [&](VdmConfigType vdmConfType, int startLane) -> std::optional<double> {
-    auto [data, length] = getVdmDataValPtr(vdmConfType);
-    if (data) {
-      return f16ToDouble(
-          data.value()[startLane * kVdmDescriptorLength],
-          data.value()[startLane * kVdmDescriptorLength + 1]);
-    }
-    return std::nullopt;
-  };
+      [this](VdmConfigType vdmConfType, int startLane) {
+        return getVdmLaneValueF16(vdmConfType, startLane);
+      };
 
   // Fill in Media side per port values
   for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
@@ -5736,18 +5738,12 @@ bool CmisModule::fillVdmPerfMonitorFecErr(VdmPerfMonitorStats& vdmStats) {
   auto& portNameToMediaLanes = getPortNameToMediaLanes();
   auto& portNameToHostLanes = getPortNameToHostLanes();
 
-  // Lambda to extract BER or Frame Error values for a given VDM config type
-  // on a SW Port
+  // Lambda to extract a BER / Frame Error value for a given VDM config type at
+  // a SW Port's (global) start lane, selecting that lane's bank.
   auto captureVdmBerFrameErrorValues =
-      [&](VdmConfigType vdmConfType, int startLane) -> std::optional<double> {
-    auto [data, length] = getVdmDataValPtr(vdmConfType);
-    if (data) {
-      return f16ToDouble(
-          data.value()[startLane * kVdmDescriptorLength],
-          data.value()[startLane * kVdmDescriptorLength + 1]);
-    }
-    return std::nullopt;
-  };
+      [this](VdmConfigType vdmConfType, int startLane) {
+        return getVdmLaneValueF16(vdmConfType, startLane);
+      };
 
   // Fill in Media side per port values
   for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
@@ -5820,15 +5816,15 @@ bool CmisModule::fillVdmPerfMonitorFecTail(VdmPerfMonitorStats& vdmStats) {
   auto& portNameToMediaLanes = getPortNameToMediaLanes();
   auto& portNameToHostLanes = getPortNameToHostLanes();
 
-  // Lambda to extract FEC tail for a given VDM config type on a SW Port
-  auto captureVdmFecTailValues = [&](VdmConfigType vdmConfType,
+  // Lambda to extract FEC tail for a given VDM config type at a SW Port's
+  // (global) start lane, selecting that lane's bank.
+  auto captureVdmFecTailValues = [this](
+                                     VdmConfigType vdmConfType,
                                      int startLane) -> std::optional<double> {
-    auto [data, length] = getVdmDataValPtr(vdmConfType);
-    if (data) {
-      return data.value()[startLane * kVdmDescriptorLength] +
-          data.value()[startLane * kVdmDescriptorLength + 1];
-    }
-    return std::nullopt;
+    return getVdmLaneValue(
+        vdmConfType, startLane, [](const std::array<uint8_t, 2>& d) {
+          return static_cast<double>(d[0] + d[1]);
+        });
   };
 
   // Fill in Media side per port values
@@ -5888,17 +5884,8 @@ bool CmisModule::fillVdmPerfMonitorLtp(VdmPerfMonitorStats& vdmStats) {
   // Get the SW Ports and the Channels for each port
   auto& portNameToMediaLanes = getPortNameToMediaLanes();
 
-  // Fill in channel LTP Media In
-  std::map<int, double> channelLtpMap;
-  auto [data, length] = getVdmDataValPtr(PAM4_LTP_MEDIA_IN);
-  if (data) {
-    for (auto lanes = 0; lanes < length / 2; lanes++) {
-      double ltp;
-      ltp = data.value()[lanes * 2] +
-          (data.value()[lanes * 2 + 1] / kU16TypeLsbDivisor);
-      channelLtpMap[lanes] = ltp;
-    }
-  }
+  // Fill in channel LTP Media In (keyed by global lane across all banks).
+  std::map<int, double> channelLtpMap = getVdmLaneValuesU16(PAM4_LTP_MEDIA_IN);
   for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
     for (auto& mediaLane : mediaLanes) {
       vdmStats.mediaPortVdmStats()[portName].lanePam4LTP()[mediaLane] =
@@ -5924,20 +5911,9 @@ bool CmisModule::fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats) {
 
   // Fill in VDM Advance group3 performance monitoring info
 
-  // Lambda to read the VDM PM value for the given VDM Config
-  auto getVdmPmLaneValues =
-      [&](VdmConfigType vdmConf) -> std::map<int, double> {
-    std::map<int, double> pmMap;
-    auto [data, length] = getVdmDataValPtr(vdmConf);
-    if (data) {
-      for (auto lanes = 0; lanes < length / 2; lanes++) {
-        double pmVal;
-        pmVal =
-            f16ToDouble(data.value()[lanes * 2], data.value()[lanes * 2 + 1]);
-        pmMap[lanes] = pmVal;
-      }
-    }
-    return pmMap;
+  // Lambda to read the per-global-lane VDM PM value for the given VDM Config.
+  auto getVdmPmLaneValues = [this](VdmConfigType vdmConf) {
+    return getVdmLaneValuesF16(vdmConf);
   };
 
   // PAM4 Level0, Level1, Level2 , Level3, MPI
