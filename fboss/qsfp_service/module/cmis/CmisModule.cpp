@@ -1102,16 +1102,14 @@ bool CmisModule::getMediaLaneSettings(
   if (flatMem_) {
     return false;
   }
-  auto txDisable = getSettingsValue(CmisField::TX_DISABLE);
-  auto txSquelchDisable = getSettingsValue(CmisField::TX_SQUELCH_DISABLE);
-  auto txSquelchForce = getSettingsValue(CmisField::TX_FORCE_SQUELCH);
-
   for (int lane = 0; lane < laneSettings.size(); lane++) {
-    auto laneMask = (1 << lane);
     laneSettings[lane].lane() = lane;
-    laneSettings[lane].txDisable() = txDisable & laneMask;
-    laneSettings[lane].txSquelch() = txSquelchDisable & laneMask;
-    laneSettings[lane].txSquelchForce() = txSquelchForce & laneMask;
+    laneSettings[lane].txDisable() =
+        getLaneFlagSet(CmisField::TX_DISABLE, lane);
+    laneSettings[lane].txSquelch() =
+        getLaneFlagSet(CmisField::TX_SQUELCH_DISABLE, lane);
+    laneSettings[lane].txSquelchForce() =
+        getLaneFlagSet(CmisField::TX_FORCE_SQUELCH, lane);
   }
 
   return true;
@@ -1119,57 +1117,34 @@ bool CmisModule::getMediaLaneSettings(
 
 bool CmisModule::getHostLaneSettings(
     std::vector<HostLaneSettings>& laneSettings) {
-  const uint8_t* dataPre;
-  const uint8_t* dataPost;
-  const uint8_t* dataMain;
-  int offset;
-  int length;
-  int dataAddress;
-
   assert(laneSettings.size() == numHostLanes());
 
   if (flatMem_) {
     return false;
   }
-  auto rxOutput = getSettingsValue(CmisField::RX_DISABLE);
-  auto rxSquelchDisable = getSettingsValue(CmisField::RX_SQUELCH_DISABLE);
-
-  getQsfpFieldAddress(
-      CmisField::RX_OUT_PRE_CURSOR, dataAddress, offset, length);
-  dataPre = getQsfpValuePtr(dataAddress, offset, length);
-
-  getQsfpFieldAddress(
-      CmisField::RX_OUT_POST_CURSOR, dataAddress, offset, length);
-  dataPost = getQsfpValuePtr(dataAddress, offset, length);
-
-  getQsfpFieldAddress(CmisField::RX_OUT_MAIN, dataAddress, offset, length);
-  dataMain = getQsfpValuePtr(dataAddress, offset, length);
-
-  const uint8_t* dataActiveCtrl;
-  getQsfpFieldAddress(
-      CmisField::ACTIVE_CTRL_ALL_LANES, dataAddress, offset, length);
-  dataActiveCtrl = getQsfpValuePtr(dataAddress, offset, length);
 
   for (int lane = 0; lane < laneSettings.size(); lane++) {
-    auto laneMask = (1 << lane);
     laneSettings[lane].lane() = lane;
-    laneSettings[lane].rxOutput() = rxOutput & laneMask;
-    laneSettings[lane].rxSquelch() = rxSquelchDisable & laneMask;
-
-    uint8_t pre = (dataPre[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
+    laneSettings[lane].rxOutput() = getLaneFlagSet(CmisField::RX_DISABLE, lane);
+    laneSettings[lane].rxSquelch() =
+        getLaneFlagSet(CmisField::RX_SQUELCH_DISABLE, lane);
+    uint8_t pre = getLaneNibble(CmisField::RX_OUT_PRE_CURSOR, lane);
     QSFP_LOG(DBG3, this) << fmt::format("Lane = {:d}, Pre = {:d}", lane, pre);
     laneSettings[lane].rxOutputPreCursor() = pre;
 
-    uint8_t post = (dataPost[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
+    uint8_t post = getLaneNibble(CmisField::RX_OUT_POST_CURSOR, lane);
     QSFP_LOG(DBG3, this) << fmt::format("Lane = {:d}, Post = {:d}", lane, post);
     laneSettings[lane].rxOutputPostCursor() = post;
 
-    uint8_t mainVal = (dataMain[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
+    uint8_t mainVal = getLaneNibble(CmisField::RX_OUT_MAIN, lane);
     QSFP_LOG(DBG3, this) << fmt::format(
         "Lane = {:d}, Main = {:d}", lane, mainVal);
     laneSettings[lane].rxOutputAmplitude() = mainVal;
 
-    uint8_t appSel = (dataActiveCtrl[lane] & APP_SEL_MASK) >> APP_SEL_BITSHIFT;
+    uint8_t appSel =
+        (getLaneValuePtr(CmisField::ACTIVE_CTRL_ALL_LANES, lane, 1)[0] &
+         APP_SEL_MASK) >>
+        APP_SEL_BITSHIFT;
     laneSettings[lane].currentAppSel() = appSel;
   }
   return true;
@@ -1268,16 +1243,29 @@ std::vector<uint8_t> CmisModule::configuredMediaLanes(
 }
 
 uint8_t CmisModule::getCurrentApplication(uint8_t lane, int byteOffset) const {
-  if (lane >= 8) {
-    QSFP_LOG(ERR, this) << "Invalid lane number " << lane;
-    // Based on SFF-8024, an App / App Sel of 0 is undefined/Unknown.
+  // lane is a global lane. This is a read/refresh-path accessor, so soft-fail
+  // (log + return 0 = undefined app) for an out-of-range lane rather than
+  // throwing from getBankedQsfpValuePtr on a non-existent bank.
+  if (lane >= getMaxNumBanks() * kMaxOsfpNumLanes) {
+    QSFP_LOG(ERR, this) << fmt::format(
+        "Lane {} out of range for a module with {} bank(s)",
+        lane,
+        getMaxNumBanks());
     return 0;
   }
+  // ACTIVE_CTRL_LANE_n is one byte per intra-bank lane; select the lane's bank.
+  uint8_t bank = lane / kMaxOsfpNumLanes;
+  int intraLane = lane % kMaxOsfpNumLanes;
   // Pick the first application for flatMem modules. FlatMem modules don't
-  // support page11h that contains the current operational app sel code
-  uint8_t currentApplicationSel = flatMem_
-      ? 1
-      : getSettingsValue(laneToActiveCtrlField[lane], APP_SEL_MASK);
+  // support page 11h that contains the current operational app sel code.
+  uint8_t currentApplicationSel = 1;
+  if (!flatMem_) {
+    int dataAddress, offset, length;
+    getQsfpFieldAddress(
+        laneToActiveCtrlField[intraLane], dataAddress, offset, length);
+    currentApplicationSel =
+        getBankedQsfpValuePtr(dataAddress, offset, 1, bank)[0] & APP_SEL_MASK;
+  }
   // The application sel code is at the higher four bits of the field.
   currentApplicationSel = currentApplicationSel >> APP_SEL_BITSHIFT;
 
@@ -1551,20 +1539,29 @@ FlagLevels CmisModule::getChannelFlags(CmisField field, int channel) {
   int length;
   int dataAddress;
 
-  CHECK_GE(channel, 0);
-  if (channel > 8) {
+  // channel is a global lane. This is a read/refresh-path accessor, so
+  // soft-fail (log + return empty flags) for an out-of-range channel rather
+  // than throwing from getBankedQsfpValuePtr on a non-existent bank.
+  if (channel < 0 || channel >= getMaxNumBanks() * kMaxOsfpNumLanes) {
     QSFP_LOG(ERR, this) << fmt::format(
-        "getChannelFlags: Channel id {:d} is invalid", channel);
-    return FlagLevels{};
+        "Channel {} out of range for a module with {} bank(s)",
+        channel,
+        getMaxNumBanks());
+    return flags;
   }
 
+  // Each flag field is 4 bytes (alarm high/low, warn high/low), one bit per
+  // intra-bank lane; select the channel's bank and test its bit.
+  uint8_t bank = channel / kMaxOsfpNumLanes;
+  int intraLane = channel % kMaxOsfpNumLanes;
   getQsfpFieldAddress(field, dataAddress, offset, length);
-  const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
+  const uint8_t* data =
+      getBankedQsfpValuePtr(dataAddress, offset, length, bank);
 
-  flags.warn()->low() = (data[3] & (1 << channel));
-  flags.warn()->high() = (data[2] & (1 << channel));
-  flags.alarm()->low() = (data[1] & (1 << channel));
-  flags.alarm()->high() = (data[0] & (1 << channel));
+  flags.warn()->low() = (data[3] & (1 << intraLane));
+  flags.warn()->high() = (data[2] & (1 << intraLane));
+  flags.alarm()->low() = (data[1] & (1 << intraLane));
+  flags.alarm()->high() = (data[0] & (1 << intraLane));
 
   return flags;
 }
@@ -1580,16 +1577,11 @@ bool CmisModule::getSignalsPerMediaLane(
     return false;
   }
 
-  auto rxLos = getSettingsValue(CmisField::RX_LOS_FLAG);
-  auto rxLol = getSettingsValue(CmisField::RX_LOL_FLAG);
-  auto txFault = getSettingsValue(CmisField::TX_FAULT_FLAG);
-
   for (int lane = 0; lane < signals.size(); lane++) {
-    auto laneMask = (1 << lane);
     signals[lane].lane() = lane;
-    signals[lane].rxLos() = rxLos & laneMask;
-    signals[lane].rxLol() = rxLol & laneMask;
-    signals[lane].txFault() = txFault & laneMask;
+    signals[lane].rxLos() = getLaneFlagSet(CmisField::RX_LOS_FLAG, lane);
+    signals[lane].rxLol() = getLaneFlagSet(CmisField::RX_LOL_FLAG, lane);
+    signals[lane].txFault() = getLaneFlagSet(CmisField::TX_FAULT_FLAG, lane);
   }
 
   return true;
@@ -1605,23 +1597,15 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
     return false;
   }
 
-  auto dataPathDeInit = getSettingsValue(CmisField::DATA_PATH_DEINIT);
-
-  auto txLos = getSettingsValue(CmisField::TX_LOS_FLAG);
-  auto txLol = getSettingsValue(CmisField::TX_LOL_FLAG);
-  auto txEq = getSettingsValue(CmisField::TX_EQ_FLAG);
-
   for (int lane = 0; lane < signals.size(); lane++) {
     signals[lane].lane() = lane;
-    signals[lane].dataPathDeInit() = dataPathDeInit & (1 << lane);
-
+    signals[lane].dataPathDeInit() =
+        getLaneFlagSet(CmisField::DATA_PATH_DEINIT, lane);
     signals[lane].cmisLaneState() = getDatapathLaneStateLocked(lane);
-
-    auto laneMask = (1 << lane);
-    signals[lane].lane() = lane;
-    signals[lane].txLos() = txLos & laneMask;
-    signals[lane].txLol() = txLol & laneMask;
-    signals[lane].txAdaptEqFault() = txEq & laneMask;
+    signals[lane].txLos() = getLaneFlagSet(CmisField::TX_LOS_FLAG, lane);
+    signals[lane].txLol() = getLaneFlagSet(CmisField::TX_LOL_FLAG, lane);
+    signals[lane].txAdaptEqFault() =
+        getLaneFlagSet(CmisField::TX_EQ_FLAG, lane);
   }
 
   return true;
@@ -1635,106 +1619,85 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   if (flatMem_) {
     return false;
   }
-  const uint8_t* data;
-  int offset;
-  int length;
-  int dataAddress;
+  // Every loop below indexes channels.at(channel) for channel <
+  // numMediaLanes(), so require the caller to have sized channels accordingly.
+  // Bounds-checked .at() keeps the accesses safe even if that contract is
+  // violated.
+  CHECK_GE(channels.size(), numMediaLanes());
 
   for (int channel = 0; channel < numMediaLanes(); channel++) {
-    channels[channel].sensors()->rxPwr()->flags() =
+    channels.at(channel).sensors()->rxPwr()->flags() =
         getChannelFlags(CmisField::RX_PWR_FLAG, channel);
   }
 
   for (int channel = 0; channel < numMediaLanes(); channel++) {
-    channels[channel].sensors()->txBias()->flags() =
+    channels.at(channel).sensors()->txBias()->flags() =
         getChannelFlags(CmisField::TX_BIAS_FLAG, channel);
   }
 
   for (int channel = 0; channel < numMediaLanes(); channel++) {
-    channels[channel].sensors()->txPwr()->flags() =
+    channels.at(channel).sensors()->txPwr()->flags() =
         getChannelFlags(CmisField::TX_PWR_FLAG, channel);
   }
 
-  getQsfpFieldAddress(CmisField::CHANNEL_RX_PWR, dataAddress, offset, length);
-  data = getQsfpValuePtr(dataAddress, offset, length);
-
-  for (auto& channel : channels) {
+  for (int channel = 0; channel < numMediaLanes(); channel++) {
+    const uint8_t* data =
+        getLaneValuePtr(CmisField::CHANNEL_RX_PWR, channel, 2);
     uint16_t value = data[0] << 8 | data[1];
     auto pwr = CmisFieldInfo::getPwr(value); // This is in mW
-    channel.sensors()->rxPwr()->value() = pwr;
+    channels.at(channel).sensors()->rxPwr()->value() = pwr;
     Sensor rxDbm;
     rxDbm.value() = mwToDb(pwr);
-    channel.sensors()->rxPwrdBm() = rxDbm;
-    data += 2;
-    length--;
+    channels.at(channel).sensors()->rxPwrdBm() = rxDbm;
   }
-  CHECK_GE(length, 0);
 
-  // For Tx bias, take care of multiplier
+  // For Tx bias, take care of multiplier. The multiplier is module-level
+  // (page 01h), not per-lane.
+  int offset, length, dataAddress;
   getQsfpFieldAddress(
       CmisField::TX_BIAS_MULTIPLIER, dataAddress, offset, length);
-  data = getQsfpValuePtr(dataAddress, offset, length);
-  auto biasMultiplier = CmisFieldInfo::getTxBiasMultiplier(data[0]);
+  auto biasMultiplier = CmisFieldInfo::getTxBiasMultiplier(
+      getQsfpValuePtr(dataAddress, offset, length)[0]);
 
-  getQsfpFieldAddress(CmisField::CHANNEL_TX_BIAS, dataAddress, offset, length);
-  data = getQsfpValuePtr(dataAddress, offset, length);
-  for (auto& channel : channels) {
+  for (int channel = 0; channel < numMediaLanes(); channel++) {
+    const uint8_t* data =
+        getLaneValuePtr(CmisField::CHANNEL_TX_BIAS, channel, 2);
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors()->txBias()->value() =
+    channels.at(channel).sensors()->txBias()->value() =
         CmisFieldInfo::getTxBias(value) * biasMultiplier;
-    data += 2;
-    length--;
   }
-  CHECK_GE(length, 0);
 
-  getQsfpFieldAddress(CmisField::CHANNEL_TX_PWR, dataAddress, offset, length);
-  data = getQsfpValuePtr(dataAddress, offset, length);
-
-  for (auto& channel : channels) {
+  for (int channel = 0; channel < numMediaLanes(); channel++) {
+    const uint8_t* data =
+        getLaneValuePtr(CmisField::CHANNEL_TX_PWR, channel, 2);
     uint16_t value = data[0] << 8 | data[1];
     auto pwr = CmisFieldInfo::getPwr(value); // This is in mW
-    channel.sensors()->txPwr()->value() = pwr;
+    channels.at(channel).sensors()->txPwr()->value() = pwr;
     Sensor txDbm;
     txDbm.value() = mwToDb(pwr);
-    channel.sensors()->txPwrdBm() = txDbm;
-    data += 2;
-    length--;
+    channels.at(channel).sensors()->txPwrdBm() = txDbm;
   }
-  CHECK_GE(length, 0);
 
-  getQsfpFieldAddress(
-      CmisField::MEDIA_BER_HOST_SNR, dataAddress, offset, length);
-  data = getQsfpValuePtr(dataAddress, offset, length);
-
-  for (auto& channel : channels) {
+  for (int channel = 0; channel < numMediaLanes(); channel++) {
+    const uint8_t* data =
+        getLaneValuePtr(CmisField::MEDIA_BER_HOST_SNR, channel, 2);
     // SNR value are LSB.
     uint16_t value = data[1] << 8 | data[0];
-    channel.sensors()->txSnr() = Sensor();
-    channel.sensors()->txSnr()->value() = CmisFieldInfo::getSnr(value);
-    data += 2;
-    length--;
+    channels.at(channel).sensors()->txSnr() = Sensor();
+    channels.at(channel).sensors()->txSnr()->value() =
+        CmisFieldInfo::getSnr(value);
   }
-  CHECK_GE(length, 0);
 
-  getQsfpFieldAddress(CmisField::MEDIA_SNR, dataAddress, offset, length);
-  data = getQsfpValuePtr(dataAddress, offset, length);
-
-  for (auto& channel : channels) {
+  for (int channel = 0; channel < numMediaLanes(); channel++) {
+    const uint8_t* data = getLaneValuePtr(CmisField::MEDIA_SNR, channel, 2);
     // SNR value are LSB.
     uint16_t value = data[1] << 8 | data[0];
-    channel.sensors()->rxSnr() = Sensor();
+    channels.at(channel).sensors()->rxSnr() = Sensor();
 
-    // Compute SNR value from raw value
-    double snrValue = CmisFieldInfo::getSnr(value);
-
-    // Apply Rx-SNR correction (returns corrected value)
-    snrValue = applyRxSnrCorrection(value, snrValue);
-
-    channel.sensors()->rxSnr()->value() = snrValue;
-    data += 2;
-    length--;
+    // Compute SNR value from raw value, then apply Rx-SNR correction.
+    double snrValue = applyRxSnrCorrection(value, CmisFieldInfo::getSnr(value));
+    channels.at(channel).sensors()->rxSnr()->value() = snrValue;
   }
-  CHECK_GE(length, 0);
 
   return true;
 }
@@ -2518,6 +2481,45 @@ const uint8_t* CmisModule::getBankedQsfpValuePtr(
   CHECK_GE(offset, 0);
   CHECK_LE(offset + length, MAX_QSFP_PAGE_SIZE);
   return (*page)[bank].data() + offset;
+}
+
+const uint8_t* CmisModule::getLaneValuePtr(
+    CmisField field,
+    int globalLane,
+    int bytesPerLane) const {
+  int dataAddress, offset, length;
+  getQsfpFieldAddress(field, dataAddress, offset, length);
+  // The field must hold bytesPerLane bytes for each of the (up to)
+  // kMaxOsfpNumLanes intra-bank lanes; catch a mismatched bytesPerLane here
+  // rather than silently returning a pointer into the wrong lane.
+  CHECK_LE(bytesPerLane * kMaxOsfpNumLanes, length);
+  uint8_t bank = globalLane / kMaxOsfpNumLanes;
+  int intraLane = globalLane % kMaxOsfpNumLanes;
+  return getBankedQsfpValuePtr(
+      dataAddress, offset + intraLane * bytesPerLane, bytesPerLane, bank);
+}
+
+bool CmisModule::getLaneFlagSet(CmisField field, int globalLane) const {
+  int dataAddress, offset, length;
+  getQsfpFieldAddress(field, dataAddress, offset, length);
+  // A flag field is a single byte holding one bit per intra-bank lane; assert
+  // the contract so a wider field can't be silently misread as 1 byte.
+  CHECK_EQ(length, 1);
+  uint8_t bank = globalLane / kMaxOsfpNumLanes;
+  int intraLane = globalLane % kMaxOsfpNumLanes;
+  const uint8_t* data = getBankedQsfpValuePtr(dataAddress, offset, 1, bank);
+  return data[0] & (1 << intraLane);
+}
+
+uint8_t CmisModule::getLaneNibble(CmisField field, int globalLane) const {
+  int dataAddress, offset, length;
+  getQsfpFieldAddress(field, dataAddress, offset, length);
+  uint8_t bank = globalLane / kMaxOsfpNumLanes;
+  int intraLane = globalLane % kMaxOsfpNumLanes;
+  // A nibble-packed field holds two intra-bank lanes per byte.
+  const uint8_t* data =
+      getBankedQsfpValuePtr(dataAddress, offset, length, bank);
+  return (data[intraLane / 2] >> ((intraLane % 2) * 4)) & 0xF;
 }
 
 void CmisModule::readBankedPage(CmisField field, BankedPage& dest) {
@@ -5300,27 +5302,33 @@ void CmisModule::resetDataPathWithFunc(
 CmisLaneState CmisModule::getDatapathLaneStateLocked(
     uint8_t lane,
     bool readFromCache) {
-  CHECK_LE(lane, 8);
-  if (!readFromCache) {
-    uint8_t dataPathStates[4];
-    readCmisField(CmisField::DATA_PATH_STATE, dataPathStates);
-    auto laneDatapathState = dataPathStates[lane / 2];
-    laneDatapathState = ((lane % 2) == 0) ? (laneDatapathState & 0xF)
-                                          : ((laneDatapathState >> 4) & 0xF);
-    return (CmisLaneState)laneDatapathState;
-  } else {
-    const uint8_t* data;
-    int offset;
-    int length;
-    int dataAddress;
-    getQsfpFieldAddress(
-        CmisField::DATA_PATH_STATE, dataAddress, offset, length);
-    data = getQsfpValuePtr(dataAddress, offset, length);
-    auto laneDatapathState = data[lane / 2];
-    laneDatapathState = ((lane % 2) == 0) ? (laneDatapathState & 0xF)
-                                          : ((laneDatapathState >> 4) & 0xF);
-    return (CmisLaneState)laneDatapathState;
+  // lane is a global lane; it maps to bank = lane / kMaxOsfpNumLanes. Reject
+  // lanes outside the module's banked lane space rather than reading a bank
+  // that doesn't exist.
+  if (lane >= getMaxNumBanks() * kMaxOsfpNumLanes) {
+    throw FbossError(
+        fmt::format(
+            "Datapath lane {} is out of range for a module with {} bank(s)",
+            lane,
+            getMaxNumBanks()));
   }
+  if (readFromCache) {
+    return (CmisLaneState)getLaneNibble(CmisField::DATA_PATH_STATE, lane);
+  }
+  // DATA_PATH_STATE is a 4-byte nibble-packed field per bank; read the lane's
+  // bank explicitly.
+  uint8_t bank = lane / kMaxOsfpNumLanes;
+  int intraLane = lane % kMaxOsfpNumLanes;
+  uint8_t dataPathStates[4];
+  readCmisField(
+      CmisField::DATA_PATH_STATE,
+      dataPathStates,
+      /*skipBankAndPageChange=*/false,
+      bank);
+  auto laneDatapathState = dataPathStates[intraLane / 2];
+  laneDatapathState = ((intraLane % 2) == 0) ? (laneDatapathState & 0xF)
+                                             : ((laneDatapathState >> 4) & 0xF);
+  return (CmisLaneState)laneDatapathState;
 }
 
 void CmisModule::updateVdmCacheLocked() {

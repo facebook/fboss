@@ -10,6 +10,7 @@
 
 #include "fboss/qsfp_service/module/cmis/CmisHelper.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
+#include "fboss/qsfp_service/module/cmis/gen-cpp2/cmis_types.h"
 #include "fboss/qsfp_service/module/properties/TransceiverPropertiesManager.h"
 #include "fboss/qsfp_service/module/tests/FakeTransceiverImpl.h"
 #include "fboss/qsfp_service/module/tests/TransceiverTestsHelper.h"
@@ -53,6 +54,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::getChannelNumFromFrequency;
   using CmisModule::getCurrentAppSelCode;
   using CmisModule::getInterfaceCodeForAppSel;
+  using CmisModule::getLaneValuePtr;
   using CmisModule::getMaxNumBanks;
   using CmisModule::getQsfpValuePtr;
   using CmisModule::getTunableLaserStatus;
@@ -212,6 +214,34 @@ TEST_F(CmisTest, cpoReadsVdmDataPagePerBank) {
     const uint8_t* data = xcvr->getBankedQsfpValuePtr(
         page24, QsfpModule::MAX_QSFP_PAGE_SIZE, 1, bank);
     EXPECT_EQ(data[0], bank);
+  }
+}
+
+// getLaneValuePtr maps a global lane to (bank = lane/8, intra = lane%8) and
+// returns that bank's per-lane bytes. The fixture marks CHANNEL_RX_PWR's first
+// byte (page 11h) with the bank index, so the first lane of each bank should
+// resolve to its bank index.
+TEST_F(CmisTest, cpoGetLaneValuePtrMapsGlobalLaneToBank) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+
+  // Intra-bank lane 0 exercises bank selection: the fake marks byte 0 of
+  // CHANNEL_RX_PWR with the bank id.
+  for (uint8_t bank = 0; bank < 4; ++bank) {
+    int firstLaneOfBank = bank * CmisModule::kMaxOsfpNumLanes;
+    const uint8_t* data = xcvr->getLaneValuePtr(
+        CmisField::CHANNEL_RX_PWR, firstLaneOfBank, /*bytesPerLane=*/2);
+    EXPECT_EQ(data[0], bank);
+  }
+
+  // Intra-bank lane 1 exercises the offset + intraLane * bytesPerLane math: the
+  // fake marks lane 1 of CHANNEL_RX_PWR with 0x10|bank (banks 1-3).
+  for (uint8_t bank = 1; bank < 4; ++bank) {
+    int secondLaneOfBank = bank * CmisModule::kMaxOsfpNumLanes + 1;
+    const uint8_t* data = xcvr->getLaneValuePtr(
+        CmisField::CHANNEL_RX_PWR, secondLaneOfBank, /*bytesPerLane=*/2);
+    EXPECT_EQ(data[0], 0x10 | bank);
   }
 }
 

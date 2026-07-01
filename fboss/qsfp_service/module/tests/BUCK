@@ -32,6 +32,7 @@ cpp_unittest(
         ":fake-transceiver-impl",
         ":transceiver-tests-helper",
         "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
         "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
         "//fboss/qsfp_service/test:transceiver_manager_test_helper",
         "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",

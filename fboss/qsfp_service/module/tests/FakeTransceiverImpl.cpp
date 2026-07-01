@@ -3264,10 +3264,22 @@ CmisCpo6P4TDrTransceiver::CmisCpo6P4TDrTransceiver(
           kCmisCpo6P4TDrUpperPages,
           mgr) {
   // Give each bank a distinct page 11h so per-bank caching can be verified.
-  // Byte 2 of page 11h is used as a per-bank marker; bank 0 keeps the base 0.
+  // Byte 2 is a generic per-bank marker; the CHANNEL_RX_PWR field is marked too
+  // so the global-lane accessor can be verified. Bank 0 keeps the base 0.
+  // CHANNEL_RX_PWR lives at page 11h byte offset 186 (see the CmisField map);
+  // subtract the lower-page size to index the 128-byte upper-page array.
+  constexpr int kChannelRxPwrPage11Offset = 186;
+  constexpr int kChannelRxPwrPageIndex =
+      kChannelRxPwrPage11Offset - QsfpModule::MAX_QSFP_PAGE_SIZE;
+  // CHANNEL_RX_PWR is 2 bytes per lane. Mark intra-bank lane 0 (byte 0) with
+  // the bank id and intra-bank lane 1 (byte 0, at offset + 1*2) with 0x10|bank
+  // so a reader can distinguish both the bank and the intra-bank lane offset.
+  constexpr int kChannelRxPwrBytesPerLane = 2;
   for (uint8_t bank = 1; bank < 4; ++bank) {
     auto page11 = kCmisCpo6P4TDrPage11;
     page11[2] = bank;
+    page11[kChannelRxPwrPageIndex] = bank;
+    page11[kChannelRxPwrPageIndex + kChannelRxPwrBytesPerLane] = 0x10 | bank;
     setBankedPage(bank, 0x11, page11);
   }
 }

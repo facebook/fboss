@@ -288,6 +288,21 @@ class CmisModule : public QsfpModule {
     return maxNumBanks_.value_or(1);
   }
 
+  /* Global-lane accessors for banked per-lane fields. A "global" lane spans all
+   * banks (e.g. 0..31 for a 4-bank module); it maps to bank = lane /
+   * kMaxOsfpNumLanes and intra-bank lane = lane % kMaxOsfpNumLanes. For
+   * single-bank modules these collapse to the existing bank-0 behavior.
+   *
+   * getLaneValuePtr: pointer to the bytesPerLane bytes for globalLane in a
+   * field whose per-lane values are laid out contiguously (e.g.
+   * CHANNEL_RX_PWR). getLaneFlagSet: whether the per-lane bit for globalLane is
+   * set in a 1-byte flag field (e.g. RX_LOS_FLAG). getLaneNibble: the 4-bit
+   * nibble for globalLane in a nibble-packed field (e.g. RX_OUT_PRE_CURSOR). */
+  const uint8_t*
+  getLaneValuePtr(CmisField field, int globalLane, int bytesPerLane) const;
+  bool getLaneFlagSet(CmisField field, int globalLane) const;
+  uint8_t getLaneNibble(CmisField field, int globalLane) const;
+
   /*
    * Structure to hold datapath init/deinit state per port using timers
    * progStartTimer: Time point when datapath programming started.
