@@ -3,6 +3,7 @@
 #include "fboss/agent/rib/RibMySidUpdater.h"
 
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/Route.h"
 
@@ -62,7 +63,8 @@ RouteNextHopSet RibMySidUpdater::resolveNhop(const NextHop& nh) const {
   const auto& addr = nh.addr();
   RouteNextHopSet resolved;
 
-  auto collectResolved = [&resolved, &nh](auto* routeMap, const auto& nhAddr) {
+  auto collectResolved = [this, &resolved, &nh](
+                             auto* routeMap, const auto& nhAddr) {
     if (!routeMap) {
       return false;
     }
@@ -75,7 +77,8 @@ RouteNextHopSet RibMySidUpdater::resolveNhop(const NextHop& nh) const {
       return false;
     }
 
-    const auto& fwdNhops = route->getForwardInfo().normalizedNextHops();
+    const auto fwdNhops = getNormalizedNextHopsFromRib(
+        nextHopIDManager_, route->getForwardInfo());
     if (route->isConnected()) {
       resolved.insert(ResolvedNextHop(
           nh.addr(),
