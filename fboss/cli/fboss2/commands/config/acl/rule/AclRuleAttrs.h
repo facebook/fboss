@@ -12,15 +12,18 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-// Shared <attr>/<action> keywords, value ranges, and token positions for
-// `config acl rule` / `delete acl rule`. The grammar itself (which keyword
-// takes which value) lives in the descriptor tables in CmdConfigAclRule.cpp.
+// The `config acl rule` / `delete acl rule` grammar: <attr>/<action> keywords,
+// value ranges, token positions, and the parser that turns a token vector into
+// a mutation (parseAclRuleSpec). The descriptor tables that drive it live in
+// AclRuleAttrs.cpp; CmdConfigAclRule.cpp just wires the result into the config.
 
 namespace facebook::fboss {
 
@@ -103,6 +106,25 @@ inline constexpr std::size_t kAclRuleActionPrefix = 4;
 
 // The action <sub> occupies the slot a match value would (index 3).
 inline constexpr std::size_t kAclRuleIdxActionSub = kAclRuleMatchPrefix;
+
+// A parsed acl-rule mutation, captured at parse time and replayed later.
+// Exactly one function is set: match fields and action permit|deny target the
+// AclEntry; every other action targets a MatchAction.
+struct AclRuleMutation {
+  std::function<void(cfg::AclEntry&)> entryFn;
+  std::function<void(cfg::MatchAction&)> actionFn;
+};
+
+// Parse a `config acl rule` token vector (<table> <rule> <attr> <value>...)
+// into a mutation. Validates the attr/action keyword and its arity; throws
+// std::invalid_argument on any problem. Shared entry point for the command's
+// arg type.
+AclRuleMutation parseAclRuleSpec(const std::vector<std::string>& tokens);
+
+// Comma-separated accepted keywords, for `--help` and error text: the match
+// fields plus `action`, and the action sub-attributes, respectively.
+std::string aclRuleAttrKeysCsv();
+std::string aclRuleActionKeysCsv();
 
 // Locate the AclTable named `tableName` across every AclTableGroup in
 // `swConfig` (ACL table names are unique within a group, so we walk all
