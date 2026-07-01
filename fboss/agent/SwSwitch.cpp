@@ -815,13 +815,34 @@ void SwSwitch::setFibSyncTimeForClient(ClientID clientId) {
 state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
     state::WarmbootState* warmbootState) const {
   auto updateThriftRoute = [this](
-                               auto& route, auto& fib, std::string routeName) {
+                               auto& route,
+                               auto& fib,
+                               const std::string& routeName,
+                               const auto& idToNextHopIdSet) {
     if (isRunModeMonolithic() && route.isResolved()) {
       const auto& fwd = route.fwd();
       // Do not update switchingMode if already present
       if (fwd.getAction() != RouteForwardAction::NEXTHOPS ||
-          fwd.getNextHopSet().size() < 2 ||
           fwd.getOverrideEcmpSwitchingMode().has_value()) {
+        return;
+      }
+      // Under FLAGS_resolve_nexthops_from_id, source the nexthop count from the
+      // warmboot state's idToNextHopIdSet map via resolvedSetId so the check
+      // stays correct once inline storage is removed.
+      size_t nhopCount = fwd.getNextHopSet().size();
+      if (FLAGS_resolve_nexthops_from_id) {
+        auto setId = fwd.getResolvedNextHopSetID();
+        CHECK(setId.has_value())
+            << "resolve_nexthops_from_id: route " << routeName
+            << " has no resolvedNextHopSetID during graceful exit";
+        auto setIt = idToNextHopIdSet.find(static_cast<int64_t>(*setId));
+        CHECK(setIt != idToNextHopIdSet.end())
+            << "resolve_nexthops_from_id: route " << routeName
+            << " resolvedNextHopSetID " << *setId
+            << " missing from idToNextHopIdSet during graceful exit";
+        nhopCount = setIt->second.size();
+      }
+      if (nhopCount < 2) {
         return;
       }
       auto switchingMode =
@@ -846,18 +867,19 @@ state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
   auto it = fibsInfoMap->find(matcher);
   if (it != fibsInfoMap->end()) {
     auto& fibInfoFields = it->second;
+    const auto& idToNextHopIdSet = *fibInfoFields.idToNextHopIdSet();
     auto fibs = fibInfoFields.fibsMap();
     if (fibs.has_value()) {
       for (auto& [_, fib] : *fibs) {
         auto fibV4 = fib.fibV4();
         for (auto& [name, thriftRoute] : *fibV4) {
           auto route = RouteFields<folly::IPAddressV4>::fromThrift(thriftRoute);
-          updateThriftRoute(route, fibV4, name);
+          updateThriftRoute(route, fibV4, name, idToNextHopIdSet);
         }
         auto fibV6 = fib.fibV6();
         for (auto& [name, thriftRoute] : *fibV6) {
           auto route = RouteFields<folly::IPAddressV6>::fromThrift(thriftRoute);
-          updateThriftRoute(route, fibV6, name);
+          updateThriftRoute(route, fibV6, name, idToNextHopIdSet);
         }
       }
     }
