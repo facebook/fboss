@@ -15,7 +15,51 @@
   ],
   "qsfpTestConfig": {
     "cabledPortPairs": [
-      
+      {
+        "aPortName": "eth1/1/1",
+        "zPortName": "eth1/2/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/1/5",
+        "zPortName": "eth1/2/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/3/1",
+        "zPortName": "eth1/4/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/3/5",
+        "zPortName": "eth1/4/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/5/1",
+        "zPortName": "eth1/6/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/5/5",
+        "zPortName": "eth1/6/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/7/1",
+        "zPortName": "eth1/8/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/7/5",
+        "zPortName": "eth1/8/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/9/1",
+        "zPortName": "eth1/9/1",
+        "profileID": 23
+      }
     ]
   },
   "transceiverFirmwareVersions": {
