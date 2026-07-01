@@ -1388,8 +1388,8 @@ add_dependencies(fboss_fake_agent_targets
   fboss_agent_thrift_libs
   fboss_sw_agent
   sai_replayer-fake
-  wedge_agent-fake
-  fboss_hw_agent-fake
+  wedge_agent-sai_impl
+  fboss_hw_agent-sai_impl
 )
 
 add_custom_target(fboss_fake_agent_test_targets)
