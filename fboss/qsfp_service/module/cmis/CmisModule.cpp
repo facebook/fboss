@@ -3812,10 +3812,14 @@ void CmisModule::programTunableModule(
   const auto& centerFreq = freqConfig->centerFrequencyConfig();
 
   QSFP_LOG(INFO, this) << "Program tunable optics module";
-  configureRxConsActHoldOffTimer(
-      *opticalChannelConfig.rxConsActHoldOffTimerMs(),
-      apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
-          opticalChannelConfig.rxConsActHoldOffTimerMs()));
+  // Only program the Rx Consequent Action hold-off timer when a config
+  // explicitly requests it. Not all vendors implement this register, so it is
+  // left untouched by default (kept for future use if a config opts in).
+  if (auto rxConsActHoldOffTimerMs =
+          opticalChannelConfig.rxConsActHoldOffTimerMs()) {
+    configureRxConsActHoldOffTimer(
+        *rxConsActHoldOffTimerMs, /*isExplicitlyConfigured=*/true);
+  }
 
   // Disable TX and RX squelch on all lanes
   disableTxRxSquelchForTunableOptics();
