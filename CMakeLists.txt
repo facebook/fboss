@@ -1147,6 +1147,47 @@ add_fbthrift_python_library(
     prbs_python
     hardware_stats_python
 )
+add_fbthrift_python_library(
+  highfreq_python
+  fboss/agent/if/highfreq.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  switch_state_python
+  fboss/agent/switch_state.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    switch_config_python
+    phy_python
+    cfgr_fboss_common_python
+    common_python
+    transceiver_python
+    network_address_python
+    ctrl_python
+    mka_structs_python
+)
+add_fbthrift_python_library(
+  hw_ctrl_python
+  fboss/agent/if/hw_ctrl.thrift
+  SERVICES
+    FbossHwCtrl
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    hardware_stats_python
+    common_python
+    ctrl_python
+    fboss_python
+    highfreq_python
+    switch_state_python
+    phy_python
+    prbs_python
+)
 
 add_fbthrift_cpp_library(
   hal_test_config_cpp2
