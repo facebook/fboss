@@ -85,6 +85,7 @@ class Fboss2IntegrationTest : public ::testing::Test {
    *   getSwConfigField<int>("arpTimeoutSeconds")
    *   getSwConfigField<bool>("enableLldp")
    *   getSwConfigField<std::string>("loadBalancerPoolName")
+   *   getSwConfigField<std::string>("optionalField", "default")
    */
   template <typename T>
   T getSwConfigField(const std::string& field) const {
@@ -108,6 +109,11 @@ class Fboss2IntegrationTest : public ::testing::Test {
     } else {
       static_assert(!sizeof(T), "Unsupported type for getSwConfigField");
     }
+  }
+
+  template <typename T>
+  T getSwConfigField(const std::string& field, T defaultValue) const {
+    return getSwConfigFieldOpt<T>(field).value_or(std::move(defaultValue));
   }
 
   /**
@@ -356,6 +362,30 @@ class Fboss2IntegrationTest : public ::testing::Test {
   std::string findIpv6OnIntf(int intfId) const;
 
  private:
+  template <typename T>
+  std::optional<T> getSwConfigFieldOpt(const std::string& field) const {
+    auto config = getRunningConfig();
+    if (!config.isObject() || !config.count("sw")) {
+      return std::nullopt;
+    }
+    const auto& sw = config["sw"];
+    if (!sw.isObject() || !sw.count(field)) {
+      return std::nullopt;
+    }
+    if constexpr (std::is_same_v<T, bool>) {
+      return sw[field].asBool();
+    } else if constexpr (std::is_integral_v<T>) {
+      return static_cast<T>(sw[field].asInt());
+    } else if constexpr (std::is_same_v<T, std::string>) {
+      return sw[field].asString();
+    } else if constexpr (std::is_same_v<T, double>) {
+      return sw[field].asDouble();
+    } else {
+      static_assert(!sizeof(T), "Unsupported type for getSwConfigField");
+    }
+    return std::nullopt;
+  }
+
   Interface parseInterfaceJson(const folly::dynamic& data) const;
 
   /**
