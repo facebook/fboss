@@ -1040,12 +1040,14 @@ TEST_F(NextHopMapPopulationTest, getNextHopsFromRibPrimitive) {
   EXPECT_THROW(getNextHopsFromRib(manager.get(), unknownId), FbossError);
 }
 
-// Verifies getNormalizedNextHopsFromRib: returns inline non-override
-// normalized nexthops when flag is off, resolves via manager
+// Verifies getNonOverrideNormalizedNextHopsFromRib: returns inline
+// non-override normalized nexthops when flag is off, resolves via manager
 // (normalizedResolvedNextHopSetID) when flag is on. For NEXTHOPS-action
 // entries the two paths produce the same set; DROP/TO_CPU entries return
 // empty in both paths.
-TEST_F(NextHopMapPopulationTest, getNormalizedNextHopsFromRibWrapper) {
+TEST_F(
+    NextHopMapPopulationTest,
+    getNonOverrideNormalizedNextHopsFromRibWrapper) {
   auto updater = sw_->getRouteUpdater();
   addV4RouteForClient(
       updater, kClientA, "10.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
@@ -1062,7 +1064,7 @@ TEST_F(NextHopMapPopulationTest, getNormalizedNextHopsFromRibWrapper) {
     for (const auto& [_, route] : std::as_const(*fibV4)) {
       const auto& fwd = route->getForwardInfo();
       EXPECT_EQ(
-          getNormalizedNextHopsFromRib(manager.get(), fwd),
+          getNonOverrideNormalizedNextHopsFromRib(manager.get(), fwd),
           fwd.nonOverrideNormalizedNextHops());
     }
   };
@@ -1075,6 +1077,51 @@ TEST_F(NextHopMapPopulationTest, getNormalizedNextHopsFromRibWrapper) {
   FLAGS_resolve_nexthops_from_id = true;
   runChecks();
   FLAGS_resolve_nexthops_from_id = false;
+}
+
+// Verifies getNormalizedNextHopsFromRib dispatch: an entry carrying
+// overrideNextHops is resolved via normalizedNextHops() (honoring the
+// override, independent of flag/manager); an entry without overrides
+// delegates to getNonOverrideNormalizedNextHopsFromRib.
+TEST_F(NextHopMapPopulationTest, getNormalizedNextHopsFromRibOverrideAware) {
+  auto manager = sw_->getRib()->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+
+  // Base set {A}; override adds B so honoring it yields a different set than
+  // ignoring it. Nexthops must be resolved -- normalizeNextHops() requires it.
+  RouteNextHopSet baseNhops;
+  baseNhops.emplace(ResolvedNextHop(
+      folly::IPAddress("1.1.1.1"), InterfaceID(1), ECMP_WEIGHT));
+  RouteNextHopSet overrideNhops = baseNhops;
+  overrideNhops.emplace(ResolvedNextHop(
+      folly::IPAddress("2.2.2.2"), InterfaceID(2), ECMP_WEIGHT));
+
+  RouteNextHopEntry overrideEntry(baseNhops, DISTANCE);
+  overrideEntry.setOverrideNextHops(overrideNhops);
+  ASSERT_TRUE(overrideEntry.getOverrideNextHops().has_value());
+
+  // Override branch short-circuits before the flag/manager logic, so it holds
+  // for both flag states.
+  for (bool flag : {false, true}) {
+    FLAGS_resolve_nexthops_from_id = flag;
+    EXPECT_EQ(
+        getNormalizedNextHopsFromRib(manager.get(), overrideEntry),
+        overrideEntry.normalizedNextHops());
+  }
+  FLAGS_resolve_nexthops_from_id = false;
+  // The override actually changes the result vs. ignoring it, so honoring it
+  // is meaningful.
+  EXPECT_NE(
+      overrideEntry.normalizedNextHops(),
+      overrideEntry.nonOverrideNormalizedNextHops());
+
+  // No overrides: delegates to the non-override helper. Flag off => inline
+  // path, so the directly-built entry needs no manager lookup.
+  RouteNextHopEntry plainEntry(overrideNhops, DISTANCE);
+  ASSERT_FALSE(plainEntry.getOverrideNextHops().has_value());
+  EXPECT_EQ(
+      getNormalizedNextHopsFromRib(manager.get(), plainEntry),
+      getNonOverrideNormalizedNextHopsFromRib(manager.get(), plainEntry));
 }
 
 // Verifies getResolvedNextHopsFromRib: returns inline fwd nexthops when

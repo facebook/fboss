@@ -2245,7 +2245,7 @@ RouteNextHopSet getResolvedNextHopsFromRib(
   return entry.getNextHopSet();
 }
 
-RouteNextHopSet getNormalizedNextHopsFromRib(
+RouteNextHopSet getNonOverrideNormalizedNextHopsFromRib(
     const NextHopIDManager* manager,
     const RouteNextHopEntry& entry) {
   if (FLAGS_resolve_nexthops_from_id) {
@@ -2261,6 +2261,18 @@ RouteNextHopSet getNormalizedNextHopsFromRib(
     return getNextHopsFromRib(manager, NextHopSetID(*normalizedSetId));
   }
   return entry.nonOverrideNormalizedNextHops();
+}
+
+RouteNextHopSet getNormalizedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry) {
+  if (entry.getOverrideNextHops().has_value()) {
+    // Override nexthops are inline for now;
+    // normalizedNextHops() handles the override normalization path correctly.
+    return entry.normalizedNextHops();
+  }
+  // No overrides, delegate to ID-aware non-override path.
+  return getNonOverrideNormalizedNextHopsFromRib(manager, entry);
 }
 
 } // namespace facebook::fboss
