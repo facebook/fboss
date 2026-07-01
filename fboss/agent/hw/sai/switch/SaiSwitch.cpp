@@ -5269,7 +5269,8 @@ void SaiSwitch::processAclTableGroupDelta(
         &SaiAclTableManager::changedAclTable,
         &SaiAclTableManager::addAclTable,
         &SaiAclTableManager::removeAclTable,
-        aclStage);
+        aclStage,
+        delta.newState());
 
     if (delta.getAclTablesDelta(aclStage).getNew()) {
       // Process delta for the entries of each table in the new state

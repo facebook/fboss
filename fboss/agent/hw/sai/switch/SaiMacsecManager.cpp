@@ -1048,7 +1048,8 @@ void SaiMacsecManager::setupAclTable(
         table,
         direction == SAI_MACSEC_DIRECTION_INGRESS
             ? cfg::AclStage::INGRESS_MACSEC
-            : cfg::AclStage::EGRESS_MACSEC);
+            : cfg::AclStage::EGRESS_MACSEC,
+        nullptr /*state*/);
     XLOG(DBG2) << "For linePort: " << linePort << ", created "
                << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
                                                              : "Egress")
@@ -1287,7 +1288,8 @@ void SaiMacsecManager::removeAclTable(
         table,
         direction == SAI_MACSEC_DIRECTION_INGRESS
             ? cfg::AclStage::INGRESS_MACSEC
-            : cfg::AclStage::EGRESS_MACSEC);
+            : cfg::AclStage::EGRESS_MACSEC,
+        nullptr /*state*/);
     XLOG(DBG2) << "Removed ACL table " << aclTableName;
   }
 }

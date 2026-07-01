@@ -147,14 +147,17 @@ class SaiAclTableManager {
 
   AclTableSaiId addAclTable(
       const std::shared_ptr<AclTable>& addedAclTable,
-      cfg::AclStage aclStage);
+      cfg::AclStage aclStage,
+      const std::shared_ptr<SwitchState>& state);
   void removeAclTable(
       const std::shared_ptr<AclTable>& removedAclTable,
-      cfg::AclStage aclStage);
+      cfg::AclStage aclStage,
+      const std::shared_ptr<SwitchState>& state);
   void changedAclTable(
       const std::shared_ptr<AclTable>& oldAclTable,
       const std::shared_ptr<AclTable>& newAclTable,
-      cfg::AclStage aclStage);
+      cfg::AclStage aclStage,
+      const std::shared_ptr<SwitchState>& state);
   std::shared_ptr<AclTable> reconstructAclTable(
       int priority,
       const std::string& name) const;
@@ -168,7 +171,8 @@ class SaiAclTableManager {
   void removeAclEntriesFromTable(const std::shared_ptr<AclTable>& aclTable);
   void addAclEntriesToTable(
       const std::shared_ptr<AclTable>& aclTable,
-      std::shared_ptr<AclMap>& aclMap);
+      std::shared_ptr<AclMap>& aclMap,
+      const std::shared_ptr<SwitchState>& state);
 
   const SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandle(const std::string& aclTableName) const;
