@@ -23,7 +23,7 @@ CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
     const HostInfo& hostInfo) {
   auto& session = ConfigSession::getInstance();
 
-  if (!session.sessionExists()) {
+  if (!session.hasActiveSession()) {
     return "No config session exists. Make a config change first.";
   }
 
@@ -57,6 +57,11 @@ CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
         for (const auto& serviceName : serviceNamesList) {
           restartedServices.push_back(
               fmt::format("{} (warmboot)", serviceName));
+        }
+        break;
+      case cli::ConfigActionLevel::BGP_PP_RESTART:
+        for (const auto& serviceName : serviceNamesList) {
+          restartedServices.push_back(fmt::format("{} (restart)", serviceName));
         }
         break;
       case cli::ConfigActionLevel::HITLESS:

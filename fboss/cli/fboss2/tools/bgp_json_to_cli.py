@@ -19,7 +19,7 @@ Example:
 import argparse
 import json
 import sys
-from typing import Any, Dict, List
+from typing import Any
 
 
 def escape_shell_arg(arg: str) -> str:
@@ -29,7 +29,7 @@ def escape_shell_arg(arg: str) -> str:
     return arg
 
 
-def _generate_global_basic_commands(config: Dict[str, Any]) -> List[str]:
+def _generate_global_basic_commands(config: dict[str, Any]) -> list[str]:
     """Generate basic global BGP commands."""
     commands = []
     if "router_id" in config:
@@ -44,12 +44,10 @@ def _generate_global_basic_commands(config: Dict[str, Any]) -> List[str]:
         commands.append(
             f"config protocol bgp global confed-asn {config['local_confed_as_4_byte']}"
         )
-    if "cluster_id" in config:
-        commands.append(f"config protocol bgp global cluster-id {config['cluster_id']}")
     return commands
 
 
-def _generate_network6_commands(networks: List[Dict[str, Any]]) -> List[str]:
+def _generate_network6_commands(networks: list[dict[str, Any]]) -> list[str]:
     """Generate network6 commands for global BGP config."""
     commands = []
     for network in networks:
@@ -67,7 +65,7 @@ def _generate_network6_commands(networks: List[Dict[str, Any]]) -> List[str]:
     return commands
 
 
-def _generate_switch_limit_commands(switch_limit: Dict[str, Any]) -> List[str]:
+def _generate_switch_limit_commands(switch_limit: dict[str, Any]) -> list[str]:
     """Generate switch_limit_config commands."""
     commands = []
     if "prefix_limit" in switch_limit:
@@ -89,7 +87,7 @@ def _generate_switch_limit_commands(switch_limit: Dict[str, Any]) -> List[str]:
     return commands
 
 
-def generate_global_commands(config: Dict[str, Any]) -> List[str]:
+def generate_global_commands(config: dict[str, Any]) -> list[str]:
     """Generate CLI commands for global BGP settings."""
     commands = []
     commands.extend(_generate_global_basic_commands(config))
@@ -101,8 +99,8 @@ def generate_global_commands(config: Dict[str, Any]) -> List[str]:
 
 
 def _generate_peer_group_basic_commands(
-    peer_group: Dict[str, Any], escaped_name: str
-) -> List[str]:
+    peer_group: dict[str, Any], escaped_name: str
+) -> list[str]:
     """Generate basic peer-group commands (remote-asn, description, policies)."""
     commands = []
     if "remote_as_4_byte" in peer_group:
@@ -129,8 +127,8 @@ def _generate_peer_group_basic_commands(
 
 
 def _generate_peer_group_bool_commands(
-    peer_group: Dict[str, Any], escaped_name: str
-) -> List[str]:
+    peer_group: dict[str, Any], escaped_name: str
+) -> list[str]:
     """Generate boolean flag commands for peer-group."""
     commands = []
     bool_fields = [
@@ -149,8 +147,8 @@ def _generate_peer_group_bool_commands(
 
 
 def _generate_peer_group_timer_commands(
-    timers: Dict[str, Any], escaped_name: str
-) -> List[str]:
+    timers: dict[str, Any], escaped_name: str
+) -> list[str]:
     """Generate timer commands for peer-group."""
     commands = []
     if timers.get("hold_time_seconds"):
@@ -173,8 +171,8 @@ def _generate_peer_group_timer_commands(
 
 
 def _generate_peer_group_prefilter_commands(
-    pre_filter: Dict[str, Any], escaped_name: str
-) -> List[str]:
+    pre_filter: dict[str, Any], escaped_name: str
+) -> list[str]:
     """Generate pre_filter commands for peer-group."""
     commands = []
     if pre_filter.get("max_routes"):
@@ -192,7 +190,7 @@ def _generate_peer_group_prefilter_commands(
     return commands
 
 
-def generate_peer_group_commands(peer_group: Dict[str, Any]) -> List[str]:
+def generate_peer_group_commands(peer_group: dict[str, Any]) -> list[str]:
     """Generate CLI commands for a peer group."""
     name = peer_group.get("name", "")
     if not name:
@@ -219,16 +217,16 @@ def format_bandwidth(bps: int) -> str:
     """Format bandwidth in bps to human-readable format (e.g., 10G)."""
     if bps >= 1_000_000_000_000 and bps % 1_000_000_000_000 == 0:
         return f"{bps // 1_000_000_000_000}T"
-    elif bps >= 1_000_000_000 and bps % 1_000_000_000 == 0:
+    if bps >= 1_000_000_000 and bps % 1_000_000_000 == 0:
         return f"{bps // 1_000_000_000}G"
-    elif bps >= 1_000_000 and bps % 1_000_000 == 0:
+    if bps >= 1_000_000 and bps % 1_000_000 == 0:
         return f"{bps // 1_000_000}M"
-    elif bps >= 1_000 and bps % 1_000 == 0:
+    if bps >= 1_000 and bps % 1_000 == 0:
         return f"{bps // 1_000}K"
     return str(bps)
 
 
-def _generate_peer_basic_commands(peer: Dict[str, Any], peer_addr: str) -> List[str]:
+def _generate_peer_basic_commands(peer: dict[str, Any], peer_addr: str) -> list[str]:
     """Generate basic peer commands (remote-asn, peer-group, description, etc.)."""
     commands = []
     if "remote_as_4_byte" in peer:
@@ -258,7 +256,7 @@ def _generate_peer_basic_commands(peer: Dict[str, Any], peer_addr: str) -> List[
     return commands
 
 
-def _generate_peer_bool_commands(peer: Dict[str, Any], peer_addr: str) -> List[str]:
+def _generate_peer_bool_commands(peer: dict[str, Any], peer_addr: str) -> list[str]:
     """Generate boolean flag commands for peer."""
     commands = []
     bool_fields = [
@@ -277,7 +275,7 @@ def _generate_peer_bool_commands(peer: Dict[str, Any], peer_addr: str) -> List[s
     return commands
 
 
-def _generate_peer_nexthop_commands(peer: Dict[str, Any], peer_addr: str) -> List[str]:
+def _generate_peer_nexthop_commands(peer: dict[str, Any], peer_addr: str) -> list[str]:
     """Generate next-hop and link-bandwidth commands for peer."""
     commands = []
     if "next_hop4" in peer:
@@ -295,7 +293,7 @@ def _generate_peer_nexthop_commands(peer: Dict[str, Any], peer_addr: str) -> Lis
     return commands
 
 
-def _generate_peer_timer_commands(timers: Dict[str, Any], peer_addr: str) -> List[str]:
+def _generate_peer_timer_commands(timers: dict[str, Any], peer_addr: str) -> list[str]:
     """Generate timer commands for peer."""
     commands = []
     if timers.get("hold_time_seconds"):
@@ -318,8 +316,8 @@ def _generate_peer_timer_commands(timers: Dict[str, Any], peer_addr: str) -> Lis
 
 
 def _generate_peer_prefilter_commands(
-    pre_filter: Dict[str, Any], peer_addr: str
-) -> List[str]:
+    pre_filter: dict[str, Any], peer_addr: str
+) -> list[str]:
     """Generate pre_filter commands for peer."""
     commands = []
     if pre_filter.get("max_routes"):
@@ -337,7 +335,7 @@ def _generate_peer_prefilter_commands(
     return commands
 
 
-def _generate_peer_id_commands(peer: Dict[str, Any], peer_addr: str) -> List[str]:
+def _generate_peer_id_commands(peer: dict[str, Any], peer_addr: str) -> list[str]:
     """Generate peer identification commands."""
     commands = []
     if "peer_id" in peer:
@@ -351,7 +349,7 @@ def _generate_peer_id_commands(peer: Dict[str, Any], peer_addr: str) -> List[str
     return commands
 
 
-def generate_peer_commands(peer: Dict[str, Any]) -> List[str]:
+def generate_peer_commands(peer: dict[str, Any]) -> list[str]:
     """Generate CLI commands for a peer."""
     peer_addr = peer.get("peer_addr", "")
     if not peer_addr:
@@ -371,7 +369,7 @@ def generate_peer_commands(peer: Dict[str, Any]) -> List[str]:
     return commands
 
 
-def generate_stub_commands(commands: List[str], binary: str = "fboss2") -> List[str]:
+def generate_stub_commands(commands: list[str], binary: str = "fboss2") -> list[str]:
     """Wrap commands for stub mode execution."""
     stub_commands = [
         "#!/bin/bash",
@@ -386,7 +384,7 @@ def generate_stub_commands(commands: List[str], binary: str = "fboss2") -> List[
     return stub_commands
 
 
-def generate_exec_commands(commands: List[str], binary: str = "fboss2") -> List[str]:
+def generate_exec_commands(commands: list[str], binary: str = "fboss2") -> list[str]:
     """Generate executable commands with custom binary."""
     exec_commands = [
         "#!/bin/bash",
@@ -411,8 +409,8 @@ def generate_exec_commands(commands: List[str], binary: str = "fboss2") -> List[
 
 
 def json_to_cli(
-    config: Dict[str, Any], stub: bool = False, binary: str = "fboss2"
-) -> List[str]:
+    config: dict[str, Any], stub: bool = False, binary: str = "fboss2"
+) -> list[str]:
     """Convert BGP++ JSON config to CLI commands."""
     commands = []
 
@@ -460,7 +458,7 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        with open(args.input, "r") as f:
+        with open(args.input) as f:
             config = json.load(f)
     except FileNotFoundError:
         print(f"Error: Input file '{args.input}' not found", file=sys.stderr)

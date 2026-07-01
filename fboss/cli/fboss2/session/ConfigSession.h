@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
 #include <map>
 #include <memory>
 #include <string>
@@ -102,6 +103,9 @@ class ConfigSession {
   static std::string getSessionDir();
   static std::string getSessionConfigPathStatic();
   static std::string getSessionMetadataPathStatic();
+  // ~/.fboss2/bgp_config.json — staged BGP edits (used by `config session
+  // clear` without instantiating a session).
+  static std::string getBgpSessionConfigPathStatic();
 
   // Get the path to the session config file (~/.fboss2/agent.conf)
   std::string getSessionConfigPath() const;
@@ -145,8 +149,15 @@ class ConfigSession {
   std::string rollback(const HostInfo& hostInfo);
   std::string rollback(const HostInfo& hostInfo, const std::string& commitSha);
 
-  // Check if a session exists
+  // Check if an agent config session exists (~/.fboss2/agent.conf staged).
   bool sessionExists() const;
+
+  // Check if any committable session is staged: either an agent config session
+  // (agent.conf) or a protocol session persisted outside agent.conf (e.g. a
+  // BGP++ session at ~/.fboss2/bgp_config.json recorded via
+  // recordServiceAction()). The commit path uses this rather than
+  // sessionExists() so a BGP-only change can be committed.
+  bool hasActiveSession() const;
 
   // Get the parsed agent configuration
   cfg::AgentConfig& getAgentConfig();
@@ -163,6 +174,43 @@ class ConfigSession {
   void saveConfig(cli::ServiceType service, cli::ConfigActionLevel actionLevel);
   // Save the configuration for AGENT service with HITLESS action level.
   void saveConfig();
+
+  // Record that a service requires an action for a config change that is
+  // persisted OUTSIDE the agent config file (e.g. BGP++ writes its own
+  // ~/.fboss2/bgp_config.json). This updates the action level for the service
+  // in the shared session metadata and persists it, WITHOUT rewriting
+  // agent.conf. A subsequent `config session commit` then applies the recorded
+  // action (e.g. restart bgp_pp).
+  void recordServiceAction(
+      cli::ServiceType service,
+      cli::ConfigActionLevel actionLevel);
+
+  // ==================== BGP configuration ====================
+  // ConfigSession owns the BGP config as a typed bgp::thrift::BgpConfig,
+  // exactly the way it owns cfg::AgentConfig for the agent. It is BGP-*aware*
+  // but agnostic about the config's internal structure: getBgpConfig() exposes
+  // the WHOLE typed config (router_id, ASNs, peers, peer_groups, networks, ...)
+  // and commands mutate whichever typed fields they need -- mirroring how
+  // interface commands mutate getAgentConfig().sw()->ports(). ConfigSession has
+  // no notion of "global" vs "peer" vs "peer-group".
+
+  // Typed, mutable view of the entire BGP config. Lazily seeded from the staged
+  // ~/.fboss2/bgp_config.json, else the running /etc/coop/bgpcpp/bgpcpp.conf,
+  // else schema defaults. Mirrors getAgentConfig().
+  bgp::thrift::BgpConfig& getBgpConfig();
+  const bgp::thrift::BgpConfig& getBgpConfig() const;
+
+  // Persist the typed BGP config back to ~/.fboss2/bgp_config.json and record
+  // that bgp_pp must be restarted for this change to take effect on a
+  // subsequent `config session commit`. Mirrors saveConfig() for the agent.
+  void saveBgpConfig();
+
+  // ~/.fboss2/bgp_config.json (staged BGP edits)
+  std::string getBgpSessionConfigPath() const;
+  // /etc/coop/bgpcpp/bgpcpp.conf (config read by the bgp_pp daemon)
+  std::string getBgpSystemConfigPath() const;
+  // Whether a BGP session is staged (~/.fboss2/bgp_config.json exists)
+  bool bgpSessionExists() const;
 
   // Get the Git instance for this config session
   // Used to access the Git repository for history, rollback, etc.
@@ -233,6 +281,26 @@ class ConfigSession {
   cfg::AgentConfig agentConfig_;
   std::unique_ptr<utils::PortMap> portMap_;
   bool configLoaded_ = false;
+
+  // Typed view of the entire BGP config (lazily loaded), mirroring
+  // agentConfig_.
+  bgp::thrift::BgpConfig bgpConfig_;
+  bool bgpConfigLoaded_ = false;
+
+  // /etc/coop/bgpcpp (directory holding the bgp_pp daemon's config)
+  std::string getBgpSystemConfigDir() const;
+  // Lazily seed bgpConfig_ from disk (staged file, else running config, else
+  // defaults). Mirrors loadConfig() for the agent.
+  void loadBgpConfig();
+
+  // git relative path of the bgp_pp config tracked in the /etc/coop repo.
+  static constexpr auto kBgpGitRelPath = "bgpcpp/bgpcpp.conf";
+  // Like Git::fileAtRevision but returns "" instead of throwing when the path
+  // does not exist at that revision (e.g. a pre-BGP commit). Used by
+  // rebase/rollback/diff so a missing bgpcpp.conf is treated as empty.
+  std::string fileAtRevisionOrEmpty(
+      const std::string& revision,
+      const std::string& gitRelPath) const;
 
   // Track the highest action level required for pending config changes per
   // service. Persisted to disk so it survives across CLI invocations within a

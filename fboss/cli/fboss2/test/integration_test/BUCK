@@ -17,6 +17,8 @@ cpp_binary(
     name = "fboss2_integration_test",
     srcs = [
         "ConfigArpTest.cpp",
+        "ConfigBgpGlobalTest.cpp",
+        "ConfigBgpSessionTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",
         "ConfigDhcpSourceOverrideTest.cpp",
