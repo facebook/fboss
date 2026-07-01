@@ -14,7 +14,7 @@ TEST(OvertempConditionTest, Basic) {
 
   overtempCondition.setNumOvertempSensorForShutdown(1);
   overtempCondition.addSensorForTracking("TimmyHick9_Core_Temp", 102.84, 1);
-  overtempCondition.addSensorForTracking("OSFP3200_Port1_Core_Temp", 70.1, 1);
+  overtempCondition.addSensorForTracking("OSFP3200_Port1_Core_Temp", 70.1, 2);
 
   // Make sure the registered sensors are tracked.
   EXPECT_TRUE(overtempCondition.isTracked("TimmyHick9_Core_Temp"));
@@ -27,7 +27,11 @@ TEST(OvertempConditionTest, Basic) {
   EXPECT_FALSE(overtempCondition.checkIfOvertemp());
 
   overtempCondition.processSensorData("OSFP3200_Port1_Core_Temp", 70.2);
-  // Make sure there is no false negative
+  // The first overtemp read should not trigger shutdown when window size is 2.
+  EXPECT_FALSE(overtempCondition.checkIfOvertemp());
+
+  overtempCondition.processSensorData("OSFP3200_Port1_Core_Temp", 70.3);
+  // Make sure there is no false negative after two consecutive overtemp reads.
   EXPECT_TRUE(overtempCondition.checkIfOvertemp());
 }
 
@@ -62,9 +66,58 @@ TEST(OvertempConditionTest, SlidingWindow) {
   overtempCondition.processSensorData("Zinclake_Hotswap_Temp", 84.3);
   EXPECT_FALSE(overtempCondition.checkIfOvertemp());
 
-  // Overtemp condition should be met after this
+  // Only one sensor is showing overtemp. No shutdown should be triggered.
   overtempCondition.processSensorData("Spooktrim7_Core_Temp", 110.2);
   overtempCondition.processSensorData("Retimer_Port1_Temp", 79.1);
   overtempCondition.processSensorData("Zinclake_Hotswap_Temp", 120.1);
+  EXPECT_FALSE(overtempCondition.checkIfOvertemp());
+
+  overtempCondition.processSensorData("Spooktrim7_Core_Temp", 111.2);
+  overtempCondition.processSensorData("Retimer_Port1_Temp", 79.1);
+  overtempCondition.processSensorData("Zinclake_Hotswap_Temp", 121.1);
+  EXPECT_FALSE(overtempCondition.checkIfOvertemp());
+
+  overtempCondition.processSensorData("Spooktrim7_Core_Temp", 111.2);
+  overtempCondition.processSensorData("Retimer_Port1_Temp", 79.1);
+  overtempCondition.processSensorData("Zinclake_Hotswap_Temp", 121.1);
+  EXPECT_FALSE(overtempCondition.checkIfOvertemp());
+
+  // Overtemp condition should be met after each sensor's window is overtemp.
+  overtempCondition.processSensorData("Spooktrim7_Core_Temp", 111.2);
+  overtempCondition.processSensorData("Retimer_Port1_Temp", 79.1);
+  overtempCondition.processSensorData("Zinclake_Hotswap_Temp", 121.1);
+  EXPECT_TRUE(overtempCondition.checkIfOvertemp());
+}
+
+TEST(OvertempConditionTest, SingleHugeSpikeDoesNotTriggerShutdown) {
+  OvertempCondition overtempCondition;
+  overtempCondition.setNumOvertempSensorForShutdown(1);
+  overtempCondition.addSensorForTracking("TimmyHick9_Core_Temp", 102.84, 2);
+
+  overtempCondition.processSensorData("TimmyHick9_Core_Temp", 70.4);
+  EXPECT_FALSE(overtempCondition.checkIfOvertemp());
+
+  overtempCondition.processSensorData("TimmyHick9_Core_Temp", 10000.0);
+  EXPECT_FALSE(overtempCondition.checkIfOvertemp());
+
+  overtempCondition.processSensorData("TimmyHick9_Core_Temp", 70.5);
+  EXPECT_FALSE(overtempCondition.checkIfOvertemp());
+}
+
+TEST(OvertempConditionTest, BelowThresholdReadResetsWindow) {
+  OvertempCondition overtempCondition;
+  overtempCondition.setNumOvertempSensorForShutdown(1);
+  overtempCondition.addSensorForTracking("TimmyHick9_Core_Temp", 102.84, 2);
+
+  overtempCondition.processSensorData("TimmyHick9_Core_Temp", 103.0);
+  EXPECT_FALSE(overtempCondition.checkIfOvertemp());
+
+  overtempCondition.processSensorData("TimmyHick9_Core_Temp", 70.5);
+  EXPECT_FALSE(overtempCondition.checkIfOvertemp());
+
+  overtempCondition.processSensorData("TimmyHick9_Core_Temp", 103.1);
+  EXPECT_FALSE(overtempCondition.checkIfOvertemp());
+
+  overtempCondition.processSensorData("TimmyHick9_Core_Temp", 103.2);
   EXPECT_TRUE(overtempCondition.checkIfOvertemp());
 }
