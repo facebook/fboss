@@ -737,7 +737,10 @@ class QsfpModule : public Transceiver {
   // Map key = laneId, value = last datapath reset time for that lane
   std::unordered_map<int, std::time_t> lastDatapathResetTimes_;
 
-  uint8_t datapathResetPendingMask_{0};
+  // Per-bank pending datapath-reset mask: bank -> intra-bank (0..7) lane mask.
+  // Tracked per-bank so multi-bank (CPO) ports on different banks don't share
+  // the same 0..7 bit range.
+  std::map<uint8_t, uint8_t> datapathResetPendingMask_;
 
  private:
   // no copy or assignment

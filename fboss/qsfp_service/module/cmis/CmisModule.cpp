@@ -2915,7 +2915,7 @@ void CmisModule::setApplicationSelectCode(
   writeCmisField(
       CmisField::STAGE_CTRL_SET_0, &applySetForConfigureLanes, false, bank);
 
-  datapathResetPendingMask_ = applySetForConfigureLanes;
+  datapathResetPendingMask_[bank] = applySetForConfigureLanes;
 
   QSFP_LOG(INFO, this) << fmt::format(
       "set application to {:#x}", mediaInterfaceCode);
@@ -3012,7 +3012,7 @@ void CmisModule::setApplicationSelectCodeAllPorts(
   writeCmisField(
       CmisField::STAGE_CTRL_SET_0, &applySetForSpecificLanes, false, bank);
 
-  datapathResetPendingMask_ = applySetForSpecificLanes;
+  datapathResetPendingMask_[bank] = applySetForSpecificLanes;
 }
 
 /*
@@ -3077,7 +3077,7 @@ void CmisModule::programApplicationSelectCode(
 
   resetDataPathWithFunc(state.portName, appSelectFunc, hostLaneMask, bank);
 
-  datapathResetPendingMask_ &= ~hostLaneMask;
+  datapathResetPendingMask_[bank] &= ~hostLaneMask;
 
   // Certain OSFP Modules require a long time to finish application
   // programming. The modules say config is accepted and applied, but
@@ -3264,9 +3264,9 @@ CmisModule::getAppSelCodeForSpeed(
       // returning. The port's lanes live in one bank; use an intra-bank mask.
       const uint8_t bank = laneToBank(startHostLane);
       uint8_t hostLaneMask = laneMask(laneInBank(startHostLane), numHostLanes);
-      if (datapathResetPendingMask_ & hostLaneMask) {
+      if (datapathResetPendingMask_[bank] & hostLaneMask) {
         resetDataPathWithFunc(portName, std::nullopt, hostLaneMask, bank);
-        datapathResetPendingMask_ &= ~hostLaneMask;
+        datapathResetPendingMask_[bank] &= ~hostLaneMask;
         QSFP_LOG(INFO, this) << fmt::format(
             "Reset datapath for lane mask {:#x} before returning",
             hostLaneMask);
