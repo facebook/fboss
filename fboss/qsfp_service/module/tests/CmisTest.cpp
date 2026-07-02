@@ -45,6 +45,8 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD0(getModuleStateChanged, bool());
   MOCK_METHOD1(ensureTransceiverReadyLocked, bool(bool));
 
+  using CmisModule::configuredHostLanes;
+  using CmisModule::configuredMediaLanes;
   using CmisModule::configureRxConsActHoldOffTimer;
   using CmisModule::disableTxRxSquelchForTunableOptics;
   using CmisModule::enableRxLfInsertionForTunableOptics;
@@ -358,6 +360,31 @@ TEST_F(CmisTest, cpoMultiPortDatapathProgram) {
     EXPECT_NE(hostLaneSignals[lane].cmisLaneState(), CmisLaneState::ACTIVATED)
         << "lane " << lane << " should not be ACTIVATED";
   }
+}
+
+// The host->media lane mapping is per-bank: module capabilities advertise
+// intra-bank lane assignments, but a port's lanes carry a global bank offset.
+// For the per-bank 2x800G-DR4 application (host/media start lanes {0,4}), a
+// port in bank N must report host and media lanes offset by N*8.
+TEST_F(CmisTest, cpoConfiguredMediaLanesPerBank) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+  xcvr->getTransceiverInfo();
+
+  // Host lanes are global and expand from the start lane.
+  EXPECT_EQ(xcvr->configuredHostLanes(0), (std::vector<uint8_t>{0, 1, 2, 3}));
+  EXPECT_EQ(xcvr->configuredHostLanes(8), (std::vector<uint8_t>{8, 9, 10, 11}));
+
+  // Media lanes are offset into the port's bank (bank = hostStartLane / 8).
+  // bank 0: host {0,4} -> media {0-3},{4-7}; bank 1: host {8,12} -> media
+  // {8-11},{12-15}.
+  EXPECT_EQ(xcvr->configuredMediaLanes(0), (std::vector<uint8_t>{0, 1, 2, 3}));
+  EXPECT_EQ(xcvr->configuredMediaLanes(4), (std::vector<uint8_t>{4, 5, 6, 7}));
+  EXPECT_EQ(
+      xcvr->configuredMediaLanes(8), (std::vector<uint8_t>{8, 9, 10, 11}));
+  EXPECT_EQ(
+      xcvr->configuredMediaLanes(12), (std::vector<uint8_t>{12, 13, 14, 15}));
 }
 
 // Tests that the transceiverInfo object is correctly populated

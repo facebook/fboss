@@ -305,6 +305,11 @@ class CmisModule : public QsfpModule {
   static std::pair<uint8_t, uint8_t> bankAndLane(int globalLane) {
     return {laneToBank(globalLane), laneInBank(globalLane)};
   }
+  // Inverse of laneToBank/laneInBank: the global lane index for an intra-bank
+  // lane offset within a bank.
+  static int globalLane(uint8_t bank, int laneOffset) {
+    return bank * kMaxOsfpNumLanes + laneOffset;
+  }
 
   /* Global-lane accessors for banked per-lane fields. A "global" lane spans all
    * banks (e.g. 0..31 for a 4-bank module); it maps to bank = lane /
@@ -1081,7 +1086,10 @@ class CmisModule : public QsfpModule {
   link::LinkPerfMonitorParamEachSideVal
   readLinkPmMetricS16(int startByte, double lsb, VdmConfigType vdmConf);
 
-  void applyHostControlledInputEquilizerTx(uint8_t lane, uint8_t value);
+  void applyHostControlledInputEquilizerTx(
+      uint8_t lane,
+      uint8_t value,
+      uint8_t bank = 0);
 
   uint8_t setExplicitControl(
       const TransceiverPortState& state,

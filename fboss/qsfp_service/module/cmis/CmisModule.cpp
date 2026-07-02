@@ -1206,6 +1206,13 @@ std::vector<uint8_t> CmisModule::configuredMediaLanes(
       currentConfiguredMediaInterfaceCode(startHostLane);
   if (auto applicationAdvertisingField =
           getApplicationField(currentMediaInterface, startHostLane)) {
+    // Module capabilities advertise per-bank (intra-bank) lane assignments. A
+    // port's host and media lanes live in the same bank, so match against the
+    // intra-bank host start lane and offset the resulting media lanes back to
+    // the port's bank to report global media lanes.
+    const uint8_t bank = laneToBank(startHostLane);
+    const uint8_t intraStartHostLane = laneInBank(startHostLane);
+
     // The assignment byte has a '1' for every datapath that starts at that
     // lane. We first need to find out the 'index (say n)' of the datapath
     // using the given start host lane. We'll then look for a nth '1' in the
@@ -1215,18 +1222,22 @@ std::vector<uint8_t> CmisModule::configuredMediaLanes(
     // host->media lanes will be (hostLane:0, mediaLane:0), (hostLane:2,
     // mediaLane:1), (hostLane:4, mediaLane:2), (hostLane:6, mediaLane:3)
     const auto& hostStartLanes = applicationAdvertisingField->hostStartLanes;
-    const auto it =
-        std::find(hostStartLanes.begin(), hostStartLanes.end(), startHostLane);
+    const auto it = std::find(
+        hostStartLanes.begin(), hostStartLanes.end(), intraStartHostLane);
     if (it == hostStartLanes.end()) {
-      QSFP_LOG(ERR, this) << "Couldn't find the hostStartLane "
-                          << startHostLane;
+      QSFP_LOG(ERR, this) << fmt::format(
+          "Couldn't find the intra-bank hostStartLane {} (global {}, bank {}) in the advertised host start lanes",
+          intraStartHostLane,
+          startHostLane,
+          bank);
       return cfgLanes;
     }
 
     const auto index = std::distance(hostStartLanes.begin(), it);
     uint8_t mediaStartLane = 0;
     if (index < applicationAdvertisingField->mediaStartLanes.size()) {
-      mediaStartLane = applicationAdvertisingField->mediaStartLanes[index];
+      mediaStartLane =
+          globalLane(bank, applicationAdvertisingField->mediaStartLanes[index]);
     } else {
       QSFP_LOG(ERR, this) << "Index " << index << " out of range for "
                           << folly::join(
@@ -2709,7 +2720,10 @@ void CmisModule::updateQsfpData(bool allPages) {
  */
 void CmisModule::applyHostControlledInputEquilizerTx(
     uint8_t lane,
-    uint8_t value) {
+    uint8_t value,
+    uint8_t bank) {
+  // lane is the intra-bank lane; INPUT_EQ_TX_* lives on banked page 10h, so
+  // select the port's bank.
   auto itr = laneToInputEqTxField.find(lane);
   if (itr == laneToInputEqTxField.end()) {
     QSFP_LOG(WARN, this) << fmt::format(
@@ -2728,12 +2742,12 @@ void CmisModule::applyHostControlledInputEquilizerTx(
   valueToApply = valueToApply << shift;
   // Read field first. Apply the value for the lane, then write it back
   uint8_t currentVal = 0;
-  readCmisField(field, &currentVal);
+  readCmisField(field, &currentVal, false, bank);
   // Zero out the correct nibble
   currentVal &= ~(0xF << shift);
   // apply current value
   currentVal |= valueToApply;
-  writeCmisField(field, &currentVal);
+  writeCmisField(field, &currentVal, false, bank);
 }
 
 /*
@@ -2774,6 +2788,9 @@ uint8_t CmisModule::setExplicitControl(
         lanes.size());
     return retVal;
   }
+  // lanes above are intra-bank; INPUT_EQ_TX_* is on banked page 10h, so target
+  // the port's bank.
+  const uint8_t bank = laneToBank(state.startHostLane);
   for (const auto& lane : lanes) {
     auto itr = driverPeaking->find(lane);
     if (itr == driverPeaking->end()) {
@@ -2782,7 +2799,7 @@ uint8_t CmisModule::setExplicitControl(
       continue;
     }
     retVal = 0x1;
-    applyHostControlledInputEquilizerTx(lane, itr->second);
+    applyHostControlledInputEquilizerTx(lane, itr->second, bank);
   }
   return retVal;
 }
@@ -3607,8 +3624,15 @@ void CmisModule::ensureRxOutputSquelchEnabled(
   if (!allLanesRxOutputSquelchEnabled) {
     uint8_t enableAllLaneRxOutputSquelch = 0x0;
 
-    writeCmisField(
-        CmisField::RX_SQUELCH_DISABLE, &enableAllLaneRxOutputSquelch);
+    // RX_SQUELCH_DISABLE is a per-bank register; clear it on every bank to
+    // cover all lanes of a multi-bank (CPO) module.
+    for (uint8_t bank = 0; bank < getMaxNumBanks(); ++bank) {
+      writeCmisField(
+          CmisField::RX_SQUELCH_DISABLE,
+          &enableAllLaneRxOutputSquelch,
+          false,
+          bank);
+    }
     QSFP_LOG(INFO, this) << "Enabled Rx output squelch on all lanes.";
   }
 }
@@ -3625,7 +3649,11 @@ bool CmisModule::isRxConsActImplSupported() const {
 
 void CmisModule::disableTxRxSquelchForTunableOptics() {
   uint8_t squelchDisableValue = 0xFF;
-  writeCmisField(CmisField::TX_SQUELCH_DISABLE, &squelchDisableValue);
+  // Squelch disable registers are per-bank; write each bank to cover all lanes.
+  for (uint8_t bank = 0; bank < getMaxNumBanks(); ++bank) {
+    writeCmisField(
+        CmisField::TX_SQUELCH_DISABLE, &squelchDisableValue, false, bank);
+  }
   QSFP_LOG(INFO, this) << "Disabled TX Squelch for tunable optics";
 
   if (!isRxConsActImplSupported()) {
@@ -3637,7 +3665,10 @@ void CmisModule::disableTxRxSquelchForTunableOptics() {
   // Enable Rx Consequent Action (LF insertion) before disabling squelch
   enableRxLfInsertionForTunableOptics();
 
-  writeCmisField(CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue);
+  for (uint8_t bank = 0; bank < getMaxNumBanks(); ++bank) {
+    writeCmisField(
+        CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue, false, bank);
+  }
   QSFP_LOG(INFO, this) << "Disabled RX Squelch for tunable optics";
 }
 
@@ -4644,13 +4675,16 @@ void CmisModule::clearTransceiverPrbsStats(
   auto clearTransceiverPrbsStatsLambda = [side, portName, this]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     // Read modify write
-    // Write bit 5 in 13h.177 to 1 and then 0 to reset counters
-    uint8_t val;
-    readCmisField(CmisField::BER_CTRL, &val);
-    val |= BER_CTRL_RESET_STAT_MASK;
-    writeCmisField(CmisField::BER_CTRL, &val);
-    val &= ~BER_CTRL_RESET_STAT_MASK;
-    writeCmisField(CmisField::BER_CTRL, &val);
+    // Write bit 5 in 13h.177 to 1 and then 0 to reset counters. BER_CTRL is a
+    // per-bank register, so reset every bank's counters on multi-bank (CPO).
+    for (uint8_t bank = 0; bank < getMaxNumBanks(); ++bank) {
+      uint8_t val;
+      readCmisField(CmisField::BER_CTRL, &val, false, bank);
+      val |= BER_CTRL_RESET_STAT_MASK;
+      writeCmisField(CmisField::BER_CTRL, &val, false, bank);
+      val &= ~BER_CTRL_RESET_STAT_MASK;
+      writeCmisField(CmisField::BER_CTRL, &val, false, bank);
+    }
   };
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   if (!i2cEvb) {
@@ -4701,6 +4735,10 @@ bool CmisModule::setPortPrbsLocked(
     return false;
   }
 
+  // A port's lanes are confined to one bank; the PRBS pattern/enable registers
+  // (page 13h) are per-bank, so target that bank with intra-bank lane offsets.
+  const uint8_t bank = laneToBank(*tcvrLanes.begin());
+
   bool startGen{false}, stopGen{false};
   bool startChk{false}, stopChk{false};
   if (!prbs.generatorEnabled().has_value() &&
@@ -4734,12 +4772,13 @@ bool CmisModule::setPortPrbsLocked(
     // There are 4 bytes, each contains pattern for 2 lanes
     uint8_t patternVal;
     for (auto lane : tcvrLanes) {
-      auto cmisReg = cmisRegisters[lane / 2];
-      readCmisField(cmisReg, &patternVal);
-      patternVal = (lane % 2 == 0)
+      auto intraLane = laneInBank(lane);
+      auto cmisReg = cmisRegisters[intraLane / 2];
+      readCmisField(cmisReg, &patternVal, false, bank);
+      patternVal = (intraLane % 2 == 0)
           ? (patternVal & 0xF0) | (prbsPolynominal & 0x0F)
           : (patternVal & 0x0F) | ((prbsPolynominal << 4) & 0xF0);
-      writeCmisField(cmisReg, &patternVal);
+      writeCmisField(cmisReg, &patternVal, false, bank);
     }
   }
 
@@ -4750,15 +4789,15 @@ bool CmisModule::setPortPrbsLocked(
 
   if (startGen || stopGen) {
     uint8_t startGenLaneMask;
-    readCmisField(cmisRegister, &startGenLaneMask);
+    readCmisField(cmisRegister, &startGenLaneMask, false, bank);
     for (auto lane : tcvrLanes) {
       if (startGen) {
-        startGenLaneMask |= (1 << lane);
+        startGenLaneMask |= (1 << laneInBank(lane));
       } else {
-        startGenLaneMask &= ~(1 << lane);
+        startGenLaneMask &= ~(1 << laneInBank(lane));
       }
     }
-    writeCmisField(cmisRegister, &startGenLaneMask);
+    writeCmisField(cmisRegister, &startGenLaneMask, false, bank);
 
     QSFP_LOG(INFO, this) << fmt::format(
         "PRBS Generator on side {:s} Lanemask {:#x} {:s}",
@@ -4783,12 +4822,13 @@ bool CmisModule::setPortPrbsLocked(
     // There are 4 bytes, each contains pattern for 2 lanes
     uint8_t patternVal;
     for (auto lane : tcvrLanes) {
-      auto cmisReg = fields[lane / 2];
-      readCmisField(cmisReg, &patternVal);
-      patternVal = (lane % 2 == 0)
+      auto intraLane = laneInBank(lane);
+      auto cmisReg = fields[intraLane / 2];
+      readCmisField(cmisReg, &patternVal, false, bank);
+      patternVal = (intraLane % 2 == 0)
           ? (patternVal & 0xF0) | (prbsPolynominal & 0x0F)
           : (patternVal & 0x0F) | ((prbsPolynominal << 4) & 0xF0);
-      writeCmisField(cmisReg, &patternVal);
+      writeCmisField(cmisReg, &patternVal, false, bank);
     }
   }
 
@@ -4798,15 +4838,15 @@ bool CmisModule::setPortPrbsLocked(
 
   if (startChk || stopChk) {
     uint8_t startChkLaneMask;
-    readCmisField(cmisRegister, &startChkLaneMask);
+    readCmisField(cmisRegister, &startChkLaneMask, false, bank);
     for (auto lane : tcvrLanes) {
       if (startChk) {
-        startChkLaneMask |= (1 << lane);
+        startChkLaneMask |= (1 << laneInBank(lane));
       } else {
-        startChkLaneMask &= ~(1 << lane);
+        startChkLaneMask &= ~(1 << laneInBank(lane));
       }
     }
-    writeCmisField(cmisRegister, &startChkLaneMask);
+    writeCmisField(cmisRegister, &startChkLaneMask, false, bank);
 
     QSFP_LOG(INFO, this) << fmt::format(
         "PRBS Checker on side {:s} Lanemask {:#x} {:s}",
@@ -4832,8 +4872,11 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(
   }
   prbs::InterfacePrbsState state;
 
-  // Get the list of lanes to check PRBS
+  // Get the list of lanes to check PRBS. The PRBS enable/pattern registers
+  // (page 13h) are per-bank 8-bit, so resolve the port's bank and build an
+  // intra-bank lane mask.
   uint8_t laneMask = 0;
+  uint8_t bank = 0;
   if (portName.has_value()) {
     auto tcvrLanes = getTcvrLanesForPort(portName.value(), side);
     if (tcvrLanes.empty()) {
@@ -4841,12 +4884,17 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(
           "Empty lane list for port {:s}", portName.value());
       return prbs::InterfacePrbsState();
     }
+    bank = laneToBank(*tcvrLanes.begin());
     for (auto lane : tcvrLanes) {
-      laneMask |= (1 << lane);
+      laneMask |= (1 << laneInBank(lane));
     }
   } else {
-    laneMask = (side == phy::Side::LINE) ? ((1 << numMediaLanes()) - 1)
-                                         : ((1 << numHostLanes()) - 1);
+    // No port specified: a single per-bank 8-bit register can only represent
+    // one bank's lanes, so report bank 0's lanes (capped at the per-bank
+    // width).
+    uint8_t numLanes =
+        (side == phy::Side::LINE) ? numMediaLanes() : numHostLanes();
+    laneMask = (1 << std::min<uint8_t>(numLanes, kMaxOsfpNumLanes)) - 1;
   }
   if (!laneMask) {
     QSFP_LOG(ERR, this) << fmt::format(
@@ -4857,12 +4905,12 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(
   auto cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_GEN_ENABLE
                                                 : CmisField::HOST_GEN_ENABLE;
   uint8_t generator;
-  readCmisField(cmisRegister, &generator);
+  readCmisField(cmisRegister, &generator, false, bank);
 
   cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_CHECKER_ENABLE
                                            : CmisField::HOST_CHECKER_ENABLE;
   uint8_t checker;
-  readCmisField(cmisRegister, &checker);
+  readCmisField(cmisRegister, &checker, false, bank);
 
   state.generatorEnabled() = (generator & laneMask);
   state.checkerEnabled() = (checker & laneMask);
@@ -4890,7 +4938,7 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(
     // We assume the same polynomial is configured on all lanes so only
     // reading 1 byte which gives the polynomial configured on lane 0
     cmisRegister = cmisPatternRegister[firstLane / 2];
-    readCmisField(cmisRegister, &patternByte);
+    readCmisField(cmisRegister, &patternByte, false, bank);
     pattern = (patternByte >> (((firstLane % 2) * 4))) & 0xF;
     auto polynomialItr = prbsPatternMap.right.find(pattern);
     if (polynomialItr != prbsPatternMap.right.end()) {
@@ -5072,8 +5120,8 @@ bool CmisModule::isDatapathUpdated(
     if (!((1 << intraLane) & laneMask)) {
       continue;
     }
-    auto globalLane = bank * kMaxOsfpNumLanes + intraLane;
-    auto dpState = getDatapathLaneStateLocked(globalLane, false);
+    auto lane = globalLane(bank, intraLane);
+    auto dpState = getDatapathLaneStateLocked(lane, false);
     if (std::find(states.begin(), states.end(), dpState) == states.end()) {
       return false;
     }
