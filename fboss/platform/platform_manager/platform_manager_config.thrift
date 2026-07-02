@@ -205,6 +205,13 @@ struct FanCpldConfig {
   5: bool hasLeds;
 }
 
+// A value to write to a sysfs attribute (relative to the i2c device dir)
+// after the device's kernel driver has bound.
+struct I2cDeviceSysfsValue {
+  1: string attr;// e.g. "idle_state"
+  2: string value;// e.g. "-2"
+}
+
 // `I2cDeviceConfig` defines a i2c device within any PmUnit.
 //
 // `busName`: Refer to Bus Naming Convention above.
@@ -242,6 +249,8 @@ struct FanCpldConfig {
 //
 // `fanCpldConfig`: configuration for a generic fan CPLD device, sent to the
 // fbfancpld driver via ioctl after device creation
+//
+// `postCreateSysfsValues`: A value to write to a sysfs attributes
 //
 // For example, the three i2c devices in the below Sample PmUnit will be modeled
 // as follows
@@ -284,7 +293,7 @@ struct I2cDeviceConfig {
   13: bool isEeprom;
   14: optional i16 eepromOffset;
   15: optional list<CpldSysfsAttr> cpldSysfsAttrs;
-  16: optional i32 pca9548Mode;
+  16: optional list<I2cDeviceSysfsValue> postCreateSysfsValues;
   17: optional FanCpldConfig fanCpldConfig;
 }
 

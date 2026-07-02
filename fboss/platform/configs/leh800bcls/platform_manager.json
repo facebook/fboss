@@ -577,7 +577,13 @@
           "address": "0x70",
           "kernelDeviceName": "pca9548",
           "pmUnitScopedName": "SMB_L_MUX_1",
-          "numOutgoingChannels": 8
+          "numOutgoingChannels": 8,
+          "postCreateSysfsValues": [
+            {
+              "attr": "idle_state",
+              "value": "-2"
+            }
+          ]
         },
         {
           "busName": "SMB_L_MUX_1@0",
@@ -650,7 +656,13 @@
           "address": "0x70",
           "kernelDeviceName": "pca9548",
           "pmUnitScopedName": "SMB_L_MUX_2",
-          "numOutgoingChannels": 8
+          "numOutgoingChannels": 8,
+          "postCreateSysfsValues": [
+            {
+              "attr": "idle_state",
+              "value": "-2"
+            }
+          ]
         },
         {
           "busName": "SMB_L_MUX_2@2",
@@ -693,7 +705,13 @@
           "address": "0x72",
           "kernelDeviceName": "pca9548",
           "pmUnitScopedName": "SMB_L_MUX_3",
-          "numOutgoingChannels": 8
+          "numOutgoingChannels": 8,
+          "postCreateSysfsValues": [
+            {
+              "attr": "idle_state",
+              "value": "-2"
+            }
+          ]
         },
         {
           "busName": "SMB_L_MUX_3@0",
@@ -736,7 +754,13 @@
           "address": "0x70",
           "kernelDeviceName": "pca9548",
           "pmUnitScopedName": "SMB_L_MUX_4",
-          "numOutgoingChannels": 8
+          "numOutgoingChannels": 8,
+          "postCreateSysfsValues": [
+            {
+              "attr": "idle_state",
+              "value": "-2"
+            }
+          ]
         },
         {
           "busName": "SMB_L_MUX_4@0",
@@ -886,7 +910,13 @@
           "address": "0x70",
           "kernelDeviceName": "pca9548",
           "pmUnitScopedName": "SMB_R_MUX_1",
-          "numOutgoingChannels": 8
+          "numOutgoingChannels": 8,
+          "postCreateSysfsValues": [
+            {
+              "attr": "idle_state",
+              "value": "-2"
+            }
+          ]
         },
         {
           "busName": "SMB_R_MUX_1@0",
@@ -959,7 +989,13 @@
           "address": "0x70",
           "kernelDeviceName": "pca9548",
           "pmUnitScopedName": "SMB_R_MUX_2",
-          "numOutgoingChannels": 8
+          "numOutgoingChannels": 8,
+          "postCreateSysfsValues": [
+            {
+              "attr": "idle_state",
+              "value": "-2"
+            }
+          ]
         },
         {
           "busName": "SMB_R_MUX_2@2",
@@ -1002,7 +1038,13 @@
           "address": "0x72",
           "kernelDeviceName": "pca9548",
           "pmUnitScopedName": "SMB_R_MUX_3",
-          "numOutgoingChannels": 8
+          "numOutgoingChannels": 8,
+          "postCreateSysfsValues": [
+            {
+              "attr": "idle_state",
+              "value": "-2"
+            }
+          ]
         },
         {
           "busName": "SMB_R_MUX_3@0",
@@ -1045,7 +1087,13 @@
           "address": "0x70",
           "kernelDeviceName": "pca9548",
           "pmUnitScopedName": "SMB_R_MUX_4",
-          "numOutgoingChannels": 8
+          "numOutgoingChannels": 8,
+          "postCreateSysfsValues": [
+            {
+              "attr": "idle_state",
+              "value": "-2"
+            }
+          ]
         },
         {
           "busName": "SMB_R_MUX_4@0",
