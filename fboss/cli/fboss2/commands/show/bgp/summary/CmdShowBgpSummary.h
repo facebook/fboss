@@ -17,7 +17,10 @@
 #include <chrono>
 #include <exception> // NOLINT(misc-include-cleaner)
 #include <iostream>
+#include <optional>
 #include <string>
+
+#include <folly/logging/xlog.h>
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/bgp/summary/gen-cpp2/bgp_summary_types.h"
@@ -61,9 +64,26 @@ class CmdShowBgpSummary
     client->sync_getBgpLocalConfig(config);
     client->sync_getDrainState(drain_state);
 
-    const int64_t processUptimeSeconds = client->sync_getProcessUptimeSeconds();
-    const int64_t totalPrefixCount = client->sync_getNumPrefixes();
     const int64_t ribVersion = client->sync_getRibVersion();
+
+    /*
+     * getProcessUptimeSeconds() and getNumPrefixes() are newer thrift methods
+     * that may not exist on the bgpd binary deployed to prod. Against an older
+     * daemon the calls throw (TApplicationException, UNKNOWN_METHOD), so guard
+     * them and leave the values unset when unavailable -- printOutput omits the
+     * corresponding lines. This self-heals once the new binary is deployed; no
+     * code change is needed to re-enable them. getRibVersion() already exists
+     * on prod, so it stays outside the guard.
+     */
+    std::optional<int64_t> processUptimeSeconds;
+    std::optional<int64_t> totalPrefixCount;
+    try {
+      processUptimeSeconds = client->sync_getProcessUptimeSeconds();
+      totalPrefixCount = client->sync_getNumPrefixes();
+    } catch (const std::exception& ex) {
+      XLOG(DBG2) << "process uptime / prefix count unavailable on this bgpd: "
+                 << ex.what();
+    }
 
     return createModel(
         sessions,
@@ -108,13 +128,16 @@ class CmdShowBgpSummary
 
     out << "BGP summary information for VRF default" << std::endl;
 
-    // Process uptime one-liner, e.g. "BGP is up for 1d 1h 1m 1s". formatUptime
-    // omits leading zero units so a short uptime reads naturally ("45s",
-    // "5m 30s") instead of "0h 0m 45s".
-    out << "BGP is up for "
-        << formatUptime(
-               folly::copy(bgpSummary.process_uptime_seconds().value()))
-        << std::endl;
+    /*
+     * Process uptime one-liner, e.g. "BGP is up for 1d 1h 1m 1s". Omitted when
+     * unset (older bgpd without getProcessUptimeSeconds(); see queryClient()).
+     */
+    if (bgpSummary.process_uptime_seconds().has_value()) {
+      out << "BGP is up for "
+          << formatUptime(
+                 folly::copy(bgpSummary.process_uptime_seconds().value()))
+          << std::endl;
+    }
 
     // Retrive the router's Ip Address from its ID.
     char ip_buff[INET_ADDRSTRLEN];
@@ -340,8 +363,15 @@ class CmdShowBgpSummary
         << std::endl;
     out << "Paths: Received - " << paths_rcvd << ", Accepted - "
         << paths_accepted << ", Sent - " << paths_sent << std::endl;
-    out << "Prefix count: "
-        << folly::copy(bgpSummary.total_prefix_count().value()) << std::endl;
+    /*
+     * Prefix count is omitted when unset (older bgpd without getNumPrefixes();
+     * see queryClient()). RIB Version comes from getRibVersion(), which is
+     * already deployed to prod, so it is always shown.
+     */
+    if (bgpSummary.total_prefix_count().has_value()) {
+      out << "Prefix count: "
+          << folly::copy(bgpSummary.total_prefix_count().value()) << std::endl;
+    }
     out << "RIB Version: " << folly::copy(bgpSummary.rib_version().value())
         << std::endl;
     std::string acronyms =
@@ -362,8 +392,8 @@ class CmdShowBgpSummary
       std::vector<TBgpSession>& sessions,
       TBgpLocalConfig& config,
       TBgpDrainState& drain_state,
-      int64_t processUptimeSeconds,
-      int64_t totalPrefixCount,
+      std::optional<int64_t> processUptimeSeconds,
+      std::optional<int64_t> totalPrefixCount,
       int64_t ribVersion) {
     std::sort(
         sessions.begin(),
@@ -376,8 +406,14 @@ class CmdShowBgpSummary
     model.sessions() = sessions;
     model.config() = config;
     model.drain_state() = drain_state;
-    model.process_uptime_seconds() = processUptimeSeconds;
-    model.total_prefix_count() = totalPrefixCount;
+    // Left unset when the daemon does not implement the getter, so printOutput
+    // omits the corresponding line (see queryClient()).
+    if (processUptimeSeconds.has_value()) {
+      model.process_uptime_seconds() = *processUptimeSeconds;
+    }
+    if (totalPrefixCount.has_value()) {
+      model.total_prefix_count() = *totalPrefixCount;
+    }
     model.rib_version() = ribVersion;
     return model;
   }

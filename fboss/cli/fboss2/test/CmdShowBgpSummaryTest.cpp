@@ -224,6 +224,37 @@ TEST_F(CmdShowBgpSummaryTestFixture, queryClient) {
   EXPECT_THRIFT_EQ(results, getModelBgpSummary());
 }
 
+// Backward compatibility: an older bgpd that predates getProcessUptimeSeconds()
+// / getNumPrefixes() makes those thrift calls throw. queryClient must swallow
+// the error and leave process_uptime_seconds / total_prefix_count unset, while
+// still returning the always-available rib_version.
+TEST_F(CmdShowBgpSummaryTestFixture, queryClientOlderDaemonMissingGetters) {
+  setupMockedBgpServer();
+  EXPECT_CALL(getMockBgp(), getBgpSessions(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = sessions_; }));
+
+  EXPECT_CALL(getMockBgp(), getBgpLocalConfig(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = localConfig_; }));
+
+  EXPECT_CALL(getMockBgp(), getDrainState(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = drainState_; }));
+
+  EXPECT_CALL(getMockBgp(), getRibVersion()).WillOnce(Return(kRibVersion));
+
+  // Simulate the older daemon: the first guarded getter throws, so the CLI
+  // never reaches getNumPrefixes(). The thrown type is normalized to a thrift
+  // exception across the RPC boundary; queryClient catches it as
+  // std::exception.
+  EXPECT_CALL(getMockBgp(), getProcessUptimeSeconds())
+      .WillOnce(Throw(std::runtime_error("unimplemented on older daemon")));
+
+  auto results = CmdShowBgpSummary().queryClient(localhost());
+
+  EXPECT_FALSE(results.process_uptime_seconds().has_value());
+  EXPECT_FALSE(results.total_prefix_count().has_value());
+  EXPECT_EQ(kRibVersion, folly::copy(results.rib_version().value()));
+}
+
 TEST(CmdShowBgpSummaryFormatUptimeTest, trimsLeadingZeroUnits) {
   // Only seconds elapsed: minutes/hours/days are omitted.
   EXPECT_EQ("0s", CmdShowBgpSummary::formatUptime(0));
