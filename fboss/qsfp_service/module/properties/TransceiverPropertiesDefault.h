@@ -646,8 +646,8 @@ constexpr auto kDefaultTransceiverPropertiesJson = R"({
         "maxNumBanks": 4
       },
       "smfLength": 500,
-      "numHostLanes": 8,
-      "numMediaLanes": 8,
+      "numHostLanes": 32,
+      "numMediaLanes": 32,
       "displayName": "DR4_8x800G",
       "supportedSpeedCombinations": [
         {

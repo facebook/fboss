@@ -2432,15 +2432,19 @@ const uint8_t* CmisModule::getBankedQsfpValuePtr(
           static_cast<int>(bank),
           " is unavailable");
   }
-  if (bank >= page->size()) {
-    throw FbossError(
-        "No cached data for bank ",
-        static_cast<int>(bank),
-        fmt::format(" of page {:#x}", dataAddress));
-  }
   offset -= MAX_QSFP_PAGE_SIZE;
   CHECK_GE(offset, 0);
   CHECK_LE(offset + length, MAX_QSFP_PAGE_SIZE);
+  if (bank >= page->size()) {
+    // This bank wasn't read this refresh -- e.g. a diagnostic page (14h or VDM
+    // 24h-27h) that is only read for every bank when the module is READY.
+    // Return a zero-filled view so per-lane consumers iterating all banks
+    // (numHostLanes / numMediaLanes) see "no data" for the unread banks,
+    // consistent with how an unpopulated bank-0 read returns zeros rather than
+    // throwing.
+    static const std::array<uint8_t, MAX_QSFP_PAGE_SIZE> kUnreadBank{};
+    return kUnreadBank.data() + offset;
+  }
   return (*page)[bank].data() + offset;
 }
 

@@ -123,6 +123,10 @@ TEST_F(CmisTest, cpoModuleIdentifiedByBankCount) {
       TransceiverID(0), TransceiverModuleIdentifier::CPO);
   EXPECT_EQ(xcvr->getMaxNumBanks(), 4);
 
+  // A 4-bank CPO presents all banks as a single 32-lane (4 x 8) transceiver.
+  EXPECT_EQ(xcvr->numHostLanes(), 32);
+  EXPECT_EQ(xcvr->numMediaLanes(), 32);
+
   const auto& info = xcvr->getTransceiverInfo();
   EXPECT_EQ(
       info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::DR4_8x800G);
@@ -267,6 +271,20 @@ TEST_F(CmisTest, cpoGetLaneValuePtrMapsGlobalLaneToBank) {
         CmisField::CHANNEL_RX_PWR, secondLaneOfBank, /*bytesPerLane=*/2);
     EXPECT_EQ(data[0], 0x10 | bank);
   }
+}
+
+// A 4-bank CPO presents 32 lanes, so getTransceiverInfo must report per-lane
+// settings/interfaces for all 32 (4 banks x 8) lanes, not just one bank's 8.
+TEST_F(CmisTest, cpoTransceiverInfoReportsAllBankLanes) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  const auto& settings = *info.tcvrState()->settings();
+  EXPECT_EQ(settings.mediaInterface()->size(), 32);
+  EXPECT_EQ(settings.mediaLaneSettings()->size(), 32);
+  EXPECT_EQ(settings.hostLaneSettings()->size(), 32);
 }
 
 // Tests that the transceiverInfo object is correctly populated
