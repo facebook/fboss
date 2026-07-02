@@ -6,138 +6,6 @@
       "pmUnitName": "LADAKH800BCLS_MCB",
       "sensors": [
         {
-          "name": "MCB_UP24_FAN_1_F_RPM",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_input",
-          "type": 4,
-          "thresholds": {
-            "maxAlarmVal": 34100,
-            "minAlarmVal": 2790,
-            "upperCriticalVal": 34100,
-            "lowerCriticalVal": 2790
-          }
-        },
-        {
-          "name": "MCB_UP24_FAN_1_R_RPM",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_input",
-          "type": 4,
-          "thresholds": {
-            "maxAlarmVal": 30800,
-            "minAlarmVal": 2520,
-            "upperCriticalVal": 30800,
-            "lowerCriticalVal": 2520
-          }
-        },
-        {
-          "name": "MCB_UP25_FAN_2_F_RPM",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_input",
-          "type": 4,
-          "thresholds": {
-            "maxAlarmVal": 34100,
-            "minAlarmVal": 2790,
-            "upperCriticalVal": 34100,
-            "lowerCriticalVal": 2790
-          }
-        },
-        {
-          "name": "MCB_UP25_FAN_2_R_RPM",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_input",
-          "type": 4,
-          "thresholds": {
-            "maxAlarmVal": 30800,
-            "minAlarmVal": 2520,
-            "upperCriticalVal": 30800,
-            "lowerCriticalVal": 2520
-          }
-        },
-        {
-          "name": "MCB_UP26_FAN_3_F_RPM",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan5_input",
-          "type": 4,
-          "thresholds": {
-            "maxAlarmVal": 34100,
-            "minAlarmVal": 2790,
-            "upperCriticalVal": 34100,
-            "lowerCriticalVal": 2790
-          }
-        },
-        {
-          "name": "MCB_UP26_FAN_3_R_RPM",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan6_input",
-          "type": 4,
-          "thresholds": {
-            "maxAlarmVal": 30800,
-            "minAlarmVal": 2520,
-            "upperCriticalVal": 30800,
-            "lowerCriticalVal": 2520
-          }
-        },
-        {
-          "name": "MCB_UP27_FAN_4_F_RPM",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan7_input",
-          "type": 4,
-          "thresholds": {
-            "maxAlarmVal": 34100,
-            "minAlarmVal": 2790,
-            "upperCriticalVal": 34100,
-            "lowerCriticalVal": 2790
-          }
-        },
-        {
-          "name": "MCB_UP27_FAN_4_R_RPM",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan8_input",
-          "type": 4,
-          "thresholds": {
-            "maxAlarmVal": 30800,
-            "minAlarmVal": 2520,
-            "upperCriticalVal": 30800,
-            "lowerCriticalVal": 2520
-          }
-        },
-        {
-          "name": "MCB_UP28_FAN_5_F_RPM",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan9_input",
-          "type": 4,
-          "thresholds": {
-            "maxAlarmVal": 34100,
-            "minAlarmVal": 2790,
-            "upperCriticalVal": 34100,
-            "lowerCriticalVal": 2790
-          }
-        },
-        {
-          "name": "MCB_UP28_FAN_5_R_RPM",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan10_input",
-          "type": 4,
-          "thresholds": {
-            "maxAlarmVal": 30800,
-            "minAlarmVal": 2520,
-            "upperCriticalVal": 30800,
-            "lowerCriticalVal": 2520
-          }
-        },
-        {
-          "name": "MCB_UP29_FAN_6_F_RPM",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan11_input",
-          "type": 4,
-          "thresholds": {
-            "maxAlarmVal": 34100,
-            "minAlarmVal": 2790,
-            "upperCriticalVal": 34100,
-            "lowerCriticalVal": 2790
-          }
-        },
-        {
-          "name": "MCB_UP29_FAN_6_R_RPM",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan12_input",
-          "type": 4,
-          "thresholds": {
-            "maxAlarmVal": 30800,
-            "minAlarmVal": 2520,
-            "upperCriticalVal": 30800,
-            "lowerCriticalVal": 2520
-          }
-        },
-        {
           "name": "MCB_U59_XP1R5V_OOB",
           "sysfsPath": "/run/devmap/sensors/MCB_ADC1_MONITOR/in0_input",
           "type": 1,
@@ -722,7 +590,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "MCB_PSP1_XP12R0V_PB1_TEMPARTURES",
+          "name": "MCB_PSP1_XP12R0V_PB1_TEMP",
           "sysfsPath": "/run/devmap/sensors/PMBUS_1/temp1_input",
           "type": 3,
           "thresholds": {
@@ -768,7 +636,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "MCB_PSP2_XP12R0V_PB2_TEMPARTURES",
+          "name": "MCB_PSP2_XP12R0V_PB2_TEMP",
           "sysfsPath": "/run/devmap/sensors/PMBUS_2/temp1_input",
           "type": 3,
           "thresholds": {
@@ -804,17 +672,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "MCB_PSP3_XP12R0V_PB3_IOUT",
-          "sysfsPath": "/run/devmap/sensors/PMBUS_3/curr1_input",
-          "type": 2,
-          "thresholds": {
-            "maxAlarmVal": 108,
-            "upperCriticalVal": 130
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "MCB_PSP3_XP12R0V_PB3_TEMPARTURES",
+          "name": "MCB_PSP3_XP12R0V_PB3_TEMP",
           "sysfsPath": "/run/devmap/sensors/PMBUS_3/temp1_input",
           "type": 3,
           "thresholds": {
@@ -847,7 +705,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "MCB_UP15_XP12R0V_COME_TEMPARTURES",
+          "name": "MCB_UP15_XP12R0V_COME_TEMP",
           "sysfsPath": "/run/devmap/sensors/LOAD_SWITCH_MONITOR/temp1_input",
           "type": 3,
           "thresholds": {
@@ -1031,6 +889,306 @@
             "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
+        }
+      ],
+      "versionedSensors": [
+        {
+          "sensors": [
+            {
+              "name": "MCB_UP24_FAN_1_F_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 34100,
+                "minAlarmVal": 2790,
+                "upperCriticalVal": 34100,
+                "lowerCriticalVal": 2790
+              }
+            },
+            {
+              "name": "MCB_UP24_FAN_1_R_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 30800,
+                "minAlarmVal": 2520,
+                "upperCriticalVal": 30800,
+                "lowerCriticalVal": 2520
+              }
+            },
+            {
+              "name": "MCB_UP25_FAN_2_F_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 34100,
+                "minAlarmVal": 2790,
+                "upperCriticalVal": 34100,
+                "lowerCriticalVal": 2790
+              }
+            },
+            {
+              "name": "MCB_UP25_FAN_2_R_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 30800,
+                "minAlarmVal": 2520,
+                "upperCriticalVal": 30800,
+                "lowerCriticalVal": 2520
+              }
+            },
+            {
+              "name": "MCB_UP26_FAN_3_F_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan5_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 34100,
+                "minAlarmVal": 2790,
+                "upperCriticalVal": 34100,
+                "lowerCriticalVal": 2790
+              }
+            },
+            {
+              "name": "MCB_UP26_FAN_3_R_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan6_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 30800,
+                "minAlarmVal": 2520,
+                "upperCriticalVal": 30800,
+                "lowerCriticalVal": 2520
+              }
+            },
+            {
+              "name": "MCB_UP27_FAN_4_F_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan7_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 34100,
+                "minAlarmVal": 2790,
+                "upperCriticalVal": 34100,
+                "lowerCriticalVal": 2790
+              }
+            },
+            {
+              "name": "MCB_UP27_FAN_4_R_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan8_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 30800,
+                "minAlarmVal": 2520,
+                "upperCriticalVal": 30800,
+                "lowerCriticalVal": 2520
+              }
+            },
+            {
+              "name": "MCB_UP28_FAN_5_F_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan9_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 34100,
+                "minAlarmVal": 2790,
+                "upperCriticalVal": 34100,
+                "lowerCriticalVal": 2790
+              }
+            },
+            {
+              "name": "MCB_UP28_FAN_5_R_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan10_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 30800,
+                "minAlarmVal": 2520,
+                "upperCriticalVal": 30800,
+                "lowerCriticalVal": 2520
+              }
+            },
+            {
+              "name": "MCB_UP29_FAN_6_F_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan11_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 34100,
+                "minAlarmVal": 2790,
+                "upperCriticalVal": 34100,
+                "lowerCriticalVal": 2790
+              }
+            },
+            {
+              "name": "MCB_UP29_FAN_6_R_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan12_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 30800,
+                "minAlarmVal": 2520,
+                "upperCriticalVal": 30800,
+                "lowerCriticalVal": 2520
+              }
+            },
+            {
+              "name": "MCB_PSP3_XP12R0V_PB3_IOUT",
+              "sysfsPath": "/run/devmap/sensors/PMBUS_3/curr1_input",
+              "type": 2,
+              "thresholds": {
+                "maxAlarmVal": 108,
+                "upperCriticalVal": 130
+              },
+              "compute": "@/1000.0"
+            }
+          ],
+          "productionState": 1,
+          "productionSubState": 1,
+          "respinVariantIndicator": 0
+        },
+        {
+          "sensors": [
+            {
+              "name": "MCB_UP24_FAN_1_F_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 40150,
+                "minAlarmVal": 3285,
+                "upperCriticalVal": 40150,
+                "lowerCriticalVal": 3285
+              }
+            },
+            {
+              "name": "MCB_UP24_FAN_1_R_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 34760,
+                "minAlarmVal": 2844,
+                "upperCriticalVal": 34760,
+                "lowerCriticalVal": 2844
+              }
+            },
+            {
+              "name": "MCB_UP25_FAN_2_F_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 40150,
+                "minAlarmVal": 3285,
+                "upperCriticalVal": 40150,
+                "lowerCriticalVal": 3285
+              }
+            },
+            {
+              "name": "MCB_UP25_FAN_2_R_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 34760,
+                "minAlarmVal": 2844,
+                "upperCriticalVal": 34760,
+                "lowerCriticalVal": 2844
+              }
+            },
+            {
+              "name": "MCB_UP26_FAN_3_F_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan5_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 40150,
+                "minAlarmVal": 3285,
+                "upperCriticalVal": 40150,
+                "lowerCriticalVal": 3285
+              }
+            },
+            {
+              "name": "MCB_UP26_FAN_3_R_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan6_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 34760,
+                "minAlarmVal": 2844,
+                "upperCriticalVal": 34760,
+                "lowerCriticalVal": 2844
+              }
+            },
+            {
+              "name": "MCB_UP27_FAN_4_F_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan7_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 40150,
+                "minAlarmVal": 3285,
+                "upperCriticalVal": 40150,
+                "lowerCriticalVal": 3285
+              }
+            },
+            {
+              "name": "MCB_UP27_FAN_4_R_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan8_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 34760,
+                "minAlarmVal": 2844,
+                "upperCriticalVal": 34760,
+                "lowerCriticalVal": 2844
+              }
+            },
+            {
+              "name": "MCB_UP28_FAN_5_F_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan9_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 40150,
+                "minAlarmVal": 3285,
+                "upperCriticalVal": 40150,
+                "lowerCriticalVal": 3285
+              }
+            },
+            {
+              "name": "MCB_UP28_FAN_5_R_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan10_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 34760,
+                "minAlarmVal": 2844,
+                "upperCriticalVal": 34760,
+                "lowerCriticalVal": 2844
+              }
+            },
+            {
+              "name": "MCB_UP29_FAN_6_F_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan11_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 40150,
+                "minAlarmVal": 3285,
+                "upperCriticalVal": 40150,
+                "lowerCriticalVal": 3285
+              }
+            },
+            {
+              "name": "MCB_UP29_FAN_6_R_RPM",
+              "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan12_input",
+              "type": 4,
+              "thresholds": {
+                "maxAlarmVal": 34760,
+                "minAlarmVal": 2844,
+                "upperCriticalVal": 34760,
+                "lowerCriticalVal": 2844
+              }
+            },
+            {
+              "name": "MCB_PSP3_XP12R0V_PB3_IOUT",
+              "sysfsPath": "/run/devmap/sensors/PMBUS_3/curr1_input",
+              "type": 2,
+              "thresholds": {
+                "maxAlarmVal": 145,
+                "upperCriticalVal": 167
+              },
+              "compute": "@/1000.0"
+            }
+          ],
+          "productionState": 2,
+          "productionSubState": 1,
+          "respinVariantIndicator": 0
         }
       ]
     },
@@ -2849,8 +3007,8 @@
           "sysfsPath": "/run/devmap/sensors/RTM_L_ADC2_SENSOR/in2_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.13,
-            "minAlarmVal": 1.08,
+            "maxAlarmVal": 1.14,
+            "minAlarmVal": 1.067,
             "upperCriticalVal": 1.155,
             "lowerCriticalVal": 1.045
           },
@@ -2861,8 +3019,8 @@
           "sysfsPath": "/run/devmap/sensors/RTM_L_ADC2_SENSOR/in3_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 3.399,
-            "minAlarmVal": 3.201,
+            "maxAlarmVal": 3.42,
+            "minAlarmVal": 3.18,
             "upperCriticalVal": 3.465,
             "lowerCriticalVal": 3.135
           },
@@ -3931,8 +4089,8 @@
           "sysfsPath": "/run/devmap/sensors/RTM_R_ADC2_SENSOR/in2_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.13,
-            "minAlarmVal": 1.08,
+            "maxAlarmVal": 1.14,
+            "minAlarmVal": 1.067,
             "upperCriticalVal": 1.155,
             "lowerCriticalVal": 1.045
           },
@@ -3943,8 +4101,8 @@
           "sysfsPath": "/run/devmap/sensors/RTM_R_ADC2_SENSOR/in3_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 3.399,
-            "minAlarmVal": 3.201,
+            "maxAlarmVal": 3.42,
+            "minAlarmVal": 3.18,
             "upperCriticalVal": 3.465,
             "lowerCriticalVal": 3.135
           },
