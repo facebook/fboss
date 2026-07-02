@@ -182,7 +182,7 @@ void serializedFullIPv6PacketHelper(bool taggedPkt) {
       0,
       0);
 
-  auto totalLength = icmp6.computeTotalLengthV6(0);
+  auto totalLength = icmp6.computeTotalLengthV6(0, taggedPkt);
   auto buf = IOBuf(IOBuf::CREATE, totalLength);
   buf.append(totalLength);
   RWPrivateCursor cursor(&buf);
