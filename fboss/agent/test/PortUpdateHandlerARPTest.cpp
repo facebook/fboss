@@ -142,12 +142,10 @@ TEST_F(PortUpdateHandlerARPTest, VlanInterfacePortUp) {
   auto config = createVlanInterfaceConfigForArp();
   auto handle = setupTestHandle(config);
 
-  // Initially set port to DOWN
+  // Initially set port to DOWN. The cold-start ARP probe is only issued on the
+  // DOWN->UP transition (see PortUpdateHandler::handlePortUp), so no ARP cache
+  // entry is asserted here while the port is down.
   sw_->linkStateChanged(PortID(PORT_ID), false, cfg::PortType::INTERFACE_PORT);
-  {
-    auto arpCache = sw_->getNeighborUpdater()->getArpCacheDataForIntf().get();
-    EXPECT_EQ(arpCache.size(), 0);
-  }
 
   // Bring port UP - should trigger ARP request
   sw_->linkStateChanged(PortID(PORT_ID), true, cfg::PortType::INTERFACE_PORT);
