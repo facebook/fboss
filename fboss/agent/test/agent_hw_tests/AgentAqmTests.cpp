@@ -491,6 +491,16 @@ class AgentAqmTest : public AgentHwTest {
           effectiveBytesPerPacket;
     }
 
+    // HW programs the marking threshold in getThresholdGranularity() steps
+    // (Chenab: 12288B; 1B on Broadcom), so it can start marking up to one step
+    // above roundedBufferThreshold, leaving that gap's worth of packets
+    // unmarked. Allow that shortfall, converted from bytes to packets via
+    // effectiveBytesPerPacket. Only the queue-fill (no-drop) case needs it.
+    const int markedCountBoundaryTolerance = maxQueueFillLevel > 0
+        ? static_cast<int>(asic->getThresholdGranularity()) /
+            effectiveBytesPerPacket
+        : 0;
+
     // Send enough packets such that the queue gets filled up to the
     // configured ECN/WRED threshold, then send a fixed number of
     // additional packets to get marked / dropped.
@@ -595,7 +605,9 @@ class AgentAqmTest : public AgentHwTest {
         //   waiting long enough to for all marked packets to be seen.
         EXPECT_EVENTUALLY_GE(outPackets, kExpectedOutPackets);
         if (isEct(ecnCodePoint)) {
-          EXPECT_EVENTUALLY_GE(ecnMarking, expectedMarkedOrDroppedPacketCount);
+          EXPECT_EVENTUALLY_GE(
+              ecnMarking + markedCountBoundaryTolerance,
+              expectedMarkedOrDroppedPacketCount);
         } else {
           EXPECT_EVENTUALLY_GE(
               wredDrops + outPackets,
