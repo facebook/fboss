@@ -88,4 +88,11 @@ TEST(ConfigLibTest, Basic) {
   EXPECT_NO_THROW(ConfigLib().getShowtechConfig(kSample));
   EXPECT_THROW(
       ConfigLib().getShowtechConfig(kNonExistentPlatform), std::out_of_range);
+
+  // RebootCauseFinder Configs
+  EXPECT_NO_THROW(ConfigLib().getRebootCauseFinderConfig(kMeru800bfa));
+  EXPECT_NO_THROW(ConfigLib().getRebootCauseFinderConfig(kMeru800bia));
+  EXPECT_THROW(
+      ConfigLib().getRebootCauseFinderConfig(kNonExistentPlatform),
+      std::runtime_error);
 }

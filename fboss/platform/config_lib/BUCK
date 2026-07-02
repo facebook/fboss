@@ -21,6 +21,8 @@ cpp_binary(
         "//fboss/platform/fw_util/if:fw_util_config-cpp2-types",
         "//fboss/platform/platform_manager:config_validator",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//fboss/platform/reboot_cause_finder:config_validator",
+        "//fboss/platform/reboot_cause_finder/if:reboot_cause_config-cpp2-types",
         "//fboss/platform/rma-showtech:showtech_config-cpp2-types",
         "//fboss/platform/sensor_service:config_validator",
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
