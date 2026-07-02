@@ -258,6 +258,12 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::vector<std::string>& out,
       std::unique_ptr<std::string> substring) override;
 
+  void getFb303RegexCounters(
+      std::map<std::string, int64_t>& counters,
+      std::unique_ptr<std::string> regex) override;
+
+  int64_t getFb303Counter(std::unique_ptr<std::string> key) override;
+
  private:
   HwSwitch* hwSwitch_;
   // Captures log messages in this process for tests to read over RPC.

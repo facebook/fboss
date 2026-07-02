@@ -941,8 +941,8 @@ std::map<std::string, int64_t> AgentEnsemble::getFb303CountersByRegex(
       client->getChannelShared()};
   monitoringClient.sync_getRegexCounters(counters, regex);
 #else
-  // TODO: This needs to be updated to support multi-switch.
-  counters = facebook::fb303::fbData->getRegexCounters(regex);
+  auto switchID = scopeResolver().scope(portId).switchId();
+  counters = queryHwAgentFb303RegexCounters(switchID, regex);
 #endif
   return counters;
 }
@@ -968,8 +968,7 @@ int64_t AgentEnsemble::getFb303Counter(
       client->getChannelShared()};
   counter = monitoringClient.sync_getCounter(key);
 #else
-  // TODO: This needs to be updated to support multi-switch.
-  counter = facebook::fb303::fbData->getCounter(key);
+  counter = queryHwAgentFb303Counter(switchID, key);
 #endif
   return counter;
 }
@@ -1019,10 +1018,49 @@ std::map<std::string, int64_t> AgentEnsemble::getFb303RegexCounters(
       client->getChannelShared()};
   monitoringClient.sync_getRegexCounters(counters, regex);
 #else
-  // TODO: This needs to be updated to support multi-switch.
-  counters = facebook::fb303::fbData->getRegexCounters(regex);
+  counters = queryHwAgentFb303RegexCounters(switchID, regex);
 #endif
   return counters;
+}
+
+std::map<std::string, int64_t> AgentEnsemble::queryHwAgentFb303RegexCounters(
+    const SwitchID& switchID,
+    const std::string& regex) {
+  std::map<std::string, int64_t> counters;
+  if (!getSw()->isRunModeMultiSwitch()) {
+    counters = facebook::fb303::fbData->getRegexCounters(regex);
+  } else {
+    try {
+      auto hwTestClient = getHwAgentTestClient(switchID);
+      hwTestClient->sync_getFb303RegexCounters(counters, regex);
+    } catch (const std::exception& ex) {
+      XLOG(ERR)
+          << "Failed to fetch remote fb303 counters via HwTestCtrl for switch "
+          << switchID << ": " << ex.what();
+      throw;
+    }
+  }
+  return counters;
+}
+
+int64_t AgentEnsemble::queryHwAgentFb303Counter(
+    const SwitchID& switchID,
+    const std::string& key) {
+  int64_t counter{0};
+  if (!getSw()->isRunModeMultiSwitch()) {
+    counter = facebook::fb303::fbData->getCounter(key);
+  } else {
+    try {
+      auto hwTestClient = getHwAgentTestClient(switchID);
+      counter = hwTestClient->sync_getFb303Counter(key);
+    } catch (const std::exception& ex) {
+      XLOG(ERR)
+          << "Failed to fetch remote fb303 counter via HwTestCtrl for switch "
+          << switchID << ": " << ex.what();
+      throw;
+    }
+  }
+  return counter;
 }
 
 std::string AgentEnsemble::getHwDebugDump() {
