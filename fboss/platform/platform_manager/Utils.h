@@ -85,6 +85,12 @@ class Utils {
   // PciDevice. Throw std::runtime_error on failure.
   static std::vector<FpgaIpBlockConfig> createMdioBusConfigs(
       const PciDeviceConfig& pciDeviceConfig);
+
+  // Create the RTM Controller Config block based on the given
+  // fpgaIpBlockConfig residing at the given PciDevice. Throw std::runtime_error
+  // on failure.
+  static std::vector<RtmCtrlConfig> createRtmCtrlConfigs(
+      const PciDeviceConfig& pciDeviceConfig);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

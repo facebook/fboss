@@ -379,11 +379,6 @@ std::vector<FpgaIpBlockConfig> Utils::createMdioBusConfigs(
           "{}_{}", *mdioBusBlockConfig.pmUnitScopedNamePrefix(), busIndex + 1);
       mdioBusConfig.deviceName() = *mdioBusBlockConfig.deviceName();
 
-      std::string iobufExpression = fmt::format(
-          fmt::runtime(*mdioBusBlockConfig.iobufOffsetCalc()),
-          fmt::arg("busIndex", busIndex));
-      mdioBusConfig.iobufOffset() = Utils().evaluateExpression(iobufExpression);
-
       std::string csrExpression = fmt::format(
           fmt::runtime(*mdioBusBlockConfig.csrOffsetCalc()),
           fmt::arg("busIndex", busIndex));
@@ -393,5 +388,39 @@ std::vector<FpgaIpBlockConfig> Utils::createMdioBusConfigs(
     }
   }
   return mdioBusConfigs;
+}
+
+std::vector<RtmCtrlConfig> Utils::createRtmCtrlConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<RtmCtrlConfig> rtmCtrlConfigs;
+  const auto rtmCtrlBlockConfigs = pciDeviceConfig.rtmCtrlBlockConfigs();
+  for (const auto& rtmCtrlBlockConfig : *rtmCtrlBlockConfigs) {
+    int endPort =
+        *rtmCtrlBlockConfig.startPort() + *rtmCtrlBlockConfig.numPorts();
+    for (int port = *rtmCtrlBlockConfig.startPort(); port < endPort; ++port) {
+      RtmCtrlConfig rtmCtrlConfig;
+      rtmCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
+          "{}_RTM_CTRL_PORT_{}",
+          *rtmCtrlBlockConfig.pmUnitScopedNamePrefix(),
+          port);
+      rtmCtrlConfig.fpgaIpBlockConfig()->deviceName() =
+          *rtmCtrlBlockConfig.deviceName();
+      rtmCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
+          Utils().computeHexExpression(
+              *rtmCtrlBlockConfig.csrOffsetCalc(),
+              port,
+              *rtmCtrlBlockConfig.startPort());
+      rtmCtrlConfig.portNumber() = port;
+      if (!rtmCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+        rtmCtrlConfig.fpgaIpBlockConfig()->iobufOffset() =
+            Utils().computeHexExpression(
+                *rtmCtrlBlockConfig.iobufOffsetCalc(),
+                port,
+                *rtmCtrlBlockConfig.startPort());
+      }
+      rtmCtrlConfigs.push_back(rtmCtrlConfig);
+    }
+  }
+  return rtmCtrlConfigs;
 }
 } // namespace facebook::fboss::platform::platform_manager

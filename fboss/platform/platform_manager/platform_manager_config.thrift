@@ -619,7 +619,62 @@ struct MdioBusBlockConfig {
   2: string deviceName;
   3: string csrOffsetCalc;
   4: i32 numBuses;
-  5: string iobufOffsetCalc;
+}
+
+// Defines the Retimer Controller block in FPGAs.
+//
+// `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
+//
+// `portNumber`: Port number which is associated with this config.
+struct RtmCtrlConfig {
+  1: FpgaIpBlockConfig fpgaIpBlockConfig;
+  2: i32 portNumber;
+}
+
+// Defines generic Retimer Controller block in FPGAs.
+//
+// `pmUnitScopedNamePrefix`: The prefix used to refer to this device
+//  Example: pmUnitScopedNamePrefix: RTM_CTRL, the expanded form would be
+//  RTM_CTRL_1, RTM_CTRL_2, etc.
+//
+// `deviceName`: It is the name used in the ioctl system call to create the
+// corresponding device. It should one of the compatible strings specified in
+// the kernel driver.
+//
+// `csrOffsetCalc`: Calculation to get the csr offset for fpga block
+//  This expression includes a base start address, port, a starting port number
+//  or index. Final offset result is in hex format.
+//  Example:
+//  csrOffsetCalc: "0x1000 + ({portNum} - {startPort})*0x4"
+//  portNum=1, startPort=1:
+//    csrOffsetCalc: "0x1000 + (1 - 1)*0x4"
+//    csrOffsetCalc: "0x1000"
+//  portNum=2, startPort=1::
+//    csrOffsetCalc: "0x1000 + (2 - 1)*0x4"
+//    csrOffsetCalc: "0x1004"
+//
+// `numPorts`: Number of ports for this block config
+//
+// `startPort`: Starting port for calculation for each block config
+//
+// `iobufOffsetCalc`: Calculation to iobuf register hex offset of the RTM controller in
+//  the FPGA. This expression includes a base start address, port, a starting port
+//  number or index. Final offset result is in hex format.
+//  Example
+//  iobufOffsetCalc: "0x1000 + ({portNum} - {startPort})*0x4"
+//  portNum=1, startPort=1:
+//    iobufOffsetCalc: "0x1000 + (1 - 1)*0x4"
+//    iobufOffsetCalc: "0x1000"
+//  portNum=2, startPort=1::
+//    iobufOffsetCalc: "0x1000 + (2 - 1)*0x4"
+//    iobufOffsetCalc: "0x1004"
+struct RtmCtrlBlockConfig {
+  1: string pmUnitScopedNamePrefix;
+  2: string deviceName;
+  3: string csrOffsetCalc;
+  4: i32 numPorts;
+  5: i32 startPort;
+  6: string iobufOffsetCalc;
 }
 
 // Defines PCI Devices in the PmUnits. A new PciDeviceConfig should be created
@@ -681,6 +736,7 @@ struct PciDeviceConfig {
   19: list<FpgaIpBlockConfig> sysLedCtrlConfigs;
   20: list<MdioBusBlockConfig> mdioBusBlockConfigs;
   21: list<I2cAdapterBlockConfig> i2cAdapterBlockConfigs;
+  22: list<RtmCtrlBlockConfig> rtmCtrlBlockConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and
@@ -857,4 +913,7 @@ struct PlatformConfig {
   // only for kmods which need to be loaded before any devices are created in
   // order to work properly.
   25: list<string> requiredKmodsToLoad;
+
+  // Number of retimers in the platform.
+  26: i16 numRtms;
 }
