@@ -287,6 +287,10 @@ std::vector<I2cAdapterConfig> Utils::createI2cAdapterConfigs(
       i2cAdapterConfig.numberOfAdapters() =
           *i2cAdapterBlockConfig.numBusesPerAdapter();
 
+      if (i2cAdapterBlockConfig.busFreqHz().has_value()) {
+        i2cAdapterConfig.busFreqHz() = *i2cAdapterBlockConfig.busFreqHz();
+      }
+
       i2cAdapterConfigs.push_back(i2cAdapterConfig);
     }
   }
