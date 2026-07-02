@@ -188,10 +188,14 @@ class TestEnsembleIf : public HwSwitchCallback {
   virtual LinkStateToggler* getLinkToggler() = 0;
   virtual bool isSai() const = 0;
   virtual folly::MacAddress getLocalMac(SwitchID id) const = 0;
+  // When portDescriptor is set the packet is injected out that port; otherwise
+  // it is sent switched. For the switched case, switchId targets a specific NPU
+  // (defaults to the switch owning the first master logical port).
   virtual void sendPacketAsync(
       std::unique_ptr<TxPacket> pkt,
       std::optional<PortDescriptor> portDescriptor = std::nullopt,
-      std::optional<uint8_t> queueId = std::nullopt) = 0;
+      std::optional<uint8_t> queueId = std::nullopt,
+      std::optional<SwitchID> switchId = std::nullopt) = 0;
   // Send a packet switched, optionally targeted at a specific switch (NPU).
   // Default ignores the switchId and is suitable for single-switch ensembles;
   // multi-switch ensembles override this to route to the target NPU.

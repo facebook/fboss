@@ -264,7 +264,8 @@ class AgentEnsemble : public TestEnsembleIf {
   void sendPacketAsync(
       std::unique_ptr<TxPacket> pkt,
       std::optional<PortDescriptor> portDescriptor,
-      std::optional<uint8_t> queueId) override;
+      std::optional<uint8_t> queueId,
+      std::optional<SwitchID> switchId = std::nullopt) override;
 
   void sendPacketSwitchedAsync(
       std::unique_ptr<TxPacket> pkt,
