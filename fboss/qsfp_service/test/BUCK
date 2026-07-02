@@ -128,6 +128,26 @@ cpp_unittest(
     ],
 )
 
+cpp_unittest(
+    name = "cpo_transceiver_manager_test",
+    srcs = [
+        "CpoTransceiverManagerTest.cpp",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    network_access = network_access_utils.none(),
+    resources = [
+        "//fboss/lib/platform_mapping_v2:example_integrated_optics_platform_mapping.json",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":transceiver_manager_test_helper",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
+        "//folly:file_util",
+    ],
+)
+
 cpp_library(
     name = "mock-state-machine",
     srcs = ["MockStateMachine.cpp"],
