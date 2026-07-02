@@ -48,7 +48,11 @@ class AgentPortBandwidthTest : public AgentHwTest {
     return ensemble.masterLogicalInterfacePortIds(switchID).at(0);
   }
 
-  PortID getPort0(SwitchID switchID = SwitchID(0)) const {
+  PortID getPort0() const {
+    return getPort0(getCurrentSwitchIdForTesting());
+  }
+
+  PortID getPort0(SwitchID switchID) const {
     return getPort0(*getAgentEnsemble(), switchID);
   }
 
@@ -120,12 +124,24 @@ class AgentPortBandwidthTest : public AgentHwTest {
         payload);
 
     std::optional<PortDescriptor> port{};
+    // VOQ switches (like Chenab) bypass traditional pipeline lookup on CPU tx
+    // packet, and thus require a targeted port descriptor for packet injection.
     if (getHwAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       port = PortDescriptor(getPort0());
+      getAgentEnsemble()->sendPacketAsync(
+          std::move(txPacket), port, std::nullopt);
+    } else {
+      // In multi-switch (multi-NPU) configurations, calling sendPacketAsync
+      // without a port descriptor would trigger the MultiHwSwitchHandler
+      // fallback, which silently routes switched packets to SwitchID(0).
+      //
+      // To ensure test traffic is correctly routed to the actual NPU under test
+      // (e.g., SwitchID(1) during npu1 tests), we must call the base class
+      // sendPacketSwitchedAsync helper, which automatically resolves and
+      // targets the correct active SwitchID.
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
-    getAgentEnsemble()->sendPacketAsync(
-        std::move(txPacket), port, std::nullopt);
   }
 
   void sendUdpPkts(uint8_t dscpVal, int cnt = 256, int payloadLen = 0) {
