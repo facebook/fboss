@@ -289,6 +289,18 @@ class CmisModule : public QsfpModule {
     return maxNumBanks_.value_or(1);
   }
 
+  /* A global host/media lane (0..numLanes-1) lives in bank
+   * (lane / kMaxOsfpNumLanes); its position within that bank's banked register
+   * is (lane % kMaxOsfpNumLanes). A port's lanes are confined to one bank, so
+   * per-port programming selects laneToBank(startHostLane) and uses intra-bank
+   * lane offsets. On single-bank modules these collapse to the identity. */
+  static uint8_t laneToBank(int globalLane) {
+    return globalLane / kMaxOsfpNumLanes;
+  }
+  static uint8_t laneInBank(int globalLane) {
+    return globalLane % kMaxOsfpNumLanes;
+  }
+
   /* Global-lane accessors for banked per-lane fields. A "global" lane spans all
    * banks (e.g. 0..31 for a 4-bank module); it maps to bank = lane /
    * kMaxOsfpNumLanes and intra-bank lane = lane % kMaxOsfpNumLanes. For
@@ -923,29 +935,34 @@ class CmisModule : public QsfpModule {
    * - Returns true if operation succeeds, false on timeout or failure
    *
    * @param portName The name of the port being programmed
-   * @param hostLaneMask Bitmask of host lanes to program
+   * @param hostLaneMask Intra-bank bitmask of host lanes to program
    * @param isInit If true, initialize (activate); if false, deinitialize
    * (deactivate)
+   * @param bank Bank that the port's lanes live in (0 for single-bank modules)
    * @return true if datapath operation completed successfully, false otherwise
    */
   bool dataPathProgram(
       const std::string& portName,
       uint8_t hostLaneMask,
-      bool isInit);
+      bool isInit,
+      uint8_t bank = 0);
 
   /*
    * Check if the datapath for the specified lanes has been updated to one of
-   * the desired states
+   * the desired states. laneMask carries intra-bank lane bits for the given
+   * bank.
    */
   bool isDatapathUpdated(
       uint8_t laneMask,
-      const std::vector<CmisLaneState>& states);
+      const std::vector<CmisLaneState>& states,
+      uint8_t bank = 0);
 
   void resetDataPathWithFunc(
       const std::string& portName,
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
           std::nullopt,
-      uint8_t hostLaneMask = 0xFF);
+      uint8_t hostLaneMask = 0xFF,
+      uint8_t bank = 0);
 
   /*
    * Helper function to reset data path for tunable optics (ZR modules)
@@ -954,7 +971,8 @@ class CmisModule : public QsfpModule {
   void resetDataPathForTunableOptics(
       const std::string& portName,
       std::optional<std::function<void()>> afterDataPathDeinitFunc,
-      uint8_t hostLaneMask);
+      uint8_t hostLaneMask,
+      uint8_t bank = 0);
 
   /*
    * Set the PRBS Generator and Checker on a module for the desired side (Line
@@ -1072,8 +1090,7 @@ class CmisModule : public QsfpModule {
       uint8_t hostLaneMask);
   void setApplicationSelectCodeAllPorts(
       const TransceiverPortState& state,
-      uint8_t numHostLanes,
-      uint8_t hostLaneMask);
+      uint8_t numHostLanes);
 
   // Sets the sampling percentage for
   // FEC errors if supported by transceiver.

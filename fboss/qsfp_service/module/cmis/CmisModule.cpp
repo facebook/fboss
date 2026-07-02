@@ -2797,7 +2797,11 @@ void CmisModule::setApplicationSelectCode(
     const TransceiverPortState& state,
     uint8_t numHostLanes,
     uint8_t hostLaneMask) {
-  const uint8_t dataPathId = state.startHostLane;
+  // A port's lanes are confined to one bank; program that bank using
+  // intra-bank lane offsets. dataPathId is the intra-bank lane index and is
+  // also the on-wire DATA_PATH_ID field value (which is bank-relative).
+  const uint8_t bank = laneToBank(state.startHostLane);
+  const uint8_t dataPathId = laneInBank(state.startHostLane);
 
   // We can't use numHostLanes() to get the hostLaneCount here since
   // that function relies on the configured application select but at
@@ -2811,7 +2815,10 @@ void CmisModule::setApplicationSelectCode(
   // programming different ports in a sequence
   std::array<uint8_t, 8> laneToActiveCtrlFieldVals{};
   readCmisField(
-      CmisField::ACTIVE_CTRL_ALL_LANES, laneToActiveCtrlFieldVals.data());
+      CmisField::ACTIVE_CTRL_ALL_LANES,
+      laneToActiveCtrlFieldVals.data(),
+      false,
+      bank);
 
   for (uint8_t lane = dataPathId; lane < dataPathId + numHostLanes; lane++) {
     lanesToRelease.insert(lane);
@@ -2852,8 +2859,8 @@ void CmisModule::setApplicationSelectCode(
     }
   }
 
-  const uint8_t lanesToProgram =
-      laneMask(dataPathId, dataPathId + numHostLanes);
+  // hostLaneMask already identifies the (intra-bank) lanes being programmed.
+  const uint8_t lanesToProgram = hostLaneMask;
   // Use application dependent settings
   const uint8_t explicitControl = setExplicitControl(state, lanesToProgram);
   const uint8_t newApSelCode = (apSelCode << APP_SEL_BITSHIFT) |
@@ -2865,11 +2872,13 @@ void CmisModule::setApplicationSelectCode(
   for (auto it = lanesToRelease.begin(); it != lanesToRelease.end(); it++) {
     QSFP_LOG(INFO, this) << fmt::format("Releasing lane {:#x}", *it);
   }
-  writeCmisField(laneToAppSelField(lanesToRelease), zeroApSelCode.data());
+  writeCmisField(
+      laneToAppSelField(lanesToRelease), zeroApSelCode.data(), false, bank);
   // We don't need to check if lanesToRelease is empty or not before setting
   // stage_ctrl_set_0 because there will always be lanes to release. At the
   // minimum, we'll try to release the same lane we are trying to configure
-  writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForReleaseLanes);
+  writeCmisField(
+      CmisField::STAGE_CTRL_SET_0, &applySetForReleaseLanes, false, bank);
 
   std::set<uint8_t> lanesToProgramAppSel;
   std::vector<uint8_t> appSelCode;
@@ -2880,9 +2889,11 @@ void CmisModule::setApplicationSelectCode(
     lanesToProgramAppSel.insert(lane);
     appSelCode.push_back(newApSelCode);
   }
-  writeCmisField(laneToAppSelField(lanesToProgramAppSel), appSelCode.data());
+  writeCmisField(
+      laneToAppSelField(lanesToProgramAppSel), appSelCode.data(), false, bank);
 
-  writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForConfigureLanes);
+  writeCmisField(
+      CmisField::STAGE_CTRL_SET_0, &applySetForConfigureLanes, false, bank);
 
   datapathResetPendingMask_ = applySetForConfigureLanes;
 
@@ -2899,16 +2910,19 @@ void CmisModule::setApplicationSelectCode(
  */
 void CmisModule::setApplicationSelectCodeAllPorts(
     const TransceiverPortState& state,
-    uint8_t numHostLanes,
-    uint8_t hostLaneMask) {
+    uint8_t numHostLanes) {
+  // This programs the whole 8-lane bank that the port lives in. Speed-combo
+  // lookups and stage-0 config are bank-relative (intra-bank lane indices).
+  const uint8_t bank = laneToBank(state.startHostLane);
+  const uint8_t intraStartHostLane = laneInBank(state.startHostLane);
   std::vector<uint8_t> laneProgramValues;
   if (isAecModule()) {
     laneProgramValues =
         CmisHelper::getValidMultiportSpeedConfig<ActiveCuHostInterfaceCode>(
             state.speed,
-            state.startHostLane,
+            intraStartHostLane,
             numHostLanes,
-            laneMask(state.startHostLane, numHostLanes),
+            laneMask(intraStartHostLane, numHostLanes),
             getNameString(),
             moduleCapabilities_,
             CmisHelper::getActiveValidSpeedCombinations(),
@@ -2927,9 +2941,9 @@ void CmisModule::setApplicationSelectCodeAllPorts(
     laneProgramValues =
         CmisHelper::getValidMultiportSpeedConfig<SMFMediaInterfaceCode>(
             state.speed,
-            state.startHostLane,
+            intraStartHostLane,
             numHostLanes,
-            laneMask(state.startHostLane, numHostLanes),
+            laneMask(intraStartHostLane, numHostLanes),
             getNameString(),
             moduleCapabilities_,
             TransceiverPropertiesManager::isKnown(mediaInterface)
@@ -2968,13 +2982,15 @@ void CmisModule::setApplicationSelectCodeAllPorts(
       stageSet0Config[lane++] = 0;
     }
   }
-  writeCmisField(CmisField::APP_SEL_LANE_1_8, stageSet0Config.data());
+  writeCmisField(
+      CmisField::APP_SEL_LANE_1_8, stageSet0Config.data(), false, bank);
 
   // Trigger the Set 0 application code setting to be applied on data
   // path init for all the lanes. The actual data-path init will be
   // triggered from the caller function
   uint8_t applySetForSpecificLanes = laneMask(0, kMaxOsfpNumLanes);
-  writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForSpecificLanes);
+  writeCmisField(
+      CmisField::STAGE_CTRL_SET_0, &applySetForSpecificLanes, false, bank);
 
   datapathResetPendingMask_ = applySetForSpecificLanes;
 }
@@ -3018,7 +3034,11 @@ void CmisModule::programApplicationSelectCode(
     const TransceiverPortState& state,
     uint8_t numHostLanes,
     std::optional<std::function<void()>> appSelectFunc) {
-  uint8_t hostLaneMask = laneMask(state.startHostLane, numHostLanes);
+  // A port's lanes live in one bank; program with an intra-bank lane mask and
+  // select that bank for the datapath reset.
+  const uint8_t bank = laneToBank(state.startHostLane);
+  uint8_t hostLaneMask =
+      laneMask(laneInBank(state.startHostLane), numHostLanes);
 
   // Use provided function or create default one
   if (!appSelectFunc) {
@@ -3035,7 +3055,7 @@ void CmisModule::programApplicationSelectCode(
         hostLaneMask);
   }
 
-  resetDataPathWithFunc(state.portName, appSelectFunc, hostLaneMask);
+  resetDataPathWithFunc(state.portName, appSelectFunc, hostLaneMask, bank);
 
   datapathResetPendingMask_ &= ~hostLaneMask;
 
@@ -3215,10 +3235,11 @@ CmisModule::getAppSelCodeForSpeed(
           "Speed matches: currentApplication {:#x}. Doing nothing",
           currentApplication);
       // Make sure the datapath is initialized, otherwise initialize it before
-      // returning
-      uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
+      // returning. The port's lanes live in one bank; use an intra-bank mask.
+      const uint8_t bank = laneToBank(startHostLane);
+      uint8_t hostLaneMask = laneMask(laneInBank(startHostLane), numHostLanes);
       if (datapathResetPendingMask_ & hostLaneMask) {
-        resetDataPathWithFunc(portName, std::nullopt, hostLaneMask);
+        resetDataPathWithFunc(portName, std::nullopt, hostLaneMask, bank);
         datapathResetPendingMask_ &= ~hostLaneMask;
         QSFP_LOG(INFO, this) << fmt::format(
             "Reset datapath for lane mask {:#x} before returning",
@@ -3316,13 +3337,11 @@ void CmisModule::setApplicationCodeLocked(
         apache::thrift::util::enumNameSafe(state.speed),
         state.startHostLane,
         numHostLanes);
-    uint8_t hostLaneMask = laneMask(state.startHostLane, numHostLanes);
     appSelectFunc = std::bind(
         &CmisModule::setApplicationSelectCodeAllPorts,
         this,
         state,
-        numHostLanes,
-        hostLaneMask);
+        numHostLanes);
   }
 
   // Use programApplicationSelectCode for both cases
@@ -3349,22 +3368,29 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
     return true;
   }
 
+  // A port's lanes are confined to one bank; the speed combos and
+  // ACTIVE_CTRL_ALL_LANES are per-bank, so read that bank and use intra-bank
+  // lane indices.
+  const uint8_t bank = laneToBank(startHostLane);
+  const uint8_t intraStartHostLane = laneInBank(startHostLane);
+
   // Get the current speed config on the Multiport optics lanes. Avoid cache
   // and read from HW directly
   AllLaneConfig currHwSpeedConfig;
-  readCmisField(CmisField::ACTIVE_CTRL_ALL_LANES, currHwSpeedConfig.data());
+  readCmisField(
+      CmisField::ACTIVE_CTRL_ALL_LANES, currHwSpeedConfig.data(), false, bank);
   for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
     currHwSpeedConfig[laneId] =
         (currHwSpeedConfig[laneId] & APP_SEL_MASK) >> APP_SEL_BITSHIFT;
   }
 
-  uint8_t mask = laneMask(startHostLane, numLanes);
+  uint8_t mask = laneMask(intraStartHostLane, numLanes);
   auto tcvrName = getNameString();
 
   if (isAecModule()) {
     return CmisHelper::checkSpeedCombo<ActiveCuHostInterfaceCode>(
         speed,
-        startHostLane,
+        intraStartHostLane,
         numLanes,
         mask,
         tcvrName,
@@ -3385,7 +3411,7 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
     }
     return CmisHelper::checkSpeedCombo<SMFMediaInterfaceCode>(
         speed,
-        startHostLane,
+        intraStartHostLane,
         numLanes,
         mask,
         tcvrName,
@@ -3414,17 +3440,23 @@ bool CmisModule::checkLaneConfigError(
 
   uint8_t configErrors[4];
 
+  // A port's lanes are confined to one bank; CONFIG_ERROR_LANES is per-bank,
+  // so read that bank and index it with intra-bank lane offsets.
+  const uint8_t bank = laneToBank(startHostLane);
+  const uint8_t intraStartHostLane = laneInBank(startHostLane);
+
   // In case some channel information is not available then we can retry after
   // lane init time
   int retryCount = 2;
   while (retryCount) {
     retryCount--;
-    readCmisField(CmisField::CONFIG_ERROR_LANES, configErrors);
+    readCmisField(CmisField::CONFIG_ERROR_LANES, configErrors, false, bank);
 
     bool allStatusAvailable = true;
     success = true;
 
-    for (int channel = startHostLane; channel < startHostLane + hostLaneCount;
+    for (int channel = intraStartHostLane;
+         channel < intraStartHostLane + hostLaneCount;
          channel++) {
       uint8_t byte = channel / 2;
       uint8_t cfgErr = configErrors[byte] >> ((channel % 2) * 4);
@@ -3484,11 +3516,15 @@ void CmisModule::remediateFlakyTransceiver(
       if (portNameToHostLanesMap.find(port) != portNameToHostLanesMap.end()) {
         auto& lanes = portNameToHostLanesMap[port];
         if (!lanes.empty()) {
-          auto portLaneMask = laneMask(*lanes.begin(), lanes.size());
+          // A port's lanes are confined to one bank; reset that bank with an
+          // intra-bank lane mask.
+          const uint8_t bank = laneToBank(*lanes.begin());
+          auto portLaneMask =
+              laneMask(laneInBank(*lanes.begin()), lanes.size());
           QSFP_LOG(INFO, this)
               << "Doing datapath reinit for " << port << " with lane mask "
               << static_cast<int>(portLaneMask);
-          resetDataPathWithFunc(port, std::nullopt, portLaneMask);
+          resetDataPathWithFunc(port, std::nullopt, portLaneMask, bank);
         } else {
           QSFP_LOG(ERR, this) << "Host lanes empty for " << port
                               << ". Skipping individual datapath remediation.";
@@ -3768,9 +3804,12 @@ void CmisModule::customizeTransceiverLocked(
     // so that each lanes can operate independently
     if (getModuleMediaInterface() == MediaInterfaceCode::FR4_200G &&
         portState.speed == cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) {
+      const uint8_t bank = laneToBank(portState.startHostLane);
       uint8_t squelchDisableValue = 0xF;
-      writeCmisField(CmisField::TX_SQUELCH_DISABLE, &squelchDisableValue);
-      writeCmisField(CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue);
+      writeCmisField(
+          CmisField::TX_SQUELCH_DISABLE, &squelchDisableValue, false, bank);
+      writeCmisField(
+          CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue, false, bank);
       QSFP_LOG(DBG1, this) << "Disabled TX and RX Squelch";
     }
     // Set the FEC sampling if applicable.
@@ -4202,11 +4241,16 @@ void CmisModule::setModuleRxEqualizerLocked(
     RxEqualizerSettings rxEqualizer,
     uint8_t startHostLane,
     uint8_t hostLaneCount) {
+  // A port's lanes are confined to one bank; the RX equalizer registers are
+  // per-bank, so read/write that bank and index it with intra-bank lanes.
+  const uint8_t bank = laneToBank(startHostLane);
+  const uint8_t intraStartHostLane = laneInBank(startHostLane);
+
   uint8_t currPre[4], currPost[4], currMain[4];
   // Read the existing settings to compare with desired settings later
-  readCmisField(CmisField::RX_OUT_PRE_CURSOR, currPre);
-  readCmisField(CmisField::RX_OUT_POST_CURSOR, currPost);
-  readCmisField(CmisField::RX_OUT_MAIN, currMain);
+  readCmisField(CmisField::RX_OUT_PRE_CURSOR, currPre, false, bank);
+  readCmisField(CmisField::RX_OUT_POST_CURSOR, currPost, false, bank);
+  readCmisField(CmisField::RX_OUT_MAIN, currMain, false, bank);
 
   uint8_t desiredPre[4], desiredPost[4], desiredMain[4];
   // Initialize desired settings with the current settings
@@ -4222,7 +4266,8 @@ void CmisModule::setModuleRxEqualizerLocked(
                        << ", hostLaneCount = " << hostLaneCount;
 
   // Update the desired settings for the relevant lanes
-  for (auto lane = startHostLane; lane <= (startHostLane + hostLaneCount - 1);
+  for (auto lane = intraStartHostLane;
+       lane <= (intraStartHostLane + hostLaneCount - 1);
        lane++) {
     // Two lanes share the same byte. offsetIndex tracks which of the 4 bytes
     // corresponds to lane
@@ -4247,14 +4292,14 @@ void CmisModule::setModuleRxEqualizerLocked(
         ((*rxEqualizer.mainAmplitude() & 0xf) << shiftOffset);
   }
 
-  auto compareSettings = [startHostLane, hostLaneCount](
+  auto compareSettings = [intraStartHostLane, hostLaneCount](
                              uint8_t currSettings[],
                              uint8_t desiredSettings[],
                              int length,
                              bool& changeNeeded) {
     // Two lanes share the same byte so loop only until numLanes / 2
-    for (auto i = startHostLane / 2;
-         i <= (startHostLane + hostLaneCount - 1) / 2;
+    for (auto i = intraStartHostLane / 2;
+         i <= (intraStartHostLane + hostLaneCount - 1) / 2;
          i++) {
       if (i < length && currSettings[i] != desiredSettings[i]) {
         // Some of the pre-cursor value needs to be changed so break from
@@ -4274,33 +4319,38 @@ void CmisModule::setModuleRxEqualizerLocked(
 
   // If anything is changed then apply the change and trigger it
   if (changePre || changePost || changeMain) {
-    for (auto i = startHostLane / 2;
-         i <= (startHostLane + hostLaneCount - 1) / 2;
+    for (auto i = intraStartHostLane / 2;
+         i <= (intraStartHostLane + hostLaneCount - 1) / 2;
          i++) {
       // Apply the change for pre/post/main if needed
       if (changePre) {
-        writeCmisField(offsetIndexToCmisField[i][0], &desiredPre[i]);
+        writeCmisField(
+            offsetIndexToCmisField[i][0], &desiredPre[i], false, bank);
         QSFP_LOG(INFO, this) << fmt::format(
             "customized index {:d} for Pre-cursor 0x{:x}", i, desiredPre[i]);
       }
       if (changePost) {
-        writeCmisField(offsetIndexToCmisField[i][1], &desiredPost[i]);
+        writeCmisField(
+            offsetIndexToCmisField[i][1], &desiredPost[i], false, bank);
         QSFP_LOG(INFO, this) << fmt::format(
             "customized index {:d} for Post-cursor 0x{:x}", i, desiredPost[i]);
       }
       if (changeMain) {
-        writeCmisField(offsetIndexToCmisField[i][2], &desiredMain[i]);
+        writeCmisField(
+            offsetIndexToCmisField[i][2], &desiredMain[i], false, bank);
         QSFP_LOG(INFO, this) << fmt::format(
             "customized index {:d} for Rx-out-main 0x{:x}", i, desiredMain[i]);
       }
     }
 
-    // Apply the change using stage 0 control
+    // Apply the change using stage 0 control. This read selects page 10h on the
+    // target bank, which the subsequent skipBankAndPageChange write relies on.
     uint8_t stage0Control[8];
-    readCmisField(CmisField::APP_SEL_LANE_1_8, stage0Control);
+    readCmisField(CmisField::APP_SEL_LANE_1_8, stage0Control, false, bank);
     std::set<uint8_t> lanesToConfigure;
     std::vector<uint8_t> stageControlToWrite;
-    for (int i = startHostLane; i < startHostLane + hostLaneCount; i++) {
+    for (int i = intraStartHostLane; i < intraStartHostLane + hostLaneCount;
+         i++) {
       stage0Control[i] |= 1;
       lanesToConfigure.insert(i);
       stageControlToWrite.push_back(stage0Control[i]);
@@ -4311,8 +4361,12 @@ void CmisModule::setModuleRxEqualizerLocked(
         true /* skipBankAndPageChange */);
 
     // Trigger the stage 0 control values to be operational in optics
-    uint8_t stage0ControlTrigger = laneMask(startHostLane, hostLaneCount);
-    writeCmisField(CmisField::STAGE_CTRL_SET0_IMMEDIATE, &stage0ControlTrigger);
+    uint8_t stage0ControlTrigger = laneMask(intraStartHostLane, hostLaneCount);
+    writeCmisField(
+        CmisField::STAGE_CTRL_SET0_IMMEDIATE,
+        &stage0ControlTrigger,
+        false,
+        bank);
 
     // Check if the config has been applied correctly or not
     if (!checkLaneConfigError(startHostLane, hostLaneCount)) {
@@ -5001,12 +5055,16 @@ uint64_t CmisModule::maxDatapathStatePolls(bool init) {
 
 bool CmisModule::isDatapathUpdated(
     uint8_t laneMask,
-    const std::vector<CmisLaneState>& states) {
-  for (uint8_t lane = 0; lane < numHostLanes(); lane++) {
-    if (!((1 << lane) & laneMask)) {
+    const std::vector<CmisLaneState>& states,
+    uint8_t bank) {
+  // laneMask carries intra-bank lane bits; map each back to its global lane so
+  // the bank-aware getDatapathLaneStateLocked reads the right bank's page.
+  for (uint8_t intraLane = 0; intraLane < kMaxOsfpNumLanes; intraLane++) {
+    if (!((1 << intraLane) & laneMask)) {
       continue;
     }
-    auto dpState = getDatapathLaneStateLocked(lane, false);
+    auto globalLane = bank * kMaxOsfpNumLanes + intraLane;
+    auto dpState = getDatapathLaneStateLocked(globalLane, false);
     if (std::find(states.begin(), states.end(), dpState) == states.end()) {
       return false;
     }
@@ -5021,7 +5079,8 @@ void CmisModule::resetDataPath(const std::string& portName) {
 bool CmisModule::dataPathProgram(
     const std::string& portName,
     uint8_t hostLaneMask,
-    bool isInit) {
+    bool isInit,
+    uint8_t bank) {
   if (flatMem_) {
     return true;
   }
@@ -5048,13 +5107,13 @@ bool CmisModule::dataPathProgram(
 
     // Read current register value
     uint8_t dataPathDeInitReg;
-    readCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInitReg);
+    readCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInitReg, false, bank);
 
     // For init: clear bits (release lanes from deactivation)
     // For deinit: set bits (deactivate lanes)
     uint8_t dataPathDeInit = isInit ? (dataPathDeInitReg & ~hostLaneMask)
                                     : (dataPathDeInitReg | hostLaneMask);
-    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
+    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit, false, bank);
 
     QSFP_LOG(INFO, this) << fmt::format(
         "Port {} starting datapath {}", portName, opName);
@@ -5073,14 +5132,14 @@ bool CmisModule::dataPathProgram(
   const auto kMaxRetries =
       (kUsecDatapathStateUpdateTime) / (kUsecDatapathStatePollTime);
   int retryCount = 0;
-  while (!isDatapathUpdated(hostLaneMask, targetStates) &&
+  while (!isDatapathUpdated(hostLaneMask, targetStates, bank) &&
          retryCount < kMaxRetries) {
     /* sleep override */
     usleep(kUsecDatapathStatePollTime);
     retryCount++;
   }
 
-  if (isDatapathUpdated(hostLaneMask, targetStates)) {
+  if (isDatapathUpdated(hostLaneMask, targetStates, bank)) {
     // Mark operation as done
     timers.progDoneTimer = std::chrono::steady_clock::now();
     dpDone = true;
@@ -5143,9 +5202,10 @@ bool CmisModule::dataPathProgram(
 void CmisModule::resetDataPathForTunableOptics(
     const std::string& portName,
     std::optional<std::function<void()>> afterDataPathDeinitFunc,
-    uint8_t hostLaneMask) {
+    uint8_t hostLaneMask,
+    uint8_t bank) {
   // Step 1: De-initialize data path
-  if (!dataPathProgram(portName, hostLaneMask, false)) {
+  if (!dataPathProgram(portName, hostLaneMask, false, bank)) {
     throw FbossError(
         "Data path de-initialize not yet completed for port ", portName);
   }
@@ -5165,7 +5225,7 @@ void CmisModule::resetDataPathForTunableOptics(
   }
 
   // Step 3: Initialize data path
-  if (!dataPathProgram(portName, hostLaneMask, true)) {
+  if (!dataPathProgram(portName, hostLaneMask, true, bank)) {
     throw FbossError(
         "Data path initialize not yet completed for port ", portName);
   }
@@ -5181,7 +5241,8 @@ void CmisModule::resetDataPathForTunableOptics(
 void CmisModule::resetDataPathWithFunc(
     const std::string& portName,
     std::optional<std::function<void()>> afterDataPathDeinitFunc,
-    uint8_t hostLaneMask) {
+    uint8_t hostLaneMask,
+    uint8_t bank) {
   if (flatMem_) {
     return;
   }
@@ -5189,14 +5250,14 @@ void CmisModule::resetDataPathWithFunc(
   if (isTunableOptics()) {
     // For tunable optics (ZR modules), use dataPathProgram for deinit/init
     resetDataPathForTunableOptics(
-        portName, afterDataPathDeinitFunc, hostLaneMask);
+        portName, afterDataPathDeinitFunc, hostLaneMask, bank);
   } else {
     // For non-tunable optics, use inline deinit/init logic
     uint8_t dataPathDeInitReg;
-    readCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInitReg);
+    readCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInitReg, false, bank);
     // First deactivate all the lanes
     uint8_t dataPathDeInit = dataPathDeInitReg | hostLaneMask;
-    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
+    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit, false, bank);
 
     // Wait for all datapath state machines to get Deactivated
     const auto maxRetriesDeInit = maxDatapathStatePolls(/*init=*/false);
@@ -5205,7 +5266,7 @@ void CmisModule::resetDataPathWithFunc(
     while (retries++ < maxRetriesDeInit) {
       /* sleep override */
       usleep(kUsecDatapathStatePollTime);
-      if (isDatapathUpdated(hostLaneMask, {CmisLaneState::DEACTIVATED})) {
+      if (isDatapathUpdated(hostLaneMask, {CmisLaneState::DEACTIVATED}, bank)) {
         break;
       }
     }
@@ -5222,7 +5283,7 @@ void CmisModule::resetDataPathWithFunc(
 
     // Release the lanes from DeInit.
     dataPathDeInit = dataPathDeInitReg & ~(hostLaneMask);
-    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
+    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit, false, bank);
 
     // Wait for the datapath to come out of deactivated state
     const auto maxRetriesInit = maxDatapathStatePolls(/*init=*/true);
@@ -5232,8 +5293,8 @@ void CmisModule::resetDataPathWithFunc(
       usleep(kUsecDatapathStatePollTime);
       if (isDatapathUpdated(
               hostLaneMask,
-              {CmisLaneState::ACTIVATED,
-               CmisLaneState::DATAPATH_INITIALIZED})) {
+              {CmisLaneState::ACTIVATED, CmisLaneState::DATAPATH_INITIALIZED},
+              bank)) {
         break;
       }
     }
@@ -5404,12 +5465,46 @@ bool CmisModule::setTransceiverTxImplLocked(
       (side == phy::Side::LINE) ? CmisField::TX_DISABLE : CmisField::RX_DISABLE;
   uint8_t txDisableVal;
 
-  readCmisField(txDisableRegister, &txDisableVal);
+  // A port's lanes are confined to one bank; the TX/RX disable register is
+  // per-bank, so reduce the lanes to intra-bank offsets and select that bank.
+  const uint8_t bank = laneToBank(*tcvrLanes.begin());
+  std::set<uint8_t> intraBankLanes;
+  for (auto lane : tcvrLanes) {
+    // Enforce the single-bank invariant: lanes from another bank would be
+    // silently squashed into this bank's channel mask.
+    if (laneToBank(lane) != bank) {
+      throw FbossError(
+          fmt::format(
+              "Port lanes span multiple banks (lane {} in bank {}, expected bank {})",
+              lane,
+              laneToBank(lane),
+              bank));
+    }
+    intraBankLanes.insert(laneInBank(lane));
+  }
 
-  txDisableVal =
-      setTxChannelMask(tcvrLanes, userChannelMask, enable, txDisableVal);
+  readCmisField(txDisableRegister, &txDisableVal, false, bank);
 
-  writeCmisField(txDisableRegister, &txDisableVal);
+  // userChannelMask bits are global lane indices, but setTxChannelMask now
+  // matches against intra-bank lanes; reduce the mask to this bank's intra-bank
+  // numbering (dropping bits for lanes outside the port's bank). For bank 0
+  // this is the identity.
+  std::optional<uint8_t> intraBankChannelMask;
+  if (userChannelMask.has_value()) {
+    uint8_t reduced = 0;
+    uint8_t remaining = *userChannelMask;
+    for (uint8_t globalLane = 0; remaining; remaining >>= 1, ++globalLane) {
+      if ((remaining & 0x1) && laneToBank(globalLane) == bank) {
+        reduced |= (1 << laneInBank(globalLane));
+      }
+    }
+    intraBankChannelMask = reduced;
+  }
+
+  txDisableVal = setTxChannelMask(
+      intraBankLanes, intraBankChannelMask, enable, txDisableVal);
+
+  writeCmisField(txDisableRegister, &txDisableVal, false, bank);
   return true;
 }
 
@@ -5482,12 +5577,31 @@ void CmisModule::setTransceiverLoopbackLocked(
   auto regField = (side == phy::Side::SYSTEM) ? CmisField::MEDIA_FAR_LB_EN
                                               : CmisField::MEDIA_NEAR_LB_EN;
   uint8_t hostOrMediaInputLbEnable;
-  readCmisField(regField, &hostOrMediaInputLbEnable);
+
+  // A port's lanes are confined to one bank; the loopback enable register is
+  // per-bank, so reduce the lanes to intra-bank offsets and select that bank.
+  const uint8_t bank = laneToBank(*tcvrLanes.begin());
+  std::set<uint8_t> intraBankLanes;
+  for (auto lane : tcvrLanes) {
+    // Enforce the single-bank invariant: lanes from another bank would be
+    // silently squashed into this bank's channel mask.
+    if (laneToBank(lane) != bank) {
+      throw FbossError(
+          fmt::format(
+              "Port lanes span multiple banks (lane {} in bank {}, expected bank {})",
+              lane,
+              laneToBank(lane),
+              bank));
+    }
+    intraBankLanes.insert(laneInBank(lane));
+  }
+
+  readCmisField(regField, &hostOrMediaInputLbEnable, false, bank);
 
   hostOrMediaInputLbEnable = setTxChannelMask(
-      tcvrLanes, std::nullopt, !setLoopback, hostOrMediaInputLbEnable);
+      intraBankLanes, std::nullopt, !setLoopback, hostOrMediaInputLbEnable);
 
-  writeCmisField(regField, &hostOrMediaInputLbEnable);
+  writeCmisField(regField, &hostOrMediaInputLbEnable, false, bank);
 }
 
 /*
