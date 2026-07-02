@@ -287,6 +287,79 @@ TEST_F(CmisTest, cpoTransceiverInfoReportsAllBankLanes) {
   EXPECT_EQ(settings.hostLaneSettings()->size(), 32);
 }
 
+// Program the datapath for two ports that live in different banks of a CPO
+// module and confirm each lands in its own bank: the application select code
+// and datapath init are written under the port's bank, leaving the other banks
+// untouched. The fake routes per-lane banked-page writes (and its datapath
+// state simulation) to the selected bank, so a correctly bank-targeted program
+// activates only that bank's lanes.
+TEST_F(CmisTest, cpoMultiPortDatapathProgram) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+  ASSERT_EQ(xcvr->numHostLanes(), 32);
+
+  // Two 400G ports in different banks. The platform mapping supplies each port
+  // with a global startHostLane (bank 0 -> lanes 0-3, bank 1 -> lanes 8-11),
+  // and the module derives the bank as lane / kMaxOsfpNumLanes. Each is a
+  // 2x400G-DR4 port within its bank. The fixture comes up in the per-bank 800G
+  // application, so requesting 400G forces a real datapath reprogram (rather
+  // than the "speed already matches" no-op).
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState bank0Port;
+  bank0Port.portName = "eth1/1/1";
+  bank0Port.startHostLane = 0;
+  bank0Port.speed = cfg::PortSpeed::FOURHUNDREDG;
+  bank0Port.numHostLanes = 4;
+  programTcvrState.ports.emplace(bank0Port.portName, bank0Port);
+
+  TransceiverPortState bank1Port;
+  bank1Port.portName = "eth1/1/9";
+  bank1Port.startHostLane = 8;
+  bank1Port.speed = cfg::PortSpeed::FOURHUNDREDG;
+  bank1Port.numHostLanes = 4;
+  programTcvrState.ports.emplace(bank1Port.portName, bank1Port);
+
+  // Capture the pre-program datapath state of the unprogrammed banks (2 and 3,
+  // lanes 16-31) so we can prove programming banks 0 and 1 leaves them
+  // untouched, without hardcoding the fixture's exact initial state.
+  transceiverManager_->refreshStateMachines();
+  std::map<int, CmisLaneState> preStateBanks23;
+  {
+    const auto& preInfo = xcvr->getTransceiverInfo();
+    const auto& preSignals = *preInfo.tcvrState()->hostLaneSignals();
+    ASSERT_EQ(preSignals.size(), 32);
+    for (int lane = 16; lane < 32; ++lane) {
+      preStateBanks23[lane] = *preSignals[lane].cmisLaneState();
+    }
+  }
+
+  xcvr->programTransceiver(programTcvrState, false);
+
+  // Refresh so the per-bank datapath state written during programming is read
+  // back into the cache that getTransceiverInfo reports.
+  transceiverManager_->refreshStateMachines();
+  const auto& info = xcvr->getTransceiverInfo();
+  const auto& hostLaneSignals = *info.tcvrState()->hostLaneSignals();
+  ASSERT_EQ(hostLaneSignals.size(), 32);
+
+  // The four lanes of each programmed port (bank 0: 0-3, bank 1: 8-11) are
+  // activated.
+  for (int lane : {0, 1, 2, 3, 8, 9, 10, 11}) {
+    EXPECT_EQ(hostLaneSignals[lane].cmisLaneState(), CmisLaneState::ACTIVATED)
+        << "lane " << lane << " should be ACTIVATED";
+  }
+  // Every lane of the unprogrammed banks 2 and 3 is unchanged from before the
+  // program and is not activated -- proving the program targeted only the
+  // ports' banks.
+  for (int lane = 16; lane < 32; ++lane) {
+    EXPECT_EQ(hostLaneSignals[lane].cmisLaneState(), preStateBanks23[lane])
+        << "lane " << lane << " (unprogrammed bank) should be unchanged";
+    EXPECT_NE(hostLaneSignals[lane].cmisLaneState(), CmisLaneState::ACTIVATED)
+        << "lane " << lane << " should not be ACTIVATED";
+  }
+}
+
 // Tests that the transceiverInfo object is correctly populated
 TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   auto xcvrID = TransceiverID(0);

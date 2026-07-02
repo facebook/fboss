@@ -15,17 +15,37 @@ ArrayT customizeModuleIdentifier(ArrayT base, uint8_t newIdentifier) {
   return base;
 }
 
+// Per-lane data pages that CMIS stores per-bank (10h/11h/13h/14h, VDM
+// 24h-27h). Writes to these while a non-zero bank is selected must land in that
+// bank's buffer so multi-bank (CPO) programming can be verified per-bank.
+bool isFakeBankedPage(int page) {
+  switch (page) {
+    case 0x10:
+    case 0x11:
+    case 0x13:
+    case 0x14:
+    case 0x24:
+    case 0x25:
+    case 0x26:
+    case 0x27:
+      return true;
+    default:
+      return false;
+  }
+}
+
 // Simulate datapath state transitions for CMIS modules:
 // When DATA_PATH_DEINIT (Page 10h, offset 0) is written, update
-// DATA_PATH_STATE (Page 11h, offset 0-3) to simulate hardware behavior.
-// This is needed for tests that use polling-based datapath programming.
+// DATA_PATH_STATE (Page 11h, offset 0-3) of the same bank to simulate hardware
+// behavior. This is needed for tests that use polling-based datapath
+// programming. targetPages is the upper-page map for the bank being written
+// (the bank-agnostic map for bank 0, the per-bank map otherwise).
 void simulateDataPathStateTransition(
     int page,
     int offset,
     int len,
     const uint8_t* fieldValue,
-    uint8_t dataAddress,
-    std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>>& upperPages) {
+    std::map<int, std::array<uint8_t, 128>>& targetPages) {
   constexpr int kPage10h = 0x10;
   constexpr int kPage11h = 0x11;
   constexpr int kDataPathDeinitOffset = 0; // Offset 128 - 128 = 0
@@ -35,9 +55,8 @@ void simulateDataPathStateTransition(
   if (page == kPage10h && offset == kDataPathDeinitOffset && len >= 1) {
     uint8_t dataPathDeinit = *fieldValue;
 
-    // Check if Page 11h exists in the upper pages
-    if (upperPages[dataAddress].find(kPage11h) !=
-        upperPages[dataAddress].end()) {
+    // Check if Page 11h exists in the target pages
+    if (targetPages.find(kPage11h) != targetPages.end()) {
       // Update DATA_PATH_STATE for each lane (8 lanes, 4 bits per lane)
       // Lane states are packed: 2 lanes per byte, low nibble = even lane
       for (int lane = 0; lane < 8; ++lane) {
@@ -46,7 +65,7 @@ void simulateDataPathStateTransition(
         int byteIdx = lane / 2;
         int laneBitOffset = (lane % 2) * 4;
 
-        auto& stateByte = upperPages[dataAddress][kPage11h][byteIdx];
+        auto& stateByte = targetPages[kPage11h][byteIdx];
         // Clear the nibble and set the new state
         stateByte =
             (stateByte & ~(0xF << laneBitOffset)) | (newState << laneBitOffset);
@@ -137,13 +156,27 @@ int FakeTransceiverImpl::writeTransceiver(
   } else {
     EXPECT_LE(offset + len, 2 * QsfpModule::MAX_QSFP_PAGE_SIZE);
     offset -= QsfpModule::MAX_QSFP_PAGE_SIZE;
-    std::copy(
-        fieldValue,
-        fieldValue + len,
-        upperPages_[dataAddress][page_].begin() + offset);
-
-    simulateDataPathStateTransition(
-        page_, offset, len, fieldValue, dataAddress, upperPages_);
+    // Route per-lane banked-page writes to the selected bank so multi-bank
+    // (CPO) programming lands in (and is verifiable from) the right bank. Bank
+    // 0 and non-banked pages keep using the bank-agnostic buffer.
+    if (selectedBank_ != 0 && isFakeBankedPage(page_)) {
+      auto& bankPages = bankedPages_[selectedBank_];
+      // Seed an as-yet-unwritten bank page from the bank-agnostic base content.
+      if (!bankPages.count(page_)) {
+        bankPages[page_] = upperPages_[dataAddress][page_];
+      }
+      std::copy(
+          fieldValue, fieldValue + len, bankPages[page_].begin() + offset);
+      simulateDataPathStateTransition(
+          page_, offset, len, fieldValue, bankPages);
+    } else {
+      std::copy(
+          fieldValue,
+          fieldValue + len,
+          upperPages_[dataAddress][page_].begin() + offset);
+      simulateDataPathStateTransition(
+          page_, offset, len, fieldValue, upperPages_[dataAddress]);
+    }
   }
 
   return len;

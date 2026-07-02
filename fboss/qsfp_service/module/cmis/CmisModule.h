@@ -300,6 +300,11 @@ class CmisModule : public QsfpModule {
   static uint8_t laneInBank(int globalLane) {
     return globalLane % kMaxOsfpNumLanes;
   }
+  // Convenience for the common case of needing both at once:
+  //   auto [bank, intraLane] = bankAndLane(globalLane);
+  static std::pair<uint8_t, uint8_t> bankAndLane(int globalLane) {
+    return {laneToBank(globalLane), laneInBank(globalLane)};
+  }
 
   /* Global-lane accessors for banked per-lane fields. A "global" lane spans all
    * banks (e.g. 0..31 for a 4-bank module); it maps to bank = lane /
@@ -486,7 +491,7 @@ class CmisModule : public QsfpModule {
    * Helper function to read the current application select code for a given
    * lane.
    */
-  uint8_t getCurrentAppSelCode(uint8_t startHostLane);
+  uint8_t getCurrentAppSelCode(uint8_t startHostLane) const;
   /*
    * returns individual sensor values after scaling
    */

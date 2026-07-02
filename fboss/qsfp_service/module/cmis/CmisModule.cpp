@@ -650,12 +650,16 @@ bool isValidVdmConfigType(int vdmConf) {
 std::optional<CmisModule::ApplicationAdvertisingField>
 CmisModule::getApplicationField(uint8_t application, uint8_t startHostLane)
     const {
+  // Module capabilities advertise per-bank (intra-bank) host start lanes. A
+  // port's lanes are confined to one bank, so match against the intra-bank
+  // position (identity for single-bank modules / lanes 0-7).
+  uint8_t intraStartHostLane = laneInBank(startHostLane);
   for (const auto& capability : moduleCapabilities_) {
     if (capability.moduleMediaInterface == application &&
         std::find(
             capability.hostStartLanes.begin(),
             capability.hostStartLanes.end(),
-            startHostLane) != capability.hostStartLanes.end()) {
+            intraStartHostLane) != capability.hostStartLanes.end()) {
       return capability;
     }
   }
@@ -1210,18 +1214,16 @@ std::vector<uint8_t> CmisModule::configuredMediaLanes(
     // mediaLaneAssignment can be 0xF. Which means that the pairing of
     // host->media lanes will be (hostLane:0, mediaLane:0), (hostLane:2,
     // mediaLane:1), (hostLane:4, mediaLane:2), (hostLane:6, mediaLane:3)
-    auto it = std::find(
-        applicationAdvertisingField->hostStartLanes.begin(),
-        applicationAdvertisingField->hostStartLanes.end(),
-        startHostLane);
-    if (it == applicationAdvertisingField->hostStartLanes.end()) {
+    const auto& hostStartLanes = applicationAdvertisingField->hostStartLanes;
+    const auto it =
+        std::find(hostStartLanes.begin(), hostStartLanes.end(), startHostLane);
+    if (it == hostStartLanes.end()) {
       QSFP_LOG(ERR, this) << "Couldn't find the hostStartLane "
                           << startHostLane;
       return cfgLanes;
     }
 
-    auto index =
-        std::distance(applicationAdvertisingField->hostStartLanes.begin(), it);
+    const auto index = std::distance(hostStartLanes.begin(), it);
     uint8_t mediaStartLane = 0;
     if (index < applicationAdvertisingField->mediaStartLanes.size()) {
       mediaStartLane = applicationAdvertisingField->mediaStartLanes[index];
@@ -1253,21 +1255,18 @@ uint8_t CmisModule::getCurrentApplication(uint8_t lane, int byteOffset) const {
         getMaxNumBanks());
     return 0;
   }
-  // ACTIVE_CTRL_LANE_n is one byte per intra-bank lane; select the lane's bank.
-  uint8_t bank = lane / kMaxOsfpNumLanes;
-  int intraLane = lane % kMaxOsfpNumLanes;
-  // Pick the first application for flatMem modules. FlatMem modules don't
-  // support page 11h that contains the current operational app sel code.
-  uint8_t currentApplicationSel = 1;
+  uint8_t currentApplicationSel;
   if (!flatMem_) {
-    int dataAddress, offset, length;
-    getQsfpFieldAddress(
-        laneToActiveCtrlField[intraLane], dataAddress, offset, length);
-    currentApplicationSel =
-        getBankedQsfpValuePtr(dataAddress, offset, 1, bank)[0] & APP_SEL_MASK;
+    // getCurrentAppSelCode reads ACTIVE_CTRL for the lane's bank and returns
+    // the app sel already masked and shifted to the higher four bits.
+    currentApplicationSel = getCurrentAppSelCode(lane);
+  } else {
+    // FlatMem modules don't expose page 11h's operational app-sel register;
+    // report 0 (handled as "not selected" just below), preserving the previous
+    // behavior. These modules resolve their application via the static
+    // advertising path instead.
+    currentApplicationSel = 0;
   }
-  // The application sel code is at the higher four bits of the field.
-  currentApplicationSel = currentApplicationSel >> APP_SEL_BITSHIFT;
 
   // Application select value 0 means application is not selected by module yet
   if (currentApplicationSel == 0) {
@@ -3127,9 +3126,15 @@ uint8_t CmisModule::getInterfaceCodeForAppSel(
  *
  * Helper function to read the current application select code for a given lane.
  */
-uint8_t CmisModule::getCurrentAppSelCode(uint8_t startHostLane) {
+uint8_t CmisModule::getCurrentAppSelCode(uint8_t startHostLane) const {
+  // ACTIVE_CTRL_LANE_n is one byte per intra-bank lane on banked page 11h; map
+  // the global start lane to its bank and intra-bank position.
+  auto [bank, intraLane] = bankAndLane(startHostLane);
+  int dataAddress, offset, length;
+  getQsfpFieldAddress(
+      laneToActiveCtrlField[intraLane], dataAddress, offset, length);
   uint8_t currentApplicationSel =
-      getSettingsValue(laneToActiveCtrlField[startHostLane], APP_SEL_MASK);
+      getBankedQsfpValuePtr(dataAddress, offset, 1, bank)[0] & APP_SEL_MASK;
   return currentApplicationSel >> APP_SEL_BITSHIFT;
 }
 
