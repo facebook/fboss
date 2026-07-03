@@ -21,6 +21,7 @@ cpp_binary(
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",
         "ConfigDhcpSourceOverrideTest.cpp",
+        "ConfigHostnameTest.cpp",
         "ConfigInterfaceDescriptionTest.cpp",
         "ConfigInterfaceFlowControlTest.cpp",
         "ConfigInterfaceIpv6NdpTest.cpp",

@@ -111,6 +111,7 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
 #include "fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h"
 #include "fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h"
+#include "fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.h"
@@ -145,11 +146,17 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdConfigSwitch>,
           argRegistrar<CmdConfigSwitchTraits>,
           {{
-              "admin-distance",
-              "Set administrative distance for a routing client",
-              commandHandler<CmdConfigAdminDistance>,
-              argRegistrar<CmdConfigAdminDistanceTraits>,
-          }},
+               "admin-distance",
+               "Set administrative distance for a routing client",
+               commandHandler<CmdConfigAdminDistance>,
+               argRegistrar<CmdConfigAdminDistanceTraits>,
+           },
+           {
+               "hostname",
+               "Set switch hostname",
+               commandHandler<CmdConfigHostname>,
+               argRegistrar<CmdConfigHostnameTraits>,
+           }},
       },
 
       {"config",

@@ -791,6 +791,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h
   fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.cpp
   fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h
+  fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.cpp
+  fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.cpp
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h
   fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.cpp
