@@ -730,6 +730,13 @@ struct TRibSummary {
   // Histogram of prefix counts keyed by prefix (mask) length. Example: an entry
   // {64: 3751} means 3751 /64 prefixes. Only non-zero lengths are present.
   3: map<i16, i64> prefix_length_counts;
+  // Best-path source breakdown: number of prefixes whose selected best path is
+  // external (eBGP), internal (iBGP), confederation-external, or locally
+  // originated. Analogous to Arista's "bgp External:/Internal:" split.
+  4: i64 ebgp_prefixes;
+  5: i64 ibgp_prefixes;
+  6: i64 confed_ebgp_prefixes;
+  7: i64 local_prefixes;
 }
 
 /**

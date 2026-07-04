@@ -62,6 +62,10 @@ class CmdShowBgpTableSummary
           << std::endl;
       out << "Total Prefixes: " << summary.total_prefixes().value()
           << std::endl;
+      out << "  External (eBGP): " << summary.ebgp_prefixes().value()
+          << "  Internal (iBGP): " << summary.ibgp_prefixes().value()
+          << "  Confed-eBGP: " << summary.confed_ebgp_prefixes().value()
+          << "  Local: " << summary.local_prefixes().value() << std::endl;
 
       Table table;
       table.setHeader({"Mask Length", "Number Of Prefixes"});

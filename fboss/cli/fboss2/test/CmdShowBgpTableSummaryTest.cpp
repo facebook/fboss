@@ -57,7 +57,10 @@ class CmdShowBgpTableSummaryTestFixture : public CmdHandlerTestBase {
     }
     setenv("LC_ALL", "C", 1);
     v4_ = makeSummary(TBgpAfi::AFI_IPV4, 5, {{24, 3}, {32, 2}});
+    v4_.ebgp_prefixes() = 4;
+    v4_.ibgp_prefixes() = 1;
     v6_ = makeSummary(TBgpAfi::AFI_IPV6, 1, {{64, 1}});
+    v6_.ibgp_prefixes() = 1;
   }
 
   void TearDown() override {
@@ -95,6 +98,8 @@ TEST_F(CmdShowBgpTableSummaryTestFixture, printOutput) {
 
   EXPECT_THAT(output, HasSubstr("Address Family: AFI_IPV4"));
   EXPECT_THAT(output, HasSubstr("Total Prefixes: 5"));
+  EXPECT_THAT(output, HasSubstr("External (eBGP): 4"));
+  EXPECT_THAT(output, HasSubstr("Internal (iBGP): 1"));
   EXPECT_THAT(output, HasSubstr("/24"));
   EXPECT_THAT(output, HasSubstr("/32"));
   EXPECT_THAT(output, HasSubstr("Address Family: AFI_IPV6"));
