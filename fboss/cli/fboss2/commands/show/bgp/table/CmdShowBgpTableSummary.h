@@ -66,6 +66,8 @@ class CmdShowBgpTableSummary
           << "  Internal (iBGP): " << summary.ibgp_prefixes().value()
           << "  Confed-eBGP: " << summary.confed_ebgp_prefixes().value()
           << "  Local: " << summary.local_prefixes().value() << std::endl;
+      out << "  Routes with unresolved next-hops: "
+          << summary.routes_with_unresolved_nexthops().value() << std::endl;
 
       Table table;
       table.setHeader({"Mask Length", "Number Of Prefixes"});
@@ -75,6 +77,13 @@ class CmdShowBgpTableSummary
         table.addRow({"/" + std::to_string(maskLen), std::to_string(count)});
       }
       out << table << std::endl << std::endl;
+    }
+
+    // RIB-wide (not per-AFI): identical across summaries, so render it once.
+    if (!model.summaries()->empty()) {
+      out << "Unresolvable next-hops: "
+          << model.summaries()->front().unresolvable_nexthops_count().value()
+          << std::endl;
     }
   }
 };

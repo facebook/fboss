@@ -59,8 +59,15 @@ class CmdShowBgpTableSummaryTestFixture : public CmdHandlerTestBase {
     v4_ = makeSummary(TBgpAfi::AFI_IPV4, 5, {{24, 3}, {32, 2}});
     v4_.ebgp_prefixes() = 4;
     v4_.ibgp_prefixes() = 1;
+    // RIB-wide count, identical across AFIs (as the server populates it).
+    v4_.unresolvable_nexthops_count() = 3;
+    // Per-AFI count of routes with no best path; set explicitly to exercise the
+    // per-AFI rendering.
+    v4_.routes_with_unresolved_nexthops() = 2;
     v6_ = makeSummary(TBgpAfi::AFI_IPV6, 1, {{64, 1}});
     v6_.ibgp_prefixes() = 1;
+    v6_.unresolvable_nexthops_count() = 3;
+    v6_.routes_with_unresolved_nexthops() = 0;
   }
 
   void TearDown() override {
@@ -100,11 +107,14 @@ TEST_F(CmdShowBgpTableSummaryTestFixture, printOutput) {
   EXPECT_THAT(output, HasSubstr("Total Prefixes: 5"));
   EXPECT_THAT(output, HasSubstr("External (eBGP): 4"));
   EXPECT_THAT(output, HasSubstr("Internal (iBGP): 1"));
+  EXPECT_THAT(output, HasSubstr("Routes with unresolved next-hops: 2"));
   EXPECT_THAT(output, HasSubstr("/24"));
   EXPECT_THAT(output, HasSubstr("/32"));
   EXPECT_THAT(output, HasSubstr("Address Family: AFI_IPV6"));
   EXPECT_THAT(output, HasSubstr("Total Prefixes: 1"));
   EXPECT_THAT(output, HasSubstr("/64"));
+  // RIB-wide unresolvable count is rendered once.
+  EXPECT_THAT(output, HasSubstr("Unresolvable next-hops: 3"));
 }
 
 } // namespace facebook::fboss

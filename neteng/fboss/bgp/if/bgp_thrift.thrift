@@ -737,6 +737,16 @@ struct TRibSummary {
   5: i64 ibgp_prefixes;
   6: i64 confed_ebgp_prefixes;
   7: i64 local_prefixes;
+  // Number of unresolvable next-hops tracked in the RIB. This is a RIB-wide
+  // (not per-address-family) count, so it is identical across the IPv4 and IPv6
+  // responses; the CLI renders it once.
+  8: i64 unresolvable_nexthops_count;
+  // Number of prefixes (routes) in this address family that have no best path
+  // because every candidate path's next-hop is unresolvable. Per-AFI, unlike
+  // unresolvable_nexthops_count above: one unresolvable next-hop can back many
+  // prefixes, and a prefix can have several next-hops. A null/drop route (0
+  // next-hops) counts as a local best path, not as unresolved.
+  9: i64 routes_with_unresolved_nexthops;
 }
 
 /**
