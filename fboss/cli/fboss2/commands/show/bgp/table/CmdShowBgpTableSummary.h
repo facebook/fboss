@@ -61,7 +61,7 @@ class CmdShowBgpTableSummary
       out << "Address Family: " << enumNameSafe(summary.afi().value())
           << std::endl;
       out << "Total Prefixes: " << summary.total_prefixes().value()
-          << std::endl;
+          << "  Total Paths: " << summary.total_paths().value() << std::endl;
       out << "  External (eBGP): " << summary.ebgp_prefixes().value()
           << "  Internal (iBGP): " << summary.ibgp_prefixes().value()
           << "  Confed-eBGP: " << summary.confed_ebgp_prefixes().value()

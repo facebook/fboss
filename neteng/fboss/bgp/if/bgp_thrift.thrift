@@ -747,6 +747,11 @@ struct TRibSummary {
   // prefixes, and a prefix can have several next-hops. A null/drop route (0
   // next-hops) counts as a local best path, not as unresolved.
   9: i64 routes_with_unresolved_nexthops;
+  // Total number of paths (route advertisements) held in the RIB for this
+  // address family, summed across peers and including every add-path ID: one
+  // peer advertising N add-path routes for a prefix contributes N. Same
+  // semantic as TEntryStats.total_rib_paths, split per address family.
+  10: i64 total_paths;
 }
 
 /**
