@@ -151,6 +151,11 @@ struct TRibEntry {
   1: bgp_attr.TIpPrefix prefix;
   /** maps a group to the list of paths */
   2: map<string, list<TBgpPath>> paths;
+  /**
+   * Label of the `paths` group holding the selected best/ECMP paths (always
+   * "best" when set). Empty when no best path is selected -- prefer `best_path`
+   * (field 9) / per-path `is_best_path` as the explicit presence signal.
+   */
   3: string best_group;
   4: bgp_attr.TIpPrefix best_next_hop;
   /*
