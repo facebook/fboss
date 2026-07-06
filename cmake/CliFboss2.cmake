@@ -517,6 +517,14 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/route/CmdShowRoute.h
   fboss/cli/fboss2/commands/show/route/CmdShowRoute.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.cpp
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteStatic.h
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteStatic.cpp
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteStaticIp.h
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteStaticIp.cpp
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteStaticIpv6.h
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteStaticIpv6.cpp
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteStaticMpls.h
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteStaticMpls.cpp
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.cpp
   fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h

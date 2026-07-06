@@ -169,6 +169,7 @@ cpp_unittest(
         "CmdShowProductDetailsTest.cpp",
         "CmdShowProductTest.cpp",
         "CmdShowRouteDetailsTest.cpp",
+        "CmdShowRouteStaticTest.cpp",
         "CmdShowRouteSummaryTest.cpp",
         "CmdShowSystemPortTest.cpp",
         "CmdShowTeFlowTest.cpp",
