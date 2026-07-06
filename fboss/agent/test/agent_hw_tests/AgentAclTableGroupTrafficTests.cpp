@@ -36,11 +36,13 @@ class AgentAclTableGroupTrafficTest : public AgentHwTest {
     FLAGS_enable_acl_table_group = true;
   }
 
-  // Ebro (wedge400c) derives the shared ACL key profile from the first table,
-  // so every table's qualifiers must be added up front.
-  bool isEbroAsic() const {
+  // Ebro (wedge400c) and P200 derive the shared ACL key profile from the first
+  // table, so every table's qualifiers must be added up front.
+  bool isSingleStageAclTableAsic() const {
     return checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
-               ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO;
+               ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getAsicType() == cfg::AsicType::ASIC_TYPE_P200;
   }
 
   cfg::SwitchConfig initialConfig(
@@ -285,7 +287,7 @@ class AgentAclTableGroupTrafficTest : public AgentHwTest {
     ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
     auto setup = [this]() {
-      bool addAllQualifiers = isEbroAsic();
+      bool addAllQualifiers = isSingleStageAclTableAsic();
 
       auto newCfg{initialConfig(*getAgentEnsemble())};
       utility::addQueuePerHostQueueConfig(&newCfg);
@@ -389,7 +391,7 @@ class AgentAclTableGroupTrafficTest : public AgentHwTest {
     ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
     auto setup = [this]() {
-      bool addAllQualifiers = isEbroAsic();
+      bool addAllQualifiers = isSingleStageAclTableAsic();
 
       auto newCfg{initialConfig(*getAgentEnsemble())};
       utility::addOlympicQosMaps(newCfg, getAgentEnsemble()->getL3Asics());

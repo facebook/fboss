@@ -903,6 +903,7 @@ cfg::SwitchConfig genPortVlanCfg(
       connectionHandle = "68:00";
     } else if (
         asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+        asicType == cfg::AsicType::ASIC_TYPE_P200 ||
         asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
         asicType == cfg::AsicType::ASIC_TYPE_G202X) {
       connectionHandle = "/dev/uio0";

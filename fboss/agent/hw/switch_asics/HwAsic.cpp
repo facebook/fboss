@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
+#include "fboss/agent/hw/switch_asics/P200Asic.h"
 #include "fboss/agent/hw/switch_asics/Qumran4DAsic.h"
 #include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
@@ -149,6 +150,8 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
       return std::make_unique<CredoPhyAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_EBRO:
       return std::make_unique<EbroAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_P200:
+      return std::make_unique<P200Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_YUBA:
       return std::make_unique<YubaAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_G202X:

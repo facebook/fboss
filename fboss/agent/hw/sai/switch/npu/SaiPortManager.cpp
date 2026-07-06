@@ -1759,7 +1759,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
      * --------------------------------------------------------------------
      */
     if (platform_->getHwSwitch()->getBootType() == BootType::WARM_BOOT &&
-        platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO &&
+        (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+         platform_->getAsic()->getAsicType() ==
+             cfg::AsicType::ASIC_TYPE_P200) &&
         serdes) {
       auto rxDspModeFromStore = std::get<std::optional<std::decay_t<
           decltype(SaiPortSerdesTraits::Attributes::RxDspMode{})>>>(
