@@ -109,6 +109,15 @@ TEST(ConfigLibTest, Wedge800cnhpReusesWedge800cactConfig) {
       ConfigLib().getSensorServiceConfig(kWedge800cact));
 }
 
+TEST(ConfigLibTest, Wedge800bnhpReusesWedge800bactConfig) {
+  EXPECT_EQ(
+      ConfigLib().getPlatformManagerConfig("wedge800bnhp"),
+      ConfigLib().getPlatformManagerConfig("wedge800bact"));
+  EXPECT_EQ(
+      ConfigLib().getSensorServiceConfig("wedge800bnhp"),
+      ConfigLib().getSensorServiceConfig("wedge800bact"));
+}
+
 TEST(ConfigLibTest, CanonicalConfigPlatformNameResolvesAlias) {
   // An aliased platform resolves to the platform whose config it reuses.
   EXPECT_EQ(
