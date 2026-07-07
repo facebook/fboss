@@ -59,6 +59,10 @@ class ScopedUmask {
 class ScopedFileLock {
  public:
   explicit ScopedFileLock(const std::string& lockPath) {
+    // Ensure the lock file is created group-writable so a different
+    // operator (same "switching" group) can later open it for O_RDWR,
+    // regardless of this process's ambient umask.
+    ScopedUmask scopedUmask(0002);
     fd_ = open(lockPath.c_str(), O_CREAT | O_RDWR, 0664);
     if (fd_ < 0) {
       throw std::runtime_error(
