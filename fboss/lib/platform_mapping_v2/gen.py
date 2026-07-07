@@ -11,9 +11,8 @@ from thrift.python.serializer import Protocol, serialize
 
 _FBOSS_DIR: str = os.getcwd() + "/fboss"
 INPUT_DIR: str = f"{_FBOSS_DIR}/lib/platform_mapping_v2/platforms/"
-DESCRIPTOR_OUTPUT_DIR: str = "descriptors"
-
 JsonValue = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
+PlatformDescriptorData = Tuple[str, Dict[str, Any]]
 
 
 def _is_thrift_map(d: object) -> bool:
@@ -144,11 +143,20 @@ def generate_platform_mappings(
     ).get_platform_mapping()
 
     output_dir = os.path.expanduser(output_dir)
-    os.makedirs(output_dir, exist_ok=True)
-    platform_file_name = f"{platform_name}_platform_mapping" + (
-        "_is_multi_npu" if is_multi_npu else ""
+    platform_descriptor_data = get_platform_descriptor_data(
+        vendor_data_map, platform_name
     )
-    output_file = f"{output_dir}/{platform_file_name}.json"
+    if platform_descriptor_data is not None:
+        system_vendor, _ = platform_descriptor_data
+        output_dir = f"{output_dir}/{system_vendor}/{platform_name}"
+        output_file = f"{output_dir}/platform_mapping.json"
+    else:
+        platform_file_name = f"{platform_name}_platform_mapping" + (
+            "_is_multi_npu" if is_multi_npu else ""
+        )
+        output_file = f"{output_dir}/{platform_file_name}.json"
+
+    os.makedirs(output_dir, exist_ok=True)
     platform_mapping_serialized = serialize(platform_mapping, protocol=Protocol.JSON)
     platform_mapping_json = _format_json(json.loads(platform_mapping_serialized))
 
@@ -161,32 +169,48 @@ def generate_platform_mappings(
     with open(os.path.expanduser(output_file), "w") as f:
         f.write(platform_mapping_json)
 
-    generate_platform_descriptor(vendor_data_map, output_dir, platform_name)
+    generate_platform_descriptor(
+        vendor_data_map, output_dir, platform_name, platform_descriptor_data
+    )
 
 
-def generate_platform_descriptor(
-    vendor_data_map: Dict[str, Dict[str, str]], output_dir: str, platform_name: str
-) -> None:
+def get_platform_descriptor_data(
+    vendor_data_map: Dict[str, Dict[str, str]], platform_name: str
+) -> Optional[PlatformDescriptorData]:
     try:
         platform_descriptor = read_platform_descriptor(
             vendor_data_map[platform_name], platform_name
         )
     except FileNotFoundError:
-        return
+        return None
 
     system_vendor = platform_descriptor.pop("systemVendor")
     if not isinstance(system_vendor, str):
         raise TypeError(f"Invalid system vendor for {platform_name}")
 
+    return (system_vendor, platform_descriptor)
+
+
+def generate_platform_descriptor(
+    vendor_data_map: Dict[str, Dict[str, str]],
+    output_dir: str,
+    platform_name: str,
+    platform_descriptor_data: Optional[PlatformDescriptorData] = None,
+) -> None:
+    if platform_descriptor_data is None:
+        platform_descriptor_data = get_platform_descriptor_data(
+            vendor_data_map, platform_name
+        )
+    if platform_descriptor_data is None:
+        return
+
+    _, platform_descriptor = platform_descriptor_data
     descriptor_json = _format_json(platform_descriptor)
     if not descriptor_json.endswith("\n"):
         descriptor_json += "\n"
 
-    descriptor_dir = os.path.expanduser(
-        f"{output_dir}/{DESCRIPTOR_OUTPUT_DIR}/{system_vendor}/{platform_name}"
-    )
-    os.makedirs(descriptor_dir, exist_ok=True)
-    output_file = f"{descriptor_dir}/platform_descriptor.json"
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = f"{output_dir}/platform_descriptor.json"
 
     print(f"Writing to file {output_file}...", file=sys.stderr)
     with open(output_file, "w") as f:
