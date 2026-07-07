@@ -197,7 +197,7 @@ Icecube800banwSystemContainer::getInstance() {
 
 using SaintpaulSystemContainer =
     BspGenericSystemContainer<SaintpaulBspPlatformMapping>;
-const folly::Singleton<SaintpaulSystemContainer> _saintpaulSystemContainer;
+folly::Singleton<SaintpaulSystemContainer> _saintpaulSystemContainer;
 template <>
 std::shared_ptr<SaintpaulSystemContainer>
 SaintpaulSystemContainer::getInstance() {
