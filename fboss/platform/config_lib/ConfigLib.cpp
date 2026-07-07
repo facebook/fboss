@@ -1,6 +1,9 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 #include "fboss/platform/config_lib/ConfigLib.h"
 
+#include <algorithm>
+#include <unordered_map>
+
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
@@ -23,17 +26,32 @@ using namespace facebook::fboss::platform;
 
 namespace {
 
+// Distinct hardware platforms that reuse another platform's config. Keys and
+// values are lowercase config names, matching the generated config map keys.
+const std::unordered_map<std::string, std::string> kConfigAliases = {
+    {"wedge800cnhp", "wedge800cact"},
+};
+
+std::string toLower(std::string str) {
+  std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+  return str;
+}
+
+std::string resolveConfigAlias(const std::string& platformNameLower) {
+  auto it = kConfigAliases.find(platformNameLower);
+  return it != kConfigAliases.end() ? it->second : platformNameLower;
+}
+
 std::string getPlatformName(const std::optional<std::string>& platformName) {
-  auto platformStr = platformName
-      ? *platformName
-      : *helpers::PlatformNameLib().getPlatformName();
-  std::transform(
-      platformStr.begin(), platformStr.end(), platformStr.begin(), ::tolower);
+  auto platformStr = toLower(
+      platformName ? *platformName
+                   : *helpers::PlatformNameLib().getPlatformName());
   if (platformStr == "darwin" && FLAGS_run_in_netos) {
     platformStr =
         "darwin_netos"; // Bypass Darwin config for netos, Remove after all
                         // Darwin platforms are onboarded to netos
   }
+  platformStr = resolveConfigAlias(platformStr);
   XLOG(DBG1) << "The inferred platform is " << platformStr;
   return platformStr;
 }
@@ -155,6 +173,14 @@ std::string ConfigLib::getRebootCauseFinderConfig(
         "reboot_cause_finder configuration not found for platform: " +
         getPlatformName(platformName));
   }
+}
+
+std::string ConfigLib::canonicalConfigPlatformName(
+    const std::string& platformName) {
+  auto canonical = resolveConfigAlias(toLower(platformName));
+  std::transform(
+      canonical.begin(), canonical.end(), canonical.begin(), ::toupper);
+  return canonical;
 }
 
 } // namespace facebook::fboss::platform

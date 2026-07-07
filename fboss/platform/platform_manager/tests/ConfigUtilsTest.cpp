@@ -7,6 +7,7 @@
 #include <folly/testing/TestUtil.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/config_lib/MockConfigLib.h"
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/MockPlatformFsUtils.h"
@@ -139,6 +140,22 @@ TEST_F(ConfigUtilsTest, GetConfigVerifiesPlatformName) {
   ConfigUtils configUtils2(
       mockConfigLib2, mockPlatformNameLib2, mockPlatformFsUtils_);
   EXPECT_THROW(configUtils2.getConfig(), std::runtime_error);
+}
+
+TEST_F(ConfigUtilsTest, GetConfigResolvesConfigAlias) {
+  // WEDGE800CNHP is distinct hardware that reuses WEDGE800CACT's config. With
+  // the real ConfigLib, a WEDGE800CNHP machine must load WEDGE800CACT's config
+  // (config alias) and pass the platform-name check.
+  ON_CALL(*mockPlatformNameLib_, getPlatformNameFromBios(_))
+      .WillByDefault(Return("WEDGE800CNHP"));
+  ConfigUtils configUtils(
+      std::make_shared<ConfigLib>(),
+      mockPlatformNameLib_,
+      mockPlatformFsUtils_);
+
+  PlatformConfig config;
+  ASSERT_NO_THROW(config = configUtils.getConfig());
+  EXPECT_EQ(*config.platformName(), "WEDGE800CACT");
 }
 
 // When no stored config hash exists (e.g. the config hash file is missing or

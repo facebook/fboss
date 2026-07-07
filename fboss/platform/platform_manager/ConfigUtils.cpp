@@ -20,6 +20,8 @@ using apache::thrift::SimpleJSONSerializer;
 namespace {
 // Verify that the platform name from the config and dmidecode match.  This
 // is necessary to prevent an incorrect config from being used on any platform.
+// A platform may reuse another platform's config (config alias); the canonical
+// name resolves the alias so the aliased platform is accepted.
 void verifyPlatformNameMatches(
     const std::string& platformNameInConfig,
     const std::string& platformNameFromBios) {
@@ -30,7 +32,8 @@ void verifyPlatformNameMatches(
       platformNameInConfigUpper.begin(),
       ::toupper);
 
-  if (platformNameInConfigUpper == platformNameFromBios) {
+  if (platformNameInConfigUpper ==
+      ConfigLib::canonicalConfigPlatformName(platformNameFromBios)) {
     return;
   }
 
