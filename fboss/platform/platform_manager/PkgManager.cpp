@@ -10,16 +10,9 @@
 #include <folly/FileUtil.h>
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
-#include <range/v3/range/conversion.hpp>
 #include <range/v3/view/concat.hpp>
-#include <range/v3/view/drop.hpp>
-#include <range/v3/view/filter.hpp>
-#include <range/v3/view/split.hpp>
 #include <re2/re2.h>
-#include <sys/utsname.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-
-#include "fboss/platform/helpers/PlatformUtils.h"
 
 #include <fstream>
 
@@ -33,11 +26,6 @@ DEFINE_bool(
     false,
     "The kmods are usually reloaded only when the BSP RPM changes. "
     "But if this flag is set, the kmods will be reloaded everytime.");
-
-DEFINE_string(
-    local_rpm_path,
-    "",
-    "Path to the local rpm file that needs to be installed on the system.");
 
 DEFINE_int32(
     kmod_unload_retries,
@@ -59,124 +47,6 @@ constexpr auto kBspKmodsRpmVersionCounter = "bsp_kmods_rpm_version.{}";
 constexpr auto kBspKmodsFilePath = "/usr/local/{}_bsp/{}/kmods.json";
 const re2::RE2 kBspRpmNameRe = "(?P<KEYWORD>[a-z]+)_bsp_kmods";
 } // namespace
-
-namespace package_manager {
-SystemInterface::SystemInterface(
-    const std::shared_ptr<PlatformUtils>& platformUtils)
-    : platformUtils_(platformUtils) {}
-
-bool SystemInterface::loadKmod(const std::string& moduleName) const {
-  int exitStatus{0};
-  std::string standardOut{};
-  auto unloadCmd = fmt::format("modprobe {}", moduleName);
-  VLOG(1) << fmt::format("Running command ({})", unloadCmd);
-  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(unloadCmd);
-  return exitStatus == 0;
-}
-
-bool SystemInterface::unloadKmod(const std::string& moduleName) const {
-  int exitStatus{0};
-  std::string standardOut{};
-  auto unloadCmd = fmt::format("rmmod {}", moduleName);
-  VLOG(1) << fmt::format("Running command ({})", unloadCmd);
-  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(unloadCmd);
-  return exitStatus == 0;
-}
-
-int SystemInterface::installRpm(
-    const std::string& rpmFullName,
-    const std::string& repoName) const {
-  int exitStatus{0};
-  std::string standardOut{};
-  auto cmd = fmt::format(
-      "dnf install {} --assumeyes --setopt=*.skip_if_unavailable=True {}",
-      rpmFullName,
-      repoName.empty() ? "" : "--disablerepo='*' --enablerepo=" + repoName);
-  VLOG(1) << fmt::format("Running command ({})", cmd);
-  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(cmd);
-  return exitStatus;
-}
-
-int SystemInterface::installLocalRpm() const {
-  int exitStatus{0};
-  std::string standardOut{};
-  auto cmd = fmt::format("rpm -i --force {}", FLAGS_local_rpm_path);
-  VLOG(1) << fmt::format("Running command ({})", cmd);
-  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(cmd);
-  return exitStatus;
-}
-
-int SystemInterface::depmod() const {
-  int exitStatus{0};
-  std::string standardOut{};
-  auto depmodCmd = "depmod -a";
-  VLOG(1) << fmt::format("Running command ({})", depmodCmd);
-  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(depmodCmd);
-  return exitStatus;
-}
-
-std::vector<std::string> SystemInterface::getInstalledRpms(
-    const std::string& rpmBaseName) const {
-  std::string standardOut{};
-  int exitStatus{0};
-  auto cmd = fmt::format("rpm -qa | grep ^{}", rpmBaseName);
-  VLOG(1) << fmt::format("Running command ({})", cmd);
-  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(cmd);
-  if (exitStatus) {
-    return {};
-  }
-  std::vector<std::string> installedRpms;
-  folly::split('\n', standardOut, installedRpms);
-  return installedRpms;
-}
-
-int SystemInterface::removeRpms(
-    const std::vector<std::string>& installedRpms) const {
-  int exitStatus{0};
-  std::string standardOut;
-  auto removeOldRpmsCmd =
-      fmt::format("rpm -e --allmatches {}", folly::join(" ", installedRpms));
-  VLOG(1) << fmt::format("Running command ({})", removeOldRpmsCmd);
-  std::tie(exitStatus, standardOut) =
-      platformUtils_->execCommand(removeOldRpmsCmd);
-  return exitStatus;
-}
-
-std::set<std::string> SystemInterface::lsmod() const {
-  VLOG(1) << "Running command (lsmod)";
-  auto result = platformUtils_->execCommand("lsmod");
-  auto rows = result.second | ranges::views::split('\n') |
-      ranges::views::drop(1) | ranges::to<std::vector<std::string>>;
-  std::set<std::string> kmods;
-  // row -> kmod | size | used by | dependent kmods
-  for (const auto& row : rows) {
-    auto tokens = row | ranges::views::split(' ') |
-        ranges::views::filter(
-                      [](const auto& token) { return !token.empty(); }) |
-        ranges::to<std::vector<std::string>>;
-    if (tokens.empty()) {
-      XLOG(WARNING) << fmt::format("Failed to scan lsmod row -- {}", row);
-      continue;
-    }
-    kmods.emplace(tokens.front());
-  }
-  return kmods;
-}
-
-std::string SystemInterface::getHostKernelVersion() const {
-  VLOG(1) << "Using system name structure for host kernel version";
-  utsname result;
-  uname(&result);
-  return result.release;
-}
-
-bool SystemInterface::isRpmInstalled(const std::string& rpmFullName) const {
-  auto cmd = fmt::format("dnf list {} --installed", rpmFullName);
-  VLOG(1) << fmt::format("Running command ({})", cmd);
-  auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
-  return exitStatus == 0;
-}
-} // namespace package_manager
 
 PkgManager::PkgManager(
     const PlatformConfig& config,
