@@ -1712,6 +1712,26 @@ TEST_F(CmisTest, cmis800GZrHoldOffTimerNegativeValue) {
   EXPECT_THROW(xcvr->configureRxConsActHoldOffTimer(-1), FbossError);
 }
 
+// On a module that does NOT advertise support for programming the hold-off
+// timer, configureRxConsActHoldOffTimer reads the current register value and
+// only no-ops when it already matches the request; otherwise it throws instead
+// of silently leaving a value it couldn't set.
+TEST_F(CmisTest, cmis800GZrHoldOffTimerUnsupportedModule) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrNoHoldOffTmrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_FALSE(xcvr->isRxConsActHoldOffTmrImplSupported());
+
+  // The CONS_ACT_HOLD_OFF_TMR register reads 0, so requesting 0 (the default)
+  // is a no-op and must not throw.
+  EXPECT_NO_THROW(xcvr->configureRxConsActHoldOffTimer(0));
+
+  // Requesting a non-zero value we can't program (register 0 != requested)
+  // throws rather than silently leaving the wrong value.
+  EXPECT_THROW(xcvr->configureRxConsActHoldOffTimer(10), FbossError);
+}
+
 // Test coherent FEC Performance Monitoring stats from C-CMIS page 34h
 // on 800G ZR modules. Validates that fillVdmPerfMonitorFecPm correctly
 // decodes all FEC PM counters from the cached page34 data.
