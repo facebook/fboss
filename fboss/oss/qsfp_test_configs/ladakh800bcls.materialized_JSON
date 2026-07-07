@@ -1998,6 +1998,14 @@
             }
           ]
       },
+      "T-OP4EDH-NBM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "170.131"
+            }
+          ]
+      },
       "T-RH8ENH-N00": {
           "versions": [
             {
