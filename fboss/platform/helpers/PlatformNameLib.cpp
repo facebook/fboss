@@ -32,21 +32,9 @@ std::string sanitizePlatformName(const std::string& platformNameFromBios) {
   if (platformNameUpper == "JANGA") {
     return "JANGA800BIC";
   }
-
   if (platformNameUpper == "TAHAN") {
     return "TAHAN800BC";
   }
-
-  // MERU800BIAB, MERU800BIAC and MERU800BIA have equivalent configs
-  if (platformNameUpper == "MERU800BIAB" ||
-      platformNameUpper == "MERU800BIAC") {
-    return "MERU800BIA";
-  }
-
-  if (platformNameUpper == "MINIPACK3BTA") {
-    return "MINIPACK3BA";
-  }
-
   return platformNameUpper;
 }
 

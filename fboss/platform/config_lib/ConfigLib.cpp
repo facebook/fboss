@@ -30,7 +30,11 @@ namespace {
 // values are lowercase config names, matching the generated config map keys.
 const std::unordered_map<std::string, std::string> kConfigAliases = {
     {"wedge800cnhp", "wedge800cact"},
-    {"wedge800bnhp", "wedge800bact"}};
+    {"wedge800bnhp", "wedge800bact"},
+    {"meru800biab", "meru800bia"},
+    {"meru800biac", "meru800bia"},
+    {"minipack3bta", "minipack3ba"},
+};
 
 std::string toLower(std::string str) {
   std::transform(str.begin(), str.end(), str.begin(), ::tolower);
