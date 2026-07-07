@@ -1675,7 +1675,7 @@ TEST_F(CmisTest, cmis800GZrHoldOffTimerDefault10ms) {
   ASSERT_TRUE(xcvr->isTunableOptics());
   ASSERT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
 
-  xcvr->configureRxConsActHoldOffTimer(10, true);
+  xcvr->configureRxConsActHoldOffTimer(10);
   transceiverManager_->refreshStateMachines();
 
   // Read hold-off timer from cached Page 38h, offset 141, length 2
@@ -1692,7 +1692,7 @@ TEST_F(CmisTest, cmis800GZrHoldOffTimerDisabled) {
 
   ASSERT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
 
-  xcvr->configureRxConsActHoldOffTimer(0, true);
+  xcvr->configureRxConsActHoldOffTimer(0);
   transceiverManager_->refreshStateMachines();
 
   // Read hold-off timer from cached Page 38h, offset 141, length 2
@@ -1709,7 +1709,7 @@ TEST_F(CmisTest, cmis800GZrHoldOffTimerNegativeValue) {
 
   ASSERT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
 
-  EXPECT_THROW(xcvr->configureRxConsActHoldOffTimer(-1, true), FbossError);
+  EXPECT_THROW(xcvr->configureRxConsActHoldOffTimer(-1), FbossError);
 }
 
 // Test coherent FEC Performance Monitoring stats from C-CMIS page 34h
