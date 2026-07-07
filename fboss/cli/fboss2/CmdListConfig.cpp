@@ -98,6 +98,7 @@
 #include "fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.h"
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
+#include "fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicyMap.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h"
@@ -131,6 +132,8 @@
 #include "fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
+#include "fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h"
+#include "fboss/cli/fboss2/commands/delete/qos/default_policy/CmdDeleteQosDefaultPolicy.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
@@ -867,6 +870,12 @@ const CommandTree& kConfigCommandTree() {
                argRegistrar<CmdConfigQosBufferPoolTraits>,
            },
            {
+               "default-policy",
+               "Set the default data-plane QoS policy for ports not in portIdToQosPolicy",
+               commandHandler<CmdConfigQosDefaultPolicy>,
+               argRegistrar<CmdConfigQosDefaultPolicyTraits>,
+           },
+           {
                "policy",
                "Configure QoS policy settings",
                commandHandler<CmdConfigQosPolicy>,
@@ -1040,6 +1049,20 @@ const CommandTree& kConfigCommandTree() {
                   commandHandler<CmdDeleteInterfaceIpv6Ndp>,
                   argRegistrar<CmdDeleteInterfaceIpv6NdpTraits>,
               }},
+          }},
+      },
+
+      {
+          "delete",
+          "qos",
+          "Delete (reset to default) QoS settings",
+          commandHandler<CmdDeleteQos>,
+          argRegistrar<CmdDeleteQosTraits>,
+          {{
+              "default-policy",
+              "Clear the default data-plane QoS policy",
+              commandHandler<CmdDeleteQosDefaultPolicy>,
+              argRegistrar<CmdDeleteQosDefaultPolicyTraits>,
           }},
       },
 

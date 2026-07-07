@@ -25,6 +25,8 @@ cpp_unittest(
         "CmdConfigMacAgingTimeTest.cpp",
         "CmdConfigPtpTransparentClockTest.cpp",
         "CmdConfigQosBufferPoolTest.cpp",
+        "CmdConfigQosDefaultPolicyTest.cpp",
+        "CmdDeleteQosDefaultPolicyTest.cpp",
         "CmdConfigReloadTest.cpp",
         "CmdConfigSessionCommitTest.cpp",
         "CmdConfigSessionDiffTest.cpp",
