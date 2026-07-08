@@ -41,6 +41,11 @@ std::string toLower(std::string str) {
   return str;
 }
 
+std::string toUpper(std::string str) {
+  std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+  return str;
+}
+
 std::string resolveConfigAlias(const std::string& platformNameLower) {
   auto it = kConfigAliases.find(platformNameLower);
   return it != kConfigAliases.end() ? it->second : platformNameLower;
@@ -181,10 +186,20 @@ std::string ConfigLib::getRebootCauseFinderConfig(
 
 std::string ConfigLib::canonicalConfigPlatformName(
     const std::string& platformName) {
-  auto canonical = resolveConfigAlias(toLower(platformName));
-  std::transform(
-      canonical.begin(), canonical.end(), canonical.begin(), ::toupper);
-  return canonical;
+  return toUpper(resolveConfigAlias(toLower(platformName)));
+}
+
+void ConfigLib::verifyPlatformNameMatches(
+    const std::string& platformNameInConfig,
+    const std::string& inferredPlatformName) {
+  if (toUpper(platformNameInConfig) ==
+      canonicalConfigPlatformName(inferredPlatformName)) {
+    return;
+  }
+  throw std::runtime_error(
+      "platformName in config '" + platformNameInConfig +
+      "' does not match the inferred platform name '" + inferredPlatformName +
+      "'");
 }
 
 } // namespace facebook::fboss::platform

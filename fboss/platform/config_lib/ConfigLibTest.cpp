@@ -129,3 +129,19 @@ TEST(ConfigLibTest, CanonicalConfigPlatformNameResolvesAlias) {
       ConfigLib::canonicalConfigPlatformName("WEDGE800CACT"), "WEDGE800CACT");
   EXPECT_EQ(ConfigLib::canonicalConfigPlatformName("montblanc"), "MONTBLANC");
 }
+
+TEST(ConfigLibTest, VerifyPlatformNameMatches) {
+  // Exact match passes.
+  EXPECT_NO_THROW(
+      ConfigLib::verifyPlatformNameMatches("MONTBLANC", "MONTBLANC"));
+  // The config name's case is normalized before comparing.
+  EXPECT_NO_THROW(
+      ConfigLib::verifyPlatformNameMatches("montblanc", "MONTBLANC"));
+  // An aliased inferred name matches the target platform's config.
+  EXPECT_NO_THROW(
+      ConfigLib::verifyPlatformNameMatches("WEDGE800CACT", "WEDGE800CNHP"));
+  // A genuine mismatch throws.
+  EXPECT_THROW(
+      ConfigLib::verifyPlatformNameMatches("MONTBLANC", "DARWIN"),
+      std::runtime_error);
+}

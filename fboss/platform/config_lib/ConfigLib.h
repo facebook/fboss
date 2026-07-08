@@ -49,6 +49,14 @@ class ConfigLib {
   static std::string canonicalConfigPlatformName(
       const std::string& platformName);
 
+  // Throws if the config's declared platformName does not match the running
+  // platform. Comparison is case-insensitive and resolves config aliases
+  // (so a platform that reuses another's config, e.g. WEDGE800CNHP, is
+  // accepted). Used by services to reject a config loaded onto the wrong box.
+  static void verifyPlatformNameMatches(
+      const std::string& platformNameInConfig,
+      const std::string& inferredPlatformName);
+
  protected:
   std::string configFilePath_;
   std::optional<std::string> getConfigFromFile() const;
