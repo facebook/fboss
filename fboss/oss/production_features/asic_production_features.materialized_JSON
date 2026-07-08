@@ -188,9 +188,56 @@
         100,
         102,
         104,
-        112
+        112,
+        113
     ],
     "jericho3": [
+        2,
+        3,
+        5,
+        0,
+        4,
+        6,
+        8,
+        10,
+        11,
+        61,
+        15,
+        16,
+        18,
+        20,
+        23,
+        24,
+        26,
+        28,
+        31,
+        91,
+        33,
+        12,
+        36,
+        37,
+        38,
+        39,
+        41,
+        40,
+        42,
+        45,
+        47,
+        30,
+        35,
+        34,
+        53,
+        48,
+        49,
+        58,
+        70,
+        75,
+        76,
+        77,
+        89,
+        95
+    ],
+    "jericho4": [
         2,
         3,
         5,
@@ -648,7 +695,8 @@
         102,
         104,
         33,
-        112
+        112,
+        113
     ]
   },
   "asicToFeatureNames": {
@@ -840,9 +888,56 @@
         "SRV6_ENCAP",
         "SRV6_DECAP",
         "SRV6_MIDPOINT",
-        "PORT_DEBOUNCE"
+        "PORT_DEBOUNCE",
+        "SRV6_BINDING_SID"
     ],
     "jericho3": [
+        "CPU_RX_TX",
+        "L3_FORWARDING",
+        "NULL_ROUTE_IN_DISCARDS_COUNTER",
+        "VOQ",
+        "ACL_PORT_IN_DISCARDS_COUNTER",
+        "EGRESS_FORWARDING_DISCARDS_COUNTER",
+        "COPP",
+        "DSCP_REMARKING",
+        "L3_QOS",
+        "NETWORKAI_QOS",
+        "VOQ_DNX_INTERRUPTS",
+        "SINGLE_ACL_TABLE",
+        "BTH_OPCODE_ACL",
+        "ECN",
+        "JUMBO_FRAMES",
+        "TRAP_DISCARDS_COUNTER",
+        "SCHEDULER_PPS",
+        "PORT_TX_DISABLE",
+        "MIRROR_PACKET_TRUNCATION",
+        "EGRESS_MIRROR_PACKET_TRUNCATION",
+        "INTERFACE_NEIGHBOR_TABLE",
+        "ACL_COUNTER",
+        "RSW_ROUTE_SCALE",
+        "FSW_ROUTE_SCALE",
+        "HGRID_DU_ROUTE_SCALE",
+        "HGRID_UU_ROUTE_SCALE",
+        "TH_ALPM_ROUTE_SCALE",
+        "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "PFC",
+        "PORT_MTU_ERROR_TRAP",
+        "PFC_CAPTURE",
+        "SFLOWv6_SAMPLING",
+        "EGRESS_MIRRORING",
+        "INGRESS_MIRRORING",
+        "ERSPANV6_MIRRORING",
+        "LINERATE_SFLOW",
+        "MIRROR_ON_DROP",
+        "SFLOW_SAMPLES_PACKING",
+        "SELF_HEALING_ECMP_LAG",
+        "GLOBAL_TC_RATE_LIMIT",
+        "COPP_SHAPER",
+        "COPP_SCHEDULER",
+        "AM_IDLES",
+        "MIRROR_ON_DROP_DNX"
+    ],
+    "jericho4": [
         "CPU_RX_TX",
         "L3_FORWARDING",
         "NULL_ROUTE_IN_DISCARDS_COUNTER",
@@ -1300,7 +1395,8 @@
         "SRV6_DECAP",
         "SRV6_MIDPOINT",
         "INTERFACE_NEIGHBOR_TABLE",
-        "PORT_DEBOUNCE"
+        "PORT_DEBOUNCE",
+        "SRV6_BINDING_SID"
     ]
   },
   "featureSupportSpecs": [
@@ -1343,6 +1439,20 @@
           "sdk": 2,
           "minSdkVersion": "26.2.4210",
           "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.4210"
+        }
+      ]
+    },
+    {
+      "feature": 113,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba",
+            "g202x"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "26.2.4210",
+          "note": "SRv6 binding SID are supported on Leaba ASICs starting SDK 26.2.4210"
         }
       ]
     },
@@ -1511,7 +1621,8 @@
       "supportedFrom": [
         {
           "asics": [
-            "jericho3"
+            "jericho3",
+            "jericho4"
           ],
           "sdk": 1,
           "minSdkVersion": "12.2.0.0_dnx_odp",
@@ -1524,7 +1635,8 @@
       "supportedFrom": [
         {
           "asics": [
-            "jericho3"
+            "jericho3",
+            "jericho4"
           ],
           "sdk": 1,
           "minSdkVersion": "12.0.0.0_dnx_odp",
@@ -1537,7 +1649,8 @@
       "supportedFrom": [
         {
           "asics": [
-            "jericho3"
+            "jericho3",
+            "jericho4"
           ],
           "sdk": 1,
           "minSdkVersion": "12.0.0.0_dnx_odp",
@@ -1550,7 +1663,8 @@
       "supportedFrom": [
         {
           "asics": [
-            "jericho3"
+            "jericho3",
+            "jericho4"
           ],
           "sdk": 1,
           "minSdkVersion": "12.2.0.0_dnx_odp",
