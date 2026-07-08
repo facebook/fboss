@@ -13,13 +13,17 @@
 
 #include <fmt/format.h>
 #include <folly/json/dynamic.h>
+#include <folly/json/json.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <cstdint>
 #include <initializer_list>
 #include <optional>
 #include <string>
 #include <vector>
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
 
 using namespace facebook::fboss;
@@ -58,47 +62,49 @@ class ConfigPfcTest : public Fboss2IntegrationTest {
     Fboss2IntegrationTest::SetUp();
     XLOG(INFO) << "Using buffer-pool: " << bufferPoolName_;
     XLOG(INFO) << "Using pg-policy:  " << policyName_;
+    // Snapshot the full running SwitchConfig BEFORE this test mutates it. The
+    // buffer-pool / priority-group-policy / port-PFC objects this test creates
+    // have no `delete` CLI, so a per-field revert is impossible. The only clean
+    // way to undo is to restore the entire SwitchConfig in TearDown. Leaving
+    // the PFC state behind makes a later test's hitless config apply crash the
+    // agent (EventBase re-entrancy on gracefulExit). Deserializing here (not
+    // in TearDown) fails the test before anything is mutated if the running
+    // config can't round-trip.
+    auto running = getRunningConfig();
+    ASSERT_TRUE(running.count("sw"))
+        << "Running config has no 'sw' section; cannot snapshot for restore";
+    configSnapshot_ =
+        apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
+            folly::toJson(running["sw"]));
   }
 
   void TearDown() override {
-    if (pfcIntfName_.has_value()) {
-      // Disable PFC so subsequent tests (e.g. flow-control/PAUSE tests) can
-      // use the same port without hitting the "PAUSE and PFC cannot be enabled
-      // on the same port" rejection from the agent.
-      XLOG(INFO) << "TearDown: disabling PFC on " << *pfcIntfName_
-                 << " (port used by this test)";
-      bool anyFailed = false;
-      for (const auto* dir : {"tx", "rx"}) {
-        auto result = runCli(
-            {"config",
-             "interface",
-             *pfcIntfName_,
-             "pfc-config",
-             dir,
-             "disabled"});
-        if (result.exitCode != 0) {
-          XLOG(WARN) << "TearDown: failed to disable pfc-config " << dir
-                     << " on " << *pfcIntfName_ << ": " << result.stderr;
-          anyFailed = true;
-        } else {
-          XLOG(INFO) << "TearDown: pfc-config " << dir << " disabled on "
-                     << *pfcIntfName_;
-        }
-      }
-      auto commitResult = runCli({"config", "session", "commit"});
-      if (commitResult.exitCode != 0) {
-        XLOG(WARN) << "TearDown: commit after PFC disable failed: "
-                   << commitResult.stderr;
-      } else if (!anyFailed) {
-        XLOG(INFO) << "TearDown: PFC cleanup committed successfully on "
-                   << *pfcIntfName_;
+    if (configSnapshot_.has_value()) {
+      XLOG(INFO) << "TearDown: restoring pre-test config snapshot";
+      try {
+        auto& session = ConfigSession::getInstance();
+        session.getAgentConfig().sw() = *configSnapshot_;
+        // Force WARMBOOT (not the default HITLESS): committing a restart
+        // re-applies the snapshot cleanly at boot. A *hitless* apply of this
+        // revert is exactly the path that aborts the agent, so it must be
+        // avoided.
+        session.saveConfig(
+            cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
+        commitConfig();
+        waitForAgentReady();
+        XLOG(INFO) << "TearDown: config snapshot restored";
+      } catch (const std::exception& e) {
+        // Surface the failure: leftover PFC state crashes a later suite's
+        // hitless config apply, and that crash would be misattributed.
+        ADD_FAILURE() << "TearDown: failed to restore config snapshot: "
+                      << e.what();
       }
     }
     Fboss2IntegrationTest::TearDown();
   }
 
-  // Recorded by the test body so TearDown knows which interface to clean up.
-  std::optional<std::string> pfcIntfName_;
+  // Pre-test SwitchConfig captured in SetUp, restored in TearDown.
+  std::optional<cfg::SwitchConfig> configSnapshot_;
 
   void configureBufferPool(int sharedBytes, int headroomBytes) {
     ASSERT_EQ(
@@ -187,7 +193,6 @@ class ConfigPfcTest : public Fboss2IntegrationTest {
 
 TEST_F(ConfigPfcTest, BufferPoolPriorityGroupAndPortPfc) {
   Interface intf = findFirstEthInterface();
-  pfcIntfName_ = intf.name;
   XLOG(INFO) << "Using test interface " << intf.name;
 
   XLOG(INFO) << "[Step 1] Configuring buffer pool...";

@@ -410,7 +410,7 @@ Fboss2IntegrationTest::findFirstEthInterfaceWithMtu() const {
 
   for (const auto& [name, intf] : interfaces) {
     if (name.rfind("eth", 0) == 0 && intf.vlan.has_value() && *intf.vlan > 1 &&
-        intf.mtu > 0) {
+        intf.mtu > 0 && intf.status == "up") {
       return intf;
     }
   }

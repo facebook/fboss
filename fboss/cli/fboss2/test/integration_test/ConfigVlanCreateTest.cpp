@@ -6,7 +6,7 @@
  * Tests:
  *
  * 1. StaticMacAddDeleteOnExistingVlan
- *    - Add a static MAC entry to an existing VLAN (2001)
+ *    - Add a static MAC entry to an existing VLAN (discovered dynamically)
  *    - Commit and verify
  *    - Delete the entry and commit
  *    This is the primary use case for static-mac add/delete.
@@ -30,7 +30,7 @@
  * Requirements:
  * - FBOSS agent must be running with a valid configuration
  * - The test must be run as root (or with appropriate permissions)
- * - VLAN 2001 must exist in the config (standard fboss103 setup)
+ * - Tests that need an existing L2 VLAN skip on pure routed-mode DUTs
  */
 
 #include <folly/json/dynamic.h>
@@ -50,35 +50,26 @@ namespace fs = std::filesystem;
 using namespace facebook::fboss;
 
 class ConfigVlanCreateTest : public Fboss2IntegrationTest {
- public:
-  // Find and cache an eth interface name once before any test in this suite
-  // runs. This avoids calling show interface during the agent reload window
-  // that follows test 1's commit.
-  static void SetUpTestSuite() {
-    // Concrete subclass to access protected Fboss2IntegrationTest methods.
-    struct Helper : public Fboss2IntegrationTest {
-      void TestBody() override {}
-      Interface getFirstEthInterface() {
-        return findFirstEthInterface();
-      }
-    };
-    Helper h;
-    auto iface = h.getFirstEthInterface();
-    s_testInterfaceName_ = iface.name;
-    XLOG(INFO) << "SetUpTestSuite: cached test interface = "
-               << s_testInterfaceName_;
+ protected:
+  // Discover an existing VLAN + port before each test. existingVlanId_ stays
+  // -1 on pure routed-mode DUTs (no L2 VLANs).
+  void SetUp() override {
+    Fboss2IntegrationTest::SetUp();
+    if (auto vp = findConfiguredVlanPort()) {
+      existingVlanId_ = vp->first;
+      existingVlanPort_ = vp->second;
+    }
+    XLOG(INFO) << "SetUp: existing VLAN=" << existingVlanId_
+               << " port=" << existingVlanPort_;
   }
 
- protected:
-  // An existing VLAN with a proper L3 interface — safe to add static MACs to
-  static constexpr int kExistingVlanId = 2001;
   // A VLAN ID used to test auto-create; cleaned up before each run
   static constexpr int kNewVlanId = 3999;
   static constexpr const char* kTestMac = "02:00:00:00:27:01";
 
-  // Interface name cached by SetUpTestSuite — valid for the lifetime of
-  // the test suite, even if the agent is reloading between individual tests.
-  static std::string s_testInterfaceName_;
+  // Discovered in SetUp(). -1/"" means no L2 VLAN on this DUT.
+  int existingVlanId_ = -1;
+  std::string existingVlanPort_;
 
   void
   addStaticMac(int vlanId, const std::string& mac, const std::string& port) {
@@ -113,7 +104,7 @@ class ConfigVlanCreateTest : public Fboss2IntegrationTest {
    * test is idempotent across multiple runs.
    *
    * Strategy:
-   *  1. Run a benign config command on kExistingVlanId to initialize the
+   *  1. Run a benign config command on existingVlanId_ to initialize the
    *     session file (~/.fboss2/agent.conf) from the current running config.
    *  2. Read the JSON session file and filter out any vlans, interfaces, and
    *     staticMacAddrs entries that reference vlanId.
@@ -128,7 +119,7 @@ class ConfigVlanCreateTest : public Fboss2IntegrationTest {
     runCli(
         {"config",
          "vlan",
-         std::to_string(kExistingVlanId),
+         std::to_string(existingVlanId_),
          "static-mac",
          "delete",
          "00:00:00:00:00:00"});
@@ -209,23 +200,25 @@ class ConfigVlanCreateTest : public Fboss2IntegrationTest {
   }
 };
 
-std::string ConfigVlanCreateTest::s_testInterfaceName_;
-
 TEST_F(ConfigVlanCreateTest, StaticMacAddDeleteOnExistingVlan) {
-  XLOG(INFO) << "[Step 1] Using pre-cached interface: " << s_testInterfaceName_
-             << " (VLAN: " << kExistingVlanId << ")";
+  if (existingVlanId_ < 0) {
+    GTEST_SKIP()
+        << "No L2 VLAN with port members on this DUT (pure routed mode)";
+  }
+  XLOG(INFO) << "[Step 1] Using VLAN=" << existingVlanId_
+             << " port=" << existingVlanPort_;
 
   // Step 2: Add a static MAC to an existing VLAN - no creation message expected
   XLOG(INFO) << "[Step 2] Adding static MAC to existing VLAN "
-             << kExistingVlanId << "...";
+             << existingVlanId_ << "...";
   auto addResult = runCli(
       {"config",
        "vlan",
-       std::to_string(kExistingVlanId),
+       std::to_string(existingVlanId_),
        "static-mac",
        "add",
        kTestMac,
-       s_testInterfaceName_});
+       existingVlanPort_});
   ASSERT_EQ(addResult.exitCode, 0)
       << "Failed to add static MAC: " << addResult.stderr;
   EXPECT_THAT(
@@ -240,12 +233,16 @@ TEST_F(ConfigVlanCreateTest, StaticMacAddDeleteOnExistingVlan) {
 
   // Step 3: Clean up - delete the static MAC entry
   XLOG(INFO) << "[Step 3] Cleaning up static MAC entry...";
-  deleteStaticMac(kExistingVlanId, kTestMac);
+  deleteStaticMac(existingVlanId_, kTestMac);
   XLOG(INFO) << "  Cleanup complete. TEST PASSED";
 }
 
 TEST_F(ConfigVlanCreateTest, AutoCreateVlanInSession) {
-  XLOG(INFO) << "[Step 1] Using pre-cached interface: " << s_testInterfaceName_;
+  if (existingVlanId_ < 0) {
+    GTEST_SKIP()
+        << "No L2 VLAN with port members on this DUT (pure routed mode)";
+  }
+  XLOG(INFO) << "[Step 1] Using port=" << existingVlanPort_;
 
   // Step 0: Ensure VLAN kNewVlanId is absent (idempotency across test runs).
   XLOG(INFO) << "[Step 0] Ensuring VLAN " << kNewVlanId
@@ -263,7 +260,7 @@ TEST_F(ConfigVlanCreateTest, AutoCreateVlanInSession) {
        "static-mac",
        "add",
        kTestMac,
-       s_testInterfaceName_});
+       existingVlanPort_});
   ASSERT_EQ(result.exitCode, 0) << "Command failed: " << result.stderr;
   EXPECT_THAT(result.stdout, ::testing::HasSubstr("Created VLAN"))
       << "Expected VLAN creation message for new VLAN";
@@ -280,7 +277,7 @@ TEST_F(ConfigVlanCreateTest, AutoCreateVlanInSession) {
        "static-mac",
        "add",
        kTestMac,
-       s_testInterfaceName_});
+       existingVlanPort_});
   ASSERT_EQ(result2.exitCode, 0) << "Command failed: " << result2.stderr;
   EXPECT_THAT(
       result2.stdout, ::testing::Not(::testing::HasSubstr("Created VLAN")))
