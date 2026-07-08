@@ -23,10 +23,6 @@ class SaiBcmWedge800BACTPlatform : public SaiBcmPlatform {
       const std::string& platformMappingStr);
   ~SaiBcmWedge800BACTPlatform() override;
   HwAsic* getAsic() const override;
-  uint32_t numCellsAvailable() const override {
-    return 319960;
-  }
-
   bool isSerdesApiSupported() const override {
     return true;
   }

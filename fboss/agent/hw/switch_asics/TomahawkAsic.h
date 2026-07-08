@@ -44,6 +44,29 @@ class TomahawkAsic : public BroadcomXgsAsic {
   uint32_t getMMUCellSize() const {
     return 208;
   }
+  static constexpr const char* optimizedMqueueGuaranteeHwConfig() {
+    return "buf.mqueue.guarantee.0";
+  }
+  static constexpr const char* optimizedMmuConfigOverrideHwConfig() {
+    return "mmu_config_override";
+  }
+  uint32_t getNumCellsAvailable(PlatformType platformType) const override {
+    return getNumCellsAvailable(platformType, false, false);
+  }
+  uint32_t getNumCellsAvailable(
+      PlatformType platformType,
+      bool hasMqueueGuaranteeConfig,
+      bool hasMmuConfigOverride) const {
+    auto constexpr kNumXpes = 4;
+    auto constexpr kPerXpeCellsAvailable = 0x436e;
+    auto constexpr kPerXpeCellsAvailableOptimized = 0x454A;
+    const auto useOptimizedConfig =
+        platformType == PlatformType::PLATFORM_WEDGE100 &&
+        hasMqueueGuaranteeConfig && hasMmuConfigOverride;
+    return kNumXpes *
+        (useOptimizedConfig ? kPerXpeCellsAvailableOptimized
+                            : kPerXpeCellsAvailable);
+  }
   std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {

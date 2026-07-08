@@ -118,6 +118,13 @@ int HwAsic::getBufferDynThreshFromScalingFactor(
       apache::thrift::util::enumNameSafe(scalingFactor));
 }
 
+uint32_t HwAsic::getNumCellsAvailable(PlatformType platformType) const {
+  throw FbossError(
+      getAsicTypeStr(),
+      " ASIC does not support num cells available for platform: ",
+      apache::thrift::util::enumNameSafe(platformType));
+}
+
 std::unique_ptr<HwAsic> HwAsic::makeAsic(
     int64_t switchId,
     const cfg::SwitchInfo& switchInfo,

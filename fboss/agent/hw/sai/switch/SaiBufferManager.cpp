@@ -74,6 +74,20 @@ uint64_t getSwitchEgressPoolAvailableSize(const SaiPlatform* platform) {
       switchId, SaiSwitchTraits::Attributes::EgressPoolAvailableSize{});
 }
 
+uint32_t getNumCellsAvailable(const SaiPlatform* platform) {
+  auto asic = platform->getAsic();
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
+    auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
+    return static_cast<const TomahawkAsic*>(asic)->getNumCellsAvailable(
+        platform->getType(),
+        saiBcmPlatform->getHwConfigValue(
+            TomahawkAsic::optimizedMqueueGuaranteeHwConfig()) != nullptr,
+        saiBcmPlatform->getHwConfigValue(
+            TomahawkAsic::optimizedMmuConfigOverrideHwConfig()) != nullptr);
+  }
+  return asic->getNumCellsAvailable(platform->getType());
+}
+
 void assertMaxBufferPoolSize(const SaiPlatform* platform) {
   auto saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
   if (saiSwitch->getBootType() != BootType::COLD_BOOT) {
@@ -165,46 +179,31 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       /* TODO(pshaikh): Chenab, define pool size */
       return asic->getMMUSizeBytes();
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK: {
-      auto constexpr kNumXpes = 4;
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto perXpeCells = saiBcmPlatform->numCellsAvailable();
-      return perXpeCells * kNumXpes *
+      return getNumCellsAvailable(platform) *
           static_cast<const TomahawkAsic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TRIDENT2: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Trident2Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Tomahawk3Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Tomahawk4Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Tomahawk5Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Tomahawk6Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const TomahawkUltra1Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_JERICHO2:

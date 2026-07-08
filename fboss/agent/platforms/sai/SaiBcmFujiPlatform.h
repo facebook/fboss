@@ -22,10 +22,6 @@ class SaiBcmFujiPlatform : public SaiBcmPlatform {
       const std::string& platformMappingStr);
   ~SaiBcmFujiPlatform() override;
   HwAsic* getAsic() const override;
-  uint32_t numCellsAvailable() const override {
-    return 223662;
-  }
-
   void initLEDs() override {}
 
  private:

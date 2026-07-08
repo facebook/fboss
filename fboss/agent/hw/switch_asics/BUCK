@@ -45,6 +45,7 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/sai/impl:version_util",
+        "//fboss/lib/if:fboss_common-cpp2-types",
         "//fboss/lib/phy:phy-cpp2-types",
         "//folly:network_address",
         "//thrift/lib/cpp/util:enum_utils",

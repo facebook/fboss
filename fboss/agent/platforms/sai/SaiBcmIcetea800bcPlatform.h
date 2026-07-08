@@ -23,10 +23,6 @@ class SaiBcmIcetea800bcPlatform : public SaiBcmPlatform {
       const std::string& platformMappingStr);
   ~SaiBcmIcetea800bcPlatform() override;
   HwAsic* getAsic() const override;
-  uint32_t numCellsAvailable() const override {
-    return 319960;
-  }
-
   bool isSerdesApiSupported() const override {
     return true;
   }

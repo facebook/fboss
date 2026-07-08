@@ -25,10 +25,6 @@ class SaiMeru800bfaPlatform : public SaiBcmPlatform {
   ~SaiMeru800bfaPlatform() override;
   HwAsic* getAsic() const override;
 
-  uint32_t numCellsAvailable() const override {
-    return 130665;
-  }
-
   bool isSerdesApiSupported() const override {
     return true;
   }

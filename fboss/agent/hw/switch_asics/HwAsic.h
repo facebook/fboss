@@ -5,6 +5,7 @@
 #include <folly/MacAddress.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 namespace facebook::fboss {
 
@@ -639,6 +640,8 @@ class HwAsic {
   virtual uint32_t getNumLanesPerCore() const {
     return 1;
   }
+
+  virtual uint32_t getNumCellsAvailable(PlatformType platformType) const;
 
   /*
    * Default Content Aware Processor group ID for ACLs
