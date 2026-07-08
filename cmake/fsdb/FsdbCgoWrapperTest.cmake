@@ -23,3 +23,19 @@ gtest_discover_tests(fsdb_cgo_wrapper_test)
 
 # Register this executable for fsdb_all_services target
 set(FSDB_EXECUTABLES ${FSDB_EXECUTABLES} fsdb_cgo_wrapper_test CACHE INTERNAL "List of all FSDB executables")
+
+add_executable(fsdb_cgo_wrapper_api_test
+  fboss/util/oss/TestMain.cpp
+  fboss/fsdb/client/cgo/test/FsdbCgoWrapperApiTest.cpp
+)
+
+target_link_libraries(fsdb_cgo_wrapper_api_test
+  fsdb_cgo_pub_sub_wrapper
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(fsdb_cgo_wrapper_api_test)
+
+set(FSDB_EXECUTABLES ${FSDB_EXECUTABLES} fsdb_cgo_wrapper_api_test CACHE INTERNAL "List of all FSDB executables")

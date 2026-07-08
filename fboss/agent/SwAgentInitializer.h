@@ -14,7 +14,6 @@
 #include <mutex>
 
 DECLARE_bool(tun_intf);
-DECLARE_bool(enable_lacp);
 DECLARE_bool(enable_lldp);
 DECLARE_bool(publish_boot_type);
 DECLARE_bool(enable_macsec);

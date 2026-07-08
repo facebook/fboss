@@ -164,7 +164,7 @@ class SffModule : public QsfpModule {
       SffField field,
       double (*conversion)(uint16_t value));
   /*
-   * Retreives all alarm and warning thresholds
+   * Retrieves all alarm and warning thresholds
    */
   std::optional<AlarmThreshold> getThresholdInfo() override;
   /*

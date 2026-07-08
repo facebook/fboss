@@ -11,6 +11,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateUtils.h"
 
@@ -20,7 +21,8 @@ namespace facebook::fboss {
 // RouteNextHop Class
 //
 
-std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy() const {
+std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy(
+    std::optional<ClientID> preferredClient) const {
   std::vector<ClientAndNextHops> list;
   auto mapRef = map();
   for (const auto& srcPair : *mapRef) {
@@ -28,6 +30,25 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy() const {
     *destPair.clientId() = static_cast<int>(srcPair.first);
     for (const auto& nh : srcPair.second->getNextHopSet()) {
       destPair.nextHops()->push_back(nh.toThrift());
+    }
+    auto nhgName = srcPair.second->getNamedNextHopGroup();
+    if (nhgName.has_value()) {
+      NamedRouteDestination namedDest;
+      namedDest.nextHopGroup() = *nhgName;
+      destPair.namedRouteDestination() = namedDest;
+    }
+    destPair.adminDistance() = srcPair.second->getAdminDistance();
+    if (srcPair.second->getCounterID().has_value()) {
+      destPair.counterID() = *srcPair.second->getCounterID();
+    }
+    if (srcPair.second->getClassID().has_value()) {
+      destPair.classID() = *srcPair.second->getClassID();
+    }
+    if (preferredClient.has_value()) {
+      destPair.isPreferred() = (srcPair.first == *preferredClient);
+    }
+    if (auto clientSetId = srcPair.second->getClientNextHopSetID()) {
+      destPair.clientNextHopSetID() = static_cast<int64_t>(*clientSetId);
     }
     list.push_back(destPair);
   }

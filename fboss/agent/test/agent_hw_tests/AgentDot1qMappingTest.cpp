@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -38,10 +39,7 @@ class AgentDot1qMappingTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto switchId = ensemble.getSw()
-                        ->getScopeResolver()
-                        ->scope(ensemble.masterLogicalPortIds())
-                        .switchId();
+    auto switchId = getCurrentSwitchIdForTesting();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
@@ -49,7 +47,8 @@ class AgentDot1qMappingTest : public AgentHwTest {
         ensemble.masterLogicalPortIds()[0],
         ensemble.masterLogicalPortIds()[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::DISABLED;
 
     bool usePriorityTagging = isPriorityTaggingMode(asic);
@@ -192,7 +191,7 @@ class AgentDot1qMappingTest : public AgentHwTest {
   void sendPacketWithPcp(uint8_t pcp, PortID ingressPort) {
     // For priority-tagged mode, use VLAN ID 0; otherwise use the actual VLAN ID
     auto ensemble = getAgentEnsemble();
-    auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble->getL3Asics());
     auto vlanId = isPriorityTaggingMode(asic) ? VlanID(0) : getTestVlanId();
 
     // Send 10 packets with the specified PCP value
@@ -240,7 +239,7 @@ class AgentDot1qMappingTest : public AgentHwTest {
 
   void configureTrapAcl(cfg::SwitchConfig* config, const PortID& portId) {
     auto ensemble = getAgentEnsemble();
-    auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble->getL3Asics());
     utility::configureTrapAcl(asic, *config, portId);
   }
 
@@ -293,7 +292,7 @@ class AgentDot1qMappingTest : public AgentHwTest {
         folly::copy(getLatestPortStats(egressPort).queueOutPackets_().value());
 
     auto expectedEgressPcp = getExpectedEgressPcp(pcp);
-    auto expectedVlanId = isPriorityTaggingMode(checkSameAndGetAsic(
+    auto expectedVlanId = isPriorityTaggingMode(checkSameAndGetAsicForTesting(
                               getAgentEnsemble()->getL3Asics()))
         ? 0
         : static_cast<int>(getTestVlanId());

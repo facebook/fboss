@@ -193,6 +193,10 @@ std::string MonolithicHwSwitchHandler::getDebugDump() const {
   return hw_->getDebugDump();
 }
 
+void MonolithicHwSwitchHandler::setSdkRegDumpEnabled(bool enabled) {
+  hw_->setSdkRegDumpEnabled(enabled);
+}
+
 void MonolithicHwSwitchHandler::fetchL2Table(
     std::vector<L2EntryThrift>* l2Table,
     bool sdk) const {
@@ -266,8 +270,10 @@ void MonolithicHwSwitchHandler::getHwStats(
   hwStats.timestamp() = now.count();
 
   hwStats.hwPortStats() = getPortStats();
+  hwStats.hwTrunkStats() = hw_->getTrunkStats();
   hwStats.sysPortStats() = getSysPortStats();
   hwStats.switchDropStats() = getSwitchDropStats();
+  hwStats.switchDropBitmapStats() = hw_->getSwitchDropBitmapStats();
   hwStats.fabricReachabilityStats() = getFabricReachabilityStats();
   hwStats.switchWatermarkStats() = getSwitchWatermarkStats();
   hwStats.switchPipelineStats() = getSwitchPipelineStats();
@@ -289,6 +295,7 @@ void MonolithicHwSwitchHandler::getHwStats(
   hwStats.sysPortShelState() = hw_->getSysPortShelState();
   hwStats.hwRouterInterfaceStats() = hw_->getRouterInterfaceStats();
   hwStats.hardResetStats() = hw_->getHwSwitchHardResetStats();
+  hwStats.counterStats() = hw_->getHwSwitchCounterStats();
 }
 
 } // namespace facebook::fboss

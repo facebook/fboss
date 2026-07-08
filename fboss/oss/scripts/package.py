@@ -5,6 +5,7 @@
 
 import argparse
 import concurrent.futures
+import glob
 import os
 import pathlib
 import sys
@@ -19,13 +20,29 @@ BUILD_DIR = "--build-dir"
 TARGET_NAMES = ("agent-benchmarks", "forwarding-stack", "platform-stack")
 
 
+# Maps getdeps package name to library name when they differ.
+LIB_NAME_OVERRIDES = {
+    "fmt-python": "fmt",
+}
+
 # Global definitions describing what we package for each target.
+
+COMMON_LIBS = [
+    "gflags",
+    "glog",
+    "folly",
+    "fmt-python",
+    "wangle",
+    "fizz",
+    "mvfst",
+]
 
 FORWARDING_BINARIES = [
     "diag_shell_client",
     "fboss2",
     "fboss2-dev",
     "fboss_hw_agent-sai_impl",
+    "fboss_pai_diag_shell_client",
     "fboss_sw_agent",
     "fsdb",
     "qsfp_service",
@@ -52,6 +69,8 @@ FORWARDING_EXTRA = {
     RUN_CONFIGS_DIR / "th5": "share/th5",
 }
 
+FORWARDING_LIBS = []
+
 FORWARDING_TEST_BINARIES = [
     "fboss-platform-mapping-gen",
     "led_service_hw_test",
@@ -60,7 +79,6 @@ FORWARDING_TEST_BINARIES = [
     "sai_agent_hw_test-sai_impl",
     "sai_agent_scale_test-sai_impl",
     "sai_invariant_agent_test-sai_impl",
-    "sai_link_test-sai_impl",
     "sai_mono_link_test-sai_impl",
     "sai_multi_link_test-sai_impl",
     "sai_replayer-sai_impl",
@@ -68,6 +86,8 @@ FORWARDING_TEST_BINARIES = [
 ]
 
 FORWARDING_TEST_EXTRA = {
+    OSS_DIR
+    / "fboss2_integration_known_bad_tests": "share/fboss2_integration_known_bad_tests",
     OSS_DIR / "hw_known_bad_tests": "share/hw_known_bad_tests",
     OSS_DIR / "hw_test_configs": "share/hw_test_configs",
     OSS_DIR / "link_known_bad_tests": "share/link_known_bad_tests",
@@ -81,41 +101,8 @@ FORWARDING_TEST_EXTRA = {
 }
 
 AGENT_BENCHMARK_BINARIES = [
-    "sai_anticipated_scale_route_add_speed-sai_impl",
-    "sai_anticipated_scale_route_del_speed-sai_impl",
-    "sai_fsw_scale_route_add_speed-sai_impl",
-    "sai_fsw_scale_route_del_speed-sai_impl",
-    "sai_hgrid_du_scale_route_add_speed-sai_impl",
-    "sai_hgrid_du_scale_route_del_speed-sai_impl",
-    "sai_hgrid_uu_scale_route_add_speed-sai_impl",
-    "sai_hgrid_uu_scale_route_del_speed-sai_impl",
-    "sai_th_alpm_scale_route_add_speed-sai_impl",
-    "sai_th_alpm_scale_route_del_speed-sai_impl",
-    # Performance benchmarks
-    "sai_ecmp_shrink_speed-sai_impl",
-    "sai_ecmp_shrink_with_competing_route_updates_speed-sai_impl",
-    "sai_rib_resolution_speed-sai_impl",
-    "sai_rib_sync_fib_speed-sai_impl",
-    "sai_rx_slow_path_rate-sai_impl",
-    "sai_stats_collection_speed-sai_impl",
-    "sai_tx_slow_path_rate-sai_impl",
-    "sai_ucmp_scale_benchmark-sai_impl",
-    # Init and exit benchmarks
-    "sai_init_and_exit_40Gx10G-sai_impl",
-    "sai_init_and_exit_100Gx10G-sai_impl",
-    "sai_init_and_exit_100Gx25G-sai_impl",
-    "sai_init_and_exit_100Gx50G-sai_impl",
-    "sai_init_and_exit_100Gx100G-sai_impl",
-    "sai_init_and_exit_400Gx400G-sai_impl",
-    # VOQ benchmarks (BRCM DNX only)
-    "sai_init_and_exit_fabric-sai_impl",
-    "sai_init_and_exit_voq-sai_impl",
-    "sai_voq_remote_entity_programming-sai_impl",
-    "sai_voq_scale_route_add_speed-sai_impl",
-    "sai_voq_scale_route_del_speed-sai_impl",
-    "sai_voq_sys_port_programming-sai_impl",
-    # DNX/FAKE only benchmarks
-    "sai_switch_reachability_change_speed-sai_impl",
+    "sai_all_benchmarks-sai_impl",
+    "sai_multi_switch_all_benchmarks-sai_impl",
 ]
 
 PLATFORM_BINARIES = [
@@ -127,7 +114,7 @@ PLATFORM_BINARIES = [
     "rackmon",
     "sensor_service",
     "sensor_service_client",
-    "showtech",
+    "rma-showtech",
     "weutil",
 ]
 
@@ -135,6 +122,8 @@ PLATFORM_EXTRA = {
     OSS_DIR
     / "hw_sanity_tests/bsp_sanity_tests.conf": "share/hw_sanity_tests/bsp_sanity_tests.conf",
 }
+
+PLATFORM_LIBS = []
 
 PLATFORM_TEST_BINARIES = [
     "bsp_tests",
@@ -161,6 +150,41 @@ PLATFORM_TEST_EXTRA = {
 }
 
 
+def _find_getdeps_libs(
+    build_dir: pathlib.Path, packages: list[str]
+) -> dict[pathlib.Path, str]:
+    """Find shared libraries for the given packages under the getdeps installed directory."""
+    installed_dir = build_dir / "installed"
+    libs = {}
+    for pkg in packages:
+        pkg_dirs = sorted(
+            installed_dir.glob(f"{pkg}-*"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        if not pkg_dirs:
+            print(f"Warning: no .so libraries found for {pkg}")
+            continue
+
+        pkg_dir = pkg_dirs[0]
+        if len(pkg_dirs) > 1:
+            print(
+                f"Multiple directories found for {pkg}, using most recent: {pkg_dir.name}"
+            )
+
+        lib_name = LIB_NAME_OVERRIDES.get(pkg, pkg)
+        matches = []
+        for lib_dir in ("lib64", "lib"):
+            pattern = str(pkg_dir / lib_dir / f"lib{lib_name}*.so*")
+            matches.extend(glob.glob(pattern))
+        if matches:
+            for path in matches:
+                libs[pathlib.Path(path)] = f"lib/{os.path.basename(path)}"
+        else:
+            print(f"Warning: no .so libraries found for {pkg}")
+    return libs
+
+
 def write_tar(filename: str, contents: dict[str, str]) -> None:
     if not contents:
         return
@@ -173,6 +197,13 @@ def write_tar(filename: str, contents: dict[str, str]) -> None:
                 continue
             tar.add(src, dest)
 
+        # Add lib64 -> lib symlink so binaries with RPATH/RUNPATH pointing to
+        # lib64/ can find libraries packaged under lib/ (e.g. fboss2-dev).
+        tarinfo = tarfile.TarInfo(name="lib64")
+        tarinfo.type = tarfile.SYMTYPE
+        tarinfo.linkname = "lib"
+        tar.addfile(tarinfo)
+
 
 def _build_target(target: str, build_dir: pathlib.Path):
     """Return mappings for a given target and build_dir
@@ -183,17 +214,20 @@ def _build_target(target: str, build_dir: pathlib.Path):
 
     bins = []
     extras = {}
+    libs = []
     test_bins = {}
     test_extras = {}
 
     if target == "forwarding-stack":
         bins = FORWARDING_BINARIES
         extras = FORWARDING_EXTRA
+        libs = FORWARDING_LIBS + COMMON_LIBS
         test_bins = FORWARDING_TEST_BINARIES
         test_extras = FORWARDING_TEST_EXTRA
     elif target == "platform-stack":
         bins = PLATFORM_BINARIES
         extras = PLATFORM_EXTRA
+        libs = PLATFORM_LIBS + COMMON_LIBS
         test_bins = PLATFORM_TEST_BINARIES
         test_extras = PLATFORM_TEST_EXTRA
     elif target == "agent-benchmarks":
@@ -206,6 +240,16 @@ def _build_target(target: str, build_dir: pathlib.Path):
 
     prod_files = {fboss_build_dir / bin_name: f"bin/{bin_name}" for bin_name in bins}
     prod_files.update(extras)
+    prod_files.update(_find_getdeps_libs(build_dir, libs))
+
+    # Include libunwind from llvm locally installed in the build container because CentOS does not have an equivalent
+    # version and it is not installed by getdeps to be handled in _find_getdeps_libs().
+    for ext in ("so", "so.1", "so.1.0"):
+        prod_files[
+            pathlib.Path(
+                f"/usr/local/llvm/lib/x86_64-unknown-linux-gnu/libunwind.{ext}"
+            )
+        ] = f"lib/libunwind.{ext}"
 
     test_files = {
         fboss_build_dir / bin_name: f"bin/{bin_name}" for bin_name in test_bins
@@ -249,6 +293,7 @@ def parse_args(argv):
 def main(argv=None) -> None:
     args = parse_args(sys.argv[1:] if argv is None else argv)
     target_mappings = _build_target(args.target, args.build_dir)
+    # pyrefly: ignore [bad-argument-type]
     package_fboss(args.target, target_mappings)
 
 

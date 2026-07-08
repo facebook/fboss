@@ -296,7 +296,7 @@ TEST_F(LacpTest, nonAggregatablePortTransmitsIndividualBit) {
  * 6. CHECK_EQ(state_, ReceiveState::DISABLED) in ReceiveMachine::portUp() fails
  * because state_ == ReceiveState::CURRENT
  *
- * In physical reality, (3) had occured before (1), but because port event
+ * In physical reality, (3) had occurred before (1), but because port event
  * notification and LACP frame reception occur on the update thread and RX
  * thread, respectively, and they may take different paths through lower
  * layers (eg., Linux kernel, ASIC SDK), the port down event and frame reception

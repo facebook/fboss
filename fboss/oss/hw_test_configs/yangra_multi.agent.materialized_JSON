@@ -4,6 +4,7 @@
     "counter_refresh_interval": "0",
     "ecmp_width": "128",
     "enable_acl_table_group": "true",
+    "enable_nexthop_id_manager": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "mode": "yangra",
@@ -14,7 +15,8 @@
     "set_classid_for_my_subnet_and_ip_routes": "true",
     "skip_transceiver_programming": "true",
     "thrift_ssl_policy": "permitted",
-    "use_full_dlb_scale": "true"
+    "use_full_dlb_scale": "true",
+    "verify_fib_nexthop_id_consistency": "true"
   },
   "sw": {
     "version": 0,
@@ -59,7 +61,8 @@
       "3": 0,
       "4": 0,
       "700": 255,
-      "786": 10
+      "786": 10,
+      "800": 2
     },
     "sFlowCollectors": [
       
@@ -102,7 +105,7 @@
       "qcmEnable": false,
       "ptpTcEnable": false,
       "l2AgeTimerSeconds": 300,
-      "maxRouteCounterIDs": 0,
+      "maxRouteCounterIDs_DEPRECATED": 0,
       "blockNeighbors": [
         
       ],
@@ -201,10 +204,8 @@
   },
   "platform": {
     "chip": {
-      "bcm": {
-        "config": {
-          
-        }
+      "asic": {
+        "config": "/opt/fboss/sn5600_simx_with_port_info.xml"
       }
     }
   },

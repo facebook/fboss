@@ -25,12 +25,15 @@ void RouteUpdateWrapper::addRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     ClientID clientId,
-    const RouteNextHopEntry& nhop) {
+    const RouteNextHopEntry& nhop,
+    std::optional<RouteNextHopSet> nhops) {
   UnicastRoute tempRoute;
   tempRoute.dest()->ip() = network::toBinaryAddress(network);
   tempRoute.dest()->prefixLength() = mask;
   if (nhop.getAction() == RouteForwardAction::NEXTHOPS) {
-    tempRoute.nextHops() = util::fromRouteNextHopSet(nhop.getNextHopSet());
+    tempRoute.nextHops() = nhops.has_value()
+        ? util::fromRouteNextHopSet(*nhops)
+        : util::fromRouteNextHopSet(nhop.getNextHopSet());
     tempRoute.action() = RouteForwardAction::NEXTHOPS;
   } else {
     tempRoute.action() = nhop.getAction() == RouteForwardAction::DROP
@@ -157,6 +160,7 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
         configRoutes_->staticMplsRoutesWithNextHops,
         configRoutes_->staticMplsRoutesToNull,
         configRoutes_->staticMplsRoutesToCpu,
+        configRoutes_->staticMySids,
         *ribToSwitchStateFunc_,
         ribToSwitchStateCookie_);
   }
@@ -169,7 +173,7 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
         *ribToSwitchStateFunc_,
         ribToSwitchStateCookie_);
   }
-  for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
+  for (const auto& [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
     auto stats = getRib()->update(
         resolver_,
         ridClientId.first,
@@ -185,7 +189,7 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
     updateStats(stats);
   }
   // update MPLS routes
-  for (auto& [ridClientId, addDelRoutes] : ribMplsRoutesToAddDel_) {
+  for (const auto& [ridClientId, addDelRoutes] : ribMplsRoutesToAddDel_) {
     auto stats = getRib()->update(
         resolver_,
         ridClientId.first,
@@ -234,7 +238,8 @@ void RouteUpdateWrapper::setRoutesToConfig(
     const std::vector<cfg::StaticMplsRouteWithNextHops>&
         _staticMplsRoutesWithNextHops,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& _staticMplsRoutesToNull,
-    const std::vector<cfg::StaticMplsRouteNoNextHops>& _staticMplsRoutesToCpu) {
+    const std::vector<cfg::StaticMplsRouteNoNextHops>& _staticMplsRoutesToCpu,
+    std::vector<MySidWithNextHops> _staticMySids) {
   configRoutes_ = std::make_unique<ConfigRoutes>(ConfigRoutes{
       _configRouterIDToInterfaceRoutes,
       _staticRoutesWithNextHops,
@@ -243,7 +248,8 @@ void RouteUpdateWrapper::setRoutesToConfig(
       _staticIp2MplsRoutes,
       _staticMplsRoutesWithNextHops,
       _staticMplsRoutesToNull,
-      _staticMplsRoutesToCpu});
+      _staticMplsRoutesToCpu,
+      std::move(_staticMySids)});
 }
 
 void RouteUpdateWrapper::setRemoteLoopbackInterfaceRoutesToConfig(

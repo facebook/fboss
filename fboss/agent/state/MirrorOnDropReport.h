@@ -38,7 +38,8 @@ class MirrorOnDropReport : public ThriftStructNode<
       std::map<int8_t, cfg::MirrorOnDropEventConfig> modEventToConfigMap,
       std::map<cfg::MirrorOnDropAgingGroup, int32_t>
           agingGroupAgingIntervalUsecs,
-      std::optional<int32_t> samplingRate = std::nullopt);
+      std::optional<int32_t> samplingRate = std::nullopt,
+      std::optional<int32_t> dropPacketRateThreshold = std::nullopt);
 
   std::string getID() const;
   PortID getMirrorPortId() const;
@@ -56,6 +57,7 @@ class MirrorOnDropReport : public ThriftStructNode<
   std::map<cfg::MirrorOnDropAgingGroup, int32_t>
   getAgingGroupAgingIntervalUsecs() const;
   std::optional<int32_t> getSamplingRate() const;
+  std::optional<int32_t> getDropPacketRateThreshold() const;
 
   // Resolved fields accessors
   bool isResolved() const;

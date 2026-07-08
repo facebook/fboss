@@ -30,14 +30,20 @@ struct SaiTunnelHandle {
   using SaiTunnelTerm = std::variant<
       std::shared_ptr<SaiP2MPTunnelTerm>,
       std::shared_ptr<SaiP2PTunnelTerm>>;
-  SaiTunnelTerm tunnelTerm;
+  std::optional<SaiTunnelTerm> tunnelTerm;
   TunnelTermSaiId adapterKey() {
+    if (!tunnelTerm.has_value()) {
+      throw FbossError("No tunnel term for encap tunnel");
+    }
     return std::visit(
-        [](auto& handle) { return handle->adapterKey(); }, tunnelTerm);
+        [](auto& handle) { return handle->adapterKey(); }, *tunnelTerm);
   }
   std::shared_ptr<SaiP2MPTunnelTerm> getP2MPTunnelTermHandle() const {
+    if (!tunnelTerm.has_value()) {
+      return nullptr;
+    }
     auto* tunnelTermHandle =
-        std::get_if<std::shared_ptr<SaiP2MPTunnelTerm>>(&tunnelTerm);
+        std::get_if<std::shared_ptr<SaiP2MPTunnelTerm>>(&(*tunnelTerm));
     if (!tunnelTermHandle) {
       return nullptr;
     }

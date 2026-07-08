@@ -8,9 +8,14 @@
  *
  */
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/SwitchSettings.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
@@ -150,4 +155,51 @@ TEST_F(UtilsTest, coveringSysPortRange) {
   expectInHigherRange(16200);
   expectThrow(15099);
   expectThrow(17299);
+}
+
+TEST_F(UtilsTest, getPortIDForRelocatedFabricPort) {
+  // getPortID(sysPortId, switchId, state) is the reverse lookup used by fabric
+  // link monitoring to map a system port back to its port. With
+  // fabric_ports_uniform_local_offset enabled, relocated fabric ports own a
+  // getSystemPortID-based system port and must resolve through this path;
+  // without the flag fabric ports use the legacy offset scheme and are skipped.
+  auto switchId = SwitchID(kVoqSwitchIdBegin);
+  auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({switchId}));
+
+  // portIdRange minimum 0, localSystemPortOffset = sysPortMin = 100, so the
+  // relocated fabric port at 32777 maps to system port 32777 + 100 - 0 = 32877.
+  auto switchInfo = createSwitchInfo(
+      cfg::SwitchType::VOQ,
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      0, /* portIdMin */
+      65535, /* portIdMax */
+      0, /* switchIndex */
+      100, /* sysPortMin */
+      1100 /* sysPortMax */);
+  auto switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setSwitchIdToSwitchInfo({{switchId, switchInfo}});
+
+  auto state = std::make_shared<SwitchState>();
+  addSwitchSettingsToState(state, switchSettings, switchId);
+  const std::string fabricPortName = "fab1/1/1";
+  auto fabricPort = std::make_shared<Port>(PortID(32777), fabricPortName);
+  fabricPort->setPortType(cfg::PortType::FABRIC_PORT);
+  fabricPort->setScope(cfg::Scope::LOCAL);
+  state->getPorts()->addNode(std::move(fabricPort), matcher);
+  state->publish();
+
+  auto sysPortId = getSystemPortID(
+      PortID(32777),
+      cfg::Scope::LOCAL,
+      switchSettings->getSwitchIdToSwitchInfo(),
+      switchId);
+  EXPECT_EQ(sysPortId, SystemPortID(32877));
+
+  FLAGS_fabric_ports_uniform_local_offset = true;
+  EXPECT_EQ(getPortID(sysPortId, switchId, state), PortID(32777));
+
+  // With relocation off, fabric ports are skipped, so the reverse lookup finds
+  // no matching port and throws rather than mis-resolving.
+  FLAGS_fabric_ports_uniform_local_offset = false;
+  EXPECT_THROW(getPortID(sysPortId, switchId, state), FbossError);
 }

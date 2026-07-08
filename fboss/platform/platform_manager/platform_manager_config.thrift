@@ -185,6 +185,26 @@ struct CpldSysfsAttr {
   7: string description;
 }
 
+// Configuration for a generic fan CPLD device (fbfancpld driver).
+// Sent to the driver via ioctl after device creation.
+//
+// `numFans`: Number of fan trays.
+//
+// `pwmMax`: Maximum PWM register value (e.g. 40 or 64).
+//
+// `speedMultiplier`: Tach register to RPM multiplier (e.g. 150 or 300).
+//
+// `hasRearTach`: Whether fans have both front and rear tach sensors.
+//
+// `hasLeds`: Whether fan trays have LED indicators.
+struct FanCpldConfig {
+  1: i32 numFans;
+  2: i32 pwmMax;
+  3: i32 speedMultiplier;
+  4: bool hasRearTach;
+  5: bool hasLeds;
+}
+
 // `I2cDeviceConfig` defines a i2c device within any PmUnit.
 //
 // `busName`: Refer to Bus Naming Convention above.
@@ -217,6 +237,11 @@ struct CpldSysfsAttr {
 // `isEeprom`: Whether this I2C Device is an EEPROM device
 //
 // `eepromOffset`: offset for eeprom content.  Applies only to EEPROM device
+//
+// `cpldSysfsAttrs`: list of CPLD sysfs attributes to create for this device
+//
+// `fanCpldConfig`: configuration for a generic fan CPLD device, sent to the
+// fbfancpld driver via ioctl after device creation
 //
 // For example, the three i2c devices in the below Sample PmUnit will be modeled
 // as follows
@@ -259,6 +284,8 @@ struct I2cDeviceConfig {
   13: bool isEeprom;
   14: optional i16 eepromOffset;
   15: optional list<CpldSysfsAttr> cpldSysfsAttrs;
+  16: optional i32 pca9548Mode;
+  17: optional FanCpldConfig fanCpldConfig;
 }
 
 // Configs for sensors which are embedded (eg within CPU).
@@ -535,6 +562,10 @@ struct LedCtrlConfig {
 //  portNum=2, ledNum=2, startPort=1:
 //    iobufOffsetCalc: "0x1000 + (2 - 1)*0x8 + (2 - 1)*0x4"
 //    iobufOffsetCalc: "0x100c"
+//
+// `lanesPerPort`: Number of transceiver lanes per port in this block.
+//  Used to build the lane-to-LED mapping in BspPlatformMapping.
+//
 struct LedCtrlBlockConfig {
   1: string pmUnitScopedNamePrefix;
   2: string deviceName;
@@ -543,6 +574,7 @@ struct LedCtrlBlockConfig {
   5: i32 ledPerPort;
   6: i32 startPort;
   7: string iobufOffsetCalc;
+  8: i32 lanesPerPort = 8;
 }
 
 // Defines generic MDIO BUS Controller block in FPGAs.
@@ -627,7 +659,6 @@ struct MdioBusBlockConfig {
 //
 // The remaining fields are configs per controller block in the FPGA
 //
-// TODO: Add MDIO support
 struct PciDeviceConfig {
   1: string pmUnitScopedName;
   2: string vendorId;
@@ -711,12 +742,16 @@ struct PmUnitConfig {
 //
 // `PmUnitConfig`: PmUnit configuration. Refer to PmUnitConfig definition above.
 //
-// `productSubVersion`: The platformVersion of the switch which this PmUnit
-// belongs to. This refers to field Type 10 in Meta EEPROM V5
-// TODO: Replace it with PmUnitVersion struct below.
+// `productSubVersion`: This refers to field Type 10 in Meta EEPROM V5.
+//
+// `pmUnitVersions`: List of PmUnit versions this config applies to. A system
+// matching any version in this list will use this config.
+// `productSubVersion` is ignored when `pmUnitVersions` is present. At least
+// one of `productSubVersion` or `pmUnitVersions` must be set.
 struct VersionedPmUnitConfig {
   1: PmUnitConfig pmUnitConfig;
-  3: i16 productSubVersion;
+  3: optional i16 productSubVersion;
+  4: optional list<PmUnitVersion> pmUnitVersions;
 }
 
 // `PmUnitInfo`: Details of a PmUnit.
@@ -724,24 +759,30 @@ struct VersionedPmUnitConfig {
 // `name`: Name of the PmUnit.
 //
 // `version`: Version of the pmUnit.
+//
+// `eepromProductName`: Product Name from EEPROM (Type 1). Unlike `name`,
+// this is always the raw EEPROM value and is never overridden by config.
+// Used by sensor_service for vendor-specific sensor resolution (e.g.,
+// different PSU vendors have different thresholds).
 struct PmUnitInfo {
   1: string name;
   2: optional PmUnitVersion version;
   3: optional platform_manager_presence.PresenceInfo presenceInfo;
   4: bool successfullyExplored;
+  5: optional string eepromProductName;
 }
 
 // `PmUnitVersion`: Version of a PmUnit.
 //
-// `productProductionState`: Minimum productProductionState (EEPROM V5 Type 8).
+// `productionState`: Production State (EEPROM V6 Type 8).
 //
-// `productVersion`: Minimum productVersion (EEPROM V5 Type 9).
+// `productionSubState`: Production Sub-State (EEPROM V6 Type 9).
 //
-// `productSubVersion`: Minimum productSubVersion (EEPROM V5 Type 10).
+// `respinVariantIndicator`: Re-Spin/Variant Indicator (EEPROM V6 Type 10).
 struct PmUnitVersion {
-  1: i16 productProductionState;
-  2: i16 productVersion;
-  3: i16 productSubVersion;
+  1: i16 productionState;
+  2: i16 productionSubState;
+  3: i16 respinVariantIndicator;
 }
 
 // Defines thrift structure used for the Bsp Kmods file under /usr/local/{vendor}_bsp/...
@@ -783,7 +824,8 @@ struct PlatformConfig {
   //          name.  Only CPU_BUS@0 is supported today.
   //        - AMD: identifies DesignWare I2C buses via ACPI
   //          firmware_node/path under /sys/devices/platform/AMDI0010:*.
-  //          CPU_BUS@0 maps to \_SB_.I2CB, CPU_BUS@1 to \_SB_.I2CA.
+  //          CPU_BUS@0 maps to \_SB_.I2CB, CPU_BUS@1 to \_SB_.I2CA,
+  //          CPU_BUS@2 to \_SB_.I2CC, CPU_BUS@3 to \_SB_.I2CD.
   //  (b) Exact adapter name matching /sys/bus/i2c/devices/i2c-N/name
   //      (e.g. "SMBus I801 adapter at 5000").
   // All entries in a single config must use the same style.

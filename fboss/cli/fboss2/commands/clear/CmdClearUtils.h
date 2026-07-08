@@ -23,9 +23,9 @@ std::string flushNeighborEntries(
     nbrTypeStr = "Arp";
   }
 
-  std::vector<NeighborEntry> entriesToFlush;
+  std::vector<IfAndIP> entriesToFlush;
 
-  for (auto const& entry : allNeighbors) {
+  for (const auto& entry : allNeighbors) {
     // STATIC or DYNAMIC entries cannot be flushed.
     if (entry.get_state() == "STATIC" || entry.get_state() == "DYNAMIC") {
       continue;
@@ -41,27 +41,21 @@ std::string flushNeighborEntries(
               return ip.inSubnet(network.first, network.second);
             }) != networkFilter.end();
     if (shouldFlush) {
-      entriesToFlush.emplace_back(entry);
+      std::cout << fmt::format(
+          "Deleting {} entry ip: {} interfaceID: {}\n",
+          nbrTypeStr,
+          ip.str(),
+          entry.get_interfaceID());
+
+      IfAndIP flushEntry;
+      flushEntry.ip() = entry.get_ip();
+      flushEntry.interfaceID() = entry.get_interfaceID();
+      entriesToFlush.emplace_back(std::move(flushEntry));
     }
   }
 
-  for (const auto& entry : entriesToFlush) {
-    auto ip = folly::IPAddress::fromBinary(
-        folly::ByteRange(folly::StringPiece(entry.get_ip().get_addr())));
-    std::cout << fmt::format(
-        "Deleting {} entry ip: {} interfaceID: {}\n",
-        nbrTypeStr,
-        ip.str(),
-        entry.get_interfaceID());
-
-    /*
-     * Always pass interfaceID - Agent deletes neighbor from interface's
-     * neighbor table.
-     */
-    agent->sync_flushNeighborEntry(entry.get_ip(), entry.get_interfaceID());
-  }
-
-  return folly::to<std::string>("Flushed ", entriesToFlush.size(), " entries");
+  auto numFlushed = agent->sync_flushNeighborEntries(entriesToFlush);
+  return folly::to<std::string>("Flushed ", numFlushed, " entries");
 }
 
 } // namespace facebook::fboss::utils

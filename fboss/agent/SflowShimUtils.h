@@ -14,8 +14,10 @@ enum class SflowShimAsic : uint8_t {
 
 struct SflowShimHeaderInfo {
   SflowShimAsic asic{SflowShimAsic::SFLOW_SHIM_ASIC_UNKNOWN};
-  uint32_t srcPort;
-  uint32_t dstPort;
+  uint32_t srcPort{};
+  uint32_t dstPort{};
+  uint8_t srcModId{0};
+  uint8_t dstModId{0};
 };
 SflowShimHeaderInfo parseSflowShim(folly::io::Cursor& cursor);
 } // namespace facebook::fboss::utility

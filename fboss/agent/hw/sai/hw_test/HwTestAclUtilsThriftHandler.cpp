@@ -3,10 +3,12 @@
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 
 namespace {
@@ -102,9 +104,23 @@ bool HwTestThriftHandler::isStatProgrammedInAclTable(
   auto state = hwSwitch_->getProgrammedState();
 
   for (const auto& aclName : *aclEntryNames) {
-    auto swAcl = getAclEntryByName(state, aclName);
-    auto swTrafficCounter = getAclTrafficCounter(state, aclName);
-    if (!swTrafficCounter || *swTrafficCounter->name() != *counterName) {
+    std::shared_ptr<AclEntry> swAcl;
+    auto aclMap = state->getAclsForTable(cfg::AclStage::INGRESS, *tableName);
+    if (aclMap) {
+      swAcl = aclMap->getNodeIf(aclName);
+    } else {
+      swAcl = getAclEntryByName(state, aclName);
+    }
+    if (!swAcl || !swAcl->getAclAction()) {
+      return false;
+    }
+    auto trafficCounterRef =
+        swAcl->getAclAction()->cref<switch_state_tags::trafficCounter>();
+    if (!trafficCounterRef) {
+      return false;
+    }
+    auto swTrafficCounter = trafficCounterRef->toThrift();
+    if (*swTrafficCounter.name() != *counterName) {
       return false;
     }
 
@@ -696,6 +712,15 @@ bool HwTestThriftHandler::areAllAclEntriesEnabled() {
     }
   }
   return true;
+}
+
+bool HwTestThriftHandler::isAclTableGroupEnabled(int32_t aclStage) {
+  const auto& aclTableGroupManager = static_cast<const SaiSwitch*>(hwSwitch_)
+                                         ->managerTable()
+                                         ->aclTableGroupManager();
+  auto aclTableGroupHandle = aclTableGroupManager.getAclTableGroupHandle(
+      static_cast<sai_acl_stage_t>(aclStage));
+  return aclTableGroupHandle != nullptr;
 }
 
 } // namespace utility

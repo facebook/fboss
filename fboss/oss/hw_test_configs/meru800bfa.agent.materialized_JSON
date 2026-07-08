@@ -2,11 +2,13 @@
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
+    "enable_nexthop_id_manager": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "sai_configure_six_tap": "true",
     "skip_transceiver_programming": "true",
-    "use_full_dlb_scale": "true"
+    "use_full_dlb_scale": "true",
+    "verify_fib_nexthop_id_consistency": "true"
   },
   "sw": {
     "version": 0,
@@ -51,7 +53,8 @@
       "3": 0,
       "4": 0,
       "700": 255,
-      "786": 10
+      "786": 10,
+      "800": 2
     },
     "sFlowCollectors": [
       
@@ -94,7 +97,7 @@
       "qcmEnable": false,
       "ptpTcEnable": false,
       "l2AgeTimerSeconds": 300,
-      "maxRouteCounterIDs": 0,
+      "maxRouteCounterIDs_DEPRECATED": 0,
       "blockNeighbors": [
         
       ],
@@ -222,8 +225,8 @@
             "serdes_fabric_clk_freq_out.BCM8892X": "bypass",
             "soc_family.BCM8892X": "BCM8892X",
             "stable_location.BCM8892X": "4",
-            "stable_size.BCM8892X": "6600000",
-            "sw_state_max_size.BCM8892X": "6500000",
+            "stable_size.BCM8892X": "12100000",
+            "sw_state_max_size.BCM8892X": "12000000",
             "system_contains_multiple_pipe_device.BCM8892X": "0",
             "tdma_intr_enable.BCM8892X": "0",
             "tdma_timeout_usec.BCM8892X": "5000000",

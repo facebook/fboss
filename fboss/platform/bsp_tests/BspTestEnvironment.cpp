@@ -83,6 +83,10 @@ const RuntimeConfig& BspTestEnvironment::getRuntimeConfig() const {
   return *runtimeConfig_;
 }
 
+const platform_manager::BspKmodsFile& BspTestEnvironment::getKmodsJson() const {
+  return kmods_;
+}
+
 platform_manager::PlatformConfig BspTestEnvironment::loadPlatformManagerConfig(
     const std::string& platform,
     const std::string& pmConfigJson) {

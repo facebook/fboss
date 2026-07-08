@@ -76,11 +76,16 @@ The `run_test.py` script is a helper utility to simplify the process of running 
 - QSFP Hardware tests
 - Link tests
 - SAI Agent tests
+- SAI Agent Scale tests
+- SAI Agent Invariant tests
 - Platform tests
+- Benchmark tests
 
 Examples of the command to run for each of the various types of tests are shown below.
 
 **Important:** You must be in the `/opt/fboss` directory when running tests with `run_test.py`.
+
+**Run mode — prefer `multi_switch`:** The agent-based test types (`sai_agent`, `sai_agent_scale`, `sai_invariant_agent`, `benchmark`) accept `--agent-run-mode mono|multi_switch`. Prefer **`multi_switch`** — it runs the SwSwitch control plane and the HwAgent (ASIC) as separate processes over Thrift, exactly as in production, and `run_test.py` manages the `hw_agent` service lifecycle for you. `mono` (single process) is deprecated and will be removed in the future. When `--agent-run-mode` is omitted these types default to `multi_switch` (except `benchmark`, whose historical default is `mono` — pass `--agent-run-mode multi_switch` explicitly).
 
 ### SAI tests
 
@@ -118,15 +123,14 @@ Special flags:
 
 ```
 # Run LinkTest.asicLinkFlap for fuji using non-default platform mapping configs.
-# NOTE: We recommend using mono mode to run link tests on a single ASIC platform.
-./bin/run_test.py link --agent-run-mode mono --config share/link_test_configs/fuji.materialized_JSON --qsfp-config /opt/fboss/share/qsfp_test_configs/fuji.materialized_JSON --filter=LinkTest.asicLinkFlap --platform_mapping_override_path /path/to/something --bsp_platform_mapping_override_path /path/to/something/else
+./bin/run_test.py link --config share/link_test_configs/fuji.materialized_JSON --qsfp-config /opt/fboss/share/qsfp_test_configs/fuji.materialized_JSON --filter=LinkTest.asicLinkFlap --platform_mapping_override_path /path/to/something --bsp_platform_mapping_override_path /path/to/something/else
 ```
 
 Special flags:
 
 1. `--filter`: FBOSS uses GTEST for it's test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
-1. `--agent-run-mode`: the agent run mode to use. This value is passed through to the link tests. Currently it supports "mono", "multi_switch", and "legacy" modes. If not specified, it will use "legacy" mode.
-1. `--num-npus {1,2}`: number of npus to run in multi switch mode. Default is 1.
+1. `--agent-run-mode`: the agent run mode to use. This value is passed through to the link tests. Currently it supports "mono" and "multi_switch" modes. If not specified, it will use "multi_switch" mode.
+1. `--num-npus {1,2}`: Specify number of npus to run in multi switch mode. Default is 1.
 1. `--bsp_platform_mapping_override_path`: an optional flag to override the BSP platform mapping. This value is passed through to the QSFP service binary.
 1. `--platform_mapping_override_path`: an optional flag to override the ASIC platform mapping. This value is passed through to the QSFP service binary and the link tests binary.
 
@@ -136,10 +140,65 @@ Special flags:
 ./bin/run_test.py sai_agent \
     --config ./share/hw_test_configs/$CONFIG \
     --filter AgentRxReasonTests.InsertAndRemoveRxReason --agent-run-mode multi_switch
+
+# Warmboot soak: run a single test across many consecutive warmboots
+# (coldboot once, then warmboot N times).
+./bin/run_test.py sai_agent \
+    --config ./share/hw_test_configs/$CONFIG --agent-run-mode multi_switch \
+    --filter AgentEmptyTest.CheckInit --num-warmboot-iterations 64
 ```
 1. `--filter`: FBOSS uses GTEST for it's test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
-1. `--agent-run-mode`: the agent run mode to use. This value is passed through to the sai_agent tests. Currently it supports "mono" and "multi_switch" modes. If not specified, it will use "mono" mode.
-1. `--num-npus {1,2}`: number of npus to run in multi switch mode. Default is 1.
+1. `--agent-run-mode`: the agent run mode to use. This value is passed through to the sai_agent tests. Currently it supports "mono" and "multi_switch" modes. If not specified, it will use "multi_switch" mode.
+1. `--num-npus {1,2}`: Specify number of npus to run in multi switch mode. Default is 1.
+1. `--num-warmboot-iterations N`: Run the test across N consecutive warmboots after the initial coldboot (default 1). Use with `--filter` to soak a single test (typically `AgentEmptyTest.CheckInit`) across many warmboots and catch warmboot-stability regressions. Each iteration re-arms warmboot so the next boot warmboots, and the soak stops early on the first non-passing iteration. Ignored when `--coldboot_only` is set. Applies to the agent test types (`sai`, `sai_agent`, `sai_agent_scale`, `sai_invariant_agent`).
+
+### SAI Agent Scale tests
+
+Scale tests stress FBOSS features at production-like resource counts (max ECMP groups/members, max ACL entries). See [Agent Scale Test](/docs/testing/agent_scale_test/).
+
+```
+# Run ALL scale tests (recommended). run_test.py discovers and runs every
+# scale test; --skip-known-bad-tests skips tests known not to pass for this ASIC/SDK.
+./bin/run_test.py sai_agent_scale \
+    --config ./share/hw_test_configs/$CONFIG \
+    --agent-run-mode multi_switch \
+    --skip-known-bad-tests "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/multi_switch"
+
+# Run a single test (optional). The test name is for illustration only.
+./bin/run_test.py sai_agent_scale \
+    --config ./share/hw_test_configs/$CONFIG \
+    --agent-run-mode multi_switch \
+    --filter AgentEcmpTest.CreateMaxEcmpGroups
+```
+
+1. `--filter`: GTEST filter passed through to the test binary.
+1. `--agent-run-mode`: `mono` or `multi_switch` (default `multi_switch`).
+1. `--num-npus {1,2}`: number of NPUs to run in multi_switch mode (default 1).
+1. `--skip-known-bad-tests`: ASIC/SDK key (`vendor/coldboot-sdk/warmboot-sdk/asic/mode`) to skip known-bad/unsupported tests. Scale tests reuse the SAI Agent known-bad lists.
+
+### SAI Agent Invariant tests
+
+Invariant tests verify core forwarding invariants (ACL, CoPP, load balancing, DSCP-to-queue, diag/Thrift handlers) hold after applying a production-like config. See [Agent Invariant Test](/docs/testing/agent_invariant_test/).
+
+```
+# Run ALL invariant tests (recommended). run_test.py discovers and runs every
+# invariant test; --skip-known-bad-tests skips tests known not to pass for this ASIC/SDK.
+./bin/run_test.py sai_invariant_agent \
+    --config ./share/hw_test_configs/$CONFIG \
+    --agent-run-mode multi_switch \
+    --skip-known-bad-tests "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/multi_switch"
+
+# Run a single test (optional). The test name is for illustration only.
+./bin/run_test.py sai_invariant_agent \
+    --config ./share/hw_test_configs/$CONFIG \
+    --agent-run-mode multi_switch \
+    --filter ProdInvariantTest.verifyInvariants
+```
+
+1. `--filter`: GTEST filter passed through to the test binary. Use it to select a role variant, e.g. `ProdInvariantRtswTest.verifyInvariants`.
+1. `--agent-run-mode`: `mono` or `multi_switch` (default `multi_switch`).
+1. `--num-npus {1,2}`: number of NPUs to run in multi_switch mode (default 1).
+1. `--skip-known-bad-tests`: ASIC/SDK key (`vendor/coldboot-sdk/warmboot-sdk/asic/mode`) to skip known-bad/unsupported tests. Invariant tests reuse the SAI Agent known-bad lists.
 
 ### Platform tests
 
@@ -152,3 +211,32 @@ Special flags:
 
 1. `--filter`: FBOSS uses GTEST for its test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
 1. `--type`: an optional flag to run specified platform service test (platform_hw_test, data_corral_service_hw_test, fan_service_hw_test, fw_util_hw_test, sensor_service_hw_test, weutil_hw_test, platform_manager_hw_test).
+
+### Benchmark tests
+
+All benchmarks are consolidated into two binaries — `sai_all_benchmarks-sai_impl` (mono) and `sai_multi_switch_all_benchmarks-sai_impl` (multi-switch). The runner discovers tests from the binary via `--bm_list`, pre-filters known-bad tests, and runs each test in its own process for full setup/run/teardown isolation.
+
+```
+# Run all Benchmark tests (mono is the default)
+./bin/run_test.py benchmark \
+--config ./share/hw_test_configs/$CONFIG \
+--skip-known-bad-tests brcm/13.3.0.0_odp/tomahawk5 \
+--test-run-timeout 1800
+
+# Run benchmarks with the multi-switch binary
+./bin/run_test.py benchmark --agent-run-mode multi_switch \
+--config ./share/hw_test_configs/$CONFIG \
+--skip-known-bad-tests brcm/13.3.0.0_odp/tomahawk5 \
+--test-run-timeout 1800
+```
+
+Special flags:
+
+1. `--agent-run-mode`: Agent run mode to use. Supports `mono` (default, runs `sai_all_benchmarks-sai_impl`) and `multi_switch` (runs `sai_multi_switch_all_benchmarks-sai_impl`). In multi-switch mode the runner passes `--multi_switch --hw_agent_for_testing` to the binary and manages the `hw_agent` service lifecycle automatically.
+1. `--num-npus`: Number of NPUs for multi-switch mode (1 or 2, default 1). When set to 2, `--multi_npu_platform_mapping` is passed to the binary.
+1. `--filter_file:` Collection of tests to run. This is a file containing a list of tests to run. The file should contain one BENCHMARK() registered name per line. To see the list, run `./bin/sai_all_benchmarks-sai_impl --bm_list`.
+1. `--filter`: Regex matched against discovered benchmark names to narrow which tests run.
+1. `--skip-known-bad-tests:` Platform key (e.g. `brcm/13.3.0.0_odp/tomahawk5`) used both to pre-filter known-bad tests *before* running and to look up per-platform thresholds for result validation. Without it, all discovered tests run and threshold validation is skipped (results show `NO_THRESHOLD`).
+1. `--test-run-timeout:` Timeout for each test run. Default is 1200 seconds.
+
+Threshold validation looks up entries by benchmark name in `share/hw_benchmark_tests/sai_bench.materialized_JSON`. The matching mode (mono vs multi-switch) is preferred, falling back to the other mode if only one variant is configured. When no threshold is configured for a benchmark, the runner prints a `WILL ALWAYS PASS` warning so missing entries are visible.

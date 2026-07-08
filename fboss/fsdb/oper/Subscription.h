@@ -199,9 +199,14 @@ class BaseSubscription {
                    << " pipe already closed, skip write";
       } else {
         // queue full, avoid unbounded queue build up.
+        const auto coalesced =
+            chunksCoalesced_.withRLock([](auto& v) { return v; });
         if (FLAGS_forceCloseSlowSubscriber) {
           ret = FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL;
           XLOG(INFO) << "Slow subscription: " << subscriberId()
+                     << " chunksCoalesced=" << coalesced
+                     << " publisherTreeRoot="
+                     << publisherTreeRoot_.value_or("--")
                      << " pipe full. Force closing subscription.";
           std::move(pipe).close(
               Utils::createFsdbException(
@@ -210,6 +215,8 @@ class BaseSubscription {
                   subscriberId()));
         } else {
           XLOG(ERR) << "Slow subscription: " << subscriberId()
+                    << " chunksCoalesced=" << coalesced << " publisherTreeRoot="
+                    << publisherTreeRoot_.value_or("--")
                     << " pipe full, update dropped!";
         }
       }

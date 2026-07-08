@@ -107,6 +107,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return std::make_pair(10, 0x3F);
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kTc() const {
+    return std::make_pair(6, 0xFF);
+  }
+
   std::pair<folly::MacAddress, folly::MacAddress> kDstMac() const {
     return std::make_pair(
         folly::MacAddress{"00:11:22:33:44:55"},
@@ -181,6 +185,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return true;
   }
 
+  std::pair<sai_object_id_t, sai_uint32_t> kNextHopGroupId() const {
+    return std::make_pair(81, 0);
+  }
+
   sai_uint8_t kSetTC() const {
     return 1;
   }
@@ -253,6 +261,7 @@ class AclTableStoreTest : public SaiStoreTest {
             true, // icmpv6Type
             true, // icmpv6Code
             true, // dscp
+            true, // tc
             true, // dstMac
             true, // ipType
             true, // ttl
@@ -261,6 +270,7 @@ class AclTableStoreTest : public SaiStoreTest {
             true, // neighbor meta
             true, // ethertype
             true, // outer vlan id
+            std::nullopt, // aclRangeType
             true, // bth opcode
             true, // ipv6 next header
             kUdfGroupId(), // udf group 0
@@ -295,6 +305,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU8(this->kIcmpV6Type()),
             AclEntryFieldU8(this->kIcmpV6Code()),
             AclEntryFieldU8(this->kDscp()),
+            AclEntryFieldU8(this->kTc()),
             AclEntryFieldMac(this->kDstMac()),
             AclEntryFieldU32(this->kIpType()),
             AclEntryFieldU8(this->kTtl()),
@@ -303,6 +314,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU32(this->kNeighborDstUserMeta()),
             AclEntryFieldU16(this->kEtherType()),
             AclEntryFieldU16(this->kOuterVlanId()),
+            std::nullopt, // fieldAclRangeType
             AclEntryFieldU8(this->kBthOpcode()),
             AclEntryFieldU8(this->kIpv6NextHeader()),
             AclEntryFieldU8List(this->kUdfGroupData()),
@@ -311,6 +323,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU8List(this->kUdfGroupData()),
             AclEntryFieldU8List(this->kUdfGroupData()),
             AclEntryActionU32(this->kPacketAction()),
+            std::nullopt, // actionRedirect
             AclEntryActionSaiObjectIdT(this->kCounter()),
             AclEntryActionU8(this->kSetTC()),
             AclEntryActionU8(this->kSetDSCP()),
@@ -322,6 +335,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryActionBool(this->kDisableArsForwarding()),
             AclEntryActionU32(this->kHashAlgorithm()),
             AclEntryActionBool(this->kL3SwitchCancel()),
+            AclEntryFieldSaiObjectIdT(this->kNextHopGroupId()),
         },
         0);
   }
@@ -340,6 +354,12 @@ class AclTableStoreTest : public SaiStoreTest {
             this->kCounterBytes(),
         },
         0);
+  }
+
+  AclRangeSaiId createAclRange() const {
+    sai_u32_range_t limit{.min = 1000, .max = 2000};
+    return saiApiTable->aclApi().create<SaiAclRangeTraits>(
+        {SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE, limit}, 0);
   }
 };
 
@@ -440,6 +460,7 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // icmpv6Type
       true, // icmpv6Code
       true, // dscp
+      true, // tc
       true, // dstMac
       true, // ipType
       true, // ttl
@@ -448,6 +469,7 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // neighbor meta
       true, // ethertype
       true, // outer vlan id
+      std::nullopt, // aclRangeType
       true, // bth opcode
       true, // ipv6 next header
       kUdfGroupId(), // udf group 0
@@ -489,6 +511,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kIcmpV6Type(),
       this->kIcmpV6Code(),
       this->kDscp(),
+      this->kTc(),
       this->kDstMac(),
       this->kIpType(),
       this->kTtl(),
@@ -497,6 +520,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kNeighborDstUserMeta(),
       this->kEtherType(),
       this->kOuterVlanId(),
+      std::nullopt, // fieldAclRangeType
       this->kBthOpcode(),
       this->kIpv6NextHeader(),
       this->kUdfGroupData(),
@@ -505,6 +529,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kUdfGroupData(),
       this->kUdfGroupData(),
       this->kPacketAction(),
+      std::nullopt, // actionRedirect
       this->kCounter(),
       this->kSetTC(),
       this->kSetDSCP(),
@@ -515,7 +540,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kSetArsObject(),
       this->kDisableArsForwarding(),
       this->kHashAlgorithm(),
-      this->kL3SwitchCancel()};
+      this->kL3SwitchCancel(),
+      this->kNextHopGroupId()};
 
   SaiObject<SaiAclEntryTraits> obj = createObj<SaiAclEntryTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);
@@ -578,6 +604,72 @@ TEST_P(AclTableStoreParamTest, toStrAclCounterStore) {
   auto aclTableId = createAclTable(GetParam());
   std::ignore = createAclCounter(aclTableId);
   verifyToStr<SaiAclCounterTraits>();
+}
+
+TEST_F(AclTableStoreTest, loadAclRange) {
+  auto aclRangeId = createAclRange();
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiAclRangeTraits>();
+
+  sai_u32_range_t limit{.min = 1000, .max = 2000};
+  SaiAclRangeTraits::AdapterHostKey k{
+      SaiAclRangeTraits::Attributes::Type{SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE},
+      SaiAclRangeTraits::Attributes::Limit{limit}};
+
+  auto got = store.get(k);
+  EXPECT_NE(got, nullptr);
+  EXPECT_EQ(got->adapterKey(), aclRangeId);
+}
+
+TEST_F(AclTableStoreTest, aclRangeLoadCtor) {
+  auto aclRangeId = createAclRange();
+
+  SaiObject<SaiAclRangeTraits> obj = createObj<SaiAclRangeTraits>(aclRangeId);
+  EXPECT_EQ(obj.adapterKey(), aclRangeId);
+}
+
+TEST_F(AclTableStoreTest, AclRangeCreateCtor) {
+  sai_u32_range_t limit{.min = 1000, .max = 2000};
+  SaiAclRangeTraits::CreateAttributes c{
+      SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE, limit};
+
+  SaiAclRangeTraits::AdapterHostKey k{
+      SaiAclRangeTraits::Attributes::Type{SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE},
+      SaiAclRangeTraits::Attributes::Limit{limit}};
+
+  SaiObject<SaiAclRangeTraits> obj = createObj<SaiAclRangeTraits>(k, c, 0);
+  EXPECT_EQ(
+      GET_ATTR(AclRange, Type, obj.attributes()),
+      SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE);
+}
+
+TEST_F(AclTableStoreTest, serDeserAclRangeStore) {
+  auto aclRangeId = createAclRange();
+  verifyAdapterKeySerDeser<SaiAclRangeTraits>({aclRangeId});
+}
+
+TEST_F(AclTableStoreTest, toStrAclRangeStore) {
+  std::ignore = createAclRange();
+  verifyToStr<SaiAclRangeTraits>();
+}
+
+TEST_F(AclTableStoreTest, aclRangeDeduplication) {
+  sai_u32_range_t limit{.min = 1000, .max = 2000};
+  SaiAclRangeTraits::Attributes::Type typeAttr{
+      SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE};
+  SaiAclRangeTraits::Attributes::Limit limitAttr{limit};
+  SaiAclRangeTraits::AdapterHostKey k{typeAttr, limitAttr};
+  SaiAclRangeTraits::CreateAttributes c{typeAttr, limitAttr};
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiAclRangeTraits>();
+
+  auto obj1 = store.setObject(k, c);
+  auto obj2 = store.setObject(k, c);
+  EXPECT_EQ(obj1->adapterKey(), obj2->adapterKey());
 }
 
 TEST_F(AclTableStoreTest, aclTableAdapterHostKeyToAndFromDynamic) {

@@ -12,7 +12,7 @@ jobs:
       - name: Clean workspace
         run: sudo rm -rf ${{ github.workspace }}/*
       - name: Check out repository code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Run Docker-based build for FBOSS
         run: >
           sudo
@@ -44,15 +44,22 @@ jobs:
           --name
           FBOSS_PACKAGE_CONTAINER
           fboss_image:latest
-          python3
-          /var/FBOSS/fboss/fboss/oss/scripts/package-fboss.py
-          --copy-root-libs
-          --scratch-path=/var/FBOSS/tmp_bld_dir
-          --compress
-      - name: Save Docker image
-        run: sudo docker save fboss_image:latest | zstd -o ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
+          bash -c
+          "set -ex &&
+          python3 /var/FBOSS/fboss/fboss/oss/scripts/package-fboss.py --copy-root-libs --scratch-path=/var/FBOSS/tmp_bld_dir --compress &&
+          python3 -m pip install --no-deps /var/FBOSS/tmp_bld_dir/installed/fbthrift-python/share/thrift/wheels/*.whl &&
+          mkdir -p /usr/local/lib64/python3.12/site-packages &&
+          cp -r /var/FBOSS/tmp_bld_dir/installed/folly-python/lib64/python3.12/site-packages/folly /usr/local/lib64/python3.12/site-packages/ &&
+          for d in /var/FBOSS/tmp_bld_dir/installed/*/lib /var/FBOSS/tmp_bld_dir/installed/*/lib64; do
+            if [ -d \"\$d\" ]; then find \"\$d\" -maxdepth 1 -name '*.so*' -exec cp -an {} /usr/local/lib64/ \\; ; fi; done &&
+          ldconfig"
+      - name: Save Docker image with Python runtime
+        run: |
+          sudo docker commit FBOSS_PACKAGE_CONTAINER fboss_image:latest
+          sudo docker rm FBOSS_PACKAGE_CONTAINER
+          sudo docker save fboss_image:latest | zstd -o ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: fboss
           path: |
@@ -61,13 +68,13 @@ jobs:
           # Explicitly set the retention at the object level
           retention-days: 14
   Platform-Mapping-Generation-Verification:
-    runs-on: ubuntu-latest
+    runs-on: 4-core-ubuntu
     needs: Platform-Mapping-Generation-Build
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Download artifact with test binaries
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: fboss
       - run: ls ${{ github.workspace }}

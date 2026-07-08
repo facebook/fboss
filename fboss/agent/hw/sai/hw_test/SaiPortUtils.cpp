@@ -266,13 +266,24 @@ void verifyTxSettting(
     if (asicVendor != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       post2 = portApi.getAttribute(
           serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost2{});
-      EXPECT_EQ(post2, GET_OPT_ATTR(PortSerdes, TxFirPost2, expectedTx));
+
+      if (auto expectedPost2 = std::get<
+              std::optional<SaiPortSerdesTraits::Attributes::TxFirPost2>>(
+              expectedTx)) {
+        EXPECT_EQ(post2, GET_OPT_ATTR(PortSerdes, TxFirPost2, expectedTx));
+      }
+
       // TH6 SDK does not support POST3 readback (returns sentinel 32767)
       if (asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
         post3 = portApi.getAttribute(
             serdes->adapterKey(),
             SaiPortSerdesTraits::Attributes::TxFirPost3{});
-        EXPECT_EQ(post3, GET_OPT_ATTR(PortSerdes, TxFirPost3, expectedTx));
+
+        if (auto expectedPost3 = std::get<
+                std::optional<SaiPortSerdesTraits::Attributes::TxFirPost3>>(
+                expectedTx)) {
+          EXPECT_EQ(post3, GET_OPT_ATTR(PortSerdes, TxFirPost3, expectedTx));
+        }
       }
     }
   }
@@ -281,16 +292,40 @@ void verifyTxSettting(
   EXPECT_EQ(pre.size(), txSettings.size());
   for (int i = 0; i < txSettings.size(); ++i) {
     auto expectedTxFromPin = txSettings[i];
-    EXPECT_EQ(pre[i], expectedTxFromPin.pre());
-    EXPECT_EQ(main[i], expectedTxFromPin.main());
-    EXPECT_EQ(post[i], expectedTxFromPin.post());
+    if (expectedTxFromPin.firPre1().has_value()) {
+      EXPECT_EQ(pre[i], expectedTxFromPin.firPre1());
+    } else {
+      EXPECT_EQ(pre[i], expectedTxFromPin.pre());
+    }
+    if (expectedTxFromPin.firMain().has_value()) {
+      EXPECT_EQ(main[i], expectedTxFromPin.firMain());
+    } else {
+      EXPECT_EQ(main[i], expectedTxFromPin.main());
+    }
+    if (expectedTxFromPin.firPost1().has_value()) {
+      EXPECT_EQ(post[i], expectedTxFromPin.firPost1());
+    } else {
+      EXPECT_EQ(post[i], expectedTxFromPin.post());
+    }
     if (saiPlatform->getAsic()->isSupported(
             HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
-      EXPECT_EQ(pre2[i], expectedTxFromPin.pre2());
+      if (expectedTxFromPin.firPre2().has_value()) {
+        EXPECT_EQ(pre2[i], expectedTxFromPin.firPre2());
+      } else {
+        EXPECT_EQ(pre2[i], expectedTxFromPin.pre2());
+      }
       if (asicVendor != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
-        EXPECT_EQ(post2[i], expectedTxFromPin.post2());
+        if (expectedTxFromPin.firPost2().has_value()) {
+          EXPECT_EQ(post2[i], expectedTxFromPin.firPost2());
+        } else {
+          EXPECT_EQ(post2[i], expectedTxFromPin.post2());
+        }
         if (asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
-          EXPECT_EQ(post3[i], expectedTxFromPin.post3());
+          if (expectedTxFromPin.firPost3().has_value()) {
+            EXPECT_EQ(post3[i], expectedTxFromPin.firPost3());
+          } else {
+            EXPECT_EQ(post3[i], expectedTxFromPin.post3());
+          }
         }
       }
     }
@@ -446,7 +481,7 @@ void verifyFec(
   auto* saiPortHandle =
       saiSwitch->managerTable()->portManager().getPortHandle(portID);
 
-  // retrive configured fec.
+  // retrieve configured fec.
   auto expectedFec = utility::getSaiPortFecMode(*expectedProfileConfig.fec());
 
   // Convert expectedFec back to FecMode to verify
@@ -455,7 +490,7 @@ void verifyFec(
       utility::getFecModeFromSaiFecMode(expectedFec, profileID),
       *expectedProfileConfig.fec());
 
-  // retrive programmed fec.
+  // retrieve programmed fec.
   auto& portApi = SaiApiTable::getInstance()->portApi();
   auto programmedFec = portApi.getAttribute(
       saiPortHandle->port->adapterKey(), SaiPortTraits::Attributes::FecMode{});

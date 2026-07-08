@@ -256,7 +256,7 @@ class TestFindArtifactInDir(unittest.TestCase):
         artifact = self.temp_dir / "sai-1.0.tar.zst"
         artifact.write_text("zstd compressed")
 
-        result = find_artifact_in_dir(self.temp_dir, "sai-*.tar", "sai")
+        result = find_artifact_in_dir(self.temp_dir, "sai-*.tar", "npu_sai")
 
         self.assertEqual(result, artifact)
 
@@ -286,7 +286,7 @@ class TestFindArtifactInDir(unittest.TestCase):
         zstd = self.temp_dir / "sai-1.0.tar.zst"
         zstd.write_text("zstd only")
 
-        result = find_artifact_in_dir(self.temp_dir, "sai-*.tar", "sai")
+        result = find_artifact_in_dir(self.temp_dir, "sai-*.tar", "npu_sai")
 
         self.assertEqual(result, zstd)
 

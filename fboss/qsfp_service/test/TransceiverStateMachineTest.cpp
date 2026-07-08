@@ -41,6 +41,14 @@ const auto kUpgradeTransceiverFnStr = "Upgrading transceiver firmware";
  */
 class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
  public:
+  void SetUp() override {
+    gflags::SetCommandLineOptionWithMode(
+        "enable_snapshot_debugs", "0", gflags::SET_FLAGS_DEFAULT);
+    gflags::SetCommandLineOptionWithMode(
+        "cdb_command_timeout_usec", "1", gflags::SET_FLAGS_DEFAULT);
+    TransceiverManagerTestHelper::SetUp();
+  }
+
   enum class TransceiverType {
     CMIS,
     MOCK_CMIS,
@@ -48,7 +56,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     MOCK_SFF8472,
   };
   std::string kPortName1 = "eth1/1/1";
-  std::string kPortName3 = "eth1/1/3";
+  std::string kPortName5 = "eth1/1/5";
   QsfpModule* overrideTransceiver(
       bool multiPort,
       TransceiverType type = TransceiverType::CMIS) {
@@ -56,7 +64,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     updateTransceiverActiveState(false /* up */, true /* enabled */, portId1_);
     if (multiPort) {
       updateTransceiverActiveState(
-          false /* up */, true /* enabled */, portId3_);
+          false /* up */, true /* enabled */, portId5_);
     }
 
     auto overrideCmisModule = [this, multiPort](bool isMock) {
@@ -83,7 +91,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         std::unique_ptr<FakeTransceiverImpl> xcvrImpl;
         if (multiPort) {
           qsfpImpls_.push_back(
-              std::make_unique<Cmis400GFr4MultiPortTransceiver>(
+              std::make_unique<Cmis2x400GFr4Transceiver>(
                   id_, transceiverManager_.get()));
         } else {
           qsfpImpls_.push_back(
@@ -203,7 +211,13 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     };
     auto setXcvtActiveState = [this, &programIphyAndXcvr](bool portUp) {
       programIphyAndXcvr();
-      // One more refresh() to get to programmed xcvr state
+      // Extra refreshes may be needed if the module requires a power mode
+      // transition (e.g. 2x400G FR4 going from LOW to HIGH power)
+      transceiverManager_->refreshStateMachines();
+      if (transceiverManager_->getCurrentState(id_) !=
+          TransceiverStateMachineState::TRANSCEIVER_READY) {
+        transceiverManager_->refreshStateMachines();
+      }
       transceiverManager_->refreshStateMachines();
       transceiverManager_->setOverrideAgentPortStatusForTesting(
           portUp /* up */, true /* enabled */, false /* clearOnly */);
@@ -216,7 +230,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         break;
       case TransceiverStateMachineState::PRESENT:
         // Because we want to verify two events: DETECT_TRANSCEIVER and
-        // READ_EEPROM seperately, we have to make sure we updateQsfpData with
+        // READ_EEPROM separately, we have to make sure we updateQsfpData with
         // allPages=True after `DETECT_TRANSCEIVER` but before `READ_EEPROM`
         // to match the same behavior as QsfpModule::refreshLocked()
         transceiverManager_->updateStateBlocking(
@@ -238,9 +252,19 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         break;
       case TransceiverStateMachineState::TRANSCEIVER_READY:
         programIphyAndXcvr();
+        // An extra refresh may be needed if the module requires a power mode
+        // transition (e.g. 2x400G FR4 going from LOW to HIGH power)
+        if (transceiverManager_->getCurrentState(id_) !=
+            TransceiverStateMachineState::TRANSCEIVER_READY) {
+          transceiverManager_->refreshStateMachines();
+        }
         break;
       case TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED:
         programIphyAndXcvr();
+        if (transceiverManager_->getCurrentState(id_) !=
+            TransceiverStateMachineState::TRANSCEIVER_READY) {
+          transceiverManager_->refreshStateMachines();
+        }
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::TCVR_EV_PROGRAM_TRANSCEIVER);
         break;
@@ -480,7 +504,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(callTimes).InSequence(s);
     if (multiPort) {
       TransceiverPortState state2{
-          kPortName3, 2 /* startHostLane */, portSpeed, 4};
+          kPortName5, 4 /* startHostLane */, portSpeed, 4};
       EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(state2))
           .Times(callTimes)
           .InSequence(s);
@@ -492,7 +516,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         .Times(callTimes)
         .InSequence(s);
     if (multiPort) {
-      EXPECT_CALL(*mockXcvr, configureModule(2 /* startHostLane */))
+      EXPECT_CALL(*mockXcvr, configureModule(4 /* startHostLane */))
           .Times(callTimes)
           .InSequence(s);
     }
@@ -573,11 +597,9 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
   const TransceiverID id_ = TransceiverID(0);
   const std::vector<TransceiverID> stableXcvrIds_ = {id_};
   const PortID portId1_ = PortID(1);
-  const PortID portId3_ = PortID(3);
+  const PortID portId5_ = PortID(5);
   const cfg::PortProfileID profile_ =
       cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL;
-  const cfg::PortProfileID multiPortProfile_ =
-      cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL;
   const TransceiverManager::OverrideTcvrToPortAndProfile
       overrideTcvrToPortAndProfile_ = {
           {id_,
@@ -588,8 +610,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       overrideMultiPortTcvrToPortAndProfile_ = {
           {id_,
            {
-               {portId1_, multiPortProfile_},
-               {portId3_, multiPortProfile_},
+               {portId1_, profile_},
+               {portId5_, profile_},
            }}};
   const TransceiverManager::OverrideTcvrToPortAndProfile
       emptyOverrideTcvrToPortAndProfile_ = {};
@@ -1133,7 +1155,7 @@ TEST_F(TransceiverStateMachineTest, removeTransceiver) {
               false /* up */, true /* enabled */, portId1_);
           if (multiPort) {
             updateTransceiverActiveState(
-                false /* up */, true /* enabled */, portId3_);
+                false /* up */, true /* enabled */, portId5_);
           }
         },
         [this]() { verifyResetProgrammingAttributes(); },
@@ -1190,7 +1212,7 @@ TEST_F(TransceiverStateMachineTest, removeTransceiverFailed) {
               false /* up */, true /* enabled */, portId1_);
           if (multiPort) {
             updateTransceiverActiveState(
-                false /* up */, true /* enabled */, portId3_);
+                false /* up */, true /* enabled */, portId5_);
           }
           // Then try again, it should succeed
           transceiverManager_->updateStateBlocking(
@@ -1318,7 +1340,7 @@ TEST_F(TransceiverStateMachineTest, remediateCmisMultiPortTransceiver) {
           updateTransceiverActiveState(
               true /* up */, true /* enabled */, portId1_);
           updateTransceiverActiveState(
-              false /* up */, true /* enabled */, portId3_);
+              false /* up */, true /* enabled */, portId5_);
         }
         triggerRemediateEvents();
         MockCmisTransceiverImpl* xcvrImpl =
@@ -2076,14 +2098,14 @@ TEST_F(TransceiverStateMachineTest, programMultiPortTransceiverSequentially) {
   xcvr_ = overrideTransceiver(true /* multiPort */, TransceiverType::CMIS);
   auto verifyPortToLaneMap = [this](bool bothPorts) {
     std::map<std::string, std::vector<int>> expectedHostLaneMap = {
-        {"eth1/1/1", {0, 1}}};
+        {"eth1/1/1", {0, 1, 2, 3}}};
     std::map<std::string, std::vector<int>> expectedMediaLaneMap = {
-        {"eth1/1/1", {0}}};
+        {"eth1/1/1", {0, 1, 2, 3}}};
     if (bothPorts) {
-      std::vector<int> hostLanes = {2, 3};
-      std::vector<int> mediaLanes = {1};
-      expectedHostLaneMap.emplace("eth1/1/3", hostLanes);
-      expectedMediaLaneMap.emplace("eth1/1/3", mediaLanes);
+      std::vector<int> hostLanes = {4, 5, 6, 7};
+      std::vector<int> mediaLanes = {4, 5, 6, 7};
+      expectedHostLaneMap.emplace("eth1/1/5", hostLanes);
+      expectedMediaLaneMap.emplace("eth1/1/5", mediaLanes);
     }
     const auto& info = transceiverManager_->getTransceiverInfo(id_);
     EXPECT_EQ(info.tcvrState()->portNameToHostLanes(), expectedHostLaneMap);
@@ -2100,7 +2122,7 @@ TEST_F(TransceiverStateMachineTest, programMultiPortTransceiverSequentially) {
       onePortInMultiPortTcvrToPortAndProfile_ = {
           {id_,
            {
-               {portId1_, multiPortProfile_},
+               {portId1_, profile_},
            }}};
   transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
       onePortInMultiPortTcvrToPortAndProfile_);

@@ -131,6 +131,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_ACL_COUNTER:
       *count = fs->aclCounterManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_ACL_RANGE:
+      *count = fs->aclRangeManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_ARS:
       *count = fs->arsManager.map().size();
       break;
@@ -163,6 +166,9 @@ sai_status_t sai_get_object_count(
       break;
     case SAI_OBJECT_TYPE_TAM:
       *count = fs->tamManager.map().size();
+      break;
+    case SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD:
+      *count = static_cast<uint32_t>(fs->tamEventThresholdManager.map().size());
       break;
     case SAI_OBJECT_TYPE_TUNNEL:
       *count = fs->tunnelManager.map().size();
@@ -461,6 +467,12 @@ sai_status_t sai_get_object_key(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_ACL_RANGE: {
+      for (const auto& aclRange : fs->aclRangeManager.map()) {
+        object_list[i++].key.object_id = aclRange.second.id;
+      }
+      break;
+    }
     case SAI_OBJECT_TYPE_ARS: {
       for (const auto& ars : fs->arsManager.map()) {
         object_list[i++].key.object_id = ars.second.id;
@@ -525,6 +537,12 @@ sai_status_t sai_get_object_key(
     }
     case SAI_OBJECT_TYPE_TAM: {
       for (const auto& ob : fs->tamManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD: {
+      for (const auto& ob : fs->tamEventThresholdManager.map()) {
         object_list[i++].key.object_id = ob.second.id;
       }
       break;

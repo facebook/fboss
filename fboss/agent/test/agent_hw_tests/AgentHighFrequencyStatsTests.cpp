@@ -27,6 +27,7 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -131,7 +132,7 @@ class AgentHighFrequencyStatsTest : public AgentHwTest {
       int cnt = 100,
       int payloadSize = 6000) {
     folly::MacAddress intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     const int queueId{
         utility::getOlympicQueueId(utility::OlympicQueueType::ECN1)};
     const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp{
@@ -196,7 +197,7 @@ class AgentHighFrequencyStatsTest : public AgentHwTest {
     setupEcmpTraffic(
         portId,
         kDestIp(),
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         true /*disableTtlDecrement*/);
   }
 };

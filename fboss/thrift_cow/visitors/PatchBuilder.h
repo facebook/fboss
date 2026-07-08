@@ -4,7 +4,6 @@
 
 #include <fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h>
 #include <fboss/thrift_cow/gen-cpp2/patch_types.h>
-#include <fboss/thrift_cow/gen-cpp2/patch_visitation.h>
 #include <fboss/thrift_cow/visitors/DeltaVisitor.h>
 #include <fboss/thrift_cow/visitors/TraverseHelper.h>
 

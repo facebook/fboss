@@ -20,7 +20,6 @@ include "fboss/lib/phy/phy.thrift"
 include "fboss/lib/phy/prbs.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
 include "thrift/annotation/python.thrift"
-include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
 
 @thrift.AllowLegacyMissingUris
@@ -38,6 +37,7 @@ const i32 NO_VLAN = -1;
 enum AdminDistance {
   DIRECTLY_CONNECTED = 0,
   STATIC_ROUTE = 1,
+  TE_AGENT = 2,
   OPENR = 10,
   EBGP = 20,
   IBGP = 200,
@@ -129,6 +129,12 @@ struct ClientAndNextHops {
   3: list<common.NextHopThrift> nextHops;
   // will be populated if policy based route or named next hop group is used
   4: optional common.NamedRouteDestination namedRouteDestination;
+  5: optional AdminDistance adminDistance;
+  6: optional bool isPreferred;
+  7: optional RouteCounterID counterID;
+  8: optional switch_config.AclLookupClass classID;
+  // ID assigned by NextHopIDManager to this per-client nexthop set.
+  9: optional i64 clientNextHopSetID;
 }
 
 struct IfAndIP {
@@ -151,6 +157,8 @@ struct RouteDetails {
   10: optional switch_config.AclLookupClass classID;
   11: optional switch_config.SwitchingMode overridenEcmpMode;
   12: optional list<common.NextHopThrift> overridenNextHops;
+  13: optional i64 resolvedNextHopSetID;
+  14: optional i64 normalizedResolvedNextHopSetID;
 }
 
 struct MplsRouteDetails {
@@ -304,6 +312,15 @@ struct FabricLinkMonPortStats {
   4: i64 invalidPayloadCount;
   5: i64 noPendingSeqNumCount;
   6: i64 sequenceNumber;
+}
+
+/*
+ * Per-port statistics for CPU latency monitoring.
+ * Tracks round-trip latency of ICMPv6 probe packets sent out ethernet
+ * ports and received back via the IP2ME (CPU_IS_NHOP) trap mechanism.
+ */
+struct CpuLatencyPortStats {
+  1: double latencyUs;
 }
 
 /*
@@ -675,6 +692,12 @@ enum ClientID {
    * Routes from Open/R daemon on the box
    */
   OPENR = 786,
+
+  /**
+   * Routes and MySid entries programmed via Thrift RPC by the TE agent /
+   * controller (e.g. addUnicastRoutes, addMySidEntries).
+   */
+  TE_AGENT = 800,
 }
 
 struct AclEntryThrift {
@@ -736,6 +759,7 @@ enum HwObjectType {
   IPTUNNEL = 24,
   SYSTEM_PORT = 25,
   FIRMWARE = 26,
+  SRV6 = 27,
 }
 
 exception FbossFibUpdateError {
@@ -1063,9 +1087,6 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   map<i32, InterfaceDetail> getAllInterfaces() throws (
     1: fboss.FbossBaseError error,
   );
-  // DEPRECATED: API will no longer work in agent
-  @cpp.ProcessInEbThreadUnsafe
-  void registerForNeighborChanged() throws (1: fboss.FbossBaseError error);
   list<string> getInterfaceList() throws (1: fboss.FbossBaseError error);
   /*
    * TODO (allwync): get rid of getRouteTable after agent code with thrift
@@ -1277,6 +1298,16 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * on a box
    */
   string getHwDebugDump();
+
+  /*
+   * Enable or disable the SDK dumping register/state logs to disk
+   * (SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME). Disabling clears the attribute so
+   * the SDK stops dumping. Throws if the device/ASIC does not support this.
+   */
+  void setSdkRegDumpEnabled(1: bool enabled) throws (
+    1: fboss.FbossBaseError error,
+  );
+
   /*
    * String formatted information of givens Hw Objects.
    */
@@ -1399,23 +1430,30 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * API to add named next hop groups, named next hop group with same name will be replaced
    */
-  void addOrUpdateNextHopGroups(
-    1: list<common.NamedNextHopGroup> nextHopGroups,
+  void addOrUpdateNamedNextHopGroups(
+    1: list<common.NextHopGroup> nextHopGroups,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
    * API to remove named next hop groups
    */
-  void removeNextHopGroups(1: list<string> name) throws (
+  void deleteNamedNextHopGroups(1: list<string> name) throws (
     1: fboss.FbossBaseError error,
   );
 
   /*
-   * API to get named next hop groups
+   * API to get next hop groups
    */
-  list<common.NamedNextHopGroup> getNextHopGroups(1: list<string> name) throws (
+  list<common.NextHopGroup> getNextHopGroups() throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * API to get named next hop groups, optionally filtered by name
+   */
+  list<common.NextHopGroup> getNamedNextHopGroups(
+    1: list<string> names,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Set all DSCP values for a given forwarding class
@@ -1486,7 +1524,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Get all next hop group names for class in a policy
    */
-  list<common.NamedNextHopGroup> getNextHopGroupsForPolicy(
+  list<common.NextHopGroup> getNextHopGroupsForPolicy(
     1: string policyName,
     2: common.ForwardingClass fc,
   ) throws (1: fboss.FbossBaseError error);
@@ -1526,24 +1564,6 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   void setMacAddrsToBlock(
     1: list<switch_config.MacAndVlan> macAddrsToblock,
   ) throws (1: fboss.FbossBaseError error);
-
-  # Deprecated
-  void addTeFlows(1: list<FlowEntry> teFlowEntries) throws (
-    1: fboss.FbossBaseError error,
-    2: FbossTeUpdateError teFlowError,
-  );
-
-  # Deprecated
-  void deleteTeFlows(1: list<TeFlow> teFlows) throws (
-    1: fboss.FbossBaseError error,
-    2: FbossTeUpdateError teFlowError,
-  );
-
-  # Deprecated
-  void syncTeFlows(1: list<FlowEntry> teFlowEntries) throws (
-    1: fboss.FbossBaseError error,
-    2: FbossTeUpdateError teFlowError,
-  );
 
   # Deprecated
   list<TeFlowDetails> getTeFlowTableDetails() throws (

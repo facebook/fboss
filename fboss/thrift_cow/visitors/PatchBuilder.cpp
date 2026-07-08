@@ -50,10 +50,9 @@ void PatchNodeBuilder::onPathPush(const std::string& tok, ThriftTCType tc) {
 
 void PatchNodeBuilder::onPathPop(std::string&& tok, ThriftTCType /* tc */) {
   auto shouldPrune = true;
-  apache::thrift::visit_union(
+  apache::thrift::op::visit_union_with_tag(
       curPath_.back().get(),
-      [&](const apache::thrift::metadata::ThriftField& /* meta */,
-          auto& patch) {
+      [&](auto, auto& patch) {
         auto checkChild = folly::overload(
             [](Empty& /* b */) -> bool { return false; },
             [](ByteBuffer& b) -> bool { return b.empty(); },
@@ -73,17 +72,17 @@ void PatchNodeBuilder::onPathPop(std::string&& tok, ThriftTCType /* tc */) {
               return !patch.child().has_value();
             });
         shouldPrune = checkChild(patch);
-      });
+      },
+      []() {});
   if (!shouldPrune && incrementallyCompress_) {
     compressPatch(curPath_.back().get());
   }
   XLOG_IF(DBG5, !shouldPrune) << "Keeping patch at tok " << tok;
   curPath_.pop_back();
   if (shouldPrune) {
-    apache::thrift::visit_union(
+    apache::thrift::op::visit_union_with_tag(
         curPath_.back().get(),
-        [&](const apache::thrift::metadata::ThriftField& /* meta */,
-            auto& patch) {
+        [&](auto, auto& patch) {
           auto removeChild = folly::overload(
               [](ByteBuffer&) -> bool {
                 throw std::runtime_error("val nodes should never be a parent");
@@ -104,7 +103,8 @@ void PatchNodeBuilder::onPathPop(std::string&& tok, ThriftTCType /* tc */) {
                 patch.child().reset();
               });
           removeChild(patch);
-        });
+        },
+        []() {});
   }
 }
 
@@ -112,10 +112,9 @@ void PatchNodeBuilder::insertChild(
     PatchNode& node,
     const std::string& key,
     ThriftTCType tc) {
-  apache::thrift::visit_union(
+  apache::thrift::op::visit_union_with_tag(
       node,
-      [&](const apache::thrift::metadata::ThriftField& /* meta */,
-          auto& patch) {
+      [&](auto, auto& patch) {
         PatchNode childPatch = detail_pb::constructEmptyPatch(tc);
         auto insert = folly::overload(
             [](Empty&) -> PatchNode& {
@@ -151,7 +150,8 @@ void PatchNodeBuilder::insertChild(
               return *patch.child();
             });
         curPath_.push_back(insert(patch));
-      });
+      },
+      []() { throw std::runtime_error("unexpected empty PatchNode"); });
 }
 
 void PatchBuilderTraverser::onPushImpl(ThriftTCType tc) {

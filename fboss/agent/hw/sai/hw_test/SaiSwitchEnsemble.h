@@ -42,7 +42,7 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   const SaiSwitch* getHwSwitch() const override {
     return static_cast<const SaiSwitch*>(HwSwitchEnsemble::getHwSwitch());
   }
-  std::vector<PortID> masterLogicalPortIds() const override;
+  std::vector<PortID> getAllMasterLogicalPortIds() const override;
   std::vector<PortID> getAllPortsInGroup(PortID portID) const override;
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override;
   uint64_t getSdkSwitchId() const override;

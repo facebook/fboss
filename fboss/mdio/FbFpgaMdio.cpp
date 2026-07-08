@@ -9,6 +9,7 @@
  */
 
 #include "fboss/mdio/FbFpgaMdio.h"
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 #include <chrono>
 #include <sstream>
@@ -79,7 +80,7 @@ void FbFpgaMdio::clearStatus() {
 
   status = readReg<MdioStatus>();
   if (status.done || status.err) {
-    XLOG(ERR) << folly::sformat(
+    XLOG(ERR) << fmt::format(
         "Failed to clear mdio status for fpgaDevice {}, Prior status reg: {:#x}, after clear: {:#x}",
         io_->getName(),
         priorStatus.reg,

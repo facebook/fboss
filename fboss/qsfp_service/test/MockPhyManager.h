@@ -34,6 +34,15 @@ class MockPhyManager : public PhyManager {
   MOCK_METHOD0(getSystemContainer, MultiPimPlatformSystemContainer*());
   MOCK_METHOD0(getPimStartNum, int());
 
+  void setPortLanesForTest(
+      const PortID& portId,
+      std::vector<LaneID> systemLanes,
+      std::vector<LaneID> lineLanes) {
+    auto wLocked = getWLockedCache(portId);
+    wLocked->systemLanes = std::move(systemLanes);
+    wLocked->lineLanes = std::move(lineLanes);
+  }
+
  private:
   // Mock the pure virtual private methods
   MOCK_METHOD2(

@@ -197,12 +197,12 @@
         },
         "eth1/65/1": {
             "neighbor": "eth1/65/1",
-            "profileID": 30,
+            "profileID": 62,
             "hasTransceiver": true
         },
         "eth1/65/2": {
             "neighbor": "eth1/65/2",
-            "profileID": 30,
+            "profileID": 62,
             "hasTransceiver": true
         }
       },

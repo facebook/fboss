@@ -28,11 +28,7 @@
 extern "C" {
 #include <sai.h>
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiexperimentalvendorswitch.h>
-#else
-#include <saiexperimentalvendorswitch.h>
-#endif
 #endif
 }
 
@@ -260,6 +256,13 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEIGHBOR_ENTRY,
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    using AvailableMySidEntry = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_AVAILABLE_MY_SID_ENTRY,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+#endif
     using IngressAcl = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_INGRESS_ACL,
@@ -861,6 +864,13 @@ struct SaiSwitchTraits {
         bool,
         AttributeCablePropagationDelayMeasurement,
         SaiBoolDefaultFalse>;
+    struct AttributePortCl72RetryEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PortCl72RetryEnable = SaiExtensionAttribute<
+        bool,
+        AttributePortCl72RetryEnable,
+        SaiBoolDefaultFalse>;
     using SwitchingMode = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_SWITCHING_MODE,
@@ -969,6 +979,7 @@ struct SaiSwitchTraits {
 #endif
       std::optional<Attributes::PfcMonitorEnable>,
       std::optional<Attributes::CablePropagationDelayMeasurement>,
+      std::optional<Attributes::PortCl72RetryEnable>,
       std::optional<Attributes::SwitchingMode>>;
 
   // Avoid using SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP as that counts
@@ -1001,6 +1012,8 @@ struct SaiSwitchTraits {
   static const std::vector<sai_stat_id_t>& packetIntegrityError();
   static const std::vector<sai_stat_id_t>&
   fabricInterCellJitterWatermarkStats();
+  static const std::vector<sai_stat_id_t>& deviceWatermarkBytes();
+  static const std::vector<sai_stat_id_t>& customDropBitmapStats();
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -1049,6 +1062,9 @@ SAI_ATTRIBUTE_NAME(Switch, AvailableNextHopGroupEntry)
 SAI_ATTRIBUTE_NAME(Switch, AvailableNextHopGroupMemberEntry)
 SAI_ATTRIBUTE_NAME(Switch, AvailableIpv4NeighborEntry)
 SAI_ATTRIBUTE_NAME(Switch, AvailableIpv6NeighborEntry)
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+SAI_ATTRIBUTE_NAME(Switch, AvailableMySidEntry)
+#endif
 
 SAI_ATTRIBUTE_NAME(Switch, Led)
 SAI_ATTRIBUTE_NAME(Switch, LedReset)
@@ -1158,6 +1174,7 @@ SAI_ATTRIBUTE_NAME(Switch, TriggerSimulatedEccUnCorrectableError)
 SAI_ATTRIBUTE_NAME(Switch, DefaultCpuEgressBufferPool)
 SAI_ATTRIBUTE_NAME(Switch, PfcMonitorEnable)
 SAI_ATTRIBUTE_NAME(Switch, CablePropagationDelayMeasurement)
+SAI_ATTRIBUTE_NAME(Switch, PortCl72RetryEnable)
 SAI_ATTRIBUTE_NAME(Switch, SwitchingMode)
 SAI_ATTRIBUTE_NAME(Switch, TechSupportType)
 SAI_ATTRIBUTE_NAME(Switch, ModuleIdFabricPortList)

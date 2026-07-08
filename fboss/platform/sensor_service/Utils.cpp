@@ -2,7 +2,6 @@
 
 #include "fboss/platform/sensor_service/Utils.h"
 
-#include <array>
 #include <chrono>
 
 #include <exprtk.hpp>
@@ -22,30 +21,27 @@ namespace {
 // Returns true if lhs > rhs, false otherwise.
 struct {
   bool operator()(
-      const std::array<int16_t, 3>& l1,
-      const std::array<int16_t, 3>& l2,
-      uint8_t i = 0) {
-    if (i == 3) {
-      return false;
+      const platform_manager::PmUnitVersion& l1,
+      const platform_manager::PmUnitVersion& l2) {
+    if (*l1.productionState() != *l2.productionState()) {
+      return *l1.productionState() > *l2.productionState();
     }
-    if (l1[i] > l2[i]) {
-      return true;
+    if (*l1.productionSubState() != *l2.productionSubState()) {
+      return *l1.productionSubState() > *l2.productionSubState();
     }
-    if (l1[i] < l2[i]) {
-      return false;
-    }
-    return (*this)(l1, l2, ++i);
+    return *l1.respinVariantIndicator() > *l2.respinVariantIndicator();
   }
   bool operator()(
       const VersionedPmSensor& vSensor1,
       const VersionedPmSensor& vSensor2) {
-    return (*this)(
-        {*vSensor1.productProductionState(),
-         *vSensor1.productVersion(),
-         *vSensor1.productSubVersion()},
-        {*vSensor2.productProductionState(),
-         *vSensor2.productVersion(),
-         *vSensor2.productSubVersion()});
+    if (*vSensor1.productionState() != *vSensor2.productionState()) {
+      return *vSensor1.productionState() > *vSensor2.productionState();
+    }
+    if (*vSensor1.productionSubState() != *vSensor2.productionSubState()) {
+      return *vSensor1.productionSubState() > *vSensor2.productionSubState();
+    }
+    return *vSensor1.respinVariantIndicator() >
+        *vSensor2.respinVariantIndicator();
   }
 } VersionedSensorComparator;
 } // namespace
@@ -81,41 +77,75 @@ float Utils::computeExpression(
 }
 
 std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
-    const PmUnitInfoFetcher& fetcher,
+    const std::optional<platform_manager::PmUnitInfo>& pmUnitInfo,
     const std::string& slotPath,
     std::vector<VersionedPmSensor> versionedSensors) {
   if (versionedSensors.empty()) {
     return std::nullopt;
   }
-  // Sort in a descending order.
+
+  // Keep matching product-name-specific entries if any, else fall back to
+  // entries with no productName.
+  auto hwProd = (pmUnitInfo && pmUnitInfo->eepromProductName())
+      ? pmUnitInfo->eepromProductName().to_optional()
+      : std::nullopt;
+  auto match = [&](const auto& vs) {
+    return hwProd && vs.productName().to_optional() == hwProd;
+  };
+  bool hasMatch =
+      std::any_of(versionedSensors.begin(), versionedSensors.end(), match);
+  std::erase_if(versionedSensors, [&](const auto& vs) {
+    return hasMatch ? !match(vs) : vs.productName().has_value();
+  });
+
+  if (hasMatch) {
+    XLOG(DBG1) << fmt::format(
+        "Using product-name-specific VersionedPmSensor for '{}' at {}",
+        *hwProd,
+        slotPath);
+  } else if (hwProd) {
+    XLOG(DBG1) << fmt::format(
+        "No product-name-specific VersionedPmSensor for '{}' at {}. "
+        "Falling back to universal entries.",
+        *hwProd,
+        slotPath);
+  }
+
+  if (versionedSensors.empty()) {
+    return std::nullopt;
+  }
+
+  // Sort in descending order by version.
   std::sort(
       versionedSensors.begin(),
       versionedSensors.end(),
       VersionedSensorComparator);
-  const auto pmUnitInfo = fetcher.fetch(slotPath);
   // Use the latest PmUnitInfo as the best effort because eventually the latest
   // respins will only be deployed to DC. So more merits to tailor towards them
-  // with an assumption that latest respions will mainly be in the DC.
-  if (!pmUnitInfo) {
+  // with an assumption that latest respins will mainly be in the DC.
+  if (!pmUnitInfo || !pmUnitInfo->version()) {
     XLOG(INFO) << fmt::format(
-        "Fail to fetch PmUnitInfo at {} from PlatformManager. "
+        "No version available for PmUnit at {}. "
         "Fall back to the latest VersionedPmSensor",
         slotPath);
     return versionedSensors.front();
   }
+  const auto& fetchedVersion = *pmUnitInfo->version();
   for (const auto& versionedSensor : versionedSensors) {
     // Find a VersionedSensor that satisfies fetched PmUnitInfo version.
     // i.e. PmUnitInfo version >= VersionedSensor sensor
-    if (!VersionedSensorComparator(
-            {*versionedSensor.productProductionState(),
-             *versionedSensor.productVersion(),
-             *versionedSensor.productSubVersion()},
-            *pmUnitInfo)) {
-      XLOG(INFO) << fmt::format(
-          "Resolved to VersionedPmSensor of version {}.{}.{}",
-          *versionedSensor.productProductionState(),
-          *versionedSensor.productVersion(),
-          *versionedSensor.productSubVersion());
+    platform_manager::PmUnitVersion sensorVersion;
+    sensorVersion.productionState() = *versionedSensor.productionState();
+    sensorVersion.productionSubState() = *versionedSensor.productionSubState();
+    sensorVersion.respinVariantIndicator() =
+        *versionedSensor.respinVariantIndicator();
+    if (!VersionedSensorComparator(sensorVersion, fetchedVersion)) {
+      XLOG(DBG1) << fmt::format(
+          "Resolved to VersionedPmSensor of version {}.{}.{} (productName: {})",
+          *versionedSensor.productionState(),
+          *versionedSensor.productionSubState(),
+          *versionedSensor.respinVariantIndicator(),
+          versionedSensor.productName().value_or("UNSET"));
       return versionedSensor;
     }
   }
@@ -127,6 +157,8 @@ SensorConfig Utils::getConfig() {
   SensorConfig sensorConfig =
       apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
           ConfigLib().getSensorServiceConfig(platformName));
+  ConfigLib::verifyPlatformNameMatches(
+      *sensorConfig.platformName(), platformName.value_or(""));
   if (!ConfigValidator().isValid(sensorConfig)) {
     throw std::runtime_error("Invalid sensor config");
   }

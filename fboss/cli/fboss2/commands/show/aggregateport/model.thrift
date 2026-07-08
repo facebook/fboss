@@ -14,6 +14,13 @@ struct AggregatePortEntry {
   5: i32 minMembers;
   6: list<AggregateMemberPortEntry> members;
   7: optional i32 minMembersToUp;
+  8: list<AggregatePortRifEntry> rifs;
+}
+
+struct AggregatePortRifEntry {
+  1: string osIfName;
+  2: i32 rifID;
+  3: list<string> addresses;
 }
 
 struct AggregateMemberPortEntry {

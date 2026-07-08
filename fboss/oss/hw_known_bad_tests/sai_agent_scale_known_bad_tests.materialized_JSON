@@ -1,0 +1,507 @@
+{
+  "known_bad_tests": {
+    "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk/mono": [
+        {
+          "test_name_regex": "warm_boot.AgentEcmpTest.CreateMaxEcmpGroups$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclTables$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk/multi_switch": [
+        {
+          "test_name_regex": "warm_boot.AgentEcmpTest.CreateMaxEcmpGroups$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclTables$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk3/mono": [
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk3/multi_switch": [
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk4/mono": [
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk4/multi_switch": [
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3/mono": [
+        {
+          "test_name_regex": "AgentEcmpTest.CreateMaxUcmpMembers$"
+        },
+        {
+          "test_name_regex": "AgentEcmpTest.CreateMaxEcmpMembers$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono/fap": [
+        {
+          "test_name_regex": "AgentEcmpTest.CreateMaxUcmpMembers$"
+        },
+        {
+          "test_name_regex": "AgentEcmpTest.CreateMaxEcmpMembers$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk/mono": [
+        {
+          "test_name_regex": "warm_boot.AgentEcmpTest.CreateMaxEcmpGroups$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclTables$"
+        }
+    ],
+    "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk/multi_switch": [
+        {
+          "test_name_regex": "warm_boot.AgentEcmpTest.CreateMaxEcmpGroups$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclTables$"
+        }
+    ],
+    "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk3/mono": [
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk3/multi_switch": [
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk4/mono": [
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk4/multi_switch": [
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "leaba/1.42.8/1.42.8/gibraltar/mono": [
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "leaba/24.8.3001/24.8.3001/gibraltar/mono": [
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "leaba/24.8.3001/24.8.3001/graphene200/mono": [
+        {
+          "test_name_regex": "AgentEcmpTest.CreateMaxUcmpMembers$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/[15].MaxMirroringTest$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/[15].ExceedMaxMirroringTest$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/1.MaxMirroringTest$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/1.ExceedMaxMirroringTest$"
+        }
+    ],
+    "leaba/25.11.4210/25.11.4210/graphene202x/mono": [
+        {
+          "test_name_regex": "AgentEcmpTest.CreateMaxUcmpMembers$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "leaba/25.5.4210/25.5.4210/gibraltar/mono": [
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        }
+    ],
+    "leaba/25.5.4210/25.5.4210/graphene200/mono": [
+        {
+          "test_name_regex": "AgentEcmpTest.CreateMaxUcmpMembers$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/[15].MaxMirroringTest$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/[15].ExceedMaxMirroringTest$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/1.MaxMirroringTest$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/1.ExceedMaxMirroringTest$"
+        }
+    ],
+    "nvda/2505.34/2505.34/spectrum4/multi_switch": [
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "AgentEcmpTest.CreateMaxUcmpMembers$"
+        }
+    ],
+    "nvda/2511.36/2511.36/spectrum4/multi_switch": [
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "AgentEcmpTest.CreateMaxUcmpMembers$"
+        }
+    ]
+  }
+}

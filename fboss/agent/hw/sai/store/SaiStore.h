@@ -644,6 +644,7 @@ class SaiStore {
       SaiObjectStore<SaiAclTableTraits>,
       SaiObjectStore<SaiAclEntryTraits>,
       SaiObjectStore<SaiAclCounterTraits>,
+      SaiObjectStore<SaiAclRangeTraits>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       SaiObjectStore<SaiArsTraits>,
       SaiObjectStore<SaiArsProfileTraits>,
@@ -680,6 +681,7 @@ class SaiStore {
       SaiObjectStore<SaiEnhancedRemoteMirrorTraits>,
       SaiObjectStore<SaiSflowMirrorTraits>,
       SaiObjectStore<SaiMplsNextHopTraits>,
+      SaiObjectStore<SaiTunnelEncapNextHopTraits>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       SaiObjectStore<SaiSrv6SidlistNextHopTraits>,
 #endif
@@ -703,6 +705,7 @@ class SaiStore {
       SaiObjectStore<SaiTamEventAgingGroupTraits>,
 #endif
       SaiObjectStore<SaiTamEventTraits>,
+      SaiObjectStore<SaiTamEventThresholdTraits>,
       SaiObjectStore<SaiTamTransportTraits>,
       SaiObjectStore<SaiTamCollectorTraits>,
       SaiObjectStore<SaiIpInIpTunnelTraits>,

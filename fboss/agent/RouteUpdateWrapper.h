@@ -40,8 +40,9 @@ class RouteUpdateWrapper {
       flat_map<folly::CIDRNetwork, std::pair<InterfaceID, folly::IPAddress>>;
   using RouterIDAndNetworkToInterfaceRoutes =
       boost::container::flat_map<RouterID, PrefixToInterfaceIDAndIP>;
-  using RouterIDToPrefixes = boost::container::
-      flat_map<facebook::fboss::RouterID, std::vector<folly::CIDRNetwork>>;
+  using RouterIDToPrefixes = boost::container::flat_map<
+      facebook::fboss::RouterID,
+      std::vector<std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>>>;
 
   struct ConfigRoutes {
     RouterIDAndNetworkToInterfaceRoutes configRouterIDToInterfaceRoutes;
@@ -52,6 +53,7 @@ class RouteUpdateWrapper {
     std::vector<cfg::StaticMplsRouteWithNextHops> staticMplsRoutesWithNextHops;
     std::vector<cfg::StaticMplsRouteNoNextHops> staticMplsRoutesToNull;
     std::vector<cfg::StaticMplsRouteNoNextHops> staticMplsRoutesToCpu;
+    std::vector<MySidWithNextHops> staticMySids;
   };
   using RouterIDAndClient = std::pair<RouterID, ClientID>;
   using SyncFibFor = std::unordered_set<RouterIDAndClient>;
@@ -68,12 +70,19 @@ class RouteUpdateWrapper {
   };
   virtual ~RouteUpdateWrapper() = default;
   using UpdateStatistics = RoutingInformationBase::UpdateStatistics;
+  // Add an IP route. When `nhops` is provided it is used as the route's
+  // nexthop set; otherwise the wrapper falls back to `entry.getNextHopSet()`.
+  // Callers that derive `entry` from an existing route's forward info must
+  // pass `nhops` explicitly (resolved via `getNextHops(state, fwd)` or
+  // similar) — once inline nexthop storage is removed, `entry.getNextHopSet()`
+  // on such entries will return empty.
   void addRoute(
       RouterID id,
       const folly::IPAddress& network,
       uint8_t mask,
       ClientID clientId,
-      const RouteNextHopEntry& entry);
+      const RouteNextHopEntry& entry,
+      std::optional<RouteNextHopSet> nhops = std::nullopt);
 
   void addRoute(RouterID id, ClientID clientId, const UnicastRoute& route);
   void addRoute(ClientID clientId, const MplsRoute& route);
@@ -99,8 +108,8 @@ class RouteUpdateWrapper {
           _staticMplsRoutesWithNextHops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>&
           _staticMplsRoutesToNull,
-      const std::vector<cfg::StaticMplsRouteNoNextHops>&
-          _staticMplsRoutesToCpu);
+      const std::vector<cfg::StaticMplsRouteNoNextHops>& _staticMplsRoutesToCpu,
+      std::vector<MySidWithNextHops> _staticMySids = {});
   void setRemoteLoopbackInterfaceRoutesToConfig(
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
       const RouterIDToPrefixes& toDel);

@@ -169,10 +169,12 @@ class SaiPortManager {
       const std::vector<phy::PinConfig>& pinConfigs,
       const std::shared_ptr<SaiPortSerdes>& serdes,
       bool zeroPreemphasis = false,
-      const std::optional<std::string>& customCollection = std::nullopt);
+      const std::optional<std::string>& customCollection = std::nullopt,
+      bool skipSerdesProgramming = false);
 
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
+  void triggerCableLengthMeasurement(const std::vector<PortID>& ports);
   const SaiQueueHandle* getQueueHandle(
       PortID swId,
       const SaiQueueConfig& saiQueueConfig) const;
@@ -317,6 +319,11 @@ class SaiPortManager {
   bool rxFrequencyRPMSupported() const;
   bool rxSerdesParametersSupported() const;
   bool rxSNRSupported() const;
+  phy::LinkTrainingStatus getLinkTrainingStatus(
+      const PortSaiId& saiPortId,
+      PortID portID,
+      bool linkTrainingEnabled) const;
+  bool linkTrainingSupportedOnPort(const std::shared_ptr<Port>& swPort) const;
   bool fecCodewordsStatsSupported(PortID portID) const;
   void addPortShelEnable(const std::shared_ptr<Port>& swPort) const;
   void changePortShelEnable(

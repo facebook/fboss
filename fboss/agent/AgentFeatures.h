@@ -29,12 +29,15 @@
  * TODO: move existing flags to this file.
  */
 
+DECLARE_bool(enable_lacp);
+
 DECLARE_bool(dsf_4k);
 DECLARE_bool(dsf_100g_nif_breakout);
 DECLARE_bool(enable_acl_table_chain_group);
 DECLARE_int32(oper_sync_req_timeout);
 DECLARE_bool(hide_fabric_ports);
 DECLARE_bool(hide_management_ports);
+DECLARE_bool(hide_eventor_ports);
 DECLARE_bool(hide_interface_ports);
 
 DECLARE_bool(dsf_subscribe);
@@ -75,7 +78,8 @@ DECLARE_bool(dual_stage_edsw_3q_2q);
 DECLARE_bool(dual_stage_3q_2q_qos);
 DECLARE_bool(janga_test);
 DECLARE_bool(test_fixture);
-DECLARE_bool(tahan800sb_link_training);
+DECLARE_bool(osfp_tray);
+DECLARE_bool(minipack3bta_16rifs);
 
 bool isDualStage3Q2QMode();
 bool isDualStage3Q2QQos();
@@ -95,14 +99,22 @@ DECLARE_int32(ecmp_resource_percentage);
 DECLARE_int32(ars_resource_percentage);
 DECLARE_bool(enable_mysid_resource_protection);
 DECLARE_int32(mysid_resource_percentage);
+DECLARE_bool(srv6);
+DECLARE_bool(enable_srv6_nexthop_resource_protection);
+DECLARE_int32(srv6_nexthop_resource_percentage);
+DECLARE_bool(enable_route_counter_resource_protection);
+DECLARE_int32(route_counter_resource_percentage);
+DECLARE_bool(enable_route_counters_for_named_nhg);
 DECLARE_int32(switch_index_for_testing);
 DECLARE_int32(switch_id_for_testing);
+DECLARE_int32(num_npus_for_testing);
 DECLARE_uint32(counter_refresh_interval);
 
 DECLARE_bool(run_forever);
 DECLARE_bool(run_forever_on_failure);
 
 DECLARE_string(sdk_reg_dump_path_prefix);
+DECLARE_bool(skip_sdk_reg_dump);
 DECLARE_bool(type_dctype1_janga);
 DECLARE_bool(prod_invariant_config_test);
 DECLARE_int32(max_unprocessed_switch_reachability_changes);
@@ -122,6 +134,7 @@ DECLARE_bool(dsf_headroom_pool_size_multiplication_factor_fix);
 DECLARE_bool(ignore_asic_hard_reset_notification);
 DECLARE_bool(cleanup_probed_kernel_data);
 DECLARE_bool(ndp_static_neighbor);
+DECLARE_bool(arp_static_neighbor);
 DECLARE_bool(dsf_single_stage_r128_f40_e16_8k_sys_ports);
 DECLARE_bool(dsf_single_stage_r128_f40_e16_uniform_local_offset);
 DECLARE_bool(hyper_port);
@@ -129,10 +142,13 @@ DECLARE_uint32(ecmp_width);
 DECLARE_bool(enable_th5_ars_scale_mode);
 DECLARE_bool(check_wb_handles);
 DECLARE_bool(enable_fabric_link_monitoring);
+DECLARE_bool(fabric_ports_uniform_local_offset);
+DECLARE_bool(enable_cpu_latency_monitoring);
 DECLARE_bool(lldp_port_drain_state);
 DECLARE_bool(enable_agent_drain);
 DECLARE_bool(enable_state_delta_logging);
 DECLARE_bool(strip_vlan_for_pipeline_bypass);
+DECLARE_bool(observe_rx_packets_without_interface);
 DECLARE_string(state_delta_log_file);
 DECLARE_string(state_delta_log_protocol);
 DECLARE_int32(state_delta_log_timeout_ms);
@@ -147,3 +163,6 @@ DECLARE_bool(qsfp_port_manager_mode);
 DECLARE_bool(verify_fib_nexthop_id_consistency);
 DECLARE_bool(enforce_single_nbr_mac_per_intf);
 DECLARE_int32(max_tx_packets);
+DECLARE_bool(enable_acl_table_redirect_action);
+DECLARE_bool(enable_pfc_priority_to_pg_map);
+DECLARE_bool(enable_port_cl72_retry);

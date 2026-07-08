@@ -24,8 +24,8 @@ void getPfcEnabledStatus(
     bool& pfcTx);
 
 // Verifies if the PFC watchdog config provided matches the one
-// programmed in BCM HW
-void pfcWatchdogProgrammingMatchesConfig(
+// programmed in HW, returns true if they match
+bool pfcWatchdogProgrammingMatchesConfig(
     const HwSwitch* hw,
     const PortID& portId,
     const bool watchdogEnabled,
@@ -54,8 +54,8 @@ void checkSwHwPgCfgMatch(
     const std::shared_ptr<Port>& swPort,
     bool pfcEnable);
 
-// Compare PFC WD configs
-void checkPfcWdSwHwCfgMatch(
+// Compare PFC WD configs, returns true if they match
+bool checkPfcWdSwHwCfgMatch(
     const cfg::PfcWatchdog& swCfg,
     const cfg::PfcWatchdog& hwCfg);
 } // namespace facebook::fboss::utility

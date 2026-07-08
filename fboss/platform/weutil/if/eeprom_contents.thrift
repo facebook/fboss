@@ -43,7 +43,8 @@ struct EepromContents {
   attributes = [
     "\Oncalls('bb_ops_ui')",
     "\JSEnum(shape('flow_enum' => false))",
-    "\GraphQLEnum('NetengFbossPlatformProductionState')",
+    "\GraphQLEnum('XFBNetengFbossPlatformProductionState')",
+    "\GraphQLUnprefixedNamingScheme",
     "\SelfDescriptive",
     "\RelayFlowEnum",
   ],

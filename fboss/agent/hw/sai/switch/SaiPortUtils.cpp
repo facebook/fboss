@@ -10,11 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #if defined(BRCM_SAI_SDK_DNX)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiportextensions.h>
-#else
-#include <saiportextensions.h>
-#endif
 #endif
 #include "fboss/agent/FbossError.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
@@ -212,6 +208,7 @@ phy::FecMode getFecModeFromSaiFecMode(
           break;
         case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528:
         case cfg::PortProfileID::PROFILE_25G_1_NRZ_RS528_COPPER:
+        case cfg::PortProfileID::PROFILE_25G_1_NRZ_RS528_OPTICAL:
         case cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_COPPER:
         case cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_OPTICAL:
         case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER:

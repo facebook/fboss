@@ -119,11 +119,32 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
     for (const auto& clAndNxthops : entry.nextHopMulti().value()) {
       auto clientId = static_cast<ClientID>(*clAndNxthops.clientId());
       auto clientName = apache::thrift::util::enumNameSafe(clientId);
-      out << fmt::format("  Nexthops from client {}\n", clientName);
+      auto prefix =
+          folly::copy(clAndNxthops.isPreferred().value()) ? "> " : "  ";
+      out << fmt::format(
+          "{}Client: {} (Admin Distance: {})\n",
+          prefix,
+          clientName,
+          clAndNxthops.adminDistance().value());
+      if (clAndNxthops.namedNextHopGroup().has_value()) {
+        out << fmt::format(
+            "      Named Next Hop Group: {}\n",
+            *clAndNxthops.namedNextHopGroup());
+      }
+      if (clAndNxthops.clientNextHopSetID().has_value()) {
+        out << fmt::format(
+            "      Client NextHop Set ID: {}\n",
+            clAndNxthops.clientNextHopSetID().value());
+      }
+      out << "      Nexthops:\n";
       for (const auto& nextHop : clAndNxthops.nextHops().value()) {
         out << fmt::format(
-            "    {}\n", show::route::utils::getNextHopInfoStr(nextHop));
+            "        {}\n", show::route::utils::getNextHopInfoStr(nextHop));
       }
+      out << fmt::format(
+          "      Counter Id: {}\n", clAndNxthops.counterID().value());
+      out << fmt::format(
+          "      Class Id: {}\n", clAndNxthops.classID().value());
     }
 
     out << fmt::format("  Action: {}\n", entry.action().value());
@@ -184,11 +205,18 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
           nextHops.size() - entry.overridenNextHops()->size());
     }
 
-    out << fmt::format("  Admin Distance: {}\n", entry.adminDistance().value());
-    out << fmt::format("  Counter Id: {}\n", entry.counterID().value());
-    out << fmt::format("  Class Id: {}\n", entry.classID().value());
     out << fmt::format(
         "  Overridden ECMP mode: {}\n", entry.overridenEcmpMode().value());
+    if (entry.resolvedNextHopSetID().has_value()) {
+      out << fmt::format(
+          "  Resolved NextHop Set ID: {}\n",
+          entry.resolvedNextHopSetID().value());
+    }
+    if (entry.normalizedResolvedNextHopSetID().has_value()) {
+      out << fmt::format(
+          "  Normalized Resolved NextHop Set ID: {}\n",
+          entry.normalizedResolvedNextHopSetID().value());
+    }
   }
 }
 
@@ -217,6 +245,10 @@ CmdShowRouteDetails::RetType CmdShowRouteDetails::createModel(
         cli::ClientAndNextHops clAndNxthopsCli;
         clAndNxthopsCli.clientId() =
             folly::copy(clAndNxthops.clientId().value());
+        if (clAndNxthops.clientNextHopSetID().has_value()) {
+          clAndNxthopsCli.clientNextHopSetID() =
+              clAndNxthops.clientNextHopSetID().value();
+        }
         auto& nextHopAddrs = clAndNxthops.nextHopAddrs().value();
         auto& nextHops = clAndNxthops.nextHops().value();
         if (nextHopAddrs.size() > 0) {
@@ -238,6 +270,28 @@ CmdShowRouteDetails::RetType CmdShowRouteDetails::createModel(
             }
           }
         }
+        if (clAndNxthops.namedRouteDestination().has_value() &&
+            clAndNxthops.namedRouteDestination()->getType() ==
+                NamedRouteDestination::Type::nextHopGroup) {
+          clAndNxthopsCli.namedNextHopGroup() =
+              *clAndNxthops.namedRouteDestination()->nextHopGroup_ref();
+        }
+        auto adminDistPtr =
+            apache::thrift::get_pointer(clAndNxthops.adminDistance());
+        clAndNxthopsCli.adminDistance() = adminDistPtr == nullptr
+            ? "None"
+            : std::to_string(static_cast<int>(*adminDistPtr));
+        auto isPreferredPtr =
+            apache::thrift::get_pointer(clAndNxthops.isPreferred());
+        clAndNxthopsCli.isPreferred() =
+            isPreferredPtr != nullptr && *isPreferredPtr;
+        auto counterIDPtr =
+            apache::thrift::get_pointer(clAndNxthops.counterID());
+        clAndNxthopsCli.counterID() =
+            counterIDPtr == nullptr ? "None" : *counterIDPtr;
+        auto classIDPtr = apache::thrift::get_pointer(clAndNxthops.classID());
+        clAndNxthopsCli.classID() =
+            classIDPtr == nullptr ? "None" : getClassID(*classIDPtr);
         routeDetails.nextHopMulti()->emplace_back(clAndNxthopsCli);
       }
 
@@ -278,7 +332,7 @@ CmdShowRouteDetails::RetType CmdShowRouteDetails::createModel(
           apache::thrift::get_pointer(entry.adminDistance());
       routeDetails.adminDistance() = adminDistancePtr == nullptr
           ? "None"
-          : utils::getAdminDistanceStr(*adminDistancePtr);
+          : std::to_string(static_cast<int>(*adminDistancePtr));
 
       auto counterIDPtr = apache::thrift::get_pointer(entry.counterID());
       routeDetails.counterID() =
@@ -287,11 +341,25 @@ CmdShowRouteDetails::RetType CmdShowRouteDetails::createModel(
       auto classIDPtr = apache::thrift::get_pointer(entry.classID());
       routeDetails.classID() =
           classIDPtr == nullptr ? "None" : getClassID(*classIDPtr);
+      if (entry.namedRouteDestination().has_value() &&
+          entry.namedRouteDestination()->getType() ==
+              NamedRouteDestination::Type::nextHopGroup) {
+        routeDetails.namedNextHopGroup() =
+            *entry.namedRouteDestination()->nextHopGroup_ref();
+      }
+
       auto overrideEcmpModePtr =
           apache::thrift::get_pointer(entry.overridenEcmpMode());
       routeDetails.overridenEcmpMode() = overrideEcmpModePtr == nullptr
           ? "None"
           : apache::thrift::util::enumNameSafe(*overrideEcmpModePtr);
+      if (entry.resolvedNextHopSetID().has_value()) {
+        routeDetails.resolvedNextHopSetID() = *entry.resolvedNextHopSetID();
+      }
+      if (entry.normalizedResolvedNextHopSetID().has_value()) {
+        routeDetails.normalizedResolvedNextHopSetID() =
+            *entry.normalizedResolvedNextHopSetID();
+      }
       model.routeEntries()->push_back(routeDetails);
     }
   }

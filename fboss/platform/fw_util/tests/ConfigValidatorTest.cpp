@@ -201,7 +201,7 @@ TEST(ConfigValidatorTest, ValidPreUpgradeGpioset) {
   PreFirmwareOperationConfig preUpgradeConfig;
   preUpgradeConfig.commandType() = "gpioset";
 
-  // Based on real icecube/icetea config
+  // Based on real icecube config
   GpiosetConfig gpiosetConfig;
   gpiosetConfig.gpioChip() = "fboss_iob_pci.gpiochip.*";
   gpiosetConfig.gpioChipPin() = "66";

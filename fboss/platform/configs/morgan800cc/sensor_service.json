@@ -1,4 +1,5 @@
 {
+  "platformName": "MORGAN800CC",
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
@@ -1703,17 +1704,21 @@
     "perSlotPowerConfigs": [
       {
         "name": "PSU1",
-        "powerSensorName": "PSU0_PIN_MN"
+        "powerSensorName": "PSU0_PIN_MN",
+        "slotPath": "/PSU_SLOT@0"
       },
       {
         "name": "PSU2",
-        "powerSensorName": "PSU1_PIN_MN"
+        "powerSensorName": "PSU1_PIN_MN",
+        "slotPath": "/PSU_SLOT@1"
       }
     ],
     "inputVoltageSensors": [
       "PSU0_VIN",
       "PSU1_VIN"
-    ]
+    ],
+    "minAcPsuCount": 1,
+    "minDcPsuCount": 1
   },
   "temperatureConfigs": [
     {

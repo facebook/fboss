@@ -22,6 +22,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -97,7 +98,7 @@ class AgentAqmTest : public AgentHwTest {
     if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
       if (isDualStage3Q2QQos()) {
-        auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+        auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
         cfg::StreamType streamType =
             *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
         utility::addNetworkAIQueueConfig(
@@ -133,7 +134,7 @@ class AgentAqmTest : public AgentHwTest {
   }
 
   folly::MacAddress getIntfMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
 
   void sendPkt(
@@ -206,7 +207,8 @@ class AgentAqmTest : public AgentHwTest {
         getSw(), masterLogicalPortIds(), true /*interfaceHasSubnet*/);
     if (getAgentEnsemble()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
-      auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto hwAsic =
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
       auto streamType =
           *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
       if (isDualStage3Q2QQos()) {
@@ -314,7 +316,8 @@ class AgentAqmTest : public AgentHwTest {
     AqmTestStats stats{};
     uint64_t queueWatermark{};
     const auto switchType =
-        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
     // Always collect port stats!
     auto portStats = getLatestPortStats(portId);
     if (isEct(ecnVal) || switchType != cfg::SwitchType::VOQ) {
@@ -353,15 +356,10 @@ class AgentAqmTest : public AgentHwTest {
       bool enableWred,
       bool enableEcn,
       bool warmbootTest = false) {
-    if (!isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
-      GTEST_SKIP();
-      return;
-    }
-
     auto kQueueId = utility::getOlympicQueueId(utility::OlympicQueueType::ECN1);
     // For VoQ switch, AQM stats are collected from queue!
     auto useQueueStatsForAqm =
-        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
             ->getSwitchType() == cfg::SwitchType::VOQ;
     auto statsIncremented = [this](
                                 const AqmTestStats& aqmStats, uint8_t ecnVal) {
@@ -419,7 +417,7 @@ class AgentAqmTest : public AgentHwTest {
   void queueWredThresholdSetup(
       cfg::SwitchConfig& config,
       std::span<const int> queueIds) {
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     bool isVoq = asic->getSwitchType() == cfg::SwitchType::VOQ;
     for (int queueId : queueIds) {
       utility::addQueueWredConfig(
@@ -436,7 +434,7 @@ class AgentAqmTest : public AgentHwTest {
   void queueEcnThresholdSetup(
       cfg::SwitchConfig& config,
       std::span<const int> queueIds) {
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     bool isVoq = asic->getSwitchType() == cfg::SwitchType::VOQ;
     for (int queueId : queueIds) {
       utility::addQueueEcnConfig(
@@ -476,10 +474,11 @@ class AgentAqmTest : public AgentHwTest {
     const int kTxPacketLen =
         kPayloadLength + EthHdr::SIZE + IPv6Hdr::size() + TCPHeader::size();
     const std::vector<const HwAsic*> asics{getAgentEnsemble()->getL3Asics()};
-    auto asic = checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsicForTesting(asics);
     // The ECN/WRED threshold are rounded down for TAJO as opposed to being
     // rounded up to the next cell size for Broadcom.
-    bool roundUp = asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO;
+    bool roundUp = asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
+        asic->getAsicType() != cfg::AsicType::ASIC_TYPE_P200;
     int roundedBufferThreshold{
         utility::getRoundedBufferThreshold(asic, thresholdBytes, roundUp)};
     int effectiveBytesPerPacket{static_cast<int>(
@@ -492,6 +491,16 @@ class AgentAqmTest : public AgentHwTest {
           (maxQueueFillLevel - roundedBufferThreshold) /
           effectiveBytesPerPacket;
     }
+
+    // HW programs the marking threshold in getThresholdGranularity() steps
+    // (Chenab: 12288B; 1B on Broadcom), so it can start marking up to one step
+    // above roundedBufferThreshold, leaving that gap's worth of packets
+    // unmarked. Allow that shortfall, converted from bytes to packets via
+    // effectiveBytesPerPacket. Only the queue-fill (no-drop) case needs it.
+    const int markedCountBoundaryTolerance = maxQueueFillLevel > 0
+        ? static_cast<int>(asic->getThresholdGranularity()) /
+            effectiveBytesPerPacket
+        : 0;
 
     // Send enough packets such that the queue gets filled up to the
     // configured ECN/WRED threshold, then send a fixed number of
@@ -597,7 +606,9 @@ class AgentAqmTest : public AgentHwTest {
         //   waiting long enough to for all marked packets to be seen.
         EXPECT_EVENTUALLY_GE(outPackets, kExpectedOutPackets);
         if (isEct(ecnCodePoint)) {
-          EXPECT_EVENTUALLY_GE(ecnMarking, expectedMarkedOrDroppedPacketCount);
+          EXPECT_EVENTUALLY_GE(
+              ecnMarking + markedCountBoundaryTolerance,
+              expectedMarkedOrDroppedPacketCount);
         } else {
           EXPECT_EVENTUALLY_GE(
               wredDrops + outPackets,
@@ -763,8 +774,8 @@ class AgentAqmTest : public AgentHwTest {
               HwAsic::Feature::L3_QOS)) {
         utility::addOlympicQueueConfig(&config, asics);
       }
-      bool isVoq =
-          checkSameAndGetAsic(asics)->getSwitchType() == cfg::SwitchType::VOQ;
+      bool isVoq = checkSameAndGetAsicForTesting(asics)->getSwitchType() ==
+          cfg::SwitchType::VOQ;
       for (int queueId : wredQueueIds) {
         utility::addQueueWredConfig(
             config,
@@ -868,13 +879,13 @@ class AgentAqmWredDropTest : public AgentAqmTest {
     if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
       cfg::StreamType streamType =
-          *checkSameAndGetAsic(ensemble.getL3Asics())
+          *checkSameAndGetAsicForTesting(ensemble.getL3Asics())
                ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                .begin();
       utility::addQueueWredDropConfig(
           &config, streamType, ensemble.getL3Asics());
       // For VoQ switches, add AQM config to VoQ as well.
-      auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+      auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
       if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
         utility::addVoqAqmConfig(
             &config,
@@ -932,6 +943,11 @@ class AgentAqmEcnOnlyTest : public AgentAqmTest {
       const override {
     return {ProductionFeature::ECN};
   }
+
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // AQM tests need full port set for health check
+    return std::nullopt;
+  }
 };
 
 class AgentAqmEcnProbabilisticMarkingTest : public AgentAqmTest {
@@ -954,7 +970,8 @@ class AgentAqmEcnProbabilisticMarkingTest : public AgentAqmTest {
         getSw(), masterLogicalPortIds(), true /*interfaceHasSubnet*/);
     if (getAgentEnsemble()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
-      auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto hwAsic =
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
       auto streamType =
           *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
       bool isVoq = hwAsic->getSwitchType() == cfg::SwitchType::VOQ;

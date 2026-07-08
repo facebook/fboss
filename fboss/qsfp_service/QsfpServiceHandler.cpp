@@ -6,6 +6,7 @@
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
+#include "fboss/qsfp_service/SdkDumpPath.h"
 
 #include <fboss/lib/LogThriftCall.h>
 #include <folly/logging/xlog.h>
@@ -150,6 +151,47 @@ void QsfpServiceHandler::getPortTransceiverIDs(
   tcvrManager_->getPortTransceiverIDs(portTransceiverIds);
 }
 
+void QsfpServiceHandler::getTransceiverInfoByPortName(
+    std::map<std::string, TransceiverInfo>& info,
+    std::unique_ptr<std::vector<std::string>> portNames) {
+  auto log = LOG_THRIFT_CALL(INFO);
+
+  // Get port name -> transceiver ID mapping (single ID per port)
+  const auto& portNameToModule = tcvrManager_->getPortNameToModuleMap();
+
+  // Collect unique transceiver IDs and build reverse mapping
+  std::set<int32_t> neededIds;
+  std::unordered_map<int32_t, std::vector<std::string>> tcvrIdToPortNames;
+  for (const auto& name : *portNames) {
+    auto it = portNameToModule.find(name);
+    if (it != portNameToModule.end()) {
+      auto tcvrId = it->second;
+      neededIds.insert(tcvrId);
+      tcvrIdToPortNames[tcvrId].push_back(name);
+    }
+  }
+
+  if (neededIds.empty()) {
+    return;
+  }
+
+  // Fetch transceiver info for those IDs
+  auto idVec = std::make_unique<std::vector<int32_t>>(
+      neededIds.begin(), neededIds.end());
+  std::map<int32_t, TransceiverInfo> tcvrInfo;
+  tcvrManager_->getTransceiversInfo(tcvrInfo, std::move(idVec));
+
+  // Map back to all port names sharing each transceiver
+  for (const auto& [tcvrId, tcvr] : tcvrInfo) {
+    auto it = tcvrIdToPortNames.find(tcvrId);
+    if (it != tcvrIdToPortNames.end()) {
+      for (const auto& name : it->second) {
+        info[name] = tcvr;
+      }
+    }
+  }
+}
+
 void QsfpServiceHandler::getTransceiverConfigValidationInfo(
     std::map<int32_t, std::string>& info,
     std::unique_ptr<std::vector<int32_t>> ids,
@@ -269,6 +311,14 @@ void QsfpServiceHandler::writeTransceiverRegister(
   auto page_ref = param.page();
   if (page_ref.has_value() && *page_ref < 0) {
     throw FbossError("Page cannot be < 0");
+  }
+  auto length_ref = param.length();
+  if (length_ref.has_value()) {
+    if (*length_ref < 0 || *length_ref > 255) {
+      throw FbossError("Length cannot be < 0 or > 255");
+    } else if (*length_ref + offset > 256) {
+      throw FbossError("Offset + Length cannot be > 256");
+    }
   }
   tcvrManager_->writeTransceiverRegister(response, std::move(request));
 }
@@ -473,10 +523,16 @@ void QsfpServiceHandler::listHwObjects(
 
 bool QsfpServiceHandler::getSdkState(std::unique_ptr<std::string> fileName) {
   auto log = LOG_THRIFT_CALL(INFO);
+  // Confine the SDK debug dump to a service-owned directory. This rejects
+  // empty/absolute/parent-traversing inputs and reduces the request to a
+  // basename so a caller cannot overwrite arbitrary root-owned files.
+  auto safePath = sanitizeSdkDumpPath(*fileName);
   if (FLAGS_port_manager_mode) {
-    return portManager_->getSdkState(*fileName);
+    return portManager_->getSdkState(safePath);
   } else {
-    return tcvrManager_->getSdkState(*fileName);
+    // TransceiverManager::getSdkState takes its argument by value; move into it
+    // to avoid an unnecessary copy of the sanitized path.
+    return tcvrManager_->getSdkState(std::move(safePath));
   }
 }
 
@@ -558,6 +614,54 @@ void QsfpServiceHandler::saiPhySerdesRegisterAccess(
     out = tcvrManager_->saiPhySerdesRegisterAccess(
         *portName, opRead, mdioAddr, side, serdesLane, regOffset, data);
   }
+}
+
+void QsfpServiceHandler::ensurePaiDiagShell() {
+  std::lock_guard<std::mutex> lock(paiDiagInitLock_);
+  if (paiDiagShell_) {
+    return;
+  }
+  PhyManager* phyMgr = FLAGS_port_manager_mode ? portManager_->getPhyManager()
+                                               : tcvrManager_->getPhyManager();
+  if (!phyMgr) {
+    throw FbossError("PaiDiagShell: no PhyManager available");
+  }
+  uint64_t switchId = getFirstSaiSwitchIdForPaiDiagShell(phyMgr);
+  paiDiagShell_ = std::make_unique<StreamingPaiDiagShell>(switchId);
+  paiDiagCmdServer_ = std::make_unique<PaiDiagCmdServer>(paiDiagShell_.get());
+  XLOG(INFO) << "PAI diag shell initialized for switchId=0x" << std::hex
+             << switchId;
+}
+
+apache::thrift::ResponseAndServerStream<std::string, std::string>
+QsfpServiceHandler::startPaiDiagShell() {
+  auto log = LOG_THRIFT_CALL(INFO);
+  ensurePaiDiagShell();
+  paiDiagShell_->tryConnect();
+  auto streamAndPublisher =
+      apache::thrift::ServerStream<std::string>::createPublisher(
+          [this]() { paiDiagShell_->markResetPublisher(); });
+  std::string firstPrompt =
+      paiDiagShell_->start(std::move(streamAndPublisher.second));
+  return {firstPrompt, std::move(streamAndPublisher.first)};
+}
+
+void QsfpServiceHandler::producePaiDiagShellInput(
+    std::unique_ptr<std::string> input,
+    std::unique_ptr<ClientInformation> client) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  ensurePaiDiagShell();
+  paiDiagShell_->consumeInput(std::move(input), std::move(client));
+}
+
+void QsfpServiceHandler::paiDiagCmd(
+    std::string& result,
+    std::unique_ptr<std::string> input,
+    std::unique_ptr<ClientInformation> client) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  ensurePaiDiagShell();
+  std::lock_guard<std::mutex> lock(paiDiagCmdLock_);
+  result = paiDiagCmdServer_->paiDiagCmd(std::move(input), std::move(client));
 }
 
 void QsfpServiceHandler::phyConfigCheckHw(

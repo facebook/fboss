@@ -4,10 +4,13 @@
     "counter_refresh_interval": "0",
     "disable_neighbor_updates": "true",
     "ecmp_width": "320",
+    "enable_1to1_intf_route_table_mapping": "true",
+    "enable_nexthop_id_manager": "true",
     "enable_replayer": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
-    "sai_configure_six_tap": "true"
+    "sai_configure_six_tap": "true",
+    "verify_fib_nexthop_id_consistency": "true"
   },
   "sw": {
     "version": 0,
@@ -3470,7 +3473,7 @@
       },
       {
         "logicalID": 264,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -3490,12 +3493,12 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/51/1"
         },
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 45,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3506,7 +3509,7 @@
       },
       {
         "logicalID": 268,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -3526,12 +3529,12 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/51/5"
         },
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 45,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3542,7 +3545,7 @@
       },
       {
         "logicalID": 275,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -3562,12 +3565,12 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/50/1"
         },
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 45,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3578,7 +3581,7 @@
       },
       {
         "logicalID": 279,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -3598,12 +3601,12 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/50/5"
         },
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 45,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3902,13 +3905,13 @@
       },
       {
         "logicalID": 305,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2111,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/56/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3922,48 +3925,12 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/57/1"
         },
         "lookupClasses": [
           
         ],
-        "profileID": 38,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0,
-        "scope": 0,
-        "conditionalEntropyRehash": false
-      },
-      {
-        "logicalID": 306,
-        "state": 1,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 2112,
-        "speed": 400000,
-        "name": "eth1/56/5",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 38,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3974,13 +3941,13 @@
       },
       {
         "logicalID": 316,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2113,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/57/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3994,48 +3961,12 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/56/1"
         },
         "lookupClasses": [
           
         ],
-        "profileID": 38,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0,
-        "scope": 0,
-        "conditionalEntropyRehash": false
-      },
-      {
-        "logicalID": 317,
-        "state": 1,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 2114,
-        "speed": 400000,
-        "name": "eth1/57/5",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 38,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -5586,26 +5517,8 @@
         ]
       },
       {
-        "name": "vlan2112",
-        "id": 2112,
-        "recordStats": true,
-        "routable": true,
-        "ipAddresses": [
-          
-        ]
-      },
-      {
         "name": "vlan2113",
         "id": 2113,
-        "recordStats": true,
-        "routable": true,
-        "ipAddresses": [
-          
-        ]
-      },
-      {
-        "name": "vlan2114",
-        "id": 2114,
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
@@ -6404,20 +6317,8 @@
         "emitTags": false
       },
       {
-        "vlanID": 2112,
-        "logicalPort": 306,
-        "spanningTreeState": 2,
-        "emitTags": false
-      },
-      {
         "vlanID": 2113,
         "logicalPort": 316,
-        "spanningTreeState": 2,
-        "emitTags": false
-      },
-      {
-        "vlanID": 2114,
-        "logicalPort": 317,
         "spanningTreeState": 2,
         "emitTags": false
       },
@@ -8041,40 +7942,12 @@
         "scope": 0
       },
       {
-        "intfID": 2112,
-        "routerID": 0,
-        "vlanID": 2112,
-        "ipAddresses": [
-          "2509::/64",
-          "119.0.0.0/24"
-        ],
-        "mtu": 9000,
-        "isVirtual": false,
-        "isStateSyncDisabled": true,
-        "type": 1,
-        "scope": 0
-      },
-      {
         "intfID": 2113,
         "routerID": 0,
         "vlanID": 2113,
         "ipAddresses": [
-          "2510::/64",
-          "120.0.0.0/24"
-        ],
-        "mtu": 9000,
-        "isVirtual": false,
-        "isStateSyncDisabled": true,
-        "type": 1,
-        "scope": 0
-      },
-      {
-        "intfID": 2114,
-        "routerID": 0,
-        "vlanID": 2114,
-        "ipAddresses": [
-          "2511::/64",
-          "121.0.0.0/24"
+          "2509::/64",
+          "119.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8087,8 +7960,8 @@
         "routerID": 0,
         "vlanID": 2115,
         "ipAddresses": [
-          "2512::/64",
-          "122.0.0.0/24"
+          "2510::/64",
+          "120.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8101,8 +7974,8 @@
         "routerID": 0,
         "vlanID": 2116,
         "ipAddresses": [
-          "2513::/64",
-          "123.0.0.0/24"
+          "2511::/64",
+          "121.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8115,8 +7988,8 @@
         "routerID": 0,
         "vlanID": 2117,
         "ipAddresses": [
-          "2514::/64",
-          "124.0.0.0/24"
+          "2512::/64",
+          "122.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8129,8 +8002,8 @@
         "routerID": 0,
         "vlanID": 2118,
         "ipAddresses": [
-          "2515::/64",
-          "125.0.0.0/24"
+          "2513::/64",
+          "123.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8143,8 +8016,8 @@
         "routerID": 0,
         "vlanID": 2119,
         "ipAddresses": [
-          "2516::/64",
-          "126.0.0.0/24"
+          "2514::/64",
+          "124.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8157,8 +8030,8 @@
         "routerID": 0,
         "vlanID": 2120,
         "ipAddresses": [
-          "2517::/64",
-          "127.0.0.0/24"
+          "2515::/64",
+          "125.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8171,8 +8044,8 @@
         "routerID": 0,
         "vlanID": 2121,
         "ipAddresses": [
-          "2518::/64",
-          "128.0.0.0/24"
+          "2516::/64",
+          "126.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8185,8 +8058,8 @@
         "routerID": 0,
         "vlanID": 2122,
         "ipAddresses": [
-          "2519::/64",
-          "129.0.0.0/24"
+          "2517::/64",
+          "127.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8199,8 +8072,8 @@
         "routerID": 0,
         "vlanID": 2123,
         "ipAddresses": [
-          "2520::/64",
-          "130.0.0.0/24"
+          "2518::/64",
+          "128.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8213,8 +8086,8 @@
         "routerID": 0,
         "vlanID": 2124,
         "ipAddresses": [
-          "2521::/64",
-          "131.0.0.0/24"
+          "2519::/64",
+          "129.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8227,8 +8100,8 @@
         "routerID": 0,
         "vlanID": 2125,
         "ipAddresses": [
-          "2522::/64",
-          "132.0.0.0/24"
+          "2520::/64",
+          "130.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8241,8 +8114,8 @@
         "routerID": 0,
         "vlanID": 2126,
         "ipAddresses": [
-          "2523::/64",
-          "133.0.0.0/24"
+          "2521::/64",
+          "131.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8255,8 +8128,8 @@
         "routerID": 0,
         "vlanID": 2127,
         "ipAddresses": [
-          "2524::/64",
-          "134.0.0.0/24"
+          "2522::/64",
+          "132.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8269,8 +8142,8 @@
         "routerID": 0,
         "vlanID": 2128,
         "ipAddresses": [
-          "2525::/64",
-          "135.0.0.0/24"
+          "2523::/64",
+          "133.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8283,8 +8156,8 @@
         "routerID": 0,
         "vlanID": 2200,
         "ipAddresses": [
-          "2526::/64",
-          "136.0.0.0/24"
+          "2524::/64",
+          "134.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": true,
@@ -8297,8 +8170,8 @@
         "routerID": 0,
         "vlanID": 10,
         "ipAddresses": [
-          "2527::/64",
-          "137.0.0.0/24"
+          "2525::/64",
+          "135.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": true,
@@ -8322,16 +8195,10 @@
     ],
     "acls": [
       {
-        "dscp": 48,
-        "name": "cpuPolicing-high-NetworkControl-dstLocalIp6",
-        "actionType": 1,
-        "lookupClassNeighbor": 2
-      },
-      {
-        "dscp": 48,
-        "name": "cpuPolicing-high-NetworkControl-dstLocalIp4",
-        "actionType": 1,
-        "lookupClassNeighbor": 1
+        "dstIp": "fe80::/10",
+        "srcPort": 0,
+        "name": "cpuPolicing-CPU-Port-linkLocal-v6",
+        "actionType": 1
       },
       {
         "dstIp": "ff02::/16",
@@ -8429,7 +8296,8 @@
       "3": 0,
       "4": 0,
       "700": 255,
-      "786": 10
+      "786": 10,
+      "800": 2
     },
     "sFlowCollectors": [
       
@@ -8476,33 +8344,8 @@
       "trafficPolicy": {
         "matchToAction": [
           {
-            "matcher": "cpuPolicing-high-NetworkControl-dstLocalIp6",
+            "matcher": "cpuPolicing-CPU-Port-linkLocal-v6",
             "action": {
-              "sendToQueue": {
-                "queueId": 9
-              },
-              "toCpuAction": 0,
-              "setTc": {
-                "tcValue": 9
-              },
-              "userDefinedTrap": {
-                "queueId": 9
-              }
-            }
-          },
-          {
-            "matcher": "cpuPolicing-high-NetworkControl-dstLocalIp4",
-            "action": {
-              "sendToQueue": {
-                "queueId": 9
-              },
-              "toCpuAction": 0,
-              "setTc": {
-                "tcValue": 9
-              },
-              "userDefinedTrap": {
-                "queueId": 9
-              }
             }
           },
           {
@@ -8776,7 +8619,7 @@
       "qcmEnable": false,
       "ptpTcEnable": false,
       "l2AgeTimerSeconds": 300,
-      "maxRouteCounterIDs": 0,
+      "maxRouteCounterIDs_DEPRECATED": 0,
       "blockNeighbors": [
         
       ],

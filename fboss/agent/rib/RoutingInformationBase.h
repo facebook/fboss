@@ -9,12 +9,14 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RouteUpdater.h"
+#include "fboss/agent/rib/VrfRouteTable.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -31,16 +33,18 @@ DECLARE_bool(mpls_rib);
 
 namespace facebook::fboss {
 class SwitchState;
-class MultiSwitchForwardingInformationBaseMap;
 class MultiSwitchFibInfoMap;
 class MultiSwitchMySidMap;
 class SwitchIdScopeResolver;
 class StateDelta;
 
-template <typename AddressT, typename FibType>
-void reconstructRibFromFib(
+// Rebuilds the RIB from a FIB plus an explicit set of unresolved routes.
+// Used by the rollback path on FbossHwUpdateError.
+template <typename AddressT, typename FibType, typename IndexT>
+void reconstructRib(
     const std::shared_ptr<FibType>& fib,
-    NetworkToRouteMap<AddressT>* addrToRoute);
+    NetworkToRouteMap<AddressT>* addrToRoute,
+    const IndexT& unresolvedIndex);
 
 void reconstructMySidTableFromSwitchState(
     const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
@@ -61,6 +65,26 @@ using RibMySidToSwitchStateFunction = std::function<StateDelta(
     const NextHopIDManager* nextHopIDManager,
     const MySidTable& mySidTable,
     void* cookie)>;
+
+// Each pair is (MySid state object, its unresolved next-hop set). The
+// next-hop set is empty for DECAPSULATE_AND_LOOKUP and populated for
+// others. Bundling them in a pair keeps the
+// MySid with its associated next hops and optional next hop group name.
+// These three pieces of data are inseparable across all RIB / ConfigApplier
+// call sites that consume config-derived MySid state.
+struct MySidWithNextHops {
+  std::shared_ptr<MySid> mySid;
+  RouteNextHopSet nextHopSet;
+  std::optional<std::string> nextHopGroupName;
+};
+
+// (prefix-key for the MySid, IP of the removed neighbor). Used by the
+// observer-driven neighbor-removal path: RIB clears unresolveNextHopsId
+// + resolvedNextHopsId iff the materialized unresolved next-hop set
+// contains a next-hop with this IP. The match check happens RIB-side
+// because only the rib's NextHopIDManager can materialize a NextHopSetID.
+using MySidNeighborRemoved = std::pair<folly::CIDRNetworkV6, folly::IPAddress>;
+
 /*
  * RibRouteTables provides a thread safe abstraction for maintaining Rib data
  * structures and programming them down to the FIB. Its designed to abstract
@@ -68,6 +92,11 @@ using RibMySidToSwitchStateFunction = std::function<StateDelta(
  * lookups that are not encumbered by long HW write cycles
  */
 class RibRouteTables {
+  // NextHopIDManager iterates unresolved RIB routes inside
+  // reconstructFromSwitchStateMaps to rebuild refcounts for per-client
+  // clientNextHopSetIDs that the FIB walk can't see.
+  friend class NextHopIDManager;
+
  public:
   RibRouteTables() = default;
 
@@ -84,6 +113,41 @@ class RibRouteTables {
         });
   }
 
+  // Test-only accessors for the per-VRF unresolved-routes indexes. Return
+  // copies so the caller observes a stable snapshot.
+  std::unordered_map<
+      folly::CIDRNetworkV4,
+      std::shared_ptr<Route<folly::IPAddressV4>>>
+  getUnresolvedV4RoutesForTest(const RouterID& vrf) const {
+    return synchronizedRouteTables_.withRLock([&vrf](const auto& routeTables) {
+      return routeTables.routerIDToRouteTable.at(vrf).unresolvedV4Routes;
+    });
+  }
+  std::unordered_map<
+      folly::CIDRNetworkV6,
+      std::shared_ptr<Route<folly::IPAddressV6>>>
+  getUnresolvedV6RoutesForTest(const RouterID& vrf) const {
+    return synchronizedRouteTables_.withRLock([&vrf](const auto& routeTables) {
+      return routeTables.routerIDToRouteTable.at(vrf).unresolvedV6Routes;
+    });
+  }
+  std::unordered_map<LabelID, std::shared_ptr<Route<LabelID>>>
+  getUnresolvedMplsRoutesForTest(const RouterID& vrf) const {
+    return synchronizedRouteTables_.withRLock([&vrf](const auto& routeTables) {
+      return routeTables.routerIDToRouteTable.at(vrf).unresolvedMplsRoutes;
+    });
+  }
+
+  void addOrUpdateNamedNextHopGroups(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
+      void* cookie);
+
+  void deleteNamedNextHopGroups(
+      const std::vector<std::string>& names,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
   template <typename RouteType, typename RouteIdType>
   void update(
       const SwitchIdScopeResolver* resolver,
@@ -95,11 +159,20 @@ class RibRouteTables {
       bool resetClientsRoutes,
       folly::StringPiece updateType,
       const RibToSwitchStateFunction& ribToSwitchStateFunc,
-      void* cookie);
+      void* cookie,
+      std::size_t* cyclesDetectedOut = nullptr);
 
   void update(
       const SwitchIdScopeResolver* resolver,
       const std::vector<MySidEntry>& toAdd,
+      const std::vector<IpPrefix>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+
+  void update(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidWithNextHops>& toAdd,
+      const std::vector<MySidNeighborRemoved>& toUnresolveIfMatch,
       const std::vector<IpPrefix>& toDelete,
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
@@ -147,6 +220,7 @@ class RibRouteTables {
           staticMplsRoutesWithNextHops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
+      const std::vector<MySidWithNextHops>& staticMySids,
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
@@ -155,7 +229,9 @@ class RibRouteTables {
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
       const boost::container::flat_map<
           facebook::fboss::RouterID,
-          std::vector<folly::CIDRNetwork>>& toDel,
+          std::vector<
+              std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>>>&
+          toDel,
       const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
 
@@ -206,33 +282,6 @@ class RibRouteTables {
   void updateEcmpOverrides(const StateDelta& delta);
 
  private:
-  struct VrfRouteTable {
-    IPv4NetworkToRouteMap v4NetworkToRoute;
-    IPv6NetworkToRouteMap v6NetworkToRoute;
-    LabelToRouteMap labelToRoute;
-
-    bool operator==(const VrfRouteTable& other) const {
-      return v4NetworkToRoute == other.v4NetworkToRoute &&
-          v6NetworkToRoute == other.v6NetworkToRoute;
-    }
-    bool operator!=(const VrfRouteTable& other) const {
-      return !(*this == other);
-    }
-    std::shared_ptr<Route<folly::IPAddressV4>> longestMatch(
-        const folly::IPAddressV4& addr) const {
-      auto it = v4NetworkToRoute.longestMatch(addr, addr.bitCount());
-      return it == v4NetworkToRoute.end() ? nullptr : it->value();
-    }
-    std::shared_ptr<Route<folly::IPAddressV6>> longestMatch(
-        const folly::IPAddressV6& addr) const {
-      auto it = v6NetworkToRoute.longestMatch(addr, addr.bitCount());
-      return it == v6NetworkToRoute.end() ? nullptr : it->value();
-    }
-    state::RouteTableFields toThrift() const;
-    static VrfRouteTable fromThrift(const state::RouteTableFields&);
-    state::RouteTableFields warmBootState() const;
-  };
-
   void updateFib(
       const SwitchIdScopeResolver* resolver,
       RouterID vrf,
@@ -251,6 +300,14 @@ class RibRouteTables {
       void* cookie);
   template <typename RibUpdateFn>
   void updateRibMySids(const RibUpdateFn& updateRibFn);
+
+  /*
+   * Named next-hop group updates
+   */
+  template <typename RibUpdateFn>
+  void updateRibNamedNextHopGroups(const RibUpdateFn& updateRibFn);
+  void updateFibNamedNextHopGroups(
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
@@ -277,10 +334,26 @@ class RibRouteTables {
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFibs);
 
+  // Shared implementation for both MySid update() overloads.
+  void updateMySidsImpl(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidWithNextHops>& toAdd,
+      const std::vector<MySidNeighborRemoved>& toUnresolveIfMatch,
+      const std::vector<IpPrefix>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+
   RouterIDToRouteTable constructRouteTables(
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
       const RouterIDAndNetworkToInterfaceRoutes&
           configRouterIDToInterfaceRoutes) const;
+
+  // Stamps missing clientNextHopSetID, resolvedNextHopSetID, and
+  // normalizedResolvedNextHopSetID on routes from a pre-feature warmboot
+  // snapshot. No-op when manager is null or IDs are already set.
+  // TODO: remove once FLAGS_enable_nexthop_id_manager is permanently on.
+  static void backfillNextHopIds(
+      const SynchronizedRouteTables::WLockedPtr& lockedRouteTables);
 
   SynchronizedRouteTables synchronizedRouteTables_;
 };
@@ -302,6 +375,7 @@ class RoutingInformationBase {
     std::size_t mplsRoutesAdded{0};
     std::size_t mplsRoutesDeleted{0};
     std::chrono::microseconds duration{0};
+    std::size_t resolutionCyclesDetected{0};
   };
 
   /*
@@ -324,7 +398,7 @@ class RoutingInformationBase {
    * admin distance via its clientID.  This is accomplished by a mapping from
    * client IDs to admin distances provided in configuration. Unfortunately,
    * this mapping is exposed via SwSwitch, which we can't a dependency on here.
-   * The adminDistanceFromClientID allows callsites to propogate admin distances
+   * The adminDistanceFromClientID allows callsites to propagate admin distances
    * per client.
    */
   UpdateStatistics update(
@@ -361,6 +435,57 @@ class RoutingInformationBase {
       const RibMySidToSwitchStateFunction ribMySidToSwitchStateFunc,
       void* cookie);
   /*
+   * Update mySids in RIB and switchState from pre-built MySid state objects.
+   * Used by the config-driven path (SwSwitch::applyMySidConfig).
+   * Each entry in toAdd is (MySid state object, its unresolved next-hop set).
+   * The next-hop set is empty for DECAPSULATE_AND_LOOKUP entries;
+   * populated for others.
+   *
+   * The synchronous overload blocks until the rib event-base thread finishes
+   * applying the update and rethrows any exception on the caller's thread.
+   * The async overload enqueues the update fire-and-forget on the rib event
+   * base — required for callers that must not block (e.g., StateObservers
+   * running on the SwSwitch update thread, where a synchronous rib update
+   * would deadlock with the rib's own state-update callbacks).
+   */
+  void update(
+      const SwitchIdScopeResolver* resolver,
+      std::vector<MySidWithNextHops> toAdd,
+      std::vector<MySidNeighborRemoved> toUnresolveIfMatch,
+      std::vector<IpPrefix> toDelete,
+      folly::StringPiece updateType,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie) {
+    updateMySidImpl(
+        resolver,
+        std::move(toAdd),
+        std::move(toUnresolveIfMatch),
+        std::move(toDelete),
+        updateType,
+        ribMySidToSwitchStateFunc,
+        cookie,
+        false /* async */);
+  }
+
+  void updateAsync(
+      const SwitchIdScopeResolver* resolver,
+      std::vector<MySidWithNextHops> toAdd,
+      std::vector<MySidNeighborRemoved> toUnresolveIfMatch,
+      std::vector<IpPrefix> toDelete,
+      folly::StringPiece updateType,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie) {
+    updateMySidImpl(
+        resolver,
+        std::move(toAdd),
+        std::move(toUnresolveIfMatch),
+        std::move(toDelete),
+        updateType,
+        ribMySidToSwitchStateFunc,
+        cookie,
+        true /* async */);
+  }
+  /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
    * folly::IPAddress). An example of an element in this map is: (RouterID(0),
@@ -384,6 +509,7 @@ class RoutingInformationBase {
           staticMplsRoutesWithNextHops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
+      const std::vector<MySidWithNextHops>& staticMySids,
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
@@ -392,7 +518,9 @@ class RoutingInformationBase {
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
       const boost::container::flat_map<
           facebook::fboss::RouterID,
-          std::vector<folly::CIDRNetwork>>& toDel,
+          std::vector<
+              std::pair<folly::CIDRNetwork, facebook::fboss::InterfaceID>>>&
+          toDel,
       const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
 
@@ -458,7 +586,7 @@ class RoutingInformationBase {
   template <typename AddressT>
   std::shared_ptr<Route<AddressT>> longestMatch(
       const AddressT& address,
-      RouterID vrf) const {
+      const RouterID& vrf) const {
     return ribTables_.longestMatch(address, vrf);
   }
 
@@ -482,6 +610,37 @@ class RoutingInformationBase {
     return ribTables_.getNextHopIDManagerCopy();
   }
 
+  // Test-only accessors for the per-VRF unresolved-routes indexes.
+  std::unordered_map<
+      folly::CIDRNetworkV4,
+      std::shared_ptr<Route<folly::IPAddressV4>>>
+  getUnresolvedV4RoutesForTest(const RouterID& vrf) const {
+    return ribTables_.getUnresolvedV4RoutesForTest(vrf);
+  }
+  std::unordered_map<
+      folly::CIDRNetworkV6,
+      std::shared_ptr<Route<folly::IPAddressV6>>>
+  getUnresolvedV6RoutesForTest(const RouterID& vrf) const {
+    return ribTables_.getUnresolvedV6RoutesForTest(vrf);
+  }
+  std::unordered_map<LabelID, std::shared_ptr<Route<LabelID>>>
+  getUnresolvedMplsRoutesForTest(const RouterID& vrf) const {
+    return ribTables_.getUnresolvedMplsRoutesForTest(vrf);
+  }
+
+  // Named next-hop group operations. These run on the RIB thread to ensure
+  // thread-safe access to NextHopIDManager. Allocation/deallocation is followed
+  // by a state update callback (under rlock) to sync switch state.
+  void addOrUpdateNamedNextHopGroups(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
+      void* cookie);
+
+  void deleteNamedNextHopGroups(
+      const std::vector<std::string>& names,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
  private:
   void ensureRunning() const;
   void setClassIDImpl(
@@ -490,6 +649,19 @@ class RoutingInformationBase {
       const std::vector<folly::CIDRNetwork>& prefixes,
       RibToSwitchStateFunction ribToSwitchStateFunc,
       std::optional<cfg::AclLookupClass> classId,
+      void* cookie,
+      bool async);
+  // Shared body for update(MySidWithNextHops) and
+  // updateAsync(MySidWithNextHops). Sync mode (async=false) blocks the caller
+  // and rethrows any exception. Async mode (async=true) enqueues the update
+  // fire-and-forget; failures are logged on the rib event-base thread.
+  void updateMySidImpl(
+      const SwitchIdScopeResolver* resolver,
+      std::vector<MySidWithNextHops> toAdd,
+      std::vector<MySidNeighborRemoved> toUnresolveIfMatch,
+      std::vector<IpPrefix> toDelete,
+      folly::StringPiece updateType,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie,
       bool async);
 
@@ -510,5 +682,52 @@ class RoutingInformationBase {
   FbossEventBase ribUpdateEventBase_{"RibUpdateEventBase"};
   RibRouteTables ribTables_;
 };
+
+// ID-only primitive: resolve a NextHopSetID directly against the
+// NextHopIDManager. Throws FbossError if the id is not present in the
+// manager (mirrors FibInfo::resolveNextHopSetFromId behavior).
+// Used by RIB-internal callers that operate before the state is published;
+// caller is responsible for the FLAGS_resolve_nexthops_from_id check.
+RouteNextHopSet getNextHopsFromRib(
+    const NextHopIDManager* manager,
+    NextHopSetID id);
+
+// Resolve per-client nexthops from a per-client RouteNextHopEntry via the
+// NextHopIDManager directly. Used by RIB-internal callers that operate
+// before the state is published. When FLAGS_resolve_nexthops_from_id is on,
+// resolves via clientNextHopSetID against the manager. When off, falls
+// back to entry.getNextHopSet(). Companion to the state-based overload
+// `getClientNextHops(state, entry)` in FibHelpers.h.
+RouteNextHopSet getClientNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry);
+
+// Resolve resolved-side (FIB-resolved) nexthops from a RouteNextHopEntry
+// via the NextHopIDManager directly. Used by RIB-internal callers operating
+// before the state is published. When FLAGS_resolve_nexthops_from_id is on,
+// resolves via resolvedNextHopSetID against the manager. When off, falls
+// back to entry.getNextHopSet(). Companion to FibHelpers::getNextHops.
+RouteNextHopSet getResolvedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry);
+
+// Resolve the non-override normalized nexthops from a RouteNextHopEntry
+// via the NextHopIDManager directly. Used by RIB-internal callers operating
+// before the state is published. When FLAGS_resolve_nexthops_from_id is on,
+// resolves via normalizedResolvedNextHopSetID against the manager. When
+// off, falls back to entry.nonOverrideNormalizedNextHops(). Companion to
+// FibHelpers::getNonOverrideNormalizedNextHops.
+RouteNextHopSet getNonOverrideNormalizedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry);
+
+// Resolve the normalized nexthops from a RouteNextHopEntry via the
+// NextHopIDManager. If the entry has override nexthops (inline for now),
+// returns entry.normalizedNextHops() so the override is honored; otherwise
+// delegates to the ID-aware getNonOverrideNormalizedNextHopsFromRib.
+// Companion to FibHelpers::getNormalizedNextHops.
+RouteNextHopSet getNormalizedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry);
 
 } // namespace facebook::fboss

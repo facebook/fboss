@@ -68,7 +68,11 @@ class ControlLogic {
 
   void setupPidLogics();
   int updateSensorPwms(const SensorData& sensorData, int numFanFailed);
-  std::tuple<bool /*fanAccessFailed*/, int /*rpm*/, uint64_t /*timestamp*/>
+  std::tuple<
+      bool /*fanAccessFailed*/,
+      int /*rpm*/,
+      uint64_t /*timestamp*/,
+      bool /*fanAbsent*/>
   readFanRpm(const Fan& fan);
   void updateOpticsPwms(SensorData& sensorData);
   bool /* pwm update fail */

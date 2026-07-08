@@ -9,13 +9,12 @@
  */
 
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/packet/PktFactory.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
-#include "fboss/agent/packet/IPv4Hdr.h"
-#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -68,7 +67,7 @@ class AgentRouteOverDifferentAddressFamilyNhopTest : public AgentHwTest {
   std::unique_ptr<TxPacket> makeTxPacket(const folly::IPAddress& dstIp) const {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto srcIp = dstIp.isV6() ? folly::IPAddress("100::1")
                               : folly::IPAddress("100.0.0.1");

@@ -22,6 +22,11 @@ class AgentMultiNodeTest : public AgentHwTest {
 
   std::vector<ProductionFeature> getProductionFeaturesVerified() const override;
 
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Multi-node tests need the full port set to form the cluster topology.
+    return std::nullopt;
+  }
+
  protected:
   void setCmdLineFlagOverrides() const override;
 

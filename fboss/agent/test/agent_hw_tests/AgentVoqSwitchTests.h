@@ -49,6 +49,12 @@ class AgentVoqSwitchTest : public AgentHwTest {
     return {ProductionFeature::VOQ};
   }
 
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Hyper-port VoQ latency tests need the full interface-port set for
+    // valid queue-number resolution at the CGM.
+    return std::nullopt;
+  }
+
  protected:
   void
   rxPacketToCpuHelper(uint16_t l4SrcPort, uint16_t l4DstPort, uint8_t queueId);
@@ -70,13 +76,15 @@ class AgentVoqSwitchTest : public AgentHwTest {
       cfg::Scope portScope) {
     auto switchId =
         scopeResolver().scope(getProgrammedState(), port).switchId();
-    const auto& dsfNode =
-        getProgrammedState()->getDsfNodes()->getNodeIf(switchId);
-    auto sysPortOffset = portScope == cfg::Scope::GLOBAL
-        ? dsfNode->getGlobalSystemPortOffset()
-        : dsfNode->getLocalSystemPortOffset();
-    CHECK(sysPortOffset.has_value());
-    return SystemPortID(port.intID() + *sysPortOffset);
+    return facebook::fboss::getSystemPortID(
+        PortID(port.intID()),
+        portScope,
+        getProgrammedState()
+            ->getSwitchSettings()
+            ->getSwitchSettings(
+                HwSwitchMatcher(std::unordered_set<SwitchID>({switchId})))
+            ->getSwitchIdToSwitchInfo(),
+        switchId);
   }
 
   std::string kDscpAclName() const {
@@ -95,14 +103,18 @@ class AgentVoqSwitchTest : public AgentHwTest {
       const std::set<cfg::PortType>& portTypes = {
           cfg::PortType::INTERFACE_PORT,
           cfg::PortType::HYPER_PORT}) {
+    auto switchId = getSwitchIdUnderTest(*getAgentEnsemble());
     auto ports = getProgrammedState()->getPorts()->getAllNodes();
     std::vector<PortDescriptor> portDescs;
     std::for_each(
         ports->begin(),
         ports->end(),
-        [this, &portDescs, &portTypes](const auto& idAndPort) {
+        [this, &portDescs, &portTypes, switchId](const auto& idAndPort) {
           const auto port = idAndPort.second;
-          if (portTypes.find(port->getPortType()) != portTypes.end()) {
+          if (portTypes.contains(port->getPortType()) &&
+              scopeResolver()
+                      .scope(getProgrammedState(), port->getID())
+                      .switchId() == switchId) {
             portDescs.push_back(PortDescriptor(getSystemPortID(
                 PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
           }

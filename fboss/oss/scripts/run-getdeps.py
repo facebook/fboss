@@ -14,9 +14,12 @@ import argparse
 import glob
 import os
 import re
+import shutil
 import subprocess
 import sys
+import sysconfig
 import tempfile
+from pathlib import Path
 
 
 def print_info(msg):
@@ -32,6 +35,7 @@ ARG_NPU_SAI_IMPL = "--npu-sai-impl"
 ARG_NPU_SAI_VERSION = "--npu-sai-version"
 ARG_NPU_SAI_SDK_VERSION = "--npu-sai-sdk-version"
 ARG_NPU_LIBSAI_IMPL_PATH = "--npu-libsai-impl-path"
+ARG_NPU_LIBSAI_IMPL_TARBALL = "--npu-libsai-impl-tarball"
 ARG_NPU_EXPERIMENTS_PATH = "--npu-experiments-path"
 ARG_PHY_SAI_IMPL = "--phy-sai-impl"
 
@@ -41,6 +45,7 @@ ARG_SKIP_INSTALL = "--skip-install"
 ARG_ASAN = "--asan"
 ARG_GETDEPS_HELP = "--getdeps-help"
 ARG_GETDEPS = "getdeps_args"
+ARG_USE_GCC = "--use-gcc"
 
 SUPPORTED_SAI_IMPLS = {
     "SAI_BRCM_IMPL",
@@ -59,6 +64,9 @@ SAI_VERSION_SHAS = {
     "1.16.1": "cf65142d1a1286b5faa24c9ae61b3f955f04724d0bf5ef6e5679298353aa0871",
     "1.16.3": "5c89cdb6b2e4f1b42ced6b78d43d06d22434ddbf423cdc551f7c2001f12e63d9",
     "1.17.1": "05411b13b32abcc50f2f2b78e491e503b2b05e5a1503699abd4cc1b81f90d1ae",
+    "1.17.4": "362640d5398c53e7257daf67ff7044591937a8443bf037748527bb2cd185f660",
+    "1.18.0": "606e35da083056e60e818964bcc0737f229a78f1a150e8aa398bc76b3a360509",
+    "1.18.1": "84f2fbd6bf672abaefddfd78a28fec794e37477bf9702fbb56d7bd53ff930ba3",
 }
 SUPPORTED_SAI_SDK_VERSIONS = {
     # BRCM XGS
@@ -69,7 +77,7 @@ SUPPORTED_SAI_SDK_VERSIONS = {
     "SAI_VERSION_13_3_0_0_ODP",
     "SAI_VERSION_14_0_EA_ODP",
     "SAI_VERSION_14_2_0_0_ODP",
-    "SAI_VERSION_15_0_EA_ODP",
+    "SAI_VERSION_15_4_EA_ODP",
     # BRCM DNX
     "SAI_VERSION_11_7_0_0_DNX_ODP",
     "SAI_VERSION_12_2_0_0_DNX_ODP",
@@ -77,14 +85,20 @@ SUPPORTED_SAI_SDK_VERSIONS = {
     "SAI_VERSION_14_0_EA_DNX_ODP",
     "SAI_VERSION_14_2_0_0_DNX_ODP",
     "SAI_VERSION_15_0_EA_DNX_ODP",
+    "SAI_VERSION_16_0_EA_DNX_ODP",
     # Tajo
     "TAJO_SDK_VERSION_1_42_8",
     "TAJO_SDK_VERSION_24_8_3001",
     "TAJO_SDK_VERSION_25_5_4210",
-    "TAJO_SDK_VERSION_25_11_5210",
+    "TAJO_SDK_VERSION_25_11_4210",
+    "TAJO_SDK_VERSION_26_2_4210",
+    "TAJO_SDK_VERSION_26_2_5210",
+    "TAJO_SDK_VERSION_26_5_5211",
+    "TAJO_SDK_VERSION_26_5_5210",
     # Chenab
     "CHENAB_SAI_SDK_VERSION_2505_34_0_38",
-    "CHENAB_SAI_SDK_VERSION_2511_35_0_19",
+    "CHENAB_SAI_SDK_VERSION_2511_36_0_20",
+    "CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea",
 }
 
 
@@ -121,9 +135,15 @@ def parse_args():
     parser.add_argument(
         ARG_NPU_LIBSAI_IMPL_PATH,
         required=False,
-        # TODO: can we also specify a directory of dynamic libs, or should
-        # we add this to a diff flag
-        help="Full path to libsai_impl.a.",
+        help="Path to a directory containing libsai_impl.a (and optionally "
+        "sai_dependencies.txt and any other SDK libs to stage alongside it).",
+    )
+    parser.add_argument(
+        ARG_NPU_LIBSAI_IMPL_TARBALL,
+        required=False,
+        help="Full path to a pre-built libsai_impl.tar.gz containing lib/ and include/ "
+        f"subdirectories. Mutually exclusive with {ARG_NPU_LIBSAI_IMPL_PATH} and "
+        f"{ARG_NPU_EXPERIMENTS_PATH}.",
     )
     parser.add_argument(
         ARG_NPU_EXPERIMENTS_PATH,
@@ -166,11 +186,24 @@ def parse_args():
         nargs=argparse.REMAINDER,
         help="Arguments to be passed to getdeps.py.",
     )
+    parser.add_argument(
+        ARG_USE_GCC,
+        required=False,
+        action="store_true",
+        help="Stay on GCC instead of auto-switching to Clang.",
+    )
     return parser.parse_args()
 
 
 def path_to(*args):
-    return os.path.join(os.path.dirname(__file__), "..", "..", "..", *args)
+    root = os.environ.get("FBOSS_ROOT") or os.path.join(
+        os.path.dirname(__file__), "..", "..", ".."
+    )
+
+    if not Path(root).is_dir():
+        raise FileNotFoundError(f"Provided root is not valid={root}")
+
+    return os.path.join(root, *args)
 
 
 def detect_toolchain():
@@ -184,10 +217,14 @@ def detect_toolchain():
     """
     try:
         gxx_version = subprocess.run(
-            ["g++", "--version"], capture_output=True, text=True, timeout=5
+            ["g++", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
         )
-    except (subprocess.TimeoutExpired, OSError) as e:
-        print_info(f"Warning: Could not detect compiler: {e}")
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+        print(f"Warning: Could not detect compiler: {e}", file=sys.stderr)
         return None
 
     if gxx_version.returncode != 0:
@@ -242,6 +279,80 @@ def detect_toolchain():
     }
 
 
+def _extract_clang_cxxflags():
+    """Read clang-specific CXXFLAGS from CMakeLists.txt.
+
+    Returns the list of flags, or None if CMakeLists.txt is not found.
+    """
+    cxxflags = []
+    try:
+        with open(os.path.join(os.getcwd(), "CMakeLists.txt")) as f:
+            content = f.read()
+    except FileNotFoundError:
+        print_info("Warning: CMakeLists.txt not found, skipping clang-specific flags")
+        return None
+
+    clang_section_match = re.search(
+        r'if\s*\(\s*CMAKE_CXX_COMPILER_ID\s+MATCHES\s+"Clang"\s*\)(.*?)endif\(\)',
+        content,
+        re.DOTALL | re.IGNORECASE,
+    )
+
+    if clang_section_match:
+        clang_section = clang_section_match.group(1)
+        for line_match in re.finditer(r'CMAKE_CXX_FLAGS.*?"([^"]*)"', clang_section):
+            flags_part = line_match.group(1)
+            for flag in re.findall(r"(-[A-Za-z0-9_\-=]+)", flags_part):
+                cxxflags.append(flag)
+
+    additional_flags = [
+        "-std=c++20",
+        "-Wno-deprecated-ofast",
+        "-Wno-reserved-identifier",
+        "-Wno-unsafe-buffer-usage",
+        "-Wno-logical-op-parentheses",
+        "-Wno-deprecated-declarations",
+        "-Wno-undef",
+    ]
+    for flag in additional_flags:
+        if flag not in cxxflags:
+            cxxflags.insert(0, flag)
+
+    return cxxflags
+
+
+def _detect_python_march_flag(cxxflags):
+    """Detect -march flag from Python sysconfig and append to cxxflags if found."""
+    try:
+        py_cflags = sysconfig.get_config_var("CFLAGS") or ""
+        for token in py_cflags.split():
+            if token.startswith("-march="):
+                if token not in cxxflags:
+                    cxxflags.append(token)
+                    print_info(
+                        f"Added {token} from Python sysconfig"
+                        " to match Cython extensions"
+                    )
+                break
+    except Exception as e:
+        print_info(f"WARNING: failed to detect -march from Python sysconfig: {e}")
+
+
+def _patch_manifests_disable_binutils():
+    """Disable binutils in manifests when using clang."""
+    for manifest in glob.glob(
+        os.path.join(path_to("build", "fbcode_builder", "manifests"), "*")
+    ):
+        if not os.path.isfile(manifest):
+            continue
+        with open(manifest) as f:
+            content = f.read()
+        if "\nbinutils" in content:
+            with open(manifest, "w") as f:
+                f.write(content.replace("\nbinutils", "\n#binutils"))
+            print_info(f"Patching manifest {manifest} to disable binutils")
+
+
 def setup_clang_environment(toolchain_info):
     """
     Set up the environment for building with clang.
@@ -263,45 +374,9 @@ def setup_clang_environment(toolchain_info):
         print_info("Warning: Could not determine target triple")
         return
 
-    # Read clang-specific CXXFLAGS from CMakeLists.txt using regex
-    cxxflags = []
-    try:
-        with open(os.path.join(os.getcwd(), "CMakeLists.txt"), "r") as f:
-            content = f.read()
-    except FileNotFoundError:
-        # CMakeLists.txt not found - this can happen during Docker build
-        print_info("Warning: CMakeLists.txt not found, skipping clang-specific flags")
+    cxxflags = _extract_clang_cxxflags()
+    if cxxflags is None:
         return
-
-    # Extract the clang-specific section: if (CMAKE_CXX_COMPILER_ID MATCHES "Clang") ... endif()
-    clang_section_match = re.search(
-        r'if\s*\(\s*CMAKE_CXX_COMPILER_ID\s+MATCHES\s+"Clang"\s*\)(.*?)endif\(\)',
-        content,
-        re.DOTALL | re.IGNORECASE,
-    )
-
-    if clang_section_match:
-        clang_section = clang_section_match.group(1)
-        # Extract CMAKE_CXX_FLAGS lines and get all flags from them
-        for line_match in re.finditer(r'CMAKE_CXX_FLAGS.*?"([^"]*)"', clang_section):
-            flags_part = line_match.group(1)
-            # Extract individual flags (e.g., -Wno-something, -DFMT_USE_CONSTEVAL=0)
-            for flag in re.findall(r"(-[A-Za-z0-9_\-=]+)", flags_part):
-                cxxflags.append(flag)
-
-    # Add additional flags needed for third-party dependencies
-    additional_flags = [
-        "-std=c++20",
-        "-Wno-deprecated-ofast",
-        "-Wno-reserved-identifier",
-        "-Wno-unsafe-buffer-usage",
-        "-Wno-logical-op-parentheses",
-        "-Wno-deprecated-declarations",
-        "-Wno-undef",
-    ]
-    for flag in additional_flags:
-        if flag not in cxxflags:
-            cxxflags.insert(0, flag)
 
     # Helper to prepend a value to an environment variable
     def prepend_env(new, var, sep=" "):
@@ -321,21 +396,7 @@ def setup_clang_environment(toolchain_info):
     # (folly-python, fbthrift-python, fizz-python, etc.) so their libfolly.so
     # and Cython extensions agree on F14IntrinsicsMode.  The same detection
     # also exists in fboss/github/CMakeLists.txt for direct cmake invocations.
-    try:
-        import sysconfig
-
-        py_cflags = sysconfig.get_config_var("CFLAGS") or ""
-        for token in py_cflags.split():
-            if token.startswith("-march="):
-                if token not in cxxflags:
-                    cxxflags.append(token)
-                    print_info(
-                        f"Added {token} from Python sysconfig"
-                        " to match Cython extensions"
-                    )
-                break
-    except Exception as e:
-        print_info(f"WARNING: failed to detect -march from Python sysconfig: {e}")
+    _detect_python_march_flag(cxxflags)
 
     # Set CXXFLAGS - prepend to existing flags
     prepend_env(" ".join(cxxflags), "CXXFLAGS")
@@ -355,18 +416,7 @@ def setup_clang_environment(toolchain_info):
     prepend_env(llvm_lib_dir, "LD_LIBRARY_PATH", ":")
 
     # Make sure we don't install binutils when we use clang.
-    # This is ugly but makes gcc compatibility simpler.
-    for manifest in glob.glob(
-        os.path.join(path_to("build", "fbcode_builder", "manifests"), "*")
-    ):
-        if not os.path.isfile(manifest):
-            continue
-        with open(manifest, "r") as f:
-            content = f.read()
-        if "\nbinutils" in content:
-            with open(manifest, "w") as f:
-                f.write(content.replace("\nbinutils", "\n#binutils"))
-            print_info(f"Patching manifest {manifest} to disable binutils")
+    _patch_manifests_disable_binutils()
 
 
 def _edit_libsai_manifest(version):
@@ -398,8 +448,10 @@ def _edit_libsai_manifest(version):
 def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
     """Validate SDK artifact paths, stage them, and prepend to CMAKE_PREFIX_PATH.
 
-    Both paths must be provided together. When present, the artifacts are
-    staged into a temporary directory with the lib/ and include/ structure
+    Both paths must be provided together. ``libsai_impl_path`` is a directory
+    that contains libsai_impl.a (and may contain sai_dependencies.txt or
+    additional SDK libs). When present, the artifacts are staged into a
+    temporary directory with the lib/, include/ and experimental/ structure
     that CMake expects, and that directory is prepended to CMAKE_PREFIX_PATH.
     """
     if (libsai_impl_path is None) and (experiments_path is None):
@@ -415,16 +467,21 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
         sys.exit(1)
 
     # Validate paths exist and are non-empty
-    if not os.path.isfile(libsai_impl_path):
+    if not os.path.isdir(libsai_impl_path):
         print_error(
             f"Error: {ARG_NPU_LIBSAI_IMPL_PATH} path does not exist "
-            f"or is not a file: {libsai_impl_path}"
+            f"or is not a directory: {libsai_impl_path}"
         )
         sys.exit(1)
-    if os.path.getsize(libsai_impl_path) == 0:
+    libsai_impl_a = os.path.join(libsai_impl_path, "libsai_impl.a")
+    if not os.path.isfile(libsai_impl_a):
         print_error(
-            f"Error: {ARG_NPU_LIBSAI_IMPL_PATH} file is empty: {libsai_impl_path}"
+            f"Error: {ARG_NPU_LIBSAI_IMPL_PATH} directory does not contain "
+            f"libsai_impl.a: {libsai_impl_path}"
         )
+        sys.exit(1)
+    if os.path.getsize(libsai_impl_a) == 0:
+        print_error(f"Error: libsai_impl.a is empty: {libsai_impl_a}")
         sys.exit(1)
     if not os.path.isdir(experiments_path):
         print_error(
@@ -438,19 +495,32 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
         )
         sys.exit(1)
 
-    # Stage artifacts into a prefix directory with lib/ and include/ subdirs
-    # using symlinks to avoid copying potentially large files.
+    # Stage artifacts into a prefix directory with lib/ and include/ subdirs.
+    # The lib/ symlink points at the source directory so libsai_impl.a and
+    # any siblings (sai_dependencies.txt, extra SDK libs) are visible to CMake.
+    #
+    # Vendor SDKs ship their SAI extension headers flat in the experiments dir
+    # (e.g. <exp>/saiextensions.h and <exp>/saitamextensions.h), but FBOSS
+    # references them with two different include forms: bare (e.g.
+    # <saiextensions.h>, <brcm_sai_extensions.h>) and "experimental/"-prefixed
+    # (e.g. <experimental/saitamextensions.h>). To make both forms resolve
+    # against the single flat directory, stage it twice: as include/ (so bare
+    # includes resolve) and as experimental/ off the staging root (so prefixed
+    # includes resolve, since the staging root is on the include path).
     staging_dir = tempfile.mkdtemp(prefix="fboss_sdk_")
-    lib_dir = os.path.join(staging_dir, "lib")
-    os.makedirs(lib_dir)
-    os.symlink(
-        os.path.abspath(libsai_impl_path),
-        os.path.join(lib_dir, os.path.basename(libsai_impl_path)),
-    )
-    os.symlink(os.path.abspath(experiments_path), os.path.join(staging_dir, "include"))
-    print_info(f"Symlinked {libsai_impl_path} -> {lib_dir}")
+    abs_libsai_impl_path = os.path.abspath(libsai_impl_path)
+    abs_experiments_path = os.path.abspath(experiments_path)
+    os.symlink(abs_libsai_impl_path, os.path.join(staging_dir, "lib"))
+    os.symlink(abs_experiments_path, os.path.join(staging_dir, "include"))
+    os.symlink(abs_experiments_path, os.path.join(staging_dir, "experimental"))
     print_info(
-        f"Symlinked {experiments_path} -> {os.path.join(staging_dir, 'include')}"
+        f"Symlinked {abs_libsai_impl_path} -> {os.path.join(staging_dir, 'lib')}"
+    )
+    print_info(
+        f"Symlinked {abs_experiments_path} -> {os.path.join(staging_dir, 'include')}"
+    )
+    print_info(
+        f"Symlinked {abs_experiments_path} -> {os.path.join(staging_dir, 'experimental')}"
     )
 
     print_info(f"Staged SDK artifacts in {staging_dir}")
@@ -459,6 +529,53 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
     existing = os.environ.get("CMAKE_PREFIX_PATH", "")
     os.environ["CMAKE_PREFIX_PATH"] = (
         f"{staging_dir}:{existing}" if existing else staging_dir
+    )
+
+
+def _get_scratch_path(getdeps_args):
+    """Extract --scratch-path from getdeps args, or return the conventional default."""
+    for i, arg in enumerate(getdeps_args):
+        if arg == "--scratch-path" and i + 1 < len(getdeps_args):
+            return getdeps_args[i + 1]
+        if arg.startswith("--scratch-path="):
+            return arg.split("=", 1)[1]
+    return "/var/FBOSS/tmp_bld_dir"
+
+
+def _prepare_sdk_from_tarball(tarball_path, scratch_path):
+    """Extract a pre-built SDK tarball and prepend its root to CMAKE_PREFIX_PATH.
+
+    The tarball must contain lib/ and include/ subdirectories, as produced by
+    build-helper.py (tar czvf libsai_impl.tar.gz -C output_path lib include).
+
+    Files are extracted to <scratch_path>/installed/sai_impl_tarball/ so they
+    live alongside other getdeps-installed packages rather than in /tmp.
+    """
+    if not os.path.isfile(tarball_path):
+        print_error(
+            f"Error: {ARG_NPU_LIBSAI_IMPL_TARBALL} path does not exist "
+            f"or is not a file: {tarball_path}"
+        )
+        sys.exit(1)
+    if os.path.getsize(tarball_path) == 0:
+        print_error(
+            f"Error: {ARG_NPU_LIBSAI_IMPL_TARBALL} file is empty: {tarball_path}"
+        )
+        sys.exit(1)
+
+    extract_dir = os.path.join(scratch_path, "installed", "sai_impl_tarball")
+    if os.path.exists(extract_dir):
+        shutil.rmtree(extract_dir)
+    os.makedirs(extract_dir)
+    subprocess.run(
+        ["tar", "xzf", tarball_path, "-C", extract_dir],
+        check=True,
+    )
+    print_info(f"Extracted SDK tarball {tarball_path} to {extract_dir}")
+
+    existing = os.environ.get("CMAKE_PREFIX_PATH", "")
+    os.environ["CMAKE_PREFIX_PATH"] = (
+        f"{extract_dir}:{existing}" if existing else extract_dir
     )
 
 
@@ -544,9 +661,23 @@ def main():
 
     _set_build_env_vars(args)
 
-    _conditionally_prepare_sdk_artifacts(
-        args.npu_libsai_impl_path, args.npu_experiments_path
-    )
+    if args.npu_libsai_impl_tarball is not None:
+        if (
+            args.npu_libsai_impl_path is not None
+            or args.npu_experiments_path is not None
+        ):
+            print_error(
+                f"Error: {ARG_NPU_LIBSAI_IMPL_TARBALL} is mutually exclusive with "
+                f"{ARG_NPU_LIBSAI_IMPL_PATH} and {ARG_NPU_EXPERIMENTS_PATH}."
+            )
+            sys.exit(1)
+        _prepare_sdk_from_tarball(
+            args.npu_libsai_impl_tarball, _get_scratch_path(args.getdeps_args)
+        )
+    else:
+        _conditionally_prepare_sdk_artifacts(
+            args.npu_libsai_impl_path, args.npu_experiments_path
+        )
 
     if args.npu_sai_version is not None:
         _edit_libsai_manifest(args.npu_sai_version)
@@ -554,18 +685,49 @@ def main():
     # Detect which toolchain is active and set up environment accordingly
     toolchain_info = detect_toolchain()
 
+    set_clang_cmd = [
+        "update-alternatives",
+        "--set",
+        "gcc",
+        "/usr/local/llvm/bin/clang",
+    ]
+    set_gcc_cmd = [
+        "update-alternatives",
+        "--set",
+        "gcc",
+        "/opt/rh/gcc-toolset-12/root/usr/bin/gcc",
+    ]
     if toolchain_info:
         print_info(f"Detected toolchain: {toolchain_info}")
-        if toolchain_info["type"] == "clang":
+        if args.use_gcc:
+            print_info(f"{ARG_USE_GCC} set, proceeding with GCC")
+            subprocess.run(set_gcc_cmd, check=False)
+        elif toolchain_info["type"] == "clang":
             setup_clang_environment(toolchain_info)
         elif toolchain_info["type"] == "gcc":
-            print_info("Detected GCC compiler, no additional flags needed")
+            print_info("Switching to Clang via update-alternatives...")
+            result = subprocess.run(set_clang_cmd, check=False)
+            if result.returncode != 0:
+                print_error(
+                    "Failed to switch to Clang via update-alternatives. "
+                    f"Please run manually: {' '.join(set_clang_cmd)}"
+                )
+                sys.exit(1)
+            toolchain_info = detect_toolchain()
+            if toolchain_info and toolchain_info["type"] == "clang":
+                setup_clang_environment(toolchain_info)
+            else:
+                print_error(
+                    "Failed to detect Clang after switching. "
+                    f"Please run manually: {' '.join(set_clang_cmd)}"
+                )
+                sys.exit(1)
     # If toolchain_info is None, detect_toolchain() already printed a warning
     # and we'll proceed without environment setup
 
     # Call the real getdeps.py with all arguments
     print_info(f"Executing getdeps.py with args: {args.getdeps_args}")
-    os.execv(getdeps_path, [getdeps_path] + args.getdeps_args)
+    os.execv(getdeps_path, [getdeps_path, *args.getdeps_args])
 
 
 if __name__ == "__main__":

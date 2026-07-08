@@ -1,4 +1,5 @@
 {
+  "platformName": "ICECUBE",
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
@@ -581,6 +582,10 @@
           "name": "MCB_FAN1_INA238_TEMP",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN1_SENSOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
           "compute": "@/1000.0"
         },
         {
@@ -629,6 +634,10 @@
           "name": "MCB_FAN2_INA238_TEMP",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN2_SENSOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
           "compute": "@/1000.0"
         },
         {
@@ -677,6 +686,10 @@
           "name": "MCB_FAN3_INA238_TEMP",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN3_SENSOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
           "compute": "@/1000.0"
         },
         {
@@ -725,6 +738,10 @@
           "name": "MCB_FAN4_INA238_TEMP",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN4_SENSOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
           "compute": "@/1000.0"
         },
         {
@@ -755,6 +772,10 @@
           "name": "MCB_PU925_TPS25990_COME_P12V_TEMP",
           "sysfsPath": "/run/devmap/sensors/LOAD_SWITCH_MONITOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
           "compute": "@/1000.0"
         },
         {
@@ -809,6 +830,10 @@
           "name": "MCB_PU1066_LTC4287_P48V_TEMP",
           "sysfsPath": "/run/devmap/sensors/48V_HSC_MONITOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
           "compute": "@/1000.0"
         },
         {
@@ -841,6 +866,10 @@
           "name": "BMC_U9_THERMAL_SENSOR_TMP1075_TEMP",
           "sysfsPath": "/run/devmap/sensors/RUNBMC_THERMAL_SENSOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 70,
+            "upperCriticalVal": 75
+          },
           "compute": "@/1000.0"
         }
       ]
@@ -874,7 +903,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 100
+            "upperCriticalVal": 95
           },
           "compute": "@/1000.0"
         },
@@ -883,7 +912,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 100
+            "upperCriticalVal": 95
           },
           "compute": "@/1000.0"
         },
@@ -892,7 +921,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp3_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 100
+            "upperCriticalVal": 95
           },
           "compute": "@/1000.0"
         },
@@ -901,7 +930,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 100
+            "upperCriticalVal": 95
           },
           "compute": "@/1000.0"
         },
@@ -910,7 +939,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 100
+            "upperCriticalVal": 95
           },
           "compute": "@/1000.0"
         },
@@ -1820,9 +1849,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 1,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -1875,9 +1904,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 3,
-          "productSubVersion": 10
+          "productionState": 1,
+          "productionSubState": 3,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -1930,9 +1959,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 4,
-          "productSubVersion": 10
+          "productionState": 1,
+          "productionSubState": 4,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -1985,9 +2014,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 5,
-          "productSubVersion": 10
+          "productionState": 1,
+          "productionSubState": 5,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2040,9 +2069,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2095,9 +2124,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2150,9 +2179,64 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 3,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 3,
+          "respinVariantIndicator": 10
+        },
+        {
+          "sensors": [
+            {
+              "name": "SMB_XP0R72V_PB_TRVDD_0_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_ASIC_VOLTAGE_0/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_XP0R72V_PB_TRVDD_1_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_ASIC_VOLTAGE_6/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_XP0R72V_PB_TRVDD_2_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_ASIC_VOLTAGE_3/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_XP0R72V_PB_TRVDD_3_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_ASIC_VOLTAGE_7/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            }
+          ],
+          "productionState": 3,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         }
       ]
     },
@@ -2549,9 +2633,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 1
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 1
         },
         {
           "sensors": [
@@ -2887,9 +2971,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 2
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 2
         }
       ]
     },

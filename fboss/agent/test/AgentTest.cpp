@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/AgentTest.h"
+#include <fmt/core.h>
 #include <folly/gen/Base.h>
 #include <optional>
 #include "fboss/agent/AgentConfig.h"
@@ -11,6 +12,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
@@ -209,7 +211,7 @@ void AgentTest::waitForLinkStatus(
     }
   }
 
-  auto msg = folly::format(
+  auto msg = fmt::format(
       "Unexpected Link status {:d} for {:s}",
       !up,
       folly::join(",", getPortNames(badPorts)));
@@ -309,7 +311,7 @@ PortID AgentTest::getPortID(const std::string& portName) const {
 }
 
 std::optional<VlanID> AgentTest::getVlanIDForTx() const {
-  auto intf = utility::firstInterfaceWithPorts(sw()->getState());
+  auto intf = firstInterfaceWithPortsForTesting(sw()->getState());
   return sw()->getVlanIDForTx(intf);
 }
 

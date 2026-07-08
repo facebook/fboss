@@ -521,6 +521,16 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
     return *multi;
   }
 
+  size_t numClientsForNamedNhg(const std::string& nhgName) const {
+    size_t count = 0;
+    for (const auto& [cid, entry] : getEntryForClients()) {
+      if (entry->getNamedNextHopGroup() == nhgName) {
+        ++count;
+      }
+    }
+    return count;
+  }
+
   bool isPopAndLookup() const {
     auto fwd = this->template safe_cref<switch_state_tags::fwd>();
     const auto nexthops = fwd->getNextHopSet();

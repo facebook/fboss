@@ -139,7 +139,7 @@ class Jericho4Asic : public BroadcomAsic {
       // TODO: update these values for J4
       return -15;
     }
-    return BroadcomAsic::getBufferDynThreshFromScalingFactor(scalingFactor);
+    return HwAsic::getBufferDynThreshFromScalingFactor(scalingFactor);
   }
   uint32_t getThresholdGranularity() const override {
     // TODO: update these values for J4

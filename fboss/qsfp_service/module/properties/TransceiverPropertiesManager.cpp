@@ -16,15 +16,15 @@ namespace {
 int32_t getMediaInterfaceUnionValue(const MediaInterfaceUnion& u) {
   switch (u.getType()) {
     case MediaInterfaceUnion::Type::smfCode:
-      return static_cast<int32_t>(*u.smfCode_ref());
+      return static_cast<int32_t>(*u.smfCode());
     case MediaInterfaceUnion::Type::activeCuCode:
-      return static_cast<int32_t>(*u.activeCuCode_ref());
+      return static_cast<int32_t>(*u.activeCuCode());
     case MediaInterfaceUnion::Type::passiveCuCode:
-      return static_cast<int32_t>(*u.passiveCuCode_ref());
+      return static_cast<int32_t>(*u.passiveCuCode());
     case MediaInterfaceUnion::Type::extendedSpecificationComplianceCode:
-      return static_cast<int32_t>(*u.extendedSpecificationComplianceCode_ref());
+      return static_cast<int32_t>(*u.extendedSpecificationComplianceCode());
     case MediaInterfaceUnion::Type::ethernet10GComplianceCode:
-      return static_cast<int32_t>(*u.ethernet10GComplianceCode_ref());
+      return static_cast<int32_t>(*u.ethernet10GComplianceCode());
     case MediaInterfaceUnion::Type::__EMPTY__:
       return 0;
     default:
@@ -113,7 +113,8 @@ void TransceiverPropertiesManager::initFromJson(const std::string& configJson) {
         .hostInterfaceCode = static_cast<uint8_t>(*adv.hostInterfaceCode()),
         .smfLength = props.smfLength().has_value()
             ? std::optional<int32_t>(*props.smfLength())
-            : std::nullopt};
+            : std::nullopt,
+        .maxNumBanks = adv.maxNumBanks().value_or(1)};
     self.smfDerivationMap_[smfByte].push_back(candidate);
   }
 
@@ -289,7 +290,8 @@ MediaInterfaceCode TransceiverPropertiesManager::deriveSmfCode(
     uint8_t smfByte,
     const std::vector<int>& hostStartLanes,
     uint8_t hostInterfaceCode,
-    int smfLength) {
+    int smfLength,
+    int maxNumBanks) {
   auto& self = instance();
   if (!self.initialized_) {
     throw FbossError("TransceiverPropertiesManager not initialized");
@@ -305,6 +307,9 @@ MediaInterfaceCode TransceiverPropertiesManager::deriveSmfCode(
       continue;
     }
     if (candidate.hostInterfaceCode != hostInterfaceCode) {
+      continue;
+    }
+    if (candidate.maxNumBanks != maxNumBanks) {
       continue;
     }
     if (!candidate.smfLength.has_value() || smfLength == *candidate.smfLength) {

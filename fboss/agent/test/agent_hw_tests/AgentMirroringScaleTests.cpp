@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 
@@ -20,64 +21,45 @@ enum class MirrorType {
   EGRESS_ERSPAN
 };
 
-template <typename AddrType, MirrorType mirrorTypeInput>
+template <MirrorType mirrorTypeInput>
 struct MirrorScaleTestType {
-  using AddrT = AddrType;
   static constexpr auto mirrorType = mirrorTypeInput;
 };
 
-using MirrorIngressSpanV4 =
-    MirrorScaleTestType<folly::IPAddressV4, MirrorType::INGRESS_SPAN>;
-using MirrorEgressSpanV4 =
-    MirrorScaleTestType<folly::IPAddressV4, MirrorType::EGRESS_SPAN>;
-using MirrorIngressErspanV4 =
-    MirrorScaleTestType<folly::IPAddressV4, MirrorType::INGRESS_ERSPAN>;
-using MirrorEgressErspanV4 =
-    MirrorScaleTestType<folly::IPAddressV4, MirrorType::EGRESS_ERSPAN>;
-using MirrorIngressSpanV6 =
-    MirrorScaleTestType<folly::IPAddressV6, MirrorType::INGRESS_SPAN>;
-using MirrorEgressSpanV6 =
-    MirrorScaleTestType<folly::IPAddressV6, MirrorType::EGRESS_SPAN>;
-using MirrorIngressErspanV6 =
-    MirrorScaleTestType<folly::IPAddressV6, MirrorType::INGRESS_ERSPAN>;
-using MirrorEgressErspanV6 =
-    MirrorScaleTestType<folly::IPAddressV6, MirrorType::EGRESS_ERSPAN>;
+using MirrorIngressSpan = MirrorScaleTestType<MirrorType::INGRESS_SPAN>;
+using MirrorEgressSpan = MirrorScaleTestType<MirrorType::EGRESS_SPAN>;
+using MirrorIngressErspan = MirrorScaleTestType<MirrorType::INGRESS_ERSPAN>;
+using MirrorEgressErspan = MirrorScaleTestType<MirrorType::EGRESS_ERSPAN>;
 
+// The IPv4/IPv6 axis is no longer a separate test instantiation; ERSPAN tunnels
+// are created with both families interleaved within a single test (see
+// addMirrorConfig).
 using MirrorTypes = ::testing::Types<
-    MirrorIngressSpanV4,
-    MirrorEgressSpanV4,
-    MirrorIngressErspanV4,
-    MirrorEgressErspanV4,
-    MirrorIngressSpanV6,
-    MirrorEgressSpanV6,
-    MirrorIngressErspanV6,
-    MirrorEgressErspanV6>;
+    MirrorIngressSpan,
+    MirrorEgressSpan,
+    MirrorIngressErspan,
+    MirrorEgressErspan>;
 
 template <typename MirrorT>
 class AgentMirroringScaleTest : public AgentHwTest {
  public:
+  // Only the ingress/egress capability is required to run. v6 ERSPAN is
+  // exercised opportunistically (see addMirrorConfig), gated at runtime on
+  // HwAsic::Feature::ERSPANv6, so it is not listed as a required feature here
+  // (that would skip v4 ERSPAN coverage on platforms without v6 ERSPAN).
+  //
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Scale tests build one mirror session per port pair.
+    return std::nullopt;
+  }
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
-    if constexpr (std::is_same<typename MirrorT::AddrT, folly::IPAddressV6>::
-                      value) {
-      if constexpr (MirrorT::mirrorType == MirrorType::INGRESS_ERSPAN) {
-        return {
-            ProductionFeature::ERSPANV6_MIRRORING,
-            ProductionFeature::INGRESS_MIRRORING};
-      }
-      if constexpr (MirrorT::mirrorType == MirrorType::EGRESS_ERSPAN) {
-        return {
-            ProductionFeature::ERSPANV6_MIRRORING,
-            ProductionFeature::EGRESS_MIRRORING};
-      }
-    }
     if constexpr (
         MirrorT::mirrorType == MirrorType::INGRESS_SPAN ||
         MirrorT::mirrorType == MirrorType::INGRESS_ERSPAN) {
       return {ProductionFeature::INGRESS_MIRRORING};
-    } else if constexpr (
-        MirrorT::mirrorType == MirrorType::EGRESS_SPAN ||
-        MirrorT::mirrorType == MirrorType::EGRESS_ERSPAN) {
+    } else {
       return {ProductionFeature::EGRESS_MIRRORING};
     }
   }
@@ -105,6 +87,16 @@ class AgentMirroringScaleTest : public AgentHwTest {
     return cfg;
   }
 
+  bool isErspan() const {
+    return MirrorT::mirrorType == MirrorType::INGRESS_ERSPAN ||
+        MirrorT::mirrorType == MirrorType::EGRESS_ERSPAN;
+  }
+
+  bool erspanV6Supported(const AgentEnsemble* ensemble) const {
+    auto asic = checkSameAndGetAsicForTesting(ensemble->getL3Asics());
+    return asic->isSupported(HwAsic::Feature::ERSPANv6);
+  }
+
   void addMirrorConfig(
       const AgentEnsemble* ensemble,
       cfg::SwitchConfig* cfg,
@@ -112,18 +104,34 @@ class AgentMirroringScaleTest : public AgentHwTest {
     const auto maxMirrors = getMaxMirrorsEntries(ensemble->getL3Asics());
     const std::string mirrorName =
         getMirrorMode() + "-" + std::to_string(mirrorIndex);
-    utility::addMirrorConfig<typename MirrorT::AddrT>(
-        cfg,
-        *ensemble,
-        mirrorName,
-        false /* truncate */,
-        utility::kDscpDefault,
-        maxMirrors + mirrorIndex /* mirrorToPortIndex */);
+    // Interleave v4 and v6 ERSPAN tunnels across mirror indices so both address
+    // families are exercised at scale within a single test. v6 is used only
+    // where the ASIC supports v6 ERSPAN; otherwise fall back to v4. SPAN
+    // mirrors have no tunnel, so the family is irrelevant (use v4).
+    const bool useV6 =
+        isErspan() && erspanV6Supported(ensemble) && (mirrorIndex % 2 == 1);
+    if (useV6) {
+      utility::addMirrorConfig<folly::IPAddressV6>(
+          cfg,
+          *ensemble,
+          mirrorName,
+          false /* truncate */,
+          utility::kDscpDefault,
+          maxMirrors + mirrorIndex /* mirrorToPortIndex */);
+    } else {
+      utility::addMirrorConfig<folly::IPAddressV4>(
+          cfg,
+          *ensemble,
+          mirrorName,
+          false /* truncate */,
+          utility::kDscpDefault,
+          maxMirrors + mirrorIndex /* mirrorToPortIndex */);
+    }
     addPortMirrorConfig(cfg, *ensemble, mirrorName, mirrorIndex);
   }
 
   uint32_t getMaxMirrorsEntries(const std::vector<const HwAsic*>& asics) const {
-    auto asic = checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsicForTesting(asics);
     uint32_t maxMirrorsEntries = asic->getMaxMirrors();
     if constexpr (
         MirrorT::mirrorType == MirrorType::INGRESS_SPAN ||

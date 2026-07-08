@@ -178,5 +178,212 @@ bool HwTestThriftHandler::isAclEntryMirrored(
     bool /*ingress*/) {
   throw FbossError("isAclEntryMirrored not implemented");
 }
+/*
+ * Verify that the mirror is programmed correctly. This function is used to test
+ * the mirror programming in the SDK. The mirror is expected to be resolved and
+ * programmed in the SDK.
+ * @param mirror MirrorFields object
+ * @return true if the mirror is programmed correctly, false otherwise
+ */
+bool HwTestThriftHandler::verifyResolvedMirror(
+    std::unique_ptr<state::MirrorFields> mirror) {
+  if (!mirror) {
+    XLOG(ERR) << "verifyResolvedMirror: Input MirrorFields is null";
+    return false;
+  }
+
+  if (!mirror->isResolved().value()) {
+    XLOG(DBG2) << "verifyResolvedMirror: " << mirror->name().value()
+               << " is not resolved";
+    return false;
+  }
+
+  BcmSwitch* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch_);
+  const auto* bcmMirrorTable = bcmSwitch->getBcmMirrorTable();
+  auto* bcmMirror = bcmMirrorTable->getNodeIf(mirror->name().value());
+  if (!bcmMirror) {
+    XLOG(ERR) << "BcmMirror is null";
+    return false;
+  }
+
+  if (!bcmMirror->isProgrammed()) {
+    XLOG(ERR) << "BcmMirror is not programmed";
+    return false;
+  }
+  auto handle = bcmMirror->getHandle().value();
+  bcm_mirror_destination_t mirror_dest;
+  bcm_mirror_destination_t_init(&mirror_dest);
+  MirrorTraverseArgT args = std::make_pair(&mirror_dest, handle);
+
+  bcm_mirror_destination_traverse(0, &traverse, &args);
+  if (mirror_dest.mirror_dest_id != handle) {
+    XLOG(ERR) << "mirror_dest.mirror_dest_id: " << mirror_dest.mirror_dest_id
+              << " handle: " << handle;
+    return false;
+  }
+
+  bcm_gport_t gport;
+  if (mirror->egressPortDesc().value().portType().value() !=
+      cfg::PortDescriptorType::Physical) {
+    XLOG(ERR) << "Egress port type is not Physical as expected";
+    return false;
+  }
+  auto egressPort = mirror->egressPortDesc().value().portId().value();
+  BCM_GPORT_MODPORT_SET(gport, bcmSwitch->getUnit(), egressPort);
+
+  if (mirror_dest.gport != gport) {
+    XLOG(ERR) << "mirror_dest.gport: " << mirror_dest.gport
+              << " egressPort: " << egressPort;
+    return false;
+  }
+
+  if (mirror_dest.tos != mirror->dscp().value()) {
+    XLOG(ERR) << "mirror_dest.tos: " << mirror_dest.tos
+              << " dscp: " << mirror->dscp().value();
+    return false;
+  }
+
+  if (auto truncateOpt = mirror->truncate(); truncateOpt.has_value()) {
+    if (bool(mirror_dest.truncate & BCM_MIRROR_PAYLOAD_TRUNCATE) !=
+        truncateOpt.value()) {
+      XLOG(ERR) << "mirror_dest.truncate: " << mirror_dest.truncate
+                << " Expected value: " << truncateOpt.value();
+      return false;
+    }
+  }
+
+  if (!mirror->tunnel().has_value()) {
+    XLOG(DBG2) << "Mirror Tunnel is not present";
+    return true;
+  }
+  const auto& tunnel = mirror->tunnel().value();
+
+  // Sflow tunnels carry UDP src/dst ports (both set together by
+  // cfg::SflowTunnel); ERSPAN tunnels use GRE and leave both optionals unset.
+  // Require both to be present before treating this as the sflow encap so we
+  // never dereference an unset optional below.
+  if (tunnel.udpSrcPort().has_value() && tunnel.udpDstPort().has_value()) {
+    if (!(mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_SFLOW)) {
+      XLOG(ERR) << "mirror_dest flags not set to BCM_MIRROR_DEST_TUNNEL_SFLOW";
+      return false;
+    }
+    int16_t udpDstPort = tunnel.udpDstPort().value();
+    if (udpDstPort != mirror_dest.udp_dst_port) {
+      XLOG(ERR) << "Actual Value of udpDstPort: " << udpDstPort
+                << " Expected: " << mirror_dest.udp_dst_port;
+      return false;
+    }
+    int16_t udpSrcPort = tunnel.udpSrcPort().value();
+    if (udpSrcPort != mirror_dest.udp_src_port) {
+      XLOG(ERR) << "Actual Value of udpSrcPort: " << udpSrcPort
+                << " Expected: " << mirror_dest.udp_src_port;
+      return false;
+    }
+  } else {
+    if (!(mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_IP_GRE)) {
+      XLOG(ERR) << "mirror_dest flags not set to BCM_MIRROR_DEST_TUNNEL_IP_GRE";
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool HwTestThriftHandler::verifyUnResolvedMirror(
+    std::unique_ptr<state::MirrorFields> mirror) {
+  if (!mirror) {
+    XLOG(ERR) << "verifyUnResolvedMirror: Input MirrorFields is null";
+    return false;
+  }
+  if (mirror->isResolved().value()) {
+    XLOG(ERR) << "verifyUnResolvedMirror: " << mirror->name().value()
+              << " is resolved";
+    return false;
+  }
+
+  BcmSwitch* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch_);
+  const auto* bcmMirrorTable = bcmSwitch->getBcmMirrorTable();
+  auto* bcmMirror = bcmMirrorTable->getNodeIf(mirror->name().value());
+  if (!bcmMirror) {
+    XLOG(ERR) << "BcmMirror is null";
+    return false;
+  }
+  if (bcmMirror->isProgrammed()) {
+    XLOG(ERR) << "BcmMirror is programmed";
+    return false;
+  }
+  return true;
+}
+
+bool HwTestThriftHandler::verifyPortMirrorDestination(
+    int32_t port,
+    int32_t flags,
+    int64_t mirrorDestID) {
+  BcmSwitch* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch_);
+  bcm_gport_t port_mirror_dest_id = 0;
+  int count = 0;
+  bcm_mirror_port_dest_get(
+      bcmSwitch->getUnit(), port, flags, 1, &port_mirror_dest_id, &count);
+
+  if (!count) {
+    XLOG(ERR) << "Mirror port destination count is 0";
+    return false;
+  }
+
+  if (mirrorDestID != port_mirror_dest_id) {
+    XLOG(ERR) << "mirrorDestID is expected " << mirrorDestID
+              << "but Actual value : " << port_mirror_dest_id;
+    return false;
+  }
+  return true;
+}
+
+bool HwTestThriftHandler::verifyPortNoMirrorDestination(
+    int32_t port,
+    int32_t flags) {
+  BcmSwitch* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch_);
+  bcm_gport_t port_mirror_dest_id = 0;
+  int count = 0;
+  bcm_mirror_port_dest_get(
+      bcmSwitch->getUnit(), port, flags, 1, &port_mirror_dest_id, &count);
+  if (count) {
+    XLOG(ERR) << "Mirror port destination count is " << count << ", expected 0";
+    return false;
+  }
+
+  if (port_mirror_dest_id != 0) {
+    XLOG(ERR) << "port_mirror_dest_id expected value 0  but Actual value "
+              << port_mirror_dest_id;
+
+    return false;
+  }
+  return true;
+}
+
+void HwTestThriftHandler::getAllMirrorDestinations(
+    ::std::vector<int64_t>& destinations) {
+  auto traverse = [&destinations](bcm_mirror_destination_t* destination) {
+    destinations.push_back(destination->mirror_dest_id);
+  };
+  auto callback = [](int /*unit*/,
+                     bcm_mirror_destination_t* destination,
+                     void* closure) -> int {
+    (*static_cast<decltype(traverse)*>(closure))(destination);
+    return 0;
+  };
+  BcmSwitch* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch_);
+  bcm_mirror_destination_traverse(bcmSwitch->getUnit(), callback, &traverse);
+}
+
+bool HwTestThriftHandler::isMirrorSflowTunnelEnabled(int64_t destination) {
+  bcm_mirror_destination_t mirror_dest;
+  bcm_mirror_destination_t_init(&mirror_dest);
+  BcmSwitch* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch_);
+  bcm_mirror_destination_get(
+      bcmSwitch->getUnit(),
+      static_cast<bcm_gport_t>(destination),
+      &mirror_dest);
+  return mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_SFLOW;
+}
 
 } // namespace facebook::fboss::utility

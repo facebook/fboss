@@ -48,10 +48,11 @@ void AgentPreStartExec::run(
     runAndRemoveScript(dirUtil.getPreStartShellScript());
     AgentPreStartConfig preStartConfig(
         std::move(whoami), config.get(), dirUtil);
-    if (isNetOS && switchIndex == 0) {
-      // Only First Agent will execute Pre_Start
-      preStartConfig.runNetOs(executor);
-    } else if (!isNetOS) {
+    if (isNetOS) {
+      // runNetOs gates shared host setup vs per-container symlink by
+      // switchIndex.
+      preStartConfig.runNetOs(executor, switchIndex);
+    } else {
       preStartConfig.run(executor);
     }
   }

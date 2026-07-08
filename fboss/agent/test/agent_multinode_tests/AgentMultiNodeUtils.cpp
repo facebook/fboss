@@ -440,4 +440,28 @@ bool verifyRemoteSystemPortShelState(
       true /* retry on exception */);
 }
 
+std::map<std::string, std::map<std::string, int64_t>>
+collectSwAgentFb303Counters(const std::vector<std::string>& switches) {
+  auto getSwAgentCounters = [](const std::string& switchName) {
+    auto swAgentClient = getSwAgentThriftClient(switchName);
+    std::map<std::string, int64_t> counters;
+    swAgentClient->sync_getCounters(counters);
+    return counters;
+  };
+  return forEachWithRetVal(switches, getSwAgentCounters);
+}
+
+// Returns 0 for missing counters since counters may not be published
+// until fabric link monitoring is fully active after agent startup.
+// Callers use retry loops that tolerate initial 0 values.
+int64_t getFb303CounterValue(
+    const std::map<std::string, int64_t>& counters,
+    const std::string& portName,
+    const std::string& counterSuffix,
+    const std::string& statType) {
+  auto counterName = portName + "." + counterSuffix + "." + statType;
+  auto it = counters.find(counterName);
+  return (it != counters.end()) ? it->second : 0;
+}
+
 } // namespace facebook::fboss::utility

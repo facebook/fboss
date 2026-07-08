@@ -62,6 +62,7 @@ struct NextHopThrift {
   */
   15: optional i32 adjustedWeight;
   16: optional NetworkTopologyInformation topologyInfo;
+  17: optional i64 cost;
 }
 
 /*
@@ -72,9 +73,10 @@ struct NextHopThrift {
 * if any next hop has MPLS php action, then recursive resolution may not expand label stack.
 * if any next hop has MPLS pop action, then all next hops must have MPLS pop action, address of nexthop is ignored.
 */
-struct NamedNextHopGroup {
-  1: string name;
+struct NextHopGroup {
+  1: optional string name;
   2: list<NextHopThrift> nexthops;
+  3: optional bool isProgrammed;
 }
 
 /*
@@ -100,15 +102,15 @@ enum PacketType {
 }
 
 typedef map<byte, ForwardingClass> DscpToForwardingClassMap
-typedef map<ForwardingClass, list<NamedNextHopGroup>> ForwardingClassToNamedNhgs
+typedef map<ForwardingClass, NextHopGroup> ForwardingClassToNamedNhg
 
 /*
  * Class based traffic forwarding policy
  */
 struct ClassBasedPolicy {
   1: string name;
-  2: list<string> defaultNexthopGroups;
-  3: ForwardingClassToNamedNhgs class2NextHopGroups;
+  2: string defaultNexthopGroup;
+  3: ForwardingClassToNamedNhg class2NextHopGroup;
 }
 
 /*
@@ -120,7 +122,7 @@ union Policy {
 
 union NamedRouteDestination {
   // list of named next hop groups
-  1: list<string> nextHopGroups;
+  1: string nextHopGroup;
   // traffic redirection policy name
   2: string policyName;
 }
@@ -201,12 +203,14 @@ struct StateDeltaApplication {
 }
 
 enum TunnelType {
-  IP_IN_IP = 0,
+  IP_IN_IP_DECAP = 0,
   SRV6_ENCAP = 1,
+  IP_IN_IP_ENCAP = 2,
 }
 
 enum MySidType {
   ADJACENCY_MICRO_SID = 0,
   NODE_MICRO_SID = 1,
   DECAPSULATE_AND_LOOKUP = 2,
+  BINDING_MICRO_SID = 3,
 }

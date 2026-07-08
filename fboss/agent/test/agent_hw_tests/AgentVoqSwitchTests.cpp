@@ -14,8 +14,10 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
@@ -64,20 +66,12 @@ void AgentVoqSwitchTest::rxPacketToCpuHelper(
   auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
 
   auto verify = [this, ecmpHelper, kPortDesc, l4SrcPort, l4DstPort, queueId]() {
-    // TODO(skhare)
-    // Send to only one IPv6 address for ease of debugging.
-    // Once SAI implementation bugs are fixed, send to ALL interface
-    // addresses.
-    auto ipAddrs =
-        *(initialConfig(*getAgentEnsemble()).interfaces()[0].ipAddresses());
-    auto ipv6Addr =
-        std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
-          auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
-          return ip.isV6();
-        });
-
-    auto dstIp =
-        folly::IPAddress::createNetwork(*ipv6Addr, -1, false).first.asV6();
+    const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+    auto intfID =
+        getProgrammedState()->getInterfaceIDForPort(PortDescriptor(port));
+    auto ipv6Addrs = utility::getIntfAddrsV6(getProgrammedState(), intfID);
+    CHECK(!ipv6Addrs.empty());
+    auto dstIp = ipv6Addrs[0];
     folly::IPAddressV6 kSrcIp("1::1");
     const auto srcMac = folly::MacAddress("00:00:01:02:03:04");
     const auto dstMac = utility::kLocalCpuMac();
@@ -94,8 +88,6 @@ void AgentVoqSwitchTest::rxPacketToCpuHelper(
               l4SrcPort,
               l4DstPort);
         };
-
-    const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
     auto switchId =
         scopeResolver().scope(getProgrammedState(), port).switchId();
     auto [beforeQueueOutPkts, beforeQueueOutBytes] =
@@ -161,7 +153,7 @@ void AgentVoqSwitchTest::sendLocalServiceDiscoveryMulticastPacket(
     const int numPackets) {
   auto vlanId = getVlanIDForTx();
   auto intfMac =
-      utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   auto srcIp = folly::IPAddressV6("fe80::ff:fe00:f0b");
   auto dstIp = folly::IPAddressV6("ff15::efc0:988f");
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
@@ -228,8 +220,14 @@ int AgentVoqSwitchTest::sendPacket(
 
 void AgentVoqSwitchTest::addDscpAclWithCounter() {
   auto newCfg = initialConfig(*getAgentEnsemble());
-  auto* acl = utility::addAcl_DEPRECATED(&newCfg, kDscpAclName());
-  auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+  auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+  std::optional<std::string> tableName;
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+    tableName = utility::kIpv6AclTable();
+  }
+  auto* acl = utility::addAcl_DEPRECATED(
+      &newCfg, kDscpAclName(), cfg::AclActionType::PERMIT, tableName);
   acl->dscp() = 0x24;
   utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
   utility::addAclStat(
@@ -483,7 +481,8 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 
             EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
             int extraByteOffset = 0;
-            auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+            auto asic =
+                checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
             const auto asicMode = asic->getAsicMode();
             const auto asicType = asic->getAsicType();
             if (asic->getAsicMode() != HwAsic::AsicMode::ASIC_MODE_SIM) {
@@ -544,7 +543,7 @@ TEST_F(AgentVoqSwitchTest, trapPktsOnPort) {
   auto setup = [this, kPortDesc, &ecmpHelper]() {
     auto cfg = initialConfig(*getAgentEnsemble());
     auto l3Asics = getAgentEnsemble()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     utility::addTrapPacketAcl(asic, &cfg, kPortDesc.phyPortID());
     applyNewConfig(cfg);
     applyNewState([=](const std::shared_ptr<SwitchState>& in) {
@@ -656,7 +655,7 @@ TEST_F(AgentVoqSwitchTest, localSystemPortEcmp) {
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto prefix = RoutePrefixV6{folly::IPAddressV6("1::1"), 128};
-    flat_set<PortDescriptor> localSysPorts;
+    boost::container::flat_set<PortDescriptor> localSysPorts;
     for (auto& systemPortMap :
          std::as_const(*getProgrammedState()->getSystemPorts())) {
       for (auto& [_, localSysPort] : std::as_const(*systemPortMap.second)) {
@@ -877,10 +876,11 @@ TEST_F(AgentVoqSwitchTest, verifyDramErrorDetection) {
       getSw()->updateStats();
       auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
       ASSERT_EVENTUALLY_TRUE(
-          switchStats.hwAsicErrors()->dramErrors().has_value());
-      EXPECT_EVENTUALLY_GT(switchStats.hwAsicErrors()->dramErrors().value(), 0);
-      XLOG(DBG0) << "Dram Error count: "
-                 << switchStats.hwAsicErrors()->dramErrors().value();
+          switchStats.hwAsicErrors()->dramWarnings().has_value());
+      EXPECT_EVENTUALLY_GT(
+          switchStats.hwAsicErrors()->dramWarnings().value(), 0);
+      XLOG(DBG0) << "Dram Warning count: "
+                 << switchStats.hwAsicErrors()->dramWarnings().value();
     });
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -981,9 +981,10 @@ TEST_F(AgentVoqSwitchTest, verifyEgressCoreAndSramWatermark) {
     std::string kSramMinWm{"buffer_watermark_min_sram.p0.60"};
     // Get SRAM size per core as thats the highest possible free SRAM
     const uint64_t kSramSize =
-        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
             ->getSramSizeBytes() /
-        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getNumCores();
     auto regex = kEgressCoreWm + "|" + kSramMinWm;
     sendPacket(
         ecmpHelper.ip(kPortDesc),

@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"FwUtilHwTest.validateConfig","minipack3bta","PASSED"
+"FwUtilHwTest.listFirmwareNames","minipack3bta","PASSED"
+"FwUtilHwTest.GetEachFirmwareVersionInfo","minipack3bta","PASSED"
+"FwUtilHwTest.GetAllFirmwareVersionInfo","minipack3bta","PASSED"

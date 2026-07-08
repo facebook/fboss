@@ -13,7 +13,6 @@
 #include <fmt/format.h>
 #include <folly/FileUtil.h>
 #include <folly/String.h>
-#include <folly/Subprocess.h>
 #include <folly/json/dynamic.h>
 #include <folly/json/json.h>
 #include <glog/logging.h>
@@ -35,7 +34,6 @@
 #include <stdexcept>
 #include <string>
 #include <system_error>
-#include <thread>
 #include <utility>
 #include <vector>
 #include "fboss/agent/AgentDirectoryUtil.h"
@@ -44,7 +42,9 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
+#include "fboss/cli/fboss2/session/FbossServiceUtil.h"
 #include "fboss/cli/fboss2/session/Git.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
@@ -307,6 +307,19 @@ ConfigSession::ConfigSession(
   initializeSession();
 }
 
+ConfigSession::ConfigSession(
+    std::string sessionConfigDir,
+    std::string systemConfigDir,
+    std::unique_ptr<FbossServiceUtil> fbossServiceUtil)
+    : fbossServiceUtil_(std::move(fbossServiceUtil)),
+      sessionConfigDir_(std::move(sessionConfigDir)),
+      systemConfigDir_(std::move(systemConfigDir)),
+      username_(getUsername()),
+      git_(std::make_unique<Git>(systemConfigDir_)) {
+  // Don't call initializeSession() - this constructor is for testing only
+  // and tests don't need git initialization or config file copying
+}
+
 namespace {
 std::unique_ptr<ConfigSession>& getInstancePtr() {
   static std::unique_ptr<ConfigSession> instance;
@@ -324,6 +337,10 @@ ConfigSession& ConfigSession::getInstance() {
 
 void ConfigSession::setInstance(std::unique_ptr<ConfigSession> newInstance) {
   getInstancePtr() = std::move(newInstance);
+}
+
+void ConfigSession::resetInstance() {
+  setInstance(nullptr);
 }
 
 // Static path getters - can be called without creating a session instance
@@ -387,6 +404,13 @@ const utils::PortMap& ConfigSession::getPortMap() const {
         "Config not loaded yet. Call getPortMap() (non-const) first.");
   }
   return *portMap_;
+}
+
+void ConfigSession::rebuildPortMap() {
+  if (!configLoaded_) {
+    loadConfig();
+  }
+  portMap_ = std::make_unique<utils::PortMap>(agentConfig_);
 }
 
 void ConfigSession::saveConfig(
@@ -460,15 +484,6 @@ std::string ConfigSession::getSystemMetadataPath() const {
   return getCliConfigDir() + "/cli_metadata.json";
 }
 
-std::string ConfigSession::getServiceName(cli::ServiceType service) {
-  // TODO: Add support for multi_switch mode with sw_agent and hw_agent
-  switch (service) {
-    case cli::ServiceType::AGENT:
-      return "wedge_agent";
-  }
-  throw std::runtime_error("Unknown service type");
-}
-
 void ConfigSession::loadMetadata() {
   std::string metadataPath = getMetadataPath();
   // Note: We don't initialize requiredActions_ here since getRequiredAction()
@@ -521,6 +536,10 @@ void ConfigSession::saveMetadata() {
       metadataPath, prettyJson, 0644, folly::SyncType::WITH_SYNC);
 }
 
+std::string ConfigSession::getServiceName(cli::ServiceType service) {
+  return FbossServiceUtil::getServiceName(service);
+}
+
 void ConfigSession::updateRequiredAction(
     cli::ServiceType service,
     cli::ConfigActionLevel actionLevel) {
@@ -571,159 +590,51 @@ const std::vector<std::string>& ConfigSession::getCommands() const {
   return commands_;
 }
 
-void ConfigSession::restartService(
-    cli::ServiceType service,
-    cli::ConfigActionLevel level) {
-  std::string serviceName = getServiceName(service);
-  std::string restartType = (level == cli::ConfigActionLevel::AGENT_COLDBOOT)
-      ? "coldboot"
-      : "warmboot";
-
-  LOG(INFO) << "Restarting " << serviceName << " via systemd (" << restartType
-            << ")...";
-
-  // For coldboot, we need to stop the service, create cold_boot_once files,
-  // then start the service
-  if (level == cli::ConfigActionLevel::AGENT_COLDBOOT) {
-    // Step 1: Stop the service
+void ConfigSession::ensureFbossServiceUtil(const HostInfo& hostInfo) {
+  if (!fbossServiceUtil_) {
+    MultiSwitchRunState runState;
     try {
-      folly::Subprocess stopProc(
-          {"/usr/bin/sudo", "/usr/bin/systemctl", "stop", serviceName});
-      stopProc.waitChecked();
-    } catch (const std::exception& ex) {
+      runState = utils::getMultiSwitchRunState(hostInfo);
+    } catch (const std::exception& e) {
       throw std::runtime_error(
-          fmt::format("Failed to stop {}: {}", serviceName, ex.what()));
+          fmt::format(
+              "Failed to query agent run state from {}. "
+              "Is the agent running? Error: {}",
+              hostInfo.getName(),
+              e.what()));
     }
 
-    // Step 2: Create coldboot files
-    // TODO: Add support for multi_switch mode with hw_agent@0, hw_agent@1, etc.
-    const std::vector<std::string> coldbootFiles = {
-        "/dev/shm/fboss/warm_boot/cold_boot_once", // for sw_agent
-    };
-    for (const auto& file : coldbootFiles) {
-      // Ensure parent directory exists
-      fs::path filePath(file);
-      std::error_code ec;
-      fs::create_directories(filePath.parent_path(), ec);
-      if (ec) {
-        throw std::runtime_error(
-            fmt::format(
-                "Failed to create directory for coldboot file {}: {}",
-                file,
-                ec.message()));
-      }
-      // Create the file (touch equivalent)
-      std::ofstream touchFile(file);
-      if (!touchFile.good()) {
-        // If we failed due to permissions, try using sudo touch
-        int savedErrno = errno;
-        if (savedErrno == EACCES || savedErrno == EPERM) {
-          try {
-            folly::Subprocess touchProc(
-                {"/usr/bin/sudo", "/usr/bin/touch", file});
-            touchProc.waitChecked();
-          } catch (const std::exception& ex) {
-            throw std::runtime_error(
-                fmt::format(
-                    "Failed to create coldboot file {} (permission denied, sudo touch also failed): {}",
-                    file,
-                    ex.what()));
-          }
-        } else {
-          throw std::runtime_error(
-              fmt::format(
-                  "Failed to create coldboot file {}: {}",
-                  file,
-                  folly::errnoStr(savedErrno)));
-        }
-      } else {
-        touchFile.close();
-      }
-      if (!fs::exists(file)) {
-        throw std::runtime_error(
-            fmt::format(
-                "Failed to create coldboot file {}: file does not exist after creation",
-                file));
-      }
+    std::vector<int> switchIndexes;
+    for (const auto& [idx, _] : *runState.hwIndexToRunState()) {
+      switchIndexes.push_back(idx);
     }
+    std::sort(switchIndexes.begin(), switchIndexes.end());
 
-    // Step 3: Start the service
-    try {
-      folly::Subprocess startProc(
-          {"/usr/bin/sudo", "/usr/bin/systemctl", "start", serviceName});
-      startProc.waitChecked();
-    } catch (const std::exception& ex) {
-      throw std::runtime_error(
-          fmt::format("Failed to start {}: {}", serviceName, ex.what()));
-    }
-  } else {
-    // For warmboot, just do a simple restart
-    try {
-      folly::Subprocess restartProc(
-          {"/usr/bin/sudo", "/usr/bin/systemctl", "restart", serviceName});
-      restartProc.waitChecked();
-    } catch (const std::exception& ex) {
-      throw std::runtime_error(
-          fmt::format("Failed to restart {}: {}", serviceName, ex.what()));
-    }
-  }
-
-  // Wait for the service to be active (up to 60 seconds)
-  constexpr int maxWaitSeconds = 60;
-  constexpr int pollIntervalMs = 500;
-  int waitedMs = 0;
-
-  while (waitedMs < maxWaitSeconds * 1000) {
-    try {
-      folly::Subprocess checkProc(
-          {"/usr/bin/systemctl", "is-active", "--quiet", serviceName});
-      checkProc.waitChecked();
-      // If waitChecked() doesn't throw, the service is active
-      LOG(INFO) << serviceName << " is now active";
-      return;
-    } catch (const folly::CalledProcessError&) {
-      // Service not active yet, keep waiting
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(pollIntervalMs));
-    waitedMs += pollIntervalMs;
-  }
-
-  throw std::runtime_error(
-      fmt::format(
-          "{} did not become active within {} seconds",
-          serviceName,
-          maxWaitSeconds));
-}
-
-void ConfigSession::reloadServiceConfig(
-    cli::ServiceType service,
-    const HostInfo& hostInfo) {
-  switch (service) {
-    case cli::ServiceType::AGENT: {
-      auto client = utils::createClient<
-          apache::thrift::Client<facebook::fboss::FbossCtrl>>(hostInfo);
-      client->sync_reloadConfig();
-      LOG(INFO) << "Config reloaded for " << getServiceName(service);
-      break;
-    }
-      // TODO: Add cases for future services (e.g., BGP)
+    fbossServiceUtil_ = std::make_unique<FbossServiceUtil>(
+        std::move(switchIndexes), *runState.multiSwitchEnabled());
   }
 }
 
-void ConfigSession::applyServiceActions(
+std::map<cli::ServiceType, std::vector<std::string>>
+ConfigSession::applyServiceActions(
     const std::map<cli::ServiceType, cli::ConfigActionLevel>& actions,
     const HostInfo& hostInfo) {
+  ensureFbossServiceUtil(hostInfo);
+  std::map<cli::ServiceType, std::vector<std::string>> serviceNames;
   for (const auto& [service, level] : actions) {
     switch (level) {
       case cli::ConfigActionLevel::AGENT_COLDBOOT:
       case cli::ConfigActionLevel::AGENT_WARMBOOT:
-        restartService(service, level);
+        serviceNames[service] =
+            fbossServiceUtil_->restartService(service, level);
         break;
       case cli::ConfigActionLevel::HITLESS:
-        reloadServiceConfig(service, hostInfo);
+        serviceNames[service] =
+            fbossServiceUtil_->reloadConfig(service, hostInfo);
         break;
     }
   }
+  return serviceNames;
 }
 
 void ConfigSession::loadConfig() {
@@ -784,13 +695,49 @@ void ConfigSession::initializeGit() {
     git_->init();
   }
 
-  // If the repository has no commits but the config file exists,
-  // create an initial commit to track the existing configuration
-  std::string cliConfigPath = getCliConfigPath();
-  if (!git_->hasCommits() && fs::exists(cliConfigPath)) {
+  // Always ensure an initial commit exists so base_ is never empty.
+  // Replicates the exact structure that commit() produces:
+  //   cli/agent.conf  — the actual config content
+  //   agent.conf      — a symlink to cli/agent.conf
+  // This prevents two concurrent users from both seeing base_="" and silently
+  // overwriting each other's commits, and ensures rebase() can always call
+  // git show <base>:cli/agent.conf without hitting exit 128.
+  if (!git_->hasCommits()) {
     std::string systemConfigPath = getSystemConfigPath();
-    git_->commit(
-        {cliConfigPath, systemConfigPath}, "Initial commit", username_, "");
+    std::string cliConfigPath = getCliConfigPath();
+
+    ensureDirectoryExists(getCliConfigDir());
+
+    // Populate cli/agent.conf if it doesn't exist yet.
+    // If agent.conf is currently a plain file (pre-symlink state), copy from
+    // it so we don't lose the running config.  We copy rather than rename
+    // because /etc/coop/agent.conf must remain in place (the running system
+    // reads it, and commit() will later replace it with a symlink).
+    // Fall back to an empty JSON object so the file is always valid JSON.
+    if (!fs::exists(cliConfigPath)) {
+      std::error_code ec;
+      bool systemIsRegularFile =
+          fs::is_regular_file(fs::path(systemConfigPath), ec) && !ec;
+      std::string seedContent = "{}";
+      if (systemIsRegularFile) {
+        folly::readFile(systemConfigPath.c_str(), seedContent);
+        if (seedContent.empty()) {
+          seedContent = "{}";
+        }
+      }
+      folly::writeFileAtomic(
+          cliConfigPath, seedContent, 0644, folly::SyncType::WITH_SYNC);
+    }
+
+    try {
+      git_->commit({cliConfigPath}, "Initial commit", username_, "");
+    } catch (const std::exception&) {
+      // Another process may have raced us to the initial commit.
+      // If commits now exist, swallow the error; otherwise re-throw.
+      if (!git_->hasCommits()) {
+        throw;
+      }
+    }
   }
 }
 
@@ -814,12 +761,6 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   if (!sessionExists()) {
     throw std::runtime_error(
         "No config session exists. Make a config change first.");
-  }
-
-  if (commands_.empty()) {
-    // Config session is clean, nothing to commit.
-    // Return an empty CommitResult to signal no action was taken.
-    return CommitResult{"", {}};
   }
 
   // Check if someone else committed changes while this session was in progress
@@ -860,27 +801,37 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
     }
   }
 
-  // Copy the metadata file alongside the config revision
-  // This is required for rollback functionality
+  // Early return if there are no changes to commit
+  if (sessionConfigData == oldConfigData && requiredActions_.empty()) {
+    return CommitResult{"", {}, {}};
+  }
+
+  // Write the metadata file alongside the config revision.
+  // This is required for rollback functionality.
+  // Use folly::writeFileAtomic instead of fs::copy_file so that we only write
+  // file content without calling fchmod() on the destination — fchmod fails
+  // with EPERM when the target is owned by a different user (e.g. root) even
+  // if the caller has group-write permission on the file.
   std::string metadataPath = getMetadataPath();
   std::string targetMetadataPath =
       fmt::format("{}/cli_metadata.json", cliConfigDir);
-  std::error_code ec;
-  fs::copy_file(
-      metadataPath,
-      targetMetadataPath,
-      fs::copy_options::overwrite_existing,
-      ec);
-  if (ec) {
+  std::string metadataContent;
+  if (!folly::readFile(metadataPath.c_str(), metadataContent)) {
+    LOG(WARNING) << "Failed to read session metadata from " << metadataPath
+                 << "; committing empty metadata";
+    metadataContent = "{}";
+  }
+  try {
+    folly::writeFileAtomic(
+        targetMetadataPath, metadataContent, 0664, folly::SyncType::WITH_SYNC);
+  } catch (const std::exception& e) {
     if (!oldConfigData.empty()) {
       folly::writeFileAtomic(
           cliConfigPath, oldConfigData, 0644, folly::SyncType::WITH_SYNC);
     }
     throw std::runtime_error(
         fmt::format(
-            "Failed to copy metadata to {}: {}",
-            targetMetadataPath,
-            ec.message()));
+            "Failed to copy metadata to {}: {}", targetMetadataPath, e.what()));
   }
 
   // Atomically write the session config to the CLI config path
@@ -897,8 +848,9 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
 
   // Apply the config based on the required action level
   std::string commitSha;
+  std::map<cli::ServiceType, std::vector<std::string>> serviceNames;
   try {
-    applyServiceActions(actions, hostInfo);
+    serviceNames = applyServiceActions(actions, hostInfo);
 
     // Create a Git commit with all changed files:
     // - cli/agent.conf (the config file)
@@ -935,7 +887,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   }
 
   // Only remove the session config after everything succeeded
-  ec = std::error_code{};
+  std::error_code ec;
   fs::remove(sessionConfigPath, ec);
   if (ec) {
     // Log warning but don't fail - the commit succeeded
@@ -953,7 +905,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   // Force config reload from system config on next access
   configLoaded_ = false;
 
-  return CommitResult{commitSha, actions};
+  return CommitResult{commitSha, actions, serviceNames};
 }
 
 void ConfigSession::rebase() {

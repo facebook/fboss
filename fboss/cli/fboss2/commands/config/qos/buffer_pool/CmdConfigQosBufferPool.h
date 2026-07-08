@@ -37,9 +37,6 @@ class BufferPoolConfig : public utils::BaseObjectArgType<std::string> {
     return attributes_;
   }
 
-  const static utils::ObjectArgTypeId id =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_BUFFER_POOL_NAME;
-
  private:
   std::string name_;
   std::vector<std::pair<std::string, std::string>> attributes_;
@@ -47,8 +44,13 @@ class BufferPoolConfig : public utils::BaseObjectArgType<std::string> {
 
 struct CmdConfigQosBufferPoolTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigQos;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_BUFFER_POOL_NAME;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "buffer_pool_config",
+        args,
+        "<name> <attr> <value> [<attr> <value> ...] where <attr> is one "
+        "of: shared-bytes, headroom-bytes, reserved-bytes");
+  }
   using ObjectArgType = BufferPoolConfig;
   using RetType = std::string;
 };

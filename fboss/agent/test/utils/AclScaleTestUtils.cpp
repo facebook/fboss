@@ -25,7 +25,7 @@ std::vector<cfg::AclTableQualifier> setAclQualifiers(AclWidth width) {
 }
 
 uint32_t getMaxAclEntries(const std::vector<const HwAsic*>& asics) {
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   auto maxAclEntries = asic->getMaxAclEntries();
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
       asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
@@ -39,6 +39,7 @@ uint32_t getMaxAclEntries(const std::vector<const HwAsic*>& asics) {
     return maxAclEntries.value();
   }
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200 ||
       asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
       asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
     // Todo: check with Vendor to get the correct value

@@ -487,14 +487,23 @@ TEST_F(QsfpModuleTest, getFirmwareUpgradeData) {
   qsfp_->useActualGetTransceiverInfo();
   EXPECT_FALSE(transceiverManager_->getFirmwareUpgradeData(*qsfp_).has_value());
 
-  // Test app fw status mismatch
+  // Test app fw version match (3-tuple config, module reports 2-tuple +
+  // buildNumber)
+  qsfp_->setAppFwVersion(getFakeAppFwVersion(), getFakeAppFwBuildNumber());
+  transceiverManager_->refreshStateMachines();
+  qsfp_->useActualGetTransceiverInfo();
+  EXPECT_FALSE(transceiverManager_->getFirmwareUpgradeData(*qsfp_).has_value());
+
+  // Test app fw version match when module has no buildNumber (3-tuple config
+  // but module can't be validated, skip upgrade)
   qsfp_->setAppFwVersion(getFakeAppFwVersion());
   transceiverManager_->refreshStateMachines();
   qsfp_->useActualGetTransceiverInfo();
   EXPECT_FALSE(transceiverManager_->getFirmwareUpgradeData(*qsfp_).has_value());
 
-  // Test app fw status mismatch
-  qsfp_->setAppFwVersion("foo");
+  // Test app fw version mismatch (module reports buildNumber so 3-tuple
+  // comparison fires)
+  qsfp_->setAppFwVersion("9.9", 9999);
   transceiverManager_->refreshStateMachines();
   qsfp_->useActualGetTransceiverInfo();
   EXPECT_TRUE(transceiverManager_->getFirmwareUpgradeData(*qsfp_).has_value());

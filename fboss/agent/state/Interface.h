@@ -496,6 +496,10 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     set<switch_state_tags::desiredPeerAddressIPv6>(desiredPeerAddressIPv6);
   }
 
+  void setDesiredPeerAddressIPv4(const std::string& desiredPeerAddressIPv4) {
+    set<switch_state_tags::desiredPeerAddressIPv4>(desiredPeerAddressIPv4);
+  }
+
   std::optional<std::string> getDesiredPeerName() const {
     if (auto desiredPeerName = cref<switch_state_tags::desiredPeerName>()) {
       return desiredPeerName->cref();
@@ -507,6 +511,14 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     if (auto desiredPeerAddressIPv6 =
             cref<switch_state_tags::desiredPeerAddressIPv6>()) {
       return desiredPeerAddressIPv6->cref();
+    }
+    return std::nullopt;
+  }
+
+  std::optional<std::string> getDesiredPeerAddressIPv4() const {
+    if (auto desiredPeerAddressIPv4 =
+            cref<switch_state_tags::desiredPeerAddressIPv4>()) {
+      return desiredPeerAddressIPv4->cref();
     }
     return std::nullopt;
   }

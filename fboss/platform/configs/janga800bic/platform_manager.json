@@ -382,8 +382,9 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x870 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
               "numPorts": 1,
-              "ledPerPort": 2,
-              "startPort": 41
+              "ledPerPort": 1,
+              "startPort": 41,
+              "lanesPerPort": 4
             },
             {
               "pmUnitScopedNamePrefix": "SMB_LED",
@@ -406,8 +407,9 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x878 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
               "numPorts": 1,
-              "ledPerPort": 2,
-              "startPort": 44
+              "ledPerPort": 1,
+              "startPort": 44,
+              "lanesPerPort": 4
             },
             {
               "pmUnitScopedNamePrefix": "SMB_LED",
@@ -1142,12 +1144,15 @@
   "chassisEepromDevicePath": "/SMB_FRU_SLOT@0/[IDPROM]",
   "numXcvrs": 46,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.2.0-1",
+  "bspKmodsRpmVersion": "4.4.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",
     "fboss_iob_pci",
     "fboss_iob_i2c",
+    "fboss_iob_spi",
+    "fboss_iob_gpio",
+    "fboss_iob_led",
     "ledtrig_timer"
   ]
 }

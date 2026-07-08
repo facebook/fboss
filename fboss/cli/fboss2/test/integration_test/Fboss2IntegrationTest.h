@@ -6,12 +6,19 @@
 #include <folly/json.h>
 #include <folly/json/dynamic.h>
 #include <gtest/gtest.h>
+#include <chrono>
+#include <functional>
 #include <map>
 #include <optional>
+#include <set>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace facebook::fboss {
+
+class PlatformMapping;
 
 /**
  * Fboss2IntegrationTest is the base class for CLI end-to-end tests.
@@ -70,6 +77,122 @@ class Fboss2IntegrationTest : public ::testing::Test {
   folly::dynamic runCliJson(const std::vector<std::string>& args) const;
 
   /**
+   * Fetch the agent's running config via thrift and return it parsed.
+   */
+  folly::dynamic getRunningConfig() const;
+
+  /**
+   * Read a top-level field from the running config's "sw" object.
+   *
+   * The return type is controlled by the template parameter:
+   *   getSwConfigField<int>("arpTimeoutSeconds")
+   *   getSwConfigField<bool>("enableLldp")
+   *   getSwConfigField<std::string>("loadBalancerPoolName")
+   */
+  template <typename T>
+  T getSwConfigField(const std::string& field) const {
+    auto config = getRunningConfig();
+    if (!config.isObject() || !config.count("sw")) {
+      throw std::runtime_error("Running config missing 'sw' object");
+    }
+    const auto& sw = config["sw"];
+    if (!sw.isObject() || !sw.count(field)) {
+      throw std::runtime_error(
+          "Running config 'sw' missing field '" + field + "'");
+    }
+    if constexpr (std::is_same_v<T, bool>) {
+      return sw[field].asBool();
+    } else if constexpr (std::is_integral_v<T>) {
+      return static_cast<T>(sw[field].asInt());
+    } else if constexpr (std::is_same_v<T, std::string>) {
+      return sw[field].asString();
+    } else if constexpr (std::is_same_v<T, double>) {
+      return sw[field].asDouble();
+    } else {
+      static_assert(!sizeof(T), "Unsupported type for getSwConfigField");
+    }
+  }
+
+  /**
+   * Fetch the agent's switch state for the given thrift path via
+   * getCurrentStateJSON and return it parsed.
+   */
+  folly::dynamic getSwitchState(const std::string& path) const;
+
+  /**
+   * Read a field from switchSettingsMap in the agent's programmed switch
+   * state.  Returns a map of SwitchIdList -> value for every entry that
+   * contains the field, so callers can verify consistency across all
+   * switches in multi-switch mode.
+   *
+   * The value type is controlled by the template parameter:
+   *   getSwitchSettingsField<int>("arpTimeout")
+   *   getSwitchSettingsField<bool>("qcmEnable")
+   *   getSwitchSettingsField<std::string>("switchDrainState")
+   */
+  template <typename T>
+  std::map<std::string, T> getSwitchSettingsField(
+      const std::string& field) const {
+    auto settingsMap = getSwitchState("switchSettingsMap");
+    std::map<std::string, T> result;
+    for (const auto& [switchIdList, settings] : settingsMap.items()) {
+      if (settings.isObject() && settings.count(field)) {
+        std::string key = switchIdList.asString();
+        if constexpr (std::is_same_v<T, bool>) {
+          result[key] = settings[field].asBool();
+        } else if constexpr (std::is_integral_v<T>) {
+          result[key] = static_cast<T>(settings[field].asInt());
+        } else if constexpr (std::is_same_v<T, std::string>) {
+          result[key] = settings[field].asString();
+        } else if constexpr (std::is_same_v<T, double>) {
+          result[key] = settings[field].asDouble();
+        } else {
+          static_assert(
+              !sizeof(T), "Unsupported type for getSwitchSettingsField");
+        }
+      }
+    }
+    if (result.empty()) {
+      throw std::runtime_error(
+          "switchSettingsMap has no entry with field '" + field + "'");
+    }
+    return result;
+  }
+
+  /**
+   * Assert that a switchSettingsMap field has the expected value across all
+   * switch IDs. Fails the test with a descriptive message if any entry
+   * differs.
+   */
+  template <typename T>
+  void verifySwitchSettingsField(const std::string& field, const T& expected)
+      const {
+    auto values = getSwitchSettingsField<T>(field);
+    for (const auto& [switchIdList, value] : values) {
+      EXPECT_EQ(value, expected)
+          << "switchSettingsMap[" << switchIdList << "]." << field << " = "
+          << value << ", expected " << expected;
+    }
+  }
+
+  /**
+   * Return the L3 interfaceId for the L3 interface associated with the named
+   * port. Looks up the agent's getAllInterfaces() and matches on portNames.
+   * @throws std::runtime_error if no interface is associated with the port.
+   */
+  int getInterfaceIdForPort(const std::string& portName) const;
+
+  /**
+   * Find a (vlanId, portName) pair where vlanId appears in sw.vlans and the
+   * port is a member of that VLAN via sw.vlanPorts. Returns nullopt on
+   * switches configured in a port-based / L3-routed style with no L2 VLAN
+   * memberships — tests that need L2-VLAN commands (e.g. 'config vlan <id>
+   * port <name> taggingMode', 'config vlan <id> static-mac ...') should
+   * GTEST_SKIP when this returns nullopt.
+   */
+  std::optional<std::pair<int, std::string>> findConfiguredVlanPort() const;
+
+  /**
    * Run a shell command and return the result.
    * @param args Command and arguments
    * @return Result with exit code, stdout, and stderr
@@ -90,11 +213,26 @@ class Fboss2IntegrationTest : public ::testing::Test {
   std::map<std::string, Interface> getAllInterfaces() const;
 
   /**
-   * Find the first suitable ethernet interface for testing.
-   * Only returns ethernet interfaces (starting with 'eth') with a valid VLAN.
-   * @return Interface object
+   * Pick an ethernet interface for testing.
+   *
+   * Interfaces whose status indicates they are up are strongly preferred — if
+   * at least one matches, a random one is returned. If none are up, a random
+   * interface from all ethernet candidates is returned. An "ethernet
+   * candidate" is any interface whose name starts with "eth" and has
+   * VLAN > 1. Throws if no candidates exist.
+   *
+   * The selection is randomized (thread-local mt19937) to reduce the chance
+   * of piling test load onto the same port across back-to-back runs.
    */
   Interface findFirstEthInterface() const;
+
+  /**
+   * Find the first ethernet interface that has a non-zero MTU reported by
+   * 'show interface'. This implies the interface has a configured L3
+   * cfg::Interface entry in the agent, making it suitable for MTU tests.
+   * Returns std::nullopt if no such interface exists (test should GTEST_SKIP).
+   */
+  std::optional<Interface> findFirstEthInterfaceWithMtu() const;
 
   /**
    * Commit the current configuration session.
@@ -110,10 +248,174 @@ class Fboss2IntegrationTest : public ::testing::Test {
   int getKernelInterfaceMtu(int vlanId) const;
 
   /**
+   * Running port info returned from a direct Thrift call to the agent.
+   */
+  struct PortRunningInfo {
+    int64_t speedMbps{0};
+    std::string profileId;
+  };
+
+  /**
+   * Poll getInterfaceInfo() until condition(info) is true or timeout expires.
+   * Returns the last observed Interface so callers can assert on the value.
+   */
+  Interface waitForInterfaceInfo(
+      const std::string& interfaceName,
+      const std::function<bool(const Interface&)>& condition,
+      std::chrono::seconds timeout = std::chrono::seconds(30),
+      std::chrono::seconds interval = std::chrono::seconds(2)) const;
+
+  /**
+   * Poll getKernelInterfaceMtu() until condition(mtu) is true or timeout
+   * expires. Returns the last observed MTU value.
+   */
+  int waitForKernelMtu(
+      int vlanId,
+      const std::function<bool(int)>& condition,
+      std::chrono::seconds timeout = std::chrono::seconds(30),
+      std::chrono::seconds interval = std::chrono::seconds(2)) const;
+
+  /**
+   * Query the agent directly via getAllPortInfo() and return the running
+   * speed and profileID for the named port.
+   * @param portName The port name (e.g., "eth1/1/1")
+   * @throws std::runtime_error if the port is not found
+   */
+  PortRunningInfo getPortRunningInfo(const std::string& portName) const;
+
+  /**
+   * Poll getPortRunningInfo() until condition(info) returns true or timeout
+   * expires. Returns the last observed PortRunningInfo so callers can assert
+   * on the final value even when the condition is not met.
+   * @param portName  The port name (e.g., "eth1/1/1")
+   * @param condition Predicate evaluated on each poll result
+   * @param timeout   Max time to wait (default: 30 s)
+   * @param interval  Sleep between polls (default: 2 s)
+   */
+  PortRunningInfo waitForPortRunningInfo(
+      const std::string& portName,
+      const std::function<bool(const PortRunningInfo&)>& condition,
+      std::chrono::seconds timeout = std::chrono::seconds(30),
+      std::chrono::seconds interval = std::chrono::seconds(2)) const;
+
+  /**
+   * A port currently present in the agent, keyed elsewhere by logical id.
+   */
+  struct PresentPort {
+    std::string name;
+    std::string profileId; // enum name string
+  };
+
+  /**
+   * A creatable-port scenario derived from the platform mapping: an absent
+   * subport whose controlling port is present. `controllingName` is the present
+   * controlling port; `subportName` is the absent INTERFACE_PORT to create.
+   * `narrowProfile` is a profile the controlling port supports that does NOT
+   * subsume the subport AND that the subport itself supports -- so applying it
+   * to both ports narrows the controlling port and creates the freed subport in
+   * a single command. `subportProfile` is any profile the subport supports.
+   */
+  struct CreatableCandidate {
+    std::string controllingName;
+    std::string controllingProfile; // controlling port's current profile
+    std::string subportName;
+    std::string subportProfile; // a profile the absent subport supports
+    std::string narrowProfile; // frees subport and is supported by it
+  };
+
+  /**
+   * Build a PlatformMapping from the running agent (via getPlatformMapping).
+   */
+  PlatformMapping fetchPlatformMapping() const;
+
+  /**
+   * Ports currently present in the agent (subsumed/removed ports are absent),
+   * keyed by logical id.
+   */
+  std::map<int32_t, PresentPort> fetchPresentPorts() const;
+
+  /**
+   * Enum-name strings of every profile the platform port `id` supports.
+   */
+  std::set<std::string> supportedProfileNames(
+      const PlatformMapping& mapping,
+      int32_t id) const;
+
+  /**
+   * A present controlling port C that currently subsumes an absent subport S,
+   * and a narrower profile C supports that does NOT subsume S and that S also
+   * supports -- so applying that profile to both C and S in one command narrows
+   * C and creates S. Returns nullopt if no such scenario exists on this
+   * platform.
+   */
+  std::optional<CreatableCandidate> findFreeableCandidate() const;
+
+  /**
+   * Poll until the named port disappears from getAllPortInfo (i.e. it was
+   * removed from the config). Returns false if it is still present after the
+   * timeout.
+   */
+  bool waitForPortAbsent(const std::string& portName) const;
+
+  /**
+   * Poll getRunningConfig() until condition(config) is true or timeout
+   * expires. Thrift exceptions during a poll are swallowed and treated as
+   * condition-not-met — the agent may still be coming back up after a
+   * commit-triggered restart. Returns the last successfully fetched config
+   * (or an empty object if none was fetched) so callers can assert on the
+   * observed value when the condition was not met in time.
+   */
+  folly::dynamic waitForRunningConfig(
+      const std::function<bool(const folly::dynamic&)>& condition,
+      std::chrono::seconds timeout = std::chrono::seconds(30),
+      std::chrono::seconds interval = std::chrono::seconds(2)) const;
+
+  /**
+   * Look up the ndp sub-object for the L3 interface with the given intfID in
+   * a running config (as returned by getRunningConfig()). Returns an empty
+   * object if the interface or its ndp block is absent. Obtain the intfID
+   * via getInterfaceIdForPort().
+   */
+  static folly::dynamic getNdpConfig(
+      const folly::dynamic& runningConfig,
+      int intfID);
+
+  /**
    * Discard any pending config session by deleting session files.
    * This ensures each test starts with a fresh session based on current HEAD.
    */
   void discardSession() const;
+
+  /**
+   * Wait until the FBOSS agent is responsive (ready to serve thrift requests).
+   * Polls 'show interface' until it succeeds or timeout is reached.
+   * Use this after triggering a warmboot or coldboot restart.
+   * @param timeout Maximum time to wait (default: 120 seconds)
+   */
+  void waitForAgentReady(
+      std::chrono::seconds timeout = std::chrono::seconds(120)) const;
+
+  /**
+   * Ensure a VLAN + backing cfg::Interface exists in the staged config, then
+   * return that interface's intfID for use as the IP-in-IP tunnel underlay.
+   *
+   * If the VLAN is already present, the existing interface's intfID is
+   * returned and the staged config is left unchanged. Otherwise the VLAN and
+   * a barebone interface are inserted via VlanManager, the staged config is
+   * persisted, and the new intfID is returned.
+   *
+   * The VLAN ID 3998 is reserved for tunnel-test use.
+   */
+  int ensureUnderlayIntfId(int vlanId = 3998) const;
+
+  /**
+   * Return the first IPv6 address (without prefix length) configured on the
+   * interface with the given intfID. If the interface has no IPv6 address
+   * (e.g. one freshly created by ensureUnderlayIntfId), a documentation IPv6
+   * (RFC 3849) is returned as a safe stand-in — the agent does not validate
+   * that dstIp exists on the underlay interface.
+   */
+  std::string findIpv6OnIntf(int intfId) const;
 
  private:
   Interface parseInterfaceJson(const folly::dynamic& data) const;

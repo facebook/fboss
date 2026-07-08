@@ -104,11 +104,24 @@ class BspTest : public ::testing::Test {
     return env_->getPlatformManagerConfig();
   }
 
+  const platform_manager::BspKmodsFile& GetKmodsJson() const {
+    return env_->getKmodsJson();
+  }
+
   const std::optional<DeviceTestData> getDeviceTestData(
       const I2CDevice& device) const {
     RuntimeConfig conf = GetRuntimeConfig();
     if (conf.testData()->contains(*device.pmName())) {
       return conf.testData()->at(*device.pmName());
+    }
+    return std::nullopt;
+  }
+
+  const std::optional<DeviceTestData> getDeviceTestData(
+      const std::string& pmName) const {
+    RuntimeConfig conf = GetRuntimeConfig();
+    if (conf.testData()->contains(pmName)) {
+      return conf.testData()->at(pmName);
     }
     return std::nullopt;
   }

@@ -10,6 +10,7 @@ include "fboss/agent/switch_state.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/mpls.thrift"
+include "fboss/lib/phy/phy.thrift"
 include "common/network/if/Address.thrift"
 include "thrift/annotation/thrift.thrift"
 
@@ -95,6 +96,21 @@ service AgentHwTestCtrl {
 
   bool isAclEntryMirrored(1: string aclEntry,2: string mirror,3: bool ingress,);
 
+  bool verifyResolvedMirror(1: switch_state.MirrorFields mirror);
+
+  bool verifyUnResolvedMirror(1: switch_state.MirrorFields mirror);
+
+  bool verifyPortMirrorDestination(
+    1: i32 port,
+    2: i32 flags,
+    3: i64 mirrorDestID,
+  );
+
+  bool verifyPortNoMirrorDestination(1: i32 port, 2: i32 flags);
+
+  list<i64> getAllMirrorDestinations();
+
+  bool isMirrorSflowTunnelEnabled(1: i64 destination);
   // neighbor utils
   NeighborInfo getNeighborInfo(1: ctrl.IfAndIP neighbor);
 
@@ -165,6 +181,15 @@ service AgentHwTestCtrl {
   bool validateUdfAclRoceOpcodeConfig(1: switch_state.SwitchState curState);
   bool validateUdfIdsInQset(1: i32 aclGroupId, 2: bool isSet);
 
+  // PFC utils
+  bool getPfcEnabled(1: i32 portId, 2: bool rx);
+  bool pfcWatchdogProgrammingMatchesConfig(
+    1: i32 portId,
+    2: bool watchdogEnabled,
+    3: switch_config.PfcWatchdog watchdog,
+  );
+  i32 getPfcWatchdogRecoveryAction(1: i32 portId);
+
   // Te flow utils
   i32 getNumTeFlowEntries();
   bool checkSwHwTeFlowMatch(1: switch_state.TeFlowEntryFields flowEntryFields);
@@ -187,4 +212,32 @@ service AgentHwTestCtrl {
     2: switch_state.SwitchSettingsFields settings,
     3: bool expectFlowsetFree,
   );
+
+  // vlan utils
+  map<i32, i32> getVlanToNumPorts();
+
+  // acl table group utils
+  bool isAclTableGroupEnabled(1: i32 aclStage);
+
+  // port profile utils — returns list of mismatch descriptions (empty = pass)
+  list<string> verifyPortProfile(
+    1: i32 portId,
+    2: switch_config.PortProfileID profileId,
+    3: phy.ProfileSideConfig profileConfig,
+    4: list<phy.PinConfig> pinConfigs,
+  );
+
+  phy.FecMode getPortFECMode(1: i32 portId);
+
+  bool rxSignalDetectSupportedInSdk();
+  bool rxLockStatusSupportedInSdk();
+  bool pcsRxLinkStatusSupportedInSdk();
+  bool fecAlignmentLockSupportedInSdk();
+
+  // Log capture utils. Logs emitted HW-side (e.g. drop-reason WARNINGs) are
+  // produced in the HwAgent process in multi-switch mode; these let a test
+  // capture and read them over RPC, working in both mono and multi-switch.
+  // installLogCapture() must be called before the log is emitted.
+  void installLogCapture();
+  list<string> getMatchingLogMessages(1: string substring);
 }

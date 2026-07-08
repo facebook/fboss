@@ -97,13 +97,9 @@ extern "C" {
 #include <sai.h>
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-#include <saiextensions.h>
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiexperimentalfirmware.h>
 #include <experimental/saiexperimentaltameventaginggroup.h>
-#else
-#include <saiexperimentaltameventaginggroup.h>
-#endif
+#include <saiextensions.h>
 #endif
 }
 
@@ -126,6 +122,7 @@ DEFINE_string(
     "Turn on SAI SDK logging. Options are DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL");
 
 DECLARE_bool(enable_acl_table_group);
+DECLARE_bool(srv6);
 
 DEFINE_bool(
     force_recreate_acl_tables,
@@ -1238,7 +1235,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       delta.getFabricLinkMonitoringSystemPortsDelta(),
       managerTable_->systemPortManager(),
       lockPolicy,
-      &SaiSystemPortManager::removeFabricLinkMonitoringSystemPort);
+      &SaiSystemPortManager::removeFabricLinkMonitoringSystemPort,
+      delta.oldState());
   processRemovedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
@@ -1288,7 +1286,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       delta.getFabricLinkMonitoringSystemPortsDelta(),
       managerTable_->systemPortManager(),
       lockPolicy,
-      &SaiSystemPortManager::addFabricLinkMonitoringSystemPort);
+      &SaiSystemPortManager::addFabricLinkMonitoringSystemPort,
+      delta.newState());
   processAddedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
@@ -1696,7 +1695,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiAclTableManager::changedAclEntry,
         &SaiAclTableManager::addAclEntry,
         &SaiAclTableManager::removeAclEntry,
-        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        delta.newState());
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -1772,6 +1772,19 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
     hwResourceStats_.l3_ipv6_host_free() = switchApi.getAttribute(
         saiSwitchId_,
         SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    // AvailableMySidEntry is only queryable when the SDK is initialized with
+    // mySid stat support (sai_stats_support), which is config dependent and
+    // independent of the static ASIC capability. Gate on FLAGS_srv6 so
+    // non-SRv6 configs do not issue a get that would mark all resource stats
+    // stale.
+    if (FLAGS_srv6 &&
+        platform_->getAsic()->isSupported(
+            HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER)) {
+      hwResourceStats_.my_sid_entries_free() = switchApi.getAttribute(
+          saiSwitchId_, SaiSwitchTraits::Attributes::AvailableMySidEntry{});
+    }
+#endif
     if (getSwitchType() == cfg::SwitchType::VOQ) {
       uint64_t sysPortsFree, voqsFree;
       saiCheckError(sai_object_type_get_availability(
@@ -1924,12 +1937,6 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
                  << " new: " << apache::thrift::util::enumNameSafe(*newMode);
       managerTable_->switchManager().setSwitchingMode(*newMode);
     }
-  }
-
-  if (oldSwitchSettings->getMaxRouteCounterIDs() !=
-      newSwitchSettings->getMaxRouteCounterIDs()) {
-    managerTable_->counterManager().setMaxRouteCounterIDs(
-        newSwitchSettings->getMaxRouteCounterIDs());
   }
 
   {
@@ -2209,6 +2216,11 @@ uint64_t SaiSwitch::getDeviceWatermarkBytesLocked(
 folly::F14FastMap<std::string, HwPortStats> SaiSwitch::getPortStats() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return getPortStatsLocked(lock);
+}
+
+std::map<std::string, HwTrunkStats> SaiSwitch::getTrunkStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return managerTable_->lagManager().getAllHwTrunkStats();
 }
 
 CpuPortStats SaiSwitch::getCpuPortStats() const {
@@ -2599,6 +2611,16 @@ void SaiSwitch::updatePmdInfo(
   for (const auto& laneState : laneStates) {
     sideState.pmd()->lanes()[laneState.first] = laneState.second;
   }
+  auto swPort = getProgrammedState()->getPorts()->getNodeIf(portID);
+  bool linkTrainingEnabled =
+      swPort ? swPort->getLinkTraining().value_or(false) : false;
+  if (linkTrainingEnabled) {
+    sideState.pmd()->linkTrainingStatus() =
+        managerTable_->portManager().getLinkTrainingStatus(
+            port->adapterKey(), portID, linkTrainingEnabled);
+  } else {
+    sideState.pmd()->linkTrainingStatus()->linkTrainingEnabled() = false;
+  }
 }
 
 void SaiSwitch::updatePcsInfo(
@@ -2817,7 +2839,7 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
         saiSwitchId_, restartIssu);
 #endif
   }
-#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001)
+#if defined(TAJO_SAI_SDK)
   checkAndSetSdkDowngradeVersion();
 #endif
   folly::dynamic follySwitchState = folly::dynamic::object;
@@ -2906,6 +2928,17 @@ void SaiSwitch::clearSignalDetectAndLockChangedStats(const PortID& portId) {
   }
 }
 
+void SaiSwitch::triggerCableLengthMeasurement(
+    const std::unique_ptr<std::vector<int32_t>>& ports) {
+  std::vector<PortID> portIds;
+  portIds.reserve(ports->size());
+  for (const auto port : *ports) {
+    portIds.emplace_back(port);
+  }
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  managerTable_->portManager().triggerCableLengthMeasurement(portIds);
+}
+
 void SaiSwitch::clearInterfacePhyCounters(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
   auto& portManager = managerTable_->portManager();
@@ -2958,6 +2991,9 @@ void SaiSwitch::linkStateChangedBottomHalf(const PortID& portId) {
 
 void SaiSwitch::linkStateChangedCallbackBottomHalf(
     std::vector<sai_port_oper_status_notification_t> operStatus) {
+  if (getSwitchRunState() == SwitchRunState::EXITING) {
+    return;
+  }
   // Store both link status AND port type from concurrentIndices_ to avoid
   // race condition. The port2PortType_ map in SaiPortManager is not thread-safe
   // (std::unordered_map), while concurrentIndices_->portSaiId2PortInfo is
@@ -3106,6 +3142,9 @@ void SaiSwitch::txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId) {
 void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
     bool fwIsolated,
     const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate) {
+  if (getSwitchRunState() == SwitchRunState::EXITING) {
+    return;
+  }
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
   {
     auto changePending = txReadyStatusChangePending_.wlock();
@@ -3186,6 +3225,9 @@ void SaiSwitch::fwDisabledLinksCallbackBottomHalf(
 void SaiSwitch::linkConnectivityChanged(
     const std::map<PortID, multiswitch::FabricConnectivityDelta>&
         connectivityDelta) {
+  if (getSwitchRunState() == SwitchRunState::EXITING) {
+    return;
+  }
   callback_->linkConnectivityChanged(connectivityDelta);
 }
 
@@ -3307,6 +3349,9 @@ std::map<SwitchID, std::set<PortID>> SaiSwitch::getSwitchReachabilityChange() {
 
 void SaiSwitch::processSwitchReachabilityChange(
     const std::map<SwitchID, std::set<PortID>>& reachabilityInfo) {
+  if (getSwitchRunState() == SwitchRunState::EXITING) {
+    return;
+  }
   callback_->switchReachabilityChanged(
       SwitchID(platform_->getAsic()->getSwitchId().value()), reachabilityInfo);
 }
@@ -3777,7 +3822,8 @@ void SaiSwitch::initSwitchAsicSdkHealthNotificationLocked(
 
 bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {
   static std::set<facebook::fboss::cfg::PacketRxReason> kAllowedRxReasons = {
-      facebook::fboss::cfg::PacketRxReason::TTL_1};
+      facebook::fboss::cfg::PacketRxReason::TTL_1,
+      facebook::fboss::cfg::PacketRxReason::MPLS_TTL_1};
   const auto hostifTrapItr =
       concurrentIndices_->hostifTrapIds.find(hostifTrapSaiId);
   if (hostifTrapItr == concurrentIndices_->hostifTrapIds.cend()) {
@@ -3869,7 +3915,8 @@ void SaiSwitch::packetRxCallback(
    * and send it to sw switch for processing.
    */
   bool allowMissingSrcPort = hostifTrapSaiIdOpt.has_value() &&
-      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO &&
+      (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) &&
       isMissingSrcPortAllowed(hostifTrapSaiIdOpt.value());
 
   if (!portSaiIdOpt && !allowMissingSrcPort) {
@@ -4466,20 +4513,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
        */
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::SDK_REGISTER_DUMP)) {
-        std::vector<int8_t> sdkRegDumpLogPathArray;
-        std::string sdkRegDumpLogPathStr = folly::to<std::string>(
-            FLAGS_sdk_reg_dump_path_prefix, "_", FLAGS_switchIndex, ".log");
-        std::copy(
-            sdkRegDumpLogPathStr.c_str(),
-            sdkRegDumpLogPathStr.c_str() + sdkRegDumpLogPathStr.size() + 1,
-            std::back_inserter(sdkRegDumpLogPathArray));
-
-        std::optional<SaiSwitchTraits::Attributes::SdkRegDumpLogPath>
-            sdkRegDumpLogPath{std::nullopt};
-        sdkRegDumpLogPath = sdkRegDumpLogPathArray;
-
-        auto& switchApi = SaiApiTable::getInstance()->switchApi();
-        switchApi.setAttribute(saiSwitchId_, sdkRegDumpLogPath);
+        setSdkRegDumpEnabledLocked(lock, !FLAGS_skip_sdk_reg_dump);
       }
 
       /*
@@ -4654,6 +4688,9 @@ void SaiSwitch::fdbEventCallback(
 
 void SaiSwitch::fdbEventCallbackLockedBottomHalf(
     std::vector<FdbEventNotificationData> fdbNotifications) {
+  if (getSwitchRunState() == SwitchRunState::EXITING) {
+    return;
+  }
   std::vector<std::pair<L2Entry, L2EntryUpdateType>> l2Entries;
   {
     auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
@@ -4952,6 +4989,40 @@ void SaiSwitch::dumpDebugState(const std::string& path) const {
   saiCheckError(sai_dbg_generate_dump(path.c_str()));
 }
 
+void SaiSwitch::setSdkRegDumpEnabled(bool enabled) {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  setSdkRegDumpEnabledLocked(lock, enabled);
+}
+
+void SaiSwitch::setSdkRegDumpEnabledLocked(
+    const std::lock_guard<std::mutex>& /*lock*/,
+    bool enabled) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SDK_REGISTER_DUMP)) {
+    throw FbossError("SDK register dump is not supported on this device");
+  }
+  // The SDK dumps register/state logs to this path; an empty path disables the
+  // dump. Computed here so this is the only place that builds the dump path.
+  const std::string path = enabled
+      ? folly::to<std::string>(
+            FLAGS_sdk_reg_dump_path_prefix, "_", FLAGS_switchIndex, ".log")
+      : std::string();
+  // SAI expects a null-terminated char array, so copy the trailing '\0'.
+  std::vector<int8_t> sdkRegDumpLogPathArray;
+  std::copy(
+      path.c_str(),
+      path.c_str() + path.size() + 1,
+      std::back_inserter(sdkRegDumpLogPathArray));
+  std::optional<SaiSwitchTraits::Attributes::SdkRegDumpLogPath>
+      sdkRegDumpLogPath{sdkRegDumpLogPathArray};
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  switchApi.setAttribute(saiSwitchId_, sdkRegDumpLogPath);
+  if (enabled) {
+    XLOG(INFO) << "Enabled SDK register/state dump to '" << path << "'";
+  } else {
+    XLOG(INFO) << "Disabled SDK register/state dump";
+  }
+}
+
 std::string SaiSwitch::listCachedObjectsLocked(
     const std::vector<sai_object_type_t>& objects,
     const SaiStore* store,
@@ -5101,6 +5172,7 @@ std::string SaiSwitch::listObjects(
                 SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP));
 #endif
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT);
+        objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM);
         break;
       case HwObjectType::LABEL_ENTRY:
@@ -5127,6 +5199,12 @@ std::string SaiSwitch::listObjects(
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
         objTypes.push_back(
             static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_FIRMWARE));
+#endif
+        break;
+      case HwObjectType::SRV6:
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+        objTypes.push_back(SAI_OBJECT_TYPE_SRV6_SIDLIST);
+        objTypes.push_back(SAI_OBJECT_TYPE_MY_SID_ENTRY);
 #endif
         break;
     }
@@ -5192,7 +5270,8 @@ void SaiSwitch::processAclTableGroupDelta(
         &SaiAclTableManager::changedAclTable,
         &SaiAclTableManager::addAclTable,
         &SaiAclTableManager::removeAclTable,
-        aclStage);
+        aclStage,
+        delta.newState());
 
     if (delta.getAclTablesDelta(aclStage).getNew()) {
       // Process delta for the entries of each table in the new state
@@ -5207,7 +5286,8 @@ void SaiSwitch::processAclTableGroupDelta(
             &SaiAclTableManager::changedAclEntry,
             &SaiAclTableManager::addAclEntry,
             &SaiAclTableManager::removeAclEntry,
-            tableName);
+            tableName,
+            delta.newState());
       }
     }
   }
@@ -5432,6 +5512,9 @@ void SaiSwitch::pfcDeadlockNotificationCallbackTopHalf(
 void SaiSwitch::pfcDeadlockNotificationCallbackBottomHalf(
     uint32_t count,
     const sai_queue_deadlock_notification_data_t* data) {
+  if (getSwitchRunState() == SwitchRunState::EXITING) {
+    return;
+  }
   for (int idx = 0; idx < count; ++idx) {
     auto queueSaiId = static_cast<QueueSaiId>(data[idx].queue_id);
     XLOG(DBG2) << "queue_id " << data[idx].queue_id;
@@ -5502,6 +5585,11 @@ std::vector<EcmpDetails> SaiSwitch::getAllEcmpDetails() const {
 HwSwitchDropStats SaiSwitch::getSwitchDropStats() const {
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
   return managerTable_->switchManager().getSwitchDropStats();
+}
+
+HwSwitchDropBitmapStats SaiSwitch::getSwitchDropBitmapStats() const {
+  std::lock_guard<std::mutex> lk(saiSwitchMutex_);
+  return managerTable_->switchManager().getSwitchDropBitmapStats();
 }
 
 AclStats SaiSwitch::getAclStats() const {
@@ -5658,6 +5746,11 @@ HwResourceStats SaiSwitch::getResourceStats() const {
   return hwResourceStats_;
 }
 
+HwSwitchCounterStats SaiSwitch::getHwSwitchCounterStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return managerTable_->counterManager().getHwSwitchCounterStats();
+}
+
 // TODO: add support in SAI
 bool SaiSwitch::getArsExhaustionStatus() {
   return false;
@@ -5706,6 +5799,9 @@ void SaiSwitch::switchAsicSdkHealthNotificationTopHalf(
 
 void SaiSwitch::switchAsicSdkHealthNotificationBottomHalf(
     SaiHealthNotification saiHealthNotification) {
+  if (getSwitchRunState() == SwitchRunState::EXITING) {
+    return;
+  }
   if (saiHealthNotification.asicError()) {
     getSwitchStats()->asicError();
   }

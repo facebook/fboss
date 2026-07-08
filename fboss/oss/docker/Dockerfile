@@ -6,6 +6,16 @@ ARG USER_UID=0
 ARG USER_GID=0
 ARG USER_SHELL=/bin/bash
 ARG USE_CLANG=true
+ARG FBOSS_META_ENV=0
+ARG GITHUB_ROOT=.
+ARG FBCODE_BUILDER_PATH=build/fbcode_builder
+ARG http_proxy=
+ARG https_proxy=
+ENV http_proxy=${http_proxy} \
+    https_proxy=${https_proxy}
+RUN if [ -n "$http_proxy" ]; then \
+      echo "proxy=$http_proxy" >> /etc/dnf/dnf.conf; \
+    fi
 
 # Download and install sccache
 RUN version=v0.11.0 && \
@@ -25,7 +35,7 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
     pkgconf pkgconf-m4 pkgconf-pkg-config redhat-rpm-config rpm-build rpm-sign strace \
     byacc diffstat intltool ltrace patchutils \
     pesign valgrind valgrind-devel \
-    bzip2 bzip2-devel cmake double-conversion double-conversion-devel gperf \
+    bzip2 bzip2-devel cmake gperf \
     libcurl-devel libcurl-minimal libdwarf libdwarf-devel libevent-devel \
     libffi libffi-devel libnghttp2 libnghttp2-devel libnl3 libnl3-devel \
     libsodium-devel libsodium-static libunwind libunwind-devel libusb libusb-devel \
@@ -33,7 +43,12 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
     openssl openssl-devel openssl-libs \
     re2 re2-devel snappy-devel xxhash-devel xz-devel zlib-devel zlib-static \
     libxml2-devel expat-devel wget git sudo lsof `basename "$USER_SHELL"` \
-    libcap-devel libmount-devel
+    libcap-devel libmount-devel libpciaccess-devel
+
+RUN if [ "$FBOSS_META_ENV" = "1" ]; then \
+      dnf install -y podman-docker fuse-overlayfs && \
+      sed -i 's|#mount_program = "/usr/bin/fuse-overlayfs"|mount_program = "/usr/bin/fuse-overlayfs"|' /etc/containers/storage.conf; \
+    fi
 
 # Set up Python 3.12 as the system default.
 # Python 3.12 is chosen to match the getdeps python manifest which installs
@@ -42,6 +57,8 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
 # must use the same Python version consistently.
 RUN dnf install -y python3.12 python3.12-devel python3.12-pip && \
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 100
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -sf /usr/bin/pip3.12 /usr/bin/pip
 
 # Necessary for using update-alternatives.
 RUN rpm -e binutils --nodeps
@@ -72,13 +89,13 @@ RUN dnf download libtool && \
 
 RUN python3 -m pip install setuptools 'Cython>=3.0,<3.2' wheel auditwheel patchelf boto3 botocore gitpython meson jinja2 pyyaml filelock pytest
 
-COPY .pre-commit-config.yaml /tmp/.pre-commit-config.yaml
+COPY ${GITHUB_ROOT}/.pre-commit-config.yaml /tmp/.pre-commit-config.yaml
 COPY ./fboss/oss/docker/setup_clang.sh /tmp/setup_clang.sh
 RUN bash /tmp/setup_clang.sh && rm /tmp/setup_clang.sh
 
 # Use /var/FBOSS as the set location to clone the git repository and store the outputs of the build.
 WORKDIR /var/FBOSS/fboss
-COPY build/fbcode_builder /var/FBOSS/fboss/build/fbcode_builder
+COPY ${FBCODE_BUILDER_PATH} /var/FBOSS/fboss/build/fbcode_builder
 RUN if [ "$USE_CLANG" = "true" ]; then \
     find build/fbcode_builder/manifests -maxdepth 1 -type f -exec sed -i 's/^binutils/#binutils/' {} +; \
     fi && \
@@ -86,7 +103,7 @@ RUN if [ "$USE_CLANG" = "true" ]; then \
     rm -rf build
 
 # The following libraries are needed for building SDK
-RUN dnf install -y doxygen aspell libyaml-devel vim-common libnsl libnsl2-devel glibc-static libstdc++-static
+RUN dnf install -y doxygen aspell libyaml-devel vim-common libnsl libnsl2-devel glibc-static libstdc++-static hostname
 
 # Install libyaml.a for SDK purposes
 RUN git clone https://github.com/yaml/libyaml.git && \
@@ -101,9 +118,9 @@ RUN git clone https://github.com/yaml/libyaml.git && \
 RUN dnf install -y perl-diagnostics perl-sort perl-English perl-Clone perl-Data-Compare \
     perl-List-MoreUtils perl-Moose perl-YAML perl-namespace-autoclean perl-JSON-XS perl-FindBin \
     perl-Math-BigInt perl-YAML-LibYAML perl-Sys-Hostname perl-Time
-RUN ln -s /usr/bin/python3 /usr/bin/python
+
 # ============================================================
-COPY requirements-dev.txt /tmp/requirements-dev.txt
+COPY ${GITHUB_ROOT}/requirements-dev.txt /tmp/requirements-dev.txt
 RUN python3 -m pip install -r /tmp/requirements-dev.txt && rm /tmp/requirements-dev.txt
 
 # Configure sudoers to allow wheel group passwordless sudo
@@ -118,5 +135,10 @@ RUN if [ "$USERNAME" != "root" ] && [ "$USER_UID" != "0" ]; then \
 
 # Support sudo in a privileged container
 RUN chmod 600 /etc/shadow
+
+COPY fboss/oss/scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["bash"]
 
 USER ${USERNAME}

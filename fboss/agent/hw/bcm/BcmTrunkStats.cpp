@@ -65,6 +65,7 @@ BcmTrunkStats::accumulateMemberStats() const {
 
   HwTrunkStats cumulativeSum;
   utility::clearHwTrunkStats(cumulativeSum);
+  *cumulativeSum.capacity_() = 0;
 
   {
     auto lockedMemberPortIDsPtr = memberPortIDs_.rlock();
@@ -111,6 +112,8 @@ BcmTrunkStats::accumulateMemberStats() const {
       auto& memberStats = memberStatsOptional.value();
 
       utility::accumulateHwTrunkMemberStats(cumulativeSum, memberStats);
+      *cumulativeSum.capacity_() +=
+          static_cast<int64_t>(memberPort->getSpeed());
       if (!timeRetrievedFromMemberPort) {
         timeRetrieved = memberPort->getTimeRetrieved();
         timeRetrievedFromMemberPort = true;

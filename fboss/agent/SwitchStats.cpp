@@ -81,6 +81,16 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "ipv6.hop_limit1_mine",
           SUM,
           RATE),
+      srv6DecapMySidToMe_(
+          map,
+          kCounterPrefix + "srv6.decap_mysid_to_me",
+          SUM,
+          RATE),
+      srv6NonLastSegmentDecapDrop_(
+          map,
+          kCounterPrefix + "srv6.non_last_segment_decap_drop",
+          SUM,
+          RATE),
       udpTooSmall_(map, kCounterPrefix + "udp.too_small", SUM, RATE),
       dhcpV4Pkt_(map, kCounterPrefix + "dhcpV4.pkt", SUM, RATE),
       dhcpV4BadPkt_(map, kCounterPrefix + "dhcpV4.bad_pkt", SUM, RATE),
@@ -92,6 +102,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
       addRouteV6_(map, kCounterPrefix + "route.v6.add", RATE),
       delRouteV4_(map, kCounterPrefix + "route.v4.delete", RATE),
       delRouteV6_(map, kCounterPrefix + "route.v6.delete", RATE),
+      ribResolutionCyclesDetected_(
+          map,
+          kCounterPrefix + "rib_resolution_cycles_detected",
+          SUM,
+          RATE),
       routeProgrammingUpdateAttempts_(
           map,
           kCounterPrefix + "route_programming_update_attempts",
@@ -133,6 +148,10 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "dsf_subscription_serve_delay_watermark_ms",
           facebook::fb303::ExportTypeConsts::kNone,
           kP100),
+      cpuLatencyUs_(
+          kCounterPrefix + "cpu_latency.us",
+          facebook::fb303::ExportTypeConsts::kCountAvg,
+          facebook::fb303::QuantileConsts::kP50_P95_P99_P100),
       bgHeartbeatDelay_(
           map,
           kCounterPrefix + "bg_heartbeat_delay.ms",
@@ -382,6 +401,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           RATE),
       dsfGrExpired_(map, kCounterPrefix + "dsfsession_gr_expired", SUM, RATE),
       dsfUpdateFailed_(map, kCounterPrefix + "dsf_update_failed", SUM, RATE),
+      warmbootRemoteIntfRoutesInconsistency_(
+          map,
+          kCounterPrefix + "warmboot_remote_intf_routes_inconsistency",
+          SUM,
+          RATE),
       hiPriPktsReceived_(
           map,
           kCounterPrefix + "hi_pri_pkts_received",

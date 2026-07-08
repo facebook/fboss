@@ -28,7 +28,7 @@ jobs:
       - name: Clean workspace
         run: sudo rm -rf ${{ github.workspace }}/*
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Run Docker-based build for fboss2 CLI
         run: >
           sudo
@@ -68,7 +68,7 @@ jobs:
       - name: Save Docker image
         run: sudo docker save fboss_image:latest | zstd -o ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fboss2-cli
           path: |
@@ -78,13 +78,13 @@ jobs:
           retention-days: 14
   fboss2-CLI-Test:
     if: github.repository_owner == 'facebook'
-    runs-on: ubuntu-latest
+    runs-on: 4-core-ubuntu
     needs: fboss2-CLI-Build
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Download artifact with test binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: fboss2-cli
       - run: ls ${{ github.workspace }}

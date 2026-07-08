@@ -1,0 +1,42 @@
+name: run_scripts unit tests
+
+on:
+  pull_request:
+    paths:
+      - 'fboss/oss/scripts/run_scripts/**'
+      - '.github/workflows/run-scripts-unittests.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'fboss/oss/scripts/run_scripts/**'
+      - '.github/workflows/run-scripts-unittests.yml'
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref to avoid wasting CI minutes on
+# rapid PR pushes — hermetic tests, safe to cancel mid-run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Read-only test workflow; no need for the default broad write scope.
+permissions:
+  contents: read
+
+jobs:
+  Run-Scripts-Unit-Tests:
+    runs-on: ubuntu-latest
+    # Pure-Python pytest suite finishes in seconds; 10 min is a generous
+    # upper bound that catches genuine hangs without sitting on the GHA
+    # default 6h timeout.
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install pytest and parameterized
+        # Pin major versions: hermetic tests should be reproducible across
+        # CI runs even when upstream releases breaking-API majors.
+        run: pip install 'pytest>=8,<9' 'parameterized>=0.9,<1'
+      - name: Run pytest
+        run: pytest fboss/oss/scripts/run_scripts/fboss_test_runner/unittests/ -v

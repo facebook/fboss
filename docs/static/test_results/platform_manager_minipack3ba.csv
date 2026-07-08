@@ -6,4 +6,4 @@
 "PlatformManagerHwTest.PmExplorationStatusTransitions","minipack3ba","PASSED"
 "PlatformManagerHwTest.ExploreAsDeployed","minipack3ba","PASSED"
 "PlatformManagerHwTest.ExploreAfterUnloadingKmods","minipack3ba","PASSED"
-"PlatformManagerHwTest.ExploreAfterUninstallingKmods","minipack3ba","PASSED"
+"PlatformManagerHwTest.ExploreAfterUninstallingKmods","minipack3ba","FAILED"

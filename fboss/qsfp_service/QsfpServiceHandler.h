@@ -12,6 +12,7 @@
 #include "fboss/mka_service/handlers/MacsecHandler.h"
 #include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
+#include "fboss/qsfp_service/diag/PaiDiagShell.h"
 #include "fboss/qsfp_service/fsdb/QsfpFsdbSubscriber.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
@@ -134,6 +135,10 @@ class QsfpServiceHandler
 
   void getPortTransceiverIDs(
       std::map<std::string, std::vector<int32_t>>& portTransceiverIds) override;
+
+  void getTransceiverInfoByPortName(
+      std::map<std::string, TransceiverInfo>& info,
+      std::unique_ptr<std::vector<std::string>> portNames) override;
 
   /*
    * Thrift call servicing routine for programming one PHY port
@@ -293,6 +298,30 @@ class QsfpServiceHandler
       int64_t regOffset,
       int64_t data) override;
 
+  /**
+   * Start a streaming PAI Diag Shell session for Broadcom Agera3 retimers.
+   * Mirrors SaiHandler::startDiagShell. Returns the first prompt + a stream
+   * of subsequent shell output. Thread-safe: only one client at a time.
+   * Use the PAI shell's `s <switch_id>` command to switch chip context.
+   */
+  apache::thrift::ResponseAndServerStream<std::string, std::string>
+  startPaiDiagShell() override;
+
+  /**
+   * Send keystrokes/commands to an active streaming PAI Diag Shell session.
+   */
+  void producePaiDiagShellInput(
+      std::unique_ptr<std::string> input,
+      std::unique_ptr<ClientInformation> client) override;
+
+  /**
+   * One-shot PAI diag command: connect, send command, read output, disconnect.
+   */
+  void paiDiagCmd(
+      std::string& result,
+      std::unique_ptr<std::string> input,
+      std::unique_ptr<ClientInformation> client) override;
+
   void phyConfigCheckHw(std::string& out, std::unique_ptr<std::string> portName)
       override;
 
@@ -404,6 +433,16 @@ class QsfpServiceHandler
   std::shared_ptr<mka::MacsecHandler> macsecHandler_;
 
   std::unique_ptr<QsfpFsdbSubscriber> fsdbSubscriber_;
+
+  // PAI Diag Shell access for retimer chips. Lazy-initialized on first use,
+  // because we need a SaiPhyManager-owned SaiSwitch to be ready first.
+  // Only one shell session at a time across the process; switch chip context
+  // with the PAI shell's `s <switch_id>` command.
+  void ensurePaiDiagShell();
+  std::unique_ptr<StreamingPaiDiagShell> paiDiagShell_;
+  std::unique_ptr<PaiDiagCmdServer> paiDiagCmdServer_;
+  std::mutex paiDiagCmdLock_;
+  std::mutex paiDiagInitLock_;
 };
 } // namespace fboss
 } // namespace facebook

@@ -14,7 +14,6 @@
 
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <iterator>
 #include <numeric>
 #include "folly/IPAddress.h"
@@ -71,7 +70,8 @@ std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs) {
 
 UnicastRoute toUnicastRoute(
     const folly::CIDRNetwork& nw,
-    const RouteNextHopEntry& nhopEntry) {
+    const RouteNextHopEntry& nhopEntry,
+    const RouteNextHopSet& nhops) {
   UnicastRoute thriftRoute;
   thriftRoute.dest()->ip() = network::toBinaryAddress(nw.first);
   thriftRoute.dest()->prefixLength() = nw.second;
@@ -83,9 +83,15 @@ UnicastRoute toUnicastRoute(
     thriftRoute.classID() = nhopEntry.getClassID().value();
   }
   if (nhopEntry.getAction() == RouteForwardAction::NEXTHOPS) {
-    thriftRoute.nextHops() = fromRouteNextHopSet(nhopEntry.getNextHopSet());
+    thriftRoute.nextHops() = fromRouteNextHopSet(nhops);
   }
   return thriftRoute;
+}
+
+UnicastRoute toUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    const RouteNextHopEntry& nhopEntry) {
+  return toUnicastRoute(nw, nhopEntry, nhopEntry.getNextHopSet());
 }
 
 } // namespace util
@@ -98,7 +104,8 @@ RouteNextHopEntry::RouteNextHopEntry(
     std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
     std::optional<NextHopSet> overrideNextHops,
     std::optional<NextHopSetID> normalizedResolvedNextHopSetID,
-    std::optional<NextHopSetID> resolvedNextHopSetID) {
+    std::optional<NextHopSetID> resolvedNextHopSetID,
+    std::optional<NextHopSetID> clientNextHopSetID) {
   auto data = getRouteNextHopEntryThrift(
       action,
       distance,
@@ -108,7 +115,8 @@ RouteNextHopEntry::RouteNextHopEntry(
       overrideEcmpSwitchingMode,
       overrideNextHops,
       normalizedResolvedNextHopSetID,
-      resolvedNextHopSetID);
+      resolvedNextHopSetID,
+      clientNextHopSetID);
   this->fromThrift(std::move(data));
 }
 
@@ -120,7 +128,8 @@ RouteNextHopEntry::RouteNextHopEntry(
     std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
     std::optional<NextHopSet> overrideNextHops,
     std::optional<NextHopSetID> normalizedResolvedNextHopSetID,
-    std::optional<NextHopSetID> resolvedNextHopSetID) {
+    std::optional<NextHopSetID> resolvedNextHopSetID,
+    std::optional<NextHopSetID> clientNextHopSetID) {
   auto data = getRouteNextHopEntryThrift(
       Action::NEXTHOPS,
       distance,
@@ -130,7 +139,8 @@ RouteNextHopEntry::RouteNextHopEntry(
       overrideEcmpSwitchingMode,
       overrideNextHops,
       normalizedResolvedNextHopSetID,
-      resolvedNextHopSetID);
+      resolvedNextHopSetID,
+      clientNextHopSetID);
   this->fromThrift(std::move(data));
 }
 
@@ -142,7 +152,8 @@ RouteNextHopEntry::RouteNextHopEntry(
     std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
     std::optional<NextHopSet> overrideNextHops,
     std::optional<NextHopSetID> normalizedResolvedNextHopSetID,
-    std::optional<NextHopSetID> resolvedNextHopSetID) {
+    std::optional<NextHopSetID> resolvedNextHopSetID,
+    std::optional<NextHopSetID> clientNextHopSetID) {
   if (nhopSet.empty()) {
     throw FbossError("Empty nexthop set is passed to the RouteNextHopEntry");
   }
@@ -155,68 +166,9 @@ RouteNextHopEntry::RouteNextHopEntry(
       overrideEcmpSwitchingMode,
       overrideNextHops,
       normalizedResolvedNextHopSetID,
-      resolvedNextHopSetID);
+      resolvedNextHopSetID,
+      clientNextHopSetID);
   this->fromThrift(std::move(data));
-}
-
-NextHopWeight RouteNextHopEntry::getTotalWeight() const {
-  return totalWeight(getNextHopSet());
-}
-
-std::string RouteNextHopEntry::str_DEPRACATED() const {
-  std::string result;
-  switch (getAction()) {
-    case Action::DROP:
-      result = "DROP";
-      break;
-    case Action::TO_CPU:
-      result = "To_CPU";
-      break;
-    case Action::NEXTHOPS:
-      toAppend(getNextHopSet(), &result);
-      break;
-    default:
-      CHECK(0);
-      break;
-  }
-  result += folly::to<std::string>(
-      ";admin=", static_cast<int32_t>(getAdminDistance()));
-  auto counterID = getCounterID();
-  auto classID = getClassID();
-  auto overrideEcmpMode = getOverrideEcmpSwitchingMode();
-  auto normalizedResolvedNhSetID = getNormalizedResolvedNextHopSetID();
-  auto resolvedNhSetID = getResolvedNextHopSetID();
-  result += folly::to<std::string>(
-      ";counterID=", counterID.has_value() ? *counterID : "none");
-  result += folly::to<std::string>(
-      ";classID=",
-      classID.has_value()
-          ? apache::thrift::util::enumNameSafe(AclLookupClass(*classID))
-          : "none");
-  result += folly::to<std::string>(
-      ";overrideEcmpMode=",
-      overrideEcmpMode.has_value() ? apache::thrift::util::enumNameSafe(
-                                         cfg::SwitchingMode(*overrideEcmpMode))
-                                   : "none");
-  result += ";overrideNextHops=";
-  if (auto overrideNextHops = getOverrideNextHops()) {
-    toAppend(*overrideNextHops, &result);
-  } else {
-    result += "none";
-  }
-
-  result += folly::to<std::string>(
-      ";normalizedResolvedNextHopSetID=",
-      normalizedResolvedNhSetID.has_value()
-          ? std::to_string(static_cast<uint64_t>(*normalizedResolvedNhSetID))
-          : "none");
-
-  result += folly::to<std::string>(
-      ";resolvedNextHopSetID=",
-      resolvedNhSetID.has_value()
-          ? std::to_string(static_cast<uint64_t>(*resolvedNhSetID))
-          : "none");
-  return result;
 }
 
 std::string RouteNextHopEntry::str() const {
@@ -236,7 +188,8 @@ bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
           a.getOverrideNextHops() == b.getOverrideNextHops()) &&
       a.getNormalizedResolvedNextHopSetID() ==
       b.getNormalizedResolvedNextHopSetID() &&
-      a.getResolvedNextHopSetID() == b.getResolvedNextHopSetID();
+      a.getResolvedNextHopSetID() == b.getResolvedNextHopSetID() &&
+      a.getClientNextHopSetID() == b.getClientNextHopSetID();
 }
 
 bool operator<(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
@@ -284,7 +237,6 @@ bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
   bool valid = true;
   if (!forMplsRoute) {
     /* for ip2mpls routes, next hop label forwarding action must be push */
-    auto nhops = getNextHopSet();
     for (const auto& nexthop : *safe_cref<switch_state_tags::nexthops>()) {
       if (getAction() != Action::NEXTHOPS) {
         continue;
@@ -330,7 +282,7 @@ bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
 
 void RouteNextHopEntry::normalize(
     std::vector<NextHopWeight>& scaledWeights,
-    NextHopWeight totalWeight) const {
+    NextHopWeight totalWeight) {
   // This is the weight distribution without constraints
   std::vector<double> idealWeights;
 
@@ -414,13 +366,15 @@ void RouteNextHopEntry::normalize(
 
 RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
     bool ignoreOverride) const {
-  NextHopSet nhopSet;
   auto overrideNhops = getOverrideNextHops();
   if (!ignoreOverride && overrideNhops) {
-    nhopSet = *overrideNhops;
-  } else {
-    nhopSet = getNextHopSet();
+    return normalizeNextHops(*overrideNhops);
   }
+  return normalizeNextHops(getNextHopSet());
+}
+
+RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizeNextHops(
+    const NextHopSet& nhopSet) {
   NextHopSet normalizedNextHops;
   // 1)
   for (const auto& nhop : nhopSet) {
@@ -441,7 +395,8 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
         nhop.adjustedWeight(),
         nhop.srv6SegmentList(),
         nhop.tunnelType(),
-        nhop.tunnelId()));
+        nhop.tunnelId(),
+        nhop.cost()));
   }
   // 2)
   // Calculate the totalWeight. If that exceeds the max ecmp width, we use the
@@ -491,7 +446,8 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
               nhop.adjustedWeight(),
               nhop.srv6SegmentList(),
               nhop.tunnelType(),
-              nhop.tunnelId()));
+              nhop.tunnelId(),
+              nhop.cost()));
           scaledTotalWeight += weight;
         }
         index++;
@@ -514,7 +470,8 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
             nhop.adjustedWeight(),
             nhop.srv6SegmentList(),
             nhop.tunnelType(),
-            nhop.tunnelId()));
+            nhop.tunnelId(),
+            nhop.cost()));
         scaledTotalWeight += w;
       }
       // 2c)
@@ -544,7 +501,8 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
               maxItr->adjustedWeight(),
               maxItr->srv6SegmentList(),
               maxItr->tunnelType(),
-              maxItr->tunnelId());
+              maxItr->tunnelId(),
+              maxItr->cost());
           // remove the max weight next hop and replace with the
           // decremented version, if the decremented version would
           // not have weight 0. If it would have weight 0, that means
@@ -557,7 +515,7 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
         scaledTotalWeight = FLAGS_ecmp_width;
       }
     }
-    XLOG(DBG3) << "Scaled next hops from " << getNextHopSet() << " to "
+    XLOG(DBG3) << "Scaled next hops from " << nhopSet << " to "
                << scaledNextHops;
     normalizedNextHops = scaledNextHops;
   } else {
@@ -584,9 +542,10 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
           nhop.adjustedWeight(),
           nhop.srv6SegmentList(),
           nhop.tunnelType(),
-          nhop.tunnelId()));
+          nhop.tunnelId(),
+          nhop.cost()));
     }
-    XLOG(DBG3) << "Scaled next hops from " << getNextHopSet() << " to "
+    XLOG(DBG3) << "Scaled next hops from " << nhopSet << " to "
                << normalizedToMaxPathNextHops;
     return normalizedToMaxPathNextHops;
   }
@@ -806,7 +765,8 @@ state::RouteNextHopEntry RouteNextHopEntry::getRouteNextHopEntryThrift(
     std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
     const std::optional<RouteNextHopSet>& overrideNextHops,
     const std::optional<NextHopSetID>& normalizedResolvedNextHopSetID,
-    const std::optional<NextHopSetID>& resolvedNextHopSetID) {
+    const std::optional<NextHopSetID>& resolvedNextHopSetID,
+    const std::optional<NextHopSetID>& clientNextHopSetID) {
   state::RouteNextHopEntry entry{};
   entry.adminDistance() = distance;
   entry.action() = action;
@@ -832,6 +792,9 @@ state::RouteNextHopEntry RouteNextHopEntry::getRouteNextHopEntryThrift(
   if (resolvedNextHopSetID) {
     entry.resolvedNextHopSetID() = static_cast<int64_t>(*resolvedNextHopSetID);
   }
+  if (clientNextHopSetID) {
+    entry.clientNextHopSetID() = static_cast<int64_t>(*clientNextHopSetID);
+  }
   return entry;
 }
 
@@ -839,6 +802,14 @@ state::RouteNextHopEntry RouteNextHopEntry::getRouteNextHopEntryThrift(
 RouteNextHopSet RouteNextHopEntry::getNextHopSet() const {
   return util::toRouteNextHopSet(
       safe_cref<switch_state_tags::nexthops>()->toThrift(), true);
+}
+
+void RouteNextHopEntry::setNextHops(const NextHopSet& nhops) {
+  if (nhops.empty()) {
+    throw FbossError("Empty nexthop set is passed to setNextHops");
+  }
+  ref<switch_state_tags::action>() = Action::NEXTHOPS;
+  set<switch_state_tags::nexthops>(util::fromRouteNextHopSet(nhops));
 }
 
 bool RouteNextHopEntry::hasOverrideSwitchingModeOrNhops() const {

@@ -132,7 +132,7 @@ class FsdbPubSubTest : public ::testing::Test {
     pubSub.setConnectionOptions(
         utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()),
         updateServerPort);
-    WITH_RETRIES_N(kRetries, {
+    WITH_RETRIES_N(kConnectionRetries, {
       ASSERT_EVENTUALLY_TRUE(pubSub.isConnectedToServer())
           << pubSub.clientId() << " did not connected";
     });
@@ -374,6 +374,7 @@ class FsdbPubSubTest : public ::testing::Test {
   }
 
   static auto constexpr kRetries = 10;
+  static auto constexpr kConnectionRetries = 60;
   std::unique_ptr<FsdbTestServer> fsdbTestServer_;
   std::unique_ptr<folly::ScopedEventBaseThread> subscriberStreamEvbThread_;
   std::unique_ptr<folly::ScopedEventBaseThread> publisherStreamEvbThread_;
@@ -871,7 +872,22 @@ TYPED_TEST(FsdbSlowPathSubscriberTest, slowSubscriberCoalescedUpdates) {
       });
   this->setupConnection(*slowSub);
   this->checkSubscribed({slowSub->clientId()});
+
+  // publish update to trigger initial sync
   int updateNum{0};
+  if (this->pubSubStats()) {
+    this->publishPortStats(makePortStats(updateNum));
+  } else {
+    std::string testStr = folly::to<std::string>("bar", updateNum);
+    this->publishAgentConfig(makeAgentConfig({{"foo", testStr}}));
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
+  updateNum++;
+
+  // wait for initial sync - subscriber is now blocked in data callback
+  waitForInitialSync.wait();
+
+  // publish remaining updates while subscriber is blocked
   for (; updateNum < updatesPublished; updateNum++) {
     if (this->pubSubStats()) {
       this->publishPortStats(makePortStats(updateNum));
@@ -882,8 +898,7 @@ TYPED_TEST(FsdbSlowPathSubscriberTest, slowSubscriberCoalescedUpdates) {
     std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
   }
 
-  // wait for initial sync, then post another update
-  waitForInitialSync.wait();
+  // post another update
   if (this->pubSubStats()) {
     this->publishPortStats(makePortStats(updateNum));
   } else {
@@ -1025,7 +1040,22 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriberDisconnectThreshold) {
       });
   this->setupConnection(*slowSub);
   this->checkSubscribed({slowSub->clientId()});
+
+  // publish update to trigger initial sync
   int updateNum{0};
+  if (this->pubSubStats()) {
+    this->publishPortStats(makePortStats(updateNum));
+  } else {
+    std::string testStr = folly::to<std::string>("bar", updateNum);
+    this->publishAgentConfig(makeAgentConfig({{"foo", testStr}}));
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
+  updateNum++;
+
+  // wait for initial sync - subscriber is now blocked in data callback
+  waitForInitialSync.wait();
+
+  // publish remaining updates while subscriber is blocked
   for (; updateNum < updatesPublished; updateNum++) {
     if (this->pubSubStats()) {
       this->publishPortStats(makePortStats(updateNum));
@@ -1037,7 +1067,6 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriberDisconnectThreshold) {
   }
 
   // validate server does not disconnect subscriber yet
-  waitForInitialSync.wait();
   SubscriptionInfo info = slowSub->getInfo();
   ASSERT_EQ(
       info.state, FsdbStreamClient::ReconnectingThriftClient::State::CONNECTED);
@@ -1055,7 +1084,7 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriberDisconnectThreshold) {
   // resume subscriber data callback after all updates are published
   resumeDataCb.post();
 
-  waitForDisconnect.wait();
+  ASSERT_TRUE(waitForDisconnect.try_wait_for(std::chrono::seconds(120)));
   info = slowSub->getInfo();
   ASSERT_EQ(
       info.disconnectReason, FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL);
@@ -1105,7 +1134,22 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, memoryAwareDisconnect) {
       });
   this->setupConnection(*slowSub);
   this->checkSubscribed({slowSub->clientId()});
+
+  // publish update to trigger initial sync
   int updateNum{0};
+  if (this->pubSubStats()) {
+    this->publishPortStats(makePortStats(updateNum));
+  } else {
+    std::string testStr = folly::to<std::string>("bar", updateNum);
+    this->publishAgentConfig(makeAgentConfig({{"foo", testStr}}));
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
+  updateNum++;
+
+  // wait for initial sync - subscriber is now blocked in data callback
+  waitForInitialSync.wait();
+
+  // publish remaining normal updates while subscriber is blocked
   for (; updateNum <= updatesPublished; updateNum++) {
     if (this->pubSubStats()) {
       this->publishPortStats(makePortStats(updateNum));
@@ -1130,7 +1174,6 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, memoryAwareDisconnect) {
   std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
 
   // validate server does not disconnect subscriber yet
-  waitForInitialSync.wait();
   SubscriptionInfo info = slowSub->getInfo();
   ASSERT_EQ(
       info.state, FsdbStreamClient::ReconnectingThriftClient::State::CONNECTED);
@@ -1154,7 +1197,7 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, memoryAwareDisconnect) {
   // and validate that server disconnects the slow subscriber
   resumeDataCb.post();
 
-  waitForDisconnect.wait();
+  ASSERT_TRUE(waitForDisconnect.try_wait_for(std::chrono::seconds(120)));
   info = slowSub->getInfo();
   ASSERT_EQ(
       info.disconnectReason, FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL);
@@ -1172,28 +1215,21 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, memoryAwareDisconnect) {
 }
 
 TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriber) {
-  // publishInterval: wait for subscriptionServeIntervalMs+delta to prevent
-  // published updates from being coalesced
-  uint32_t queueSize = this->pubSubStats()
-      ? FLAGS_statsSubscriptionServeQueueSize
-      : kSubscriptionServeQueueSize;
-  uint32_t updatesPublished = 100 + queueSize + 1;
   uint32_t subscriptionServeIntervalMs =
       this->pubSubStats() ? kStatsServeIntervalMs : kStateServeIntervalMs;
   uint32_t publishIntervalMs = subscriptionServeIntervalMs + 20;
   this->setupConnection(*this->publisher_, false);
   this->checkPublishing({this->publisher_->clientId()});
 
-  // pause subscriber on initial sync long enough for all updates to be
-  // published and served so that queue builds up.
-  folly::Baton<> waitForDisconnect;
+  folly::Baton<> waitForInitialSync, waitForDisconnect;
   folly::Baton<> resumeDataCb, resumeReconnect;
   bool initialSyncOnce{false}, disconnectOnce{false};
   auto slowSub = this->createSubscriber(
       "fsdb_slow_subscriber",
-      [&resumeDataCb, &initialSyncOnce]() {
+      [&waitForInitialSync, &resumeDataCb, &initialSyncOnce]() {
         if (!initialSyncOnce) {
           initialSyncOnce = true;
+          waitForInitialSync.post();
           resumeDataCb.wait();
         }
       },
@@ -1206,7 +1242,27 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriber) {
       });
   this->setupConnection(*slowSub);
   this->checkSubscribed({slowSub->clientId()});
-  for (int updateNum = 1; updateNum <= updatesPublished; updateNum++) {
+
+  // publish update to trigger initial sync
+  int updateNum = 1;
+  if (this->pubSubStats()) {
+    this->publishPortStats(makePortStats(updateNum));
+  } else {
+    std::string testStr = folly::to<std::string>("bar", updateNum);
+    this->publishAgentConfig(makeAgentConfig({{"foo", testStr}}));
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
+  updateNum++;
+
+  // wait for initial sync - subscriber is now blocked in data callback
+  waitForInitialSync.wait();
+
+  // publish remaining updates while subscriber is blocked so queue builds up
+  uint32_t queueSize = this->pubSubStats()
+      ? FLAGS_statsSubscriptionServeQueueSize
+      : kSubscriptionServeQueueSize;
+  uint32_t updatesPublished = 100 + queueSize + 1;
+  for (; updateNum <= updatesPublished; updateNum++) {
     if (this->pubSubStats()) {
       this->publishPortStats(makePortStats(updateNum));
     } else {
@@ -1220,7 +1276,7 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriber) {
   resumeDataCb.post();
 
   // validate server disconnects slow subscriber
-  waitForDisconnect.wait();
+  ASSERT_TRUE(waitForDisconnect.try_wait_for(std::chrono::seconds(120)));
   SubscriptionInfo info = slowSub->getInfo();
   ASSERT_EQ(
       info.state,
@@ -1253,14 +1309,36 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriberQueueWatermark) {
   this->setupConnection(*this->publisher_, false);
   this->checkPublishing({this->publisher_->clientId()});
 
-  // pause subscriber on initial sync long enough for all updates to be
-  // published and served so that queue builds up.
-  folly::Baton<> resumeDataCb;
+  folly::Baton<> waitForInitialSync, resumeDataCb;
+  bool initialSyncOnce{false};
   auto slowSub = this->createSubscriber(
-      "fsdb_slow_subscriber", [&resumeDataCb]() { resumeDataCb.wait(); });
+      "fsdb_slow_subscriber",
+      [&waitForInitialSync, &resumeDataCb, &initialSyncOnce]() {
+        if (!initialSyncOnce) {
+          initialSyncOnce = true;
+          waitForInitialSync.post();
+          resumeDataCb.wait();
+        }
+      });
   this->setupConnection(*slowSub);
   this->checkSubscribed({slowSub->clientId()});
-  for (int updateNum = 1; updateNum <= updatesPublished; updateNum++) {
+
+  // publish update to trigger initial sync
+  int updateNum = 1;
+  if (this->pubSubStats()) {
+    this->publishPortStats(makePortStats(updateNum));
+  } else {
+    std::string testStr = folly::to<std::string>("bar", updateNum);
+    this->publishAgentConfig(makeAgentConfig({{"foo", testStr}}));
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
+  updateNum++;
+
+  // wait for initial sync - subscriber is now blocked in data callback
+  waitForInitialSync.wait();
+
+  // publish remaining updates while subscriber is blocked
+  for (; updateNum <= updatesPublished; updateNum++) {
     if (this->pubSubStats()) {
       this->publishPortStats(makePortStats(updateNum));
     } else {
@@ -1330,10 +1408,7 @@ TYPED_TEST(FsdbPubSubTest, subscriberStreamMetadata) {
       kSubscriptionServeQueueSize);
   this->subscriber_ = this->createSubscriber(kSubscriberId);
   this->publisher_ = this->createPublisher(kPublisherId);
-
-  // Set up publisher and subscriber separately, skip checkPublishing
-  this->setupConnection(*this->publisher_);
-  this->setupConnection(*this->subscriber_);
+  this->setupConnections();
 
   // Publish data
   if (this->pubSubStats()) {
@@ -1390,34 +1465,36 @@ TYPED_TEST(FsdbPubSubTest, publisherStreamMetadata) {
     this->publishAgentConfig(makeAgentConfig({{"foo", "bar"}}));
   }
 
-  // Brief wait for the update to be processed by the sink consumer
-  // @lint-ignore CLANGTIDY
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-  // Verify publisher stream state via getActivePublishers
+  // Verify publisher stream state via getActivePublishers.
+  // Use retries: the server-side sink consumer may need time to process the
+  // published data, especially under stress.
   auto publisherId = this->publisher_->clientId();
-  auto activePublishers =
-      this->fsdbTestServer_->serviceHandler().getActivePublishers();
-  bool found = false;
-  for (const auto& [key, entry] : activePublishers) {
-    if (*entry.info.publisherId() == publisherId) {
-      found = true;
-      ASSERT_TRUE(entry.streamState);
-      auto state = entry.streamState->rlock();
-      // connectedAt should be set to a reasonable value
-      EXPECT_GE(state->connectedAt, beforeConnect);
-      EXPECT_LE(state->connectedAt, std::time(nullptr));
-      // Update timestamps should be set after publishing
-      EXPECT_GT(state->lastUpdateReceivedAt, 0);
-      EXPECT_GT(state->lastUpdatePublishedAt, 0);
-      EXPECT_GT(state->initialSyncCompletedAt, 0);
-      // At least 1 update received
-      EXPECT_GE(state->numUpdatesReceived, 1);
-      EXPECT_GE(state->receivedDataSize, 0);
-      break;
+  WITH_RETRIES({
+    auto activePublishers =
+        this->fsdbTestServer_->serviceHandler().getActivePublishers();
+    bool found = false;
+    for (const auto& [key, entry] : activePublishers) {
+      if (*entry.info.publisherId() == publisherId) {
+        found = true;
+        ASSERT_EVENTUALLY_TRUE(entry.streamState != nullptr);
+        if (entry.streamState) {
+          auto state = entry.streamState->rlock();
+          // connectedAt should be set to a reasonable value
+          EXPECT_EVENTUALLY_GE(state->connectedAt, beforeConnect);
+          EXPECT_EVENTUALLY_LE(state->connectedAt, std::time(nullptr));
+          // Update timestamps should be set after publishing
+          EXPECT_EVENTUALLY_GT(state->lastUpdateReceivedAt, 0);
+          EXPECT_EVENTUALLY_GT(state->lastUpdatePublishedAt, 0);
+          EXPECT_EVENTUALLY_GT(state->initialSyncCompletedAt, 0);
+          // At least 1 update received
+          EXPECT_EVENTUALLY_GE(state->numUpdatesReceived, 1);
+          EXPECT_EVENTUALLY_GE(state->receivedDataSize, 0);
+        }
+        break;
+      }
     }
-  }
-  ASSERT_TRUE(found);
+    ASSERT_EVENTUALLY_TRUE(found);
+  });
 }
 
 } // namespace facebook::fboss::fsdb::test

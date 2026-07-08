@@ -2,6 +2,7 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:custom_rule.bzl", "custom_rule")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_platform")
 
@@ -20,6 +21,8 @@ cpp_binary(
         "//fboss/platform/fw_util/if:fw_util_config-cpp2-types",
         "//fboss/platform/platform_manager:config_validator",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//fboss/platform/reboot_cause_finder:config_validator",
+        "//fboss/platform/reboot_cause_finder/if:reboot_cause_config-cpp2-types",
         "//fboss/platform/rma-showtech:showtech_config-cpp2-types",
         "//fboss/platform/sensor_service:config_validator",
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
@@ -91,6 +94,7 @@ cpp_unittest(
     srcs = [
         "ConfigLibTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":config_lib",
         "//folly/logging:logging",

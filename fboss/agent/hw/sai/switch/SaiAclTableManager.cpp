@@ -24,6 +24,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiTunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -35,11 +36,7 @@
 
 extern "C" {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiaclextensions.h>
-#else
-#include <saiaclextensions.h>
-#endif
 #endif
 }
 
@@ -109,7 +106,8 @@ std::vector<std::string> SaiAclTableManager::getAllHandleNames() const {
 
 AclTableSaiId SaiAclTableManager::addAclTable(
     const std::shared_ptr<AclTable>& addedAclTable,
-    cfg::AclStage aclStage) {
+    cfg::AclStage aclStage,
+    const std::shared_ptr<SwitchState>& /*state*/) {
   auto saiAclStage =
       SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage);
 
@@ -171,7 +169,8 @@ AclTableSaiId SaiAclTableManager::addAclTable(
 
 void SaiAclTableManager::removeAclTable(
     const std::shared_ptr<AclTable>& removedAclTable,
-    cfg::AclStage aclStage) {
+    cfg::AclStage aclStage,
+    const std::shared_ptr<SwitchState>& /*state*/) {
   auto saiAclStage =
       SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage);
   auto aclTableName = removedAclTable->getID();
@@ -212,7 +211,8 @@ void SaiAclTableManager::removeAclEntriesFromTable(
 
 void SaiAclTableManager::addAclEntriesToTable(
     const std::shared_ptr<AclTable>& aclTable,
-    std::shared_ptr<AclMap>& aclMap) {
+    std::shared_ptr<AclMap>& aclMap,
+    const std::shared_ptr<SwitchState>& state) {
   auto newAclMap = aclTable->getAclMap().unwrap();
   for (auto const& iter : std::as_const(*aclMap)) {
     const auto& entry = iter.second;
@@ -221,14 +221,17 @@ void SaiAclTableManager::addAclEntriesToTable(
       continue;
     }
     auto aclEntry = aclMap->getEntry(entry->getID());
-    addAclEntry(aclEntry, aclTable->getID());
+    // Pass the new state through so PBR entries can resolve their NHGs on the
+    // table-recreate path (it would otherwise throw on a null state).
+    addAclEntry(aclEntry, aclTable->getID(), state);
   }
 }
 
 void SaiAclTableManager::changedAclTable(
     const std::shared_ptr<AclTable>& oldAclTable,
     const std::shared_ptr<AclTable>& newAclTable,
-    cfg::AclStage aclStage) {
+    cfg::AclStage aclStage,
+    const std::shared_ptr<SwitchState>& state) {
   /*
    * If the only change in acl table is in acl entries, then the acl entry delta
    * processing will take care of changing those.
@@ -237,12 +240,12 @@ void SaiAclTableManager::changedAclTable(
   if (needsAclTableRecreate(oldAclTable, newAclTable)) {
     // Remove acl entries from old acl table before removing the table
     removeAclEntriesFromTable(oldAclTable);
-    removeAclTable(oldAclTable, aclStage);
-    addAclTable(newAclTable, aclStage);
+    removeAclTable(oldAclTable, aclStage, state);
+    addAclTable(newAclTable, aclStage, state);
 
     // Add the old acl Entries back to new acl table
     auto oldAclMap = oldAclTable->getAclMap().unwrap();
-    addAclEntriesToTable(newAclTable, oldAclMap);
+    addAclEntriesToTable(newAclTable, oldAclMap, state);
   }
 }
 
@@ -418,6 +421,9 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
         break;
       case cfg::AclTableActionType::SET_USER_DEFINED_TRAP:
         saiActionType = SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID;
+        break;
+      case cfg::AclTableActionType::REDIRECT:
+        saiActionType = SAI_ACL_ACTION_TYPE_REDIRECT;
         break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       case cfg::AclTableActionType::SET_ARS_OBJECT:
@@ -674,9 +680,23 @@ void SaiAclTableManager::updateUdfGroupAttributes(
 }
 #endif
 
+std::shared_ptr<SaiAclRange> SaiAclTableManager::getOrCreateAclRange(
+    sai_int32_t rangeType,
+    uint32_t min,
+    uint32_t max) {
+  sai_u32_range_t limit{.min = min, .max = max};
+  SaiAclRangeTraits::Attributes::Type typeAttr{rangeType};
+  SaiAclRangeTraits::Attributes::Limit limitAttr{limit};
+  SaiAclRangeTraits::AdapterHostKey key{typeAttr, limitAttr};
+  SaiAclRangeTraits::CreateAttributes attrs{typeAttr, limitAttr};
+  auto& store = saiStore_->get<SaiAclRangeTraits>();
+  return store.setObject(key, attrs);
+}
+
 AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    const std::shared_ptr<SwitchState>& state) {
   // If we attempt to add entry to a table that does not exist, fail.
   auto aclTableHandle = getAclTableHandle(aclTableName);
   if (!aclTableHandle) {
@@ -823,6 +843,21 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
                 addedAclEntry->getL4DstPort().value(), kL4PortMask))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldAclRangeType>
+      fieldAclRangeType{std::nullopt};
+  std::shared_ptr<SaiAclRange> dstPortRangeObj;
+  if (addedAclEntry->getL4DstPortRange()) {
+    auto range = addedAclEntry->getL4DstPortRange().value();
+    dstPortRangeObj = getOrCreateAclRange(
+        SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE,
+        *range.minimum(),
+        *range.maximum());
+    std::vector<sai_object_id_t> rangeOids{dstPortRangeObj->adapterKey()};
+    fieldAclRangeType = SaiAclEntryTraits::Attributes::FieldAclRangeType{
+        AclEntryFieldSaiObjectIdList(
+            std::make_pair(rangeOids, std::vector<sai_object_id_t>{}))};
+  }
+
   bool matchV4 = !addedAclEntry->getEtherType().has_value() ||
       addedAclEntry->getEtherType().value() == cfg::EtherType::IPv4;
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -924,6 +959,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     fieldDscp = SaiAclEntryTraits::Attributes::FieldDscp{AclEntryFieldU8(
         std::make_pair(addedAclEntry->getDscp().value(), kDscpMask))};
   }
+
+  // PBR phase 2: populated from AclEntry::getTrafficClass() in a stacked diff;
+  // nullopt here keeps the positional tuple well-formed.
+  std::optional<SaiAclEntryTraits::Attributes::FieldTc> fieldTc{std::nullopt};
 
   std::optional<SaiAclEntryTraits::Attributes::FieldDstMac> fieldDstMac{
       std::nullopt};
@@ -1035,6 +1074,11 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         SAI_PACKET_ACTION_FORWARD};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::ActionRedirect>
+      aclActionRedirect{std::nullopt};
+  std::shared_ptr<SaiObject<SaiTunnelEncapNextHopTraits>> tunnelEncapNextHop{
+      nullptr};
+
   std::shared_ptr<SaiAclCounter> saiAclCounter{nullptr};
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
   std::optional<SaiAclEntryTraits::Attributes::ActionCounter> aclActionCounter{
@@ -1077,6 +1121,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionSetEcmpHashAlgorithm{std::nullopt};
   std::optional<SaiAclEntryTraits::Attributes::ActionL3SwitchCancel>
       aclActionL3SwitchCancel{std::nullopt};
+  std::optional<SaiAclEntryTraits::Attributes::FieldNextHopGroupId>
+      aclFieldNextHopGroupId{std::nullopt};
 #endif
 
   auto action = addedAclEntry->getAclAction();
@@ -1325,6 +1371,34 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #endif
     }
 #endif
+
+    if (matchAction.getRedirectToNextHop()) {
+      auto& [redirectAction, resolvedNexthops] =
+          matchAction.getRedirectToNextHop().value();
+      for (const auto& nhStruct : *redirectAction.redirectNextHops()) {
+        if (nhStruct.tunnelType().has_value() &&
+            nhStruct.tunnelType().value() == TunnelType::IP_IN_IP_ENCAP &&
+            nhStruct.tunnelId().has_value()) {
+          auto tunnelHandle = managerTable_->tunnelManager().getTunnelHandle(
+              nhStruct.tunnelId().value());
+          if (!tunnelHandle) {
+            throw FbossError(
+                "Missing tunnel for redirect: ", nhStruct.tunnelId().value());
+          }
+          auto tunnelSaiId = tunnelHandle->tunnel->adapterKey();
+          auto nhIp = folly::IPAddress(*nhStruct.ip());
+          SaiTunnelEncapNextHopTraits::AdapterHostKey nhKey{tunnelSaiId, nhIp};
+          SaiTunnelEncapNextHopTraits::CreateAttributes nhAttrs{
+              SAI_NEXT_HOP_TYPE_TUNNEL_ENCAP, tunnelSaiId, nhIp, std::nullopt};
+          auto& nhStore = saiStore_->get<SaiTunnelEncapNextHopTraits>();
+          tunnelEncapNextHop = nhStore.setObject(nhKey, nhAttrs);
+          aclActionRedirect = SaiAclEntryTraits::Attributes::ActionRedirect{
+              AclEntryActionSaiObjectIdT(
+                  NextHopSaiId{tunnelEncapNextHop->adapterKey()})};
+          break;
+        }
+      }
+    }
   }
 
   // TODO(skhare) At least one field and one action must be specified.
@@ -1335,14 +1409,15 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldSrcIpV4.has_value() || fieldDstIpV4.has_value() ||
        fieldSrcPort.has_value() || fieldOutPort.has_value() ||
        fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
-       fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
-       fieldIpFrag.has_value() || fieldIcmpV4Type.has_value() ||
-       fieldIcmpV4Code.has_value() || fieldIcmpV6Type.has_value() ||
-       fieldIcmpV6Code.has_value() || fieldDscp.has_value() ||
-       fieldDstMac.has_value() || fieldIpType.has_value() ||
-       fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
-       fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
-       fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
+       fieldAclRangeType.has_value() || fieldIpProtocol.has_value() ||
+       fieldTcpFlags.has_value() || fieldIpFrag.has_value() ||
+       fieldIcmpV4Type.has_value() || fieldIcmpV4Code.has_value() ||
+       fieldIcmpV6Type.has_value() || fieldIcmpV6Code.has_value() ||
+       fieldDscp.has_value() || fieldDstMac.has_value() ||
+       fieldIpType.has_value() || fieldTtl.has_value() ||
+       fieldFdbDstUserMeta.has_value() || fieldRouteDstUserMeta.has_value() ||
+       fieldEtherType.has_value() || fieldNeighborDstUserMeta.has_value() ||
+       fieldOuterVlanId.has_value() ||
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
        fieldBthOpcode.has_value() ||
 #endif
@@ -1412,6 +1487,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIcmpV6Type,
       fieldIcmpV6Code,
       fieldDscp,
+      fieldTc,
       fieldDstMac,
       fieldIpType,
       fieldTtl,
@@ -1420,6 +1496,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       fieldEtherType,
       fieldOuterVlanId,
+      fieldAclRangeType,
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       fieldBthOpcode,
 #endif
@@ -1437,6 +1514,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       userDefinedGroup4,
 #endif
       aclActionPacketAction,
+      aclActionRedirect,
       aclActionCounter,
       aclActionSetTC,
       aclActionSetDSCP,
@@ -1458,13 +1536,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       aclActionSetEcmpHashAlgorithm,
       aclActionL3SwitchCancel,
+      aclFieldNextHopGroupId,
 #endif
   };
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);
   auto entryHandle = std::make_unique<SaiAclEntryHandle>();
+  entryHandle->dstPortRange = dstPortRangeObj;
   entryHandle->aclEntry = saiAclEntry;
   entryHandle->aclCounter = saiAclCounter;
+  entryHandle->tunnelEncapNextHop = tunnelEncapNextHop;
   entryHandle->aclCounterTypeAndName = aclCounterTypeAndName;
   entryHandle->ingressMirror = ingressMirror;
   entryHandle->egressMirror = egressMirror;
@@ -1485,7 +1566,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
 void SaiAclTableManager::removeAclEntry(
     const std::shared_ptr<AclEntry>& removedAclEntry,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    const std::shared_ptr<SwitchState>& /*state*/) {
   // If we attempt to remove entry for a table that does not exist, fail.
   auto aclTableHandle = getAclTableHandle(aclTableName);
   if (!aclTableHandle) {
@@ -1539,14 +1621,15 @@ void SaiAclTableManager::removeAclCounter(
 void SaiAclTableManager::changedAclEntry(
     const std::shared_ptr<AclEntry>& oldAclEntry,
     const std::shared_ptr<AclEntry>& newAclEntry,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    const std::shared_ptr<SwitchState>& state) {
   /*
    * ASIC/SAI implementation typically does not allow modifying an ACL entry.
    * Thus, remove and re-add.
    */
   XLOG(DBG2) << "changing acl entry " << oldAclEntry->getID();
-  removeAclEntry(oldAclEntry, aclTableName);
-  addAclEntry(newAclEntry, aclTableName);
+  removeAclEntry(oldAclEntry, aclTableName, state);
+  addAclEntry(newAclEntry, aclTableName, state);
 }
 
 const SaiAclEntryHandle* FOLLY_NULLABLE SaiAclTableManager::getAclEntryHandle(
@@ -1692,6 +1775,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4;
   bool isQumran4d =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D;
+  bool isFake =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_FAKE;
   bool isTomahawk5 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
   bool isTomahawk6 =
@@ -1847,6 +1932,10 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     // ETHER_TYPE required for Aifm controller packets using 0x88B6
     if (isTomahawk6) {
       bcmQualifiers.insert(cfg::AclTableQualifier::ETHER_TYPE);
+      bcmQualifiers.erase(cfg::AclTableQualifier::OUT_PORT);
+    }
+    if (isFake) {
+      bcmQualifiers.insert(cfg::AclTableQualifier::L4_DST_PORT_RANGE);
     }
 
     return bcmQualifiers;
@@ -1864,7 +1953,7 @@ void SaiAclTableManager::addDefaultAclTable(
   aclTableFields.priority() = 0;
   aclTableFields.id() = name;
   auto table1 = std::make_shared<AclTable>(std::move(aclTableFields));
-  addAclTable(table1, stage);
+  addAclTable(table1, stage, nullptr /*state*/);
 }
 
 void SaiAclTableManager::removeDefaultAclTable(
@@ -2026,6 +2115,16 @@ bool SaiAclTableManager::isQualifierSupported(
 #else
       return false;
 #endif
+    case cfg::AclTableQualifier::L4_DST_PORT_RANGE: {
+      auto field = std::get<
+          std::optional<SaiAclTableTraits::Attributes::FieldAclRangeType>>(
+          attributes);
+      return field.has_value();
+    }
+    case cfg::AclTableQualifier::TC:
+    case cfg::AclTableQualifier::NEXT_HOP_GROUP_ID:
+      // PBR phase 2 qualifiers: real support is wired in a stacked diff.
+      return false;
     case cfg::AclTableQualifier::UDF:
       /* not supported */
       return false;

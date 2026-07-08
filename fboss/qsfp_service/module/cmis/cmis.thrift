@@ -324,4 +324,26 @@ enum CmisField {
   PAGE_UPPER34H = 461,
   // Page 35h - Lane Link Performance Monitoring
   PAGE_UPPER35H = 462,
+
+  // Page 38h - Data Path Host Interface Configuration
+  PAGE_UPPER38H = 463,
+  // Page 38h, Byte 137: Consequent Action control
+  //   Bits 7-4 (rxConsAct): media to host direction
+  //   Bits 3-0 (txConsAct): host to media direction
+  CONS_ACT_CONTROL = 464,
+
+  // Page 45h - Host Lane Provisioning Advertisement
+  PAGE_UPPER45H = 465,
+  // Page 45h, Byte 129: Host Lane Provisioning Advertisement
+  // Bits 6-0: txCStatLCKInsertionImpl, rxRplcSigInsertionImpl,
+  //   txRplcSigInsertionImpl, txConsActHoldOffTmrImpl,
+  //   rxConsActHoldOffTmrImpl, rxConsActImpl, txConsActImpl
+  HOST_LANE_PROV_AD = 466,
+  // Page 38h, Bytes 141-142: Rx Consequent Action Hold-off Timer
+  // 16-bit value in 10ms increments. 0 = disabled.
+  CONS_ACT_HOLD_OFF_TMR = 467,
+
+  // Lower Page 00h, Byte 70: Maximum CMIS bank capacity. Holds the module's
+  // peak bank count directly (e.g. 4 for a 32-lane module).
+  MAX_BANK_CAPACITY = 468,
 }

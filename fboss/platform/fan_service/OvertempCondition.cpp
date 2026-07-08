@@ -19,7 +19,7 @@ std::vector<std::string> OvertempCondition::setupShutdownConditions(
     throw std::runtime_error("Invalid number of overtemp sensor for shutdown");
   }
   for (const auto& condition : *config.shutdownCondition()->conditions()) {
-    if (entries.find(*condition.sensorName()) != entries.end()) {
+    if (entries.contains(*condition.sensorName())) {
       throw facebook::fboss::FbossError(
           "Duplicate sensor name in overtemp condition is not allowed!");
     }
@@ -93,6 +93,6 @@ bool OvertempCondition::checkIfOvertemp() {
 }
 
 bool OvertempCondition::isTracked(const std::string& sensorName) {
-  return entries.find(sensorName) != entries.end();
+  return entries.contains(sensorName);
 }
 } // namespace facebook::fboss::platform::fan_service

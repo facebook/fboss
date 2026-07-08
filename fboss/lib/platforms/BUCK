@@ -1,6 +1,47 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
 oncall("fboss_agent_push")
+
+thrift_library(
+    name = "platform_descriptor_thrift",
+    languages = [
+        "cpp2",
+        "py3-deprecated",
+        "python",
+    ],
+    py3_namespace = "neteng.fboss",
+    thrift_cpp2_options = [
+        "json",
+    ],
+    thrift_srcs = {"platform_descriptor.thrift": []},
+    deps = [
+        "//fboss/agent:switch_config",
+        "//fboss/lib/if:fboss_common",
+    ],
+)
+
+cpp_library(
+    name = "platform_descriptor",
+    srcs = [
+        "PlatformDescriptor.cpp",
+    ],
+    headers = [
+        "PlatformDescriptor.h",
+    ],
+    exported_deps = [
+        ":platform_descriptor_thrift-cpp2-types",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:platform_config-cpp2-types",
+        "//folly:cpp_attributes",
+        "//folly:file_util",
+        "//thrift/lib/cpp2:field_ref",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_algorithm"),
+    ],
+)
 
 cpp_library(
     name = "fruid_fields",
@@ -34,6 +75,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/re2:re2",
         ":fruid_fields",
+        ":platform_descriptor",
         "//common/fbwhoami:fb_who_am_i",
         "//fboss/agent:fboss-error",
         "//fboss/agent/if:product_info-cpp2-types",

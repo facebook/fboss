@@ -20,8 +20,18 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+#include "fboss/qsfp_service/TransceiverLogging.h"
+
 DECLARE_bool(use_new_state_machine);
 DECLARE_bool(port_manager_mode);
+
+// State machine log macros, similar to MODULE_LOG in TransceiverManager.h.
+// Assumes `fsm` is in scope (all state machine actions/helpers have it).
+// tcvrID is already a TransceiverID in the state machine context.
+#define TCVR_SM_LOG(level, tcvrID) TCVR_LOG_BASE(level, "[SM]", tcvrID)
+
+#define TCVR_SM_LOG_IF(level, cond, tcvrID) \
+  TCVR_LOG_BASE_IF(level, cond, "[SM]", tcvrID)
 
 namespace facebook::fboss {
 
@@ -80,9 +90,10 @@ BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, isTransceiverJustRemediated)
 template <class Fsm, class State>
 static void executeResetProgrammingAttributes(Fsm& fsm, State& currState) {
   auto tcvrID = fsm.get_attribute(transceiverID);
-  XLOG(DBG2) << "[Transceiver:" << tcvrID << "] State changed to "
-             << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
-             << ". Need to reset all programming attributes";
+  TCVR_SM_LOG(DBG2, tcvrID)
+      << "State changed to "
+      << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
+      << ". Need to reset all programming attributes";
   fsm.get_attribute(isIphyProgrammed) = false;
   fsm.get_attribute(isXphyProgrammed) = false;
   fsm.get_attribute(isTransceiverProgrammed) = false;
@@ -150,9 +161,10 @@ void operator()(
   if (!fsm.get_attribute(needMarkLastDownTime)) {
     return;
   }
-  XLOG(DBG2) << "[Transceiver:" << tcvrID << "] State changed to "
-             << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
-             << ". Need to mark lastDownTime to current";
+  TCVR_SM_LOG(DBG2, tcvrID)
+      << "State changed to "
+      << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
+      << ". Need to mark lastDownTime to current";
   fsm.get_attribute(transceiverMgrPtr)->markLastDownTime(tcvrID);
   // Change needMarkLastDownTime false so that if there's not actual port up
   // during the two INACTIVE states, we don't have to update lastDownTime.
@@ -172,9 +184,10 @@ void operator()(
     Fsm& fsm,
     State& currState) const {
   auto tcvrID = fsm.get_attribute(transceiverID);
-  XLOG(DBG2) << "[Transceiver:" << tcvrID << "] State changed to "
-             << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
-             << ". Update needMarkLastDownTime to true";
+  TCVR_SM_LOG(DBG2, tcvrID)
+      << "State changed to "
+      << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
+      << ". Update needMarkLastDownTime to true";
   fsm.get_attribute(needMarkLastDownTime) = true;
 }
 };
@@ -186,12 +199,14 @@ void operator()(
     Fsm& fsm,
     State& currState) const {
   auto tcvrID = fsm.get_attribute(transceiverID);
-  XLOG(DBG2) << "[Transceiver:" << tcvrID << "] State changed to "
-             << apache::thrift::util::enumNameSafe(stateToStateEnum(currState));
+  TCVR_SM_LOG(DBG2, tcvrID)
+      << "State changed to "
+      << apache::thrift::util::enumNameSafe(stateToStateEnum(currState));
   try {
     fsm.get_attribute(transceiverMgrPtr)->doTransceiverFirmwareUpgrade(tcvrID);
   } catch (const std::exception& ex) {
-    XLOG(ERR) << "[Transceiver:" << tcvrID << "] firmware upgrade failed with: " << ex.what();
+    TCVR_SM_LOG(ERR, tcvrID)
+        << "firmware upgrade failed with: " << ex.what();
   }
   fsm.get_attribute(needToResetToDiscovered) = true;
 }
@@ -208,9 +223,10 @@ void operator()(
   // and then a transceiver goes into Present state, this means that it was just inserted.
   // If not, we could enter Present state for existing modules right after warm boot or cold boot
   auto newTcvrInsertedAfterInit = fsm.get_attribute(transceiverMgrPtr)->isFullyInitialized();
-  XLOG(DBG2) << "[Transceiver:" << tcvrID << "] State changed to "
-             << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
-             << ". New transceiver inserted = " << newTcvrInsertedAfterInit;
+  TCVR_SM_LOG(DBG2, tcvrID)
+      << "State changed to "
+      << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
+      << ". New transceiver inserted = " << newTcvrInsertedAfterInit;
   fsm.get_attribute(newTransceiverInsertedAfterInit) = newTcvrInsertedAfterInit;
 }
 };
@@ -298,11 +314,11 @@ void operator()(
     Source& source,
     Target& target) const {
   auto tcvrID = fsm.get_attribute(transceiverID);
-  XLOG(DBG2) << "[Transceiver:" << tcvrID
-             << "] State changed from "
-             << apache::thrift::util::enumNameSafe(stateToStateEnum(source))
-             << " to "
-             << apache::thrift::util::enumNameSafe(stateToStateEnum(target));
+  TCVR_SM_LOG(DBG2, tcvrID)
+      << "State changed from "
+      << apache::thrift::util::enumNameSafe(stateToStateEnum(source))
+      << " to "
+      << apache::thrift::util::enumNameSafe(stateToStateEnum(target));
 }
 };
 
@@ -324,8 +340,8 @@ bool operator()(
     return true;
   } catch (const std::exception& ex) {
     // We have retry mechanism to handle failure. No crash here
-    XLOG(WARN) << "[Transceiver:" << tcvrID
-               << "] discover transceiver failed:" << folly::exceptionStr(ex);
+    TCVR_SM_LOG(WARN, tcvrID)
+        << "discover transceiver failed:" << folly::exceptionStr(ex);
     return false;
   }
 }
@@ -345,9 +361,8 @@ bool operator()(
     return true;
   } catch (const std::exception& ex) {
     // We have retry mechanism to handle failure. No crash here
-    XLOG(WARN) << "[Transceiver:" << tcvrID
-               << "] programInternalPhyPorts failed:"
-               << folly::exceptionStr(ex);
+    TCVR_SM_LOG(WARN, tcvrID)
+        << "programInternalPhyPorts failed:" << folly::exceptionStr(ex);
     return false;
   }
 }
@@ -368,9 +383,8 @@ bool operator()(
     return true;
   } catch (const std::exception& ex) {
     // We have retry mechanism to handle failure. No crash here
-    XLOG(WARN) << "[Transceiver:" << tcvrID
-               << "] programExternalPhyPorts failed:"
-               << folly::exceptionStr(ex);
+    TCVR_SM_LOG(WARN, tcvrID)
+        << "programExternalPhyPorts failed:" << folly::exceptionStr(ex);
     return false;
   }
 }
@@ -383,19 +397,18 @@ static bool executeReadyTransceiver(Fsm& fsm) {
   try {
     bool ready = fsm.get_attribute(transceiverMgrPtr)->readyTransceiver(tcvrID);
     if (!ready) {
-      XLOG(WARN) << "[Transceiver:" << tcvrID
-                 << "] readyTransceiver returned False";
+      TCVR_SM_LOG(WARN, tcvrID)
+          << "readyTransceiver returned False";
     } else {
-      XLOG(INFO) << "[Transceiver:" << tcvrID
-                 << "] readyTransceiver returned True";
+      TCVR_SM_LOG(INFO, tcvrID)
+          << "readyTransceiver returned True";
       fsm.get_attribute(transceiverMgrPtr)->checkPresentThenValidateTransceiver(tcvrID);
     }
     return ready;
   } catch (const std::exception& ex) {
     // We have retry mechanism to handle failure. No crash here
-    XLOG(WARN) << "[Transceiver:" << tcvrID
-               << "] readyTransceiver failed with abort:"
-               << folly::exceptionStr(ex);
+    TCVR_SM_LOG(WARN, tcvrID)
+        << "readyTransceiver failed with abort:" << folly::exceptionStr(ex);
     return false;
   }
 }
@@ -430,9 +443,8 @@ bool operator()(
     return true;
   } catch (const std::exception& ex) {
     // We have retry mechanism to handle failure. No crash here
-    XLOG(WARN) << "[Transceiver:" << tcvrID
-               << "] programTransceiver failed:"
-               << folly::exceptionStr(ex);
+    TCVR_SM_LOG(WARN, tcvrID)
+        << "programTransceiver failed:" << folly::exceptionStr(ex);
     return false;
   }
 }
@@ -456,19 +468,18 @@ bool operator()(
 
   bool result = false;
   if (fsm.get_attribute(forceRemoveTransceiver)) {
-    XLOG(INFO) << "[Transceiver:" << tcvrID << "] force removed.";
+    TCVR_SM_LOG(INFO, tcvrID) << "force removed.";
     result = true;
     // Reset forceRemoveTransceiver. It will be set again prior to the next time its required
     fsm.get_attribute(forceRemoveTransceiver) = false;
   } else if (!isEnabled) {
-    XLOG(DBG2) << "[Transceiver:" << tcvrID
-              << "] No enabled ports. Safe to remove";
+    TCVR_SM_LOG(DBG2, tcvrID) << "No enabled ports. Safe to remove";
     result = true;
   } else {
     // If Port Manager mode is enabled, transceiver can come down and we have other mechanisms to ensure no port flaps from transceiver programming / upgrading.
     result = FLAGS_port_manager_mode || xcvrMgr->areAllPortsDown(tcvrID).first;
-    XLOG_IF(WARN, !result) << "[Transceiver:" << tcvrID
-                          << "] Not all ports down. Not Safe to remove";
+    TCVR_SM_LOG_IF(WARN, !result, tcvrID)
+        << "Not all ports down. Not Safe to remove";
   }
 
   // If the state machine can proceed (result=true) we reset transceiver associated
@@ -493,9 +504,8 @@ static bool executeTryRemediateTransceiver(Fsm& fsm) {
     return remediationDone;
   } catch (const std::exception& ex) {
     // We have retry mechanism to handle failure. No crash here
-    XLOG(WARN) << "[Transceiver:" << tcvrID
-               << "] tryRemediateTransceiver failed:"
-               << folly::exceptionStr(ex);
+    TCVR_SM_LOG(WARN, tcvrID)
+        << "tryRemediateTransceiver failed:" << folly::exceptionStr(ex);
     return false;
   }
 }

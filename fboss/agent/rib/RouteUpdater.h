@@ -56,14 +56,16 @@ class RibRouteUpdater {
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
       NextHopIDManager* nextHopIDManager,
-      MySidTable* mySidTable);
+      MySidTable* mySidTable,
+      RouterID routerID = RouterID(0));
 
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
       LabelToRouteMap* mplsRoutes,
       NextHopIDManager* nextHopIDManager,
-      MySidTable* mySidTable);
+      MySidTable* mySidTable,
+      RouterID routerID = RouterID(0));
 
   struct RouteEntry {
     folly::CIDRNetwork prefix;
@@ -108,6 +110,10 @@ class RibRouteUpdater {
       const std::map<ClientID, std::vector<folly::CIDRNetwork>>& toDel,
       const std::set<ClientID>& resetClientsRoutesFor);
 
+  std::size_t cyclesDetected() const {
+    return cyclesDetected_;
+  }
+
  private:
   void updateImpl(
       ClientID client,
@@ -149,6 +155,17 @@ class RibRouteUpdater {
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID,
       const RouteNextHopEntry& entry);
+
+  // Stamp clientNextHopSetID on `entry` by either reusing the existing ID
+  // (when nexthops haven't changed), allocating a new ID and releasing the
+  // old, or releasing the old when the new entry has empty nexthops. Returns
+  // nullopt when there's nothing to stamp (no manager). `routeDescription`
+  // is used only for the CHECK message.
+  std::optional<RouteNextHopEntry> stampClientNextHopSetID(
+      ClientID clientID,
+      const std::shared_ptr<const RouteNextHopEntry>& existingRouteForClient,
+      const RouteNextHopEntry& entry,
+      const std::string& routeDescription);
   template <typename AddressT>
   void delRouteImpl(
       const Prefix<AddressT>& prefix,
@@ -163,6 +180,11 @@ class RibRouteUpdater {
       const FilterFunc& isClaimedFunc,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID);
+
+  // Release the resolved + normalized nexthop set IDs carried on `fwd` back
+  // to the manager. Call this right before erasing a route from a route map
+  // so the manager refcounts drop in sync with the route's lifetime.
+  void releaseFwdSideNexthopSetIDs(const RouteNextHopEntry& fwd);
 
   template <typename AddressT>
   void resolve(NetworkToRouteMap<AddressT>* routes);
@@ -183,7 +205,13 @@ class RibRouteUpdater {
       const std::vector<folly::IPAddressV6>& srv6SegmentList,
       const std::optional<TunnelType>& tunnelType,
       const std::optional<std::string>& tunnelId,
+      const std::optional<int64_t>& cost,
       RouteNextHopSet& fwd);
+
+  template <typename AddressT>
+  void maybeRemoveNamedNhgMapping(
+      const std::shared_ptr<Route<AddressT>>& route,
+      const RouteNextHopEntry& clientEntry);
 
   template <typename AddressT>
   bool needResolve(const std::shared_ptr<Route<AddressT>>& route) const;
@@ -196,7 +224,10 @@ class RibRouteUpdater {
   LabelToRouteMap* mplsRoutes_{nullptr};
   NextHopIDManager* nextHopIDManager_{nullptr};
   MySidTable* mySidTable_{nullptr};
+  RouterID routerID_{0};
   std::unordered_set<void*> needsResolution_;
+  std::unordered_set<void*> resolving_;
+  std::size_t cyclesDetected_{0};
   /*
    * Cache for next hop to FWD information. For our use case
    * its pretty common for the same next hops to repeat, so

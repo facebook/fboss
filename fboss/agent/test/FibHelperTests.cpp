@@ -303,12 +303,67 @@ TYPED_TEST(FibHelperTest, getNextHopsFromEntry) {
 
   for (const auto& [_, route] : std::as_const(*fib)) {
     const auto& fwdInfo = route->getForwardInfo();
-    if (fwdInfo.getNextHopSet().empty()) {
+    auto result = getNextHops(state, fwdInfo);
+    if (result.empty()) {
       continue;
     }
-    auto result = getNextHops(state, fwdInfo);
     EXPECT_EQ(result, fwdInfo.getNextHopSet());
   }
+}
+
+TYPED_TEST(FibHelperTest, getClientNextHopsFromState) {
+  this->programRouteWithNexthops(
+      this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+
+  auto state = this->sw_->getState();
+  auto fibContainer = this->getFibInfo()->getFibContainerIf(this->kRid());
+  ASSERT_NE(fibContainer, nullptr);
+  auto fib = this->getFib(fibContainer);
+
+  for (const auto& [_, route] : std::as_const(*fib)) {
+    for (const auto& [_clientId, entry] :
+         std::as_const(route->getEntryForClients())) {
+      EXPECT_EQ(getClientNextHops(state, *entry), entry->getNextHopSet());
+    }
+  }
+}
+
+TYPED_TEST(FibHelperTest, getClientNextHopsEmptyForDropEntry) {
+  // DROP per-client entry has empty nexthops and no ID.
+  auto routeUpdater = this->sw_->getRouteUpdater();
+  routeUpdater.addRoute(
+      this->kRid(),
+      this->kPrefix2().first,
+      this->kPrefix2().second,
+      this->kClientID(),
+      RouteNextHopEntry(RouteForwardAction::DROP, AdminDistance::EBGP));
+  routeUpdater.program();
+
+  auto state = this->sw_->getState();
+  auto fibContainer = this->getFibInfo()->getFibContainerIf(this->kRid());
+  ASSERT_NE(fibContainer, nullptr);
+  auto fib = this->getFib(fibContainer);
+
+  bool sawDropEntry = false;
+  for (const auto& [_, route] : std::as_const(*fib)) {
+    for (const auto& [_clientId, entry] :
+         std::as_const(route->getEntryForClients())) {
+      if (entry->getAction() != RouteForwardAction::DROP) {
+        continue;
+      }
+      sawDropEntry = true;
+      // DROP entries carry no nexthops: no clientNextHopSetID when resolving
+      // from ID, empty inline otherwise.
+      if (FLAGS_resolve_nexthops_from_id) {
+        EXPECT_FALSE(entry->getClientNextHopSetID().has_value());
+      } else {
+        EXPECT_TRUE(entry->getNextHopSet().empty());
+      }
+      EXPECT_TRUE(getClientNextHops(state, *entry).empty());
+    }
+  }
+  EXPECT_TRUE(sawDropEntry)
+      << "test inspected no DROP/empty-nexthops per-client entry";
 }
 
 TYPED_TEST(FibHelperTest, getNonOverrideNormalizedNextHopsFromEntry) {
@@ -321,7 +376,7 @@ TYPED_TEST(FibHelperTest, getNonOverrideNormalizedNextHopsFromEntry) {
 
   for (const auto& [_, route] : std::as_const(*fib)) {
     const auto& fwdInfo = route->getForwardInfo();
-    if (fwdInfo.getNextHopSet().empty()) {
+    if (getNextHops(state, fwdInfo).empty()) {
       continue;
     }
     auto result = getNonOverrideNormalizedNextHops(state, fwdInfo);
@@ -355,8 +410,8 @@ TYPED_TEST(FibHelperTest, getNewStateWithOldFibInfoPreservesOldFibs) {
     ASSERT_NE(oldRoute, nullptr) << "Route " << resultRoute->prefix().str()
                                  << " in result but not in oldState";
     EXPECT_EQ(
-        resultRoute->getForwardInfo().getNextHopSet(),
-        oldRoute->getForwardInfo().getNextHopSet())
+        getNextHops(result, resultRoute->getForwardInfo()),
+        getNextHops(oldState, oldRoute->getForwardInfo()))
         << "Nexthops mismatch for route " << resultRoute->prefix().str();
   }
 }
@@ -579,7 +634,7 @@ TYPED_TEST(FibHelperTest, getNormalizedNextHopsFromEntry) {
   auto fib = this->getFib(fibContainer);
   for (const auto& [_, route] : std::as_const(*fib)) {
     const auto& fwdInfo = route->getForwardInfo();
-    if (fwdInfo.getNextHopSet().empty()) {
+    if (getNextHops(state, fwdInfo).empty()) {
       continue;
     }
     auto result = getNormalizedNextHops(state, fwdInfo);
@@ -619,7 +674,7 @@ TYPED_TEST(FibHelperTest, getNormalizedNextHopsWithOverrides) {
   auto fib = this->getFib(fibContainer);
   for (const auto& [_, route] : std::as_const(*fib)) {
     const auto& fwdInfo = route->getForwardInfo();
-    if (fwdInfo.getNextHopSet().empty()) {
+    if (getNextHops(state, fwdInfo).empty()) {
       continue;
     }
     auto result = getNormalizedNextHops(state, fwdInfo);

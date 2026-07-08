@@ -17,6 +17,7 @@ cpp_binary(
         "//fboss/platform/platform_manager:pkg_manager",
         "//fboss/platform/platform_manager:platform_explorer",
         "//fboss/platform/platform_manager:platform_manager_handler",
+        "//fboss/platform/xcvr_lib:xcvr_lib",
         "//thrift/lib/cpp2/util:util",
     ],
 )

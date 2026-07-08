@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_platform")
+
+cpp_unittest(
+    name = "xcvr_lib_test",
+    srcs = ["XcvrLibTest.cpp"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/xcvr_lib:xcvr_lib",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)

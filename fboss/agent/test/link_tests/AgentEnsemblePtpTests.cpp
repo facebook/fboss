@@ -9,6 +9,7 @@
 #include "fboss/agent/packet/PTPHeader.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
@@ -130,7 +131,8 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
       auto srcMac = ethHdr.getSrcMac();
       auto dstMac = ethHdr.getDstMac();
 
-      auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto asic =
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
       if (hopLimit == kStartTtl) {
         if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
           // On chenab, the first packet is also timestamped,
@@ -192,7 +194,7 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
 
   void trapPackets(const folly::CIDRNetwork& prefix) {
     cfg::SwitchConfig cfg = getSw()->getConfig();
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     utility::addTrapPacketAcl(asic, &cfg, prefix);
     getSw()->applyConfig("trapPackets", cfg);
   }
@@ -226,7 +228,14 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
 //    else EXPECT_GT(CF_field, 0)
 // }
 TEST_F(AgentEnsemblePtpTests, verifyPtpTcDelayRequest) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::PTP});
   auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
+  std::vector<PortID> portVec;
+  for (const auto& portDescriptor : ecmpPorts) {
+    portVec.push_back(portDescriptor.phyPortID());
+  }
+  addTestedPorts(portVec);
   // create ACL to trap any packets to CPU coming with given dst IP
   // Ideally we should have used the l4port (PTP_UDP_EVENT_PORT), but
   // SAI doesn't support this qualifier yet
@@ -240,6 +249,8 @@ TEST_F(AgentEnsemblePtpTests, verifyPtpTcDelayRequest) {
 }
 
 TEST_F(AgentEnsemblePtpTests, verifyPtpTcAfterLinkFlap) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::PTP});
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   this->trapPackets(dstPrefix);
   auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
@@ -254,6 +265,7 @@ TEST_F(AgentEnsemblePtpTests, verifyPtpTcAfterLinkFlap) {
       break;
     }
   }
+  addTestedPorts(portVec);
   programDefaultRoute(ecmpPorts, getSw()->getLocalMac(scope(ecmpPorts)));
 
   // 1. Disable PTP
@@ -283,6 +295,8 @@ TEST_F(AgentEnsemblePtpTests, verifyPtpTcAfterLinkFlap) {
 
 // Validate PTP TC when PTP is enabled while port is down.
 TEST_F(AgentEnsemblePtpTests, enablePtpPortDown) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::PTP});
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   this->trapPackets(dstPrefix);
   auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
@@ -297,6 +311,7 @@ TEST_F(AgentEnsemblePtpTests, enablePtpPortDown) {
       break;
     }
   }
+  addTestedPorts(portVec);
   programDefaultRoute(ecmpPorts, getSw()->getLocalMac(scope(ecmpPorts)));
 
   // 1. Disable PTP

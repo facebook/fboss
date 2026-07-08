@@ -14,6 +14,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -98,8 +99,9 @@ class AgentMmuTuningTest : public AgentHwTest {
 
  private:
   void sendUdpPkts(uint8_t lowPriDscp, uint8_t highPriDscp) {
-    auto mmuSizeBytes = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-                            ->getMMUSizeBytes();
+    auto mmuSizeBytes =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getMMUSizeBytes();
     auto bytesSent = 0;
     // Send high pri DSCP packet followed by low pri DSCP packet
     // since in cases where MMU is split evenly (viz. tuning reserved
@@ -126,7 +128,7 @@ class AgentMmuTuningTest : public AgentHwTest {
     });
   }
   MacAddress dstMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       uint8_t dscpVal) const {
@@ -185,7 +187,7 @@ class AgentMmuTuningTest : public AgentHwTest {
   void addQueueConfig(
       cfg::SwitchConfig* config,
       const std::vector<const HwAsic*>& asics) const {
-    auto asic = checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsicForTesting(asics);
     auto streamType =
         *(utility::getStreamType(cfg::PortType::INTERFACE_PORT, asics).begin());
     bool scalingFactorSupported =

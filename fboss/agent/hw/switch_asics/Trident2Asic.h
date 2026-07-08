@@ -36,6 +36,9 @@ class Trident2Asic : public BroadcomXgsAsic {
   uint32_t getMMUCellSize() const {
     return 208;
   }
+  uint32_t getNumCellsAvailable(PlatformType /*platformType*/) const override {
+    return static_cast<uint32_t>(getMMUSizeBytes() / getMMUCellSize());
+  }
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override {
     // Changing loopback mode to MAC on a 40G port on trident2 changes

@@ -14,6 +14,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -22,6 +23,8 @@
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
+
+DECLARE_bool(enable_acl_table_group);
 
 namespace facebook::fboss {
 
@@ -41,7 +44,7 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
   void sendPacket(bool frontPanel, int16_t dscp, uint8_t ttl = 64) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
@@ -122,7 +125,7 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     auto l3Asics = ensemble.getL3Asics();
     utility::addOlympicV2QosMaps(cfg, l3Asics);
     auto kAclName = "acl1";
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     utility::addDscpAclToCfg(asic, &cfg, kAclName, kDscp());
     utility::addTrafficCounter(
         &cfg, kCounterName(), utility::getAclCounterTypes(l3Asics));
@@ -231,12 +234,22 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
 
     // ACL
-    auto* acl = utility::addAcl_DEPRECATED(&cfg, "acl0");
+    auto l3Asics = ensemble.getL3Asics();
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
+    // acl0 qualifies on TTL + IPv6 etherType only; on Q4D/J4 those shared
+    // qualifiers would route it to the IPv4 default table, so target the IPv6
+    // table explicitly there.
+    std::optional<std::string> aclTableName;
+    if (FLAGS_enable_acl_table_group &&
+        (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+         asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4)) {
+      aclTableName = utility::kIpv6AclTable();
+    }
+    auto* acl = utility::addAcl_DEPRECATED(
+        &cfg, "acl0", cfg::AclActionType::PERMIT, aclTableName);
     cfg::Ttl ttl; // Match packets with hop limit > 127
     std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
     acl->ttl() = ttl;
-    auto l3Asics = ensemble.getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
     utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
     utility::addAclStat(
         &cfg,
@@ -301,7 +314,7 @@ class AgentAclConflictAndDscpQueueMappingTest
         true /*interfaceHasSubnet*/);
 
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     // The QoS map sends packets to queue kQueueIdQosMap() i.e. 7,
     // The ACL sends them to queue kQueueIdAcl() i.e. 2.
     // QosMap

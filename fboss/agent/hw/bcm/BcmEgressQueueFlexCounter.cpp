@@ -391,7 +391,7 @@ void BcmEgressQueueFlexCounter::attach(bcm_gport_t gPort) {
         cfg::StreamType::MULTICAST);
   }
 
-  // Now try to get the lock to update the Syncronized object
+  // Now try to get the lock to update the Synchronized object
   auto& statsDataMap = getStatsDataMap(isForCPU_);
   auto cachedPortIt = statsDataMap.find(gPort);
   if (cachedPortIt == statsDataMap.end()) {

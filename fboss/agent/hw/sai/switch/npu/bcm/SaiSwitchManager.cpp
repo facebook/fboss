@@ -5,11 +5,7 @@
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 
 extern "C" {
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiswitchextensions.h>
-#else
-#include <saiswitchextensions.h>
-#endif
 }
 
 namespace facebook::fboss {
@@ -69,8 +65,7 @@ void fillHwSwitchWatermarkStats(
         hwSwitchWatermarkStats.fdrFifoWatermarkBytes() = value;
         break;
 #endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
-        // TODO (nivinl): Stats ID not yet available in 14.x!
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       case SAI_SWITCH_STAT_EXTENSION_FABRIC_INTER_CELL_JITTER_MAX_IN_NSEC: {
         hwSwitchWatermarkStats.fabricInterCellJitterWatermarkUsec() = value;
         break;
@@ -182,5 +177,13 @@ void fillHwSwitchPipelineStats(
     }
   }
 }
+
+void fillHwSwitchDropBitmapStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropBitmapStats& /*dropBitmapStats*/) {
+  CHECK_EQ(counterId2Value.size(), 0);
+}
+
+void logDropBitmapReasons(const HwSwitchDropBitmapStats& /*stats*/) {}
 
 } // namespace facebook::fboss

@@ -2,6 +2,7 @@
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/lib/multinode/MultiNodeUtil.h"
 
 DECLARE_bool(disable_neighbor_updates);
@@ -19,7 +20,7 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     XLOG(DBG0) << "initialConfig() loaded config from file " << FLAGS_config;
 
     auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(hwAsics);
+    auto asic = checkSameAndGetAsicForTesting(hwAsics);
 
     auto it = asic->desiredLoopbackModes().find(cfg::PortType::INTERFACE_PORT);
     CHECK(it != asic->desiredLoopbackModes().end());
@@ -40,6 +41,11 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     return {ProductionFeature::VOQ};
+  }
+
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Multinode VoQ topology exercises the full agent config port set.
+    return std::nullopt;
   }
 
   bool isTestDriver() const {

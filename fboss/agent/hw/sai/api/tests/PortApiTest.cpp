@@ -63,6 +63,7 @@ class PortApiTest : public ::testing::Test {
 #endif
         std::nullopt, // TC to Priority Group map
         std::nullopt, // PFC Priority to Queue map
+        std::nullopt, // PFC Priority to Priority Group map
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
         std::nullopt, // Inter frame gap
 #endif
@@ -358,6 +359,15 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   auto gotPortTcToQueue = portApi->getAttribute(portId, portTcToQueue);
   EXPECT_EQ(gotPortTcToQueue, qosMapTcToQueue);
 
+  // Port PFC priority to priority group
+  sai_object_id_t qosMapPfcPriorityToPg{46};
+  SaiPortTraits::Attributes::QosPfcPriorityToPriorityGroupMap
+      portPfcPriorityToPg{qosMapPfcPriorityToPg};
+  portApi->setAttribute(portId, portPfcPriorityToPg);
+  auto gotPortPfcPriorityToPg =
+      portApi->getAttribute(portId, portPfcPriorityToPg);
+  EXPECT_EQ(gotPortPfcPriorityToPg, qosMapPfcPriorityToPg);
+
   // Port Dot1p (PCP) to TC map get/set
   sai_object_id_t qosMapDot1pToTc{44};
   SaiPortTraits::Attributes::QosDot1pToTcMap portDot1pToTc{qosMapDot1pToTc};
@@ -562,6 +572,13 @@ TEST_F(PortApiTest, getFabricAttachedSwitchType) {
   auto swType = portApi->getAttribute(
       id, SaiPortTraits::Attributes::FabricAttachedSwitchType{});
   EXPECT_EQ(swType, SAI_SWITCH_TYPE_VOQ);
+}
+
+TEST_F(PortApiTest, getLinkTrainingRxStatus) {
+  auto id = createPort(100000, {42}, true);
+  auto rxStatus = portApi->getAttribute(
+      id, SaiPortTraits::Attributes::LinkTrainingRxStatus{});
+  EXPECT_EQ(rxStatus, 0); // NOT_TRAINED default
 }
 
 TEST_F(PortApiTest, getFabricReachability) {

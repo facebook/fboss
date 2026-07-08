@@ -8,13 +8,16 @@
 # pyre-unsafe
 
 import concurrent.futures
+import json
+import re
 import subprocess
+import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, cast, Dict, List, Optional, Tuple
 
 from .config import SdkcastleSpec
-from .enums import RunMode
+from .enums import RunMode, TestRunnerMode
 from .test_runner import create_test_runner
 from .test_runner_report_generator import create_summary_report_generator
 
@@ -65,6 +68,8 @@ class TestExecutor:
             raise ValueError("No test specifications provided")
 
         if self.config.run_mode == RunMode.FULL_RUN:
+            if self.config.remote:
+                return self._execute_all_tests_remote()
             return self._execute_all_tests()
 
         raise ValueError(f"Unsupported run mode: {self.config.run_mode}")
@@ -201,6 +206,294 @@ class TestExecutor:
                 "log_file": str(log_file_path),
                 "return_code": -1,
             }
+
+    def _execute_all_tests_remote(self) -> Dict[str, Any]:
+        """Submit all tests as remote Sandcastle jobs via netcastle --sandcastle"""
+        if self.config.test_runner_mode != TestRunnerMode.META_INTERNAL:
+            raise ValueError(
+                "Remote execution is only supported with meta-internal "
+                "(netcastle) test runner mode"
+            )
+
+        commands = self._generate_all_test_commands()
+
+        if not commands:
+            return {
+                "status": "success",
+                "mode": "remote",
+                "total_jobs": 0,
+                "results": [],
+            }
+
+        self.log_dir = self._create_log_directory()
+        self._save_commands_to_file(commands, self.log_dir)
+
+        print(f"\nSubmitting {len(commands)} test commands as Sandcastle jobs...")
+
+        results = []
+        sandcastle_url_pattern = re.compile(r"Sandcastle job created: (\S+)")
+
+        for i, (cmd, log_filename) in enumerate(commands, 1):
+            print(f"\n[{i}/{len(commands)}] Submitting: {' '.join(cmd)}")
+
+            log_file_path = self.log_dir / log_filename
+            sandcastle_url = None
+
+            try:
+                result = subprocess.run(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    timeout=600,
+                )
+
+                with open(log_file_path, "w") as log_file:
+                    log_file.write(result.stdout)
+
+                url_match = sandcastle_url_pattern.search(result.stdout)
+                if url_match:
+                    sandcastle_url = url_match.group(1)
+
+                status = "submitted" if result.returncode == 0 else "failed"
+                if sandcastle_url:
+                    print(f"  Sandcastle job: {sandcastle_url}")
+                elif result.returncode != 0:
+                    print(f"  Failed with exit code {result.returncode}")
+                    print(f"  See log: {log_file_path}")
+
+                results.append(
+                    {
+                        "command": cmd,
+                        "status": status,
+                        "sandcastle_url": sandcastle_url,
+                        "log_file": str(log_file_path),
+                        "return_code": result.returncode,
+                    }
+                )
+
+            except subprocess.TimeoutExpired:
+                with open(log_file_path, "w") as log_file:
+                    log_file.write("Sandcastle submission timed out\n")
+                print("  Submission timed out")
+                results.append(
+                    {
+                        "command": cmd,
+                        "status": "timeout",
+                        "sandcastle_url": None,
+                        "log_file": str(log_file_path),
+                        "return_code": -1,
+                    }
+                )
+            except Exception as e:
+                with open(log_file_path, "w") as log_file:
+                    log_file.write(f"Error submitting: {str(e)}\n")
+                print(f"  Error: {e}")
+                results.append(
+                    {
+                        "command": cmd,
+                        "status": "error",
+                        "sandcastle_url": None,
+                        "log_file": str(log_file_path),
+                        "return_code": -1,
+                    }
+                )
+
+        submitted = sum(1 for r in results if r["status"] == "submitted")
+        submit_failed = len(results) - submitted
+
+        print("\n=== Remote Submission Summary ===")
+        print(f"Total jobs: {len(results)}")
+        print(f"Submitted: {submitted}")
+        print(f"Failed to submit: {submit_failed}")
+        print(f"Log directory: {self.log_dir}")
+
+        sandcastle_urls = [r["sandcastle_url"] for r in results if r["sandcastle_url"]]
+        if sandcastle_urls:
+            print("\n=== Sandcastle Job URLs ===")
+            for url in sandcastle_urls:
+                print(f"  {url}")
+
+        urls_file = self.log_dir / "sandcastle_job_urls.txt"
+        with open(urls_file, "w") as f:
+            for r in results:
+                f.write(f"Command: {' '.join(cast(List[str], r['command']))}\n")
+                f.write(f"Status: {r['status']}\n")
+                f.write(f"URL: {r['sandcastle_url'] or 'N/A'}\n")
+                f.write(f"Log file: {r['log_file']}\n\n")
+        print(f"\nJob URLs saved to: {urls_file}")
+
+        if submitted == 0:
+            return {
+                "status": "partial_failure",
+                "mode": "remote",
+                "total_jobs": len(results),
+                "submitted": 0,
+                "failed": submit_failed,
+                "results": results,
+                "log_directory": str(self.log_dir),
+            }
+
+        job_ids = self._extract_job_ids(results)
+        if not job_ids:
+            print("\nWarning: Could not extract Sandcastle job IDs from URLs")
+            return {
+                "status": "partial_failure",
+                "mode": "remote",
+                "total_jobs": len(results),
+                "submitted": submitted,
+                "failed": submit_failed,
+                "results": results,
+                "log_directory": str(self.log_dir),
+            }
+
+        print(f"\n=== Waiting for {len(job_ids)} Sandcastle jobs to complete ===")
+        completed_jobs = self._await_sandcastle_jobs(job_ids)
+
+        print("\n=== Downloading test runner logs ===")
+        self._download_sandcastle_logs(completed_jobs, results)
+
+        print("\n=== Generating test reports ===")
+        self._generate_test_summary_report()
+
+        test_failed = sum(
+            1
+            for r in results
+            if r.get("job_status") not in ("SUCCESS", None)
+            and r["status"] == "submitted"
+        )
+
+        return {
+            "status": "success" if test_failed == 0 else "partial_failure",
+            "mode": "remote",
+            "total_jobs": len(results),
+            "submitted": submitted,
+            "failed": submit_failed,
+            "test_failures": test_failed,
+            "results": results,
+            "log_directory": str(self.log_dir),
+        }
+
+    def _extract_job_ids(self, results: List[Dict[str, Any]]) -> List[Tuple[str, int]]:
+        """Extract Sandcastle job IDs from URLs. Returns list of (log_file, job_id)."""
+        job_id_pattern = re.compile(r"/job/(\d+)")
+        job_ids = []
+        for r in results:
+            if r.get("sandcastle_url"):
+                match = job_id_pattern.search(r["sandcastle_url"])
+                if match:
+                    job_ids.append((r["log_file"], int(match.group(1))))
+        return job_ids
+
+    def _await_sandcastle_jobs(
+        self, job_ids: List[Tuple[str, int]]
+    ) -> Dict[int, Dict[str, Any]]:
+        """Wait for all Sandcastle jobs to complete using scutil."""
+        completed = {}
+        pending = dict(job_ids)
+        poll_interval = 300
+
+        while pending:
+            for log_file, job_id in list(pending.items()):
+                try:
+                    result = subprocess.run(
+                        ["scutil", "get-info", str(job_id), "-v", "json"],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        timeout=60,
+                    )
+                    if result.returncode == 0:
+                        infos = json.loads(result.stdout)
+                        if infos and len(infos) > 0:
+                            info = infos[0]
+                            status_code = info.get("status", 0)
+                            status_str = info.get("statusString", "UNKNOWN")
+                            # Negative status codes or -3 (SUCCESS) mean finished
+                            if status_code < 0:
+                                completed[job_id] = {
+                                    "status": status_str,
+                                    "status_code": status_code,
+                                    "log_file": log_file,
+                                    "info": info,
+                                }
+                                del pending[log_file]
+                                print(
+                                    f"  Job {job_id}: {status_str} "
+                                    f"({len(completed)}/{len(completed) + len(pending)} done)"
+                                )
+                except (
+                    subprocess.TimeoutExpired,
+                    json.JSONDecodeError,
+                    Exception,
+                ) as e:
+                    print(f"  Warning: Error checking job {job_id}: {e}")
+
+            if pending:
+                print(
+                    f"  {len(pending)} jobs still running, "
+                    f"checking again in {poll_interval // 60} minutes..."
+                )
+                time.sleep(poll_interval)
+
+        print(f"\nAll {len(completed)} Sandcastle jobs completed.")
+        return completed
+
+    def _download_sandcastle_logs(
+        self,
+        completed_jobs: Dict[int, Dict[str, Any]],
+        results: List[Dict[str, Any]],
+    ) -> None:
+        """Download test runner logs from completed Sandcastle jobs."""
+        job_id_pattern = re.compile(r"/job/(\d+)")
+
+        for r in results:
+            if r["status"] != "submitted" or not r.get("sandcastle_url"):
+                continue
+
+            match = job_id_pattern.search(r["sandcastle_url"])
+            if not match:
+                continue
+
+            job_id = int(match.group(1))
+            job_info = completed_jobs.get(job_id)
+            if not job_info:
+                continue
+
+            r["job_status"] = job_info["status"]
+            log_file_path = r["log_file"]
+
+            try:
+                # Download the "Run Tests" step log which contains test results
+                log_result = subprocess.run(
+                    ["scutil", "get-log", str(job_id), "--name", "Run Tests"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=120,
+                )
+
+                if log_result.returncode != 0 or not log_result.stdout.strip():
+                    # Fallback: try without step name to get full job log
+                    log_result = subprocess.run(
+                        ["scutil", "get-log", str(job_id)],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        timeout=120,
+                    )
+
+                if log_result.stdout.strip():
+                    with open(log_file_path, "w") as f:
+                        f.write(log_result.stdout)
+                    print(
+                        f"  Downloaded log for job {job_id} -> {Path(log_file_path).name}"
+                    )
+                else:
+                    print(f"  Warning: Empty log for job {job_id}")
+
+            except Exception as e:
+                print(f"  Error downloading log for job {job_id}: {e}")
 
     def _generate_all_test_commands(self) -> List[Tuple[List[str], str]]:
         """Generate all test runner commands based on configuration"""

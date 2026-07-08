@@ -1885,6 +1885,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_ACL_COUNTER:
       setAclCounterAttributes(attr_list, attr_count, attrLines, rv);
       break;
+    case SAI_OBJECT_TYPE_ACL_RANGE:
+      setAclRangeAttributes(attr_list, attr_count, attrLines, rv);
+      break;
     case SAI_OBJECT_TYPE_ACL_ENTRY:
       setAclEntryAttributes(attr_list, attr_count, attrLines, rv);
       break;
@@ -2021,6 +2024,9 @@ vector<string> SaiTracer::setAttrList(
       break;
     case SAI_OBJECT_TYPE_TAM_EVENT:
       setTamEventAttributes(attr_list, attr_count, attrLines, rv);
+      break;
+    case SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD:
+      setTamEventThresholdAttributes(attr_list, attr_count, attrLines, rv);
       break;
     case SAI_OBJECT_TYPE_TAM_EVENT_ACTION:
       setTamEventActionAttributes(attr_list, attr_count, attrLines, rv);
@@ -2448,6 +2454,9 @@ void SaiTracer::setupGlobals() {
   globalVar.emplace_back("[[maybe_unused]] sai_neighbor_entry_t n_e");
   globalVar.emplace_back("[[maybe_unused]] sai_fdb_entry_t f_e");
   globalVar.emplace_back("[[maybe_unused]] sai_inseg_entry_t i_e");
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  globalVar.emplace_back("[[maybe_unused]] sai_my_sid_entry_t ms_e");
+#endif
   globalVar.emplace_back("[[maybe_unused]] uint32_t expected_object_count");
   globalVar.emplace_back("[[maybe_unused]] uint32_t object_count");
   globalVar.emplace_back(
@@ -2500,6 +2509,7 @@ void SaiTracer::writeFooter() {
 
 void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_COUNTER, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_ACL_RANGE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_ENTRY, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE_GROUP, 0);
@@ -2557,6 +2567,7 @@ void SaiTracer::initVarCounts() {
       static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP), 0);
 #endif
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_EVENT, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TUNNEL, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, 0);

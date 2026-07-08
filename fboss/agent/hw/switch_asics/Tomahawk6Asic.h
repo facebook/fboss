@@ -44,6 +44,9 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
   uint32_t getMMUCellSize() const {
     return 420;
   }
+  uint32_t getNumCellsAvailable(PlatformType /*platformType*/) const override {
+    return 616994;
+  }
   std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {
@@ -89,8 +92,7 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
     return 4096;
   }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
-    // CS00012330051
-    return 32000;
+    return 128000;
   }
   uint32_t getStaticQueueLimitBytes() const override {
     return getMMUSizeBytes();

@@ -143,6 +143,21 @@ cpp_library(
 )
 
 cpp_library(
+    name = "system_interface",
+    srcs = [
+        "SystemInterface.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/range-v3:range-v3",
+        "//fboss/platform/helpers:platform_utils",
+        "//folly:conv",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "pkg_manager",
     srcs = [
         "PkgManager.cpp",
@@ -151,9 +166,9 @@ cpp_library(
         "fbsource//third-party/range-v3:range-v3",
         "fbsource//third-party/re2:re2",
         ":platform_manager_config-cpp2-types",
+        ":system_interface",
         "//fb303:service_data",
         "//fboss/platform/helpers:platform_fs_utils",
-        "//fboss/platform/helpers:platform_utils",
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
@@ -204,6 +219,7 @@ cpp_library(
         ":data_store",
         ":device_path_resolver",
         ":exploration_errors",
+        ":fan_cpld_manager",
         ":i2c_explorer",
         ":pci_explorer",
         ":platform_manager_config-cpp2-types",
@@ -344,6 +360,28 @@ cpp_library(
         ":platform_manager_config-cpp2-types",
         ":utils",
         "//folly:conv",
+        "//folly:file",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "fbfancpld_ioctl_h",
+    headers = [
+        "uapi/fbfancpld-ioctl.h",
+    ],
+)
+
+cpp_library(
+    name = "fan_cpld_manager",
+    srcs = ["FanCpldManager.cpp"],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":fbfancpld_ioctl_h",
+        ":i2c_misc",
+        ":platform_manager_config-cpp2-types",
+        ":utils",
         "//folly:file",
         "//folly:string",
         "//folly/logging:logging",

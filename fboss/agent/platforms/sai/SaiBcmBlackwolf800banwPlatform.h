@@ -24,14 +24,6 @@ class SaiBcmBlackwolf800banwPlatform : public SaiBcmPlatform {
   ~SaiBcmBlackwolf800banwPlatform() override;
   HwAsic* getAsic() const override;
 
-  uint32_t numLanesPerCore() const override {
-    return 8;
-  }
-
-  uint32_t numCellsAvailable() const override {
-    return 130665;
-  }
-
   bool isSerdesApiSupported() const override {
     return true;
   }

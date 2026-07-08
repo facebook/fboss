@@ -95,9 +95,6 @@ class QosMapConfig : public utils::BaseObjectArgType<std::string> {
    */
   bool isListMapType() const;
 
-  const static utils::ObjectArgTypeId id =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QOS_MAP_ENTRY;
-
  private:
   void parseListMapType(const std::vector<std::string>& v);
 
@@ -111,8 +108,20 @@ class QosMapConfig : public utils::BaseObjectArgType<std::string> {
 
 struct CmdConfigQosPolicyMapTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigQosPolicy;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QOS_MAP_ENTRY;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "map_entry",
+        args,
+        "<map-type> ... where map-type is one of:\n"
+        "  tc-to-queue (traffic class to queue)\n"
+        "  pfc-pri-to-queue (PFC priority to queue)\n"
+        "  tc-to-pg (traffic class to priority group)\n"
+        "  pfc-pri-to-pg (PFC priority to priority group)\n"
+        "  dscp (DSCP marking)\n"
+        "  mpls-exp (MPLS EXP bits)\n"
+        "  dot1p (802.1p priority)\n"
+        "  traffic-class");
+  }
   using ObjectArgType = QosMapConfig;
   using RetType = std::string;
 };

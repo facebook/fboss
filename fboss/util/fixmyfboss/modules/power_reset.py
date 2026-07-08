@@ -75,7 +75,7 @@ def recent_manual_reboot() -> Warning | None:
 @check
 def recent_kernel_panic() -> Problem | None:
     """
-    Check if a kernel panic has occured recently (last 7 days)
+    Check if a kernel panic has occurred recently (last 7 days)
     """
     crash_dir = "/var/crash/processed"
     processed_dir_date_format = "%Y-%m-%d%H:%M:%S"

@@ -506,8 +506,14 @@ void ThriftHandler::sendRawCommand(
       req << static_cast<uint8_t>(byte);
     }
 
-    // Set expected response length
-    resp.len = folly::copy(request->responseLength().value());
+    // Validate and set expected response length
+    auto responseLength = folly::copy(request->responseLength().value());
+    if (responseLength <= 0 ||
+        static_cast<size_t>(responseLength) > rackmon::Msg::kMaxModbusLength) {
+      response.status() = RackmonStatusCode::ERR_INVALID_ARGS;
+      return;
+    }
+    resp.len = static_cast<size_t>(responseLength);
 
     // Get timeout (optional, defaults to 0)
     int32_t* timeout = apache::thrift::get_pointer(request->timeout());

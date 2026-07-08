@@ -264,6 +264,7 @@ class HwSwitch {
 
   virtual folly::F14FastMap<std::string, HwPortStats> getPortStats() const = 0;
   virtual CpuPortStats getCpuPortStats() const = 0;
+  virtual std::map<std::string, HwTrunkStats> getTrunkStats() const = 0;
 
   virtual folly::F14FastMap<std::string, HwRouterInterfaceStats>
   getRouterInterfaceStats() const = 0;
@@ -284,12 +285,16 @@ class HwSwitch {
   virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
   virtual TeFlowStats getTeFlowStats() const = 0;
   virtual HwSwitchDropStats getSwitchDropStats() const = 0;
+  virtual HwSwitchDropBitmapStats getSwitchDropBitmapStats() const {
+    return HwSwitchDropBitmapStats{};
+  }
   virtual HwFlowletStats getHwFlowletStats() const = 0;
   virtual std::vector<EcmpDetails> getAllEcmpDetails() const = 0;
   virtual HwSwitchWatermarkStats getSwitchWatermarkStats() const = 0;
   virtual HwSwitchPipelineStats getSwitchPipelineStats() const = 0;
   virtual HwSwitchTemperatureStats getSwitchTemperatureStats() const = 0;
   virtual HwResourceStats getResourceStats() const = 0;
+  virtual HwSwitchCounterStats getHwSwitchCounterStats() const = 0;
   virtual std::map<int, cfg::PortState> getSysPortShelState() const = 0;
   virtual cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) = 0;
   /*
@@ -392,6 +397,10 @@ class HwSwitch {
 
   std::string getDebugDump() const;
   virtual void dumpDebugState(const std::string& path) const = 0;
+
+  virtual void setSdkRegDumpEnabled(bool enabled);
+  virtual void triggerCableLengthMeasurement(
+      const std::unique_ptr<std::vector<int32_t>>& ports);
   virtual std::string listObjects(
       const std::vector<HwObjectType>& types,
       bool cached) const = 0;

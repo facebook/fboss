@@ -14,6 +14,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
@@ -26,10 +27,16 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
+    auto switchId = getCurrentSwitchIdForTesting();
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
-        ensemble.getSw(),
+        ensemble.getSw()->getPlatformMapping(),
+        asic,
         ensemble.masterLogicalInterfacePortIds()[0],
-        ensemble.masterLogicalInterfacePortIds()[1]);
+        ensemble.masterLogicalInterfacePortIds()[1],
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
     utility::addQueuePerHostQueueConfig(&cfg);
     utility::addQueuePerHostAcls(&cfg, ensemble.isSai());
@@ -110,11 +117,13 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
            * Thus, the counter get increment one additional time for the looped
            * back packet.
            */
-          if (checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+          if (checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
                       ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
-              checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+              checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+                      ->getAsicType() == cfg::AsicType::ASIC_TYPE_P200 ||
+              checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
                       ->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
-              checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+              checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
                       ->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
             /* 1 pkt each for ttl < 128 and ttl >= 128 */
             EXPECT_EVENTUALLY_EQ(pktsOnQueue, 4);

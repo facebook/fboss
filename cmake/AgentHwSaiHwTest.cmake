@@ -127,11 +127,13 @@ set_target_properties(sai_udf_utils PROPERTIES COMPILE_FLAGS
 
 add_library(sai_port_utils
   fboss/agent/hw/sai/hw_test/HwTestPortUtils.cpp
+  fboss/agent/hw/sai/hw_test/SaiPortUtils.cpp
 )
 
 target_link_libraries(sai_port_utils
   sai_switch # //fboss/agent/hw/sai/switch:sai_switch
   sai_platform
+  config_factory
 )
 
 set_target_properties(sai_port_utils PROPERTIES COMPILE_FLAGS
@@ -170,6 +172,22 @@ set_target_properties(sai_acl_utils PROPERTIES COMPILE_FLAGS
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
+add_library(sai_pfc_utils
+  fboss/agent/hw/sai/hw_test/HwTestPfcUtils.cpp
+  fboss/agent/hw/test/HwTestPfcUtils.cpp
+)
+
+target_link_libraries(sai_pfc_utils
+  sai_switch # //fboss/agent/hw/sai/switch:sai_switch
+  ${GTEST}
+)
+
+set_target_properties(sai_pfc_utils PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
+
 add_library(sai_packet_trap_helper
   fboss/agent/hw/sai/hw_test/HwTestPacketTrapEntry.cpp
 )
@@ -186,11 +204,13 @@ set_target_properties(sai_packet_trap_helper PROPERTIES COMPILE_FLAGS
 
 add_library(agent_hw_test_thrift_handler
   fboss/agent/hw/test/HwTestThriftHandler.h
+  fboss/agent/hw/test/HwTestLogCaptureThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestAclUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestAqmUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestMirrorUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestNeighborUtilsThriftHandler.cpp
+  fboss/agent/hw/sai/hw_test/HwTestPfcUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestEcmpUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestPortUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestVoqSwitchUtilsThriftHandler.cpp
@@ -212,6 +232,9 @@ target_link_libraries(agent_hw_test_thrift_handler
   agent_hw_test_ctrl_cpp2
   sai_aqm_utils
   sai_ecmp_utils
+  sai_pfc_utils
+  sai_port_utils
+  sai_phy_capabilities
   diag_shell
   wedge_led_utils
 )
@@ -227,7 +250,6 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
   message(STATUS "Building SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
 
   add_executable(sai_test-${SAI_IMPL_NAME}
-    fboss/agent/hw/sai/hw_test/dataplane_tests/SaiAclTableGroupTrafficTests.cpp
     fboss/agent/hw/sai/hw_test/HwTestTamUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestAclUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestPfcUtils.cpp
@@ -244,19 +266,9 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/HwTestSwitchingModeUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestTeFlowUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestTrunkUtils.cpp
-    fboss/agent/hw/sai/hw_test/HwTestPortUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestRouteUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestUdfUtils.cpp
     fboss/agent/hw/sai/hw_test/HwVlanUtils.cpp
-    fboss/agent/hw/sai/hw_test/SaiAclTableGroupTests.cpp
-    fboss/agent/hw/sai/hw_test/SaiNextHopGroupTest.cpp
-    fboss/agent/hw/sai/hw_test/SaiPortUtils.cpp
-    fboss/agent/hw/sai/hw_test/SaiPortAdminStateTests.cpp
-    fboss/agent/hw/sai/hw_test/SaiLinkStateRollbackTests.cpp
-    fboss/agent/hw/sai/hw_test/SaiNeighborRollbackTests.cpp
-    fboss/agent/hw/sai/hw_test/SaiRollbackTest.cpp
-    fboss/agent/hw/sai/hw_test/SaiRouteRollbackTests.cpp
-    fboss/agent/hw/sai/hw_test/SaiQPHRollbackTests.cpp
   )
 
   add_sai_sdk_dependencies(sai_test-${SAI_IMPL_NAME})
@@ -267,6 +279,7 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     ${SAI_IMPL_ARG}
     sai_switch_ensemble
     sai_phy_capabilities
+    sai_port_utils
     hw_switch_test
     hw_test_main
     -Wl,--no-whole-archive

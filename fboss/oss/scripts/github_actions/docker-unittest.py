@@ -89,7 +89,8 @@ def use_stable_hashes():
 
 
 def is_container_running() -> bool:
-    cmd = _docker_cmd() + [
+    cmd = [
+        *_docker_cmd(),
         "ps",
         "--filter",
         f"name=^/{FBOSS_CONTAINER_NAME}$",
@@ -101,7 +102,7 @@ def is_container_running() -> bool:
 
 
 def does_image_exist() -> bool:
-    cmd = _docker_cmd() + ["images", "-q", FBOSS_IMAGE_NAME]
+    cmd = [*_docker_cmd(), "images", "-q", FBOSS_IMAGE_NAME]
     cp = subprocess.run(cmd, capture_output=True, text=True, check=False)
     return len(cp.stdout.strip()) > 0
 
@@ -113,7 +114,8 @@ def build_docker_image(docker_dir_path: str):
     )
     with os.fdopen(fd, "w") as output:
         dockerfile_path = os.path.join(docker_dir_path, "Dockerfile")
-        cmd = _docker_cmd() + [
+        cmd = [
+            *_docker_cmd(),
             "build",
             ".",
             "-t",
@@ -176,19 +178,23 @@ def find_tests(output_dir, excludes=None):
     return tests
 
 
+def is_python_dir_test(path: str) -> bool:
+    return os.path.isdir(path) and os.path.isfile(os.path.join(path, "__main__.py"))
+
+
 def is_test(path: str) -> bool:
     match = TEST_PATH_REGEX.match(path)
     if not match:
         return False
 
+    if is_python_dir_test(path):
+        return True
+
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
 
 def is_excluded_test(path):
-    for regex in EXCLUDED_TEST_REGEXES:
-        if regex.match(path):
-            return True
-    return False
+    return any(regex.match(path) for regex in EXCLUDED_TEST_REGEXES)
 
 
 def is_e2e_test(path: str) -> bool:
@@ -213,7 +219,7 @@ def is_integration_test(path: str) -> bool:
 
 def run_test(test: str, output_dir: str) -> bool:
     use_stable_hashes()
-    cmd_args = _docker_cmd() + ["run"]
+    cmd_args = [*_docker_cmd(), "run"]
     lib_path = os.path.join(output_dir, "lib")
     cmd_args.extend(["-e", f"LD_LIBRARY_PATH={lib_path}"])
     # Mount fboss repository in container
@@ -225,7 +231,16 @@ def run_test(test: str, output_dir: str) -> bool:
     cmd_args.append("--network=host")
     cmd_args.append(f"{FBOSS_IMAGE_NAME}:latest")
     test_path = os.path.join(output_dir, "bin", test)
-    cmd_args.append(test_path)
+    if is_python_dir_test(test_path):
+        cmd_args.extend(
+            [
+                "bash",
+                "-c",
+                f"LD_LIBRARY_PATH={lib_path}:/usr/local/lib64 python3 {test_path}",
+            ]
+        )
+    else:
+        cmd_args.append(test_path)
     cp = subprocess.run(cmd_args, check=False)
     return cp.returncode == 0
 
@@ -235,19 +250,33 @@ def run_test_local(test: str, output_dir: str) -> bool:
     lib_path = os.path.join(output_dir, "lib")
     test_path = os.path.join(output_dir, "bin", test)
     env = os.environ.copy()
-    env["LD_LIBRARY_PATH"] = lib_path
-    cp = subprocess.run([test_path], env=env, check=False)
+    if is_python_dir_test(test_path):
+        env["LD_LIBRARY_PATH"] = f"{lib_path}:/usr/local/lib64"
+        cmd = ["python3", test_path]
+    else:
+        env["LD_LIBRARY_PATH"] = lib_path
+        cmd = [test_path]
+    cp = subprocess.run(cmd, env=env, check=False)
     return cp.returncode == 0
 
 
 def run_test_exec(test: str, output_dir: str) -> bool:
     use_stable_hashes()
-    cmd_args = _docker_cmd() + ["exec"]
+    cmd_args = [*_docker_cmd(), "exec"]
     lib_path = os.path.join(output_dir, "lib")
+    test_path = os.path.join(output_dir, "bin", test)
     cmd_args.extend(["-e", f"LD_LIBRARY_PATH={lib_path}"])
     cmd_args.append(FBOSS_CONTAINER_NAME)
-    test_path = os.path.join(output_dir, "bin", test)
-    cmd_args.append(test_path)
+    if is_python_dir_test(test_path):
+        cmd_args.extend(
+            [
+                "bash",
+                "-c",
+                f"LD_LIBRARY_PATH={lib_path}:/usr/local/lib64 python3 {test_path}",
+            ]
+        )
+    else:
+        cmd_args.append(test_path)
     cp = subprocess.run(cmd_args, check=False)
     return cp.returncode == 0
 
@@ -276,8 +305,8 @@ def main():
     if container_running:
         print(f"Copying test artifacts into container '{FBOSS_CONTAINER_NAME}'...")
         subprocess.run(
-            _docker_cmd()
-            + [
+            [
+                *_docker_cmd(),
                 "cp",
                 output_dir,
                 f"{FBOSS_CONTAINER_NAME}:{output_dir}",
@@ -287,26 +316,21 @@ def main():
 
     tests = find_tests(output_dir, args.excludes)
 
-    failed_tests = []
-
-    for test in tests:
-        if inside_container:
-            is_pass = run_test_local(test, output_dir)
-        elif container_running:
-            is_pass = run_test_exec(test, output_dir)
-        else:
-            is_pass = run_test(test, output_dir)
-        if not is_pass:
-            failed_tests.append(test)
-
-    failed_test_string = ", ".join(failed_tests)
-
-    exit_code = 0
-    if len(failed_tests) == 0:
-        print("All tests passed!")
+    if inside_container:
+        run_fn = run_test_local
+    elif container_running:
+        run_fn = run_test_exec
     else:
-        print(f"The following tests failed: {failed_test_string}")
+        run_fn = run_test
+
+    failed_tests = [test for test in tests if not run_fn(test, output_dir)]
+
+    if failed_tests:
+        print(f"The following tests failed: {', '.join(failed_tests)}")
         exit_code = 1
+    else:
+        print("All tests passed!")
+        exit_code = 0
 
     cleanup(output_dir)
     return exit_code

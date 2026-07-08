@@ -215,6 +215,7 @@ class PortFlapCmd(cmds.FbossCmd):
             else:
                 self.flap_ports(ports)
         except FbossBaseError as e:
+            # pyrefly: ignore [unsupported-operation]
             raise SystemExit("Fboss Error: " + e)
 
         if hasattr(self, "_qsfp_client") and self._qsfp_client:
@@ -364,6 +365,7 @@ class PortSetStatusCmd(cmds.FbossCmd):
         try:
             self.set_status(ports, status)
         except FbossBaseError as e:
+            # pyrefly: ignore [unsupported-operation]
             raise SystemExit("Fboss Error: " + e)
 
     def set_status(self, ports, status):
@@ -379,6 +381,7 @@ class PortSetLedCmd(cmds.FbossCmd):
         try:
             self.set_led(ports, value)
         except FbossBaseError as e:
+            # pyrefly: ignore [unsupported-operation]
             raise SystemExit("Fboss Error: " + e)
 
     def set_led(self, ports, value):
@@ -395,6 +398,7 @@ class PortStatsCmd(cmds.FbossCmd):
         try:
             self.show_stats(details, ports)
         except FbossBaseError as e:
+            # pyrefly: ignore [unsupported-operation]
             raise SystemExit("Fboss Error: " + e)
 
     def show_stats(self, details, ports):
@@ -409,6 +413,7 @@ class PortStatsCmd(cmds.FbossCmd):
         n2ports = {}
         # collect up the neighbors by port
         for neighbor in neighbors:
+            # pyrefly: ignore [missing-attribute]
             n2ports.setdefault(neighbor.localPort, []).append(neighbor)
         # Port Name
         field_fmt = "{:<11} {:>3} {:>} {:<} {:>} {:<} {:<}"
@@ -661,9 +666,11 @@ class PortStatusDetailCmd:
         for port, status in sorted(self._status_resp.items()):
             if status.transceiverIdx:
                 tid = status.transceiverIdx.transceiverId
+                # pyrefly: ignore [missing-attribute]
                 if tid not in self._info_resp.keys():
                     tcvr_state = transceiver_ttypes.TcvrState(port=port, present=False)
                     info = transceiver_ttypes.TransceiverInfo(tcvrState=tcvr_state)
+                    # pyrefly: ignore [unsupported-operation]
                     self._info_resp[port] = info
 
     def _print_transceiver_ports(self, ports, info):
@@ -964,6 +971,7 @@ class PortStatusDetailCmd:
     def _print_transceiver_details(self, tid):  # noqa
         """Print details about transceiver"""
 
+        # pyrefly: ignore [missing-attribute]
         info = self._info_resp.get(tid)
         ch_to_port = self._t_to_p[tid]
         if not info or info.tcvrState.present is False:

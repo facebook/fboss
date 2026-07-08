@@ -98,6 +98,15 @@ class ConnectionOptions {
     return preferEncrypted_;
   }
 
+  ConnectionOptions& setAllowSelfSigned(bool allowSelfSigned) {
+    allowSelfSigned_ = allowSelfSigned;
+    return *this;
+  }
+
+  bool getAllowSelfSigned() const {
+    return allowSelfSigned_;
+  }
+
   folly::SocketOptionMap getSocketOptionMap() const {
     folly::SocketOptionMap sockOptsMap;
     if (auto tos = getTos()) {
@@ -134,6 +143,7 @@ class ConnectionOptions {
   std::optional<TrafficClass> tc_;
   std::optional<std::string> hostname_;
   bool preferEncrypted_ = true;
+  bool allowSelfSigned_ = false;
 };
 
 } // namespace facebook::fboss::utils

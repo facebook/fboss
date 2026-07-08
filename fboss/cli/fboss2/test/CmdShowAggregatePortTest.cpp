@@ -175,6 +175,10 @@ TEST_F(CmdShowAggregatePortTestFixture, queryClient) {
       .WillOnce(Invoke([&](auto& entries) { entries = aggregatePortEntries; }));
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
       .WillOnce(Invoke([&](auto& entries) { entries = portEntries; }));
+  EXPECT_CALL(getMockAgent(), getAllInterfaces(_))
+      .WillOnce(Invoke([&](auto& entries) {
+        entries = std::map<int32_t, facebook::fboss::InterfaceDetail>();
+      }));
 
   auto cmd = CmdShowAggregatePort();
   CmdShowAggregatePortTraits::ObjectArgType queriedEntries;

@@ -21,7 +21,7 @@ class MPLSPacket {
     setPayLoad(std::move(payload));
   }
 
-  MPLSHdr header() const {
+  const MPLSHdr& header() const {
     return hdr_;
   }
 

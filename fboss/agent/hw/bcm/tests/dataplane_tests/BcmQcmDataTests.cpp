@@ -522,7 +522,7 @@ TEST_F(BcmQcmDataTest, FlowLearning) {
 }
 
 // Intent of this test is to setup QCM tables
-// send multple flows and check that learning happens
+// send multiple flows and check that learning happens
 // for multiple flows
 TEST_F(BcmQcmDataTest, MultiFlows) {
   if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
@@ -546,7 +546,7 @@ TEST_F(BcmQcmDataTest, MultiFlows) {
 }
 
 // Intent of this test is to setup QCM tables
-// send multple flows, but restrict flow limit to 1
+// send multiple flows, but restrict flow limit to 1
 // Ensure that only 1 flow is learned
 // also ifp entry should hit multiple times
 TEST_F(BcmQcmDataTest, RestrictFlowLearning) {

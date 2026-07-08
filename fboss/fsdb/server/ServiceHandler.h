@@ -256,6 +256,9 @@ class ServiceHandler : public FsdbServiceSvIf,
       const OperSubscriberInfo& info,
       bool isConnected,
       bool uniqueSubForClient);
+  void updateExpectedSubscriptionCounter(
+      const SubscriberId& configKey,
+      ExpectedSubscriptionType expectedType);
   void registerPublisher(
       const OperPublisherInfo& info,
       std::shared_ptr<folly::Synchronized<PublisherStreamState>> streamState);
@@ -336,6 +339,10 @@ class ServiceHandler : public FsdbServiceSvIf,
   std::map<SubscriberId, TLCounter> connectedSubscriptions_;
   std::map<SubscriberId, TLCounter> disconnectedSubscriptions_;
   std::map<PublisherKey, TLCounter> disconnectedPublishers_;
+  // Per-FsdbClient gauge: 1 = configured expected subscription(s) currently
+  // active, 0 = not. Populated only for subscriber configs that set
+  // expectedSubscriptionType; values written via tcData().setCounter().
+  std::map<FsdbClient, std::string> expectedSubscriptionsCounters_;
   TLTimeseries num_subscriptions_rejected_;
   TLTimeseries num_publisher_unknown_requests_rejected_;
   TLTimeseries num_publisher_path_requests_rejected_;

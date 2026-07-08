@@ -23,6 +23,7 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 
 DEFINE_bool(
@@ -97,7 +98,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   saiLinePort->setOptionalAttribute(
       SaiPortTraits::Attributes::AdminState{true});
 
-  XLOG(DBG3) << folly::sformat(
+  XLOG(DBG3) << fmt::format(
       "Port admin state of lineport {:d} and sysport {:d} made up",
       static_cast<uint64_t>(saiLinePort->adapterKey()),
       static_cast<uint64_t>(saiSysPort->adapterKey()));
@@ -229,25 +230,36 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     laneList.push_back(*pinCfg.id()->lane());
   }
 
+  // Per-port link debounce timers apply to NPU ports only; PHY ports do not
+  // expose this control. Fail loudly if cfg is set on a PHY port.
+  if (swPort->getPortUpHoldoffTimeMs().has_value() ||
+      swPort->getPortDownHoldoffTimeMs().has_value()) {
+    throw FbossError(
+        "Per-port link debounce timers (portUpHoldoffTimeMs / "
+        "portDownHoldoffTimeMs) are not supported on PHY ports; cannot apply "
+        "to port ",
+        swPort->getID());
+  }
+
   std::string dbgOutput;
   dbgOutput.append(
-      folly::sformat(
+      fmt::format(
           "Attributes for creating port {:d}, Side {:s}, Lanes: ",
           static_cast<int>(portId),
           (lineSide ? "Line" : "System")));
   for (auto lane : laneList) {
-    dbgOutput.append(folly::sformat("{:d} ", lane));
+    dbgOutput.append(fmt::format("{:d} ", lane));
   }
 
   dbgOutput.append(
-      folly::sformat(
+      fmt::format(
           " Speed {:d} Enabled {:s} Fec {:s} ",
           static_cast<int>(speed),
           (enabled ? "True" : "False"),
           (fecMode ? folly::to<std::string>(fecMode->value()) : "null")));
   if (intfType.has_value()) {
     dbgOutput.append(
-        folly::sformat(
+        fmt::format(
             " Interface Type {:d}",
             static_cast<int>(intfType.value().value())));
   }
@@ -294,8 +306,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt,
       std::nullopt,
 #endif
-      std::nullopt,
-      std::nullopt,
+      std::nullopt, // TC to Priority Group map
+      std::nullopt, // PFC Priority to Queue map
+      std::nullopt, // PFC Priority to Priority Group map
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::nullopt,
 #endif
@@ -332,6 +345,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
       std::nullopt, // CablePropagationDelayMediaType
+#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
+      std::nullopt, // LinkUpDebouncePeriodMs
+      std::nullopt, // LinkDownDebouncePeriodMs
+#endif
       std::nullopt, // PfcPauseDurationOverride
   };
 }
@@ -413,7 +430,8 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     const std::vector<phy::PinConfig>& pinConfigs,
     const std::shared_ptr<SaiPortSerdes>& /* serdes */,
     bool /* zeroPreemphasis */,
-    const std::optional<std::string>& customCollection) {
+    const std::optional<std::string>& customCollection,
+    bool /* skipSerdesProgramming */) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
@@ -467,14 +485,14 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
 
   std::string dbgOutput;
   dbgOutput.append(
-      folly::sformat(
+      fmt::format(
           "Attributes for creating port {} Serdes (per lane): ",
           static_cast<uint64_t>(portSaiId)));
 
   for (auto lane = 0; lane < numExpectedTxLanes; lane++) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     dbgOutput.append(
-        folly::sformat(
+        fmt::format(
             "[Pre1 {:d} Pre2 {:d} Main {:d} Post1 {:d} Post2 {:d} Post3 {:d}], ",
             (lane < txPre1.size() ? txPre1[lane]
                                   : static_cast<unsigned int>(-1)),
@@ -490,7 +508,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
                                    : static_cast<unsigned int>(-1))));
 #else
     dbgOutput.append(
-        folly::sformat(
+        fmt::format(
             "[Pre1 {:d} Main {:d} Post1 {:d}], ",
             (lane < txPre1.size() ? txPre1[lane]
                                   : static_cast<unsigned int>(-1)),

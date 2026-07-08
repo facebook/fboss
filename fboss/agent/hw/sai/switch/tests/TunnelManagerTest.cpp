@@ -18,7 +18,7 @@ std::shared_ptr<IpTunnel> makeTunnel(
     uint32_t intfID = 0,
     cfg::TunnelMode mode = cfg::TunnelMode::PIPE) {
   auto tunnel = std::make_shared<IpTunnel>(tunnelId);
-  tunnel->setType(TunnelType::IP_IN_IP);
+  tunnel->setType(TunnelType::IP_IN_IP_DECAP);
   tunnel->setUnderlayIntfId(InterfaceID(intfID));
   tunnel->setTTLMode(mode);
   tunnel->setDscpMode(mode);
@@ -97,6 +97,21 @@ class TunnelManagerTest : public ManagerTestBase {
 
   TestInterface intf0;
 };
+
+std::shared_ptr<IpTunnel> makeEncapTunnel(
+    const std::string& tunnelId = "encapTunnel0",
+    uint32_t intfID = 0) {
+  auto tunnel = std::make_shared<IpTunnel>(tunnelId);
+  tunnel->setType(TunnelType::IP_IN_IP_ENCAP);
+  tunnel->setUnderlayIntfId(InterfaceID(intfID));
+  tunnel->setTTLMode(cfg::TunnelMode::PIPE);
+  tunnel->setDscpMode(cfg::TunnelMode::PIPE);
+  tunnel->setEcnMode(cfg::TunnelMode::UNIFORM);
+  tunnel->setTunnelTermType(cfg::TunnelTerminationType::P2P);
+  tunnel->setSrcIP(folly::IPAddressV6("2401:db00::1"));
+  tunnel->setDstIP(folly::IPAddressV6("2401:db00:ffff::1"));
+  return tunnel;
+}
 
 TEST_F(TunnelManagerTest, addTunnel) {
   std::shared_ptr<IpTunnel> swTunnel = makeTunnel("tunnel0", intf0.id);
@@ -196,4 +211,55 @@ TEST_F(TunnelManagerTest, removeNonexistentTunnel) {
   auto& tunnelManager = saiManagerTable->tunnelManager();
   auto swTunnel2 = makeTunnel("tunnel1");
   EXPECT_THROW(tunnelManager.removeTunnel(swTunnel2), FbossError);
+}
+
+TEST_F(TunnelManagerTest, addEncapTunnel) {
+  auto swTunnel = makeEncapTunnel("encapTunnel0", intf0.id);
+  TunnelSaiId saiId = saiManagerTable->tunnelManager().addTunnel(swTunnel);
+  auto type = saiApiTable->tunnelApi().getAttribute(
+      saiId, SaiIpInIpTunnelTraits::Attributes::Type());
+  EXPECT_EQ(type, SAI_TUNNEL_TYPE_IPINIP);
+  auto encapSrcIp = saiApiTable->tunnelApi().getAttribute(
+      saiId, SaiIpInIpTunnelTraits::Attributes::EncapSrcIp());
+  EXPECT_EQ(encapSrcIp, folly::IPAddress("2401:db00::1"));
+  auto encapTtlMode = saiApiTable->tunnelApi().getAttribute(
+      saiId, SaiIpInIpTunnelTraits::Attributes::EncapTtlMode());
+  EXPECT_EQ(encapTtlMode, SAI_TUNNEL_TTL_MODE_PIPE_MODEL);
+  auto encapDscpMode = saiApiTable->tunnelApi().getAttribute(
+      saiId, SaiIpInIpTunnelTraits::Attributes::EncapDscpMode());
+  EXPECT_EQ(encapDscpMode, SAI_TUNNEL_DSCP_MODE_PIPE_MODEL);
+}
+
+TEST_F(TunnelManagerTest, encapTunnelNoTerm) {
+  auto swTunnel = makeEncapTunnel("encapTunnel0", intf0.id);
+  saiManagerTable->tunnelManager().addTunnel(swTunnel);
+  auto handle =
+      saiManagerTable->tunnelManager().getTunnelHandle("encapTunnel0");
+  EXPECT_NE(handle, nullptr);
+  EXPECT_FALSE(handle->tunnelTerm.has_value());
+  EXPECT_EQ(handle->getP2MPTunnelTermHandle(), nullptr);
+}
+
+TEST_F(TunnelManagerTest, removeEncapTunnel) {
+  auto swTunnel = makeEncapTunnel("encapTunnel0", intf0.id);
+  saiManagerTable->tunnelManager().addTunnel(swTunnel);
+  saiManagerTable->tunnelManager().removeTunnel(swTunnel);
+  auto handle =
+      saiManagerTable->tunnelManager().getTunnelHandle("encapTunnel0");
+  EXPECT_FALSE(handle);
+}
+
+TEST_F(TunnelManagerTest, changeEncapTunnel) {
+  auto swTunnel = makeEncapTunnel("encapTunnel0", intf0.id);
+  saiManagerTable->tunnelManager().addTunnel(swTunnel);
+  auto swTunnel2 = makeEncapTunnel("encapTunnel0", intf0.id);
+  swTunnel2->setSrcIP(folly::IPAddressV6("2401:db00::2"));
+  saiManagerTable->tunnelManager().changeTunnel(swTunnel, swTunnel2);
+  auto handle =
+      saiManagerTable->tunnelManager().getTunnelHandle("encapTunnel0");
+  EXPECT_NE(handle, nullptr);
+  auto encapSrcIp = saiApiTable->tunnelApi().getAttribute(
+      handle->tunnel->adapterKey(),
+      SaiIpInIpTunnelTraits::Attributes::EncapSrcIp());
+  EXPECT_EQ(encapSrcIp, folly::IPAddress("2401:db00::2"));
 }

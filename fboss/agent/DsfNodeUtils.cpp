@@ -25,7 +25,7 @@ uint32_t getDsfMaxSwitchId(bool isDualStageTopology) {
     // to compute the value here.
     return kDualStageMaxGlobalSwitchId;
   } else {
-    // TODO: Programatically calculate the max switch-id and
+    // TODO: Programmatically calculate the max switch-id and
     // assert that we are are within this limit
     return kSingleStageMaxGlobalSwitchId;
   }

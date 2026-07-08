@@ -24,11 +24,13 @@
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/mnpu/MultiSwitchHwSwitchHandler.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 
 namespace facebook::fboss {
@@ -377,7 +379,7 @@ ResolvedNextHop makeResolvedNextHop(
  */
 RouteNextHopEntry makeExpectedRouteNextHopEntry(
     const SwSwitch* sw,
-    RouteNextHopSet nhops,
+    const RouteNextHopSet& nhops,
     AdminDistance distance);
 
 /*
@@ -701,6 +703,19 @@ void addSwitchSettingsToState(
     int64_t switchId = 0);
 
 HwSwitchInitFn mockHwSwitchInitFn(SwSwitch* sw);
+
+/*
+ * Test-only wrappers that use FLAGS_switch_id_for_testing as the switchId.
+ */
+const HwAsic* checkSameAndGetAsicForTesting(
+    const std::vector<const HwAsic*>& asics);
+folly::MacAddress getMacForFirstInterfaceWithPortsForTesting(
+    const std::shared_ptr<SwitchState>& state);
+InterfaceID firstInterfaceIDWithPortsForTesting(
+    const std::shared_ptr<SwitchState>& state,
+    std::optional<cfg::Scope> scope = std::nullopt);
+std::shared_ptr<Interface> firstInterfaceWithPortsForTesting(
+    const std::shared_ptr<SwitchState>& state);
 
 std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
     const AgentConfig* config,

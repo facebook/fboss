@@ -21,6 +21,7 @@
 
 #include "folly/testing/TestUtil.h"
 
+#include <fmt/core.h>
 #include <algorithm>
 
 namespace facebook::fboss::utility {
@@ -83,6 +84,107 @@ void enableTransceiverProgramming(bool enable) {
   FLAGS_skip_transceiver_programming = !enable;
 }
 
+namespace {
+
+void executeCintScript(const SaiSwitch* saiSwitch, const std::string& script) {
+  auto diagShell = std::make_unique<DiagShell>(saiSwitch);
+  auto diagCmdServer =
+      std::make_unique<DiagCmdServer>(saiSwitch, diagShell.get());
+
+  folly::test::TemporaryFile file;
+  folly::writeFull(file.fd(), script.c_str(), std::strlen(script.c_str()));
+
+  XLOG(INFO) << "CINT = " << script;
+  ClientInformation clientInfo;
+  clientInfo.username() = "hw_test";
+  clientInfo.hostname() = "hw_test";
+  auto out = diagCmdServer->diagCmd(
+      std::make_unique<fbstring>(fmt::format("cint {}\n", file.path().c_str())),
+      std::make_unique<ClientInformation>(clientInfo));
+  XLOG(INFO) << "OUTPUT = " << out;
+  diagCmdServer->diagCmd(
+      std::make_unique<fbstring>("quit\n"),
+      std::make_unique<ClientInformation>(clientInfo));
+}
+
+std::string buildLegacyFecErrorInjScript(
+    const std::vector<int>& hwPorts,
+    bool injectCorrectable) {
+  constexpr auto kBaseFecErrorInjStr = R"(
+  cint_reset();
+  bcm_port_phy_fec_error_mask_t injection;
+  uint8 error_control_map = 0xFF;
+  int unit = 0;
+  )";
+  std::string script = kBaseFecErrorInjStr;
+  if (injectCorrectable) {
+    script = fmt::format("\n{}\n injection.error_mask_bit_63_32=0x1;", script);
+  } else {
+    script = fmt::format(
+        "\n{}\n injection.error_mask_bit_63_32=0xFFFFFFFF;", script);
+  }
+  for (auto hwPortID : hwPorts) {
+    script = fmt::format(
+        "\n{}\n print bcm_port_phy_fec_error_inject_set(unit, {}, error_control_map, injection);",
+        script,
+        hwPortID);
+  }
+  return script;
+}
+
+std::string buildFecErrorInjScript(
+    const std::vector<int>& hwPorts,
+    bool injectCorrectable) {
+  std::string script = R"(
+  cint_reset();
+  bcm_port_phy_fec_error_inject_config_t config;
+  bcm_port_phy_fec_error_inject_enable_t enable;
+  int unit = 0;
+  int rv = 0;
+  )";
+  for (auto hwPortID : hwPorts) {
+    script += fmt::format(
+        R"(
+  sal_memset(&enable, 0, sizeof(enable));
+  print bcm_port_phy_fec_error_inject_enable_set(unit, {}, enable);
+  sal_memset(&config, 0, sizeof(config));
+)",
+        hwPortID);
+    if (injectCorrectable) {
+      script += R"(
+  config.error_mask_bit_31_0 = 0x1;
+  config.block_offset = 0;
+  config.contiguous_blocks_count = 1;
+  config.error_injection_freq = 0;
+)";
+    } else {
+      script += R"(
+  config.error_mask_bit_31_0 = 0xFFFFFFFF;
+  config.error_mask_bit_63_32 = 0xFFFFFFFF;
+  config.block_offset = 0;
+  config.contiguous_blocks_count = 20;
+  config.error_injection_freq = 0;
+)";
+    }
+    script += fmt::format(
+        R"(
+  print bcm_port_phy_fec_error_inject_config_set(unit, {0}, config);
+  sal_memset(&enable, 0, sizeof(enable));
+  enable.codeword_1_enable = 1;
+  print bcm_port_phy_fec_error_inject_enable_set(unit, {0}, enable);
+)",
+        hwPortID);
+  }
+  return script;
+}
+
+bool useLegacyFecErrorInj(cfg::AsicType asicType) {
+  return asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+      asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK4;
+}
+
+} // namespace
+
 void injectFecError(
     std::vector<int> hwPorts,
     const HwSwitch* hw,
@@ -91,48 +193,11 @@ void injectFecError(
       HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
     throw FbossError("FEC error injection only supported on BCM ASICs");
   }
-  auto saiSwitch = static_cast<const SaiSwitch*>(hw);
-  auto diagShell = std::make_unique<DiagShell>(saiSwitch);
-  auto diagCmdServer =
-      std::make_unique<DiagCmdServer>(saiSwitch, diagShell.get());
-
-  constexpr auto kBaseFecErrorInjStr = R"(
-  cint_reset();
-  bcm_port_phy_fec_error_mask_t injection;
-  uint8 error_control_map = 0xFF;
-  int unit = 0;
-  )";
-  std::string kFecErrorInjStr = kBaseFecErrorInjStr;
-  if (injectCorrectable) {
-    kFecErrorInjStr = folly::sformat(
-        "\n{}\n injection.error_mask_bit_63_32=0x1;", kFecErrorInjStr);
-  } else {
-    kFecErrorInjStr = folly::sformat(
-        "\n{}\n injection.error_mask_bit_63_32=0xFFFFFFFF;", kFecErrorInjStr);
-  }
-  for (auto hwPortID : hwPorts) {
-    int portNum = hwPortID;
-    kFecErrorInjStr = folly::sformat(
-        "\n{}\n print bcm_port_phy_fec_error_inject_set(unit, {}, error_control_map, injection);",
-        kFecErrorInjStr,
-        portNum);
-  }
-  folly::test::TemporaryFile file;
-  folly::writeFull(
-      file.fd(), kFecErrorInjStr.c_str(), std::strlen(kFecErrorInjStr.c_str()));
-
-  XLOG(INFO) << "CINT = " << kFecErrorInjStr;
-  ClientInformation clientInfo;
-  clientInfo.username() = "hw_test";
-  clientInfo.hostname() = "hw_test";
-  auto out = diagCmdServer->diagCmd(
-      std::make_unique<fbstring>(
-          folly::sformat("cint {}\n", file.path().c_str())),
-      std::make_unique<ClientInformation>(clientInfo));
-  XLOG(INFO) << "OUTPUT = " << out;
-  diagCmdServer->diagCmd(
-      std::make_unique<fbstring>("quit\n"),
-      std::make_unique<ClientInformation>(clientInfo));
+  auto asicType = hw->getPlatform()->getAsic()->getAsicType();
+  auto script = useLegacyFecErrorInj(asicType)
+      ? buildLegacyFecErrorInjScript(hwPorts, injectCorrectable)
+      : buildFecErrorInjScript(hwPorts, injectCorrectable);
+  executeCintScript(static_cast<const SaiSwitch*>(hw), script);
 }
 
 } // namespace facebook::fboss::utility

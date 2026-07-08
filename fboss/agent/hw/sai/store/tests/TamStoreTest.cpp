@@ -55,7 +55,14 @@ class TamStoreTest : public SaiStoreTest {
 
   facebook::fboss::SaiTamReportTraits::CreateAttributes tamReportTraits() {
     return SaiTamReportTraits::CreateAttributes{
-        SAI_TAM_REPORT_TYPE_VENDOR_EXTN};
+        SAI_TAM_REPORT_TYPE_VENDOR_EXTN
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+        ,
+        sai_uint32_t{1000} /* SampleRate */,
+        sai_uint64_t{500} /* MaxReportRate */,
+        sai_uint64_t{100} /* MaxReportBurst */
+#endif
+    };
   }
 
   facebook::fboss::SaiTamEventActionTraits::CreateAttributes
@@ -97,6 +104,8 @@ class TamStoreTest : public SaiStoreTest {
         result) = packetDropTypeIngress;
     std::get<std::optional<SaiTamEventTraits::Attributes::AgingGroup>>(result) =
         agingGroup;
+    std::get<std::optional<SaiTamEventTraits::Attributes::Threshold>>(result) =
+        sai_object_id_t{40};
 
     return result;
   }
@@ -172,7 +181,14 @@ TEST_F(TamStoreTest, loadTam) {
       reportStore
           .get(
               SaiTamReportTraits::AdapterHostKey{
-                  SAI_TAM_REPORT_TYPE_VENDOR_EXTN})
+                  SAI_TAM_REPORT_TYPE_VENDOR_EXTN
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+                  ,
+                  sai_uint32_t{1000} /* SampleRate */,
+                  sai_uint64_t{500} /* MaxReportRate */,
+                  sai_uint64_t{100} /* MaxReportBurst */
+#endif
+              })
           ->adapterKey(),
       report);
   EXPECT_EQ(

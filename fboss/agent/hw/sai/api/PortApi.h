@@ -305,6 +305,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    using QosPfcPriorityToPriorityGroupMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_PRIORITY_GROUP_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
     using RxSignalDetect = SaiAttribute<
         EnumType,
@@ -350,6 +355,10 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_LINK_TRAINING_ENABLE,
         bool,
         SaiBoolDefaultTrue>;
+    using LinkTrainingRxStatus = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LINK_TRAINING_RX_STATUS,
+        sai_int32_t>;
     using FabricAttached =
         SaiAttribute<EnumType, SAI_PORT_ATTR_FABRIC_ATTACHED, bool>;
     using FabricAttachedPortIndex = SaiAttribute<
@@ -565,6 +574,27 @@ struct SaiPortTraits {
         sai_uint16_t,
         AttributePfcPauseDurationOverride,
         SaiIntDefault<sai_uint16_t>>;
+    struct AttributeCablePropagationDelayMeasure {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CablePropagationDelayMeasure = SaiExtensionAttribute<
+        bool,
+        AttributeCablePropagationDelayMeasure,
+        SaiBoolDefaultFalse>;
+    struct AttributeLinkUpDebouncePeriodMs {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkUpDebouncePeriodMs = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeLinkUpDebouncePeriodMs,
+        SaiIntDefault<sai_uint32_t>>;
+    struct AttributeLinkDownDebouncePeriodMs {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkDownDebouncePeriodMs = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeLinkDownDebouncePeriodMs,
+        SaiIntDefault<sai_uint32_t>>;
   };
   using AdapterKey = PortSaiId;
 
@@ -654,6 +684,7 @@ struct SaiPortTraits {
 #endif
       std::optional<Attributes::QosTcToPriorityGroupMap>,
       std::optional<Attributes::QosPfcPriorityToQueueMap>,
+      std::optional<Attributes::QosPfcPriorityToPriorityGroupMap>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::optional<Attributes::InterFrameGap>,
 #endif
@@ -693,6 +724,10 @@ struct SaiPortTraits {
       std::optional<Attributes::QosIngressBufferProfileList>,
       std::optional<Attributes::QosEgressBufferProfileList>,
       std::optional<Attributes::CablePropagationDelayMediaType>,
+#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
+      std::optional<Attributes::LinkUpDebouncePeriodMs>,
+      std::optional<Attributes::LinkDownDebouncePeriodMs>,
+#endif
       std::optional<Attributes::PfcPauseDurationOverride>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
@@ -809,6 +844,7 @@ SAI_ATTRIBUTE_NAME(Port, IngressPriorityGroupList)
 SAI_ATTRIBUTE_NAME(Port, NumberOfIngressPriorityGroups)
 SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
 SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToQueueMap)
+SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToPriorityGroupMap)
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
 SAI_ATTRIBUTE_NAME(Port, RxSignalDetect)
 SAI_ATTRIBUTE_NAME(Port, RxLockStatus)
@@ -823,6 +859,7 @@ SAI_ATTRIBUTE_NAME(Port, RxFrequencyPPM)
 SAI_ATTRIBUTE_NAME(Port, RxSNR)
 #endif
 SAI_ATTRIBUTE_NAME(Port, LinkTrainingEnable)
+SAI_ATTRIBUTE_NAME(Port, LinkTrainingRxStatus)
 SAI_ATTRIBUTE_NAME(Port, SerdesLaneList)
 SAI_ATTRIBUTE_NAME(Port, DiagModeEnable)
 SAI_ATTRIBUTE_NAME(Port, FdrEnable)
@@ -872,6 +909,9 @@ SAI_ATTRIBUTE_NAME(Port, HyperPortMemberList)
 SAI_ATTRIBUTE_NAME(Port, PfcMonitorDirection)
 SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMediaType)
 SAI_ATTRIBUTE_NAME(Port, PfcPauseDurationOverride)
+SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMeasure)
+SAI_ATTRIBUTE_NAME(Port, LinkUpDebouncePeriodMs)
+SAI_ATTRIBUTE_NAME(Port, LinkDownDebouncePeriodMs)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)

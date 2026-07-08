@@ -3,15 +3,19 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/VoqConstants.h"
 
+DEFINE_bool(enable_lacp, false, "Run LACP in agent");
+
 DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
 
 DEFINE_bool(test_fixture, false, "Enable test fixture platform mapping");
 
-// TODO: Remove once proper link training support is added
+DEFINE_bool(osfp_tray, false, "Enable OSFP tray platform mapping");
+
+// TODO: Remove once rifs limitation is fixed
 DEFINE_bool(
-    tahan800sb_link_training,
+    minipack3bta_16rifs,
     false,
-    "Enable link training platform mapping for tahansb800bc");
+    "Enable 16rifs platform mapping for minipack3bta");
 
 DEFINE_bool(dsf_4k, false, "Enable DSF Scale Test config");
 
@@ -37,6 +41,8 @@ DEFINE_bool(
 DEFINE_bool(hide_fabric_ports, false, "Elide ports of type fabric");
 
 DEFINE_bool(hide_management_ports, false, "Elide ports of type management");
+
+DEFINE_bool(hide_eventor_ports, false, "Elide ports of type eventor");
 
 DEFINE_bool(hide_interface_ports, false, "Elide ports of type interface");
 
@@ -282,13 +288,40 @@ DEFINE_int32(
 
 DEFINE_bool(
     enable_mysid_resource_protection,
-    false,
+    true,
     "Enable MySID resource protection in ResourceAccountant");
 
 DEFINE_int32(
     mysid_resource_percentage,
     75,
     "Percentage of MySID resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
+DEFINE_bool(
+    srv6,
+    false,
+    "Enable SRv6 features, e.g. collecting the SRv6 MySID resource counter. "
+    "Only valid on configs whose SDK is initialized with SRv6/mySid support "
+    "(sai_stats_support); leave off otherwise.");
+
+DEFINE_bool(
+    enable_srv6_nexthop_resource_protection,
+    true,
+    "Enable SRv6 next hop resource protection in ResourceAccountant");
+
+DEFINE_int32(
+    srv6_nexthop_resource_percentage,
+    75,
+    "Percentage of SRv6 next hop resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
+DEFINE_bool(
+    enable_route_counter_resource_protection,
+    true,
+    "Enable route counter resource protection in ResourceAccountant");
+
+DEFINE_int32(
+    route_counter_resource_percentage,
+    75,
+    "Percentage of route counter resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
 
 DEFINE_int32(
     switch_index_for_testing,
@@ -299,6 +332,11 @@ DEFINE_int32(
     switch_id_for_testing,
     0,
     "switch ID under test. Used for testing NPU specific features.");
+
+DEFINE_int32(
+    num_npus_for_testing,
+    1,
+    "Number of hw agent NPUs started by the test runner.");
 
 DEFINE_uint32(
     counter_refresh_interval,
@@ -312,6 +350,12 @@ DEFINE_string(
     sdk_reg_dump_path_prefix,
     "/var/facebook/logs/fboss/sdk/reg_dump",
     "File path prefix for SDK register dump");
+
+DEFINE_bool(
+    skip_sdk_reg_dump,
+    false,
+    "Prevent the SDK from writing register/state dumps to disk. Used to "
+    "selectively avoid devices that log heavily to disk.");
 
 DEFINE_bool(
     type_dctype1_janga,
@@ -388,6 +432,11 @@ DEFINE_bool(
     "Initiate neighbor solicitation for static neighbors");
 
 DEFINE_bool(
+    arp_static_neighbor,
+    false,
+    "Initiate ARP request for static neighbors");
+
+DEFINE_bool(
     dsf_single_stage_r128_f40_e16_8k_sys_ports,
     false,
     "Allow upto 8K system ports on single stage DSF (default=6144)");
@@ -415,6 +464,19 @@ DEFINE_bool(
     false,
     "Enable fabric link monitoring feature in DSF");
 
+// Relocates fabric port logical IDs into the local port-ID range (uniform
+// local offset). Currently scoped to meru800bia and janga800bic.
+DEFINE_bool(
+    fabric_ports_uniform_local_offset,
+    false,
+    "Relocate fabric port logical IDs into the local port-ID range");
+
+DEFINE_bool(
+    enable_cpu_latency_monitoring,
+    false,
+    "Enable CpuLatencyManager for always-on CPU round-trip latency monitoring "
+    "via IP2ME probe packets on ethernet ports");
+
 DEFINE_bool(
     lldp_port_drain_state,
     false,
@@ -436,6 +498,11 @@ DEFINE_bool(
     strip_vlan_for_pipeline_bypass,
     true,
     "Strip vlan tag for packet injected with pipeline bypass");
+
+DEFINE_bool(
+    observe_rx_packets_without_interface,
+    false,
+    "Notify packet observers before dropping RX packets with no interface");
 
 DEFINE_string(
     state_delta_log_protocol,
@@ -502,3 +569,23 @@ DEFINE_int32(
     max_tx_packets,
     100000, // 1 gb / 10 kb
     "the point at which we start dropping tx packets");
+
+DEFINE_bool(
+    enable_route_counters_for_named_nhg,
+    false,
+    "Implicitly associate a route counter for routes using named NHG");
+
+DEFINE_bool(
+    enable_acl_table_redirect_action,
+    false,
+    "Add redirect action type to ACL table");
+
+DEFINE_bool(
+    enable_pfc_priority_to_pg_map,
+    false,
+    "Enable programming the PFC priority to priority group QoS map on ports");
+
+DEFINE_bool(
+    enable_port_cl72_retry,
+    false,
+    "Enable CL72 link training retry on the switch (XGS, BRCM SDK >= 14.2 only)");

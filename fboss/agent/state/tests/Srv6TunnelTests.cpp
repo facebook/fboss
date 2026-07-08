@@ -80,8 +80,8 @@ TEST(Srv6Tunnel, ModifyFields) {
   tunnel->setUnderlayIntfId(InterfaceID(99));
   EXPECT_EQ(tunnel->getUnderlayIntfId(), InterfaceID(99));
 
-  tunnel->setType(TunnelType::IP_IN_IP);
-  EXPECT_EQ(tunnel->getType(), TunnelType::IP_IN_IP);
+  tunnel->setType(TunnelType::IP_IN_IP_DECAP);
+  EXPECT_EQ(tunnel->getType(), TunnelType::IP_IN_IP_DECAP);
 
   tunnel->setTTLMode(cfg::TunnelMode::UNIFORM);
   EXPECT_EQ(tunnel->getTTLMode(), cfg::TunnelMode::UNIFORM);

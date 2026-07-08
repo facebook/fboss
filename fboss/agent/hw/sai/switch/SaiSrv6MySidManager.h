@@ -8,6 +8,7 @@
 #include "fboss/agent/hw/sai/api/Srv6Api.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 
 #include <memory>
 #include <variant>
@@ -25,27 +26,25 @@ struct SaiNextHopGroupHandle;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 using SaiMySid = SaiObject<SaiMySidEntryTraits>;
 
-template <typename T>
-class ManagedNextHop;
-
+template <typename NextHopTraits>
 class ManagedMySidNextHop
-    : public detail::SaiObjectEventSubscriber<SaiIpNextHopTraits> {
+    : public detail::SaiObjectEventSubscriber<NextHopTraits> {
  public:
-  using PublisherObject = std::shared_ptr<const SaiObject<SaiIpNextHopTraits>>;
+  using PublisherObject = std::shared_ptr<const SaiObject<NextHopTraits>>;
   ManagedMySidNextHop(
       SaiSrv6MySidManager* manager,
       SaiMySidEntryTraits::AdapterHostKey mySidKey,
-      std::shared_ptr<ManagedNextHop<SaiIpNextHopTraits>> managedNextHop);
+      std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop);
   void afterCreate(PublisherObject nexthop) override;
   void beforeRemove() override;
   void linkDown() override {}
   sai_object_id_t adapterKey() const;
-  using detail::SaiObjectEventSubscriber<SaiIpNextHopTraits>::isReady;
+  using detail::SaiObjectEventSubscriber<NextHopTraits>::isReady;
 
  private:
   SaiSrv6MySidManager* manager_;
   SaiMySidEntryTraits::AdapterHostKey mySidKey_;
-  std::shared_ptr<ManagedNextHop<SaiIpNextHopTraits>> managedNextHop_;
+  std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop_;
 };
 
 SaiMySidEntryTraits::AdapterHostKey getMySidAdapterHostKey(
@@ -55,7 +54,8 @@ SaiMySidEntryTraits::AdapterHostKey getMySidAdapterHostKey(
 struct SaiMySidEntryHandle {
   using NextHopHandle = std::variant<
       std::shared_ptr<SaiNextHopGroupHandle>,
-      std::shared_ptr<ManagedMySidNextHop>>;
+      std::shared_ptr<ManagedMySidNextHop<SaiIpNextHopTraits>>,
+      std::shared_ptr<ManagedMySidNextHop<SaiSrv6SidlistNextHopTraits>>>;
   NextHopHandle nexthopHandle;
   std::shared_ptr<SaiMySid> mySidEntry;
 };

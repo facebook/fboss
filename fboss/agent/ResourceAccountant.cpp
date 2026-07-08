@@ -36,10 +36,25 @@ ResourceAccountant::ResourceAccountant(
 }
 
 bool ResourceAccountant::isVirtualArsGroup(
+    const RouteNextHopEntry& fwd,
     const RouteNextHopEntry::NextHopSet& nhSet) const {
-  return FLAGS_dlbResourceCheckEnable &&
-      minWidthForArsVirtualGroup_.has_value() &&
-      nhSet.size() >= static_cast<size_t>(minWidthForArsVirtualGroup_.value());
+  if (!FLAGS_dlbResourceCheckEnable ||
+      !minWidthForArsVirtualGroup_.has_value()) {
+    return false;
+  }
+  // ERM-overridden routes are in backup ECMP mode and don't use the DLB pool.
+  if (FLAGS_enable_ecmp_resource_manager &&
+      fwd.getOverrideEcmpSwitchingMode().has_value()) {
+    return false;
+  }
+  return nhSet.size() >=
+      static_cast<size_t>(minWidthForArsVirtualGroup_.value());
+}
+
+bool ResourceAccountant::isVirtualArsGroup(
+    const RouteNextHopEntry& fwd,
+    const std::shared_ptr<SwitchState>& state) const {
+  return isVirtualArsGroup(fwd, getNormalizedNextHops(state, fwd));
 }
 
 bool ResourceAccountant::isEcmp(
@@ -59,10 +74,9 @@ size_t ResourceAccountant::computeWeightedEcmpMemberCount(
     const std::shared_ptr<SwitchState>& state) const {
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-      // For TH4, UCMP members take 4x of ECMP members in the same table.
-      return 4 * getNormalizedNextHops(state, fwd).size();
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-      // For TH5, UCMP members take 4x of ECMP members in the same table.
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      // UCMP members take 4x of ECMP members in the same table.
       return 4 * getNormalizedNextHops(state, fwd).size();
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_G202X:
@@ -83,10 +97,6 @@ size_t ResourceAccountant::computeWeightedEcmpMemberCount(
 size_t ResourceAccountant::getMemberCountForEcmpGroup(
     const RouteNextHopEntry& fwd,
     const std::shared_ptr<SwitchState>& state) const {
-  // Virtual ARS groups do not use ECMP member objects individually.
-  if (isVirtualArsGroup(getNormalizedNextHops(state, fwd))) {
-    return 0;
-  }
   if (isEcmp(fwd, state)) {
     return getNormalizedNextHops(state, fwd).size();
   }
@@ -134,21 +144,24 @@ bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
     }
 
     if (ecmpGroupEnforcedLimit.has_value() &&
-        ecmpGroupRefMap_.size() > *ecmpGroupEnforcedLimit) {
+        ecmpGroupRefMap_.size() >
+            static_cast<size_t>(*ecmpGroupEnforcedLimit)) {
       XLOG(DBG2) << " Ecmp group limit exceeded. Ecmp demand from this update: "
                  << ecmpGroupRefMap_.size()
                  << " ASIC limit: " << *ecmpGroupEnforcedLimit;
       return false;
     }
-    // Virtual ARS groups collectively use minWidthForArsVirtualGroup_ ECMP
-    // members (shared across all virtual groups)
+    // Virtual ARS groups share a single DLB pool that collectively occupies
+    // maxArsVirtualGroupWidth_ ECMP member table entries regardless of the
+    // number of virtual groups active.
     auto virtualArsEcmpMemberUsage =
-        (virtualArsGroupCount_ > 0 && minWidthForArsVirtualGroup_.has_value())
-        ? static_cast<uint32_t>(minWidthForArsVirtualGroup_.value())
+        (virtualArsGroupCount_ > 0 && maxArsVirtualGroupWidth_.has_value())
+        ? static_cast<uint32_t>(maxArsVirtualGroupWidth_.value())
         : 0;
     auto totalEcmpMemberUsage = ecmpMemberUsage_ + virtualArsEcmpMemberUsage;
     if (ecmpMemberEnforcedLimit.has_value() &&
-        totalEcmpMemberUsage > *ecmpMemberEnforcedLimit) {
+        totalEcmpMemberUsage >
+            static_cast<uint32_t>(*ecmpMemberEnforcedLimit)) {
       XLOG(DBG2)
           << " Ecmp member limit exceeded. Ecmp demand from this update: "
           << totalEcmpMemberUsage
@@ -207,9 +220,42 @@ bool ResourceAccountant::checkArsResource(bool intermediateState) const {
           return false;
         }
       }
+
+      if (maxArsVirtualGroupWidth_.has_value() &&
+          maxArsVirtualGroupWidth_.value() >= 0 &&
+          virtualArsSuperGroupMemberRefMap_.size() >
+              static_cast<size_t>(maxArsVirtualGroupWidth_.value())) {
+        XLOG(DBG2) << " Virtual ARS supergroup unique member limit exceeded. "
+                   << "Unique members: "
+                   << virtualArsSuperGroupMemberRefMap_.size()
+                   << " limit: " << maxArsVirtualGroupWidth_.value();
+        return false;
+      }
     }
   }
   return true;
+}
+
+bool ResourceAccountant::wouldExceedSuperGroupLimit(
+    const RouteNextHopEntry::NextHopSet& nhSet) const {
+  if (!maxArsVirtualGroupWidth_.has_value() ||
+      maxArsVirtualGroupWidth_.value() < 0) {
+    return false;
+  }
+  size_t projected = virtualArsSuperGroupMemberRefMap_.size();
+  for (const auto& nh : nhSet) {
+    if (!virtualArsSuperGroupMemberRefMap_.count(nh)) {
+      ++projected;
+    }
+  }
+  if (projected > static_cast<size_t>(maxArsVirtualGroupWidth_.value())) {
+    XLOG(DBG2)
+        << "Virtual ARS supergroup unique member limit would be exceeded."
+        << " Projected: " << projected
+        << " limit: " << maxArsVirtualGroupWidth_.value();
+    return true;
+  }
+  return false;
 }
 
 template <typename AddrT>
@@ -222,26 +268,78 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
   const auto nhSet = getNormalizedNextHops(state, fwd);
   // Forwarding to nextHops and more than one nextHop - use ECMP
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS && nhSet.size() > 1) {
+    const bool isVirtual = isVirtualArsGroup(fwd, nhSet);
     if (auto it = ecmpGroupRefMap_.find(nhSet); it != ecmpGroupRefMap_.end()) {
-      it->second = it->second + (add ? 1 : -1);
-      CHECK(it->second >= 0);
-      if (!add && it->second == 0) {
-        ecmpGroupRefMap_.erase(it);
-        ecmpMemberUsage_ -= getMemberCountForEcmpGroup(fwd, state);
-        if (isVirtualArsGroup(nhSet)) {
-          virtualArsGroupCount_--;
+      auto& entry = it->second;
+      if (add) {
+        // Virtual ARS nhSets also have a non-hierarchical companion ECMP
+        // object for non-ARS traffic; charge member cost on first ref of
+        // any kind, release when all refs are gone.
+        const bool wasEmpty =
+            (entry.refCountVirtual == 0 && entry.refCountNonVirtual == 0);
+        if (isVirtual) {
+          if (entry.refCountVirtual == 0) {
+            if (wouldExceedSuperGroupLimit(nhSet)) {
+              return false;
+            }
+            virtualArsGroupCount_++;
+            for (const auto& nh : nhSet) {
+              virtualArsSuperGroupMemberRefMap_[nh]++;
+            }
+          }
+          entry.refCountVirtual++;
+        } else {
+          entry.refCountNonVirtual++;
+        }
+        if (wasEmpty) {
+          entry.memberContribution =
+              static_cast<uint32_t>(getMemberCountForEcmpGroup(fwd, state));
+          ecmpMemberUsage_ += entry.memberContribution;
+        }
+      } else {
+        if (isVirtual) {
+          CHECK_GT(entry.refCountVirtual, 0u);
+          entry.refCountVirtual--;
+          if (entry.refCountVirtual == 0) {
+            virtualArsGroupCount_--;
+            for (const auto& nh : nhSet) {
+              auto nhIt = virtualArsSuperGroupMemberRefMap_.find(nh);
+              CHECK(nhIt != virtualArsSuperGroupMemberRefMap_.end());
+              if (--nhIt->second == 0) {
+                virtualArsSuperGroupMemberRefMap_.erase(nhIt);
+              }
+            }
+          }
+        } else {
+          CHECK_GT(entry.refCountNonVirtual, 0u);
+          entry.refCountNonVirtual--;
+        }
+        if (entry.refCountVirtual == 0 && entry.refCountNonVirtual == 0) {
+          ecmpMemberUsage_ -= entry.memberContribution;
+          ecmpGroupRefMap_.erase(it);
         }
       }
       return true;
     }
-    // ECMP group does not exists in hw - Check if any usage exceeds ASIC
-    // limit
+    // ECMP group does not exist in hw — check if any usage exceeds ASIC limit
     CHECK(add);
-    ecmpGroupRefMap_[nhSet] = 1;
-    ecmpMemberUsage_ += getMemberCountForEcmpGroup(fwd, state);
-    if (isVirtualArsGroup(nhSet)) {
+    EcmpGroupRefEntry entry;
+    if (isVirtual) {
+      if (wouldExceedSuperGroupLimit(nhSet)) {
+        return false;
+      }
+      entry.refCountVirtual = 1;
       virtualArsGroupCount_++;
+      for (const auto& nh : nhSet) {
+        virtualArsSuperGroupMemberRefMap_[nh]++;
+      }
+    } else {
+      entry.refCountNonVirtual = 1;
     }
+    entry.memberContribution =
+        static_cast<uint32_t>(getMemberCountForEcmpGroup(fwd, state));
+    ecmpMemberUsage_ += entry.memberContribution;
+    ecmpGroupRefMap_[nhSet] = entry;
     return checkEcmpResource(true /* intermediateState */);
   }
   return true;
@@ -266,7 +364,7 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
           fwd.getOverrideEcmpSwitchingMode().has_value()) {
         return true;
       }
-      if (isVirtualArsGroup(nhSet)) {
+      if (isVirtualArsGroup(fwd, nhSet)) {
         return checkArsResource(true /* intermediateState */) &&
             checkEcmpResource(true /* intermediateState */);
       }
@@ -297,6 +395,9 @@ bool ResourceAccountant::checkAndUpdateEcmpResource(
   bool valid = true;
   valid &= checkAndUpdateGenericEcmpResource(route, add, state);
   valid &= checkAndUpdateArsEcmpResource(route, add, state);
+  if (FLAGS_enable_srv6_nexthop_resource_protection) {
+    valid &= checkAndUpdateSrv6NextHopResource(route, add, state);
+  }
   return valid;
 }
 
@@ -307,7 +408,8 @@ bool ResourceAccountant::shouldCheckRouteUpdate() const {
   for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
     if (hwAsic->getMaxEcmpGroups().has_value() ||
         hwAsic->getMaxEcmpMembers().has_value() ||
-        hwAsic->getMaxRoutes().has_value()) {
+        hwAsic->getMaxRoutes().has_value() ||
+        hwAsic->getMaxRouteCounters().has_value()) {
       return true;
     }
   }
@@ -334,6 +436,52 @@ bool ResourceAccountant::checkAndUpdateRouteResource(bool add) {
   return true;
 }
 
+template <typename AddrT>
+bool ResourceAccountant::checkAndUpdateRouteCounterResource(
+    const std::shared_ptr<Route<AddrT>>& route,
+    bool add) {
+  auto counterID = route->getForwardInfo().getCounterID();
+  if (!counterID.has_value()) {
+    return true;
+  }
+  if (add) {
+    auto& refCount = routeCounterRefMap_[*counterID];
+    refCount++;
+    if (refCount == 1) {
+      return checkRouteCounterResource(true /* intermediateState */);
+    }
+    return true;
+  }
+  auto it = routeCounterRefMap_.find(*counterID);
+  CHECK(it != routeCounterRefMap_.end());
+  if (--it->second == 0) {
+    routeCounterRefMap_.erase(it);
+  }
+  return true;
+}
+
+bool ResourceAccountant::checkRouteCounterResource(
+    bool intermediateState) const {
+  uint32_t resourcePercentage = intermediateState
+      ? kHundredPercentage
+      : FLAGS_route_counter_resource_percentage;
+
+  for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
+    const auto routeCounterLimit = hwAsic->getMaxRouteCounters();
+    if (routeCounterLimit.has_value()) {
+      uint32_t enforcedLimit =
+          (routeCounterLimit.value() * resourcePercentage) / kHundredPercentage;
+      if (routeCounterRefMap_.size() > enforcedLimit) {
+        XLOG(DBG2)
+            << "Route counter resource limit exceeded. Unique route counters: "
+            << routeCounterRefMap_.size() << " ASIC limit: " << enforcedLimit;
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
   if (!checkRouteUpdate_ || !FLAGS_enable_route_resource_protection) {
     return true;
@@ -352,12 +500,16 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
           validRouteUpdate &=
               checkAndUpdateEcmpResource(oldRoute, false /* add */, oldState);
           validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
+          validRouteUpdate &=
+              checkAndUpdateRouteCounterResource(oldRoute, false /* add */);
           return;
         }
         if (!oldRoute->isResolved() && newRoute->isResolved()) {
           validRouteUpdate &=
               checkAndUpdateEcmpResource(newRoute, true /* add */, newState);
           validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
+          validRouteUpdate &=
+              checkAndUpdateRouteCounterResource(newRoute, true /* add */);
           return;
         }
         // Both old and new are resolved
@@ -366,12 +518,16 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
             checkAndUpdateEcmpResource(newRoute, true, newState);
         validRouteUpdate &=
             checkAndUpdateEcmpResource(oldRoute, false, oldState);
+        validRouteUpdate &= checkAndUpdateRouteCounterResource(newRoute, true);
+        validRouteUpdate &= checkAndUpdateRouteCounterResource(oldRoute, false);
       },
       [&](RouterID /*rid*/, const auto& newRoute) {
         if (newRoute->isResolved()) {
           validRouteUpdate &=
               checkAndUpdateEcmpResource(newRoute, true /* add */, newState);
           validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
+          validRouteUpdate &=
+              checkAndUpdateRouteCounterResource(newRoute, true /* add */);
         }
       },
       [&](RouterID /*rid*/, const auto& delRoute) {
@@ -379,12 +535,21 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
           validRouteUpdate &=
               checkAndUpdateEcmpResource(delRoute, false /* add */, oldState);
           validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
+          validRouteUpdate &=
+              checkAndUpdateRouteCounterResource(delRoute, false /* add */);
         }
       });
 
   // Ensure new state usage does not exceed ecmp_resource_percentage
   validRouteUpdate &= checkEcmpResource(false /* intermediateState */);
   validRouteUpdate &= checkArsResource(false /* intermediateState */);
+  if (FLAGS_enable_srv6_nexthop_resource_protection) {
+    validRouteUpdate &= checkSrv6NextHopResource(false /* intermediateState */);
+  }
+  if (FLAGS_enable_route_counter_resource_protection) {
+    validRouteUpdate &=
+        checkRouteCounterResource(false /* intermediateState */);
+  }
   return validRouteUpdate;
 }
 
@@ -475,6 +640,145 @@ bool ResourceAccountant::l2StateChangedImpl(const StateDelta& delta) {
     XLOG(ERR) << "Total l2 entries in new switchState: " << l2Entries_
               << " exceeds the limit: " << FLAGS_max_l2_entries;
     return false;
+  }
+  return true;
+}
+
+void ResourceAccountant::mySidStateChangedImpl(const StateDelta& delta) {
+  DeltaFunctions::forEachChanged(
+      delta.getMySidsDelta(),
+      [&](const auto& /*oldEntry*/, const auto& /*newEntry*/) {
+        // Changed entries don't affect count
+      },
+      [&](const auto& /*newEntry*/) { mySidUsage_++; },
+      [&](const auto& /*deletedEntry*/) { mySidUsage_--; });
+}
+
+bool ResourceAccountant::checkMySidResource(bool intermediateState) {
+  uint32_t resourcePercentage =
+      intermediateState ? kHundredPercentage : FLAGS_mysid_resource_percentage;
+
+  for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
+    const auto mySidLimit = hwAsic->getMaxMySidEntries();
+    if (mySidLimit.has_value()) {
+      uint32_t enforcedLimit =
+          (mySidLimit.value() * resourcePercentage) / kHundredPercentage;
+      if (mySidUsage_ > enforcedLimit) {
+        XLOG(DBG2) << "MySID resource limit exceeded. MySID usage: "
+                   << mySidUsage_ << " ASIC limit: " << enforcedLimit;
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+size_t ResourceAccountant::countSrv6NextHops(
+    const RouteNextHopSet& nhSet) const {
+  size_t count = 0;
+  for (const auto& nhop : nhSet) {
+    if (nhop.tunnelType() == TunnelType::SRV6_ENCAP) {
+      count++;
+    }
+  }
+  return count;
+}
+
+template <typename AddrT>
+bool ResourceAccountant::checkAndUpdateSrv6NextHopResource(
+    const std::shared_ptr<Route<AddrT>>& route,
+    bool add,
+    const std::shared_ptr<SwitchState>& state) {
+  const auto& fwd = route->getForwardInfo();
+  if (fwd.getAction() != RouteForwardAction::NEXTHOPS) {
+    return true;
+  }
+
+  auto nhSetId = fwd.getNormalizedResolvedNextHopSetID();
+  if (!nhSetId.has_value()) {
+    return true;
+  }
+  auto setIdVal = static_cast<int64_t>(nhSetId.value());
+
+  // Check if this NextHopSetID is already tracked
+  if (auto it = srv6NextHopSetRefMap_.find(setIdVal);
+      it != srv6NextHopSetRefMap_.end()) {
+    it->second.refCount += (add ? 1 : -1);
+    CHECK_GE(it->second.refCount, 0);
+    if (!add && it->second.refCount == 0) {
+      if (it->second.isEcmp) {
+        srv6EcmpNextHopUsage_ -= it->second.srv6Count;
+      } else {
+        srv6SingleNextHopUsage_ -= it->second.srv6Count;
+      }
+      srv6NextHopSetRefMap_.erase(it);
+    }
+    return true;
+  }
+
+  // NextHopSetID not in map. For remove, this means the route had no SRv6
+  // next hops when it was added (srv6Count was 0), so nothing to undo.
+  if (!add) {
+    return true;
+  }
+
+  // New NextHopSetID on add — resolve nhops to count SRv6
+  auto nhSet = getNormalizedNextHops(state, fwd);
+  auto srv6Count = countSrv6NextHops(nhSet);
+  if (srv6Count == 0) {
+    return true;
+  }
+
+  bool isEcmpRoute = nhSet.size() > 1;
+  srv6NextHopSetRefMap_[setIdVal] = {1, srv6Count, isEcmpRoute};
+  if (isEcmpRoute) {
+    srv6EcmpNextHopUsage_ += srv6Count;
+  } else {
+    srv6SingleNextHopUsage_ += srv6Count;
+  }
+  return true;
+}
+
+template bool
+ResourceAccountant::checkAndUpdateSrv6NextHopResource<folly::IPAddressV6>(
+    const std::shared_ptr<Route<folly::IPAddressV6>>& route,
+    bool add,
+    const std::shared_ptr<SwitchState>& state);
+
+template bool
+ResourceAccountant::checkAndUpdateSrv6NextHopResource<folly::IPAddressV4>(
+    const std::shared_ptr<Route<folly::IPAddressV4>>& route,
+    bool add,
+    const std::shared_ptr<SwitchState>& state);
+
+bool ResourceAccountant::checkSrv6NextHopResource(
+    bool intermediateState) const {
+  uint32_t resourcePercentage = intermediateState
+      ? kHundredPercentage
+      : FLAGS_srv6_nexthop_resource_percentage;
+
+  for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
+    auto ecmpLimit = hwAsic->getMaxSrv6EcmpNextHops();
+    if (ecmpLimit.has_value()) {
+      uint32_t enforcedLimit =
+          (ecmpLimit.value() * resourcePercentage) / kHundredPercentage;
+      if (srv6EcmpNextHopUsage_ > enforcedLimit) {
+        XLOG(DBG2) << "SRv6 ECMP next hop limit exceeded. Usage: "
+                   << srv6EcmpNextHopUsage_ << " ASIC limit: " << enforcedLimit;
+        return false;
+      }
+    }
+    auto singleLimit = hwAsic->getMaxSrv6SingleNextHops();
+    if (singleLimit.has_value()) {
+      uint32_t enforcedLimit =
+          (singleLimit.value() * resourcePercentage) / kHundredPercentage;
+      if (srv6SingleNextHopUsage_ > enforcedLimit) {
+        XLOG(DBG2) << "SRv6 single next hop limit exceeded. Usage: "
+                   << srv6SingleNextHopUsage_
+                   << " ASIC limit: " << enforcedLimit;
+        return false;
+      }
+    }
   }
   return true;
 }
@@ -720,6 +1024,10 @@ void ResourceAccountant::stateChanged(const StateDelta& delta) {
     neighborStateChangedImpl<NdpTable>(delta);
     neighborStateChangedImpl<ArpTable>(delta);
   }
+
+  if (FLAGS_enable_mysid_resource_protection) {
+    mySidStateChangedImpl(delta);
+  }
 }
 
 // check if the resource is available for the update as per fboss limits
@@ -732,6 +1040,11 @@ bool ResourceAccountant::isValidUpdate(const StateDelta& delta) {
     neighborStateChangedImpl<NdpTable>(delta);
     neighborStateChangedImpl<ArpTable>(delta);
     isValidUpdate &= checkNeighborResource();
+  }
+
+  if (FLAGS_enable_mysid_resource_protection) {
+    mySidStateChangedImpl(delta);
+    isValidUpdate &= checkMySidResource(false /* intermediateState */);
   }
 
   return isValidUpdate;

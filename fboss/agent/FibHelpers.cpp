@@ -189,7 +189,26 @@ RouteNextHopSet getNonOverrideNormalizedNextHops(
         getNextHops(state, static_cast<NextHopSetId>(*normalizedSetId));
     return RouteNextHopSet(nhops.begin(), nhops.end());
   }
-  return entry.nonOverrideNormalizedNextHops();
+  return RouteNextHopEntry::normalizeNextHops(entry.getNextHopSet());
+}
+
+RouteNextHopSet getClientNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry) {
+  if (FLAGS_resolve_nexthops_from_id) {
+    CHECK(FLAGS_enable_nexthop_id_manager)
+        << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
+    auto clientSetId = entry.getClientNextHopSetID();
+    if (!clientSetId.has_value()) {
+      CHECK(entry.getNextHopSet().empty())
+          << "FLAGS_resolve_nexthops_from_id is on but per-client entry "
+          << "has nexthops and no clientNextHopSetID";
+      return {};
+    }
+    auto nhops = getNextHops(state, static_cast<NextHopSetId>(*clientSetId));
+    return RouteNextHopSet(nhops.begin(), nhops.end());
+  }
+  return entry.getNextHopSet();
 }
 
 std::shared_ptr<SwitchState> getNewStateWithOldFibInfo(

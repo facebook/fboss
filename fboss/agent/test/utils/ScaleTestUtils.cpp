@@ -16,26 +16,26 @@ namespace facebook::fboss::utility {
 const int kMaxEcmpGroups = 5000;
 
 uint32_t getMaxEcmpGroups(const std::vector<const HwAsic*>& asics) {
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   auto maxEcmpGroups = asic->getMaxEcmpGroups();
   CHECK(maxEcmpGroups.has_value());
   return maxEcmpGroups.value();
 }
 uint32_t getMaxEcmpMembers(const std::vector<const HwAsic*>& asics) {
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   auto maxEcmpMembers = asic->getMaxEcmpMembers();
   CHECK(maxEcmpMembers.has_value());
   return maxEcmpMembers.value();
 }
 
 uint32_t getMaxVariableWidthEcmpSize(const std::vector<const HwAsic*>& asics) {
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   auto maxVariableWidthEcmpSize = asic->getMaxVariableWidthEcmpSize();
   return maxVariableWidthEcmpSize;
 }
 
 uint32_t getMaxUcmpMembers(const std::vector<const HwAsic*>& asics) {
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   auto maxUcmpMembers = asic->getMaxEcmpMembers();
   CHECK(maxUcmpMembers.has_value());
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||

@@ -1,4 +1,5 @@
 {
+  "platformName": "TAHANSB800BC",
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
@@ -844,7 +845,7 @@
           "sysfsPath": "/run/devmap/sensors/OSFP_PWR/curr1_input",
           "type": 2,
           "thresholds": {
-            "minAlarmVal": -1.5
+            "minAlarmVal": -2.5
           },
           "compute": "@/1000.0"
         },
@@ -866,7 +867,7 @@
           "type": 2,
           "thresholds": {
             "maxAlarmVal": 110,
-            "minAlarmVal": -1.5,
+            "minAlarmVal": -2.5,
             "upperCriticalVal": 120
           },
           "compute": "@/1000.0"
@@ -1435,9 +1436,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 1,
-          "productSubVersion": 1
+          "productionState": 4,
+          "productionSubState": 1,
+          "respinVariantIndicator": 1
         },
         {
           "sensors": [
@@ -1839,9 +1840,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 1
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 1
         },
         {
           "sensors": [
@@ -2201,9 +2202,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 1,
-          "productSubVersion": 2
+          "productionState": 4,
+          "productionSubState": 1,
+          "respinVariantIndicator": 2
         },
         {
           "sensors": [
@@ -2563,9 +2564,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 2
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 2
         }
       ]
     },
@@ -2918,7 +2919,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -2927,7 +2928,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -2936,7 +2937,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp3_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -3218,7 +3219,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -3227,7 +3228,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 95
+            "upperCriticalVal": 90
           },
           "compute": "@/1000.0"
         },
@@ -4081,6 +4082,16 @@
             "lowerCriticalVal": 0
           },
           "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_U2_TH6_TEMP",
+          "sysfsPath": "/run/devmap/sensors/SMB_CPLD/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 103
+          },
+          "compute": "@/1000.0"
         }
       ],
       "versionedSensors": [
@@ -4135,9 +4146,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 1,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -4190,9 +4201,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 6,
-          "productSubVersion": 10
+          "productionState": 1,
+          "productionSubState": 6,
+          "respinVariantIndicator": 10
         }
       ]
     }

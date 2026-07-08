@@ -1,5 +1,8 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
+#include <filesystem>
+#include <set>
+
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
@@ -104,6 +107,66 @@ TEST_F(KmodTest, FbspRemove) {
   EXPECT_TRUE(loadedKmods.empty())
       << "Some kernel modules were not unloaded by fbsp-remove. Loaded kmods: "
       << folly::join(", ", loadedKmods);
+}
+
+// Test that kmods.json contains entries for all .ko files installed by the BSP
+TEST_F(KmodTest, KmodsJsonComplete) {
+  // Get the vendor keyword and kernel version using shared helpers
+  auto vendor = KmodUtils::getVendorKeyword(GetPlatformManagerConfig());
+  ASSERT_FALSE(vendor.empty())
+      << "Failed to extract vendor from bspKmodsRpmName: "
+      << *GetPlatformManagerConfig().bspKmodsRpmName();
+  auto kernelVersion = KmodUtils::getKernelVersion();
+
+  // Build the path to the installed kmod directory:
+  // /lib/modules/<kernel-version>/extra/<vendor>/
+  auto kmodDir =
+      std::filesystem::path("/lib/modules") / kernelVersion / "extra" / vendor;
+  ASSERT_TRUE(std::filesystem::exists(kmodDir))
+      << "Kmod directory does not exist: " << kmodDir;
+  ASSERT_TRUE(std::filesystem::is_directory(kmodDir))
+      << "Kmod path is not a directory: " << kmodDir;
+
+  // Collect all kmod names from the raw kmods.json (not the filtered
+  // RuntimeConfig version, which excludes platform-specific exceptions)
+  const auto& kmods = GetKmodsJson();
+  // Normalize dashes to underscores when inserting since modprobe treats
+  // them equivalently
+  std::set<std::string> kmodsInJson;
+  auto normalize = [](std::string s) {
+    std::replace(s.begin(), s.end(), '-', '_');
+    return s;
+  };
+  for (const auto& kmod : *kmods.bspKmods()) {
+    kmodsInJson.insert(normalize(kmod));
+  }
+  for (const auto& kmod : *kmods.sharedKmods()) {
+    kmodsInJson.insert(normalize(kmod));
+  }
+
+  // Iterate through all .ko files in the vendor directory and check each has
+  // an entry in kmods.json.
+  const re2::RE2 kKoFileRe("(.+)\\.ko");
+  std::vector<std::string> missingKmods;
+  for (const auto& entry :
+       std::filesystem::recursive_directory_iterator(kmodDir)) {
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+    auto filename = entry.path().filename().string();
+    std::string moduleName;
+    if (!re2::RE2::FullMatch(filename, kKoFileRe, &moduleName)) {
+      continue;
+    }
+
+    if (!kmodsInJson.contains(normalize(moduleName))) {
+      missingKmods.push_back(filename);
+    }
+  }
+
+  EXPECT_TRUE(missingKmods.empty())
+      << "The following kernel modules in " << kmodDir
+      << " are missing from kmods.json: " << folly::join(", ", missingKmods);
 }
 
 } // namespace facebook::fboss::platform::bsp_tests

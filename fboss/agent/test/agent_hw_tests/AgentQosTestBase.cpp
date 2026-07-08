@@ -10,6 +10,7 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentQosTestBase.h"
 
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 
@@ -49,7 +50,7 @@ void AgentQosTestBase::verifyDscpQueueMapping(
 void AgentQosTestBase::sendPacket(uint8_t dscp, bool frontPanel) {
   auto vlanId = getVlanIDForTx();
   auto intfMac =
-      utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
   auto txPacket = utility::makeUDPTxPacket(
       getSw(),

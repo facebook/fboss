@@ -240,6 +240,9 @@ enum MediaInterfaceCode {
   FR2_400G = 32,
   FR1_200G = 33,
   DR2_200G = 34,
+  DR4_800G_GEARBOX = 35,
+  // 8x800G over DR4: 4 banks, each a 2x800G-DR4
+  DR4_8x800G = 36,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -266,6 +269,8 @@ enum TransceiverModuleIdentifier {
   QSFP_DD = 0x18,
   QSFP_PLUS_CMIS = 0x1E,
   OSFP = 0x19,
+  // 0x80: Co-packaged OE Engine (co-packaged optics)
+  CPO = 0x80,
   MINIPHOTON_OBO = 0x91,
 }
 
@@ -435,6 +440,7 @@ struct HostLaneSettings {
   6: optional bool rxSquelch;
   7: optional i32 rxOutputPreCursor;
   8: optional i32 rxOutputPostCursor;
+  9: optional i32 currentAppSel;
 }
 
 struct MediaLaneSignals {
@@ -721,8 +727,12 @@ enum TransceiverErrorState {
 enum ModuleTechnology {
   GREY = 0,
   LPO = 1,
-  TUNABLE = 2,
+  // CMIS MEDIA_INTERFACE_TECHNOLOGY byte 00h:212
+  // C-Band tunable laser (0x10) — 191.3-196.1 THz
+  TUNABLE_C_BAND = 2,
   AEC = 3,
+  // L-Band tunable laser (0x11) — 186.0-191.2 THz
+  TUNABLE_L_BAND = 4,
 
   // unknown
   UNKNOWN = -1,

@@ -19,6 +19,7 @@
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/Table.h"
+#include "folly/IPAddress.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
 namespace facebook::fboss {
@@ -70,6 +71,7 @@ RetType CmdShowRif::createModel(
 
     rifEntry.name() = *rif.interfaceName();
     rifEntry.rifID() = *rif.interfaceId();
+    rifEntry.osIfName() = fmt::format("fboss{}", *rif.interfaceId());
     if (*rif.vlanId() != ctrl_constants::NO_VLAN()) {
       rifEntry.vlanID() = *rif.vlanId();
     }
@@ -82,6 +84,16 @@ RetType CmdShowRif::createModel(
         getRemoteIntfLivenessStatusStr(rif.remoteIntfLivenessStatus());
     rifEntry.scope() = apache::thrift::util::enumNameSafe(*rif.scope());
 
+    // Populate addresses
+    for (const auto& addr : *rif.address()) {
+      auto ip = folly::IPAddress::fromBinary(
+          folly::ByteRange(
+              reinterpret_cast<const unsigned char*>(addr.ip()->addr()->data()),
+              addr.ip()->addr()->size()));
+      rifEntry.addrs()->push_back(
+          folly::to<std::string>(ip.str(), "/", *addr.prefixLength()));
+    }
+
     model.rifs()->push_back(rifEntry);
   }
 
@@ -93,6 +105,7 @@ void CmdShowRif::printOutput(const RetType& model, std::ostream& out) {
   outTable.setHeader(
       {"RIF",
        "RIFID",
+       "OS Intf",
        "VlanID",
        "RouterID",
        "MAC",
@@ -100,12 +113,14 @@ void CmdShowRif::printOutput(const RetType& model, std::ostream& out) {
        "TYPE",
        "Liveness",
        "Scope",
-       "Ports"});
+       "Ports",
+       "Addresses"});
 
   for (const auto& rif : model.get_rifs()) {
     outTable.addRow({
         rif.get_name(),
         std::to_string(rif.get_rifID()),
+        rif.get_osIfName(),
         (rif.vlanID() ? std::to_string(*rif.vlanID()) : "--"),
         std::to_string(rif.get_routerID()),
         rif.get_mac(),
@@ -115,6 +130,7 @@ void CmdShowRif::printOutput(const RetType& model, std::ostream& out) {
         rif.get_scope(),
         (rif.portNames()->size() > 0 ? folly::join("\n", *rif.portNames())
                                      : ""),
+        (rif.addrs()->size() > 0 ? folly::join("\n", *rif.addrs()) : ""),
     });
   }
 

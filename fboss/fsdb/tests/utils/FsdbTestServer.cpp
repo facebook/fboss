@@ -15,7 +15,9 @@ namespace facebook::fboss::fsdb::test {
 // oss/FsdbTestServer.cpp
 extern std::unique_ptr<FsdbTestServerImpl> createPlatformSpecificImpl(
     std::shared_ptr<ServiceHandler> handler,
-    uint16_t port);
+    uint16_t port,
+    std::optional<size_t> numIOWorkerThreads,
+    std::optional<size_t> numCPUWorkerThreads);
 
 std::shared_ptr<apache::thrift::ThriftServer> FsdbTestServerImpl::createServer(
     std::shared_ptr<ServiceHandler> handler,
@@ -26,6 +28,12 @@ std::shared_ptr<apache::thrift::ThriftServer> FsdbTestServerImpl::createServer(
   server->setPort(port);
   server->setInterface(handler);
   server->setSSLPolicy(apache::thrift::SSLPolicy::PERMITTED);
+  if (numIOWorkerThreads_.has_value()) {
+    server->setNumIOWorkerThreads(*numIOWorkerThreads_);
+  }
+  if (numCPUWorkerThreads_.has_value()) {
+    server->setNumCPUWorkerThreads(*numCPUWorkerThreads_);
+  }
   return server;
 }
 
@@ -41,16 +49,31 @@ void FsdbTestServerImpl::checkServerStart(uint16_t& fsdbPort) {
   XLOG(INFO) << "Started thrift server on port " << fsdbPort;
 }
 
-std::unique_ptr<apache::thrift::Client<FsdbService>>
+std::shared_ptr<apache::thrift::Client<FsdbService>>
 FsdbTestServerImpl::getClient() {
-  // Instead of using apache::thrift::makeTestClient, use exactly the same way
-  // as we do for ThriftServiceClient::createFsdbClient() to create a client
-  auto channel = apache::thrift::RocketClientChannel::newChannel(
-      folly::AsyncSocket::newSocket(
-          folly::EventBaseManager::get()->getEventBase(),
-          server_->getAddress()));
-  return std::make_unique<apache::thrift::Client<FsdbService>>(
-      std::move(channel));
+  // Create the client on the dedicated IO thread's EventBase.
+  // AsyncSocket must be constructed on the EventBase's thread, and the
+  // EventBase must be actively looped so that socket IO callbacks fire.
+  // Using the calling thread's EventBase deadlocks because blockingWait()
+  // does not drive it — Task<T> is a SemiAwaitable, so blockingWait
+  // creates an internal BlockingWaitExecutor that only drives its own
+  // queue, not the thread-local EventBase. The RPC response callback
+  // (registered on the EventBase) never fires, causing an indefinite hang.
+  apache::thrift::Client<FsdbService>* rawClient = nullptr;
+  auto* evb = clientEvbThread_->getEventBase();
+  evb->runImmediatelyOrRunInEventBaseThreadAndWait([&] {
+    auto channel = apache::thrift::RocketClientChannel::newChannel(
+        folly::AsyncSocket::newSocket(evb, server_->getAddress()));
+    rawClient = new apache::thrift::Client<FsdbService>(std::move(channel));
+  });
+  // Prevent use-after-free: capture the shared_ptr so the EventBase thread
+  // stays alive even if this FsdbTestServerImpl is destroyed first.
+  return std::shared_ptr<apache::thrift::Client<FsdbService>>(
+      rawClient,
+      [evbThread = clientEvbThread_](apache::thrift::Client<FsdbService>* p) {
+        evbThread->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
+            [p] { delete p; });
+      });
 }
 
 FsdbTestServer::FsdbTestServer(
@@ -59,7 +82,9 @@ FsdbTestServer::FsdbTestServer(
     uint32_t stateSubscriptionServe_ms,
     uint32_t statsSubscriptionServe_ms,
     uint32_t subscriptionServeQueueSize,
-    uint32_t statsSubscriptionServeQueueSize)
+    uint32_t statsSubscriptionServeQueueSize,
+    std::optional<size_t> numIOWorkerThreads,
+    std::optional<size_t> numCPUWorkerThreads)
     : config_(std::move(config)) {
   auto queueSize = std::to_string(subscriptionServeQueueSize);
   gflags::SetCommandLineOptionWithMode(
@@ -88,14 +113,14 @@ FsdbTestServer::FsdbTestServer(
   gflags::SetCommandLineOptionWithMode(
       "checkOperOwnership", "false", gflags::SET_FLAG_IF_DEFAULT);
 
-  startTestServer(port);
+  startTestServer(port, numIOWorkerThreads, numCPUWorkerThreads);
 }
 
 FsdbTestServer::~FsdbTestServer() {
   stopTestServer();
 }
 
-std::unique_ptr<apache::thrift::Client<FsdbService>>
+std::shared_ptr<apache::thrift::Client<FsdbService>>
 FsdbTestServer::getClient() {
   return impl_->getClient();
 }
@@ -127,18 +152,16 @@ ServiceHandler::ActiveSubscriptions FsdbTestServer::getActiveSubscriptions()
   return serviceHandler().getActiveSubscriptions();
 }
 
-void FsdbTestServer::startTestServer(uint16_t port) {
+void FsdbTestServer::startTestServer(
+    uint16_t port,
+    std::optional<size_t> numIOWorkerThreads,
+    std::optional<size_t> numCPUWorkerThreads) {
   ServiceHandler::Options options;
-#ifdef IS_OSS
-  // TODO: Enabling serveIdPathSubs causes serve subscriptions to fail with
-  // P2015402468
-  options.serveIdPathSubs = false;
-#else
   options.serveIdPathSubs = true;
-#endif
   handler_ = std::make_shared<ServiceHandler>(config_, options);
 
-  impl_ = createPlatformSpecificImpl(handler_, port);
+  impl_ = createPlatformSpecificImpl(
+      handler_, port, numIOWorkerThreads, numCPUWorkerThreads);
   impl_->startServer(fsdbPort_);
 }
 

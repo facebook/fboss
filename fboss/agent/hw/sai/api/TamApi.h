@@ -107,13 +107,43 @@ struct SaiTamReportTraits {
   struct Attributes {
     using EnumType = sai_tam_report_attr_t;
     using Type = SaiAttribute<EnumType, SAI_TAM_REPORT_ATTR_TYPE, sai_int32_t>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    using SampleRate = SaiAttribute<
+        EnumType,
+        SAI_TAM_REPORT_ATTR_SAMPLE_RATE,
+        sai_uint32_t,
+        StdNullOptDefault<sai_uint32_t>>;
+    using MaxReportRate = SaiAttribute<
+        EnumType,
+        SAI_TAM_REPORT_ATTR_MAX_REPORT_RATE,
+        sai_uint64_t,
+        StdNullOptDefault<sai_uint64_t>>;
+    using MaxReportBurst = SaiAttribute<
+        EnumType,
+        SAI_TAM_REPORT_ATTR_MAX_REPORT_BURST,
+        sai_uint64_t,
+        StdNullOptDefault<sai_uint64_t>>;
+#endif
   };
   using AdapterKey = TamReportSaiId;
-  using AdapterHostKey = std::tuple<Attributes::Type>;
-  using CreateAttributes = std::tuple<Attributes::Type>;
+  using AdapterHostKey = std::tuple<
+      Attributes::Type
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::optional<Attributes::SampleRate>,
+      std::optional<Attributes::MaxReportRate>,
+      std::optional<Attributes::MaxReportBurst>
+#endif
+      >;
+  using CreateAttributes = AdapterHostKey;
 };
 
 SAI_ATTRIBUTE_NAME(TamReport, Type)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+SAI_ATTRIBUTE_NAME(TamReport, SampleRate)
+SAI_ATTRIBUTE_NAME(TamReport, MaxReportRate)
+SAI_ATTRIBUTE_NAME(TamReport, MaxReportBurst)
+#endif
 
 struct SaiTamEventActionTraits {
   static constexpr sai_object_type_t ObjectType =
@@ -192,6 +222,13 @@ struct SaiTamEventTraits {
         sai_object_id_t,
         AttributeIngressSamplepacketEnable,
         SaiObjectIdDefault>;
+    /* Standard SAI attribute used by Tajo for stateless MoD: object id
+     * of a SaiTamEventThreshold object. */
+    using Threshold = SaiAttribute<
+        EnumType,
+        SAI_TAM_EVENT_ATTR_THRESHOLD,
+        sai_object_id_t,
+        SaiObjectIdDefault>;
   };
   using AdapterKey = TamEventSaiId;
   using AdapterHostKey = std::tuple<
@@ -216,7 +253,8 @@ struct SaiTamEventTraits {
       std::optional<Attributes::PacketDropTypeMmu>,
       std::optional<Attributes::PacketDropTypeIngress>,
       std::optional<Attributes::AgingGroup>,
-      std::optional<Attributes::IngressSamplepacketEnable>>;
+      std::optional<Attributes::IngressSamplepacketEnable>,
+      std::optional<Attributes::Threshold>>;
 };
 
 SAI_ATTRIBUTE_NAME(TamEvent, Type)
@@ -230,6 +268,27 @@ SAI_ATTRIBUTE_NAME(TamEvent, PacketDropTypeMmu)
 SAI_ATTRIBUTE_NAME(TamEvent, PacketDropTypeIngress)
 SAI_ATTRIBUTE_NAME(TamEvent, AgingGroup)
 SAI_ATTRIBUTE_NAME(TamEvent, IngressSamplepacketEnable)
+SAI_ATTRIBUTE_NAME(TamEvent, Threshold)
+
+struct SaiTamEventThresholdTraits {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD;
+  using SaiApiT = TamApi;
+  struct Attributes {
+    using EnumType = sai_tam_event_threshold_attr_t;
+    using Unit =
+        SaiAttribute<EnumType, SAI_TAM_EVENT_THRESHOLD_ATTR_UNIT, sai_int32_t>;
+    using Rate =
+        SaiAttribute<EnumType, SAI_TAM_EVENT_THRESHOLD_ATTR_RATE, sai_uint32_t>;
+  };
+  using AdapterKey = TamEventThresholdSaiId;
+  using AdapterHostKey = std::
+      tuple<std::optional<Attributes::Unit>, std::optional<Attributes::Rate>>;
+  using CreateAttributes = AdapterHostKey;
+};
+
+SAI_ATTRIBUTE_NAME(TamEventThreshold, Unit)
+SAI_ATTRIBUTE_NAME(TamEventThreshold, Rate)
 
 struct SaiTamTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_TAM;
@@ -376,6 +435,31 @@ class TamApi : public SaiApi<TamApi> {
   sai_status_t _setAttribute(TamTransportSaiId id, const sai_attribute_t* attr)
       const {
     return api_->set_tam_transport_attribute(id, attr);
+  }
+
+  // TAM Event Threshold
+  sai_status_t _create(
+      TamEventThresholdSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_tam_event_threshold(
+        rawSaiId(id), switch_id, static_cast<uint32_t>(count), attr_list);
+  }
+
+  sai_status_t _remove(TamEventThresholdSaiId id) const {
+    return api_->remove_tam_event_threshold(id);
+  }
+
+  sai_status_t _getAttribute(TamEventThresholdSaiId id, sai_attribute_t* attr)
+      const {
+    return api_->get_tam_event_threshold_attribute(id, 1, attr);
+  }
+
+  sai_status_t _setAttribute(
+      TamEventThresholdSaiId id,
+      const sai_attribute_t* attr) const {
+    return api_->set_tam_event_threshold_attribute(id, attr);
   }
 
   // TAM Collector

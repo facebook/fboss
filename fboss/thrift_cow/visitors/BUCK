@@ -65,7 +65,6 @@ cpp_library(
         ":results-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/thrift_cow:patch-cpp2-types",
-        "//fboss/thrift_cow:patch-cpp2-visitation",
         "//fboss/thrift_cow/nodes:node_utils",
         "//fboss/thrift_cow/nodes:serializer",
         "//folly:conv",

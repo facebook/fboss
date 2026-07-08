@@ -14,6 +14,7 @@
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -52,12 +53,12 @@ cfg::SwitchConfig AgentArsBase::initialConfig(
 }
 
 bool AgentArsBase::isChenab(const AgentEnsemble& ensemble) const {
-  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
   return (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
 }
 
 bool AgentArsBase::isTH3(const AgentEnsemble& ensemble) const {
-  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
   return (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3);
 }
 
@@ -108,7 +109,7 @@ std::vector<PortID> AgentArsBase::getTestPorts() const {
 
 void AgentArsBase::setup(int ecmpWidth) {
   std::vector<PortID> portIds = getTestPorts();
-  flat_set<PortDescriptor> portDescs;
+  boost::container::flat_set<PortDescriptor> portDescs;
   std::vector<PortDescriptor> tempPortDescs;
   for (size_t w = 0; w < ecmpWidth; ++w) {
     tempPortDescs.emplace_back(portIds[w]);
@@ -191,7 +192,7 @@ void AgentArsBase::resolveMirror(
 void AgentArsBase::generateApplyConfig(AclType aclType) {
   const auto& ensemble = *getAgentEnsemble();
   auto newCfg{initialConfig(ensemble)};
-  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   utility::addNetworkAIQueueConfig(
@@ -251,7 +252,7 @@ size_t AgentArsBase::sendRoceTraffic(
     int destPort) {
   auto vlanId = getVlanIDForTx();
   auto intfMac =
-      utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   return utility::pumpRoCETraffic(
       true,
       utility::getAllocatePktFn(getAgentEnsemble()),
@@ -330,7 +331,8 @@ auto AgentArsBase::verifyAclType(bool bumpOnHit, AclType aclType) {
       // At most we should get a pkt bump of 2
       EXPECT_EVENTUALLY_LE(aclPktCountAfter, aclPktCountBefore + 2);
       // TODO ruinanhu: Remove this once we have a fix for TH6 counter problem
-      auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto hwAsic =
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
       auto extraBytes =
           (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) ? 4 : 0;
 
@@ -474,7 +476,8 @@ void AgentArsBase::addRoceAcl(
   if (aclName == getAclName(AclType::UDF_FLOWLET)) {
     acl->proto() = 17;
     acl->l4DstPort() = 4791;
-    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto asic =
+        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics());
     utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
   }
   if (aclName == getAclName(AclType::ECMP_HASH_CANCEL)) {
@@ -757,9 +760,14 @@ void AgentArsBase::generatePrefixes() {
       std::back_inserter(portDescriptorIds),
       [](const PortID& portId) { return PortDescriptor(portId); });
 
+  // Request all size>=2 ECMP groups the ports allow
+  // (2^kMaxEcmpWidthForTest - kMaxEcmpWidthForTest - 1); generateEcmpGroupScale
+  // does not build the empty set or single-port subsets.
   std::vector<std::vector<PortDescriptor>> allCombinations =
       utility::generateEcmpGroupScale(
-          portDescriptorIds, 1024, portDescriptorIds.size());
+          portDescriptorIds,
+          (1 << kMaxEcmpWidthForTest) - kMaxEcmpWidthForTest - 1,
+          kMaxEcmpWidthForTest);
   for (const auto& combination : allCombinations) {
     nhopSets.emplace_back(combination.begin(), combination.end());
   }
@@ -767,7 +775,7 @@ void AgentArsBase::generatePrefixes() {
       [&portDescriptorIds, this](const std::shared_ptr<SwitchState>& in) {
         return helper_->resolveNextHops(
             in,
-            flat_set<PortDescriptor>(
+            boost::container::flat_set<PortDescriptor>(
                 std::make_move_iterator(portDescriptorIds.begin()),
                 std::make_move_iterator(portDescriptorIds.end())));
       });
@@ -791,7 +799,8 @@ void AgentArsBase::verifyFwdSwitchingMode(
 }
 
 uint32_t AgentArsBase::getMaxArsGroups() const {
-  auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+  auto asic =
+      checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics());
   auto maxArsGroups = asic->getMaxArsGroups();
   CHECK(maxArsGroups.has_value());
   return maxArsGroups.value();
@@ -895,7 +904,7 @@ void AgentArsBase::setupEcmpGroups(int numEcmp) {
   generatePrefixes();
   std::vector<RoutePrefixV6> testPrefixes = {
       prefixes.begin(), prefixes.begin() + numEcmp};
-  std::vector<flat_set<PortDescriptor>> testNhopSets = {
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets = {
       nhopSets.begin(), nhopSets.begin() + numEcmp};
   auto wrapper = getSw()->getRouteUpdater();
   helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);

@@ -12,6 +12,7 @@
 
 #include <folly/String.h>
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
@@ -27,9 +28,11 @@
 #include "fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmJ4SimPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmLeh800bclsPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmSaintpaulPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.h"
@@ -312,8 +315,10 @@ std::string SaiPlatform::getHwAsicConfig(
 
 void SaiPlatform::initSaiProfileValues() {
   auto platformMode = getType();
-  // LADAKH800BCLS need SAI_CUSTOM_KERNEL_BDE_NAME to support mnpu
-  if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS) {
+  // LADAKH800BCLS and LEH800BCLS need SAI_CUSTOM_KERNEL_BDE_NAME to support
+  // mnpu
+  if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS ||
+      platformMode == PlatformType::PLATFORM_LEH800BCLS) {
     kSaiProfileValues.insert(
         std::make_pair("SAI_CUSTOM_KERNEL_BDE_NAME", "linux_ngbde"));
   }
@@ -415,12 +420,18 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmIcetea800bcPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS) {
       saiPort = std::make_unique<SaiBcmLadakh800bclsPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_WEDGE800BACT) {
+    } else if (platformMode == PlatformType::PLATFORM_LEH800BCLS) {
+      saiPort = std::make_unique<SaiBcmLeh800bclsPlatformPort>(portId, this);
+    } else if (
+        platformMode == PlatformType::PLATFORM_WEDGE800BACT ||
+        platformMode == PlatformType::PLATFORM_WEDGE800BNHP) {
       saiPort = std::make_unique<SaiBcmWedge800BACTPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE800CACT) {
       saiPort = std::make_unique<SaiWedge800CACTPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_J4SIM) {
       saiPort = std::make_unique<SaiBcmJ4SimPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_SAINTPAUL) {
+      saiPort = std::make_unique<SaiBcmSaintpaulPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_TAHANSB800BC) {
       saiPort = std::make_unique<SaiBcmTahansb800bcPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_BLACKWOLF800BANW) {
@@ -617,6 +628,13 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
           *agentCfg->thrift.sw()->switchSettings()->measureCableLengths();
     }
   }
+  std::optional<SaiSwitchTraits::Attributes::PortCl72RetryEnable>
+      portCl72RetryEnable{std::nullopt};
+#if defined(BRCM_SAI_SDK_XGS_GTE_14_2)
+  if (FLAGS_enable_port_cl72_retry) {
+    portCl72RetryEnable = true;
+  }
+#endif
   std::optional<SaiSwitchTraits::Attributes::DllPath> dllPath;
 #if defined(BRCM_SAI_SDK_XGS)
   auto platformMode = getType();
@@ -892,6 +910,42 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     }
   }
 
+  //
+  // J4
+  //   Local Ports
+  //   -----------
+  //   - [0-8]: CPU ports (one per datapath)
+  //   - [9-16]: Recycle ports
+  //   - 17: Eventor port
+  //   - [18-161]: 144 Fabric link monitoring ports
+  //
+  //   TODO: Above numbers are for a single NPU.
+  //   - What is the scheme for multi NPU (2xJ4)?
+  //   - Worst case scale is 162 * 2 local sysports
+  //   - First Global SystemPort = 325
+  //   - 32xJ4 in chassis, 32x800G + 1x100G (MGMT)
+  //   - 2K 400G ports per chassis, 32x100G QSFP MGMT
+  //   - Total sysport scale: 2405 (2048+325+32)
+  //   - Local CPU systemPort is always 0 per NPU
+  //   TODO: confirm adjustLocalPortOffset.
+  //
+  // Q4D
+  //   Local Ports (single FAP system)
+  //   -----------
+  //   - 32 800G per die, 64x800G per Q4D
+  //   - 128x400G per Q4D (breakout)
+  //   - 2x100G QSFP Talon ports (MGMT)
+  //   - Total ports per Q4D = 130
+  //
+  //   Port Allocation:
+  //   - [0-16]: CPU ports (one per datapath)
+  //   - [17-32]: Recycle ports (local, 2 per core)
+  //   - 33(core0), 34(core4): Eventor ports
+  //   - 35: Global recycle port (scope=GLOBAL)
+  //   - No Fabric link monitoring (no fabric)
+  //   - MaxSystemPorts: 1024
+  //
+
   // Q4D standalone box configuration
   if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D) {
     maxSystemPorts = 1024;
@@ -899,12 +953,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     maxSystemPortId = 1024 - 1;
     localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
   }
-  // J4 SIM configuraion
+  // J4 configuration
   if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
-    maxSystemPorts = 8192;
-    maxVoqs = 8192 * 8;
-    maxSystemPortId = 8192 - 1;
-    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 53}};
+    maxSystemPorts = 1280;
+    maxVoqs = 1280 * 8;
+    maxSystemPortId = 1279;
+    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 161}};
   }
 #endif
 
@@ -1046,6 +1100,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
       std::nullopt, // enable PFC monitoring for the switch
       measureCableLengths, // enable cable propagation delay measurement
+      portCl72RetryEnable, // enable CL72 link training retry
       std::nullopt, // switching mode (store-and-forward / cut-through)
   };
 }

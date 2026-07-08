@@ -227,7 +227,10 @@ EFFECTIVE_DEPS_DIR="${DEPS_DIR:-/deps}"
 
 if [ -d "${EFFECTIVE_DEPS_DIR}" ] && [ -n "$(ls -A "${EFFECTIVE_DEPS_DIR}" 2>/dev/null)" ]; then
   dprint "Hardlinking component artifacts from ${EFFECTIVE_DEPS_DIR} to ${DESCRIPTION_DIR}/root/repos..."
-  cp -al "${EFFECTIVE_DEPS_DIR}"/* "${DESCRIPTION_DIR}/root/repos/"
+  cp -al "${EFFECTIVE_DEPS_DIR}"/* "${DESCRIPTION_DIR}/root/repos/" 2>/dev/null || {
+    dprint "Hardlinks not supported, falling back to copy..."
+    cp -a "${EFFECTIVE_DEPS_DIR}"/* "${DESCRIPTION_DIR}/root/repos/"
+  }
 fi
 
 dprint "Copying /etc/resolv.conf to ${DESCRIPTION_DIR}/root/etc/resolv.conf..."

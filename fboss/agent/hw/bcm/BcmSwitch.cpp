@@ -770,7 +770,7 @@ void BcmSwitch::runBcmScript(const std::string& filename) const {
 
 void BcmSwitch::setupLinkscan() {
   if (!(getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED)) {
-    XLOG(DBG1) << " Skipping linkscan registeration as the feature is disabled";
+    XLOG(DBG1) << " Skipping linkscan registration as the feature is disabled";
     return;
   }
   linkScanBottomHalfThread_ = std::make_unique<std::thread>([=, this]() {
@@ -1174,12 +1174,6 @@ void BcmSwitch::processSwitchSettingsEntryChanged(
 
     setMacAging(std::chrono::seconds(newVal));
     switchSettings_->setL2AgeTimerSeconds(newVal);
-  }
-
-  if (oldSwitchSettings->getMaxRouteCounterIDs() !=
-      newSwitchSettings->getMaxRouteCounterIDs()) {
-    routeCounterTable_->setMaxRouteCounterIDs(
-        newSwitchSettings->getMaxRouteCounterIDs());
   }
 
   // THRIFT_COPY
@@ -3643,7 +3637,7 @@ void BcmSwitch::l2LearningCallback(
  *  - SDK thread ages out a stale MAC+vlan entry.
  *  - This triggers a callback of type DELETE.
  *  - The MAC+vlan that is aged out would be VALIDATED as when the entry is
- *    learned, in resposne to PENDING ADD callback, wedge_agent would have
+ *    learned, in response to PENDING ADD callback, wedge_agent would have
  *    VALIDATED the entry.
  *
  * The initial implementation (which used wrong BCM API to register callbacks,
@@ -4209,6 +4203,7 @@ void BcmSwitch::disableHotSwap() const {
         bcmCheckError(rv, "Failed to disable hotswap");
       } break;
       case cfg::AsicType::ASIC_TYPE_EBRO:
+      case cfg::AsicType::ASIC_TYPE_P200:
       case cfg::AsicType::ASIC_TYPE_GARONNE:
       case cfg::AsicType::ASIC_TYPE_YUBA:
       case cfg::AsicType::ASIC_TYPE_CHENAB:
@@ -4362,6 +4357,10 @@ std::shared_ptr<SwitchState> BcmSwitch::reconstructSwitchState() const {
 
 HwResourceStats BcmSwitch::getResourceStats() const {
   return bcmStatUpdater_->getHwTableStats();
+}
+
+HwSwitchCounterStats BcmSwitch::getHwSwitchCounterStats() const {
+  return getStatUpdater()->getHwSwitchCounterStats();
 }
 
 HwHighFrequencyStats BcmSwitch::zeroHighFrequencyStatsTimestamp(

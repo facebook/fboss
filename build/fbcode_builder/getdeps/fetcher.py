@@ -31,7 +31,7 @@ from urllib.request import Request, urlopen
 from .copytree import prefetch_dir_if_eden
 from .envfuncs import Env
 from .errors import TransientFailure
-from .platform import HostType, is_windows
+from .getdeps_platform import HostType, is_windows
 from .runcmd import run_cmd
 
 if TYPE_CHECKING:
@@ -254,8 +254,16 @@ class SystemPackageFetcher:
 
     def hash(self) -> str:
         if self.packages_are_installed():
-            # pyrefly: ignore [bad-argument-type]
-            return hashlib.sha256(self.installed).hexdigest()
+            # SystemPackageFetcher stashes the package-manager query output
+            # (bytes including versions) in self.installed so upgrades change
+            # the hash. PreinstalledNopFetcher just sets self.installed=True
+            # and has no .packages, so fall back to an empty package list.
+            if isinstance(self.installed, (bytes, bytearray)):
+                payload = bytes(self.installed)
+            else:
+                packages = getattr(self, "packages", None) or []
+                payload = ",".join(sorted(packages)).encode("utf-8")
+            return hashlib.sha256(payload).hexdigest()
         else:
             return "0" * 40
 
@@ -468,7 +476,7 @@ def filter_strip_marker(dest_name: str, marker: str) -> None:
 
 
 def list_files_under_dir_newer_than_timestamp(
-    dir_to_scan: str, ts: int
+    dir_to_scan: str, ts: float
 ) -> Iterator[str]:
     for root, _dirs, files in os.walk(dir_to_scan):
         for src_file in files:
@@ -585,7 +593,8 @@ class ShipitPathMap:
                     if target_name:
                         full_file_list.add(target_name)
                         if copy_if_different(full_name, target_name):
-                            filter_strip_marker(target_name, self.strip_marker)
+                            if not os.path.islink(full_name):
+                                filter_strip_marker(target_name, self.strip_marker)
                             change_status.record_change(target_name)
                             if update_count < 10:
                                 print("Updated %s -> %s" % (full_name, target_name))

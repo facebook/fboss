@@ -28,6 +28,7 @@ class SaiBcmPlatform : public SaiPlatform {
   std::optional<sai_port_interface_type_t> getInterfaceType(
       TransmitterTechnology transmitterTech,
       cfg::PortSpeed speed) const override;
+  // TODO: Move this method to software SDK info instead of platform info.
   bool isSerdesApiSupported() const override {
     return true;
   }
@@ -35,8 +36,6 @@ class SaiBcmPlatform : public SaiPlatform {
     return true;
   }
   const char* getHwConfigValue(const std::string& key) const;
-  virtual uint32_t numLanesPerCore() const = 0;
-  virtual uint32_t numCellsAvailable() const = 0;
   virtual bool supportsDynamicBcmConfig() const {
     return false;
   }

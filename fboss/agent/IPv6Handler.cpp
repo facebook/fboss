@@ -11,6 +11,7 @@
 
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
+#include "fboss/agent/CpuLatencyManager.h"
 #include "fboss/agent/DHCPv6Handler.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/NeighborUpdater.h"
@@ -20,6 +21,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/NDP.h"
@@ -28,6 +30,7 @@
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/Route.h"
 
@@ -110,6 +113,33 @@ void IPv6Handler::stateUpdated(const StateDelta& delta) {
       intfAdded(delta.newState().get(), entry.getNew().get());
     }
   }
+  auto oldMySids = delta.getMySidsDelta().getOld();
+  auto newMySids = delta.getMySidsDelta().getNew();
+  if (oldMySids || newMySids) {
+    if (!oldMySids || !newMySids || *oldMySids != *newMySids) {
+      rebuildDecapMySidCache(delta.newState());
+    }
+  }
+}
+
+void IPv6Handler::rebuildDecapMySidCache(
+    const std::shared_ptr<SwitchState>& state) {
+  DecapMySidCache newCache;
+  auto mySids = state->getMySids();
+  if (mySids) {
+    for (const auto& miter : std::as_const(*mySids)) {
+      for (const auto& [_, mySid] : std::as_const(*miter.second)) {
+        if (mySid->getType() == MySidType::DECAPSULATE_AND_LOOKUP) {
+          auto [prefix, prefixLen] = mySid->getMySid();
+          if (prefix.isV6()) {
+            newCache.decapMySids.insert(prefix.asV6());
+            newCache.decapMySidSubnets.insert(prefix.asV6(), prefixLen, true);
+          }
+        }
+      }
+    }
+  }
+  decapMySidCache_.swap(newCache);
 }
 
 bool IPv6Handler::raEnabled(const Interface* intf) const {
@@ -174,6 +204,50 @@ void IPv6Handler::handlePacket(
   // retrieve the current switch state
   auto state = sw_->getState();
   PortID port = pkt->getSrcPort();
+
+  // If the outer destination matches a cached DECAPSULATE_AND_LOOKUP
+  // MySID address and the payload is an encapsulated IP packet, strip
+  // the outer IPv6 header and re-inject the inner packet. This handles
+  // the case where the ASIC failed to decap before punting to CPU.
+  if (ipv6.nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6) ||
+      ipv6.nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV4)) {
+    enum class DecapAction { NONE, DECAP, SUBNET_DROP };
+    auto action = DecapAction::NONE;
+    {
+      auto cache = decapMySidCache_.rlock();
+      if (!cache->decapMySids.empty()) {
+        if (cache->decapMySids.count(ipv6.dstAddr)) {
+          action = DecapAction::DECAP;
+        } else {
+          auto match = cache->decapMySidSubnets.longestMatch(
+              ipv6.dstAddr, folly::IPAddressV6::bitCount());
+          if (match != cache->decapMySidSubnets.end()) {
+            action = DecapAction::SUBNET_DROP;
+          }
+        }
+      }
+    }
+    if (action == DecapAction::DECAP) {
+      XLOG(DBG3) << "SRv6 decap: stripping outer IPv6 header"
+                 << " outer dst: " << ipv6.dstAddr.str();
+      auto innerEtherType =
+          (ipv6.nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6))
+          ? static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)
+          : static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4);
+      size_t l2HeaderSize = pkt->getLength() - l3Len;
+      PktUtil::decapsulatePacket(
+          pkt->buf(), l2HeaderSize, IPv6Hdr::SIZE, innerEtherType);
+      sw_->stats()->srv6DecapMySidToMe();
+      sw_->packetReceived(std::move(pkt));
+      return;
+    } else if (action == DecapAction::SUBNET_DROP) {
+      XLOG(DBG3) << "SRv6 non-last segment decap drop"
+                 << " outer dst: " << ipv6.dstAddr.str();
+      sw_->stats()->srv6NonLastSegmentDecapDrop();
+      sw_->portStats(port)->pktDropped();
+      return;
+    }
+  }
 
   // NOTE: DHCPv6 solicit packet from client has hoplimit set to 1,
   // we need to handle it before send the ICMPv6 TTL exceeded
@@ -366,6 +440,11 @@ unique_ptr<RxPacket> IPv6Handler::handleICMPv6Packet(
       sw_->portStats(pkt)->ipv6NdpPkt();
       // TODO: Do we need to bother handling this yet?
       sw_->portStats(pkt)->pktDropped();
+      return nullptr;
+    case ICMPv6Type::ICMPV6_TYPE_CPU_LATENCY_PROBE:
+      if (auto* mgr = sw_->getCpuLatencyManager()) {
+        mgr->handlePacket(std::move(pkt));
+      }
       return nullptr;
     default:
       break;
@@ -899,9 +978,11 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
   }
 
   if (!Interface::isIpAttached(targetIP, intfID, state)) {
+    auto intf = state->getInterfaces()->getNodeIf(intfID);
     XLOG(DBG2) << "unicast neighbor solicitation not sent, neighbor address: "
-               << targetIP << ", is not in the subnets of interface: "
-               << " for interface:" << intfID;
+               << targetIP << " for interface:" << intfID << " ("
+               << (intf ? intf->getAddresses()->size() : 0)
+               << " addresses configured on interface)";
     return;
   }
 

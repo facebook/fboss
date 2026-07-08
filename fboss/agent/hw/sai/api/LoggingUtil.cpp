@@ -15,21 +15,12 @@
 
 extern "C" {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-#include <saiextensions.h>
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiexperimentaltameventaginggroup.h>
-#else
-#include <saiexperimentaltameventaginggroup.h>
-#endif
+#include <saiextensions.h>
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiexperimentalswitchpipeline.h>
 #include <experimental/saiexperimentalvendorswitch.h>
-#else
-#include <saiexperimentalswitchpipeline.h>
-#include <saiexperimentalvendorswitch.h>
-#endif
 #endif
 }
 
@@ -257,6 +248,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "acl-entry";
     case SAI_OBJECT_TYPE_ACL_COUNTER:
       return "acl-counter";
+    case SAI_OBJECT_TYPE_ACL_RANGE:
+      return "acl-range";
     case SAI_OBJECT_TYPE_PORT_SERDES:
       return "port-serdes";
     case SAI_OBJECT_TYPE_PORT_CONNECTOR:
@@ -279,6 +272,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "tam-event";
     case SAI_OBJECT_TYPE_TAM:
       return "tam";
+    case SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD:
+      return "tam-event-threshold";
     case SAI_OBJECT_TYPE_TUNNEL:
       return "tunnel";
     case SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY:
@@ -546,6 +541,11 @@ std::string saiSerLogTypeToString(sai_ser_log_type_t sai_ser_log_type) {
       return "SAI_SER_LOG_TYPE_ENTRY_INFO";
     case SAI_SER_LOG_TYPE_CACHE:
       return "SAI_SER_LOG_TYPE_CACHE";
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_0) || defined(TAJO_SDK_GTE_26_5) || \
+    defined(BRCM_SAI_SDK_GTE_16_0)
+    case SAI_SER_LOG_TYPE_NONE:
+      return "SAI_SER_LOG_TYPE_NONE";
+#endif
   }
   return folly::to<std::string>(static_cast<int>(sai_ser_log_type));
 }

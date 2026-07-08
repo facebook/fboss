@@ -1,5 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <folly/Conv.h>
+#include <algorithm>
+
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
@@ -121,6 +124,9 @@ class AgentEnsembleOpticsTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::
+           TRANSCEIVER_TX_RX_LATCHES});
   /*
    * 1. Filter out ports with optics
    * 2. Set ASIC port status to false on A side
@@ -132,6 +138,10 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
    *       for LOL, so only bypass that.
    */
   auto opticalPortPairs = getConnectedOpticalPortPairs();
+  for (const auto& [p1, p2] : opticalPortPairs) {
+    addTestedPort(p1);
+    addTestedPort(p2);
+  }
   EXPECT_FALSE(opticalPortPairs.empty())
       << "Did not detect any optical transceivers";
 
@@ -331,11 +341,8 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
  *       transceivers don't have a DSP and there are no VDM stats.
  */
 TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
-#ifdef IS_OSS
-  GTEST_SKIP() << "opticsVdmPerformanceMonitoring is currently not supported "
-                  "in OSS until we add an OSS implementation for "
-                  "fbcode/fboss/qsfp_service/oss/StatsPublisher.cpp";
-#endif
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::VDM});
 
   // 1. Find the list of optical ports with VDM supported optics
   auto connectedPairPortIds = getConnectedOpticalAndActivePortPairWithFeature(
@@ -348,6 +355,7 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
     allTestPorts.push_back(portPair.first);
     allTestPorts.push_back(portPair.second);
   }
+  addTestedPorts(allTestPorts);
 
   std::unordered_set<int32_t> transceiverIdSet;
   for (const auto& port : allTestPorts) {
@@ -375,12 +383,73 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
         vdmStat->get_statsCollectionTme(), vdmStat->get_intervalStartTime());
   });
 
+  // Track the worst (highest) datapath pre-FEC BER and max FEC tail seen per
+  // port for each transceiver side across all iterations. These are surfaced as
+  // per-port metadata so the optics link health observed during the test is
+  // recorded in Scuba.
+  std::map<PortID, double> mediaWorstPreFecBer, hostWorstPreFecBer;
+  std::map<PortID, int16_t> mediaMaxFecTail, hostMaxFecTail;
+  auto accumulateVdm = [&](const std::map<int, TransceiverInfo>& infos) {
+    auto accumulateSide =
+        [&](const std::map<std::string, VdmPerfMonitorPortSideStats>& sideStats,
+            std::map<PortID, double>& worstPreFecBer,
+            std::map<PortID, int16_t>& maxFecTail) {
+          for (const auto& [portName, vdmPerfMon] : sideStats) {
+            auto portId = getPortID(portName);
+            worstPreFecBer[portId] = std::max(
+                worstPreFecBer[portId],
+                vdmPerfMon.datapathBER()->max().value());
+            if (vdmPerfMon.fecTailMax().has_value()) {
+              maxFecTail[portId] =
+                  std::max(maxFecTail[portId], vdmPerfMon.fecTailMax().value());
+            }
+          }
+        };
+    for (const auto& tcvrId : transceiverIds) {
+      auto txInfoItr = infos.find(tcvrId);
+      if (txInfoItr == infos.end()) {
+        continue;
+      }
+      auto vdmPerfMonitorStats =
+          txInfoItr->second.tcvrStats()->vdmPerfMonitorStats();
+      if (!vdmPerfMonitorStats.has_value()) {
+        continue;
+      }
+      accumulateSide(
+          vdmPerfMonitorStats->mediaPortVdmStats().value(),
+          mediaWorstPreFecBer,
+          mediaMaxFecTail);
+      accumulateSide(
+          vdmPerfMonitorStats->hostPortVdmStats().value(),
+          hostWorstPreFecBer,
+          hostMaxFecTail);
+    }
+  };
+
   // 4. validate the VDM Performance Monitoring parameters within the threshold
   int testIterations = FLAGS_link_stress_test ? 60 : 1;
   do {
     validateVdm(transceiverInfos, transceiverIds);
+    accumulateVdm(transceiverInfos);
     /* sleep override */ std::this_thread::sleep_for(10s);
     transceiverInfos =
         utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
   } while (testIterations-- && !::testing::Test::HasFailure());
+
+  for (const auto& [port, ber] : mediaWorstPreFecBer) {
+    addTestMetadata(
+        port, "tcvr_media_worst_pre_fec_ber", folly::to<std::string>(ber));
+  }
+  for (const auto& [port, ber] : hostWorstPreFecBer) {
+    addTestMetadata(
+        port, "tcvr_host_worst_pre_fec_ber", folly::to<std::string>(ber));
+  }
+  for (const auto& [port, fecTail] : mediaMaxFecTail) {
+    addTestMetadata(
+        port, "tcvr_media_max_fec_tail", folly::to<std::string>(fecTail));
+  }
+  for (const auto& [port, fecTail] : hostMaxFecTail) {
+    addTestMetadata(
+        port, "tcvr_host_max_fec_tail", folly::to<std::string>(fecTail));
+  }
 }

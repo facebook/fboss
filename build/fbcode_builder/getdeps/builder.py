@@ -27,6 +27,7 @@ from .dyndeps import create_dyn_dep_munger
 from .envfuncs import add_path_entry, Env, path_search
 from .fetcher import copy_if_different, is_public_commit
 from .runcmd import make_memory_limit_preexec_fn, run_cmd
+from .shared_lib import apply_shared_lib_dep_env
 
 if typing.TYPE_CHECKING:
     from .buildopts import BuildOptions
@@ -263,11 +264,11 @@ class BuilderBase:
             # 1.5 GiB is a lot to assume, but it's typical of Facebook-style C++.
             # Some manifests are even heavier and should override.
             default_job_weight = 1536
-        # pyrefly: ignore [no-matching-overload]
         return int(
             self.manifest.get(
                 "build", "job_weight_mib", str(default_job_weight), ctx=self.ctx
             )
+            or default_job_weight
         )
 
     @property
@@ -315,13 +316,15 @@ class BuilderBase:
             env = self.env
         # CMAKE_PREFIX_PATH is only respected when passed through the
         # environment, so we construct an appropriate path to pass down
-        return self.build_opts.compute_env_for_install_dirs(
+        computed = self.build_opts.compute_env_for_install_dirs(
             self.loader,
             self.dep_manifests,
             self.ctx,
             env=env,
             manifest=self.manifest,
         )
+        apply_shared_lib_dep_env(computed, self.build_opts, self.manifest.name)
+        return computed
 
     def get_dev_run_script_path(self) -> str:
         assert self.build_opts.is_windows()
@@ -482,11 +485,7 @@ class AutoconfBuilder(BuilderBase):
             inst_dir,
         )
         self.args: list[str] = args or []
-        if (
-            not build_opts.shared_libs
-            and "--disable-shared" not in self.args
-            and "--enable-shared" not in self.args
-        ):
+        if "--disable-shared" not in self.args and "--enable-shared" not in self.args:
             self.args.append("--disable-shared")
         self.conf_env_args: dict[str, list[str]] = conf_env_args or {}
 
@@ -782,8 +781,6 @@ if __name__ == "__main__":
             final_install_prefix=final_install_prefix,
         )
         self.defines: dict[str, str] = defines or {}
-        if extra_cmake_defines:
-            self.defines.update(extra_cmake_defines)
         self.cmake_targets: list[str] = cmake_targets or ["install"]
 
         if build_opts.is_windows():
@@ -795,9 +792,15 @@ if __name__ == "__main__":
                 self.defines.update(extra_vc_cmake_defines)
 
         self.loader = loader
-        if build_opts.shared_libs:
-            self.defines["BUILD_SHARED_LIBS"] = "ON"
-            self.defines["BOOST_LINK_STATIC"] = "OFF"
+        if build_opts.shared_lib:
+            self.defines["CMAKE_POSITION_INDEPENDENT_CODE"] = "ON"
+
+        # Apply caller-supplied extra defines last so per-package
+        # --extra-cmake-defines can override defaults — including the
+        # BUILD_SHARED_LIBS=ON that --shared-lib injects for the
+        # top-level project.
+        if extra_cmake_defines:
+            self.defines.update(extra_cmake_defines)
 
     def _invalidate_cache(self) -> None:
         for name in [
@@ -854,6 +857,12 @@ if __name__ == "__main__":
             f.write(script_contents.encode())
         os.chmod(build_script_path, 0o755)
 
+    def _dep_install_dir(self, name: str) -> str | None:
+        for dep_manifest, install_dir in zip(self.dep_manifests, self.install_dirs):
+            if dep_manifest.name == name:
+                return install_dir
+        return None
+
     def _compute_cmake_define_args(self, env: Env) -> list[str]:
         defines = {
             "CMAKE_INSTALL_PREFIX": self.final_install_prefix or self.inst_dir,
@@ -869,10 +878,14 @@ if __name__ == "__main__":
             # We sometimes see intermittent ccache related breakages on some
             # of the FB internal CI hosts, so we prefer to disable ccache
             # when running in that environment.
-            # pyre-fixme[6]: For 1st argument expected `Mapping[str, str]` but got
-            #  `Env`.
+            # Prefer sccache over ccache when both are available; sccache
+            # supports cloud-backed caches (e.g. GitHub Actions cache) which
+            # accelerate CI builds across runs.
+            sccache = path_search(env, "sccache")
             ccache = path_search(env, "ccache")
-            if ccache:
+            if sccache:
+                defines["CMAKE_CXX_COMPILER_LAUNCHER"] = sccache
+            elif ccache:
                 defines["CMAKE_CXX_COMPILER_LAUNCHER"] = ccache
         else:
             # rocksdb does its own probing for ccache.
@@ -912,6 +925,25 @@ if __name__ == "__main__":
             # executables during the build to discover the set of
             # tests.
             defines["CMAKE_BUILD_WITH_INSTALL_RPATH"] = "ON"
+
+            # CMake's FindOpenSSL probes `brew --prefix openssl` on macOS when
+            # OPENSSL_ROOT_DIR is unset, which can select a wrong-arch Homebrew
+            # keg (e.g. an x86_64 openssl@1.1 on an arm64 host) over the OpenSSL
+            # getdeps built. Point it at our OpenSSL so dependents like liboqs
+            # link the right libcrypto.
+            openssl_dir = self._dep_install_dir("openssl")
+            if openssl_dir:
+                defines["OPENSSL_ROOT_DIR"] = openssl_dir
+
+        if self.build_opts.is_windows():
+            # Use embedded debug info (/Z7) instead of MSVC's default /Zi, which
+            # writes debug info to a single shared .pdb. /Zi can't be wrapped by
+            # sccache and races under parallel ninja (fatal error C1041); /Z7 is
+            # self-contained per .obj. Requires CMake >= 3.25, and the policy
+            # default forces CMP0141=NEW into deps whose cmake_minimum_required
+            # predates 3.25 so the variable actually takes effect.
+            defines["CMAKE_MSVC_DEBUG_INFORMATION_FORMAT"] = "Embedded"
+            defines["CMAKE_POLICY_DEFAULT_CMP0141"] = "NEW"
 
         defines.update(self.defines)
         define_args = ["-D%s=%s" % (k, v) for (k, v) in defines.items()]
@@ -998,6 +1030,12 @@ if __name__ == "__main__":
                 self.build_opts.build_type,
                 "-j",
                 str(self.num_jobs),
+                "--",
+                # Continue building even if we see an error
+                # Increases dev velocity by surfacing all errors
+                # `-k 0` is understood by ninja - the only build system we use
+                "-k",
+                "0",
             ],
             env=env,
             preexec_fn=self.memory_limit_preexec_fn,
@@ -1037,6 +1075,12 @@ if __name__ == "__main__":
                 self.build_opts.build_type,
                 "-j",
                 str(self.num_jobs),
+                "--",
+                # Continue building even if we see an error
+                # Increases dev velocity by surfacing all errors
+                # `-k 0` is understood by ninja - the only build system we use
+                "-k",
+                "0",
             ]
         )
 
@@ -1326,10 +1370,9 @@ if __name__ == "__main__":
                 args += ["--timeout", str(timeout)]
 
             count: int = 0
-            retcode: int | None = -1
+            retcode: int = -1
             while count <= retry:
-                # FIXME: What is this trying to accomplish? Should it fail on first or >=1 errors?
-                retcode = self._check_cmd(
+                retcode = self._run_cmd(
                     args, env=env, use_cmd_prefix=use_cmd_prefix, allow_fail=True
                 )
 
@@ -1339,7 +1382,7 @@ if __name__ == "__main__":
                     # Only add this option in the second run.
                     args += ["--rerun-failed"]
                 count += 1
-            if retcode is not None and retcode != 0:
+            if retcode != 0:
                 # Allow except clause in getdeps.main to catch and exit gracefully
                 # This allows non-testpilot runs to fail through the same logic as failed testpilot runs, which may become handy in case if post test processing is needed in the future
                 raise subprocess.CalledProcessError(retcode, args)
@@ -1502,7 +1545,7 @@ class Boost(BuilderBase):
     def _build(self, reconfigure: bool) -> None:
         env = self._compute_env()
         linkage: list[str] = ["static"]
-        if self.build_opts.is_windows() or self.build_opts.shared_libs:
+        if self.build_opts.is_windows():
             linkage.append("shared")
 
         args = []
@@ -1529,6 +1572,9 @@ class Boost(BuilderBase):
                     env=env,
                 )
 
+            pic_args: list[str] = []
+            if self.build_opts.shared_lib and not self.build_opts.is_windows():
+                pic_args = ["cxxflags=-fPIC", "cflags=-fPIC"]
             b2 = os.path.join(self.src_dir, "b2")
             self._check_cmd(
                 [
@@ -1539,6 +1585,7 @@ class Boost(BuilderBase):
                 ]
                 + args
                 + self.b2_args
+                + pic_args
                 + [
                     "link=%s" % link,
                     "runtime-link=shared",
@@ -1618,17 +1665,18 @@ class SetupPyBuilder(BuilderBase):
             # pyre-fixme[6]: For 2nd argument expected `str` but got `Optional[str]`.
             env[key] = value
 
-        setup_py_path = os.path.join(self.src_dir, "setup.py")
-
-        if not os.path.exists(setup_py_path):
-            raise RuntimeError(f"setup.py script not found at {setup_py_path}")
-
         self._check_cmd(
             # pyre-fixme[6]: For 1st argument expected `List[str]` but got
             #  `List[Union[str, None, str]]`.
             # pyre-fixme[6]: For 1st argument expected `Mapping[str, str]` but got
             #  `Env`.
-            [path_search(env, "python3"), setup_py_path, "install"],
+            [
+                path_search(env, "python3"),
+                "-m",
+                "pip",
+                "install",
+                ".",
+            ],
             cwd=self.src_dir,
             env=env,
         )
@@ -1723,9 +1771,11 @@ install(FILES sqlite3.h sqlite3ext.h DESTINATION include)
 
         defines = {
             "CMAKE_INSTALL_PREFIX": self.inst_dir,
-            "BUILD_SHARED_LIBS": "ON" if self.build_opts.shared_libs else "OFF",
+            "BUILD_SHARED_LIBS": "OFF",
             "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         }
+        if self.build_opts.shared_lib:
+            defines["CMAKE_POSITION_INDEPENDENT_CODE"] = "ON"
         define_args = ["-D%s=%s" % (k, v) for (k, v) in defines.items()]
         define_args += ["-G", "Ninja"]
 

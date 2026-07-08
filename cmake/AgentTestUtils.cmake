@@ -145,6 +145,7 @@ add_library(config_utils
 )
 
 target_link_libraries(config_utils
+  agent_config_utils
   agent_features
   asic_test_utils
   voq_test_utils
@@ -264,6 +265,7 @@ add_library(srv6_test_utils
 target_link_libraries(srv6_test_utils
   agent_ensemble
   config_utils
+  ecmp_helper
   fboss_types
   load_balancer_test_utils
   packet_snooper
@@ -522,7 +524,6 @@ add_library(stress_test_utils
 
 target_link_libraries(stress_test_utils
   route_scale_gen
-  mono_agent_benchmarks
   agent_ensemble
   function_call_time_reporter
   Folly::folly

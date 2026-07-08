@@ -22,15 +22,18 @@
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
+#include "fboss/qsfp_service/TransceiverLogging.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
-#define QSFP_LOG(level, tcvr) \
-  XLOG(level) << "Transceiver " << tcvr->getNameString() << ": "
+#define QSFP_LOG(level, tcvr)                     \
+  TCVR_LOG_BASE(level, "", tcvr->getNameString()) \
+      << getPrimaryPortName() << ": "
 
-#define QSFP_LOG_IF(level, cond, tcvr) \
-  XLOG_IF(level, cond) << "Transceiver " << tcvr->getNameString() << ": "
+#define QSFP_LOG_IF(level, cond, tcvr)                     \
+  TCVR_LOG_BASE_IF(level, cond, "", tcvr->getNameString()) \
+      << getPrimaryPortName() << ": "
 
 #define CAST_TO_INT(FIELD) static_cast<int>((FIELD))
 
@@ -302,6 +305,10 @@ class QsfpModule : public Transceiver {
     return portNameToMediaLanes_;
   }
 
+  const std::unordered_map<std::string, uint8_t>& getPortNameToBankId() const {
+    return portNameToBankId_;
+  }
+
   virtual bool setTransceiverTx(
       const std::string& portName,
       phy::Side side,
@@ -327,6 +334,10 @@ class QsfpModule : public Transceiver {
 
   std::string getTcvrName() {
     return tcvrName_;
+  }
+
+  inline std::string getPrimaryPortName() const {
+    return primaryPortName_;
   }
 
   bool upgradeFirmware(
@@ -460,7 +471,7 @@ class QsfpModule : public Transceiver {
   bool validateQsfpString(const std::string& value) const;
 
   /*
-   * Retreives all alarm and warning thresholds
+   * Retrieves all alarm and warning thresholds
    */
   virtual std::optional<AlarmThreshold> getThresholdInfo() = 0;
   /*
@@ -528,6 +539,22 @@ class QsfpModule : public Transceiver {
   }
 
   virtual bool isTunableOptics() const {
+    return false;
+  }
+
+  virtual bool isCBandTunable() const {
+    return false;
+  }
+
+  virtual bool isLBandTunable() const {
+    return false;
+  }
+
+  virtual bool isRxConsActImplSupported() const {
+    return false;
+  }
+
+  virtual bool isRxConsActHoldOffTmrImplSupported() const {
     return false;
   }
 
@@ -699,12 +726,21 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  // Poll until the module reaches a state where it is ready to accept
+  // operations. Module types without such a state (e.g. SFF) are always ready.
+  virtual bool moduleReadyStatePoll() {
+    return true;
+  }
+
   void triggerModuleReset();
 
   // Map key = laneId, value = last datapath reset time for that lane
   std::unordered_map<int, std::time_t> lastDatapathResetTimes_;
 
-  uint8_t datapathResetPendingMask_{0};
+  // Per-bank pending datapath-reset mask: bank -> intra-bank (0..7) lane mask.
+  // Tracked per-bank so multi-bank (CPO) ports on different banks don't share
+  // the same 0..7 bit range.
+  std::map<uint8_t, uint8_t> datapathResetPendingMask_;
 
  private:
   // no copy or assignment
@@ -816,6 +852,7 @@ class QsfpModule : public Transceiver {
 
   std::unordered_map<std::string, std::set<uint8_t>> portNameToHostLanes_;
   std::unordered_map<std::string, std::set<uint8_t>> portNameToMediaLanes_;
+  std::unordered_map<std::string, uint8_t> portNameToBankId_;
 
   time_t lastFwUpgradeStartTime_{0};
   time_t lastFwUpgradeEndTime_{0};

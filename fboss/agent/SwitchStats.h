@@ -20,6 +20,7 @@
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/ThriftCallDurationLogger.h"
 
 namespace facebook::fboss {
 
@@ -32,7 +33,7 @@ using AggregatePortStatsMap = folly::
 using InterfaceStatsMap =
     folly::ConcurrentHashMap<InterfaceID, std::unique_ptr<InterfaceStats>>;
 
-class SwitchStats : public boost::noncopyable {
+class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
  public:
   // Method to update the tunnelInterfacePacketDrop counter
   void updateTxBufferLimitExceededDrops() {
@@ -200,6 +201,14 @@ class SwitchStats : public boost::noncopyable {
     ipv6HopLimit1Mine_.addValue(1);
   }
 
+  void srv6DecapMySidToMe() {
+    srv6DecapMySidToMe_.addValue(1);
+  }
+
+  void srv6NonLastSegmentDecapDrop() {
+    srv6NonLastSegmentDecapDrop_.addValue(1);
+  }
+
   void udpTooSmall() {
     udpTooSmall_.addValue(1);
   }
@@ -252,6 +261,10 @@ class SwitchStats : public boost::noncopyable {
     delRouteV6_.addValue(routeCount);
   }
 
+  void ribResolutionCyclesDetected(uint64_t count) {
+    ribResolutionCyclesDetected_.addValue(count);
+  }
+
   void ipv4DstLookupFailure() {
     dstLookupFailureV4_.addValue(1);
     dstLookupFailure_.addValue(1);
@@ -272,6 +285,10 @@ class SwitchStats : public boost::noncopyable {
 
   void ribRouteProgrammingTimeUs(std::chrono::microseconds us) {
     ribRouteProgrammingTimeUs_.addValue(us.count());
+  }
+
+  void cpuLatencyUs(double latencyUs) {
+    cpuLatencyUs_.addValue(latencyUs);
   }
 
   void bgHeartbeatDelay(int delay) {
@@ -342,7 +359,7 @@ class SwitchStats : public boost::noncopyable {
     pendingStateUpdateCount_.addValue(value);
   }
 
-  void thriftRequestCompletionTimeMs(std::chrono::milliseconds ms) {
+  void thriftRequestCompletionTimeMs(std::chrono::milliseconds ms) override {
     thriftRequestCompletionTimeMs_.addValue(ms.count());
   }
 
@@ -671,6 +688,12 @@ class SwitchStats : public boost::noncopyable {
   int64_t getDsfUpdateFailred() const {
     return getCumulativeValue(dsfUpdateFailed_);
   }
+  void warmbootRemoteIntfRoutesInconsistency(int64_t count) {
+    warmbootRemoteIntfRoutesInconsistency_.addValue(count);
+  }
+  int64_t getWarmbootRemoteIntfRoutesInconsistency() const {
+    return getCumulativeValue(warmbootRemoteIntfRoutesInconsistency_);
+  }
 
   void switchReachabilityInconsistencyDetected(int16_t switchIndex) {
     CHECK_LT(switchIndex, switchReachabilityInconsistencyDetected_.size());
@@ -923,6 +946,10 @@ class SwitchStats : public boost::noncopyable {
   // Locally destined packets which arrive with
   // hop limit 1
   TLTimeseries ipv6HopLimit1Mine_;
+  // SRv6 decap: outer header stripped and inner packet re-injected
+  TLTimeseries srv6DecapMySidToMe_;
+  // SRv6 packet with non-last uSID matching decap MySID
+  TLTimeseries srv6NonLastSegmentDecapDrop_;
 
   // UDP packets dropped due to smaller packet size
   TLTimeseries udpTooSmall_;
@@ -953,6 +980,11 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries addRouteV6_;
   TLTimeseries delRouteV4_;
   TLTimeseries delRouteV6_;
+
+  /**
+   * Number of cycles detected during recursive RIB route resolution.
+   */
+  TLTimeseries ribResolutionCyclesDetected_;
 
   /**
    * Number of route programming attempts
@@ -986,6 +1018,11 @@ class SwitchStats : public boost::noncopyable {
    * Histogram for DSF subscription serve delay watermark (milliseconds)
    */
   fb303::detail::QuantileStatWrapper dsfSubscriptionServeDelayWatermark_;
+
+  /**
+   * CPU latency probe round-trip time (microseconds).
+   */
+  fb303::detail::QuantileStatWrapper cpuLatencyUs_;
 
   /**
    * Background thread heartbeat delay (ms)
@@ -1152,6 +1189,7 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries switchConfiguredMs_;
   TLTimeseries dsfGrExpired_;
   TLTimeseries dsfUpdateFailed_;
+  TLTimeseries warmbootRemoteIntfRoutesInconsistency_;
   TLTimeseries hiPriPktsReceived_;
   TLTimeseries midPriPktsReceived_;
   TLTimeseries loPriPktsReceived_;

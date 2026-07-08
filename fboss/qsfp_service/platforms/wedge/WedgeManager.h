@@ -121,10 +121,11 @@ class WedgeManager : public TransceiverManager {
 
   /*
    * Returns true if this platform requires PHY/retimer config to operate.
-   * Currently only Ladakh platform requires it.
+   * Currently only Ladakh and Leh platforms (Agera3 retimer) require it.
    */
   bool requiresPhyConfig() const {
-    return platformType_ == PlatformType::PLATFORM_LADAKH800BCLS;
+    return platformType_ == PlatformType::PLATFORM_LADAKH800BCLS ||
+        platformType_ == PlatformType::PLATFORM_LEH800BCLS;
   }
 
   /*
@@ -155,6 +156,11 @@ class WedgeManager : public TransceiverManager {
   virtual bool getSdkState(std::string filename) const override;
 
   void triggerVdmStatsCapture(std::vector<int32_t>& ids) override;
+
+  WedgeQsfp* getTransceiverImplForTesting(int idx) {
+    CHECK_LT(idx, qsfpImpls_.size());
+    return qsfpImpls_[idx].get();
+  }
 
   void setOverrideTcvrToPortAndProfileForTesting(
       std::optional<OverrideTcvrToPortAndProfile> overrideTcvrToPortAndProfile =

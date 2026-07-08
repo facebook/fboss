@@ -212,11 +212,7 @@ TEST_F(AgentHwUdfTest, addAclConfig) {
   const auto port = masterLogicalPortIds()[0];
   auto switchId = scopeResolver().scope(port).switchId();
   auto client = ensemble->getHwAgentTestClient(switchId);
-  auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
 
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_FAKE) {
-    GTEST_SKIP();
-  }
   auto setup = [&]() {
     auto cfg{initialConfig(*ensemble)};
     if (!ensemble->isSai()) {

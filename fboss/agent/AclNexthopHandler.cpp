@@ -124,6 +124,26 @@ AclEntry* FOLLY_NULLABLE AclNexthopHandler::updateAcl(
   const auto& origAclAction = origAclEntry->getAclAction();
   if (origAclAction &&
       origAclAction->cref<switch_state_tags::redirectToNextHop>()) {
+    // Tunnel encap nexthops are resolved by the HW pipeline via a second
+    // routing lookup on the outer header, so they don't need RIB resolution.
+    auto redirectAction =
+        origAclAction->cref<switch_state_tags::redirectToNextHop>()
+            ->cref<switch_state_tags::action>();
+    auto redirectNhops =
+        redirectAction->cref<switch_config_tags::redirectNextHops>();
+    bool allTunnelEncap = !redirectNhops->empty();
+    for (const auto& nh : std::as_const(*redirectNhops)) {
+      const auto& tunnelType = nh->cref<switch_config_tags::tunnelType>();
+      if (!tunnelType.has_value() ||
+          tunnelType->toThrift() != TunnelType::IP_IN_IP_ENCAP) {
+        allTunnelEncap = false;
+        break;
+      }
+    }
+    if (allTunnelEncap) {
+      return nullptr;
+    }
+
     auto newAclEntry = origAclEntry->modify(
         &newState, sw_->getScopeResolver()->scope(origAclEntry));
     newAclEntry->setEnabled(true);

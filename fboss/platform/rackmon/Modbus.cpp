@@ -33,6 +33,11 @@ void Modbus::command(
     logInfo << devicePath_ << " TX: " << req << std::endl;
   }
   device_->write(req.raw.data(), req.len);
+  if (resp.len > resp.raw.size()) {
+    throw std::overflow_error(
+        "Response length " + std::to_string(resp.len) +
+        " exceeds max Modbus PDU size " + std::to_string(resp.raw.size()));
+  }
   resp.len = device_->read(resp.raw.data(), resp.len, timeout.count());
   if (debug_) {
     logInfo << devicePath_ << " RX: " << resp << std::endl;

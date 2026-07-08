@@ -2,14 +2,15 @@
 
 #pragma once
 
-#include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/FsdbSyncManager.h"
 #include "fboss/fsdb/if/FsdbModel.h"
+#include "neteng/fboss/bgp/if/gen-cpp2/bgp_route_types_types.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 
 namespace bgp_thrift = facebook::neteng::fboss::bgp::thrift;
@@ -17,21 +18,20 @@ namespace bgp_thrift = facebook::neteng::fboss::bgp::thrift;
 namespace facebook::fboss::fsdb::test {
 
 /**
- * BgpRibTestPublisher - Test utility for publishing BGP RIB data to FSDB
+ * BgpRibTestPublisher - Test utility for publishing the canonical BGP RIB to
+ * FSDB.
  *
- * This class is used for testing FSDB subscribers (like HostReachTracker)
- * that consume BGP RIB updates. It supports:
- * - Publishing routes to FSDB
- * - Withdrawing routes (removing from ribMap)
- * - Signal-based orchestration for controlled testing
+ * Used to test FSDB subscribers (like HostReachTracker) that consume the
+ * canonical RIB. Declare the desired routes with setCanonicalRoutes(); the
+ * publisher holds the TCanonicalRibState across calls so community-list indices
+ * stay stable, and prefixes omitted from a later call are withdrawn.
  *
  * Usage:
  *   BgpRibTestPublisher publisher;
  *   publisher.start();
- *   publisher.publishRoute("2001:db8::/32", entry);
+ *   publisher.setCanonicalRoutes({{"2401:db00:1::/64", {}}});
  *   // ... test subscriber behavior ...
- *   publisher.withdrawRoute("2001:db8::/32");
- *   // ... test withdrawal handling ...
+ *   publisher.setCanonicalRoutes({}); // withdraw all
  *   publisher.stop();
  */
 class BgpRibTestPublisher {
@@ -40,58 +40,33 @@ class BgpRibTestPublisher {
       const std::string& publisherId = "bgp-rib-test-publisher");
   ~BgpRibTestPublisher();
 
+  // A canonical-RIB route: a prefix and the communities on its best path, plus
+  // an optional per-route next hop. An empty nextHop falls back to the shared
+  // nextHop passed to setCanonicalRoutes.
+  struct CanonicalRoute {
+    std::string prefix; // CIDR, e.g. "2401:db00:1::/64"
+    std::vector<std::pair<int32_t, int32_t>> communities; // {asn, value} pairs
+    std::string nextHop; // optional; empty -> shared default
+  };
+
   // Lifecycle
   void start();
   void stop();
 
-  // Full RIB sync (initial publish)
-  void publishRibMap(
-      const std::map<std::string, bgp_thrift::TRibEntry>& ribMap);
-
-  // Delta updates (add/update routes)
-  void publishRoute(
-      const std::string& prefix,
-      const bgp_thrift::TRibEntry& entry);
-
-  // Withdraw route - removes from ribMap, triggering subscriber withdrawal
-  void withdrawRoute(const std::string& prefix);
-
-  // Withdraw all published routes
-  void withdrawAllRoutes();
+  // Declares the full set of canonical-RIB routes and publishes the resulting
+  // TCanonicalRibState (BgpData.canonicalRib). Stateful across calls: the
+  // de-duplicated community dictionary is carried forward so a community list's
+  // index stays stable while referenced and a content change lands on a fresh
+  // index -- mirroring bgpd's incremental encoder, not the dense get-rib
+  // rebuild. Prefixes absent from `routes` are withdrawn.
+  void setCanonicalRoutes(
+      const std::vector<CanonicalRoute>& routes,
+      const std::string& nextHop = "2401:db00:ffff::1");
 
   // Get list of currently published prefixes
   const std::vector<std::string>& getPublishedPrefixes() const {
     return publishedPrefixes_;
   }
-
-  // Test data helpers
-
-  /**
-   * Create a test TRibEntry with minimal required fields
-   * @param prefix IPv6 prefix string (e.g., "2001:db8::/32")
-   * @param nextHop Next hop address (e.g., "2001:db8:ffff::1")
-   * @param localPref Local preference value (default: 100)
-   * @param asPath AS path as vector of ASNs (default: {65001, 65002})
-   * @return Populated TRibEntry suitable for FSDB publishing
-   */
-  static bgp_thrift::TRibEntry createTestRibEntry(
-      const std::string& prefix,
-      const std::string& nextHop,
-      int32_t localPref = 100,
-      const std::vector<int32_t>& asPath = {65001, 65002});
-
-  /**
-   * Create a batch of test RIB entries
-   * @param numRoutes Number of routes to generate
-   * @param prefixBase Base prefix (routes will be generated as
-   * prefixBase:N::/64)
-   * @param nextHopBase Base next hop address
-   * @return Map of prefix string to TRibEntry
-   */
-  static std::map<std::string, bgp_thrift::TRibEntry> createTestRibMap(
-      int numRoutes,
-      const std::string& prefixBase = "2001:db8:",
-      const std::string& nextHopBase = "2001:db8:ffff::");
 
  private:
   std::unique_ptr<FsdbPubSubManager> fsdbPubSubMgr_;
@@ -99,6 +74,9 @@ class BgpRibTestPublisher {
       stateSyncer_;
   std::string publisherId_;
   std::vector<std::string> publishedPrefixes_;
+  // Accumulated canonical RIB. Persisted across setCanonicalRoutes calls so the
+  // community dictionary indices stay stable like the real incremental encoder.
+  bgp_thrift::TCanonicalRibState canonicalState_;
 };
 
 } // namespace facebook::fboss::fsdb::test

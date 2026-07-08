@@ -18,7 +18,8 @@ package;
   attributes = [
     "\Oncalls('bb_ops_ui')",
     "\JSEnum(shape('flow_enum' => false))",
-    "\GraphQLEnum('NetengFbossPlatformManagerExplorationStatus')",
+    "\GraphQLEnum('XFBNetengFbossPlatformManagerExplorationStatus')",
+    "\GraphQLUnprefixedNamingScheme",
     "\SelfDescriptive",
     "\RelayFlowEnum",
   ],
@@ -35,7 +36,8 @@ enum ExplorationStatus {
   attributes = [
     "\Oncalls('bb_ops_ui')",
     "\JSEnum(shape('flow_enum' => false))",
-    "\GraphQLEnum('NetengFbossPlatformManagerErrorCode')",
+    "\GraphQLEnum('XFBNetengFbossPlatformManagerErrorCode')",
+    "\GraphQLUnprefixedNamingScheme",
     "\SelfDescriptive",
     "\RelayFlowEnum",
   ],
@@ -74,7 +76,7 @@ struct PmUnitInfoResponse {
 }
 
 struct PmUnitsResponse {
-  1: map<string/* slotPath */ , platform_manager_config.PmUnitInfo> pmUnits;
+  1: map<string /* slotPath */, platform_manager_config.PmUnitInfo> pmUnits;
 }
 
 struct PmUnitInfoRequest {

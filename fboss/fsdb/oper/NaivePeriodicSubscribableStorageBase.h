@@ -290,6 +290,9 @@ class NaivePeriodicSubscribableStorageBase {
   folly::Synchronized<bool> running_{false};
 
   StorageParams params_;
+  // Owned snapshot — params_.metricPrefix_ is a reference and may dangle
+  // post-ctor; runtime readers must use this.
+  const std::string metricPrefixOwned_;
   folly::Synchronized<std::unique_ptr<FsdbOperTreeMetadataTracker>>
       metadataTracker_;
 

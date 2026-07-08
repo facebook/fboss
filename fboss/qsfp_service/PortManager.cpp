@@ -2079,11 +2079,10 @@ void PortManager::setTransceiverEnabledStatusInCache(
   auto initializedTcvrs = initializedTcvrsIt->second->wlock();
   if (std::find(initializedTcvrs->begin(), initializedTcvrs->end(), tcvrId) !=
       initializedTcvrs->end()) {
-    throw FbossError(
-        "Transceiver ",
-        tcvrId,
-        " already exists in initialized transceivers cache for port ",
-        portId);
+    XLOG(WARN) << "Transceiver " << tcvrId
+               << " already exists in initialized transceivers cache for port "
+               << portId;
+    return;
   }
 
   initializedTcvrs->push_back(tcvrId);
@@ -2255,11 +2254,20 @@ void PortManager::restoreWarmBootPhyState() {
 }
 
 void PortManager::setWarmBootState() {
-  folly::dynamic phyWarmbootState = folly::dynamic(nullptr);
   if (phyManager_) {
-    phyWarmbootState = phyManager_->getWarmbootState();
+    folly::dynamic phyState = phyManager_->getWarmbootState();
+    TransceiverManager::writeWarmBootState(
+        &phyState,
+        configAppliedInfo_,
+        qsfpServiceWarmbootState_,
+        transceiverManager_->warmBootStateFileName());
+  } else {
+    TransceiverManager::writeWarmBootState(
+        nullptr,
+        configAppliedInfo_,
+        qsfpServiceWarmbootState_,
+        transceiverManager_->warmBootStateFileName());
   }
-  transceiverManager_->setWarmBootState(phyWarmbootState);
 }
 
 void PortManager::refreshStateMachines() {

@@ -10,10 +10,13 @@
 
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 
+#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 
 #include <ctime>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 
 namespace facebook::fboss {

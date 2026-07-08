@@ -16,6 +16,9 @@ class AgentEnsembleLinkEcmpTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentEnsembleLinkEcmpTest, ecmpShrink) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::
+           TRAFFIC_FORWARDING});
   auto setup = [this]() {
     const auto cabledPorts = getSingleVlanOrRoutedCabledPorts(SwitchID(0));
     programDefaultRoute(cabledPorts, getSw()->getLocalMac(scope(cabledPorts)));
@@ -27,6 +30,7 @@ TEST_F(AgentEnsembleLinkEcmpTest, ecmpShrink) {
     for (const auto& port : ecmpPorts) {
       ports.push_back(port.phyPortID());
     }
+    addTestedPorts(ports);
     auto verifyEcmpSize = [&](const std::shared_ptr<SwitchState>& /*state*/) {
       auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
       facebook::fboss::utility::CIDRNetwork cidr;

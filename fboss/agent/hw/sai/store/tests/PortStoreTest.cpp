@@ -56,6 +56,7 @@ class PortStoreTest : public SaiStoreTest {
 #endif
         std::nullopt, // TC to Priority Group map
         std::nullopt, // PFC Priority to Queue map
+        std::nullopt, // PFC Priority to Priority Group map
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
         std::nullopt, // Inter Frame Gap
 #endif
@@ -346,6 +347,14 @@ TEST_F(PortStoreTest, portSetDisableLinkTraining) {
   EXPECT_FALSE(GET_OPT_ATTR(Port, LinkTrainingEnable, portObj.attributes()));
   EXPECT_FALSE(saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::LinkTrainingEnable{}));
+}
+
+TEST_F(PortStoreTest, portGetLinkTrainingRxStatus) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+  auto rxStatus = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::LinkTrainingRxStatus{});
+  EXPECT_EQ(rxStatus, 0); // NOT_TRAINED default
 }
 
 TEST_F(PortStoreTest, portGetPortPgPktDropStatus) {

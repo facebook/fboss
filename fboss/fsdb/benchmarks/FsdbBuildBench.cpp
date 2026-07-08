@@ -1,7 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/core.h>
 #include <folly/Benchmark.h>
-#include <folly/Format.h>
 #include <folly/Subprocess.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
@@ -41,7 +41,7 @@ std::string formatTimeMinSec(int64_t milliseconds) {
 int64_t runBuildCommand(const std::string& target) {
   auto startTime = std::chrono::steady_clock::now();
 
-  std::string command = folly::sformat(
+  std::string command = fmt::format(
       "buck2 clean && buck2 build --no-remote-cache @//mode/opt {}", target);
 
   XLOG(INFO) << "Running command: " << command;

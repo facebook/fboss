@@ -3,14 +3,6 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
-file(READ fboss/agent/hw/test/golden/asic/jericho3-11.csv JERICHO3-11)
-file(READ fboss/agent/hw/test/golden/asic/jericho3-default.csv JERICHO3-DEFAULT)
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/fboss/agent/hw/test/oss/golden_data.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/fboss/agent/hw/test/golden_data.h
-  @ONLY
-)
-
 add_library(config_factory
   fboss/agent/hw/test/ConfigFactory.cpp
   fboss/agent/hw/test/HwPortUtils.cpp
@@ -153,6 +145,7 @@ add_library(hw_switch_ensemble
 )
 
 target_link_libraries(hw_switch_ensemble
+  agent_test_utils
   hw_link_state_toggler
   switchid_scope_resolver
   core
@@ -212,57 +205,18 @@ add_fbthrift_cpp_library(
 
 set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTestFabricUtils.cpp
-  fboss/agent/hw/test/HwFlexPortTests.cpp
-  fboss/agent/hw/test/HwEcmpTrunkTests.cpp
   fboss/agent/hw/test/HwLabelEdgeRouteTest.cpp
   fboss/agent/hw/test/HwLabelSwitchRouteTest.cpp
   fboss/agent/hw/test/HwLinkStateDependentTest.cpp
-  fboss/agent/hw/test/HwMirrorTests.cpp
   fboss/agent/hw/test/HwTest.cpp
   fboss/agent/hw/test/HwTestAclUtils.cpp
   fboss/agent/hw/test/HwTestPortUtils.cpp
   fboss/agent/hw/test/HwTestCoppUtils.cpp
-  fboss/agent/hw/test/HwRouteTests.cpp
-  fboss/agent/hw/test/HwSplitAgentTest.cpp
-  fboss/agent/hw/test/HwVlanTests.cpp
-  fboss/agent/hw/test/HwVerifyPfcConfigInHwTest.cpp
-  fboss/agent/hw/test/HwAclStatTests.cpp
-  fboss/agent/hw/test/HwPortProfileTests.cpp
-  fboss/agent/hw/test/HwPortStressTests.cpp
   fboss/agent/hw/test/HwTestPfcUtils.cpp
-  fboss/agent/hw/test/HwEmptyTest.cpp
-  fboss/agent/hw/test/dataplane_tests/HwHashConsistencyTest.cpp
-  fboss/agent/hw/test/dataplane_tests/HwInPauseDiscardsTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwL3Tests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.cpp
-  fboss/agent/hw/test/dataplane_tests/HwProdInvariantTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwSflowTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
-  fboss/agent/hw/test/dataplane_tests/HwTrunkLoadBalancerTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwRouteStatTests.cpp
 )
-
-if (NOT BUILD_SAI_FAKE)
-
-# Hash polarization packet utilities consume significant amount of
-# memory and causes on-diff to fail. Skip including Hash
-# polarization files for fake as we do not run these hw tests on fake.
-
-set(hw_switch_test_srcs
-  ${hw_switch_test_srcs}
-  fboss/agent/hw/test/HwHashPolarizationTestUtils.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTrident2.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk3.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk4.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTrident2.cpp
-  fboss/agent/hw/test/dataplane_tests/HwHashPolarizationTests.cpp
-)
-endif()
 
 add_library(hw_switch_test
   ${hw_switch_test_srcs}

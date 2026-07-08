@@ -50,6 +50,7 @@ class ConfigApplier {
       std::vector<cfg::StaticMplsRouteNoNextHops>::const_iterator;
   using StaticMplsRouteWithNextHopsIterator =
       std::vector<cfg::StaticMplsRouteWithNextHops>::const_iterator;
+  using StaticMySidIterator = std::vector<MySidWithNextHops>::const_iterator;
 
   ConfigApplier(
       RouterID vrf,
@@ -64,12 +65,26 @@ class ConfigApplier {
       folly::Range<StaticMplsRouteWithNextHopsIterator> staticMplsRouteRange,
       folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsDropRouteRange,
       folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsCpuRouteRange,
+      folly::Range<StaticMySidIterator> staticMySidRange,
       NextHopIDManager* nextHopIDManager,
       MySidTable* mySidTable);
 
   void apply();
 
  private:
+  // Reconciles STATIC_ROUTE MySid entries in mySidTable_ to match the
+  // configured set via a smart diff that minimizes next-hop-ID churn:
+  //   - existing STATIC_ROUTE entry not in incoming → delete (release ids)
+  //   - existing STATIC_ROUTE entry in incoming AND unchanged → leave alone
+  //   - existing STATIC_ROUTE entry in incoming AND changed → release+replace
+  //   - incoming entry with no STATIC_ROUTE counterpart → install
+  //
+  // If the incoming set targets a prefix already occupied by a non-
+  // STATIC_ROUTE entry (e.g., a TE_AGENT RPC entry), config wins — the old
+  // entry's nhop ids are released and a WARN is logged so the takeover is
+  // observable.
+  void applyStaticMySids();
+
   RouterID vrf_;
   IPv4NetworkToRouteMap* v4NetworkToRoute_;
   IPv6NetworkToRouteMap* v6NetworkToRoute_;
@@ -82,6 +97,7 @@ class ConfigApplier {
   folly::Range<StaticMplsRouteWithNextHopsIterator> staticMplsRouteRange_;
   folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsDropRouteRange_;
   folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsCpuRouteRange_;
+  folly::Range<StaticMySidIterator> staticMySidRange_;
   NextHopIDManager* nextHopIDManager_{nullptr};
   MySidTable* mySidTable_{nullptr};
 };

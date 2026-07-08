@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <memory>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -12,6 +13,11 @@
 namespace facebook::fboss {
 
 class TransceiverImpl;
+
+// CDB command status values (from CMIS spec, register 00h:37/38)
+constexpr uint8_t kCdbCommandStatusSuccess = 0x01;
+constexpr uint8_t kCdbCommandStatusFailed =
+    0x40; // 01 000000b: failed, no specific failure
 
 // Definitions for CDB Get Firmware Info (CMD 0x0100) reply data
 // FirmwareStatus byte offset and bitmasks
@@ -27,6 +33,20 @@ constexpr int kCdbFwInfoImageBBuildLoOffset = 41;
 // Minimum reply length needed to read Image B build number
 constexpr int kCdbFwInfoMinRlplLength = 42;
 
+// CDB command 0x0041 (Firmware Management Features) LPL offsets
+// MaxDurationCoding at byte 137, bit 3 (LPL offset 1)
+constexpr int kCdbFwFeatureMaxDurationCodingOffset = 1;
+constexpr uint8_t kCdbFwFeatureMaxDurationCodingMask = 0x08;
+// MaxDurationWrite at bytes 148-149 (LPL offset 12-13, U16 big-endian)
+constexpr int kCdbFwFeatureMaxDurationWriteHiOffset = 12;
+constexpr int kCdbFwFeatureMaxDurationWriteLoOffset = 13;
+// Minimum reply length needed to read MaxDurationWrite
+constexpr int kCdbFwFeatureMinRlplLength = 14;
+
+// Maximum CDB command timeout guardrail (120 seconds in microseconds).
+// Prevents indefinite waits even if a module misreports MaxDurationWrite.
+constexpr uint64_t kMaxCdbTimeoutUsec = 120000000;
+
 // CMIS page numbers for I2C transaction logging
 constexpr int kCdbPage = 0x9f;
 constexpr int kLowerPage = -1;
@@ -40,7 +60,9 @@ class CdbCommandBlock {
   static constexpr uint8_t kCdbLplMemoryLength = 120;
 
   // Constructor to initialize data block from 0
-  CdbCommandBlock() {
+  explicit CdbCommandBlock(
+      uint64_t cdbWriteDelayUsec = POST_I2C_WRITE_DELAY_CDB_US)
+      : cdbWriteDelayUsec_(cdbWriteDelayUsec) {
     resetCdbBlock();
   }
 
@@ -86,8 +108,15 @@ class CdbCommandBlock {
   // Create generic command structure
   void createCdbCmdGeneric(uint16_t commandCode, std::vector<uint8_t>& lplData);
 
-  // Public function to run the CDB command on the module
-  bool cmisRunCdbCommand(TransceiverImpl* bus);
+  // Public function to run the CDB command on the module. An optional
+  // timeout can be passed to override the default
+  // FLAGS_cdb_command_timeout_usec.
+  // cdbCmdCompleteFlagSupported enables polling the CdbCmdCompleteFlag1 before
+  // reading command status.
+  bool cmisRunCdbCommand(
+      TransceiverImpl* bus,
+      std::optional<uint64_t> overrideTimeoutUsec = std::nullopt,
+      bool cdbCmdCompleteFlagSupported = false);
   // Provide response data to caller
   uint8_t getResponseData(uint8_t** pResponse);
 
@@ -112,12 +141,68 @@ class CdbCommandBlock {
     return cdbFields_.cdbLplMemory.cdbLplFlatMemory;
   }
 
+  // Parse MaxDurationWrite from CDB command 0x0041 response
+  // Returns the timeout in microseconds derived from MaxDurationWrite (bytes
+  // 148-149) and MaxDurationCoding (byte 137, bit 3) per OIF-CMIS-05.3
+  // specification. Returns 0 if the response doesn't contain sufficient data.
+  uint64_t getMaxDurationWriteUsec() const {
+    if (cdbFields_.cdbRlplLength < kCdbFwFeatureMinRlplLength) {
+      return 0;
+    }
+
+    // MaxDurationCoding bit 3: 0 = 1ms multiplier, 1 = 10ms multiplier
+    uint8_t maxDurationCoding =
+        cdbFields_.cdbLplMemory
+            .cdbLplFlatMemory[kCdbFwFeatureMaxDurationCodingOffset];
+    uint32_t multiplierMs =
+        (maxDurationCoding & kCdbFwFeatureMaxDurationCodingMask) ? 10 : 1;
+
+    // MaxDurationWrite U16 big-endian
+    uint16_t maxDurationWrite =
+        (static_cast<uint16_t>(
+             cdbFields_.cdbLplMemory
+                 .cdbLplFlatMemory[kCdbFwFeatureMaxDurationWriteHiOffset])
+         << 8) |
+        static_cast<uint16_t>(
+            cdbFields_.cdbLplMemory
+                .cdbLplFlatMemory[kCdbFwFeatureMaxDurationWriteLoOffset]);
+
+    // Convert to microseconds: maxDurationWrite * multiplierMs * 1000
+    return static_cast<uint64_t>(maxDurationWrite) * multiplierMs * 1000;
+  }
+
   uint64_t getCdbWaitTimeMsec() {
     return commandBlockCdbWaitTime_.count();
   }
 
   uint64_t getMemoryWriteTimeMsec() {
     return memoryWriteTime_.count();
+  }
+
+  // Returns the CDB command status from the last cmisRunCdbCommand() call
+  uint8_t getLastCdbStatus() const {
+    return lastCdbStatus_;
+  }
+
+  // Parse firmware build number from CDB command 0x0100 response.
+  // Returns the build number of the running firmware bank, or std::nullopt
+  // if the response is too short or neither bank is marked as running.
+  std::optional<uint16_t> getFwBuildNumber() const {
+    if (cdbFields_.cdbRlplLength < kCdbFwInfoMinRlplLength) {
+      return std::nullopt;
+    }
+    const uint8_t* resp = cdbFields_.cdbLplMemory.cdbLplFlatMemory;
+    uint8_t fwStatus = resp[kCdbFwInfoFwStatusOffset];
+    bool bankARunning = (fwStatus & kCdbFwInfoBankARunningMask) != 0;
+    bool bankBRunning = (fwStatus & kCdbFwInfoBankBRunningMask) != 0;
+    if (bankARunning) {
+      return (resp[kCdbFwInfoImageABuildHiOffset] << 8) |
+          resp[kCdbFwInfoImageABuildLoOffset];
+    } else if (bankBRunning) {
+      return (resp[kCdbFwInfoImageBBuildHiOffset] << 8) |
+          resp[kCdbFwInfoImageBBuildLoOffset];
+    }
+    return std::nullopt;
   }
 
  private:
@@ -146,6 +231,8 @@ class CdbCommandBlock {
 
   std::chrono::duration<uint32_t, std::milli> commandBlockCdbWaitTime_{0};
   std::chrono::duration<uint32_t, std::milli> memoryWriteTime_{0};
+  uint8_t lastCdbStatus_{0};
+  uint64_t cdbWriteDelayUsec_;
 
   // Utility function to compute the One's complement sum
   uint8_t onesComplementSum();

@@ -101,6 +101,7 @@ std::
       std::nullopt, // fieldIcmpV6Type
       std::nullopt, // fieldIcmpV6Code
       std::nullopt, // dscp
+      std::nullopt, // fieldTc
       true, // fieldDstMac
       std::nullopt, // ipType
       std::nullopt, // ttl
@@ -109,6 +110,7 @@ std::
       std::nullopt, // neighbor meta
       true, // ether type
       std::nullopt, // fieldOuterVlanId
+      std::nullopt, // fieldAclRangeType
       std::nullopt, // fieldBthOpcode
       std::nullopt, // fieldIpv6NextHeader
 #if (                                                                  \

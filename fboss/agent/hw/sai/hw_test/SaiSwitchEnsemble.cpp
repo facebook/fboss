@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/sai/hw_test/SaiSwitchEnsemble.h"
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
@@ -84,7 +85,7 @@ std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(
   });
 }
 
-std::vector<PortID> SaiSwitchEnsemble::masterLogicalPortIds() const {
+std::vector<PortID> SaiSwitchEnsemble::getAllMasterLogicalPortIds() const {
   return getPlatform()->masterLogicalPortIds();
 }
 
@@ -122,6 +123,9 @@ void SaiSwitchEnsemble::runDiagCommand(
     const std::string& input,
     std::string& output,
     std::optional<SwitchID> /*switchId*/) {
+  if (!diagCmdServer_) {
+    throw FbossError("Diag shell not supported on this platform");
+  }
   ClientInformation clientInfo;
   clientInfo.username() = "hw_test";
   clientInfo.hostname() = "hw_test";

@@ -15,7 +15,12 @@
 #include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddress.h>
+#include <folly/ScopeGuard.h>
+#include <gflags/gflags.h>
 #include <gtest/gtest.h>
+
+DECLARE_bool(enable_nexthop_id_manager);
+DECLARE_bool(resolve_nexthops_from_id);
 
 using namespace facebook::fboss;
 
@@ -83,14 +88,27 @@ cfg::SwitchConfig interfaceAndStaticRoutesWithNextHopsConfig() {
 // generation logic to the RIB.
 void clearNextHopSetIDsFromThrift(
     std::map<int32_t, state::RouteTableFields>& routeTables) {
+  auto clearClientIds = [](auto& routeFields) {
+    for (auto& [_clientId, entry] :
+         *routeFields.nexthopsmulti()->client2NextHopEntry()) {
+      entry.clientNextHopSetID().reset();
+    }
+  };
   for (auto& [_, routeTable] : routeTables) {
     for (auto& [__, v4Route] : *routeTable.v4NetworkToRoute()) {
       v4Route.fwd()->resolvedNextHopSetID().reset();
       v4Route.fwd()->normalizedResolvedNextHopSetID().reset();
+      clearClientIds(v4Route);
     }
     for (auto& [__, v6Route] : *routeTable.v6NetworkToRoute()) {
       v6Route.fwd()->resolvedNextHopSetID().reset();
       v6Route.fwd()->normalizedResolvedNextHopSetID().reset();
+      clearClientIds(v6Route);
+    }
+    for (auto& [__, mplsRoute] : *routeTable.labelToRoute()) {
+      mplsRoute.fwd()->resolvedNextHopSetID().reset();
+      mplsRoute.fwd()->normalizedResolvedNextHopSetID().reset();
+      clearClientIds(mplsRoute);
     }
   }
 }
@@ -134,6 +152,13 @@ class RibSerializationTest : public ::testing::Test {
 };
 
 TEST_F(RibSerializationTest, fullRibSerDeser) {
+  // Deserializes without FIB info, so the reconstructed manager has no ID maps
+  // to resolve against. Compare via inline nexthops.
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  FLAGS_resolve_nexthops_from_id = false;
+  SCOPE_EXIT {
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
   auto deserializedRib = RoutingInformationBase::fromThrift(
       rib.toThrift(), nullptr, nullptr, nullptr);
 
@@ -151,6 +176,13 @@ TEST_F(RibSerializationTest, serializeOnlyUnresolvedRoutes) {
 }
 
 TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
+  // The empty/null-FIB deserializations below have no ID maps to resolve
+  // against, so getRouteTableDetails must read inline nexthops.
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  FLAGS_resolve_nexthops_from_id = false;
+  SCOPE_EXIT {
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
   auto deserializedRibEmptyFibThrift = RoutingInformationBase::fromThrift(
       rib.warmBootState(),
       std::make_shared<MultiSwitchFibInfoMap>(),
@@ -181,4 +213,55 @@ TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
   EXPECT_EQ(
       8, deserializedRibWithFibThrift->getRouteTableDetails(kRid0).size());
   EXPECT_EQ(2, deserializedRibWithFibThrift->getMplsRouteTableDetails().size());
+}
+
+// Flag-OFF: RIB fromThrift must wipe stray clientNextHopSetID from every
+// per-client entry on unresolved routes.
+TEST_F(RibSerializationTest, fromThriftWipesClientIdsWhenFlagOff) {
+  auto warmBootThrift = rib.warmBootState();
+
+  // Inject stale IDs to simulate a snapshot taken while the flag was ON.
+  int64_t stamp = 1000;
+  size_t injected = 0;
+  for (auto& [_, routeTable] : warmBootThrift) {
+    for (auto& [__, v4Route] : *routeTable.v4NetworkToRoute()) {
+      for (auto& [_clientId, entry] :
+           *v4Route.nexthopsmulti()->client2NextHopEntry()) {
+        entry.clientNextHopSetID() = stamp++;
+        ++injected;
+      }
+    }
+    for (auto& [__, v6Route] : *routeTable.v6NetworkToRoute()) {
+      for (auto& [_clientId, entry] :
+           *v6Route.nexthopsmulti()->client2NextHopEntry()) {
+        entry.clientNextHopSetID() = stamp++;
+        ++injected;
+      }
+    }
+  }
+  ASSERT_GT(injected, 0u);
+
+  FLAGS_enable_nexthop_id_manager = false;
+  auto deserialized = RoutingInformationBase::fromThrift(
+      warmBootThrift, nullptr, nullptr, nullptr);
+
+  auto reThrift = deserialized->toThrift();
+  size_t verified = 0;
+  for (const auto& [_, routeTable] : reThrift) {
+    for (const auto& [__, v4Route] : *routeTable.v4NetworkToRoute()) {
+      for (const auto& [_clientId, entry] :
+           *v4Route.nexthopsmulti()->client2NextHopEntry()) {
+        EXPECT_FALSE(entry.clientNextHopSetID().has_value());
+        ++verified;
+      }
+    }
+    for (const auto& [__, v6Route] : *routeTable.v6NetworkToRoute()) {
+      for (const auto& [_clientId, entry] :
+           *v6Route.nexthopsmulti()->client2NextHopEntry()) {
+        EXPECT_FALSE(entry.clientNextHopSetID().has_value());
+        ++verified;
+      }
+    }
+  }
+  EXPECT_EQ(injected, verified);
 }

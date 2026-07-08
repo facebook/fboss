@@ -11,6 +11,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
@@ -209,7 +210,7 @@ bool verifyQueueMappingsInvariantEcmpHelper(
     const std::vector<PortID>& ecmpPorts,
     uint32_t sleep = 20) {
   auto portStatsBefore = getAllHwPortStats();
-  auto intf = utility::firstInterfaceWithPorts(swState);
+  auto intf = firstInterfaceWithPortsForTesting(swState);
   std::optional<VlanID> vlanId = utility::getSwitchVlanIDForTx(sw, intf);
   auto intfMac = intf->getMac();
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);

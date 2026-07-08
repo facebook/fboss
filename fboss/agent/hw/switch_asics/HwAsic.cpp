@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
+#include "fboss/agent/hw/switch_asics/P200Asic.h"
 #include "fboss/agent/hw/switch_asics/Qumran4DAsic.h"
 #include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
@@ -56,7 +57,7 @@ HwAsic::HwAsic(
       sdkVersion_(sdkVersion) {
   CHECK(switchInfo.switchMac().has_value());
   asicMac_ = folly::MacAddress(*switchInfo.switchMac());
-  if (supportedModes.find(switchType_) == supportedModes.end()) {
+  if (!supportedModes.contains(switchType_)) {
     throw std::runtime_error(
         folly::to<std::string>("Unsupported Mode: ", switchType_));
   }
@@ -79,6 +80,49 @@ int HwAsic::getDefaultACLGroupID() const {
   } else {
     return kDefaultACLGroupID;
   }
+}
+
+int HwAsic::getBufferDynThreshFromScalingFactor(
+    cfg::MMUScalingFactor scalingFactor) const {
+  switch (scalingFactor) {
+    case cfg::MMUScalingFactor::ONE_128TH:
+      return -7;
+    case cfg::MMUScalingFactor::ONE_64TH:
+      return -6;
+    case cfg::MMUScalingFactor::ONE_32TH:
+      return -5;
+    case cfg::MMUScalingFactor::ONE_16TH:
+      return -4;
+    case cfg::MMUScalingFactor::ONE_8TH:
+      return -3;
+    case cfg::MMUScalingFactor::ONE_QUARTER:
+      return -2;
+    case cfg::MMUScalingFactor::ONE_HALF:
+      return -1;
+    case cfg::MMUScalingFactor::ONE:
+      return 0;
+    case cfg::MMUScalingFactor::TWO:
+      return 1;
+    case cfg::MMUScalingFactor::FOUR:
+      return 2;
+    case cfg::MMUScalingFactor::EIGHT:
+      return 3;
+    case cfg::MMUScalingFactor::ONE_32768TH:
+    case cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT:
+      throw FbossError(
+          "Unsupported scaling factor: ",
+          apache::thrift::util::enumNameSafe(scalingFactor));
+  }
+  throw FbossError(
+      "Unknown scaling factor: ",
+      apache::thrift::util::enumNameSafe(scalingFactor));
+}
+
+uint32_t HwAsic::getNumCellsAvailable(PlatformType platformType) const {
+  throw FbossError(
+      getAsicTypeStr(),
+      " ASIC does not support num cells available for platform: ",
+      apache::thrift::util::enumNameSafe(platformType));
 }
 
 std::unique_ptr<HwAsic> HwAsic::makeAsic(
@@ -113,6 +157,8 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
       return std::make_unique<CredoPhyAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_EBRO:
       return std::make_unique<EbroAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_P200:
+      return std::make_unique<P200Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_YUBA:
       return std::make_unique<YubaAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_G202X:

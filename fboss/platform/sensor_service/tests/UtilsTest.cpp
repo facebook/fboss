@@ -1,40 +1,39 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "fboss/platform/sensor_service/Utils.h"
 
-using namespace ::testing;
 namespace facebook::fboss::platform::sensor_service {
-class MockPmUnitInfoFetcher : public PmUnitInfoFetcher {
- public:
-  explicit MockPmUnitInfoFetcher() : PmUnitInfoFetcher() {}
-  MOCK_METHOD(
-      (std::optional<std::array<int16_t, 3>>),
-      fetch,
-      (const std::string&),
-      (const));
-};
 
 class UtilsTests : public testing::Test {
  public:
   VersionedPmSensor createVersionedPmSensor(
-      uint productProductionState,
-      uint productVersion,
-      uint productSubVersion) {
+      uint productionState,
+      uint productionSubState,
+      uint respinVariantIndicator) {
     VersionedPmSensor versionedPmSensor;
-    versionedPmSensor.productProductionState() = productProductionState;
-    versionedPmSensor.productVersion() = productVersion;
-    versionedPmSensor.productSubVersion() = productSubVersion;
+    versionedPmSensor.productionState() = productionState;
+    versionedPmSensor.productionSubState() = productionSubState;
+    versionedPmSensor.respinVariantIndicator() = respinVariantIndicator;
     return versionedPmSensor;
   }
-  bool isEqual(VersionedPmSensor s1, VersionedPmSensor s2) {
-    return s1.productProductionState() == s2.productProductionState() &&
-        s1.productVersion() == s2.productVersion() &&
-        s1.productSubVersion() == s2.productSubVersion();
+  platform_manager::PmUnitInfo
+  createPmUnitInfo(int16_t ps, int16_t pss, int16_t rvi) {
+    platform_manager::PmUnitInfo info;
+    info.name() = "TestUnit";
+    platform_manager::PmUnitVersion version;
+    version.productionState() = ps;
+    version.productionSubState() = pss;
+    version.respinVariantIndicator() = rvi;
+    info.version() = version;
+    return info;
   }
-  MockPmUnitInfoFetcher fetcher_;
+  bool isEqual(VersionedPmSensor s1, VersionedPmSensor s2) {
+    return s1.productionState() == s2.productionState() &&
+        s1.productionSubState() == s2.productionSubState() &&
+        s1.respinVariantIndicator() == s2.respinVariantIndicator();
+  }
   std::string slotPath_;
 };
 
@@ -55,49 +54,57 @@ TEST_F(UtilsTests, Equal) {
       0.0019354839);
 }
 
-TEST_F(UtilsTests, PmUnitInfoFetcherTest) {
+TEST_F(UtilsTests, ResolveVersionedSensors) {
   std::optional<VersionedPmSensor> resolvedVersionedSensor;
   // Case-0: Empty version config
   EXPECT_EQ(
-      Utils().resolveVersionedSensors(fetcher_, slotPath_, {}), std::nullopt);
-  // Case-1: Fail to fetch PmUnitInfo
-  EXPECT_CALL(fetcher_, fetch(_)).WillOnce(Return(std::nullopt));
+      Utils().resolveVersionedSensors(std::nullopt, slotPath_, {}),
+      std::nullopt);
+  // Case-1: Fail to fetch PmUnitInfo (RPC error)
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
-      fetcher_,
+      std::nullopt,
       slotPath_,
       {createVersionedPmSensor(1, 1, 2), createVersionedPmSensor(2, 0, 1)});
   EXPECT_NE(resolvedVersionedSensor, std::nullopt);
   EXPECT_TRUE(
       isEqual(*resolvedVersionedSensor, createVersionedPmSensor(2, 0, 1)));
+  // Case-1b: PmUnitInfo returned but no version (no IDPROM)
+  {
+    platform_manager::PmUnitInfo infoNoVersion;
+    infoNoVersion.name() = "TestUnit";
+    resolvedVersionedSensor = Utils().resolveVersionedSensors(
+        infoNoVersion,
+        slotPath_,
+        {createVersionedPmSensor(1, 1, 2), createVersionedPmSensor(2, 0, 1)});
+    EXPECT_NE(resolvedVersionedSensor, std::nullopt);
+    EXPECT_TRUE(
+        isEqual(*resolvedVersionedSensor, createVersionedPmSensor(2, 0, 1)));
+  }
   // Case-2: Non-matching VersionedPmSensor
-  EXPECT_CALL(fetcher_, fetch(_))
-      .WillOnce(Return(std::array<int16_t, 3>{1, 0, 20}));
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
-      fetcher_, slotPath_, {createVersionedPmSensor(1, 1, 2)});
+      createPmUnitInfo(1, 0, 20),
+      slotPath_,
+      {createVersionedPmSensor(1, 1, 2)});
   EXPECT_EQ(resolvedVersionedSensor, std::nullopt);
   // Case-3a: Matching Single VersionedPmSensors
-  EXPECT_CALL(fetcher_, fetch(_))
-      .WillOnce(Return(std::array<int16_t, 3>{1, 1, 20}));
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
-      fetcher_, slotPath_, {createVersionedPmSensor(1, 1, 2)});
+      createPmUnitInfo(1, 1, 20),
+      slotPath_,
+      {createVersionedPmSensor(1, 1, 2)});
   EXPECT_NE(resolvedVersionedSensor, std::nullopt);
   EXPECT_TRUE(
       isEqual(*resolvedVersionedSensor, createVersionedPmSensor(1, 1, 2)));
   // Case-3b: Matching Multiple VersionedPmSensors
-  EXPECT_CALL(fetcher_, fetch(_))
-      .WillOnce(Return(std::array<int16_t, 3>{1, 1, 20}));
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
-      fetcher_,
+      createPmUnitInfo(1, 1, 20),
       slotPath_,
       {createVersionedPmSensor(1, 1, 2), createVersionedPmSensor(1, 1, 4)});
   EXPECT_NE(resolvedVersionedSensor, std::nullopt);
   EXPECT_TRUE(
       isEqual(*resolvedVersionedSensor, createVersionedPmSensor(1, 1, 4)));
   // Case-4: Matching Unordered VersionedPmSensors
-  EXPECT_CALL(fetcher_, fetch(_))
-      .WillOnce(Return(std::array<int16_t, 3>{2, 4, 10}));
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
-      fetcher_,
+      createPmUnitInfo(2, 4, 10),
       slotPath_,
       {createVersionedPmSensor(3, 1, 20),
        createVersionedPmSensor(2, 1, 20),
@@ -105,5 +112,91 @@ TEST_F(UtilsTests, PmUnitInfoFetcherTest) {
   EXPECT_NE(resolvedVersionedSensor, std::nullopt);
   EXPECT_TRUE(
       isEqual(*resolvedVersionedSensor, createVersionedPmSensor(2, 3, 20)));
+}
+
+TEST_F(UtilsTests, ResolveVersionedSensorsWithProductName) {
+  std::optional<VersionedPmSensor> resolvedVersionedSensor;
+
+  auto createVersionedPmSensorWithProductName =
+      [this](uint ps, uint pss, uint rvi, const std::string& productName) {
+        auto vs = createVersionedPmSensor(ps, pss, rvi);
+        vs.productName() = productName;
+        return vs;
+      };
+  auto createPmUnitInfoWithEepromProductName =
+      [this](
+          int16_t ps,
+          int16_t pss,
+          int16_t rvi,
+          const std::string& eepromProductName) {
+        auto info = createPmUnitInfo(ps, pss, rvi);
+        info.eepromProductName() = eepromProductName;
+        return info;
+      };
+
+  // Case-5: productName matches eepromProductName — use matching entry
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(1, 1, 20, "DC3K12V_M_L"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(1, 1, 2, "DC3K12V_M_L"),
+       createVersionedPmSensorWithProductName(1, 1, 2, "AC3K12V_M_L")});
+  ASSERT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_EQ(*resolvedVersionedSensor->productName(), "DC3K12V_M_L");
+
+  // Case-6: productName does not match — no universal fallback → nullopt
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(1, 1, 20, "UNKNOWN_PSU"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(1, 1, 2, "DC3K12V_M_L"),
+       createVersionedPmSensorWithProductName(1, 1, 2, "AC3K12V_M_L")});
+  EXPECT_EQ(resolvedVersionedSensor, std::nullopt);
+
+  // Case-7: productName not set on entry → universal fallback when no match
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(1, 1, 20, "UNKNOWN_PSU"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(1, 1, 2, "DC3K12V_M_L"),
+       createVersionedPmSensor(1, 1, 2)});
+  ASSERT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_FALSE(resolvedVersionedSensor->productName().has_value());
+
+  // Case-8: productName matches — prefer over universal entry
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(1, 1, 20, "DC3K12V_M_L"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(1, 1, 2, "DC3K12V_M_L"),
+       createVersionedPmSensor(1, 1, 4)});
+  ASSERT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_EQ(*resolvedVersionedSensor->productName(), "DC3K12V_M_L");
+
+  // Case-9: No eepromProductName on hardware — use universal entries only
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfo(1, 1, 20),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(1, 1, 2, "DC3K12V_M_L"),
+       createVersionedPmSensor(1, 1, 2)});
+  ASSERT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_FALSE(resolvedVersionedSensor->productName().has_value());
+
+  // Case-10: Multiple matching productName entries — pick highest version
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(2, 4, 10, "AC3K12V_M_L"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(2, 1, 0, "AC3K12V_M_L"),
+       createVersionedPmSensorWithProductName(2, 3, 0, "AC3K12V_M_L"),
+       createVersionedPmSensorWithProductName(2, 4, 0, "DC3K12V_M_L")});
+  ASSERT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_TRUE(
+      isEqual(*resolvedVersionedSensor, createVersionedPmSensor(2, 3, 0)));
+  EXPECT_EQ(*resolvedVersionedSensor->productName(), "AC3K12V_M_L");
+
+  // Case-11: productName-specific candidates were selected → universal entry
+  // is not reconsidered, even when version doesn't satisfy → nullopt.
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(1, 0, 0, "DC3K12V_M_L"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(2, 0, 0, "DC3K12V_M_L"),
+       createVersionedPmSensor(1, 0, 0)});
+  EXPECT_EQ(resolvedVersionedSensor, std::nullopt);
 }
 } // namespace facebook::fboss::platform::sensor_service

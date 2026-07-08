@@ -40,6 +40,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
     SAI_ATTR_MAP(AclTable, FieldIcmpV6Type),
     SAI_ATTR_MAP(AclTable, FieldIcmpV6Code),
     SAI_ATTR_MAP(AclTable, FieldDscp),
+    SAI_ATTR_MAP(AclTable, FieldTc),
     SAI_ATTR_MAP(AclTable, FieldDstMac),
     SAI_ATTR_MAP(AclTable, FieldIpType),
     SAI_ATTR_MAP(AclTable, FieldTtl),
@@ -50,6 +51,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
     SAI_ATTR_MAP(AclTable, AvailableCounter),
     SAI_ATTR_MAP(AclTable, FieldEthertype),
     SAI_ATTR_MAP(AclTable, FieldOuterVlanId),
+    SAI_ATTR_MAP(AclTable, FieldAclRangeType),
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
     SAI_ATTR_MAP(AclTable, FieldBthOpcode),
 #endif
@@ -92,6 +94,11 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableGroupMemberMap{
     SAI_ATTR_MAP(AclTableGroupMember, Priority),
 };
 
+std::map<int32_t, std::pair<std::string, std::size_t>> _AclRangeMap{
+    SAI_ATTR_MAP(AclRange, Type),
+    SAI_ATTR_MAP(AclRange, Limit),
+};
+
 std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, TableId),
     SAI_ATTR_MAP(AclEntry, Priority),
@@ -112,6 +119,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, FieldIcmpV6Type),
     SAI_ATTR_MAP(AclEntry, FieldIcmpV6Code),
     SAI_ATTR_MAP(AclEntry, FieldDscp),
+    SAI_ATTR_MAP(AclEntry, FieldTc),
     SAI_ATTR_MAP(AclEntry, FieldDstMac),
     SAI_ATTR_MAP(AclEntry, FieldIpType),
     SAI_ATTR_MAP(AclEntry, FieldTtl),
@@ -120,6 +128,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, FieldNeighborDstUserMeta),
     SAI_ATTR_MAP(AclEntry, FieldEthertype),
     SAI_ATTR_MAP(AclEntry, FieldOuterVlanId),
+    SAI_ATTR_MAP(AclEntry, FieldAclRangeType),
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
     SAI_ATTR_MAP(AclEntry, FieldBthOpcode),
 #endif
@@ -137,6 +146,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, UserDefinedFieldGroupMin4),
 #endif
     SAI_ATTR_MAP(AclEntry, ActionPacketAction),
+    SAI_ATTR_MAP(AclEntry, ActionRedirect),
     SAI_ATTR_MAP(AclEntry, ActionCounter),
     SAI_ATTR_MAP(AclEntry, ActionSetTC),
     SAI_ATTR_MAP(AclEntry, ActionSetDSCP),
@@ -161,6 +171,7 @@ void handleExtensionAttributes() {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
   SAI_EXT_ATTR_MAP(AclEntry, ActionL3SwitchCancel);
 #endif
+  SAI_EXT_ATTR_MAP(AclEntry, FieldNextHopGroupId);
 }
 
 } // namespace
@@ -204,37 +215,10 @@ WRAP_GET_ATTR_FUNC(
     SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER,
     acl);
 
-sai_status_t wrap_create_acl_range(
-    sai_object_id_t* acl_range_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  // TODO: To be implemented if the function is used by fboss
-  return SaiTracer::getInstance()->aclApi_->create_acl_range(
-      acl_range_id, switch_id, attr_count, attr_list);
-}
-
-sai_status_t wrap_remove_acl_range(sai_object_id_t acl_range_id) {
-  // TODO: To be implemented if the function is used by fboss
-  return SaiTracer::getInstance()->aclApi_->remove_acl_range(acl_range_id);
-}
-
-sai_status_t wrap_set_acl_range_attribute(
-    sai_object_id_t acl_range_id,
-    const sai_attribute_t* attr) {
-  // TODO: To be implemented if the function is used by fboss
-  return SaiTracer::getInstance()->aclApi_->set_acl_range_attribute(
-      acl_range_id, attr);
-}
-
-sai_status_t wrap_get_acl_range_attribute(
-    sai_object_id_t acl_range_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  // TODO: To be implemented if the function is used by fboss
-  return SaiTracer::getInstance()->aclApi_->get_acl_range_attribute(
-      acl_range_id, attr_count, attr_list);
-}
+WRAP_CREATE_FUNC(acl_range, SAI_OBJECT_TYPE_ACL_RANGE, acl);
+WRAP_REMOVE_FUNC(acl_range, SAI_OBJECT_TYPE_ACL_RANGE, acl);
+WRAP_SET_ATTR_FUNC(acl_range, SAI_OBJECT_TYPE_ACL_RANGE, acl);
+WRAP_GET_ATTR_FUNC(acl_range, SAI_OBJECT_TYPE_ACL_RANGE, acl);
 
 sai_acl_api_t* wrappedAclApi() {
   static sai_acl_api_t aclWrappers;
@@ -279,5 +263,6 @@ SET_SAI_ATTRIBUTES(AclTable)
 SET_SAI_ATTRIBUTES(AclEntry)
 SET_SAI_ATTRIBUTES(AclTableGroup)
 SET_SAI_ATTRIBUTES(AclTableGroupMember)
+SET_SAI_ATTRIBUTES(AclRange)
 
 } // namespace facebook::fboss

@@ -12,7 +12,9 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 
 #include <memory>
+#include <optional>
 #include <utility>
+#include <vector>
 
 DECLARE_bool(clear_low_power);
 DECLARE_bool(set_low_power);
@@ -70,6 +72,8 @@ DECLARE_bool(checker);
 DECLARE_bool(module_io_stats);
 DECLARE_bool(capabilities);
 DECLARE_bool(dump_tcvr_i2c_log);
+DECLARE_bool(port_info_summary);
+DECLARE_string(ssl_policy);
 
 enum LoopbackMode { noLoopback, electricalLoopback, opticalLoopback };
 
@@ -83,6 +87,13 @@ struct FlagCommand {
 struct DirectI2cInfo {
   TransceiverI2CApi* bus;
   TransceiverManager* transceiverManager;
+};
+
+struct PortInfoSummary {
+  unsigned int port;
+  std::string name;
+  std::string vendor;
+  std::string partNumber;
 };
 
 std::ostream& operator<<(std::ostream& os, const FlagCommand& cmd);
@@ -223,7 +234,13 @@ void printCmisDetailService(
 void printPortDetail(
     const DOMDataUnion& domDataUnion,
     unsigned int port,
-    const std::string& portNames);
+    const std::string& portNames,
+    DirectI2cInfo* i2cInfo = nullptr);
+std::optional<PortInfoSummary> getPortInfoSummary(
+    const DOMDataUnion& domDataUnion,
+    unsigned int port,
+    const std::string& firstPortName);
+void printPortInfoSummary(const std::vector<PortInfoSummary>& summaries);
 void printPortDetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,

@@ -394,4 +394,20 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeCablePropagationDelayMeasurement::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
+  return std::nullopt;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::deviceWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::customDropBitmapStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 } // namespace facebook::fboss

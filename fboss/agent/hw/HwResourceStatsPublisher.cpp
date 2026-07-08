@@ -86,6 +86,8 @@ void HwResourceStatsPublisher::publish(const HwResourceStats& stats) const {
   // VOQs
   publish(kSystemPortsFree, *stats.system_ports_free());
   publish(kVoqsFree, *stats.voqs_free());
+  // SRV6 MySid
+  publish(kMySidEntriesFree, *stats.my_sid_entries_free());
 }
 
 } // namespace facebook::fboss

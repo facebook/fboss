@@ -39,6 +39,7 @@ class ConfigValidator {
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
   bool isValidCpldSysfsAttrs(const std::vector<CpldSysfsAttr>& cpldSysfsAttrs);
+  bool isValidFanCpldConfig(const FanCpldConfig& fanCpldConfig);
   bool isValidDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& devicePath);
@@ -68,6 +69,8 @@ class ConfigValidator {
       std::optional<int16_t> ledNum = std::nullopt);
   bool isValidPortRanges(
       const std::vector<std::pair<int16_t, int16_t>>& startPortAndNumPorts);
+  bool isValidLedCtrlBlockXcvrCoverage(const PlatformConfig& config);
+  bool isValidXcvrCtrlBlockXcvrCoverage(const PlatformConfig& config);
   bool isValidChassisEepromDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& chassisEepromDevicePath);

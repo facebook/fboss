@@ -143,6 +143,7 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
       asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+      asicType == cfg::AsicType::ASIC_TYPE_P200 ||
       asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
       asicType == cfg::AsicType::ASIC_TYPE_GARONNE ||
       asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
@@ -292,7 +293,7 @@ void initAndExitBenchmarkHelper(
           ensemble->getSw()->getRib()->updateStateInRibThread(
               [&ensemble, updateDsfStateFn]() {
                 ensemble->getSw()->updateStateWithHwFailureProtection(
-                    folly::sformat("Update state for node: {}", 0),
+                    fmt::format("Update state for node: {}", 0),
                     updateDsfStateFn);
               });
 
@@ -303,7 +304,7 @@ void initAndExitBenchmarkHelper(
               utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
 
           std::vector<RoutePrefixV6> prefixes;
-          std::vector<flat_set<PortDescriptor>> nhopSets;
+          std::vector<boost::container::flat_set<PortDescriptor>> nhopSets;
           CHECK_GE(portDescriptor.size(), ecmpWidth + ecmpGroup - 1);
           for (int i = 0; i < ecmpGroup; i++) {
             // For default route 0::0, need to use 0 as prefix length

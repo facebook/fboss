@@ -34,6 +34,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/LinkStateToggler.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 
 #include <folly/executors/FunctionScheduler.h>
@@ -1019,7 +1020,9 @@ LinkStateToggler* HwSwitchEnsemble::getLinkToggler() {
 void HwSwitchEnsemble::sendPacketAsync(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortDescriptor> portDescriptor,
-    std::optional<uint8_t> queueId) {
+    std::optional<uint8_t> queueId,
+    std::optional<SwitchID> /* switchId */) {
+  // switchId is unused on single-HwSwitch ensembles (only one switch).
   if (!portDescriptor.has_value()) {
     getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
     return;
@@ -1038,7 +1041,7 @@ std::unique_ptr<TxPacket> HwSwitchEnsemble::allocatePacket(uint32_t size) {
 }
 
 std::optional<VlanID> HwSwitchEnsemble::getVlanIDForTx() const {
-  auto intf = utility::firstInterfaceWithPorts(getProgrammedState());
+  auto intf = firstInterfaceWithPortsForTesting(getProgrammedState());
   return utility::getSwitchVlanIDForTx(getHwSwitch(), intf);
 }
 } // namespace facebook::fboss

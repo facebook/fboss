@@ -33,21 +33,21 @@ SflowShimHeaderInfo parseSflowShim(folly::io::Cursor& cursor) {
     // This is a coming from TH4 ASIC.
     shim.asic = SflowShimAsic::SFLOW_SHIM_ASIC_TH4;
     srcPort = cursor.readBE<uint8_t>();
-    // Src Module ID not needed
-    cursor.readBE<uint8_t>();
+    srcModId = cursor.readBE<uint8_t>();
     dstPort = cursor.readBE<uint8_t>();
-    // Src Module ID not needed
-    cursor.readBE<uint8_t>();
+    dstModId = cursor.readBE<uint8_t>();
   } else {
     shim.asic = SflowShimAsic::SFLOW_SHIM_ASIC_TH3;
   }
   // don't need sflow flags + reserved bits
   cursor.readBE<uint32_t>();
 
-  // For shim header, we store source/dest ports in the interface fields.
-  // The ports will later be translated into interface names.
-  shim.srcPort = srcPort;
-  shim.dstPort = dstPort;
+  // Combine modId and portId to reconstruct the full port number.
+  // The BCM shim header encodes each as 8 bits: fullPort = modId * 256 + port.
+  shim.srcPort = (static_cast<uint32_t>(srcModId) << 8) | srcPort;
+  shim.dstPort = (static_cast<uint32_t>(dstModId) << 8) | dstPort;
+  shim.srcModId = srcModId;
+  shim.dstModId = dstModId;
 
   return shim;
 }

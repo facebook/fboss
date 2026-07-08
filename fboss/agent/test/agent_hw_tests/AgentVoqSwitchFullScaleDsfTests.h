@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 
 #include "fboss/agent/AsicUtils.h"
@@ -27,21 +28,27 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     return utility::addRemoteIntfNodeCfg(curDsfNodes);
   }
 
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Full-scale DSF tests require the entire VoQ NIF port set.
+    return std::nullopt;
+  }
+
  protected:
   int getMaxEcmpWidth() const {
     return isDualStage3Q2QMode() ? 2048 : 512;
   }
 
   int getMaxEcmpGroup() const {
-    auto groups = checkSameAndGetAsic(getL3Asics())->getMaxEcmpGroups();
+    auto groups =
+        checkSameAndGetAsicForTesting(getL3Asics())->getMaxEcmpGroups();
     CHECK(groups.has_value());
     return *groups;
   }
 
-  flat_set<PortDescriptor> getRemoteSysPortDesc() {
+  boost::container::flat_set<PortDescriptor> getRemoteSysPortDesc() {
     auto remoteSysPorts =
         getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
-    flat_set<PortDescriptor> sysPortDescs;
+    boost::container::flat_set<PortDescriptor> sysPortDescs;
     std::for_each(
         remoteSysPorts->begin(),
         remoteSysPorts->end(),

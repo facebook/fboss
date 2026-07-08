@@ -42,6 +42,7 @@ class CmdShowAggregatePort
       const std::vector<facebook::fboss::AggregatePortThrift>&
           aggregatePortEntries,
       std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo,
+      const std::map<int32_t, facebook::fboss::InterfaceDetail>& interfaces,
       const ObjectArgType& queriedPorts);
 };
 

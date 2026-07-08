@@ -1242,9 +1242,9 @@ TEST_F(ArpTest, PortFlapRecover) {
   EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
   sw->linkStateChanged(PortID(1), false, cfg::PortType::INTERFACE_PORT);
 
-  // purging neighbor entries occurs on the background EVB via NeighorUpdater as
-  // a StateObserver.
-  // block until NeighborUpdater::stateChanged() has been invoked
+  // purging neighbor entries occurs on the background EVB via NeighborUpdater
+  // as a StateObserver. block until NeighborUpdater::stateChanged() has been
+  // invoked
   waitForStateUpdates(sw);
   // block until neighbor purging logic has been executed on the background evb
   waitForBackgroundThread(sw);
@@ -1254,6 +1254,15 @@ TEST_F(ArpTest, PortFlapRecover) {
   // both entries should now be pending
   for (auto& arpPending : arpPendings) {
     EXPECT_TRUE(arpPending->wait());
+  }
+
+  // pending entries must have portId=0 so consumers (e.g. BGP) can detect
+  // unresolved neighbors immediately
+  for (const auto& ip : targetIP) {
+    auto pendingEntry = getArpEntry(sw, ip);
+    EXPECT_NE(pendingEntry, nullptr);
+    EXPECT_TRUE(pendingEntry->isPending());
+    EXPECT_EQ(pendingEntry->getPort(), PortDescriptor(PortID(0)));
   }
 
   // ARP entry related to unflapped port must remain unaffected

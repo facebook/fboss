@@ -8,9 +8,7 @@
  *
  */
 #include "fboss/lib/PciSystem.h"
-#ifndef IS_OSS
 #include <pciaccess.h>
-#endif
 
 #include <folly/Exception.h>
 #include <folly/Singleton.h>
@@ -21,20 +19,16 @@ folly::Singleton<facebook::fboss::PciSystem> _pciSystem;
 
 namespace facebook::fboss {
 PciSystem::PciSystem() {
-#ifndef IS_OSS
   int32_t retVal;
 
   retVal = pci_system_init();
   if (retVal != 0) {
     folly::throwSystemErrorExplicit(retVal, "Could not init PCI system");
   }
-#endif
 }
 
 PciSystem::~PciSystem() {
-#ifndef IS_OSS
   pci_system_cleanup();
-#endif
 }
 
 std::shared_ptr<PciSystem> PciSystem::getInstance() {

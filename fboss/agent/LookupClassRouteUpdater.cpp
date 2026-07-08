@@ -355,6 +355,10 @@ void LookupClassRouteUpdater::processInterfaceAdded(
     PortID portID(id);
     std::ignore = portInfo;
     auto port = switchState->getPorts()->getNodeIf(portID);
+    if (!port) {
+      XLOG(FATAL) << "Port " << portID << " not found in state for vlan "
+                  << vlanID;
+    }
     // routes are re-added once outside the for loop
     processPortAdded(stateDelta, port, false /* don't re-add all routes */);
   }
@@ -1208,8 +1212,9 @@ bool LookupClassRouteUpdater::isSubnetCachedByLookupClasses(
       }
 
       // port is member of vlan for addressToSearch i.e. blocked IP
-      auto it = port.second->getVlans().find(vlanID);
-      if (it == port.second->getVlans().end()) {
+      auto vlans = port.second->getVlans();
+      auto it = vlans.find(vlanID);
+      if (it == vlans.end()) {
         continue;
       }
 

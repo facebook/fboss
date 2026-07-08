@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/common/Utils.h"
+#include <fmt/core.h>
 #include <folly/system/ThreadName.h>
 
 namespace facebook::fboss::fsdb {
@@ -50,13 +51,13 @@ ClientId subscriberId2ClientId(const SubscriberId& subscriberId) {
 }
 
 std::string clientIdToString(const ClientId& clientId) {
-  return folly::sformat(
+  return fmt::format(
       "{}:{}", fsdbClient2string(*clientId.client()), *clientId.instanceId());
 }
 
 SubscriberId clientId2SubscriberId(const ClientId& clientId) {
   return SubscriberId(
-      folly::sformat(
+      fmt::format(
           "{}:{}",
           fsdbClient2string(*clientId.client()),
           *clientId.instanceId()));

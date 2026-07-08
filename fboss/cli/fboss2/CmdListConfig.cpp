@@ -10,18 +10,30 @@
 
 #include <algorithm>
 #include "fboss/cli/fboss2/CmdList.h"
-
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
+#include "fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h"
+#include "fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h"
+#include "fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.h"
+#include "fboss/cli/fboss2/commands/config/dhcp/relay_source_override/CmdConfigDhcpRelaySourceOverride.h"
+#include "fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
+#include "fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h"
+#include "fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/CmdConfigInterfaceSwitchportTrunk.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/CmdConfigInterfaceSwitchportTrunkAllowed.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/vlan/CmdConfigInterfaceSwitchportTrunkAllowedVlan.h"
 #include "fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h"
 #include "fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h"
+#include "fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.h"
+#include "fboss/cli/fboss2/commands/config/mac/CmdConfigMac.h"
+#include "fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.h"
 #include "fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.h"
@@ -80,6 +92,10 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerV4OverV6Nh.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningLimit.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningOnly.h"
+#include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
+#include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
+#include "fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h"
+#include "fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.h"
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h"
@@ -93,66 +109,191 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+#include "fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h"
+#include "fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h"
+#include "fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h"
+#include "fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/encap/CmdConfigTunnelIpInIpEncap.h"
 #include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h"
+#include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlanDefault.h"
 #include "fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h"
 #include "fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
+#include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
+#include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
+#include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.h"
 
 namespace facebook::fboss {
 
 const CommandTree& kConfigCommandTree() {
   static CommandTree root = {
+      {
+          "config",
+          "switch",
+          "Configure switch-level settings",
+          commandHandler<CmdConfigSwitch>,
+          argRegistrar<CmdConfigSwitchTraits>,
+          {{
+               "admin-distance",
+               "Set administrative distance for a routing client",
+               commandHandler<CmdConfigAdminDistance>,
+               argRegistrar<CmdConfigAdminDistanceTraits>,
+           },
+           {
+               "hostname",
+               "Set switch hostname",
+               commandHandler<CmdConfigHostname>,
+               argRegistrar<CmdConfigHostnameTraits>,
+           },
+           {
+               "icmpv4-unavailable-src-addr",
+               "Set IPv4 source address for ICMP when no address is configured",
+               commandHandler<CmdConfigIcmpV4UnavailableSrcAddr>,
+               argRegistrar<CmdConfigIcmpV4UnavailableSrcAddrTraits>,
+           }},
+      },
+
       {"config",
        "applied-info",
        "Show config applied information",
        commandHandler<CmdConfigAppliedInfo>,
-       argTypeHandler<CmdConfigAppliedInfoTraits>},
+       argRegistrar<CmdConfigAppliedInfoTraits>},
+
+      {
+          "config",
+          "copp",
+          "Configure CoPP (control-plane policing) settings",
+          commandHandler<CmdConfigCopp>,
+          argRegistrar<CmdConfigCoppTraits>,
+          {{
+               "cpu-queue",
+               "Configure a CPU queue (bandwidth shaping)",
+               commandHandler<CmdConfigCoppCpuQueue>,
+               argRegistrar<CmdConfigCoppCpuQueueTraits>,
+           },
+           {
+               "reason",
+               "Map a packet-rx reason to a CPU queue",
+               commandHandler<CmdConfigCoppReason>,
+               argRegistrar<CmdConfigCoppReasonTraits>,
+           }},
+      },
+
+      {"config",
+       "arp",
+       "Configure ARP settings",
+       commandHandler<CmdConfigArp>,
+       argRegistrar<CmdConfigArpTraits>},
+
+      {
+          "config",
+          "dhcp",
+          "Configure DHCP settings",
+          commandHandler<CmdConfigDhcp>,
+          argRegistrar<CmdConfigDhcpTraits>,
+          {{
+               "relay-source-override",
+               "Override source IP for DHCP relay packets to the DHCP server (ipv4|ipv6 <IP>)",
+               commandHandler<CmdConfigDhcpRelaySourceOverride>,
+               argRegistrar<CmdConfigDhcpRelaySourceOverrideTraits>,
+           },
+           {
+               "reply-source-override",
+               "Override source IP for DHCP reply packets to the client (ipv4|ipv6 <IP>)",
+               commandHandler<CmdConfigDhcpReplySourceOverride>,
+               argRegistrar<CmdConfigDhcpReplySourceOverrideTraits>,
+           }},
+      },
 
       {"config",
        "history",
        "Show history of committed config revisions",
        commandHandler<CmdConfigHistory>,
-       argTypeHandler<CmdConfigHistoryTraits>},
+       argRegistrar<CmdConfigHistoryTraits>},
 
       {
           "config",
           "interface",
           "Configure interface settings",
           commandHandler<CmdConfigInterface>,
-          argTypeHandler<CmdConfigInterfaceTraits>,
+          argRegistrar<CmdConfigInterfaceTraits>,
           {{
                "pfc-config",
                "Configure PFC settings for interface",
                commandHandler<CmdConfigInterfacePfcConfig>,
-               argTypeHandler<CmdConfigInterfacePfcConfigTraits>,
+               argRegistrar<CmdConfigInterfacePfcConfigTraits>,
            },
            {
                "queuing-policy",
                "Set queuing policy for interface",
                commandHandler<CmdConfigInterfaceQueuingPolicy>,
-               argTypeHandler<CmdConfigInterfaceQueuingPolicyTraits>,
+               argRegistrar<CmdConfigInterfaceQueuingPolicyTraits>,
+           },
+           {
+               "ipv6",
+               "Configure IPv6 settings for interface",
+               commandHandler<CmdConfigInterfaceIpv6>,
+               argTypeHandler<CmdConfigInterfaceIpv6Traits>,
+               {{
+                   "ndp",
+                   "Configure IPv6 Neighbor Discovery (NDP/RA) settings",
+                   commandHandler<CmdConfigInterfaceIpv6Ndp>,
+                   argRegistrar<CmdConfigInterfaceIpv6NdpTraits>,
+               }},
            },
            {
                "switchport",
                "Configure switchport settings",
                commandHandler<CmdConfigInterfaceSwitchport>,
-               argTypeHandler<CmdConfigInterfaceSwitchportTraits>,
+               argRegistrar<CmdConfigInterfaceSwitchportTraits>,
                {{
-                   "access",
-                   "Configure access mode settings",
-                   commandHandler<CmdConfigInterfaceSwitchportAccess>,
-                   argTypeHandler<CmdConfigInterfaceSwitchportAccessTraits>,
-                   {{
-                       "vlan",
-                       "Set access VLAN (ingressVlan) for the interface",
-                       commandHandler<CmdConfigInterfaceSwitchportAccessVlan>,
-                       argTypeHandler<
-                           CmdConfigInterfaceSwitchportAccessVlanTraits>,
-                   }},
-               }},
+                    "access",
+                    "Configure access mode settings",
+                    commandHandler<CmdConfigInterfaceSwitchportAccess>,
+                    argRegistrar<CmdConfigInterfaceSwitchportAccessTraits>,
+                    {{
+                        "vlan",
+                        "Set access VLAN (ingressVlan) for the interface",
+                        commandHandler<CmdConfigInterfaceSwitchportAccessVlan>,
+                        argRegistrar<
+                            CmdConfigInterfaceSwitchportAccessVlanTraits>,
+                    }},
+                },
+                {
+                    "trunk",
+                    "Configure trunk mode settings",
+                    commandHandler<CmdConfigInterfaceSwitchportTrunk>,
+                    argRegistrar<CmdConfigInterfaceSwitchportTrunkTraits>,
+                    {{
+                        "allowed",
+                        "Configure allowed VLANs for trunk",
+                        commandHandler<
+                            CmdConfigInterfaceSwitchportTrunkAllowed>,
+                        argRegistrar<
+                            CmdConfigInterfaceSwitchportTrunkAllowedTraits>,
+                        {{
+                            "vlan",
+                            "Add or remove VLANs from trunk allowed list",
+                            commandHandler<
+                                CmdConfigInterfaceSwitchportTrunkAllowedVlan>,
+                            argRegistrar<
+                                CmdConfigInterfaceSwitchportTrunkAllowedVlanTraits>,
+                        }},
+                    }},
+                }},
            }},
       },
 
@@ -161,13 +302,45 @@ const CommandTree& kConfigCommandTree() {
           "l2",
           "Configure L2 settings",
           commandHandler<CmdConfigL2>,
-          argTypeHandler<CmdConfigL2Traits>,
+          argRegistrar<CmdConfigL2Traits>,
           {{
               "learning-mode",
               "Set L2 learning mode (hardware, software, or disabled)",
               commandHandler<CmdConfigL2LearningMode>,
-              argTypeHandler<CmdConfigL2LearningModeTraits>,
+              argRegistrar<CmdConfigL2LearningModeTraits>,
           }},
+      },
+
+      {
+          "config",
+          "mac",
+          "Configure MAC settings",
+          commandHandler<CmdConfigMac>,
+          argRegistrar<CmdConfigMacTraits>,
+          {{
+              "aging-time",
+              "Set MAC address aging time in seconds",
+              commandHandler<CmdConfigMacAgingTime>,
+              argRegistrar<CmdConfigMacAgingTimeTraits>,
+          }},
+      },
+
+      {
+          "config",
+          "load-balancing",
+          "Configure load-balancing (ECMP/LAG) settings",
+          {{
+               "ecmp",
+               "Configure ECMP hash fields, algorithm, and seed",
+               commandHandler<CmdConfigLoadBalancingEcmp>,
+               argRegistrar<CmdConfigLoadBalancingEcmpTraits>,
+           },
+           {
+               "lag",
+               "Configure LAG hash fields, algorithm, and seed",
+               commandHandler<CmdConfigLoadBalancingLag>,
+               argRegistrar<CmdConfigLoadBalancingLagTraits>,
+           }},
       },
 
       {
@@ -175,26 +348,26 @@ const CommandTree& kConfigCommandTree() {
           "protocol",
           "Configure protocol settings",
           commandHandler<CmdConfigProtocol>,
-          argTypeHandler<CmdConfigProtocolTraits>,
+          argRegistrar<CmdConfigProtocolTraits>,
           {
               {
                   "bgp",
                   "Configure BGP protocol",
                   commandHandler<CmdConfigProtocolBgp>,
-                  argTypeHandler<CmdConfigProtocolBgpTraits>,
+                  argRegistrar<CmdConfigProtocolBgpTraits>,
                   {
                       {
                           "global",
                           "Configure BGP global settings",
                           commandHandler<CmdConfigProtocolBgpGlobal>,
-                          argTypeHandler<CmdConfigProtocolBgpGlobalTraits>,
+                          argRegistrar<CmdConfigProtocolBgpGlobalTraits>,
                           {
                               {
                                   "router-id",
                                   "Set BGP router identifier",
                                   commandHandler<
                                       CmdConfigProtocolBgpGlobalRouterId>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpGlobalRouterIdTraits>,
                               },
                               {
@@ -202,7 +375,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set local AS number",
                                   commandHandler<
                                       CmdConfigProtocolBgpGlobalLocalAsn>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpGlobalLocalAsnTraits>,
                               },
                               {
@@ -210,7 +383,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set BGP hold time in seconds",
                                   commandHandler<
                                       CmdConfigProtocolBgpGlobalHoldTime>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpGlobalHoldTimeTraits>,
                               },
                               {
@@ -218,7 +391,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set BGP confederation AS number",
                                   commandHandler<
                                       CmdConfigProtocolBgpGlobalConfedAsn>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpGlobalConfedAsnTraits>,
                               },
                               {
@@ -226,7 +399,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set route reflector cluster ID",
                                   commandHandler<
                                       CmdConfigProtocolBgpGlobalClusterId>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpGlobalClusterIdTraits>,
                               },
                               {
@@ -234,7 +407,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Add IPv6 network to advertise",
                                   commandHandler<
                                       CmdConfigProtocolBgpGlobalNetwork6Add>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpGlobalNetwork6AddTraits>,
                               },
                               {
@@ -242,7 +415,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set switch limit prefix-limit",
                                   commandHandler<
                                       CmdConfigProtocolBgpGlobalSwitchLimitPrefixLimit>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpGlobalSwitchLimitPrefixLimitTraits>,
                               },
                               {
@@ -250,7 +423,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set switch limit total-path-limit",
                                   commandHandler<
                                       CmdConfigProtocolBgpGlobalSwitchLimitTotalPathLimit>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpGlobalSwitchLimitTotalPathLimitTraits>,
                               },
                               {
@@ -258,7 +431,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set switch limit max-golden-vips",
                                   commandHandler<
                                       CmdConfigProtocolBgpGlobalSwitchLimitMaxGoldenVips>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpGlobalSwitchLimitMaxGoldenVipsTraits>,
                               },
                               {
@@ -266,7 +439,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set switch limit overload-protection-mode",
                                   commandHandler<
                                       CmdConfigProtocolBgpGlobalSwitchLimitOverloadProtectionMode>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpGlobalSwitchLimitOverloadProtectionModeTraits>,
                               },
                           },
@@ -275,14 +448,14 @@ const CommandTree& kConfigCommandTree() {
                           "peer-group",
                           "Configure BGP peer group",
                           commandHandler<CmdConfigProtocolBgpPeerGroup>,
-                          argTypeHandler<CmdConfigProtocolBgpPeerGroupTraits>,
+                          argRegistrar<CmdConfigProtocolBgpPeerGroupTraits>,
                           {
                               {
                                   "description",
                                   "Set peer group description",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupDescription>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupDescriptionTraits>,
                               },
                               {
@@ -290,7 +463,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set remote AS number",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupRemoteAsn>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupRemoteAsnTraits>,
                               },
                               {
@@ -298,7 +471,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable next-hop-self",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupNextHopSelf>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupNextHopSelfTraits>,
                               },
                               {
@@ -306,7 +479,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable confederation peer",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupConfedPeer>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupConfedPeerTraits>,
                               },
                               {
@@ -314,7 +487,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable IPv4 AFI",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupDisableIpv4Afi>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupDisableIpv4AfiTraits>,
                               },
                               {
@@ -322,7 +495,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable v4-over-v6 next-hop",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupV4OverV6Nh>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupV4OverV6NhTraits>,
                               },
                               {
@@ -330,7 +503,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable route reflector client",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupRrClient>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupRrClientTraits>,
                               },
                               {
@@ -338,7 +511,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set ingress policy",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupIngressPolicy>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupIngressPolicyTraits>,
                               },
                               {
@@ -346,7 +519,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set egress policy",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupEgressPolicy>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupEgressPolicyTraits>,
                               },
                               {
@@ -354,7 +527,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set maximum routes",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupMaxRoutes>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupMaxRoutesTraits>,
                               },
                               {
@@ -362,7 +535,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set peer tag",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupPeerTag>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupPeerTagTraits>,
                               },
                               {
@@ -370,7 +543,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable warning-only mode",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupWarningOnly>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupWarningOnlyTraits>,
                               },
                               {
@@ -378,7 +551,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set warning limit percentage",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupWarningLimit>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupWarningLimitTraits>,
                               },
                               {
@@ -386,7 +559,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Configure BGP timers",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerGroupTimers>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerGroupTimersTraits>,
                                   {
                                       {
@@ -394,7 +567,7 @@ const CommandTree& kConfigCommandTree() {
                                           "Set hold time",
                                           commandHandler<
                                               CmdConfigProtocolBgpPeerGroupTimersHoldTime>,
-                                          argTypeHandler<
+                                          argRegistrar<
                                               CmdConfigProtocolBgpPeerGroupTimersHoldTimeTraits>,
                                       },
                                       {
@@ -402,7 +575,7 @@ const CommandTree& kConfigCommandTree() {
                                           "Set keepalive interval",
                                           commandHandler<
                                               CmdConfigProtocolBgpPeerGroupTimersKeepalive>,
-                                          argTypeHandler<
+                                          argRegistrar<
                                               CmdConfigProtocolBgpPeerGroupTimersKeepaliveTraits>,
                                       },
                                       {
@@ -410,7 +583,7 @@ const CommandTree& kConfigCommandTree() {
                                           "Set output delay",
                                           commandHandler<
                                               CmdConfigProtocolBgpPeerGroupTimersOutDelay>,
-                                          argTypeHandler<
+                                          argRegistrar<
                                               CmdConfigProtocolBgpPeerGroupTimersOutDelayTraits>,
                                       },
                                       {
@@ -418,7 +591,7 @@ const CommandTree& kConfigCommandTree() {
                                           "Set withdraw unprogrammed delay",
                                           commandHandler<
                                               CmdConfigProtocolBgpPeerGroupTimersWithdrawUnprogDelay>,
-                                          argTypeHandler<
+                                          argRegistrar<
                                               CmdConfigProtocolBgpPeerGroupTimersWithdrawUnprogDelayTraits>,
                                       },
                                   },
@@ -429,14 +602,14 @@ const CommandTree& kConfigCommandTree() {
                           "peer",
                           "Configure BGP peer",
                           commandHandler<CmdConfigProtocolBgpPeer>,
-                          argTypeHandler<CmdConfigProtocolBgpPeerTraits>,
+                          argRegistrar<CmdConfigProtocolBgpPeerTraits>,
                           {
                               {
                                   "peer-group",
                                   "Set peer group",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerPeerGroup>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerPeerGroupTraits>,
                               },
                               {
@@ -444,7 +617,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set peer description",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerDescription>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerDescriptionTraits>,
                               },
                               {
@@ -452,7 +625,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set remote AS number",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerRemoteAsn>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerRemoteAsnTraits>,
                               },
                               {
@@ -460,7 +633,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set local address",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerLocalAddr>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerLocalAddrTraits>,
                               },
                               {
@@ -468,7 +641,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set IPv4 next-hop",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerNextHop4>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerNextHop4Traits>,
                               },
                               {
@@ -476,7 +649,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set IPv6 next-hop",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerNextHop6>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerNextHop6Traits>,
                               },
                               {
@@ -484,7 +657,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable next-hop-self",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerNextHopSelf>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerNextHopSelfTraits>,
                               },
                               {
@@ -492,7 +665,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable IPv4 AFI",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerDisableIpv4Afi>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerDisableIpv4AfiTraits>,
                               },
                               {
@@ -500,7 +673,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable v4-over-v6 next-hop",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerV4OverV6Nh>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerV4OverV6NhTraits>,
                               },
                               {
@@ -508,7 +681,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable route reflector client",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerRrClient>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerRrClientTraits>,
                               },
                               {
@@ -516,14 +689,14 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable passive mode",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerPassive>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerPassiveTraits>,
                               },
                               {
                                   "type",
                                   "Set peer type",
                                   commandHandler<CmdConfigProtocolBgpPeerType>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerTypeTraits>,
                               },
                               {
@@ -531,7 +704,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set ingress policy",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerIngressPolicy>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerIngressPolicyTraits>,
                               },
                               {
@@ -539,7 +712,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set egress policy",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerEgressPolicy>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerEgressPolicyTraits>,
                               },
                               {
@@ -547,7 +720,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set maximum routes",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerMaxRoutes>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerMaxRoutesTraits>,
                               },
                               {
@@ -555,7 +728,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set peer identifier",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerPeerId>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerPeerIdTraits>,
                               },
                               {
@@ -563,7 +736,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable link bandwidth advertisement",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerAdvertiseLbw>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerAdvertiseLbwTraits>,
                               },
                               {
@@ -571,7 +744,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set link bandwidth",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerLinkBandwidth>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerLinkBandwidthTraits>,
                               },
                               {
@@ -579,7 +752,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set hold time",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerHoldTime>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerHoldTimeTraits>,
                               },
                               {
@@ -587,7 +760,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Enable/disable warning-only mode",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerWarningOnly>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerWarningOnlyTraits>,
                               },
                               {
@@ -595,7 +768,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Set warning limit percentage",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerWarningLimit>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerWarningLimitTraits>,
                               },
                               {
@@ -603,7 +776,7 @@ const CommandTree& kConfigCommandTree() {
                                   "Configure BGP timers",
                                   commandHandler<
                                       CmdConfigProtocolBgpPeerTimers>,
-                                  argTypeHandler<
+                                  argRegistrar<
                                       CmdConfigProtocolBgpPeerTimersTraits>,
                                   {
                                       {
@@ -611,7 +784,7 @@ const CommandTree& kConfigCommandTree() {
                                           "Set keepalive interval",
                                           commandHandler<
                                               CmdConfigProtocolBgpPeerTimersKeepalive>,
-                                          argTypeHandler<
+                                          argRegistrar<
                                               CmdConfigProtocolBgpPeerTimersKeepaliveTraits>,
                                       },
                                       {
@@ -619,7 +792,7 @@ const CommandTree& kConfigCommandTree() {
                                           "Set output delay",
                                           commandHandler<
                                               CmdConfigProtocolBgpPeerTimersOutDelay>,
-                                          argTypeHandler<
+                                          argRegistrar<
                                               CmdConfigProtocolBgpPeerTimersOutDelayTraits>,
                                       },
                                       {
@@ -627,7 +800,7 @@ const CommandTree& kConfigCommandTree() {
                                           "Set withdraw unprogrammed delay",
                                           commandHandler<
                                               CmdConfigProtocolBgpPeerTimersWithdrawUnprogDelay>,
-                                          argTypeHandler<
+                                          argRegistrar<
                                               CmdConfigProtocolBgpPeerTimersWithdrawUnprogDelayTraits>,
                                       },
                                   },
@@ -636,7 +809,49 @@ const CommandTree& kConfigCommandTree() {
                       },
                   },
               },
+              {
+                  "static",
+                  "Configure static routing",
+                  commandHandler<CmdConfigProtocolStatic>,
+                  argTypeHandler<CmdConfigProtocolStaticTraits>,
+                  {{
+                       "ip",
+                       "Configure IPv4 static routes",
+                       {{
+                           "route",
+                           "Add an IPv4 static route",
+                           commandHandler<CmdConfigProtocolStaticIpRouteAdd>,
+                           argRegistrar<
+                               CmdConfigProtocolStaticIpRouteAddTraits>,
+                       }},
+                   },
+                   {
+                       "ipv6",
+                       "Configure IPv6 static routes",
+                       {{
+                           "route",
+                           "Add an IPv6 static route",
+                           commandHandler<CmdConfigProtocolStaticIpv6RouteAdd>,
+                           argRegistrar<
+                               CmdConfigProtocolStaticIpv6RouteAddTraits>,
+                       }},
+                   }},
+              },
           },
+      },
+
+      {
+          "config",
+          "ptp",
+          "Configure PTP settings",
+          commandHandler<CmdConfigPtp>,
+          argRegistrar<CmdConfigPtpTraits>,
+          {{
+              "transparent-clock",
+              "Enable or disable PTP transparent clock mode",
+              commandHandler<CmdConfigPtpTransparentClock>,
+              argRegistrar<CmdConfigPtpTransparentClockTraits>,
+          }},
       },
 
       {
@@ -644,45 +859,45 @@ const CommandTree& kConfigCommandTree() {
           "qos",
           "Configure QoS settings",
           commandHandler<CmdConfigQos>,
-          argTypeHandler<CmdConfigQosTraits>,
+          argRegistrar<CmdConfigQosTraits>,
           {{
                "buffer-pool",
                "Configure buffer pool settings",
                commandHandler<CmdConfigQosBufferPool>,
-               argTypeHandler<CmdConfigQosBufferPoolTraits>,
+               argRegistrar<CmdConfigQosBufferPoolTraits>,
            },
            {
                "policy",
                "Configure QoS policy settings",
                commandHandler<CmdConfigQosPolicy>,
-               argTypeHandler<CmdConfigQosPolicyTraits>,
+               argRegistrar<CmdConfigQosPolicyTraits>,
                {{
                    "map",
                    "Set QoS map entry (tc-to-queue, pfc-pri-to-queue, tc-to-pg, pfc-pri-to-pg)",
                    commandHandler<CmdConfigQosPolicyMap>,
-                   argTypeHandler<CmdConfigQosPolicyMapTraits>,
+                   argRegistrar<CmdConfigQosPolicyMapTraits>,
                }},
            },
            {
                "priority-group-policy",
                "Configure priority group policy settings",
                commandHandler<CmdConfigQosPriorityGroupPolicy>,
-               argTypeHandler<CmdConfigQosPriorityGroupPolicyTraits>,
+               argRegistrar<CmdConfigQosPriorityGroupPolicyTraits>,
                {{"group-id",
                  "Specify priority group ID (0-7)",
                  commandHandler<CmdConfigQosPriorityGroupPolicyGroupId>,
-                 argTypeHandler<CmdConfigQosPriorityGroupPolicyGroupIdTraits>}},
+                 argRegistrar<CmdConfigQosPriorityGroupPolicyGroupIdTraits>}},
            },
            {
                "queuing-policy",
                "Configure queuing policy settings",
                commandHandler<CmdConfigQosQueuingPolicy>,
-               argTypeHandler<CmdConfigQosQueuingPolicyTraits>,
+               argRegistrar<CmdConfigQosQueuingPolicyTraits>,
                {{
                    "queue-id",
                    "Specify queue ID and attributes",
                    commandHandler<CmdConfigQosQueuingPolicyQueueId>,
-                   argTypeHandler<CmdConfigQosQueuingPolicyQueueIdTraits>,
+                   argRegistrar<CmdConfigQosQueuingPolicyQueueIdTraits>,
                }},
            }},
       },
@@ -695,25 +910,25 @@ const CommandTree& kConfigCommandTree() {
                "clear",
                "Clear the current config session",
                commandHandler<CmdConfigSessionClear>,
-               argTypeHandler<CmdConfigSessionClearTraits>,
+               argRegistrar<CmdConfigSessionClearTraits>,
            },
            {
                "commit",
                "Commit the current config session",
                commandHandler<CmdConfigSessionCommit>,
-               argTypeHandler<CmdConfigSessionCommitTraits>,
+               argRegistrar<CmdConfigSessionCommitTraits>,
            },
            {
                "diff",
                "Show diff between configs (session vs live, session vs revision, or revision vs revision)",
                commandHandler<CmdConfigSessionDiff>,
-               argTypeHandler<CmdConfigSessionDiffTraits>,
+               argRegistrar<CmdConfigSessionDiffTraits>,
            },
            {
                "rebase",
                "Rebase session changes onto current HEAD",
                commandHandler<CmdConfigSessionRebase>,
-               argTypeHandler<CmdConfigSessionRebaseTraits>,
+               argRegistrar<CmdConfigSessionRebaseTraits>,
            }},
       },
 
@@ -721,57 +936,178 @@ const CommandTree& kConfigCommandTree() {
        "reload",
        "Reload agent configuration",
        commandHandler<CmdConfigReload>,
-       argTypeHandler<CmdConfigReloadTraits>},
+       argRegistrar<CmdConfigReloadTraits>},
 
       {"config",
        "rollback",
        "Rollback to a previous config revision",
        commandHandler<CmdConfigRollback>,
-       argTypeHandler<CmdConfigRollbackTraits>},
+       argRegistrar<CmdConfigRollbackTraits>},
+
+      {"config",
+       "tunnel",
+       "Configure tunnel settings",
+       commandHandler<CmdConfigTunnel>,
+       argTypeHandler<CmdConfigTunnelTraits>,
+       {{
+           "ip-in-ip",
+           "Configure IP-in-IP tunnel (use 'encap' or 'decap')",
+           commandHandler<CmdConfigTunnelIpInIp>,
+           argTypeHandler<CmdConfigTunnelIpInIpTraits>,
+           {{
+                "encap",
+                "Configure IP-in-IP encap tunnel",
+                commandHandler<CmdConfigTunnelIpInIpEncap>,
+                argRegistrar<CmdConfigTunnelIpInIpEncapTraits>,
+            },
+            {
+                "decap",
+                "Configure IP-in-IP decap tunnel",
+                commandHandler<CmdConfigTunnelIpInIpDecap>,
+                argRegistrar<CmdConfigTunnelIpInIpDecapTraits>,
+            }},
+       }}},
 
       {
           "config",
           "vlan",
           "Configure VLAN settings",
           commandHandler<CmdConfigVlan>,
-          argTypeHandler<CmdConfigVlanTraits>,
+          argRegistrar<CmdConfigVlanTraits>,
           {{
                "port",
                "Configure VLAN port settings",
                commandHandler<CmdConfigVlanPort>,
-               argTypeHandler<CmdConfigVlanPortTraits>,
+               argRegistrar<CmdConfigVlanPortTraits>,
                {{
                    "taggingMode",
                    "Set VLAN port tagging mode (tagged, untagged, priority-tagged)",
                    commandHandler<CmdConfigVlanPortTaggingMode>,
-                   argTypeHandler<CmdConfigVlanPortTaggingModeTraits>,
+                   argRegistrar<CmdConfigVlanPortTaggingModeTraits>,
                }},
            },
            {
                "static-mac",
                "Manage static MAC entries for VLANs",
                commandHandler<CmdConfigVlanStaticMac>,
-               argTypeHandler<CmdConfigVlanStaticMacTraits>,
+               argRegistrar<CmdConfigVlanStaticMacTraits>,
                {{
                     "add",
                     "Add a static MAC entry to a VLAN",
                     commandHandler<CmdConfigVlanStaticMacAdd>,
-                    argTypeHandler<CmdConfigVlanStaticMacAddTraits>,
+                    argRegistrar<CmdConfigVlanStaticMacAddTraits>,
                 },
                 {
                     "delete",
                     "Delete a static MAC entry from a VLAN",
                     commandHandler<CmdConfigVlanStaticMacDelete>,
-                    argTypeHandler<CmdConfigVlanStaticMacDeleteTraits>,
+                    argRegistrar<CmdConfigVlanStaticMacDeleteTraits>,
                 }},
            }},
+      },
+
+      // Registered separately (merged into the existing "config vlan" by
+      // CmdSubcommands::addCommandBranch) so "default" lands at depth 0 and
+      // owns data_[0] for its own VLAN ID arg, independent of the
+      // "config vlan <id>" context (whose arg also lives at data_[0] but is
+      // not populated when the "default" subcommand is matched).
+      {
+          "config",
+          "vlan",
+          "Configure VLAN settings",
+          {{
+              "default",
+              "Set global default VLAN ID for untagged traffic",
+              commandHandler<CmdConfigVlanDefault>,
+              argRegistrar<CmdConfigVlanDefaultTraits>,
+          }},
+      },
+
+      {
+          "delete",
+          "interface",
+          "Delete an interface/port, or reset interface settings (e.g. ipv6 ndp, ip-address)",
+          commandHandler<CmdDeleteInterface>,
+          argRegistrar<CmdDeleteInterfaceTraits>,
+          {{
+              "ipv6",
+              "Delete (reset to default) IPv6 settings for interface",
+              commandHandler<CmdDeleteInterfaceIpv6>,
+              argTypeHandler<CmdDeleteInterfaceIpv6Traits>,
+              {{
+                  "ndp",
+                  "Reset IPv6 Neighbor Discovery (NDP/RA) settings to defaults",
+                  commandHandler<CmdDeleteInterfaceIpv6Ndp>,
+                  argRegistrar<CmdDeleteInterfaceIpv6NdpTraits>,
+              }},
+          }},
+      },
+
+      {
+          "delete",
+          "protocol",
+          "Delete protocol objects",
+          commandHandler<CmdDeleteProtocol>,
+          argTypeHandler<CmdDeleteProtocolTraits>,
+          {{
+              "static",
+              "Delete static routing configuration",
+              commandHandler<CmdDeleteProtocolStatic>,
+              argTypeHandler<CmdDeleteProtocolStaticTraits>,
+              {{
+                   "ip",
+                   "Delete IPv4 static routes",
+                   {{
+                       "route",
+                       "Delete IPv4 static route",
+                       commandHandler<CmdDeleteProtocolStaticIpRoute>,
+                       argRegistrar<CmdDeleteProtocolStaticIpRouteTraits>,
+                   }},
+               },
+               {
+                   "ipv6",
+                   "Delete IPv6 static routes",
+                   {{
+                       "route",
+                       "Delete IPv6 static route",
+                       commandHandler<CmdDeleteProtocolStaticIpv6Route>,
+                       argRegistrar<CmdDeleteProtocolStaticIpv6RouteTraits>,
+                   }},
+               }},
+          }},
       },
 
       {"delete",
        "config",
        "Delete config objects",
        commandHandler<CmdDeleteConfig>,
-       argTypeHandler<CmdDeleteConfigTraits>},
+       argRegistrar<CmdDeleteConfigTraits>},
+
+      {"delete",
+       "tunnel",
+       "Delete (reset to default) tunnel settings",
+       commandHandler<CmdDeleteTunnel>,
+       argTypeHandler<CmdDeleteTunnelTraits>,
+       {{
+           "ip-in-ip",
+           "Delete IP-in-IP tunnel or reset its attributes (use 'encap' or "
+           "'decap')",
+           commandHandler<CmdDeleteTunnelIpInIp>,
+           argTypeHandler<CmdDeleteTunnelIpInIpTraits>,
+           {{
+                "encap",
+                "Delete IP-in-IP encap tunnel or reset its attributes",
+                commandHandler<CmdDeleteTunnelIpInIpEncap>,
+                argRegistrar<CmdDeleteTunnelIpInIpEncapTraits>,
+            },
+            {
+                "decap",
+                "Delete IP-in-IP decap tunnel or reset its attributes",
+                commandHandler<CmdDeleteTunnelIpInIpDecap>,
+                argRegistrar<CmdDeleteTunnelIpInIpDecapTraits>,
+            }},
+       }}},
+
   };
   sort(root.begin(), root.end());
   return root;

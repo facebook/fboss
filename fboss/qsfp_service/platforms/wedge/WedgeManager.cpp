@@ -126,8 +126,8 @@ void WedgeManager::initTransceiverMap() {
         // modules.
         triggerQsfpHardReset(idx);
       } catch (const std::exception& ex) {
-        XLOG(ERR) << "failed to triggerQsfpHardReset at idx " << idx << ": "
-                  << ex.what();
+        MODULE_LOG(ERR, "", idx)
+            << "failed to triggerQsfpHardReset: " << ex.what();
       }
     }
   }
@@ -220,11 +220,13 @@ void WedgeManager::getTransceiversInfo(
     try {
       auto tcvrID = TransceiverID(i);
       info.insert({i, getTransceiverInfo(tcvrID)});
-      auto currentState = getCurrentState(tcvrID);
+      // Use the lock-free snapshot so this status read never blocks on an
+      // in-progress state update (e.g. a firmware flash holding the state
+      // lock), which would otherwise starve the thrift worker pool.
+      auto currentState = getCurrentStateSnapshot(tcvrID);
       info[i].tcvrState()->stateMachineState() = currentState;
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Transceiver " << i
-                << ": Error calling getTransceiverInfo(): " << ex.what();
+      MODULE_LOG(ERR, "", i) << "Error calling getTransceiverInfo(): " << ex.what();
     }
   }
 }
@@ -247,8 +249,7 @@ void WedgeManager::getAllTransceiversValidationInfo(
   const auto& presentTransceivers = getPresentTransceivers();
   for (const auto& i : *ids) {
     auto tcvrID = TransceiverID(i);
-    if (!isValidTransceiver(i) ||
-        presentTransceivers.find(tcvrID) == presentTransceivers.end()) {
+    if (!isValidTransceiver(i) || !presentTransceivers.contains(tcvrID)) {
       // If the transceiver idx is invalid or the transceiver is not present,
       // skip to the next one.
       continue;
@@ -264,9 +265,8 @@ void WedgeManager::getAllTransceiversValidationInfo(
 
       info.insert({i, validationInfo});
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Transceiver " << i
-                << ": Error calling getAllTransceiversValidationInfo(): "
-                << ex.what();
+      MODULE_LOG(ERR, "", i)
+          << "Error calling getAllTransceiversValidationInfo(): " << ex.what();
     }
   }
 }
@@ -292,8 +292,7 @@ void WedgeManager::getTransceiversRawDOMData(
       try {
         data = it->second->getRawDOMData();
       } catch (const std::exception& ex) {
-        XLOG(ERR) << "Transceiver " << i
-                  << ": Error calling getRawDOMData(): " << ex.what();
+        MODULE_LOG(ERR, "", i) << "Error calling getRawDOMData(): " << ex.what();
       }
       info[i] = data;
     }
@@ -321,8 +320,7 @@ void WedgeManager::getTransceiversDOMDataUnion(
       try {
         data = it->second->getDOMDataUnion();
       } catch (const std::exception& ex) {
-        XLOG(ERR) << "Transceiver " << i
-                  << ": Error calling getDOMDataUnion(): " << ex.what();
+        MODULE_LOG(ERR, "", i) << "Error calling getDOMDataUnion(): " << ex.what();
       }
       info[i] = data;
     }
@@ -458,8 +456,8 @@ void WedgeManager::syncPorts(
       try {
         info[tcvrID] = it->second->getTransceiverInfo();
       } catch (const std::exception& ex) {
-        XLOG(ERR) << "Transceiver " << tcvrID
-                  << ": Error calling getTransceiverInfo(): " << ex.what();
+        MODULE_LOG(ERR, "", tcvrID)
+            << "Error calling getTransceiverInfo(): " << ex.what();
       }
     }
   }
@@ -472,8 +470,8 @@ void WedgeManager::updateTransceiverLogInfo(
     try {
       tcvrInfo = getTransceiverInfo(tcvrID);
     } catch (const QsfpModuleError&) {
-      XLOG(INFO) << "Failed to update tcvr log info for transceiver: "
-                 << tcvrID;
+      MODULE_LOG(INFO, "", tcvrID)
+          << "Failed to update tcvr log info";
       continue;
     }
     const auto& state = tcvrInfo.tcvrState();
@@ -494,8 +492,7 @@ void WedgeManager::updateTransceiverLogInfo(
       auto portNames = getPortNames(tcvrID);
       qsfpImpls_[tcvrID]->setTcvrInfoInLog(mgmtIf, portNames, fwStatus, vendor);
     } else {
-      XLOG(ERR) << "Transceiver " << tcvrID
-                << " is not in the range of qsfpImpls_";
+      MODULE_LOG(ERR, "", tcvrID) << "is not in the range of qsfpImpls_";
     }
   }
 }
@@ -659,9 +656,8 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
     auto lockedTransceiversRPtr = transceivers_.rlock();
     for (int idx = 0; idx < numTransceivers; idx++) {
       if (!futInterfaces[idx].isReady()) {
-        XLOG(ERR)
-            << "Failed getting TransceiverManagementInterface for TransceiverID="
-            << idx;
+        MODULE_LOG(ERR, "", idx)
+            << "Failed getting TransceiverManagementInterface";
         continue;
       }
       auto it = lockedTransceiversRPtr->find(TransceiverID(idx));
@@ -687,11 +683,10 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
       // Also only create transceivers that are defined in platform mapping
       // (have non empty port list)
       if (transceiversInReset->count(idx) != 0) {
-        XLOG(INFO) << "TransceiverID=" << idx
-                   << " is held in reset. Not creating transceiver";
+        MODULE_LOG(INFO, "", idx) << "is held in reset. Not creating transceiver";
       } else if (getPortNames(static_cast<TransceiverID>(idx)).empty()) {
-        XLOG(INFO) << "TransceiverID=" << idx
-                   << " is not in platform mapping. Not creating transceiver";
+        MODULE_LOG(INFO, "", idx)
+            << "is not in platform mapping. Not creating transceiver";
       } else {
         tcvrsToCreate.insert(idx);
       }
@@ -714,7 +709,7 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
       auto mgmtIf = futInterfaces[idx].value();
       auto tcvrName = getTransceiverName(tcvrID);
       if (mgmtIf == TransceiverManagementInterface::CMIS) {
-        XLOG(INFO) << "Making CMIS QSFP for TransceiverID=" << idx;
+        MODULE_LOG(INFO, "", idx) << "Making CMIS QSFP";
         lockedTransceiversWPtr->emplace(
             tcvrID,
             std::make_unique<CmisModule>(
@@ -725,7 +720,7 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
                 tcvrName));
         retVal.emplace_back(idx);
       } else if (mgmtIf == TransceiverManagementInterface::SFF) {
-        XLOG(INFO) << "Making Sff QSFP for TransceiverID=" << idx;
+        MODULE_LOG(INFO, "", idx) << "Making Sff QSFP";
         lockedTransceiversWPtr->emplace(
             tcvrID,
             std::make_unique<SffModule>(
@@ -735,7 +730,7 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
                 tcvrName));
         retVal.emplace_back(idx);
       } else if (mgmtIf == TransceiverManagementInterface::SFF8472) {
-        XLOG(INFO) << "Making Sff8472 module for TransceiverID=" << idx;
+        MODULE_LOG(INFO, "", idx) << "Making Sff8472 module";
         lockedTransceiversWPtr->emplace(
             tcvrID,
             std::make_unique<Sff8472Module>(
@@ -744,21 +739,20 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
       } else {
         try {
           if (!qsfpImpls_[idx]->detectTransceiver()) {
-            XLOG(INFO) << "Transceiver is not present. TransceiverID=" << idx;
+            MODULE_LOG(INFO, "", idx) << "is not present";
             continue;
           } else {
             // If we fail to read the management interface, but the module is
             // detected, mark it as errored
             auto erroredTransceivers = erroredTransceivers_.wlock();
             erroredTransceivers->insert(TransceiverID(idx));
-            XLOG(ERR)
-                << "Transceiver " << idx
-                << " is detected but has an unknown Transceiver interface: "
+            MODULE_LOG(ERR, "", idx)
+                << "is detected but has an unknown Transceiver interface: "
                 << static_cast<int>(futInterfaces[idx].value());
           }
         } catch (const std::exception& ex) {
-          XLOG(ERR) << "Failed to detect transceiver. TransceiverID=" << idx
-                    << ": " << ex.what();
+          MODULE_LOG(ERR, "", idx)
+              << "Failed to detect transceiver: " << ex.what();
           continue;
         }
 
@@ -769,14 +763,14 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
         // perform the reset.
         bool safeToReset = areAllPortsDown(tcvrID).first;
         if (std::time(nullptr) <= pauseRemediationUntil_) {
-          XLOG(WARN) << "Remediation is paused, won't hard reset a present "
-                     << "transceiver with unknown interface. TransceiverID="
-                     << idx;
+          MODULE_LOG(WARN, "", idx)
+              << "Remediation is paused, won't hard reset a present "
+              << "transceiver with unknown interface";
         } else if (safeToReset) {
           tcvrsToHardReset.insert(idx);
         } else {
-          XLOG(ERR) << "Unknown interface of transceiver with ports up at "
-                    << idx;
+          MODULE_LOG(ERR, "", idx)
+              << "Unknown interface of transceiver with ports up";
         }
       }
     }
@@ -784,12 +778,12 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
 
   for (auto idx : tcvrsToHardReset) {
     try {
-      XLOG(INFO) << "Try hard reset a present transceiver with unknown "
-                 << "interface. TransceiverID=" << idx;
+      MODULE_LOG(INFO, "", idx)
+          << "Try hard reset a present transceiver with unknown interface";
       triggerQsfpHardReset(idx);
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Failed to triggerQsfpHardReset for TransceiverID=" << idx
-                << ": " << ex.what();
+      MODULE_LOG(ERR, "", idx)
+          << "Failed to triggerQsfpHardReset: " << ex.what();
     }
   }
   return retVal;
@@ -924,8 +918,8 @@ void WedgeManager::triggerVdmStatsCapture(std::vector<int32_t>& ids) {
       try {
         it->second->triggerVdmStatsCapture();
       } catch (std::exception& e) {
-        XLOG(ERR) << "Transceiver VDM could not be reset for port "
-                  << TransceiverID(i) << " message: " << e.what();
+        MODULE_LOG(ERR, "", TransceiverID(i))
+            << "VDM could not be reset: " << e.what();
         continue;
       }
     }
@@ -989,9 +983,8 @@ void WedgeManager::programXphyPort(
         it != lockedTransceivers->end()) {
       itTcvr = it->second->getTransceiverInfo();
     } else {
-      XLOG(WARNING) << "Port:" << portId
-                    << " doesn't have transceiver info for transceiver id:"
-                    << *tcvrID;
+      MODULE_LOG(WARNING, "", *tcvrID)
+          << "Port:" << portId << " doesn't have transceiver info";
     }
   }
 
@@ -1261,7 +1254,7 @@ QsfpToBmcSyncData WedgeManager::getQsfpToBmcSyncData() const {
     try {
       tcvrInfo = getTransceiverInfo(tcvrID);
     } catch (const QsfpModuleError&) {
-      XLOG(ERR) << "Module thermal data not available for " << tcvrID;
+      MODULE_LOG(ERR, "", tcvrID) << "Module thermal data not available";
       continue;
     }
 

@@ -8,6 +8,8 @@
  *
  */
 #include <fboss/agent/gen-cpp2/switch_config_types.h>
+#include <gflags/gflags.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -226,30 +228,6 @@ TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(l2AgeTimerSeconds, switchSettingsV1->getL2AgeTimerSeconds());
-}
-
-TEST(SwitchSettingsTest, applyMaxRouteCounterIDs) {
-  auto platform = createMockPlatform();
-  auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kVoqSwitchIdBegin /* switchId*/);
-
-  // Check default value
-  auto maxRouteCounterIDs = 0;
-  auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
-  ASSERT_NE(nullptr, switchSettingsV0);
-  EXPECT_FALSE(switchSettingsV0->isPublished());
-  EXPECT_EQ(maxRouteCounterIDs, switchSettingsV0->getMaxRouteCounterIDs());
-
-  // Check if value is updated
-  maxRouteCounterIDs = 10;
-  cfg::SwitchConfig config;
-  config.switchSettings()->maxRouteCounterIDs() = maxRouteCounterIDs;
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
-  ASSERT_NE(nullptr, switchSettingsV1);
-  EXPECT_FALSE(switchSettingsV1->isPublished());
-  EXPECT_EQ(maxRouteCounterIDs, switchSettingsV1->getMaxRouteCounterIDs());
 }
 
 TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
@@ -903,4 +881,51 @@ TEST(SwitchSettingsTest, applyDefaultVoqConfig) {
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
   verifyAqmsEcnState(stateV2, 300000, 300000);
+}
+
+TEST(SwitchSettingsTest, ecmpWidthGetterSetterRoundTrip) {
+  auto settings = make_shared<SwitchSettings>();
+  EXPECT_FALSE(settings->getEcmpWidth().has_value());
+
+  settings->setEcmpWidth(128);
+  ASSERT_TRUE(settings->getEcmpWidth().has_value());
+  EXPECT_EQ(128, *settings->getEcmpWidth());
+
+  settings->setEcmpWidth(std::nullopt);
+  EXPECT_FALSE(settings->getEcmpWidth().has_value());
+}
+
+TEST(SwitchSettingsTest, applyEcmpWidthFromGflag) {
+  gflags::FlagSaver flagSaver;
+
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  cfg::SwitchConfig config;
+
+  FLAGS_ecmp_width = 128;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV1);
+  ASSERT_TRUE(switchSettingsV1->getEcmpWidth().has_value());
+  EXPECT_EQ(128, *switchSettingsV1->getEcmpWidth());
+
+  FLAGS_ecmp_width = 64;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  auto switchSettingsV2 = utility::getFirstNodeIf(stateV2->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV2);
+  EXPECT_EQ(64, *switchSettingsV2->getEcmpWidth());
+}
+
+TEST(SwitchSettingsTest, ecmpWidthSerializesToThrift) {
+  auto settings = make_shared<SwitchSettings>();
+  settings->setEcmpWidth(256);
+
+  auto thrift = settings->toThrift();
+  ASSERT_TRUE(thrift.ecmpWidth().has_value());
+  EXPECT_EQ(256, *thrift.ecmpWidth());
+
+  auto unset = make_shared<SwitchSettings>();
+  EXPECT_FALSE(unset->toThrift().ecmpWidth().has_value());
 }

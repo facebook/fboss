@@ -126,7 +126,8 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
           if (profile == cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_OPTICAL) {
             expectedMediaLanes = {0, 1};
           } else if (
-              profile == cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL) {
+              profile == cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL ||
+              profile == cfg::PortProfileID::PROFILE_25G_1_NRZ_RS528_OPTICAL) {
             auto hostLanes = hostLaneMap[portName];
             ASSERT_TRUE(
                 hostLanes == std::vector{0} || hostLanes == std::vector{1});
@@ -134,13 +135,6 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
           } else {
             expectedMediaLanes = {0, 1, 2, 3};
           }
-          break;
-        case MediaInterfaceCode::FR4_200G:
-        case MediaInterfaceCode::LR4_200G:
-        case MediaInterfaceCode::FR4_400G:
-        case MediaInterfaceCode::DR4_400G:
-        case MediaInterfaceCode::LR4_400G_10KM:
-          expectedMediaLanes = {0, 1, 2, 3};
           break;
         case MediaInterfaceCode::CR8_800G:
           switch (profile) {
@@ -268,9 +262,10 @@ void HwTransceiverUtils::verifyOpticsSettings(
   EXPECT_GT(relevantMediaLanes.size(), 0);
   EXPECT_GT(relevantHostLanes.size(), 0);
 
-  // Identify Tunable Module.
-  bool isTunableOptics =
-      tcvrState.moduleTechnology().value() == ModuleTechnology::TUNABLE;
+  // Identify Tunable Module (C-Band or L-Band ZR).
+  auto modTech = tcvrState.moduleTechnology().value();
+  bool isTunableOptics = modTech == ModuleTechnology::TUNABLE_C_BAND ||
+      modTech == ModuleTechnology::TUNABLE_L_BAND;
 
   for (auto& mediaLane :
        apache::thrift::can_throw(*settings.mediaLaneSettings())) {
@@ -364,6 +359,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       break;
 
     case cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL:
+    case cfg::PortProfileID::PROFILE_25G_1_NRZ_RS528_OPTICAL:
       verify25gProfile(mgmtInterface, mediaInterfaces);
       break;
 
@@ -730,11 +726,6 @@ void HwTransceiverUtils::verifyDiagsCapability(
               *diagsCapability->vdm(),
               !TransceiverPropertiesManager::getDoesNotSupportVdm(
                   *mediaIntfCode));
-        } else {
-          EXPECT_EQ(
-              *diagsCapability->vdm(),
-              *mediaIntfCode == MediaInterfaceCode::FR4_400G ||
-                  *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM);
         }
         EXPECT_TRUE(*diagsCapability->cdb());
         EXPECT_TRUE(*diagsCapability->prbsLine());
@@ -747,10 +738,6 @@ void HwTransceiverUtils::verifyDiagsCapability(
                   *mediaIntfCode)) {
             EXPECT_TRUE(*diagsCapability->rxOutputControl());
           }
-        } else if (
-            *mediaIntfCode == MediaInterfaceCode::FR4_400G ||
-            *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM) {
-          EXPECT_TRUE(*diagsCapability->rxOutputControl());
         }
       }
       return;

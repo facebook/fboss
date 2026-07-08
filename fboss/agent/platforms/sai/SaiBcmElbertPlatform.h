@@ -22,14 +22,6 @@ class SaiBcmElbertPlatform : public SaiBcmPlatform {
       const std::string& platformMappingStr);
   ~SaiBcmElbertPlatform() override;
   HwAsic* getAsic() const override;
-  uint32_t numLanesPerCore() const override {
-    return 8;
-  }
-
-  uint32_t numCellsAvailable() const override {
-    return 223662;
-  }
-
   void initLEDs() override {}
 
   bool supportsDynamicBcmConfig() const override {

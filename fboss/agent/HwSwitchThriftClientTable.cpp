@@ -88,16 +88,20 @@ HwSwitchThriftClientTable::getFabricReachability(SwitchID switchId) {
   return reachability;
 }
 
-std::optional<std::map<::std::string, FabricEndpoint>>
+std::map<::std::string, FabricEndpoint>
 HwSwitchThriftClientTable::getFabricConnectivity(SwitchID switchId) {
   std::map<::std::string, FabricEndpoint> connectivity;
   auto client = getClient(switchId);
   try {
     client->sync_getHwFabricConnectivity(connectivity);
   } catch (const std::exception& ex) {
-    XLOG(ERR) << "Failed to get fabric reachability for switch : " << switchId
+    XLOG(ERR) << "Failed to get fabric connectivity for switch : " << switchId
               << " error: " << ex.what();
-    return std::nullopt;
+    throw FbossError(
+        "Failed to get fabric connectivity for switch ",
+        switchId,
+        " error: ",
+        ex.what());
   }
   return connectivity;
 }
@@ -181,6 +185,15 @@ std::string HwSwitchThriftClientTable::getHwDebugDump(SwitchID switchId) {
               << " error: " << ex.what();
   }
   return out;
+}
+
+void HwSwitchThriftClientTable::setSdkRegDumpEnabled(
+    SwitchID switchId,
+    bool enabled) {
+  // Let exceptions (e.g. unsupported on this device) propagate so callers can
+  // surface them to the user.
+  auto client = getClient(switchId);
+  client->sync_setSdkRegDumpEnabled(enabled);
 }
 
 std::vector<phy::PrbsLaneStats> HwSwitchThriftClientTable::getPortAsicPrbsStats(

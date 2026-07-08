@@ -1,5 +1,7 @@
 "Test Case","Platform","Status"
 "SensorServiceHwTest.SensorFetchODSCheck","minipack3n","PASSED"
+"SensorServiceHwTest.PowerAndInputVoltageAboveZero","minipack3n","PASSED"
+"SensorServiceHwTest.MinPsuCountMatchesPowerType","minipack3n","PASSED"
 "SensorServiceHwTest.GetSomeSensorsViaThrift","minipack3n","PASSED"
 "SensorServiceHwTest.GetSomeSensors","minipack3n","PASSED"
 "SensorServiceHwTest.GetBogusSensor","minipack3n","PASSED"

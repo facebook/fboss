@@ -25,6 +25,19 @@ class FsdbSubManagerBase {
 
   virtual void stop();
 
+  /*
+   * Force a transient disconnect of the underlying FSDB stream. The
+   * subscriber will automatically reconnect using the existing backoff.
+   * Safe to call after stop() (no-op).
+   *
+   * When noGR is true and the subscription was created with
+   * grHoldTimeSec > 0, the post-disconnect SubscriptionState transition skips
+   * DISCONNECTED_GR_HOLD and lands directly on DISCONNECTED_GR_HOLD_EXPIRED
+   * so consumers gated on isGRHoldExpired() drop stale state immediately.
+   * On non-GR subscriptions noGR is a no-op.
+   */
+  virtual void reconnect(bool noGR = false);
+
   const std::string& clientId() const;
 
   std::optional<SubscriptionInfo> getInfo();

@@ -408,6 +408,10 @@ class BcmSwitch : public BcmSwitchIf {
   folly::dynamic toFollyDynamic() const override;
 
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
+  // TODO: wire up BcmTrunkTable::getHwTrunkStats() to populate trunk stats
+  std::map<std::string, HwTrunkStats> getTrunkStats() const override {
+    return {};
+  }
   folly::F14FastMap<std::string, HwRouterInterfaceStats>
   getRouterInterfaceStats() const override {
     return {};
@@ -437,6 +441,7 @@ class BcmSwitch : public BcmSwitchIf {
   HwSwitchHardResetStats getHwSwitchHardResetStats() const override;
 
   HwResourceStats getResourceStats() const override;
+  HwSwitchCounterStats getHwSwitchCounterStats() const override;
   std::map<int, cfg::PortState> getSysPortShelState() const override {
     return {};
   }

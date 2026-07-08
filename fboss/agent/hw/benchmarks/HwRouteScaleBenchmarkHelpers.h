@@ -168,7 +168,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
 std::unique_ptr<AgentEnsemble> setupForVoqRouteScale(uint32_t ecmpWidth);
 
 std::vector<RoutePrefixV6> getVoqRoutePrefixes(uint32_t numRoutes);
-std::vector<flat_set<PortDescriptor>> getVoqRouteNextHopSets(
+std::vector<boost::container::flat_set<PortDescriptor>> getVoqRouteNextHopSets(
     const boost::container::flat_set<PortDescriptor>& remoteNhops,
     uint32_t ecmpGroup,
     uint32_t ecmpWidth);

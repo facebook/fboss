@@ -91,60 +91,103 @@ to install benchmark binaries.
 ```bash file=./static/code_snips/copy_and_set_up_package.sh
 ```
 
-### Step 3: Run Benchmark Binaries
+### Step 3: Run Benchmark Tests
+
+All benchmarks are consolidated into two binaries: `sai_all_benchmarks-sai_impl`
+(mono, the default) and `sai_multi_switch_all_benchmarks-sai_impl` (multi-switch).
+Individual benchmarks are selected at runtime via `--bm_regex`, with each test
+running in its own process for full setup/run/teardown isolation.
 
 #### Option 1: Using the run_test.py Script (Recommended)
 
-The `run_test.py` script provides automated execution of benchmark suites with CSV output:
+The `run_test.py` script discovers all benchmarks from the binary via
+`--bm_list`, pre-filters known-bad tests, then runs each test individually
+with full setup/run/teardown isolation. Pass `--agent-run-mode multi_switch`
+to use the multi-switch binary; mono is the default.
 
 ```bash
 cd /opt/fboss
 source ./bin/setup_fboss_env
 
-# Run all benchmarks (T1 + T2 + additional)
-./bin/run_test.py benchmark
-
-# Run T1 benchmark suite
+# Run all benchmarks (mono mode is the default)
 ./bin/run_test.py benchmark \
---filter_file ./share/hw_benchmark_tests/t1_benchmarks.conf
+--config /opt/fboss/share/hw_test_configs/montblanc.agent.materialized_JSON \
+--skip-known-bad-tests brcm/13.3.0.0_odp/tomahawk5 \
+--test-run-timeout 1800
 
-# Run T2 benchmark suite
-./bin/run_test.py benchmark \
---filter_file ./share/hw_benchmark_tests/t2_benchmarks.conf
+# Run all benchmarks against the multi-switch binary
+./bin/run_test.py benchmark --agent-run-mode multi_switch \
+--config /opt/fboss/share/hw_test_configs/montblanc.agent.materialized_JSON \
+--skip-known-bad-tests brcm/13.3.0.0_odp/tomahawk5 \
+--test-run-timeout 1800
 
-# Run only additional benchmarks (not in T1 or T2)
+# Run only benchmarks listed in a user-provided file (one test name per line)
 ./bin/run_test.py benchmark \
---filter_file ./share/hw_benchmark_tests/additional_benchmarks.conf
+--config /opt/fboss/share/hw_test_configs/montblanc.agent.materialized_JSON \
+--skip-known-bad-tests brcm/13.3.0.0_odp/tomahawk5 \
+--filter_file /path/to/my_benchmarks.conf
+
+# Run a single benchmark by name (regex match)
+./bin/run_test.py benchmark \
+--config /opt/fboss/share/hw_test_configs/montblanc.agent.materialized_JSON \
+--skip-known-bad-tests brcm/13.3.0.0_odp/tomahawk5 \
+--filter HwEcmpGroupShrink
+
+# Run all route scale benchmarks
+./bin/run_test.py benchmark \
+--config /opt/fboss/share/hw_test_configs/montblanc.agent.materialized_JSON \
+--skip-known-bad-tests brcm/13.3.0.0_odp/tomahawk5 \
+--filter ".*Route.*Benchmark"
+
+# List available benchmarks without running
+./bin/run_test.py benchmark \
+--config /opt/fboss/share/hw_test_configs/montblanc.agent.materialized_JSON \
+--list_tests
 ```
 
-Results are written to a timestamped CSV file (e.g., `benchmark_results_20260119_143022.csv`) with detailed metrics.
+**Benchmark-specific flags:**
 
-#### Option 2: Running Individual Binaries
+| Flag | Description |
+|------|-------------|
+| `--agent-run-mode` | `mono` (default) or `multi_switch`. Multi-switch passes `--multi_switch --hw_agent_for_testing` to the binary and manages the `hw_agent` service lifecycle automatically. |
+| `--num-npus` | Number of NPUs for multi-switch mode (1 or 2, default 1). When 2, adds `--multi_npu_platform_mapping`. |
+| `--filter` | Regex matched against discovered benchmark names to narrow which tests run. |
+| `--filter_file` | File containing BENCHMARK() registered names to run (one per line). |
+| `--skip-known-bad-tests` | Platform key (e.g. `brcm/13.3.0.0_odp/tomahawk5`) used both to pre-filter known-bad tests *before* running and to look up per-platform thresholds for result validation. Without it, all tests run and threshold validation is skipped (`NO_THRESHOLD`). |
+| `--test-run-timeout` | Timeout for each test run in seconds. Default is 1200. |
 
-Run individual benchmark binaries directly from the `bin` directory:
+When a benchmark has no threshold configured for the platform,
+the runner prints a `WILL ALWAYS PASS` warning so missing entries are visible.
+
+Results are written to a timestamped CSV file (e.g.,
+`benchmark_results_20260119_143022.csv`) with these columns:
+
+```
+benchmark_binary_name, benchmark_test_name, benchmark_time_ps,
+test_status, cpu_time_usec, max_rss, cpu_rx_pps, cpu_tx_pps,
+threshold_status, threshold_details
+```
+
+#### Option 2: Running the Binary Directly
 
 ```bash
 cd /opt/fboss
 source ./bin/setup_fboss_env
 
-./bin/sai_fsw_scale_route_add_speed-sai_impl
-./bin/sai_hgrid_du_scale_route_add_speed-sai_impl
-./bin/sai_hgrid_uu_scale_route_del_speed-sai_impl
-./bin/sai_th_alpm_scale_route_add_speed-sai_impl
-./bin/sai_fsw_scale_route_del_speed-sai_impl
-./bin/sai_ecmp_shrink_with_competing_route_updates_speed-sai_impl
-./bin/sai_th_alpm_scale_route_del_speed-sai_impl
-./bin/sai_ecmp_shrink_speed-sai_impl
-./bin/sai_hgrid_uu_scale_route_add_speed-sai_impl
-./bin/sai_hgrid_du_scale_route_del_speed-sai_impl
-./bin/sai_stats_collection_speed-sai_impl
-./bin/sai_tx_slow_path_rate-sai_impl
-./bin/sai_rx_slow_path_rate-sai_impl
-./bin/sai_init_and_exit_40Gx10G-sai_impl
-./bin/sai_init_and_exit_100Gx10G-sai_impl
-./bin/sai_init_and_exit_100Gx25G-sai_impl
-./bin/sai_init_and_exit_100Gx50G-sai_impl
-./bin/sai_init_and_exit_100Gx100G-sai_impl
-./bin/sai_rib_resolution_speed-sai_impl
-./bin/sai_switch_reachability_change_speed-sai_impl
+# List all available benchmarks (no hardware init)
+./bin/sai_all_benchmarks-sai_impl --bm_list
+
+# Same for the multi-switch binary
+./bin/sai_multi_switch_all_benchmarks-sai_impl --bm_list
+
+# Run a single benchmark (mono)
+./bin/sai_all_benchmarks-sai_impl --json \
+--bm_regex "^HwEcmpGroupShrink$" \
+--config ./share/hw_test_configs/<platform>.agent.materialized_JSON [--logging <level>]
+
+# Run a single benchmark (multi-switch)
+./bin/sai_multi_switch_all_benchmarks-sai_impl --json \
+--multi_switch --hw_agent_for_testing \
+--bm_regex "^HwEcmpGroupShrink$" \
+--config ./share/hw_test_configs/<platform>.agent.materialized_JSON [--logging <level>]
 ```

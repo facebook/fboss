@@ -47,6 +47,8 @@ using ::testing::Return;
 
 constexpr AdminDistance DISTANCE = AdminDistance::MAX_ADMIN_DISTANCE;
 
+const std::string kSrv6Tunnel0{"srv6Tunnel0"};
+
 // Utility function for creating a nexthops list of size n,
 // starting with the prefix.  For prefix "1.1.1.", first
 // IP in the list will be 1.1.1.10
@@ -96,6 +98,36 @@ TEST(Route, equality) {
   nextHopsRev.emplace(
       UnresolvedNextHop(IPAddress("2.2.2.10"), UCMP_DEFAULT_WEIGHT));
   nhm1.update(CLIENT_B, RouteNextHopEntry(nextHopsRev, DISTANCE));
+  EXPECT_TRUE(nhm1 == nhm2);
+
+  // Differ only in clientNextHopSetID - should compare unequal.
+  nhm1.update(
+      CLIENT_A,
+      RouteNextHopEntry(
+          newNextHops(3, "1.1.1."),
+          DISTANCE,
+          std::optional<RouteCounterID>(std::nullopt),
+          std::optional<cfg::AclLookupClass>(std::nullopt),
+          std::optional<cfg::SwitchingMode>(std::nullopt),
+          std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(NextHopSetID(77))));
+  EXPECT_FALSE(nhm1 == nhm2);
+
+  // Set the same clientNextHopSetID on the other side - back to equal.
+  nhm2.update(
+      CLIENT_A,
+      RouteNextHopEntry(
+          newNextHops(3, "1.1.1."),
+          DISTANCE,
+          std::optional<RouteCounterID>(std::nullopt),
+          std::optional<cfg::AclLookupClass>(std::nullopt),
+          std::optional<cfg::SwitchingMode>(std::nullopt),
+          std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(NextHopSetID(77))));
   EXPECT_TRUE(nhm1 == nhm2);
 }
 
@@ -210,6 +242,19 @@ TEST(Route, RouteNextHopsMultiThrift) {
           std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
           std::optional<NextHopSetID>(std::nullopt),
           std::optional<NextHopSetID>(NextHopSetID(300))));
+
+  nhm1.update(
+      CLIENT_A,
+      RouteNextHopEntry(
+          newNextHops(4, "4.4.4."),
+          DISTANCE,
+          std::optional<RouteCounterID>(std::nullopt),
+          std::optional<cfg::AclLookupClass>(std::nullopt),
+          std::optional<cfg::SwitchingMode>(std::nullopt),
+          std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(std::nullopt),
+          std::optional<NextHopSetID>(NextHopSetID(400))));
 
   validateThriftStructNodeSerialization<RouteNextHopsMulti>(nhm1);
 }
@@ -327,6 +372,7 @@ TEST(Route, serializeRouteNextHopSetIDs) {
   std::optional<NextHopSetID> normalizedResolvedNextHopSetID(
       NextHopSetID(12345));
   std::optional<NextHopSetID> resolvedNextHopSetID(NextHopSetID(54321));
+  std::optional<NextHopSetID> clientNextHopSetID(NextHopSetID(99999));
   RouteNextHopEntry nhopEntry(
       nxtHops,
       DISTANCE,
@@ -335,7 +381,8 @@ TEST(Route, serializeRouteNextHopSetIDs) {
       std::optional<cfg::SwitchingMode>(),
       std::optional<RouteNextHopEntry::NextHopSet>(),
       normalizedResolvedNextHopSetID,
-      resolvedNextHopSetID);
+      resolvedNextHopSetID,
+      clientNextHopSetID);
   Route<IPAddressV4> rt(
       Route<IPAddressV4>::makeThrift(
           makePrefixV4("1.2.3.4/32"), clientId, nhopEntry));
@@ -552,7 +599,7 @@ TEST(Route, serializeRouteWithSrv6NextHops) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
   nhops.emplace(
       ResolvedNextHop(folly::IPAddress("11.11.11.11"), InterfaceID(2), 20));
 
@@ -580,7 +627,7 @@ TEST(Route, routeForwardInfoPreservesSrv6Fields) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
 
   RouteNextHopEntry nhopEntry(nhops, DISTANCE);
   Route<IPAddressV4> rt(
@@ -594,7 +641,7 @@ TEST(Route, routeForwardInfoPreservesSrv6Fields) {
   const auto& nh = *fwdNhops.begin();
   EXPECT_EQ(nh.srv6SegmentList(), segList);
   EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-  EXPECT_EQ(nh.tunnelId(), "tunnel_1");
+  EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
 }
 
 TEST(Route, RouteNextHopsMultiWithSrv6) {
@@ -611,7 +658,7 @@ TEST(Route, RouteNextHopsMultiWithSrv6) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
 
   RouteNextHopsMulti nhm;
   nhm.update(CLIENT_A, RouteNextHopEntry(nhops, DISTANCE));
@@ -624,7 +671,7 @@ TEST(Route, RouteNextHopsMultiWithSrv6) {
   const auto& nh = *bestNhops.begin();
   EXPECT_EQ(nh.srv6SegmentList(), segList);
   EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-  EXPECT_EQ(nh.tunnelId(), "tunnel_1");
+  EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
 }
 
 TEST(RouteNextHopEntry, toUnicastRouteWithSrv6Nhops) {
@@ -643,7 +690,7 @@ TEST(RouteNextHopEntry, toUnicastRouteWithSrv6Nhops) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
 
   auto unicastRoute =
       util::toUnicastRoute(nw, RouteNextHopEntry(nhops, DISTANCE));
@@ -653,5 +700,5 @@ TEST(RouteNextHopEntry, toUnicastRouteWithSrv6Nhops) {
   const auto& thriftNh = unicastRoute.nextHops()->at(0);
   EXPECT_EQ(thriftNh.srv6SegmentList()->size(), 2);
   EXPECT_EQ(thriftNh.tunnelType(), TunnelType::SRV6_ENCAP);
-  EXPECT_EQ(thriftNh.tunnelId(), "tunnel_1");
+  EXPECT_EQ(thriftNh.tunnelId(), kSrv6Tunnel0);
 }

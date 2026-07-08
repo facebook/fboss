@@ -52,15 +52,14 @@ class PriorityGroupPolicyName : public utils::BaseObjectArgType<std::string> {
   const std::string& getName() const {
     return data_[0];
   }
-
-  const static utils::ObjectArgTypeId id =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_POLICY_NAME;
 };
 
 struct CmdConfigQosPriorityGroupPolicyTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigQos;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PRIORITY_GROUP_POLICY_NAME;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "priority_group_policy_name", args, "Priority group policy name");
+  }
   using ObjectArgType = PriorityGroupPolicyName;
   using RetType = std::string;
 };

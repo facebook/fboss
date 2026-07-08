@@ -22,7 +22,12 @@ class CmdShowMySid : public CmdHandler<CmdShowMySid, CmdShowMySidTraits> {
   using RetType = CmdShowMySidTraits::RetType;
 
   RetType queryClient(const HostInfo& hostInfo);
-  RetType createModel(const std::vector<MySidEntry>& entries);
+  RetType createModel(
+      const std::vector<MySidEntry>& entries,
+      const std::vector<ArpEntryThrift>& arpTable,
+      const std::vector<NdpEntryThrift>& ndpTable,
+      const std::map<int32_t, PortInfoThrift>& portInfo,
+      const std::vector<AggregatePortThrift>& aggregatePorts);
   void printOutput(const RetType& model, std::ostream& out = std::cout);
 };
 

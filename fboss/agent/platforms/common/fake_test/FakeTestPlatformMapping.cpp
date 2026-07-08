@@ -10,7 +10,7 @@
 
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include "fboss/agent/FbossError.h"
 
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
@@ -79,6 +79,7 @@ static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
     k8PortProfilesInGroup = {
         {0,
          {
+             cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
              cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
              cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
              cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
@@ -105,7 +106,9 @@ static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
          }},
         {4,
          {
+             cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
              cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
+             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
              cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
              cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
              cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
@@ -139,6 +142,14 @@ static const std::unordered_map<
         phy::InterfaceMode,
         phy::InterfaceType>>
     kProfiles = {
+        {cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
+         std::make_tuple(
+             cfg::PortSpeed::FOURHUNDREDG,
+             4,
+             phy::FecMode::RS544_2N,
+             TransmitterTechnology::OPTICAL,
+             phy::InterfaceMode::CAUI,
+             phy::InterfaceType::CAUI)},
         {cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
          std::make_tuple(
              cfg::PortSpeed::HUNDREDG,
@@ -289,19 +300,19 @@ void FakeTestPlatformMapping::createPlatformMapping(int portsPerSlot) {
     }
 
     phy::DataPlanePhyChip iphy;
-    *iphy.name() = folly::sformat("core{}", groupID);
+    *iphy.name() = fmt::format("core{}", groupID);
     *iphy.type() = phy::DataPlanePhyChipType::IPHY;
     *iphy.physicalID() = groupID;
     setChip(*iphy.name(), iphy);
 
     phy::DataPlanePhyChip xphy;
-    xphy.name() = folly::sformat("XPHY{}", groupID);
+    xphy.name() = fmt::format("XPHY{}", groupID);
     xphy.type() = phy::DataPlanePhyChipType::XPHY;
     xphy.physicalID() = groupID;
     setChip(*xphy.name(), xphy);
 
     phy::DataPlanePhyChip tcvr;
-    *tcvr.name() = folly::sformat("eth1/{}", groupID + 1);
+    *tcvr.name() = fmt::format("eth1/{}", groupID + 1);
     *tcvr.type() = phy::DataPlanePhyChipType::TRANSCEIVER;
     *tcvr.physicalID() = groupID;
     setChip(*tcvr.name(), tcvr);
@@ -324,7 +335,7 @@ cfg::PlatformPortConfig FakeTestPlatformMapping::getPlatformPortConfig(
   platformPortConfig.pins()->transceiver() = {};
   for (auto i = 0; i < lanes; i++) {
     phy::PinConfig iphy;
-    *iphy.id()->chip() = folly::sformat("core{}", groupID);
+    *iphy.id()->chip() = fmt::format("core{}", groupID);
     *iphy.id()->lane() = (startLane + i);
     // tx config
     iphy.tx() = getFakeTxSetting();
@@ -333,7 +344,7 @@ cfg::PlatformPortConfig FakeTestPlatformMapping::getPlatformPortConfig(
     platformPortConfig.pins()->iphy()->push_back(iphy);
 
     phy::PinConfig xphy;
-    xphy.id()->chip() = folly::sformat("XPHY{}", groupID);
+    xphy.id()->chip() = fmt::format("XPHY{}", groupID);
     xphy.id()->lane() = (startLane + i);
     xphy.tx() = getFakeTxSetting();
     xphy.rx() = getFakeRxSetting();
@@ -341,7 +352,7 @@ cfg::PlatformPortConfig FakeTestPlatformMapping::getPlatformPortConfig(
     platformPortConfig.pins()->xphyLine() = {xphy};
 
     phy::PinConfig tcvr;
-    *tcvr.id()->chip() = folly::sformat("eth1/{}", groupID + 1);
+    *tcvr.id()->chip() = fmt::format("eth1/{}", groupID + 1);
     *tcvr.id()->lane() = (startLane + i);
     platformPortConfig.pins()->transceiver()->push_back(tcvr);
   }
@@ -375,19 +386,19 @@ FakeTestPlatformMapping::getPlatformPortEntriesByGroup(
     cfg::PlatformPortEntry port;
     *port.mapping()->id() = PortID(portID);
     *port.mapping()->name() =
-        folly::sformat("eth1/{}/{}", groupID + 1, portProfiles.first + 1);
+        fmt::format("eth1/{}/{}", groupID + 1, portProfiles.first + 1);
     *port.mapping()->controllingPort() = controllingPortIds_.at(groupID);
 
     phy::PinConnection asicPinConnection;
-    asicPinConnection.a()->chip() = folly::sformat("core{}", groupID);
+    asicPinConnection.a()->chip() = fmt::format("core{}", groupID);
     asicPinConnection.a()->lane() = portProfiles.first;
 
     phy::PinConnection xphyLinePinConnection;
-    xphyLinePinConnection.a()->chip() = folly::sformat("XPHY{}", groupID);
+    xphyLinePinConnection.a()->chip() = fmt::format("XPHY{}", groupID);
     xphyLinePinConnection.a()->lane() = portProfiles.first;
 
     phy::PinID pinEnd;
-    *pinEnd.chip() = folly::sformat("eth1/{}", groupID + 1);
+    *pinEnd.chip() = fmt::format("eth1/{}", groupID + 1);
     *pinEnd.lane() = portProfiles.first;
 
     phy::Pin zPin;
@@ -395,7 +406,7 @@ FakeTestPlatformMapping::getPlatformPortEntriesByGroup(
     xphyLinePinConnection.z() = zPin;
 
     phy::PinJunction xphyPinJunction;
-    xphyPinJunction.system()->chip() = folly::sformat("XPHY{}", groupID);
+    xphyPinJunction.system()->chip() = fmt::format("XPHY{}", groupID);
     xphyPinJunction.system()->lane() = portProfiles.first;
     xphyPinJunction.line() = {xphyLinePinConnection};
 
@@ -451,7 +462,7 @@ void FakeTestPlatformMapping::createDualTransceiverPlatformMapping(
   // constrict the requirements on input args.
   if (controllingPortIds_.size() != 2 || portsPerSlot != 4) {
     throw FbossError(
-        folly::sformat(
+        fmt::format(
             "twoTransceiversPerPort is enabled, but controllingPortIds size is {} (expected 2) or portsPerSlot is {} (expected 4).",
             controllingPortIds_.size(),
             portsPerSlot));
@@ -465,11 +476,11 @@ void FakeTestPlatformMapping::createDualTransceiverPlatformMapping(
         std::vector<phy::PinConnection> dualTcvrPinConnections;
         for (int i = 0; i < 4; i++) {
           phy::PinConnection asicPinConnection;
-          asicPinConnection.a()->chip() = folly::sformat("core{}", groupID);
+          asicPinConnection.a()->chip() = fmt::format("core{}", groupID);
           asicPinConnection.a()->lane() = i;
 
           phy::PinID pinEnd1;
-          *pinEnd1.chip() = folly::sformat("eth1/{}", groupID + 1);
+          *pinEnd1.chip() = fmt::format("eth1/{}", groupID + 1);
           *pinEnd1.lane() = i;
 
           phy::Pin zPin1;
@@ -481,11 +492,11 @@ void FakeTestPlatformMapping::createDualTransceiverPlatformMapping(
         // Second Tcvr Lanes
         for (int i = 0; i < 4; i++) {
           phy::PinConnection asicPinConnection;
-          asicPinConnection.a()->chip() = folly::sformat("core{}", groupID);
+          asicPinConnection.a()->chip() = fmt::format("core{}", groupID);
           asicPinConnection.a()->lane() = i + 4;
 
           phy::PinID pinEnd1;
-          *pinEnd1.chip() = folly::sformat("eth1/{}", groupID + 2);
+          *pinEnd1.chip() = fmt::format("eth1/{}", groupID + 2);
           *pinEnd1.lane() = i;
 
           phy::Pin zPin1;
@@ -500,7 +511,7 @@ void FakeTestPlatformMapping::createDualTransceiverPlatformMapping(
         std::vector<phy::PinConfig> dualTcvrPinConfigsPhy;
         for (int i = 0; i < 8; i++) {
           phy::PinConfig iphy;
-          *iphy.id()->chip() = folly::sformat("core{}", groupID);
+          *iphy.id()->chip() = fmt::format("core{}", groupID);
           *iphy.id()->lane() = i;
           iphy.tx() = getFakeTxSetting();
           iphy.rx() = getFakeRxSetting();
@@ -510,13 +521,13 @@ void FakeTestPlatformMapping::createDualTransceiverPlatformMapping(
         std::vector<phy::PinConfig> dualTcvrPinConfigsTcvr;
         for (int i = 0; i < 4; i++) {
           phy::PinConfig tcvr;
-          *tcvr.id()->chip() = folly::sformat("eth1/{}", groupID + 1);
+          *tcvr.id()->chip() = fmt::format("eth1/{}", groupID + 1);
           *tcvr.id()->lane() = i;
           dualTcvrPinConfigsTcvr.push_back(tcvr);
         }
         for (int i = 0; i < 4; i++) {
           phy::PinConfig tcvr;
-          *tcvr.id()->chip() = folly::sformat("eth1/{}", groupID + 2);
+          *tcvr.id()->chip() = fmt::format("eth1/{}", groupID + 2);
           *tcvr.id()->lane() = i;
           dualTcvrPinConfigsTcvr.push_back(tcvr);
         }
@@ -548,19 +559,19 @@ void FakeTestPlatformMapping::createDualTransceiverPlatformMapping(
     }
 
     phy::DataPlanePhyChip iphy;
-    *iphy.name() = folly::sformat("core{}", groupID);
+    *iphy.name() = fmt::format("core{}", groupID);
     *iphy.type() = phy::DataPlanePhyChipType::IPHY;
     *iphy.physicalID() = groupID;
     setChip(*iphy.name(), iphy);
 
     phy::DataPlanePhyChip xphy;
-    xphy.name() = folly::sformat("XPHY{}", groupID);
+    xphy.name() = fmt::format("XPHY{}", groupID);
     xphy.type() = phy::DataPlanePhyChipType::XPHY;
     xphy.physicalID() = groupID;
     setChip(*xphy.name(), xphy);
 
     phy::DataPlanePhyChip tcvr;
-    *tcvr.name() = folly::sformat("eth1/{}", groupID + 1);
+    *tcvr.name() = fmt::format("eth1/{}", groupID + 1);
     *tcvr.type() = phy::DataPlanePhyChipType::TRANSCEIVER;
     *tcvr.physicalID() = groupID;
     setChip(*tcvr.name(), tcvr);

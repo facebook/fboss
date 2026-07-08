@@ -164,6 +164,15 @@ std::string HwSwitch::getDebugDump() const {
   return out;
 }
 
+void HwSwitch::setSdkRegDumpEnabled(bool /*enabled*/) {
+  throw FbossError("SDK register dump is not supported on this device");
+}
+
+void HwSwitch::triggerCableLengthMeasurement(
+    const std::unique_ptr<std::vector<int32_t>>& /*ports*/) {
+  throw FbossError("Cable length measurement is not supported on this device");
+}
+
 HwSwitchFb303Stats* HwSwitch::getSwitchStats() const {
   if (!hwSwitchStats_) {
     hwSwitchStats_.reset(new HwSwitchFb303Stats(
@@ -206,6 +215,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
       std::chrono::system_clock::now().time_since_epoch());
   hwSwitchStats.timestamp() = now.count();
   hwSwitchStats.hwPortStats() = getPortStats();
+  hwSwitchStats.hwTrunkStats() = getTrunkStats();
   hwSwitchStats.hwAsicErrors() = getSwitchStats()->getHwAsicErrors();
   hwSwitchStats.teFlowStats() = getTeFlowStats();
   hwSwitchStats.fabricReachabilityStats() = getFabricReachabilityStats();
@@ -213,6 +223,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.fb303GlobalStats() = getSwitchStats()->getAllFb303Stats();
   hwSwitchStats.cpuPortStats() = getCpuPortStats();
   hwSwitchStats.switchDropStats() = getSwitchDropStats();
+  hwSwitchStats.switchDropBitmapStats() = getSwitchDropBitmapStats();
   hwSwitchStats.flowletStats() = getHwFlowletStats();
   hwSwitchStats.aclStats() = getAclStats();
   hwSwitchStats.switchWatermarkStats() = getSwitchWatermarkStats();
@@ -223,6 +234,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.sysPortShelState() = getSysPortShelState();
   hwSwitchStats.hwRouterInterfaceStats() = getRouterInterfaceStats();
   hwSwitchStats.hardResetStats() = getHwSwitchHardResetStats();
+  hwSwitchStats.counterStats() = getHwSwitchCounterStats();
   return hwSwitchStats;
 }
 

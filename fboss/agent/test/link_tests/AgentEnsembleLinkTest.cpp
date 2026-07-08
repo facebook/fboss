@@ -1,11 +1,14 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <folly/String.h>
 #include <folly/Subprocess.h>
 #include <folly/system/EnvUtil.h>
 #include <gflags/gflags.h>
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/DebugProtocol.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
@@ -19,8 +22,11 @@
 #include "fboss/agent/test/utils/HyperPortTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/if/LinkQsfpTestPortInfoUtils.h"
+#include "fboss/lib/if/gen-cpp2/link_qsfp_test_port_info_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
@@ -112,10 +118,14 @@ void AgentEnsembleLinkTest::TearDown() {
 
       // Dump the I2C Logs at the end of the test.
       dumpTransceiverI2cLogs(*qsfpServiceClient);
-
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Failed to call qsfp_service getStatus(). " << ex.what();
     }
+
+    // NOTE: per-port metadata is dumped via the dumpTestMetadata() override,
+    // invoked from tearDownAgentEnsemble() so it runs on both the cold-boot
+    // (setup_for_warmboot) and warm-boot phases. TODO: Add a hard check that
+    // every test registers tested ports once all tests are instrumented.
 
 #ifndef IS_OSS
     try {
@@ -732,6 +742,12 @@ AgentEnsembleLinkTest::getPortPairsForFecErrInj() const {
       phy::FecMode::RS528, phy::FecMode::RS544, phy::FecMode::RS544_2N};
   std::vector<std::pair<PortID, PortID>> supportedPorts;
   for (const auto& [port1, port2] : connectedPairs) {
+    if (getProgrammedState()->getPorts()->getNodeIf(port1)->getPortType() ==
+            cfg::PortType::MANAGEMENT_PORT ||
+        getProgrammedState()->getPorts()->getNodeIf(port2)->getPortType() ==
+            cfg::PortType::MANAGEMENT_PORT) {
+      continue;
+    }
     auto fecPort1 = getPortFECMode(port1);
     auto fecPort2 = getPortFECMode(port2);
     if (fecPort1 != fecPort2) {
@@ -786,6 +802,125 @@ void AgentEnsembleLinkTest::printProductionFeatures() const {
     throw std::runtime_error("No production features found for this Link Test");
   }
   std::cout << "Feature List: " << folly::join(",", supportedFeatures) << "\n";
+}
+
+void AgentEnsembleLinkTest::addTestedPort(const PortID& portId) {
+  testedPorts_.insert(portId);
+}
+
+void AgentEnsembleLinkTest::addTestedPorts(const std::vector<PortID>& portIds) {
+  testedPorts_.insert(portIds.begin(), portIds.end());
+}
+
+void AgentEnsembleLinkTest::addTestMetadata(
+    const PortID& portId,
+    const std::string& key,
+    const std::string& value) {
+  perPortMetadata_[portId][key] = value;
+}
+
+void AgentEnsembleLinkTest::addVerifiedProductionFeatures(
+    const std::vector<link_test_production_features::LinkTestProductionFeature>&
+        features) {
+  verifiedProductionFeatures_.insert(
+      verifiedProductionFeatures_.end(), features.begin(), features.end());
+}
+
+void AgentEnsembleLinkTest::dumpTestMetadata() {
+  if (testedPorts_.empty()) {
+    return;
+  }
+  try {
+    auto testInfo = testing::UnitTest::GetInstance()->current_test_info();
+    auto testName =
+        fmt::format("{}.{}", testInfo->test_suite_name(), testInfo->name());
+
+    std::vector<std::string> featureNames;
+    featureNames.reserve(verifiedProductionFeatures_.size());
+    for (const auto& feature : verifiedProductionFeatures_) {
+      featureNames.push_back(apache::thrift::util::enumNameSafe(feature));
+    }
+
+    auto cabledTcvrPorts = getCabledTransceiverPorts();
+    std::unordered_set<PortID> cabledTcvrPortSet(
+        cabledTcvrPorts.begin(), cabledTcvrPorts.end());
+
+    std::vector<int32_t> tcvrIds;
+    std::map<PortID, int32_t> portToTcvrId;
+    for (const auto& portId : testedPorts_) {
+      if (!cabledTcvrPortSet.contains(portId)) {
+        continue;
+      }
+      auto tcvrId =
+          getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(portId);
+      tcvrIds.push_back(tcvrId);
+      portToTcvrId[portId] = tcvrId;
+    }
+
+    std::map<int32_t, TransceiverInfo> tcvrInfos;
+    if (!tcvrIds.empty()) {
+      // Best effort: if qsfp_service is unreachable we still dump port level
+      // info (test name, port name, FEC mode) below.
+      try {
+        auto qsfpServiceClient = utils::createQsfpServiceClient();
+        qsfpServiceClient->sync_getTransceiverInfo(tcvrInfos, tcvrIds);
+      } catch (const std::exception& ex) {
+        XLOG(WARN) << "Failed to get transceiver info for link test port info: "
+                   << folly::exceptionStr(ex);
+      }
+    }
+
+    std::vector<std::string> jsonLines;
+    for (auto portId : testedPorts_) {
+      LinkQsfpTestPortInfo portInfo;
+      auto portName = getPortName(portId);
+      portInfo.testName() = testName;
+      portInfo.portId() = static_cast<int32_t>(portId);
+      portInfo.portName() = portName;
+
+      try {
+        portInfo.fecMode() = getPortFECMode(portId);
+      } catch (const std::exception&) {
+        // Leave fecMode unset if no profile found for this port.
+      }
+
+      if (auto it = portToTcvrId.find(portId); it != portToTcvrId.end()) {
+        portInfo.transceiverId() = it->second;
+        if (auto tcvrIt = tcvrInfos.find(it->second);
+            tcvrIt != tcvrInfos.end()) {
+          const auto& tcvrState = *tcvrIt->second.tcvrState();
+          utility::populateTransceiverInfoFields(portInfo, tcvrState, portName);
+        }
+      }
+
+      portInfo.verifiedProductionFeatures() = featureNames;
+
+      if (auto it = perPortMetadata_.find(portId);
+          it != perPortMetadata_.end()) {
+        portInfo.extraMetadata() = it->second;
+      }
+
+      jsonLines.push_back(
+          apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+              portInfo));
+    }
+
+    auto content = folly::join("\n", jsonLines);
+    if (writeSysfs(utility::kLinkQsfpTestPortInfoForScuba, content)) {
+      XLOG(DBG2) << "Dumped link test port info for " << testedPorts_.size()
+                 << " ports to " << utility::kLinkQsfpTestPortInfoForScuba;
+    } else {
+      XLOG(ERR) << "Failed to write link test port info for "
+                << testedPorts_.size() << " ports to "
+                << utility::kLinkQsfpTestPortInfoForScuba;
+    }
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << "Failed to dump link test port info: "
+               << folly::exceptionStr(ex);
+  }
+  testedPorts_.clear();
+  perPortMetadata_.clear();
+  verifiedProductionFeatures_.clear();
 }
 
 int agentEnsembleLinkTestMain(

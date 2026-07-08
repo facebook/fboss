@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_platform")
 
@@ -8,8 +9,10 @@ cpp_unittest(
         "FruPresenceExplorerTests.cpp",
         "LedManagerTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "//fb303:service_data",
         "//fboss/lib:common_file_utils",
         "//fboss/platform/data_corral_service:led_management",
         "//folly:file_util",
@@ -22,6 +25,7 @@ cpp_unittest(
     srcs = [
         "ConfigValidatorTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/data_corral_service:config_validator",

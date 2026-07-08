@@ -29,7 +29,7 @@ uint8_t setTxChannelMask(
     uint8_t channelId = 0;
     while (tempChannelMask) {
       if (tempChannelMask & 0x1) {
-        if (tcvrLanes.find(channelId) == tcvrLanes.end()) {
+        if (!tcvrLanes.contains(channelId)) {
           // Sanity check fails so return original data
           return txRxDisableData;
         }

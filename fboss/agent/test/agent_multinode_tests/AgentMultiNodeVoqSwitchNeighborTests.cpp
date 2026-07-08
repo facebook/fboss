@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeVoqSwitchNeighborTests.h"
 
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 
 namespace facebook::fboss {
@@ -85,7 +86,7 @@ AgentMultiNodeVoqSwitchNeighborTest::computeNeighborsForRdsw(
     // carry router MAC as dstMac the packets get routed and help us create
     // traffic loop.
     auto macStr =
-        utility::getMacForFirstInterfaceWithPorts(getSw()->getState());
+        getMacForFirstInterfaceWithPortsForTesting(getSw()->getState());
     auto neighborMac = folly::MacAddress(macStr);
 
     return std::make_pair(neighborIp, neighborMac);

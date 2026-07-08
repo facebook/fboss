@@ -66,6 +66,7 @@ cpp_library(
         "//fboss/thrift_cow/storage:cow_storage",
         "//fboss/thrift_cow/visitors:visitors",
         "//folly:cpp_attributes",
+        "//folly:demangle",
         "//folly:fbstring",
         "//folly:string",
         "//folly:traits",

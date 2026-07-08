@@ -43,7 +43,9 @@ class AclTableGroupStoreTest : public SaiStoreTest {
   AclTableSaiId createAclTable(sai_int32_t stage) const {
     return saiApiTable->aclApi().create<SaiAclTableTraits>(
         {
-            stage, kBindPointTypeList(), kActionTypeList(),
+            stage,
+            kBindPointTypeList(),
+            kActionTypeList(),
             true, // srcIpv6
             true, // dstIpv6
             true, // srcIpv4
@@ -60,6 +62,7 @@ class AclTableGroupStoreTest : public SaiStoreTest {
             true, // icmpv6Type
             true, // icmpv6Code
             true, // dscp
+            true, // tc
             true, // dstMac
             true, // ipType
             true, // ttl
@@ -68,6 +71,7 @@ class AclTableGroupStoreTest : public SaiStoreTest {
             true, // neighbor meta
             true, // ether type
             true, // outer vlan id
+            std::nullopt, // aclRangeType
             true, // bth opcode
             true, // ipv6 next header
             0, // udf group 0

@@ -68,6 +68,7 @@ sai_status_t create_port_fn(
   std::optional<sai_uint32_t> numberOfIngressPriorityGroups;
   std::optional<sai_object_id_t> qosTcToPriorityGroupMap;
   std::optional<sai_object_id_t> qosPfcPriorityToQueueMap;
+  std::optional<sai_object_id_t> qosPfcPriorityToPriorityGroupMap;
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   std::optional<sai_uint32_t> interFrameGap;
 #endif
@@ -238,6 +239,9 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         qosPfcPriorityToQueueMap = attr_list[i].value.oid;
         break;
+      case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_PRIORITY_GROUP_MAP:
+        qosPfcPriorityToPriorityGroupMap = attr_list[i].value.oid;
+        break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       case SAI_PORT_ATTR_IPG:
         interFrameGap = attr_list[i].value.u32;
@@ -371,6 +375,25 @@ sai_status_t create_port_fn(
         SAI_QUEUE_TYPE_UNICAST, *port_id, queueId, *port_id);
     port.queueIdList.push_back(saiQueueId);
   }
+  // Real SAI auto-creates a fixed set of ingress priority groups for each port
+  // at port-create time and exposes them via
+  // SAI_PORT_ATTR_INGRESS_PRIORITY_GROUP_LIST /
+  // SAI_PORT_ATTR_NUMBER_OF_INGRESS_PRIORITY_GROUPS. The agent never creates
+  // these objects itself; it only reads them back (see
+  // SaiPortManager::getIngressPriorityGroupSaiIds) and attaches buffer profiles
+  // to them when programming PFC (SaiPortManager::changePfcBuffers). Emulate
+  // that here so PFC buffer programming has IPGs to operate on instead of
+  // dereferencing a null handle. IPGs are owned-by-adapter, mirroring the queue
+  // auto-creation above.
+  if (ingressPriorityGroupList.empty()) {
+    constexpr uint8_t kNumIngressPriorityGroups = 8;
+    for (uint8_t pgIndex = 0; pgIndex < kNumIngressPriorityGroups; ++pgIndex) {
+      auto saiIpgId = fs->ingressPriorityGroupManager.create(
+          *port_id, pgIndex, std::nullopt /* bufferProfile */);
+      port.ingressPriorityGroupList.push_back(saiIpgId);
+    }
+    port.numberOfIngressPriorityGroups = port.ingressPriorityGroupList.size();
+  }
   port.interface_type = interface_type;
   if (priorityFlowControlMode.has_value()) {
     port.priorityFlowControlMode = priorityFlowControlMode.value();
@@ -395,6 +418,10 @@ sai_status_t create_port_fn(
   }
   if (qosPfcPriorityToQueueMap.has_value()) {
     port.qosPfcPriorityToQueueMap = qosPfcPriorityToQueueMap.value();
+  }
+  if (qosPfcPriorityToPriorityGroupMap.has_value()) {
+    port.qosPfcPriorityToPriorityGroupMap =
+        qosPfcPriorityToPriorityGroupMap.value();
   }
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   if (interFrameGap.has_value()) {
@@ -750,6 +777,9 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
       port.qosPfcPriorityToQueueMap = attr->value.oid;
       break;
+    case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_PRIORITY_GROUP_MAP:
+      port.qosPfcPriorityToPriorityGroupMap = attr->value.oid;
+      break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
     case SAI_PORT_ATTR_IPG:
       port.interFrameGap = attr->value.u32;
@@ -818,6 +848,9 @@ sai_status_t set_port_attribute_fn(
       break;
     case SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE:
       port.pfcPauseDurationOverride = attr->value.u16;
+      break;
+    case SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE:
+      port.cablePropagationDelayMeasure = attr->value.booldata;
       break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
@@ -1119,6 +1152,9 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         attr[i].value.oid = port.qosPfcPriorityToQueueMap;
         break;
+      case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_PRIORITY_GROUP_MAP:
+        attr[i].value.oid = port.qosPfcPriorityToPriorityGroupMap;
+        break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       case SAI_PORT_ATTR_IPG:
         attr[i].value.u32 = port.interFrameGap;
@@ -1126,6 +1162,9 @@ sai_status_t get_port_attribute_fn(
 #endif
       case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
         attr->value.booldata = port.linkTrainingEnable;
+        break;
+      case SAI_PORT_ATTR_LINK_TRAINING_RX_STATUS:
+        attr->value.s32 = port.linkTrainingRxStatus;
         break;
       case SAI_PORT_ATTR_FDR_ENABLE:
         attr->value.booldata = port.fdrEnable;
@@ -1231,6 +1270,9 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE:
         attr[i].value.u16 = port.pfcPauseDurationOverride;
         break;
+      case SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE:
+        attr[i].value.booldata = port.cablePropagationDelayMeasure;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -1320,8 +1362,14 @@ sai_status_t set_port_serdes_attribute_fn(
   auto fs = FakeSai::getInstance();
   auto& portSerdes = fs->portSerdesManager.get(port_serdes_id);
   auto& port = fs->portManager.get(portSerdes.port);
+  // Replace (not append) the stored values: a set attribute call overwrites
+  // the serdes parameter. Using back_inserter here would accumulate across
+  // repeated sets of the same attribute (create sets it once, then
+  // SaiObjectStore::program re-sets it during reconciliation), doubling the
+  // vector and tripping the lane-count check below on platforms whose mapping
+  // carries TX FIR settings (e.g. Montblanc).
   auto fillVec = [](auto& vec, auto* list, size_t count) {
-    std::copy(list, list + count, std::back_inserter(vec));
+    vec.assign(list, list + count);
   };
   auto checkLanes = [&port](auto vec) {
     return port.lanes.size() == vec.size();

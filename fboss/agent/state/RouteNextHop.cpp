@@ -71,6 +71,10 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
   for (const auto& binAddr : *nht.srv6SegmentList()) {
     srv6SegmentList.push_back(network::toIPAddress(binAddr).asV6());
   }
+  std::optional<int64_t> cost = std::nullopt;
+  if (nht.cost()) {
+    cost = *nht.cost();
+  }
 
   auto address = network::toIPAddress(*nht.address());
   NextHopWeight weight = static_cast<NextHopWeight>(*nht.weight());
@@ -92,7 +96,8 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
         adjustedWeight,
         std::move(srv6SegmentList),
         tunnelType,
-        tunnelId);
+        tunnelId,
+        cost);
   } else {
     return UnresolvedNextHop(
         std::move(address),
@@ -103,7 +108,8 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
         adjustedWeight,
         std::move(srv6SegmentList),
         tunnelType,
-        tunnelId);
+        tunnelId,
+        cost);
   }
 }
 
@@ -174,8 +180,10 @@ bool operator<(const NextHop& a, const NextHop& b) {
     return a.srv6SegmentList() < b.srv6SegmentList();
   } else if (a.tunnelType() != b.tunnelType()) {
     return a.tunnelType() < b.tunnelType();
-  } else {
+  } else if (a.tunnelId() != b.tunnelId()) {
     return a.tunnelId() < b.tunnelId();
+  } else {
+    return a.cost() < b.cost();
   }
 }
 
@@ -200,7 +208,8 @@ bool operator==(const NextHop& a, const NextHop& b) {
       a.adjustedWeight() == b.adjustedWeight() &&
       a.topologyInfo() == b.topologyInfo() &&
       a.srv6SegmentList() == b.srv6SegmentList() &&
-      a.tunnelType() == b.tunnelType() && a.tunnelId() == b.tunnelId());
+      a.tunnelType() == b.tunnelType() && a.tunnelId() == b.tunnelId() &&
+      a.cost() == b.cost());
 }
 
 bool operator!=(const NextHop& a, const NextHop& b) {
@@ -217,7 +226,8 @@ ResolvedNextHop::ResolvedNextHop(
     const std::optional<NextHopWeight>& adjustedWeight,
     const std::vector<folly::IPAddressV6>& srv6SegmentList,
     const std::optional<TunnelType>& tunnelType,
-    const std::optional<std::string>& tunnelId)
+    const std::optional<std::string>& tunnelId,
+    const std::optional<int64_t>& cost)
     : addr_(addr),
       intfID_(intfID),
       weight_(weight),
@@ -227,7 +237,8 @@ ResolvedNextHop::ResolvedNextHop(
       adjustedWeight_(adjustedWeight),
       srv6SegmentList_(srv6SegmentList),
       tunnelType_(tunnelType),
-      tunnelId_(tunnelId) {
+      tunnelId_(tunnelId),
+      cost_(cost) {
   validateSrv6Fields(srv6SegmentList_, tunnelType_, tunnelId_);
 }
 
@@ -241,7 +252,8 @@ ResolvedNextHop::ResolvedNextHop(
     const std::optional<NextHopWeight>& adjustedWeight,
     std::vector<folly::IPAddressV6>&& srv6SegmentList,
     std::optional<TunnelType>&& tunnelType,
-    std::optional<std::string>&& tunnelId)
+    std::optional<std::string>&& tunnelId,
+    std::optional<int64_t>&& cost)
     : addr_(std::move(addr)),
       intfID_(intfID),
       weight_(weight),
@@ -251,7 +263,8 @@ ResolvedNextHop::ResolvedNextHop(
       adjustedWeight_(adjustedWeight),
       srv6SegmentList_(std::move(srv6SegmentList)),
       tunnelType_(std::move(tunnelType)),
-      tunnelId_(std::move(tunnelId)) {
+      tunnelId_(std::move(tunnelId)),
+      cost_(std::move(cost)) {
   validateSrv6Fields(srv6SegmentList_, tunnelType_, tunnelId_);
 }
 
@@ -264,7 +277,8 @@ UnresolvedNextHop::UnresolvedNextHop(
     const std::optional<NextHopWeight>& adjustedWeight,
     const std::vector<folly::IPAddressV6>& srv6SegmentList,
     const std::optional<TunnelType>& tunnelType,
-    const std::optional<std::string>& tunnelId)
+    const std::optional<std::string>& tunnelId,
+    const std::optional<int64_t>& cost)
     : addr_(addr),
       weight_(weight),
       labelForwardingAction_(action),
@@ -273,7 +287,8 @@ UnresolvedNextHop::UnresolvedNextHop(
       adjustedWeight_(adjustedWeight),
       srv6SegmentList_(srv6SegmentList),
       tunnelType_(tunnelType),
-      tunnelId_(tunnelId) {
+      tunnelId_(tunnelId),
+      cost_(cost) {
   if (addr_.isV6() && addr_.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr.str());
@@ -290,7 +305,8 @@ UnresolvedNextHop::UnresolvedNextHop(
     const std::optional<NextHopWeight>& adjustedWeight,
     std::vector<folly::IPAddressV6>&& srv6SegmentList,
     std::optional<TunnelType>&& tunnelType,
-    std::optional<std::string>&& tunnelId)
+    std::optional<std::string>&& tunnelId,
+    std::optional<int64_t>&& cost)
     : addr_(std::move(addr)),
       weight_(weight),
       labelForwardingAction_(std::move(action)),
@@ -299,7 +315,8 @@ UnresolvedNextHop::UnresolvedNextHop(
       adjustedWeight_(adjustedWeight),
       srv6SegmentList_(std::move(srv6SegmentList)),
       tunnelType_(std::move(tunnelType)),
-      tunnelId_(std::move(tunnelId)) {
+      tunnelId_(std::move(tunnelId)),
+      cost_(std::move(cost)) {
   if (addr_.isV6() && addr_.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr_.str());
@@ -316,7 +333,8 @@ bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b) {
       a.adjustedWeight() == b.adjustedWeight() &&
       a.topologyInfo() == b.topologyInfo() &&
       a.srv6SegmentList() == b.srv6SegmentList() &&
-      a.tunnelType() == b.tunnelType() && a.tunnelId() == b.tunnelId());
+      a.tunnelType() == b.tunnelType() && a.tunnelId() == b.tunnelId() &&
+      a.cost() == b.cost());
 }
 
 bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b) {
@@ -327,7 +345,8 @@ bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b) {
       a.adjustedWeight() == b.adjustedWeight() &&
       a.topologyInfo() == b.topologyInfo() &&
       a.srv6SegmentList() == b.srv6SegmentList() &&
-      a.tunnelType() == b.tunnelType() && a.tunnelId() == b.tunnelId());
+      a.tunnelType() == b.tunnelType() && a.tunnelId() == b.tunnelId() &&
+      a.cost() == b.cost());
 }
 
 } // namespace facebook::fboss

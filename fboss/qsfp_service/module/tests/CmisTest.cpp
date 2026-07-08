@@ -10,6 +10,7 @@
 
 #include "fboss/qsfp_service/module/cmis/CmisHelper.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
+#include "fboss/qsfp_service/module/cmis/gen-cpp2/cmis_types.h"
 #include "fboss/qsfp_service/module/properties/TransceiverPropertiesManager.h"
 #include "fboss/qsfp_service/module/tests/FakeTransceiverImpl.h"
 #include "fboss/qsfp_service/module/tests/TransceiverTestsHelper.h"
@@ -44,12 +45,26 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD0(getModuleStateChanged, bool());
   MOCK_METHOD1(ensureTransceiverReadyLocked, bool(bool));
 
+  using CmisModule::configuredHostLanes;
+  using CmisModule::configuredMediaLanes;
+  using CmisModule::configureRxConsActHoldOffTimer;
+  using CmisModule::disableTxRxSquelchForTunableOptics;
+  using CmisModule::enableRxLfInsertionForTunableOptics;
   using CmisModule::frequencyGridToGridSelection;
   using CmisModule::getApplicationField;
+  using CmisModule::getBankedQsfpValuePtr;
   using CmisModule::getChannelNumFromFrequency;
   using CmisModule::getCurrentAppSelCode;
   using CmisModule::getInterfaceCodeForAppSel;
+  using CmisModule::getLaneValuePtr;
+  using CmisModule::getMaxNumBanks;
+  using CmisModule::getQsfpValuePtr;
   using CmisModule::getTunableLaserStatus;
+  using CmisModule::getVdmLaneValueF16;
+  using CmisModule::getVdmLaneValuesF16;
+  using CmisModule::getVdmLaneValuesU16;
+  using CmisModule::isRxConsActHoldOffTmrImplSupported;
+  using CmisModule::isRxConsActImplSupported;
   using CmisModule::isTunableOptics;
 
  private:
@@ -83,6 +98,294 @@ class CmisTest : public TransceiverManagerTestHelper {
     return xcvr;
   }
 };
+
+// Existing (non-CPO) CMIS modules don't advertise a multi-bank capacity in
+// Lower Page 00h byte 70, so getMaxNumBanks() must fall back to a single bank.
+TEST_F(CmisTest, getMaxNumBanksDefaultsToOne) {
+  EXPECT_EQ(
+      overrideCmisModule<Cmis200GTransceiver>(TransceiverID(0))
+          ->getMaxNumBanks(),
+      1);
+  EXPECT_EQ(
+      overrideCmisModule<Cmis400GLr4Transceiver>(TransceiverID(1))
+          ->getMaxNumBanks(),
+      1);
+  EXPECT_EQ(
+      overrideCmisModule<CmisFlatMemTransceiver>(TransceiverID(2))
+          ->getMaxNumBanks(),
+      1);
+}
+
+// A CPO module reports identifier 0x80 and 4 banks (Lower Page 00h byte 70).
+// Its first application advertises a per-bank 2x800G-DR4 (media 0x77, host
+// 0x82), identical to a DR4_2x800G module; the bank count is what
+// disambiguates it, yielding MediaInterfaceCode::DR4_8x800G.
+TEST_F(CmisTest, cpoModuleIdentifiedByBankCount) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  EXPECT_EQ(xcvr->getMaxNumBanks(), 4);
+
+  // A 4-bank CPO presents all banks as a single 32-lane (4 x 8) transceiver.
+  EXPECT_EQ(xcvr->numHostLanes(), 32);
+  EXPECT_EQ(xcvr->numMediaLanes(), 32);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::DR4_8x800G);
+
+  // Verify the 5 advertised application modes (per the CPO datapath
+  // application mode table).
+  struct ExpectedApp {
+    SMFMediaInterfaceCode media;
+    uint8_t host;
+    int hostLaneCount;
+    int mediaLaneCount;
+    uint8_t apSelCode;
+    std::vector<int> startLanes;
+  };
+  const std::vector<ExpectedApp> expectedApps = {
+      {SMFMediaInterfaceCode::DR4_800G, 0x82, 4, 4, 1, {0, 4}},
+      {SMFMediaInterfaceCode::DR2_400G, 0x81, 2, 2, 2, {0, 2, 4, 6}},
+      {SMFMediaInterfaceCode::DR1_200G,
+       0x80,
+       1,
+       1,
+       3,
+       {0, 1, 2, 3, 4, 5, 6, 7}},
+      {SMFMediaInterfaceCode::DR4_400G, 0x50, 4, 4, 4, {0, 4}},
+      {SMFMediaInterfaceCode::DR1_100G,
+       0x4b,
+       1,
+       1,
+       5,
+       {0, 1, 2, 3, 4, 5, 6, 7}},
+  };
+  for (const auto& app : expectedApps) {
+    auto field = xcvr->getApplicationField(static_cast<uint8_t>(app.media), 0);
+    ASSERT_NE(field, std::nullopt);
+    EXPECT_EQ(field->moduleMediaInterface, static_cast<uint8_t>(app.media));
+    EXPECT_EQ(field->moduleHostInterface, app.host);
+    EXPECT_EQ(field->hostLaneCount, app.hostLaneCount);
+    EXPECT_EQ(field->mediaLaneCount, app.mediaLaneCount);
+    EXPECT_EQ(field->ApSelCode, app.apSelCode);
+    EXPECT_EQ(field->hostStartLanes, app.startLanes);
+    EXPECT_EQ(field->mediaStartLanes, app.startLanes);
+  }
+}
+
+// updateQsfpData reads banked page 11h for every bank on a CPO module. The fake
+// gives each bank a distinct page 11h (byte 2 = bank index), so verify each
+// bank's cached copy is the one that was read.
+TEST_F(CmisTest, cpoReadsAllBanksOfBankedPage) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+
+  // Page 11h byte 2 (absolute offset 128 + 2) is the per-bank marker.
+  const int page11 = static_cast<int>(CmisPages::PAGE11);
+  for (uint8_t bank = 0; bank < 4; ++bank) {
+    const uint8_t* data = xcvr->getBankedQsfpValuePtr(
+        page11, QsfpModule::MAX_QSFP_PAGE_SIZE + 2, 1, bank);
+    EXPECT_EQ(data[0], bank);
+  }
+}
+
+// On a READY multi-bank (CPO) module, page 14h (SNR diagnostics) is read for
+// every bank: DIAG_SEL=SNR is written under each bank's selection, then 14h is
+// read into that bank's buffer. The READY fixture marks each bank's MEDIA_SNR
+// byte with the bank index, so verify each bank's cached copy.
+TEST_F(CmisTest, cpoReadsSnrDiagPagePerBank) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+
+  // MEDIA_SNR is page 14h, absolute offset 240; the fake marks its first byte
+  // with the bank index.
+  const int page14 = static_cast<int>(CmisPages::PAGE14);
+  for (uint8_t bank = 0; bank < 4; ++bank) {
+    const uint8_t* data = xcvr->getBankedQsfpValuePtr(page14, 240, 1, bank);
+    EXPECT_EQ(data[0], bank);
+  }
+}
+
+// On a READY VDM-capable multi-bank (CPO) module, the VDM data page (24h) is
+// read for every bank. The READY fixture marks each bank's page 24h byte 0 with
+// the bank index, so verify each bank's cached copy.
+TEST_F(CmisTest, cpoReadsVdmDataPagePerBank) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+  ASSERT_TRUE(xcvr->isVdmSupported());
+
+  // Page 24h byte 0 (absolute offset 128) is the per-bank marker.
+  const int page24 = static_cast<int>(CmisPages::PAGE24);
+  for (uint8_t bank = 0; bank < 4; ++bank) {
+    const uint8_t* data = xcvr->getBankedQsfpValuePtr(
+        page24, QsfpModule::MAX_QSFP_PAGE_SIZE, 1, bank);
+    EXPECT_EQ(data[0], bank);
+  }
+}
+
+// getVdmLaneValues keys per-lane VDM values by GLOBAL lane (bank * 8 + intra)
+// across all banks. The READY fixture configures SNR_MEDIA_IN on data page 24h
+// and marks each bank's page 24h byte 0 (lane 0's high byte) with the bank
+// index, so lane 0 of bank N decodes (byte0 + byte1/256) to N.
+TEST_F(CmisTest, cpoGetVdmLaneValuesKeyedByGlobalLane) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+  ASSERT_TRUE(xcvr->isVdmSupported());
+
+  auto snr = xcvr->getVdmLaneValuesU16(SNR_MEDIA_IN);
+
+  // 8 configured lanes per bank across all 4 banks -> 32 global lanes.
+  EXPECT_EQ(snr.size(), 4 * CmisModule::kMaxOsfpNumLanes);
+  for (int bank = 0; bank < 4; ++bank) {
+    int firstLaneOfBank = bank * CmisModule::kMaxOsfpNumLanes;
+    ASSERT_TRUE(snr.find(firstLaneOfBank) != snr.end());
+    EXPECT_EQ(snr.at(firstLaneOfBank), static_cast<double>(bank));
+  }
+}
+
+// getLaneValuePtr maps a global lane to (bank = lane/8, intra = lane%8) and
+// returns that bank's per-lane bytes. The fixture marks CHANNEL_RX_PWR's first
+// byte (page 11h) with the bank index, so the first lane of each bank should
+// resolve to its bank index.
+TEST_F(CmisTest, cpoGetLaneValuePtrMapsGlobalLaneToBank) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+
+  // Intra-bank lane 0 exercises bank selection: the fake marks byte 0 of
+  // CHANNEL_RX_PWR with the bank id.
+  for (uint8_t bank = 0; bank < 4; ++bank) {
+    int firstLaneOfBank = bank * CmisModule::kMaxOsfpNumLanes;
+    const uint8_t* data = xcvr->getLaneValuePtr(
+        CmisField::CHANNEL_RX_PWR, firstLaneOfBank, /*bytesPerLane=*/2);
+    EXPECT_EQ(data[0], bank);
+  }
+
+  // Intra-bank lane 1 exercises the offset + intraLane * bytesPerLane math: the
+  // fake marks lane 1 of CHANNEL_RX_PWR with 0x10|bank (banks 1-3).
+  for (uint8_t bank = 1; bank < 4; ++bank) {
+    int secondLaneOfBank = bank * CmisModule::kMaxOsfpNumLanes + 1;
+    const uint8_t* data = xcvr->getLaneValuePtr(
+        CmisField::CHANNEL_RX_PWR, secondLaneOfBank, /*bytesPerLane=*/2);
+    EXPECT_EQ(data[0], 0x10 | bank);
+  }
+}
+
+// A 4-bank CPO presents 32 lanes, so getTransceiverInfo must report per-lane
+// settings/interfaces for all 32 (4 banks x 8) lanes, not just one bank's 8.
+TEST_F(CmisTest, cpoTransceiverInfoReportsAllBankLanes) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  const auto& settings = *info.tcvrState()->settings();
+  EXPECT_EQ(settings.mediaInterface()->size(), 32);
+  EXPECT_EQ(settings.mediaLaneSettings()->size(), 32);
+  EXPECT_EQ(settings.hostLaneSettings()->size(), 32);
+}
+
+// Program the datapath for two ports that live in different banks of a CPO
+// module and confirm each lands in its own bank: the application select code
+// and datapath init are written under the port's bank, leaving the other banks
+// untouched. The fake routes per-lane banked-page writes (and its datapath
+// state simulation) to the selected bank, so a correctly bank-targeted program
+// activates only that bank's lanes.
+TEST_F(CmisTest, cpoMultiPortDatapathProgram) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+  ASSERT_EQ(xcvr->numHostLanes(), 32);
+
+  // Two 400G ports in different banks. The platform mapping supplies each port
+  // with a global startHostLane (bank 0 -> lanes 0-3, bank 1 -> lanes 8-11),
+  // and the module derives the bank as lane / kMaxOsfpNumLanes. Each is a
+  // 2x400G-DR4 port within its bank. The fixture comes up in the per-bank 800G
+  // application, so requesting 400G forces a real datapath reprogram (rather
+  // than the "speed already matches" no-op).
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState bank0Port;
+  bank0Port.portName = "eth1/1/1";
+  bank0Port.startHostLane = 0;
+  bank0Port.speed = cfg::PortSpeed::FOURHUNDREDG;
+  bank0Port.numHostLanes = 4;
+  programTcvrState.ports.emplace(bank0Port.portName, bank0Port);
+
+  TransceiverPortState bank1Port;
+  bank1Port.portName = "eth1/1/9";
+  bank1Port.startHostLane = 8;
+  bank1Port.speed = cfg::PortSpeed::FOURHUNDREDG;
+  bank1Port.numHostLanes = 4;
+  programTcvrState.ports.emplace(bank1Port.portName, bank1Port);
+
+  // Capture the pre-program datapath state of the unprogrammed banks (2 and 3,
+  // lanes 16-31) so we can prove programming banks 0 and 1 leaves them
+  // untouched, without hardcoding the fixture's exact initial state.
+  transceiverManager_->refreshStateMachines();
+  std::map<int, CmisLaneState> preStateBanks23;
+  {
+    const auto& preInfo = xcvr->getTransceiverInfo();
+    const auto& preSignals = *preInfo.tcvrState()->hostLaneSignals();
+    ASSERT_EQ(preSignals.size(), 32);
+    for (int lane = 16; lane < 32; ++lane) {
+      preStateBanks23[lane] = *preSignals[lane].cmisLaneState();
+    }
+  }
+
+  xcvr->programTransceiver(programTcvrState, false);
+
+  // Refresh so the per-bank datapath state written during programming is read
+  // back into the cache that getTransceiverInfo reports.
+  transceiverManager_->refreshStateMachines();
+  const auto& info = xcvr->getTransceiverInfo();
+  const auto& hostLaneSignals = *info.tcvrState()->hostLaneSignals();
+  ASSERT_EQ(hostLaneSignals.size(), 32);
+
+  // The four lanes of each programmed port (bank 0: 0-3, bank 1: 8-11) are
+  // activated.
+  for (int lane : {0, 1, 2, 3, 8, 9, 10, 11}) {
+    EXPECT_EQ(hostLaneSignals[lane].cmisLaneState(), CmisLaneState::ACTIVATED)
+        << "lane " << lane << " should be ACTIVATED";
+  }
+  // Every lane of the unprogrammed banks 2 and 3 is unchanged from before the
+  // program and is not activated -- proving the program targeted only the
+  // ports' banks.
+  for (int lane = 16; lane < 32; ++lane) {
+    EXPECT_EQ(hostLaneSignals[lane].cmisLaneState(), preStateBanks23[lane])
+        << "lane " << lane << " (unprogrammed bank) should be unchanged";
+    EXPECT_NE(hostLaneSignals[lane].cmisLaneState(), CmisLaneState::ACTIVATED)
+        << "lane " << lane << " should not be ACTIVATED";
+  }
+}
+
+// The host->media lane mapping is per-bank: module capabilities advertise
+// intra-bank lane assignments, but a port's lanes carry a global bank offset.
+// For the per-bank 2x800G-DR4 application (host/media start lanes {0,4}), a
+// port in bank N must report host and media lanes offset by N*8.
+TEST_F(CmisTest, cpoConfiguredMediaLanesPerBank) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+  xcvr->getTransceiverInfo();
+
+  // Host lanes are global and expand from the start lane.
+  EXPECT_EQ(xcvr->configuredHostLanes(0), (std::vector<uint8_t>{0, 1, 2, 3}));
+  EXPECT_EQ(xcvr->configuredHostLanes(8), (std::vector<uint8_t>{8, 9, 10, 11}));
+
+  // Media lanes are offset into the port's bank (bank = hostStartLane / 8).
+  // bank 0: host {0,4} -> media {0-3},{4-7}; bank 1: host {8,12} -> media
+  // {8-11},{12-15}.
+  EXPECT_EQ(xcvr->configuredMediaLanes(0), (std::vector<uint8_t>{0, 1, 2, 3}));
+  EXPECT_EQ(xcvr->configuredMediaLanes(4), (std::vector<uint8_t>{4, 5, 6, 7}));
+  EXPECT_EQ(
+      xcvr->configuredMediaLanes(8), (std::vector<uint8_t>{8, 9, 10, 11}));
+  EXPECT_EQ(
+      xcvr->configuredMediaLanes(12), (std::vector<uint8_t>{12, 13, 14, 15}));
+}
 
 // Tests that the transceiverInfo object is correctly populated
 TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
@@ -187,6 +490,7 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
       {"RxEqPrecursor", {2, 2, 2, 2}},
       {"RxEqPostcursor", {0, 0, 0, 0}},
       {"RxEqMain", {3, 3, 3, 3}},
+      {"CurrentAppSel", {1, 1, 1, 1}},
   };
 
   auto settings = info.tcvrState()->settings().value_or({});
@@ -1313,6 +1617,119 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
       static_cast<uint8_t>(SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G));
   EXPECT_EQ(xcvr->getCurrentAppSelCode(1), 0x1);
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
+}
+
+// Verify TX and RX squelch disable behavior for tunable optics (ZR modules).
+// Squelch is only disabled when the module advertises rxConsActImpl
+// (Page 45h, Byte 129, Bit 1). When not advertised, squelch remains enabled.
+TEST_F(CmisTest, cmis800GZrSquelchDisableWithMacLfCheck) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_TRUE(xcvr->isTunableOptics());
+
+  // Fake ZR transceiver has rxConsActImpl bit set in Page 45h
+  EXPECT_TRUE(xcvr->isRxConsActImplSupported());
+
+  // Call disableTxRxSquelchForTunableOptics and verify squelch is disabled
+  xcvr->disableTxRxSquelchForTunableOptics();
+
+  // Refresh cached data to pick up the squelch register writes
+  transceiverManager_->refreshStateMachines();
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto settings = *info.tcvrState()->settings();
+
+  // Verify TX squelch disable is set on media lanes
+  for (auto& mediaLane :
+       apache::thrift::can_throw(*settings.mediaLaneSettings())) {
+    EXPECT_TRUE(*mediaLane.txSquelch())
+        << "Lane " << *mediaLane.lane()
+        << ": TX squelch disable should be set for ZR with MAC LF support";
+  }
+
+  // Verify RX squelch disable is set on host lanes
+  for (auto& hostLane :
+       apache::thrift::can_throw(*settings.hostLaneSettings())) {
+    EXPECT_TRUE(*hostLane.rxSquelch())
+        << "Lane " << *hostLane.lane()
+        << ": RX squelch disable should be set for ZR with MAC LF support";
+  }
+}
+
+TEST_F(CmisTest, cmis800GZrHoldOffTimerCapabilityCheck) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_TRUE(xcvr->isTunableOptics());
+  EXPECT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
+}
+
+TEST_F(CmisTest, cmis800GZrHoldOffTimerDefault10ms) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_TRUE(xcvr->isTunableOptics());
+  ASSERT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
+
+  xcvr->configureRxConsActHoldOffTimer(10);
+  transceiverManager_->refreshStateMachines();
+
+  // Read hold-off timer from cached Page 38h, offset 141, length 2
+  const uint8_t* data =
+      xcvr->getQsfpValuePtr(static_cast<int>(CmisPages::PAGE38), 141, 2);
+  uint16_t readValue = (static_cast<uint16_t>(data[0]) << 8) | data[1];
+  EXPECT_EQ(readValue, 1);
+}
+
+TEST_F(CmisTest, cmis800GZrHoldOffTimerDisabled) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
+
+  xcvr->configureRxConsActHoldOffTimer(0);
+  transceiverManager_->refreshStateMachines();
+
+  // Read hold-off timer from cached Page 38h, offset 141, length 2
+  const uint8_t* data =
+      xcvr->getQsfpValuePtr(static_cast<int>(CmisPages::PAGE38), 141, 2);
+  uint16_t readValue = (static_cast<uint16_t>(data[0]) << 8) | data[1];
+  EXPECT_EQ(readValue, 0);
+}
+
+TEST_F(CmisTest, cmis800GZrHoldOffTimerNegativeValue) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
+
+  EXPECT_THROW(xcvr->configureRxConsActHoldOffTimer(-1), FbossError);
+}
+
+// On a module that does NOT advertise support for programming the hold-off
+// timer, configureRxConsActHoldOffTimer reads the current register value and
+// only no-ops when it already matches the request; otherwise it throws instead
+// of silently leaving a value it couldn't set.
+TEST_F(CmisTest, cmis800GZrHoldOffTimerUnsupportedModule) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrNoHoldOffTmrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_FALSE(xcvr->isRxConsActHoldOffTmrImplSupported());
+
+  // The CONS_ACT_HOLD_OFF_TMR register reads 0, so requesting 0 (the default)
+  // is a no-op and must not throw.
+  EXPECT_NO_THROW(xcvr->configureRxConsActHoldOffTimer(0));
+
+  // Requesting a non-zero value we can't program (register 0 != requested)
+  // throws rather than silently leaving the wrong value.
+  EXPECT_THROW(xcvr->configureRxConsActHoldOffTimer(10), FbossError);
 }
 
 // Test coherent FEC Performance Monitoring stats from C-CMIS page 34h

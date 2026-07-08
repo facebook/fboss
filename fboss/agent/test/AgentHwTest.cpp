@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/utils/StatsTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -70,6 +71,8 @@ void AgentHwTest::SetUp() {
   // overrideTestEnsembleInitInfo
   TestEnsembleInitInfo initInfo;
   initInfo.failHwCallsOnWarmboot = failHwCallsOnWarmboot();
+  initInfo.maxRequiredInterfacePorts = maxRequiredInterfacePorts();
+  initInfo.maxRequiredFabricPorts = maxRequiredFabricPorts();
   overrideTestEnsembleInitInfo(initInfo);
 
   agentEnsemble_ = createAgentEnsemble(
@@ -121,8 +124,6 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   // Set HW agent connection timeout to 130 seconds
   FLAGS_hw_agent_connection_timeout_ms = 130000;
   FLAGS_update_stats_interval_s = 1;
-  FLAGS_enable_nexthop_id_manager = true;
-  FLAGS_verify_fib_nexthop_id_consistency = true;
 }
 
 void AgentHwTest::TearDown() {
@@ -172,6 +173,21 @@ SwitchID AgentHwTest::getCurrentSwitchIdForTesting() const {
   return SwitchID(FLAGS_switch_id_for_testing);
 }
 
+int16_t AgentHwTest::getCurrentSwitchIndexForTesting() const {
+  auto switchId = getCurrentSwitchIdForTesting();
+  auto switchSettings =
+      utility::getFirstNodeIf(getProgrammedState()->getSwitchSettings());
+  auto switchIdToSwitchInfo = switchSettings->getSwitchIdToSwitchInfo();
+  auto it = switchIdToSwitchInfo.find(static_cast<int64_t>(switchId));
+  if (it == switchIdToSwitchInfo.end()) {
+    throw FbossError(
+        "SwitchId ",
+        static_cast<int64_t>(switchId),
+        " not found in SwitchIdToSwitchInfo");
+  }
+  return *it->second.switchIndex();
+}
+
 SwitchID AgentHwTest::getSwitchIdUnderTest(const AgentEnsemble& ensemble) {
   return ensemble.getSw()
       ->getScopeResolver()
@@ -182,6 +198,18 @@ SwitchID AgentHwTest::getSwitchIdUnderTest(const AgentEnsemble& ensemble) {
 bool AgentHwTest::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) {
   return getSw()->sendPacketSwitchedAsync(
       std::move(pkt), {getSwitchIdUnderTest(*getAgentEnsemble())});
+}
+
+folly::MacAddress AgentHwTest::getMacForFirstInterfaceWithPorts(
+    const std::shared_ptr<SwitchState>& state) {
+  return utility::getMacForFirstInterfaceWithPorts(
+      state, getSwitchIdUnderTest(*getAgentEnsemble()));
+}
+
+InterfaceID AgentHwTest::firstInterfaceIDWithPorts(
+    const std::shared_ptr<SwitchState>& state) {
+  return utility::firstInterfaceIDWithPorts(
+      state, getSwitchIdUnderTest(*getAgentEnsemble()));
 }
 
 const std::map<SwitchID, const HwAsic*> AgentHwTest::getAsics() const {
@@ -246,6 +274,9 @@ cfg::SwitchConfig AgentHwTest::initialConfig(
     const AgentEnsemble& ensemble) const {
   auto anyL3Asics =
       haveL3Asics(ensemble.getSw()->getHwAsicTable()->getHwAsics());
+  // Build the initial config from the capped port view, so the config is
+  // trimmed to maxRequired*Ports. Tests that need every port opt out via
+  // maxRequiredInterfacePorts()/maxRequiredFabricPorts() returning nullopt.
   auto config = utility::onePortPerInterfaceConfig(
       ensemble.getSw(),
       ensemble.masterLogicalPortIds(),
@@ -280,9 +311,11 @@ std::map<PortID, HwPortStats> AgentHwTest::extractPortStats(
   std::map<PortID, HwPortStats> portStats;
   for (auto portId : ports) {
     auto portSwitchId = scopeResolver().scope(portId).switchId();
+    auto portSwitchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(portSwitchId);
     auto port = getProgrammedState()->getPort(portId);
     const auto& switchStats =
-        switch2Stats.find(static_cast<uint16_t>(portSwitchId))->second;
+        switch2Stats.find(static_cast<uint16_t>(portSwitchIndex))->second;
     portStats[portId] =
         switchStats.hwPortStats()->find(port->getName())->second;
   }
@@ -386,16 +419,19 @@ std::map<SystemPortID, HwSysPortStats> AgentHwTest::getLatestSysPortStats(
     const std::vector<SystemPortID>& ports) {
   std::map<std::string, HwSysPortStats> systemPortStats;
   std::map<SystemPortID, HwSysPortStats> portIdStatsMap;
+  const auto statsNamePrefix =
+      "switch." + std::to_string(getCurrentSwitchIndexForTesting()) + ".";
   checkWithRetry(
-      [&systemPortStats, &portIdStatsMap, &ports, this]() {
+      [&systemPortStats, &portIdStatsMap, &ports, statsNamePrefix, this]() {
         portIdStatsMap.clear();
+
         getSw()->getAllHwSysPortStats(systemPortStats);
         for (auto [portStatName, stats] : systemPortStats) {
+          if (portStatName.rfind(statsNamePrefix, 0) != 0) {
+            continue;
+          }
+          auto portName = portStatName.substr(statsNamePrefix.size());
           SystemPortID portId;
-          // Sysport stats names are suffixed with _switchIndex. Remove that
-          // to get at sys port name
-          auto portName =
-              portStatName.substr(0, portStatName.find_last_of('_'));
           try {
             if (portName.find("cpu") != std::string::npos) {
               portId = 0;
@@ -437,12 +473,18 @@ HwSysPortStats AgentHwTest::getLatestSysPortStats(const SystemPortID& port) {
 std::optional<HwSysPortStats> AgentHwTest::getLatestCpuSysPortStats() {
   std::map<std::string, HwSysPortStats> systemPortStats;
   std::optional<HwSysPortStats> portStats;
+  const auto statsNamePrefix =
+      "switch." + std::to_string(getCurrentSwitchIndexForTesting()) + ".";
   checkWithRetry(
-      [&systemPortStats, &portStats, this]() {
+      [&systemPortStats, &portStats, statsNamePrefix, this]() {
         bool found = false;
         getSw()->getAllHwSysPortStats(systemPortStats);
         for (auto [portStatName, stats] : systemPortStats) {
-          if (portStatName.find("cpu") != std::string::npos) {
+          if (portStatName.rfind(statsNamePrefix, 0) != 0) {
+            continue;
+          }
+          auto portName = portStatName.substr(statsNamePrefix.size());
+          if (portName.find("cpu") != std::string::npos) {
             XLOG(DBG2) << "found cpu port stats for " << portStatName;
             portStats = stats;
             found = true;
@@ -458,12 +500,13 @@ std::optional<HwSysPortStats> AgentHwTest::getLatestCpuSysPortStats() {
 }
 
 multiswitch::HwSwitchStats AgentHwTest::getHwSwitchStats(
-    uint16_t switchIndex) const {
+    std::optional<uint16_t> switchIndex) const {
+  auto idx = switchIndex.value_or(getCurrentSwitchIndexForTesting());
   multiswitch::HwSwitchStats switchStats;
   checkWithRetry(
-      [switchIndex, &switchStats, this]() {
-        auto switchIndex2Stats = getHwSwitchStats();
-        auto sitr = switchIndex2Stats.find(switchIndex);
+      [idx, &switchStats, this]() {
+        auto switchIndex2Stats = getAllHwSwitchStats();
+        auto sitr = switchIndex2Stats.find(idx);
         if (sitr != switchIndex2Stats.end()) {
           switchStats = std::move(sitr->second);
           return true;
@@ -476,8 +519,8 @@ multiswitch::HwSwitchStats AgentHwTest::getHwSwitchStats(
   return switchStats;
 }
 
-std::map<uint16_t, multiswitch::HwSwitchStats> AgentHwTest::getHwSwitchStats()
-    const {
+std::map<uint16_t, multiswitch::HwSwitchStats>
+AgentHwTest::getAllHwSwitchStats() const {
   return getSw()->getHwSwitchStatsExpensive();
 }
 
@@ -485,9 +528,15 @@ HwSwitchDropStats AgentHwTest::getAggregatedSwitchDropStats() {
   HwSwitchDropStats hwSwitchDropStats;
   checkWithRetry([&hwSwitchDropStats, this]() {
     HwSwitchDropStats aggHwSwitchDropStats;
+    auto switchIndex2Stats = getAllHwSwitchStats();
 
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      auto switchStats = getHwSwitchStats(switchId);
+    for (const auto& switchIndex :
+         getSw()->getSwitchInfoTable().getSwitchIndices()) {
+      auto switchStatsIter = switchIndex2Stats.find(switchIndex);
+      if (switchStatsIter == switchIndex2Stats.end()) {
+        return false;
+      }
+      const auto& switchStats = switchStatsIter->second;
       const auto& dropStats = *switchStats.switchDropStats();
 
 #define FILL_DROP_COUNTERS(stat)                       \

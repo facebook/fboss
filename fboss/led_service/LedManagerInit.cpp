@@ -9,6 +9,7 @@
 #include "fboss/led_service/Icetea800bcLedManager.h"
 #include "fboss/led_service/Janga800bicLedManager.h"
 #include "fboss/led_service/Ladakh800bclsLedManager.h"
+#include "fboss/led_service/Leh800bclsLedManager.h"
 #include "fboss/led_service/Meru800bfaLedManager.h"
 #include "fboss/led_service/Meru800biaLedManager.h"
 #include "fboss/led_service/Minipack3BTALedManager.h"
@@ -80,12 +81,16 @@ std::unique_ptr<LedManager> createLedManager() {
     return std::make_unique<Icetea800bcLedManager>();
   } else if (mode == PlatformType::PLATFORM_TAHANSB800BC) {
     return std::make_unique<Tahansb800bcLedManager>();
-  } else if (mode == PlatformType::PLATFORM_WEDGE800BACT) {
+  } else if (
+      mode == PlatformType::PLATFORM_WEDGE800BACT ||
+      mode == PlatformType::PLATFORM_WEDGE800BNHP) {
     return std::make_unique<Wedge800BACTLedManager>();
   } else if (mode == PlatformType::PLATFORM_WEDGE800CACT) {
     return std::make_unique<Wedge800CACTLedManager>();
   } else if (mode == PlatformType::PLATFORM_LADAKH800BCLS) {
     return std::make_unique<Ladakh800bclsLedManager>();
+  } else if (mode == PlatformType::PLATFORM_LEH800BCLS) {
+    return std::make_unique<Leh800bclsLedManager>();
   }
   return nullptr;
 }

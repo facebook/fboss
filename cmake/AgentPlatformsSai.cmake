@@ -6,6 +6,8 @@
 set(SAI_PLATFORM_SRC
 # common_srcs
   fboss/agent/platforms/sai/SaiPlatform.cpp
+  fboss/agent/platforms/sai/GenericSaiBcmPlatform.cpp
+  fboss/agent/platforms/sai/GenericSaiTajoPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmWedge100Platform.cpp
@@ -37,6 +39,7 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmLeh800bclsPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatformPort.cpp
@@ -58,6 +61,8 @@ set(SAI_PLATFORM_SRC
 # platform oss srcs (== fake_srcs)
   fboss/agent/platforms/sai/SaiBcmJ4SimPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmJ4SimPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiBcmSaintpaulPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmSaintpaulPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatformPort.cpp
@@ -88,6 +93,7 @@ add_library(sai_platform ${SAI_PLATFORM_SRC})
 
 target_link_libraries(sai_platform
   handler
+  agent_features
   dsfnode_utils
   Folly::folly
   product_info
@@ -122,10 +128,12 @@ target_link_libraries(sai_platform
   tahansb800bc_platform_mapping
   blackwolf800banw_platform_mapping
   ladakh800bcls_platform_mapping
+  leh800bcls_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
   j4sim_platform_mapping
+  saintpaul_platform_mapping
   led_structs_types_cpp2
   led_mapping_cpp2
   wedge800bact_platform_mapping

@@ -26,7 +26,8 @@ MirrorOnDropReport::MirrorOnDropReport(
     std::string firstInterfaceMac,
     std::map<int8_t, cfg::MirrorOnDropEventConfig> modEventToConfigMap,
     std::map<cfg::MirrorOnDropAgingGroup, int32_t> agingGroupAgingIntervalUsecs,
-    std::optional<int32_t> samplingRate)
+    std::optional<int32_t> samplingRate,
+    std::optional<int32_t> dropPacketRateThreshold)
     : ThriftStructNode<MirrorOnDropReport, state::MirrorOnDropReportFields>() {
   set<switch_state_tags::name>(name);
   set<switch_state_tags::mirrorPortId>(mirrorPortId);
@@ -45,6 +46,10 @@ MirrorOnDropReport::MirrorOnDropReport(
   set<switch_state_tags::isResolved>(false);
   if (samplingRate.has_value()) {
     set<switch_state_tags::samplingRate>(samplingRate.value());
+  }
+  if (dropPacketRateThreshold.has_value()) {
+    set<switch_state_tags::dropPacketRateThreshold>(
+        dropPacketRateThreshold.value());
   }
 }
 
@@ -110,6 +115,13 @@ MirrorOnDropReport::getAgingGroupAgingIntervalUsecs() const {
 std::optional<int32_t> MirrorOnDropReport::getSamplingRate() const {
   if (auto rate = get<switch_state_tags::samplingRate>()) {
     return rate->cref();
+  }
+  return std::nullopt;
+}
+
+std::optional<int32_t> MirrorOnDropReport::getDropPacketRateThreshold() const {
+  if (auto threshold = get<switch_state_tags::dropPacketRateThreshold>()) {
+    return threshold->cref();
   }
   return std::nullopt;
 }

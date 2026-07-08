@@ -770,7 +770,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -874,7 +874,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -1090,7 +1090,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -1194,7 +1194,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -1410,7 +1410,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -1514,7 +1514,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -1730,7 +1730,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -1834,7 +1834,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -2050,7 +2050,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -2154,7 +2154,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -2370,7 +2370,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -2474,7 +2474,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -2690,7 +2690,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -2794,7 +2794,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -3010,7 +3010,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -3114,7 +3114,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -3330,7 +3330,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -3434,7 +3434,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -3650,7 +3650,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -3754,7 +3754,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -3970,7 +3970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -4074,7 +4074,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -4290,7 +4290,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -4394,7 +4394,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -4610,7 +4610,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -4714,7 +4714,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -4930,7 +4930,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -5034,7 +5034,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -5250,7 +5250,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -5354,7 +5354,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -5570,7 +5570,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -5674,7 +5674,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -5890,7 +5890,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -5994,7 +5994,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -6210,7 +6210,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -6314,7 +6314,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -6530,7 +6530,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -6634,7 +6634,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -6850,7 +6850,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -6954,7 +6954,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -7170,7 +7170,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -7274,7 +7274,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -7490,7 +7490,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -7594,7 +7594,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -7810,7 +7810,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -7914,7 +7914,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -8130,7 +8130,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -8234,7 +8234,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -8450,7 +8450,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -8554,7 +8554,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -8770,7 +8770,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -8874,7 +8874,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -9090,7 +9090,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -9194,7 +9194,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -9410,7 +9410,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -9514,7 +9514,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -9730,7 +9730,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -9834,7 +9834,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -10050,7 +10050,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -10154,7 +10154,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -10370,7 +10370,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -10474,7 +10474,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -10690,7 +10690,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -10794,7 +10794,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -11010,7 +11010,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -11114,7 +11114,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -11330,7 +11330,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -11434,7 +11434,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -11650,7 +11650,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -11754,7 +11754,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -11970,7 +11970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -12074,7 +12074,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -12290,7 +12290,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -12394,7 +12394,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -12610,7 +12610,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -12714,7 +12714,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -12930,7 +12930,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -13034,7 +13034,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -13250,7 +13250,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -13354,7 +13354,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -13570,7 +13570,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -13674,7 +13674,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -13890,7 +13890,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -13994,7 +13994,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -14210,7 +14210,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -14314,7 +14314,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -14530,7 +14530,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -14634,7 +14634,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -14850,7 +14850,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -14954,7 +14954,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -15170,7 +15170,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -15274,7 +15274,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -15490,7 +15490,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -15594,7 +15594,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -15810,7 +15810,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -15914,7 +15914,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -16130,7 +16130,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -16234,7 +16234,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -16450,7 +16450,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -16554,7 +16554,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -16770,7 +16770,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -16874,7 +16874,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -17090,7 +17090,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -17194,7 +17194,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -17410,7 +17410,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -17514,7 +17514,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -17730,7 +17730,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -17834,7 +17834,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -18050,7 +18050,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -18154,7 +18154,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -18370,7 +18370,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -18474,7 +18474,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -18690,7 +18690,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -18794,7 +18794,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -19010,7 +19010,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -19114,7 +19114,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -19330,7 +19330,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -19434,7 +19434,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -19650,7 +19650,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -19754,7 +19754,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -19970,7 +19970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -20074,7 +20074,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -20290,7 +20290,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -20394,7 +20394,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -20610,7 +20610,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -20714,7 +20714,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -20930,7 +20930,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "50": {
+          "39": {
               "pins": {
                 "iphy": [
                   {
@@ -21034,7 +21034,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {

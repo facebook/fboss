@@ -109,6 +109,7 @@ class AgentHwTest : public ::testing::Test {
   }
   SwSwitch* getSw() const;
   SwitchID getCurrentSwitchIdForTesting() const;
+  int16_t getCurrentSwitchIndexForTesting() const;
   static SwitchID getSwitchIdUnderTest(const AgentEnsemble& ensemble);
   const std::map<SwitchID, const HwAsic*> getAsics() const;
   std::vector<const HwAsic*> getL3Asics() const {
@@ -170,8 +171,9 @@ class AgentHwTest : public ::testing::Test {
       const std::vector<PortID>& ports);
   HwPortStats getNextUpdatedPortStats(const PortID& port);
   HwPortStats getLastIncrementedPortStats(const PortID& port);
-  multiswitch::HwSwitchStats getHwSwitchStats(uint16_t switchIndex) const;
-  std::map<uint16_t, multiswitch::HwSwitchStats> getHwSwitchStats() const;
+  multiswitch::HwSwitchStats getHwSwitchStats(
+      std::optional<uint16_t> switchIndex = std::nullopt) const;
+  std::map<uint16_t, multiswitch::HwSwitchStats> getAllHwSwitchStats() const;
   std::map<PortID, std::pair<HwPortStats, HwPortStats>>
   sendTrafficAndCollectStats(
       const std::vector<PortID>& ports,
@@ -214,16 +216,24 @@ class AgentHwTest : public ::testing::Test {
     ecmp.programRoutes(&wrapper, width, {}, {}, disableTTLDecrement);
   }
   template <typename EcmpHelperT>
-  void resolveNeighbors(const EcmpHelperT& ecmp, int width) {
-    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
-      return ecmp.resolveNextHops(in, width);
-    });
+  void resolveNeighbors(
+      const EcmpHelperT& ecmp,
+      int width,
+      bool useLinkLocal = false) {
+    applyNewState(
+        [this, &ecmp, width, useLinkLocal](std::shared_ptr<SwitchState> in) {
+          return ecmp.resolveNextHops(in, width, useLinkLocal);
+        });
   }
   template <typename EcmpHelperT>
-  void unresolveNeighbors(const EcmpHelperT& ecmp, int width) {
-    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
-      return ecmp.unresolveNextHops(in, width);
-    });
+  void unresolveNeighbors(
+      const EcmpHelperT& ecmp,
+      int width,
+      bool useLinkLocal = false) {
+    applyNewState(
+        [this, &ecmp, width, useLinkLocal](std::shared_ptr<SwitchState> in) {
+          return ecmp.unresolveNextHops(in, width, useLinkLocal);
+        });
   }
   template <typename EcmpHelperT>
   void unprogramRoutes(const EcmpHelperT& ecmp) {
@@ -286,6 +296,11 @@ class AgentHwTest : public ::testing::Test {
 
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt);
 
+  folly::MacAddress getMacForFirstInterfaceWithPorts(
+      const std::shared_ptr<SwitchState>& state);
+  InterfaceID firstInterfaceIDWithPorts(
+      const std::shared_ptr<SwitchState>& state);
+
   std::optional<VlanID> getVlanIDForTx() const {
     return agentEnsemble_->getVlanIDForTx();
   }
@@ -325,6 +340,29 @@ class AgentHwTest : public ::testing::Test {
    */
   virtual void overrideTestEnsembleInitInfo(
       TestEnsembleInitInfo& /*initInfo*/) const {}
+
+  // Default cap on the number of front-panel INTERFACE_PORTs an AgentHwTest
+  // uses per switch. Covers ~77% of agent_hw_tests. Tests that need the full
+  // port set opt out by overriding maxRequiredInterfacePorts() to return
+  // std::nullopt.
+  static constexpr size_t kDefaultMaxTestInterfacePorts = 8;
+
+  /*
+   * Override to cap the number of front-panel INTERFACE_PORTs the test
+   * uses per switch. Defaults to kDefaultMaxTestInterfacePorts (8). Return
+   * std::nullopt to opt out (use the entire platform port set).
+   */
+  virtual std::optional<size_t> maxRequiredInterfacePorts() const {
+    return kDefaultMaxTestInterfacePorts;
+  }
+
+  /*
+   * Override to cap the number of FABRIC_PORTs the test uses per switch.
+   * Defaults to std::nullopt (no cap, use the entire fabric port set).
+   */
+  virtual std::optional<size_t> maxRequiredFabricPorts() const {
+    return std::nullopt;
+  }
 
  private:
   std::unique_ptr<AgentEnsemble> agentEnsemble_;

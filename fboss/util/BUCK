@@ -3,6 +3,7 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_agent")
@@ -82,6 +83,7 @@ cpp_library(
         "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
         "//fboss/lib/bsp/janga800bic:janga800bic_bsp",
         "//fboss/lib/bsp/ladakh800bcls:ladakh800bcls_bsp",
+        "//fboss/lib/bsp/leh800bcls:leh800bcls_bsp",
         "//fboss/lib/bsp/meru800bfa:meru800bfa_bsp",
         "//fboss/lib/bsp/meru800bia:meru800bia_bsp",
         "//fboss/lib/bsp/minipack3bta:minipack3bta_bsp",
@@ -110,6 +112,7 @@ cpp_library(
         "//fboss/qsfp_service/module:qsfp-module",
         "//fboss/qsfp_service/platforms/wedge:wedge-transceiver",
         "//folly:conv",
+        "//folly:dynamic",
         "//folly:exception",
         "//folly:file_util",
         "//folly:memory",
@@ -361,7 +364,9 @@ python_unittest(
     srcs = [
         "facebook/tests/test_process_known_bad_test.py",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":process_known_bad_test_lib",
+        "//libfb/py/asyncio:tasks",
     ],
 )

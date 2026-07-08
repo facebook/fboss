@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/validated_shell_commands_constants.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -38,6 +39,7 @@ void verifySafeDiagCmds(TestEnsembleIf* ensemble) {
       case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
       case cfg::AsicType::ASIC_TYPE_MOCK:
       case cfg::AsicType::ASIC_TYPE_EBRO:
+      case cfg::AsicType::ASIC_TYPE_P200:
       case cfg::AsicType::ASIC_TYPE_GARONNE:
       case cfg::AsicType::ASIC_TYPE_YUBA:
       case cfg::AsicType::ASIC_TYPE_CHENAB:
@@ -94,7 +96,7 @@ void verifyLoadBalance(
   utility::pumpTrafficAndVerifyLoadBalanced(
       [=]() {
         auto intfMac =
-            utility::getMacForFirstInterfaceWithPorts(sw->getState());
+            getMacForFirstInterfaceWithPortsForTesting(sw->getState());
         utility::pumpTraffic(
             true,
             utility::getAllocatePktFn(sw),

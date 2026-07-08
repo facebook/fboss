@@ -13,6 +13,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "folly/IPAddressV4.h"
@@ -64,7 +65,8 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   rd.nextHops() = fillNextHops(nhopSet, rd);
 
   // Add the multi-nexthops
-  rd.nextHopMulti() = nexthopsmulti().toThriftLegacy();
+  auto bestEntry = getBestEntry();
+  rd.nextHopMulti() = nexthopsmulti().toThriftLegacy(bestEntry.first);
   rd.isConnected() = isConnected();
   // add counter id
   if (fwd().getCounterID().has_value()) {
@@ -81,6 +83,22 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
     auto nhops = normalizedNhopSet.has_value() ? *normalizedNhopSet
                                                : *fwd().getOverrideNextHops();
     rd.overridenNextHops() = fillNextHops(nhops, rd);
+  }
+  // Add nexthop IDs if present
+  if (auto setId = fwd().getResolvedNextHopSetID()) {
+    rd.resolvedNextHopSetID() = static_cast<int64_t>(*setId);
+  }
+  if (auto setId = fwd().getNormalizedResolvedNextHopSetID()) {
+    rd.normalizedResolvedNextHopSetID() = static_cast<int64_t>(*setId);
+  }
+  if (bestEntry.second) {
+    rd.adminDistance() = bestEntry.second->getAdminDistance();
+    auto nhgName = bestEntry.second->getNamedNextHopGroup();
+    if (nhgName.has_value()) {
+      NamedRouteDestination namedDest;
+      namedDest.nextHopGroup() = *nhgName;
+      rd.namedRouteDestination() = namedDest;
+    }
   }
   return rd;
 }

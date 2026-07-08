@@ -8,13 +8,17 @@
  *
  */
 
+#include <fmt/core.h>
 #include <gtest/gtest.h>
 
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -71,7 +75,7 @@ class ResourceAccountantTest : public ::testing::Test {
         allocResult.nextHopIdSetIter->second.id;
     entry.setResolvedNextHopSetID(resolvedId);
 
-    auto normalizedNhops = entry.nonOverrideNormalizedNextHops();
+    auto normalizedNhops = RouteNextHopEntry::normalizeNextHops(nhops);
     auto normAllocResult =
         nextHopIDManager_->getOrAllocRouteNextHopSetID(normalizedNhops);
     std::optional<NextHopSetID> normalizedId =
@@ -82,9 +86,9 @@ class ResourceAccountantTest : public ::testing::Test {
     auto fibInfo = getFibInfo();
     auto idToNextHopMap = fibInfo->getIdToNextHopMap();
     auto idToNextHopIdSetMap = fibInfo->getIdToNextHopIdSetMap();
-    for (const auto& [id, nhop] : nextHopIDManager_->getIdToNextHop()) {
+    for (const auto& [id, nhopEntry] : nextHopIDManager_->getIdToNextHop()) {
       if (!idToNextHopMap->getNextHopIf(id)) {
-        idToNextHopMap->addNextHop(id, nhop.toThrift());
+        idToNextHopMap->addNextHop(id, nhopEntry.nextHop.toThrift());
       }
     }
     for (const auto& [id, nhopIdSet] :
@@ -256,7 +260,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
           InterfaceID(i + 1),
           ecmpWeight));
     }
-    this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthopsCur] = 1;
+    this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthopsCur] = {
+        .refCountNonVirtual = 1};
     this->resourceAccountant_->ecmpMemberUsage_ += ecmpWidth;
     ecmpNexthops.push_back(std::move(ecmpNexthopsCur));
   }
@@ -275,7 +280,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
         InterfaceID(i + 1),
         ecmpWeight));
   }
-  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops4] = 1;
+  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops4] = {
+      .refCountNonVirtual = 1};
   this->resourceAccountant_->ecmpMemberUsage_ += 2;
   // Intermediate limit is 100%, which is not violated
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
@@ -292,7 +298,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
         InterfaceID(i + 1),
         ecmpWeight));
   }
-  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops5] = 1;
+  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops5] = {
+      .refCountNonVirtual = 1};
   this->resourceAccountant_->ecmpMemberUsage_ += ecmpWidth;
   // Both intermediate and end limit are violated
   EXPECT_FALSE(this->resourceAccountant_->checkEcmpResource(
@@ -329,7 +336,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
                 ecmpWeight)});
   }
   for (const auto& nhopSet : ecmpNexthopsList) {
-    this->resourceAccountant_->ecmpGroupRefMap_[nhopSet] = 1;
+    this->resourceAccountant_->ecmpGroupRefMap_[nhopSet] = {
+        .refCountNonVirtual = 1};
     this->resourceAccountant_->ecmpMemberUsage_ += 2;
   }
   this->resourceAccountant_->ecmpGroupRefMap_.erase(ecmpNexthops[0]);
@@ -349,7 +357,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
           folly::IPAddress(folly::to<std::string>("3.1.1.2")),
           InterfaceID(2),
           ecmpWeight)};
-  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops2] = 1;
+  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops2] = {
+      .refCountNonVirtual = 1};
   this->resourceAccountant_->ecmpMemberUsage_ += 2;
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
       true /* intermediateState */));
@@ -370,7 +379,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResourceForUcmpWeights) {
   std::vector<RouteNextHopSet> ecmpNexthops =
       getUcmpNextHops(ecmpWidth, 3 /*numGroups*/, 0 /*seed*/);
   for (const auto& ecmpNexthopsCur : ecmpNexthops) {
-    this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthopsCur] = 1;
+    this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthopsCur] = {
+        .refCountNonVirtual = 1};
     this->resourceAccountant_->ecmpMemberUsage_ += ecmpWidth;
   }
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
@@ -384,7 +394,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResourceForUcmpWeights) {
   RouteNextHopSet ecmpNexthops2 = singleGroup[0];
 
   this->resourceAccountant_->ecmpMemberUsage_ += 5;
-  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops2] = 1;
+  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops2] = {
+      .refCountNonVirtual = 1};
   // Intermediate limit is 100%, which is not violated
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
       true /* intermediateState */));
@@ -395,7 +406,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResourceForUcmpWeights) {
   // Add another UCMP group with max ECMP width
   auto singleGroup2 = getUcmpNextHops(ecmpWidth, 1 /*numGroups*/, 2 /*seed*/);
   RouteNextHopSet ecmpNexthops3 = singleGroup2[0];
-  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops3] = 1;
+  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops3] = {
+      .refCountNonVirtual = 1};
   this->resourceAccountant_->ecmpMemberUsage_ += ecmpWidth;
   // Both intermediate and end limit are violated
   EXPECT_FALSE(this->resourceAccountant_->checkEcmpResource(
@@ -419,7 +431,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResourceForUcmpWeights) {
       (getMaxEcmpGroups() * FLAGS_ecmp_resource_percentage / 100.0));
   ecmpNexthopsList = getUcmpNextHops(5, 13 /*numGroups*/, 3 /*seed*/);
   for (const auto& nhopSet : ecmpNexthopsList) {
-    this->resourceAccountant_->ecmpGroupRefMap_[nhopSet] = 1;
+    this->resourceAccountant_->ecmpGroupRefMap_[nhopSet] = {
+        .refCountNonVirtual = 1};
     this->resourceAccountant_->ecmpMemberUsage_ += 5;
   }
   this->resourceAccountant_->ecmpGroupRefMap_.erase(ecmpNexthops[0]);
@@ -433,7 +446,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResourceForUcmpWeights) {
   // Add one more group to exceed group limit
   auto singleGroup3 = getUcmpNextHops(ecmpWidth, 1 /*numGroups*/, 4 /*seed*/);
   RouteNextHopSet ecmpNexthops4 = singleGroup3[0];
-  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops4] = 1;
+  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops4] = {
+      .refCountNonVirtual = 1};
   this->resourceAccountant_->ecmpMemberUsage_ += 5;
 
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
@@ -447,7 +461,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResourceForUcmpWeights) {
       getUcmpNextHops(5, 5 /*numGroups*/, 5 /*seed*/);
 
   for (const auto& nhopSet : ecmpNexthopsListFinal) {
-    this->resourceAccountant_->ecmpGroupRefMap_[nhopSet] = 1;
+    this->resourceAccountant_->ecmpGroupRefMap_[nhopSet] = {
+        .refCountNonVirtual = 1};
     this->resourceAccountant_->ecmpMemberUsage_ += 5;
   }
 
@@ -834,8 +849,9 @@ TEST_F(ResourceAccountantTest, resolvedAndUnresolvedRoutes) {
 
         // Populate ID maps for ID-based resolution
         auto id2Nhop = std::make_shared<IdToNextHopMap>();
-        for (const auto& [id, nhop] : nextHopIDManager_->getIdToNextHop()) {
-          id2Nhop->addNextHop(id, nhop.toThrift());
+        for (const auto& [id, nhopEntry] :
+             nextHopIDManager_->getIdToNextHop()) {
+          id2Nhop->addNextHop(id, nhopEntry.nextHop.toThrift());
         }
         auto id2NhopSetIds = std::make_shared<IdToNextHopIdSetMap>();
         for (const auto& [id, nhopIdSet] :
@@ -979,13 +995,14 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
   RouteNextHopEntry sharedVirtualEntry(sharedVirtualNhSet, AdminDistance::EBGP);
   this->allocAndUpdateIdMaps(sharedVirtualEntry, sharedVirtualNhSet);
 
-  // getMemberCountForEcmpGroup: virtual returns 0, non-virtual returns width
+  // getMemberCountForEcmpGroup: returns actual width for both virtual and
+  // non-virtual.
   EXPECT_EQ(
       4,
       this->resourceAccountant_->getMemberCountForEcmpGroup(
           sharedNonVirtualEntry, state_));
   EXPECT_EQ(
-      0,
+      6,
       this->resourceAccountant_->getMemberCountForEcmpGroup(
           sharedVirtualEntry, state_));
 
@@ -1048,13 +1065,18 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
   // virtualArsGroupCount_: 4 unique virtual groups (1 shared + 3 unique)
   EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 4);
 
-  // ecmpMemberUsage_: 4 + 2*3 = 10 (virtual groups contribute 0)
-  EXPECT_EQ(this->resourceAccountant_->ecmpMemberUsage_, 10);
+  // ecmpMemberUsage_: 4 + 2*3 (non-virtual) + 6 + 3*7 (virtual) = 37
+  EXPECT_EQ(this->resourceAccountant_->ecmpMemberUsage_, 37);
 
-  // Ref counts for shared groups
+  // Ref counts for shared groups (split by classification)
   EXPECT_EQ(
-      this->resourceAccountant_->ecmpGroupRefMap_[sharedNonVirtualNhSet], 5);
-  EXPECT_EQ(this->resourceAccountant_->ecmpGroupRefMap_[sharedVirtualNhSet], 8);
+      this->resourceAccountant_->ecmpGroupRefMap_[sharedNonVirtualNhSet]
+          .refCountNonVirtual,
+      5);
+  EXPECT_EQ(
+      this->resourceAccountant_->ecmpGroupRefMap_[sharedVirtualNhSet]
+          .refCountVirtual,
+      8);
   EXPECT_EQ(
       this->resourceAccountant_->arsEcmpGroupRefMap_[sharedNonVirtualNhSet], 5);
   EXPECT_EQ(
@@ -1065,8 +1087,8 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
   EXPECT_TRUE(this->resourceAccountant_->checkArsResource(
       true /* intermediateState */));
 
-  // checkEcmpResource: totalEcmpGroupUsage = 7,
-  //   totalEcmpMemberUsage = 10 + 256 = 266
+  // checkEcmpResource: ecmpGroupUsage = 7 (unique nhSets),
+  //   totalEcmpMemberUsage = 37 + 256 = 293
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
       true /* intermediateState */));
 
@@ -1079,7 +1101,9 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
       this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
           removeRoute1, false, state_));
   EXPECT_EQ(
-      this->resourceAccountant_->ecmpGroupRefMap_[sharedNonVirtualNhSet], 4);
+      this->resourceAccountant_->ecmpGroupRefMap_[sharedNonVirtualNhSet]
+          .refCountNonVirtual,
+      4);
   EXPECT_EQ(this->resourceAccountant_->ecmpGroupRefMap_.size(), 7);
   EXPECT_EQ(this->resourceAccountant_->arsEcmpGroupRefMap_.size(), 3);
 
@@ -1091,7 +1115,10 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
   EXPECT_TRUE(
       this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
           removeRoute2, false, state_));
-  EXPECT_EQ(this->resourceAccountant_->ecmpGroupRefMap_[sharedVirtualNhSet], 7);
+  EXPECT_EQ(
+      this->resourceAccountant_->ecmpGroupRefMap_[sharedVirtualNhSet]
+          .refCountVirtual,
+      7);
   EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 4);
 
   // Remove all remaining routes sharing virtual group
@@ -1132,6 +1159,705 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
   this->resourceAccountant_->arsEcmpGroupRefMap_[extraNhSet] = 1;
   EXPECT_FALSE(this->resourceAccountant_->checkArsResource(
       true /* intermediateState */));
+
+  // Verify ECMP member overhead: virtualArsEcmpMemberUsage =
+  // maxArsVirtualGroupWidth_ (flat, regardless of group count). Fill members
+  // to just below the final-state limit so the virtual overhead tips it over.
+  const auto memberLimit = static_cast<uint32_t>(
+      getMaxEcmpMembers() * FLAGS_ecmp_resource_percentage / 100);
+  const int32_t maxVirtualGroupWidth =
+      this->resourceAccountant_->maxArsVirtualGroupWidth_.value();
+  this->resourceAccountant_->ecmpMemberUsage_ =
+      memberLimit - static_cast<uint32_t>(maxVirtualGroupWidth) + 1;
+
+  this->resourceAccountant_->virtualArsGroupCount_ = 0;
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      false /* intermediateState */));
+
+  this->resourceAccountant_->virtualArsGroupCount_ = 1;
+  EXPECT_FALSE(this->resourceAccountant_->checkEcmpResource(
+      false /* intermediateState */));
+
+  // Overhead is flat — same result with many virtual groups.
+  this->resourceAccountant_->virtualArsGroupCount_ = 100;
+  EXPECT_FALSE(this->resourceAccountant_->checkEcmpResource(
+      false /* intermediateState */));
+
+  this->resourceAccountant_->virtualArsGroupCount_ = 0;
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      false /* intermediateState */));
+}
+
+TEST_F(ResourceAccountantTest, virtualArsSuperGroupMemberLimit) {
+  FLAGS_dlbResourceCheckEnable = true;
+  FLAGS_flowletSwitchingEnable = true;
+  // minWidth=2 so any nhSet with >=2 nexthops qualifies as virtual.
+  // Supergroup limit = 5 unique nexthop members across all virtual groups.
+  this->resourceAccountant_->setMinWidthForArsVirtualGroup(2);
+  this->resourceAccountant_->setMaxArsVirtualGroups(256);
+  this->resourceAccountant_->setMaxArsVirtualGroupWidth(5);
+
+  // Build nexthop sets with partial overlap so the union grows incrementally:
+  //   A = {nh1, nh2, nh3}  -> unique total = 3
+  //   B = {nh2, nh3, nh4}  -> unique total = 4
+  //   C = {nh3, nh4, nh5}  -> unique total = 5  (at limit)
+  //   D = {nh4, nh5, nh6}  -> unique total = 6  (exceeds limit -> rejected)
+  auto makeNh = [](int id) {
+    return ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("10.0.0.", id)),
+        InterfaceID(id),
+        ecmpWeight);
+  };
+
+  auto makeNhSet = [&](std::initializer_list<int> ids) {
+    RouteNextHopSet nhSet;
+    for (int id : ids) {
+      nhSet.insert(makeNh(id));
+    }
+    return nhSet;
+  };
+
+  auto nhSetA = makeNhSet({1, 2, 3});
+  auto nhSetB = makeNhSet({2, 3, 4});
+  auto nhSetC = makeNhSet({3, 4, 5});
+  auto nhSetD = makeNhSet({4, 5, 6});
+
+  RouteNextHopEntry entryA(nhSetA, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(entryA, nhSetA);
+  RouteNextHopEntry entryB(nhSetB, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(entryB, nhSetB);
+  RouteNextHopEntry entryC(nhSetC, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(entryC, nhSetC);
+  RouteNextHopEntry entryD(nhSetD, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(entryD, nhSetD);
+
+  auto addRoute = [&](int prefix,
+                      const RouteNextHopEntry& entry,
+                      const RouteNextHopSet& nhSet) {
+    auto route = makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("::", prefix)), 128},
+        entry,
+        nhSet);
+    return this->resourceAccountant_
+        ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, true, state_);
+  };
+
+  auto removeRoute = [&](int prefix,
+                         const RouteNextHopEntry& entry,
+                         const RouteNextHopSet& nhSet) {
+    auto route = makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("::", prefix)), 128},
+        entry,
+        nhSet);
+    return this->resourceAccountant_
+        ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, false, state_);
+  };
+
+  // Add A: unique members = {nh1, nh2, nh3} = 3
+  EXPECT_TRUE(addRoute(1, entryA, nhSetA));
+  EXPECT_EQ(
+      this->resourceAccountant_->virtualArsSuperGroupMemberRefMap_.size(), 3);
+
+  // Add B: union gains nh4 -> 4 unique
+  EXPECT_TRUE(addRoute(2, entryB, nhSetB));
+  EXPECT_EQ(
+      this->resourceAccountant_->virtualArsSuperGroupMemberRefMap_.size(), 4);
+
+  // Add C: union gains nh5 -> 5 unique (exactly at limit)
+  EXPECT_TRUE(addRoute(3, entryC, nhSetC));
+  EXPECT_EQ(
+      this->resourceAccountant_->virtualArsSuperGroupMemberRefMap_.size(), 5);
+
+  // Add D: would add nh6 -> 6 unique, exceeds limit -> rejected
+  EXPECT_FALSE(addRoute(4, entryD, nhSetD));
+
+  // Remove A: nh1 erased (refcount 0); nh2 still ref'd by B; nh3 still ref'd by
+  // B and C
+  removeRoute(1, entryA, nhSetA);
+  EXPECT_EQ(
+      this->resourceAccountant_->virtualArsSuperGroupMemberRefMap_.size(), 4);
+
+  // D is now accepted: nh6 brings unique count to 5 = limit
+  EXPECT_TRUE(addRoute(4, entryD, nhSetD));
+  EXPECT_EQ(
+      this->resourceAccountant_->virtualArsSuperGroupMemberRefMap_.size(), 5);
+
+  // A second route sharing nhSetB doesn't change the supergroup unique count
+  auto nhSetB2 = makeNhSet({2, 3, 4});
+  RouteNextHopEntry entryB2(nhSetB2, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(entryB2, nhSetB2);
+  EXPECT_TRUE(addRoute(5, entryB2, nhSetB2));
+  EXPECT_EQ(
+      this->resourceAccountant_->virtualArsSuperGroupMemberRefMap_.size(), 5);
+}
+
+TEST_F(ResourceAccountantTest, virtualArsGroupOverrideExcluded) {
+  // ERM-overridden (backup) routes must not count against
+  // virtualArsGroupCount_.
+  FLAGS_dlbResourceCheckEnable = true;
+  FLAGS_flowletSwitchingEnable = true;
+  FLAGS_enable_ecmp_resource_manager = true;
+  this->resourceAccountant_->setMinWidthForArsVirtualGroup(2);
+  this->resourceAccountant_->setMaxArsVirtualGroups(256);
+  this->resourceAccountant_->setMaxArsVirtualGroupWidth(256);
+
+  auto makeNhSet = [](int width, int seed) {
+    RouteNextHopSet nhSet;
+    for (int i = 0; i < width; i++) {
+      nhSet.insert(ResolvedNextHop(
+          folly::IPAddress(
+              folly::to<std::string>(
+                  (seed / 250) + 1, ".", (seed % 250) + 1, ".1.", i + 1)),
+          InterfaceID(i + 1),
+          ecmpWeight));
+    }
+    return nhSet;
+  };
+
+  // Wide route with no override: counted as virtual.
+  auto nhSet1 = makeNhSet(4, 0);
+  RouteNextHopEntry entry1(nhSet1, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(entry1, nhSet1);
+  auto route1 = makeV6Route({folly::IPAddressV6("1::1"), 128}, entry1, nhSet1);
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          route1, true /* add */, state_));
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 1);
+  EXPECT_EQ(this->resourceAccountant_->ecmpMemberUsage_, 4);
+
+  // Wide route WITH override switching mode (e.g. ERM moved it to backup
+  // ECMP): must NOT increment virtualArsGroupCount_, and must contribute
+  // real ECMP members.
+  auto nhSet2 = makeNhSet(4, 1);
+  RouteNextHopEntry entry2(nhSet2, AdminDistance::EBGP);
+  entry2.setOverrideEcmpSwitchingMode(cfg::SwitchingMode::PER_PACKET_RANDOM);
+  this->allocAndUpdateIdMaps(entry2, nhSet2);
+  auto route2 = makeV6Route({folly::IPAddressV6("1::2"), 128}, entry2, nhSet2);
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          route2, true /* add */, state_));
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 1);
+  EXPECT_EQ(this->resourceAccountant_->ecmpMemberUsage_, 8);
+
+  // Removing the override route must not decrement virtualArsGroupCount_.
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          route2, false /* add */, state_));
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 1);
+  EXPECT_EQ(this->resourceAccountant_->ecmpMemberUsage_, 4);
+
+  // Removing the non-override route does decrement.
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          route1, false /* add */, state_));
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 0);
+}
+
+TEST_F(ResourceAccountantTest, virtualArsGroupOverrideFlipLifecycle) {
+  // ERM flipping a virtual route to backup must decrement virtualArsGroupCount_
+  // and post member cost; deleting it while still in backup must unwind
+  // cleanly.
+  FLAGS_dlbResourceCheckEnable = true;
+  FLAGS_flowletSwitchingEnable = true;
+  FLAGS_enable_ecmp_resource_manager = true;
+  this->resourceAccountant_->setMinWidthForArsVirtualGroup(2);
+  this->resourceAccountant_->setMaxArsVirtualGroups(256);
+  this->resourceAccountant_->setMaxArsVirtualGroupWidth(256);
+
+  RouteNextHopSet nhSet;
+  for (int i = 0; i < 4; i++) {
+    nhSet.insert(ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
+        InterfaceID(i + 1),
+        ecmpWeight));
+  }
+
+  // 1. Add route with no override (qualifies as virtual).
+  RouteNextHopEntry entryNoOverride(nhSet, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(entryNoOverride, nhSet);
+  auto routeNoOverride =
+      makeV6Route({folly::IPAddressV6("1::1"), 128}, entryNoOverride, nhSet);
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          routeNoOverride, true /* add */, state_));
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 1);
+
+  // 2. ERM flips route to backup: add(override) + remove(no-override).
+  RouteNextHopEntry entryWithOverride(nhSet, AdminDistance::EBGP);
+  entryWithOverride.setOverrideEcmpSwitchingMode(
+      cfg::SwitchingMode::PER_PACKET_RANDOM);
+  auto routeWithOverride =
+      makeV6Route({folly::IPAddressV6("1::1"), 128}, entryWithOverride, nhSet);
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          routeWithOverride, true /* add */, state_));
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          routeNoOverride, false /* add */, state_));
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 0);
+  EXPECT_EQ(this->resourceAccountant_->ecmpMemberUsage_, 4);
+
+  // 3. Delete while still in backup: members unwind, entry removed.
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          routeWithOverride, false /* add */, state_));
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 0);
+  EXPECT_EQ(this->resourceAccountant_->ecmpMemberUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->ecmpGroupRefMap_.count(nhSet), 0);
+}
+
+TEST_F(
+    ResourceAccountantTest,
+    virtualArsGroupOverrideDropPromotesClassification) {
+  // Route arrives with override (warmboot replay / over-cap). ERM later
+  // drops the override; virtualArsGroupCount_ must increment. Member usage
+  // stays unchanged (the underlying ECMP object persists). Subsequent
+  // deletion unwinds both cleanly.
+  FLAGS_dlbResourceCheckEnable = true;
+  FLAGS_flowletSwitchingEnable = true;
+  FLAGS_enable_ecmp_resource_manager = true;
+  this->resourceAccountant_->setMinWidthForArsVirtualGroup(2);
+  this->resourceAccountant_->setMaxArsVirtualGroups(256);
+  this->resourceAccountant_->setMaxArsVirtualGroupWidth(256);
+
+  RouteNextHopSet nhSet;
+  for (int i = 0; i < 4; i++) {
+    nhSet.insert(ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
+        InterfaceID(i + 1),
+        ecmpWeight));
+  }
+
+  RouteNextHopEntry entryWithOverride(nhSet, AdminDistance::EBGP);
+  entryWithOverride.setOverrideEcmpSwitchingMode(
+      cfg::SwitchingMode::PER_PACKET_RANDOM);
+  this->allocAndUpdateIdMaps(entryWithOverride, nhSet);
+  auto routeWithOverride =
+      makeV6Route({folly::IPAddressV6("1::1"), 128}, entryWithOverride, nhSet);
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          routeWithOverride, true /* add */, state_));
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 0);
+  EXPECT_EQ(this->resourceAccountant_->ecmpMemberUsage_, 4);
+
+  // 2. ERM drops override: add(no-override) + remove(with-override).
+  RouteNextHopEntry entryNoOverride(nhSet, AdminDistance::EBGP);
+  auto routeNoOverride =
+      makeV6Route({folly::IPAddressV6("1::1"), 128}, entryNoOverride, nhSet);
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          routeNoOverride, true /* add */, state_));
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          routeWithOverride, false /* add */, state_));
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 1);
+  EXPECT_EQ(this->resourceAccountant_->ecmpMemberUsage_, 4);
+
+  // 3. Delete unwinds cleanly.
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          routeNoOverride, false /* add */, state_));
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 0);
+  EXPECT_EQ(this->resourceAccountant_->ecmpMemberUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->ecmpGroupRefMap_.count(nhSet), 0);
+}
+
+TEST_F(ResourceAccountantTest, checkMySidResource) {
+  FLAGS_enable_mysid_resource_protection = true;
+
+  // MockAsic supports 8 MySID entries
+  auto maxMySid = asicTable_->getHwAsic(SwitchID(0))->getMaxMySidEntries();
+  ASSERT_TRUE(maxMySid.has_value());
+  EXPECT_EQ(maxMySid.value(), 8);
+
+  // Empty state passes both checks
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+
+  // At 75% (6/8) - passes both
+  this->resourceAccountant_->mySidUsage_ = 6;
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+
+  // At 87.5% (7/8) - passes intermediate (100%), fails final (75%)
+  this->resourceAccountant_->mySidUsage_ = 7;
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+
+  // At 100% (8/8) - passes intermediate, fails final
+  this->resourceAccountant_->mySidUsage_ = 8;
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+
+  // Above 100% (9/8) - fails both
+  this->resourceAccountant_->mySidUsage_ = 9;
+  EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+}
+
+TEST_F(ResourceAccountantTest, mySidStateChanged) {
+  FLAGS_enable_mysid_resource_protection = true;
+
+  HwSwitchMatcher mySidScope(std::unordered_set<SwitchID>{SwitchID(10)});
+
+  auto makeMySidEntry = [](const std::string& addr, uint8_t len) {
+    state::MySidFields fields;
+    fields.type() = MySidType::NODE_MICRO_SID;
+    facebook::network::thrift::IPPrefix thriftPrefix;
+    thriftPrefix.prefixAddress() =
+        facebook::network::toBinaryAddress(folly::IPAddress(addr));
+    thriftPrefix.prefixLength() = len;
+    fields.mySid() = thriftPrefix;
+    return std::make_shared<MySid>(fields);
+  };
+
+  // Add 2 entries
+  auto oldState = std::make_shared<SwitchState>();
+  oldState->publish();
+
+  auto newState = oldState->clone();
+  auto mySids = newState->getMySids()->modify(&newState);
+  mySids->addNode(makeMySidEntry("fc00:100::1", 48), mySidScope);
+  mySids->addNode(makeMySidEntry("fc00:200::1", 48), mySidScope);
+  newState->publish();
+
+  StateDelta addDelta(oldState, newState);
+  this->resourceAccountant_->mySidStateChangedImpl(addDelta);
+  EXPECT_EQ(this->resourceAccountant_->mySidUsage_, 2);
+
+  // Remove one entry
+  auto newState2 = newState->clone();
+  auto mySids2 = newState2->getMySids()->modify(&newState2);
+  mySids2->removeNode("fc00:100::1/48");
+  newState2->publish();
+
+  StateDelta removeDelta(newState, newState2);
+  this->resourceAccountant_->mySidStateChangedImpl(removeDelta);
+  EXPECT_EQ(this->resourceAccountant_->mySidUsage_, 1);
+
+  // Change type (should not affect count)
+  auto newState3 = newState2->clone();
+  auto mySids3 = newState3->getMySids()->modify(&newState3);
+  auto updated = mySids3->getNode("fc00:200::1/48")->clone();
+  updated->setType(MySidType::DECAPSULATE_AND_LOOKUP);
+  mySids3->updateNode(updated, mySidScope);
+  newState3->publish();
+
+  StateDelta changeDelta(newState2, newState3);
+  this->resourceAccountant_->mySidStateChangedImpl(changeDelta);
+  EXPECT_EQ(this->resourceAccountant_->mySidUsage_, 1);
+}
+
+TEST_F(ResourceAccountantTest, mySidResourceExceeded) {
+  FLAGS_enable_mysid_resource_protection = true;
+
+  // MockAsic supports 8 MySID entries, 75% = 6 allowed
+  HwSwitchMatcher mySidScope(std::unordered_set<SwitchID>{SwitchID(10)});
+
+  auto makeMySidEntry = [](const std::string& addr, uint8_t len) {
+    state::MySidFields fields;
+    fields.type() = MySidType::NODE_MICRO_SID;
+    facebook::network::thrift::IPPrefix thriftPrefix;
+    thriftPrefix.prefixAddress() =
+        facebook::network::toBinaryAddress(folly::IPAddress(addr));
+    thriftPrefix.prefixLength() = len;
+    fields.mySid() = thriftPrefix;
+    return std::make_shared<MySid>(fields);
+  };
+
+  // Add 6 entries (exactly 75% of 8) — should be accepted
+  auto oldState = std::make_shared<SwitchState>();
+  oldState->publish();
+
+  auto stateWith6 = oldState->clone();
+  auto mySids6 = stateWith6->getMySids()->modify(&stateWith6);
+  for (int i = 0; i < 6; ++i) {
+    mySids6->addNode(
+        makeMySidEntry(fmt::format("fc00:{:x}::1", i + 1), 48), mySidScope);
+  }
+  stateWith6->publish();
+
+  StateDelta delta6(oldState, stateWith6);
+  EXPECT_TRUE(this->resourceAccountant_->isValidUpdate(delta6));
+
+  // Add 1 more entry (7/8 = 87.5%, exceeds 75%) — should be rejected
+  auto stateWith7 = stateWith6->clone();
+  auto mySids7 = stateWith7->getMySids()->modify(&stateWith7);
+  mySids7->addNode(makeMySidEntry("fc00:7::1", 48), mySidScope);
+  stateWith7->publish();
+
+  StateDelta delta7(stateWith6, stateWith7);
+  EXPECT_FALSE(this->resourceAccountant_->isValidUpdate(delta7));
+}
+
+TEST_F(ResourceAccountantTest, checkAndUpdateSrv6NextHopResource) {
+  FLAGS_enable_srv6_nexthop_resource_protection = true;
+
+  auto makeSrv6Nhop = [](int idx) {
+    return ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("1.1.1.", idx + 1)),
+        InterfaceID(1),
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::vector<folly::IPAddressV6>{
+            folly::IPAddressV6(fmt::format("3001:db8:{:x}::", idx + 1))},
+        TunnelType::SRV6_ENCAP,
+        std::string("srv6Tunnel0"));
+  };
+
+  auto makeRegularNhop = [](int idx) {
+    return ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("2.2.2.", idx + 1)),
+        InterfaceID(2),
+        ECMP_WEIGHT);
+  };
+
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 0);
+
+  // Single SRv6 nhop route
+  RouteNextHopSet singleSrv6{makeSrv6Nhop(0)};
+  RouteNextHopEntry singleEntry(singleSrv6, AdminDistance::EBGP);
+  auto singleRoute = makeV6Route(
+      {folly::IPAddressV6("2800:1::"), 48}, singleEntry, singleSrv6);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      singleRoute, true, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 1);
+
+  // ECMP SRv6 route (3 nhops)
+  RouteNextHopSet ecmpSrv6{
+      makeSrv6Nhop(10), makeSrv6Nhop(11), makeSrv6Nhop(12)};
+  RouteNextHopEntry ecmpEntry(ecmpSrv6, AdminDistance::EBGP);
+  auto ecmpRoute =
+      makeV6Route({folly::IPAddressV6("2800:2::"), 48}, ecmpEntry, ecmpSrv6);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpRoute, true, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 3);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 1);
+
+  // Second route sharing same ECMP nhops — no additional count
+  auto ecmpRoute2 =
+      makeV6Route({folly::IPAddressV6("2800:3::"), 48}, ecmpEntry, ecmpSrv6);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpRoute2, true, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 3);
+
+  // Remove first ECMP route — still ref'd, no decrement
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpRoute, false, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 3);
+
+  // Remove second ECMP route — ref count reaches 0, decrement
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpRoute2, false, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+
+  // Regular (non-SRv6) ECMP route — not counted
+  RouteNextHopSet regularSet{makeRegularNhop(20), makeRegularNhop(21)};
+  RouteNextHopEntry regularEntry(regularSet, AdminDistance::EBGP);
+  auto regularRoute = makeV6Route(
+      {folly::IPAddressV6("2800:4::"), 48}, regularEntry, regularSet);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      regularRoute, true, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 1);
+
+  // Same SRv6 nhop used in both single-nhop route and ECMP route.
+  // nhop(0) is already in singleSrv6 route above (single pool).
+  // Now add it in an ECMP route too — it should count in ECMP pool as well.
+  RouteNextHopSet ecmpWithShared{makeSrv6Nhop(0), makeSrv6Nhop(30)};
+  RouteNextHopEntry ecmpSharedEntry(ecmpWithShared, AdminDistance::EBGP);
+  auto ecmpSharedRoute = makeV6Route(
+      {folly::IPAddressV6("2800:5::"), 48}, ecmpSharedEntry, ecmpWithShared);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpSharedRoute, true, state_));
+  // nhop(0) counted in both pools: single(1) + ecmp(2)
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 2);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 1);
+
+  // Remove the single-nhop route — single pool decrements
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      singleRoute, false, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 2);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 0);
+
+  // Remove the ECMP route — ecmp pool decrements
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpSharedRoute, false, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 0);
+}
+
+TEST_F(ResourceAccountantTest, srv6NextHopResourceExceeded) {
+  FLAGS_enable_srv6_nexthop_resource_protection = true;
+
+  // MockAsic: ECMP=16 (75%=12), Single=8 (75%=6)
+  auto makeSrv6Nhop = [](int idx) {
+    return ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("1.1.1.", idx + 1)),
+        InterfaceID(1),
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::vector<folly::IPAddressV6>{
+            folly::IPAddressV6(fmt::format("3001:db8:{:x}::", idx + 1))},
+        TunnelType::SRV6_ENCAP,
+        std::string("srv6Tunnel0"));
+  };
+
+  // Add ECMP routes: 4 groups x 3 SRv6 nhops = 12 (exactly 75% of 16)
+  for (int i = 0; i < 4; ++i) {
+    RouteNextHopSet nhops{
+        makeSrv6Nhop(i * 3), makeSrv6Nhop(i * 3 + 1), makeSrv6Nhop(i * 3 + 2)};
+    RouteNextHopEntry entry(nhops, AdminDistance::EBGP);
+    auto route = makeV6Route(
+        {folly::IPAddressV6(fmt::format("2800:{:x}::", i)), 48}, entry, nhops);
+    EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+        route, true, state_));
+  }
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 12);
+
+  // At 75% — final check passes
+  EXPECT_TRUE(this->resourceAccountant_->checkSrv6NextHopResource(
+      false /* intermediateState */));
+
+  // Add 1 more group (total = 15) — intermediate passes, final fails
+  RouteNextHopSet overflowNhops{
+      makeSrv6Nhop(100), makeSrv6Nhop(101), makeSrv6Nhop(102)};
+  RouteNextHopEntry overflowEntry(overflowNhops, AdminDistance::EBGP);
+  auto overflowRoute = makeV6Route(
+      {folly::IPAddressV6("2800:ff::"), 48}, overflowEntry, overflowNhops);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      overflowRoute, true, state_));
+  EXPECT_FALSE(this->resourceAccountant_->checkSrv6NextHopResource(
+      false /* intermediateState */));
+}
+
+TEST_F(ResourceAccountantTest, checkAndUpdateRouteCounterResource) {
+  RouteNextHopSet nhops1{
+      ResolvedNextHop(folly::IPAddress("1.1.1.1"), InterfaceID(1), ecmpWeight)};
+  RouteNextHopSet nhops2{
+      ResolvedNextHop(folly::IPAddress("2.2.2.2"), InterfaceID(2), ecmpWeight)};
+
+  RouteCounterID counter1("route.counter.0");
+  RouteCounterID counter2("route.counter.1");
+
+  auto makeEntryWithCounter =
+      [](const RouteNextHopSet& nhops,
+         const std::optional<RouteCounterID>& counterID) {
+        RouteNextHopEntry base(nhops, AdminDistance::EBGP);
+        auto thrift = base.toThrift();
+        if (counterID.has_value()) {
+          thrift.counterID() = *counterID;
+        }
+        RouteNextHopEntry entry;
+        entry.fromThrift(thrift);
+        return entry;
+      };
+
+  // Route A with counter1
+  auto entry1 = makeEntryWithCounter(nhops1, counter1);
+  auto routeA =
+      makeV6Route({folly::IPAddressV6("2401::1"), 128}, entry1, nhops1);
+  resourceAccountant_->checkAndUpdateRouteCounterResource(routeA, true);
+  EXPECT_EQ(resourceAccountant_->routeCounterRefMap_.size(), 1);
+  EXPECT_EQ(resourceAccountant_->routeCounterRefMap_[counter1], 1);
+
+  // Route B also uses counter1 — refcount goes to 2
+  auto entry2 = makeEntryWithCounter(nhops2, counter1);
+  auto routeB =
+      makeV6Route({folly::IPAddressV6("2401::2"), 128}, entry2, nhops2);
+  resourceAccountant_->checkAndUpdateRouteCounterResource(routeB, true);
+  EXPECT_EQ(resourceAccountant_->routeCounterRefMap_.size(), 1);
+  EXPECT_EQ(resourceAccountant_->routeCounterRefMap_[counter1], 2);
+
+  // Route C with counter2
+  auto entry3 = makeEntryWithCounter(nhops1, counter2);
+  auto routeC =
+      makeV6Route({folly::IPAddressV6("2401::3"), 128}, entry3, nhops1);
+  resourceAccountant_->checkAndUpdateRouteCounterResource(routeC, true);
+  EXPECT_EQ(resourceAccountant_->routeCounterRefMap_.size(), 2);
+  EXPECT_EQ(resourceAccountant_->routeCounterRefMap_[counter2], 1);
+
+  // Remove route A — counter1 refcount drops to 1
+  resourceAccountant_->checkAndUpdateRouteCounterResource(routeA, false);
+  EXPECT_EQ(resourceAccountant_->routeCounterRefMap_[counter1], 1);
+
+  // Remove route B — counter1 refcount drops to 0, entry erased
+  resourceAccountant_->checkAndUpdateRouteCounterResource(routeB, false);
+  EXPECT_EQ(resourceAccountant_->routeCounterRefMap_.count(counter1), 0);
+  EXPECT_EQ(resourceAccountant_->routeCounterRefMap_.size(), 1);
+
+  // Route without counter — no-op
+  auto entryNoCounter = makeEntryWithCounter(nhops1, std::nullopt);
+  auto routeD =
+      makeV6Route({folly::IPAddressV6("2401::4"), 128}, entryNoCounter, nhops1);
+  resourceAccountant_->checkAndUpdateRouteCounterResource(routeD, true);
+  EXPECT_EQ(resourceAccountant_->routeCounterRefMap_.size(), 1);
+
+  // Remove route C — counter2 erased, map empty
+  resourceAccountant_->checkAndUpdateRouteCounterResource(routeC, false);
+  EXPECT_TRUE(resourceAccountant_->routeCounterRefMap_.empty());
+}
+
+TEST_F(ResourceAccountantTest, routeCounterResourceExceeded) {
+  RouteNextHopSet nhops{
+      ResolvedNextHop(folly::IPAddress("1.1.1.1"), InterfaceID(1), ecmpWeight)};
+
+  auto makeEntryWithCounter = [](const RouteNextHopSet& nhops,
+                                 const RouteCounterID& counterID) {
+    RouteNextHopEntry base(nhops, AdminDistance::EBGP);
+    auto thrift = base.toThrift();
+    thrift.counterID() = counterID;
+    RouteNextHopEntry entry;
+    entry.fromThrift(thrift);
+    return entry;
+  };
+
+  // Fill up to the ASIC limit (4096 unique counters for Yuba/G202x)
+  // Use the ref map directly to simulate near-capacity
+  for (uint32_t i = 0; i < 4096; i++) {
+    resourceAccountant_->routeCounterRefMap_[fmt::format("counter.{}", i)] = 1;
+  }
+
+  // At 100% (intermediate) — should pass since we're at exactly the limit
+  EXPECT_TRUE(resourceAccountant_->checkRouteCounterResource(
+      true /* intermediateState */));
+
+  // At 75% (final) — should fail since 4096 > 3072 (75% of 4096)
+  EXPECT_FALSE(resourceAccountant_->checkRouteCounterResource(
+      false /* intermediateState */));
+
+  // Adding one more unique counter should fail intermediate check too
+  auto entry = makeEntryWithCounter(nhops, "counter.4096");
+  auto route = makeV6Route({folly::IPAddressV6("2401::1"), 128}, entry, nhops);
+  EXPECT_FALSE(
+      resourceAccountant_->checkAndUpdateRouteCounterResource(route, true));
+  EXPECT_EQ(resourceAccountant_->routeCounterRefMap_.size(), 4097);
+
+  // Adding a route that shares an existing counter should pass (no new counter)
+  auto entryShared = makeEntryWithCounter(nhops, "counter.0");
+  auto routeShared =
+      makeV6Route({folly::IPAddressV6("2401::2"), 128}, entryShared, nhops);
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateRouteCounterResource(
+      routeShared, true));
+  EXPECT_EQ(resourceAccountant_->routeCounterRefMap_["counter.0"], 2);
 }
 
 } // namespace facebook::fboss

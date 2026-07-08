@@ -59,6 +59,7 @@ struct FakeSai {
   FakeAclTableGroupManager aclTableGroupManager;
   FakeAclEntryManager aclEntryManager;
   FakeAclCounterManager aclCounterManager;
+  FakeAclRangeManager aclRangeManager;
   FakeAclTableManager aclTableManager;
   FakeArsManager arsManager;
   FakeArsProfileManager arsProfileManager;
@@ -101,6 +102,7 @@ struct FakeSai {
   FakeTamReportManager tamReportManager;
   FakeTamTransportManager tamTransportManager;
   FakeTamCollectorManager tamCollectorManager;
+  FakeTamEventThresholdManager tamEventThresholdManager;
   FakeTunnelManager tunnelManager;
   FakeTunnelTermManager tunnelTermManager;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)

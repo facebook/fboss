@@ -86,9 +86,8 @@ class ResourceLoader(Loader):
                 else:
                     yield "%s/%s" % (current, name)
 
-    def _find_manifest(self, project_name: str) -> str:
-        # pyre-fixme[20]: Call `ResourceLoader._list_manifests` expects argument `build_opts`.
-        for name in self._list_manifests():
+    def _find_manifest(self, build_opts: BuildOptions, project_name: str) -> str:
+        for name in self._list_manifests(build_opts):
             if name.endswith("/%s" % project_name):
                 return name
 
@@ -103,9 +102,8 @@ class ResourceLoader(Loader):
     def load_project(
         self, build_opts: BuildOptions, project_name: str
     ) -> ManifestParser:
-        project_name = self._find_manifest(project_name)
-        # pyre-fixme[16]: `ResourceLoader` has no attribute `_load_resource_manifest`.
-        return self._load_resource_manifest(project_name)
+        project_name = self._find_manifest(build_opts, project_name)
+        return self._load_manifest(project_name)
 
 
 LOADER: Loader = Loader()
@@ -146,6 +144,7 @@ class ManifestLoader:
 
         self.manifests_by_name: dict[str, ManifestParser] = {}
         self._loaded_all: bool = False
+        self._features_resolved: bool = False
         self._project_hashes: dict[str, str] = {}
         self._fetcher_overrides: dict[str, fetcher.LocalDirFetcher] = {}
         self._build_dir_overrides: dict[str, str] = {}
@@ -182,7 +181,108 @@ class ManifestLoader:
             if dep != manifest
         ]
 
-    def manifests_in_dependency_order(
+    def resolve_features(self, roots: list[ManifestParser]) -> None:  # noqa:C901
+        """Resolve the feature set for each project reachable from the given roots.
+
+        Each root project starts with its own [features] default set. Each edge
+        in the dependency graph may add positive feature requests, prohibitions,
+        or opt out of the dep's defaults via bracket syntax in its dep spec.
+        Features compose by union; prohibitions are checked against the union
+        and surface as an error if any consumer's prohibition conflicts with
+        another consumer's request.
+
+        Iterates to a fixpoint because dependency edges themselves can be gated
+        on feature variables, so adding a feature can introduce new edges that
+        contribute further feature requests.
+        """
+        requested: dict[str, set[str]] = {}
+        prohibited: dict[str, set[str]] = {}
+        # Per-project, the set of consumer names that requested each feature
+        # (and prohibited each feature) — used only for error messages.
+        req_sources: dict[str, dict[str, list[str]]] = {}
+        pro_sources: dict[str, dict[str, list[str]]] = {}
+
+        def add_request(project: str, feats: set[str], src: str) -> bool:
+            new_project = project not in requested
+            old = requested.setdefault(project, set())
+            new = old | feats
+            srcs = req_sources.setdefault(project, {})
+            for f in feats:
+                fsrcs = srcs.setdefault(f, [])
+                if src not in fsrcs:
+                    fsrcs.append(src)
+            if new != old:
+                requested[project] = new
+            return new_project or new != old
+
+        def add_prohibit(project: str, feats: set[str], src: str) -> bool:
+            old = prohibited.setdefault(project, set())
+            new = old | feats
+            srcs = pro_sources.setdefault(project, {})
+            for f in feats:
+                fsrcs = srcs.setdefault(f, [])
+                if src not in fsrcs:
+                    fsrcs.append(src)
+            if new != old:
+                prohibited[project] = new
+                return True
+            return False
+
+        for root in roots:
+            add_request(root.name, set(root.default_features), "<root>")
+
+        changed = True
+        while changed:
+            changed = False
+            for project_name in list(requested.keys()):
+                manifest = self.load_manifest(project_name)
+                self.ctx_gen.set_features_for_project(
+                    project_name, requested[project_name]
+                )
+                ctx = self.ctx_gen.get_context(project_name)
+                for (
+                    dep_name,
+                    edge_req,
+                    edge_pro,
+                    opt_out,
+                ) in manifest.get_dependency_specs(ctx):
+                    dep_manifest = self.load_manifest(dep_name)
+                    unknown = (edge_req | edge_pro) - dep_manifest.declared_features
+                    if unknown:
+                        raise Exception(
+                            "%s: dependency on %s references undeclared feature(s) %s"
+                            % (project_name, dep_name, sorted(unknown))
+                        )
+                    contributed = set(edge_req)
+                    if not opt_out:
+                        contributed |= dep_manifest.default_features
+                    contributed -= edge_pro
+                    if add_request(dep_name, contributed, project_name):
+                        changed = True
+                    if add_prohibit(dep_name, edge_pro, project_name):
+                        changed = True
+
+        conflicts: list[str] = []
+        for project_name, req in requested.items():
+            pro = prohibited.get(project_name, set())
+            bad = req & pro
+            for f in sorted(bad):
+                req_who = ", ".join(req_sources[project_name].get(f, []))
+                pro_who = ", ".join(pro_sources[project_name].get(f, []))
+                conflicts.append(
+                    "%s: feature %r requested by [%s] but prohibited by [%s]"
+                    % (project_name, f, req_who, pro_who)
+                )
+        if conflicts:
+            raise Exception(
+                "feature resolution conflicts:\n  " + "\n  ".join(conflicts)
+            )
+
+        for project_name, req in requested.items():
+            self.ctx_gen.set_features_for_project(project_name, req)
+        self._features_resolved = True
+
+    def manifests_in_dependency_order(  # noqa:C901
         self, manifest: ManifestParser | None = None
     ) -> list[ManifestParser]:
         """Compute all dependencies of the specified project.  Returns a list of the
@@ -201,9 +301,13 @@ class ManifestLoader:
         # can potentially contain duplicates.
         if manifest is None:
             deps: list[ManifestParser] = list(self.manifests_by_name.values())
+            if not self._features_resolved:
+                self.resolve_features(deps)
         else:
             assert manifest.name in self.manifests_by_name
             deps = [manifest]
+            if not self._features_resolved:
+                self.resolve_features([manifest])
         # The list of manifests in dependency order
         dep_order: list[ManifestParser] = []
         system_packages: dict[str, list[str]] = {}
@@ -283,6 +387,8 @@ class ManifestLoader:
         return manifest.create_fetcher(self.build_opts, self, ctx)
 
     def get_project_hash(self, manifest: ManifestParser) -> str:
+        if not self._features_resolved:
+            self.manifests_in_dependency_order(manifest)
         h = self._project_hashes.get(manifest.name)
         if h is None:
             h = self._compute_project_hash(manifest)
@@ -307,7 +413,8 @@ class ManifestLoader:
         env["os"] = self.build_opts.host_type.ostype
         env["distro"] = self.build_opts.host_type.distro
         env["distro_vers"] = self.build_opts.host_type.distrovers
-        env["shared_libs"] = str(self.build_opts.shared_libs)
+        env["shared_lib"] = str(self.build_opts.shared_lib)
+        env["features"] = ",".join(sorted(ctx.features()))
         for name in [
             "CXXFLAGS",
             "CPPFLAGS",
@@ -344,9 +451,17 @@ class ManifestLoader:
             patchfile_path: str = os.path.join(
                 self.build_opts.fbcode_builder_dir, "patches", patchfile
             )
-            if os.path.exists(patchfile_path):
-                with open(patchfile_path, "rb") as f:
-                    hasher.update(f.read())
+            if not os.path.exists(patchfile_path):
+                raise RuntimeError(
+                    f"Patchfile '{patchfile}' is listed in the '{manifest.name}' manifest "
+                    f"but was not found at '{patchfile_path}'. "
+                    f"Possible fixes: ensure the patches/ directory is present in your "
+                    f"checkout, check that the patchfile name in the manifest matches the "
+                    f"filename on disk, or remove the 'patchfile' entry from the manifest "
+                    f"if the patch is no longer needed."
+                )
+            with open(patchfile_path, "rb") as f:
+                hasher.update(f.read())
 
         dep_list: list[str] = manifest.get_dependencies(ctx)
         for dep in dep_list:

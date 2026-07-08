@@ -69,6 +69,11 @@ class DataStore {
       const std::string& slotPath,
       const PmUnitVersion& version);
 
+  // Update eepromProductName for a given slotPath.
+  void updatePmUnitEepromProductName(
+      const std::string& slotPath,
+      const std::string& eepromProductName);
+
   void updatePmUnitSuccessfullyExplored(
       const std::string& slotPath,
       bool successfullyExplored);
@@ -77,8 +82,7 @@ class DataStore {
       const std::string& slotPath,
       const PresenceInfo& presenceInfo);
 
-  // Resolve PmUnitConfig based on the platformSubVersion from eeprom.
-  // Throws if none of the VersionedPmUnitConfig matches the version.
+  // Resolve PmUnitConfig based on the version from eeprom.
   PmUnitConfig resolvePmUnitConfig(const std::string& slotPath) const;
 
   // Store eeprom contents at the given DevicePath.

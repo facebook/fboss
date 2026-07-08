@@ -9,37 +9,19 @@ void addTrapPacketAcl(
     const HwAsic* asic,
     cfg::SwitchConfig* config,
     PortID port) {
-  cfg::AclEntry entry{};
-  entry.name() = folly::to<std::string>("trap-packet-", port);
-  entry.srcPort() = port;
-  // If ASIC needs Ether Type to be passed in to disambiguate ACL entry,
-  // then for SRC port matching, IP type should be set to NON_IP to match
-  // all ingress packets in the ASIC SRC port.
-  if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
-    entry.ipType() = cfg::IpType::NON_IP;
-  }
-  entry.actionType() = cfg::AclActionType::PERMIT;
-  if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
-    // remove ip type for chenab
-    entry.ipType().reset();
-  }
-  utility::addAclEntry(config, entry, utility::kDefaultAclTable());
-
-  cfg::MatchAction action;
-  action.sendToQueue() = cfg::QueueMatchAction();
-  action.sendToQueue()->queueId() = 0;
-  action.toCpuAction() = cfg::ToCpuAction::COPY;
-  cfg::SetTcAction setTcAction = cfg::SetTcAction();
-  setTcAction.tcValue() = 0;
-  action.setTc() = setTcAction;
-
-  cfg::UserDefinedTrapAction userDefinedTrap = cfg::UserDefinedTrapAction();
-  userDefinedTrap.queueId() = 0;
-  action.userDefinedTrap() = userDefinedTrap;
-
-  cfg::MatchToAction match2Action;
-  match2Action.matcher() = entry.name().value();
-  match2Action.action() = action;
+  auto makeTrapAction = []() {
+    cfg::MatchAction action;
+    action.sendToQueue() = cfg::QueueMatchAction();
+    action.sendToQueue()->queueId() = 0;
+    action.toCpuAction() = cfg::ToCpuAction::COPY;
+    cfg::SetTcAction setTcAction = cfg::SetTcAction();
+    setTcAction.tcValue() = 0;
+    action.setTc() = setTcAction;
+    cfg::UserDefinedTrapAction userDefinedTrap = cfg::UserDefinedTrapAction();
+    userDefinedTrap.queueId() = 0;
+    action.userDefinedTrap() = userDefinedTrap;
+    return action;
+  };
 
   cfg::TrafficPolicyConfig trafficPolicy;
   cfg::CPUTrafficPolicyConfig cpuTrafficPolicy;
@@ -49,7 +31,60 @@ void addTrapPacketAcl(
       trafficPolicy = *cpuTrafficPolicy.trafficPolicy();
     }
   }
-  trafficPolicy.matchToAction()->push_back(match2Action);
+
+  auto addEntry = [&](const std::string& name,
+                      std::optional<cfg::EtherType> etherType,
+                      std::optional<cfg::IpType> ipType,
+                      const std::string& tableName) {
+    cfg::AclEntry entry{};
+    entry.name() = name;
+    entry.srcPort() = port;
+    if (etherType.has_value()) {
+      entry.etherType() = *etherType;
+    }
+    if (ipType.has_value()) {
+      entry.ipType() = *ipType;
+    }
+    entry.actionType() = cfg::AclActionType::PERMIT;
+    utility::addAclEntry(config, entry, tableName);
+    cfg::MatchToAction match2Action;
+    match2Action.matcher() = name;
+    match2Action.action() = makeTrapAction();
+    trafficPolicy.matchToAction()->push_back(match2Action);
+  };
+
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+    // Q4D/J4 (DNX) reject FIELD_SRC_PORT + FIELD_ACL_IP_TYPE=NON_IP. Per
+    // Broadcom, install the source-port entry in both ACL tables: an
+    // etherType=IPv4 copy in the default table and an etherType=IPv6 copy in
+    // the IPv6 table, so it traps both v4 and v6 traffic on the port.
+    addEntry(
+        folly::to<std::string>("trap-packet-", port, "-v4"),
+        cfg::EtherType::IPv4,
+        std::nullopt,
+        utility::kDefaultAclTable());
+    addEntry(
+        folly::to<std::string>("trap-packet-", port, "-v6"),
+        cfg::EtherType::IPv6,
+        std::nullopt,
+        utility::kIpv6AclTable());
+  } else {
+    // If ASIC needs Ether Type to be passed in to disambiguate ACL entry, then
+    // for SRC port matching, IP type should be set to NON_IP to match all
+    // ingress packets in the ASIC SRC port. Chenab does not use ip type.
+    std::optional<cfg::IpType> ipType;
+    if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE) &&
+        asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      ipType = cfg::IpType::NON_IP;
+    }
+    addEntry(
+        folly::to<std::string>("trap-packet-", port),
+        std::nullopt,
+        ipType,
+        utility::kDefaultAclTable());
+  }
+
   cpuTrafficPolicy.trafficPolicy() = trafficPolicy;
   config->cpuTrafficPolicy() = cpuTrafficPolicy;
 }

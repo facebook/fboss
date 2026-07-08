@@ -18,6 +18,7 @@
 #include "fboss/led_service/if/gen-cpp2/LedService.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/FanService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
+#include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
 
 namespace facebook::fboss::utils {
 
@@ -56,6 +57,11 @@ std::unique_ptr<
     apache::thrift::Client<facebook::fboss::platform::fan_service::FanService>>
 createFanServiceClient(const HostInfo& hostInfo);
 
+std::unique_ptr<
+    apache::thrift::Client<facebook::neteng::fboss::bgp::thrift::TBgpService>>
+createBgpClient(const HostInfo& hostInfo);
+
+MultiSwitchRunState getMultiSwitchRunState(const HostInfo& hostInfo);
 int getNumHwSwitches(const HostInfo& hostInfo);
 bool isMultiSwitchEnabled(const HostInfo& hostInfo);
 

@@ -578,7 +578,7 @@ void CP2112::processReadResponse(MutableByteRange buf, milliseconds timeout) {
   // Therefore we have to send a READ_FORCE_SEND packet to trigger the device
   // to begin returning data via the interrupt in pipe.  However, this won't
   // necessarily trigger the device to send the full response.  For large reads
-  // (512 bytes), a single READ_FORCE_SEND call causes it to return multple
+  // (512 bytes), a single READ_FORCE_SEND call causes it to return multiple
   // READ_RESPONSE packets, but it usually stops after returning about 300
   // bytes of data.  We have to send another READ_FORCE_SEND to get it to
   // return the remaining data.

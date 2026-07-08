@@ -33,15 +33,13 @@ class QosPolicyName : public utils::BaseObjectArgType<std::string> {
   std::string getName() const {
     return data_.empty() ? "" : data_[0];
   }
-
-  const static utils::ObjectArgTypeId id =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QOS_POLICY_NAME;
 };
 
 struct CmdConfigQosPolicyTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigQos;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QOS_POLICY_NAME;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("qos_policy_name", args, "QoS policy name");
+  }
   using ObjectArgType = QosPolicyName;
   using RetType = std::string;
 };

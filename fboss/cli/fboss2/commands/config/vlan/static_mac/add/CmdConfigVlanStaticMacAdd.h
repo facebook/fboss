@@ -46,9 +46,6 @@ class MacAndPortArg : public utils::BaseObjectArgType<std::string> {
     return portName_;
   }
 
-  const static utils::ObjectArgTypeId id =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_MAC_AND_PORT;
-
  private:
   std::string macAddress_;
   std::string portName_;
@@ -56,8 +53,12 @@ class MacAndPortArg : public utils::BaseObjectArgType<std::string> {
 
 struct CmdConfigVlanStaticMacAddTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigVlanStaticMac;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_MAC_AND_PORT;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "mac_and_port",
+        args,
+        "MAC address and port name (e.g., AA:BB:CC:DD:EE:FF eth1/1/1)");
+  }
   using ObjectArgType = MacAndPortArg;
   using RetType = std::string;
 };

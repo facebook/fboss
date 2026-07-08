@@ -91,6 +91,12 @@ class PlatformMapping {
 
   const cfg::PlatformPortEntry& getPlatformPort(int32_t portId) const;
 
+  // Ports subsumed (consumed) when `port` runs at `profile`. Empty if the
+  // profile subsumes nothing. Throws FbossError if `port` does not support
+  // `profile`.
+  std::vector<PortID> getSubsumedPorts(PortID port, cfg::PortProfileID profile)
+      const;
+
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
       PlatformPortProfileConfigMatcher matcher) const;
 
@@ -117,6 +123,9 @@ class PlatformMapping {
 
   std::set<uint8_t> getTransceiverHostLanes(
       PlatformPortProfileConfigMatcher matcher) const;
+
+  std::optional<uint8_t> getTransceiverBankId(
+      const PlatformPortProfileConfigMatcher& matcher) const;
 
   int getTransceiverIdFromSwPort(PortID swPort) const;
 
@@ -150,7 +159,7 @@ class PlatformMapping {
   }
 
   void setChip(const std::string& chipName, phy::DataPlanePhyChip chip) {
-    chips_.emplace(chipName, chip);
+    chips_[chipName] = std::move(chip);
   }
 
   void mergePlatformSupportedProfile(
@@ -206,6 +215,9 @@ class PlatformMapping {
       std::optional<TransmitterTechnology> medium) const;
 
   std::vector<PortID> getPlatformPorts(cfg::PortType portType) const;
+
+  // Returns the minimum fabric port ID for the given virtualDeviceId.
+  PortID getFirstFabricPortForVirtualDevice(int32_t virtualDeviceId) const;
 
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;

@@ -8,16 +8,23 @@
  *
  */
 
-// #include <folly/IPAddress.h>
+#include <folly/ScopeGuard.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/AclTableGroupMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
+#include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/LabelForwardingEntry.h"
+#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Thrifty.h"
+#include "fboss/agent/test/LabelForwardingUtils.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "folly/IPAddress.h"
 #include "folly/IPAddressV4.h"
@@ -364,54 +371,313 @@ TEST(ThriftySwitchState, IpAddressConversion) {
   }
 }
 
-TEST(ThriftySwitchState, FromThriftFibsInfoMapMigration) {
-  // Test that fromThrift() correctly migrates fibsMap to fibsInfoMap
+TEST(ThriftySwitchState, FromThriftIdMapCleanupOnRollback) {
+  // When FLAGS_enable_nexthop_id_manager is OFF, fromThrift() must wipe
+  // every resolvedNextHopSetID/normalizedResolvedNextHopSetID from routes
+  // (V4, V6, label) and mySid entries, and clear FibInfo's id maps. This
+  // guarantees a future flag-ON warmboot starts from a clean slate without
+  // orphan IDs colliding with newly allocated IDs.
+  auto savedFlag = FLAGS_enable_nexthop_id_manager;
+  FLAGS_enable_nexthop_id_manager = false;
+  SCOPE_EXIT {
+    FLAGS_enable_nexthop_id_manager = savedFlag;
+  };
+
   auto state = SwitchState();
   auto stateThrift = state.toThrift();
   const auto& matcherKey = HwSwitchMatcher::defaultHwSwitchMatcherKey();
 
-  // Create fibsMap with FibContainers for VRF 0 and VRF 1
-  std::map<std::string, std::map<int16_t, state::FibContainerFields>> fibsMap;
-  std::map<int16_t, state::FibContainerFields> vrfFibMap;
+  // Build a NextHopThrift mirroring a ResolvedNextHop(addr, intf), so the
+  // FibInfo id map entries correspond to the routes' actual nexthops.
+  auto makeNhThrift = [](const std::string& addr, int intf) {
+    NextHopThrift nh;
+    nh.address() = facebook::network::toBinaryAddress(folly::IPAddress(addr));
+    nh.address()->ifName() = folly::to<std::string>("fboss", intf);
+    *nh.weight() = UCMP_DEFAULT_WEIGHT;
+    return nh;
+  };
 
-  // Create FibContainer fields for VRF 0
-  state::FibContainerFields fibContainer0;
-  fibContainer0.vrf() = 0;
-  vrfFibMap[0] = fibContainer0;
+  RouteNextHopSet v4NhSet;
+  v4NhSet.insert(ResolvedNextHop(
+      folly::IPAddress("10.0.1.1"), InterfaceID(1), UCMP_DEFAULT_WEIGHT));
+  v4NhSet.insert(ResolvedNextHop(
+      folly::IPAddress("10.0.1.2"), InterfaceID(2), UCMP_DEFAULT_WEIGHT));
+  auto v4Fields =
+      Route<folly::IPAddressV4>::makeThrift(makePrefixV4("10.0.0.0/24"));
+  v4Fields.fwd() =
+      RouteNextHopEntry(v4NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
+  v4Fields.fwd()->resolvedNextHopSetID() = 100;
+  v4Fields.fwd()->normalizedResolvedNextHopSetID() = 100;
+  // Per-client entry carrying a stray clientNextHopSetID — must be wiped.
+  auto v4ClientEntry =
+      RouteNextHopEntry(v4NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
+  v4ClientEntry.clientNextHopSetID() = 100;
+  v4Fields.nexthopsmulti()->client2NextHopEntry()->emplace(
+      ClientID::BGPD, v4ClientEntry);
 
-  // Create FibContainer fields for VRF 1
-  state::FibContainerFields fibContainer1;
-  fibContainer1.vrf() = 1;
-  vrfFibMap[1] = fibContainer1;
+  RouteNextHopSet v6NhSet;
+  v6NhSet.insert(ResolvedNextHop(
+      folly::IPAddress("2001:db8:1::1"), InterfaceID(3), UCMP_DEFAULT_WEIGHT));
+  v6NhSet.insert(ResolvedNextHop(
+      folly::IPAddress("2001:db8:1::2"), InterfaceID(4), UCMP_DEFAULT_WEIGHT));
+  auto v6Fields =
+      Route<folly::IPAddressV6>::makeThrift(makePrefixV6("2001:db8::/32"));
+  v6Fields.fwd() =
+      RouteNextHopEntry(v6NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
+  v6Fields.fwd()->resolvedNextHopSetID() = 200;
+  v6Fields.fwd()->normalizedResolvedNextHopSetID() = 200;
+  auto v6ClientEntry =
+      RouteNextHopEntry(v6NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
+  v6ClientEntry.clientNextHopSetID() = 200;
+  v6Fields.nexthopsmulti()->client2NextHopEntry()->emplace(
+      ClientID::BGPD, v6ClientEntry);
 
-  fibsMap[matcherKey] = vrfFibMap;
-  stateThrift.fibsMap() = fibsMap;
+  state::FibContainerFields fibContainer;
+  fibContainer.vrf() = 0;
+  fibContainer.fibV4()->emplace("10.0.0.0/24", v4Fields);
+  fibContainer.fibV6()->emplace("2001:db8::/32", v6Fields);
 
-  // Ensure fibsInfoMap is empty in thrift
-  stateThrift.fibsInfoMap() = std::map<std::string, state::FibInfoFields>();
+  // FibInfo id maps consistent with the routes above:
+  //   set 100 -> {nh 1, nh 2} = v4 route's nexthops
+  //   set 200 -> {nh 3, nh 4} = v6 route's nexthops
+  state::FibInfoFields fibInfo;
+  fibInfo.fibsMap()->emplace(0, fibContainer);
+  fibInfo.idToNextHop()->emplace(1, makeNhThrift("10.0.1.1", 1));
+  fibInfo.idToNextHop()->emplace(2, makeNhThrift("10.0.1.2", 2));
+  fibInfo.idToNextHop()->emplace(3, makeNhThrift("2001:db8:1::1", 3));
+  fibInfo.idToNextHop()->emplace(4, makeNhThrift("2001:db8:1::2", 4));
+  fibInfo.idToNextHopIdSet()->emplace(100, std::set<int64_t>{1, 2});
+  fibInfo.idToNextHopIdSet()->emplace(200, std::set<int64_t>{3, 4});
+  fibInfo.nameToNextHopSetId()->emplace("v4_group", 100);
+  fibInfo.nameToNextHopSetId()->emplace("v6_group", 200);
 
-  // Call fromThrift() and verify fibsInfoMap is populated
-  auto deserializedState = SwitchState::fromThrift(stateThrift);
+  stateThrift.fibsInfoMap()->emplace(matcherKey, fibInfo);
 
-  // Verify fibsInfoMap is populated
-  auto fibsInfoMap = deserializedState->getFibsInfoMap();
-  ASSERT_NE(fibsInfoMap, nullptr);
-  EXPECT_FALSE(fibsInfoMap->empty());
+  auto labelFields = LabelForwardingEntry::makeThrift(LabelID(1234));
+  labelFields.fwd() =
+      util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)
+          .toThrift();
+  labelFields.fwd()->resolvedNextHopSetID() = 500;
+  labelFields.fwd()->normalizedResolvedNextHopSetID() = 600;
+  std::map<int32_t, state::LabelForwardingEntryFields> labelFib;
+  labelFib[1234] = labelFields;
+  stateThrift.labelFibMap()->emplace(matcherKey, labelFib);
 
-  // Verify the FibInfo exists for the default matcher
-  auto fibInfo = fibsInfoMap->getFibInfo(scope());
-  ASSERT_NE(fibInfo, nullptr);
+  state::MySidFields mySid;
+  mySid.type() = MySidType::NODE_MICRO_SID;
+  facebook::network::thrift::IPPrefix prefix;
+  prefix.prefixAddress() =
+      facebook::network::toBinaryAddress(folly::IPAddress("fc00:100::1"));
+  prefix.prefixLength() = 48;
+  mySid.mySid() = prefix;
+  mySid.resolvedNextHopsId() = 700;
+  mySid.unresolveNextHopsId() = 800;
+  std::map<std::string, state::MySidFields> mySidMap;
+  mySidMap["fc00:100::1/48"] = mySid;
+  stateThrift.mySidMaps()->emplace(matcherKey, mySidMap);
 
-  // Verify the fibsMap within FibInfo contains both VRF 0 and VRF 1
-  auto internalFibsMap = fibInfo->getfibsMap();
-  ASSERT_NE(internalFibsMap, nullptr);
+  // Trigger fromThrift -> uniquePtrFromThrift cleanup.
+  auto deserialized = SwitchState::fromThrift(stateThrift);
 
-  // Verify VRF IDs are correct
-  EXPECT_EQ(
-      internalFibsMap->getFibContainerIf(RouterID(0))->getID(), RouterID(0));
-  EXPECT_EQ(
-      internalFibsMap->getFibContainerIf(RouterID(1))->getID(), RouterID(1));
+  // V4/V6 route IDs cleared.
+  auto fibsInfoMapOut = deserialized->getFibsInfoMap();
+  ASSERT_NE(fibsInfoMapOut, nullptr);
+  auto fibInfoOut = fibsInfoMapOut->getFibInfo(scope());
+  ASSERT_NE(fibInfoOut, nullptr);
+  auto fibsMapOut = fibInfoOut->getfibsMap();
+  ASSERT_NE(fibsMapOut, nullptr);
+  auto containerOut = fibsMapOut->getFibContainerIf(RouterID(0));
+  ASSERT_NE(containerOut, nullptr);
 
-  // Verify old fibsMap is cleared after migration
-  EXPECT_TRUE(deserializedState->getFibs()->empty());
+  auto assertRouteIdsCleared = [](const auto& fib) {
+    for (const auto& [_, route] : std::as_const(*fib)) {
+      EXPECT_FALSE(
+          route->getForwardInfo().getResolvedNextHopSetID().has_value());
+      EXPECT_FALSE(route->getForwardInfo()
+                       .getNormalizedResolvedNextHopSetID()
+                       .has_value());
+      for (const auto& [_clientId, entry] :
+           std::as_const(route->getEntryForClients())) {
+        EXPECT_FALSE(entry->getClientNextHopSetID().has_value());
+      }
+    }
+  };
+  ASSERT_EQ(containerOut->getFibV4()->size(), 1);
+  ASSERT_EQ(containerOut->getFibV6()->size(), 1);
+  assertRouteIdsCleared(containerOut->getFibV4());
+  assertRouteIdsCleared(containerOut->getFibV6());
+
+  // FibInfo id maps wiped.
+  EXPECT_EQ(fibInfoOut->getIdToNextHopMap()->size(), 0);
+  EXPECT_EQ(fibInfoOut->getIdToNextHopIdSetMap()->size(), 0);
+  EXPECT_TRUE(fibInfoOut->getNameToNextHopSetId().empty());
+
+  // Label route IDs cleared.
+  auto multiLabelFib = deserialized->getLabelForwardingInformationBase();
+  ASSERT_NE(multiLabelFib, nullptr);
+  ASSERT_EQ(multiLabelFib->size(), 1);
+  for (const auto& [_, labelFibOut] : std::as_const(*multiLabelFib)) {
+    ASSERT_EQ(labelFibOut->size(), 1);
+    assertRouteIdsCleared(labelFibOut);
+  }
+
+  // MySid IDs cleared.
+  auto mySidMapsOut = deserialized->getMySids();
+  ASSERT_NE(mySidMapsOut, nullptr);
+  ASSERT_EQ(mySidMapsOut->size(), 1);
+  for (const auto& [_, mySidMapOut] : std::as_const(*mySidMapsOut)) {
+    ASSERT_EQ(mySidMapOut->size(), 1);
+    for (const auto& [_id, mySidEntry] : std::as_const(*mySidMapOut)) {
+      EXPECT_FALSE(mySidEntry->getResolvedNextHopsId().has_value());
+      EXPECT_FALSE(mySidEntry->getUnresolveNextHopsId().has_value());
+    }
+  }
+}
+
+TEST(ThriftySwitchState, FromThriftIdMapCleanupOnRollForward) {
+  // Roll-forward safety: when FLAGS_enable_nexthop_id_manager is ON but the
+  // persisted FibInfo id maps are empty, fromThrift() must wipe stray
+  // resolvedNextHopSetID / normalizedResolvedNextHopSetID values from every
+  // route (V4, V6, label) and mySid entry. Empty id maps with non-empty
+  // route IDs indicates either a first-time enable or a botched prior OFF
+  // cleanup that left orphan IDs behind; reconstruction would otherwise
+  // rebuild IDManager state from inconsistent input.
+  auto savedFlag = FLAGS_enable_nexthop_id_manager;
+  FLAGS_enable_nexthop_id_manager = true;
+  SCOPE_EXIT {
+    FLAGS_enable_nexthop_id_manager = savedFlag;
+  };
+
+  auto state = SwitchState();
+  auto stateThrift = state.toThrift();
+  const auto& matcherKey = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+
+  RouteNextHopSet v4NhSet;
+  v4NhSet.insert(ResolvedNextHop(
+      folly::IPAddress("10.0.1.1"), InterfaceID(1), UCMP_DEFAULT_WEIGHT));
+  v4NhSet.insert(ResolvedNextHop(
+      folly::IPAddress("10.0.1.2"), InterfaceID(2), UCMP_DEFAULT_WEIGHT));
+  auto v4Fields =
+      Route<folly::IPAddressV4>::makeThrift(makePrefixV4("10.0.0.0/24"));
+  v4Fields.fwd() =
+      RouteNextHopEntry(v4NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
+  v4Fields.fwd()->resolvedNextHopSetID() = 111;
+  v4Fields.fwd()->normalizedResolvedNextHopSetID() = 222;
+  // Per-client entry carrying a stray clientNextHopSetID — must be wiped.
+  auto v4ClientEntry =
+      RouteNextHopEntry(v4NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
+  v4ClientEntry.clientNextHopSetID() = 111;
+  v4Fields.nexthopsmulti()->client2NextHopEntry()->emplace(
+      ClientID::BGPD, v4ClientEntry);
+
+  RouteNextHopSet v6NhSet;
+  v6NhSet.insert(ResolvedNextHop(
+      folly::IPAddress("2001:db8:1::1"), InterfaceID(3), UCMP_DEFAULT_WEIGHT));
+  v6NhSet.insert(ResolvedNextHop(
+      folly::IPAddress("2001:db8:1::2"), InterfaceID(4), UCMP_DEFAULT_WEIGHT));
+  auto v6Fields =
+      Route<folly::IPAddressV6>::makeThrift(makePrefixV6("2001:db8::/32"));
+  v6Fields.fwd() =
+      RouteNextHopEntry(v6NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
+  v6Fields.fwd()->resolvedNextHopSetID() = 333;
+  v6Fields.fwd()->normalizedResolvedNextHopSetID() = 444;
+  auto v6ClientEntry =
+      RouteNextHopEntry(v6NhSet, AdminDistance::DIRECTLY_CONNECTED).toThrift();
+  v6ClientEntry.clientNextHopSetID() = 333;
+  v6Fields.nexthopsmulti()->client2NextHopEntry()->emplace(
+      ClientID::BGPD, v6ClientEntry);
+
+  state::FibContainerFields fibContainer;
+  fibContainer.vrf() = 0;
+  fibContainer.fibV4()->emplace("10.0.0.0/24", v4Fields);
+  fibContainer.fibV6()->emplace("2001:db8::/32", v6Fields);
+
+  // Trigger condition: routes carry IDs but FibInfo's id maps are empty.
+  state::FibInfoFields fibInfo;
+  fibInfo.fibsMap()->emplace(0, fibContainer);
+  ASSERT_TRUE(fibInfo.idToNextHop()->empty());
+  ASSERT_TRUE(fibInfo.idToNextHopIdSet()->empty());
+  ASSERT_TRUE(fibInfo.nameToNextHopSetId()->empty());
+
+  stateThrift.fibsInfoMap()->emplace(matcherKey, fibInfo);
+
+  auto labelFields = LabelForwardingEntry::makeThrift(LabelID(1234));
+  labelFields.fwd() =
+      util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)
+          .toThrift();
+  labelFields.fwd()->resolvedNextHopSetID() = 555;
+  labelFields.fwd()->normalizedResolvedNextHopSetID() = 666;
+  std::map<int32_t, state::LabelForwardingEntryFields> labelFib;
+  labelFib[1234] = labelFields;
+  stateThrift.labelFibMap()->emplace(matcherKey, labelFib);
+
+  state::MySidFields mySid;
+  mySid.type() = MySidType::NODE_MICRO_SID;
+  facebook::network::thrift::IPPrefix prefix;
+  prefix.prefixAddress() =
+      facebook::network::toBinaryAddress(folly::IPAddress("fc00:100::1"));
+  prefix.prefixLength() = 48;
+  mySid.mySid() = prefix;
+  mySid.resolvedNextHopsId() = 777;
+  mySid.unresolveNextHopsId() = 888;
+  std::map<std::string, state::MySidFields> mySidMap;
+  mySidMap["fc00:100::1/48"] = mySid;
+  stateThrift.mySidMaps()->emplace(matcherKey, mySidMap);
+
+  // Trigger fromThrift -> uniquePtrFromThrift roll-forward cleanup.
+  auto deserialized = SwitchState::fromThrift(stateThrift);
+
+  // V4/V6 route IDs cleared.
+  auto fibsInfoMapOut = deserialized->getFibsInfoMap();
+  ASSERT_NE(fibsInfoMapOut, nullptr);
+  auto fibInfoOut = fibsInfoMapOut->getFibInfo(scope());
+  ASSERT_NE(fibInfoOut, nullptr);
+  auto fibsMapOut = fibInfoOut->getfibsMap();
+  ASSERT_NE(fibsMapOut, nullptr);
+  auto containerOut = fibsMapOut->getFibContainerIf(RouterID(0));
+  ASSERT_NE(containerOut, nullptr);
+
+  auto assertRouteIdsCleared = [](const auto& fib) {
+    for (const auto& [_, route] : std::as_const(*fib)) {
+      EXPECT_FALSE(
+          route->getForwardInfo().getResolvedNextHopSetID().has_value());
+      EXPECT_FALSE(route->getForwardInfo()
+                       .getNormalizedResolvedNextHopSetID()
+                       .has_value());
+      for (const auto& [_clientId, entry] :
+           std::as_const(route->getEntryForClients())) {
+        EXPECT_FALSE(entry->getClientNextHopSetID().has_value());
+      }
+    }
+  };
+  ASSERT_EQ(containerOut->getFibV4()->size(), 1);
+  ASSERT_EQ(containerOut->getFibV6()->size(), 1);
+  assertRouteIdsCleared(containerOut->getFibV4());
+  assertRouteIdsCleared(containerOut->getFibV6());
+
+  // FibInfo id maps remain empty (they were the gate signal).
+  EXPECT_EQ(fibInfoOut->getIdToNextHopMap()->size(), 0);
+  EXPECT_EQ(fibInfoOut->getIdToNextHopIdSetMap()->size(), 0);
+  EXPECT_TRUE(fibInfoOut->getNameToNextHopSetId().empty());
+
+  // Label route IDs cleared.
+  auto multiLabelFib = deserialized->getLabelForwardingInformationBase();
+  ASSERT_NE(multiLabelFib, nullptr);
+  ASSERT_EQ(multiLabelFib->size(), 1);
+  for (const auto& [_, labelFibOut] : std::as_const(*multiLabelFib)) {
+    ASSERT_EQ(labelFibOut->size(), 1);
+    assertRouteIdsCleared(labelFibOut);
+  }
+
+  // MySid IDs cleared.
+  auto mySidMapsOut = deserialized->getMySids();
+  ASSERT_NE(mySidMapsOut, nullptr);
+  ASSERT_EQ(mySidMapsOut->size(), 1);
+  for (const auto& [_, mySidMapOut] : std::as_const(*mySidMapsOut)) {
+    ASSERT_EQ(mySidMapOut->size(), 1);
+    for (const auto& [_id, mySidEntry] : std::as_const(*mySidMapOut)) {
+      EXPECT_FALSE(mySidEntry->getResolvedNextHopsId().has_value());
+      EXPECT_FALSE(mySidEntry->getUnresolveNextHopsId().has_value());
+    }
+  }
 }

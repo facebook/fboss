@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
@@ -96,7 +97,7 @@ cfg::SwitchConfig oneL3IntfConfig(
     bool supportsAddRemovePort,
     int baseVlanId) {
   std::vector<PortID> ports{port};
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsicForTesting(asics);
   return oneL3IntfNPortConfig(
       platformMapping,
       asic,
@@ -256,6 +257,11 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
         true,
         kDownlinkBaseVlanId /* TH3, TH4 ingress vlan case starts from 2000 */);
     for (auto portId : masterLogicalPortIds) {
+      // Port may have been removed as a subsumed port by a prior
+      // updatePortSpeed call on a controlling port in the same group.
+      if (utility::findCfgPortIf(config, portId) == config.ports()->end()) {
+        continue;
+      }
       utility::updatePortSpeed(
           platformMapping,
           supportsAddRemovePort,

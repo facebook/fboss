@@ -236,7 +236,12 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
+    case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
+    case HwAsic::Feature::PBR_ACL:
+    case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
+    case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
+    case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::SAI_PRBS:
@@ -323,20 +328,20 @@ EbroAsic::desiredLoopbackModes() const {
           kDefaultLoopbackMode = {
               {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}};
       return kDefaultLoopbackMode;
-    } break;
+    }
     case cfg::SwitchType::VOQ: {
       static const std::map<cfg::PortType, cfg::PortLoopbackMode>
           kDefaultLoopbackMode = {
               {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
               {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
       return kDefaultLoopbackMode;
-    } break;
+    }
     case cfg::SwitchType::FABRIC: {
       static const std::map<cfg::PortType, cfg::PortLoopbackMode>
           kDefaultLoopbackMode = {
               {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
       return kDefaultLoopbackMode;
-    } break;
+    }
     case cfg::SwitchType::PHY:
       /* unsupported */
       break;

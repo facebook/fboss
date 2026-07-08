@@ -44,11 +44,24 @@ class FakeTransceiverImpl : public TransceiverImpl {
   void triggerQsfpHardReset() override;
   void updateTransceiverState(TransceiverStateMachineEvent event) override;
 
+ protected:
+  // Provide distinct EEPROM contents for a specific (bank, page) so multi-bank
+  // (CPO) reads can be exercised. When the bank-select register (byte 126) is
+  // set to a bank registered here, reads of that page return this data;
+  // otherwise reads fall back to the bank-agnostic upperPages_ contents.
+  void setBankedPage(uint8_t bank, int page, std::array<uint8_t, 128> data) {
+    bankedPages_[bank][page] = data;
+  }
+
  private:
   int module_{0};
   std::string moduleName_;
   int page_{0};
+  uint8_t selectedBank_{0};
   std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>> upperPages_;
+  // Optional per-bank page overrides, indexed [bank][page]. Empty by default,
+  // so single-bank fixtures behave exactly as before.
+  std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>> bankedPages_;
   std::map<uint8_t, std::array<uint8_t, 128>> lowerPages_;
   TransceiverManager* tcvrManager_;
 };
@@ -155,6 +168,16 @@ class Cmis800GZrTransceiver : public FakeTransceiverImpl {
   explicit Cmis800GZrTransceiver(int module, TransceiverManager* mgr);
 };
 
+// Cmis800GZr variant that does NOT advertise rxConsActHoldOffTmrImpl support
+// (Page 45h, Byte 129, Bit 2 cleared) for testing the unsupported-module path
+// of configureRxConsActHoldOffTimer.
+class Cmis800GZrNoHoldOffTmrTransceiver : public Cmis800GZrTransceiver {
+ public:
+  explicit Cmis800GZrNoHoldOffTmrTransceiver(
+      int module,
+      TransceiverManager* mgr);
+};
+
 class Cmis2x400GDr4Transceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis2x400GDr4Transceiver(int module, TransceiverManager* mgr);
@@ -184,6 +207,18 @@ class Cmis400GDr4Transceiver : public FakeTransceiverImpl {
 class Cmis2x800GDr4Transceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis2x800GDr4Transceiver(int module, TransceiverManager* mgr);
+};
+
+class CmisCpo6P4TDrTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit CmisCpo6P4TDrTransceiver(int module, TransceiverManager* mgr);
+};
+
+// CPO module in READY state with distinct per-bank page 14h, for exercising the
+// per-bank SNR (14h) read path.
+class CmisCpo6P4TDrReadyTransceiver : public CmisCpo6P4TDrTransceiver {
+ public:
+  explicit CmisCpo6P4TDrReadyTransceiver(int module, TransceiverManager* mgr);
 };
 
 class CmisCredo800AEC : public FakeTransceiverImpl {

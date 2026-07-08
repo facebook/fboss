@@ -84,7 +84,7 @@ void LedManager::triggerLedUpdate(const std::vector<PortID>& portIds) {
       if (newLedState != portDisplayInfo.currentLedState) {
         setLedState(portId, portProfile, newLedState);
         portDisplayInfo.currentLedState = newLedState;
-        XLOG(DBG2) << folly::sformat(
+        XLOG(DBG2) << fmt::format(
             "Port {:s} LED color changed to {:s}, Blink changed to {:s}",
             portName,
             enumToName<led::LedColor>(newLedState.ledColor().value()),
@@ -147,7 +147,7 @@ void LedManager::updateLedStatus(
     portInfo.drained = switchStateUpdate.drained;
 
     portDisplayMap_[portId] = portInfo;
-    portsToTriggerLedUpdate.push_back(PortID(portId));
+    portsToTriggerLedUpdate.emplace_back(portId);
   }
 
   triggerLedUpdate(portsToTriggerLedUpdate);
@@ -208,7 +208,7 @@ void LedManager::updateLedStatus(
 
         std::string los;
         for (auto& [lane, laneLos] : rxLos) {
-          los += folly::sformat(" Lane={:d} rxLos={:d} ", lane, laneLos);
+          los += fmt::format(" Lane={:d} rxLos={:d} ", lane, laneLos);
         }
         XLOG(DBG3) << "Port " << swPort << " name " << portName << los;
         portsToTriggerLedUpdate.push_back(swPort);
@@ -239,7 +239,7 @@ void LedManager::setExternalLedState(
     // info like port profile is not available so we need to bail out from
     // this functon
     throw FbossError(
-        folly::sformat(
+        fmt::format(
             "setExternalLedState: Port info not available for {:d} yet",
             portNum));
   } else {
@@ -256,7 +256,7 @@ void LedManager::setExternalLedState(
   if (newLedState != portDisplayMap_[portNum].currentLedState) {
     setLedState(portNum, portProfile, newLedState);
     portDisplayMap_[portNum].currentLedState = newLedState;
-    XLOG(DBG2) << folly::sformat(
+    XLOG(DBG2) << fmt::format(
         "Port {:s} LED color changed to {:s}, Blink changed to {:s}",
         portName,
         enumToName<led::LedColor>(newLedState.ledColor().value()),
@@ -291,7 +291,7 @@ led::LedColor LedManager::getCurrentLedColor(int32_t portNum) const {
     ledColor = portDisplayMap_.at(portNum).currentLedState.ledColor().value();
   } else {
     auto portName = platformMapping_->getPortNameByPortId(PortID(portNum));
-    XLOG(ERR) << folly::sformat(
+    XLOG(ERR) << fmt::format(
         "Port {:s} not found in portDisplayMap_",
         (portName.has_value() ? portName.value() : ""));
   }
@@ -314,7 +314,7 @@ led::PortLedState LedManager::getPortLedState(
   if (portDisplayMap_.find(portId) == portDisplayMap_.end()) {
     // If the PortInfo has not been updated from FSDB yet
     throw FbossError(
-        folly::sformat(
+        fmt::format(
             "getPortLedState: Port info not available for {:s} yet",
             swPortName));
   }
@@ -339,7 +339,7 @@ bool LedManager::areAllNeighborsRxLos(uint32_t portID) const {
   auto itr = portDisplayMap_.find(portID);
   if (itr == portDisplayMap_.end()) {
     throw(std::runtime_error(
-        folly::sformat("Port {:d} not found in portLosMap_", portID)));
+        fmt::format("Port {:d} not found in portLosMap_", portID)));
   }
   auto neighborInfo = itr->second.portNeighborState;
   if (neighborInfo.portsWithAllLanesRxLos == neighborInfo.totalPorts) {
@@ -357,7 +357,7 @@ uint32_t LedManager::portsUpAndCorrectReachability(uint32_t portID) const {
   auto itr = portDisplayMap_.find(portID);
   if (itr == portDisplayMap_.end()) {
     throw(std::runtime_error(
-        folly::sformat("Port {:d} not found in portLosMap_", portID)));
+        fmt::format("Port {:d} not found in portLosMap_", portID)));
   }
   auto neighborInfo = itr->second.portNeighborState;
   return neighborInfo.portsUpAndCorrectReachability;

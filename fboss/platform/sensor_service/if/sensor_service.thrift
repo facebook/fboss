@@ -39,7 +39,8 @@ struct SensorData {
   attributes = [
     "Oncalls('fboss_platform')",
     "JSEnum(shape('flow_enum' => false))",
-    "GraphQLEnum('FruType')",
+    "GraphQLEnum('XFBFruType')",
+    "GraphQLUnprefixedNamingScheme",
     "SelfDescriptive",
     "RelayFlowEnum",
   ],

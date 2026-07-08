@@ -22,10 +22,17 @@ struct PublisherConfig {
   2: bool skipThriftStreamLivenessCheck = false;
 }
 
+enum ExpectedSubscriptionType {
+  STATE = 0,
+  STATS = 1,
+  ALL = 2,
+}
+
 struct SubscriberConfig {
   1: bool trackReconnect = true;
   2: bool allowExtendedSubscriptions = false;
   3: i16 numExpectedSubscriptions = 1;
+  4: optional ExpectedSubscriptionType expectedSubscriptionType;
 }
 
 struct Config {

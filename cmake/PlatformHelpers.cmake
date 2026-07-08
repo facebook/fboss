@@ -3,6 +3,14 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_library(expect_session
+  fboss/platform/helpers/ExpectSession.cpp
+)
+
+target_link_libraries(expect_session
+  Folly::folly
+)
+
 add_library(platform_fs_utils
   fboss/platform/helpers/PlatformFsUtils.cpp
 )

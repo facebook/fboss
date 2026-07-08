@@ -20,8 +20,8 @@ namespace facebook::fboss {
 uint32_t SaiBcmPlatformPort::getPhysicalLaneId(
     uint32_t chipId,
     uint32_t logicalLane) const {
-  auto platform = static_cast<SaiBcmPlatform*>(getPlatform());
-  return chipId * platform->numLanesPerCore() + logicalLane + 1;
+  return chipId * getPlatform()->getAsic()->getNumLanesPerCore() + logicalLane +
+      1;
 }
 
 bool SaiBcmPlatformPort::supportsTransceiver() const {

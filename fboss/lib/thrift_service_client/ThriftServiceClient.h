@@ -21,6 +21,10 @@
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
+namespace apache::thrift {
+class ThriftServer;
+} // namespace apache::thrift
+
 DECLARE_string(wedge_agent_host);
 DECLARE_int32(wedge_agent_port);
 DECLARE_string(qsfp_service_host);
@@ -85,4 +89,6 @@ createFsdbClient(
     ConnectionOptions options =
         ConnectionOptions::defaultOptions<facebook::fboss::fsdb::FsdbService>(),
     folly::EventBase* eb = nullptr);
+
+void allowSelfSignedClientCert(apache::thrift::ThriftServer& server);
 } // namespace facebook::fboss::utils

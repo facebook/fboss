@@ -19,7 +19,7 @@ jobs:
       - name: Clean workspace
         run: sudo rm -rf ${{ github.workspace }}/*
       - name: Check out repository code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Run Docker-based build for FBOSS
         run: >
           sudo
@@ -61,7 +61,7 @@ jobs:
       - name: Save Docker image
         run: sudo docker save fboss_image:latest | zstd -o ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: fboss
           path: |
@@ -70,13 +70,13 @@ jobs:
           # Explicitly set the retention at the object level
           retention-days: 14
   Agent-Service-Test:
-    runs-on: ubuntu-latest
+    runs-on: 4-core-ubuntu
     needs: Agent-Service-Build
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Download artifact with test binaries
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: fboss
       - run: ls ${{ github.workspace }}

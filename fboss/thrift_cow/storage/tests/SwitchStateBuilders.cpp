@@ -4,13 +4,82 @@
 
 #include <fmt/format.h>
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook::fboss::fsdb::test {
 
 namespace {
+
+void populatePortQueues(state::PortFields& port) {
+  constexpr int kQueueCount = 10;
+  constexpr int32_t kAqmThreshold = 120000; // bytes; prn3 prod observation
+
+  std::vector<facebook::fboss::PortQueueFields> queues;
+  queues.reserve(kQueueCount);
+  for (int q = 0; q < kQueueCount; ++q) {
+    facebook::fboss::PortQueueFields queue;
+    queue.id() = q;
+    queue.weight() = 0;
+    queue.scheduling() = apache::thrift::util::enumNameSafe(
+        cfg::QueueScheduling::STRICT_PRIORITY);
+    queue.streamType() =
+        apache::thrift::util::enumNameSafe(cfg::StreamType::UNICAST);
+    queue.reserved() = 9984;
+    queue.sharedBytes() = 0;
+    queue.scalingFactor() =
+        apache::thrift::util::enumNameSafe(cfg::MMUScalingFactor::ONE);
+
+    cfg::LinearQueueCongestionDetection linear;
+    linear.minimumLength() = kAqmThreshold;
+    linear.maximumLength() = kAqmThreshold;
+    linear.probability() = 100;
+    cfg::QueueCongestionDetection detection;
+    detection.linear() = linear;
+    cfg::ActiveQueueManagement aqm;
+    aqm.detection() = detection;
+    aqm.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
+    queue.aqms() = {std::move(aqm)};
+
+    queues.push_back(std::move(queue));
+  }
+  port.queues() = std::move(queues);
+}
+
+void populatePortPinConfigs(state::PortFields& port, int portId) {
+  constexpr int kLaneCount = 4; // 100G port = 4 lanes
+  const auto chip = fmt::format("BC{}", portId / 4);
+  std::vector<phy::PinConfig> pinConfigs;
+  pinConfigs.reserve(kLaneCount);
+  for (int lane = 0; lane < kLaneCount; ++lane) {
+    phy::PinConfig pc;
+    phy::PinID id;
+    id.chip() = chip;
+    id.lane() = lane;
+    pc.id() = id;
+    phy::TxSettings tx;
+    tx.pre() = -8;
+    tx.main() = 132;
+    tx.post() = -16;
+    pc.tx() = tx;
+    pinConfigs.push_back(std::move(pc));
+  }
+  port.pinConfigs() = std::move(pinConfigs);
+}
+
+void populatePortProfileConfig(state::PortFields& port) {
+  phy::ProfileSideConfig profile;
+  profile.numLanes() = 4;
+  profile.modulation() = phy::IpModulation::NRZ;
+  profile.fec() = phy::FecMode::RS528;
+  profile.medium() = TransmitterTechnology::OPTICAL;
+  profile.interfaceType() = phy::InterfaceType::CAUI4;
+  port.profileConfig() = std::move(profile);
+}
 
 // Helper function to create port fields
 state::PortFields createPortFields(int portId, const std::string& portName) {
@@ -26,58 +95,30 @@ state::PortFields createPortFields(int portId, const std::string& portName) {
   port.txPause() = false;
   port.rxPause() = false;
   port.portType() = cfg::PortType::INTERFACE_PORT;
+  port.maxFrameSize() = cfg::switch_config_constants::DEFAULT_PORT_MTU();
+  port.portProfileID() = apache::thrift::util::enumNameSafe(
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL);
+  state::VlanInfo membership;
+  membership.tagged() = false;
+  membership.priorityTagged() = false;
+  port.vlanMemberShips() = {{"4001", membership}};
+  populatePortQueues(port);
+  populatePortPinConfigs(port, portId);
+  populatePortProfileConfig(port);
   return port;
 }
 
-// Helper function to create vlan fields
-state::VlanFields createVlanFields(int vlanId, int arpEntries, int ndpEntries) {
+state::VlanFields createVlanFields(int vlanId) {
   state::VlanFields vlan;
   vlan.vlanId() = vlanId;
   vlan.vlanName() = fmt::format("vlan{}", vlanId);
   vlan.intfID() = vlanId % 65536;
   vlan.dhcpV4Relay() = "0.0.0.0";
   vlan.dhcpV6Relay() = "::";
-
-  // Add ARP entries
-  std::map<std::string, state::NeighborEntryFields> arpTable;
-  for (int i = 0; i < arpEntries; ++i) {
-    state::NeighborEntryFields entry;
-    std::string ip = fmt::format("10.{}.{}.{}", vlanId % 256, i / 256, i % 256);
-    entry.ipaddress() = ip;
-    entry.mac() = fmt::format(
-        "02:00:00:{:02x}:{:02x}:{:02x}", vlanId % 256, i / 256, i % 256);
-    entry.interfaceId() = vlanId % 65536;
-    entry.state() = state::NeighborState::Reachable;
-    entry.isLocal() = true;
-    arpTable[ip] = entry;
-  }
-  vlan.arpTable() = arpTable;
-
-  // Add NDP entries
-  std::map<std::string, state::NeighborEntryFields> ndpTable;
-  for (int i = 0; i < ndpEntries; ++i) {
-    state::NeighborEntryFields entry;
-    std::string ip =
-        fmt::format("2401:db00:e206:{:x}::{:x}", vlanId % 65536, i);
-    entry.ipaddress() = ip;
-    entry.mac() = fmt::format(
-        "02:00:00:{:02x}:{:02x}:{:02x}", vlanId % 256, i / 256, i % 256);
-    entry.interfaceId() = vlanId % 65536;
-    entry.state() = state::NeighborState::Reachable;
-    entry.isLocal() = true;
-    ndpTable[ip] = entry;
-  }
-  vlan.ndpTable() = ndpTable;
-
   return vlan;
 }
 
-// Helper function to create interface fields
-state::InterfaceFields createInterfaceFields(
-    int ifId,
-    int addressCount,
-    int arpEntries,
-    int ndpEntries) {
+state::InterfaceFields createInterfaceFields(int ifId, int addressCount) {
   state::InterfaceFields intf;
   intf.interfaceId() = ifId;
   intf.routerId() = 0;
@@ -99,38 +140,6 @@ state::InterfaceFields createInterfaceFields(
     addresses[fmt::format("2401:db00:{:x}:{:x}::1", ifId % 65536, i)] = 64;
   }
   intf.addresses() = addresses;
-
-  // Add ARP table
-  std::map<std::string, state::NeighborEntryFields> arpTable;
-  for (int i = 0; i < arpEntries; ++i) {
-    state::NeighborEntryFields entry;
-    std::string ip =
-        fmt::format("10.{}.{}.{}", ifId % 256, i / 256, (i % 256) + 2);
-    entry.ipaddress() = ip;
-    entry.mac() = fmt::format(
-        "02:00:00:{:02x}:{:02x}:{:02x}", ifId % 256, i / 256, i % 256);
-    entry.interfaceId() = ifId % 65536;
-    entry.state() = state::NeighborState::Reachable;
-    entry.isLocal() = false;
-    arpTable[ip] = entry;
-  }
-  intf.arpTable() = arpTable;
-
-  // Add NDP table
-  std::map<std::string, state::NeighborEntryFields> ndpTable;
-  for (int i = 0; i < ndpEntries; ++i) {
-    state::NeighborEntryFields entry;
-    std::string ip = fmt::format(
-        "2401:db00:{:x}:{:x}::{:x}", ifId % 65536, i / 256, (i % 256) + 2);
-    entry.ipaddress() = ip;
-    entry.mac() = fmt::format(
-        "02:00:00:{:02x}:{:02x}:{:02x}", ifId % 256, i / 256, i % 256);
-    entry.interfaceId() = ifId % 65536;
-    entry.state() = state::NeighborState::Reachable;
-    entry.isLocal() = false;
-    ndpTable[ip] = entry;
-  }
-  intf.ndpTable() = ndpTable;
 
   return intf;
 }
@@ -393,7 +402,7 @@ void populateVlans(state::SwitchState& state, const SwitchStateScale& scale) {
 
   for (int i = 0; i < scale.vlanCount; ++i) {
     int vlanId = 1000 + i;
-    vlanMap[vlanId] = createVlanFields(vlanId, 5, 5);
+    vlanMap[vlanId] = createVlanFields(vlanId);
   }
 
   state.vlanMaps()[switchIdList] = std::move(vlanMap);
@@ -410,7 +419,7 @@ void populateInterfaces(
   std::map<int32_t, state::InterfaceFields> interfaceMap;
 
   for (int i = 0; i < scale.interfaceCount; ++i) {
-    interfaceMap[i] = createInterfaceFields(i, 2, 5, 5);
+    interfaceMap[i] = createInterfaceFields(i, 2);
   }
 
   state.interfaceMaps()[switchIdList] = std::move(interfaceMap);
@@ -697,7 +706,7 @@ bool filterSwitchStateScaleForPath(
   filtered.hasSwitchSettings = false;
   filtered.hasAclTableGroup = false;
 
-  if (targetField == "fibsMap") {
+  if (targetField == "fibsInfoMap") {
     filtered.fibV4Size = scale.fibV4Size;
     filtered.fibV6Size = scale.fibV6Size;
     filtered.v4Nexthops = scale.v4Nexthops;

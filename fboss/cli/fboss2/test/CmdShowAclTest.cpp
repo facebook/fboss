@@ -84,7 +84,7 @@ TEST_F(CmdShowAclTestFixture, queryClient) {
         folly::to<std::string>(
             expectedAclTableName, "_cpuPolicing-high-BGPDstPort-dstLocalIp4"));
     EXPECT_EQ(entries[1].get_priority(), 2);
-    EXPECT_EQ(entries[1].get_l4DstPort(), 179);
+    EXPECT_EQ(entries[1].l4DstPort().value(), 179);
     EXPECT_EQ(entries[1].get_actionType(), "permit");
 
     EXPECT_EQ(
@@ -92,7 +92,7 @@ TEST_F(CmdShowAclTestFixture, queryClient) {
         folly::to<std::string>(
             expectedAclTableName, "_cpuPolicing-high-slow-protocols-mac"));
     EXPECT_EQ(entries[2].get_priority(), 14);
-    EXPECT_EQ(entries[2].get_dstMac(), "01:80:c2:00:00:02");
+    EXPECT_EQ(entries[2].dstMac().value(), "01:80:c2:00:00:02");
     EXPECT_EQ(entries[2].get_actionType(), "permit");
   }
 }

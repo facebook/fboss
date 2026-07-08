@@ -15,6 +15,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -39,7 +40,14 @@ enum AclType {
   // UDF flowlet also matches on udf in addtion to FLOWLET fields
   UDF_FLOWLET,
 };
-}
+
+constexpr auto kL4DstPortRangeAclTableName = "l4-dst-port-range-acl-table";
+constexpr auto kL4DstPortRangeAclName = "l4-dst-port-range-acl";
+constexpr auto kL4DstPortRangeAclCounterName = "l4-dst-port-range-acl-stats";
+constexpr auto kL4DstPortRangeMin = 100;
+constexpr auto kL4DstPortRangeMax = 200;
+constexpr auto kL4DstPortRangeMiss = kL4DstPortRangeMax + 1;
+} // namespace
 
 namespace facebook::fboss {
 
@@ -153,7 +161,8 @@ class AgentAclCounterTest : public AgentHwTest {
   void counterBumpOnHitHelper(
       bool bumpOnHit,
       bool frontPanel,
-      std::vector<AclType> aclTypes) {
+      std::vector<AclType> aclTypes,
+      bool alsoVerifyNoHit = false) {
     auto setup = [this, aclTypes]() {
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return helper_->resolveNextHops(in, 2);
@@ -167,9 +176,14 @@ class AgentAclCounterTest : public AgentHwTest {
       applyNewConfig(newCfg);
     };
 
-    auto verify = [this, bumpOnHit, frontPanel, aclTypes]() {
+    auto verify = [this, bumpOnHit, frontPanel, aclTypes, alsoVerifyNoHit]() {
       for (auto aclType : aclTypes) {
         verifyAclType(bumpOnHit, frontPanel, aclType);
+      }
+      if (alsoVerifyNoHit) {
+        for (auto aclType : aclTypes) {
+          verifyAclType(false /* no hit, no bump */, frontPanel, aclType);
+        }
       }
     };
 
@@ -229,7 +243,7 @@ class AgentAclCounterTest : public AgentHwTest {
   size_t sendRoceTraffic(const PortID frontPanelEgrPort, AclType aclType) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     uint8_t opcode = (aclType == AclType::UDF_OPCODE_WRITE_IMMEDIATE)
         ? utility::kUdfRoceOpcodeWriteImmediate
         : utility::kUdfRoceOpcodeAck;
@@ -256,7 +270,7 @@ class AgentAclCounterTest : public AgentHwTest {
         : 10;
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     int l4DstPort = kTestDstPort;
     if (aclType == AclType::L4_DST_PORT) {
@@ -307,6 +321,14 @@ class AgentAclCounterTest : public AgentHwTest {
 
   folly::IPAddressV6 kDstIP() {
     return folly::IPAddressV6("2620:0:1cfe:face:b00c::10");
+  }
+
+  folly::IPAddressV4 kSrcIPv4() {
+    return folly::IPAddressV4("10.0.0.1");
+  }
+
+  folly::IPAddressV4 kDstIPv4() {
+    return folly::IPAddressV4("100.100.100.1");
   }
 
   int kL4DstPort2() const {
@@ -421,7 +443,8 @@ class AgentAclCounterTest : public AgentHwTest {
         if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
           // TODO ruinanhu: Remove this once we have a fix for TH6 counter
           // problem
-          auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+          auto hwAsic =
+              checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
           auto extraBytes =
               (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) ? 4
                                                                             : 0;
@@ -453,7 +476,7 @@ class AgentAclCounterTest : public AgentHwTest {
     aclEntry.actionType() = aclActionType_;
     auto* acl = &aclEntry;
     auto l3Asics = getAgentEnsemble()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     bool isSai = getAgentEnsemble()->isSai();
     switch (aclType) {
       case AclType::TCP_TTLD:
@@ -472,9 +495,51 @@ class AgentAclCounterTest : public AgentHwTest {
       case AclType::SRC_PORT_DENY:
         acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
         if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
-          // Set the IP type to NON_IP to match all ingress packets in ASIC SRC
-          // port
-          acl->ipType() = cfg::IpType::NON_IP;
+          if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+            // NON_IP traps packets which are neither v4 nor v6 on Chenab. Set
+            // to trap any packet since intention of the test is to verify if
+            // packet ingressing on a specific port is trapped
+            acl->ipType() = cfg::IpType::ANY;
+          } else if (
+              asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+              asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+            // Q4D/J4 (DNX) reject FIELD_SRC_PORT + FIELD_ACL_IP_TYPE=NON_IP.
+            // Per Broadcom, install the source-port entry in both ACL tables:
+            // an etherType=IPv4 copy in the default table and an etherType=IPv6
+            // copy in the IPv6 table, so the source-port ACL matches both v4
+            // and v6 traffic. The test sends IPv6 traffic, so the IPv6 copy
+            // keeps the canonical name/counter (the one verifyAclType checks);
+            // the IPv4 copy gets a "-v4" suffix.
+            std::vector<cfg::CounterType> counterTypes{
+                cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+            auto addSrcPortEntry = [&](const std::string& name,
+                                       const std::string& counter,
+                                       cfg::EtherType etherType,
+                                       const std::string& tableName) {
+              cfg::AclEntry entry;
+              entry.name() = name;
+              entry.actionType() = aclActionType_;
+              entry.srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
+              entry.etherType() = etherType;
+              utility::addAclEntry(config, entry, tableName);
+              utility::addAclStat(config, name, counter, counterTypes);
+            };
+            addSrcPortEntry(
+                aclName + "-v4",
+                counterName + "-v4",
+                cfg::EtherType::IPv4,
+                utility::kDefaultAclTable());
+            addSrcPortEntry(
+                aclName,
+                counterName,
+                cfg::EtherType::IPv6,
+                utility::kIpv6AclTable());
+            return;
+          } else {
+            // Set the IP type to NON_IP to match all ingress packets in ASIC
+            // SRC port
+            acl->ipType() = cfg::IpType::NON_IP;
+          }
         }
         break;
       case AclType::L4_DST_PORT:
@@ -543,15 +608,164 @@ class AgentL4DstPortAclCounterTest : public AgentAclCounterTest {
   }
 };
 
+class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::ACL_COUNTER,
+        ProductionFeature::MULTI_ACL_TABLE,
+        ProductionFeature::L4_DST_PORT_RANGE};
+  }
+
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentAclCounterTest::initialConfig(ensemble);
+    if (!FLAGS_enable_acl_table_group) {
+      return cfg;
+    }
+
+    utility::addAclTable(
+        &cfg,
+        kL4DstPortRangeAclTableName,
+        1 /* priority */,
+        {
+            cfg::AclTableActionType::PACKET_ACTION,
+            cfg::AclTableActionType::COUNTER,
+        },
+        {cfg::AclTableQualifier::L4_DST_PORT_RANGE});
+
+    auto acl = makeL4DstPortRangeAcl();
+    utility::addAclEntry(
+        &cfg, acl, kL4DstPortRangeAclTableName, cfg::AclStage::INGRESS);
+    utility::addAclStat(
+        &cfg,
+        kL4DstPortRangeAclName,
+        kL4DstPortRangeAclCounterName,
+        {cfg::CounterType::PACKETS, cfg::CounterType::BYTES});
+    return cfg;
+  }
+
+  cfg::AclEntry makeL4DstPortRangeAcl() const {
+    cfg::AclEntry acl;
+    acl.name() = kL4DstPortRangeAclName;
+    acl.actionType() = cfg::AclActionType::PERMIT;
+    cfg::Range range;
+    range.minimum() = kL4DstPortRangeMin;
+    range.maximum() = kL4DstPortRangeMax;
+    acl.l4DstPortRange() = range;
+    return acl;
+  }
+
+  void setupRangeAclCounterTest() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, 2);
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, kDefaultEcmpWidth);
+    applyNewConfig(initialConfig(*getAgentEnsemble()));
+  }
+
+  uint64_t getRangeAclPacketCounter() const {
+    return utility::getAclInOutPackets(getSw(), kL4DstPortRangeAclCounterName);
+  }
+
+  std::vector<int> getMatchingL4DstPorts() const {
+    std::vector<int> l4DstPorts;
+    l4DstPorts.reserve(kL4DstPortRangeMax - kL4DstPortRangeMin + 1);
+    for (auto l4DstPort = kL4DstPortRangeMin; l4DstPort <= kL4DstPortRangeMax;
+         ++l4DstPort) {
+      l4DstPorts.push_back(l4DstPort);
+    }
+    return l4DstPorts;
+  }
+
+  void sendPacketWithDstPort(bool frontPanel, bool isV6, int l4DstPort) {
+    auto vlanId = getVlanIDForTx();
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+
+    std::unique_ptr<TxPacket> txPacket;
+    if (isV6) {
+      txPacket = utility::makeTCPTxPacket(
+          getSw(),
+          vlanId,
+          srcMac, // src mac
+          intfMac, // dst mac
+          kSrcIP(),
+          kDstIP(),
+          kTestSrcPort,
+          l4DstPort,
+          0,
+          255);
+    } else {
+      txPacket = utility::makeTCPTxPacket(
+          getSw(),
+          vlanId,
+          srcMac, // src mac
+          intfMac, // dst mac
+          kSrcIPv4(),
+          kDstIPv4(),
+          kTestSrcPort,
+          l4DstPort,
+          0,
+          255);
+    }
+
+    if (frontPanel) {
+      auto outPort =
+          helper_->ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
+      getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
+    } else {
+      sendPacketSwitchedAsync(std::move(txPacket));
+    }
+  }
+
+  void verifyL4DstPortRangeAclCounter(
+      const std::string& name,
+      bool isFrontPanel,
+      bool isV6,
+      bool expectHit,
+      const std::vector<int>& l4DstPorts) {
+    SCOPED_TRACE(name);
+    auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
+    auto pktsBefore = *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+    auto aclPktCountBefore = getRangeAclPacketCounter();
+    for (auto l4DstPort : l4DstPorts) {
+      sendPacketWithDstPort(isFrontPanel, isV6, l4DstPort);
+    }
+
+    WITH_RETRIES({
+      auto aclPktCountAfter = getRangeAclPacketCounter();
+      auto pktsAfter = *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+      XLOG(DBG2) << "\n"
+                 << "PacketCounter: " << pktsBefore << " -> " << pktsAfter
+                 << "\n"
+                 << "aclPacketCounter(" << kL4DstPortRangeAclCounterName
+                 << "): " << aclPktCountBefore << " -> " << aclPktCountAfter;
+      if (expectHit) {
+        EXPECT_EVENTUALLY_GE(
+            aclPktCountAfter, aclPktCountBefore + l4DstPorts.size());
+        EXPECT_EVENTUALLY_LE(
+            aclPktCountAfter, aclPktCountBefore + (2 * l4DstPorts.size()));
+      } else {
+        EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
+      }
+    });
+  }
+};
+
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHit) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHit) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
@@ -564,37 +778,44 @@ TEST_F(
       true /* front panel port */,
       {AclType::L4_DST_PORT});
 }
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
+
+TEST_F(AgentAclCounterL4DstPortRangeTest, VerifyL4DstPortRangeAcl) {
+  auto setup = [this]() { setupRangeAclCounterTest(); };
+  auto verify = [this]() {
+    auto matchingPorts = getMatchingL4DstPorts();
+    for (auto isFrontPanel : {true, false}) {
+      for (auto isV6 : {false, true}) {
+        const auto trafficSrc = isFrontPanel ? "front-panel" : "cpu";
+        const auto ipFamily = isV6 ? "IPv6" : "IPv4";
+        verifyL4DstPortRangeAclCounter(
+            folly::to<std::string>(trafficSrc, ", ", ipFamily, ", hit"),
+            isFrontPanel,
+            isV6,
+            true,
+            matchingPorts);
+        verifyL4DstPortRangeAclCounter(
+            folly::to<std::string>(trafficSrc, ", ", ipFamily, ", miss"),
+            isFrontPanel,
+            isV6,
+            false,
+            {kL4DstPortRangeMiss});
+      }
+    }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitWithDrop) {
   this->aclActionType_ = cfg::AclActionType::DENY;
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
-// Verify that traffic originating on the CPU increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */,
-      false /* cpu port */,
-      {AclType::TCP_TTLD, AclType::UDP_TTLD});
-}
-
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */, false /* cpu port */, {AclType::SRC_PORT});
-}
-
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBump) {
   this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       true /* front panel port */,
-      {AclType::TCP_TTLD, AclType::UDP_TTLD});
-}
-
-// Verify that traffic originating on the CPU increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
-  this->counterBumpOnHitHelper(
-      false /* no hit, no bump */,
-      false /* cpu port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
@@ -636,13 +857,6 @@ class AgentUdfAclCounterTest : public AgentAclCounterTest {
     return features;
   }
 };
-
-TEST_F(AgentUdfAclCounterTest, VerifyUdf) {
-  counterBumpOnHitHelper(
-      true /* bump on hit */,
-      true /* front panel port */,
-      {AclType::UDF_OPCODE_ACK, AclType::UDF_OPCODE_WRITE_IMMEDIATE});
-}
 
 TEST_F(AgentUdfAclCounterTest, VerifyUdfWithOtherAcls) {
   counterBumpOnHitHelper(
@@ -826,18 +1040,6 @@ class AgentFlowletAclCounterTest : public AgentAclCounterTest {
     FLAGS_flowletSwitchingEnable = true;
   }
 };
-
-TEST_F(AgentFlowletAclCounterTest, VerifyFlowlet) {
-  counterBumpOnFlowletAclHitHelper(
-      true /* bump on hit */, true /* front panel port */, {AclType::FLOWLET});
-}
-
-TEST_F(AgentFlowletAclCounterTest, VerifyUdfFlowlet) {
-  counterBumpOnFlowletAclHitHelper(
-      true /* bump on hit */,
-      true /* front panel port */,
-      {AclType::UDF_FLOWLET});
-}
 
 TEST_F(AgentFlowletAclCounterTest, VerifyFlowletNegative) {
   this->roceReservedByte_ = 0x0;

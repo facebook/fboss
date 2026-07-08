@@ -44,6 +44,11 @@ struct NextHopAttributesTypes<SAI_NEXT_HOP_TYPE_IP> {
   using LabelStack = void;
 };
 
+template <>
+struct NextHopAttributesTypes<SAI_NEXT_HOP_TYPE_TUNNEL_ENCAP> {
+  using LabelStack = void;
+};
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 template <>
 struct NextHopAttributesTypes<SAI_NEXT_HOP_TYPE_SRV6_SIDLIST> {
@@ -79,9 +84,61 @@ struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_IP> {
       std::optional<typename Attributes::DisableTtlDecrement>>;
 };
 
+template <typename Attributes>
+struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_TUNNEL_ENCAP> {
+  using AdapterHostKey =
+      std::tuple<typename Attributes::TunnelId, typename Attributes::Ip>;
+  using CreateAttributes = std::tuple<
+      typename Attributes::Type,
+      typename Attributes::TunnelId,
+      typename Attributes::Ip,
+      std::optional<typename Attributes::DisableTtlDecrement>>;
+};
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 template <typename Attributes>
 struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_SRV6_SIDLIST> {
+  /*
+   * SAI_NEXT_HOP_TYPE_SRV6_SIDLIST next hops are keyed by the SRv6 tunnel and
+   * the SAI object id of the SID list. The SID-list id is intentionally used
+   * here because SAI_NEXT_HOP_ATTR_SRV6_SIDLIST_ID is the attribute programmed
+   * on the next-hop object.
+   *
+   * To reason about the full logical host key, recurse through
+   * SaiSrv6SidListTraits::AdapterHostKey for the SID-list id. That key is:
+   *
+   *   (SAI_SRV6_SIDLIST_ATTR_TYPE,
+   *    SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST,
+   *    RouterInterfaceSaiId,
+   *    underlay next-hop IP)
+   *
+   * This matters because SAI_NEXT_HOP_ATTR_SRV6_SIDLIST_ID collapses the
+   * SID-list object's full host key into an object id. The SID-list id is
+   * different whenever any component of SaiSrv6SidListTraits::AdapterHostKey is
+   * different. That disambiguates cases such as:
+   *
+   *   - same underlay IP and same RouterInterfaceSaiId, but different
+   *     SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST
+   *   - different underlay IP, but same RouterInterfaceSaiId and same
+   *     SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST
+   *
+   * For example, with a fixed tunnel id T, SID-list type ENCAPS_RED, underlay
+   * IPs IP0/IP1, router interfaces RIF0/RIF1, and segment lists SIDLIST0 and
+   * SIDLIST1, the expanded logical key for this next hop is:
+   *
+   *   (T, sidListId(type, SIDLIST0, RIF0, IP0))
+   *   (T, sidListId(type, SIDLIST0, RIF0, IP1))
+   *   (T, sidListId(type, SIDLIST0, RIF1, IP0))
+   *   (T, sidListId(type, SIDLIST0, RIF1, IP1))
+   *   (T, sidListId(type, SIDLIST1, RIF0, IP0))
+   *   (T, sidListId(type, SIDLIST1, RIF0, IP1))
+   *   (T, sidListId(type, SIDLIST1, RIF1, IP0))
+   *   (T, sidListId(type, SIDLIST1, RIF1, IP1))
+   *
+   * Those eight combinations all produce distinct SID-list object ids, so the
+   * SRv6 SID-list next-hop AdapterHostKey remains distinct even though it only
+   * stores (TunnelId, Srv6SidlistId) directly.
+   */
   using AdapterHostKey = std::
       tuple<typename Attributes::TunnelId, typename Attributes::Srv6SidlistId>;
   using CreateAttributes = std::tuple<
@@ -150,9 +207,9 @@ struct SaiNextHopTraitsT {
         SaiObjectIdT>;
     using LabelStack =
         typename detail::NextHopAttributesTypes<type>::LabelStack;
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     using TunnelId =
         SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_TUNNEL_ID, SaiObjectIdT>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     using Srv6SidlistId =
         SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_SRV6_SIDLIST_ID, SaiObjectIdT>;
 #endif
@@ -174,11 +231,16 @@ struct SaiNextHopTraitsT {
 
 using SaiIpNextHopTraits = SaiNextHopTraitsT<SAI_NEXT_HOP_TYPE_IP>;
 using SaiMplsNextHopTraits = SaiNextHopTraitsT<SAI_NEXT_HOP_TYPE_MPLS>;
+using SaiTunnelEncapNextHopTraits =
+    SaiNextHopTraitsT<SAI_NEXT_HOP_TYPE_TUNNEL_ENCAP>;
 template <>
 struct SaiObjectHasConditionalAttributes<SaiIpNextHopTraits>
     : public std::true_type {};
 template <>
 struct SaiObjectHasConditionalAttributes<SaiMplsNextHopTraits>
+    : public std::true_type {};
+template <>
+struct SaiObjectHasConditionalAttributes<SaiTunnelEncapNextHopTraits>
     : public std::true_type {};
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -191,10 +253,13 @@ struct SaiObjectHasConditionalAttributes<SaiSrv6SidlistNextHopTraits>
 using SaiNextHopTraits = ConditionObjectTraits<
     SaiIpNextHopTraits,
     SaiMplsNextHopTraits,
+    SaiTunnelEncapNextHopTraits,
     SaiSrv6SidlistNextHopTraits>;
 #else
-using SaiNextHopTraits =
-    ConditionObjectTraits<SaiIpNextHopTraits, SaiMplsNextHopTraits>;
+using SaiNextHopTraits = ConditionObjectTraits<
+    SaiIpNextHopTraits,
+    SaiMplsNextHopTraits,
+    SaiTunnelEncapNextHopTraits>;
 #endif
 using SaiNextHopAdapterHostKey = typename SaiNextHopTraits::AdapterHostKey;
 using SaiNextHopAdaptertKey =
@@ -205,8 +270,8 @@ SAI_ATTRIBUTE_NAME(IpNextHop, RouterInterfaceId)
 SAI_ATTRIBUTE_NAME(IpNextHop, Ip)
 SAI_ATTRIBUTE_NAME(MplsNextHop, LabelStack)
 SAI_ATTRIBUTE_NAME(IpNextHop, DisableTtlDecrement);
+SAI_ATTRIBUTE_NAME(TunnelEncapNextHop, TunnelId)
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-SAI_ATTRIBUTE_NAME(Srv6SidlistNextHop, TunnelId)
 SAI_ATTRIBUTE_NAME(Srv6SidlistNextHop, Srv6SidlistId)
 #endif
 

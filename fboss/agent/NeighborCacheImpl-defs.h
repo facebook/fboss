@@ -479,13 +479,11 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     }
 
     InterfaceID interfaceID;
-    std::optional<SystemPortID> systemPortID;
 
     if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!fields.port.isSystemPort());
+      CHECK(port.isPhysicalPort());
       interfaceID = state->getInterfaceIDForPort(port);
-      // SystemPortID is always same as the InterfaceID
-      systemPortID = SystemPortID(interfaceID);
     } else {
       interfaceID = intfID_;
     }
@@ -516,15 +514,10 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     nbrEntry.state() =
         static_cast<state::NeighborState>(state::NeighborState::Pending);
 
+    nbrEntry.portId() = PortDescriptor(PortID(0)).toThrift();
+
     if (switchType == cfg::SwitchType::VOQ) {
-      // TODO: Support aggregate ports for VOQ switches
-      CHECK(port.isPhysicalPort());
-      CHECK(systemPortID.has_value());
-      nbrEntry.portId() =
-          PortDescriptor(SystemPortID(systemPortID.value())).toThrift();
       nbrEntry.isLocal() = fields.isLocal;
-    } else {
-      nbrEntry.portId() = ncachehelpers::getNeighborPortDescriptor(port);
     }
 
     if (fields.classID.has_value()) {

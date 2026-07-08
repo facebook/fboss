@@ -5,6 +5,7 @@
 #include <folly/MacAddress.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 namespace facebook::fboss {
 
@@ -260,6 +261,7 @@ class HwAsic {
     SAI_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
     ECMP_DLB_OFFSET,
+    ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL,
 
     // MPLS Features::
     // ================
@@ -469,7 +471,7 @@ class HwAsic {
     DELETED_CREDITS_STAT,
     INGRESS_PRIORITY_GROUP_DROPPED_PACKETS,
     // replace all ACL based trap reasons by
-    // explicty ACL config programmed by FBOSS
+    // explicitly ACL config programmed by FBOSS
     NO_RX_REASON_TRAP,
     EGRESS_GVOQ_WATERMARK_BYTES,
     INGRESS_PRIORITY_GROUP_SHARED_WATERMARK,
@@ -537,6 +539,16 @@ class HwAsic {
     // reducing latency for scale-up switches.
     CUT_THROUGH_FORWARDING,
     SRV6_MYSID_DISCARD_COUNTER,
+    SRV6_MYSID_RESOURCE_COUNTER,
+    DEVICE_WATERMARK_SUPPORT,
+    // Per-stage HW drop cause bitmaps via custom SAI switch stats
+    // (SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_*). Each bitmap is an i64
+    // where set bits indicate specific drop reasons within that pipeline
+    // stage. Currently supported on Chenab with SDK >= 2511.36.
+    SWITCH_CUSTOM_DROP_BITMAP_SUPPORT,
+    // Policy based routing via a dedicated ACL table matching on next hop
+    // group and traffic class, redirecting to a per-TC next hop group.
+    PBR_ACL,
   };
 
   enum class AsicMode {
@@ -625,6 +637,12 @@ class HwAsic {
     return 1;
   }
 
+  virtual uint32_t getNumLanesPerCore() const {
+    return 1;
+  }
+
+  virtual uint32_t getNumCellsAvailable(PlatformType platformType) const;
+
   /*
    * Default Content Aware Processor group ID for ACLs
    */
@@ -665,6 +683,30 @@ class HwAsic {
    * Number of forwarding engines / units with its own buffer pool.
    */
   virtual uint32_t getNumCores() const = 0;
+
+  /**
+   * Number of physical dies in the ASIC package. Multi-die ASICs (e.g. Q4D
+   * with 2 dies) have ports spread across dies. Knowing the die count allows
+   * test infrastructure to distribute port selection across dies for better
+   * coverage. Default is 1 (single-die).
+   */
+  virtual uint32_t getNumDies() const {
+    return 1;
+  }
+
+  /**
+   * Returns which die a given core belongs to. Default assumes cores are
+   * evenly distributed across dies in ascending order (e.g. for Q4D with
+   * 8 cores and 2 dies: cores 0-3 → die 0, cores 4-7 → die 1).
+   */
+  virtual uint32_t getDieIdForCore(uint32_t coreId) const {
+    auto numDies = getNumDies();
+    if (numDies <= 1) {
+      return 0;
+    }
+    auto coresPerDie = getNumCores() / numDies;
+    return coreId / coresPerDie;
+  }
 
   virtual uint32_t getSflowShimHeaderSize() const = 0;
 
@@ -715,10 +757,24 @@ class HwAsic {
     return std::nullopt;
   }
 
+  virtual std::optional<uint32_t> getMaxRouteCounters() const {
+    return std::nullopt;
+  }
+
+  // SRv6 next hops used as ECMP group members (NextHopSet size > 1)
+  virtual std::optional<uint32_t> getMaxSrv6EcmpNextHops() const {
+    return std::nullopt;
+  }
+
+  // SRv6 next hops used by single-nhop routes (NextHopSet size == 1)
+  virtual std::optional<uint32_t> getMaxSrv6SingleNextHops() const {
+    return std::nullopt;
+  }
+
   virtual bool scalingFactorBasedDynamicThresholdSupported() const = 0;
 
   virtual int getBufferDynThreshFromScalingFactor(
-      cfg::MMUScalingFactor scalingFactor) const = 0;
+      cfg::MMUScalingFactor scalingFactor) const;
 
   virtual uint32_t getStaticQueueLimitBytes() const = 0;
 

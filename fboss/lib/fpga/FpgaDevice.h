@@ -6,7 +6,7 @@
 #include "fboss/lib/PciDevice.h"
 #include "fboss/lib/PhysicalMemory.h"
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
@@ -41,7 +41,7 @@ class FpgaDevice {
   // example using pci topology)
   FpgaDevice(uint32_t fpgaBar0, uint32_t fpgaBar0Size)
       : phyMem_(std::make_unique<PhyMem>(fpgaBar0, fpgaBar0Size, false)) {
-    XLOG(DBG1) << folly::format(
+    XLOG(DBG1) << fmt::format(
         "Creating FPGA Device at address={:#x} size={:d}",
         fpgaBar0,
         fpgaBar0Size);
@@ -63,12 +63,12 @@ class FpgaDevice {
   virtual uint32_t read(uint32_t offset) const {
     CHECK(offset >= 0 && offset < phyMem_->getSize() - 3);
     uint32_t ret = phyMem_->read(offset);
-    XLOG(DBG5) << folly::format("FPGA read {:#x}={:#x}", offset, ret);
+    XLOG(DBG5) << fmt::format("FPGA read {:#x}={:#x}", offset, ret);
     return ret;
   }
 
   virtual void write(uint32_t offset, uint32_t value) {
-    XLOG(DBG5) << folly::format("FPGA write {:#x} to {:#x}", value, offset);
+    XLOG(DBG5) << fmt::format("FPGA write {:#x} to {:#x}", value, offset);
     CHECK(offset >= 0 && offset < phyMem_->getSize() - 3);
     phyMem_->write(offset, value);
   }

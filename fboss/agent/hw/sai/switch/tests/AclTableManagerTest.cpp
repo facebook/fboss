@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
@@ -69,7 +70,7 @@ TEST_F(AclTableManagerTest, addTwoAclTable) {
           ->aclTable->adapterKey();
   auto table2 = std::make_shared<AclTable>(0, kAclTable2);
   AclTableSaiId aclTableId2 = saiManagerTable->aclTableManager().addAclTable(
-      table2, cfg::AclStage::INGRESS);
+      table2, cfg::AclStage::INGRESS, nullptr /*state*/);
 
   auto stageGot = saiApiTable->aclApi().getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::Stage());
@@ -87,7 +88,7 @@ TEST_F(AclTableManagerTest, addDupAclTable) {
   auto table1 = std::make_shared<AclTable>(std::move(fields));
   EXPECT_THROW(
       saiManagerTable->aclTableManager().addAclTable(
-          table1, cfg::AclStage::INGRESS),
+          table1, cfg::AclStage::INGRESS, nullptr /*state*/),
       FbossError);
 }
 
@@ -119,7 +120,9 @@ TEST_F(AclTableManagerTest, addAclEntry) {
   aclEntry->setActionType(kActionType());
 
   AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
 
   auto tableIdGot = saiApiTable->aclApi().getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::TableId());
@@ -144,7 +147,9 @@ TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
   aclEntry->setAclAction(action);
 
   AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
 
   auto tableIdGot = saiApiTable->aclApi().getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::TableId());
@@ -175,7 +180,9 @@ TEST_F(AclTableManagerTest, addTwoAclEntry) {
   aclEntry->setActionType(kActionType());
 
   AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
 
   auto tableIdGot = saiApiTable->aclApi().getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::TableId());
@@ -187,7 +194,9 @@ TEST_F(AclTableManagerTest, addTwoAclEntry) {
   aclEntry2->setActionType(kActionType());
 
   AclEntrySaiId aclEntryId2 = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry2, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+      aclEntry2,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
 
   auto tableIdGot2 = saiApiTable->aclApi().getAttribute(
       aclEntryId2, SaiAclEntryTraits::Attributes::TableId());
@@ -201,7 +210,9 @@ TEST_F(AclTableManagerTest, addDupAclEntry) {
   aclEntry->setActionType(kActionType());
 
   saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
 
   auto dupAclEntry =
       std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
@@ -211,7 +222,8 @@ TEST_F(AclTableManagerTest, addDupAclEntry) {
   EXPECT_THROW(
       saiManagerTable->aclTableManager().addAclEntry(
           dupAclEntry,
-          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()),
+          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+          nullptr /*state*/),
       FbossError);
 }
 
@@ -222,7 +234,9 @@ TEST_F(AclTableManagerTest, getAclEntry) {
   aclEntry->setActionType(kActionType());
 
   saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
 
   auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
@@ -265,10 +279,119 @@ TEST_F(AclTableManagerTest, aclMirroring) {
   matchAction.setIngressMirror(mirrorId);
   aclEntry->setAclAction(matchAction);
   AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
   SaiMirrorHandle* mirrorHandle =
       saiManagerTable->mirrorManager().getMirrorHandle(mirrorId);
   auto gotMirrorSaiIdList = saiApiTable->aclApi().getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::ActionMirrorIngress());
   EXPECT_EQ((gotMirrorSaiIdList.getData())[0], mirrorHandle->adapterKey());
+}
+
+TEST_F(AclTableManagerTest, addAclEntryWithL4DstPortRange) {
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
+  cfg::Range range;
+  range.minimum() = 1000;
+  range.maximum() = 2000;
+  aclEntry->setL4DstPortRange(range);
+  aclEntry->setActionType(kActionType());
+
+  saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
+
+  auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
+      aclTableHandle, kPriority());
+  ASSERT_TRUE(aclEntryHandle);
+  ASSERT_TRUE(aclEntryHandle->dstPortRange);
+
+  auto rangeType = saiApiTable->aclApi().getAttribute(
+      aclEntryHandle->dstPortRange->adapterKey(),
+      SaiAclRangeTraits::Attributes::Type());
+  EXPECT_EQ(rangeType, SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE);
+
+  auto rangeLimit = saiApiTable->aclApi().getAttribute(
+      aclEntryHandle->dstPortRange->adapterKey(),
+      SaiAclRangeTraits::Attributes::Limit());
+  EXPECT_EQ(rangeLimit.min, 1000);
+  EXPECT_EQ(rangeLimit.max, 2000);
+}
+
+TEST_F(AclTableManagerTest, removeAclEntryWithRange) {
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
+  cfg::Range range;
+  range.minimum() = 1000;
+  range.maximum() = 2000;
+  aclEntry->setL4DstPortRange(range);
+  aclEntry->setActionType(kActionType());
+
+  saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
+
+  auto& rangeStore = saiStore->get<SaiAclRangeTraits>();
+  EXPECT_EQ(rangeStore.size(), 1);
+
+  saiManagerTable->aclTableManager().removeAclEntry(
+      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+
+  auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
+      aclTableHandle, kPriority());
+  EXPECT_FALSE(aclEntryHandle);
+  EXPECT_EQ(rangeStore.size(), 0);
+}
+
+TEST_F(AclTableManagerTest, twoEntriesSameRange) {
+  cfg::Range range;
+  range.minimum() = 1000;
+  range.maximum() = 2000;
+
+  auto aclEntry1 =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
+  aclEntry1->setL4DstPortRange(range);
+  aclEntry1->setActionType(kActionType());
+  saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry1,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
+
+  auto aclEntry2 =
+      std::make_shared<AclEntry>(kPriority2(), std::string("AclEntry2"));
+  aclEntry2->setL4DstPortRange(range);
+  aclEntry2->setActionType(kActionType());
+  saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry2,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
+
+  auto& rangeStore = saiStore->get<SaiAclRangeTraits>();
+  EXPECT_EQ(rangeStore.size(), 1);
+
+  auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  auto handle1 = saiManagerTable->aclTableManager().getAclEntryHandle(
+      aclTableHandle, kPriority());
+  auto handle2 = saiManagerTable->aclTableManager().getAclEntryHandle(
+      aclTableHandle, kPriority2());
+  ASSERT_TRUE(handle1->dstPortRange);
+  ASSERT_TRUE(handle2->dstPortRange);
+  EXPECT_EQ(
+      handle1->dstPortRange->adapterKey(), handle2->dstPortRange->adapterKey());
+
+  saiManagerTable->aclTableManager().removeAclEntry(
+      aclEntry1, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  EXPECT_EQ(rangeStore.size(), 1);
+
+  saiManagerTable->aclTableManager().removeAclEntry(
+      aclEntry2, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  EXPECT_EQ(rangeStore.size(), 0);
 }

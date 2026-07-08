@@ -31,6 +31,9 @@ auto constexpr kOpticsReadMaxValue = "{}.optics_read.max.value";
 auto constexpr kOpticsPwmValue = "{}.optics_pwm.value";
 auto constexpr kOpticsAggPwmValue = "agg.optics_pwm.value";
 auto constexpr kLedWriteFailure = "{}.led_write.failure";
+auto constexpr kHasFanRpmReadFailure = "has.fan_rpm_read_failure";
+auto constexpr kHasFanPwmWriteFailure = "has.fan_pwm_write_failure";
+auto constexpr kHasFanAbsent = "has.fan_absent";
 auto constexpr kFanFailThresholdInSec = 300;
 auto constexpr kSensorFailThresholdInSec = 300;
 
@@ -38,13 +41,29 @@ using namespace facebook::fboss::platform::fan_service;
 namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
+// Fallback table: if an optic type's thermal profile is not defined in the
+// config, fall back to the mapped profile instead.
+const std::unordered_map<std::string, std::string> kOpticTypeFallbacks = {
+    {constants::OPTIC_TYPE_800_ZR(), constants::OPTIC_TYPE_800_GENERIC()},
+};
+
 template <typename T>
 std::optional<T> getConfigOpticData(
     const std::string& opticType,
     const std::map<std::string, T>& dataMap) {
-  for (const auto& [tableType, data] : dataMap) {
-    if (tableType == opticType) {
-      return data;
+  auto it = dataMap.find(opticType);
+  if (it != dataMap.end()) {
+    return it->second;
+  }
+  auto fallbackIt = kOpticTypeFallbacks.find(opticType);
+  if (fallbackIt != kOpticTypeFallbacks.end()) {
+    auto dataIt = dataMap.find(fallbackIt->second);
+    if (dataIt != dataMap.end()) {
+      XLOG(INFO) << fmt::format(
+          "Optic type {} not found in config, falling back to {}",
+          opticType,
+          fallbackIt->second);
+      return dataIt->second;
     }
   }
   return std::nullopt;
@@ -173,12 +192,14 @@ void ControlLogic::setupPidLogics() {
   }
 }
 
-std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
+std::tuple<bool, int, uint64_t, bool> ControlLogic::readFanRpm(const Fan& fan) {
   std::string fanName = *fan.fanName();
   bool fanRpmReadSuccess{false};
+  bool fanAbsent{false};
   int fanRpm{0};
   uint64_t rpmTimeStamp{0};
-  if (isFanPresentInDevice(fan)) {
+  fanAbsent = !isFanPresentInDevice(fan);
+  if (!fanAbsent) {
     try {
       fanRpm = pBsp_->readSysfs(*fan.rpmSysfsPath());
       rpmTimeStamp = pBsp_->getCurrentTime();
@@ -194,7 +215,7 @@ std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
     fb303::fbData->setCounter(fmt::format(kFanReadRpmValue, fanName), fanRpm);
     XLOG(INFO) << fmt::format("{}: RPM read is {}", fanName, fanRpm);
   }
-  return std::make_tuple(!fanRpmReadSuccess, fanRpm, rpmTimeStamp);
+  return std::make_tuple(!fanRpmReadSuccess, fanRpm, rpmTimeStamp, fanAbsent);
 }
 
 void ControlLogic::updateTargetPwm(const Sensor& sensor, int numFanFailed) {
@@ -571,10 +592,14 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
 
   // STEP 1: Check presence/rpm of fans
   XLOG(INFO) << "Processing Fans ...";
+  bool hasAnyRpmFailure{false};
+  bool hasAnyFanAbsent{false};
   fanStatuses_.withWLock([&](auto& fanStatuses) {
     // Update fan status with new rpm and timestamp.
     for (const auto& fan : *config_.fans()) {
-      auto [fanAccessFailed, fanRpm, fanTimestamp] = readFanRpm(fan);
+      auto [fanAccessFailed, fanRpm, fanTimestamp, fanAbsent] = readFanRpm(fan);
+      hasAnyRpmFailure = hasAnyRpmFailure || fanAccessFailed;
+      hasAnyFanAbsent = hasAnyFanAbsent || fanAbsent;
       if (fanAccessFailed) {
         fanStatuses[*fan.fanName()].rpm().reset();
       } else {
@@ -683,6 +708,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   }
 
   // STEP 5: Calculate and program fan PWMs
+  bool hasAnyPwmFailure{false};
   fanStatuses_.withWLock([&](auto& fanStatuses) {
     for (const auto& zone : *config_.zones()) {
       int16_t zonePwm = calculateZonePwm(zone, boostMode_);
@@ -698,6 +724,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
             *fanStatuses[*fan.fanName()].pwmToProgram(),
             zonePwm);
         bool fanFailed = programFan(zone, fan, fanPwm);
+        hasAnyPwmFailure = hasAnyPwmFailure || fanFailed;
         updatePwmState(zone, fanPwm);
 
         fanStatuses[*fan.fanName()].pwmToProgram() = fanPwm;
@@ -712,6 +739,9 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
     for (const auto& fan : *config_.fans()) {
       programLed(fan, *fanStatuses[*fan.fanName()].fanFailed());
     }
+    fb303::fbData->setCounter(kHasFanRpmReadFailure, hasAnyRpmFailure ? 1 : 0);
+    fb303::fbData->setCounter(kHasFanPwmWriteFailure, hasAnyPwmFailure ? 1 : 0);
+    fb303::fbData->setCounter(kHasFanAbsent, hasAnyFanAbsent ? 1 : 0);
   });
 }
 

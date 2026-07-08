@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -34,6 +35,7 @@ cpp_unittest(
         "FsdbPublisherTest.cpp",
         "FsdbStreamClientTest.cpp",
     ],
+    network_access = network_access_utils.all(),
     deps = [
         ":fsdb_test_clients",
         "//fb303:service_data",
@@ -46,6 +48,7 @@ cpp_unittest(
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/lib:common_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//folly:scope_guard",
         "//folly/coro:blocking_wait",
         "//folly/io/async:scoped_event_base_thread",
         "//folly/logging:log_level",

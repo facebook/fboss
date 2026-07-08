@@ -7,6 +7,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/LinkStateToggler.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
 namespace facebook::fboss::utility {
@@ -263,7 +264,7 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
   auto vlanId = getVlanIDForTx(ensemble, port);
-  auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(programmedState);
 
   utility::pumpTraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
@@ -286,7 +287,7 @@ void HwIpRoCEEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
   auto vlanId = getVlanIDForTx(ensemble, port);
-  auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(programmedState);
 
   utility::pumpRoCETraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
@@ -310,7 +311,7 @@ void HwIpRoCEEcmpDestPortDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
   auto vlanId = getVlanIDForTx(ensemble, port);
-  auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(programmedState);
 
   utility::pumpRoCETraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
@@ -387,6 +388,26 @@ template class HwIpRoCEEcmpDataPlaneTestUtil<folly::IPAddressV6>;
 template class HwIpRoCEEcmpDataPlaneTestUtil<folly::IPAddressV4>;
 template class HwIpRoCEEcmpDestPortDataPlaneTestUtil<folly::IPAddressV6>;
 
+HwIpV6FlowLabelEcmpDataPlaneTestUtil::HwIpV6FlowLabelEcmpDataPlaneTestUtil(
+    TestEnsembleIf* ensemble,
+    RouterID vrf)
+    : BaseT(ensemble, vrf) {}
+
+void HwIpV6FlowLabelEcmpDataPlaneTestUtil::pumpTrafficThroughPort(
+    std::optional<PortID> port) {
+  auto* ensemble = BaseT::getEnsemble();
+  auto programmedState = ensemble->getProgrammedState();
+  auto vlanId = getVlanIDForTx(ensemble, port);
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(programmedState);
+
+  utility::pumpTrafficWithFlowLabel(
+      utility::getAllocatePktFn(ensemble),
+      utility::getSendPktFunc(ensemble),
+      intfMac,
+      vlanId,
+      port);
+}
+
 HwSrv6EcmpDataPlaneTestUtil::HwSrv6EcmpDataPlaneTestUtil(
     TestEnsembleIf* ensemble,
     RouterID vrf)
@@ -419,7 +440,7 @@ void HwSrv6EcmpDataPlaneTestUtil::programRoutes(
         std::nullopt,
         sidList,
         TunnelType::SRV6_ENCAP,
-        folly::sformat("srv6Tunnel{}", i)));
+        std::string("srv6Tunnel0")));
   }
   auto routeUpdater = ensemble->getRouteUpdaterWrapper();
   routeUpdater->addRoute(

@@ -63,7 +63,7 @@ std::unique_ptr<AgentEnsemble> setupForVoqRouteScale(uint32_t ecmpWidth) {
   ensemble->getSw()->getRib()->updateStateInRibThread(
       [&ensemble, updateDsfStateFn]() {
         ensemble->getSw()->updateStateWithHwFailureProtection(
-            folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
+            fmt::format("Update state for node: {}", 0), updateDsfStateFn);
       });
   return ensemble;
 }
@@ -72,16 +72,16 @@ std::vector<RoutePrefixV6> getVoqRoutePrefixes(uint32_t numRoutes) {
   std::vector<RoutePrefixV6> prefixes;
   for (int i = 0; i < numRoutes; i++) {
     prefixes.emplace_back(
-        folly::IPAddressV6(folly::sformat("2401:db00:23{}::", i + 1)), 48);
+        folly::IPAddressV6(fmt::format("2401:db00:23{}::", i + 1)), 48);
   }
   return prefixes;
 }
 
-std::vector<flat_set<PortDescriptor>> getVoqRouteNextHopSets(
+std::vector<boost::container::flat_set<PortDescriptor>> getVoqRouteNextHopSets(
     const boost::container::flat_set<PortDescriptor>& remoteNhops,
     uint32_t ecmpGroup,
     uint32_t ecmpWidth) {
-  std::vector<flat_set<PortDescriptor>> nhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> nhopSets;
   CHECK_GE(remoteNhops.size(), ecmpWidth + ecmpGroup - 1);
   auto kNhopOffset = 4;
   for (int i = 0; i < ecmpGroup; i++) {

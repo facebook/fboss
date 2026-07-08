@@ -46,6 +46,10 @@
         5,
         6
     ],
+    "icecube800banw": [
+        7,
+        8
+    ],
     "icecube800bc": [
         7,
         8
@@ -80,6 +84,10 @@
         7,
         8
     ],
+    "minipack3bta": [
+        7,
+        8
+    ],
     "minipack3n": [
         7,
         8
@@ -103,6 +111,10 @@
         8
     ],
     "tahansb800bc": [
+        7,
+        8
+    ],
+    "tahansb800bc_fp_only": [
         7,
         8
     ],
@@ -186,6 +198,10 @@
         "XPHY_LINE_NRZ_PROFILE",
         "XPHY_LINE_PAM4_PROFILE"
     ],
+    "icecube800banw": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
     "icecube800bc": [
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
@@ -220,6 +236,10 @@
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
     ],
+    "minipack3bta": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
     "minipack3n": [
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
@@ -243,6 +263,10 @@
         "BMC_LITE"
     ],
     "tahansb800bc": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "tahansb800bc_fp_only": [
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
     ],

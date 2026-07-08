@@ -11,11 +11,7 @@ extern "C" {
 #include <experimental/saiexperimentalswitch.h>
 #include <experimental/saitamextensions.h>
 #else
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiswitchextensions.h>
-#else
-#include <saiswitchextensions.h>
-#endif
 #endif
 }
 
@@ -600,7 +596,6 @@ bool isErrorInterrupt(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_BTC_TDU_ECC_2B_ERR_INT:
     case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_CRC_ERR_INT:
     case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT:
-    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT:
     case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_PACKET_CRC_ERR_INT:
 #endif
     case SAI_SWITCH_ERROR_TYPE_ALIGNER_ECC_ECC_2B_ERR_INT:
@@ -647,7 +642,6 @@ void incrementJ3InterruptCounter(
       case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_BTC_TDU_ECC_2B_ERR_INT:
       case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_CRC_ERR_INT:
       case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT:
-      case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT:
       case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_PACKET_CRC_ERR_INT:
         switchStats->dramError();
         break;
@@ -698,6 +692,7 @@ void incrementJ3InterruptCounter(
 #if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
       case SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_FULL:
       case SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_NOT_EMPTY:
+      case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT:
         switchStats->dramWarning();
         break;
 #endif
@@ -1021,15 +1016,41 @@ void SaiSwitch::switchEventCallback(
 #if defined(SAI_VERSION_12_2_0_0_DNX_ODP) || \
     defined(SAI_VERSION_14_0_EA_DNX_ODP) ||  \
     defined(SAI_VERSION_14_2_0_0_DNX_ODP)
-    case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_LINK_DISABLE:
-      auto fwDisabledPortId = eventInfo->index;
+    case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_LINK_DISABLE: {
+      auto fwDisabledSdkPortId = eventInfo->index;
       XLOG(ERR) << "Firmware Auto Admin Link Disable callback received: "
                 << " error type: " << errorType(eventInfo->error_type)
                 << " Auto Admin disabled link: "
-                << static_cast<int>(fwDisabledPortId);
+                << static_cast<int>(fwDisabledSdkPortId)
+#if defined(SAI_VERSION_14_2_0_0_DNX_ODP) || \
+    defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+                << " object_id: 0x" << std::hex << eventInfo->object_id
+                << std::dec
+#endif
+          ;
 
       if (eventInfo->error_type ==
           SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_LINK_DISABLE) {
+        int32_t fwDisabledFbossPortId = fwDisabledSdkPortId;
+#if defined(SAI_VERSION_14_2_0_0_DNX_ODP) || \
+    defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+        if (eventInfo->object_id != SAI_NULL_OBJECT_ID) {
+          const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(
+              PortSaiId(eventInfo->object_id));
+          if (portItr != concurrentIndices_->portSaiId2PortInfo.cend()) {
+            fwDisabledFbossPortId = portItr->second.portID;
+            XLOG(DBG2) << "Resolved SAI port OID 0x" << std::hex
+                       << eventInfo->object_id << std::dec
+                       << " to FBOSS PortID " << fwDisabledFbossPortId
+                       << " (raw hw link index: " << fwDisabledSdkPortId << ")";
+          } else {
+            XLOG(FATAL) << "Failed to resolve SAI port OID "
+                        << eventInfo->object_id
+                        << " to FBOSS PortID for fw disabled link "
+                        << fwDisabledSdkPortId;
+          }
+        }
+#endif
         // Link active/inactive callback and Firmware device isolate is
         // processed by txReadyStatusChangeOrFwIsolateCallbackBottomHalf.
         // Schedule Firmware link disable callback Bottom half in the same event
@@ -1039,18 +1060,19 @@ void SaiSwitch::switchEventCallback(
         // want to process Firmare link disable, thus unconditionally queue for
         // processing regardless of txReadyStatusCHangePending_.
         txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
-            [this, fwDisabledPortId]() mutable {
-              fwDisabledLinksCallbackBottomHalf({fwDisabledPortId});
+            [this, fwDisabledFbossPortId]() mutable {
+              fwDisabledLinksCallbackBottomHalf({fwDisabledFbossPortId});
             });
 
       } else {
         XLOG(ERR)
             << "Firmware Auto link disable callback received with invalid info"
             << " error type: " << errorType(eventInfo->error_type)
-            << " Auto Admin disabled link: " << fwDisabledPortId;
+            << " Auto Admin disabled link: " << fwDisabledSdkPortId;
       }
 
       break;
+    }
 #endif
   }
 }

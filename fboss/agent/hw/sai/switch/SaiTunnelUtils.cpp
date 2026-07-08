@@ -30,4 +30,15 @@ sai_tunnel_dscp_mode_t getSaiDscpMode(cfg::TunnelMode mode) {
   throw FbossError("Failed to convert DSCP mode to SAI type: ", mode);
 }
 
+sai_tunnel_encap_ecn_mode_t getSaiEncapEcnMode(cfg::TunnelMode mode) {
+  switch (mode) {
+    case cfg::TunnelMode::UNIFORM:
+      return SAI_TUNNEL_ENCAP_ECN_MODE_STANDARD;
+    case cfg::TunnelMode::PIPE:
+    case cfg::TunnelMode::USER:
+      return SAI_TUNNEL_ENCAP_ECN_MODE_USER_DEFINED;
+  }
+  throw FbossError("Failed to convert encap ECN mode to SAI type: ", mode);
+}
+
 } // namespace facebook::fboss

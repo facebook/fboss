@@ -42,6 +42,7 @@ class BspTestEnvironment : public ::testing::Environment {
   const platform_manager::PlatformConfig& getPlatformManagerConfig() const;
   const BspTestsConfig& getTestConfig() const;
   const RuntimeConfig& getRuntimeConfig() const;
+  const platform_manager::BspKmodsFile& getKmodsJson() const;
 
   void recordExpectedError(
       const std::string& testName,

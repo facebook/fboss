@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <set>
+
 #include <folly/logging/xlog.h>
 #include <folly/testing/TestUtil.h>
 #include "common/time/Time.h"
@@ -104,6 +106,28 @@ class OpticsFwUpgradeTest : public HwTest {
     return tcvrsToTest;
   }
 
+  // Returns the ports requiring optics firmware upgrade, filtered down to only
+  // cabled transceivers. The wedge manager reports every transceiver, but in
+  // the test environment we only want to act on the cabled ones.
+  std::map<std::string, FirmwareUpgradeData>
+  getCabledPortsRequiringOpticsFwUpgrade() {
+    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+    auto portsForFwUpgrade = wedgeMgr->getPortsRequiringOpticsFwUpgrade();
+
+    // Build the set of cabled port names using the same getPortName() mapping
+    // that the wedge manager uses to key the returned map.
+    std::set<std::string> cabledPortNames;
+    for (const auto& tcvrID :
+         utility::getCabledPortTranceivers(getHwQsfpEnsemble())) {
+      cabledPortNames.insert(wedgeMgr->getPortName(tcvrID));
+    }
+
+    std::erase_if(portsForFwUpgrade, [&](const auto& portAndData) {
+      return !cabledPortNames.contains(portAndData.first);
+    });
+    return portsForFwUpgrade;
+  }
+
   // Helper function that verifies if an upgrade was done or not
   // Returns true if upgrade was done and was expected to be done, false
   // otherwise
@@ -153,16 +177,18 @@ class OpticsFwUpgradeTest : public HwTest {
   // status. It does that by setting setOverrideAgentPortStatusForTesting to
   // true and then refreshing the state machines so that the state can be
   // transitioned to ACTIVE or INACTIVE states.
-  void setPortStatus(bool status) {
+  // Only checks state machine states for the transceivers in tcvrsToCheck.
+  // This avoids false failures from non-upgradeable transceivers that may
+  // be slow to reach the expected state due to hardware issues (e.g. I2C
+  // errors invalidating cache and causing missed PORT_UP events).
+  void setPortStatus(bool status, const std::vector<int32_t>& tcvrsToCheck) {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
     auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
     qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
         status, true /* enabled */);
     qsfpServiceHandler->refreshStateMachines();
 
-    auto cabledTransceivers = utility::legacyTransceiverIds(
-        utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
-    for (auto id : cabledTransceivers) {
+    for (auto id : tcvrsToCheck) {
       auto curState = wedgeMgr->getCurrentState(TransceiverID(id));
       if (status) {
         auto expectedState = FLAGS_port_manager_mode
@@ -227,6 +253,8 @@ class OpticsFwUpgradeTestNoIPhySetup : public OpticsFwUpgradeTest {
 };
 
 TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::FIRMWARE_UPGRADE});
   // In this test, firmware versions in qsfp config is not changed. Hence, the
   // firmware upgrade shouldn't be triggered under any circumstances.
   // 1. Coldboot init might still trigger firmware upgrade depending on what
@@ -237,6 +265,7 @@ TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
 
   long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
   auto tcvrsToTest = transceiversToTest();
+  addTestedTransceiverIds(tcvrsToTest);
   auto verify = [&, tcvrsToTest]() {
     if (didWarmBoot()) {
       CHECK(verifyUpgrade(
@@ -246,14 +275,14 @@ TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
           << "No upgrades expected during warm boot";
     }
     // Force link up
-    setPortStatus(true);
+    setPortStatus(true, tcvrsToTest);
     CHECK(verifyUpgrade(
         false /* upgradeExpected */,
         initDoneTimestampSec /* upgradeSinceTsSec */,
         tcvrsToTest /* tcvrs */))
         << "No upgrades expected on port up";
     // Force link down
-    setPortStatus(false);
+    setPortStatus(false, tcvrsToTest);
     CHECK(verifyUpgrade(
         false /* upgradeExpected */,
         initDoneTimestampSec /* upgradeSinceTsSec */,
@@ -264,6 +293,8 @@ TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
 }
 
 TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::FIRMWARE_UPGRADE});
   /*
    * This test verifies that a link down event successfully triggers and
    * completes the firmware upgrade
@@ -287,6 +318,7 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
   long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
 
   auto tcvrsToTest = transceiversToTest();
+  addTestedTransceiverIds(tcvrsToTest);
 
   auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
@@ -354,14 +386,14 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
       // was left on the transceiver at the end of the last test
     }
     // Force link up
-    setPortStatus(true);
+    setPortStatus(true, tcvrsToTest);
     CHECK(verifyUpgrade(
         false /* upgradeExpected */,
         initDoneTimestampSec /* upgradeSinceTsSec */,
         tcvrsToTest /* tcvrs */))
         << "No upgrades expected on port up";
     // Force link down
-    setPortStatus(false);
+    setPortStatus(false, tcvrsToTest);
     WITH_RETRIES_N_TIMED(
         8 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
           qsfpServiceHandler->refreshStateMachines();
@@ -389,6 +421,8 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
 }
 
 TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::FIRMWARE_UPGRADE});
   /*
    * This test verifies that a warmboot does not trigger any firmware upgrade
    * Step 1: Coldboot
@@ -401,6 +435,7 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
    */
 
   auto tcvrsToTest = transceiversToTest();
+  addTestedTransceiverIds(tcvrsToTest);
 
   auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
@@ -442,9 +477,9 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
   // Lambda to toggle port status to trigger firmware download. It waits till
   // firmware download is complete
   auto togglePortsAndWaitForFwDownload = [&, this]() {
-    setPortStatus(true);
+    setPortStatus(true, tcvrsToTest);
     // Bring the port down, this should trigger firmware download
-    setPortStatus(false);
+    setPortStatus(false, tcvrsToTest);
     // Wait for fwUpgradeInProgress to clear to confirm all
     // upgrades are done
     WITH_RETRIES_N_TIMED(
@@ -517,6 +552,8 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
 }
 
 TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::FIRMWARE_UPGRADE});
   /*
    * This test verifies that triggerOpticsFwUpgrade and
    * triggerAllOpticsFwUpgrade functions work correctly.
@@ -540,6 +577,7 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
   long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
 
   auto tcvrsToTest = transceiversToTest();
+  addTestedTransceiverIds(tcvrsToTest);
 
   auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
@@ -561,7 +599,7 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
     wedgeMgr->loadConfig();
 
     qsfpServiceHandler->refreshStateMachines();
-    auto portsForFwUpgrade = wedgeMgr->getPortsRequiringOpticsFwUpgrade();
+    auto portsForFwUpgrade = getCabledPortsRequiringOpticsFwUpgrade();
 
     EXPECT_FALSE(portsForFwUpgrade.empty())
         << "No modules requiring firmware upgrade";
@@ -606,6 +644,9 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
       for (const auto& portName : interfacesToUpgrade) {
         upgradedTcvrIds.push_back(portNameToModule.at(portName));
       }
+      // One more refresh to ensure TransceiverInfo cache has the
+      // latest lastFwUpgradeEndTime set after upgradeFirmwareLocked
+      qsfpServiceHandler->refreshStateMachines();
       CHECK(verifyUpgrade(
           true /* upgradeExpected */,
           initDoneTimestampSec /* upgradeSinceTsSec */,
@@ -617,7 +658,7 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
   auto verify = [&, tcvrsToTest]() {
     if (didWarmBoot()) {
       qsfpServiceHandler->refreshStateMachines();
-      auto portsForFwUpgrade = wedgeMgr->getPortsRequiringOpticsFwUpgrade();
+      auto portsForFwUpgrade = getCabledPortsRequiringOpticsFwUpgrade();
 
       if (!portsForFwUpgrade.empty()) {
         XLOG(INFO)
@@ -625,8 +666,19 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
 
         long verifyStartTimestampSec = facebook::WallClockUtil::NowInSecFast();
 
+        std::vector<std::string> interfacesToUpgrade;
+        interfacesToUpgrade.reserve(portsForFwUpgrade.size());
+        for (const auto& [portToUpgrade, _] : portsForFwUpgrade) {
+          interfacesToUpgrade.push_back(portToUpgrade);
+        }
+
         std::map<std::string, FirmwareUpgradeData> upgradedPorts;
-        qsfpServiceHandler->triggerAllOpticsFwUpgrade(upgradedPorts);
+        XLOG(INFO)
+            << "Triggering firmware upgrade for transceivers via triggerOpticsFwUpgrade: "
+            << folly::join(",", interfacesToUpgrade);
+        qsfpServiceHandler->triggerOpticsFwUpgrade(
+            upgradedPorts,
+            std::make_unique<std::vector<std::string>>(interfacesToUpgrade));
 
         EXPECT_FALSE(upgradedPorts.empty())
             << "Expected some ports to be selected for upgrade";
@@ -650,6 +702,9 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
         for (const auto& [upgradePortName, _] : upgradedPorts) {
           allUpgradedTcvrIds.push_back(portNameToModule.at(upgradePortName));
         }
+        // One more refresh to ensure TransceiverInfo cache has the
+        // latest lastFwUpgradeEndTime set after upgradeFirmwareLocked
+        qsfpServiceHandler->refreshStateMachines();
         CHECK(verifyUpgrade(
             true /* upgradeExpected */,
             verifyStartTimestampSec,

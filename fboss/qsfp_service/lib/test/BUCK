@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_optics_phy")
 
@@ -26,6 +27,7 @@ cpp_unittest(
     srcs = [
         "QsfpConfigParserTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/qsfp_service/if:config-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",

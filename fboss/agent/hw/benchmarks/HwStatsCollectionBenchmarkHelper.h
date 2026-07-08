@@ -16,24 +16,18 @@
 #include "fboss/agent/SwAgentInitializer.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
+#include <fmt/core.h>
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
 
 namespace facebook::fboss {
-
-RouteNextHopSet makeNextHops(const std::vector<std::string>& ipsAsStrings) {
-  RouteNextHopSet nhops;
-  for (const std::string& ipAsString : ipsAsStrings) {
-    nhops.emplace(UnresolvedNextHop(folly::IPAddress(ipAsString), ECMP_WEIGHT));
-  }
-  return nhops;
-}
 
 /*
  * Collect stats 10K times (100 time for VOQ) and benchmark that.
@@ -60,8 +54,8 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
   int numRouteCounters = 255;
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
-      [numPortsToCollectStats, numRouteCounters, alwaysCollectVoqStats](
-          const AgentEnsemble& ensemble) {
+      [numPortsToCollectStats,
+       alwaysCollectVoqStats](const AgentEnsemble& ensemble) {
         // Disable stats collection thread.
         FLAGS_enable_stats_update_thread = false;
         if (alwaysCollectVoqStats) {
@@ -95,10 +89,6 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
             !hasFabric /* setInterfaceMac */,
             utility::kBaseVlanId,
             hasFabric || hasVoq /*enable fabric ports*/);
-        if (ensemble.getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
-                HwAsic::Feature::ROUTE_COUNTERS)) {
-          config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
-        }
         if (ensemble.getSw()->getSwitchInfoTable().haveVoqSwitches()) {
           utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
           utility::setDefaultCpuTrafficPolicyConfig(
@@ -128,7 +118,8 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
     // 100 iterations.
     iterations = 100;
   } else if (ensemble->getSw()->getSwitchInfoTable().haveL3Switches()) {
-    if (checkSameAndGetAsic(ensemble->getSw()->getHwAsicTable()->getL3Asics())
+    if (checkSameAndGetAsicForTesting(
+            ensemble->getSw()->getHwAsicTable()->getL3Asics())
             ->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       // TODO(Chenab): 10'000 iterations take 30 minutes on Chenab. Debug this
       // slowness
@@ -141,20 +132,33 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
       std::min(static_cast<int>(ports.size()), numPortsToCollectStats));
 
   int maxRouteCounters = numRouteCounters;
-  if (ensemble->getSw()->getSwitchInfoTable().haveL3Switches() &&
-      checkSameAndGetAsic(ensemble->getSw()->getHwAsicTable()->getL3Asics())
-              ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
-    // MT-762: counter Id 254 is preserved internally in SDK
-    // >= 24.8.3001 for EBRO
-    maxRouteCounters = 254;
+  if (ensemble->getSw()->getSwitchInfoTable().haveL3Switches()) {
+    auto l3AsicType = checkSameAndGetAsicForTesting(
+                          ensemble->getSw()->getHwAsicTable()->getL3Asics())
+                          ->getAsicType();
+    if (l3AsicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+        l3AsicType == cfg::AsicType::ASIC_TYPE_P200) {
+      // MT-762: counter Id 254 is preserved internally in SDK
+      // >= 24.8.3001 for EBRO
+      maxRouteCounters = 254;
+    }
   }
 
-  if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
-          HwAsic::Feature::ROUTE_COUNTERS)) {
+  // Todo: route_counter is only enabled for ASIC_TYPE_YUBA RB role in
+  // ASIC config. This is a temporary fix to make the test
+  //  pass until we have a final decision on the route_counter feature
+  // for general ASIC_TYPE_YUBA use case.
+  bool routeCountersSupported =
+      ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::ROUTE_COUNTERS) &&
+      checkSameAndGetAsicForTesting(
+          ensemble->getSw()->getHwAsicTable()->getL3Asics())
+              ->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA;
+  if (routeCountersSupported) {
     auto updater = ensemble->getSw()->getRouteUpdater();
     for (auto i = 0; i < maxRouteCounters; i++) {
       folly::CIDRNetwork nw{
-          folly::IPAddress(folly::sformat("2401:db00:0021:{:x}::", i)), 64};
+          folly::IPAddress(fmt::format("2401:db00:0021:{:x}::", i)), 64};
       std::optional<RouteCounterID> counterID(std::to_string(i));
       UnicastRoute route = util::toUnicastRoute(
           nw,

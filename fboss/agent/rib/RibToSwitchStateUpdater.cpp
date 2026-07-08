@@ -10,6 +10,7 @@
 #include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -31,7 +32,7 @@ RibToSwitchStateUpdater::RibToSwitchStateUpdater(
           v6NetworkToRoute,
           labelToRoute),
       mySidUpdater_(resolver, mySidTable),
-      nhopIdUpdater_(nextHopIDManager) {}
+      nhopStateUpdater_(nextHopIDManager) {}
 
 std::shared_ptr<SwitchState> RibToSwitchStateUpdater::operator()(
     const std::shared_ptr<SwitchState>& state) {
@@ -42,22 +43,24 @@ std::shared_ptr<SwitchState> RibToSwitchStateUpdater::operator()(
   if (actions_ & UPDATE_MYSID) {
     nextState = mySidUpdater_(nextState);
   }
-  if (actions_ && (!state->isPublished() || nextState != state)) {
-    nextState = nhopIdUpdater_(nextState);
-    // This will run on every unit test. We add this check to ensure that DCHECK
-    // does not run when developers manually build and run agent-hw-tests in dev
-    // mode.
-    if (!FLAGS_verify_fib_nexthop_id_consistency) {
-      DCHECK(nhopIdUpdater_.verifyNextHopIdConsistency(nextState));
-    }
-    // This will run on tests wherever we set
-    // FLAGS_verify_fib_nexthop_id_consistency We will only set this flag for
-    // agent-hw-tests.
-    else {
-      CHECK(nhopIdUpdater_.verifyNextHopIdConsistency(nextState));
-    }
+  nextState = nhopStateUpdater_(nextState);
+  StateDelta delta(state, nextState);
+  /*
+   * We validate nhops here and not in fibUpdater_ as
+   * - With nhop ID assignment, the fibInfoMaps don't have the updated nhopIds
+   *   during FIB construction. So we can't really lookup nhop contents.
+   * - Invalid nhops may get associated with mysids as well.
+   */
+  if (auto invalidNextHop = nhopStateUpdater_.getInvalidLinkLocalNextHop()) {
+    throw FbossHwUpdateError(
+        nextState, state, "Invalid link-local next hop: ", *invalidNextHop);
   }
-  lastDelta_ = StateDelta(state, nextState);
+  if (!FLAGS_verify_fib_nexthop_id_consistency) {
+    DCHECK(nhopStateUpdater_.verifyNextHopIdConsistency(nextState));
+  } else {
+    CHECK(nhopStateUpdater_.verifyNextHopIdConsistency(nextState));
+  }
+  lastDelta_ = std::move(delta);
   return nextState;
 }
 

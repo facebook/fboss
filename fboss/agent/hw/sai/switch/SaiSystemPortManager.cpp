@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/VoqUtils.h"
@@ -314,17 +315,39 @@ void SaiSystemPortManager::removeSystemPort(
   XLOG(DBG2) << "removed system port: " << swId;
 }
 
+// Derive the physical fabric PortID backing a fabric link monitoring system
+// port. With relocation (FLAGS_fabric_ports_uniform_local_offset) fabric ports
+// share the standard getSystemPortID allocation, so the reverse lookup uses
+// getPortID; otherwise fall back to the legacy offset-based scheme. Both paths
+// coexist until all configs move to the relocated layout.
+PortID SaiSystemPortManager::getFabricLinkMonitoringPortId(
+    const std::shared_ptr<SystemPort>& swSystemPort,
+    const std::shared_ptr<SwitchState>& state) const {
+  if (FLAGS_fabric_ports_uniform_local_offset) {
+    // The fabric link monitoring system port's switchId is the fabric-link
+    // switch ID, not the local ASIC's; the reverse lookup needs the local ASIC
+    // switchId.
+    CHECK(platform_->getAsic()->getSwitchId().has_value());
+    return getPortID(
+        swSystemPort->getID(),
+        SwitchID(*platform_->getAsic()->getSwitchId()),
+        state);
+  }
+  CHECK(fabricLinkMonitoringSystemPortOffset_.has_value())
+      << "Fabric link monitoring system port offset is not configured!";
+  return getPortIdFromFabricLinkMonSystemPortID(
+      swSystemPort->getID(), *fabricLinkMonitoringSystemPortOffset_);
+}
+
 // Additional processing needed when system ports associated with fabric ports
 // for fabric link monitoring are added
 SystemPortSaiId SaiSystemPortManager::addFabricLinkMonitoringSystemPort(
-    const std::shared_ptr<SystemPort>& swSystemPort) {
+    const std::shared_ptr<SystemPort>& swSystemPort,
+    const std::shared_ptr<SwitchState>& state) {
   auto sysPortSaiId = addSystemPort(swSystemPort);
   CHECK(swSystemPort->getPortType() == cfg::PortType::FABRIC_PORT)
       << "Fabric link monitoring system ports should have port type as FABRIC!";
-  CHECK(fabricLinkMonitoringSystemPortOffset_.has_value())
-      << "Fabric link monitoring system port offset is not configured!";
-  auto portId = getPortIdFromFabricLinkMonSystemPortID(
-      swSystemPort->getID(), *fabricLinkMonitoringSystemPortOffset_);
+  auto portId = getFabricLinkMonitoringPortId(swSystemPort, state);
   managerTable_->portManager().setFabricLinkMonitoringSystemPortId(
       portId, sysPortSaiId);
   return sysPortSaiId;
@@ -342,13 +365,11 @@ void SaiSystemPortManager::changeFabricLinkMonitoringSystemPort(
 // Additional processing needed when system ports associated with fabric ports
 // for fabric link monitoring are removed
 void SaiSystemPortManager::removeFabricLinkMonitoringSystemPort(
-    const std::shared_ptr<SystemPort>& swSystemPort) {
+    const std::shared_ptr<SystemPort>& swSystemPort,
+    const std::shared_ptr<SwitchState>& state) {
   CHECK(swSystemPort->getPortType() == cfg::PortType::FABRIC_PORT)
       << "Fabric link monitoring system ports should have port type as FABRIC!";
-  CHECK(fabricLinkMonitoringSystemPortOffset_.has_value())
-      << "Fabric link monitoring system port offset is not configured!";
-  auto portId = getPortIdFromFabricLinkMonSystemPortID(
-      swSystemPort->getID(), *fabricLinkMonitoringSystemPortOffset_);
+  auto portId = getFabricLinkMonitoringPortId(swSystemPort, state);
   managerTable_->portManager().resetFabricLinkMonitoringSystemPortId(portId);
   removeSystemPort(swSystemPort);
 }

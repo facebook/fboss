@@ -1,0 +1,46 @@
+[manifest]
+name = bgp
+fbsource_path = fbcode/neteng/fboss/bgp
+shipit_project = bgp
+shipit_fbcode_builder = true
+
+[git]
+repo_url = https://github.com/facebook/BGP.git
+
+[build.os=linux]
+builder = cmake
+job_weight_mib = 3072
+
+[build.not(os=linux)]
+builder = nop
+
+[dependencies]
+boost
+fb303
+fboss
+fbthrift
+fizz
+fmt
+folly
+magic_enum
+wangle
+re2
+zstd
+gcc12
+
+[shipit.pathmap]
+fbcode/neteng/fboss/bgp/public_tld = .
+fbcode/neteng/fboss/bgp = neteng/fboss/bgp
+fbcode/fboss/common = common
+
+[shipit.strip]
+^fbcode/neteng/fboss/bgp/.*facebook.*
+^fbcode/neteng/fboss/bgp/.*\.bzl
+^fbcode/neteng/fboss/bgp/\.llms/.*
+^fbcode/neteng/fboss/bgp/tools/.*
+^fbcode/neteng/fboss/bgp/cpp/rib/RibBB\..*
+^fbcode/neteng/fboss/bgp/cpp/nexthopTracker/NetlinkWrapper\..*
+^fbcode/neteng/fboss/bgp/cpp/common/platform/bb/.*
+^fbcode/neteng/fboss/bgp/cpp/tests/NetlinkWrapperTest\.cpp
+^fbcode/neteng/fboss/bgp/cpp/tests/PlatformConstantBbTest\.cpp
+^fbcode/neteng/fboss/bgp/cpp/tests/FibEbbTest\.cpp

@@ -10,14 +10,13 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CmdArgsLists.h"
-#include "fboss/cli/fboss2/CmdSubcommands.h"
 #include "fboss/cli/fboss2/utils/AggregateUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/FilterUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
-#include <fmt/color.h>
-#include <fmt/format.h>
+#include <CLI/App.hpp>
+
 #include <folly/logging/xlog.h>
 #include <thrift/lib/thrift/gen-cpp2/metadata_types.h>
 
@@ -76,14 +75,18 @@ enum class CliReadWriteMode {
 struct BaseCommandTraits {
   // Only for top level commands, nested subcommands will override this
   using ParentCmd = void;
+  using ObjectArgType = std::monostate;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
-  using ObjectArgType = std::monostate;
   static constexpr bool ALLOW_FILTERING = false;
   static constexpr bool ALLOW_AGGREGATION = false;
   static constexpr CliReadWriteMode CLI_READ_WRITE_MODE =
       CliReadWriteMode::CLI_MODE_WRITE;
   std::vector<utils::LocalOption> LocalOptions = {};
+
+  // Default: no positional argument. Config commands override this.
+  static void addCliArg(CLI::App& /*cmd*/, std::vector<std::string>& /*args*/) {
+  }
 };
 
 struct ReadCommandTraits : public BaseCommandTraits {
@@ -103,9 +106,9 @@ class CmdHandler {
       "CmdTypeTraits needs to subclass BaseCommandTraits");
 
  public:
+  using Traits = CmdTypeTraits;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       CmdTypeTraits::ObjectArgTypeId;
-  using Traits = CmdTypeTraits;
   using ObjectArgType = typename CmdTypeTraits::ObjectArgType;
   using RetType = typename CmdTypeTraits::RetType;
   using ThriftPrimitiveType = apache::thrift::metadata::ThriftPrimitiveType;

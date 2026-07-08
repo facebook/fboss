@@ -9,7 +9,9 @@
 #include <folly/io/async/AsyncSocket.h>
 
 #include <fboss/cli/fboss2/options/SSLPolicy.h>
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
@@ -55,7 +57,7 @@ class MockAgentCounters : public AgentCountersIf {
   MOCK_METHOD(void, getAgentCounters, (hostInfo, int, FbSwHwAgentCounters&));
 };
 
-class MockFbossCtrlAgent : public FbossCtrlSvIf {
+class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
  public:
   MOCK_METHOD(void, reloadConfig, ());
   MOCK_METHOD(void, getAclTableGroup, (AclTableThrift&));
@@ -70,9 +72,12 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
   using PortStatusMap = std::map<int32_t, facebook::fboss::PortStatus>&;
   using Out = std::string&;
   using Ports = std::unique_ptr<std::vector<int32_t>>;
+  using PortNames = std::unique_ptr<std::vector<std::string>>;
   using HwObjects = std::unique_ptr<std::vector<HwObjectType>>;
   using HwAgentStatusMap =
       std::map<int16_t, facebook::fboss::HwAgentEventSyncStatus>&;
+  using SwitchIndicesForInterfaces =
+      std::map<int16_t, std::vector<std::string>>&;
   MOCK_METHOD(void, startPktCapture, (std::unique_ptr<CaptureInfo>));
   MOCK_METHOD(void, stopPktCapture, (std::unique_ptr<std::string>));
   MOCK_METHOD(void, getAllPortInfo, (PortInfoMap));
@@ -101,6 +106,10 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
       (std::vector<facebook::fboss::AggregatePortThrift>&));
   MOCK_METHOD(
       void,
+      getSwitchIndicesForInterfaces,
+      (SwitchIndicesForInterfaces, PortNames));
+  MOCK_METHOD(
+      void,
       getRouteTableDetails,
       (std::vector<facebook::fboss::RouteDetails>&));
   MOCK_METHOD(
@@ -126,14 +135,6 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
       void,
       getTeFlowTableDetails,
       (std::vector<facebook::fboss::TeFlowDetails>&));
-  MOCK_METHOD(
-      void,
-      addTeFlows,
-      (std::unique_ptr<std::vector<FlowEntry>> teFlowEntries));
-  MOCK_METHOD(
-      void,
-      deleteTeFlows,
-      (std::unique_ptr<std::vector<TeFlow>> teFlows));
   MOCK_METHOD(void, getCurrentStateJSON, (Out, std::unique_ptr<std::string>));
   MOCK_METHOD(void, getRunningConfig, (std::string&));
   MOCK_METHOD(
@@ -141,9 +142,24 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
       getAllEcmpDetails,
       (std::vector<facebook::fboss::EcmpDetails>&));
   MOCK_METHOD(void, getConfigAppliedInfo, (ConfigAppliedInfo&));
+  MOCK_METHOD(void, getPlatformMapping, (cfg::PlatformMapping&));
+  using InterfaceDetailMap =
+      std::map<int32_t, facebook::fboss::InterfaceDetail>&;
+  MOCK_METHOD(void, getAllInterfaces, (InterfaceDetailMap));
 };
 
-class MockFbossQsfpService : public QsfpServiceSvIf {
+class MockFbossHwCtrlAgent
+    : public apache::thrift::ServiceHandler<FbossHwCtrl> {
+ public:
+  using SwitchState = state::SwitchState&;
+  using Ports = std::unique_ptr<std::vector<int32_t>>;
+
+  MOCK_METHOD(void, getProgrammedState, (SwitchState));
+  MOCK_METHOD(void, triggerCableLengthMeasurement, (Ports));
+};
+
+class MockFbossQsfpService
+    : public apache::thrift::ServiceHandler<QsfpService> {
  public:
   using transceiverEntries =
       std::map<int32_t, facebook::fboss::TransceiverInfo>&;
@@ -156,6 +172,9 @@ class MockFbossQsfpService : public QsfpServiceSvIf {
           std::map<int32_t, std::string>&,
           std::unique_ptr<std::vector<int32_t>>,
           bool));
+  MOCK_METHOD2(
+      getAllPortSupportedProfiles,
+      void(std::map<std::string, std::vector<cfg::PortProfileID>>&, bool));
 };
 
 #ifdef IS_OSS

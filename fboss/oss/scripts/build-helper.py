@@ -154,7 +154,12 @@ class BuildHelper:
         lib_path = os.path.join(self._output_path, "lib")
         os.makedirs(os.path.join(self._output_path, lib_path))
         headers_path = os.path.join(self._output_path, "include")
-        shutil.copy(self._libsai_impl_path, lib_path)
+        dst_libsai = os.path.join(lib_path, os.path.basename(self._libsai_impl_path))
+        # Try to create a hard link first (faster), fall back to copy if it fails.
+        try:
+            os.link(self._libsai_impl_path, dst_libsai)
+        except (OSError, NotImplementedError):
+            shutil.copy(self._libsai_impl_path, dst_libsai)
         shutil.copytree(self._experiments_path, headers_path)
 
     def _create_archive(self):
@@ -167,7 +172,8 @@ class BuildHelper:
                 self._output_path,
                 "lib",
                 "include",
-            ]
+            ],
+            check=False,
         )
 
     def _get_csum(self):
@@ -242,7 +248,12 @@ class BuildHelper:
 
     def _start_http_server(self):
         os.chdir(self._output_path)
-        subprocess.Popen(["python3", "-m", "http.server"])
+        subprocess.Popen(
+            ["python3", "-m", "http.server"],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
         os.chdir(self._script_dir)
 
     def run(self):

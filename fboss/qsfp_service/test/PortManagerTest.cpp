@@ -1,6 +1,9 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 
 #include "fboss/qsfp_service/PortManager.h"
+#include <fcntl.h>
+#include <folly/FileUtil.h>
+#include <folly/json/json.h>
 #include <folly/testing/TestUtil.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1091,11 +1094,12 @@ TEST_F(PortManagerTest, setTransceiverEnabledStatusInCache) {
       std::find(tcvrIds.begin(), tcvrIds.end(), TransceiverID(1)) !=
       tcvrIds.end());
 
-  // Test Case 3: Try to add the same transceiver again (should throw)
-  EXPECT_THROW(
-      portManager_->setTransceiverEnabledStatusInCache(
-          PortID(1), TransceiverID(0)),
-      FbossError);
+  // Test Case 3: Adding the same transceiver again is idempotent (no throw)
+  EXPECT_NO_THROW(portManager_->setTransceiverEnabledStatusInCache(
+      PortID(1), TransceiverID(0)));
+  // Verify cache size unchanged (no duplicate added)
+  tcvrIds = portManager_->getInitializedTransceiverIdsForPort(PortID(1));
+  EXPECT_EQ(tcvrIds.size(), 2);
 
   // Test Case 4: Try to add transceiver for invalid port (should throw)
   EXPECT_THROW(
@@ -1440,6 +1444,73 @@ TEST_F(PortManagerTest, portsCreatedForDualTransceiverPlatformMapping) {
   // transceivers).
   initManagersWithMultiTcvrPort(true /* setPhyManager */);
   EXPECT_EQ(portManager_->getStateMachineCountForTest(), 8);
+}
+
+TEST_F(PortManagerTest, warmBootStateRoundtrip) {
+  const int64_t expectedLastApplied = 1776116451572;
+  const int64_t expectedLastColdboot = 1776116000000;
+
+  folly::dynamic configInfo = folly::dynamic::object;
+  configInfo[TransceiverManager::kAgentConfigLastAppliedInMsKey] =
+      expectedLastApplied;
+  configInfo[TransceiverManager::kAgentConfigLastColdbootAppliedInMsKey] =
+      expectedLastColdboot;
+  folly::dynamic warmBootState = folly::dynamic::object;
+  warmBootState[TransceiverManager::kAgentConfigAppliedInfoStateKey] =
+      configInfo;
+
+  std::string stateFile = qsfpSvcVolatileDir + "/qsfp_service_state";
+  folly::writeFile(folly::toPrettyJson(warmBootState), stateFile.c_str());
+
+  std::string warmBootFlag = qsfpSvcVolatileDir + "/can_warm_boot";
+  auto fd = creat(warmBootFlag.c_str(), 0644);
+  close(fd);
+
+  gflags::SetCommandLineOptionWithMode(
+      "can_qsfp_service_warm_boot", "1", gflags::SET_FLAGS_DEFAULT);
+
+  initManagers(1, 4, true /* setPhyManager */);
+  transceiverManager_->init();
+  ASSERT_TRUE(transceiverManager_->canWarmBoot());
+  portManager_->init();
+
+  phyManager_->setPortLanesForTest(
+      PortID(1), {LaneID(0), LaneID(1)}, {LaneID(0), LaneID(1)});
+  phyManager_->setPortLanesForTest(
+      PortID(2), {LaneID(2), LaneID(3)}, {LaneID(2), LaneID(3)});
+
+  portManager_->gracefulExit();
+
+  std::string stateJson;
+  ASSERT_TRUE(folly::readFile(stateFile.c_str(), stateJson));
+  auto state = folly::parseJson(stateJson);
+
+  const auto& savedConfigInfo =
+      state[TransceiverManager::kAgentConfigAppliedInfoStateKey];
+  EXPECT_EQ(
+      savedConfigInfo[TransceiverManager::kAgentConfigLastAppliedInMsKey]
+          .asInt(),
+      expectedLastApplied);
+  EXPECT_EQ(
+      savedConfigInfo
+          [TransceiverManager::kAgentConfigLastColdbootAppliedInMsKey]
+              .asInt(),
+      expectedLastColdboot);
+
+  ASSERT_TRUE(state.count(TransceiverManager::kPhyStateKey));
+  const auto& phyState = state[TransceiverManager::kPhyStateKey];
+  ASSERT_TRUE(phyState.count("portToCacheInfo"));
+  const auto& portCache = phyState["portToCacheInfo"];
+
+  ASSERT_TRUE(portCache.count("1"));
+  const auto& port1 = portCache["1"];
+  EXPECT_EQ(port1["systemLanes"], folly::dynamic::array(0, 1));
+  EXPECT_EQ(port1["lineLanes"], folly::dynamic::array(0, 1));
+
+  ASSERT_TRUE(portCache.count("2"));
+  const auto& port2 = portCache["2"];
+  EXPECT_EQ(port2["systemLanes"], folly::dynamic::array(2, 3));
+  EXPECT_EQ(port2["lineLanes"], folly::dynamic::array(2, 3));
 }
 
 } // namespace facebook::fboss

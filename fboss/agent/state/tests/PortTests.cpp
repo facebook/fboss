@@ -1339,3 +1339,151 @@ TEST(Port, clmEnableConfig) {
   EXPECT_TRUE(serializedPort->getClmEnable().has_value());
   EXPECT_EQ(serializedPort->getClmEnable().value(), true);
 }
+
+// Test linkTraining (Link Training IEEE 802.3 Cl.72/93/162) configuration:
+// default value, config changes, getter/setter methods, and
+// serialization/deserialization
+TEST(Port, linkTrainingConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(1), "port1", scope());
+
+  auto changeAndVerifyLinkTraining = [](std::unique_ptr<MockPlatform>& platform,
+                                        std::shared_ptr<SwitchState>& state,
+                                        std::optional<bool> newLinkTraining) {
+    auto oldLinkTraining =
+        state->getPorts()->getNodeIf(PortID(1))->getLinkTraining();
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(
+        config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+    if (newLinkTraining.has_value()) {
+      config.ports()[0].linkTraining() = newLinkTraining.value();
+    }
+    auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+    if (oldLinkTraining != newLinkTraining) {
+      EXPECT_NE(nullptr, newState);
+      state = newState;
+      auto portLinkTraining =
+          state->getPorts()->getNodeIf(PortID(1))->getLinkTraining();
+      EXPECT_EQ(portLinkTraining, newLinkTraining);
+    } else {
+      EXPECT_EQ(nullptr, newState);
+    }
+  };
+
+  // Verify the default linkTraining is nullopt
+  EXPECT_EQ(
+      std::nullopt, state->getPorts()->getNodeIf(PortID(1))->getLinkTraining());
+
+  // Test setting various values and verify changes are properly configured
+  changeAndVerifyLinkTraining(platform, state, false);
+  changeAndVerifyLinkTraining(platform, state, true);
+  changeAndVerifyLinkTraining(platform, state, false);
+  changeAndVerifyLinkTraining(platform, state, std::nullopt);
+  changeAndVerifyLinkTraining(platform, state, true);
+  changeAndVerifyLinkTraining(platform, state, std::nullopt);
+
+  // Test direct getter/setter methods
+  auto port = state->getPorts()->getNodeIf(PortID(1));
+  auto newPort = port->clone();
+
+  newPort->setLinkTraining(true);
+  EXPECT_TRUE(newPort->getLinkTraining().has_value());
+  EXPECT_EQ(newPort->getLinkTraining().value(), true);
+
+  newPort->setLinkTraining(false);
+  EXPECT_TRUE(newPort->getLinkTraining().has_value());
+  EXPECT_EQ(newPort->getLinkTraining().value(), false);
+
+  newPort->setLinkTraining(std::nullopt);
+  EXPECT_FALSE(newPort->getLinkTraining().has_value());
+
+  // Test serialization/deserialization
+  newPort->setLinkTraining(true);
+  auto serializedPort = std::make_shared<Port>(newPort->toThrift());
+  EXPECT_TRUE(serializedPort->getLinkTraining().has_value());
+  EXPECT_EQ(serializedPort->getLinkTraining().value(), true);
+}
+
+// Test holdoff timer fields: default values, applyConfig propagation,
+// getter/setter methods, and serialization/deserialization.
+TEST(Port, holdoffTimerConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(1), "port1", scope());
+
+  auto applyAndVerify = [&](std::optional<int32_t> downMs,
+                            std::optional<int32_t> upMs) {
+    auto port = state->getPorts()->getNodeIf(PortID(1));
+    auto oldDown = port->getPortDownHoldoffTimeMs();
+    auto oldUp = port->getPortUpHoldoffTimeMs();
+
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(
+        config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+    if (downMs.has_value()) {
+      config.ports()[0].portDownHoldoffTimeMs() = downMs.value();
+    }
+    if (upMs.has_value()) {
+      config.ports()[0].portUpHoldoffTimeMs() = upMs.value();
+    }
+    auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+    bool changed = oldDown != downMs || oldUp != upMs;
+    if (changed) {
+      EXPECT_NE(nullptr, newState);
+      state = newState;
+      auto updated = state->getPorts()->getNodeIf(PortID(1));
+      EXPECT_EQ(updated->getPortDownHoldoffTimeMs(), downMs);
+      EXPECT_EQ(updated->getPortUpHoldoffTimeMs(), upMs);
+    } else {
+      EXPECT_EQ(nullptr, newState);
+    }
+  };
+
+  // Defaults: both holdoff timers unset.
+  auto initial = state->getPorts()->getNodeIf(PortID(1));
+  EXPECT_EQ(std::nullopt, initial->getPortDownHoldoffTimeMs());
+  EXPECT_EQ(std::nullopt, initial->getPortUpHoldoffTimeMs());
+
+  // Set, change, and clear values via cfg.
+  applyAndVerify(100, 200);
+  applyAndVerify(150, 250);
+  applyAndVerify(std::nullopt, std::nullopt);
+  applyAndVerify(0, 0);
+
+  // Direct getter/setter round-trip.
+  auto cloned = state->getPorts()->getNodeIf(PortID(1))->clone();
+  cloned->setPortDownHoldoffTimeMs(500);
+  cloned->setPortUpHoldoffTimeMs(750);
+  EXPECT_EQ(cloned->getPortDownHoldoffTimeMs(), 500);
+  EXPECT_EQ(cloned->getPortUpHoldoffTimeMs(), 750);
+
+  cloned->setPortDownHoldoffTimeMs(std::nullopt);
+  cloned->setPortUpHoldoffTimeMs(std::nullopt);
+  EXPECT_EQ(cloned->getPortDownHoldoffTimeMs(), std::nullopt);
+  EXPECT_EQ(cloned->getPortUpHoldoffTimeMs(), std::nullopt);
+
+  // Serialize / deserialize round-trip.
+  cloned->setPortDownHoldoffTimeMs(123);
+  cloned->setPortUpHoldoffTimeMs(456);
+  auto serialized = std::make_shared<Port>(cloned->toThrift());
+  EXPECT_EQ(serialized->getPortDownHoldoffTimeMs(), 123);
+  EXPECT_EQ(serialized->getPortUpHoldoffTimeMs(), 456);
+
+  // Negative cfg values must be rejected at applyConfig time.
+  cfg::SwitchConfig negConfig;
+  negConfig.ports()->resize(1);
+  preparedMockPortConfig(
+      negConfig.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+  negConfig.ports()[0].portDownHoldoffTimeMs() = -1;
+  EXPECT_THROW(
+      publishAndApplyConfig(state, &negConfig, platform.get()), FbossError);
+  negConfig.ports()[0].portDownHoldoffTimeMs().reset();
+  negConfig.ports()[0].portUpHoldoffTimeMs() = -100;
+  EXPECT_THROW(
+      publishAndApplyConfig(state, &negConfig, platform.get()), FbossError);
+}

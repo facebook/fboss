@@ -231,11 +231,15 @@ class NetcastleTestRunner(BaseTestRunner):
                 and n_warmboot_test.num_iterations
             ):
                 num_iterations = n_warmboot_test.num_iterations
+            # pyrefly: ignore [bad-argument-type]
             cmd.extend(["--num-wb-iterations", num_iterations])
 
         # Add regex if specified
         if asic_options.regex:
             cmd.extend(["--regex", asic_options.regex])
+
+        if self.config.remote:
+            cmd.append("--sandcastle")
 
         return cmd, asic_type.value, sdk_project_version, npu_mode, multi_stage
 

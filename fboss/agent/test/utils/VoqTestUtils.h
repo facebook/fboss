@@ -4,6 +4,7 @@
 
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -75,9 +76,19 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
     TestEnsembleIf* ensemble,
     utility::EcmpSetupTargetedPorts6& ecmpHelper);
 
+boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
+    TestEnsembleIf* ensemble,
+    utility::EcmpSetupTargetedPorts6& ecmpHelper,
+    const boost::container::flat_set<PortDescriptor>& sysPortDescs);
+
 boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
     TestEnsembleIf* ensemble,
     utility::EcmpSetupTargetedPorts6& ecmpHelper);
+
+boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
+    TestEnsembleIf* ensemble,
+    utility::EcmpSetupTargetedPorts6& ecmpHelper,
+    const boost::container::flat_set<PortDescriptor>& sysPortDescs);
 
 void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<SystemPortMap>>& switchId2SystemPorts,
@@ -110,6 +121,29 @@ int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass);
 SwitchID getRemoteVoqSwitchId(SwSwitch* sw);
 
 SystemPortID getFirstRemoteGlobalSystemPortId(const SwSwitch& sw);
+
+SystemPortID getRemoteSysPortId(
+    SwSwitch* sw,
+    const std::shared_ptr<SwitchState>& state,
+    int offset = 0);
+
+SystemPortID getAvailableRemoteSysPortId(
+    SwSwitch* sw,
+    const std::shared_ptr<SwitchState>& state,
+    int offset = 0);
+
+InterfaceID getRemoteIntfId(SystemPortID sysPortId);
+
+// When refreshStats is true, the helper first triggers a switch-wide
+// updateStats() so callers reading immediately after programming a remote
+// sysport see populated queue maps. This is expensive, so it defaults to
+// false; only opt in when the cached stats may not yet be populated.
+std::optional<HwSysPortStats> getRemoteSysPortStatsForSwitchUnderTest(
+    SwSwitch* sw,
+    const std::shared_ptr<SwitchState>& state,
+    uint16_t switchIndex,
+    SystemPortID sysPortId,
+    bool refreshStats = false);
 
 void addRemoteSysPortAndInterface(
     SwSwitch* sw,

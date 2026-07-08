@@ -71,6 +71,11 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
     ]:
         return [PortSpeed.TWOHUNDREDG]
     if profile in [
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER,
+    ]:
+        return [PortSpeed.TWOHUNDREDANDTWELVEPOINTFIVEG]
+    if profile in [
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
@@ -85,6 +90,8 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
     ]:
         return [PortSpeed.EIGHTHUNDREDG]
+    if profile in [PortProfileID.PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL]:
+        return [PortSpeed.ONEPOINTSIXT]
     if profile in [
         PortProfileID.PROFILE_10G_1_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
@@ -101,6 +108,7 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
     if profile in [
         PortProfileID.PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
         PortProfileID.PROFILE_25G_1_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_25G_1_NRZ_RS528_OPTICAL,
         PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER,
     ]:
         return [PortSpeed.TWENTYFIVEG]
@@ -123,9 +131,12 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
         PortProfileID.PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
         PortProfileID.PROFILE_25G_1_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_25G_1_NRZ_RS528_OPTICAL,
         PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER,
     ]:
         return 1
     if profile in [
@@ -156,6 +167,7 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL,
     ]:
         return 8
     if profile in [PortProfileID.PROFILE_DEFAULT]:
@@ -179,6 +191,14 @@ def is_xphy(chip_type: ChipType) -> bool:
     return chip_type == ChipType.XPHY
 
 
+def is_optical_engine(chip_type: ChipType) -> bool:
+    return chip_type == ChipType.OPTICAL_ENGINE
+
+
+def is_laser_source(chip_type: ChipType) -> bool:
+    return chip_type == ChipType.LASER_SOURCE
+
+
 # Any terminal connection (front panel transceivers or backplane connectors)
 def is_terminal_chip(chip_type: ChipType) -> bool:
     return is_transceiver(chip_type) or is_backplane(chip_type)
@@ -188,8 +208,15 @@ def get_npu_chip_name(chip: Chip) -> str:
     return f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
 
 
+def is_multi_core_transceiver(core_type: CoreType) -> bool:
+    return core_type == CoreType.BANKED_CMIS_INTEGRATED
+
+
 def get_terminal_chip_name(chip: Chip) -> str:
-    return f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}"
+    base = f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}"
+    if is_multi_core_transceiver(chip.core_type):
+        return f"{base}/core{chip.core_id}"
+    return base
 
 
 def get_npu_chip(chip: Chip) -> DataPlanePhyChip:
@@ -202,13 +229,15 @@ def get_npu_chip(chip: Chip) -> DataPlanePhyChip:
     )
 
 
-def get_transceiver_chip(chip: Chip) -> DataPlanePhyChip:
+def get_transceiver_chip(chip: Chip, physical_id: int) -> DataPlanePhyChip:
     if not is_transceiver(chip.chip_type):
         raise Exception(chip.chip_type, " is not a Transceiver")
+    core_id = chip.core_id if is_multi_core_transceiver(chip.core_type) else None
     return DataPlanePhyChip(
         name=get_terminal_chip_name(chip=chip),
         type=DataPlanePhyChipType.TRANSCEIVER,
-        physicalID=chip.chip_id - 1,  # We need 0 indexed physicalIDs
+        physicalID=physical_id,
+        coreId=core_id,
     )
 
 
@@ -233,6 +262,34 @@ def get_xphy_chip(chip: Chip) -> DataPlanePhyChip:
         name=get_xphy_chip_name(chip=chip),
         type=DataPlanePhyChipType.XPHY,
         physicalID=chip.chip_id - 1,  # We need 0 indexed physicalIDs
+    )
+
+
+def get_optical_engine_chip_name(chip: Chip) -> str:
+    return f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
+
+
+def get_optical_engine_chip(chip: Chip) -> DataPlanePhyChip:
+    if not is_optical_engine(chip.chip_type):
+        raise Exception(chip.chip_type, " is not an Optical Engine")
+    return DataPlanePhyChip(
+        name=get_optical_engine_chip_name(chip=chip),
+        type=DataPlanePhyChipType.OPTICAL_ENGINE,
+        physicalID=chip.chip_id - 1,
+    )
+
+
+def get_laser_source_chip_name(chip: Chip) -> str:
+    return f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}"
+
+
+def get_laser_source_chip(chip: Chip) -> DataPlanePhyChip:
+    if not is_laser_source(chip.chip_type):
+        raise Exception(chip.chip_type, " is not a Laser Source")
+    return DataPlanePhyChip(
+        name=get_laser_source_chip_name(chip=chip),
+        type=DataPlanePhyChipType.LASER_SOURCE,
+        physicalID=chip.chip_id - 1,
     )
 
 
@@ -427,13 +484,33 @@ def get_start_connection_end(
             core_id=int(match[4]),
             logical_lane_id=0,
         )
-    # Front panel ports are named "eth|fab{slot_id}/{transceiver_chip_id}/{transceiver_lane_id}"
+    # Front panel ports are named "eth|fab{slot_id}/{virtual_transceiver_id}/{lane_id}"
     # Backplane ports are named "eth{slot_id}/{backplane_chip_id}/{backplane_lane_id}"
+    virtual_id = int(match[3])
+    # Banked (CPO) transceivers are modeled as a single core with global lane ids.
+    # The port virtual id selects a bank on a module, so recover the global lane as
+    # bank_lane_offset + lane_in_bank.
+    port_virtual_map = static_mapping.get_port_virtual_transceiver_map()
+    if virtual_id in port_virtual_map:
+        chip_id, lane_offset = port_virtual_map[virtual_id]
+        return static_mapping.find_connection_end(
+            slot_id=int(match[2]),
+            chip_id=chip_id,
+            chip_types={ChipType.TRANSCEIVER, ChipType.BACKPLANE},
+            core_id=0,
+            logical_lane_id=lane_offset + int(match[4]) - 1,  # Lanes are 0 indexed
+        )
+    virtual_map = static_mapping.get_virtual_transceiver_map()
+    if virtual_id in virtual_map:
+        chip_id, core_id = virtual_map[virtual_id]
+    else:
+        chip_id = virtual_id
+        core_id = 0
     return static_mapping.find_connection_end(
         slot_id=int(match[2]),
-        chip_id=int(match[3]),
+        chip_id=chip_id,
         chip_types={ChipType.TRANSCEIVER, ChipType.BACKPLANE},
-        core_id=0,
+        core_id=core_id,
         logical_lane_id=int(match[4]) - 1,  # Lanes are 0 indexed in CSV
     )
 
@@ -520,6 +597,10 @@ def get_pin_config(connection_end: ConnectionEnd) -> PinConfig:
         pin_name = get_terminal_chip_name(connection_end.chip)
     elif is_xphy(connection_end.chip.chip_type):
         pin_name = get_xphy_chip_name(connection_end.chip)
+    elif is_optical_engine(connection_end.chip.chip_type):
+        pin_name = get_optical_engine_chip_name(connection_end.chip)
+    elif is_laser_source(connection_end.chip.chip_type):
+        pin_name = get_laser_source_chip_name(connection_end.chip)
     else:
         raise Exception("Don't understand chip type ", connection_end.chip.chip_type)
 
@@ -577,8 +658,8 @@ def _format_custom_collection_json(custom_collection: Dict[str, List[int]]) -> s
                         },
                         "value": value,
                     }
-                    for key, value in custom_collection.items()
                 }
+                for key, value in custom_collection.items()
             ]
         }
     )
@@ -669,6 +750,7 @@ def _process_connection_with_si_settings(
                 )
                 overrides.append(override)
 
+    # pyrefly: ignore [bad-return]
     return (
         configured_pins,
         overrides,
@@ -730,11 +812,14 @@ def get_pin_data_from_connections(
     profile: PortProfileID,
     lane_speed: PortSpeed,
     port_id: int,
+    integrated_tcvr_mapping: Optional[Any] = None,
 ) -> tuple[PortPinConfig, List[PlatformPortConfigOverride]]:
     port_pin_config_iphy = []
     port_pin_config_tcvr = []
     port_pin_config_xphy_sys = []
     port_pin_config_xphy_line = []
+    port_pin_config_optical_engine = []
+    port_pin_config_laser_source = []
     port_pin_config_overrides = []
 
     port_custom_tx_collection_list = []
@@ -747,6 +832,19 @@ def get_pin_data_from_connections(
 
             if is_terminal_chip(connection.chip.chip_type):
                 port_pin_config_tcvr.append(get_pin_config(connection_end=connection))
+                if integrated_tcvr_mapping is not None:
+                    itc = integrated_tcvr_mapping.get_connection(
+                        connection.chip.chip_id,
+                        connection.chip.core_id,
+                        connection.lane.logical_id,
+                    )
+                    if itc is not None:
+                        port_pin_config_optical_engine.append(
+                            get_pin_config(connection_end=itc.opticalEngine)
+                        )
+                        port_pin_config_laser_source.append(
+                            get_pin_config(connection_end=itc.laserSource)
+                        )
             elif is_xphy(connection.chip.chip_type):
                 sys_pins, line_pins, _, _ = _process_xphy_connection(
                     connection, si_settings, profile, lane_speed
@@ -777,6 +875,8 @@ def get_pin_data_from_connections(
         xphySys=port_pin_config_xphy_sys or None,
         xphyLine=port_pin_config_xphy_line or None,
         serdesCustomCollection=custom_collection_str or None,
+        opticalEngine=port_pin_config_optical_engine or None,
+        laserSource=port_pin_config_laser_source or None,
     )
 
     return (
@@ -951,9 +1051,12 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_50G_2_NRZ_NOFEC_OPTICAL,
         PortProfileID.PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
         PortProfileID.PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_25G_1_NRZ_RS528_OPTICAL,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL,
     ]:
         return [TransmitterTechnology.OPTICAL, TransmitterTechnology.BACKPLANE]
     if profile in [
@@ -979,6 +1082,7 @@ def transmitter_tech_from_profile(
         return [TransmitterTechnology.COPPER]
     if profile in [
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
     ]:
@@ -1029,6 +1133,7 @@ def fec_from_profile(profile: PortProfileID) -> FecMode:
     # RS528 profiles
     if profile in [
         PortProfileID.PROFILE_25G_1_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_25G_1_NRZ_RS528_OPTICAL,
         PortProfileID.PROFILE_50G_2_NRZ_RS528_COPPER,
         PortProfileID.PROFILE_50G_2_NRZ_RS528_OPTICAL,
         PortProfileID.PROFILE_100G_4_NRZ_RS528,
@@ -1058,6 +1163,8 @@ def fec_from_profile(profile: PortProfileID) -> FecMode:
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_OPTICAL,
@@ -1069,6 +1176,7 @@ def fec_from_profile(profile: PortProfileID) -> FecMode:
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL,
     ]:
         return FecMode.RS544_2N
     # RS545 profiles

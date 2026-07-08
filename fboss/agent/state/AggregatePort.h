@@ -18,9 +18,10 @@
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
-#include <boost/container/flat_set.hpp>
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
+#include <map>
+#include <set>
 
 namespace facebook::fboss {
 
@@ -54,11 +55,9 @@ struct LegacyAggregatePortFields {
    * natural in BcmTrunk::program(...) when taking diffs between AggregatePort
    * objects.
    */
-  using SubportToForwardingState =
-      boost::container::flat_map<PortID, Forwarding>;
+  using SubportToForwardingState = std::map<PortID, Forwarding>;
 
-  using SubportToPartnerState =
-      boost::container::flat_map<PortID, ParticipantInfo>;
+  using SubportToPartnerState = std::map<PortID, ParticipantInfo>;
 
   struct Subport {
     Subport() = default;
@@ -84,7 +83,7 @@ struct LegacyAggregatePortFields {
       return !(*this == rhs);
     }
 
-    // Needed for boost::container::flat_set
+    // Needed for std::set
     bool operator<(const Subport& rhs) const {
       return portID < rhs.portID;
     }
@@ -115,7 +114,7 @@ struct LegacyAggregatePortFields {
     uint16_t holdTimerMulitiplier{
         cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER()};
   };
-  using Subports = boost::container::flat_set<Subport>;
+  using Subports = std::set<Subport>;
 };
 
 /*
@@ -138,13 +137,11 @@ class AggregatePort
   using ThriftType = state::AggregatePortFields;
   using Base = ThriftStructNode<AggregatePort, state::AggregatePortFields>;
   using Base::modify;
-  using Subports = boost::container::flat_set<Subport>;
+  using Subports = std::set<Subport>;
 
-  using SubportToForwardingState =
-      boost::container::flat_map<PortID, Forwarding>;
+  using SubportToForwardingState = std::map<PortID, Forwarding>;
 
-  using SubportToPartnerState =
-      boost::container::flat_map<PortID, ParticipantInfo>;
+  using SubportToPartnerState = std::map<PortID, ParticipantInfo>;
 
   AggregatePort(
       AggregatePortID id,
@@ -272,6 +269,47 @@ class AggregatePort
     set<switch_state_tags::aggregatePortType>(aggregatePortType);
   }
 
+  std::optional<int64_t> getConfiguredCapacityMbps() const {
+    if (auto val = safe_cref<switch_state_tags::configuredCapacityMbps>()) {
+      return val->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setConfiguredCapacityMbps(int64_t capacity) {
+    set<switch_state_tags::configuredCapacityMbps>(capacity);
+  }
+
+  void clearConfiguredCapacityMbps() {
+    safe_ref<switch_state_tags::configuredCapacityMbps>().reset();
+  }
+
+  std::optional<int64_t> getActiveCapacityMbps() const {
+    if (auto val = safe_cref<switch_state_tags::activeCapacityMbps>()) {
+      return val->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setActiveCapacityMbps(int64_t capacity) {
+    set<switch_state_tags::activeCapacityMbps>(capacity);
+  }
+
+  void clearActiveCapacityMbps() {
+    safe_ref<switch_state_tags::activeCapacityMbps>().reset();
+  }
+
+  std::optional<state::AggregatePortStatus> getStatus() const {
+    if (auto val = safe_cref<switch_state_tags::status>()) {
+      return val->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setStatus(state::AggregatePortStatus status) {
+    set<switch_state_tags::status>(status);
+  }
+
   AggregatePort::Forwarding getForwardingState(PortID port) {
     const auto& portToFwdState = cref<switch_state_tags::portToFwdState>();
     auto it = std::as_const(*portToFwdState).find(port);
@@ -381,5 +419,15 @@ class AggregatePort
   using Base::Base;
   friend class CloneAllocator;
 };
+
+struct AggregatePortCapacityResult {
+  std::optional<int64_t> configuredCapacityMbps;
+  std::optional<int64_t> activeCapacityMbps;
+  state::AggregatePortStatus status{state::AggregatePortStatus::DOWN};
+};
+
+AggregatePortCapacityResult computeAggregatePortCapacityAndStatus(
+    const std::shared_ptr<AggregatePort>& aggPort,
+    const std::shared_ptr<SwitchState>& state);
 
 } // namespace facebook::fboss

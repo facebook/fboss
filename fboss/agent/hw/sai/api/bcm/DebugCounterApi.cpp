@@ -3,10 +3,8 @@
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 
 extern "C" {
-#if defined(BRCM_SAI_SDK_GTE_11_0) && !defined(IS_OSS_BRCM_SAI)
+#if defined(BRCM_SAI_SDK_GTE_11_0)
 #include <experimental/saidebugcounterextensions.h>
-#else
-#include <saidebugcounterextensions.h>
 #endif
 #include <sai.h>
 }

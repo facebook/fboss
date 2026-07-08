@@ -9,6 +9,39 @@ mkdir -p "$LOCAL_RPM_REPO_DIR"
 sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="FBOSS Distro Image"/' /usr/lib/os-release
 sed -i 's/^NAME=.*/NAME="FBOSS Distro Image"/' /usr/lib/os-release
 
+echo "Creating FBOSS log directories..."
+mkdir -p /var/facebook/logs/fboss/sdk
+semanage fcontext -a -t var_log_t '/var/facebook/logs/fboss(/.*)?'
+restorecon -Rv /var/facebook/logs/fboss
+
+# Create the coop user/group and /etc/coop directory at image-build time so
+# every image ships with consistent ownership, rather than relying on
+# fboss_init.sh to set it up (with default root-owned permissions) at first
+# boot. Must run before RPM/component installs below: some packages (e.g.
+# bgpd) install files into /etc/coop but don't own the directory itself, so
+# they won't touch its permissions once it already exists.
+#
+# Individual operators (all members of "switching") run `fboss2-dev config`
+# commands that create files/subdirs directly under /etc/coop as themselves,
+# with no privilege elevation. The setgid bit makes new entries inherit the
+# switching group, but the *write* bit on newly created files/dirs still
+# depends on each operator's ambient umask (e.g. a 022 umask yields
+# non-group-writable 0755 dirs / 0644 files, locking other operators out). A
+# default ACL forces group rwx on every new file/dir regardless of umask, and
+# is itself inherited by new subdirectories, so it cascades indefinitely.
+echo "Creating coop user/group and /etc/coop directory..."
+groupadd -f -r switching
+useradd -r -g switching -s /sbin/nologin -M -d /nonexistent coop
+mkdir -p /etc/coop
+chown -R coop:switching /etc/coop
+chmod 2775 /etc/coop
+setfacl -R -m g:switching:rwx /etc/coop
+setfacl -R -d -m g:switching:rwx -m o::rx /etc/coop
+
+# Default to python 3.12, also simulate the Debian python-is-python3 package
+update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
+update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+
 # All dnf invocations with an invalid RPM repo configured will fail. Create the
 # metadata for the local_rpm_repo now to prevent that.
 createrepo /usr/local/share/local_rpm_repo
@@ -64,7 +97,7 @@ process_kernel() {
   return 0
 }
 
-process_hw_agent_sai_tarball() {
+process_npu_sai_tarball() {
   local component_dir=$1
   local component_name
   component_name=$(basename "$component_dir")
@@ -144,8 +177,8 @@ for component_dir in /repos/*; do
     rm -rf "$component_tmp"
     ;;
 
-  hw_agent_sai)
-    process_hw_agent_sai_tarball "$component_dir"
+  npu_sai)
+    process_npu_sai_tarball "$component_dir"
     handler_rc=$?
     ;;
 
@@ -357,11 +390,6 @@ systemctl enable fsdb.service
 systemctl enable qsfp_service.service
 systemctl enable fboss_sw_agent.service
 systemctl enable fboss_hw_agents.target
-
-echo "Creating FBOSS log directories..."
-mkdir -p /var/facebook/logs/fboss/sdk
-semanage fcontext -a -t var_log_t '/var/facebook/logs/fboss(/.*)?'
-restorecon -Rv /var/facebook/logs/fboss
 
 # 8. Fix NetworkManager connection profile permissions
 # NM ignores profiles that are world-readable

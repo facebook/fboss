@@ -87,6 +87,7 @@ cpp_library(
         "WedgeI2CBus.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/glog:glog",
         ":base-i2c-dependencies",
         ":cp2112",
@@ -97,7 +98,6 @@ cpp_library(
         "//fboss/lib/i2c:i2c_controller_stats-cpp2-types",
         "//fboss/lib/i2c:platform_i2c_api",
         "//fboss/lib/i2c/minipack:minipack_base_i2c",
-        "//folly:format",
         "//folly:string",
         "//folly/container:enumerate",
         "//folly/logging:logging",

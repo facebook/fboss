@@ -38,7 +38,8 @@ class FakeSaiTamEvent {
       std::vector<sai_int32_t> packetDropTypeMmu,
       std::vector<sai_int32_t> packetDropTypeIngress,
       sai_object_id_t agingGroup,
-      sai_object_id_t ingressSamplepacketEnable)
+      sai_object_id_t ingressSamplepacketEnable,
+      sai_object_id_t threshold = 0)
       : eventType_(eventType),
         actions_(actions),
         collectors_(collectors),
@@ -49,7 +50,8 @@ class FakeSaiTamEvent {
         packetDropTypeMmu_(std::move(packetDropTypeMmu)),
         packetDropTypeIngress_(std::move(packetDropTypeIngress)),
         agingGroup_(agingGroup),
-        ingressSamplepacketEnable_(ingressSamplepacketEnable) {}
+        ingressSamplepacketEnable_(ingressSamplepacketEnable),
+        threshold_(threshold) {}
   sai_object_id_t id;
   sai_int32_t eventType_;
   std::vector<sai_object_id_t> actions_;
@@ -62,6 +64,7 @@ class FakeSaiTamEvent {
   std::vector<sai_int32_t> packetDropTypeIngress_;
   sai_object_id_t agingGroup_;
   sai_object_id_t ingressSamplepacketEnable_;
+  sai_object_id_t threshold_;
 };
 
 class FakeSaiTamEventAction {
@@ -76,6 +79,22 @@ class FakeSaiTamReport {
   explicit FakeSaiTamReport(sai_int32_t type) : type_(type) {}
   sai_object_id_t id;
   sai_int32_t type_;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  std::optional<sai_uint32_t> sampleRate_;
+  std::optional<sai_uint64_t> maxReportRate_;
+  std::optional<sai_uint64_t> maxReportBurst_;
+#endif
+};
+
+class FakeSaiTamEventThreshold {
+ public:
+  FakeSaiTamEventThreshold(
+      std::optional<sai_int32_t> unit,
+      std::optional<sai_uint32_t> rate)
+      : unit_(unit), rate_(rate) {}
+  sai_object_id_t id{};
+  std::optional<sai_int32_t> unit_;
+  std::optional<sai_uint32_t> rate_;
 };
 
 class FakeSaiTamTransport {
@@ -128,6 +147,8 @@ using FakeTamEventManager = FakeManager<sai_object_id_t, FakeSaiTamEvent>;
 using FakeTamEventActionManager =
     FakeManager<sai_object_id_t, FakeSaiTamEventAction>;
 using FakeTamReportManager = FakeManager<sai_object_id_t, FakeSaiTamReport>;
+using FakeTamEventThresholdManager =
+    FakeManager<sai_object_id_t, FakeSaiTamEventThreshold>;
 using FakeTamTransportManager =
     FakeManager<sai_object_id_t, FakeSaiTamTransport>;
 using FakeTamCollectorManager =

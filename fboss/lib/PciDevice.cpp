@@ -8,9 +8,7 @@
  *
  */
 #include "fboss/lib/PciDevice.h"
-#ifndef IS_OSS
 #include <pciaccess.h>
-#endif
 #include "fboss/lib/PciSystem.h"
 
 #include <folly/Exception.h>
@@ -32,7 +30,6 @@ PciDevice::~PciDevice() {
 }
 
 void PciDevice::open() {
-#ifndef IS_OSS
   pci_id_match deviceMask;
   pci_device_iterator* deviceIter;
   int32_t retVal;
@@ -89,17 +86,13 @@ void PciDevice::open() {
   // All is good, device created correctly
   XLOG(DBG1) << folly::format(
       "Created PCI access for {:04x}:{:04x}", vendorId_, deviceId_);
-#endif
 }
 
 void PciDevice::close() {
-#ifndef IS_OSS
   pciDevice_ = nullptr;
-#endif
 }
 
 uint64_t PciDevice::getMemoryRegionAddress(uint32_t region) const {
-#ifndef IS_OSS
   if (pciDevice_ == nullptr) {
     throw std::runtime_error("PCI device not initialized");
   }
@@ -109,12 +102,9 @@ uint64_t PciDevice::getMemoryRegionAddress(uint32_t region) const {
   }
 
   return pciDevice_->regions[region].base_addr;
-#endif
-  throw std::runtime_error("Not supported in OSS");
 }
 
 uint64_t PciDevice::getMemoryRegionSize(uint32_t region) const {
-#ifndef IS_OSS
   if (pciDevice_ == nullptr) {
     throw std::runtime_error("PCI device not initialized");
   }
@@ -124,22 +114,16 @@ uint64_t PciDevice::getMemoryRegionSize(uint32_t region) const {
   }
 
   return pciDevice_->regions[region].size;
-#endif
-  throw std::runtime_error("Not supported in OSS");
 }
 
 uint8_t PciDevice::getRevision() const {
-#ifndef IS_OSS
   if (pciDevice_ == nullptr) {
     throw std::runtime_error("PCI device not initialized");
   }
   return pciDevice_->revision;
-#endif
-  throw std::runtime_error("Not supported in OSS");
 }
 
 void PciDevice::setConfigControl() {
-#ifndef IS_OSS
   if (pciDevice_ == nullptr) {
     throw std::runtime_error(
         "PCI device not initialized while control config attempted");
@@ -153,7 +137,6 @@ void PciDevice::setConfigControl() {
   } else {
     XLOG(INFO) << "PCI config command register set to enable memory access";
   }
-#endif
 }
 
 } // namespace facebook::fboss

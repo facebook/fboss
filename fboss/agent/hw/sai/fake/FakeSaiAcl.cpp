@@ -55,6 +55,8 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return fieldIcmpV6Code;
     case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
       return fieldDscp;
+    case SAI_ACL_ENTRY_ATTR_FIELD_TC:
+      return fieldTc;
     case SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC:
       return fieldDstMac;
     case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_TYPE:
@@ -67,13 +69,15 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return fieldRouteDstUserMeta;
     case SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META:
       return fieldNeighborDstUserMeta;
-    case SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE:
+    case SAI_ACL_ENTRY_ATTR_FIELD_ETHER_TYPE:
       return fieldEthertype;
-    case SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID:
+    case SAI_ACL_ENTRY_ATTR_FIELD_OUTER_VLAN_ID:
       return fieldOuterVlanId;
-    case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE:
+    case SAI_ACL_ENTRY_ATTR_FIELD_ACL_RANGE_TYPE:
+      return !fieldAclRangeType.empty();
+    case SAI_ACL_ENTRY_ATTR_FIELD_BTH_OPCODE:
       return fieldBthOpcode;
-    case SAI_ACL_TABLE_ATTR_FIELD_IPV6_NEXT_HEADER:
+    case SAI_ACL_ENTRY_ATTR_FIELD_IPV6_NEXT_HEADER:
       return fieldIpv6NextHeader;
     case SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN:
     case (SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 1):
@@ -83,6 +87,7 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return true;
     // Actions
     case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
+    case SAI_ACL_ENTRY_ATTR_ACTION_REDIRECT:
     case SAI_ACL_ENTRY_ATTR_ACTION_COUNTER:
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_TC:
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_DSCP:
@@ -95,6 +100,8 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_ECMP_HASH_ALGORITHM:
       return true;
     case SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL:
+      return true;
+    case SAI_ACL_ENTRY_ATTR_FIELD_NEXT_HOP_GROUP_ID:
       return true;
     default:
       return false;
@@ -128,6 +135,7 @@ sai_status_t create_acl_table_fn(
   bool fieldIcmpV6Type = 0;
   bool fieldIcmpV6Code = 0;
   bool fieldDscp = 0;
+  bool fieldTc = 0;
   bool fieldDstMac = 0;
   bool fieldIpType = 0;
   bool fieldTtl = 0;
@@ -136,6 +144,7 @@ sai_status_t create_acl_table_fn(
   bool fieldNeighborDstUserMeta = 0;
   bool fieldEthertype = 0;
   bool fieldOuterVlanId = 0;
+  std::vector<sai_int32_t> fieldAclRangeType;
   bool fieldBthOpcode = 0;
   bool fieldIpv6NextHeader = 0;
   sai_object_id_t userDefinedFieldGroupMin = SAI_NULL_OBJECT_ID;
@@ -209,6 +218,9 @@ sai_status_t create_acl_table_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_DSCP:
         fieldDscp = attr_list[i].value.booldata;
         break;
+      case SAI_ACL_TABLE_ATTR_FIELD_TC:
+        fieldTc = attr_list[i].value.booldata;
+        break;
       case SAI_ACL_TABLE_ATTR_FIELD_DST_MAC:
         fieldDstMac = attr_list[i].value.booldata;
         break;
@@ -232,6 +244,11 @@ sai_status_t create_acl_table_fn(
         break;
       case SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID:
         fieldOuterVlanId = attr_list[i].value.booldata;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ACL_RANGE_TYPE:
+        fieldAclRangeType.assign(
+            attr_list[i].value.s32list.list,
+            attr_list[i].value.s32list.list + attr_list[i].value.s32list.count);
         break;
       case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE:
         fieldBthOpcode = attr_list[i].value.booldata;
@@ -283,6 +300,7 @@ sai_status_t create_acl_table_fn(
       fieldIcmpV6Type,
       fieldIcmpV6Code,
       fieldDscp,
+      fieldTc,
       fieldDstMac,
       fieldIpType,
       fieldTtl,
@@ -291,6 +309,7 @@ sai_status_t create_acl_table_fn(
       fieldNeighborDstUserMeta,
       fieldEthertype,
       fieldOuterVlanId,
+      fieldAclRangeType,
       fieldBthOpcode,
       fieldIpv6NextHeader,
       userDefinedFieldGroupMin,
@@ -444,6 +463,10 @@ sai_status_t get_acl_table_attribute_fn(
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldDscp;
       } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_TC: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.booldata = aclTable.fieldTc;
+      } break;
       case SAI_ACL_TABLE_ATTR_FIELD_DST_MAC: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldDstMac;
@@ -475,6 +498,18 @@ sai_status_t get_acl_table_attribute_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldOuterVlanId;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ACL_RANGE_TYPE: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        if (aclTable.fieldAclRangeType.size() > attr[i].value.s32list.count) {
+          attr[i].value.s32list.count = aclTable.fieldAclRangeType.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        attr[i].value.s32list.count = aclTable.fieldAclRangeType.size();
+        int j = 0;
+        for (const auto& rangeType : aclTable.fieldAclRangeType) {
+          attr[i].value.s32list.list[j++] = rangeType;
+        }
       } break;
       case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
@@ -672,6 +707,12 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldDscpMask = attr->value.aclfield.mask.u8;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_TC:
+      aclEntry.fieldTcEnable = attr->value.aclfield.enable;
+      aclEntry.fieldTcData = attr->value.aclfield.data.u8;
+      aclEntry.fieldTcMask = attr->value.aclfield.mask.u8;
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC:
       aclEntry.fieldDstMacEnable = attr->value.aclfield.enable;
       aclEntry.fieldDstMacData =
@@ -720,6 +761,17 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldOuterVlanIdEnable = attr->value.aclfield.enable;
       aclEntry.fieldOuterVlanIdData = attr->value.aclfield.data.u16;
       aclEntry.fieldOuterVlanIdMask = attr->value.aclfield.mask.u16;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ACL_RANGE_TYPE:
+      aclEntry.fieldAclRangeTypeEnable = attr->value.aclfield.enable;
+      aclEntry.fieldAclRangeTypeData.resize(
+          attr->value.aclfield.data.objlist.count);
+      std::copy(
+          attr->value.aclfield.data.objlist.list,
+          attr->value.aclfield.data.objlist.list +
+              attr->value.aclfield.data.objlist.count,
+          std::begin(aclEntry.fieldAclRangeTypeData));
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_ACL_ENTRY_ATTR_FIELD_BTH_OPCODE:
@@ -778,6 +830,11 @@ sai_status_t set_acl_entry_attribute_fn(
     case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
       aclEntry.actionPacketActionEnable = attr->value.aclaction.enable;
       aclEntry.actionPacketActionData = attr->value.aclaction.parameter.u32;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_ENTRY_ATTR_ACTION_REDIRECT:
+      aclEntry.actionRedirectEnable = attr->value.aclaction.enable;
+      aclEntry.actionRedirectData = attr->value.aclaction.parameter.oid;
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_ACL_ENTRY_ATTR_ACTION_COUNTER:
@@ -847,6 +904,12 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.actionL3SwitchCancelEnable = attr->value.aclaction.enable;
       aclEntry.actionL3SwitchCancelData =
           attr->value.aclaction.parameter.booldata;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_NEXT_HOP_GROUP_ID:
+      aclEntry.fieldNextHopGroupIdEnable = attr->value.aclfield.enable;
+      aclEntry.fieldNextHopGroupIdData = attr->value.aclfield.data.oid;
+      aclEntry.fieldNextHopGroupIdMask = attr->value.aclfield.mask.u32;
       res = SAI_STATUS_SUCCESS;
       break;
     default:
@@ -989,6 +1052,11 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.data.u8 = aclEntry.fieldDscpData;
         attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldDscpMask;
         break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_TC:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldTcEnable;
+        attr_list[i].value.aclfield.data.u8 = aclEntry.fieldTcData;
+        attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldTcMask;
+        break;
       case SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC:
         attr_list[i].value.aclfield.enable = aclEntry.fieldDstMacEnable;
         facebook::fboss::toSaiMacAddress(
@@ -1037,6 +1105,13 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.data.u16 = aclEntry.fieldOuterVlanIdData;
         attr_list[i].value.aclfield.mask.u16 = aclEntry.fieldOuterVlanIdMask;
         break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_ACL_RANGE_TYPE:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldAclRangeTypeEnable;
+        attr_list[i].value.aclfield.data.objlist.count =
+            aclEntry.fieldAclRangeTypeData.size();
+        attr_list[i].value.aclfield.data.objlist.list =
+            aclEntry.fieldAclRangeTypeData.data();
+        break;
       case SAI_ACL_ENTRY_ATTR_FIELD_BTH_OPCODE:
         attr_list[i].value.aclfield.enable = aclEntry.fieldBthOpcodeEnable;
         attr_list[i].value.aclfield.data.u8 = aclEntry.fieldBthOpcodeData;
@@ -1077,6 +1152,11 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclaction.enable = aclEntry.actionPacketActionEnable;
         attr_list[i].value.aclaction.parameter.u32 =
             aclEntry.actionPacketActionData;
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_REDIRECT:
+        attr_list[i].value.aclaction.enable = aclEntry.actionRedirectEnable;
+        attr_list[i].value.aclaction.parameter.oid =
+            aclEntry.actionRedirectData;
         break;
       case SAI_ACL_ENTRY_ATTR_ACTION_COUNTER:
         attr_list[i].value.aclaction.enable = aclEntry.actionCounterEnable;
@@ -1135,6 +1215,11 @@ sai_status_t get_acl_entry_attribute_fn(
             aclEntry.actionL3SwitchCancelEnable;
         attr_list[i].value.aclaction.parameter.booldata =
             aclEntry.actionL3SwitchCancelData;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_NEXT_HOP_GROUP_ID:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldNextHopGroupIdEnable;
+        attr_list[i].value.aclfield.data.oid = aclEntry.fieldNextHopGroupIdData;
+        attr_list[i].value.aclfield.mask.u32 = aclEntry.fieldNextHopGroupIdMask;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
@@ -1317,28 +1402,67 @@ sai_status_t remove_acl_counter_fn(sai_object_id_t acl_counter_id) {
 }
 
 sai_status_t create_acl_range_fn(
-    sai_object_id_t* /*acl_range_id */,
+    sai_object_id_t* acl_range_id,
     sai_object_id_t /*switch_id*/,
-    uint32_t /*attr_count*/,
-    const sai_attribute_t* /*attr_list*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+
+  std::optional<sai_int32_t> type;
+  sai_u32_range_t limit{0, 0};
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_RANGE_ATTR_TYPE:
+        type = attr_list[i].value.s32;
+        break;
+      case SAI_ACL_RANGE_ATTR_LIMIT:
+        limit = attr_list[i].value.u32range;
+        break;
+    }
+  }
+
+  if (!type) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+
+  *acl_range_id = fs->aclRangeManager.create(type.value(), limit);
+
+  return SAI_STATUS_SUCCESS;
 }
 
-sai_status_t remove_acl_range_fn(sai_object_id_t /*acl_range_id*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+sai_status_t remove_acl_range_fn(sai_object_id_t acl_range_id) {
+  auto fs = FakeSai::getInstance();
+  fs->aclRangeManager.remove(acl_range_id);
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t set_acl_range_attribute_fn(
     sai_object_id_t /*acl_range_id*/,
     const sai_attribute_t* /*attr*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+  return SAI_STATUS_NOT_SUPPORTED;
 }
 
 sai_status_t get_acl_range_attribute_fn(
     sai_object_id_t acl_range_id,
     uint32_t attr_count,
     sai_attribute_t* attr_list) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+  auto fs = FakeSai::getInstance();
+  auto& aclRange = fs->aclRangeManager.get(acl_range_id);
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_RANGE_ATTR_TYPE:
+        attr_list[i].value.s32 = aclRange.type;
+        break;
+      case SAI_ACL_RANGE_ATTR_LIMIT:
+        attr_list[i].value.u32range = aclRange.limit;
+        break;
+      default:
+        return SAI_STATUS_NOT_SUPPORTED;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t create_acl_table_group_fn(

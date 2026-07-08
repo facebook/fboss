@@ -5,11 +5,7 @@
 extern "C" {
 #include <sai.h>
 
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiportextensions.h>
-#else
-#include <saiportextensions.h>
-#endif
 }
 
 namespace facebook::fboss {
@@ -323,9 +319,10 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
   // TODO (Q4D/J4/R4): Enable SAI_PORT_ATTR_EXTENSION_AM_IDLES for 15.x after
   // SDK support for Q4DL/J4
-#if (                                                                          \
-    defined(SAI_VERSION_11_7_0_0_ODP) || defined(BRCM_SAI_SDK_XGS_GTE_13_0) || \
-    defined(BRCM_SAI_SDK_DNX_GTE_12_0)) &&                                     \
+#if (                                                                         \
+    defined(SAI_VERSION_11_7_0_0_ODP) || defined(SAI_VERSION_14_2_0_0_ODP) || \
+    defined(BRCM_SAI_SDK_XGS_GTE_13_0) ||                                     \
+    defined(BRCM_SAI_SDK_DNX_GTE_12_0)) &&                                    \
     !defined(BRCM_SAI_SDK_DNX_GTE_15_0)
   return SAI_PORT_ATTR_EXTENSION_AM_IDLES;
 #else
@@ -589,7 +586,7 @@ SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
 
 std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
     AttributeCablePropagationDelayMediaType::operator()() {
-#if defined(BRCM_SAI_SDK_GTE_13_0)
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_XGS_GTE_15_0)
   return SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE;
 #else
   return std::nullopt;
@@ -598,6 +595,25 @@ std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCablePropagationDelayMeasure::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+  return SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkUpDebouncePeriodMs::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
   return std::nullopt;
 }
 

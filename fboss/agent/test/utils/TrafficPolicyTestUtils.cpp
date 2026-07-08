@@ -28,7 +28,18 @@ cfg::AclEntry* addDscpAclToCfg(
   acl.dscp() = dscp;
   utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
 
-  return utility::addAclEntry(config, acl, utility::kDefaultAclTable());
+  // A DSCP-only IPv6 ACL shares all its qualifiers with the default IPv4 table,
+  // so the generic router would place it there. On Q4D/J4 it must instead live
+  // in the dedicated IPv6 table, otherwise it lands in an IPv4 field-processor
+  // group that never sees IPv6 packets on DNX.
+  std::string tableName = utility::kDefaultAclTable();
+  if (FLAGS_enable_acl_table_group) {
+    tableName = (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+                 hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4)
+        ? utility::kIpv6AclTable()
+        : utility::getAclTableForAclEntry(*config, acl);
+  }
+  return utility::addAclEntry(config, acl, tableName);
 }
 
 void addL4SrcPortAclToCfg(
@@ -43,7 +54,11 @@ void addL4SrcPortAclToCfg(
   acl.l4SrcPort() = l4SrcPort;
   utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
 
-  utility::addAclEntry(config, acl, utility::kDefaultAclTable());
+  std::string tableName = utility::kDefaultAclTable();
+  if (FLAGS_enable_acl_table_group) {
+    tableName = utility::getAclTableForAclEntry(*config, acl);
+  }
+  utility::addAclEntry(config, acl, tableName);
 }
 
 void addL4DstPortAclToCfg(
@@ -58,7 +73,11 @@ void addL4DstPortAclToCfg(
   acl.l4DstPort() = l4DstPort;
   utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
 
-  utility::addAclEntry(config, acl, utility::kDefaultAclTable());
+  std::string tableName = utility::kDefaultAclTable();
+  if (FLAGS_enable_acl_table_group) {
+    tableName = utility::getAclTableForAclEntry(*config, acl);
+  }
+  utility::addAclEntry(config, acl, tableName);
 }
 
 void addSetDscpAndEgressQueueActionToCfg(
@@ -185,7 +204,9 @@ void addQueueMatcher(
       std::nullopt,
       *config->dsfNodes());
   cfg::MatchAction matchAction = utility::getToQueueAction(
-      checkSameAndGetAsic(asicTable.getL3Asics()), queueId, isSai);
+      checkSameAndGetAsic(asicTable.getL3Asics(), FLAGS_switch_id_for_testing),
+      queueId,
+      isSai);
 
   if (counterName.has_value()) {
     matchAction.counter() = counterName.value();

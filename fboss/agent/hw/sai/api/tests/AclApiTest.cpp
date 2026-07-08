@@ -183,6 +183,14 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(20, 0x3F);
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kTc() const {
+    return std::make_pair(6, 0xFF);
+  }
+
+  std::pair<sai_uint8_t, sai_uint8_t> kTc2() const {
+    return std::make_pair(7, 0xFF);
+  }
+
   std::pair<folly::MacAddress, folly::MacAddress> kDstMac() const {
     return std::make_pair(
         folly::MacAddress{"00:11:22:33:44:55"},
@@ -338,6 +346,14 @@ class AclApiTest : public ::testing::Test {
     return true;
   }
 
+  std::pair<sai_object_id_t, sai_uint32_t> kNextHopGroupId() const {
+    return std::make_pair(81, 0);
+  }
+
+  std::pair<sai_object_id_t, sai_uint32_t> kNextHopGroupId2() const {
+    return std::make_pair(810, 0);
+  }
+
   const std::vector<sai_object_id_t>& kMirrorIngress() const {
     static const std::vector<sai_object_id_t> mirrorIngress{10, 11};
 
@@ -402,6 +418,7 @@ class AclApiTest : public ::testing::Test {
             true, // icmpV6Type
             true, // icmpV6Code
             true, // dscp
+            true, // tc
             true, // dstMac
             true, // ipType
             true, // ttl
@@ -410,6 +427,7 @@ class AclApiTest : public ::testing::Test {
             true, // neighbor meta
             true, // ether type
             true, // outer vlan id
+            std::nullopt, // aclRangeType
             true, // bth opcode
             true, // ipv6 next header
             kUserDefinedFieldGroup0(), // udf group 0
@@ -479,6 +497,8 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldU8(kIcmpV6Code())};
     SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
         AclEntryFieldU8(kDscp())};
+    SaiAclEntryTraits::Attributes::FieldTc aclFieldTcAttribute{
+        AclEntryFieldU8(kTc())};
     SaiAclEntryTraits::Attributes::FieldDstMac aclFieldDstMacAttribute{
         AclEntryFieldMac(kDstMac())};
     SaiAclEntryTraits::Attributes::FieldIpType aclFieldIpTypeAttribute{
@@ -538,6 +558,8 @@ class AclApiTest : public ::testing::Test {
             AclEntryActionU32(kSetEcmpHashAlgorithm())};
     SaiAclEntryTraits::Attributes::ActionL3SwitchCancel aclActionL3SwitchCancel{
         AclEntryActionBool(kL3SwitchCancel())};
+    SaiAclEntryTraits::Attributes::FieldNextHopGroupId aclFieldNextHopGroupId{
+        AclEntryFieldSaiObjectIdT(kNextHopGroupId())};
 
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
@@ -559,6 +581,7 @@ class AclApiTest : public ::testing::Test {
          aclFieldIcmpV6TypeAttribute,
          aclFieldIcmpV6CodeAttribute,
          aclFieldDscpAttribute,
+         aclFieldTcAttribute,
          aclFieldDstMacAttribute,
          aclFieldIpTypeAttribute,
          aclFieldTtlAttribute,
@@ -567,6 +590,7 @@ class AclApiTest : public ::testing::Test {
          aclFieldNeighborDstUserMetaAttribute,
          aclFieldEtherTypeAttribute,
          aclFieldOuterVlanIdAttribute,
+         std::nullopt, // fieldAclRangeType
          aclFieldBthOpcodeAttribute,
          aclFieldIpv6NextHeaderAttribute,
          aclUserDefinedGroup0,
@@ -575,6 +599,7 @@ class AclApiTest : public ::testing::Test {
          aclUserDefinedGroup3,
          aclUserDefinedGroup4,
          aclActionPacketAction,
+         std::nullopt, // actionRedirect
          aclActionCounter,
          aclActionSetTC,
          aclActionSetDSCP,
@@ -585,7 +610,8 @@ class AclApiTest : public ::testing::Test {
          aclActionSetArsObject,
          aclActionDisableArsForwarding,
          aclActionSetEcmpHashAlgorithm,
-         aclActionL3SwitchCancel},
+         aclActionL3SwitchCancel,
+         aclFieldNextHopGroupId},
         kSwitchID());
   }
 
@@ -699,6 +725,7 @@ class AclApiTest : public ::testing::Test {
       const std::pair<sai_uint8_t, sai_uint8_t>& icmpV6Type,
       const std::pair<sai_uint8_t, sai_uint8_t>& icmpV6Code,
       const std::pair<sai_uint8_t, sai_uint8_t>& dscp,
+      const std::pair<sai_uint8_t, sai_uint8_t>& tc,
       const std::pair<folly::MacAddress, folly::MacAddress>& dstMac,
       const std::pair<sai_uint32_t, sai_uint32_t>& ipType,
       const std::pair<sai_uint8_t, sai_uint8_t>& ttl,
@@ -726,6 +753,7 @@ class AclApiTest : public ::testing::Test {
       bool disableArsForwarding,
       sai_uint32_t setEcmpHashAlgorithm,
       bool l3SwitchCancel,
+      const std::pair<sai_object_id_t, sai_uint32_t>& nextHopGroupId,
       bool enabled = true) const {
     auto aclPriorityGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::Priority());
@@ -764,6 +792,8 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV6Code());
     auto aclFieldDscpGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
+    auto aclFieldTcGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldTc());
     auto aclFieldDstMacGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDstMac());
     auto aclFieldIpTypeGot = aclApi->getAttribute(
@@ -821,6 +851,8 @@ class AclApiTest : public ::testing::Test {
         SaiAclEntryTraits::Attributes::ActionSetEcmpHashAlgorithm());
     auto aclActionL3SwitchCancelGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionL3SwitchCancel());
+    auto aclFieldNextHopGroupIdGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldNextHopGroupId());
 
     EXPECT_EQ(aclPriorityGot, priority);
     EXPECT_EQ(aclEnabledGot, enabled);
@@ -841,6 +873,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclFieldIcmpV6TypeGot.getDataAndMask(), icmpV6Type);
     EXPECT_EQ(aclFieldIcmpV6CodeGot.getDataAndMask(), icmpV6Code);
     EXPECT_EQ(aclFieldDscpGot.getDataAndMask(), dscp);
+    EXPECT_EQ(aclFieldTcGot.getDataAndMask(), tc);
     EXPECT_EQ(aclFieldDstMacGot.getDataAndMask(), dstMac);
     EXPECT_EQ(aclFieldIpTypeGot.getDataAndMask(), ipType);
     EXPECT_EQ(aclFieldTtlGot.getDataAndMask(), ttl);
@@ -870,6 +903,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclActionDisableArsForwardingGot.getData(), disableArsForwarding);
     EXPECT_EQ(aclActionSetEcmpHashAlgorithmGot.getData(), setEcmpHashAlgorithm);
     EXPECT_EQ(aclActionL3SwitchCancelGot.getData(), l3SwitchCancel);
+    EXPECT_EQ(aclFieldNextHopGroupIdGot.getDataAndMask(), nextHopGroupId);
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -1090,6 +1124,7 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kIcmpV6Type(),
       kIcmpV6Code(),
       kDscp(),
+      kTc(),
       kDstMac(),
       kIpType(),
       kTtl(),
@@ -1116,7 +1151,8 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kSetArsObject(),
       kDisableArsForwarding(),
       kSetEcmpHashAlgorithm(),
-      kL3SwitchCancel());
+      kL3SwitchCancel(),
+      kNextHopGroupId());
 }
 
 TEST_F(AclApiTest, getAclCounterAttribute) {
@@ -1272,6 +1308,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldU8(kIcmpV6Code2())};
   SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute2{
       AclEntryFieldU8(kDscp2())};
+  SaiAclEntryTraits::Attributes::FieldTc aclFieldTcAttribute2{
+      AclEntryFieldU8(kTc2())};
   SaiAclEntryTraits::Attributes::FieldDstMac aclFieldDstMacAttribute2{
       AclEntryFieldMac(kDstMac2())};
   SaiAclEntryTraits::Attributes::FieldIpType aclFieldIpTypeAttribute2{
@@ -1330,6 +1368,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       aclActionSetEcmpHashAlgorithm{AclEntryActionU32(kSetEcmpHashAlgorithm())};
   SaiAclEntryTraits::Attributes::ActionL3SwitchCancel aclActionL3SwitchCancel{
       AclEntryActionBool(kL3SwitchCancel())};
+  SaiAclEntryTraits::Attributes::FieldNextHopGroupId aclFieldNextHopGroupId2{
+      AclEntryFieldSaiObjectIdT(kNextHopGroupId2())};
 
   aclApi->setAttribute(aclEntryId, aclPriorityAttribute2);
 
@@ -1349,6 +1389,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldIcmpV6TypeAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldIcmpV6CodeAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldDscpAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldTcAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldDstMacAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldIpTypeAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldTtlAttribute2);
@@ -1376,6 +1417,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclActionDisableArsForwarding);
   aclApi->setAttribute(aclEntryId, aclActionSetEcmpHashAlgorithm);
   aclApi->setAttribute(aclEntryId, aclActionL3SwitchCancel);
+  aclApi->setAttribute(aclEntryId, aclFieldNextHopGroupId2);
 
   getAndVerifyAclEntryAttribute(
       aclEntryId,
@@ -1396,6 +1438,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kIcmpV6Type2(),
       kIcmpV6Code2(),
       kDscp2(),
+      kTc2(),
       kDstMac2(),
       kIpType2(),
       kTtl2(),
@@ -1422,7 +1465,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kSetArsObject(),
       kDisableArsForwarding(),
       kSetEcmpHashAlgorithm(),
-      kL3SwitchCancel());
+      kL3SwitchCancel(),
+      kNextHopGroupId2());
 
   SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction3{
       AclEntryActionU32(kPacketAction3())};
@@ -1494,6 +1538,67 @@ TEST_F(AclApiTest, setAclCounterAttribute) {
 #endif
   EXPECT_EQ(aclCounterPacketsGot, 10);
   EXPECT_EQ(aclCounterBytesGot, 20);
+}
+
+TEST_F(AclApiTest, createAclRange) {
+  sai_u32_range_t limit{.min = 1000, .max = 2000};
+  SaiAclRangeTraits::Attributes::Type typeAttr{
+      SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE};
+  SaiAclRangeTraits::Attributes::Limit limitAttr{limit};
+  auto aclRangeId =
+      aclApi->create<SaiAclRangeTraits>({typeAttr, limitAttr}, kSwitchID());
+  EXPECT_EQ(aclRangeId, fs->aclRangeManager.get(aclRangeId).id);
+}
+
+TEST_F(AclApiTest, removeAclRange) {
+  sai_u32_range_t limit{.min = 1000, .max = 2000};
+  SaiAclRangeTraits::Attributes::Type typeAttr{
+      SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE};
+  SaiAclRangeTraits::Attributes::Limit limitAttr{limit};
+  auto aclRangeId =
+      aclApi->create<SaiAclRangeTraits>({typeAttr, limitAttr}, kSwitchID());
+  EXPECT_EQ(aclRangeId, fs->aclRangeManager.get(aclRangeId).id);
+  aclApi->remove(aclRangeId);
+}
+
+TEST_F(AclApiTest, getAclRangeAttributes) {
+  sai_u32_range_t limit{.min = 500, .max = 65535};
+  SaiAclRangeTraits::Attributes::Type typeAttr{
+      SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE};
+  SaiAclRangeTraits::Attributes::Limit limitAttr{limit};
+  auto aclRangeId =
+      aclApi->create<SaiAclRangeTraits>({typeAttr, limitAttr}, kSwitchID());
+
+  auto typeGot =
+      aclApi->getAttribute(aclRangeId, SaiAclRangeTraits::Attributes::Type{});
+  EXPECT_EQ(typeGot, SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE);
+
+  auto limitGot =
+      aclApi->getAttribute(aclRangeId, SaiAclRangeTraits::Attributes::Limit{});
+  EXPECT_EQ(limitGot.min, 500);
+  EXPECT_EQ(limitGot.max, 65535);
+}
+
+TEST_F(AclApiTest, multipleAclRanges) {
+  sai_u32_range_t limit1{.min = 100, .max = 200};
+  sai_u32_range_t limit2{.min = 300, .max = 400};
+  auto rangeId1 = aclApi->create<SaiAclRangeTraits>(
+      {SaiAclRangeTraits::Attributes::Type{
+           SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE},
+       SaiAclRangeTraits::Attributes::Limit{limit1}},
+      kSwitchID());
+  auto rangeId2 = aclApi->create<SaiAclRangeTraits>(
+      {SaiAclRangeTraits::Attributes::Type{
+           SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE},
+       SaiAclRangeTraits::Attributes::Limit{limit2}},
+      kSwitchID());
+  EXPECT_NE(rangeId1, rangeId2);
+}
+
+TEST_F(AclApiTest, formatAclRangeAttribute) {
+  SaiAclRangeTraits::Attributes::Type type{0};
+  std::string expected("Type: 0");
+  EXPECT_EQ(expected, fmt::format("{}", type));
 }
 
 TEST_F(AclApiTest, formatAclTableStageAttribute) {
@@ -1670,4 +1775,18 @@ TEST_F(AclApiTest, formatAclTableGroupMemberAttribute) {
   SaiAclTableGroupMemberTraits::Attributes::TableGroupId tableGroupId{0};
   std::string expected("TableGroupId: 0");
   EXPECT_EQ(expected, fmt::format("{}", tableGroupId));
+}
+
+TEST_F(AclApiTest, setAndGetAclEntryActionRedirect) {
+  auto aclTableId = createAclTable();
+  auto aclEntryId = createAclEntry(aclTableId);
+
+  sai_object_id_t redirectTarget = 42;
+  SaiAclEntryTraits::Attributes::ActionRedirect actionRedirect{
+      AclEntryActionSaiObjectIdT(redirectTarget)};
+  aclApi->setAttribute(aclEntryId, actionRedirect);
+
+  auto gotRedirect = aclApi->getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::ActionRedirect());
+  EXPECT_EQ(gotRedirect.getData(), redirectTarget);
 }

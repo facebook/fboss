@@ -12,7 +12,8 @@ python_library(
         "remediation.py",
         "status.py",
         "utils.py",
-    ] + glob(["modules/*.py"]),
+    ]
+    + glob(["modules/*.py"]),
     resources = {
         "//fboss/platform:configs": "fboss_config_files",
     },

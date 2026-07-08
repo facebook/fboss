@@ -35,10 +35,10 @@ MultiHwSwitchHandler::MultiHwSwitchHandler(
           makeHwSwitchSyncers(sw, switchInfoMap, hwSwitchHandlerInitFn)),
       connectionStatusTable_{sw_},
       transactionsSupported_(transactionsSupported(sdkVersion)) {
-  CHECK_LE(hwSwitchSyncers_.size(), kMaxSwitchIds)
+  CHECK_LE(hwSwitchSyncers_.size(), kMaxLocalSwitchIds)
       << "Number of local switches (" << hwSwitchSyncers_.size()
-      << ") exceeds kMaxSwitchIds (" << kMaxSwitchIds
-      << "). Bump kMaxSwitchIds in SwitchIDs.h.";
+      << ") exceeds kMaxLocalSwitchIds (" << kMaxLocalSwitchIds
+      << "). Bump kMaxLocalSwitchIds in LocalSwitchIds.h.";
 }
 
 MultiHwSwitchHandler::~MultiHwSwitchHandler() {
@@ -295,7 +295,7 @@ bool MultiHwSwitchHandler::sendPacketOutOfPortAsync(
 template <typename SendFn>
 bool MultiHwSwitchHandler::sendPacketSwitchedImpl(
     std::unique_ptr<TxPacket> pkt,
-    const SwitchIDs& switchIds,
+    const LocalSwitchIDs& switchIds,
     SendFn sendFn) noexcept {
   if (hwSwitchSyncers_.empty()) {
     XLOG_EVERY_MS(WARNING, 5000) << "no hw switch syncers available";
@@ -337,7 +337,7 @@ bool MultiHwSwitchHandler::sendPacketSwitchedImpl(
 
 bool MultiHwSwitchHandler::sendPacketSwitchedSync(
     std::unique_ptr<TxPacket> pkt,
-    const SwitchIDs& switchIds) noexcept {
+    const LocalSwitchIDs& switchIds) noexcept {
   return sendPacketSwitchedImpl(
       std::move(pkt),
       switchIds,
@@ -348,7 +348,7 @@ bool MultiHwSwitchHandler::sendPacketSwitchedSync(
 
 bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
     std::unique_ptr<TxPacket> pkt,
-    const SwitchIDs& switchIds) noexcept {
+    const LocalSwitchIDs& switchIds) noexcept {
   return sendPacketSwitchedImpl(
       std::move(pkt),
       switchIds,

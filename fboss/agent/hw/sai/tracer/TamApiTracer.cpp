@@ -27,6 +27,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _TamEventMap{
     SAI_ATTR_MAP(TamEvent, Type),
     SAI_ATTR_MAP(TamEvent, ActionList),
     SAI_ATTR_MAP(TamEvent, CollectorList),
+    SAI_ATTR_MAP(TamEvent, Threshold),
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _TamEventActionMap{
@@ -35,6 +36,17 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _TamEventActionMap{
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _TamReportMap{
     SAI_ATTR_MAP(TamReport, Type),
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    SAI_ATTR_MAP(TamReport, SampleRate),
+    SAI_ATTR_MAP(TamReport, MaxReportRate),
+    SAI_ATTR_MAP(TamReport, MaxReportBurst),
+#endif
+};
+
+// NOLINTNEXTLINE(facebook-avoid-non-const-global-variables)
+std::map<int32_t, std::pair<std::string, std::size_t>> _TamEventThresholdMap{
+    SAI_ATTR_MAP(TamEventThreshold, Unit),
+    SAI_ATTR_MAP(TamEventThreshold, Rate),
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _TamTransportMap{
@@ -99,6 +111,17 @@ WRAP_REMOVE_FUNC(tam_collector, SAI_OBJECT_TYPE_TAM_COLLECTOR, tam);
 WRAP_SET_ATTR_FUNC(tam_collector, SAI_OBJECT_TYPE_TAM_COLLECTOR, tam);
 WRAP_GET_ATTR_FUNC(tam_collector, SAI_OBJECT_TYPE_TAM_COLLECTOR, tam);
 
+WRAP_CREATE_FUNC(tam_event_threshold, SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD, tam);
+WRAP_REMOVE_FUNC(tam_event_threshold, SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD, tam);
+WRAP_SET_ATTR_FUNC(
+    tam_event_threshold,
+    SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD,
+    tam);
+WRAP_GET_ATTR_FUNC(
+    tam_event_threshold,
+    SAI_OBJECT_TYPE_TAM_EVENT_THRESHOLD,
+    tam);
+
 sai_tam_api_t* wrappedTamApi() {
   handleExtensionAttributes();
   static sai_tam_api_t tamWrappers;
@@ -134,6 +157,13 @@ sai_tam_api_t* wrappedTamApi() {
   tamWrappers.set_tam_collector_attribute = &wrap_set_tam_collector_attribute;
   tamWrappers.get_tam_collector_attribute = &wrap_get_tam_collector_attribute;
 
+  tamWrappers.create_tam_event_threshold = &wrap_create_tam_event_threshold;
+  tamWrappers.remove_tam_event_threshold = &wrap_remove_tam_event_threshold;
+  tamWrappers.set_tam_event_threshold_attribute =
+      &wrap_set_tam_event_threshold_attribute;
+  tamWrappers.get_tam_event_threshold_attribute =
+      &wrap_get_tam_event_threshold_attribute;
+
   return &tamWrappers;
 }
 
@@ -143,5 +173,6 @@ SET_SAI_ATTRIBUTES(TamEventAction)
 SET_SAI_ATTRIBUTES(TamReport)
 SET_SAI_ATTRIBUTES(TamTransport)
 SET_SAI_ATTRIBUTES(TamCollector)
+SET_SAI_ATTRIBUTES(TamEventThreshold)
 
 } // namespace facebook::fboss

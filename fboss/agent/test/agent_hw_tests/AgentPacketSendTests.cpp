@@ -7,6 +7,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -91,7 +92,7 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
         {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT_MEMBER})[0]);
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto payLoadSize = 256;
     auto txPacket = utility::makeEthTxPacket(
@@ -126,6 +127,7 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
           scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
       auto asicType = getAsic(portSwitchId).getAsicType();
       if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
+          asicType != cfg::AsicType::ASIC_TYPE_P200 &&
           asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
           asicType != cfg::AsicType::ASIC_TYPE_G202X) {
         EXPECT_EVENTUALLY_EQ(
@@ -145,7 +147,7 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
         {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT_MEMBER})[0]);
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto payLoadSize = 256;
     auto numPkts = 20;
@@ -192,6 +194,7 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
           scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
       auto asicType = getAsic(portSwitchId).getAsicType();
       if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
+          asicType != cfg::AsicType::ASIC_TYPE_P200 &&
           asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
           asicType != cfg::AsicType::ASIC_TYPE_G202X) {
         EXPECT_EVENTUALLY_EQ(
@@ -226,8 +229,7 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
                             AgentEnsemble* ensemble,
                             const folly::IPAddressV6& dstIpv6Addr) {
         auto vlanId = getVlanIDForTx();
-        auto intfMac =
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        auto intfMac = getMacForFirstInterfaceWithPorts(getProgrammedState());
         auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
         constexpr auto kPayLoadLen{1000};
         int dscpVal = 0;
@@ -296,7 +298,7 @@ class AgentPacketSendReceiveTest : public AgentHwTest, public PacketObserverIf {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     auto cfg = AgentHwTest::initialConfig(ensemble);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, {asic}, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, {asic}, ensemble.isSai());
@@ -328,7 +330,7 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
         this, "LldpPacketReceiveSrcPort");
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto expectedNumPktsReceived = 1;
     for (const auto& port :
@@ -373,7 +375,7 @@ class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
       const AgentEnsemble& ensemble) const override {
     auto masterLogicalPortIds = ensemble.masterLogicalPortIds();
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
@@ -417,12 +419,12 @@ TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
         this, "LacpPacketReceiveSrcPort");
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto payLoadSize = 256;
     static auto payload = std::vector<uint8_t>(payLoadSize, 0xff);
     payload[0] = 0x1; // sub-version of lacp packet
     auto expectedNumPktsReceived = 1;
-    for (auto port :
+    for (const auto& port :
          {masterLogicalPortIds(
               {cfg::PortType::INTERFACE_PORT,
                cfg::PortType::HYPER_PORT_MEMBER})[0],
@@ -473,7 +475,7 @@ class AgentPacketFloodTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     // Use multiplePortsPerIntfConfig with portsPerVlan=2 to put both ports in
     // same VLAN
     auto cfg = utility::multiplePortsPerIntfConfig(
@@ -485,7 +487,11 @@ class AgentPacketFloodTest : public AgentHwTest {
         true /*interfaceHasSubnet*/,
         true /*setInterfaceMac*/,
         utility::kBaseVlanId, /*baseVlanId*/
-        2 /*portsPerVlan - both ports in same VLAN*/);
+        2 /*portsPerVlan - both ports in same VLAN*/,
+        false /*enableFabricPorts*/,
+        std::nullopt /*switchIdToSwitchInfo*/,
+        std::nullopt /*hwAsicTable*/,
+        ensemble.getSw()->getPlatformType());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, l3Asics, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, l3Asics, ensemble.isSai());
     return cfg;
@@ -500,7 +506,7 @@ class AgentPacketFloodTest : public AgentHwTest {
   bool checkPacketFlooding(
       std::map<PortID, HwPortStats>& portStatsBefore,
       bool v6) {
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds());
     for (auto portId : getLogicalPortIDs()) {
       auto packetsBefore = v6 ? *portStatsBefore[portId].outMulticastPkts_()
@@ -516,6 +522,7 @@ class AgentPacketFloodTest : public AgentHwTest {
         return false;
       }
       if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
+          asic->getAsicType() != cfg::AsicType::ASIC_TYPE_P200 &&
           asic->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA &&
           asic->getAsicType() != cfg::AsicType::ASIC_TYPE_G202X) {
         if (packetsAfter <= packetsBefore) {
@@ -534,7 +541,7 @@ TEST_F(AgentPacketFloodTest, ArpRequestFloodTest) {
         getLatestPortStats(masterLogicalInterfaceOrHyperPortIds());
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto randomIP = folly::IPAddressV4("1.1.1.5");
     auto txPacket = utility::makeARPTxPacket(
@@ -559,7 +566,7 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
     auto retries = 5;
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto success = false;
     while (retries--) {
       auto portStatsBefore =
@@ -591,7 +598,7 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
         getLatestPortStats(masterLogicalInterfaceOrHyperPortIds()[0]);
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto randomIP = folly::IPAddressV4("1.1.1.5");
     auto txPacket = utility::makeARPTxPacket(
@@ -618,6 +625,7 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
           scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
       auto asicType = getAsic(portSwitchId).getAsicType();
       if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
+          asicType != cfg::AsicType::ASIC_TYPE_P200 &&
           asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
           asicType != cfg::AsicType::ASIC_TYPE_G202X) {
         EXPECT_EVENTUALLY_EQ(
@@ -639,7 +647,7 @@ class AgentPacketSendLldpTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     auto cfg = AgentHwTest::initialConfig(ensemble);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, {asic}, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, {asic}, ensemble.isSai());

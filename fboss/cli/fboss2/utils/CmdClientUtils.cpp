@@ -64,20 +64,33 @@ createClient(const HostInfo& hostInfo) {
   return utils::createFanServiceClient(hostInfo);
 }
 
-int getNumHwSwitches(const HostInfo& hostInfo) {
+// In non-OSS builds, this specialization is provided by
+// utils/facebook/CmdClientUtils.cpp; defining it here too would cause a
+// duplicate-symbol link error.
+#ifdef IS_OSS
+template <>
+std::unique_ptr<
+    apache::thrift::Client<facebook::neteng::fboss::bgp::thrift::TBgpService>>
+createClient(const HostInfo& hostInfo) {
+  return utils::createBgpClient(hostInfo);
+}
+#endif
+
+MultiSwitchRunState getMultiSwitchRunState(const HostInfo& hostInfo) {
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
   MultiSwitchRunState runState;
   client->sync_getMultiSwitchRunState(runState);
-  return runState.hwIndexToRunState()->size();
+  return runState;
+}
+
+int getNumHwSwitches(const HostInfo& hostInfo) {
+  return static_cast<int>(
+      getMultiSwitchRunState(hostInfo).hwIndexToRunState()->size());
 }
 
 bool isMultiSwitchEnabled(const HostInfo& hostInfo) {
-  auto client =
-      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-  MultiSwitchRunState runState;
-  client->sync_getMultiSwitchRunState(runState);
-  return *runState.multiSwitchEnabled();
+  return *getMultiSwitchRunState(hostInfo).multiSwitchEnabled();
 }
 
 void runOnAllHwAgents(const HostInfo& hostInfo, RunForHwAgentFn fn) {

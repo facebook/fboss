@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 
@@ -804,7 +805,7 @@ void SaiMacsecManager::setupMacsec(
       std::string byteAsStr = str.substr(i, 2);
       uint8_t byte = (uint8_t)strtol(byteAsStr.c_str(), nullptr, 16);
       if (i / 2 >= dataLen) {
-        XLOG(ERR) << folly::sformat(
+        XLOG(ERR) << fmt::format(
             "Key string (length: {:d}) can't fit in key byte array (length: {:d})",
             str.length(),
             dataLen);
@@ -873,8 +874,8 @@ void SaiMacsecManager::setupMacsec(
           std::nullopt /* dstMac */,
           ethTypeMacsec);
 
-      auto aclEntryId =
-          managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+      auto aclEntryId = managerTable_->aclTableManager().addAclEntry(
+          aclEntry, aclName, nullptr /*state*/);
       XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
                  << direction << " ACL entry " << aclEntryId;
     } else {
@@ -887,8 +888,8 @@ void SaiMacsecManager::setupMacsec(
           std::nullopt /* dstMac */,
           std::nullopt /* etherType */);
 
-      auto aclEntryId =
-          managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+      auto aclEntryId = managerTable_->aclTableManager().addAclEntry(
+          aclEntry, aclName, nullptr /*state*/);
       XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
                  << direction << " ACL entry " << aclEntryId;
     }
@@ -1047,7 +1048,8 @@ void SaiMacsecManager::setupAclTable(
         table,
         direction == SAI_MACSEC_DIRECTION_INGRESS
             ? cfg::AclStage::INGRESS_MACSEC
-            : cfg::AclStage::EGRESS_MACSEC);
+            : cfg::AclStage::EGRESS_MACSEC,
+        nullptr /*state*/);
     XLOG(DBG2) << "For linePort: " << linePort << ", created "
                << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
                                                              : "Egress")
@@ -1074,8 +1076,8 @@ void SaiMacsecManager::setupAclControlPacketRules(
   cfg::EtherType ethTypeMka{cfg::EtherType::EAPOL};
   auto aclEntry = createMacsecControlAclEntry(
       kMacsecMkaAclPriority, aclName, std::nullopt /* dstMac */, ethTypeMka);
-  auto aclEntryId =
-      managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+  auto aclEntryId = managerTable_->aclTableManager().addAclEntry(
+      aclEntry, aclName, nullptr /*state*/);
   XLOG(DBG2) << "For linePort: " << linePort << ", direction "
              << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
                                                            : "Egress")
@@ -1085,7 +1087,8 @@ void SaiMacsecManager::setupAclControlPacketRules(
   cfg::EtherType ethTypeLldp{cfg::EtherType::LLDP};
   aclEntry = createMacsecControlAclEntry(
       kMacsecLldpAclPriority, aclName, std::nullopt /* dstMac */, ethTypeLldp);
-  aclEntryId = managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+  aclEntryId = managerTable_->aclTableManager().addAclEntry(
+      aclEntry, aclName, nullptr /*state*/);
   XLOG(DBG2) << "For linePort: " << linePort << ", direction "
              << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
                                                            : "Egress")
@@ -1141,8 +1144,8 @@ void SaiMacsecManager::setupDropUnencryptedRule(
 
     auto aclEntry = createMacsecRxDefaultAclEntry(
         kMacsecDefaultAclPriority, aclName, action);
-    auto aclEntryId =
-        managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+    auto aclEntryId = managerTable_->aclTableManager().addAclEntry(
+        aclEntry, aclName, nullptr /*state*/);
     XLOG(DBG2) << "For linePort " << linePort << " direction "
                << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
                                                              : "Egress")
@@ -1187,7 +1190,7 @@ void SaiMacsecManager::setupMacsecState(
   auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
   if (!aclTable) {
     throw FbossError(
-        folly::sformat(
+        fmt::format(
             "For linePort: {}, {:s} ACL table Not Found",
             static_cast<int>(linePort),
             (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
@@ -1218,7 +1221,7 @@ void SaiMacsecManager::setupMacsecState(
  * removeMacsecPipeline
  *
  * Helper function to remove the Macsec pipeline object from the port. After
- * this the port will send/recieve plaintext packets
+ * this the port will send/receive plaintext packets
  */
 void SaiMacsecManager::removeMacsecPipeline(
     PortID linePort,
@@ -1285,7 +1288,8 @@ void SaiMacsecManager::removeAclTable(
         table,
         direction == SAI_MACSEC_DIRECTION_INGRESS
             ? cfg::AclStage::INGRESS_MACSEC
-            : cfg::AclStage::EGRESS_MACSEC);
+            : cfg::AclStage::EGRESS_MACSEC,
+        nullptr /*state*/);
     XLOG(DBG2) << "Removed ACL table " << aclTableName;
   }
 }
@@ -1698,12 +1702,12 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
                   SaiAclCounterTraits::Attributes::CounterPackets());
           return counterPackets;
         }
-        XLOG(ERR) << folly::sformat(
+        XLOG(ERR) << fmt::format(
             "ACL entry does not exist for priority {:d}", prio);
         return 0;
       };
       auto defaultAclCount = getAclCounter(kMacsecDefaultAclPriority);
-      XLOG(DBG5) << folly::sformat(
+      XLOG(DBG5) << fmt::format(
           "ACL counter Macsec default = {:d}", defaultAclCount);
 
       if (direction == SAI_MACSEC_DIRECTION_INGRESS) {

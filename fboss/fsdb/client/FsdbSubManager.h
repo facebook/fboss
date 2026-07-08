@@ -108,7 +108,8 @@ class FsdbSubManager : public FsdbSubManagerBase {
   // with FSDB data
   folly::Synchronized<Data> subscribeBound(
       std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb =
-          std::nullopt);
+          std::nullopt,
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt);
 
   void stop() override {
     FsdbSubManagerBase::stop();

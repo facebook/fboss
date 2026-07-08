@@ -18,6 +18,7 @@
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
+#include <fmt/core.h>
 #include <folly/Benchmark.h>
 
 namespace facebook::fboss {
@@ -100,7 +101,7 @@ inline void remoteEntityBenchmark(RemoteEntityType type, bool add) {
          updateDsfStateWithoutNeighborFn,
          add]() {
           ensemble->getSw()->updateStateWithHwFailureProtection(
-              folly::sformat("Update state for node: {}", 0),
+              fmt::format("Update state for node: {}", 0),
               add ? updateDsfStateWithoutNeighborFn
                   : updateDsfStateWithNeighborFn);
         });
@@ -115,7 +116,7 @@ inline void remoteEntityBenchmark(RemoteEntityType type, bool add) {
     ensemble->getSw()->getRib()->updateStateInRibThread(
         [&ensemble, updateDsfStateWithNeighborFn]() {
           ensemble->getSw()->updateStateWithHwFailureProtection(
-              folly::sformat("Update state for node: {}", 0),
+              fmt::format("Update state for node: {}", 0),
               updateDsfStateWithNeighborFn);
         });
   }
@@ -158,7 +159,7 @@ inline void remoteEntityBenchmark(RemoteEntityType type, bool add) {
     ensemble->getSw()->getRib()->updateStateInRibThread(
         [&ensemble, switchId, updateForSingleRemoteNode]() {
           ensemble->getSw()->updateStateWithHwFailureProtection(
-              folly::sformat(
+              fmt::format(
                   "Update state for node: {}", static_cast<int>(switchId)),
               updateForSingleRemoteNode);
         });

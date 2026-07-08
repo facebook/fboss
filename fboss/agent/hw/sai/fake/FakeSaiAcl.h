@@ -103,6 +103,10 @@ class FakeAclEntry {
   sai_object_id_t fieldOutPortData;
   sai_uint32_t fieldOutPortMask;
 
+  bool fieldNextHopGroupIdEnable{false};
+  sai_object_id_t fieldNextHopGroupIdData{};
+  sai_uint32_t fieldNextHopGroupIdMask{};
+
   bool fieldL4SrcPortEnable{false};
   sai_uint16_t fieldL4SrcPortData;
   sai_uint16_t fieldL4SrcPortMask;
@@ -143,6 +147,10 @@ class FakeAclEntry {
   sai_uint8_t fieldDscpData;
   sai_uint8_t fieldDscpMask;
 
+  bool fieldTcEnable{false};
+  sai_uint8_t fieldTcData{};
+  sai_uint8_t fieldTcMask{};
+
   bool fieldDstMacEnable{false};
   folly::MacAddress fieldDstMacData;
   folly::MacAddress fieldDstMacMask;
@@ -175,6 +183,9 @@ class FakeAclEntry {
   sai_uint16_t fieldOuterVlanIdData;
   sai_uint16_t fieldOuterVlanIdMask;
 
+  bool fieldAclRangeTypeEnable{false};
+  std::vector<sai_object_id_t> fieldAclRangeTypeData;
+
   bool fieldBthOpcodeEnable{false};
   sai_uint8_t fieldBthOpcodeData;
   sai_uint8_t fieldBthOpcodeMask;
@@ -205,6 +216,9 @@ class FakeAclEntry {
 
   bool actionPacketActionEnable{false};
   sai_uint32_t actionPacketActionData;
+
+  bool actionRedirectEnable{false};
+  sai_object_id_t actionRedirectData{};
 
   bool actionCounterEnable{false};
   sai_object_id_t actionCounterData;
@@ -263,6 +277,7 @@ class FakeAclTable {
       bool fieldIcmpV6Type,
       bool fieldIcmpV6Code,
       bool fieldDscp,
+      bool fieldTc,
       bool fieldDstMac,
       bool fieldIpType,
       bool fieldTtl,
@@ -271,6 +286,7 @@ class FakeAclTable {
       bool fieldNeighborDstUserMeta,
       bool fieldEthertype,
       bool fieldOuterVlanId,
+      std::vector<sai_int32_t> fieldAclRangeType,
       bool fieldBthOpcode,
       bool fieldIpv6NextHeader,
       sai_object_id_t userDefinedFieldGroupMin,
@@ -297,6 +313,7 @@ class FakeAclTable {
         fieldIcmpV6Type(fieldIcmpV6Type),
         fieldIcmpV6Code(fieldIcmpV6Code),
         fieldDscp(fieldDscp),
+        fieldTc(fieldTc),
         fieldDstMac(fieldDstMac),
         fieldIpType(fieldIpType),
         fieldTtl(fieldTtl),
@@ -305,6 +322,7 @@ class FakeAclTable {
         fieldNeighborDstUserMeta(fieldNeighborDstUserMeta),
         fieldEthertype(fieldEthertype),
         fieldOuterVlanId(fieldOuterVlanId),
+        fieldAclRangeType(fieldAclRangeType),
         fieldBthOpcode(fieldBthOpcode),
         fieldIpv6NextHeader(fieldIpv6NextHeader),
         userDefinedFieldGroupMin(userDefinedFieldGroupMin),
@@ -337,6 +355,7 @@ class FakeAclTable {
   bool fieldIcmpV6Type;
   bool fieldIcmpV6Code;
   bool fieldDscp;
+  bool fieldTc;
   bool fieldDstMac;
   bool fieldIpType;
   bool fieldTtl;
@@ -345,6 +364,7 @@ class FakeAclTable {
   bool fieldNeighborDstUserMeta;
   bool fieldEthertype;
   bool fieldOuterVlanId;
+  std::vector<sai_int32_t> fieldAclRangeType;
   bool fieldBthOpcode;
   bool fieldIpv6NextHeader;
   sai_object_id_t userDefinedFieldGroupMin;
@@ -373,8 +393,19 @@ class FakeAclCounter {
   sai_object_id_t id;
 };
 
+class FakeAclRange {
+ public:
+  FakeAclRange(sai_int32_t type, sai_u32_range_t limit)
+      : type(type), limit(limit) {}
+
+  sai_int32_t type;
+  sai_u32_range_t limit;
+  sai_object_id_t id;
+};
+
 using FakeAclEntryManager = FakeManager<sai_object_id_t, FakeAclEntry>;
 using FakeAclCounterManager = FakeManager<sai_object_id_t, FakeAclCounter>;
+using FakeAclRangeManager = FakeManager<sai_object_id_t, FakeAclRange>;
 using FakeAclTableManager = FakeManager<sai_object_id_t, FakeAclTable>;
 
 void populate_acl_api(sai_acl_api_t** acl_api);

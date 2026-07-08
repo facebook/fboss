@@ -9,6 +9,9 @@
  */
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/platforms/PlatformDescriptor.h"
+
+#include <cstdint>
 
 #include <boost/algorithm/string.hpp>
 #include <folly/FileUtil.h>
@@ -56,6 +59,10 @@ std::string PlatformProductInfo::getFabricLocation() {
   return *productInfo_.fabricLocation();
 }
 
+std::string PlatformProductInfo::getOem() const {
+  return *productInfo_.oem();
+}
+
 std::string PlatformProductInfo::getProductName() {
   return *productInfo_.product();
 }
@@ -65,6 +72,15 @@ int PlatformProductInfo::getProductVersion() const {
 }
 
 void PlatformProductInfo::initMode() {
+  if (!FLAGS_platform_descriptor_config_path.empty()) {
+    auto descriptorPlatformType =
+        PlatformDescriptorRegistry::get().findPlatformType(
+            getProductName(), FLAGS_mode);
+    if (descriptorPlatformType.has_value()) {
+      type_ = *descriptorPlatformType;
+      return;
+    }
+  }
   if (FLAGS_mode.empty()) {
     auto modelName = getProductName();
     if (modelName.find("MINIPACK2") == 0) {
@@ -83,6 +99,10 @@ void PlatformProductInfo::initMode() {
         modelName.find("Wedge800BACT") == 0 ||
         modelName.find("WEDGE800BACT") == 0) {
       type_ = PlatformType::PLATFORM_WEDGE800BACT;
+    } else if (
+        modelName.find("Wedge800BNHP") == 0 ||
+        modelName.find("WEDGE800BNHP") == 0) {
+      type_ = PlatformType::PLATFORM_WEDGE800BNHP;
     } else if (
         modelName.find("Wedge800CACT") == 0 ||
         modelName.find("WEDGE800CACT") == 0) {
@@ -113,6 +133,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MINIPACK3BTA;
     } else if (
         modelName.find("Montblanc") == 0 || modelName.find("MONTBLANC") == 0 ||
+        modelName.find("Montblancm") == 0 ||
+        modelName.find("MONTBLANCM") == 0 ||
         modelName.find("MINIPACK3_CHASSIS_BUNDLE") == 0 ||
         modelName.find("MINIPACK3") == 0 ||
         modelName.find("MINIPACK3-48V-ORV3") == 0) {
@@ -165,7 +187,8 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Meru800biac") == 0 ||
         modelName.find("MERU800BIAC") == 0 ||
-        modelName.find("EFT-DL-7700R4C-38PE-C-F") == 0) {
+        modelName.find("EFT-DL-7700R4C-38PE-C-F") == 0 ||
+        modelName.find("FB-DL-7700R4C-38PE-C-F") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIAC;
     } else if (
         modelName.find("Meru800bfa") == 0 ||
@@ -191,18 +214,26 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("JANGA800BIC") == 0 || modelName.find("JANGA") == 0) {
       type_ = PlatformType::PLATFORM_JANGA800BIC;
-    } else if (modelName.find("TAHANSB800BC") == 0) {
+    } else if (
+        modelName.find("TAHANSB800BC") == 0 ||
+        modelName.find("TAHANSB800BCM") == 0 ||
+        modelName.find("TAHAN_SB") == 0) {
       type_ = PlatformType::PLATFORM_TAHANSB800BC;
     } else if (
         modelName.find("TAHAN") == 0 || modelName.find("TAHAN800BC") == 0 ||
         modelName.find("R4063-F9001-01") == 0) {
       type_ = PlatformType::PLATFORM_TAHAN800BC;
-    } else if (modelName.find("ICECUBE") == 0) {
+    } else if (
+        modelName.find("ICECUBE") == 0 || modelName.find("ICECUBEM") == 0) {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
     } else if (modelName.find("ICETEA") == 0) {
       type_ = PlatformType::PLATFORM_ICETEA800BC;
-    } else if (modelName.find("LADAKH800BCLS") == 0) {
+    } else if (
+        modelName.find("LADAKH800BCLS") == 0 ||
+        modelName.find("LADAKH800BCLSM") == 0) {
       type_ = PlatformType::PLATFORM_LADAKH800BCLS;
+    } else if (modelName.find("LEH800BCLS") == 0) {
+      type_ = PlatformType::PLATFORM_LEH800BCLS;
     } else if (
         modelName.find("Icecube800banw") == 0 ||
         modelName.find("ICECUBE800BANW") == 0 ||
@@ -214,6 +245,12 @@ void PlatformProductInfo::initMode() {
         modelName.find("Blackwolf800banw") == 0 ||
         modelName.find("BLACKWOLF800BANW") == 0) {
       type_ = PlatformType::PLATFORM_BLACKWOLF800BANW;
+    } else if (
+        modelName.find("Saintpaul") == 0 || modelName.find("SAINTPAUL") == 0) {
+      type_ = PlatformType::PLATFORM_SAINTPAUL;
+    } else if (
+        modelName.find("M4062nhp") == 0 || modelName.find("M4062NHP") == 0) {
+      type_ = PlatformType::PLATFORM_M4062NHP;
     } else {
       throw FbossError("invalid model name " + modelName);
     }
@@ -258,9 +295,11 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_WEDGE400C_VOQ;
     } else if (FLAGS_mode == "wedge400c_fabric") {
       type_ = PlatformType::PLATFORM_WEDGE400C_FABRIC;
-    } else if (FLAGS_mode == "montblanc" || FLAGS_mode == "minipack3ba") {
+    } else if (
+        FLAGS_mode == "montblanc" || FLAGS_mode == "montblancm" ||
+        FLAGS_mode == "minipack3ba") {
       type_ = PlatformType::PLATFORM_MONTBLANC;
-    } else if (FLAGS_mode == "icecube800bc") {
+    } else if (FLAGS_mode == "icecube800bc" || FLAGS_mode == "icecube800bcm") {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
     } else if (FLAGS_mode == "icetea800bc") {
       type_ = PlatformType::PLATFORM_ICETEA800BC;
@@ -280,20 +319,29 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MINIPACK3N;
     } else if (FLAGS_mode == "wedge800bact") {
       type_ = PlatformType::PLATFORM_WEDGE800BACT;
-    } else if (FLAGS_mode == "tahansb800bc") {
+    } else if (FLAGS_mode == "tahansb800bc" || FLAGS_mode == "tahansb800bcm") {
       type_ = PlatformType::PLATFORM_TAHANSB800BC;
     } else if (FLAGS_mode == "wedge800cact") {
       type_ = PlatformType::PLATFORM_WEDGE800CACT;
     } else if (FLAGS_mode == "j4sim") {
       type_ = PlatformType::PLATFORM_J4SIM;
-    } else if (FLAGS_mode == "ladakh800bcls") {
+    } else if (
+        FLAGS_mode == "ladakh800bcls" || FLAGS_mode == "ladakh800bclsm") {
       type_ = PlatformType::PLATFORM_LADAKH800BCLS;
+    } else if (FLAGS_mode == "leh800bcls") {
+      type_ = PlatformType::PLATFORM_LEH800BCLS;
     } else if (FLAGS_mode == "icecube800banw") {
       type_ = PlatformType::PLATFORM_ICECUBE800BANW;
     } else if (FLAGS_mode == "blackwolf800banw") {
       type_ = PlatformType::PLATFORM_BLACKWOLF800BANW;
     } else if (FLAGS_mode == "yangra2") {
       type_ = PlatformType::PLATFORM_YANGRA2;
+    } else if (FLAGS_mode == "saintpaul") {
+      type_ = PlatformType::PLATFORM_SAINTPAUL;
+    } else if (FLAGS_mode == "m4062nhp") {
+      type_ = PlatformType::PLATFORM_M4062NHP;
+    } else if (FLAGS_mode == "wedge800bnhp") {
+      type_ = PlatformType::PLATFORM_WEDGE800BNHP;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
@@ -305,11 +353,37 @@ std::string PlatformProductInfo::getField(
     const std::vector<std::string>& keys) {
   for (const auto& key : keys) {
     if (info.count(key)) {
-      return folly::to<std::string>(info[key].asString());
+      try {
+        return folly::to<std::string>(info[key].asString());
+      } catch (const std::exception& err) {
+        throw FbossError(
+            "Failed to parse string field '",
+            key,
+            "' from ",
+            path_,
+            ": ",
+            err.what());
+      }
     }
   }
   // If field does not exist in fruid.json, return empty string
   return "";
+}
+
+int16_t PlatformProductInfo::getInt16Field(
+    const folly::dynamic& info,
+    StringPiece key) {
+  try {
+    return folly::to<int16_t>(info[key].asInt());
+  } catch (const std::exception& err) {
+    throw FbossError(
+        "Failed to parse integer field '",
+        key,
+        "' from ",
+        path_,
+        ": ",
+        err.what());
+  }
 }
 
 void PlatformProductInfo::parse(std::string data) {
@@ -352,16 +426,16 @@ void PlatformProductInfo::parse(std::string data) {
 
   // Optional field in Information
   if (info.count(kVersion)) {
-    productInfo_.version() = info[kVersion].asInt();
+    productInfo_.version() = getInt16Field(info, kVersion);
   }
   if (info.count(kSubVersion)) {
-    productInfo_.subVersion() = info[kSubVersion].asInt();
+    productInfo_.subVersion() = getInt16Field(info, kSubVersion);
   }
   if (info.count(kProductionState)) {
-    productInfo_.productionState() = info[kProductionState].asInt();
+    productInfo_.productionState() = getInt16Field(info, kProductionState);
   }
   if (info.count(kProdVersion)) {
-    productInfo_.productVersion() = info[kProdVersion].asInt();
+    productInfo_.productVersion() = getInt16Field(info, kProdVersion);
   }
 
   // There are different keys for these values in BMC
@@ -378,12 +452,29 @@ void PlatformProductInfo::parse(std::string data) {
       getField(info, {kFabricLocation, kFabricLocationBmcLite});
   productInfo_.bmcMac() = getField(info, {kLocalMac, kLocalMacBmcLite});
   productInfo_.mgmtMac() = getField(info, {kExtMacBase, kExtMacBaseBmcLite});
-  auto macBase = MacAddress(productInfo_.mgmtMac().value()).u64HBO() + 1;
+  uint64_t macBase = 0;
+  try {
+    macBase = MacAddress(productInfo_.mgmtMac().value()).u64HBO() + 1;
+  } catch (const std::exception& err) {
+    throw FbossError(
+        "Failed to parse MAC field '",
+        kExtMacBase,
+        "'/'",
+        kExtMacBaseBmcLite,
+        "' (value: '",
+        productInfo_.mgmtMac().value(),
+        "') from ",
+        path_,
+        ": ",
+        err.what());
+  }
   productInfo_.macRangeStart() = MacAddress::fromHBO(macBase).toString();
   if (info.count(kExtMacSize)) {
-    productInfo_.macRangeSize() = info[kExtMacSize].asInt() - 1;
+    productInfo_.macRangeSize() =
+        folly::to<int16_t>(getInt16Field(info, kExtMacSize) - 1);
   } else if (info.count(kExtMacSizeBmcLite)) {
-    productInfo_.macRangeSize() = info[kExtMacSizeBmcLite].asInt() - 1;
+    productInfo_.macRangeSize() =
+        folly::to<int16_t>(getInt16Field(info, kExtMacSizeBmcLite) - 1);
   }
 
   // Product Asset Tag is not present in BMC-Lite platforms.

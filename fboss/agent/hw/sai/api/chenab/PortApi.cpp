@@ -141,7 +141,7 @@ SaiPortTraits::Attributes::AttributeCrcErrorDetect::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeCablePropogationDelayNS::operator()() {
-  return std::nullopt;
+  return SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY;
 }
 
 std::optional<sai_attr_id_t>
@@ -407,16 +407,31 @@ SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
 
 std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
     AttributeCablePropagationDelayMediaType::operator()() {
-#if SAI_API_VERSION >= SAI_VERSION(1, 17, 0) && defined(CHENAB_SAI_SDK)
-  return SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY;
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
+#if !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea)
+  return SAI_PORT_ATTR_PFC_PAUSE_DURATION_OVERRIDE;
 #else
   return std::nullopt;
 #endif
 }
 
 std::optional<sai_attr_id_t>
-SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
-  return SAI_PORT_ATTR_PFC_PAUSE_DURATION_OVERRIDE;
+SaiPortTraits::Attributes::AttributeCablePropagationDelayMeasure::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkUpDebouncePeriodMs::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
+  return std::nullopt;
 }
 
 } // namespace facebook::fboss

@@ -32,6 +32,7 @@ cpp_library(
         "//fboss/agent/state:state_utils",
         "//fboss/agent/test:agent_ensemble_test",
         "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:dscp_marking_utils",
         "//fboss/agent/test/utils:network_ai_qos_utils",

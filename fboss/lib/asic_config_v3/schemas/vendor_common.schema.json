@@ -1,0 +1,17 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Vendor Common Config",
+    "description": "Vendor-level common settings (sdk_common.json and sai_common.json). All key-value pairs under 'global' are pass-through settings copied to the output.",
+    "type": "object",
+    "required": ["global"],
+    "additionalProperties": false,
+    "properties": {
+        "global": {
+            "type": "object",
+            "description": "Pass-through SDK or SAI settings copied to the 'global' output table.",
+            "additionalProperties": {
+                "type": "string"
+            }
+        }
+    }
+}

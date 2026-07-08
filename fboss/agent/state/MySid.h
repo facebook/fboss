@@ -75,6 +75,59 @@ class MySid : public ThriftStructNode<MySid, state::MySidFields> {
         getResolvedNextHopsId().has_value();
   }
 
+  std::optional<int32_t> getAdjacencyInterfaceId() const {
+    if (auto id = safe_cref<switch_state_tags::adjacencyInterfaceId>()) {
+      return id->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setAdjacencyInterfaceId(std::optional<int32_t> id) {
+    if (id) {
+      set<switch_state_tags::adjacencyInterfaceId>(*id);
+    } else {
+      ref<switch_state_tags::adjacencyInterfaceId>().reset();
+    }
+  }
+
+  ClientID getClientId() const {
+    return cref<switch_state_tags::clientId>()->cref();
+  }
+
+  void setClientId(ClientID clientId) {
+    set<switch_state_tags::clientId>(clientId);
+  }
+
+  std::optional<bool> getIsV6() const {
+    if (auto val = safe_cref<switch_state_tags::isV6>()) {
+      return val->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setIsV6(std::optional<bool> isV6) {
+    if (isV6) {
+      set<switch_state_tags::isV6>(*isV6);
+    } else {
+      ref<switch_state_tags::isV6>().reset();
+    }
+  }
+
+  std::optional<std::string> getNamedNextHopGroup() const {
+    if (auto val = safe_cref<switch_state_tags::namedNextHopGroup>()) {
+      return val->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setNamedNextHopGroup(const std::optional<std::string>& name) {
+    if (name) {
+      set<switch_state_tags::namedNextHopGroup>(*name);
+    } else {
+      ref<switch_state_tags::namedNextHopGroup>().reset();
+    }
+  }
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;

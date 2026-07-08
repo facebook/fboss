@@ -19,6 +19,7 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -41,34 +42,6 @@ std::shared_ptr<MySid> makeMySid(
   thriftPrefix.prefixLength() = prefixLen;
   fields.mySid() = thriftPrefix;
   return std::make_shared<MySid>(fields);
-}
-
-std::shared_ptr<Route<folly::IPAddressV6>> makeResolvedV6Route(
-    const folly::IPAddressV6& network,
-    uint8_t mask,
-    const RouteNextHopSet& nhops) {
-  RoutePrefix<folly::IPAddressV6> prefix{network, mask};
-  auto thrift = Route<folly::IPAddressV6>::makeThrift(prefix);
-  auto route = std::make_shared<Route<folly::IPAddressV6>>(thrift);
-  route->setResolved(RouteNextHopEntry(nhops, AdminDistance::EBGP));
-  route->publish();
-  return route;
-}
-
-std::shared_ptr<Route<folly::IPAddressV6>> makeConnectedV6Route(
-    const folly::IPAddressV6& network,
-    uint8_t mask,
-    InterfaceID intfId) {
-  RoutePrefix<folly::IPAddressV6> prefix{network, mask};
-  auto thrift = Route<folly::IPAddressV6>::makeThrift(prefix);
-  auto route = std::make_shared<Route<folly::IPAddressV6>>(thrift);
-  RouteNextHopSet nhops{
-      ResolvedNextHop(folly::IPAddress(network), intfId, ECMP_WEIGHT)};
-  route->setResolved(
-      RouteNextHopEntry(nhops, AdminDistance::DIRECTLY_CONNECTED));
-  route->setConnected();
-  route->publish();
-  return route;
 }
 
 RouteNextHopSet makeResolvedNhops(
@@ -97,6 +70,38 @@ class RibMySidUpdaterTest : public ::testing::Test {
     return manager()
         .getOrAllocRouteNextHopSetID(nhops)
         .nextHopIdSetIter->second.id;
+  }
+
+  std::shared_ptr<Route<folly::IPAddressV6>> makeResolvedV6Route(
+      const folly::IPAddressV6& network,
+      uint8_t mask,
+      const RouteNextHopSet& nhops) {
+    RoutePrefix<folly::IPAddressV6> prefix{network, mask};
+    auto thrift = Route<folly::IPAddressV6>::makeThrift(prefix);
+    auto route = std::make_shared<Route<folly::IPAddressV6>>(thrift);
+    // Stamp resolved + normalized IDs as RibRouteUpdater::resolveOne does.
+    RouteNextHopEntry entry(nhops, AdminDistance::EBGP);
+    allocateRouteNextHopIds(manager_.get(), entry);
+    route->setResolved(entry);
+    route->publish();
+    return route;
+  }
+
+  std::shared_ptr<Route<folly::IPAddressV6>> makeConnectedV6Route(
+      const folly::IPAddressV6& network,
+      uint8_t mask,
+      InterfaceID intfId) {
+    RoutePrefix<folly::IPAddressV6> prefix{network, mask};
+    auto thrift = Route<folly::IPAddressV6>::makeThrift(prefix);
+    auto route = std::make_shared<Route<folly::IPAddressV6>>(thrift);
+    RouteNextHopSet nhops{
+        ResolvedNextHop(folly::IPAddress(network), intfId, ECMP_WEIGHT)};
+    RouteNextHopEntry entry(nhops, AdminDistance::DIRECTLY_CONNECTED);
+    allocateRouteNextHopIds(manager_.get(), entry);
+    route->setResolved(entry);
+    route->setConnected();
+    route->publish();
+    return route;
   }
 
   std::unique_ptr<NextHopIDManager> manager_;
@@ -208,10 +213,13 @@ TEST_F(RibMySidUpdaterTest, gatewayNhopNoRouteMatch_noResolvedSetId) {
   EXPECT_FALSE(mySidTable_.at(key)->getResolvedNextHopsId().has_value());
 }
 
-TEST_F(RibMySidUpdaterTest, secondResolve_differentNhops_oldSetIdDeallocated) {
-  // After re-resolving with different nexthops, the old resolvedSetId should
-  // be deallocated (ref count reaches 0) and a new one allocated.
-  // Use gateway nexthops resolved via routes so unresolvedId != resolvedId.
+TEST_F(
+    RibMySidUpdaterTest,
+    secondResolve_differentNhops_oldSetRetainedByRoute) {
+  // After re-resolving to different nexthops the MySid releases its old
+  // resolvedSetId and gets a new one. The old set is shared with route1's
+  // normalizedResolvedNextHopSetID (recursive resolution reuses the route's fwd
+  // nexthops), so it stays alive -- route1 still references it.
   const auto routeNhops1 = makeResolvedNhops({{"fe80::1", InterfaceID(1)}});
   const auto routeNhops2 = makeResolvedNhops({{"fe80::2", InterfaceID(2)}});
   auto v6Route1 =
@@ -253,17 +261,21 @@ TEST_F(RibMySidUpdaterTest, secondResolve_differentNhops_oldSetIdDeallocated) {
   const auto secondResolvedId = mySidTable_.at(key)->getResolvedNextHopsId();
   ASSERT_TRUE(secondResolvedId.has_value());
   EXPECT_NE(*firstResolvedId, *secondResolvedId);
-  // Old set ID should be deallocated (ref count hit 0).
-  EXPECT_FALSE(manager().getNextHopsIf(*firstResolvedId).has_value());
+  // The MySid released its reference to the old set, dropping the shared set's
+  // ref count from 2 (route1 + MySid) to 1 (route1 alone) -- retained by
+  // route1, not freed.
+  const auto& oldNhIdSet = manager().getIdToNextHopIdSet().at(*firstResolvedId);
+  EXPECT_EQ(manager().getNextHopIDSetRefCount(oldNhIdSet), 1);
   // New set ID should be alive.
   EXPECT_TRUE(manager().getNextHopsIf(*secondResolvedId).has_value());
 }
 
 TEST_F(
     RibMySidUpdaterTest,
-    twoEntriesSameNhops_resolvedSetIdSharedAndRefCountIsTwo) {
+    twoEntriesSameNhops_resolvedSetIdSharedAndRefCountIsThree) {
   // Two MySid entries with different gateway nexthops that both resolve via
-  // the same route. They should share one NextHopSetID with ref count 2.
+  // the same route. They share one NextHopSetID; with the route also
+  // referencing it, the ref count is 3.
   const auto sharedRouteNhops =
       makeResolvedNhops({{"fe80::1", InterfaceID(1)}});
   auto v6Route = makeResolvedV6Route(
@@ -296,9 +308,10 @@ TEST_F(
   ASSERT_TRUE(id2.has_value());
   EXPECT_EQ(*id1, *id2);
 
-  // Ref count of the shared set should be 2 (one for each MySid entry).
+  // Ref count of the shared set should be 3: the route's normalized ID plus
+  // one for each of the two MySid entries (both resolve via the same route).
   const auto& nhIdSet = manager().getIdToNextHopIdSet().at(*id1);
-  EXPECT_EQ(manager().getNextHopIDSetRefCount(nhIdSet), 2);
+  EXPECT_EQ(manager().getNextHopIDSetRefCount(nhIdSet), 3);
 }
 
 TEST_F(RibMySidUpdaterTest, resolveFiltered_onlyMatchingEntryResolved) {

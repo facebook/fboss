@@ -220,6 +220,7 @@ cpp_library(
     link_whole = True,
     undefined_symbols = True,
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         ":link_test_production_features-cpp2-types",
         "//common/base:proc",
@@ -263,6 +264,8 @@ cpp_library(
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
         "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/if:link_qsfp_test_port_info-cpp2-types",
+        "//fboss/lib/if:link_qsfp_test_port_info_utils",
         "//fboss/lib/phy:phy-cpp2-serialization",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",
@@ -274,6 +277,7 @@ cpp_library(
         "//fboss/qsfp_service/if:transceiver-cpp2-serialization",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//folly:conv",
         "//folly:network_address",
         "//folly:random",
         "//folly:string",
@@ -306,6 +310,7 @@ cpp_library(
         ],
         versions = to_versions(sdk),
         deps = [
+            "fbsource//third-party/glog:glog",
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:main-bcm",
             "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
@@ -316,7 +321,6 @@ cpp_library(
         ],
         external_deps = [
             "gflags",
-            "glog",
         ],
     )
     for sdk in BCM_SDKS
@@ -334,6 +338,7 @@ cpp_library(
         ],
         versions = to_versions(sdk),
         deps = [
+            "fbsource//third-party/glog:glog",
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:main-bcm",
             "//fboss/agent:setup_thrift_prod",
@@ -345,7 +350,6 @@ cpp_library(
         ],
         external_deps = [
             "gflags",
-            "glog",
         ],
     )
     for sdk in BCM_SDKS
@@ -363,6 +367,7 @@ cpp_library(
         ],
         versions = to_versions(sdk),
         deps = [
+            "fbsource//third-party/glog:glog",
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:main-bcm",
             "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
@@ -373,7 +378,6 @@ cpp_library(
         ],
         external_deps = [
             "gflags",
-            "glog",
         ],
     )
     for sdk in BCM_SDKS

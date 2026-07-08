@@ -32,7 +32,6 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kInIpv4HdrErrors(),
       kInIpv6HdrErrors(),
       kInDstNullDiscards(),
-      kInSrv6MySidDiscards(),
       kInDiscardsRaw(),
       kOutBytes(),
       kOutUnicastPkts(),
@@ -47,7 +46,6 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kFecCorrectable(),
       kFecUncorrectable(),
       kLeakyBucketFlapCnt(),
-      kInLabelMissDiscards(),
       kInCongestionDiscards(),
       kInAclDiscards(),
       kInTrapDiscards(),
@@ -68,6 +66,7 @@ const std::vector<folly::StringPiece>&
 HwPortFb303Stats::kPortFb303CounterStatKeys() const {
   static std::vector<folly::StringPiece> kPortKeys{
       kCableLengthMeters(),
+      kCableDelayNsec(),
       kDataCellsFilterOn(),
   };
   return kPortKeys;
@@ -184,7 +183,8 @@ void HwPortFb303Stats::updateStats(
       timeRetrieved_, kInIpv6HdrErrors(), *curPortStats.inIpv6HdrErrors_());
   updateStat(
       timeRetrieved_, kInDstNullDiscards(), *curPortStats.inDstNullDiscards_());
-  if (curPortStats.inSrv6MySidDiscards_().has_value()) {
+  if (isSrv6MysidDiscardCounterSupported() &&
+      curPortStats.inSrv6MySidDiscards_().has_value()) {
     updateStat(
         timeRetrieved_,
         kInSrv6MySidDiscards(),
@@ -222,10 +222,12 @@ void HwPortFb303Stats::updateStats(
         kLeakyBucketFlapCnt(),
         *curPortStats.leakyBucketFlapCount_());
   }
-  updateStat(
-      timeRetrieved_,
-      kInLabelMissDiscards(),
-      *curPortStats.inLabelMissDiscards_());
+  if (isMplsLabelLookupFailCounterSupported()) {
+    updateStat(
+        timeRetrieved_,
+        kInLabelMissDiscards(),
+        *curPortStats.inLabelMissDiscards_());
+  }
   updateStat(
       timeRetrieved_,
       kInCongestionDiscards(),
@@ -261,6 +263,11 @@ void HwPortFb303Stats::updateStats(
     fb303::fbData->setCounter(
         statName(kCableLengthMeters(), portName()),
         *curPortStats.cableLengthMeters());
+  }
+  if (curPortStats.cableDelayNsec().has_value()) {
+    fb303::fbData->setCounter(
+        statName(kCableDelayNsec(), portName()),
+        *curPortStats.cableDelayNsec());
   }
   if (curPortStats.dataCellsFilterOn().has_value()) {
     fb303::fbData->setCounter(
@@ -502,10 +509,9 @@ void HwPortFb303Stats::updateStats(
     }
   }
 
-  // Update PG stats if applicable.
-  // Note: There is a 1:1 mapping between priority and PG id.
+  // Update PG stats, keyed by PG id (see pgIdsForStats()).
   if (curPortStats.pgInCongestionDiscards_()->size()) {
-    for (const auto& pgId : getEnabledPfcPriorities()) {
+    for (auto pgId : pgIdsForStats()) {
       auto pgStatsIter = curPortStats.pgInCongestionDiscards_()->find(pgId);
       if (pgStatsIter != curPortStats.pgInCongestionDiscards_()->end()) {
         updatePgStat(
@@ -514,7 +520,7 @@ void HwPortFb303Stats::updateStats(
     }
   }
   if (curPortStats.pgInCongestionDiscardSeen_()->size()) {
-    for (const auto& pgId : getEnabledPfcPriorities()) {
+    for (auto pgId : pgIdsForStats()) {
       auto pgStatsIter = curPortStats.pgInCongestionDiscardSeen_()->find(pgId);
       if (pgStatsIter != curPortStats.pgInCongestionDiscardSeen_()->end()) {
         setPgCounter(

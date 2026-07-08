@@ -19,7 +19,6 @@ DEFINE_bool(
     true,
     "Create tun interfaces to allow other processes to "
     "send and receive traffic via the switch ports");
-DEFINE_bool(enable_lacp, false, "Run LACP in agent");
 DEFINE_bool(enable_lldp, true, "Run LLDP protocol in agent");
 DEFINE_bool(publish_boot_type, true, "Publish boot type on startup");
 DEFINE_bool(enable_macsec, false, "Enable Macsec functionality");

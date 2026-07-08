@@ -68,6 +68,9 @@ class HwPortProfileTest : public HwTest {
 
  protected:
   void runTest() {
+    addVerifiedProductionFeatures(
+        {qsfp_production_features::QsfpProductionFeature::
+             DATA_PATH_PROGRAMMING});
     const auto& ports =
         utility::findAvailableCabledPorts(getHwQsfpEnsemble(), Profile);
     EXPECT_TRUE(!(ports.xphyPorts.empty() && ports.iphyPorts.empty()));
@@ -79,6 +82,7 @@ class HwPortProfileTest : public HwTest {
     for (auto& [port, _] : ports.iphyPorts) {
       matchingPorts.push_back(port);
     }
+    addTestedPorts(matchingPorts);
 
     auto setup = [this, &ports]() {
       // New port programming will use state machine to program xphy ports and

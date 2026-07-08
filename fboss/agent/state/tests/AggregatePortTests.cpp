@@ -14,6 +14,8 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/NodeMapDelta.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -786,4 +788,468 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
           aggPort->sortedSubports().end(),
           deserializedAggPort->sortedSubports().begin(),
           deserializedAggPort->sortedSubports().end()));
+}
+
+TEST(AggregatePort, capacityAndStatusFieldsDefaultUnset) {
+  std::vector<AggregatePort::Subport> emptySubports;
+  auto aggPort = AggregatePort::fromSubportRange(
+      AggregatePortID(1),
+      "lag1",
+      "lag1 desc",
+      0,
+      folly::MacAddress("00:00:00:00:00:01"),
+      1,
+      folly::range(emptySubports),
+      {});
+
+  EXPECT_EQ(aggPort->getConfiguredCapacityMbps(), std::nullopt);
+  EXPECT_EQ(aggPort->getActiveCapacityMbps(), std::nullopt);
+  EXPECT_EQ(aggPort->getStatus(), std::nullopt);
+}
+
+TEST(AggregatePort, capacityAndStatusSettersAndGetters) {
+  std::vector<AggregatePort::Subport> emptySubports;
+  auto aggPort = AggregatePort::fromSubportRange(
+      AggregatePortID(1),
+      "lag1",
+      "lag1 desc",
+      0,
+      folly::MacAddress("00:00:00:00:00:01"),
+      1,
+      folly::range(emptySubports),
+      {});
+
+  aggPort->setConfiguredCapacityMbps(200000);
+  aggPort->setActiveCapacityMbps(100000);
+  aggPort->setStatus(state::AggregatePortStatus::UP);
+
+  EXPECT_EQ(aggPort->getConfiguredCapacityMbps(), 200000);
+  EXPECT_EQ(aggPort->getActiveCapacityMbps(), 100000);
+  EXPECT_EQ(aggPort->getStatus(), state::AggregatePortStatus::UP);
+
+  aggPort->clearConfiguredCapacityMbps();
+  EXPECT_EQ(aggPort->getConfiguredCapacityMbps(), std::nullopt);
+
+  aggPort->clearActiveCapacityMbps();
+  EXPECT_EQ(aggPort->getActiveCapacityMbps(), std::nullopt);
+
+  aggPort->setStatus(state::AggregatePortStatus::DOWN);
+  EXPECT_EQ(aggPort->getStatus(), state::AggregatePortStatus::DOWN);
+}
+
+TEST(AggregatePort, capacityAndStatusSerializationRoundTrip) {
+  std::vector<AggregatePort::Subport> emptySubports;
+  auto aggPort = AggregatePort::fromSubportRange(
+      AggregatePortID(1),
+      "lag1",
+      "lag1 desc",
+      0,
+      folly::MacAddress("00:00:00:00:00:01"),
+      1,
+      folly::range(emptySubports),
+      {});
+
+  aggPort->setConfiguredCapacityMbps(400000);
+  aggPort->setActiveCapacityMbps(300000);
+  aggPort->setStatus(state::AggregatePortStatus::UP);
+
+  validateThriftStructNodeSerialization(*aggPort);
+
+  auto serialized = aggPort->toThrift();
+  auto deserialized = std::make_shared<AggregatePort>(serialized);
+
+  EXPECT_EQ(deserialized->getConfiguredCapacityMbps(), 400000);
+  EXPECT_EQ(deserialized->getActiveCapacityMbps(), 300000);
+  EXPECT_EQ(deserialized->getStatus(), state::AggregatePortStatus::UP);
+}
+
+TEST(AggregatePort, capacityAndStatusSerializationRoundTripUnset) {
+  std::vector<AggregatePort::Subport> emptySubports;
+  auto aggPort = AggregatePort::fromSubportRange(
+      AggregatePortID(1),
+      "lag1",
+      "lag1 desc",
+      0,
+      folly::MacAddress("00:00:00:00:00:01"),
+      1,
+      folly::range(emptySubports),
+      {});
+
+  validateThriftStructNodeSerialization(*aggPort);
+
+  auto serialized = aggPort->toThrift();
+  auto deserialized = std::make_shared<AggregatePort>(serialized);
+
+  EXPECT_EQ(deserialized->getConfiguredCapacityMbps(), std::nullopt);
+  EXPECT_EQ(deserialized->getActiveCapacityMbps(), std::nullopt);
+  EXPECT_EQ(deserialized->getStatus(), std::nullopt);
+}
+
+namespace {
+
+std::shared_ptr<SwitchState> createStateWithPorts(
+    const std::vector<std::pair<PortID, cfg::PortSpeed>>& portsAndSpeeds) {
+  auto state = std::make_shared<SwitchState>();
+  for (const auto& [portId, speed] : portsAndSpeeds) {
+    registerPort(
+        state,
+        portId,
+        "port" + std::to_string(static_cast<int>(portId)),
+        scope());
+    auto port = state->getPorts()->getNodeIf(portId)->modify(&state);
+    port->setSpeed(speed);
+  }
+  return state;
+}
+
+std::shared_ptr<AggregatePort> createAggPortWithFwdStates(
+    AggregatePortID aggId,
+    const std::vector<PortID>& memberPorts,
+    const std::set<PortID>& forwardingPorts,
+    uint8_t minLinkCount,
+    std::optional<uint8_t> minLinkCountToUp = std::nullopt,
+    cfg::AggregatePortType aggType = cfg::AggregatePortType::LAG_PORT) {
+  AggregatePort::Subports subports;
+  for (const auto& portId : memberPorts) {
+    subports.emplace(
+        portId,
+        0,
+        cfg::LacpPortRate::SLOW,
+        cfg::LacpPortActivity::PASSIVE,
+        cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER());
+  }
+
+  std::vector<AggregatePort::Subport> subportVec(
+      subports.begin(), subports.end());
+  auto aggPort = AggregatePort::fromSubportRange(
+      aggId,
+      "lag" + std::to_string(static_cast<int>(aggId)),
+      "test aggregate port",
+      uint16_t(0),
+      folly::MacAddress("00:00:00:00:00:01"),
+      minLinkCount,
+      folly::range(subportVec),
+      {},
+      minLinkCountToUp,
+      aggType);
+
+  for (const auto& portId : forwardingPorts) {
+    aggPort->setForwardingState(portId, AggregatePort::Forwarding::ENABLED);
+  }
+
+  return aggPort;
+}
+
+} // namespace
+
+TEST(AggregatePort, computeCapacityBasicLAG) {
+  auto state = createStateWithPorts({
+      {PortID(1), cfg::PortSpeed::HUNDREDG},
+      {PortID(2), cfg::PortSpeed::HUNDREDG},
+      {PortID(3), cfg::PortSpeed::HUNDREDG},
+      {PortID(4), cfg::PortSpeed::HUNDREDG},
+  });
+  auto aggPort = createAggPortWithFwdStates(
+      AggregatePortID(1),
+      {PortID(1), PortID(2), PortID(3), PortID(4)},
+      {PortID(1), PortID(2), PortID(3), PortID(4)},
+      2);
+
+  auto result = computeAggregatePortCapacityAndStatus(aggPort, state);
+
+  EXPECT_EQ(result.configuredCapacityMbps, 400000);
+  EXPECT_EQ(result.activeCapacityMbps, 400000);
+  EXPECT_EQ(result.status, state::AggregatePortStatus::UP);
+}
+
+TEST(AggregatePort, computeCapacityPartialForwarding) {
+  auto state = createStateWithPorts({
+      {PortID(1), cfg::PortSpeed::HUNDREDG},
+      {PortID(2), cfg::PortSpeed::HUNDREDG},
+      {PortID(3), cfg::PortSpeed::HUNDREDG},
+      {PortID(4), cfg::PortSpeed::HUNDREDG},
+  });
+  auto aggPort = createAggPortWithFwdStates(
+      AggregatePortID(1),
+      {PortID(1), PortID(2), PortID(3), PortID(4)},
+      {PortID(1), PortID(2)},
+      2);
+
+  auto result = computeAggregatePortCapacityAndStatus(aggPort, state);
+
+  EXPECT_EQ(result.configuredCapacityMbps, 400000);
+  EXPECT_EQ(result.activeCapacityMbps, 200000);
+  EXPECT_EQ(result.status, state::AggregatePortStatus::UP);
+}
+
+TEST(AggregatePort, computeCapacityBelowMinLinks) {
+  auto state = createStateWithPorts({
+      {PortID(1), cfg::PortSpeed::HUNDREDG},
+      {PortID(2), cfg::PortSpeed::HUNDREDG},
+      {PortID(3), cfg::PortSpeed::HUNDREDG},
+      {PortID(4), cfg::PortSpeed::HUNDREDG},
+  });
+  auto aggPort = createAggPortWithFwdStates(
+      AggregatePortID(1),
+      {PortID(1), PortID(2), PortID(3), PortID(4)},
+      {PortID(1)},
+      2);
+
+  auto result = computeAggregatePortCapacityAndStatus(aggPort, state);
+
+  EXPECT_EQ(result.configuredCapacityMbps, 400000);
+  EXPECT_EQ(result.activeCapacityMbps, 100000);
+  EXPECT_EQ(result.status, state::AggregatePortStatus::DOWN);
+}
+
+TEST(AggregatePort, computeCapacityMixedSpeeds) {
+  auto state = createStateWithPorts({
+      {PortID(1), cfg::PortSpeed::HUNDREDG},
+      {PortID(2), cfg::PortSpeed::HUNDREDG},
+      {PortID(3), cfg::PortSpeed::TWENTYFIVEG},
+      {PortID(4), cfg::PortSpeed::TWENTYFIVEG},
+  });
+  auto aggPort = createAggPortWithFwdStates(
+      AggregatePortID(1),
+      {PortID(1), PortID(2), PortID(3), PortID(4)},
+      {PortID(1), PortID(3)},
+      1);
+
+  auto result = computeAggregatePortCapacityAndStatus(aggPort, state);
+
+  EXPECT_EQ(result.configuredCapacityMbps, 250000);
+  EXPECT_EQ(result.activeCapacityMbps, 125000);
+  EXPECT_EQ(result.status, state::AggregatePortStatus::UP);
+}
+
+// DEFAULT speed should not occur in production (applyThriftConfig resolves it),
+// but verify we handle it defensively by returning nullopt for capacity.
+TEST(AggregatePort, computeCapacityDefaultSpeedUnresolved) {
+  auto state = createStateWithPorts({
+      {PortID(1), cfg::PortSpeed::HUNDREDG},
+      {PortID(2), cfg::PortSpeed::DEFAULT},
+  });
+  auto aggPort = createAggPortWithFwdStates(
+      AggregatePortID(1), {PortID(1), PortID(2)}, {PortID(1)}, 1);
+
+  auto result = computeAggregatePortCapacityAndStatus(aggPort, state);
+
+  EXPECT_EQ(result.configuredCapacityMbps, std::nullopt);
+  EXPECT_EQ(result.activeCapacityMbps, std::nullopt);
+  EXPECT_EQ(result.status, state::AggregatePortStatus::UP);
+}
+
+TEST(AggregatePort, computeCapacityMissingPortInState) {
+  auto state = createStateWithPorts({
+      {PortID(1), cfg::PortSpeed::HUNDREDG},
+  });
+  auto aggPort = createAggPortWithFwdStates(
+      AggregatePortID(1), {PortID(1), PortID(2)}, {PortID(1)}, 1);
+
+  auto result = computeAggregatePortCapacityAndStatus(aggPort, state);
+
+  EXPECT_EQ(result.configuredCapacityMbps, std::nullopt);
+  EXPECT_EQ(result.activeCapacityMbps, std::nullopt);
+  EXPECT_EQ(result.status, state::AggregatePortStatus::UP);
+}
+
+TEST(AggregatePort, computeStatusUpDown) {
+  auto state = createStateWithPorts({
+      {PortID(1), cfg::PortSpeed::HUNDREDG},
+      {PortID(2), cfg::PortSpeed::HUNDREDG},
+      {PortID(3), cfg::PortSpeed::HUNDREDG},
+  });
+
+  auto aggPort = createAggPortWithFwdStates(
+      AggregatePortID(1),
+      {PortID(1), PortID(2), PortID(3)},
+      {PortID(1), PortID(2)},
+      2);
+  auto result = computeAggregatePortCapacityAndStatus(aggPort, state);
+  EXPECT_EQ(result.status, state::AggregatePortStatus::UP);
+
+  auto aggPort2 = createAggPortWithFwdStates(
+      AggregatePortID(1), {PortID(1), PortID(2), PortID(3)}, {PortID(1)}, 2);
+  auto result2 = computeAggregatePortCapacityAndStatus(aggPort2, state);
+  EXPECT_EQ(result2.status, state::AggregatePortStatus::DOWN);
+}
+
+TEST(AggregatePort, computeCapacityHyperPortAllForwarding) {
+  auto state = createStateWithPorts({
+      {PortID(1), cfg::PortSpeed::HUNDREDG},
+      {PortID(2), cfg::PortSpeed::HUNDREDG},
+  });
+  auto aggPort = createAggPortWithFwdStates(
+      AggregatePortID(1),
+      {PortID(1), PortID(2)},
+      {PortID(1), PortID(2)},
+      1,
+      std::nullopt,
+      cfg::AggregatePortType::HYPER_PORT);
+
+  auto result = computeAggregatePortCapacityAndStatus(aggPort, state);
+
+  EXPECT_EQ(result.configuredCapacityMbps, 200000);
+  EXPECT_EQ(result.activeCapacityMbps, 200000);
+  EXPECT_EQ(result.status, state::AggregatePortStatus::UP);
+}
+
+TEST(AggregatePort, computeCapacityHyperPortPartialForwarding) {
+  auto state = createStateWithPorts({
+      {PortID(1), cfg::PortSpeed::HUNDREDG},
+      {PortID(2), cfg::PortSpeed::HUNDREDG},
+  });
+  auto aggPort = createAggPortWithFwdStates(
+      AggregatePortID(1),
+      {PortID(1), PortID(2)},
+      {PortID(1)},
+      1,
+      std::nullopt,
+      cfg::AggregatePortType::HYPER_PORT);
+
+  auto result = computeAggregatePortCapacityAndStatus(aggPort, state);
+
+  EXPECT_EQ(result.configuredCapacityMbps, 200000);
+  EXPECT_EQ(result.activeCapacityMbps, 0);
+  EXPECT_EQ(result.status, state::AggregatePortStatus::DOWN);
+}
+
+// DEFAULT speed should not occur in production (applyThriftConfig resolves it),
+// but verify HyperPort handles it defensively (status UP, capacity nullopt).
+TEST(AggregatePort, computeCapacityHyperPortDefaultSpeed) {
+  auto state = createStateWithPorts({
+      {PortID(1), cfg::PortSpeed::HUNDREDG},
+      {PortID(2), cfg::PortSpeed::DEFAULT},
+  });
+  auto aggPort = createAggPortWithFwdStates(
+      AggregatePortID(1),
+      {PortID(1), PortID(2)},
+      {PortID(1), PortID(2)},
+      1,
+      std::nullopt,
+      cfg::AggregatePortType::HYPER_PORT);
+
+  auto result = computeAggregatePortCapacityAndStatus(aggPort, state);
+
+  EXPECT_EQ(result.configuredCapacityMbps, std::nullopt);
+  EXPECT_EQ(result.activeCapacityMbps, std::nullopt);
+  EXPECT_EQ(result.status, state::AggregatePortStatus::UP);
+}
+
+namespace {
+
+std::pair<std::shared_ptr<SwitchState>, cfg::SwitchConfig>
+makeTwoPortAggPortConfig() {
+  auto startState = make_shared<SwitchState>();
+  registerPort(startState, PortID(1), "port1", scope());
+  registerPort(startState, PortID(2), "port2", scope());
+
+  cfg::SwitchConfig config;
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
+  config.ports()->resize(2);
+  preparedMockPortConfig(config.ports()[0], 1);
+  preparedMockPortConfig(config.ports()[1], 2);
+
+  config.vlans()->resize(1);
+  *config.vlans()[0].id() = 1000;
+  *config.vlans()[0].name() = "vlan1000";
+  *config.vlans()[0].routable() = true;
+
+  config.interfaces()->resize(1);
+  *config.interfaces()[0].intfID() = 1000;
+  *config.interfaces()[0].vlanID() = 1000;
+  config.interfaces()[0].ipAddresses()->resize(2);
+  config.interfaces()[0].ipAddresses()[0] = "1.2.3.4/24";
+  config.interfaces()[0].ipAddresses()[1] =
+      "2a03:2880:10:1f07:face:b00c:0:0/96";
+
+  config.vlanPorts()->resize(2);
+  *config.vlanPorts()[0].logicalPort() = 1;
+  *config.vlanPorts()[0].vlanID() = 1000;
+  *config.vlanPorts()[0].emitTags() = false;
+  *config.vlanPorts()[1].logicalPort() = 2;
+  *config.vlanPorts()[1].vlanID() = 1000;
+  *config.vlanPorts()[1].emitTags() = false;
+
+  config.aggregatePorts()->resize(1);
+  *config.aggregatePorts()[0].key() = 1;
+  *config.aggregatePorts()[0].name() = "port-channel";
+  *config.aggregatePorts()[0].description() = "test bundle";
+  config.aggregatePorts()[0].memberPorts()->resize(2);
+  *config.aggregatePorts()[0].memberPorts()[0].memberPortID() = 1;
+  *config.aggregatePorts()[0].memberPorts()[1].memberPortID() = 2;
+
+  return {startState, config};
+}
+
+} // namespace
+
+TEST(AggregatePort, configTimeCapacityComputation) {
+  auto platform = createMockPlatform();
+  auto [startState, config] = makeTwoPortAggPortConfig();
+
+  auto endState = publishAndApplyConfig(startState, &config, platform.get());
+  ASSERT_NE(nullptr, endState);
+  auto aggPort = endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
+  ASSERT_NE(nullptr, aggPort);
+
+  // preparedMockPortConfig sets speed to XG (10000 Mbps)
+  EXPECT_EQ(aggPort->getConfiguredCapacityMbps(), 20000);
+  EXPECT_EQ(aggPort->getActiveCapacityMbps(), 0);
+  EXPECT_EQ(aggPort->getStatus(), state::AggregatePortStatus::DOWN);
+}
+
+TEST(AggregatePort, configTimeCapacityRecomputesOnSpeedChange) {
+  auto platform = createMockPlatform();
+  auto [startState, config] = makeTwoPortAggPortConfig();
+
+  auto midState = publishAndApplyConfig(startState, &config, platform.get());
+  ASSERT_NE(nullptr, midState);
+  EXPECT_EQ(
+      midState->getAggregatePorts()
+          ->getNodeIf(AggregatePortID(1))
+          ->getConfiguredCapacityMbps(),
+      20000);
+
+  // Change port 1 speed from XG (10G) to HUNDREDG (100G)
+  config.ports()[0].speed() = cfg::PortSpeed::HUNDREDG;
+  config.ports()[0].profileID() =
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER;
+  auto endState = publishAndApplyConfig(midState, &config, platform.get());
+  ASSERT_NE(nullptr, endState);
+  auto aggPort = endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
+  ASSERT_NE(nullptr, aggPort);
+
+  // 100000 (port1) + 10000 (port2) = 110000
+  EXPECT_EQ(aggPort->getConfiguredCapacityMbps(), 110000);
+  EXPECT_EQ(aggPort->getActiveCapacityMbps(), 0);
+  EXPECT_EQ(aggPort->getStatus(), state::AggregatePortStatus::DOWN);
+}
+
+TEST(AggregatePort, configTimeCapacityWithForwardingPorts) {
+  auto platform = createMockPlatform();
+  auto [startState, config] = makeTwoPortAggPortConfig();
+  config.aggregatePorts()[0].minimumCapacity()->linkCount() = 1;
+
+  auto midState = publishAndApplyConfig(startState, &config, platform.get());
+  ASSERT_NE(nullptr, midState);
+
+  // Enable forwarding on both member ports to simulate LACP convergence
+  auto aggPort = midState->getAggregatePorts()
+                     ->getNodeIf(AggregatePortID(1))
+                     ->modify(&midState);
+  aggPort->setForwardingState(PortID(1), AggregatePort::Forwarding::ENABLED);
+  aggPort->setForwardingState(PortID(2), AggregatePort::Forwarding::ENABLED);
+
+  // Reapply same config — capacity recomputation should see forwarding ports
+  auto endState = publishAndApplyConfig(midState, &config, platform.get());
+  ASSERT_NE(nullptr, endState);
+  auto finalAggPort =
+      endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
+  ASSERT_NE(nullptr, finalAggPort);
+
+  EXPECT_EQ(finalAggPort->getConfiguredCapacityMbps(), 20000);
+  EXPECT_EQ(finalAggPort->getActiveCapacityMbps(), 20000);
+  EXPECT_EQ(finalAggPort->getStatus(), state::AggregatePortStatus::UP);
 }

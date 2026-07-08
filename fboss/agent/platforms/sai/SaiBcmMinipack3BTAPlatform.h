@@ -22,14 +22,6 @@ class SaiBcmMinipack3BTAPlatform : public SaiBcmPlatform {
       const std::string& platformMappingStr);
   ~SaiBcmMinipack3BTAPlatform() override;
   HwAsic* getAsic() const override;
-  uint32_t numLanesPerCore() const override {
-    return 8;
-  }
-
-  uint32_t numCellsAvailable() const override {
-    return 319960;
-  }
-
   bool isSerdesApiSupported() const override {
     return true;
   }

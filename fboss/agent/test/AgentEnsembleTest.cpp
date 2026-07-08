@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/AgentEnsembleTest.h"
+#include <fmt/core.h>
 #include <folly/gen/Base.h>
 #include <optional>
 #include "fboss/agent/AgentConfig.h"
@@ -69,8 +70,11 @@ void AgentEnsembleTest::TearDown() {
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
     runForever();
   }
+  // If the test is skipped, don't do warmboot shutdown, as it will make the
+  // test report as 'passing' instead of 'skipped'
   if (FLAGS_setup_for_warmboot &&
-      isSupportedOnAllAsics(HwAsic::Feature::WARMBOOT)) {
+      isSupportedOnAllAsics(HwAsic::Feature::WARMBOOT) &&
+      !::testing::Test::IsSkipped()) {
     XLOG(DBG2) << "tearDownAgentEnsemble() for warmboot";
     tearDownAgentEnsemble(true);
   } else {
@@ -82,6 +86,12 @@ void AgentEnsembleTest::tearDownAgentEnsemble(bool doWarmboot) {
   if (!agentEnsemble_) {
     return;
   }
+  // Dump end-of-test metadata before any graceful exit. This runs on both the
+  // cold-boot (setup_for_warmboot) and warm-boot phases, since gracefulExit()
+  // below hard-exits the process on the setup_for_warmboot phase and gtest
+  // TearDown() would otherwise be skipped.
+  dumpTestMetadata();
+
   if (FLAGS_enable_sdk_dump) {
     agentEnsemble_->getHwDebugDump();
   }
@@ -297,7 +307,7 @@ void AgentEnsembleTest::waitForLinkStatus(
     }
   }
 
-  auto msg = folly::format(
+  auto msg = fmt::format(
       "Unexpected Link status {:d} for {:s}",
       !up,
       folly::join(",", getPortNames(badPorts)));

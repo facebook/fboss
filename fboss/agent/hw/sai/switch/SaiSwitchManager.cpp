@@ -916,6 +916,22 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchManager::supportedCustomDropBitmapStats() const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    return stats;
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::customDropBitmapStats().begin(),
+        SaiSwitchTraits::customDropBitmapStats().end());
+  }
+  return stats;
+}
+
 const std::vector<sai_attr_id_t>& SaiSwitchManager::supportedTemperatureStats()
     const {
   static std::vector<sai_stat_id_t> stats;
@@ -1074,6 +1090,13 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedWatermarkStats()
         SaiSwitchTraits::fabricInterCellJitterWatermarkStats().begin(),
         SaiSwitchTraits::fabricInterCellJitterWatermarkStats().end());
   }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::DEVICE_WATERMARK_SUPPORT)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::deviceWatermarkBytes().begin(),
+        SaiSwitchTraits::deviceWatermarkBytes().end());
+  }
   return stats;
 }
 
@@ -1102,14 +1125,17 @@ const HwSwitchWatermarkStats SaiSwitchManager::getHwSwitchWatermarkStats()
   if (supportedStats.size()) {
     switch_->updateStats(supportedStats, SAI_STATS_MODE_READ_AND_CLEAR);
   }
-  fillHwSwitchWatermarkStats(
-      switch_->getStats(supportedStats), switchWatermarkStats);
-  // SAI_SWITCH_STAT_DEVICE_WATERMARK_BYTES is always needed, however,
-  // this stats as such is not supported as of now. Instead, the needed
-  // watermarks at device level is fetched via the buffer pool watermark
-  // SAI_BUFFER_POOL_STAT_WATERMARK_BYTES and available in SaiSwitch.
-  switchWatermarkStats.deviceWatermarkBytes() =
-      managerTable_->bufferManager().getDeviceWatermarkBytes();
+  auto statsMap = switch_->getStats(supportedStats);
+  fillHwSwitchWatermarkStats(statsMap, switchWatermarkStats);
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::DEVICE_WATERMARK_SUPPORT)) {
+    if (!switchWatermarkStats.deviceWatermarkBytes().has_value()) {
+      switchWatermarkStats.deviceWatermarkBytes() = 0;
+    }
+  } else {
+    switchWatermarkStats.deviceWatermarkBytes() =
+        managerTable_->bufferManager().getDeviceWatermarkBytes();
+  }
   switchWatermarkStats.globalHeadroomWatermarkBytes()->insert(
       managerTable_->bufferManager().getGlobalHeadroomWatermarkBytes().begin(),
       managerTable_->bufferManager().getGlobalHeadroomWatermarkBytes().end());
@@ -1405,6 +1431,21 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchWatermarkStats_ = getHwSwitchWatermarkStats();
     publishSwitchWatermarks(switchWatermarkStats_);
     updateSramLowBufferLimitHitCounter();
+    // Read drop cause bitmaps in the watermark block (once per ~60s) with
+    // READ_AND_CLEAR so each read captures only fresh drops since the last
+    // collection. This cadence is intentional: reading more frequently
+    // risks flooding logs with repeated drop reasons in high-drop
+    // scenarios, while aggregate drop counters already provide real-time
+    // visibility. The per-cause bitmaps supplement those counters by
+    // narrowing down the specific drop reason.
+    const auto& customDropBitmapStatIds = supportedCustomDropBitmapStats();
+    if (customDropBitmapStatIds.size()) {
+      switch_->updateStats(
+          customDropBitmapStatIds, SAI_STATS_MODE_READ_AND_CLEAR);
+      fillHwSwitchDropBitmapStats(
+          switch_->getStats(customDropBitmapStatIds), switchDropBitmapStats_);
+      logDropBitmapReasons(switchDropBitmapStats_);
+    }
   }
   switchTemperatureStats_ = getHwSwitchTemperatureStats();
   publishSwitchTemperatureStats(switchTemperatureStats_);

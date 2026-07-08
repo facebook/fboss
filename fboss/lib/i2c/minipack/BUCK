@@ -11,6 +11,7 @@ cpp_library(
         "MinipackBaseI2cBus.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/lib/fpga:minipack_base_container",
         "//fboss/lib/i2c:i2c_controller_stats-cpp2-types",
         "//fboss/lib/usb:i2-api",

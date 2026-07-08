@@ -1,6 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 
 namespace {
@@ -15,7 +14,10 @@ class AgentPrbsTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentHwTest::initialConfig(ensemble);
-    if (isYubaAsic(ensemble) || isG202xAsic(ensemble)) {
+    auto switchId = getSwitchIdUnderTest(ensemble);
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
       for (auto& port : *cfg.ports()) {
         port.loopbackMode() = cfg::PortLoopbackMode::PHY;
       }
@@ -23,47 +25,29 @@ class AgentPrbsTest : public AgentHwTest {
     return cfg;
   }
 
-  bool isYubaAsic(const AgentEnsemble& ensemble) const {
-    if (ensemble.getNumL3Asics() >= 1) {
-      auto l3Asics = ensemble.getL3Asics();
-      auto asic = checkSameAndGetAsic(l3Asics);
-      if (cfg::AsicType::ASIC_TYPE_YUBA == asic->getAsicType()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool isG202xAsic(const AgentEnsemble& ensemble) const {
-    if (ensemble.getNumL3Asics() >= 1) {
-      auto l3Asics = ensemble.getL3Asics();
-      auto asic = checkSameAndGetAsic(l3Asics);
-      if (cfg::AsicType::ASIC_TYPE_G202X == asic->getAsicType()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     return {ProductionFeature::PRBS};
+  }
+
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // PRBS is enabled/verified on every interface, fabric, and management port.
+    return std::nullopt;
   }
 
   std::vector<PortID> getTestPortIds() const {
     return masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT,
          cfg::PortType::FABRIC_PORT,
-         cfg::PortType::MANAGEMENT_PORT});
+         cfg::PortType::MANAGEMENT_PORT},
+        getCurrentSwitchIdForTesting());
   }
 
   uint16_t getPrbsPolynomial() const {
-    if (getAgentEnsemble()->getNumL3Asics() >= 1) {
-      auto l3Asics = getAgentEnsemble()->getL3Asics();
-      auto asic = checkSameAndGetAsic(l3Asics);
-      if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
-        return kPrbsPolynomial31;
-      }
+    auto switchId = getCurrentSwitchIdForTesting();
+    auto asic = hwAsicForSwitch(switchId);
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      return kPrbsPolynomial31;
     }
     return kPrbsPolynomial;
   }

@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_platform")
 
@@ -21,6 +22,7 @@ cpp_unittest(
         "SensorServiceImplTest.cpp",
         "SensorServiceThriftHandlerTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":utils",
         "//fb303:service_data",
@@ -28,6 +30,7 @@ cpp_unittest(
         "//fboss/platform/sensor_service:service",
         "//fboss/platform/sensor_service:utils",
         "//folly:file_util",
+        "//folly/logging:logging",
         "//folly/testing:test_util",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
@@ -38,8 +41,8 @@ cpp_unittest(
     srcs = [
         "UtilsTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
-        "fbsource//third-party/googletest:gmock",
         "//fboss/platform/sensor_service:utils",
     ],
 )
@@ -49,8 +52,10 @@ cpp_unittest(
     srcs = [
         "ConfigValidatorTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/sensor_service:config_validator",
+        "//fboss/platform/sensor_service/utilities:power_config_utils",
     ],
 )
 
@@ -59,6 +64,7 @@ cpp_unittest(
     srcs = [
         "SensorServiceImplAsicTempTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fb303:service_data",
@@ -73,6 +79,7 @@ cpp_unittest(
     srcs = [
         "SensorServiceImplPowerConsumptionTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fb303:service_data",
         "//fboss/platform/sensor_service:service",
@@ -85,6 +92,7 @@ cpp_unittest(
     srcs = [
         "SensorServiceImplTemperatureTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fb303:service_data",
         "//fboss/platform/sensor_service:service",
@@ -97,6 +105,7 @@ cpp_unittest(
     srcs = [
         "SensorServiceImplInputVoltageTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fb303:service_data",
         "//fboss/platform/sensor_service:service",
@@ -109,6 +118,7 @@ cpp_unittest(
     srcs = [
         "PmUnitInfoFetcherTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/platform/platform_manager:platform_manager_service-cpp2-services",

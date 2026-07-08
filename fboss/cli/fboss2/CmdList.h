@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 
+#include <CLI/App.hpp>
+
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
@@ -25,6 +27,8 @@ using ValidFilterMapType = std::unordered_map<
 using CommandHandlerFn = std::function<void()>;
 using ValidFilterHandlerFn = std::function<ValidFilterMapType()>;
 using ArgTypeHandlerFn = std::function<utils::ObjectArgTypeId()>;
+using ArgRegistrarFn =
+    std::function<void(CLI::App&, std::vector<std::string>&)>;
 using LocalOptionsHandlerFn = std::function<std::vector<utils::LocalOption>()>;
 
 using CmdVerb = std::string;
@@ -33,6 +37,7 @@ using CmdSubCmd = std::string;
 using CmdHelpMsg = std::string;
 
 struct Command {
+  // Non-config commands: use ArgTypeHandlerFn (enum-based dispatch via switch)
   Command(
       const std::string& name,
       const std::string& help,
@@ -92,6 +97,71 @@ struct Command {
         commandHandler{commandHandler},
         validFilterHandler{validFilterHandler},
         argTypeHandler{argTypeHandler},
+        localOptionsHandler{localOptionsHandler},
+        subcommands{subcommands} {
+    sort(this->subcommands.begin(), this->subcommands.end());
+  }
+
+  // Config commands: use ArgRegistrarFn (direct addCliArg dispatch)
+  Command(
+      const std::string& name,
+      const std::string& help,
+      const CommandHandlerFn& commandHandler,
+      const ArgRegistrarFn& argRegistrar,
+      const std::vector<Command>& subcommands = {})
+      : name{name},
+        help{help},
+        commandHandler{commandHandler},
+        argRegistrar{argRegistrar},
+        subcommands{subcommands} {
+    sort(this->subcommands.begin(), this->subcommands.end());
+  }
+
+  Command(
+      const std::string& name,
+      const std::string& help,
+      const CommandHandlerFn& commandHandler,
+      const ValidFilterHandlerFn& validFilterHandler,
+      const ArgRegistrarFn& argRegistrar,
+      const std::vector<Command>& subcommands = {})
+      : name{name},
+        help{help},
+        commandHandler{commandHandler},
+        validFilterHandler{validFilterHandler},
+        argRegistrar{argRegistrar},
+        subcommands{subcommands} {
+    sort(this->subcommands.begin(), this->subcommands.end());
+  }
+
+  Command(
+      const std::string& name,
+      const std::string& help,
+      const CommandHandlerFn& commandHandler,
+      const ArgRegistrarFn& argRegistrar,
+      const LocalOptionsHandlerFn& localOptionsHandler,
+      const std::vector<Command>& subcommands = {})
+      : name{name},
+        help{help},
+        commandHandler{commandHandler},
+        argRegistrar{argRegistrar},
+        localOptionsHandler{localOptionsHandler},
+        subcommands{subcommands} {
+    sort(this->subcommands.begin(), this->subcommands.end());
+  }
+
+  Command(
+      const std::string& name,
+      const std::string& help,
+      const CommandHandlerFn& commandHandler,
+      const ValidFilterHandlerFn& validFilterHandler,
+      const ArgRegistrarFn& argRegistrar,
+      const LocalOptionsHandlerFn& localOptionsHandler,
+      const std::vector<Command>& subcommands = {})
+      : name{name},
+        help{help},
+        commandHandler{commandHandler},
+        validFilterHandler{validFilterHandler},
+        argRegistrar{argRegistrar},
         localOptionsHandler{localOptionsHandler},
         subcommands{subcommands} {
     sort(this->subcommands.begin(), this->subcommands.end());
@@ -115,11 +185,13 @@ struct Command {
   std::optional<CommandHandlerFn> commandHandler;
   std::optional<ValidFilterHandlerFn> validFilterHandler;
   std::optional<ArgTypeHandlerFn> argTypeHandler;
+  std::optional<ArgRegistrarFn> argRegistrar;
   std::optional<LocalOptionsHandlerFn> localOptionsHandler;
   std::vector<Command> subcommands;
 };
 
 struct RootCommand : public Command {
+  // Non-config commands: use ArgTypeHandlerFn
   RootCommand(
       const std::string& verb,
       const std::string& object,
@@ -179,6 +251,70 @@ struct RootCommand : public Command {
             commandHandler,
             validFilterHandler,
             argTypeHandler,
+            localOptionsHandler,
+            subcommands),
+        verb{verb} {}
+
+  // Config commands: use ArgRegistrarFn
+  RootCommand(
+      const std::string& verb,
+      const std::string& object,
+      const std::string& help,
+      const CommandHandlerFn& commandHandler,
+      const ArgRegistrarFn& argRegistrar,
+      const std::vector<Command>& subcommands = {})
+      : Command(object, help, commandHandler, argRegistrar, subcommands),
+        verb{verb} {}
+
+  RootCommand(
+      const std::string& verb,
+      const std::string& object,
+      const std::string& help,
+      const CommandHandlerFn& commandHandler,
+      const ValidFilterHandlerFn& validFilterHandler,
+      const ArgRegistrarFn& argRegistrar,
+      const std::vector<Command>& subcommands = {})
+      : Command(
+            object,
+            help,
+            commandHandler,
+            validFilterHandler,
+            argRegistrar,
+            subcommands),
+        verb{verb} {}
+
+  RootCommand(
+      const std::string& verb,
+      const std::string& object,
+      const std::string& help,
+      const CommandHandlerFn& commandHandler,
+      const ArgRegistrarFn& argRegistrar,
+      const LocalOptionsHandlerFn& localOptionsHandler,
+      const std::vector<Command>& subcommands = {})
+      : Command(
+            object,
+            help,
+            commandHandler,
+            argRegistrar,
+            localOptionsHandler,
+            subcommands),
+        verb{verb} {}
+
+  RootCommand(
+      const std::string& verb,
+      const std::string& object,
+      const std::string& help,
+      const CommandHandlerFn& commandHandler,
+      const ValidFilterHandlerFn& validFilterHandler,
+      const ArgRegistrarFn& argRegistrar,
+      const LocalOptionsHandlerFn& localOptionsHandler,
+      const std::vector<Command>& subcommands = {})
+      : Command(
+            object,
+            help,
+            commandHandler,
+            validFilterHandler,
+            argRegistrar,
             localOptionsHandler,
             subcommands),
         verb{verb} {}
@@ -251,6 +387,11 @@ ValidFilterMapType validFilterHandler() {
 template <typename T>
 utils::ObjectArgTypeId argTypeHandler() {
   return T().ObjectArgTypeId;
+}
+
+template <typename Traits>
+void argRegistrar(CLI::App& cmd, std::vector<std::string>& args) {
+  Traits::addCliArg(cmd, args);
 }
 
 template <typename T>

@@ -19,11 +19,7 @@
 
 extern "C" {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiaclextensions.h>
-#else
-#include <saiaclextensions.h>
-#endif
 #endif
 }
 
@@ -103,14 +99,22 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
     bool isChenab = platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
 
+    bool isQumran4d = platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_QUMRAN4D;
+
     std::vector<sai_int32_t> actionTypeList{
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,
         SAI_ACL_ACTION_TYPE_COUNTER,
         SAI_ACL_ACTION_TYPE_SET_TC,
-        SAI_ACL_ACTION_TYPE_SET_DSCP,
-        SAI_ACL_ACTION_TYPE_MIRROR_INGRESS};
+        SAI_ACL_ACTION_TYPE_SET_DSCP};
 
-    if (!(isTajo || isJericho2 || isJericho3 || isJericho4 || isChenab)) {
+    // TODO (Q4D/J4/R4): Enable once SDK support is available
+    if (!isQumran4d && !isJericho4) {
+      actionTypeList.push_back(SAI_ACL_ACTION_TYPE_MIRROR_INGRESS);
+    }
+
+    if (!(isTajo || isJericho2 || isJericho3 || isJericho4 || isChenab ||
+          isQumran4d)) {
       // Chenab supports egress mirror action in egress table
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_MIRROR_EGRESS);
     }
@@ -145,6 +149,10 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL);
     }
 #endif
+
+    if (FLAGS_enable_acl_table_redirect_action) {
+      actionTypeList.push_back(SAI_ACL_ACTION_TYPE_REDIRECT);
+    }
     return actionTypeList;
   }
 }
@@ -190,6 +198,23 @@ std::
     return exists;
   };
 
+  // Q4D/J4 DNX SDK Workaround: FIELD_IP_PROTOCOL and
+  // FIELD_IPV6_NEXT_HEADER are overloaded onto the same underlying HW field on
+  // J4/Q4D, so a table created with FIELD_IP_PROTOCOL=false /
+  // FIELD_IPV6_NEXT_HEADER=true reads back FIELD_IP_PROTOCOL=true on a
+  // get_acl_table_attribute, which breaks warmboot/rollback state
+  // reconciliation. As agreed with Broadcom, whenever IPV6_NEXT_HEADER is used
+  // we also set FIELD_IP_PROTOCOL=true so the created value matches the value
+  // returned on GET.
+  // TODO (Q4D/J4/R4): Remove once the SDK decouples the two fields.
+  bool isQumran4dOrJericho4 = platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4;
+  bool fieldIpProtocol =
+      qualifierExistsFn(cfg::AclTableQualifier::IP_PROTOCOL_NUMBER) ||
+      (isQumran4dOrJericho4 &&
+       qualifierExistsFn(cfg::AclTableQualifier::IPV6_NEXT_HEADER));
+
   std::vector<std::optional<sai_object_id_t>> udfGroupIds(
       SaiAclTableManager::kMaxUdfGroups, std::nullopt);
   int i = 0;
@@ -209,7 +234,7 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::DST_IPV4),
       qualifierExistsFn(cfg::AclTableQualifier::L4_SRC_PORT),
       qualifierExistsFn(cfg::AclTableQualifier::L4_DST_PORT),
-      qualifierExistsFn(cfg::AclTableQualifier::IP_PROTOCOL_NUMBER),
+      fieldIpProtocol,
       qualifierExistsFn(cfg::AclTableQualifier::TCP_FLAGS),
       qualifierExistsFn(cfg::AclTableQualifier::SRC_PORT),
       qualifierExistsFn(cfg::AclTableQualifier::OUT_PORT),
@@ -219,6 +244,7 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::ICMPV6_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::ICMPV6_CODE),
       qualifierExistsFn(cfg::AclTableQualifier::DSCP),
+      qualifierExistsFn(cfg::AclTableQualifier::TC),
       qualifierExistsFn(cfg::AclTableQualifier::DST_MAC),
       qualifierExistsFn(cfg::AclTableQualifier::IP_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::TTL),
@@ -227,6 +253,11 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),
       qualifierExistsFn(cfg::AclTableQualifier::ETHER_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::OUTER_VLAN),
+      qualifierExistsFn(cfg::AclTableQualifier::L4_DST_PORT_RANGE)
+          ? std::optional<
+                SaiAclTableTraits::Attributes::FieldAclRangeType>{std::vector<
+                sai_int32_t>{SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE}}
+          : std::nullopt, // FieldAclRangeType
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       qualifierExistsFn(cfg::AclTableQualifier::BTH_OPCODE),
 #endif

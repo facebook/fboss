@@ -67,12 +67,14 @@ class SaiSystemPortManager {
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo,
       int64_t switchId);
   SystemPortSaiId addFabricLinkMonitoringSystemPort(
-      const std::shared_ptr<SystemPort>& swSystemPort);
+      const std::shared_ptr<SystemPort>& swSystemPort,
+      const std::shared_ptr<SwitchState>& state);
   void changeFabricLinkMonitoringSystemPort(
       const std::shared_ptr<SystemPort>& oldSystemPort,
       const std::shared_ptr<SystemPort>& newSystemPort);
   void removeFabricLinkMonitoringSystemPort(
-      const std::shared_ptr<SystemPort>& swSystemPort);
+      const std::shared_ptr<SystemPort>& swSystemPort,
+      const std::shared_ptr<SwitchState>& state);
 
   const Stats& getLastPortStats() const {
     return portStats_;
@@ -115,6 +117,9 @@ class SaiSystemPortManager {
   }
 
  private:
+  PortID getFabricLinkMonitoringPortId(
+      const std::shared_ptr<SystemPort>& swSystemPort,
+      const std::shared_ptr<SwitchState>& state) const;
   void loadQueues(
       SaiSystemPortHandle& sysPortHandle,
       const std::shared_ptr<SystemPort>& swSystemPort);
@@ -142,7 +147,8 @@ class SaiSystemPortManager {
   ConcurrentIndices* concurrentIndices_;
   Stats portStats_;
   bool tcToQueueMapAllowedOnSystemPort_;
-  // The offset from PortID for system ports in fabric link monitoring
+  // The offset from PortID for system ports in fabric link monitoring. Used
+  // only on the legacy (non-relocated) path; see getFabricLinkMonitoringPortId.
   std::optional<int32_t> fabricLinkMonitoringSystemPortOffset_;
 };
 

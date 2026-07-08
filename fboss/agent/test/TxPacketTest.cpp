@@ -1,5 +1,6 @@
 #include "fboss/agent/TxPacket.h"
 #include <gtest/gtest.h>
+#include <cstring>
 
 namespace facebook::fboss {
 
@@ -64,6 +65,46 @@ TEST_F(TxPacketTest, DestroyOwnedPacket) {
 
   EXPECT_EQ(TxPacket::getPacketCounter()->load(), initialCount);
   EXPECT_EQ(owner.getOwnedPacket() == nullptr, true);
+}
+
+/*
+ * Testing that clone produces a packet with identical content
+ */
+TEST_F(TxPacketTest, CloneProducesIdenticalContent) {
+  constexpr size_t kSize = 64;
+  auto pkt = TxPacket::allocateTxPacket(kSize);
+  auto* data = pkt->buf()->writableData();
+  for (size_t i = 0; i < kSize; i++) {
+    data[i] = static_cast<uint8_t>(i);
+  }
+  auto cloned = pkt->clone();
+  EXPECT_EQ(cloned->buf()->computeChainDataLength(), kSize);
+  EXPECT_EQ(std::memcmp(pkt->buf()->data(), cloned->buf()->data(), kSize), 0);
+}
+
+/*
+ * Testing that clone produces an independent buffer
+ */
+TEST_F(TxPacketTest, CloneIsIndependent) {
+  constexpr size_t kSize = 32;
+  auto pkt = TxPacket::allocateTxPacket(kSize);
+  std::memset(pkt->buf()->writableData(), 0xAA, kSize);
+  auto cloned = pkt->clone();
+  std::memset(cloned->buf()->writableData(), 0xBB, kSize);
+  // Original must be unchanged
+  EXPECT_EQ(pkt->buf()->data()[0], 0xAA);
+  EXPECT_EQ(cloned->buf()->data()[0], 0xBB);
+}
+
+/*
+ * Testing that clone increments the packet counter
+ */
+TEST_F(TxPacketTest, CloneIncrementsPacketCounter) {
+  auto initialCount = TxPacket::getPacketCounter()->load();
+  auto pkt = TxPacket::allocateTxPacket(16);
+  EXPECT_EQ(TxPacket::getPacketCounter()->load(), initialCount + 1);
+  auto cloned = pkt->clone();
+  EXPECT_EQ(TxPacket::getPacketCounter()->load(), initialCount + 2);
 }
 
 } // namespace facebook::fboss

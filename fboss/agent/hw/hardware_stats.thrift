@@ -120,6 +120,7 @@ struct HwPortStats {
   76: optional i64 outDiscardsSll_;
   77: optional i64 outDiscardsHll_;
   78: optional i64 inSrv6MySidDiscards_;
+  79: optional i64 cableDelayNsec;
 }
 
 struct HwSysPortStats {
@@ -241,6 +242,9 @@ struct HwResourceStats {
   // VOQ system resources
   52: i32 system_ports_free = STAT_UNINITIALIZED;
   53: i32 voqs_free = STAT_UNINITIALIZED;
+
+  // SRV6 MySid resources
+  54: i32 my_sid_entries_free = STAT_UNINITIALIZED;
 }
 
 struct HwAsicErrors {
@@ -390,6 +394,21 @@ struct HwSwitchDropStats {
   22: optional i64 switchTunnelInDrops;
 }
 
+struct HwSwitchDropBitmapStats {
+  1: optional i64 ingressMacDropBitmap;
+  2: optional i64 egressPipeDropBitmap;
+  3: optional i64 egressMacDropBitmap;
+  4: optional i64 pipelineGeneralDropBitmap;
+  5: optional i64 pipelineMacDropBitmap;
+  6: optional i64 pipelineMplsDropBitmap;
+  7: optional i64 pipelineTunnelDropBitmap;
+  8: optional i64 pipelineIpv4DropBitmap;
+  9: optional i64 pipelineIpv6DropBitmap;
+  10: optional i64 bufferDropBitmap;
+  11: optional i64 queueDropBitmap;
+  12: optional i64 hostDropBitmap;
+}
+
 struct HwSwitchDramStats {
   1: optional i64 dramEnqueuedBytes;
   2: optional i64 dramDequeuedBytes;
@@ -415,6 +434,17 @@ struct HwSwitchPipelineStats {
 struct HwSwitchTemperatureStats {
   1: map<string, i64> timeStamp = {};
   2: map<string, float> value = {};
+}
+
+# Generic counter object that maybe attached to
+# diverse set of objects
+struct HwSwitchCounter {
+  1: optional i64 bytes;
+  2: optional i64 packets;
+}
+
+struct HwSwitchCounterStats {
+  1: map<string, HwSwitchCounter> routeCounters;
 }
 
 struct HwSwitchFb303GlobalStats {

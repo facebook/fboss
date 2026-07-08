@@ -262,10 +262,7 @@ void BcmRoute::program(
     const RouteNextHopEntry& fwd,
     std::optional<cfg::AclLookupClass> classID,
     std::optional<cfg::SwitchingMode> switchingMode) {
-  // Route counters cannot be shared between v4 and v6 on Tomahawk4
-  // and needs to be pre allocated. We support only v6 route counters
-  // to reduce scale.
-  auto routeCounterID = prefix_.isV6() ? fwd.getCounterID() : std::nullopt;
+  auto routeCounterID = fwd.getCounterID();
   std::optional<BcmRouteCounterID> counterID;
   std::shared_ptr<BcmRouteCounterBase> counterIDReference{nullptr};
   if (routeCounterID.has_value()) {

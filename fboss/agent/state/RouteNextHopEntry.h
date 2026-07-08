@@ -15,6 +15,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/Thrifty.h"
@@ -50,7 +51,8 @@ class RouteNextHopEntry
           std::nullopt,
       std::optional<NextHopSet> overrideNextHops = std::nullopt,
       std::optional<NextHopSetID> normalizedResolvedNextHopSetID = std::nullopt,
-      std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt);
+      std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt,
+      std::optional<NextHopSetID> clientNextHopSetID = std::nullopt);
   RouteNextHopEntry(
       NextHopSet nhopSet,
       AdminDistance distance,
@@ -60,7 +62,8 @@ class RouteNextHopEntry
           std::nullopt,
       std::optional<NextHopSet> overrideNextHops = std::nullopt,
       std::optional<NextHopSetID> normalizedResolvedNextHopSetID = std::nullopt,
-      std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt);
+      std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt,
+      std::optional<NextHopSetID> clientNextHopSetID = std::nullopt);
 
   RouteNextHopEntry(
       NextHop nhop,
@@ -71,7 +74,8 @@ class RouteNextHopEntry
           std::nullopt,
       std::optional<NextHopSet> overrideNextHops = std::nullopt,
       std::optional<NextHopSetID> normalizedResolvedNextHopSetID = std::nullopt,
-      std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt);
+      std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt,
+      std::optional<NextHopSetID> clientNextHopSetID = std::nullopt);
 
   RouteNextHopEntry(RouteNextHopEntry&& other) noexcept {
     this->fromThrift(other.toThrift());
@@ -89,7 +93,11 @@ class RouteNextHopEntry
     return safe_cref<switch_state_tags::action>()->cref();
   }
 
+  // Do NOT use to read a route's nexthops. Returns inline nexthops only  Always
+  // use the ID-aware FibHelpers::getNextHops(state, entry) instead. The inline
+  // nexthops will be removeed in the future
   NextHopSet getNextHopSet() const;
+  void setNextHops(const NextHopSet& nhops);
 
   const std::optional<RouteCounterID> getCounterID() const {
     if (auto counter = safe_cref<switch_state_tags::counterID>()) {
@@ -132,6 +140,46 @@ class RouteNextHopEntry
     }
   }
 
+  const std::optional<NextHopSetID> getClientNextHopSetID() const {
+    if (auto nhopSetID = safe_cref<switch_state_tags::clientNextHopSetID>()) {
+      return NextHopSetID(nhopSetID->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setClientNextHopSetID(std::optional<NextHopSetID>& nhopSetID) {
+    if (nhopSetID) {
+      ref<switch_state_tags::clientNextHopSetID>() =
+          static_cast<int64_t>(*nhopSetID);
+    } else {
+      ref<switch_state_tags::clientNextHopSetID>().reset();
+    }
+  }
+
+  std::optional<std::string> getNamedNextHopGroup() const {
+    if (auto name = safe_cref<switch_state_tags::namedNextHopGroup>()) {
+      return name->cref();
+    }
+    return std::nullopt;
+  }
+
+  std::optional<NamedRouteDestination> getNamedRouteDestination() const {
+    if (auto nhgName = getNamedNextHopGroup()) {
+      NamedRouteDestination namedDest;
+      namedDest.nextHopGroup() = *nhgName;
+      return namedDest;
+    }
+    return std::nullopt;
+  }
+
+  void setNamedNextHopGroup(const std::optional<std::string>& name) {
+    if (name) {
+      ref<switch_state_tags::namedNextHopGroup>() = *name;
+    } else {
+      ref<switch_state_tags::namedNextHopGroup>().reset();
+    }
+  }
+
   const std::optional<AclLookupClass> getClassID() const {
     if (auto classID = safe_cref<switch_state_tags::classID>()) {
       return classID->cref();
@@ -159,14 +207,15 @@ class RouteNextHopEntry
   NextHopSet normalizedNextHops() const {
     return normalizedNextHopsImpl(false /*ignoreOverride*/);
   }
+  // Deprecated: do not add new callers; will be removed. Use the static
+  // normalizeNextHops(NextHopSet) instead.
   NextHopSet nonOverrideNormalizedNextHops() const {
     return normalizedNextHopsImpl(true /*ignoreOverride*/);
   }
-
-  // Get the sum of the weights of all the nexthops in the entry
-  NextHopWeight getTotalWeight() const;
-
-  std::string str_DEPRACATED() const;
+  // Weight-normalize an arbitrary nexthop set to ECMP width. Pure: depends
+  // only on the input set (no `this`), so callers that resolve the set via an
+  // ID can normalize without an inline getNextHopSet() read.
+  static NextHopSet normalizeNextHops(const NextHopSet& nhopSet);
 
   std::string str() const;
 
@@ -228,14 +277,15 @@ class RouteNextHopEntry
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
       const std::optional<NextHopSet>& overridNextHops,
       const std::optional<NextHopSetID>& normalizedResolvedNextHopSetID,
-      const std::optional<NextHopSetID>& resolvedNextHopSetID);
-  void normalize(
+      const std::optional<NextHopSetID>& resolvedNextHopSetID,
+      const std::optional<NextHopSetID>& clientNextHopSetID);
+  static void normalize(
       std::vector<NextHopWeight>& scaledWeights,
-      NextHopWeight totalWeight) const;
+      NextHopWeight totalWeight);
 };
 
 /**
- * Comparision operators
+ * Comparison operators
  */
 bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b);
 bool operator<(const RouteNextHopEntry& a, const RouteNextHopEntry& b);
@@ -268,6 +318,13 @@ std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs);
 UnicastRoute toUnicastRoute(
     const folly::CIDRNetwork& nw,
     const RouteNextHopEntry& nhopEntry);
+
+// Variant that uses caller-resolved nexthops (correct under
+// FLAGS_resolve_nexthops_from_id); the 2-arg form reads inline nexthops.
+UnicastRoute toUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    const RouteNextHopEntry& nhopEntry,
+    const RouteNextHopSet& nhops);
 } // namespace util
 
 } // namespace facebook::fboss

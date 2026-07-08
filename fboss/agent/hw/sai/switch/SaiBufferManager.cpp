@@ -74,6 +74,20 @@ uint64_t getSwitchEgressPoolAvailableSize(const SaiPlatform* platform) {
       switchId, SaiSwitchTraits::Attributes::EgressPoolAvailableSize{});
 }
 
+uint32_t getNumCellsAvailable(const SaiPlatform* platform) {
+  auto asic = platform->getAsic();
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
+    auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
+    return static_cast<const TomahawkAsic*>(asic)->getNumCellsAvailable(
+        platform->getType(),
+        saiBcmPlatform->getHwConfigValue(
+            TomahawkAsic::optimizedMqueueGuaranteeHwConfig()) != nullptr,
+        saiBcmPlatform->getHwConfigValue(
+            TomahawkAsic::optimizedMmuConfigOverrideHwConfig()) != nullptr);
+  }
+  return asic->getNumCellsAvailable(platform->getType());
+}
+
 void assertMaxBufferPoolSize(const SaiPlatform* platform) {
   auto saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
   if (saiSwitch->getBootType() != BootType::COLD_BOOT) {
@@ -90,6 +104,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
   auto maxEgressPoolSize = SaiBufferManager::getMaxEgressPoolBytes(platform);
   switch (asic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
@@ -155,6 +170,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
@@ -163,46 +179,31 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       /* TODO(pshaikh): Chenab, define pool size */
       return asic->getMMUSizeBytes();
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK: {
-      auto constexpr kNumXpes = 4;
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto perXpeCells = saiBcmPlatform->numCellsAvailable();
-      return perXpeCells * kNumXpes *
+      return getNumCellsAvailable(platform) *
           static_cast<const TomahawkAsic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TRIDENT2: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Trident2Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Tomahawk3Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Tomahawk4Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Tomahawk5Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Tomahawk6Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const TomahawkUltra1Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
@@ -480,6 +481,12 @@ void SaiBufferManager::updateEgressBufferPoolStats() {
     // watermarks are polled as part of ingress itself.
     return;
   }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::DEVICE_WATERMARK_SUPPORT)) {
+    // Device watermark is fetched directly as a switch-level stat;
+    // no need to derive it from buffer pool watermarks.
+    return;
+  }
   // As of now, we just need to be exporting the buffer pool stats for
   // default pool, will expose the buffer pool stats for non-default if
   // needed in future.
@@ -520,12 +527,14 @@ void SaiBufferManager::updateIngressBufferPoolStats() {
       globalHeadroomWatermarkBytes_[ingressBufferPoolHandle->bufferPoolName],
       globalSharedWatermarkBytes_[ingressBufferPoolHandle->bufferPoolName]);
 
+  // There is only a single buffer pool for devices with
+  // SHARED_INGRESS_EGRESS_BUFFER_POOL, so the same pool stat serves
+  // as the device watermark. Skip if DEVICE_WATERMARK_SUPPORT is
+  // enabled, as that is fetched directly as a switch-level stat.
   if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL)) {
-    /*
-     * There is only a single buffer pool for these devices and hence the
-     * same stats needs to be updated as device watermark as well.
-     */
+          HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL) &&
+      !platform_->getAsic()->isSupported(
+          HwAsic::Feature::DEVICE_WATERMARK_SUPPORT)) {
     deviceWatermarkBytes_ = counters[SAI_BUFFER_POOL_STAT_WATERMARK_BYTES];
   }
 }

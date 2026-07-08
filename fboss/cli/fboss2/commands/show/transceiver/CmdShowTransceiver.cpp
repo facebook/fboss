@@ -304,7 +304,13 @@ CmdShowTransceiver::RetType CmdShowTransceiver::createModel(
 
         if (const auto& moduleStatus = tcvrState.status()) {
           if (const auto& fwStatus = moduleStatus->fwStatus()) {
-            details.appFwVer() = fwStatus->version().value_or("N/A");
+            auto appFwVer = fwStatus->version().value_or("N/A");
+            // If the firmware build number is available, append it to the app
+            // firmware version as version.buildNumber (e.g. 1.0.7680).
+            if (const auto& buildNumber = fwStatus->buildNumber()) {
+              appFwVer = fmt::format("{}.{}", appFwVer, *buildNumber);
+            }
+            details.appFwVer() = appFwVer;
             details.dspFwVer() = fwStatus->dspFwVer().value_or("N/A");
           }
         }

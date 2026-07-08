@@ -169,17 +169,8 @@ class AgentRouteRollbackTest : public AgentRollbackTest {
     deltaApplication.mode() = DeltaApplicationMode::ROLLBACK;
     return deltaApplication;
   }
-};
 
-TEST_F(AgentRouteRollbackTest, VerifyRollback) {
-  this->setup();
-  auto setup = [this]() {
-    resolveNextHops(kEcmpWidth);
-    // Program ECMP routes
-    programEcmpRoutes();
-  };
-
-  auto verify = [this]() {
+  void verifyRollbackOnce() {
     // Verify routes exist after setup
     verifyRoutesExist(ecmpNetworks());
 
@@ -235,6 +226,33 @@ TEST_F(AgentRouteRollbackTest, VerifyRollback) {
 
       verifyRoutesExist(ecmpNetworks());
       verifyFibState(stateBeforeRollback);
+    }
+  }
+};
+
+TEST_F(AgentRouteRollbackTest, VerifyRollback) {
+  this->setup();
+  auto setup = [this]() {
+    resolveNextHops(kEcmpWidth);
+    programEcmpRoutes();
+  };
+
+  auto verify = [this]() { verifyRollbackOnce(); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentRouteRollbackTest, VerifyRollbackManyTimes) {
+  this->setup();
+  auto setup = [this]() {
+    resolveNextHops(kEcmpWidth);
+    programEcmpRoutes();
+  };
+
+  auto verify = [this]() {
+    for (int i = 0; i < 10; ++i) {
+      XLOG(DBG2) << "Rollback iteration " << i;
+      verifyRollbackOnce();
     }
   };
 

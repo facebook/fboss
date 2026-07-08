@@ -51,6 +51,7 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
       case HwAsic::Feature::NO_RX_REASON_TRAP:
       case HwAsic::Feature::SDK_REGISTER_DUMP:
+      case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
         return false;
 
       default:
@@ -159,6 +160,12 @@ class FakeAsic : public HwAsic {
   std::optional<uint32_t> getMaxMySidEntries() const override {
     return 8;
   }
+  std::optional<uint32_t> getMaxSrv6EcmpNextHops() const override {
+    return 16;
+  }
+  std::optional<uint32_t> getMaxSrv6SingleNextHops() const override {
+    return 8;
+  }
   std::optional<uint32_t> getMaxNdpTableSize() const override {
     return 8192;
   }
@@ -231,10 +238,10 @@ class FakeAsic : public HwAsic {
     return 0;
   }
   int getMidPriCpuQueueId() const override {
-    throw FbossError("Fake ASIC does not support cpu queue");
+    return 2;
   }
   int getHiPriCpuQueueId() const override {
-    throw FbossError("Fake ASIC does not support cpu queue");
+    return 9;
   }
   std::optional<uint32_t> getMaxArsGroups() const override {
     return 4;

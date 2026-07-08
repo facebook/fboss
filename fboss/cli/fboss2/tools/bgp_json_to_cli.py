@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+# pyre-unsafe
+
 """
 BGP++ JSON to fboss2 CLI converter (j2c tool)
 

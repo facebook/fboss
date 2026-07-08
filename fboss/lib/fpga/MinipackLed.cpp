@@ -9,7 +9,7 @@
  */
 #include "fboss/lib/fpga/MinipackLed.h"
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 
@@ -45,7 +45,7 @@ namespace facebook::fboss {
 
 void MinipackLed::setColor(MinipackLed::Color color) {
   io_->writeRegister(static_cast<uint32_t>(color));
-  XLOG(DBG5) << folly::format(
+  XLOG(DBG5) << fmt::format(
       "Fpga set LED {:s} to {:s}. Register={:#x}, new value={:#x}",
       io_->getName(),
       getColorStr(color),
@@ -66,7 +66,7 @@ MinipackLed::Color MinipackLed::getColor() {
     case static_cast<uint32_t>(MinipackLed::Color::YELLOW):
     case static_cast<uint32_t>(MinipackLed::Color::GREEN):
       auto minipackColor = static_cast<MinipackLed::Color>(color);
-      XLOG(DBG5) << folly::format(
+      XLOG(DBG5) << fmt::format(
           "Fpga get LED {:s} is {:s}. Register={:#x}",
           io_->getName(),
           getColorStr(minipackColor),

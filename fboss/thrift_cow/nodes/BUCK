@@ -44,8 +44,7 @@ cpp_library(
         "Traits.h",
         "Types.h",
     ],
-    deps = [
-    ],
+    deps = [],
     exported_deps = [
         ":node_utils",
         ":serializer",

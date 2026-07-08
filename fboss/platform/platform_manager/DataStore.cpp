@@ -119,10 +119,20 @@ void DataStore::updatePmUnitVersion(
       slotPath,
       *slotPathToPmUnitInfo[slotPath].name(),
       fmt::format(
-          "ProductProductionState {}, ProductVersion {}, ProductSubVersion {}",
-          *version.productProductionState(),
-          *version.productVersion(),
-          *version.productSubVersion()));
+          "ProductionState {}, ProductionSubState {}, RespinVariantIndicator {}",
+          *version.productionState(),
+          *version.productionSubState(),
+          *version.respinVariantIndicator()));
+}
+
+void DataStore::updatePmUnitEepromProductName(
+    const std::string& slotPath,
+    const std::string& eepromProductName) {
+  slotPathToPmUnitInfo[slotPath].eepromProductName() = eepromProductName;
+  XLOG(INFO) << fmt::format(
+      "At SlotPath {}, updating PmUnit eepromProductName: {}",
+      slotPath,
+      eepromProductName);
 }
 
 void DataStore::updatePmUnitSuccessfullyExplored(
@@ -147,32 +157,52 @@ PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
   const auto& version = pmUnitInfo.version();
   if (!version) {
     XLOG(INFO) << fmt::format(
-        "Resolved {} to default PmUnitConfig of {}. No ProductSubversion was "
-        "read from IDPROM at the slotPath.",
+        "Resolved {} to default PmUnitConfig of {}. No RespinVariantIndicator "
+        "was read from IDPROM at the slotPath.",
         slotPath,
         pmUnitName);
     return platformConfig_.pmUnitConfigs()->at(pmUnitName);
   }
-  auto productSubVersion = *version->productSubVersion();
   if (platformConfig_.versionedPmUnitConfigs()->contains(pmUnitName)) {
     for (const auto& versionedPmUnitConfig :
          platformConfig_.versionedPmUnitConfigs()->at(pmUnitName)) {
-      if (*versionedPmUnitConfig.productSubVersion() == productSubVersion) {
+      bool matches = false;
+      if (const auto& pmUvs = versionedPmUnitConfig.pmUnitVersions();
+          pmUvs && !pmUvs->empty()) {
+        for (const auto& pmUv : *pmUvs) {
+          if (*pmUv.productionState() == *version->productionState() &&
+              *pmUv.productionSubState() == *version->productionSubState() &&
+              *pmUv.respinVariantIndicator() ==
+                  *version->respinVariantIndicator()) {
+            matches = true;
+            break;
+          }
+        }
+      } else {
+        matches = versionedPmUnitConfig.productSubVersion() &&
+            *versionedPmUnitConfig.productSubVersion() ==
+                *version->respinVariantIndicator();
+      }
+      if (matches) {
         XLOG(INFO) << fmt::format(
-            "Resolved {} to PmUnitConfig of {} with ProductSubVersion {}",
+            "Resolved {} to versioned PmUnitConfig of {} with version {}.{}.{}",
             slotPath,
             pmUnitName,
-            productSubVersion);
+            *version->productionState(),
+            *version->productionSubState(),
+            *version->respinVariantIndicator());
         return *versionedPmUnitConfig.pmUnitConfig();
       }
     }
   }
   XLOG(INFO) << fmt::format(
-      "Resolved {} to default PmUnitConfig of {}. No versioned config for "
-      "ProductSubVersion {}",
+      "Resolved {} to default PmUnitConfig of {}. No versioned config matches "
+      "version {}.{}.{}",
       slotPath,
       pmUnitName,
-      productSubVersion);
+      *version->productionState(),
+      *version->productionSubState(),
+      *version->respinVariantIndicator());
   return platformConfig_.pmUnitConfigs()->at(pmUnitName);
 }
 

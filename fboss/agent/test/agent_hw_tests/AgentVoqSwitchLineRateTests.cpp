@@ -5,6 +5,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 
 namespace facebook::fboss {
@@ -17,8 +18,13 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
     return config;
   }
 
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Line-rate verification loops over every interface port.
+    return std::nullopt;
+  }
+
   folly::MacAddress getIntfMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
 
   void sendPacket(
@@ -58,16 +64,17 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor(), getIntfMac());
     std::vector<PortDescriptor> portDescriptors;
-    std::vector<flat_set<PortDescriptor>> portDescSets;
+    std::vector<boost::container::flat_set<PortDescriptor>> portDescSets;
     for (auto& portId : masterLogicalInterfaceOrHyperPortIds()) {
       portDescriptors.emplace_back(portId);
-      portDescSets.push_back(flat_set<PortDescriptor>{PortDescriptor(portId)});
+      portDescSets.push_back(
+          boost::container::flat_set<PortDescriptor>{PortDescriptor(portId)});
     }
     applyNewState([&portDescriptors,
                    &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
       return ecmpHelper.resolveNextHops(
           in,
-          flat_set<PortDescriptor>(
+          boost::container::flat_set<PortDescriptor>(
               std::make_move_iterator(portDescriptors.begin()),
               std::make_move_iterator(portDescriptors.end())));
     });
@@ -108,82 +115,79 @@ TEST_F(AgentVoqSwitchLineRateTest, dramBlockedTime) {
   };
   auto verify = [=, this]() {
     // Force traffic to use DRAM to increase DRAM enqueue/dequeue!
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      int64_t dramBlockedTimeNs = 0;
-      auto switchIndex =
-          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
-      WITH_RETRIES({
-        std::string out;
-        getAgentEnsemble()->runDiagCommand(
-            "m IPS_DRAM_ONLY_PROFILE DRAM_ONLY_PROFILE=-1\n", out, switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "mod CGM_VOQ_SRAM_DRAM_MODE 0 127 VOQ_SRAM_DRAM_MODE_DATA=0x2\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "s CGM_DRAM_BOUND_STATE_TH 0\n", out, switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_LEAKY_BUCKET_ASSERT_THRESHOLD=2\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_LEAKY_BUCKET_DEASSERT_THRESHOLD=1\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_ASSERT_THRESHOLD=2\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_DEASSERT_THRESHOLD=1\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_ASSERT_THRESHOLD=2\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_DEASSERT_THRESHOLD=1\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_THRESHOLD_0=1\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_THRESHOLD_1=1\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_THRESHOLD_2=1\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_SIZE_0=8\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_SIZE_1=8\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand(
-            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_SIZE_2=8\n",
-            out,
-            switchId);
-        getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
+    auto switchId = getCurrentSwitchIdForTesting();
+    int64_t dramBlockedTimeNs = 0;
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    WITH_RETRIES({
+      std::string out;
+      getAgentEnsemble()->runDiagCommand(
+          "m IPS_DRAM_ONLY_PROFILE DRAM_ONLY_PROFILE=-1\n", out, switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "mod CGM_VOQ_SRAM_DRAM_MODE 0 127 VOQ_SRAM_DRAM_MODE_DATA=0x2\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "s CGM_DRAM_BOUND_STATE_TH 0\n", out, switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_LEAKY_BUCKET_ASSERT_THRESHOLD=2\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_LEAKY_BUCKET_DEASSERT_THRESHOLD=1\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_ASSERT_THRESHOLD=2\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_DEASSERT_THRESHOLD=1\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_ASSERT_THRESHOLD=2\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_DEASSERT_THRESHOLD=1\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_THRESHOLD_0=1\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_THRESHOLD_1=1\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_THRESHOLD_2=1\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_SIZE_0=8\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_SIZE_1=8\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_SIZE_2=8\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
 
-        auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
-        if (switchStats.fb303GlobalStats()
-                ->dram_blocked_time_ns()
-                .has_value()) {
-          dramBlockedTimeNs =
-              *switchStats.fb303GlobalStats()->dram_blocked_time_ns();
-        }
-        XLOG(DBG2) << "Switch ID: " << switchId
-                   << ", Dram blocked time nsec: " << dramBlockedTimeNs;
-        EXPECT_EVENTUALLY_GT(dramBlockedTimeNs, 0);
-      });
-    }
+      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      if (switchStats.fb303GlobalStats()->dram_blocked_time_ns().has_value()) {
+        dramBlockedTimeNs =
+            *switchStats.fb303GlobalStats()->dram_blocked_time_ns();
+      }
+      XLOG(DBG2) << "Switch ID: " << switchId
+                 << ", Dram blocked time nsec: " << dramBlockedTimeNs;
+      EXPECT_EVENTUALLY_GT(dramBlockedTimeNs, 0);
+    });
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

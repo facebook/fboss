@@ -233,7 +233,7 @@ std::string Utils::convertHexLiteralsToDecimal(const std::string& expression) {
 
     if (hexPos != std::string::npos) {
       // Convert hex string to decimal using our utility function
-      uint64_t decimalValue = std::stoi(hexMatch, nullptr, 16);
+      uint64_t decimalValue = std::stoull(hexMatch, nullptr, 16);
       std::string decimalStr = std::to_string(decimalValue);
 
       // Replace the hex pattern with decimal value

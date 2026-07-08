@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -41,12 +42,16 @@ void configureAllIpQualifiers(
   bool enableIpFragQualifier = (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
                                 asicType != cfg::AsicType::ASIC_TYPE_CHENAB2) &&
       enable;
-  bool enableLookupClass = (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
-                            asicType != cfg::AsicType::ASIC_TYPE_CHENAB2) &&
+  bool enableLookupClass =
+      (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
+       asicType != cfg::AsicType::ASIC_TYPE_CHENAB2 &&
+       asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) &&
       enable;
   bool enableEtherTpe = (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
                          asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) &&
       enable;
+  bool enableTtlQualifier =
+      (asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) && enable;
 
   if (asicType != cfg::AsicType::ASIC_TYPE_JERICHO3) {
     // TODO(daiweix): remove after J3 ACL supports IP_TYPE
@@ -70,7 +75,7 @@ void configureAllIpQualifiers(
       enableIpFragQualifier,
       cfg::IpFragMatch::MATCH_FIRST_FRAGMENT);
   configureQualifier(acl->dscp(), enable, 0x24);
-  configureQualifier(acl->ttl(), enable, ttl);
+  configureQualifier(acl->ttl(), enableTtlQualifier, ttl);
 
   if (ipType == cfg::IpType::IP6) {
     configureQualifier(acl->etherType(), enableEtherTpe, cfg::EtherType::IPv6);
@@ -89,7 +94,8 @@ void configureAllTcpQualifiers(
   bool enableTcpFlags =
       (enable &&
        (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
-        asicType != cfg::AsicType::ASIC_TYPE_CHENAB2));
+        asicType != cfg::AsicType::ASIC_TYPE_CHENAB2 &&
+        asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1));
   configureQualifier(acl->tcpFlagsBitMap(), enableTcpFlags, 16);
 }
 
@@ -101,17 +107,23 @@ void configureAllIcmpQualifiers(
   bool enableEtherTypeQualifier =
       (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
        asicType == cfg::AsicType::ASIC_TYPE_CHENAB2);
+  bool enableIcmpQualifier =
+      (asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) && enable;
 
   if (ipType == cfg::IpType::IP6) {
     configureQualifier(acl->proto(), enable, 58); // Icmp v6
-    configureQualifier(acl->icmpType(), enable, 1); // Destination unreachable
-    configureQualifier(acl->icmpCode(), enable, 4); // Port unreachable
+    configureQualifier(
+        acl->icmpType(), enableIcmpQualifier, 1); // Destination unreachable
+    configureQualifier(
+        acl->icmpCode(), enableIcmpQualifier, 4); // Port unreachable
     configureQualifier(
         acl->etherType(), enableEtherTypeQualifier, cfg::EtherType::IPv6);
   } else {
     configureQualifier(acl->proto(), enable, 1); // Icmp v4
-    configureQualifier(acl->icmpType(), enable, 3); // Destination unreachable
-    configureQualifier(acl->icmpCode(), enable, 3); // Port unreachable
+    configureQualifier(
+        acl->icmpType(), enableIcmpQualifier, 3); // Destination unreachable
+    configureQualifier(
+        acl->icmpCode(), enableIcmpQualifier, 3); // Port unreachable
     configureQualifier(
         acl->etherType(), enableEtherTypeQualifier, cfg::EtherType::IPv4);
   }
@@ -168,7 +180,8 @@ class AgentHwAclQualifierTest : public AgentHwTest {
   void configureAllHwQualifiers(
       cfg::AclEntry* acl,
       bool enable,
-      SwitchID switchID = SwitchID(0)) {
+      const std::optional<SwitchID>& switchIDOpt = std::nullopt) {
+    SwitchID switchID = resolveSwitchId(switchIDOpt);
     auto masterLogicalPorts =
         getAgentEnsemble()->masterLogicalInterfacePortIds({switchID});
     configureQualifier(acl->srcPort(), enable, masterLogicalPorts[0]);
@@ -177,16 +190,23 @@ class AgentHwAclQualifierTest : public AgentHwTest {
         (hwAsicForSwitch(switchID)->getAsicVendor() !=
          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) &&
         (hwAsicForSwitch(switchID)->getAsicType() !=
-         cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+         cfg::AsicType::ASIC_TYPE_JERICHO3) &&
+        (hwAsicForSwitch(switchID)->getAsicType() !=
+         cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) &&
+        (hwAsicForSwitch(switchID)->getAsicType() !=
+         cfg::AsicType::ASIC_TYPE_TOMAHAWK6)) {
       // No out port support on J2. Out port not used in prod
       // No out support on Chenab in ingress stage
+      // No out port support on TU1 in ingress stage
+      // No out port support on TH6 in ingress stage
       configureQualifier(acl->dstPort(), enable, masterLogicalPorts[1]);
     }
   }
 
   void configureAllL2QualifiersHelper(
       cfg::AclEntry* acl,
-      SwitchID switchID = SwitchID(0)) {
+      const std::optional<SwitchID>& switchIDOpt = std::nullopt) {
+    SwitchID switchID = resolveSwitchId(switchIDOpt);
     auto asic = hwAsicForSwitch(switchID);
     bool dstMacEnabled =
         (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
@@ -211,6 +231,9 @@ class AgentHwAclQualifierTest : public AgentHwTest {
                                                       // chenab in ingress stage
                                                       // L2 switching only on
                                                       // NPU type switch
+        asic->getAsicType() !=
+            cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1 && // no l2 lookup class in
+                                                       // TU1 ingress stage
         switchType == cfg::SwitchType::NPU) {
       configureQualifier(
           acl->lookupClassL2(),
@@ -221,7 +244,8 @@ class AgentHwAclQualifierTest : public AgentHwTest {
 
   void configureIp4QualifiersHelper(
       cfg::AclEntry* acl,
-      SwitchID switchID = SwitchID(0)) {
+      const std::optional<SwitchID>& switchIDOpt = std::nullopt) {
+    SwitchID switchID = resolveSwitchId(switchIDOpt);
     auto asicType = getAsicType(switchID);
     auto asicVendor = getAsicVendor(switchID);
     bool enableSrcIpQualifier =
@@ -235,10 +259,12 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       // TODO(daiweix): remove after J3 ACL supports IP_TYPE
       configureQualifier(acl->ipType(), true, cfg::IpType::IP4);
     }
+    bool enableTtlQualifier =
+        (asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1);
     configureQualifier(acl->srcIp(), enableSrcIpQualifier, "192.168.0.1");
     configureQualifier(acl->dstIp(), true, "192.168.0.0/24");
     configureQualifier(acl->dscp(), true, 0x24);
-    configureQualifier(acl->ttl(), true, ttl);
+    configureQualifier(acl->ttl(), enableTtlQualifier, ttl);
     configureQualifier(acl->proto(), true, 6);
     configureQualifier(
         acl->etherType(), enableEtherTypeQualifier, cfg::EtherType::IPv4);
@@ -246,7 +272,8 @@ class AgentHwAclQualifierTest : public AgentHwTest {
 
   void configureIp6QualifiersHelper(
       cfg::AclEntry* acl,
-      SwitchID switchID = SwitchID(0)) {
+      const std::optional<SwitchID>& switchIDOpt = std::nullopt) {
+    SwitchID switchID = resolveSwitchId(switchIDOpt);
     auto asicType = getAsicType(switchID);
     auto asicVendor = getAsicVendor(switchID);
     auto enableSrcIpQualifier =
@@ -261,11 +288,13 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       configureQualifier(acl->ipType(), true, cfg::IpType::IP6);
     }
 
+    bool enableTtlQualifier =
+        (asicType != cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1);
     configureQualifier(acl->srcIp(), enableSrcIpQualifier, "::ffff:c0a8:1");
     configureQualifier(
         acl->dstIp(), true, "2401:db00:3020:70e2:face:0:63:0/64");
     configureQualifier(acl->dscp(), true, 0x24);
-    configureQualifier(acl->ttl(), true, ttl);
+    configureQualifier(acl->ttl(), enableTtlQualifier, ttl);
     configureQualifier(acl->proto(), true, 6);
     configureQualifier(
         acl->etherType(), enableEtherTypeQualifier, cfg::EtherType::IPv6);
@@ -279,7 +308,8 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       bool isIpV4,
       QualifierType lookupClassType,
       bool enableQualifiers = false,
-      SwitchID switchID = SwitchID(0)) {
+      const std::optional<SwitchID>& switchIDOpt = std::nullopt) {
+    SwitchID switchID = resolveSwitchId(switchIDOpt);
     this->addQualifiers = enableQualifiers;
     auto newCfg = initialConfig(*getAgentEnsemble());
     if (FLAGS_enable_acl_table_group) {
@@ -303,12 +333,17 @@ class AgentHwAclQualifierTest : public AgentHwTest {
           cfg::AclTableQualifier::OUTER_VLAN,
       };
 
-      if (getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      if (getAsicVendor(switchID) != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         defaultQualifiers.clear();
       }
       std::vector<cfg::AclTableActionType> actions = {};
+      auto asicType = this->getAsicType(switchID);
+      if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+        defaultQualifiers = utility::genAclQualifiersConfig(asicType);
+        actions = utility::genAclActionTypesConfig(asicType);
+      }
       std::vector<cfg::AclTableQualifier> qualifiers = enableQualifiers
-          ? utility::genAclQualifiersConfig(this->getAsicType())
+          ? utility::genAclQualifiersConfig(asicType)
           : defaultQualifiers;
       utility::addAclTable(
           &newCfg,
@@ -361,7 +396,8 @@ class AgentHwAclQualifierTest : public AgentHwTest {
   }
 
   void aclVerifyHelper() {
-    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    SwitchID switchID = getCurrentSwitchIdForTesting();
+    auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
     auto state = getAgentEnsemble()->getProgrammedState();
     auto acl =
         utility::getAclEntry(state, kAclName(), FLAGS_enable_acl_table_group)
@@ -372,11 +408,19 @@ class AgentHwAclQualifierTest : public AgentHwTest {
     EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
   }
 
-  cfg::AsicType getAsicType(SwitchID switchID = SwitchID(0)) {
+  SwitchID resolveSwitchId(const std::optional<SwitchID>& switchIDOpt) const {
+    return switchIDOpt.value_or(getCurrentSwitchIdForTesting());
+  }
+
+  cfg::AsicType getAsicType(
+      const std::optional<SwitchID>& switchIDOpt = std::nullopt) {
+    SwitchID switchID = resolveSwitchId(switchIDOpt);
     return hwAsicForSwitch(switchID)->getAsicType();
   }
 
-  HwAsic::AsicVendor getAsicVendor(SwitchID switchID = SwitchID(0)) {
+  HwAsic::AsicVendor getAsicVendor(
+      const std::optional<SwitchID>& switchIDOpt = std::nullopt) {
+    SwitchID switchID = resolveSwitchId(switchIDOpt);
     return hwAsicForSwitch(switchID)->getAsicVendor();
   }
 };
@@ -400,7 +444,8 @@ TEST_F(AgentHwAclQualifierTest, AclIp4TcpQualifiers) {
   };
 
   auto verify = [=, this]() {
-    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto client = getAgentEnsemble()->getHwAgentTestClient(
+        getCurrentSwitchIdForTesting());
     auto state = getAgentEnsemble()->getProgrammedState();
     auto acl =
         utility::getAclEntry(state, "ip4_tcp", FLAGS_enable_acl_table_group)
@@ -433,7 +478,8 @@ TEST_F(AgentHwAclQualifierTest, AclIp6TcpQualifiers) {
   };
 
   auto verify = [=, this]() {
-    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto client = getAgentEnsemble()->getHwAgentTestClient(
+        getCurrentSwitchIdForTesting());
     auto state = getAgentEnsemble()->getProgrammedState();
     auto acl =
         utility::getAclEntry(state, "ip6_tcp", FLAGS_enable_acl_table_group)
@@ -466,7 +512,8 @@ TEST_F(AgentHwAclQualifierTest, AclIcmp4Qualifiers) {
   };
 
   auto verify = [=, this]() {
-    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto client = getAgentEnsemble()->getHwAgentTestClient(
+        getCurrentSwitchIdForTesting());
     auto state = getAgentEnsemble()->getProgrammedState();
     auto acl =
         utility::getAclEntry(state, "icmp4", FLAGS_enable_acl_table_group)
@@ -505,7 +552,8 @@ TEST_F(AgentHwAclQualifierTest, AclIcmp6Qualifiers) {
   };
 
   auto verify = [=, this]() {
-    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto client = getAgentEnsemble()->getHwAgentTestClient(
+        getCurrentSwitchIdForTesting());
     auto state = getAgentEnsemble()->getProgrammedState();
     auto acl =
         utility::getAclEntry(state, "icmp6", FLAGS_enable_acl_table_group)
@@ -531,7 +579,7 @@ TEST_F(AgentHwAclQualifierTest, AclRemove) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
 
     cfg::AclEntry acl0{};
     acl0.name() = "acl0";
@@ -556,7 +604,8 @@ TEST_F(AgentHwAclQualifierTest, AclRemove) {
   };
 
   auto verify = [=, this]() {
-    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto client = getAgentEnsemble()->getHwAgentTestClient(
+        getCurrentSwitchIdForTesting());
     auto state = getAgentEnsemble()->getProgrammedState();
     auto acl = utility::getAclEntry(state, "acl1", FLAGS_enable_acl_table_group)
                    ->toThrift();
@@ -601,7 +650,8 @@ TEST_F(AgentHwAclQualifierTest, AclModifyQualifier) {
   };
 
   auto verify = [=, this]() {
-    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto client = getAgentEnsemble()->getHwAgentTestClient(
+        getCurrentSwitchIdForTesting());
     auto state = getAgentEnsemble()->getProgrammedState();
     auto acl = utility::getAclEntry(state, "acl0", FLAGS_enable_acl_table_group)
                    ->toThrift();
@@ -630,7 +680,7 @@ TEST_F(AgentHwAclQualifierTest, AclEmptyCodeIcmp) {
     // Destination Unreachable(type=3):Source host isolated(code=8)
     acl.name() = "acl0";
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
       acl.etherType() = cfg::EtherType::IPv4;
     }
@@ -651,7 +701,8 @@ TEST_F(AgentHwAclQualifierTest, AclEmptyCodeIcmp) {
   };
 
   auto verify = [=, this]() {
-    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto client = getAgentEnsemble()->getHwAgentTestClient(
+        getCurrentSwitchIdForTesting());
     auto state = getAgentEnsemble()->getProgrammedState();
     auto acl =
         utility::getAclEntry(state, "acl0", FLAGS_enable_acl_table_group);
@@ -681,7 +732,8 @@ TEST_F(AgentHwAclQualifierTest, AclVlanIDQualifier) {
   };
 
   auto verify = [=, this]() {
-    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto client = getAgentEnsemble()->getHwAgentTestClient(
+        getCurrentSwitchIdForTesting());
     auto state = getAgentEnsemble()->getProgrammedState();
     EXPECT_EQ(
         client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
@@ -707,7 +759,8 @@ TEST_F(AgentHwAclQualifierTest, AclIp4Qualifiers) {
   };
 
   auto verify = [=, this]() {
-    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto client = getAgentEnsemble()->getHwAgentTestClient(
+        getCurrentSwitchIdForTesting());
     auto state = getAgentEnsemble()->getProgrammedState();
 
     EXPECT_EQ(
@@ -725,7 +778,7 @@ TEST_F(AgentHwAclQualifierTest, AclIp6Qualifiers) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
 
     cfg::AclEntry acl{};
     acl.name() = "ip6";
@@ -740,7 +793,8 @@ TEST_F(AgentHwAclQualifierTest, AclIp6Qualifiers) {
   };
 
   auto verify = [=, this]() {
-    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto client = getAgentEnsemble()->getHwAgentTestClient(
+        getCurrentSwitchIdForTesting());
     auto state = getAgentEnsemble()->getProgrammedState();
 
     EXPECT_EQ(

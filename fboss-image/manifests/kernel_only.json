@@ -13,7 +13,9 @@
   },
   "bsps": [
   ],
-  "sai": {
+  "npu_sai": {
+  },
+  "phy_sai": {
   },
   "fboss-forwarding-stack": {
   },

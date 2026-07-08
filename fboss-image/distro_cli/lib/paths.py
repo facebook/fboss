@@ -7,6 +7,7 @@
 
 """Path resolution utilities for FBOSS image builder."""
 
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -15,11 +16,9 @@ from pathlib import Path
 def get_root_dir() -> Path:
     """Find the repository root directory.
 
-    This works by walking up from the current file until we find
-    the 'fboss-image' directory, then returning its parent.
-
-    Additionally verifies that both 'fboss-image' and 'fboss' directories
-    exist at the root to ensure we're in the correct repository structure.
+    If FBOSS_ROOT is set, uses that directly - this is particularly
+    helpful when using symlink-mapped directories. Otherwise walks up from
+    the current file until finding 'fboss-image' and 'fboss' directories.
 
     The result is cached after the first call for performance.
 
@@ -29,9 +28,15 @@ def get_root_dir() -> Path:
     Raises:
         RuntimeError: If the root directory cannot be determined
     """
+    override = os.environ.get("FBOSS_ROOT")
+    if override:
+        root = Path(override)
+        if root.is_dir():
+            return root
+        raise RuntimeError(f"FBOSS_ROOT={override} is not a valid directory")
+
     current = Path(__file__).resolve()
 
-    # Walk up the directory tree looking for fboss-image
     for parent in current.parents:
         if (parent / "fboss-image").is_dir() and (parent / "fboss").is_dir():
             return parent

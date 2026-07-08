@@ -2,28 +2,23 @@
 
 #pragma once
 
-#include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "fboss/fsdb/client/cgo/fsdb_cgo_api.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
+#include <folly/FBString.h>
 #include <folly/concurrency/DynamicBoundedQueue.h>
 #include <atomic>
+#include <cstdint>
+#include <limits>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <tuple>
 #include <vector>
 
 namespace facebook::fboss::fsdb {
 
-/**
- * FsdbCgoPubSubWrapper provides a simplified C++ wrapper around
- * FsdbPubSubManager for use with CGO (Go<->C++ interop).
- *
- * Provides wrapper for:
- * - Subscribing to portMaps state
- * - Subscribing to any stats path
- *
- */
+// extern-C wrapper around FsdbPubSubManager for CGO consumers.
 class FsdbCgoPubSubWrapper {
  public:
   explicit FsdbCgoPubSubWrapper(const std::string& clientId);
@@ -37,37 +32,75 @@ class FsdbCgoPubSubWrapper {
   FsdbCgoPubSubWrapper& operator=(FsdbCgoPubSubWrapper&&) = delete;
 
   void subscribeToOperState_portMaps(
-      std::optional<int> serverPort = std::nullopt);
+      std::optional<int> serverPort = std::nullopt,
+      const std::optional<std::string>& host = std::nullopt);
 
-  void subscribeStatsPath(std::optional<int> serverPort = std::nullopt);
+  void subscribeStatsPath(
+      const std::vector<std::string>& path,
+      std::optional<int> serverPort = std::nullopt,
+      const std::optional<std::string>& host = std::nullopt);
 
-  std::unordered_map<std::string, bool> waitForStateUpdates();
-  std::unordered_map<std::string, facebook::fboss::AgentStats>
-  waitForStatsUpdates();
+  void subscribeStatePath(
+      const std::vector<std::string>& path,
+      std::optional<int> serverPort = std::nullopt,
+      const std::optional<std::string>& host = std::nullopt);
+
+  // Synchronous one-shot GET of agent/switchState/portMaps; returns every port
+  // as (portName, portId, portOperState). No subscription required.
+  std::vector<std::tuple<std::string, int32_t, bool>> getPortSnapshot(
+      std::optional<int> serverPort = std::nullopt,
+      const std::optional<std::string>& host = std::nullopt);
+
+  // Blocks for >=1 update, then non-blocking-drains up to maxCount.
+  // Throws if no subscription. Empty on shutdown.
+  std::vector<std::tuple<std::string, int32_t, bool>> waitForStateUpdates(
+      int maxCount = std::numeric_limits<int>::max());
+
+  std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
+  waitForStatsUpdates(int maxCount = std::numeric_limits<int>::max());
+
+  std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
+  waitForStatePathUpdates(int maxCount = std::numeric_limits<int>::max());
+
+  // Wakes any in-flight waitFor* within ~kPollInterval. SPSC-safe (flag only).
+  void shutdown() noexcept {
+    shuttingDown_.store(true, std::memory_order_release);
+  }
 
   const std::string& getClientId() const {
     return clientId_;
   }
 
-  /**
-   * Check if state subscription is active
-   */
   bool hasStateSubscription() const {
     return stateSubscribed_.load();
   }
 
-  /**
-   * Check if stats subscription is active
-   */
   bool hasStatsSubscription() const {
     return statsSubscribed_.load();
   }
 
+  bool hasStatePathSubscription() const {
+    return statePathSubscribed_.load();
+  }
+
+  // Public so extern-C wrappers can hold borrowed pointers across calls.
+  std::vector<std::tuple<std::string, int32_t, bool>> lastStateUpdates_;
+  std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
+      lastStatsUpdates_;
+  std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
+      lastStatePathUpdates_;
+  std::vector<std::tuple<std::string, int32_t, bool>> lastSnapshot_;
+
  private:
-  void enqueueState(const std::string& key, bool portOperState);
+  void enqueueState(const std::string& key, int32_t portId, bool portOperState);
   void enqueueStats(
       const std::string& key,
-      facebook::fboss::AgentStats&& stats);
+      folly::fbstring&& contents,
+      int32_t protocol);
+  void enqueueStatePath(
+      const std::string& key,
+      folly::fbstring&& contents,
+      int32_t protocol);
 
   void processPortMapsUpdate(fsdb::OperState&& operState);
 
@@ -78,22 +111,35 @@ class FsdbCgoPubSubWrapper {
   // Bounded queue for buffering keyed STATE updates between FSDB callback
   // thread and CGO consumer thread
   folly::DSPSCQueue<
-      std::tuple<std::string /*key*/, bool /*portOperState*/>,
+      std::tuple<
+          std::string /*key*/,
+          int32_t /*portId*/,
+          bool /*portOperState*/>,
       true /*may block*/>
       stateQueue_{100};
 
-  // Bounded queue for buffering keyed STATS updates between FSDB callback
-  // thread and CGO consumer thread
+  // fbstring avoids a toStdString() copy on the producer side.
   folly::DSPSCQueue<
-      std::tuple<std::string /*key*/, facebook::fboss::AgentStats /*stats*/>,
+      std::tuple<
+          std::string /*key*/,
+          folly::fbstring /*contents*/,
+          int32_t /*protocol*/>,
       true /*may block*/>
-      statsQueue_{10};
+      statsQueue_{100};
 
-  // Track subscription status
+  folly::DSPSCQueue<
+      std::tuple<
+          std::string /*key*/,
+          folly::fbstring /*contents*/,
+          int32_t /*protocol*/>,
+      true /*may block*/>
+      statePathQueue_{100};
+
   std::atomic<bool> stateSubscribed_{false};
   std::atomic<bool> statsSubscribed_{false};
+  std::atomic<bool> statePathSubscribed_{false};
+  std::atomic<bool> shuttingDown_{false};
 
-  // For tracking port oper state changes
   std::map<std::string, bool> portName2OperState_{};
 };
 

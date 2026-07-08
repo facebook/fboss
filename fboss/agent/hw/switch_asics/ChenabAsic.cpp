@@ -42,7 +42,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FEC:
 
     case HwAsic::Feature::FABRIC_PORTS:
-    case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
@@ -95,7 +94,10 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
+    case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
+    case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
       return true;
+    case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
@@ -147,7 +149,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::EGRESS_SFLOW:
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::MACSEC:
-    case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::ROUTE_FLEX_COUNTERS:
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
@@ -242,7 +243,11 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
+    case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
+    case HwAsic::Feature::PBR_ACL:
+    case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
+    case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
       return false;
   }
   return false;
@@ -333,37 +338,11 @@ cfg::AsicType ChenabAsic::getAsicType() const {
 int ChenabAsic::getBufferDynThreshFromScalingFactor(
     cfg::MMUScalingFactor scalingFactor) const {
   switch (scalingFactor) {
-    case cfg::MMUScalingFactor::ONE:
-      return 0;
-    case cfg::MMUScalingFactor::EIGHT:
-      return 3;
-    case cfg::MMUScalingFactor::ONE_128TH:
-      return -7;
-    case cfg::MMUScalingFactor::ONE_64TH:
-      return -6;
-    case cfg::MMUScalingFactor::ONE_32TH:
-      return -5;
-    case cfg::MMUScalingFactor::ONE_16TH:
-      return -4;
-    case cfg::MMUScalingFactor::ONE_8TH:
-      return -3;
-    case cfg::MMUScalingFactor::ONE_QUARTER:
-      return -2;
-    case cfg::MMUScalingFactor::ONE_HALF:
-      return -1;
-    case cfg::MMUScalingFactor::TWO:
-      return 1;
-    case cfg::MMUScalingFactor::FOUR:
-      return 2;
     case cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT:
       return 7;
-    case cfg::MMUScalingFactor::ONE_32768TH:
-      // Unsupported
-      throw FbossError(
-          "Unsupported scaling factor : ",
-          apache::thrift::util::enumNameSafe(scalingFactor));
+    default:
+      return HwAsic::getBufferDynThreshFromScalingFactor(scalingFactor);
   }
-  throw FbossError("Unknown scaling factor : ", scalingFactor);
 }
 bool ChenabAsic::scalingFactorBasedDynamicThresholdSupported() const {
   return true;

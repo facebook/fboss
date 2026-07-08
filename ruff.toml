@@ -43,6 +43,10 @@ ignore = [
 known-first-party = ["fboss"]
 force-single-line = false
 combine-as-imports = true
+order-by-type = false
+# Match the formatter's skip-magic-trailing-comma so the isort rule does not
+# re-explode imports that the formatter collapses (keeps `I` and `[format]` in sync).
+split-on-trailing-comma = false
 
 [lint.pylint]
 max-args = 8
@@ -50,5 +54,5 @@ max-args = 8
 [format]
 quote-style = "double"
 indent-style = "space"
-skip-magic-trailing-comma = false
+skip-magic-trailing-comma = true
 line-ending = "auto"

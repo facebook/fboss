@@ -1,4 +1,13 @@
-export FBOSS=$PWD
+# Derive FBOSS root from this script's location (script lives at $FBOSS/bin/setup_fboss_env)
+_FBOSS_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+
+# Idempotent: skip if already sourced with the same root
+if [[ "${FBOSS:-}" == "$_FBOSS_ROOT" ]]; then
+  unset _FBOSS_ROOT
+  return 0 2>/dev/null || true
+fi
+
+export FBOSS=$_FBOSS_ROOT
 export FBOSS_BIN=${FBOSS}/bin
 export FBOSS_LIB=${FBOSS}/lib
 export FBOSS_LIB64=${FBOSS}/lib64
@@ -8,3 +17,5 @@ export FBOSS_DATA=${FBOSS}/share
 export PATH=${FBOSS_BIN}${PATH:+:${PATH}}
 export LD_LIBRARY_PATH=${FBOSS_LIB}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 export LD_LIBRARY_PATH=${FBOSS_LIB64}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+unset _FBOSS_ROOT

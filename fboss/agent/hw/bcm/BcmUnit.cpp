@@ -210,7 +210,7 @@ void BcmUnit::deleteBcmUnitImpl() {
     steady_clock::time_point begin = steady_clock::now();
     XLOG(DBG2) << " [Exit] Initiating BRCM ASIC shutdown";
 
-    /* This is the counterpart of bcm_pktio_init() in the desctruction
+    /* This is the counterpart of bcm_pktio_init() in the destruction
      * path internal to SDK.  But Broadcom only made bcm_pktio_init
      * call in the SDK, not this one, so we have to make this call
      * here.  Broadcom is working on fixing it.

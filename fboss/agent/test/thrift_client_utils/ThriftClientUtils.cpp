@@ -10,10 +10,12 @@
 
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 
+#include <thrift/lib/cpp/transport/TTransportException.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "common/network/NetworkUtil.h"
 #include "common/thrift/thrift/gen-cpp2/MonitorAsyncClient.h"
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/AgentConfig.h"
 
 namespace facebook::fboss::utility {
 
@@ -223,11 +225,14 @@ void triggerGracefulAgentRestartWithDelay(
     int32_t delayInSeconds) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
+    const std::string serviceName =
+        FLAGS_multi_switch ? "fboss_sw_agent_test" : "wedge_agent-test";
     swAgentClient->sync_gracefullyRestartServiceWithDelay(
-        "fboss_sw_agent_test", delayInSeconds);
-  } catch (...) {
-    // Thrift request may throw error as the Agent exits.
-    // Ignore it, as we only wanted to trigger exit.
+        serviceName, delayInSeconds);
+  } catch (const apache::thrift::transport::TTransportException& ex) {
+    // Expected as agent exits mid-RPC.
+    XLOG(DBG2) << "triggerGracefulAgentRestartWithDelay on " << switchName
+               << " transport exception (expected): " << ex.what();
   }
 }
 

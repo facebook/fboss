@@ -1,0 +1,273 @@
+---
+id: Features_fsdb_oss_user_guide
+title: FSDB OSS User Guide
+custom_edit_url: https://www.internalfb.com/intern/diffusion/FBS/browsefile/master/fbcode/fboss/agent/wiki/static_docs/docs/Features/fsdb/oss_user_guide.mdx
+---
+
+# FSDB OSS User Guide
+
+FSDB (FBOSS State Database) is the central pub/sub state database that runs on every FBOSS switch. Switch services (`wedge_agent`, `qsfp_service`, `sensor_service`, …) publish their operational state and statistics into FSDB; any number of subscribers — on-switch or off-switch — can subscribe to all or part of that data and receive live updates over Thrift streaming.
+
+This page is the FSDB User Guide for OSS consumers (cloud operators integrating FBOSS, telemetry pipelines, off-switch monitoring) and for FBOSS OSS developers who need to know how to build, run, and extend FSDB.
+
+## Overview
+
+FSDB is a Tier 0 service on the switch. It holds two independent trees:
+
+| Tree | What it carries | Serve cadence | C++ root struct |
+|---|---|---|---|
+| **State** | Event-driven operational state — switch config, current switch state, transceiver inventory, DSF reachability, etc. | ~50 ms (`FLAGS_stateSubscriptionServe_ms`) | `FsdbOperStateRoot` |
+| **Stats** | Periodic counters — port stats, sensor readings, etc. | ~10 s (`FLAGS_statsSubscriptionServe_ms`) | `FsdbOperStatsRoot` |
+
+Both roots are defined for OSS in [`fboss/fsdb/if/oss/fsdb_model.thrift`](https://github.com/facebook/fboss/blob/main/fboss/fsdb/if/oss/fsdb_model.thrift).
+
+**Storage.** FSDB stores both trees as `thrift_cow` (copy-on-write) Thrift nodes. Mutations produce a new immutable tree; subscribers receive only the changed sub-trees.
+
+**Transport.** Publishers push updates over a Thrift **Sink** (client → server stream). Subscribers receive updates over a Thrift **server stream**. Reconnects trigger a full resync; backpressure is enforced via bounded async pipes.
+
+**Subscription protocols.**
+
+| Protocol | Status | Use when |
+|---|---|---|
+| `PATCH` | **Preferred for new code on the State tree.** Compact, tree-structured patches built from `thrift_cow::PatchNode`. | Always for State; safe to use for Stats too. |
+| `PATH` | Maintained. Sends the full state at the subscribed path on any change inside it. | **Stats only.** Stats are republished as full snapshots every ~10 s, so PATH is a natural fit. Do not use PATH on the State tree — the per-update payload grows with sub-tree size. |
+| `DELTA` | **Deprecated.** Do not add new delta publishers or subscribers; existing users are being migrated to `PATCH`. | Never (legacy only). |
+| `EXTENDED_*` variants | Maintained. Wildcard/regex multi-path subscriptions using `ExtendedOperPath`. | Subscribing to a subset of map keys, or "all children of X". |
+
+**Safety.** FSDB can restart but cannot operate at reduced capacity for more than 120 s. A misbehaving publisher or subscriber must never destabilize the FSDB server or other clients — queue bounds and per-client failure isolation are strictly enforced.
+
+## Ports
+
+FSDB listens on multiple TCP ports, defined as gflags in `fboss/fsdb/common/Flags.cpp`:
+
+| Port | Flag | Purpose |
+|---|---|---|
+| **5908** | `--fsdbPort` | Default FSDB Thrift server port. Exported as the `PORT` constant in `fboss/fsdb/if/fsdb_common.thrift` and used as the default by `utils::ConnectionOptions::defaultOptions<FsdbService>()`. |
+| **5957** | `--fsdbPort_high_priority` | High-priority port served with TOS = `0xc0`. Currently used only by the FBOSS DSF subscriber so that DSF reachability updates are not starved behind other FSDB traffic. |
+| **5958** | `--migrated_fsdbPort` | Migration target. 5908 conflicts with VNC's default port range, so the FSDB server already listens on 5958 in parallel (see `fboss/fsdb/server/Server.cpp`). No production client reads `FLAGS_migrated_fsdbPort` today — it is a server-side placeholder for a future migration. |
+
+All three ports are bound by a single `ThriftServer` instance with a shared `ServiceHandler`; they are not separate server processes. Most subscribers should connect to **5908** and ignore the other two — they exist for DSF reachability and the future port migration respectively.
+
+## What can I subscribe to? (OSS publisher catalog)
+
+The publishers below ship in OSS and are the data sources a cloud operator can subscribe to from outside the switch. The schema is defined in `fboss/fsdb/if/oss/fsdb_model.thrift`:
+
+```thrift
+struct FsdbOperStateRoot {
+  1: AgentData agent;
+  4: qsfp_state.QsfpServiceData qsfp_service;
+}
+
+struct FsdbOperStatsRoot {
+  1: agent_stats.AgentStats agent;
+  3: qsfp_stats.QsfpStats qsfp_service;
+  4: sensor_service_stats.SensorServiceStats sensor_service;
+}
+```
+
+| Publisher ID | Tree | Root path | Root struct | Schema source | What's inside |
+|---|---|---|---|---|---|
+| `agent` | State | `/agent` | `AgentData` | `fboss/fsdb/if/oss/fsdb_model.thrift` | running `SwitchState`, running `AgentConfig`, `AgentInfo`, FSDB subscription health, DSF `SwitchReachability` |
+| `agent` | Stats | `/agent` | `AgentStats` | `fboss/agent/agent_stats.thrift` | `hwPortStats`, `sysPortStats`, `cpuPortStats`, `hwTrunkStats`, `phyStats`, `teFlowStats`, fabric & neighbor counters |
+| `qsfp_service` | State | `/qsfp_service` | `state::QsfpServiceData` | `fboss/qsfp_service/if/qsfp_state.thrift` | transceiver state per `TcvrID`, `phyStates`, `pimStates`, logical `portStates`, running QSFP service config |
+| `qsfp_service` | Stats | `/qsfp_service` | `stats::QsfpStats` | `fboss/qsfp_service/if/qsfp_stats.thrift` | per-transceiver `TcvrStats`, per-port `phyStats` / `portStats` (media + host lane counters) |
+| `sensor_service` | Stats | `/sensor_service` | `SensorServiceStats` | `fboss/platform/sensor_service/sensor_service_stats.thrift` | platform sensor readings (temperature, voltage, current, fan rpm) |
+
+Each publisher registers itself in the FSDB `Config.publishers` map (see `fboss/fsdb/if/fsdb_config.thrift`) with a `PublisherConfig` listing each `PathConfig{ path, isStats, isExpected }`.
+
+## Discovering live state with the `fboss2` CLI
+
+Once FSDB is up on a switch, use `fboss2` (the FBOSS CLI) to inspect it interactively. Commands are implemented under `fboss/cli/fboss2/commands/show/fsdb/`:
+
+```bash
+# List currently active publishers and their connection state.
+fboss2 show fsdb publishers
+
+# List currently active subscribers (useful to verify your own client connected).
+fboss2 show fsdb subscribers
+
+# Dump the current value at a State path.
+fboss2 show fsdb state 'agent/switchState/portMaps'
+
+# Dump the current value at a Stats path.
+fboss2 show fsdb stats 'agent/hwPortStats'
+```
+
+Path arguments are slash-separated thrift field names from the root. Use `fboss2 show fsdb state 'agent'` to dump the entire `agent` sub-tree, then drill down.
+
+## Subscribing to FSDB
+
+The preferred client API is **`FsdbSubManager`** (`fboss/fsdb/client/FsdbSubManager.h`). It speaks `PATCH`, supports multiple paths per subscription, and delivers a parsed `shared_ptr` to the root storage on every update.
+
+Use one of the typed instantiations rather than the bare template:
+
+- `fboss/fsdb/client/instantiations/FsdbCowStateSubManager.h` — for the State tree
+- `fboss/fsdb/client/instantiations/FsdbCowStatsSubManager.h` — for the Stats tree
+
+### Sample subscriber (C++)
+
+`QsfpFsdbSubscriber` (`fboss/qsfp_service/fsdb/QsfpFsdbSubscriber.{h,cpp}`) is the canonical real-world OSS subscriber: `qsfp_service` runs on every switch and subscribes to `agent.switchState.portMaps` from FSDB so it can react to port-state changes without polling `wedge_agent`. The snippet below is a condensed version of that production code.
+
+```cpp
+#include "fboss/fsdb/client/instantiations/FsdbCowStateSubManager.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
+
+namespace facebook::fboss {
+
+namespace {
+// Build the FSDB path once: /agent/switchState/portMaps.
+const thriftpath::RootThriftPath<fsdb::FsdbOperStateRoot> kRoot;
+const auto kPortMapsPath = kRoot.agent().switchState().portMaps();
+} // namespace
+
+class QsfpFsdbSubscriber {
+ public:
+  // "qsfp_service" is the SubscriberId visible in
+  // `fboss2 show fsdb subscribers`. Connection defaults to localhost:5908.
+  QsfpFsdbSubscriber()
+      : sub_(std::make_unique<fsdb::FsdbCowStateSubManager>(
+            fsdb::SubscriptionOptions("qsfp_service"))) {}
+
+  void subscribeToSwitchStatePortMap(TransceiverManager* tcvrManager) {
+    sub_->addPath(kPortMapsPath);
+    sub_->subscribe([tcvrManager](auto update) {
+      // update.data is a shared_ptr to the latest CoW root storage.
+      const auto& portMaps =
+          *update.data->toThrift().agent()->switchState()->portMaps();
+      tcvrManager->syncNpuPortStatusUpdate(toNpuPortStatus(portMaps));
+    });
+  }
+
+  void stop() { sub_->stop(); }
+
+ private:
+  std::unique_ptr<fsdb::FsdbCowStateSubManager> sub_;
+};
+
+} // namespace facebook::fboss
+```
+
+Key points to take away:
+
+- **One typed path per `addPath`.** You can call `addPath` multiple times before `subscribe()` to subscribe to several sub-trees in a single stream; each returns a `SubscriptionKey` you can match against `update.updatedKeys` in the callback.
+- **`update.data` is the whole root.** The callback receives a `shared_ptr` to the latest CoW root storage, not just the changed path. Navigate to the sub-tree you care about via `toThrift()`.
+- **No reconnect handling required.** `FsdbSubManager` reconnects automatically and re-runs the callback with a full state after each resync.
+
+`subscribeBound` is an alternative that returns a `folly::Synchronized<shared_ptr<Storage>>` that is auto-updated for you — useful when you just want "the latest state" without writing a callback.
+
+### Connection lifecycle
+
+`FsdbSubManager` handles reconnect automatically. On disconnect, the subscription transitions through `DISCONNECTED` (or `DISCONNECTED_GR_HOLD` / `DISCONNECTED_GR_HOLD_EXPIRED` if a graceful-restart hold timer was configured). On reconnect, FSDB sends a full resync, then resumes incremental updates. Pass an optional `SubscriptionStateChangeCb` to `subscribe()` to observe these transitions.
+
+### Off-switch subscribers (remote / cloud)
+
+`utils::ConnectionOptions::defaultOptions<FsdbService>()` connects to `localhost:5908`. To subscribe from off-switch (for example, a telemetry collector running in a different host or datacenter), construct the options with an explicit address:
+
+```cpp
+// Connect by IP/port to a remote FBOSS switch:
+auto connOpts = utils::ConnectionOptions(
+    folly::SocketAddress(switchMgmtIp, fsdb::PORT));
+
+// Or hand defaultOptions an override:
+auto connOpts = utils::ConnectionOptions::defaultOptions<FsdbService>(
+    folly::SocketAddress(switchMgmtIp, fsdb::PORT));
+```
+
+See `fboss/lib/thrift_service_client/ConnectionOptions.h` for the full API (timeouts, source address, traffic class, hostname override).
+
+**Transport security.** `ConnectionOptions` defaults to `preferEncrypted_ = true`, so the underlying Thrift client negotiates TLS when the server supports it. The OSS run helper currently launches FSDB with `--ssl_policy=disabled` for ease of local bring-up; production deployments should run with TLS enabled and configure their service certificate chain. There is no per-client auth model in OSS today — network-level reachability and TLS are the trust boundary, so off-switch subscribers should be behind a managed network or service mesh.
+
+### Other client APIs
+
+- `fboss/fsdb/client/FsdbPubSubManager.h` — lower-level, per-process owner of publishers and subscribers. Use this only if `FsdbSubManager` does not cover your use case (for example, raw access to the underlying stream client).
+- `fboss/fsdb/client/FsdbStreamClient.h` — the base reconnecting stream client. Rarely used directly.
+
+## Publishing to FSDB
+
+If you are building a new on-switch service whose state or statistics should be visible to other components or to off-switch consumers, publish it to FSDB.
+
+The preferred publisher API is **`FsdbSyncManager<RootT, EnablePatchAPIs>`** (`fboss/fsdb/client/FsdbSyncManager.h`). It owns an internal `CowStorageMgr<RootT>` and a `FsdbPubSubManager`; you call `updateState(...)` with a functor that mutates the CoW state, and `FsdbSyncManager` auto-publishes the resulting delta / path / patch.
+
+### Sample publisher (C++)
+
+Adapted from `fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.{h,cpp}`. A larger example is `fboss/agent/AgentFsdbSyncManager.{h,cpp}` and `fboss/agent/FsdbSyncer.cpp`. Production code typically wraps the `updateState(...)` call in a domain-specific helper (e.g. `QsfpFsdbSyncManager::updateConfig`, `updateTcvrStates`) so the rest of the service doesn't see the CoW machinery.
+
+```cpp
+#include "fboss/fsdb/client/FsdbSyncManager.h"
+
+using namespace facebook::fboss;
+
+// 1. Construct one FsdbSyncManager per (publisher_id, tree). Here we
+//    publish State as Patch (preferred) and Stats as Path.
+auto stateSyncer = std::make_unique<fsdb::FsdbSyncManager<
+    state::QsfpServiceData,
+    /*EnablePatchAPIs=*/true>>(
+    "qsfp_service",                              // PublisherId
+    QsfpFsdbSyncManager::getStatePath(),         // base path tokens
+    /*isStats=*/false,
+    fsdb::getFsdbStatePubType());                // PATCH
+
+auto statsSyncer = std::make_unique<fsdb::FsdbSyncManager<stats::QsfpStats>>(
+    "qsfp_service",
+    QsfpFsdbSyncManager::getStatsPath(),
+    /*isStats=*/true,
+    fsdb::PubSubType::PATH);
+
+// 2. Start. Initial sync follows asynchronously once connected.
+stateSyncer->start();
+statsSyncer->start();
+
+// 3. Publish updates. The functor receives the current CoW state and
+//    returns a new one; FsdbSyncManager handles the diff + publish.
+stateSyncer->updateState([newCfg = std::move(newCfg)](const auto& in) {
+  auto out = in->clone();
+  out->template modify<apache::thrift::ident::config>();
+  out->template ref<apache::thrift::ident::config>()->fromThrift(newCfg);
+  return out;
+});
+
+// 4. On shutdown, stop the syncer to drain the publish queue.
+stateSyncer->stop();
+statsSyncer->stop();
+```
+
+### Adding a brand-new top-level publisher
+
+1. Add a new field to `FsdbOperStateRoot` and/or `FsdbOperStatsRoot` in `fboss/fsdb/if/oss/fsdb_model.thrift`. The field name becomes the root path.
+2. Register the publisher in the FSDB `Config.publishers` map (`fboss/fsdb/if/fsdb_config.thrift`) so the server knows the path is expected. Each `PathConfig` carries `path`, `isExpected`, and `isStats`.
+3. Construct an `FsdbSyncManager` in your service with the same publisher ID and base path, as shown above. The publisher ID you pass to the constructor is what shows up in `fboss2 show fsdb publishers` — registration happens server-side when the publish stream connects, not via any enum.
+4. Optionally, if your service is also an FSDB subscriber and you want consistent client-side identification across logs and tooling, add an entry for it to the `FsdbClient` enum in `fboss/fsdb/if/fsdb_common.thrift`. This is used by client-side parsing (e.g. `subscriberId2ClientId`), not by the server to recognize your publisher.
+
+## Build and run FSDB (OSS)
+
+In OSS, FSDB is built and packaged as part of the FBOSS OSS getdeps build (`fboss/oss/scripts/run-getdeps.py`) alongside `wedge_agent` and `qsfp_service`. After getdeps installs it to `/opt/fboss/bin/fsdb`, the systemd unit and lifecycle helpers in `fboss/oss/scripts/run_scripts/fsdb_service_utils.py` launch it as the `fsdb_service_oss` service.
+
+The FSDB server requires a config (`--fsdb_config=...`). For testing, the OSS run helper uses:
+
+```
+--checkOperOwnership=false  --ssl_policy=disabled  --useIdPathsForSubs=false  --serveHeartbeats
+```
+
+Client-side consumers (your own subscribers / publishers) just need to link the FSDB client library; no separate FSDB process needs to be linked into your binary.
+
+## Code layout cheatsheet
+
+```
+fboss/fsdb/
+├── if/                      Thrift IDL: service, data model, config, common types.
+│   ├── oss/                 OSS data model (FsdbOperStateRoot / FsdbOperStatsRoot).
+│   ├── fsdb_config.thrift   Publisher / subscriber config structs.
+│   ├── fsdb_common.thrift   Port, PublisherId/SubscriberId, FsdbClient enum, error codes.
+│   └── fsdb_oper.thrift     OperPath, OperState, OperDelta, Patch, etc.
+├── server/                  FSDB binary (`FsdbMain.cpp`) and `ServiceHandler`.
+├── oper/                    Storage engine, subscription manager, COW tree traversal.
+├── client/                  Client libraries:
+│   ├── FsdbSubManager.h         Modern, multi-path, Patch-based subscriber (preferred).
+│   ├── FsdbSyncManager.h        Templated publisher driving a CowStorageMgr.
+│   ├── FsdbPubSubManager.h      Lower-level per-process publisher/subscriber owner.
+│   └── instantiations/          Typed FsdbSubManager specializations for State / Stats.
+├── common/                  Shared flags, types, utility helpers.
+├── tools/                   Internal benchmarking / memory-analysis utilities.
+├── benchmarks/              Performance benchmarks and state generators.
+└── tests/                   Test thrift definitions and `FsdbTestServer`.
+```

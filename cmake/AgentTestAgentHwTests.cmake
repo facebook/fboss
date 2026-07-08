@@ -1,7 +1,16 @@
-# CMake to build libraries and binaries in fboss/agent/hw/test
+# CMake to build libraries and binaries in fboss/agent/test/agent_hw_tests
 
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
+
+file(READ fboss/agent/test/agent_hw_tests/golden/asic/jericho3-11.csv JERICHO3-11)
+file(READ fboss/agent/test/agent_hw_tests/golden/asic/jericho3-12.csv JERICHO3-12)
+file(READ fboss/agent/test/agent_hw_tests/golden/asic/jericho3-default.csv JERICHO3-DEFAULT)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/fboss/agent/test/agent_hw_tests/oss/golden_data.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/fboss/agent/test/agent_hw_tests/golden_data.h
+  @ONLY
+)
 
 # QoS test library - tests related to QoS scheduling, DSCP mapping, watermarks
 add_library(agent_qos_test_src
@@ -9,6 +18,7 @@ add_library(agent_qos_test_src
   fboss/agent/test/agent_hw_tests/AgentDscpQueueMappingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNetworkAIQosSchedulerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNetworkAIQosTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentEgressQueueScalingFactorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentOlympicQosSchedulerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentOlympicQosTests.cpp
   fboss/agent/test/agent_hw_tests/AgentQosSchedulerTestBase.cpp
@@ -22,6 +32,7 @@ target_link_libraries(agent_qos_test_src
   config_factory
   copp_test_utils
   ecmp_helper
+  multi_port_traffic_test_utils
   network_ai_qos_utils
   olympic_qos_utils
   packet_factory
@@ -36,6 +47,7 @@ target_link_libraries(agent_qos_test_src
 
 # VOQ/DSF test library - tests related to VOQ switches and distributed switch fabric
 add_library(agent_voq_test_src
+  fboss/agent/test/agent_hw_tests/AgentFabricSwitchFabricLinkMonitoringTests.cpp
   fboss/agent/test/agent_hw_tests/AgentFabricSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqConditionalEntropyTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchFabricLinkMonitoringTests.cpp
@@ -103,34 +115,55 @@ target_link_libraries(agent_ars_test_src
 add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentCoppTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDot1qMappingTest.cpp
+  fboss/agent/test/agent_hw_tests/AgentDropBitmapTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpMarkingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDeepPacketInspectionTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAsicDefaultProgrammingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDiagShellStressTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEcmpTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEmptyTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentFlexPortTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEgressForwardingDiscardCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteOverDifferentAddressFamilyNhopTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclInDiscardCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentJumboFramesTests.cpp
   fboss/agent/test/agent_hw_tests/AgentIngressBufferTests.cpp
   fboss/agent/test/agent_hw_tests/AgentInNullRouteDiscardsTest.cpp
+  fboss/agent/test/agent_hw_tests/AgentInPauseDiscardsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentInTrapDiscardsTest.cpp
   fboss/agent/test/agent_hw_tests/AgentPacketSendTests.cpp
   fboss/agent/test/agent_hw_tests/AgentL3ForwardingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentL4PortBlackholingTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentLinkLocalForwardingTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwLinkDebounceTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningAndNeighborResolutionTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropDnxTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropSrv6Tests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropStatelessTest.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropStatelessTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTajoImpl.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTestBase.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropXgsImpl.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwMirrorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirroringTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirroringScaleTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTestUtils.cpp
+  fboss/agent/test/agent_hw_tests/AgentMPLSHeadEndTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMPLSMidpointTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNSFScaleTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNeighborTests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostL2Tests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostTests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostRouteTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentRouteStatTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentSaiPortAdminStateTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortBandWidthTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortLedTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentPortProfileTests.cpp
+  fboss/agent/hw/test/HwTestPortUtils.cpp
   fboss/agent/test/agent_hw_tests/AgentPrbsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAqmTests.cpp
@@ -150,15 +183,22 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentHwAclMatchActionsTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwAclQualifierTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwAclStatTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAclTableTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAclTableGroupTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAclTableGroupTrafficTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwResourceStatsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwParityErrorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentTrafficPfcTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentPfcConfigTest.cpp
   fboss/agent/test/agent_hw_tests/AgentIpInIpTunnelTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentSrv6BindingSidTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSrv6EncapTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSrv6DecapTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSrv6MidpointTest.cpp
+  fboss/agent/test/agent_hw_tests/AgentSrv6ResourceUsageTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwPtpTcTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSwitchingModeTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwPortStressTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwUdfTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouterInterfaceCounterTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwPtpTcProvisionTests.cpp
@@ -166,6 +206,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentRollbackTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteRollbackTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPacketStreamHandlerTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAclTableGroupTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
@@ -223,6 +264,7 @@ target_link_libraries(agent_hw_test_src
   sflow_shim_utils
   udf_test_utils
   pktutil
+  xgs_psamp_mod
   mirror_test_utils
   dsf_config_utils
   voq_test_utils
@@ -232,11 +274,17 @@ target_link_libraries(agent_hw_test_src
   neighbor_test_utils
   system_scale_test_utils
   hyper_port_test_utils
+  sai_port_utils
+  phy_utils
+  platform_mapping
+  ${RE2}
 )
 
 add_executable(multi_switch_agent_hw_test
   fboss/agent/test/agent_hw_tests/MultiSwitchAgentHwTest.cpp
 )
+
+add_sai_sdk_dependencies(multi_switch_agent_hw_test)
 
 target_link_libraries(multi_switch_agent_hw_test
   -Wl,--whole-archive
@@ -257,10 +305,50 @@ target_link_libraries(multi_switch_agent_hw_test
   traffic_policy_utils
   Folly::folly
   hw_packet_utils
+  phy_utils
   -Wl,--no-whole-archive
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+add_library(agent_scale_test_src
+  fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
+)
+
+add_sai_sdk_dependencies(agent_scale_test_src)
+
+target_link_libraries(agent_scale_test_src
+  config_factory
+  packet_factory
+  agent_hw_test_src
+  ecmp_helper
+  production_features_cpp2
+  acl_test_utils
+  asic_test_utils
+  scale_test_utils
+  Folly::folly
+)
+
+add_executable(multi_switch_agent_scale_test
+  fboss/agent/test/agent_hw_tests/MultiSwitchAgentHwTest.cpp
+)
+
+add_sai_sdk_dependencies(multi_switch_agent_scale_test)
+
+target_link_libraries(multi_switch_agent_scale_test
+  -Wl,--whole-archive
+  agent_scale_test_src
+  agent_hw_test
+  multi_switch_agent_ensemble
+  setup_thrift_prod
+  Folly::folly
+  -Wl,--no-whole-archive
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+install(TARGETS multi_switch_agent_scale_test)
 
 function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
 
@@ -288,6 +376,7 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     traffic_policy_utils
     sai_traced_api
     setup_thrift_prod
+    phy_utils
     -Wl,--no-whole-archive
   )
 
@@ -296,25 +385,6 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
     -DSAI_VER_MINOR=${SAI_VER_MINOR} \
     -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_library(agent_scale_test_src
-    fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
-    fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
-  )
-
-  add_sai_sdk_dependencies(agent_scale_test_src)
-
-  target_link_libraries(agent_scale_test_src
-    config_factory
-    packet_factory
-    agent_hw_test_src
-    ecmp_helper
-    production_features_cpp2
-    acl_test_utils
-    asic_test_utils
-    scale_test_utils
-    Folly::folly
   )
 
   add_executable(sai_agent_scale_test-${SAI_IMPL_NAME}
@@ -331,6 +401,7 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     sai_acl_utils
     mono_agent_ensemble
     agent_hw_test_thrift_handler
+    sai_port_utils
     setup_thrift_prod
     -Wl,--no-whole-archive
     ${GTEST}

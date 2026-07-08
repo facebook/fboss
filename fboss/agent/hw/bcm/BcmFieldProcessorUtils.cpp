@@ -217,10 +217,19 @@ bool isActionStateSame(
     if (acl->getAclAction()->cref<switch_state_tags::setDscp>()) {
       expectedAC += 1;
     }
-    if (acl->getAclAction()->cref<switch_state_tags::ingressMirror>()) {
+    // Only count mirror actions if the mirror is actually resolved and
+    // programmed in HW. When a mirror's destination route is withdrawn,
+    // BcmMirror removes the mirror action from the HW ACL entry, but the
+    // SwitchState ACL still references the mirror by name. Counting an
+    // unresolved mirror here would cause a mismatch between SW expected
+    // action count and HW actual action count, leading to a CHECK failure
+    // during warmboot.
+    if (acl->getAclAction()->cref<switch_state_tags::ingressMirror>() &&
+        data.mirrors.ingressMirrorHandle.has_value()) {
       expectedAC += 1;
     }
-    if (acl->getAclAction()->cref<switch_state_tags::egressMirror>()) {
+    if (acl->getAclAction()->cref<switch_state_tags::egressMirror>() &&
+        data.mirrors.egressMirrorHandle.has_value()) {
       expectedAC += 1;
     }
     if (acl->getAclAction()->cref<switch_state_tags::redirectToNextHop>()) {
@@ -535,6 +544,7 @@ bool needsExtraFPQsetQualifiers(cfg::AsicType asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
       return false;
     case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:

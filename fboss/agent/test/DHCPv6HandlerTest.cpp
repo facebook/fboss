@@ -206,8 +206,8 @@ void sendDHCPV6Packet(
   handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), VlanID(1));
 }
 
-typedef std::function<void(Cursor* cursor, uint32_t length)>
-    DHCPV6PayloadCheckFn;
+using DHCPV6PayloadCheckFn =
+    std::function<void(Cursor* cursor, uint32_t length)>;
 
 // Generic validator function to validate expected packet from the DHCPV6
 // handler
@@ -1342,6 +1342,101 @@ TEST_F(DHCPv6HandlerTest, DHCPV6BadRelayForward) {
       dhcpV6RelayMessageOptions);
 
   // Validate the counter cache update
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV6.pkt.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV6.bad_pkt.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV6.drop_pkt.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+}
+
+// Inject a DHCPV6 Relay-Reply whose INTERFACE_ID option declares a length other
+// than MacAddress::SIZE (6). processDHCPv6RelayReply reads a fixed
+// MacAddress::SIZE bytes from the option to form the outbound destination MAC,
+// so a shorter attacker-supplied option must be dropped (and counted as a bad
+// packet) rather than over-reading past the parsed options buffer.
+TEST_F(DHCPv6HandlerTest, DHCPV6RelayReplyBadInterfaceIdLen) {
+  // Setup SwitchState
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  // Client VLAN
+  auto vlanID = kClientVlan;
+  const string vlan = kClientVlanStr;
+  // Router MAC (dummy)
+  auto senderMac = "08 00 27 d4 10 bb";
+  // Server IP
+  auto senderIP = kDhcpV6RelayStr;
+  // Dest Router MAC
+  auto targetMac = MockPlatform::getMockLocalMac().toString();
+  std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
+  // Relay VLAN IP
+  auto targetIP = kVlanInterfaceIPStr;
+  // UDP Src and Dst ports for DHCPV6 relay reply
+  const string srcPort = "02 23";
+  const string dstPort = "02 23";
+  // DHCPV6 Relay-Reply Message Header
+  const string dhcpV6Hdr =
+      // DHCPV6 Relay-Reply Message: type (13), Hopcount (1)
+      "0d 01" +
+      // DHCPV6 Relay-Reply Message: LinkAddr
+      kVlanInterfaceIPStr +
+      // DHCPV6 Relay-Reply Message: PeerAddr
+      kDhcpV6ClientLocalIpStr;
+
+  // DHCPV6 Relay-Reply Message Content
+  const string dhcpV6ReplyMessage =
+      // DHCPV6 Reply Message: type (7), txnId (dummy 0x571958)
+      "07 57 19 58"
+      // DHCPv6 Client Identifier: Option (0001),  Length (14 = 000e)
+      "00 01 00 0e"
+      "00 01 00 01 1c 38 26 2d 08 00 27 fe 8f 95"
+      // DHCPv6 Server Identifier: Option (0002),  Length (14 = 000e)
+      "00 01 00 0e"
+      "00 01 00 01 1c 38 25 e8 08 00 27 d4 10 bb"
+      // DHCPv6 IA for Non-temporary Address: Option (0003), Length (40 = 0028)
+      "00 03 00 28"
+      "11 88 88 d3 00 00 00 00 00 00 00 00 00 05 00 18 20 01 05 04 07 12"
+      "00 02 00 00 00 00 00 00 02 01 00 00 69 78 00 00 a8 c0"
+      // DHCPv6 DNS recursive name server: Option (0017), Length (32 = 0020)
+      "00 17 00 20"
+      "fc 00 05 04 07 00 00 00 00 10 00 32 00 00 00 18 fc"
+      "00 05 04 07 00 00 00 00 10 00 32 00 00 00 20";
+
+  // DHCPV6 Relay-Reply Message options with a malformed INTERFACE_ID length.
+  const string dhcpV6RelayReplyOptions =
+      // InterfaceID: Option (18 = 0012), Length (4 = 0004 -> invalid, must be
+      // 6)
+      "00 12 00 04"
+      // InterfaceID value (only 4 bytes, fewer than MacAddress::SIZE)
+      "00 00 00 00"
+      // Relay Reply: Option (9 = 0009), Length (120 = 0078), Value (DHCP Reply)
+      "00 09 00 78" +
+      dhcpV6ReplyMessage;
+
+  // hdr(34) + options: interfaceId(4+4) + relayReply(4+120) = 166
+  constexpr auto dhcpV6HdrSize = 166;
+
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  // A dropped relay reply should not trigger a state update or an outbound pkt
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
+
+  // Inject the test packet
+  sendDHCPV6Packet(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      dhcpV6HdrSize,
+      dhcpV6Hdr,
+      dhcpV6RelayReplyOptions);
+
+  // The packet is trapped, counted as bad (bad also bumps drop), and dropped.
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV6.pkt.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV6.bad_pkt.sum", 1);

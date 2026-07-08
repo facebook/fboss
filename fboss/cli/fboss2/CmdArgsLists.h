@@ -32,6 +32,17 @@ class CmdArgsLists {
     return data_[i];
   }
 
+  // Reset all depth levels to empty. Needed when the CLI is invoked multiple
+  // times in the same process (e.g. from the integration test harness), since
+  // CLI11's vector-backed add_option() appends to the vector rather than
+  // replacing it, and this singleton would otherwise accumulate stale args
+  // from previous invocations into subsequent parses.
+  void clear() {
+    for (auto& level : data_) {
+      level.clear();
+    }
+  }
+
   template <typename UnfilteredTypes, typename Types>
   Types getTypedArgs() {
     const auto& unfiltered =

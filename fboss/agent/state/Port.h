@@ -21,7 +21,6 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/mka_service/if/gen-cpp2/mka_structs_types.h"
 
-#include <boost/container/flat_map.hpp>
 #include <map>
 #include <string>
 #include <vector>
@@ -48,7 +47,7 @@ struct PortFields {
     bool priorityTagged;
   };
 
-  using VlanMembership = boost::container::flat_map<VlanID, VlanInfo>;
+  using VlanMembership = std::map<VlanID, VlanInfo>;
   using LLDPValidations = std::map<cfg::LLDPTag, std::string>;
   using NeighborReachability = std::vector<cfg::PortNeighbor>;
 
@@ -866,6 +865,23 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  /** @brief Get link training enable state */
+  std::optional<bool> getLinkTraining() const {
+    if (auto linkTraining = cref<switch_state_tags::linkTraining>()) {
+      return linkTraining->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set link training enable state */
+  void setLinkTraining(std::optional<bool> linkTraining) {
+    if (!linkTraining.has_value()) {
+      ref<switch_state_tags::linkTraining>().reset();
+    } else {
+      set<switch_state_tags::linkTraining>(linkTraining.value());
+    }
+  }
+
   std::optional<int32_t> getPortSwitchId() const {
     if (auto portSwitchId = cref<switch_state_tags::portSwitchId>()) {
       return portSwitchId->cref();
@@ -878,6 +894,41 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
       ref<switch_state_tags::portSwitchId>().reset();
     } else {
       set<switch_state_tags::portSwitchId>(portSwitchId.value());
+    }
+  }
+
+  /** @brief Get hold timer (ms) before reporting a link-down event */
+  std::optional<int32_t> getPortDownHoldoffTimeMs() const {
+    if (auto v = cref<switch_state_tags::portDownHoldoffTimeMs>()) {
+      return v->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set hold timer (ms) before reporting a link-down event */
+  void setPortDownHoldoffTimeMs(std::optional<int32_t> portDownHoldoffTimeMs) {
+    if (!portDownHoldoffTimeMs.has_value()) {
+      ref<switch_state_tags::portDownHoldoffTimeMs>().reset();
+    } else {
+      set<switch_state_tags::portDownHoldoffTimeMs>(
+          portDownHoldoffTimeMs.value());
+    }
+  }
+
+  /** @brief Get hold timer (ms) before reporting a link-up event */
+  std::optional<int32_t> getPortUpHoldoffTimeMs() const {
+    if (auto v = cref<switch_state_tags::portUpHoldoffTimeMs>()) {
+      return v->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set hold timer (ms) before reporting a link-up event */
+  void setPortUpHoldoffTimeMs(std::optional<int32_t> portUpHoldoffTimeMs) {
+    if (!portUpHoldoffTimeMs.has_value()) {
+      ref<switch_state_tags::portUpHoldoffTimeMs>().reset();
+    } else {
+      set<switch_state_tags::portUpHoldoffTimeMs>(portUpHoldoffTimeMs.value());
     }
   }
 

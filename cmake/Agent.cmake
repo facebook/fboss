@@ -128,6 +128,17 @@ target_link_libraries(voq_utils
   state
 )
 
+add_library(remote_intf_route_auditor
+  fboss/agent/RemoteIntfRouteAuditor.cpp
+)
+
+target_link_libraries(remote_intf_route_auditor
+  Folly::folly
+  fib_helpers
+  state
+  voq_utils
+)
+
 target_link_libraries(address_utils
   network_address_cpp2
   Folly::folly
@@ -162,12 +173,15 @@ target_link_libraries(utils
   meru800bfa_platform_mapping
   janga800bic_platform_mapping
   j4sim_platform_mapping
+  saintpaul_platform_mapping
   blackwolf800banw_platform_mapping
+  m4062nhp_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
   ladakh800bcls_platform_mapping
+  leh800bcls_platform_mapping
 )
 
 add_library(stats
@@ -277,6 +291,7 @@ add_library(core
   fboss/agent/ArpCache.cpp
   fboss/agent/ArpHandler.cpp
   fboss/agent/BufferUtils.cpp
+  fboss/agent/CpuLatencyManager.cpp
   fboss/agent/DHCPv4Handler.cpp
   fboss/agent/DHCPv6Handler.cpp
   fboss/agent/DsfSession.cpp
@@ -319,6 +334,7 @@ add_library(core
   fboss/agent/NeighborUpdaterImpl.cpp
   fboss/agent/NeighborUpdaterNoopImpl.cpp
   fboss/agent/NextHopResolver.cpp
+  fboss/agent/PfcUtils.cpp
   fboss/agent/PortUpdateHandler.cpp
   fboss/agent/RemoteNeighborUpdater.cpp
   fboss/agent/ResolvedNexthopMonitor.cpp
@@ -333,6 +349,7 @@ add_library(core
   fboss/agent/SwitchInfoTable.cpp
   fboss/agent/SwitchStatsObserver.cpp
   fboss/agent/SwSwitch.cpp
+  fboss/agent/MySidNeighborObserver.cpp
   fboss/agent/SwSwitchMySidUpdater.cpp
   fboss/agent/SwSwitchRouteUpdateWrapper.cpp
   fboss/agent/TamManager.cpp

@@ -73,6 +73,13 @@ class YubaAsic : public TajoAsic {
     // Concept of scaling factor does not apply returning the same value TH3
     return cfg::MMUScalingFactor::TWO;
   }
+  bool scalingFactorBasedDynamicThresholdSupported() const override {
+    return true;
+  }
+  int getBufferDynThreshFromScalingFactor(
+      cfg::MMUScalingFactor scalingFactor) const override {
+    return HwAsic::getBufferDynThreshFromScalingFactor(scalingFactor);
+  }
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;
   int getMaxNumLogicalPorts() const override {
@@ -115,6 +122,15 @@ class YubaAsic : public TajoAsic {
   }
   std::optional<uint32_t> getMaxMySidEntries() const override {
     return 2048;
+  }
+  std::optional<uint32_t> getMaxRouteCounters() const override {
+    return 4096;
+  }
+  std::optional<uint32_t> getMaxSrv6EcmpNextHops() const override {
+    return 7800;
+  }
+  std::optional<uint32_t> getMaxSrv6SingleNextHops() const override {
+    return 3000;
   }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     /*
@@ -186,8 +202,10 @@ class YubaAsic : public TajoAsic {
   }
 
  private:
+  bool isSrv6Supported() const;
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;
+  static constexpr auto kSrv6MinSdkRequired = "26.2.4210";
   std::optional<uint64_t> currentSdkVersion_{std::nullopt};
 };
 

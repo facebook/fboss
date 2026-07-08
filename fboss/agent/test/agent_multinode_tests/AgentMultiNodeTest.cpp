@@ -1,8 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeTest.h"
+#include "fboss/agent/test/TestUtils.h"
 
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeDsfUtils.h"
 
 namespace facebook::fboss {
@@ -18,23 +18,33 @@ void AgentMultiNodeTest::SetUp() {
 }
 
 cfg::SwitchConfig AgentMultiNodeTest::initialConfig(
-    const AgentEnsemble& ensemble) const {
+    const AgentEnsemble& /*ensemble*/) const {
   XLOG(DBG0) << "initialConfig() loaded config from file " << FLAGS_config;
 
-  auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = checkSameAndGetAsic(hwAsics);
-
-  auto it = asic->desiredLoopbackModes().find(cfg::PortType::INTERFACE_PORT);
-  CHECK(it != asic->desiredLoopbackModes().end());
-  auto desiredLoopbackModeForInterfacePort = it->second;
-
+  // Trust the deployed config (/etc/coop/agent/current) for loopback mode.
+  // Configerator already sets loopbackMode=PHY on the specific INTERFACE_PORTs
+  // we want UP for multinode tests (the ones with IPs configured). Overriding
+  // here brings ALL interface ports UP via loopback on the test driver, which
+  // diverges from remote RDSWs and breaks tests that pick the first UP port
+  // expecting it to have an IP.
   auto agentConfig = AgentConfig::fromFile(FLAGS_config);
   auto config = *agentConfig->thrift.sw();
-  for (auto& port : *config.ports()) {
-    if (port.portType() == cfg::PortType::INTERFACE_PORT) {
-      // TODO determine loopback mode based on ASIC type
-      port.loopbackMode() = desiredLoopbackModeForInterfacePort;
+
+  // Fail fast if configerator forgot to set loopbackMode on every
+  // INTERFACE_PORT we expect UP. Otherwise the test driver brings nothing up
+  // and downstream tests fail with confusing "link down" / "first UP port has
+  // no IP" errors.
+  size_t numLoopedInterfacePorts = 0;
+  for (const auto& port : *config.ports()) {
+    if (port.portType() == cfg::PortType::INTERFACE_PORT &&
+        port.loopbackMode() != cfg::PortLoopbackMode::NONE) {
+      ++numLoopedInterfacePorts;
     }
+  }
+  if (numLoopedInterfacePorts == 0) {
+    throw FbossError(
+        "Deployed config has no INTERFACE_PORT with loopbackMode set; ",
+        "test driver cannot bring any port UP. Check configerator config.");
   }
 
   return config;

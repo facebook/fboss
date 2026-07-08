@@ -1,6 +1,8 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
-load("//fboss/agent/hw/sai/impl:impl.bzl", "SAI_BRCM_IMPLS", "SAI_LEABA_IMPLS", "SAI_NVIDIA_IMPLS", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name")
+load(
+    "//fboss/agent/hw/sai/impl:impl.bzl", "SAI_BRCM_IMPLS", "SAI_LEABA_IMPLS", "SAI_NVIDIA_IMPLS", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name"
+)
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
 oncall("fboss_agent_push")
@@ -13,6 +15,7 @@ oncall("fboss_agent_push")
         ],
         versions = to_versions(sdk),
         deps = [
+            "fbsource//third-party/glog:glog",
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:main-bcm",
             "//fboss/agent:setup_thrift_prod",
@@ -26,7 +29,6 @@ oncall("fboss_agent_push")
         ],
         external_deps = [
             "gflags",
-            "glog",
         ],
     )
     for sdk in BCM_SDKS
@@ -48,11 +50,15 @@ _sai_invariant_mono_agent_test_prefix = "sai_invariant_agent_test_mono"
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
-        ] if sai_impl.name == "leaba" or sai_impl.version in [
+        ]
+        if sai_impl.name == "leaba"
+        or sai_impl.version
+        in [
             "14.0_ea_odp",
             "14.2.0.0_odp",
             "15.0_ea_odp",
-        ] else [],
+        ]
+        else [],
         versions = to_versions(sai_impl),
         deps = [
             "//fboss/agent/test:mono_agent_ensemble",
@@ -63,7 +69,8 @@ _sai_invariant_mono_agent_test_prefix = "sai_invariant_agent_test_mono"
             "//fboss/agent/hw/sai/hw_test:sai_copp_utils{}".format(to_impl_suffix(sai_impl)),
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
             "//fboss/agent:setup_thrift_prod",
-        ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
+        ]
+        + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
 ]
@@ -84,11 +91,15 @@ _sai_invariant_multi_agent_test_prefix = "sai_invariant_agent_test_multi_switch"
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
-        ] if sai_impl.name == "leaba" or sai_impl.version in [
+        ]
+        if sai_impl.name == "leaba"
+        or sai_impl.version
+        in [
             "14.0_ea_odp",
             "14.2.0.0_odp",
             "15.0_ea_odp",
-        ] else [],
+        ]
+        else [],
         versions = to_versions(sai_impl),
         deps = [
             "//fboss/agent/test:multi_switch_agent_ensemble",
@@ -99,7 +110,8 @@ _sai_invariant_multi_agent_test_prefix = "sai_invariant_agent_test_multi_switch"
             "//fboss/agent/hw/sai/hw_test:sai_copp_utils{}".format(to_impl_suffix(sai_impl)),
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
             "//fboss/agent:setup_thrift_prod",
-        ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
+        ]
+        + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
 ]

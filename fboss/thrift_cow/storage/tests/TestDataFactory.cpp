@@ -21,7 +21,6 @@
 #include "fboss/thrift_cow/storage/tests/SwitchStateBuilders.h"
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 
 namespace facebook::fboss::test_data {
 
@@ -151,14 +150,14 @@ SwitchState FsdbStateDataFactory::buildSwitchState(int version) {
                << targetField << "'";
   }
 
-  // fibsMap and remote port/interface maps use internal scales,
+  // fibsInfoMap and remote port/interface maps use internal scales,
   // so check the filtered scale before calling them.
   if (scale.fibV4Size > 0 || scale.fibV6Size > 0) {
     auto fibsData = buildFibData(version);
     std::string switchIdList = "Id:0";
-    std::map<int16_t, FibContainerFields> FibsMap;
-    FibsMap[0] = std::move(fibsData);
-    switchState.fibsMap()[switchIdList] = std::move(FibsMap);
+    state::FibInfoFields fibInfo;
+    fibInfo.fibsMap()[0] = std::move(fibsData);
+    switchState.fibsInfoMap()[switchIdList] = std::move(fibInfo);
   }
 
   if (scale.remoteSystemPortMapSize > 0 || scale.remoteInterfaceMapSize > 0) {
@@ -761,6 +760,36 @@ SwitchStateScale FsdbStateDataFactory::getRoleScale(RoleSelector role) {
            true,
            true,
            false)},
+      // RGSW - Regional gateway switch (small FE role)
+      // Numbers from prn3 cross-DC observation:
+      // ~/debug/fsdb/memory_bench/claude/prn3/aggregate.json (RGSW row)
+      // 48 ports, 19 vlans, 18 interfaces, 0 FIBs (RGSW prod fibsMap empty).
+      {RGSW,
+       makeScale(
+           0, // fibV4Size — RGSW prod fibsMap is empty
+           0, // fibV6Size
+           0, // v4Nexthops
+           0, // v6Nexthops
+           0, // remoteSystemPortMapSize
+           0, // remoteInterfaceMapSize
+           48, // portCount
+           19, // vlanCount
+           0, // transceiverCount
+           18, // interfaceCount
+           0, // systemPortCount
+           0, // dsfNodeCount
+           0, // aclCount
+           0, // bufferPoolCfgCount
+           0, // mirrorCount
+           0, // qosPolicyCount
+           0, // loadBalancerCount
+           0, // ipTunnelCount
+           0, // aggregatePortCount
+           0, // portFlowletCfgCount
+           0, // mirrorOnDropReportCount
+           true, // hasControlPlane
+           true, // hasSwitchSettings
+           true)}, // hasAclTableGroup
       // Default fallback
       {Minimal,
        makeScale(
@@ -1380,6 +1409,46 @@ AgentStatsScale FsdbStatsDataFactory::getRoleScale(RoleSelector role) {
            true,
            false,
            true)},
+      // FSW - Fabric switch
+      // Numbers from prn3 cross-DC observation: hwPortStatsCount=117 (avg of
+      // 116-118 across 5 prn3 FSW samples). Previously absent → fell through
+      // to Minimal default (1,1,1), under-counting FSW stats by ~250 KB/dev.
+      {FSW,
+       makeScale(
+           117, // hwPortStatsCount
+           117, // phyStatsCount
+           1, // sysPortStatsCount (cpu sysport)
+           1, // asicCount
+           0, // sysPortShelStateCount
+           0, // asicTempCount
+           true, // hasHwResourceStats
+           true, // hasHwAsicErrors
+           true, // hasCpuPortStats
+           true, // hasSwitchDropStats
+           true, // hasSwitchWatermarkStats
+           true, // hasFabricReachabilityStats
+           true, // hasSwitchPipelineStats
+           false, // hasFabricOverdrainPct
+           false)}, // hasFlowletStats
+      // RGSW - Regional gateway switch
+      // Numbers from prn3 cross-DC observation: 48 ports.
+      {RGSW,
+       makeScale(
+           48,
+           48,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
       // Default fallback
       {Minimal,
        makeScale(
@@ -1476,9 +1545,25 @@ BgpRibMapScale BgpRibMapDataGenerator::getScale(RoleSelector role) {
   return it->second;
 }
 
+BgpRibMapScale BgpRibMapDataGenerator::makeGtswScale(
+    int prefixScale,
+    int paths) {
+  int v4 = prefixScale / 10; // ~10% V4
+  int v6 = prefixScale - v4; // ~90% V6
+  return BgpRibMapScale{
+      v4, // ribV4EntryCount
+      v6, // ribV6EntryCount
+      paths, // bestPathsPerEntry
+      13, // communitiesPerPath (matches production)
+      1, // asPathSegments (matches production)
+      0, // extCommunitiesPerPath (matches production)
+  };
+}
+
 fsdb::BgpData BgpRibMapDataGenerator::buildBgpData(int version) {
   fsdb::BgpData bgpData;
-  BgpRibMapScale scale = getScale(selector_);
+  BgpRibMapScale scale =
+      overrideScale_.has_value() ? *overrideScale_ : getScale(selector_);
 
   std::map<std::string, TRibEntry> ribMap;
 

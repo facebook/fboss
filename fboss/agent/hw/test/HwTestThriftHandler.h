@@ -16,9 +16,15 @@
 #include "fboss/agent/HwSwitch.h"
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+
+#include <folly/Synchronized.h>
+#include <folly/logging/LogHandler.h>
 
 #include <cstdint>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace facebook::fboss {
 class HwSwitch;
@@ -154,6 +160,14 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   bool validateUdfIdsInQset(int aclGroupId, bool isSet) override;
 
+  // pfc related APIs
+  bool getPfcEnabled(int32_t portId, bool rx) override;
+  bool pfcWatchdogProgrammingMatchesConfig(
+      int32_t portId,
+      bool watchdogEnabled,
+      std::unique_ptr<cfg::PfcWatchdog> watchdog) override;
+  int32_t getPfcWatchdogRecoveryAction(int32_t portId) override;
+
   int32_t getNumTeFlowEntries() override;
   bool checkSwHwTeFlowMatch(
       std::unique_ptr<::facebook::fboss::state::TeFlowEntryFields>
@@ -204,8 +218,53 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<::facebook::fboss::state::SwitchSettingsFields> settings,
       bool expectFlowsetFree) override;
 
+  void getVlanToNumPorts(std::map<int32_t, int32_t>& vlanToNumPorts) override;
+
+  bool isAclTableGroupEnabled(int32_t aclStage) override;
+
+  bool verifyResolvedMirror(
+      std::unique_ptr<state::MirrorFields> mirror) override;
+  bool verifyUnResolvedMirror(
+      std::unique_ptr<state::MirrorFields> mirror) override;
+  bool verifyPortMirrorDestination(
+      int32_t port,
+      int32_t flags,
+      int64_t mirrorDestID) override;
+
+  bool verifyPortNoMirrorDestination(int32_t port, int32_t flags) override;
+  void getAllMirrorDestinations(::std::vector<int64_t>& destinations) override;
+
+  bool isMirrorSflowTunnelEnabled(int64_t destination) override;
+
+  void verifyPortProfile(
+      std::vector<std::string>& result,
+      int32_t portId,
+      cfg::PortProfileID profileId,
+      std::unique_ptr<phy::ProfileSideConfig> profileConfig,
+      std::unique_ptr<std::vector<phy::PinConfig>> pinConfigs) override;
+
+  phy::FecMode getPortFECMode(int32_t portId) override;
+
+  bool rxSignalDetectSupportedInSdk() override;
+  bool rxLockStatusSupportedInSdk() override;
+  bool pcsRxLinkStatusSupportedInSdk() override;
+  bool fecAlignmentLockSupportedInSdk() override;
+
+  // Platform-agnostic; defined once in HwTestLogCaptureThriftHandler.cpp. New
+  // platforms get these by depending on
+  // //fboss/agent/hw/test:hw_test_thrift_handler.
+  void installLogCapture() override;
+  void getMatchingLogMessages(
+      std::vector<std::string>& out,
+      std::unique_ptr<std::string> substring) override;
+
  private:
   HwSwitch* hwSwitch_;
+  // Captures log messages in this process for tests to read over RPC.
+  // Typed as the base LogHandler to keep the test-only handler type out of
+  // this widely-included header; concrete type is in the .cpp. Synchronized
+  // because the install/read RPCs run on multiple Thrift threads.
+  folly::Synchronized<std::shared_ptr<folly::LogHandler>> logCaptureHandler_;
 };
 
 std::shared_ptr<HwTestThriftHandler> createHwTestThriftHandler(HwSwitch* hw);

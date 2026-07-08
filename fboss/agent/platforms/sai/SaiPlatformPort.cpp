@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 #include <optional>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -90,20 +91,8 @@ std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
 
 std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
     cfg::PortProfileID profileID) const {
-  const auto& platformPortEntry = getPlatformPortEntry();
-  auto supportedProfilesIter =
-      platformPortEntry.supportedProfiles()->find(profileID);
-  if (supportedProfilesIter == platformPortEntry.supportedProfiles()->end()) {
-    throw FbossError(
-        "Port: ",
-        *platformPortEntry.mapping()->name(),
-        " doesn't support the speed profile:");
-  }
-  std::vector<PortID> subsumedPortList;
-  for (auto portId : *supportedProfilesIter->second.subsumedPorts()) {
-    subsumedPortList.emplace_back(portId);
-  }
-  return subsumedPortList;
+  return getPlatform()->getPlatformMapping()->getSubsumedPorts(
+      getPortID(), profileID);
 }
 
 TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(

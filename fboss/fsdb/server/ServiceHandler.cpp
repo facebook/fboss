@@ -8,6 +8,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/server/Cpp2Worker.h>
 #include "fboss/fsdb/common/Flags.h"
+#include "fboss/fsdb/common/Utils.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
 #include "fboss/fsdb/oper/DeltaValue.h"
 #include "fboss/fsdb/oper/PathValidator.h"
@@ -108,6 +109,20 @@ using facebook::fboss::fsdb::OperSubRequestExtended;
 using facebook::fboss::fsdb::Path;
 using facebook::fboss::fsdb::PubRequest;
 using facebook::fboss::fsdb::SubRequest;
+
+// Strip leading and trailing ':' from a SubscriberConfig key so wildcard
+// forms (":agent" prefix wildcard or "agent:" suffix wildcard) parse to
+// the same FsdbClient as a literal key via subscriberId2ClientId().
+std::string stripWildcardColons(const std::string& key) {
+  std::string result = key;
+  while (!result.empty() && result.front() == ':') {
+    result.erase(0, 1);
+  }
+  while (!result.empty() && result.back() == ':') {
+    result.pop_back();
+  }
+  return result;
+}
 
 template <typename OperRequest>
 std::string getRequestDetails(const OperRequest& request) {
@@ -324,6 +339,9 @@ ServiceHandler::ServiceHandler(
         tcData().setCounter(
             kWatchdogThreadHeartbeatMissed,
             watchdogThreadHeartbeatMissedCount_);
+        // Surface liveness loss for OSS vendors without fb303/ODS.
+        XLOG(ERR) << "FSDB storage thread heartbeat missed (count="
+                  << watchdogThreadHeartbeatMissedCount_ << ")";
       });
   heartbeatWatchdog_->startMonitoringHeartbeat(
       operStorage_.getThreadHeartbeat());
@@ -367,6 +385,11 @@ void ServiceHandler::registerPublisher(
   XLOG(DBG2) << "Publisher connected " << *info.publisherId() << " : "
              << folly::join("/", *info.path()->raw());
   if (info.publisherId()->empty()) {
+    // Per-id throttle protects against a buggy client that retries connect
+    // in a tight loop. Watchdog still fires once per second per call site.
+    XLOG(WARN) << "FSDB rejected publisher: EMPTY_PUBLISHER_ID path="
+               << folly::join("/", *info.path()->raw())
+               << " isStats=" << *info.isStats();
     throw Utils::createFsdbException(
         FsdbErrorCode::EMPTY_PUBLISHER_ID, "Publisher Id must not be empty");
   }
@@ -376,6 +399,10 @@ void ServiceHandler::registerPublisher(
   auto resp =
       activePublishers_.wlock()->insert({std::move(key), std::move(entry)});
   if (!resp.second) {
+    XLOG(WARN) << "FSDB rejected publisher: ID_ALREADY_EXISTS publisherId="
+               << *info.publisherId()
+               << " path=" << folly::join("/", *info.path()->raw())
+               << " isStats=" << *info.isStats();
     throw Utils::createFsdbException(
         FsdbErrorCode::ID_ALREADY_EXISTS, "Dup publisher id");
   }
@@ -838,12 +865,87 @@ void ServiceHandler::updateSubscriptionCounters(
       }
     }
   }
+
+  if (config.has_value()) {
+    const auto& subCfg = config.value().second.get();
+    if (subCfg.expectedSubscriptionType().has_value()) {
+      // Pass the matched config key (not the runtime subscriberId) so that
+      // wildcard configs whose subscribers carry non-canonical ids (e.g.
+      // ":agent" matching "node:agent") still resolve to the right
+      // FsdbClient counter.
+      updateExpectedSubscriptionCounter(
+          config.value().first, *subCfg.expectedSubscriptionType());
+    }
+  }
+}
+
+void ServiceHandler::updateExpectedSubscriptionCounter(
+    const SubscriberId& configKey,
+    ExpectedSubscriptionType expectedType) {
+  auto client = *subscriberId2ClientId(stripWildcardColons(configKey)).client();
+  auto it = expectedSubscriptionsCounters_.find(client);
+  if (it == expectedSubscriptionsCounters_.end()) {
+    return;
+  }
+  const auto& counterName = it->second;
+
+  int64_t value = 0;
+  activeSubscriptions_.withRLock([&](const auto& activeSubscriptions) {
+    // Each active OperSubscriberInfo has its matched configKey cached
+    // at register time, so this is an O(1) string compare per active sub.
+    auto belongsToThisConfig = [&](const OperSubscriberInfo& sub) {
+      return sub.configKey().has_value() && *sub.configKey() == configKey;
+    };
+
+    if (expectedType == ExpectedSubscriptionType::ALL) {
+      // gauge=1 iff some subscriberId matching this config currently has
+      // both a state and a stats subscription active. Short-circuit the
+      // moment any subscriberId hits both kinds. F14FastMap + reserve
+      // keeps the per-call alloc tight while we hold the RLock.
+      folly::F14FastMap<SubscriberId, std::pair<bool, bool>> seen;
+      seen.reserve(activeSubscriptions.size());
+      for (const auto& [_, subs] : activeSubscriptions) {
+        for (const auto& sub : subs) {
+          if (!belongsToThisConfig(sub)) {
+            continue;
+          }
+          auto& kinds = seen[*sub.subscriberId()];
+          (*sub.isStats() ? kinds.second : kinds.first) = true;
+          if (kinds.first && kinds.second) {
+            value = 1;
+            break;
+          }
+        }
+        if (value == 1) {
+          break;
+        }
+      }
+    } else {
+      // STATE or STATS: gauge=1 iff >=1 active sub of that kind matches
+      // this config (any subscriberId).
+      bool wantStats = (expectedType == ExpectedSubscriptionType::STATS);
+      for (const auto& [_, subs] : activeSubscriptions) {
+        for (const auto& sub : subs) {
+          if (*sub.isStats() == wantStats && belongsToThisConfig(sub)) {
+            value = 1;
+            break;
+          }
+        }
+        if (value == 1) {
+          break;
+        }
+      }
+    }
+  });
+  tcData().setCounter(counterName, value);
 }
 
 void ServiceHandler::registerSubscription(
     const OperSubscriberInfo& info,
     bool forceSubscribe) {
   if (info.subscriberId()->empty()) {
+    XLOG(WARN) << "FSDB rejected subscriber: EMPTY_SUBSCRIBER_ID isStats="
+               << *info.isStats();
     throw Utils::createFsdbException(
         FsdbErrorCode::EMPTY_SUBSCRIBER_ID, "Subscriber Id must not be empty");
   }
@@ -862,41 +964,64 @@ void ServiceHandler::registerSubscription(
       buildPathUnion(info),
       *info.type(),
       *info.isStats());
+  // Cache the matched subscriber config key on the stored copy so
+  // updateExpectedSubscriptionCounter() can do an O(1) field compare per
+  // active sub instead of re-running the wildcard scan over all configs.
+  // Skip the lookup entirely when no expected_subscriptions counters are
+  // configured -- the cached field is only consulted by that code path.
+  OperSubscriberInfo storedInfo = info;
+  if (!expectedSubscriptionsCounters_.empty()) {
+    if (auto cfg = fsdbConfig_->getSubscriberConfig(*info.subscriberId());
+        cfg.has_value()) {
+      storedInfo.configKey() = cfg.value().first;
+    }
+  }
   // update activeSubscriptions_ : TODO: move into SubscriptionManager
   bool forceRegisterNewSubscription =
       FLAGS_forceRegisterSubscriptions || forceSubscribe;
   int numSubsForClient{0};
-  activeSubscriptions_.withWLock(
-      [&key, &info, &numSubsForClient, forceRegisterNewSubscription](
-          auto& activeSubscriptions) {
-        if (forceRegisterNewSubscription) {
-          // also track new subscription for same ClientKey
-          auto it = activeSubscriptions.find(key);
-          if (it == activeSubscriptions.end()) {
-            activeSubscriptions.insert(
-                {std::move(key), std::vector<OperSubscriberInfo>({info})});
-          } else {
-            it->second.emplace_back(info);
-          }
-        } else {
-          auto resp = activeSubscriptions.insert(
-              {std::move(key), std::vector<OperSubscriberInfo>({info})});
-          if (!resp.second) {
-            throw Utils::createFsdbException(
-                FsdbErrorCode::ID_ALREADY_EXISTS,
-                "Dup subscriber id: ",
-                *info.subscriberId());
-          }
+  activeSubscriptions_.withWLock([&key,
+                                  &info,
+                                  &storedInfo,
+                                  &numSubsForClient,
+                                  forceRegisterNewSubscription](
+                                     auto& activeSubscriptions) {
+    if (forceRegisterNewSubscription) {
+      // also track new subscription for same ClientKey
+      auto it = activeSubscriptions.find(key);
+      if (it == activeSubscriptions.end()) {
+        // initializer_list elements are const, so build the vector
+        // explicitly to actually move storedInfo (avoid degrading to
+        // a copy via braced-init-list).
+        std::vector<OperSubscriberInfo> subs;
+        subs.emplace_back(std::move(storedInfo));
+        activeSubscriptions.insert({std::move(key), std::move(subs)});
+      } else {
+        it->second.emplace_back(std::move(storedInfo));
+      }
+    } else {
+      std::vector<OperSubscriberInfo> subs;
+      subs.emplace_back(std::move(storedInfo));
+      auto resp = activeSubscriptions.insert({std::move(key), std::move(subs)});
+      if (!resp.second) {
+        XLOG(WARN)
+            << "FSDB rejected subscriber: ID_ALREADY_EXISTS subscriberId="
+            << *info.subscriberId() << " isStats=" << *info.isStats();
+        throw Utils::createFsdbException(
+            FsdbErrorCode::ID_ALREADY_EXISTS,
+            "Dup subscriber id: ",
+            *info.subscriberId());
+      }
+    }
+    // check for existing subs by same SubscriberId
+    for (const auto& it : activeSubscriptions) {
+      for (const auto& subscription : it.second) {
+        if (std::get<0>(key) == subscription.subscriberId()) {
+          numSubsForClient++;
         }
-        // check for existing subs by same SubscriberId
-        for (const auto& it : activeSubscriptions) {
-          for (const auto& subscription : it.second) {
-            if (std::get<0>(key) == subscription.subscriberId()) {
-              numSubsForClient++;
-            }
-          }
-        }
-      });
+      }
+    }
+  });
   updateSubscriptionCounters(info, true, (numSubsForClient == 1));
 }
 
@@ -1432,11 +1557,17 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
   if (!request->extPaths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeState: INVALID_REQUEST (ExtendedPaths) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "Invalid Subscription request with ExtendedPaths from: ",
         clientIdToString(*request->clientId()));
   } else if (request->paths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeState: INVALID_REQUEST (empty Paths) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "Request without Paths from: ",
@@ -1482,11 +1613,17 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
   if (!request->extPaths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeStats: INVALID_REQUEST (ExtendedPaths) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "Invalid Subscription request with ExtendedPaths from: ",
         clientIdToString(*request->clientId()));
   } else if (request->paths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeStats: INVALID_REQUEST (empty Paths) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "Request without Paths from: ",
@@ -1533,11 +1670,17 @@ ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
   if (request->extPaths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeStateExtended: INVALID_REQUEST (no ExtendedPaths) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "subscribeStateExtended request without ExtendedPaths from: ",
         clientIdToString(*request->clientId()));
   } else if (!request->paths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeStateExtended: INVALID_REQUEST (Paths present) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "subscribeStateExtended request with Paths from: ",
@@ -1549,7 +1692,7 @@ ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
   }
 
   auto subscriberInfo = makeSubscriberInfo(
-      *request, PubSubType::PATCH, true, lastSubscriptionUid_.fetch_add(1));
+      *request, PubSubType::PATCH, false, lastSubscriptionUid_.fetch_add(1));
   auto subId = makeSubscriptionIdentifier(subscriberInfo);
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
@@ -1586,11 +1729,17 @@ ServiceHandler::co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
   if (request->extPaths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeStatsExtended: INVALID_REQUEST (no ExtendedPaths) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "subscribeStatsExtended request without ExtendedPaths from: ",
         clientIdToString(*request->clientId()));
   } else if (!request->paths()->empty()) {
+    XLOG(WARN)
+        << "FSDB rejected subscribeStatsExtended: INVALID_REQUEST (Paths present) clientId="
+        << clientIdToString(*request->clientId());
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
         "subscribeStatsExtended request with Paths from: ",
@@ -1916,6 +2065,36 @@ void ServiceHandler::initPerStreamCounters(void) {
       }
     }
   }
+
+  for (const auto& [key, value] : *fsdbConfig_->getThrift().subscribers()) {
+    if (!value.expectedSubscriptionType().has_value()) {
+      continue;
+    }
+    auto client = *subscriberId2ClientId(stripWildcardColons(key)).client();
+    if (client == FsdbClient::UNSPECIFIED) {
+      XLOG(WARN) << "Skipping expected_subscriptions counter: cannot derive "
+                 << "FsdbClient from subscriber config key '" << key << "'";
+      continue;
+    }
+    auto name = folly::to<std::string>(
+        fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
+        "expected_subscriptions.",
+        fsdbClient2string(client));
+    auto [it, inserted] = expectedSubscriptionsCounters_.emplace(client, name);
+    if (!inserted) {
+      // Fail-fast: two configs resolving to the same FsdbClient cannot
+      // share a single counter without conflating their (possibly
+      // different) expectedSubscriptionType semantics at runtime.
+      XLOG(ERR) << "Duplicate expected_subscriptions counter for FsdbClient "
+                << fsdbClient2string(client) << ": subscriber config key '"
+                << key << "' conflicts with a previously registered counter ('"
+                << it->second
+                << "'). Only one subscriber config per FsdbClient may set "
+                << "expectedSubscriptionType; disambiguate the configs.";
+      continue;
+    }
+    tcData().setCounter(name, 0);
+  }
 }
 
 void ServiceHandler::validateSubscriptionPermissions(
@@ -1927,6 +2106,9 @@ void ServiceHandler::validateSubscriptionPermissions(
   if (!hasRawPath && !hasExtendedPath) {
     // No subscriptions allowed at root. Subscription must be contained within
     // a publisher root.
+    XLOG(WARN)
+        << "FSDB rejected subscription: INVALID_PATH (empty) subscriberId="
+        << id;
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_PATH, "Subscription path cannot be empty");
   }

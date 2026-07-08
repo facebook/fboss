@@ -40,7 +40,7 @@ int BcmQosPolicyTable::getNumQosPolicies() const {
 
 void BcmQosPolicyTable::processAddedQosPolicy(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
-  if (qosPolicyMap_.find(qosPolicy->getName()) != qosPolicyMap_.end()) {
+  if (qosPolicyMap_.contains(qosPolicy->getName())) {
     throw FbossError("BcmQosPolicy=", qosPolicy->getName(), " already exists");
   }
   qosPolicyMap_.emplace(
@@ -104,7 +104,7 @@ bool BcmQosPolicyTable::isValid(const std::shared_ptr<QosPolicy>& qosPolicy) {
     return true;
   }
 
-  // we have alredy validated that values are in range [0, 63]
+  // we have already validated that values are in range [0, 63]
   auto isValid = dscpSet.size() == kDscpValueMaxCnt;
   if (!isValid) {
     XLOG(ERR) << "QosPolicy provides: " << dscpSet.size()

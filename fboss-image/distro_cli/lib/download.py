@@ -75,7 +75,7 @@ def download_artifact(
         # Check if file has been modified
         if cached_mtime is not None and current_mtime == cached_mtime:
             logger.info(f"Using cached file:// artifact (unchanged): {source_path}")
-            return (True, cached_data_files, cached_metadata_files)
+            return (True, cached_data_files, cached_metadata_files)  # pyre-ignore[7]
 
         # File is new or modified - copy to temp dir so the artifact store
         # can safely move the copy without removing the original source file.
@@ -206,7 +206,7 @@ def _download_http_with_cache(
     except urllib.error.HTTPError as e:
         if e.code == HTTPStatus.NOT_MODIFIED:
             logger.info(f"HTTP 304 Not Modified for {url} - content unchanged")
-            return (True, cached_data_files, cached_metadata_files)
+            return (True, cached_data_files, cached_metadata_files)  # pyre-ignore[7]
         # Clean up temp dir on error
         if temp_download_dir:
             ArtifactStore.delete_temp_dir(temp_download_dir)

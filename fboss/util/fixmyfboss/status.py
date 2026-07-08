@@ -7,6 +7,8 @@ from fboss.util.fixmyfboss.utils import Color
 
 
 class Status:
+    color: Color = Color.YELLOW
+
     def __str__(self) -> str:
         if self.info is not None:
             return self.info
@@ -45,6 +47,7 @@ class Error(Status):
         self.cmd_status = cmd_status
 
     @property
+    # pyrefly: ignore [bad-override]
     def info(self) -> Optional[str]:
         parts = []
         if self.exception is not None:
@@ -89,6 +92,7 @@ class Problem(Status):
         return self.remediation is not None
 
     @property
+    # pyrefly: ignore [bad-override]
     def info(self) -> Optional[str]:
         parts = []
         if self.description is not None:
@@ -126,6 +130,7 @@ class Warning(Status):
         self.description = description
 
     @property
+    # pyrefly: ignore [bad-override]
     def info(self) -> Optional[str]:
         return self.description
 

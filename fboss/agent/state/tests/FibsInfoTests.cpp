@@ -15,6 +15,7 @@
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -544,6 +545,188 @@ TEST_F(FibInfoTest, ResolveNextHopSetFromIdNonExistentId) {
 
   // Throws FbossError when NextHopId is not found in IdToNextHopMap
   EXPECT_THROW(fibInfo->resolveNextHopSetFromId(validSetId), FbossError);
+}
+
+TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutesEmpty) {
+  auto fibInfo = std::make_shared<FibInfo>();
+  auto refCounts = fibInfo->getNextHopSetIdRefCountsFromRoutes();
+  EXPECT_TRUE(refCounts.empty());
+
+  fibInfo = createFibInfo(RouterID(0));
+  refCounts = fibInfo->getNextHopSetIdRefCountsFromRoutes();
+  EXPECT_TRUE(refCounts.empty());
+}
+
+TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutes) {
+  auto fibInfo = std::make_shared<FibInfo>();
+  auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
+  auto fibContainer =
+      std::make_shared<ForwardingInformationBaseContainer>(RouterID(0));
+
+  NextHopSetID clientId1(10);
+  NextHopSetID resolvedId1(100);
+  NextHopSetID normalizedId1(100);
+  NextHopSetID clientId2(20);
+  NextHopSetID resolvedId2(200);
+  NextHopSetID normalizedId2(100);
+  NextHopSetID clientId3(30);
+  NextHopSetID resolvedId3(300);
+  NextHopSetID normalizedId3(300);
+
+  auto makeNextHop = [](const std::string& ip) {
+    return ResolvedNextHop(
+        folly::IPAddress(ip), InterfaceID(1), UCMP_DEFAULT_WEIGHT);
+  };
+
+  auto makeFwdInfo = [&makeNextHop](
+                         const std::string& ip,
+                         std::optional<NextHopSetID> clientId,
+                         std::optional<NextHopSetID> resolvedId,
+                         std::optional<NextHopSetID> normalizedId) {
+    RouteNextHopEntry fwd(
+        RouteNextHopEntry::NextHopSet{makeNextHop(ip)}, AdminDistance::EBGP);
+    fwd.setClientNextHopSetID(clientId);
+    fwd.setResolvedNextHopSetID(resolvedId);
+    fwd.setNormalizedResolvedNextHopSetID(normalizedId);
+    return fwd;
+  };
+
+  auto fwd1 = makeFwdInfo("10.0.0.1", clientId1, resolvedId1, normalizedId1);
+  auto fwd2 = makeFwdInfo("10.0.0.2", clientId2, resolvedId2, normalizedId2);
+  auto fwd3 = makeFwdInfo("2001:db8::1", clientId3, resolvedId3, normalizedId3);
+
+  ForwardingInformationBaseV4 fibV4;
+  auto route1 = std::make_shared<RouteV4>(
+      RouteFields<folly::IPAddressV4>(
+          RoutePrefixV4{folly::IPAddressV4("10.0.0.0"), 24})
+          .toThrift());
+  route1->setResolved(fwd1);
+  fibV4.addNode(route1);
+
+  auto route2 = std::make_shared<RouteV4>(
+      RouteFields<folly::IPAddressV4>(
+          RoutePrefixV4{folly::IPAddressV4("192.168.1.0"), 24})
+          .toThrift());
+  route2->setResolved(fwd2);
+  fibV4.addNode(route2);
+  fibContainer->setFib(fibV4.clone());
+
+  ForwardingInformationBaseV6 fibV6;
+  auto route3 = std::make_shared<RouteV6>(
+      RouteFields<folly::IPAddressV6>(
+          RoutePrefixV6{folly::IPAddressV6("2001:db8::"), 64})
+          .toThrift());
+  route3->setResolved(fwd3);
+  fibV6.addNode(route3);
+  fibContainer->setFib(fibV6.clone());
+
+  fibsMap->updateForwardingInformationBaseContainer(fibContainer);
+  fibInfo->resetFibsMap(fibsMap);
+
+  auto refCounts = fibInfo->getNextHopSetIdRefCountsFromRoutes();
+  // clientId1(10): client(route1) = 1
+  EXPECT_EQ(refCounts[clientId1], 1);
+  // clientId2(20): client(route2) = 1
+  EXPECT_EQ(refCounts[clientId2], 1);
+  // clientId3(30): client(route3) = 1
+  EXPECT_EQ(refCounts[clientId3], 1);
+  // resolvedId1(100): resolved(route1) + normalized(route1) +
+  // normalized(route2) = 3
+  EXPECT_EQ(refCounts[resolvedId1], 3);
+  // resolvedId2(200): resolved(route2) = 1
+  EXPECT_EQ(refCounts[resolvedId2], 1);
+  // resolvedId3(300): resolved(route3) + normalized(route3) = 2
+  EXPECT_EQ(refCounts[resolvedId3], 2);
+}
+
+TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutesRecursiveResolution) {
+  auto fibInfo = std::make_shared<FibInfo>();
+  auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
+  auto fibContainer =
+      std::make_shared<ForwardingInformationBaseContainer>(RouterID(0));
+
+  // Simulate named NHG scenario:
+  // Named NHG "nhg1" has clientNextHopSetID=42 (unresolved loopback nexthops)
+  // After recursive resolution, resolvedNextHopSetID=500 (link-local nexthops)
+  NextHopSetID namedNhgClientId(42);
+  NextHopSetID resolvedLinkLocalId(500);
+
+  auto makeNextHop = [](const std::string& ip) {
+    return ResolvedNextHop(
+        folly::IPAddress(ip), InterfaceID(1), UCMP_DEFAULT_WEIGHT);
+  };
+
+  RouteNextHopEntry fwd(
+      RouteNextHopEntry::NextHopSet{makeNextHop("fe80::1")},
+      AdminDistance::EBGP);
+  std::optional<NextHopSetID> clientOpt = namedNhgClientId;
+  std::optional<NextHopSetID> resolvedOpt = resolvedLinkLocalId;
+  fwd.setClientNextHopSetID(clientOpt);
+  fwd.setResolvedNextHopSetID(resolvedOpt);
+  fwd.setNormalizedResolvedNextHopSetID(resolvedOpt);
+
+  ForwardingInformationBaseV6 fibV6;
+  auto route = std::make_shared<RouteV6>(
+      RouteFields<folly::IPAddressV6>(
+          RoutePrefixV6{folly::IPAddressV6("2001:db8::"), 48})
+          .toThrift());
+  route->setResolved(fwd);
+  fibV6.addNode(route);
+  fibContainer->setFib(fibV6.clone());
+
+  fibsMap->updateForwardingInformationBaseContainer(fibContainer);
+  fibInfo->resetFibsMap(fibsMap);
+
+  auto refCounts = fibInfo->getNextHopSetIdRefCountsFromRoutes();
+  // The named NHG's clientNextHopSetID should be in the refcounts
+  EXPECT_EQ(refCounts[namedNhgClientId], 1);
+  // The resolved link-local ID should also be counted (resolved + normalized)
+  EXPECT_EQ(refCounts[resolvedLinkLocalId], 2);
+}
+
+TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromMySidEmpty) {
+  std::unordered_map<NextHopSetID, uint32_t> refCounts;
+  FibInfo::getNextHopSetIdRefCountsFromMySid(state_, refCounts);
+  EXPECT_TRUE(refCounts.empty());
+}
+
+TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromMySid) {
+  NextHopSetID setId1(100);
+  NextHopSetID setId2(200);
+
+  auto makeMySidEntry = [](const std::string& ip, uint8_t len) {
+    state::MySidFields fields;
+    fields.type() = MySidType::NODE_MICRO_SID;
+    facebook::network::thrift::IPPrefix prefix;
+    prefix.prefixAddress() =
+        facebook::network::toBinaryAddress(folly::IPAddress(ip));
+    prefix.prefixLength() = len;
+    fields.mySid() = prefix;
+    return std::make_shared<MySid>(fields);
+  };
+
+  auto mySid1 = makeMySidEntry("fc00:100::1", 48);
+  mySid1->setResolvedNextHopsId(setId1);
+
+  auto mySid2 = makeMySidEntry("fc00:200::1", 48);
+  mySid2->setResolvedNextHopsId(setId1);
+  mySid2->setUnresolveNextHopsId(setId2);
+
+  auto mySid3 = makeMySidEntry("fc00:300::1", 48);
+  mySid3->setResolvedNextHopsId(setId2);
+
+  auto matcher = createMatcher(0);
+  auto mySids = state_->getMySids()->modify(&state_);
+  mySids->addNode(mySid1, matcher);
+  mySids->addNode(mySid2, matcher);
+  mySids->addNode(mySid3, matcher);
+
+  std::unordered_map<NextHopSetID, uint32_t> refCounts;
+  FibInfo::getNextHopSetIdRefCountsFromMySid(state_, refCounts);
+  // setId1: resolved(mySid1) + resolved(mySid2) = 2
+  EXPECT_EQ(refCounts[setId1], 2);
+  // setId2: unresolved(mySid2) + resolved(mySid3) = 2
+  EXPECT_EQ(refCounts[setId2], 2);
 }
 
 } // namespace facebook::fboss

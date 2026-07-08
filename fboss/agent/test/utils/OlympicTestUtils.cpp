@@ -29,7 +29,7 @@ void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
     bool addEcnConfig,
     cfg::QueueScheduling schedType) {
   // Qos queue config for diverse asic type not supported yet
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   cfg::StreamType streamType =
       *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
   std::vector<cfg::PortQueue> portQueues;
@@ -233,7 +233,7 @@ void addQueueEcnConfig(
     const uint32_t maxLen,
     const int probability,
     bool isVoq) {
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   auto& queue = getPortQueueConfig(config, queueId, isVoq);
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
@@ -249,7 +249,7 @@ void addQueueWredConfig(
     const uint32_t maxLen,
     const int probability,
     bool isVoq) {
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   auto& queue = getPortQueueConfig(config, queueId, isVoq);
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
@@ -287,7 +287,7 @@ void addQueueWredDropConfig(
     cfg::StreamType streamType,
     const std::vector<const HwAsic*>& asics) {
   // All asics must be of the same type
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   std::vector<cfg::PortQueue> portQueues;
 
   // 256 packets in the test, where each packet has a payload of 7000 bytes
@@ -341,7 +341,7 @@ void addQueueEcnProbabilisticMarkingConfig(
       << "minThresh (" << minThresh << ") must be <= maxThresh (" << maxThresh
       << ")";
 
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
 
   XLOG(DBG2) << "Configuring ECN probabilistic marking for queue " << queueId
              << " with minThresh: " << minThresh << " bytes"
@@ -428,7 +428,7 @@ void addOlympicV2WRRQueueConfig(
     const std::vector<const HwAsic*>& asics,
     bool addWredConfig) {
   // Only same type of ASICs supported
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   auto streamType =
       *(getStreamType(cfg::PortType::INTERFACE_PORT, asics).begin());
   std::vector<cfg::PortQueue> portQueues;
@@ -661,7 +661,7 @@ void addQosMapsHelper(
     const std::string& qosPolicyName,
     const std::vector<const HwAsic*>& asics) {
   // Qos config for diverse asic type not supported yet
-  auto hwAsic = checkSameAndGetAsic(asics);
+  auto hwAsic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   cfg::QosMap qosMap;
   qosMap.dscpMaps()->resize(queueToDscpMap.size());
   ssize_t qosMapIdx = 0;
@@ -745,7 +745,7 @@ void addOlympicQosMapsForDot1p(
     cfg::SwitchConfig& cfg,
     const std::map<int, std::vector<uint8_t>>& queueToPcpMap,
     const std::vector<const HwAsic*>& asics) {
-  auto hwAsic = checkSameAndGetAsic(asics);
+  auto hwAsic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   cfg::QosMap qosMap;
   qosMap.pcpMaps() = std::vector<cfg::PcpQosMap>();
   qosMap.pcpMaps()->resize(queueToPcpMap.size());
@@ -799,7 +799,7 @@ void add2QueueQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
 std::set<cfg::StreamType> getStreamType(
     cfg::PortType portType,
     const std::vector<const HwAsic*>& asics) {
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   return asic->getQueueStreamTypes(portType);
 }
 }; // namespace facebook::fboss::utility

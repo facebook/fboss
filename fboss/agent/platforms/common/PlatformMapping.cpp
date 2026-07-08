@@ -485,6 +485,27 @@ std::set<uint8_t> PlatformMapping::getTransceiverHostLanes(
   return tcvrHostLanes;
 }
 
+std::optional<uint8_t> PlatformMapping::getTransceiverBankId(
+    const PlatformPortProfileConfigMatcher& matcher) const {
+  auto pinConfigs = getPortTransceiverPinConfigs(matcher);
+  auto portID = matcher.getPortIDIf();
+
+  if (!portID.has_value()) {
+    throw FbossError("getTransceiverBankId miss portID match factor");
+  }
+
+  if (!pinConfigs || pinConfigs->empty()) {
+    throw FbossError("Can't find tcvr pinConfigs for portId ", *portID);
+  }
+
+  const auto& chipName = *pinConfigs->front().id()->chip();
+  auto chipIt = chips_.find(chipName);
+  if (chipIt == chips_.end()) {
+    return std::nullopt;
+  }
+  return chipIt->second.coreId().to_optional();
+}
+
 int PlatformMapping::getTransceiverIdFromSwPort(PortID swPort) const {
   const auto& platformPorts = getPlatformPorts();
   const auto& chips = getChips();
@@ -789,6 +810,29 @@ const cfg::PlatformPortEntry& PlatformMapping::getPlatformPort(
   throw FbossError("No PlatformMapping entry for port ", portId);
 }
 
+std::vector<PortID> PlatformMapping::getSubsumedPorts(
+    PortID port,
+    cfg::PortProfileID profile) const {
+  const auto& platformPortEntry = getPlatformPort(static_cast<int32_t>(port));
+  const auto& supportedProfiles = *platformPortEntry.supportedProfiles();
+  auto it = supportedProfiles.find(profile);
+  if (it == supportedProfiles.end()) {
+    throw FbossError(
+        "Port: ",
+        *platformPortEntry.mapping()->name(),
+        " doesn't support profile: ",
+        apache::thrift::util::enumNameSafe(profile));
+  }
+  std::vector<PortID> subsumed;
+  if (const auto& subsumedPorts = it->second.subsumedPorts()) {
+    subsumed.reserve(subsumedPorts->size());
+    for (auto id : *subsumedPorts) {
+      subsumed.emplace_back(id);
+    }
+  }
+  return subsumed;
+}
+
 std::map<std::string, phy::DataPlanePhyChip>
 PlatformMapping::getPortDataplaneChips(
     PlatformPortProfileConfigMatcher matcher) const {
@@ -935,6 +979,28 @@ std::vector<PortID> PlatformMapping::getPlatformPorts(
     }
   }
   return portIds;
+}
+
+PortID PlatformMapping::getFirstFabricPortForVirtualDevice(
+    int32_t virtualDeviceId) const {
+  std::optional<PortID> minPortId;
+  for (const auto& [id, entry] : platformPorts_) {
+    if (entry.mapping()->portType() != cfg::PortType::FABRIC_PORT) {
+      continue;
+    }
+    auto vd = entry.mapping()->virtualDeviceId();
+    if (vd.has_value() && *vd == virtualDeviceId) {
+      auto portId = PortID(id);
+      if (!minPortId.has_value() || portId < *minPortId) {
+        minPortId = portId;
+      }
+    }
+  }
+  if (!minPortId.has_value()) {
+    throw FbossError(
+        "No fabric port found for virtualDeviceId: ", virtualDeviceId);
+  }
+  return *minPortId;
 }
 
 } // namespace facebook::fboss

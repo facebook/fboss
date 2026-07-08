@@ -55,9 +55,9 @@ TEST_F(PmUnitInfoFetcherTest, FetchWithValidVersion) {
     return std::make_unique<FakePmClient>(
         [](pm::PmUnitInfoResponse& response, const pm::PmUnitInfoRequest&) {
           pm::PmUnitVersion version;
-          version.productProductionState() = 1;
-          version.productVersion() = 2;
-          version.productSubVersion() = 3;
+          version.productionState() = 1;
+          version.productionSubState() = 2;
+          version.respinVariantIndicator() = 3;
 
           pm::PmUnitInfo info;
           info.name() = "TestPmUnit";
@@ -72,8 +72,11 @@ TEST_F(PmUnitInfoFetcherTest, FetchWithValidVersion) {
   auto result = fetcher.fetch("/test/slot");
 
   ASSERT_TRUE(result.has_value());
-  const std::array<int16_t, 3> expected{1, 2, 3};
-  EXPECT_EQ(*result, expected);
+  EXPECT_EQ(*result->name(), "TestPmUnit");
+  ASSERT_TRUE(result->version().has_value());
+  EXPECT_EQ(*result->version()->productionState(), 1);
+  EXPECT_EQ(*result->version()->productionSubState(), 2);
+  EXPECT_EQ(*result->version()->respinVariantIndicator(), 3);
 }
 
 TEST_F(PmUnitInfoFetcherTest, FetchWithoutVersion) {
@@ -90,7 +93,9 @@ TEST_F(PmUnitInfoFetcherTest, FetchWithoutVersion) {
       std::static_pointer_cast<PmClientFactory>(mockFactory_));
   auto result = fetcher.fetch("/test/slot");
 
-  EXPECT_FALSE(result.has_value());
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result->name(), "TestPmUnitNoVersion");
+  EXPECT_FALSE(result->version().has_value());
 }
 
 TEST_F(PmUnitInfoFetcherTest, FetchWithPlatformManagerError) {

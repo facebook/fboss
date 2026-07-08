@@ -18,6 +18,8 @@
 namespace facebook::fboss {
 
 TEST_F(HwTest, publishStats) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::STATS_COLLECTION});
   StatsPublisher publisher(getHwQsfpEnsemble()->getWedgeManager());
   publisher.init();
   publisher.publishStats(nullptr, 0);
@@ -63,6 +65,7 @@ class HwXphyPortStatsCollectionTest : public HwExternalPhyPortTest {
 
   void runTest() {
     const auto& availableXphyPorts = findAvailableXphyPorts();
+    addTestedPorts(availableXphyPorts);
     auto setup = [this, &availableXphyPorts]() {
       for (const auto& [port, profile] : availableXphyPorts) {
         // First program the xphy port
@@ -111,6 +114,8 @@ class HwXphyPortStatsCollectionTest : public HwExternalPhyPortTest {
 };
 
 TEST_F(HwXphyPortStatsCollectionTest, checkXphyStatsCollectionDone) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::STATS_COLLECTION});
   runTest();
 }
 
@@ -130,6 +135,7 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
 
   void runTest() {
     const auto& availableXphyPorts = findAvailableXphyPorts();
+    addTestedPorts(availableXphyPorts);
     auto setup = [this, &availableXphyPorts]() {
       for (const auto& [port, profile] : availableXphyPorts) {
         // First program the xphy port
@@ -208,6 +214,8 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
 };
 
 TEST_F(HwXphyPortInfoTest, getPortInfo) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::STATS_COLLECTION});
   runTest();
 }
 
@@ -222,6 +230,7 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
 
   void runTest(phy::Side side) {
     const auto& availableXphyPorts = findAvailableXphyPorts();
+    addTestedPorts(availableXphyPorts);
     auto setup = [this, &availableXphyPorts, side]() {
       for (const auto& [port, profile] : availableXphyPorts) {
         // First program the xphy port
@@ -306,13 +315,19 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
 };
 
 TEST_F(HwXphyPrbsStatsCollectionTest, getSystemPrbsStats) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_PRBS});
   runTest(phy::Side::SYSTEM);
 }
 TEST_F(HwXphyPrbsStatsCollectionTest, getLinePrbsStats) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_PRBS});
   runTest(phy::Side::LINE);
 }
 
 TEST_F(HwTest, transceiverIOStats) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::STATS_COLLECTION});
   /*
    * 1. Refresh transceivers
    * 2. Get the transceiver IO stats
@@ -329,6 +344,7 @@ TEST_F(HwTest, transceiverIOStats) {
   qsfpServiceHandler->refreshStateMachines();
   auto tcvrs = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+  addTestedTransceiverIds(tcvrs);
 
   std::unordered_map<int32_t, TransceiverStats> tcvrStatsBefore;
 
@@ -384,6 +400,8 @@ class PhyIOTest : public HwExternalPhyPortTest {
 };
 
 TEST_F(PhyIOTest, phyIOStats) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::STATS_COLLECTION});
   /*
    * 1. Update all phy stats
    * 2. Get the phy IO stats
@@ -395,6 +413,7 @@ TEST_F(PhyIOTest, phyIOStats) {
    */
   std::unordered_map<PortID, phy::PhyInfo> phyInfoBefore;
   const auto& availableXphyPorts = findAvailableXphyPorts();
+  addTestedPorts(availableXphyPorts);
 
   auto allPhyStatsUpdated =
       [&](std::unordered_map<PortID, phy::PhyInfo>& phyInfoToCompare) {

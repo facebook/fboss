@@ -318,6 +318,21 @@ SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCablePropagationDelayMeasure::operator()() {
+  return SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkUpDebouncePeriodMs::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
   return std::nullopt;
 }
@@ -530,6 +545,16 @@ SaiSwitchTraits::fabricInterCellJitterWatermarkStats() {
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::deletedCredits() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::deviceWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::customDropBitmapStats() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }
@@ -1017,6 +1042,11 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeCablePropagationDelayMeasurement::operator()() {
   return SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
+  return SAI_SWITCH_ATTR_PORT_CL72_RETRY_ENABLE;
+}
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 std::optional<sai_attr_id_t>
 SaiArsProfileTraits::Attributes::AttributeArsMaxGroups::operator()() {
@@ -1056,6 +1086,11 @@ std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
 std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
   return SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL;
+}
+
+std::optional<sai_attr_id_t>
+SaiAclEntryTraits::Attributes::AttributeFieldNextHopGroupId::operator()() {
+  return SAI_ACL_ENTRY_ATTR_FIELD_NEXT_HOP_GROUP_ID;
 }
 
 std::optional<sai_attr_id_t>

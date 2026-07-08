@@ -18,8 +18,9 @@ namespace facebook::fboss {
 
 struct CmdConfigProtocolBgpPeerTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigProtocolBgp;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("ipAddrs", args, "IPv4 or IPv6 addr(s)");
+  }
   using ObjectArgType = utils::IPList;
   using RetType = std::string;
 };

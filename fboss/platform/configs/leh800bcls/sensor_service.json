@@ -1,4 +1,5 @@
 {
+  "platformName": "LEH800BCLS",
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
@@ -837,9 +838,9 @@
               "compute": "None*@/1000.0"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 1
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 1
         },
         {
           "sensors": [
@@ -1175,9 +1176,9 @@
               "compute": "None*@/1000.0"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 2
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 2
         }
       ]
     },

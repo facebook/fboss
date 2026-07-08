@@ -351,7 +351,7 @@ class HwArsTest : public HwLinkStateDependentTest {
       const std::vector<PortDescriptor>& ports) {
     ecmpHelper_->programRoutes(
         getRouteUpdater(),
-        flat_set<PortDescriptor>(
+        boost::container::flat_set<PortDescriptor>(
             std::make_move_iterator(ports.begin()),
             std::make_move_iterator(ports.begin() + ports.size())),
         {RoutePrefixV6{prefix, mask}});

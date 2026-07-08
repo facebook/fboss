@@ -93,6 +93,7 @@ class LookupClassRouteUpdater;
 class MacTableManager;
 class ResolvedNexthopMonitor;
 class ResolvedNexthopProbeScheduler;
+class MySidNeighborObserver;
 class StaticL2ForNeighborObserver;
 class MKAServiceManager;
 class PacketStreamHandler;
@@ -115,6 +116,7 @@ class RemoteNeighborUpdater;
 class EcmpResourceManager;
 class ShelManager;
 class FabricLinkMonitoringManager;
+class CpuLatencyManager;
 class StateUpdateValidator;
 
 inline static const int kHiPriorityBufferSize{1000};
@@ -375,8 +377,8 @@ class SwSwitch : public HwSwitchCallback {
    * will be thrown in the caller's thread.
    *
    * Note though that its upto the HwSwitch implementation to decide which state
-   * upate failures it can protect against. For things HwSwitch does not protect
-   * against it may just fail hard,
+   * update failures it can protect against. For things HwSwitch does not
+   * protect against it may just fail hard,
    *
    */
   void updateStateWithHwFailureProtection(
@@ -676,7 +678,7 @@ class SwSwitch : public HwSwitchCallback {
   // TODO Migrate all callsites to explicitly pass switchIDs
   bool sendPacketSwitchedAsync(
       std::unique_ptr<TxPacket> pkt,
-      const SwitchIDs& switchIds = {}) noexcept;
+      const LocalSwitchIDs& switchIds = {}) noexcept;
 
   /**
    * Send out L3 packet through HW
@@ -804,6 +806,10 @@ class SwSwitch : public HwSwitchCallback {
 
   FabricLinkMonitoringManager* getFabricLinkMonitoringManager() {
     return fabricLinkMonitoringManager_.get();
+  }
+
+  CpuLatencyManager* getCpuLatencyManager() {
+    return cpuLatencyManager_.get();
   }
 
   const EcmpResourceManager* getEcmpResourceManager() const {
@@ -937,6 +943,11 @@ class SwSwitch : public HwSwitchCallback {
       const std::string& reason,
       const std::optional<folly::IPAddressV6>& targetIP = std::nullopt);
 
+  // Send ARP request for interfaces with desiredPeerAddressIPv4 configured
+  void sendArpRequestForConfiguredInterfaces(
+      const std::string& reason,
+      const std::optional<folly::IPAddressV4>& targetIP = std::nullopt);
+
   InterfaceID getInterfaceIDForAggregatePort(
       AggregatePortID aggregatePortID) const;
 
@@ -1040,6 +1051,7 @@ class SwSwitch : public HwSwitchCallback {
   std::optional<VlanID> getVlanIDForTx(
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
   bool hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId);
+  bool hasQualifiedConfiguredDesiredPeerIPv4(const InterfaceID& intfId);
   const ResourceAccountant* getResourceAccountant() const;
 
  private:
@@ -1124,7 +1136,7 @@ class SwSwitch : public HwSwitchCallback {
       const std::shared_ptr<SwitchState>& newState) const;
 
   /*
-   * Notifies all the observers that a state update occured.
+   * Notifies all the observers that a state update occurred.
    */
   void notifyStateObservers(const StateDelta& delta);
 
@@ -1184,6 +1196,7 @@ class SwSwitch : public HwSwitchCallback {
   void initLldpManager();
 
   void initFabricLinkMonitoringManager();
+  void initCpuLatencyManager();
 
   void publishBootTypeStats();
 
@@ -1384,6 +1397,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<LookupClassUpdater> lookupClassUpdater_;
   std::unique_ptr<LookupClassRouteUpdater> lookupClassRouteUpdater_;
   std::unique_ptr<StaticL2ForNeighborObserver> staticL2ForNeighborObserver_;
+  std::unique_ptr<MySidNeighborObserver> mySidNeighborObserver_;
   std::unique_ptr<MacTableManager> macTableManager_;
 #if FOLLY_HAS_COROUTINES
   std::unique_ptr<MKAServiceManager> mkaServiceManager_;
@@ -1407,6 +1421,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
   std::unique_ptr<ShelManager> shelManager_;
   std::unique_ptr<FabricLinkMonitoringManager> fabricLinkMonitoringManager_;
+  std::unique_ptr<CpuLatencyManager> cpuLatencyManager_;
   std::unique_ptr<StateUpdateValidator> stateUpdateValidator_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;

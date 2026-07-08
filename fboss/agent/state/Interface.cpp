@@ -34,7 +34,7 @@ std::optional<folly::CIDRNetwork> Interface::getAddressToReach(
    * Preserving old behavior for mitigation of S289408
    * Prior to migrating InterfaceFields to native thrift
    * representation, we maintained interface addresses in
-   * flat_map<IPAddress, uint16_t> data structure. That is
+   * boost::container::flat_map<IPAddress, uint16_t> data structure. That is
    * these were sorted based on IP address. In thrift
    * representation we store them in a std::map<string, uint16_t>
    * i.e. sorted by string.

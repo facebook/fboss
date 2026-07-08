@@ -2,21 +2,17 @@
 
 #include "fboss/platform/platform_manager/PkgManager.h"
 
+#include <algorithm>
 #include <chrono>
+#include <thread>
 
 #include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
-#include <range/v3/range/conversion.hpp>
-#include <range/v3/view/drop.hpp>
-#include <range/v3/view/filter.hpp>
-#include <range/v3/view/split.hpp>
+#include <range/v3/view/concat.hpp>
 #include <re2/re2.h>
-#include <sys/utsname.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-
-#include "fboss/platform/helpers/PlatformUtils.h"
 
 #include <fstream>
 
@@ -31,10 +27,17 @@ DEFINE_bool(
     "The kmods are usually reloaded only when the BSP RPM changes. "
     "But if this flag is set, the kmods will be reloaded everytime.");
 
-DEFINE_string(
-    local_rpm_path,
-    "",
-    "Path to the local rpm file that needs to be installed on the system.");
+DEFINE_int32(
+    kmod_unload_retries,
+    10,
+    "Number of times to attempt the BSP kmod unload pass before giving up. "
+    "Retrying lets a transient holder release a module so the unload (and thus "
+    "the BSP reload) can succeed instead of crashing.");
+
+DEFINE_int32(
+    kmod_unload_retry_backoff_s,
+    3,
+    "Seconds to wait between kmod unload retries.");
 
 namespace fs = std::filesystem;
 namespace facebook::fboss::platform::platform_manager {
@@ -44,119 +47,6 @@ constexpr auto kBspKmodsRpmVersionCounter = "bsp_kmods_rpm_version.{}";
 constexpr auto kBspKmodsFilePath = "/usr/local/{}_bsp/{}/kmods.json";
 const re2::RE2 kBspRpmNameRe = "(?P<KEYWORD>[a-z]+)_bsp_kmods";
 } // namespace
-
-namespace package_manager {
-SystemInterface::SystemInterface(
-    const std::shared_ptr<PlatformUtils>& platformUtils)
-    : platformUtils_(platformUtils) {}
-
-bool SystemInterface::loadKmod(const std::string& moduleName) const {
-  int exitStatus{0};
-  std::string standardOut{};
-  auto unloadCmd = fmt::format("modprobe {}", moduleName);
-  VLOG(1) << fmt::format("Running command ({})", unloadCmd);
-  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(unloadCmd);
-  return exitStatus == 0;
-}
-
-bool SystemInterface::unloadKmod(const std::string& moduleName) const {
-  int exitStatus{0};
-  std::string standardOut{};
-  auto unloadCmd = fmt::format("rmmod {}", moduleName);
-  VLOG(1) << fmt::format("Running command ({})", unloadCmd);
-  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(unloadCmd);
-  return exitStatus == 0;
-}
-
-int SystemInterface::installRpm(const std::string& rpmFullName) const {
-  int exitStatus{0};
-  std::string standardOut{};
-  auto cmd = fmt::format("dnf install {} --assumeyes", rpmFullName);
-  VLOG(1) << fmt::format("Running command ({})", cmd);
-  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(cmd);
-  return exitStatus;
-}
-
-int SystemInterface::installLocalRpm() const {
-  int exitStatus{0};
-  std::string standardOut{};
-  auto cmd = fmt::format("rpm -i --force {}", FLAGS_local_rpm_path);
-  VLOG(1) << fmt::format("Running command ({})", cmd);
-  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(cmd);
-  return exitStatus;
-}
-
-int SystemInterface::depmod() const {
-  int exitStatus{0};
-  std::string standardOut{};
-  auto depmodCmd = "depmod -a";
-  VLOG(1) << fmt::format("Running command ({})", depmodCmd);
-  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(depmodCmd);
-  return exitStatus;
-}
-
-std::vector<std::string> SystemInterface::getInstalledRpms(
-    const std::string& rpmBaseName) const {
-  std::string standardOut{};
-  int exitStatus{0};
-  auto cmd = fmt::format("rpm -qa | grep ^{}", rpmBaseName);
-  VLOG(1) << fmt::format("Running command ({})", cmd);
-  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(cmd);
-  if (exitStatus) {
-    return {};
-  }
-  std::vector<std::string> installedRpms;
-  folly::split('\n', standardOut, installedRpms);
-  return installedRpms;
-}
-
-int SystemInterface::removeRpms(
-    const std::vector<std::string>& installedRpms) const {
-  int exitStatus{0};
-  std::string standardOut;
-  auto removeOldRpmsCmd =
-      fmt::format("rpm -e --allmatches {}", folly::join(" ", installedRpms));
-  VLOG(1) << fmt::format("Running command ({})", removeOldRpmsCmd);
-  std::tie(exitStatus, standardOut) =
-      platformUtils_->execCommand(removeOldRpmsCmd);
-  return exitStatus;
-}
-
-std::set<std::string> SystemInterface::lsmod() const {
-  VLOG(1) << "Running command (lsmod)";
-  auto result = platformUtils_->execCommand("lsmod");
-  auto rows = result.second | ranges::views::split('\n') |
-      ranges::views::drop(1) | ranges::to<std::vector<std::string>>;
-  std::set<std::string> kmods;
-  // row -> kmod | size | used by | dependent kmods
-  for (const auto& row : rows) {
-    auto tokens = row | ranges::views::split(' ') |
-        ranges::views::filter(
-                      [](const auto& token) { return !token.empty(); }) |
-        ranges::to<std::vector<std::string>>;
-    if (tokens.empty()) {
-      XLOG(WARNING) << fmt::format("Failed to scan lsmod row -- {}", row);
-      continue;
-    }
-    kmods.emplace(tokens.front());
-  }
-  return kmods;
-}
-
-std::string SystemInterface::getHostKernelVersion() const {
-  VLOG(1) << "Using system name structure for host kernel version";
-  utsname result;
-  uname(&result);
-  return result.release;
-}
-
-bool SystemInterface::isRpmInstalled(const std::string& rpmFullName) const {
-  auto cmd = fmt::format("dnf list {} --installed", rpmFullName);
-  VLOG(1) << fmt::format("Running command ({})", cmd);
-  auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
-  return exitStatus == 0;
-}
-} // namespace package_manager
 
 PkgManager::PkgManager(
     const PlatformConfig& config,
@@ -211,10 +101,6 @@ void PkgManager::processAll(bool enablePkgMgmnt, bool reloadKmods) const {
     if (!systemInterface_->isRpmInstalled(bspKmodsRpmName)) {
       XLOG(INFO) << fmt::format(
           "BSP Kmods {} is not installed", bspKmodsRpmName);
-      // Unload old kmods from previous BSP installation to prevent old kmods
-      // from binding to devices. This relies of old kmods being listed in
-      // kmods.json file.
-      unloadBspKmods();
       // Install desired rpm
       processRpms();
       // In cases where kmods.json from previous BSP installation is absent
@@ -267,14 +153,14 @@ void PkgManager::processRpms() const {
        attempt++) {
     XLOG(INFO) << fmt::format(
         "Installing BSP {}, Attempt #{}", bspKmodsRpmName, attempt);
-    exitStatus = systemInterface_->installRpm(bspKmodsRpmName);
+    exitStatus = systemInterface_->installRpm(bspKmodsRpmName, "kernel");
     success = exitStatus == 0;
   }
   if (exitStatus != 0) {
     throw std::runtime_error(
         fmt::format(
             "Failed to install rpm ({}) with exit code {}",
-            FLAGS_local_rpm_path,
+            bspKmodsRpmName,
             exitStatus));
   }
   XLOG(INFO) << "Caching kernel modules dependencies";
@@ -372,6 +258,24 @@ void PkgManager::closeWatchdogs() const {
   }
 }
 
+bool PkgManager::unloadKmodsOnce(const BspKmodsFile& bspKmodsFile) const {
+  const auto loadedKmods = systemInterface_->lsmod();
+  for (const auto& kmod : ranges::views::concat(
+           *bspKmodsFile.bspKmods(), *bspKmodsFile.sharedKmods())) {
+    if (!loadedKmods.contains(kmod)) {
+      XLOG(INFO) << fmt::format(
+          "Skipping to unload {}. Reason: Already unloaded", kmod);
+      continue;
+    }
+    XLOG(INFO) << fmt::format("Unloading {}", kmod);
+    if (!systemInterface_->unloadKmod(kmod)) {
+      XLOG(WARN) << fmt::format("Failed to unload {}", kmod);
+      return false;
+    }
+  }
+  return true;
+}
+
 void PkgManager::unloadBspKmods() const {
   SCOPE_SUCCESS {
     fb303::fbData->setCounter(kUnloadKmodsFailure, 0);
@@ -416,31 +320,23 @@ void PkgManager::unloadBspKmods() const {
   // Try to close all of them before proceeding. This will help in cases where
   // the watchdog managing service crashed.
   closeWatchdogs();
-  const auto loadedKmods = systemInterface_->lsmod();
-  for (const auto& kmod : *bspKmodsFile.bspKmods()) {
-    if (loadedKmods.contains(kmod)) {
-      XLOG(INFO) << fmt::format("Unloading {}", kmod);
-      if (!systemInterface_->unloadKmod(kmod)) {
-        throw std::runtime_error(fmt::format("Failed to unload ({})", kmod));
-      }
-    } else {
-      XLOG(INFO) << fmt::format(
-          "Skipping to unload {}. Reason: Already unloaded", kmod);
+
+  // A kmod unload can fail if another process loads shared kmods at the same
+  // time as PM unloads them. To avoid this, just retry a few times.
+  const int maxAttempts = std::max(1, FLAGS_kmod_unload_retries);
+  for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
+    if (unloadKmodsOnce(bspKmodsFile)) {
+      kmodsUnloaded_ = true;
+      return;
+    }
+    if (attempt < maxAttempts && FLAGS_kmod_unload_retry_backoff_s > 0) {
+      // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep_for
+      std::this_thread::sleep_for(
+          std::chrono::seconds(FLAGS_kmod_unload_retry_backoff_s));
     }
   }
-  XLOG(INFO) << "Unloading shared kernel modules";
-  for (const auto& kmod : *bspKmodsFile.sharedKmods()) {
-    if (loadedKmods.contains(kmod)) {
-      XLOG(INFO) << fmt::format("Unloading {}", kmod);
-      if (!systemInterface_->unloadKmod(kmod)) {
-        throw std::runtime_error(fmt::format("Failed to unload ({})", kmod));
-      }
-    } else {
-      XLOG(INFO) << fmt::format(
-          "Skipping to unload {}. Reason: Already unloaded", kmod);
-    }
-  }
-  kmodsUnloaded_ = true;
+  throw std::runtime_error(
+      fmt::format("Failed to unload BSP kmods after {} attempts", maxAttempts));
 }
 
 void PkgManager::loadRequiredKmods() const {
@@ -459,6 +355,10 @@ void PkgManager::loadRequiredKmods() const {
 }
 
 void PkgManager::removeInstalledRpms() const {
+  // Uninstalling the RPM can leave the system in a weird state if kmods
+  // themselves are not unloaded. Bundling these two operations together
+  // ensures that removing an RPM actually results in a clean system
+  unloadBspKmods();
   auto installedRpms =
       systemInterface_->getInstalledRpms(getKmodsRpmBaseWithKernelName());
   if (installedRpms.empty()) {

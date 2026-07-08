@@ -21,5 +21,12 @@ double CmisModule::applyRxSnrCorrection(
   return snrValue;
 }
 
+/*
+ * Always return false for OSS (no vendor-specific retry).
+ */
+bool CmisModule::shouldRetryCdbFwInfo() const {
+  return false;
+}
+
 } // namespace fboss
 } // namespace facebook

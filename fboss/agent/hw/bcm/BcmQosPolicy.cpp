@@ -171,11 +171,7 @@ BcmQosPolicy::getBcmHwDefaultsPfcPriToQueueMapping() {
        pfcPri <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
        ++pfcPri) {
     bcm_cosq_pfc_class_map_config_t config;
-#ifdef IS_OSS /* TODO: remove once OSS support added */
-    memset(&config, 0, sizeof(bcm_cosq_pfc_class_map_config_t));
-#else
     bcm_cosq_pfc_class_map_config_t_init(&config);
-#endif
     cosq_pfc_map.emplace_back(config);
   }
   return cosq_pfc_map;

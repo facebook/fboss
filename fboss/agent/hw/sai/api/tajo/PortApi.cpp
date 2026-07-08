@@ -5,7 +5,11 @@
 extern "C" {
 #include <sai.h>
 
+#if defined(TAJO_SDK_GTE_26_5)
+#include <saiextensions.h>
+#else
 #include <experimental/sai_attr_ext.h>
+#endif
 }
 
 #if defined(TAJO_SDK_GTE_24_8_3001)
@@ -434,6 +438,29 @@ std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
   return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCablePropagationDelayMeasure::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkUpDebouncePeriodMs::operator()() {
+#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
+  return SAI_PORT_ATTR_LINK_UP_DEBOUNCE_PERIOD_MILLISECONDS;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
+#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
+  return SAI_PORT_ATTR_LINK_DOWN_DEBOUNCE_PERIOD_MILLISECONDS;
+#else
+  return std::nullopt;
+#endif
 }
 
 } // namespace facebook::fboss

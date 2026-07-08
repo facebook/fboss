@@ -19,6 +19,8 @@ enum ChipType {
   TRANSCEIVER = 1,
   BACKPLANE = 2,
   XPHY = 3,
+  OPTICAL_ENGINE = 4,
+  LASER_SOURCE = 5,
 }
 
 // One of these is what is expected in the A/Z_CORE_TYPE fields in the CSVs
@@ -36,11 +38,14 @@ enum CoreType {
   TH6_NIF = 9, // TH6
   Q4D_NIF = 10, // Q4D
   J4SIM_NIF = 11, // J4Sim
+  J4_NIF = 12, // J4 NIF
+  J4_FE = 13, // J4 Fabric
 
   // Transceivers
   OSFP = 100,
   QSFP28 = 101,
   QSFPDD = 102,
+  BANKED_CMIS_INTEGRATED = 103,
 
   // Backplane Connectors
   EXAMAX = 200,
@@ -48,6 +53,12 @@ enum CoreType {
   // XPHY cores
   AGERA3_SYSTEM = 300,
   AGERA3_LINE = 301,
+
+  // Optical Engine
+  INTEGRATED_OE = 400,
+
+  // External Laser SFP
+  ELSFP = 500,
 }
 
 // Stores the A/Z_CORE_LANE, A/Z_TX_PHYSICAL_LANE, A/Z_RX_PHYSICAL_LANE, A/Z_TX_POLARITY_SWAP, A/Z_RX_POLARITY_SWAP fields from the static mapping CSV
@@ -154,6 +165,12 @@ struct SiFactorAndSetting {
 struct TxRxLaneInfo {
   1: list<i32> tx_lane_info;
   2: list<i32> rx_lane_info;
+}
+
+struct IntegratedTransceiverConnection {
+  1: ConnectionEnd transceiver;
+  2: ConnectionEnd opticalEngine;
+  3: ConnectionEnd laserSource;
 }
 
 struct StaticMapping {

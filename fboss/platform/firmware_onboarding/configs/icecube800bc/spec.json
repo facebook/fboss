@@ -1,0 +1,115 @@
+{
+  "spec_version": "1.0",
+
+  "platform": {
+    "name": "icecube800bc",
+    "silicon": [
+      { "name": "TH6", "pcie_address": "00:01.0" }
+    ]
+  },
+
+  "components": [
+    {
+      "name": "bios",
+      "platform_identifier": "icecube800bc",
+      "location": "Main Board",
+      "display_location": "mb",
+      "field_replaceable": false,
+      "firmware": {
+        "priority": 1,
+        "shared_with_platforms": []
+      }
+    },
+    {
+      "name": "iob_fpga",
+      "platform_identifier": "icecube800bc",
+      "location": "Main Board",
+      "display_location": "mb",
+      "field_replaceable": false,
+      "firmware": {
+        "priority": 2,
+        "shared_with_platforms": []
+      }
+    },
+    {
+      "name": "dom_fpga1",
+      "platform_identifier": "icecube800bc",
+      "location": "Switch Main Board",
+      "display_location": "smb",
+      "field_replaceable": false,
+      "firmware": {
+        "priority": 3,
+        "shared_with_platforms": []
+      }
+    },
+    {
+      "name": "dom_fpga2",
+      "platform_identifier": "icecube800bc",
+      "location": "Switch Main Board",
+      "display_location": "smb",
+      "field_replaceable": false,
+      "firmware": {
+        "priority": 4,
+        "shared_with_platforms": []
+      }
+    },
+    {
+      "name": "mcb_cpld",
+      "platform_identifier": "icecube800bc",
+      "location": "Main Control Board",
+      "display_location": "mcb",
+      "field_replaceable": false,
+      "firmware": {
+        "priority": 5,
+        "shared_with_platforms": []
+      }
+    },
+    {
+      "name": "smb_cpld",
+      "platform_identifier": "icecube800bc",
+      "location": "Switch Main Board",
+      "display_location": "smb",
+      "field_replaceable": false,
+      "firmware": {
+        "priority": 6,
+        "shared_with_platforms": []
+      }
+    },
+    {
+      "name": "scm_cpld",
+      "platform_identifier": "icecube800bc",
+      "location": "Main Board",
+      "display_location": "mb",
+      "field_replaceable": false,
+      "firmware": {
+        "priority": 7,
+        "shared_with_platforms": []
+      }
+    },
+    {
+      "name": "pic_cpld",
+      "platform_identifier": "icecube800bc",
+      "location": "Physical Interface Card",
+      "display_location": "pic",
+      "field_replaceable": true,
+      "instances": {
+        "range": "1-2",
+        "position": "at_end"
+      },
+      "firmware": {
+        "priority": 8,
+        "shared_with_platforms": []
+      }
+    }
+  ],
+
+  "_review_notes": [
+    "platform.silicon[0].pcie_address — '00:01.0' is a placeholder; replace with the actual NPU PCIe BB:DD.F address from the platform reference design",
+    "components — mirrors the current fbcode/fboss/platform/configs/icecube/fw_util.json. If icecube800bc actually has additional firmware components (e.g. fan_cpld, smb_fpga, psu) that aren't yet in fw_util.json, add them to BOTH this spec AND the platform's fw_util.json. (Note: pre-flight does NOT cross-check fw_util.json — that gate was deferred; the spec is the source of truth for the orchestrator.)",
+    "components[*].location and display_location — best-effort placeholders inferred from component name conventions; confirm against the actual icecube800bc reference design",
+    "components[*].field_replaceable — confirm each setting matches the actual chassis design",
+    "components[7].pic_cpld.firmware.priority=8 — matches fw_util.json's pic_cpld1 priority. Note: fw_util.json has pic_cpld1=8 and pic_cpld2=9 (different priorities for the two instances). If this is a true shared-image case, fw_util.json should be updated so both instances have the same priority.",
+    "no pcie_address fields populated yet — add per-component PCIe addresses (BB:DD.F format) for any component that appears on the PCIe bus (typically FPGAs and the NPU); Phase 5 aggregates these into PCI_DEVICES_BY_PLATFORM",
+    "components[*].firmware.shared_with_platforms — populate if any of these firmware images are also installed on a sibling platform; otherwise leave as empty list"
+  ]
+}

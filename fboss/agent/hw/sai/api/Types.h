@@ -22,6 +22,7 @@ FBOSS_STRONG_TYPE(sai_object_id_t, AclTableGroupMemberSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, AclTableSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, AclEntrySaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, AclCounterSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, AclRangeSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, ArsSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, ArsProfileSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, BridgeSaiId);
@@ -65,6 +66,8 @@ FBOSS_STRONG_TYPE(sai_object_id_t, TamReportSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamEventActionSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamEventAgingGroupSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamEventSaiId);
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
+FBOSS_STRONG_TYPE(sai_object_id_t, TamEventThresholdSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamSaiId);
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 FBOSS_STRONG_TYPE(sai_object_id_t, Srv6SidListSaiId);

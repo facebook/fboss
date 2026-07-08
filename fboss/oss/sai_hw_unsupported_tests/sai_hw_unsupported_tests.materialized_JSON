@@ -20,7 +20,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -71,9 +77,6 @@
           "test_name_regex": "HwRouteScaleTest.hgrid*$"
         },
         {
-          "test_name_regex": "HwRouteStatTest*$"
-        },
-        {
           "test_name_regex": "HwWideEcmpTest*$"
         },
         {
@@ -100,7 +103,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -165,7 +174,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -276,9 +291,6 @@
         },
         {
           "test_name_regex": "HwRouteCounterOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest.*"
         },
         {
           "test_name_regex": "HwPortBandwidthTest.*"
@@ -502,9 +514,6 @@
           "test_name_regex": "HwRouteCounterOverflowTest.*"
         },
         {
-          "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
           "test_name_regex": "HwPortBandwidthTest.*"
         },
         {
@@ -678,7 +687,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -780,9 +795,6 @@
         },
         {
           "test_name_regex": "HwRouteCounterOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest.*"
         },
         {
           "test_name_regex": "HwPortBandwidthTest.*"
@@ -1006,9 +1018,6 @@
           "test_name_regex": "HwRouteCounterOverflowTest.*"
         },
         {
-          "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
           "test_name_regex": "HwPortBandwidthTest.*"
         },
         {
@@ -1179,7 +1188,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -1275,9 +1290,6 @@
         },
         {
           "test_name_regex": "HwRouteCounterOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest.*"
         },
         {
           "test_name_regex": "HwPortBandwidthTest.*"
@@ -1501,9 +1513,6 @@
           "test_name_regex": "HwRouteCounterOverflowTest.*"
         },
         {
-          "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
           "test_name_regex": "HwPortBandwidthTest.*"
         },
         {
@@ -1674,7 +1683,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -1704,451 +1719,6 @@
           "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
-    "brcm/14.0_ea_dnx_odp/14.0_ea_dnx_odp/jericho3": [
-        {
-          "test_name_regex": "HwTeFlowTest.*$"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*$"
-        },
-        {
-          "test_name_regex": "HwUdfAclTeFlowTrafficTest.*$"
-        },
-        {
-          "test_name_regex": "HwFlowletSwitching.*$"
-        },
-        {
-          "test_name_regex": "HwArsTest.*$"
-        },
-        {
-          "test_name_regex": "HwArsFlowletTest.*$"
-        },
-        {
-          "test_name_regex": "HwArsSprayTest.*$"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
-        },
-        {
-          "test_name_regex": "HwEcmpTest.Ucmp.*"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestV[46].*Ucmp.*"
-        },
-        {
-          "test_name_regex": "HwVlanTest.VlanApplyConfig"
-        },
-        {
-          "test_name_regex": "HwPacketFloodTest.*"
-        },
-        {
-          "test_name_regex": "HwPacketSendTest.ArpRequestToFrontPanelPortSwitched"
-        },
-        {
-          "test_name_regex": "HwPacketSendReceiveLagTest.LacpPacketReceiveSrcPort"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.*"
-        },
-        {
-          "test_name_regex": "HwNeighborTest/[1357].*"
-        },
-        {
-          "test_name_regex": "HwHashTrunk.*"
-        },
-        {
-          "test_name_regex": "HwEcmpTrunkTest.*"
-        },
-        {
-          "test_name_regex": "HwTrunkTest.*"
-        },
-        {
-          "test_name_regex": "HwFlexPortTest.*"
-        },
-        {
-          "test_name_regex": "HwCoppTest/1.*"
-        },
-        {
-          "test_name_regex": "HwRouteCounterOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
-          "test_name_regex": "HwPortBandwidthTest.*"
-        },
-        {
-          "test_name_regex": "HwMPLSTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwLabelSwitchRouteTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwLabelEdgeRouteTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestsV[46]InMplsPhp.*"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestsV[46]InMplsSwap.*"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestV[46]ToMpls.*"
-        },
-        {
-          "test_name_regex": "HwLabelSwitchRouteTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwLabelEdgeRouteTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE*"
-        },
-        {
-          "test_name_regex": "HwFlexPortTest.*"
-        },
-        {
-          "test_name_regex": "HwMacLearningAndNeighborResolutionTest.*"
-        },
-        {
-          "test_name_regex": "HwMacSwLearningModeTest.*"
-        },
-        {
-          "test_name_regex": "HwMacLearningTest.*"
-        },
-        {
-          "test_name_regex": "HwMacLearningMacMoveTest.*"
-        },
-        {
-          "test_name_regex": "HwMacLearningStaticEntriesTest.*"
-        },
-        {
-          "test_name_regex": "HwMacLearningAndMyStationInteractionTest.*"
-        },
-        {
-          "test_name_regex": "HwMacLearningBatchEntriesTest.*"
-        },
-        {
-          "test_name_regex": "HwL2ClassIDTest.*"
-        },
-        {
-          "test_name_regex": "HwQueuePerHostL2Test.*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest/[01].*VlanID*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*VlanID*"
-        },
-        {
-          "test_name_regex": "HwPtpTcTest.*"
-        },
-        {
-          "test_name_regex": "HwIpInIpTunnelTest.*"
-        },
-        {
-          "test_name_regex": "HwNeighborTest/[01234567].ResolvePendingEntryThenChangeLookupClass"
-        },
-        {
-          "test_name_regex": "HwQueuePerHostRouteTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwQueuePerHostTest/[0123].*"
-        },
-        {
-          "test_name_regex": "SaiQPHRollbackTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteTest/[01].VerifyClassID*"
-        },
-        {
-          "test_name_regex": "HwRouteTest/[01].StaticIp2MplsRoutes"
-        },
-        {
-          "test_name_regex": "HwRouteTest/[01].VerifyClassIdWithNhopResolutionFlap"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest/[01].*LookupClass*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*LookupClass*"
-        },
-        {
-          "test_name_regex": "HwFabricSwitchTest.*"
-        },
-        {
-          "test_name_regex": "HwProdInvariantsRswStrictPriorityTest.verifyInvariants"
-        },
-        {
-          "test_name_regex": "HwProdInvariantsRswTest.verifyInvariants"
-        },
-        {
-          "test_name_regex": "HwPortLedTest.*"
-        },
-        {
-          "test_name_regex": "HwUdfTest.*"
-        },
-        {
-          "test_name_regex": "HwL3Test.*"
-        },
-        {
-          "test_name_regex": "HwMmuTuningTest.*"
-        },
-        {
-          "test_name_regex": "HwFabricSwitchTest.*"
-        },
-        {
-          "test_name_regex": "HwDscpMarkingTest.*"
-        },
-        {
-          "test_name_regex": "HwProdInvariants.*"
-        },
-        {
-          "test_name_regex": "HwSflowMirrorTest.*"
-        },
-        {
-          "test_name_regex": "HwSflowTest.*"
-        },
-        {
-          "test_name_regex": "HwMirrorTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwSplitAgentCallbackTest.*"
-        },
-        {
-          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
-        },
-        {
-          "test_name_regex": "HwInPauseFloodTest.*$"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*$"
-        }
-    ],
-    "brcm/14.0_ea_dnx_odp/14.0_ea_dnx_odp/ramon3": [
-        {
-          "test_name_regex": "HwTeFlowTest.*$"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*$"
-        },
-        {
-          "test_name_regex": "HwUdfAclTeFlowTrafficTest.*$"
-        },
-        {
-          "test_name_regex": "HwFlowletSwitching.*$"
-        },
-        {
-          "test_name_regex": "HwArsTest.*$"
-        },
-        {
-          "test_name_regex": "HwArsFlowletTest.*$"
-        },
-        {
-          "test_name_regex": "HwArsSprayTest.*$"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
-        },
-        {
-          "test_name_regex": "HwEcmpTest.Ucmp.*"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestV[46].*Ucmp.*"
-        },
-        {
-          "test_name_regex": "HwVlanTest.VlanApplyConfig"
-        },
-        {
-          "test_name_regex": "HwPacketFloodTest.*"
-        },
-        {
-          "test_name_regex": "HwPacketSendTest.ArpRequestToFrontPanelPortSwitched"
-        },
-        {
-          "test_name_regex": "HwPacketSendReceiveLagTest.LacpPacketReceiveSrcPort"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.*"
-        },
-        {
-          "test_name_regex": "HwNeighborTest/[1357].*"
-        },
-        {
-          "test_name_regex": "HwHashTrunk.*"
-        },
-        {
-          "test_name_regex": "HwEcmpTrunkTest.*"
-        },
-        {
-          "test_name_regex": "HwTrunkTest.*"
-        },
-        {
-          "test_name_regex": "HwFlexPortTest.*"
-        },
-        {
-          "test_name_regex": "HwCoppTest/1.*"
-        },
-        {
-          "test_name_regex": "HwRouteCounterOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
-          "test_name_regex": "HwPortBandwidthTest.*"
-        },
-        {
-          "test_name_regex": "HwMPLSTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwLabelSwitchRouteTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwLabelEdgeRouteTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestsV[46]InMplsPhp.*"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestsV[46]InMplsSwap.*"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestV[46]ToMpls.*"
-        },
-        {
-          "test_name_regex": "HwLabelSwitchRouteTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwLabelEdgeRouteTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE*"
-        },
-        {
-          "test_name_regex": "HwFlexPortTest.*"
-        },
-        {
-          "test_name_regex": "HwMacLearningAndNeighborResolutionTest.*"
-        },
-        {
-          "test_name_regex": "HwMacSwLearningModeTest.*"
-        },
-        {
-          "test_name_regex": "HwMacLearningTest.*"
-        },
-        {
-          "test_name_regex": "HwMacLearningMacMoveTest.*"
-        },
-        {
-          "test_name_regex": "HwMacLearningStaticEntriesTest.*"
-        },
-        {
-          "test_name_regex": "HwMacLearningAndMyStationInteractionTest.*"
-        },
-        {
-          "test_name_regex": "HwMacLearningBatchEntriesTest.*"
-        },
-        {
-          "test_name_regex": "HwL2ClassIDTest.*"
-        },
-        {
-          "test_name_regex": "HwQueuePerHostL2Test.*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest/[01].*VlanID*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*VlanID*"
-        },
-        {
-          "test_name_regex": "HwPtpTcTest.*"
-        },
-        {
-          "test_name_regex": "HwIpInIpTunnelTest.*"
-        },
-        {
-          "test_name_regex": "HwNeighborTest/[01234567].ResolvePendingEntryThenChangeLookupClass"
-        },
-        {
-          "test_name_regex": "HwQueuePerHostRouteTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwQueuePerHostTest/[0123].*"
-        },
-        {
-          "test_name_regex": "SaiQPHRollbackTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteTest/[01].VerifyClassID*"
-        },
-        {
-          "test_name_regex": "HwRouteTest/[01].StaticIp2MplsRoutes"
-        },
-        {
-          "test_name_regex": "HwRouteTest/[01].VerifyClassIdWithNhopResolutionFlap"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest/[01].*LookupClass*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*LookupClass*"
-        },
-        {
-          "test_name_regex": "HwFabricSwitchTest.*"
-        },
-        {
-          "test_name_regex": "HwProdInvariantsRswStrictPriorityTest.verifyInvariants"
-        },
-        {
-          "test_name_regex": "HwProdInvariantsRswTest.verifyInvariants"
-        },
-        {
-          "test_name_regex": "HwPortLedTest.*"
-        },
-        {
-          "test_name_regex": "HwUdfTest.*"
-        },
-        {
-          "test_name_regex": "HwL3Test.*"
-        },
-        {
-          "test_name_regex": "HwMmuTuningTest.*"
-        },
-        {
-          "test_name_regex": "HwFabricSwitchTest.*"
-        },
-        {
-          "test_name_regex": "HwDscpMarkingTest.*"
-        },
-        {
-          "test_name_regex": "HwProdInvariants.*"
-        },
-        {
-          "test_name_regex": "HwSflowMirrorTest.*"
-        },
-        {
-          "test_name_regex": "HwSflowTest.*"
-        },
-        {
-          "test_name_regex": "HwMirrorTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwSplitAgentCallbackTest.*"
-        },
-        {
-          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
-        },
-        {
-          "test_name_regex": "HwInPauseFloodTest.*$"
-        }
-    ],
     "brcm/14.0_ea_odp/14.0_ea_odp/tomahawk6": [
         {
           "test_name_regex": "HwTeFlowTest.*$"
@@ -2169,7 +1739,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -2265,9 +1841,6 @@
         },
         {
           "test_name_regex": "HwRouteCounterOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest.*"
         },
         {
           "test_name_regex": "HwPortBandwidthTest.*"
@@ -2491,9 +2064,6 @@
           "test_name_regex": "HwRouteCounterOverflowTest.*"
         },
         {
-          "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
           "test_name_regex": "HwPortBandwidthTest.*"
         },
         {
@@ -2664,7 +2234,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -2714,7 +2290,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -2765,9 +2347,6 @@
           "test_name_regex": "HwRouteScaleTest.hgrid*$"
         },
         {
-          "test_name_regex": "HwRouteStatTest*$"
-        },
-        {
           "test_name_regex": "HwWideEcmpTest*$"
         },
         {
@@ -2794,7 +2373,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -2859,7 +2444,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -2915,7 +2506,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -3008,7 +2605,7 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         }
     ],
-    "chenab/2511.35/2511.35/chenab": [
+    "chenab/2511.36/2511.36/chenab": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
@@ -3019,7 +2616,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -3230,7 +2833,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -3298,7 +2907,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -3372,7 +2987,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -3405,7 +3026,7 @@
           "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
-    "leaba/25.11.5210/25.11.5210/graphene202x": [
+    "leaba/25.11.4210/25.11.4210/gibraltar": [
         {
           "test_name_regex": "HwTeFlowTest.*$"
         },
@@ -3440,7 +3061,93 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentAclPriorityTest/[0].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentPacketSendTest.PortTxEnableTest"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentHgridDuRouteScaleTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentRswRouteScaleTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentFswRouteScaleTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
+        },
+        {
+          "test_name_regex": "HwAclCounterTest/[01].*$"
+        },
+        {
+          "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTest.AddAclEntriesAndQualifiersToAclTablesPostWarmboot$"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTest.AddFirstTableAfterWarmboot$"
+        }
+    ],
+    "leaba/25.11.4210/25.11.4210/graphene202x": [
+        {
+          "test_name_regex": "HwTeFlowTest.*$"
+        },
+        {
+          "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAclTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -3482,80 +3189,6 @@
           "test_name_regex": "HwMPLSTest.*$"
         }
     ],
-    "leaba/25.5.4210/25.5.4210/gibraltar": [
-        {
-          "test_name_regex": "HwTeFlowTest.*$"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*$"
-        },
-        {
-          "test_name_regex": "HwUdfAclTeFlowTrafficTest.*$"
-        },
-        {
-          "test_name_regex": "HwFlowletSwitching.*$"
-        },
-        {
-          "test_name_regex": "HwArsTest.*$"
-        },
-        {
-          "test_name_regex": "HwArsFlowletTest.*$"
-        },
-        {
-          "test_name_regex": "HwArsSprayTest.*$"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentAclPriorityTest/[0].*"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentPacketSendTest.PortTxEnableTest"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentHgridDuRouteScaleTest.*"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentRswRouteScaleTest.*"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentFswRouteScaleTest.*"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
-        },
-        {
-          "test_name_regex": "HwAclCounterTest/[01].*$"
-        },
-        {
-          "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
-        },
-        {
-          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.AddAclEntriesAndQualifiersToAclTablesPostWarmboot$"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.AddFirstTableAfterWarmboot$"
-        }
-    ],
     "leaba/25.5.4210/25.5.4210/graphene200": [
         {
           "test_name_regex": "HwTeFlowTest.*$"
@@ -3591,7 +3224,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -3624,7 +3263,7 @@
           "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
-    "leaba/26.2.5210/26.2.5210/graphene200": [
+    "leaba/26.2.4210/26.2.4210/graphene200": [
         {
           "test_name_regex": "HwTeFlowTest.*$"
         },
@@ -3659,7 +3298,13 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
@@ -3690,6 +3335,226 @@
         },
         {
           "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
+        }
+    ],
+    "nvda/2505.34/2505.34/spectrum4": [
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentAclPriorityTest/[0].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentPacketSendTest.PortTxEnableTest"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentHgridDuRouteScaleTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentRswRouteScaleTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentFswRouteScaleTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
+        },
+        {
+          "test_name_regex": "HwTeFlowTest.*$"
+        },
+        {
+          "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAclTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwL3Test.TestRouteHitBit"
+        },
+        {
+          "test_name_regex": "HwL3Test.TestNeighborHitBit"
+        },
+        {
+          "test_name_regex": "HwLabelEdgeRouteTest.*"
+        },
+        {
+          "test_name_regex": "HwLabelSwitchRouteTest.*"
+        },
+        {
+          "test_name_regex": "HwMPLSTest.*"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleOnePort"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPorts"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirror"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirrorOnePortSflow"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirrorNoPortSflow"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUnresolved"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUnresolvedResolved"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUpdate"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].RemoveSampleAllPorts"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].RemoveSampleAllPortsAfterWarmBoot"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsReloadConfig"
+        },
+        {
+          "test_name_regex": "HwSflowTest.SflowSamplingEnabled"
+        },
+        {
+          "test_name_regex": "HwSflowTest.SflowSamplingDisabled"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
+        }
+    ],
+    "nvda/2511.36/2511.36/spectrum4": [
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentAclPriorityTest/[0].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentPacketSendTest.PortTxEnableTest"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentHgridDuRouteScaleTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentRswRouteScaleTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentFswRouteScaleTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
+        },
+        {
+          "test_name_regex": "HwTeFlowTest.*$"
+        },
+        {
+          "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAclTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwL3Test.TestRouteHitBit"
+        },
+        {
+          "test_name_regex": "HwL3Test.TestNeighborHitBit"
+        },
+        {
+          "test_name_regex": "HwLabelEdgeRouteTest.*"
+        },
+        {
+          "test_name_regex": "HwLabelSwitchRouteTest.*"
+        },
+        {
+          "test_name_regex": "HwMPLSTest.*"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleOnePort"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPorts"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirror"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirrorOnePortSflow"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirrorNoPortSflow"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUnresolved"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUnresolvedResolved"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUpdate"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].RemoveSampleAllPorts"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].RemoveSampleAllPortsAfterWarmBoot"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsReloadConfig"
+        },
+        {
+          "test_name_regex": "HwSflowTest.SflowSamplingEnabled"
+        },
+        {
+          "test_name_regex": "HwSflowTest.SflowSamplingDisabled"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         }
     ]
   }

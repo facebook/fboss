@@ -1,0 +1,13 @@
+[Unit]
+Description=Platform Manager
+After=network.target device-init.service
+Requires=device-init.service
+
+[Service]
+Type=simple
+ExecStart=/opt/fboss/bin/platform_manager
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

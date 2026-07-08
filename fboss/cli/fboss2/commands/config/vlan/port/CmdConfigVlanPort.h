@@ -17,8 +17,9 @@ namespace facebook::fboss {
 
 struct CmdConfigVlanPortTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigVlan;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("ports", args, "Port(s)");
+  }
   using ObjectArgType = utils::PortList;
   using RetType = std::string;
 };

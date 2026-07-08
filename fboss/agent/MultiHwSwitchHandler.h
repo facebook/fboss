@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "fboss/agent/SwitchIDs.h"
+#include "fboss/agent/LocalSwitchIds.h"
 #include "fboss/agent/types.h"
 
 #include <folly/futures/Future.h>
@@ -87,12 +87,12 @@ class MultiHwSwitchHandler {
   // TODO Migrate all callsites to explicitly pass switchIDs
   bool sendPacketSwitchedSync(
       std::unique_ptr<TxPacket> pkt,
-      const SwitchIDs& switchIds = {}) noexcept;
+      const LocalSwitchIDs& switchIds = {}) noexcept;
 
   // TODO Migrate all callsites to explicitly pass switchIDs
   bool sendPacketSwitchedAsync(
       std::unique_ptr<TxPacket> pkt,
-      const SwitchIDs& switchIds = {}) noexcept;
+      const LocalSwitchIDs& switchIds = {}) noexcept;
 
   bool transactionsSupported() const;
 
@@ -133,7 +133,7 @@ class MultiHwSwitchHandler {
   template <typename SendFn>
   bool sendPacketSwitchedImpl(
       std::unique_ptr<TxPacket> pkt,
-      const SwitchIDs& switchIds,
+      const LocalSwitchIDs& switchIds,
       SendFn sendFn) noexcept;
 
   bool transactionsSupported(std::optional<cfg::SdkVersion> sdkVersion) const;

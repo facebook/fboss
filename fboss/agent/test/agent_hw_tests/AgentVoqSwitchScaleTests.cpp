@@ -27,7 +27,7 @@ TEST_F(AgentVoqSwitchScaleTest, remoteNeighborWithEcmpGroup) {
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
 
     // Resolve remote nhops and get a list of remote sysPort descriptors
-    flat_set<PortDescriptor> sysPortDescs =
+    boost::container::flat_set<PortDescriptor> sysPortDescs =
         utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
 
     CHECK(sysPortDescs.size() > kEcmpWidth);
@@ -39,7 +39,7 @@ TEST_F(AgentVoqSwitchScaleTest, remoteNeighborWithEcmpGroup) {
           static_cast<uint8_t>(i == 0 ? 0 : 128)};
       auto routeUpdater = getSw()->getRouteUpdater();
       auto sysPortStart = (i * kEcmpWidth) % sysPortDescs.size();
-      auto ecmpMemberPorts = flat_set<PortDescriptor>(
+      auto ecmpMemberPorts = boost::container::flat_set<PortDescriptor>(
           std::make_move_iterator(sysPortDescs.begin() + sysPortStart),
           std::make_move_iterator(
               sysPortDescs.begin() +
@@ -65,12 +65,23 @@ TEST_F(AgentVoqSwitchScaleTest, remoteNeighborWithEcmpGroup) {
           getSw()->updateStats();
           return getLatestSysPortStats(portIds);
         };
+    // Resolve the switch under test once. getSendPktFunc(ensemble) routes every
+    // packet through AgentEnsemble::sendPacketAsync, which recomputes
+    // masterLogicalPortIds() (a full per-port scope rebuild) per packet; at
+    // this test's scale (kEcmpWidth * 25000 packets) that recompute dominates
+    // runtime. Resolve the switchId once and send switched directly via
+    // getSendPktFunc(sw, switchId).
+    const auto switchId =
+        getSw()
+            ->getScopeResolver()
+            ->scope(getAgentEnsemble()->masterLogicalPortIds()[0])
+            .switchId();
     utility::pumpTrafficAndVerifyLoadBalanced(
         [&]() {
           utility::pumpTraffic(
               true, /* isV6 */
               utility::getAllocatePktFn(getAgentEnsemble()),
-              utility::getSendPktFunc(getAgentEnsemble()),
+              utility::getSendPktFunc(getSw(), switchId),
               utility::kLocalCpuMac(), /* dstMac */
               std::nullopt, /* vlan */
               std::nullopt, /* frontPanelPortToLoopTraffic */
@@ -125,7 +136,7 @@ TEST_F(AgentVoqSwitchScaleTest, remoteAndLocalLoadBalance) {
     auto routeUpdater = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(
         &routeUpdater,
-        flat_set<PortDescriptor>(
+        boost::container::flat_set<PortDescriptor>(
             std::make_move_iterator(sysPortDescs.begin()),
             std::make_move_iterator(sysPortDescs.end())),
         {prefix});
@@ -211,7 +222,7 @@ TEST_F(AgentVoqSwitchScaleTest, stressProgramEcmpRoutes) {
         auto routeUpdater = getSw()->getRouteUpdater();
         ecmpHelper.programRoutes(
             &routeUpdater,
-            flat_set<PortDescriptor>(
+            boost::container::flat_set<PortDescriptor>(
                 std::make_move_iterator(sysPortDescs.begin() + i),
                 std::make_move_iterator(sysPortDescs.begin() + i + kEcmpWidth)),
             {prefix});
@@ -292,7 +303,7 @@ class AgentVoqSwitchEcmpWidthUpdateTest
   void programRoute(
       const auto& prefix,
       utility::EcmpSetupTargetedPorts6& ecmpHelper,
-      const flat_set<PortDescriptor>& portDescs) {
+      const boost::container::flat_set<PortDescriptor>& portDescs) {
     auto routeUpdater = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(&routeUpdater, portDescs, {prefix});
   }
@@ -313,13 +324,13 @@ TEST_F(AgentVoqSwitchEcmpWidthUpdateTest, ecmpWidthExpansion) {
     programRoute(
         RoutePrefixV6{folly::IPAddressV6("1::1"), 128},
         ecmpHelper,
-        flat_set<PortDescriptor>(
+        boost::container::flat_set<PortDescriptor>(
             remoteSysPortDescs.begin(),
             remoteSysPortDescs.begin() + kEcmpWidth512));
     programRoute(
         RoutePrefixV6{folly::IPAddressV6("2::2"), 128},
         ecmpHelper,
-        flat_set<PortDescriptor>(
+        boost::container::flat_set<PortDescriptor>(
             remoteSysPortDescs.begin() + 1,
             remoteSysPortDescs.begin() + 1 + kEcmpWidth512));
   };
@@ -333,7 +344,7 @@ TEST_F(AgentVoqSwitchEcmpWidthUpdateTest, ecmpWidthExpansion) {
     programRoute(
         RoutePrefixV6{folly::IPAddressV6("1::1"), 128},
         ecmpHelper,
-        flat_set<PortDescriptor>(
+        boost::container::flat_set<PortDescriptor>(
             remoteSysPortDescs.begin(),
             remoteSysPortDescs.begin() + kEcmpWidth512 - offset));
   };
@@ -363,13 +374,13 @@ TEST_F(AgentVoqSwitchEcmpWidthShrinkTest, ecmpWidthShrink) {
     programRoute(
         RoutePrefixV6{folly::IPAddressV6("1::1"), 128},
         ecmpHelper,
-        flat_set<PortDescriptor>(
+        boost::container::flat_set<PortDescriptor>(
             remoteSysPortDescs.begin(),
             remoteSysPortDescs.begin() + kEcmpWidth512));
     programRoute(
         RoutePrefixV6{folly::IPAddressV6("2::2"), 128},
         ecmpHelper,
-        flat_set<PortDescriptor>(
+        boost::container::flat_set<PortDescriptor>(
             remoteSysPortDescs.begin() + 1,
             remoteSysPortDescs.begin() + 1 + kEcmpWidth512));
   };
@@ -383,7 +394,7 @@ TEST_F(AgentVoqSwitchEcmpWidthShrinkTest, ecmpWidthShrink) {
     programRoute(
         RoutePrefixV6{folly::IPAddressV6("1::1"), 128},
         ecmpHelper,
-        flat_set<PortDescriptor>(
+        boost::container::flat_set<PortDescriptor>(
             remoteSysPortDescs.begin(),
             remoteSysPortDescs.begin() + kEcmpWidth512 - offset));
   };

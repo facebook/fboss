@@ -316,11 +316,6 @@ const std::shared_ptr<MultiSwitchFibInfoMap>& SwitchState::getFibsInfoMap()
   return safe_cref<switch_state_tags::fibsInfoMap>();
 }
 
-const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>&
-SwitchState::getFibs() const {
-  return safe_cref<switch_state_tags::fibsMap>();
-}
-
 const std::shared_ptr<MultiControlPlane>& SwitchState::getControlPlane() const {
   return safe_cref<switch_state_tags::controlPlaneMap>();
 }
@@ -333,11 +328,6 @@ SwitchState::getLabelForwardingInformationBase() const {
 void SwitchState::resetLabelForwardingInformationBase(
     std::shared_ptr<MultiLabelForwardingInformationBase> labelFib) {
   ref<switch_state_tags::labelFibMap>() = labelFib;
-}
-
-void SwitchState::resetForwardingInformationBases(
-    std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs) {
-  ref<switch_state_tags::fibsMap>() = fibs;
 }
 
 void SwitchState::resetFibsInfoMap(
@@ -673,6 +663,107 @@ void SwitchState::fromThrift(bool emptyMnpuMapOk) {
   map->fromThrift({});
 }
 
+// TODO: remove once the NextHopIDManager migration is complete and
+// enable_nexthop_id_manager is permanently on.
+//
+// Clear stale resolvedNextHopSetID / normalizedResolvedNextHopSetID from every
+// route, the matching MPLS labelFib and the matching mySid map for one
+// switch's FibInfo, and wipe that FibInfo's id maps. Caller invokes this
+// per-FibInfo so that per-switch divergence (today every FibInfo is mirrored,
+// but the cleanup must not silently miss a divergent switch tomorrow) is
+// handled correctly.
+void clearNextHopIdsForFibInfo(
+    SwitchState& state,
+    const std::string& matcher,
+    const std::shared_ptr<FibInfo>& fibInfo) {
+  auto clearRouteIds = [](const auto& route) {
+    const auto& fwd = route->getForwardInfo();
+    std::optional<NextHopSetID> nullId;
+    RouteNextHopEntry newFwd(fwd.toThrift());
+    newFwd.setResolvedNextHopSetID(nullId);
+    newFwd.setNormalizedResolvedNextHopSetID(nullId);
+    route->setResolved(newFwd);
+  };
+
+  // Clear stray clientNextHopSetID from each per-client entry in
+  // nexthopsmulti. Snapshot the (clientId, new entry) pairs first so we
+  // never mutate the underlying map while iterating it.
+  auto clearClientIds = [](const auto& route) {
+    std::vector<std::pair<ClientID, RouteNextHopEntry>> updates;
+    for (const auto& [clientId, entry] :
+         std::as_const(route->getEntryForClients())) {
+      if (entry->getClientNextHopSetID().has_value()) {
+        RouteNextHopEntry newEntry(entry->toThrift());
+        std::optional<NextHopSetID> nullId;
+        newEntry.setClientNextHopSetID(nullId);
+        updates.emplace_back(clientId, std::move(newEntry));
+      }
+    }
+    for (auto& [clientId, newEntry] : updates) {
+      route->update(clientId, newEntry);
+    }
+  };
+
+  auto clearRoutesWithIds = [&clearRouteIds,
+                             &clearClientIds](const auto& routeMap) {
+    if (!routeMap) {
+      return;
+    }
+    for (const auto& [_, route] : std::as_const(*routeMap)) {
+      const auto& fwd = route->getForwardInfo();
+      if (fwd.getResolvedNextHopSetID().has_value() ||
+          fwd.getNormalizedResolvedNextHopSetID().has_value()) {
+        clearRouteIds(route);
+      }
+      clearClientIds(route);
+    }
+  };
+
+  // This switch's V4/V6 FIB routes
+  if (auto fibsMap = fibInfo->getfibsMap()) {
+    for (auto& [_vrf, container] : std::as_const(*fibsMap)) {
+      clearRoutesWithIds(container->getFibV4());
+      clearRoutesWithIds(container->getFibV6());
+    }
+  }
+
+  // This FibInfo's id maps
+  if (auto idToNh = fibInfo->getIdToNextHopMap()) {
+    idToNh->clear();
+  }
+  if (auto idToNhSet = fibInfo->getIdToNextHopIdSetMap()) {
+    idToNhSet->clear();
+  }
+  fibInfo->setNameToNextHopSetId({});
+
+  // MPLS labelFib for this switch (matched by SwitchIdList key)
+  if (auto multiLabelFib = state.getLabelForwardingInformationBase()) {
+    for (auto& [labelMatcher, labelFib] : std::as_const(*multiLabelFib)) {
+      if (labelMatcher == matcher) {
+        clearRoutesWithIds(labelFib);
+        break;
+      }
+    }
+  }
+
+  // mySid map for this switch
+  if (auto mySidMaps = state.getMySids()) {
+    for (auto& [mySidMatcher, mySidMap] : std::as_const(*mySidMaps)) {
+      if (mySidMatcher != matcher) {
+        continue;
+      }
+      for (auto& [_id, mySid] : std::as_const(*mySidMap)) {
+        if (mySid->getResolvedNextHopsId().has_value() ||
+            mySid->getUnresolveNextHopsId().has_value()) {
+          mySid->setResolvedNextHopsId(std::nullopt);
+          mySid->setUnresolveNextHopsId(std::nullopt);
+        }
+      }
+      break;
+    }
+  }
+}
+
 std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     const state::SwitchState& switchState) {
   auto state = std::make_unique<SwitchState>();
@@ -710,51 +801,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     }
   }
 
-  /*
-   * FIB Migration: Four-stage transition from fibsMap to fibsInfoMap
-   *
-   * Stage 1 : Rollback safety - Clear fibsInfoMap when deserializing
-   * to handle rollback from Stage 2 where both FIBs are
-   * populated during warm boot exit.
-   *
-   * Stage 2 (Current): Migrate clients to new FIB while populating
-   * both structures during warm boot exit. Forward migration (Stage
-   * 2→3) clears fibsMap on init; rollback (Stage 2→1) clears fibsInfoMap during
-   * init of stage 1.
-   *
-   * Stage 3: New FIB primary - All clients use fibsInfoMap, but both FIBs still
-   * populated during warm boot exit to support direct Stage 1→3
-   * transitions.
-   *
-   * Stage 4: Complete migration - Remove fibsMap entirely from codebase.
-   */
-
-  // Migrate old fibsMap to new fibsInfoMap
-  // We need to populate fibsInfoMap with map<SwitchIdList, FibInfoFields>
-  auto oldFibsMap = state->getFibs();
-  if (oldFibsMap && !oldFibsMap->empty()) {
-    auto fibsInfoMap = state->getFibsInfoMap();
-    // Only convert if new fibsInfoMap doesn't exist or is empty
-    if (!fibsInfoMap || fibsInfoMap->empty()) {
-      auto newFibsInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
-      for (const auto& [switchIdListStr, fibMap] : std::as_const(*oldFibsMap)) {
-        auto fibInfo = std::make_shared<FibInfo>();
-
-        // Copy the old fibMap to the new FibInfo
-        fibInfo->resetFibsMap(fibMap);
-
-        newFibsInfoMap->updateFibInfo(
-            fibInfo, HwSwitchMatcher(switchIdListStr));
-      }
-
-      // Update the state with the new fibsInfoMap
-      state->resetFibsInfoMap(newFibsInfoMap);
-    }
-    // Clear the old fibsMap
-    state->resetForwardingInformationBases(
-        std::make_shared<MultiSwitchForwardingInformationBaseMap>());
-  }
-
   // Migrate old ports field to new portsInfo field for warmboot compatibility
   for (auto& vlanMapEntry : *state->ref<switch_state_tags::vlanMaps>()) {
     for (auto& [vlanId, vlan] : *vlanMapEntry.second) {
@@ -774,6 +820,35 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
           }
           vlan->set<switch_state_tags::portsInfo>(portsInfo);
         }
+      }
+    }
+  }
+  // TODO: remove this block once the NextHopIDManager migration is complete
+  // and enable_nexthop_id_manager is permanently on. Until then we maintain
+  // two safety nets per-FibInfo, keyed off the persisted id maps:
+  //   1. Flag-OFF + non-empty id maps: standard cleanup so the next flag-ON
+  //      warmboot starts clean.
+  //   2. Flag-ON + empty id maps: roll-forward safety. Empty maps mean either
+  //      a first-time enable or a botched prior OFF cleanup that left stray
+  //      IDs on routes; wipe them so reconstruction does not pick up garbage.
+  // Today every FibInfo carries identical id maps, but iterate per-FibInfo
+  // so a future divergence (per-switch id allocation, partial state, etc.)
+  // is handled correctly.
+  if (auto fibsInfoMap = state->getFibsInfoMap()) {
+    for (auto& [matcher, fibInfo] : std::as_const(*fibsInfoMap)) {
+      const auto& idToNh = fibInfo->getIdToNextHopMap();
+      const auto& idToNhSet = fibInfo->getIdToNextHopIdSetMap();
+      bool idMapsEmpty =
+          (!idToNh || idToNh->empty()) && (!idToNhSet || idToNhSet->empty());
+
+      XLOG(DBG3) << "NextHopId cleanup gate: matcher=" << matcher
+                 << " flag=" << (FLAGS_enable_nexthop_id_manager ? "ON" : "OFF")
+                 << " idMapsEmpty=" << idMapsEmpty;
+      if (!FLAGS_enable_nexthop_id_manager && !idMapsEmpty) {
+        clearNextHopIdsForFibInfo(*state, matcher, fibInfo);
+      }
+      if (FLAGS_enable_nexthop_id_manager && idMapsEmpty) {
+        clearNextHopIdsForFibInfo(*state, matcher, fibInfo);
       }
     }
   }
@@ -955,7 +1030,6 @@ state::SwitchState SwitchState::toThrift() const {
     }
     aclTableGroupMaps->clear();
   }
-
   // Migrate new portsInfo field to old ports field for warmboot compatibility
   for (auto& [matcherKey, vlanMapThrift] : *data.vlanMaps()) {
     for (auto& [vlanId, vlanThrift] : vlanMapThrift) {

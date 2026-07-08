@@ -48,9 +48,6 @@ class QueueConfig : public utils::BaseObjectArgType<std::string> {
     return aqmAttributes_;
   }
 
-  const static utils::ObjectArgTypeId id =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QUEUE_ID;
-
  private:
   int16_t queueId_{0};
   std::vector<std::pair<std::string, std::string>> attributes_;
@@ -59,8 +56,15 @@ class QueueConfig : public utils::BaseObjectArgType<std::string> {
 
 struct CmdConfigQosQueuingPolicyQueueIdTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigQosQueuingPolicy;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QUEUE_ID;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "queue_config",
+        args,
+        "Queue ID followed by key-value pairs: <queue-id> <attr> <value> "
+        "[<attr> <value> ...] where <attr> is one of: reserved-bytes, "
+        "shared-bytes, weight, scaling-factor, scheduling, stream-type, "
+        "buffer-pool-name, active-queue-management");
+  }
   using ObjectArgType = QueueConfig;
   using RetType = std::string;
 };

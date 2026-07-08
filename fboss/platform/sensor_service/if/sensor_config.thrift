@@ -23,7 +23,8 @@ package;
   attributes = [
     "Oncalls('fboss_platform')",
     "JSEnum(shape('flow_enum' => false))",
-    "GraphQLEnum('SensorType')",
+    "GraphQLEnum('XFBSensorType')",
+    "GraphQLUnprefixedNamingScheme",
     "SelfDescriptive",
     "RelayFlowEnum",
   ],
@@ -80,21 +81,27 @@ struct PmSensor {
 }
 
 // `VersionedPmSensor`: Describes a set of sensors which would exist in Platforms with
-// minimum productProductionState, productVersion and productSubVersion.
+// minimum productionState, productionSubState and respinVariantIndicator.
 //
 // `sensors`: A set of sensors belong to this version. They're mutually exclusive from other versions.
 // If there're any carry-over sensors in the other versions, they must be redefined in that version.
 //
-// `productProductionState`: Minimum productProductionState (EEPROM V5 Type 8).
+// `productionState`: Production State (EEPROM V6 Type 8).
 //
-// `productVersion`: Minimum productVersion (EEPROM V5 Type 9).
+// `productionSubState`: Production Sub-State (EEPROM V6 Type 9).
 //
-// `productSubVersion`: Minimum productSubVersion (EEPROM V5 Type 10).
+// `respinVariantIndicator`: Re-Spin/Variant Indicator (EEPROM V6 Type 10).
+//
+// `productName`: Optional EEPROM Product Name to match against. When set,
+// this VersionedPmSensor only applies if the hardware's EEPROM Product Name
+// matches this value. Enables vendor-specific thresholds (e.g., different
+// PSU vendors on the same platform).
 struct VersionedPmSensor {
   1: list<PmSensor> sensors;
-  2: i16 productProductionState;
-  3: i16 productVersion;
-  4: i16 productSubVersion;
+  2: i16 productionState;
+  3: i16 productionSubState;
+  4: i16 respinVariantIndicator;
+  5: optional string productName;
 }
 
 // `PmUnitSensors`: Describes every sensor in PmUnit.
@@ -143,11 +150,19 @@ struct AsicCommand {
 // `currentSensorName`: Name of the current sensor. This should be set if no
 //                      direct power sensor is available and power needs to be
 //                      calculated from voltage and current.
+//
+// `slotPath`: Optional platform_manager slot path for this PSU/PEM/HSC/PWRBRK
+//             (e.g. "/PSU_SLOT@0"). When set, sensor_service uses it for
+//             presence lookups and ConfigValidator enforces every
+//             referenced sensor lives at the same path. When unset on a
+//             PSU/PEM slot, sensor_service logs a warning and skips
+//             presence counting for that slot.
 struct PerSlotPowerConfig {
   1: string name;
   2: optional string powerSensorName;
   3: optional string voltageSensorName;
   4: optional string currentSensorName;
+  5: optional string slotPath;
 }
 
 // `PowerConfig`: Consolidates all power-related configurations.
@@ -188,6 +203,12 @@ struct PowerConfig {
   6: i32 dcVoltageMax = 64;
   7: i32 acVoltageMin = 90;
   8: i32 acVoltageMax = 305;
+  // Minimum PSU/PEM count expected for AC and DC respectively. Drives
+  // the psu.unexpected_num_present_psu alert; not published when 0
+  // (ConfigValidator warns on PSU/PEM platforms leaving both at 0).
+  // HSC and PWRBRK slots are excluded — not field-replaceable.
+  9: i32 minAcPsuCount = 0;
+  10: i32 minDcPsuCount = 0;
 }
 
 // `TemperatureConfig`: Describes temperature of components.
@@ -203,9 +224,27 @@ struct TemperatureConfig {
 }
 
 // The configuration for sensor mapping.
+//
+// `loggedSensorNames`: Names of sensors whose polled values must be written to
+// the sensor_service log file on every poll cycle, in addition to the usual
+// ODS/fb303 publication.
+//
+// Motivation (SEV S649086): some CPLD status/alarm registers are read-clear —
+// the very act of reading them to publish to ODS clears them in hardware. ODS
+// aggregation and down-sampling can then drop the transient value before it is
+// ever observed, so an abnormal event leaves no durable trace. Emitting the raw
+// polled value to the log file on each cycle guarantees every sample is captured
+// for offline debugging, independent of ODS retention.
+//
+// Each name must reference a sensor that exists on every hardware version of
+// this platform — i.e. a base sensor, an asicCommand sensor, or a versioned
+// sensor present in every versionedSensors entry (ConfigValidator enforces
+// this). An empty list disables the feature.
 struct SensorConfig {
-  1: list<PmUnitSensors> pmUnitSensorsList;
-  2: optional AsicCommand asicCommand;
+  1: string platformName;
+  6: list<PmUnitSensors> pmUnitSensorsList;
+  7: optional AsicCommand asicCommand;
   11: PowerConfig powerConfig;
   12: list<TemperatureConfig> temperatureConfigs;
+  13: list<string> loggedSensorNames;
 }

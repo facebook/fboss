@@ -10,18 +10,31 @@
 
 #include "fboss/agent/TestThriftHandler.h"
 
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/NdpCache.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Utils.h"
 
+#include <algorithm>
+#include <cctype>
+#include <chrono>
+
 using facebook::network::toIPAddress;
 
 namespace {
 
+// Systemd service names for test binaries.
+const std::string kSwAgentTestService = "fboss_sw_agent_test";
+const std::string kWedgeAgentTestService = "wedge_agent-test";
+// hw_agent: prefix; append switchIndex for the full systemd unit name
+// (e.g. "fboss_hw_agent_for_testing_0").
+const std::string kHwAgentTestServicePrefix = "fboss_hw_agent_for_testing_";
+
 const std::set<std::string> kServicesSupportingRestart() {
   static const std::set<std::string> servicesSupportingRestart = {
-      "fboss_sw_agent_test",
+      kSwAgentTestService,
+      kWedgeAgentTestService,
       "fsdb_service_for_testing",
       "qsfp_service_for_testing",
       "bgp",
@@ -35,13 +48,87 @@ const std::set<std::string> kServicesSupportingRestart() {
 // to the actual binary names.
 const std::map<std::string, std::string>& kServiceToProcessName() {
   static const std::map<std::string, std::string> serviceToProcessName = {
-      {"fboss_sw_agent_test", "fboss_sw_agent_test"},
+      {kSwAgentTestService, kSwAgentTestService},
+      {kWedgeAgentTestService, kWedgeAgentTestService},
       {"fsdb_service_for_testing", "fsdb"},
       {"qsfp_service_for_testing", "qsfp_service"},
       {"bgp", "bgp"},
   };
 
   return serviceToProcessName;
+}
+
+std::string trimWhitespace(std::string s) {
+  auto first = std::find_if_not(
+      s.begin(), s.end(), [](unsigned char c) { return std::isspace(c); });
+  auto last = std::find_if_not(
+      s.rbegin(), s.rend(), [](unsigned char c) { return std::isspace(c); });
+  if (first >= last.base()) {
+    return "";
+  }
+  return std::string(first, last.base());
+}
+
+bool systemdUnitExists(const std::string& serviceName) {
+  auto loadState = trimWhitespace(
+      facebook::fboss::runShellCmd(
+          folly::to<std::string>(
+              "systemctl show -p LoadState --value ",
+              serviceName,
+              " 2>/dev/null || true")));
+  return loadState == "loaded" || loadState == "masked";
+}
+
+std::string resolveServiceName(const std::string& logicalServiceName) {
+  if (logicalServiceName != kSwAgentTestService) {
+    return logicalServiceName;
+  }
+  if (systemdUnitExists(kSwAgentTestService)) {
+    return kSwAgentTestService;
+  }
+  if (systemdUnitExists(kWedgeAgentTestService)) {
+    XLOG(INFO) << "Resolved logical service " << logicalServiceName
+               << " to installed unit " << kWedgeAgentTestService;
+    return kWedgeAgentTestService;
+  }
+  return logicalServiceName;
+}
+
+std::set<int16_t> getSwitchIndicesImpl(facebook::fboss::SwSwitch* sw) {
+  std::set<int16_t> switchIndices;
+  for (const auto& [switchId, switchInfo] :
+       sw->getSwitchInfoTable().getSwitchIdToSwitchInfo()) {
+    switchIndices.insert(*switchInfo.switchIndex());
+  }
+  return switchIndices;
+}
+
+std::string makeAsyncSystemdUnitName(
+    const std::string& serviceName,
+    const std::string& action) {
+  return folly::to<std::string>(
+      serviceName,
+      "_",
+      action,
+      "_",
+      std::chrono::steady_clock::now().time_since_epoch().count());
+}
+
+void scheduleAsyncSystemdCommand(
+    const std::string& unitName,
+    const std::string& command,
+    int32_t delayInSeconds = 0) {
+  auto cmd = folly::to<std::string>(
+      "systemd-run --collect --unit=",
+      unitName,
+      " --on-active=",
+      delayInSeconds,
+      "s /bin/bash -lc \"",
+      command,
+      "\"");
+  auto output = facebook::fboss::runShellCmd(cmd);
+  XLOG(INFO) << "Scheduled async systemd command: " << cmd
+             << ", output: " << output;
 }
 
 } // namespace
@@ -62,8 +149,39 @@ void TestThriftHandler::gracefullyRestartService(
             *serviceName));
   }
 
-  auto cmd = folly::to<std::string>("systemctl restart ", *serviceName);
-  runShellCmd(cmd);
+  auto actualServiceName = resolveServiceName(*serviceName);
+
+  // In multi-switch mode, match production ordering (AgentExecutor):
+  //   Stop:  sw_agent first, then hw_agent(s)
+  //   Start: hw_agent(s) first, then sw_agent
+  // This handler runs inside sw_agent, so "systemctl stop sw_agent" kills
+  // the process that spawned the shell. The systemd unit uses KillMode=process,
+  // so only the main PID is killed — the child shell from popen() survives
+  // and continues executing the remaining stop/start commands.
+  if (FLAGS_multi_switch && actualServiceName == kSwAgentTestService) {
+    auto switchIndices = getSwitchIndicesImpl(getSw());
+    CHECK(!switchIndices.empty())
+        << "No switch indices found in multi-switch mode";
+
+    std::string cmd =
+        folly::to<std::string>("systemctl stop ", actualServiceName);
+    for (auto index : switchIndices) {
+      cmd += folly::to<std::string>(
+          " ; systemctl stop ", kHwAgentTestServicePrefix, index);
+    }
+    for (auto index : switchIndices) {
+      cmd += folly::to<std::string>(
+          " ; systemctl start ", kHwAgentTestServicePrefix, index);
+    }
+    cmd += folly::to<std::string>(" ; systemctl start ", actualServiceName);
+    auto unitName = makeAsyncSystemdUnitName(actualServiceName, "restart");
+    scheduleAsyncSystemdCommand(unitName, cmd);
+    return;
+  }
+
+  auto cmd = folly::to<std::string>("systemctl restart ", actualServiceName);
+  auto unitName = makeAsyncSystemdUnitName(actualServiceName, "restart");
+  scheduleAsyncSystemdCommand(unitName, cmd);
 }
 
 void TestThriftHandler::ungracefullyRestartService(
@@ -92,11 +210,13 @@ void TestThriftHandler::ungracefullyRestartService(
             *serviceName));
   }
 
-  auto it = kServiceToProcessName().find(*serviceName);
+  auto actualServiceName = resolveServiceName(*serviceName);
+
+  auto it = kServiceToProcessName().find(actualServiceName);
   if (it == kServiceToProcessName().end()) {
     throw std::runtime_error(
         folly::to<std::string>(
-            "No process name mapping for service: ", *serviceName));
+            "No process name mapping for service: ", actualServiceName));
   }
 
   // pkill -9 followed by systemctl restart: pkill alone won't restart the
@@ -104,19 +224,37 @@ void TestThriftHandler::ungracefullyRestartService(
   // Use ';' (not '&&') so that if pkill kills the current process
   // (e.g. agent), the orphaned shell still executes systemctl restart.
   std::string cmd;
-  if (*serviceName == "fboss_sw_agent_test") {
-    std::string fileToCreate = "/dev/shm/fboss/warm_boot/cold_boot_once_0";
-    cmd = folly::to<std::string>(
-        "pkill -9 ",
-        it->second,
-        " ; touch ",
-        fileToCreate,
-        " ; systemctl restart ",
-        *serviceName);
+  if (actualServiceName == kSwAgentTestService && FLAGS_multi_switch) {
+    // In multi-switch mode, kill all hw_agents first, then restart all,
+    // to simulate an atomic crash. No explicit warm boot cleanup needed.
+    // Agents cold boot naturally after SIGKILL since they don't save warm boot
+    // state on crash.
+    auto switchIndices = getSwitchIndicesImpl(getSw());
+    CHECK(!switchIndices.empty())
+        << "No switch indices found in multi-switch mode";
+
+    // Use "systemctl kill --signal=KILL" instead of pkill because the
+    // binary name (e.g. fboss_hw_agent-sai_impl) differs from the service
+    // name. Killing hw_agent causes sw_agent to exit on its own via
+    // exit_for_any_hw_disconnect; we then restart hw_agent(s) first, then
+    // sw_agent.
+    for (auto index : switchIndices) {
+      if (!cmd.empty()) {
+        cmd += " ; ";
+      }
+      cmd += folly::to<std::string>(
+          "systemctl kill --signal=KILL ", kHwAgentTestServicePrefix, index);
+    }
+    for (auto index : switchIndices) {
+      cmd += folly::to<std::string>(
+          " ; systemctl restart ", kHwAgentTestServicePrefix, index);
+    }
+    cmd += folly::to<std::string>(" ; systemctl restart ", actualServiceName);
   } else {
     cmd = folly::to<std::string>(
-        "pkill -9 ", it->second, " ; systemctl restart ", *serviceName);
+        "pkill -9 ", it->second, " ; systemctl restart ", actualServiceName);
   }
+  XLOG(INFO) << "Ungraceful restart cmd: " << cmd;
   runShellCmd(cmd);
 }
 
@@ -125,27 +263,39 @@ void TestThriftHandler::gracefullyRestartServiceWithDelay(
     int32_t delayInSeconds) {
   XLOG(INFO) << __func__;
 
-  if (*serviceName != "fboss_sw_agent_test") {
+  auto actualServiceName = resolveServiceName(*serviceName);
+  const std::string& expected =
+      FLAGS_multi_switch ? kSwAgentTestService : kWedgeAgentTestService;
+  if (actualServiceName != expected) {
     throw std::runtime_error(
         folly::to<std::string>(
-            "Failed to restart with delay. Unsupported service: ",
-            *serviceName));
+            "Failed to restart with delay. Expected ",
+            expected,
+            " for current mode (multi_switch=",
+            FLAGS_multi_switch,
+            "), got: ",
+            *serviceName,
+            " (resolved to: ",
+            actualServiceName,
+            ")"));
   }
 
-  auto unitName = folly::to<std::string>(*serviceName, "_delayed_start");
-  // Schedule a restart of service after delay seconds
-  auto cmd = folly::to<std::string>(
-      "systemd-run --on-active=",
-      delayInSeconds,
-      "s --unit=",
-      unitName,
-      "systemctl start ",
-      *serviceName);
-  std::system(cmd.c_str());
-
-  // Then stop wedge_agent immediately
-  cmd = folly::to<std::string>("systemctl stop ", *serviceName);
-  std::system(cmd.c_str());
+  // In multi-switch mode, unlike gracefullyRestartService /
+  // ungracefullyRestartService we only stop sw_agent (not hw_agent). This is
+  // sufficient to trigger DSF GR on remote subscribers: sw_agent owns the
+  // FSDB publisher; when it dies, FSDB sends ALL_PUBLISHERS_GONE to
+  // subscribers, which starts their dsf_gr_hold timer. hw_agent staying alive
+  // is fine for this test since we only validate subscriber-side GR behavior,
+  // not hw_agent warmboot/state-handoff. In mono mode, wedge_agent contains
+  // both SwSwitch (FSDB publisher) and HwSwitch in one process — stopping it
+  // achieves the same publisher-disconnect outcome.
+  auto unitName = makeAsyncSystemdUnitName(actualServiceName, "delayed_start");
+  // Schedule a delayed start in a separate transient unit, then return after
+  // queueing a non-blocking stop for the current service.
+  auto cmd = folly::to<std::string>("systemctl start ", actualServiceName);
+  scheduleAsyncSystemdCommand(unitName, cmd, delayInSeconds);
+  facebook::fboss::runShellCmd(
+      folly::to<std::string>("systemctl --no-block stop ", actualServiceName));
 }
 
 void TestThriftHandler::addNeighbor(

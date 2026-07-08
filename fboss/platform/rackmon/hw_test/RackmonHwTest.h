@@ -18,9 +18,6 @@
 #include "fboss/platform/rackmon/RackmonThriftHandler.h"
 #include "fboss/platform/rackmon/if/gen-cpp2/RackmonCtrl.h"
 
-namespace facebook::services {
-class ServiceFrameworkLight;
-}
 namespace apache::thrift {
 class ThriftServer;
 }

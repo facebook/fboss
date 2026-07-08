@@ -333,6 +333,10 @@ class HwStateMachineTestWithoutIphyProgramming : public HwStateMachineTest {
 };
 
 TEST_F(HwStateMachineTestWithoutIphyProgramming, CheckOpticsDetection) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_DETECTION});
+  addTestedTransceivers(getPresentTransceivers());
+  addTestedTransceivers(getAbsentTransceivers());
   auto verify = [&]() {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
     // Default HwTest::Setup() already has a refresh, so all present
@@ -375,6 +379,10 @@ TEST_F(HwStateMachineTestWithoutIphyProgramming, CheckOpticsDetection) {
 }
 
 TEST_F(HwStateMachineTest, CheckPortsProgrammed) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::DATA_PATH_PROGRAMMING});
+  addTestedTransceivers(getPresentTransceivers());
+  addTestedTransceivers(getAbsentTransceivers());
   auto verify = [this]() {
     auto checkTransceiverProgrammed = [this](
                                           const std::vector<TransceiverID>&
@@ -454,6 +462,9 @@ TEST_F(HwStateMachineTest, CheckPortsProgrammed) {
 }
 
 TEST_F(HwStateMachineTest, CheckPortStatusUpdated) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::DATA_PATH_PROGRAMMING});
+  addTestedTransceivers(getPresentTransceivers());
   auto verify = [this]() {
     std::unordered_map<TransceiverID, time_t> lastDownTimes;
     auto checkTransceiverActiveState =
@@ -536,6 +547,9 @@ TEST_F(HwStateMachineTest, CheckPortStatusUpdated) {
 }
 
 TEST_F(HwStateMachineTest, CheckTransceiverRemoved) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_REMOVAL});
+  addTestedTransceivers(getPresentTransceivers());
   auto verify = [this]() {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
     auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
@@ -605,6 +619,9 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemoved) {
 }
 
 TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::REMEDIATION});
+  addTestedTransceivers(getPresentTransceivers());
   auto verify = [this]() {
     std::set<TransceiverID> enabledTcvrs;
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
@@ -698,6 +715,10 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
 }
 
 TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::DATA_PATH_PROGRAMMING});
+  addTestedTransceivers(getPresentTransceivers());
+  addTestedTransceivers(getAbsentTransceivers());
   auto verify = [this]() {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
 
@@ -750,9 +771,21 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
       // Due to some platforms are easy to have i2c issue which causes the
       // current refresh not work as expected. Adding enough retries to make
       // sure that we at least can meet all `expectedStates` after 10 times.
+      // ZR optics need more retries as datapath programming takes longer.
+      bool hasTunableOptics = false;
+      for (auto id : getPresentTransceivers()) {
+        auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
+        auto modTech = tcvrInfo.tcvrState()->moduleTechnology().value();
+        if (modTech == ModuleTechnology::TUNABLE_C_BAND ||
+            modTech == ModuleTechnology::TUNABLE_L_BAND) {
+          hasTunableOptics = true;
+          break;
+        }
+      }
+      int numRetries = hasTunableOptics ? 30 : 10;
 
       WITH_RETRIES_N_TIMED(
-          10 /* retries */,
+          numRetries,
           std::chrono::milliseconds(10000) /* msBetweenRetry */,
           EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
               expectedStates,

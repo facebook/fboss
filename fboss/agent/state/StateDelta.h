@@ -22,8 +22,6 @@
 #include "fboss/agent/state/DsfNodeMap.h"
 #include "fboss/agent/state/FibInfoDelta.h"
 #include "fboss/agent/state/FlowletSwitchingConfig.h"
-#include "fboss/agent/state/ForwardingInformationBaseDelta.h"
-#include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/InterfaceMapDelta.h"
 #include "fboss/agent/state/IpTunnelMap.h"
@@ -104,7 +102,6 @@ class StateDelta {
   getMirrorOnDropReportsDelta() const;
 
   MultiSwitchMapDelta<MultiSwitchTransceiverMap> getTransceiversDelta() const;
-  MultiSwitchForwardingInformationBaseMapDelta getFibsDelta() const;
   MultiSwitchFibInfoMapDelta getFibsInfoDelta() const;
   MultiSwitchMapDelta<MultiLabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;

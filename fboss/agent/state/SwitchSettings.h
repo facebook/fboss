@@ -81,14 +81,6 @@ class SwitchSettings
     set<switch_state_tags::l2AgeTimerSeconds>(val);
   }
 
-  uint32_t getMaxRouteCounterIDs() const {
-    return cref<switch_state_tags::maxRouteCounterIDs>()->toThrift();
-  }
-
-  void setMaxRouteCounterIDs(uint32_t numCounterIDs) {
-    set<switch_state_tags::maxRouteCounterIDs>(numCounterIDs);
-  }
-
   auto getMacAddrsToBlock() const {
     return safe_cref<switch_state_tags::macAddrsToBlock>();
   }
@@ -752,6 +744,21 @@ class SwitchSettings
     } else {
       set<switch_state_tags::ecmpCompressionThresholdPct>(
           *ecmpCompressionThresholdPct);
+    }
+  }
+
+  std::optional<int32_t> getEcmpWidth() const {
+    if (auto ecmpWidth = cref<switch_state_tags::ecmpWidth>()) {
+      return ecmpWidth->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setEcmpWidth(std::optional<int32_t> ecmpWidth) {
+    if (!ecmpWidth) {
+      ref<switch_state_tags::ecmpWidth>().reset();
+    } else {
+      set<switch_state_tags::ecmpWidth>(*ecmpWidth);
     }
   }
   std::optional<std::map<int32_t, int32_t>> getTcToRateLimitKbps() const {

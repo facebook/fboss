@@ -97,10 +97,12 @@ struct FakePort {
   sai_uint32_t numberOfIngressPriorityGroups{0};
   sai_object_id_t qosTcToPriorityGroupMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosPfcPriorityToQueueMap{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosPfcPriorityToPriorityGroupMap{SAI_NULL_OBJECT_ID};
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   sai_uint32_t interFrameGap{96};
 #endif
   bool linkTrainingEnable{false};
+  sai_int32_t linkTrainingRxStatus{0}; // NOT_TRAINED
   bool fdrEnable{false};
   bool rxLaneSquelchEnable{false};
   std::optional<std::vector<sai_map_t>> pfcTcDldInterval{};
@@ -116,6 +118,7 @@ struct FakePort {
   sai_int32_t pfcMonitorDirection{0};
   sai_int32_t cablePropagationDelayMediaType{0};
   sai_uint16_t pfcPauseDurationOverride{0};
+  bool cablePropagationDelayMeasure{false};
   std::function<void()> onGetAttribute; // test-only hook
 };
 

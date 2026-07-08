@@ -209,7 +209,10 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
   };
 
   auto processDelta = [&]<typename MapT>(
-                          auto& delta, MapT* mapToUpdate, auto& makeRemote) {
+                          auto& delta,
+                          MapT* mapToUpdate,
+                          auto& makeRemote,
+                          const HwSwitchMatcher& matcher) {
     DeltaFunctions::forEachChanged(
         delta,
         [&](const auto& oldNode, const auto& newNode) {
@@ -220,8 +223,7 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
             // pointer comparison here.
             auto clonedNode = makeRemote(oldNode, newNode);
             if constexpr (std::is_same_v<MapT, MultiSwitchSystemPortMap>) {
-              mapToUpdate->updateNode(
-                  clonedNode, scopeResolver->scope(clonedNode));
+              mapToUpdate->updateNode(clonedNode, matcher);
             } else {
               // Only process routes if addresses or routerID changed.
               // Neighbor-only changes don't affect routes.
@@ -241,8 +243,7 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
                     remoteIntfRoutesToAdd,
                     remoteIntfRoutesToDel);
               }
-              mapToUpdate->updateNode(
-                  clonedNode, scopeResolver->scope(clonedNode, in));
+              mapToUpdate->updateNode(clonedNode, matcher);
             }
             changed = true;
           }
@@ -254,7 +255,7 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
             return;
           }
           if constexpr (std::is_same_v<MapT, MultiSwitchSystemPortMap>) {
-            mapToUpdate->addNode(clonedNode, scopeResolver->scope(clonedNode));
+            mapToUpdate->addNode(clonedNode, matcher);
           } else {
             processRemoteInterfaceRoutes(
                 clonedNode,
@@ -262,8 +263,7 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
                 true /* add */,
                 remoteIntfRoutesToAdd,
                 remoteIntfRoutesToDel);
-            mapToUpdate->addNode(
-                clonedNode, scopeResolver->scope(clonedNode, in));
+            mapToUpdate->addNode(clonedNode, matcher);
           }
           changed = true;
         },
@@ -295,6 +295,8 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
         });
   };
 
+  const auto localVoqSwitchMatcher = scopeResolver->scope(cfg::SwitchType::VOQ);
+
   for (const auto& [nodeSwitchId, newSysPorts] : switchId2SystemPorts) {
     XLOG(DBG2) << "SwitchId: " << static_cast<int64_t>(nodeSwitchId)
                << " updated # of sys ports: " << newSysPorts->size();
@@ -302,7 +304,8 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     auto origSysPorts = in->getSystemPorts(nodeSwitchId);
     ThriftMapDelta<SystemPortMap> delta(origSysPorts.get(), newSysPorts.get());
     auto remoteSysPorts = out->getRemoteSystemPorts()->modify(&out);
-    processDelta(delta, remoteSysPorts, makeRemoteSysPort);
+    processDelta(
+        delta, remoteSysPorts, makeRemoteSysPort, localVoqSwitchMatcher);
   }
 
   for (const auto& [nodeSwitchId, newRifs] : switchId2Intfs) {
@@ -312,7 +315,7 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     auto origRifs = in->getInterfaces(nodeSwitchId);
     InterfaceMapDelta delta(origRifs.get(), newRifs.get());
     auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
-    processDelta(delta, remoteRifs, makeRemoteRif);
+    processDelta(delta, remoteRifs, makeRemoteRif, localVoqSwitchMatcher);
   }
 
   if (!remoteIntfRoutesToAdd.empty() || !remoteIntfRoutesToDel.empty()) {

@@ -28,6 +28,10 @@ std::string kTtldAclTable() {
   return "ttld-acl-table";
 }
 
+std::string kIpv6AclTable() {
+  return "ipv6-acl-table";
+}
+
 std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
     cfg::AsicType asicType) {
   std::vector<cfg::AclTableQualifier> qualifiers = {
@@ -68,8 +72,52 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
       asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
   }
+  if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+    std::set<cfg::AclTableQualifier> remove{
+        cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::OUTER_VLAN,
+    };
+    auto iter = qualifiers.begin();
+    while (iter != qualifiers.end()) {
+      if (remove.find(*iter) != remove.end()) {
+        iter = qualifiers.erase(iter);
+      } else {
+        ++iter;
+      }
+    }
+  }
+  if (asicType == cfg::AsicType::ASIC_TYPE_FAKE) {
+    qualifiers.push_back(cfg::AclTableQualifier::L4_DST_PORT_RANGE);
+  }
 
   return qualifiers;
+}
+
+std::vector<cfg::AclTableActionType> genAclActionTypesConfig(
+    cfg::AsicType asicType) {
+  std::vector<cfg::AclTableActionType> actions = {
+      cfg::AclTableActionType::PACKET_ACTION,
+      cfg::AclTableActionType::COUNTER,
+      cfg::AclTableActionType::SET_TC,
+      cfg::AclTableActionType::SET_DSCP,
+      cfg::AclTableActionType::MIRROR_INGRESS,
+      cfg::AclTableActionType::MIRROR_EGRESS,
+  };
+  if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+    // TU1 does not support the SET_TC action in the ingress ACL table.
+    std::set<cfg::AclTableActionType> remove{
+        cfg::AclTableActionType::SET_TC,
+    };
+    auto iter = actions.begin();
+    while (iter != actions.end()) {
+      if (remove.find(*iter) != remove.end()) {
+        iter = actions.erase(iter);
+      } else {
+        ++iter;
+      }
+    }
+  }
+  return actions;
 }
 
 int getAclTableIndex(
@@ -299,13 +347,94 @@ void addDefaultAclTable(
       *cfg.dsfNodes());
   // TODO (pshaikh): create a method to return AclTables for a given asic type
   // and acl stage and retire this check
-  auto asic = checkSameAndGetAsic(asicTable.getL3Asics());
+  auto asic =
+      checkSameAndGetAsic(asicTable.getL3Asics(), FLAGS_switch_id_for_testing);
   auto split = asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
+  auto isTomahawkUltra1 =
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1;
+  auto isQumran4dOrJericho4 =
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4;
 
   /* Create default ACL table similar to whats being done in Agent today */
   std::vector<cfg::AclTableQualifier> qualifiers = {};
   std::vector<cfg::AclTableActionType> actions = {};
-  if (!split) {
+  if (isTomahawkUltra1) {
+    qualifiers = genAclQualifiersConfig(asic->getAsicType());
+    qualifiers.push_back(cfg::AclTableQualifier::SRC_PORT);
+    qualifiers.push_back(cfg::AclTableQualifier::IP_FRAG);
+    qualifiers.push_back(cfg::AclTableQualifier::DST_MAC);
+    addAclTable(
+        &cfg,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        0 /* priority */,
+        genAclActionTypesConfig(asic->getAsicType()),
+        qualifiers,
+        udfGroups);
+  } else if (isQumran4dOrJericho4) {
+    auto aclMetadataQualifierSupported =
+        asic->isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER);
+    std::vector<cfg::AclTableQualifier> ipv4Qualifiers = {
+        cfg::AclTableQualifier::DST_MAC,
+        cfg::AclTableQualifier::ETHER_TYPE,
+        cfg::AclTableQualifier::IP_TYPE,
+        cfg::AclTableQualifier::SRC_IPV4,
+        cfg::AclTableQualifier::DST_IPV4,
+        cfg::AclTableQualifier::SRC_PORT,
+        cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+        cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::L4_SRC_PORT,
+        cfg::AclTableQualifier::L4_DST_PORT,
+        cfg::AclTableQualifier::TCP_FLAGS,
+        cfg::AclTableQualifier::ICMPV4_TYPE,
+        cfg::AclTableQualifier::ICMPV4_CODE,
+    };
+    std::vector<cfg::AclTableQualifier> ipv6Qualifiers = {
+        cfg::AclTableQualifier::SRC_IPV6,
+        cfg::AclTableQualifier::DST_IPV6,
+        cfg::AclTableQualifier::IP_TYPE,
+        cfg::AclTableQualifier::SRC_PORT,
+        // NOTE (Q4D/J4): OUT_PORT (FIELD_OUT_PORT) intentionally omitted.
+        // It is not part of the shared DNX supported-qualifier set
+        // (jericho3Qualifiers, used by J3/J4/Q4D) and no ACL entry matches
+        // on egress out-port. On Q4D 16.x a table created with
+        // FIELD_OUT_PORT=true reads back FIELD_OUT_PORT=false on
+        // get_acl_table_attribute, which breaks warmboot/rollback
+        // reconciliation (set -> NOT IMPLEMENTED -> recreate ->
+        // OBJECT IN USE -> crash). J3AI never hits this because its table
+        // is built from the supported-qualifier set, which omits OUT_PORT.
+        cfg::AclTableQualifier::IPV6_NEXT_HEADER,
+        cfg::AclTableQualifier::ETHER_TYPE,
+        cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::L4_SRC_PORT,
+        cfg::AclTableQualifier::L4_DST_PORT,
+        cfg::AclTableQualifier::TCP_FLAGS,
+        cfg::AclTableQualifier::ICMPV6_TYPE,
+        cfg::AclTableQualifier::ICMPV6_CODE,
+    };
+    if (aclMetadataQualifierSupported) {
+      ipv4Qualifiers.push_back(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR);
+      ipv4Qualifiers.push_back(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE);
+      ipv6Qualifiers.push_back(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR);
+      ipv6Qualifiers.push_back(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE);
+    }
+    addAclTable(
+        &cfg,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        0 /* priority */,
+        actions,
+        ipv4Qualifiers,
+        udfGroups);
+    addAclTable(
+        &cfg,
+        kIpv6AclTable(),
+        1 /* priority */,
+        actions,
+        ipv6Qualifiers,
+        udfGroups);
+  } else if (!split) {
     addAclTable(
         &cfg,
         cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
@@ -591,7 +720,7 @@ void addAclEcmpHashCancelAction(
 
 std::vector<cfg::CounterType> getAclCounterTypes(
     const std::vector<const HwAsic*>& asics) {
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   // At times, it is non-trivial for SAI implementations to support enabling
   // bytes counters only or packet counters only. In such cases, SAI
   // implementations enable bytes as well as packet counters even if only
@@ -789,6 +918,7 @@ cfg::AclTable* addTtldAclTable(
           cfg::AclTableQualifier::SRC_IPV6,
           cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
           cfg::AclTableQualifier::IP_TYPE,
+          cfg::AclTableQualifier::IPV6_NEXT_HEADER,
           cfg::AclTableQualifier::TTL,
       },
       {
@@ -804,152 +934,158 @@ std::set<cfg::AclTableQualifier> getRequiredQualifers(
       apache::thrift::TEnumTraits<cfg::AclTableQualifier>::max());
   std::set<cfg::AclTableQualifier> requiredQualifiers{};
 
-  auto addQualier = [&requiredQualifiers](
-                        bool isSet, cfg::AclTableQualifier qualifer) {
+  auto addQualifier = [&requiredQualifiers](
+                          bool isSet, cfg::AclTableQualifier qualifer) {
     if (isSet) {
       requiredQualifiers.insert(qualifer);
     }
   };
 
-  for (int iter = minValue; iter != maxValue; ++iter) {
+  for (int iter = minValue; iter <= maxValue; ++iter) {
     auto qualifier = static_cast<cfg::AclTableQualifier>(iter);
     switch (static_cast<cfg::AclTableQualifier>(qualifier)) {
       case cfg::AclTableQualifier::DST_IPV4:
-        addQualier(
+        addQualifier(
             aclEntry.dstIp().has_value() &&
                 folly::IPAddress::createNetwork(*aclEntry.dstIp()).first.isV4(),
             qualifier);
         break;
 
       case cfg::AclTableQualifier::DST_IPV6:
-        addQualier(
+        addQualifier(
             aclEntry.dstIp().has_value() &&
                 folly::IPAddress::createNetwork(*aclEntry.dstIp()).first.isV6(),
             qualifier);
         break;
 
       case cfg::AclTableQualifier::SRC_IPV4:
-        addQualier(
+        addQualifier(
             aclEntry.srcIp().has_value() &&
                 folly::IPAddress::createNetwork(*aclEntry.srcIp()).first.isV4(),
             qualifier);
         break;
 
       case cfg::AclTableQualifier::SRC_IPV6:
-        addQualier(
+        addQualifier(
             aclEntry.srcIp().has_value() &&
                 folly::IPAddress::createNetwork(*aclEntry.srcIp()).first.isV6(),
             qualifier);
         break;
 
       case cfg::AclTableQualifier::L4_SRC_PORT:
-        addQualier(aclEntry.l4SrcPort().has_value(), qualifier);
+        addQualifier(aclEntry.l4SrcPort().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::L4_DST_PORT:
-        addQualier(aclEntry.l4DstPort().has_value(), qualifier);
+        addQualifier(aclEntry.l4DstPort().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::L4_DST_PORT_RANGE:
+        addQualifier(aclEntry.l4DstPortRange().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::IP_PROTOCOL_NUMBER:
-        if (aclEntry.etherType().has_value() &&
-            *aclEntry.etherType() == cfg::EtherType::IPv4) {
-          addQualier(aclEntry.proto().has_value(), qualifier);
-        } else {
-          addQualier(aclEntry.proto().has_value(), qualifier);
+        if (!aclEntry.etherType().has_value() ||
+            *aclEntry.etherType() != cfg::EtherType::IPv6) {
+          addQualifier(aclEntry.proto().has_value(), qualifier);
         }
         break;
 
       case cfg::AclTableQualifier::TCP_FLAGS:
-        addQualier(aclEntry.tcpFlagsBitMap().has_value(), qualifier);
+        addQualifier(aclEntry.tcpFlagsBitMap().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::SRC_PORT:
-        addQualier(aclEntry.srcPort().has_value(), qualifier);
+        addQualifier(aclEntry.srcPort().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::OUT_PORT:
-        addQualier(aclEntry.dstPort().has_value(), qualifier);
+        addQualifier(aclEntry.dstPort().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::IP_FRAG:
-        addQualier(aclEntry.ipFrag().has_value(), qualifier);
+        addQualifier(aclEntry.ipFrag().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::ICMPV4_TYPE:
         if (aclEntry.proto().has_value() && *aclEntry.proto() == 1) {
-          addQualier(aclEntry.icmpType().has_value(), qualifier);
+          addQualifier(aclEntry.icmpType().has_value(), qualifier);
         }
         break;
 
       case cfg::AclTableQualifier::ICMPV4_CODE:
         if (aclEntry.proto().has_value() && *aclEntry.proto() == 1) {
-          addQualier(aclEntry.icmpCode().has_value(), qualifier);
+          addQualifier(aclEntry.icmpCode().has_value(), qualifier);
         }
         break;
 
       case cfg::AclTableQualifier::ICMPV6_TYPE:
         if (aclEntry.proto().has_value() && *aclEntry.proto() == 58) {
-          addQualier(aclEntry.icmpType().has_value(), qualifier);
+          addQualifier(aclEntry.icmpType().has_value(), qualifier);
         }
         break;
 
       case cfg::AclTableQualifier::ICMPV6_CODE:
         if (aclEntry.proto().has_value() && *aclEntry.proto() == 58) {
-          addQualier(aclEntry.icmpCode().has_value(), qualifier);
+          addQualifier(aclEntry.icmpCode().has_value(), qualifier);
         }
         break;
 
       case cfg::AclTableQualifier::DSCP:
-        addQualier(aclEntry.dscp().has_value(), qualifier);
+        addQualifier(aclEntry.dscp().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::DST_MAC:
-        addQualier(aclEntry.dstMac().has_value(), qualifier);
+        addQualifier(aclEntry.dstMac().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::IP_TYPE:
-        addQualier(aclEntry.ipType().has_value(), qualifier);
+        addQualifier(aclEntry.ipType().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::TTL:
-        addQualier(aclEntry.ttl().has_value(), qualifier);
+        addQualifier(aclEntry.ttl().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::LOOKUP_CLASS_L2:
-        addQualier(aclEntry.lookupClassL2().has_value(), qualifier);
+        addQualifier(aclEntry.lookupClassL2().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR:
-        addQualier(aclEntry.lookupClassNeighbor().has_value(), qualifier);
+        addQualifier(aclEntry.lookupClassNeighbor().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE:
-        addQualier(aclEntry.lookupClassRoute().has_value(), qualifier);
+        addQualifier(aclEntry.lookupClassRoute().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::ETHER_TYPE:
-        addQualier(aclEntry.etherType().has_value(), qualifier);
+        addQualifier(aclEntry.etherType().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::OUTER_VLAN:
-        addQualier(aclEntry.vlanID().has_value(), qualifier);
+        addQualifier(aclEntry.vlanID().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::IPV6_NEXT_HEADER:
         if (aclEntry.etherType().has_value() &&
             *aclEntry.etherType() == cfg::EtherType::IPv6) {
-          addQualier(aclEntry.proto().has_value(), qualifier);
-        } else {
-          addQualier(aclEntry.proto().has_value(), qualifier);
+          addQualifier(aclEntry.proto().has_value(), qualifier);
         }
         break;
 
       case cfg::AclTableQualifier::BTH_OPCODE:
-        addQualier(aclEntry.roceOpcode().has_value(), qualifier);
+        addQualifier(aclEntry.roceOpcode().has_value(), qualifier);
         break;
 
       case cfg::AclTableQualifier::UDF:
         // handled with getRequiredUdfGroups
+        break;
+
+      case cfg::AclTableQualifier::TC:
+      case cfg::AclTableQualifier::NEXT_HOP_GROUP_ID:
+        // PBR-only qualifiers, synthesized into state AclEntry; not represented
+        // in cfg::AclEntry.
         break;
     }
   }

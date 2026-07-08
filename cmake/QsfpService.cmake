@@ -55,12 +55,41 @@ target_link_libraries(qsfp_config
   FBThrift::thriftcpp2
 )
 
+add_library(build_from_xcvr_lib
+  fboss/lib/bsp/BuildFromXcvrLib.cpp
+)
+
+target_link_libraries(build_from_xcvr_lib
+  bsp_platform_mapping_cpp2
+  led_mapping_cpp2
+  xcvr_lib
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
+add_executable(build_from_xcvr_lib_test
+  fboss/lib/bsp/tests/BuildFromXcvrLibTest.cpp
+)
+
+target_link_libraries(build_from_xcvr_lib_test
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+  bsp_platform_mapping_cpp2
+  build_from_xcvr_lib
+  led_mapping_cpp2
+  platform_config_lib
+  xcvr_lib
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
 add_library(bsp_platform_mapping
   fboss/lib/bsp/BspPlatformMapping.cpp
 )
 
 target_link_libraries(bsp_platform_mapping
   bsp_platform_mapping_cpp2
+  build_from_xcvr_lib
   FBThrift::thriftcpp2
 )
 
@@ -70,7 +99,6 @@ add_library(meru800bia_bsp
 
 target_link_libraries(meru800bia_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -80,7 +108,6 @@ add_library(meru800bfa_bsp
 
 target_link_libraries(meru800bfa_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -90,7 +117,6 @@ add_library(montblanc_bsp
 
 target_link_libraries(montblanc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -100,7 +126,6 @@ add_library(icecube800banw_bsp
 
 target_link_libraries(icecube800banw_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -110,7 +135,6 @@ add_library(icecube800bc_bsp
 
 target_link_libraries(icecube800bc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -120,7 +144,6 @@ add_library(icetea800bc_bsp
 
 target_link_libraries(icetea800bc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -130,7 +153,6 @@ add_library(minipack3bta_bsp
 
 target_link_libraries(minipack3bta_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -140,7 +162,6 @@ add_library(minipack3n_bsp
 
 target_link_libraries(minipack3n_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -150,7 +171,6 @@ add_library(morgan800cc_bsp
 
 target_link_libraries(morgan800cc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -160,7 +180,6 @@ add_library(janga800bic_bsp
 
 target_link_libraries(janga800bic_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -170,7 +189,6 @@ add_library(tahan800bc_bsp
 
 target_link_libraries(tahan800bc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -180,7 +198,6 @@ add_library(tahansb800bc_bsp
 
 target_link_libraries(tahansb800bc_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -190,7 +207,6 @@ add_library(wedge800bact_bsp
 
 target_link_libraries(wedge800bact_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -200,7 +216,6 @@ add_library(wedge800cact_bsp
 
 target_link_libraries(wedge800cact_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -209,6 +224,26 @@ add_library(ladakh800bcls_bsp
 )
 
 target_link_libraries(ladakh800bcls_bsp
+  bsp_platform_mapping
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
+add_library(leh800bcls_bsp
+  fboss/lib/bsp/leh800bcls/Leh800bclsBspPlatformMapping.cpp
+)
+
+target_link_libraries(leh800bcls_bsp
+  bsp_platform_mapping
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
+add_library(saintpaul_bsp
+  fboss/lib/bsp/saintpaul/SaintpaulBspPlatformMapping.cpp
+)
+
+target_link_libraries(saintpaul_bsp
   bsp_platform_mapping
   bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
@@ -225,6 +260,7 @@ add_library(qsfp_bsp_core
   fboss/lib/bsp/BspTransceiverAccess.cpp
   fboss/lib/bsp/BspTransceiverAccessImpl.cpp
   fboss/lib/bsp/BspTransceiverCpldAccess.cpp
+  fboss/lib/bsp/BspTransceiverGpioAccess.cpp
   fboss/lib/bsp/BspTransceiverApi.cpp
   fboss/lib/bsp/BspTransceiverContainer.cpp
   fboss/lib/bsp/BspTransceiverIO.cpp
@@ -254,6 +290,8 @@ target_link_libraries(qsfp_bsp_core
   wedge800bact_bsp
   wedge800cact_bsp
   ladakh800bcls_bsp
+  leh800bcls_bsp
+  saintpaul_bsp
   device_mdio
   fpga_device
   phy_management_base
@@ -261,6 +299,8 @@ target_link_libraries(qsfp_bsp_core
   fpga_multi_pim_container
   ledIO
   led_mapping_cpp2
+  build_from_xcvr_lib
+  ${LIBGPIOD}
 )
 
 add_library(transceiver_validator
@@ -341,7 +381,43 @@ target_link_libraries(qsfp_handler
   fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags
+  pai_diag_shell
 )
+
+# PAI Diag Shell library — same lib name in both cases (so qsfp_handler's
+# link line is the same), but the sources + deps differ based on whether
+# SAI_BRCM_PAI_IMPL is set. Mirrors the existing pattern used by
+# `sai_phy_management` (LibPhy.cmake) and `qsfp_service` itself.
+#
+#   SAI_BRCM_PAI_IMPL=ON  -> real impl from PaiDiagShell.cpp, links against
+#                            sai_repl + sai_phy_management + sai_phy. Gives
+#                            users an interactive PAI shell over thrift.
+#   SAI_BRCM_PAI_IMPL=OFF -> throw-on-call stub from PaiDiagShellStub.cpp.
+#                            Calls return "PAI diag shell not supported on
+#                            this platform" via FbossError.
+if(SAI_BRCM_PAI_IMPL)
+  add_library(pai_diag_shell
+    fboss/qsfp_service/diag/PaiDiagShell.cpp
+  )
+  target_link_libraries(pai_diag_shell
+    Folly::folly
+    fboss_error
+    sai_repl
+    sai_api
+    sai_phy_management
+    sai_phy
+    ctrl_cpp2
+  )
+else()
+  add_library(pai_diag_shell
+    fboss/qsfp_service/diag/PaiDiagShellStub.cpp
+  )
+  target_link_libraries(pai_diag_shell
+    Folly::folly
+    fboss_error
+    ctrl_cpp2
+  )
+endif()
 
 add_library(qsfp_core
   fboss/qsfp_service/QsfpServer.cpp
@@ -379,3 +455,25 @@ else()
     "qsfp_service" QSFP_SERVICE_SRCS QSFP_SERVICE_DEPS "" ""
   )
 endif()
+
+# Interactive REPL CLI client for the PAI diag shell — connects to a running
+# qsfp_service over thrift's startPaiDiagShell + producePaiDiagShellInput
+# streaming endpoints and gives the user a bcmsh-style prompt.
+#
+# Mirrors the agent's diag_shell_client (fboss/agent/hw/sai/diag/) which is
+# the production-vetted pattern for the BCM NPU diag shell. The OSS variant
+# uses a raw AsyncSocket + RocketClientChannel; the FB-internal variant
+# (built via BUCK with facebook/) uses ServiceRouter.
+add_executable(fboss_pai_diag_shell_client
+  fboss/qsfp_service/diag/PaiDiagShellClient.cpp
+  fboss/qsfp_service/diag/oss/PaiDiagShellClient.cpp
+)
+
+target_link_libraries(fboss_pai_diag_shell_client
+  qsfp_cpp2
+  ctrl_cpp2
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
+install(TARGETS fboss_pai_diag_shell_client)

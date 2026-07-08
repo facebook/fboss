@@ -558,7 +558,9 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
   ThriftHandler handler(sw_);
   auto portName = sw_->getState()->getPorts()->getNodeIf(PortID(5))->getName();
 
-  auto getTestStatUpdate = [&portName]() {
+  auto getTestStatUpdate = [&portName](
+                               int64_t sysPortQueue1Bytes = 10,
+                               int64_t sysPortQueue2Bytes = 20) {
     multiswitch::HwSwitchStats stats;
     stats.timestamp() = 1000;
 
@@ -577,7 +579,8 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
 
     // sys port stats
     HwSysPortStats sysPortStats;
-    sysPortStats.queueOutBytes_() = {{1, 10}, {2, 20}};
+    sysPortStats.queueOutBytes_() = {
+        {1, sysPortQueue1Bytes}, {2, sysPortQueue2Bytes}};
     stats.sysPortStats() = {{portName, std::move(sysPortStats)}};
 
     // fabric reachability stats
@@ -611,13 +614,28 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
       }());
   EXPECT_TRUE(ret);
   EXPECT_EQ(sw_->getHwSwitchStatsExpensive(switchIndex), getTestStatUpdate());
+  auto result1 = co_await multiSwitchClient_->co_syncHwStats(1);
+  auto ret1 = co_await result1.sink(
+      [&]() -> folly::coro::AsyncGenerator<multiswitch::HwSwitchStats&&> {
+        WITH_RETRIES({
+          counters.update();
+          EXPECT_EVENTUALLY_EQ(
+              counters.value("switch.1.stats_event_sync_active"), 1);
+        });
+        co_yield getTestStatUpdate(30, 40);
+      }());
+  EXPECT_TRUE(ret1);
+  EXPECT_EQ(sw_->getHwSwitchStatsExpensive(1), getTestStatUpdate(30, 40));
   sw_->updateStats();
-  EXPECT_EQ(sw_->getFabricReachabilityStats().mismatchCount().value(), 10);
-  EXPECT_EQ(sw_->getFabricReachabilityStats().missingCount().value(), 20);
+  EXPECT_EQ(sw_->getFabricReachabilityStats().mismatchCount().value(), 20);
+  EXPECT_EQ(sw_->getFabricReachabilityStats().missingCount().value(), 40);
   auto agentStats = sw_->fillFsdbStats();
   EXPECT_EQ(agentStats.hwPortStats()[portName].inBytes_().value(), 10000);
   EXPECT_EQ(
       agentStats.sysPortStats()[portName].queueOutBytes_().value()[1], 10);
+  EXPECT_EQ(
+      agentStats.sysPortStatsMap()[1][portName].queueOutBytes_().value()[1],
+      30);
   // CHECK entry in switchIndex map
   EXPECT_EQ(
       agentStats.hwResourceStatsMap()[switchIndex].acl_counters_free().value(),
@@ -637,9 +655,59 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
   EXPECT_EQ(hwPortStats[portName].outBytes_(), 20000);
   std::map<std::string, HwSysPortStats> hwSysPortStats;
   handler.getSysPortStats(hwSysPortStats);
-  EXPECT_EQ(hwSysPortStats[portName].queueOutBytes_().value()[1], 10);
-  EXPECT_EQ(hwSysPortStats[portName].queueOutBytes_().value()[2], 20);
+  EXPECT_FALSE(hwSysPortStats.contains(portName));
+  EXPECT_EQ(
+      hwSysPortStats[folly::to<std::string>("switch.0.", portName)]
+          .queueOutBytes_()
+          .value()[1],
+      10);
+  EXPECT_EQ(
+      hwSysPortStats[folly::to<std::string>("switch.1.", portName)]
+          .queueOutBytes_()
+          .value()[1],
+      30);
   std::map<int, CpuPortStats> cpuPortStats;
   handler.getAllCpuPortStats(cpuPortStats);
   EXPECT_EQ(cpuPortStats[0], getTestStatUpdate().cpuPortStats().value());
+}
+
+TEST_F(ThriftServerTest, counterStatsAccumulation) {
+  // Populate counterStats on switch 0
+  multiswitch::HwSwitchStats stats0;
+  HwSwitchCounter counter0;
+  counter0.bytes() = 100;
+  counter0.packets() = 10;
+  stats0.counterStats()->routeCounters()["foo"] = counter0;
+  HwSwitchCounter counter0bar;
+  counter0bar.bytes() = 50;
+  stats0.counterStats()->routeCounters()["bar"] = counter0bar;
+  sw_->updateHwSwitchStats(0, stats0);
+
+  // Populate counterStats on switch 1 with overlapping counter name
+  multiswitch::HwSwitchStats stats1;
+  HwSwitchCounter counter1;
+  counter1.bytes() = 200;
+  counter1.packets() = 20;
+  stats1.counterStats()->routeCounters()["foo"] = counter1;
+  HwSwitchCounter counter1baz;
+  counter1baz.bytes() = 75;
+  counter1baz.packets() = 5;
+  stats1.counterStats()->routeCounters()["baz"] = counter1baz;
+  sw_->updateHwSwitchStats(1, stats1);
+
+  auto agentStats = sw_->fillFsdbStats();
+  auto& routeCounters = *agentStats.counterStats()->routeCounters();
+
+  // "foo" exists on both switches — values should be summed
+  EXPECT_EQ(routeCounters.size(), 3);
+  EXPECT_EQ(*routeCounters.at("foo").bytes(), 300);
+  EXPECT_EQ(*routeCounters.at("foo").packets(), 30);
+
+  // "bar" only on switch 0
+  EXPECT_EQ(*routeCounters.at("bar").bytes(), 50);
+  EXPECT_FALSE(routeCounters.at("bar").packets().has_value());
+
+  // "baz" only on switch 1
+  EXPECT_EQ(*routeCounters.at("baz").bytes(), 75);
+  EXPECT_EQ(*routeCounters.at("baz").packets(), 5);
 }

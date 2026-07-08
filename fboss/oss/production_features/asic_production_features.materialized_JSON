@@ -43,7 +43,54 @@
         82,
         83,
         87,
-        98
+        98,
+        115
+    ],
+    "chenab2": [
+        2,
+        3,
+        4,
+        5,
+        7,
+        8,
+        10,
+        11,
+        61,
+        66,
+        12,
+        13,
+        16,
+        17,
+        19,
+        20,
+        21,
+        23,
+        26,
+        27,
+        28,
+        31,
+        91,
+        32,
+        33,
+        34,
+        35,
+        42,
+        43,
+        50,
+        51,
+        53,
+        59,
+        60,
+        63,
+        69,
+        72,
+        73,
+        74,
+        82,
+        83,
+        87,
+        98,
+        115
     ],
     "ebro": [
         2,
@@ -86,7 +133,8 @@
         72,
         79,
         86,
-        68
+        68,
+        110
     ],
     "g202x": [
         2,
@@ -105,6 +153,7 @@
         21,
         23,
         25,
+        27,
         29,
         30,
         31,
@@ -134,9 +183,61 @@
         72,
         79,
         86,
-        33
+        33,
+        22,
+        100,
+        102,
+        104,
+        112,
+        113
     ],
     "jericho3": [
+        2,
+        3,
+        5,
+        0,
+        4,
+        6,
+        8,
+        10,
+        11,
+        61,
+        15,
+        16,
+        18,
+        20,
+        23,
+        24,
+        26,
+        28,
+        31,
+        91,
+        33,
+        12,
+        36,
+        37,
+        38,
+        39,
+        41,
+        40,
+        42,
+        45,
+        47,
+        30,
+        35,
+        34,
+        53,
+        48,
+        49,
+        58,
+        70,
+        75,
+        76,
+        77,
+        89,
+        95
+    ],
+    "jericho4": [
         2,
         3,
         5,
@@ -349,7 +450,8 @@
         85,
         86,
         87,
-        79
+        79,
+        109
     ],
     "tomahawk5": [
         2,
@@ -402,6 +504,7 @@
         62,
         63,
         69,
+        79,
         71,
         72,
         80,
@@ -417,9 +520,11 @@
         93,
         49,
         96,
+        111,
         97,
         101,
-        103
+        103,
+        104
     ],
     "tomahawk6": [
         2,
@@ -478,7 +583,66 @@
         86,
         99,
         101,
-        103
+        94,
+        105,
+        89,
+        87,
+        78
+    ],
+    "tomahawkultra1": [
+        2,
+        3,
+        5,
+        7,
+        8,
+        10,
+        11,
+        61,
+        52,
+        12,
+        13,
+        16,
+        17,
+        20,
+        21,
+        23,
+        26,
+        27,
+        29,
+        30,
+        31,
+        91,
+        34,
+        56,
+        57,
+        35,
+        36,
+        37,
+        38,
+        39,
+        43,
+        40,
+        42,
+        44,
+        50,
+        51,
+        53,
+        54,
+        33,
+        59,
+        60,
+        69,
+        71,
+        72,
+        80,
+        84,
+        87,
+        88,
+        94,
+        93,
+        49,
+        96,
+        97
     ],
     "yuba": [
         2,
@@ -497,6 +661,7 @@
         21,
         23,
         25,
+        27,
         29,
         30,
         31,
@@ -528,7 +693,10 @@
         86,
         100,
         102,
-        33
+        104,
+        33,
+        112,
+        113
     ]
   },
   "asicToFeatureNames": {
@@ -575,7 +743,54 @@
         "ARS_SPRAY",
         "ROUTER_INTERFACE_COUNTERS",
         "UDF_HASH",
-        "PFC_RX_TX_DURATION"
+        "PFC_RX_TX_DURATION",
+        "CUSTOM_DROP_BITMAP_SUPPORT"
+    ],
+    "chenab2": [
+        "CPU_RX_TX",
+        "L3_FORWARDING",
+        "ACL_PORT_IN_DISCARDS_COUNTER",
+        "NULL_ROUTE_IN_DISCARDS_COUNTER",
+        "PRBS",
+        "COPP",
+        "DSCP_REMARKING",
+        "L3_QOS",
+        "NETWORKAI_QOS",
+        "OLYMPIC_QOS",
+        "ACL_COUNTER",
+        "ECMP_LOAD_BALANCER",
+        "SINGLE_ACL_TABLE",
+        "MULTI_ACL_TABLE",
+        "DLB",
+        "ECN",
+        "WRED",
+        "JUMBO_FRAMES",
+        "SCHEDULER_PPS",
+        "ROUTE_COUNTERS",
+        "PORT_TX_DISABLE",
+        "MIRROR_PACKET_TRUNCATION",
+        "EGRESS_MIRROR_PACKET_TRUNCATION",
+        "WIDE_ECMP",
+        "INTERFACE_NEIGHBOR_TABLE",
+        "INGRESS_MIRRORING",
+        "EGRESS_MIRRORING",
+        "PFC",
+        "UDF_WR_IMMEDIATE_ACL",
+        "PAUSE",
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
+        "ERSPANV6_MIRRORING",
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
+        "UCMP",
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS",
+        "ERSPANv4_SAMPLING",
+        "ERSPANv6_SAMPLING",
+        "ARS_SPRAY",
+        "ROUTER_INTERFACE_COUNTERS",
+        "UDF_HASH",
+        "PFC_RX_TX_DURATION",
+        "CUSTOM_DROP_BITMAP_SUPPORT"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -618,7 +833,8 @@
         "MODIFY_ACL_QUALIFIERS",
         "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
         "CLASS_ID_FOR_NEIGHBOR",
-        "MPLS"
+        "MPLS",
+        "IP_IN_IP_ENCAP"
     ],
     "g202x": [
         "CPU_RX_TX",
@@ -637,6 +853,7 @@
         "WRED",
         "JUMBO_FRAMES",
         "MAC_LEARNING",
+        "ROUTE_COUNTERS",
         "SFLOWv4_SAMPLING",
         "SFLOWv6_SAMPLING",
         "MIRROR_PACKET_TRUNCATION",
@@ -666,9 +883,61 @@
         "MODIFY_ACL_QUALIFIERS",
         "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
         "CLASS_ID_FOR_NEIGHBOR",
-        "INTERFACE_NEIGHBOR_TABLE"
+        "INTERFACE_NEIGHBOR_TABLE",
+        "QUEUE_PER_HOST",
+        "SRV6_ENCAP",
+        "SRV6_DECAP",
+        "SRV6_MIDPOINT",
+        "PORT_DEBOUNCE",
+        "SRV6_BINDING_SID"
     ],
     "jericho3": [
+        "CPU_RX_TX",
+        "L3_FORWARDING",
+        "NULL_ROUTE_IN_DISCARDS_COUNTER",
+        "VOQ",
+        "ACL_PORT_IN_DISCARDS_COUNTER",
+        "EGRESS_FORWARDING_DISCARDS_COUNTER",
+        "COPP",
+        "DSCP_REMARKING",
+        "L3_QOS",
+        "NETWORKAI_QOS",
+        "VOQ_DNX_INTERRUPTS",
+        "SINGLE_ACL_TABLE",
+        "BTH_OPCODE_ACL",
+        "ECN",
+        "JUMBO_FRAMES",
+        "TRAP_DISCARDS_COUNTER",
+        "SCHEDULER_PPS",
+        "PORT_TX_DISABLE",
+        "MIRROR_PACKET_TRUNCATION",
+        "EGRESS_MIRROR_PACKET_TRUNCATION",
+        "INTERFACE_NEIGHBOR_TABLE",
+        "ACL_COUNTER",
+        "RSW_ROUTE_SCALE",
+        "FSW_ROUTE_SCALE",
+        "HGRID_DU_ROUTE_SCALE",
+        "HGRID_UU_ROUTE_SCALE",
+        "TH_ALPM_ROUTE_SCALE",
+        "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "PFC",
+        "PORT_MTU_ERROR_TRAP",
+        "PFC_CAPTURE",
+        "SFLOWv6_SAMPLING",
+        "EGRESS_MIRRORING",
+        "INGRESS_MIRRORING",
+        "ERSPANV6_MIRRORING",
+        "LINERATE_SFLOW",
+        "MIRROR_ON_DROP",
+        "SFLOW_SAMPLES_PACKING",
+        "SELF_HEALING_ECMP_LAG",
+        "GLOBAL_TC_RATE_LIMIT",
+        "COPP_SHAPER",
+        "COPP_SCHEDULER",
+        "AM_IDLES",
+        "MIRROR_ON_DROP_DNX"
+    ],
+    "jericho4": [
         "CPU_RX_TX",
         "L3_FORWARDING",
         "NULL_ROUTE_IN_DISCARDS_COUNTER",
@@ -881,7 +1150,8 @@
         "HIGH_FREQUENCY_CPU_POLLING_STATS",
         "CLASS_ID_FOR_NEIGHBOR",
         "UDF_HASH",
-        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
+        "SAVE_SDK_STATE"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -934,6 +1204,7 @@
         "EAPOL_TRAP",
         "UCMP",
         "PTP_TC",
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
         "L4_DST_PORT_ACL",
         "MODIFY_ACL_QUALIFIERS",
         "PFC_WATCHDOG_GRANULARITY",
@@ -949,9 +1220,11 @@
         "PFC_TX_DURATION",
         "MIRROR_ON_DROP",
         "MIRROR_ON_DROP_XGS",
+        "MIRROR_ON_DROP_STATELESS",
         "ECN_PROBABILISTIC_MARKING",
         "AIFM_PACKET_STREAM_HANDLER",
-        "CUT_THROUGH"
+        "CUT_THROUGH",
+        "SRV6_MIDPOINT"
     ],
     "tomahawk6": [
         "CPU_RX_TX",
@@ -1010,7 +1283,66 @@
         "CLASS_ID_FOR_NEIGHBOR",
         "VIRTUAL_ARS_GROUP",
         "AIFM_PACKET_STREAM_HANDLER",
-        "CUT_THROUGH"
+        "L2_QOS",
+        "L4_DST_PORT_RANGE",
+        "AM_IDLES",
+        "UDF_HASH",
+        "ECMP_RANDOM_SPRAY"
+    ],
+    "tomahawkultra1": [
+        "CPU_RX_TX",
+        "L3_FORWARDING",
+        "NULL_ROUTE_IN_DISCARDS_COUNTER",
+        "PRBS",
+        "COPP",
+        "DSCP_REMARKING",
+        "L3_QOS",
+        "NETWORKAI_QOS",
+        "NIF_POLICER",
+        "ACL_COUNTER",
+        "ECMP_LOAD_BALANCER",
+        "SINGLE_ACL_TABLE",
+        "MULTI_ACL_TABLE",
+        "ECN",
+        "WRED",
+        "JUMBO_FRAMES",
+        "SCHEDULER_PPS",
+        "ROUTE_COUNTERS",
+        "SFLOWv4_SAMPLING",
+        "SFLOWv6_SAMPLING",
+        "MIRROR_PACKET_TRUNCATION",
+        "EGRESS_MIRROR_PACKET_TRUNCATION",
+        "INGRESS_MIRRORING",
+        "INGRESS_ACL_MIRRORING",
+        "EGRESS_ACL_MIRRORING",
+        "EGRESS_MIRRORING",
+        "RSW_ROUTE_SCALE",
+        "FSW_ROUTE_SCALE",
+        "HGRID_DU_ROUTE_SCALE",
+        "HGRID_UU_ROUTE_SCALE",
+        "UDF_WR_IMMEDIATE_ACL",
+        "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "PFC",
+        "VLAN",
+        "PAUSE",
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
+        "ERSPANV6_MIRRORING",
+        "IP_IN_IP_DECAP",
+        "INTERFACE_NEIGHBOR_TABLE",
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
+        "PTP_TC",
+        "L4_DST_PORT_ACL",
+        "MODIFY_ACL_QUALIFIERS",
+        "PFC_WATCHDOG_GRANULARITY",
+        "STATIC_PG_SHARED_LIMIT",
+        "UDF_HASH",
+        "INTER_PACKET_GAP",
+        "L2_QOS",
+        "PFC_TX_DURATION",
+        "MIRROR_ON_DROP",
+        "MIRROR_ON_DROP_XGS",
+        "ECN_PROBABILISTIC_MARKING"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -1029,6 +1361,7 @@
         "WRED",
         "JUMBO_FRAMES",
         "MAC_LEARNING",
+        "ROUTE_COUNTERS",
         "SFLOWv4_SAMPLING",
         "SFLOWv6_SAMPLING",
         "MIRROR_PACKET_TRUNCATION",
@@ -1060,7 +1393,336 @@
         "CLASS_ID_FOR_NEIGHBOR",
         "SRV6_ENCAP",
         "SRV6_DECAP",
-        "INTERFACE_NEIGHBOR_TABLE"
+        "SRV6_MIDPOINT",
+        "INTERFACE_NEIGHBOR_TABLE",
+        "PORT_DEBOUNCE",
+        "SRV6_BINDING_SID"
     ]
-  }
+  },
+  "featureSupportSpecs": [
+    {
+      "feature": 100,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba",
+            "g202x"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "26.2.4210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.4210"
+        }
+      ]
+    },
+    {
+      "feature": 102,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba",
+            "g202x"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "26.2.4210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.4210"
+        }
+      ]
+    },
+    {
+      "feature": 104,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba",
+            "g202x"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "26.2.4210",
+          "note": "SRv6 encap/decap/midpoint are supported on Leaba ASICs starting SDK 26.2.4210"
+        }
+      ]
+    },
+    {
+      "feature": 113,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba",
+            "g202x"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "26.2.4210",
+          "note": "SRv6 binding SID are supported on Leaba ASICs starting SDK 26.2.4210"
+        }
+      ]
+    },
+    {
+      "feature": 100,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "15.4_ea_odp",
+          "note": "SRv6 encap/decap/midpoint are supported on BRCM_SAI ASICs starting SDK 15.4_ea_odp"
+        }
+      ]
+    },
+    {
+      "feature": 102,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "15.4_ea_odp",
+          "note": "SRv6 encap/decap/midpoint are supported on BRCM_SAI ASICs starting SDK 15.4_ea_odp"
+        }
+      ]
+    },
+    {
+      "feature": 104,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "15.4_ea_odp",
+          "note": "SRv6 encap/decap/midpoint are supported on BRCM_SAI ASICs starting SDK 15.4_ea_odp"
+        }
+      ]
+    },
+    {
+      "feature": 112,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba",
+            "g202x"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "25.5.4210",
+          "note": "Per-port link debounce timers require SAI_PORT_ATTR_LINK_{UP,DOWN}_DEBOUNCE_PERIOD_MILLISECONDS. Supported on Leaba SAI 25.5.4210 and 26.2.4210+. Regressed on 25.11.4210 (g202x) — see sai_graphene202x_25_11_unsupported_tests in sai_agent_test.cinc."
+        }
+      ]
+    },
+    {
+      "feature": 109,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk4"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp"
+        }
+      ]
+    },
+    {
+      "feature": 19,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "DLB and ARS flowlets are supported on Broadcom SAI from 11.7; min set to 13.3 since 11.7 is being deprecated"
+        }
+      ]
+    },
+    {
+      "feature": 81,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp"
+        }
+      ]
+    },
+    {
+      "feature": 87,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "UDF-based hash load balancer tests are supported on Broadcom SAI from 11.7; min set to 13.3 since 11.7 is being deprecated"
+        }
+      ]
+    },
+    {
+      "feature": 80,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp"
+        }
+      ]
+    },
+    {
+      "feature": 82,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "ARS spray load balancer tests require SAI attributes added in 13.3"
+        }
+      ]
+    },
+    {
+      "feature": 78,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk4",
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "ECMP random spray is supported on Broadcom SAI from 13.3 onwards"
+        }
+      ]
+    },
+    {
+      "feature": 89,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3",
+            "jericho4"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.2.0.0_dnx_odp",
+          "note": "AM idles supported on Broadcom DNX SAI from 12.2 onwards (CS00012390029)"
+        }
+      ]
+    },
+    {
+      "feature": 58,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3",
+            "jericho4"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.0.0.0_dnx_odp",
+          "note": "Sflow sample packing supported on Broadcom DNX SAI from 12.x onwards"
+        }
+      ]
+    },
+    {
+      "feature": 75,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3",
+            "jericho4"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.0.0.0_dnx_odp",
+          "note": "Global TC rate limit supported on Broadcom DNX SAI from 12.x onwards"
+        }
+      ]
+    },
+    {
+      "feature": 15,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3",
+            "jericho4"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.2.0.0_dnx_odp",
+          "note": "VOQ DNX interrupt counters/handlers landed in Broadcom DNX SAI 12.2"
+        }
+      ]
+    },
+    {
+      "feature": 35,
+      "supportedFrom": [
+        {
+          "asics": [
+            "ebro"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "24.8.3001",
+          "note": "Egress port span/erspan mirroring supported on Leaba Gibraltar from SDK 24.8.3001 (MT-834); earlier 1.42.8 SDK lacks egress mirroring"
+        }
+      ]
+    },
+    {
+      "feature": 27,
+      "supportedFrom": [
+        {
+          "asics": [
+            "ebro"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "24.8.3001",
+          "note": "Route stat counters require SAI API >= 1.10, available on Leaba Gibraltar from SDK 24.8.3001"
+        }
+      ]
+    },
+    {
+      "feature": 111,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "Stateless mirror-on-drop is supported on SAI Tomahawk5 from SDK 13.3 onwards (renamed from AgentMirrorOnDropXgs in D101748313)"
+        }
+      ]
+    },
+    {
+      "feature": 90,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "AlternateArsEcmpObjects (AgentFlowletSwitchingEnhancedScaleTest) requires SAI attributes added in 13.3"
+        }
+      ]
+    }
+  ]
 }

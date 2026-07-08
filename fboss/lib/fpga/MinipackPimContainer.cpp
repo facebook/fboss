@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/lib/fpga/MinipackPimContainer.h"
+#include <fmt/core.h>
 
 namespace {
 constexpr auto kPortsPerPim = 16;
@@ -24,7 +25,7 @@ MinipackPimContainer::MinipackPimContainer(
     i2cControllers_.push_back(
         std::make_unique<FbFpgaI2cController>(
             std::make_unique<FpgaMemoryRegion>(
-                folly::format("pim{:d}", pim).str(), device, start, size),
+                fmt::format("pim{:d}", pim), device, start, size),
             rtc,
             pim,
             kI2cControllerVersion));

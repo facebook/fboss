@@ -222,15 +222,22 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
         swNextHop.disableTTLDecrement());
 
     entry->setDisableTTLDecrement(swNextHop.disableTTLDecrement());
-    CHECK(emplaced) << "SRv6 managed next hop must always be emplaced";
     CHECK(srv6SidListHandle)
         << "SRv6 managed next hop must have a SID list handle";
-    entry->setUnderlayNextHop(std::move(underlayNextHop));
+    if (emplaced) {
+      entry->setUnderlayNextHop(std::move(underlayNextHop));
 
-    SaiObjectEventPublisher::getInstance()->get<SaiNeighborTraits>().subscribe(
-        entry);
+      SaiObjectEventPublisher::getInstance()
+          ->get<SaiNeighborTraits>()
+          .subscribe(entry);
 
-    entry->setSrv6SidListHandle(std::move(srv6SidListHandle));
+      entry->setSrv6SidListHandle(std::move(srv6SidListHandle));
+    } else {
+      CHECK(underlayNextHop == entry->getUnderlayNextHop())
+          << " underlay nhops mismatch";
+      CHECK(srv6SidListHandle == entry->getSrv6SidListHandle())
+          << " sid lists msimatch";
+    }
 
     return entry;
   }

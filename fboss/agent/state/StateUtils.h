@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
@@ -52,12 +53,14 @@ folly::MacAddress getInterfaceMac(
     InterfaceID intf);
 folly::MacAddress getMacForFirstInterfaceWithPorts(
     const std::shared_ptr<SwitchState>& state,
-    std::optional<SwitchID> switchId = std::nullopt);
+    const SwitchID& switchId);
 InterfaceID firstInterfaceIDWithPorts(
     const std::shared_ptr<SwitchState>& state,
-    std::optional<SwitchID> switchId = std::nullopt);
+    const SwitchID& switchId,
+    std::optional<cfg::Scope> scope = std::nullopt);
 std::shared_ptr<Interface> firstInterfaceWithPorts(
-    const std::shared_ptr<SwitchState>& state);
+    const std::shared_ptr<SwitchState>& state,
+    const SwitchID& switchId);
 std::vector<folly::IPAddress> getIntfAddrs(
     const std::shared_ptr<SwitchState>& state,
     const InterfaceID& intf);

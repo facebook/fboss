@@ -7,7 +7,7 @@ title: Thrift COW (Copy-On-Write) Nodes
 
 ## Overview
 
-The Thrift COW library (`fboss/thrift_cow/nodes/`) implements a **Copy-On-Write tree data structure** where every node in the tree corresponds to a Thrift type. It is the storage layer underlying the FBOSS [SwitchState](SwitchState.mdx) and [FSDB](fsdb.mdx).
+The Thrift COW library (`fboss/thrift_cow/nodes/`) implements a **Copy-On-Write tree data structure** where every node in the tree corresponds to a Thrift type. It is the storage layer underlying the FBOSS [SwitchState](SwitchState.mdx) and [FSDB](fsdb/fsdb.mdx).
 
 The high-level COW semantics are described in the [SwitchState](SwitchState.mdx) documentation. This page covers the implementation: how the Thrift COW node types are structured, how they map to Thrift types, and how the resolver and hybrid storage mechanisms work.
 
@@ -600,5 +600,5 @@ SwSwitch processes ACK/NACK
 ## Related Documentation
 
 - [SwitchState](SwitchState.mdx) — High-level COW tree semantics and rationale
-- [FSDB](fsdb.mdx) — The pub/sub state database built on top of Thrift COW
+- [FSDB](fsdb/fsdb.mdx) — The pub/sub state database built on top of Thrift COW
 - [Thrift](thrift.mdx) — FBOSS Thrift service definitions

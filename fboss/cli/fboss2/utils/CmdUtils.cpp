@@ -11,6 +11,7 @@
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <fboss/fsdb/oper/instantiations/FsdbPathConverter.h>
 #include <folly/logging/LogConfig.h>
+#include <folly/logging/xlog.h>
 #include "folly/Conv.h"
 #ifndef IS_OSS
 #include "neteng/netwhoami/lib/cpp/Recover.h"
@@ -90,6 +91,8 @@ std::string getAdminDistanceStr(AdminDistance adminDistance) {
       return "DIRECTLY_CONNECTED";
     case AdminDistance::STATIC_ROUTE:
       return "STATIC_ROUTE";
+    case AdminDistance::TE_AGENT:
+      return "TE_AGENT";
     case AdminDistance::OPENR:
       return "OPENR";
     case AdminDistance::EBGP:
@@ -297,6 +300,27 @@ std::string runCmd(const std::string& cmd) {
   return result;
 }
 
+namespace {
+std::string extPathElemToStr(const fsdb::OperPathElem& elem) {
+  if (elem.any().has_value()) {
+    return "*";
+  }
+  if (elem.regex().has_value()) {
+    return *elem.regex();
+  }
+  return *elem.raw();
+}
+
+std::string rawExtPathStr(const std::vector<fsdb::OperPathElem>& path) {
+  std::vector<std::string> elems;
+  elems.reserve(path.size());
+  for (const auto& elem : path) {
+    elems.push_back(extPathElemToStr(elem));
+  }
+  return folly::join("/", elems);
+}
+} // namespace
+
 std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
   // Handle subscriber.path() - already uses names, no conversion needed
   if (apache::thrift::get_pointer(subscriber.path())) {
@@ -307,40 +331,52 @@ std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
   std::vector<std::string> extPaths;
   bool isStats = *subscriber.isStats();
 
-  // Handle extendedPaths - may contain IDs that need conversion
+  // Handle extendedPaths - contain IDs that need conversion to names. The
+  // conversion resolves tokens against this CLI's compiled FsdbModel, so it can
+  // fail when the path is unknown to the locally built model (e.g. schema skew
+  // between this CLI and the switch, or a deprecated path). Fall back to the
+  // raw tokens for that subscriber instead of aborting the whole command.
   if (auto subExtPaths =
           apache::thrift::get_pointer(subscriber.extendedPaths())) {
     for (const auto& extPath : *subExtPaths) {
-      // Convert path IDs to names for display using appropriate root type
-      auto nameTokens = isStats
-          ? fsdb::PathConverter<fsdb::FsdbOperStatsRoot>::extPathToNameTokens(
-                *extPath.path())
-          : fsdb::PathConverter<fsdb::FsdbOperStateRoot>::extPathToNameTokens(
-                *extPath.path());
+      try {
+        auto nameTokens = isStats
+            ? fsdb::PathConverter<fsdb::FsdbOperStatsRoot>::extPathToNameTokens(
+                  *extPath.path())
+            : fsdb::PathConverter<fsdb::FsdbOperStateRoot>::extPathToNameTokens(
+                  *extPath.path());
 
-      std::vector<std::string> pathElements;
-      for (const auto& pathElm : nameTokens) {
-        if (pathElm.any().has_value()) {
-          pathElements.emplace_back("*");
-        } else if (pathElm.regex().has_value()) {
-          pathElements.push_back(*pathElm.regex());
-        } else {
-          pathElements.push_back(*pathElm.raw());
+        std::vector<std::string> pathElements;
+        for (const auto& pathElm : nameTokens) {
+          pathElements.push_back(extPathElemToStr(pathElm));
         }
+        extPaths.push_back(folly::join("/", pathElements));
+      } catch (const std::exception& ex) {
+        auto rawStr = rawExtPathStr(*extPath.path());
+        XLOG(WARN) << "Failed to convert extended subscriber path '" << rawStr
+                   << "' (isStats=" << isStats << "): " << ex.what();
+        extPaths.push_back(rawStr);
       }
-      extPaths.push_back(folly::join("/", pathElements));
     }
   }
 
-  // Handle paths (PATCH API) - convert ID tokens to name tokens
+  // Handle paths (PATCH API) - convert ID tokens to name tokens, with the same
+  // raw-token fallback as extendedPaths above.
   if (auto paths = apache::thrift::get_pointer(subscriber.paths())) {
     for (const auto& path : *paths) {
-      auto nameTokens = isStats
-          ? fsdb::PathConverter<fsdb::FsdbOperStatsRoot>::pathToNameTokens(
-                *path.second.path())
-          : fsdb::PathConverter<fsdb::FsdbOperStateRoot>::pathToNameTokens(
-                *path.second.path());
-      extPaths.push_back(folly::join("/", nameTokens));
+      try {
+        auto nameTokens = isStats
+            ? fsdb::PathConverter<fsdb::FsdbOperStatsRoot>::pathToNameTokens(
+                  *path.second.path())
+            : fsdb::PathConverter<fsdb::FsdbOperStateRoot>::pathToNameTokens(
+                  *path.second.path());
+        extPaths.push_back(folly::join("/", nameTokens));
+      } catch (const std::exception& ex) {
+        auto rawStr = folly::join("/", *path.second.path());
+        XLOG(WARN) << "Failed to convert PATCH subscriber path '" << rawStr
+                   << "' (isStats=" << isStats << "): " << ex.what();
+        extPaths.push_back(rawStr);
+      }
     }
   }
 
@@ -440,8 +476,6 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
     const HostInfo& hostInfo,
     const std::string& regex) {
   std::map<std::string, int64_t> counters;
-#ifndef IS_OSS
-  // TODO: sync_getRegexCounters is not available in OSS
   if (utils::isMultiSwitchEnabled(hostInfo)) {
     auto hwAgentQueryFn =
         [&counters,
@@ -455,7 +489,6 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
     utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo)
         ->sync_getRegexCounters(counters, regex);
   }
-#endif
   return counters;
 }
 
@@ -506,7 +539,60 @@ getUncachedSwitchReachabilityInfo(
   return reachabilityMatrix;
 }
 
-RevisionList::RevisionList(std::vector<std::string> v) {
+TrunkVlanAction::TrunkVlanAction(const std::vector<std::string>& v) {
+  if (v.empty()) {
+    throw std::invalid_argument(
+        "VLAN trunk action requires: add|remove <vlan-id-list>");
+  }
+  if (v.size() < 2) {
+    throw std::invalid_argument(
+        "VLAN trunk action requires action and at least one VLAN ID");
+  }
+
+  // Parse action (first argument)
+  std::string action = boost::to_upper_copy(v[0]);
+  if (action == "ADD") {
+    isAdd_ = true;
+  } else if (action == "REMOVE") {
+    isAdd_ = false;
+  } else {
+    throw std::invalid_argument(
+        "Invalid action '" + v[0] + "', expected 'add' or 'remove'");
+  }
+
+  // Parse VLAN IDs (remaining arguments, may be comma-separated)
+  for (size_t i = 1; i < v.size(); ++i) {
+    // Split by comma in case of comma-separated list
+    std::vector<std::string> vlanStrs;
+    folly::split(',', v[i], vlanStrs);
+    for (const auto& vlanStr : vlanStrs) {
+      if (vlanStr.empty()) {
+        continue;
+      }
+      try {
+        int32_t vlanId = folly::to<int32_t>(vlanStr);
+        // VLAN IDs are typically 1-4094 (0 and 4095 are reserved)
+        if (vlanId < 1 || vlanId > 4094) {
+          throw std::invalid_argument(
+              "VLAN ID must be between 1 and 4094 inclusive, got: " +
+              std::to_string(vlanId));
+        }
+        data_.push_back(vlanId);
+      } catch (const folly::ConversionError&) {
+        throw std::invalid_argument(
+            "Invalid VLAN ID: '" + vlanStr +
+            "'. Expected a comma-separated list of VLAN IDs "
+            "(range notation such as 10-20 is not supported)");
+      }
+    }
+  }
+
+  if (data_.empty()) {
+    throw std::invalid_argument("At least one VLAN ID is required");
+  }
+}
+
+RevisionList::RevisionList(const std::vector<std::string>& v) {
   // Validate each revision specifier
   for (const auto& revision : v) {
     if (revision == "current") {

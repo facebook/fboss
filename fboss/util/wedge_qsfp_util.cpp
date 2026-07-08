@@ -22,7 +22,9 @@
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
+#include <folly/dynamic.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/json.h>
 #include <gflags/gflags.h>
 #include <chrono>
 #include "fboss/agent/EnumUtils.h"
@@ -48,6 +50,7 @@
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
+#include "fboss/lib/bsp/leh800bcls/Leh800bclsBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
@@ -261,6 +264,10 @@ DEFINE_string(
     "",
     "Platform on which we are running."
     " One of (galaxy, wedge100, wedge, minipack16q, yamp, elbert, darwin)");
+DEFINE_string(
+    ssl_policy,
+    "encrypted",
+    "SSL policy for connecting to qsfp_service (plaintext, encrypted)");
 
 DEFINE_bool(
     clear_low_power,
@@ -419,6 +426,10 @@ DEFINE_bool(
     dump_tcvr_i2c_log,
     false,
     "Dump the transceiver i2c log to /dev/shm/fboss/qsfp_service");
+DEFINE_bool(
+    port_info_summary,
+    false,
+    "Print a one-line summary per port: port_name vendor part_number. Use with --direct_i2c");
 
 namespace {
 struct ModulePartInfo_s {
@@ -530,7 +541,9 @@ std::ostream& operator<<(std::ostream& os, const FlagCommand& cmd) {
 
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(
     folly::EventBase& evb) {
-  return std::move(QsfpClient::createClient(&evb)).getVia(&evb);
+  return std::move(
+             QsfpClient::createClient(&evb, FLAGS_ssl_policy == "plaintext"))
+      .getVia(&evb);
 }
 
 /*
@@ -1662,6 +1675,12 @@ void printHostLaneSettings(const std::vector<HostLaneSettings>& settings) {
       printf(" %-12d", *(setting.rxSquelch()));
     }
   }
+  if (settings[0].currentAppSel()) {
+    printf("\n    %-22s", "Current AppSel");
+    for (const auto& setting : settings) {
+      printf(" %-12d", *(setting.currentAppSel()));
+    }
+  }
   printf("\n");
 }
 
@@ -2319,7 +2338,40 @@ void printCmisDetailService(
   }
 }
 
-void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
+// Reads the running firmware's build number from the module over the live I2C
+// bus using the CDB "Get Firmware Info" command (0x0100). This mirrors the
+// build number lookup done in CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade.
+// Returns std::nullopt if the module can't be reached or the CDB command fails.
+std::optional<uint16_t> getCmisFwBuildNumberFromCdb(
+    DirectI2cInfo& i2cInfo,
+    unsigned int port) {
+  try {
+    CdbCommandBlock cdbBlock;
+    cdbBlock.createCdbCmdGetFirmwareInfo();
+    auto qsfpImpl = std::make_unique<WedgeQsfp>(
+        port - 1,
+        i2cInfo.bus,
+        i2cInfo.transceiverManager,
+        /*logBuffer*/ nullptr);
+    cdbBlock.selectCdbPage(qsfpImpl.get());
+    cdbBlock.setMsaPassword(qsfpImpl.get(), FLAGS_msa_password);
+    if (cdbBlock.cmisRunCdbCommand(qsfpImpl.get())) {
+      return cdbBlock.getFwBuildNumber();
+    }
+  } catch (const std::exception& ex) {
+    fprintf(
+        stderr,
+        "Port %u: failed to fetch FW build number via CDB: %s\n",
+        port,
+        ex.what());
+  }
+  return std::nullopt;
+}
+
+void printCmisDetail(
+    const DOMDataUnion& domDataUnion,
+    unsigned int port,
+    DirectI2cInfo* i2cInfo) {
   int i = 0; // For the index of lane
   CmisData cmisData = domDataUnion.get_cmis();
   const uint8_t *lowerBuf, *page0Buf, *page01Buf, *page10Buf, *page11Buf,
@@ -2366,6 +2418,16 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   printf("  Low power forced: 0x%x\n", (lowerBuf[26] >> 4) & 0x1);
 
   printf("  Module FW Version: %x.%x\n", lowerBuf[39], lowerBuf[40]);
+  // Build number is only available via a live CDB read, so it is only printed
+  // when running against the local I2C bus (--direct_i2c).
+  if (i2cInfo != nullptr) {
+    auto buildNumber = getCmisFwBuildNumberFromCdb(*i2cInfo, port);
+    if (buildNumber.has_value()) {
+      printf("  Build Number: %u\n", buildNumber.value());
+    } else {
+      printf("  Build Number: N/A\n");
+    }
+  }
   if (!flatMem) {
     printf("  DSP FW Version: %x.%x\n", page01Buf[66], page01Buf[67]);
     printf("  Build Rev: %x.%x\n", page01Buf[68], page01Buf[69]);
@@ -2423,6 +2485,10 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
           getStateNameString(page11Buf[i] & 0xf, kCmisLaneStateMapping).c_str(),
           getStateNameString((page11Buf[i] >> 4) & 0xf, kCmisLaneStateMapping)
               .c_str());
+    }
+    printf("\nCurrent AppSel    ");
+    for (i = 0; i < 8; i++) {
+      printf("%-9d", (page11Buf[78 + i] & 0xf0) >> 4);
     }
     printf("\nTx fault          ");
     for (i = 0; i < 8; i++) {
@@ -2537,7 +2603,8 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
 void printPortDetail(
     const DOMDataUnion& domDataUnion,
     unsigned int port,
-    const std::string& portNames) {
+    const std::string& portNames,
+    DirectI2cInfo* i2cInfo) {
   if (domDataUnion.getType() == DOMDataUnion::Type::__EMPTY__) {
     fprintf(stderr, "DOMDataUnion object is empty\n");
     return;
@@ -2547,11 +2614,50 @@ void printPortDetail(
   if (domDataUnion.getType() == DOMDataUnion::Type::sff8636) {
     printSffDetail(domDataUnion, port);
   } else if (domDataUnion.getType() == DOMDataUnion::Type::cmis) {
-    printCmisDetail(domDataUnion, port);
+    printCmisDetail(domDataUnion, port, i2cInfo);
   } else {
     fprintf(stderr, "Unrecognizable DOMDataUnion format.\n");
     return;
   }
+}
+
+void printPortInfoSummary(const std::vector<PortInfoSummary>& summaries) {
+  folly::dynamic arr = folly::dynamic::array;
+  for (const auto& s : summaries) {
+    arr.push_back(
+        folly::dynamic::object("port", s.port)("name", s.name)(
+            "vendor", s.vendor)("part_number", s.partNumber));
+  }
+  folly::json::serialization_opts opts;
+  opts.pretty_formatting = true;
+  opts.sort_keys = true;
+  printf("%s\n", folly::json::serialize(arr, opts).c_str());
+}
+
+std::optional<PortInfoSummary> getPortInfoSummary(
+    const DOMDataUnion& domDataUnion,
+    unsigned int port,
+    const std::string& firstPortName) {
+  if (domDataUnion.getType() == DOMDataUnion::Type::__EMPTY__) {
+    return std::nullopt;
+  }
+
+  std::string vendor;
+  std::string vendorPN;
+
+  if (domDataUnion.getType() == DOMDataUnion::Type::sff8636) {
+    auto page0Buf = can_throw(*domDataUnion.sff8636()).page0()->data();
+    vendor = sfpString(page0Buf, 20, 16).str();
+    vendorPN = sfpString(page0Buf, 40, 16).str();
+  } else if (domDataUnion.getType() == DOMDataUnion::Type::cmis) {
+    auto page0Buf = can_throw(*domDataUnion.cmis()).page0()->data();
+    vendor = sfpString(page0Buf, 1, 16).str();
+    vendorPN = sfpString(page0Buf, 20, 16).str();
+  } else {
+    return std::nullopt;
+  }
+
+  return PortInfoSummary{port, firstPortName, vendor, vendorPN};
 }
 
 void printPortDetailService(
@@ -4473,7 +4579,8 @@ bool verifyDirectI2cCompliance() {
       FLAGS_get_remediation_until_time || FLAGS_read_reg || FLAGS_write_reg ||
       FLAGS_update_module_firmware || FLAGS_update_bulk_module_fw ||
       FLAGS_set_40g || FLAGS_set_100g || FLAGS_electrical_loopback ||
-      FLAGS_optical_loopback || FLAGS_clear_loopback || FLAGS_qsfp_reset) {
+      FLAGS_optical_loopback || FLAGS_clear_loopback || FLAGS_qsfp_reset ||
+      FLAGS_port_info_summary) {
     if (FLAGS_direct_i2c) {
       if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
         XLOG(ERR)
@@ -4640,7 +4747,8 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
                                  .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
-    } else if (FLAGS_platform == "wedge800bact") {
+    } else if (
+        FLAGS_platform == "wedge800bact" || FLAGS_platform == "wedge800bnhp") {
       auto systemContainer = BspGenericSystemContainer<
                                  Wedge800BACTBspPlatformMapping>::getInstance()
                                  .get();
@@ -4656,6 +4764,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
       auto systemContainer = BspGenericSystemContainer<
                                  Ladakh800bclsBspPlatformMapping>::getInstance()
                                  .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "leh800bcls") {
+      auto systemContainer =
+          BspGenericSystemContainer<Leh800bclsBspPlatformMapping>::getInstance()
+              .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
     } else {
@@ -4749,7 +4863,9 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
-  } else if (mode == PlatformType::PLATFORM_WEDGE800BACT) {
+  } else if (
+      mode == PlatformType::PLATFORM_WEDGE800BACT ||
+      mode == PlatformType::PLATFORM_WEDGE800BNHP) {
     auto systemContainer =
         BspGenericSystemContainer<Wedge800BACTBspPlatformMapping>::getInstance()
             .get();
@@ -4765,6 +4881,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
     auto systemContainer = BspGenericSystemContainer<
                                Ladakh800bclsBspPlatformMapping>::getInstance()
                                .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_LEH800BCLS) {
+    auto systemContainer =
+        BspGenericSystemContainer<Leh800bclsBspPlatformMapping>::getInstance()
+            .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
   }
@@ -4825,6 +4947,8 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode = PlatformType::PLATFORM_TAHANSB800BC;
     } else if (FLAGS_platform == "ladakh800bcls") {
       mode = PlatformType::PLATFORM_LADAKH800BCLS;
+    } else if (FLAGS_platform == "leh800bcls") {
+      mode = PlatformType::PLATFORM_LEH800BCLS;
     }
   } else {
     // If the platform is not provided by the user then use current hardware's
@@ -4841,6 +4965,12 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode == PlatformType::PLATFORM_MERU800BIAC) {
     auto systemContainer =
         BspGenericSystemContainer<Meru800biaBspPlatformMapping>::getInstance()
+            .get();
+    return std::make_pair(
+        std::make_unique<BspTransceiverApi>(systemContainer), 0);
+  } else if (mode == PlatformType::PLATFORM_MONTBLANC) {
+    auto systemContainer =
+        BspGenericSystemContainer<MontblancBspPlatformMapping>::getInstance()
             .get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);
@@ -4886,6 +5016,12 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
     auto systemContainer = BspGenericSystemContainer<
                                Ladakh800bclsBspPlatformMapping>::getInstance()
                                .get();
+    return std::make_pair(
+        std::make_unique<BspTransceiverApi>(systemContainer), 0);
+  } else if (mode == PlatformType::PLATFORM_LEH800BCLS) {
+    auto systemContainer =
+        BspGenericSystemContainer<Leh800bclsBspPlatformMapping>::getInstance()
+            .get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);
   } else if (mode == PlatformType::PLATFORM_WEDGE400C) {

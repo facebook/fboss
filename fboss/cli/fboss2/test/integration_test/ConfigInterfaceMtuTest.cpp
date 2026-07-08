@@ -18,8 +18,10 @@
 
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <string>
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
 using namespace facebook::fboss;
 
@@ -34,18 +36,29 @@ class ConfigInterfaceMtuTest : public Fboss2IntegrationTest {
 };
 
 TEST_F(ConfigInterfaceMtuTest, SetAndVerifyMtu) {
-  // Step 1: Find an interface to test with
-  XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface interface = findFirstEthInterface();
+  // Step 1: Find an interface with an existing MTU (requires a configured L3
+  // interface so that 'show interface' reports mtu and 'config interface mtu'
+  // has a cfg::Interface to update).
+  XLOG(INFO) << "[Step 1] Finding an interface with a configured MTU...";
+  auto maybeInterface = findFirstEthInterfaceWithMtu();
+  if (!maybeInterface.has_value()) {
+    GTEST_SKIP()
+        << "No ethernet interface with a configured MTU found — "
+           "skipping MTU test (no L3 cfg::Interface present on this switch)";
+  }
+  const Interface& interface = *maybeInterface;
   XLOG(INFO) << "  Using interface: " << interface.name << " (VLAN: "
              << (interface.vlan.has_value() ? std::to_string(*interface.vlan)
                                             : "none")
-             << ")";
+             << ", MTU: " << interface.mtu << ")";
 
   // Step 2: Get the current MTU
   XLOG(INFO) << "[Step 2] Getting current MTU...";
   int originalMtu = interface.mtu;
   XLOG(INFO) << "  Current MTU: " << originalMtu;
+
+  // Clamp originalMtu to valid range in case it was set out of band
+  originalMtu = std::clamp(originalMtu, utils::kMtuMin, utils::kMtuMax);
 
   // Step 3: Set a new MTU (toggle between 1500 and 9000)
   int newMtu = (originalMtu != 9000) ? 9000 : 1500;
@@ -53,21 +66,28 @@ TEST_F(ConfigInterfaceMtuTest, SetAndVerifyMtu) {
   setInterfaceMtu(interface.name, newMtu);
   XLOG(INFO) << "  MTU set to " << newMtu;
 
-  // Step 4: Verify MTU via 'show interface'
-  XLOG(INFO) << "[Step 4] Verifying MTU via 'show interface'...";
-  Interface updatedInterface = getInterfaceInfo(interface.name);
+  // Step 4: Poll 'show interface' until the MTU propagates
+  XLOG(INFO) << "[Step 4] Waiting for MTU to propagate via 'show interface'...";
+  Interface updatedInterface = waitForInterfaceInfo(
+      interface.name,
+      [newMtu](const auto& info) { return info.mtu == newMtu; });
   EXPECT_EQ(updatedInterface.mtu, newMtu)
       << "Expected MTU " << newMtu << ", got " << updatedInterface.mtu;
   XLOG(INFO) << "  Verified: MTU is " << updatedInterface.mtu;
 
-  // Step 5: Verify kernel interface MTU
-  XLOG(INFO) << "[Step 5] Verifying kernel interface MTU...";
+  // Step 5: Poll kernel interface MTU until it propagates
+  XLOG(INFO) << "[Step 5] Waiting for kernel interface MTU to propagate...";
   ASSERT_TRUE(interface.vlan.has_value());
   int kernelMtu = getKernelInterfaceMtu(*interface.vlan);
-  EXPECT_EQ(kernelMtu, newMtu)
-      << "Kernel MTU is " << kernelMtu << ", expected " << newMtu;
-  XLOG(INFO) << "  Verified: Kernel interface fboss" << *interface.vlan
-             << " has MTU " << kernelMtu;
+  if (kernelMtu > 0) {
+    EXPECT_EQ(kernelMtu, newMtu)
+        << "Kernel MTU is " << kernelMtu << ", expected " << newMtu;
+    XLOG(INFO) << "  Verified: Kernel interface fboss" << *interface.vlan
+               << " has MTU " << kernelMtu;
+  } else {
+    XLOG(INFO) << "  Skipped: Kernel interface fboss" << *interface.vlan
+               << " not found";
+  }
 
   // Step 6: Restore original MTU
   XLOG(INFO) << "[Step 6] Restoring original MTU (" << originalMtu << ")...";

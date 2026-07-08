@@ -15,7 +15,7 @@
 
 #include <boost/assign.hpp>
 
-#include <folly/Format.h>
+#include <fmt/core.h>
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
@@ -219,6 +219,14 @@ bool QsfpModule::upgradeFirmwareLocked(
       TransceiverSettings settings = getTransceiverSettingsInfo();
       setPowerOverrideIfSupportedLocked(*settings.powerControl());
 
+      // Step 2b: Wait for the module to be ready after exiting low power before
+      // starting the firmware download; CDB operations are unreliable
+      // otherwise.
+      if (!moduleReadyStatePoll()) {
+        QSFP_LOG(ERR, this)
+            << "Module not in ready state before firmware upgrade. Continuing anyway";
+      }
+
       // Step 3: Mark the module dirty so that we can refresh the entire cache
       // later
       dirty_ = true;
@@ -236,6 +244,7 @@ bool QsfpModule::upgradeFirmwareLocked(
       // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep
       sleep(5);
       updateQsfpData(true);
+      updateCachedTransceiverInfoLocked({});
     }
 
     // End of Firmware Upgrade
@@ -348,25 +357,15 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::SR_10G:
     case MediaInterfaceCode::BASE_T_10G:
     case MediaInterfaceCode::CR_10G:
-    case MediaInterfaceCode::DR1_200G:
-    case MediaInterfaceCode::DR1_100G:
     case MediaInterfaceCode::CR1_100G:
       return 1;
-    case MediaInterfaceCode::DR2_400G:
-      return 2;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
     case MediaInterfaceCode::FR1_100G:
-    case MediaInterfaceCode::FR4_200G:
     case MediaInterfaceCode::CR4_200G:
     case MediaInterfaceCode::CR4_400G:
-    case MediaInterfaceCode::DR4_800G:
       return 4;
-    case MediaInterfaceCode::FR4_400G:
-    case MediaInterfaceCode::LR4_400G_10KM:
     case MediaInterfaceCode::CR8_400G:
-    case MediaInterfaceCode::DR4_400G:
-    case MediaInterfaceCode::FR8_800G:
     case MediaInterfaceCode::CR8_800G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
@@ -387,24 +386,14 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::FR1_100G:
     case MediaInterfaceCode::BASE_T_10G:
     case MediaInterfaceCode::CR_10G:
-    case MediaInterfaceCode::DR1_200G:
-    case MediaInterfaceCode::DR1_100G:
     case MediaInterfaceCode::CR1_100G:
       return 1;
-    case MediaInterfaceCode::DR2_400G:
-      return 2;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
-    case MediaInterfaceCode::FR4_200G:
     case MediaInterfaceCode::CR4_200G:
-    case MediaInterfaceCode::FR4_400G:
-    case MediaInterfaceCode::LR4_400G_10KM:
-    case MediaInterfaceCode::DR4_400G:
     case MediaInterfaceCode::CR4_400G:
-    case MediaInterfaceCode::DR4_800G:
       return 4;
     case MediaInterfaceCode::CR8_400G:
-    case MediaInterfaceCode::FR8_800G:
     case MediaInterfaceCode::CR8_800G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
@@ -596,8 +585,10 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
       tcvrState.moduleTechnology() = ModuleTechnology::LPO;
     } else if (isAecModule()) {
       tcvrState.moduleTechnology() = ModuleTechnology::AEC;
-    } else if (isTunableOptics()) {
-      tcvrState.moduleTechnology() = ModuleTechnology::TUNABLE;
+    } else if (isCBandTunable()) {
+      tcvrState.moduleTechnology() = ModuleTechnology::TUNABLE_C_BAND;
+    } else if (isLBandTunable()) {
+      tcvrState.moduleTechnology() = ModuleTechnology::TUNABLE_L_BAND;
     } else {
       tcvrState.moduleTechnology() = ModuleTechnology::GREY;
     }
@@ -1201,7 +1192,7 @@ void QsfpModule::customizeTransceiverLocked(
   auto& portName = portState.portName;
   auto speed = portState.speed;
   auto startHostLane = portState.startHostLane;
-  QSFP_LOG(INFO, this) << folly::sformat(
+  QSFP_LOG(INFO, this) << fmt::format(
       "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}",
       portName,
       apache::thrift::util::enumNameSafe(speed),
@@ -1395,7 +1386,8 @@ TransceiverManagementInterface QsfpModule::getTransceiverManagementInterface(
   if (moduleId ==
           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
       moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::OSFP)) {
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::OSFP) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::CPO)) {
     return TransceiverManagementInterface::CMIS;
   } else if (
       moduleId ==
@@ -1467,11 +1459,17 @@ void QsfpModule::programTransceiver(
       // which introduced some difficulty to bring link back up when flapped.
       // Here we ensure that Rx output squelch is always enabled.
       // Skip doing this for 200G-FR4 modules configured in 2x50G mode. For this
-      // mode, we need all 4 lanes to operate independently
+      // mode, we need all 4 lanes to operate independently.
+      // Also skip for tunable optics modules that advertise rxConsActImpl
+      // (Page 45h, Byte 129, Bit 1) where squelch is intentionally disabled
+      // and Rx Consequent Action (LF insertion) is programmed instead.
       for (auto portIt : programTcvrState.ports) {
         auto speed = portIt.second.speed;
-        if (getModuleMediaInterface() != MediaInterfaceCode::FR4_200G ||
-            speed != cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) {
+        bool skipSquelchEnforce =
+            (getModuleMediaInterface() == MediaInterfaceCode::FR4_200G &&
+             speed == cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) ||
+            (isTunableOptics() && isRxConsActImplSupported());
+        if (!skipSquelchEnforce) {
           if (auto hostLaneSettings = settings.hostLaneSettings()) {
             ensureRxOutputSquelchEnabled(*hostLaneSettings);
           }
@@ -1495,9 +1493,12 @@ void QsfpModule::programTransceiver(
       mediaLaneToPortName_.clear();
       portNameToHostLanes_.clear();
       portNameToMediaLanes_.clear();
-      for (auto portIt : programTcvrState.ports) {
-        auto startHostLane = portIt.second.startHostLane;
-        updateLaneToPortNameMapping(portIt.first, startHostLane);
+      portNameToBankId_.clear();
+      for (const auto& [portName, portState] : programTcvrState.ports) {
+        updateLaneToPortNameMapping(portName, portState.startHostLane);
+        if (portState.bankId.has_value()) {
+          portNameToBankId_[portName] = *portState.bankId;
+        }
       }
       updateCachedTransceiverInfoLocked({});
 
@@ -1506,8 +1507,8 @@ void QsfpModule::programTransceiver(
     }
 
     // We are done programming the transceivers. Clear the pending datapath mask
-    // and start fresh for the next programTransceiver call
-    datapathResetPendingMask_ = 0;
+    // (all banks) and start fresh for the next programTransceiver call
+    datapathResetPendingMask_.clear();
   };
 
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
@@ -1561,7 +1562,7 @@ bool QsfpModule::readyTransceiver(bool hasTunableOpticsConfig) {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     if (present_) {
       if (!cacheIsValid()) {
-        QSFP_LOG(DBG1, this) << folly::sformat(
+        QSFP_LOG(DBG1, this) << fmt::format(
             "Transceiver {:s} - Cache is not valid, so cannot check the transceiver state",
             getNameString());
         return false;

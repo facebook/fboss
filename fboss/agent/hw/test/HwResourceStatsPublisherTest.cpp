@@ -20,7 +20,7 @@ using namespace facebook::fboss;
 using namespace facebook::fb303;
 
 namespace {
-constexpr std::array<folly::StringPiece, 44> kAllMonotonicCounterStatKeys = {
+constexpr std::array<folly::StringPiece, 45> kAllMonotonicCounterStatKeys = {
     kL3HostMax,
     kL3HostUsed,
     kL3HostFree,
@@ -64,7 +64,8 @@ constexpr std::array<folly::StringPiece, 44> kAllMonotonicCounterStatKeys = {
     kEmEntriesFree,
     kEmCountersMax,
     kEmCountersUsed,
-    kEmCountersFree};
+    kEmCountersFree,
+    kMySidEntriesFree};
 }
 
 void checkMissing(const std::set<folly::StringPiece>& present) {
@@ -287,4 +288,12 @@ TEST(HwResourceStatsPublisher, EmCounterStats) {
   EXPECT_EQ(fbData->getCounter(kEmCountersUsed), 1);
   EXPECT_EQ(fbData->getCounter(kEmCountersFree), 9);
   checkMissing({kEmCountersMax, kEmCountersUsed, kEmCountersFree});
+}
+
+TEST(HwResourceStatsPublisher, MySidStats) {
+  HwResourceStats stats;
+  stats.my_sid_entries_free() = 1000;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kMySidEntriesFree), 1000);
+  checkMissing({kMySidEntriesFree});
 }

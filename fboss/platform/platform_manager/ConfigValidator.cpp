@@ -235,6 +235,14 @@ bool ConfigValidator::isValidLedCtrlBlockConfig(
     XLOG(ERR) << "ledPerPort must be a value less than or equal to 4";
     return false;
   }
+  if (*ledCtrlBlockConfig.lanesPerPort() <= 0) {
+    XLOG(ERR) << "lanesPerPort must be a value greater than 0";
+    return false;
+  }
+  if (*ledCtrlBlockConfig.lanesPerPort() > 8) {
+    XLOG(ERR) << "lanesPerPort must be a value less than or equal to 8";
+    return false;
+  }
   if (*ledCtrlBlockConfig.startPort() <= 0) {
     XLOG(ERR) << "startPort must be a value greater than 0";
     return false;
@@ -359,10 +367,11 @@ bool ConfigValidator::isValidI2cAdaptersFromCpu(
   std::set<std::string> seen;
   for (const auto& name : i2cAdaptersFromCpu) {
     if (re2::RE2::FullMatch(name, kCpuBusNameRegex)) {
-      if (name != "CPU_BUS@0" && name != "CPU_BUS@1") {
+      static const re2::RE2 kSupportedCpuBusNameRegex{"CPU_BUS@[0-3]"};
+      if (!re2::RE2::FullMatch(name, kSupportedCpuBusNameRegex)) {
         XLOG(ERR) << fmt::format(
             "Invalid virtual bus name '{}'. "
-            "Only CPU_BUS@0 and CPU_BUS@1 are supported",
+            "Only CPU_BUS@0 through CPU_BUS@3 are supported",
             name);
         return false;
       }
@@ -634,6 +643,32 @@ bool ConfigValidator::isValidI2cDeviceConfig(
   }
   if (i2cDeviceConfig.cpldSysfsAttrs() &&
       !isValidCpldSysfsAttrs(*i2cDeviceConfig.cpldSysfsAttrs())) {
+    return false;
+  }
+  if (i2cDeviceConfig.fanCpldConfig() &&
+      !isValidFanCpldConfig(*i2cDeviceConfig.fanCpldConfig())) {
+    return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidFanCpldConfig(const FanCpldConfig& fanCpldConfig) {
+  if (*fanCpldConfig.numFans() < 1 || *fanCpldConfig.numFans() > 8) {
+    XLOG(ERR) << fmt::format(
+        "FanCpldConfig numFans {} out of range (1-8)",
+        *fanCpldConfig.numFans());
+    return false;
+  }
+  if (*fanCpldConfig.pwmMax() < 1 || *fanCpldConfig.pwmMax() > 255) {
+    XLOG(ERR) << fmt::format(
+        "FanCpldConfig pwmMax {} out of range (1-255)",
+        *fanCpldConfig.pwmMax());
+    return false;
+  }
+  if (*fanCpldConfig.speedMultiplier() < 1) {
+    XLOG(ERR) << fmt::format(
+        "FanCpldConfig speedMultiplier {} must be positive",
+        *fanCpldConfig.speedMultiplier());
     return false;
   }
   return true;
@@ -1057,6 +1092,16 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
+  XLOG(INFO) << "Validating xcvr LED coverage...";
+  if (!isValidLedCtrlBlockXcvrCoverage(config)) {
+    return false;
+  }
+
+  XLOG(INFO) << "Validating xcvr ctrl coverage...";
+  if (!isValidXcvrCtrlBlockXcvrCoverage(config)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -1373,19 +1418,47 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
   }
 
   for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
-    if (*versionedPmUnitConfig.productSubVersion() < 0) {
+    if (const auto& pmUvs = versionedPmUnitConfig.pmUnitVersions();
+        pmUvs && !pmUvs->empty()) {
+      for (const auto& pmUv : *pmUvs) {
+        if (*pmUv.productionState() < 0 || *pmUv.productionSubState() < 0 ||
+            *pmUv.respinVariantIndicator() < 0) {
+          XLOG(ERR) << fmt::format(
+              "PmUnit {}'s VersionedPmUnitConfig has invalid pmUnitVersion "
+              "{}.{}.{}: all fields must be >= 0",
+              pmUnitName,
+              *pmUv.productionState(),
+              *pmUv.productionSubState(),
+              *pmUv.respinVariantIndicator());
+          return false;
+        }
+      }
+    } else if (versionedPmUnitConfig.productSubVersion()) {
+      if (*versionedPmUnitConfig.productSubVersion() < 0) {
+        XLOG(ERR) << fmt::format(
+            "One of PmUnit {}'s VersionedPmUnitConfig has a negative ProductSubVersion",
+            pmUnitName);
+        return false;
+      }
+    } else {
       XLOG(ERR) << fmt::format(
-          "One of PmUnit {}'s VersionedPmUnitConfig has a negative ProductSubVersion",
+          "PmUnit {}'s VersionedPmUnitConfig must set at least one of "
+          "productSubVersion or pmUnitVersions",
           pmUnitName);
       return false;
     }
 
     bool fieldMismatch = false;
     apache::thrift::op::for_each_field_id<PmUnitConfig>([&]<class Id>(Id) {
-      // i2cDeviceConfigs are allowed to differ between versioned and default
-      if constexpr (std::is_same_v<
-                        apache::thrift::op::get_ident<PmUnitConfig, Id>,
-                        ident::i2cDeviceConfigs>) {
+      // i2cDeviceConfigs and embeddedSensorConfigs are allowed to differ
+      // between versioned and default configs
+      if constexpr (
+          std::is_same_v<
+              apache::thrift::op::get_ident<PmUnitConfig, Id>,
+              ident::i2cDeviceConfigs> ||
+          std::is_same_v<
+              apache::thrift::op::get_ident<PmUnitConfig, Id>,
+              ident::embeddedSensorConfigs>) {
         return;
       }
 
@@ -1419,6 +1492,89 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
     }
   }
   return true;
+}
+
+bool ConfigValidator::isValidLedCtrlBlockXcvrCoverage(
+    const PlatformConfig& config) {
+  if (*config.numXcvrs() == 0) {
+    return true;
+  }
+
+  const auto& platformName = *config.platformName();
+
+  // TODO: Remove once ladakh/leh ledCtrlBlockConfigs cover all xcvrs
+  if (platformName == "LADAKH800BCLS" || platformName == "LEH800BCLS" ||
+      platformName == "LADAKH800BCLSM") {
+    return true;
+  }
+
+  // Collect all ledCtrlBlockConfigs across all PmUnits/PciDevices
+  std::vector<const LedCtrlBlockConfig*> allLedBlocks;
+  for (const auto& [_, pmUnitConfig] : *config.pmUnitConfigs()) {
+    for (const auto& pciDev : *pmUnitConfig.pciDeviceConfigs()) {
+      for (const auto& block : *pciDev.ledCtrlBlockConfigs()) {
+        allLedBlocks.push_back(&block);
+      }
+    }
+  }
+
+  // Check that every xcvr port [1, numXcvrs] is covered by ledCtrlBlockConfigs
+  std::set<int16_t> coveredPorts;
+  for (const auto* block : allLedBlocks) {
+    for (int16_t port = *block->startPort();
+         port < *block->startPort() + *block->numPorts();
+         ++port) {
+      coveredPorts.insert(port);
+    }
+  }
+
+  bool valid = true;
+  for (int16_t xcvrId = 1; xcvrId <= *config.numXcvrs(); ++xcvrId) {
+    if (coveredPorts.find(xcvrId) == coveredPorts.end()) {
+      XLOG(ERR) << fmt::format(
+          "Platform {}: xcvr {} is not covered by any ledCtrlBlockConfig",
+          platformName,
+          xcvrId);
+      valid = false;
+    }
+  }
+
+  return valid;
+}
+
+bool ConfigValidator::isValidXcvrCtrlBlockXcvrCoverage(
+    const PlatformConfig& config) {
+  if (*config.numXcvrs() == 0) {
+    return true;
+  }
+
+  const auto& platformName = *config.platformName();
+
+  std::set<int16_t> coveredPorts;
+  for (const auto& [_, pmUnitConfig] : *config.pmUnitConfigs()) {
+    for (const auto& pciDev : *pmUnitConfig.pciDeviceConfigs()) {
+      for (const auto& block : *pciDev.xcvrCtrlBlockConfigs()) {
+        for (int16_t port = *block.startPort();
+             port < *block.startPort() + *block.numPorts();
+             ++port) {
+          coveredPorts.insert(port);
+        }
+      }
+    }
+  }
+
+  bool valid = true;
+  for (int16_t xcvrId = 1; xcvrId <= *config.numXcvrs(); ++xcvrId) {
+    if (coveredPorts.find(xcvrId) == coveredPorts.end()) {
+      XLOG(ERR) << fmt::format(
+          "Platform {}: xcvr {} is not covered by any xcvrCtrlBlockConfig",
+          platformName,
+          xcvrId);
+      valid = false;
+    }
+  }
+
+  return valid;
 }
 
 bool ConfigValidator::isValidPortRanges(

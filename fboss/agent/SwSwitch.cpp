@@ -18,6 +18,7 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/CpuLatencyManager.h"
 #include "fboss/agent/EcmpResourceManager.h"
 #include "fboss/agent/FabricLinkMonitoringManager.h"
 #include "fboss/agent/FbossError.h"
@@ -56,6 +57,7 @@
 #include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/MultiSwitchPacketStreamMap.h"
+#include "fboss/agent/MySidNeighborObserver.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PacketObserver.h"
@@ -270,6 +272,21 @@ std::string getDrainThresholdStr(
   }
 }
 
+void accumulateCounterStats(
+    facebook::fboss::HwSwitchCounterStats& accumulated,
+    const facebook::fboss::HwSwitchCounterStats& toAdd) {
+  for (const auto& [name, counter] : *toAdd.routeCounters()) {
+    auto& accCounter = accumulated.routeCounters()[name];
+    if (counter.bytes().has_value()) {
+      accCounter.bytes() = accCounter.bytes().value_or(0) + *counter.bytes();
+    }
+    if (counter.packets().has_value()) {
+      accCounter.packets() =
+          accCounter.packets().value_or(0) + *counter.packets();
+    }
+  }
+}
+
 void accumulateHwAsicErrorStats(
     facebook::fboss::HwAsicErrors& accumulated,
     const facebook::fboss::HwAsicErrors& toAdd) {
@@ -470,6 +487,7 @@ SwSwitch::SwSwitch(
       lookupClassUpdater_(new LookupClassUpdater(this)),
       lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
       staticL2ForNeighborObserver_(new StaticL2ForNeighborObserver(this)),
+      mySidNeighborObserver_(new MySidNeighborObserver(this)),
       macTableManager_(new MacTableManager(this)),
       phySnapshotManager_(new PhySnapshotManager(
           kIphySnapshotIntervalSeconds,
@@ -610,12 +628,19 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
     lldpManager_->stop();
   }
 
-  if (lagManager_) {
-    lagManager_.reset();
-  }
-
   if (fabricLinkMonitoringManager_) {
     fabricLinkMonitoringManager_->stop();
+  }
+
+  if (cpuLatencyManager_) {
+    cpuLatencyManager_->stop();
+  }
+
+  // Stop LACP machines while the LACP event base is still alive.
+  // The actual lagManager_ pointer is reset after stopThreads()
+  // to prevent use-after-free on the RX path.
+  if (lagManager_) {
+    lagManager_->stopProcessing();
   }
 
   // Need to destroy IPv6Handler as it is a state observer,
@@ -636,6 +661,7 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   packetTxThreadHeartbeat_.reset();
   lacpThreadHeartbeat_.reset();
   neighborCacheThreadHeartbeat_.reset();
+  mySidNeighborObserver_.reset();
   if (rib_) {
     rib_->stop();
   }
@@ -675,6 +701,10 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   // as there could be state updates in progress which will
   // access entries in tunnel manager
   tunMgr_.reset();
+
+  // reset lagManager_ only after pkt thread is stopped as
+  // handlePacketImpl() reads lagManager_ on the RX path
+  lagManager_.reset();
 
   // ALPM requires default routes be deleted at last. Thus,
   // blow away all routes except the min required for ALPM,
@@ -785,13 +815,34 @@ void SwSwitch::setFibSyncTimeForClient(ClientID clientId) {
 state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
     state::WarmbootState* warmbootState) const {
   auto updateThriftRoute = [this](
-                               auto& route, auto& fib, std::string routeName) {
+                               auto& route,
+                               auto& fib,
+                               const std::string& routeName,
+                               const auto& idToNextHopIdSet) {
     if (isRunModeMonolithic() && route.isResolved()) {
       const auto& fwd = route.fwd();
       // Do not update switchingMode if already present
       if (fwd.getAction() != RouteForwardAction::NEXTHOPS ||
-          fwd.getNextHopSet().size() < 2 ||
           fwd.getOverrideEcmpSwitchingMode().has_value()) {
+        return;
+      }
+      // Under FLAGS_resolve_nexthops_from_id, source the nexthop count from the
+      // warmboot state's idToNextHopIdSet map via resolvedSetId so the check
+      // stays correct once inline storage is removed.
+      size_t nhopCount = fwd.getNextHopSet().size();
+      if (FLAGS_resolve_nexthops_from_id) {
+        auto setId = fwd.getResolvedNextHopSetID();
+        CHECK(setId.has_value())
+            << "resolve_nexthops_from_id: route " << routeName
+            << " has no resolvedNextHopSetID during graceful exit";
+        auto setIt = idToNextHopIdSet.find(static_cast<int64_t>(*setId));
+        CHECK(setIt != idToNextHopIdSet.end())
+            << "resolve_nexthops_from_id: route " << routeName
+            << " resolvedNextHopSetID " << *setId
+            << " missing from idToNextHopIdSet during graceful exit";
+        nhopCount = setIt->second.size();
+      }
+      if (nhopCount < 2) {
         return;
       }
       auto switchingMode =
@@ -816,18 +867,19 @@ state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
   auto it = fibsInfoMap->find(matcher);
   if (it != fibsInfoMap->end()) {
     auto& fibInfoFields = it->second;
+    const auto& idToNextHopIdSet = *fibInfoFields.idToNextHopIdSet();
     auto fibs = fibInfoFields.fibsMap();
     if (fibs.has_value()) {
       for (auto& [_, fib] : *fibs) {
         auto fibV4 = fib.fibV4();
         for (auto& [name, thriftRoute] : *fibV4) {
           auto route = RouteFields<folly::IPAddressV4>::fromThrift(thriftRoute);
-          updateThriftRoute(route, fibV4, name);
+          updateThriftRoute(route, fibV4, name, idToNextHopIdSet);
         }
         auto fibV6 = fib.fibV6();
         for (auto& [name, thriftRoute] : *fibV6) {
           auto route = RouteFields<folly::IPAddressV6>::fromThrift(thriftRoute);
-          updateThriftRoute(route, fibV6, name);
+          updateThriftRoute(route, fibV6, name, idToNextHopIdSet);
         }
       }
     }
@@ -937,6 +989,8 @@ AgentStats SwSwitch::fillFsdbStats() {
       // accumulate error stats from all switches in global values
       accumulateHwAsicErrorStats(
           *agentStats.hwAsicErrors(), *hwSwitchStats.hwAsicErrors());
+      accumulateCounterStats(
+          *agentStats.counterStats(), *hwSwitchStats.counterStats());
 
       for (auto&& statEntry : *hwSwitchStats.hwPortStats()) {
         agentStats.hwPortStats()->insert(statEntry);
@@ -954,6 +1008,8 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.sysPortStats()});
       agentStats.switchDropStatsMap()->insert(
           {switchIdx, *hwSwitchStats.switchDropStats()});
+      agentStats.switchDropBitmapStatsMap()->insert(
+          {switchIdx, *hwSwitchStats.switchDropBitmapStats()});
       for (auto& [_, phyInfo] : *hwSwitchStats.phyInfo()) {
         auto portName = phyInfo.state()->name().value();
         agentStats.phyStats()->insert({portName, phyInfo.stats().value()});
@@ -1236,7 +1292,9 @@ void SwSwitch::getAllHwSysPortStats(
   for (const auto& [switchIdx, hwSwitchStats] : *hwswitchStatsMap) {
     for (const auto& [portName, hwSysPortStatsEntry] :
          *hwSwitchStats.sysPortStats()) {
-      hwSysPortStats.emplace(portName, hwSysPortStatsEntry);
+      hwSysPortStats.emplace(
+          folly::to<std::string>("switch.", switchIdx, ".", portName),
+          hwSysPortStatsEntry);
     }
   }
 }
@@ -1601,6 +1659,10 @@ void SwSwitch::initialConfigApplied(
     fabricLinkMonitoringManager_->start();
   }
 
+  if (cpuLatencyManager_) {
+    cpuLatencyManager_->start();
+  }
+
   // Send neighbor solicitation for configured interfaces after
   // initialConfigApplied existing interfaces with desiredPeerAddressIPv6
   // need to send neighbor solicitation. By this time we should have all
@@ -1609,6 +1671,7 @@ void SwSwitch::initialConfigApplied(
   XLOG(DBG4)
       << "SwSwitch::initialConfigApplied - Checking for existing interfaces that need neighbor solicitation after warm boot";
   sendNeighborSolicitationForConfiguredInterfaces("warm boot");
+  sendArpRequestForConfiguredInterfaces("warm boot");
 
   if (flags_ & SwitchFlags::PUBLISH_STATS) {
     stats()->switchConfiguredMs(
@@ -2271,6 +2334,9 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   if (!intfIdOpt) {
     XLOG_EVERY_N(ERR, 10000)
         << "No interface for port " << pkt->getSrcPort() << ", dropping pkt";
+    if (FLAGS_observe_rx_packets_without_interface && isFullyInitialized()) {
+      pktObservers_->packetReceived(pkt.get());
+    }
     portStats(pkt)->pktDropped();
     return;
   }
@@ -2942,6 +3008,7 @@ void SwSwitch::startThreads() {
 void SwSwitch::postInit() {
   initLldpManager();
   initFabricLinkMonitoringManager();
+  initCpuLatencyManager();
   publishBootTypeStats();
   initThreadHeartbeats();
   startHeartbeatWatchdog();
@@ -2973,6 +3040,12 @@ void SwSwitch::initFabricLinkMonitoringManager() {
       XLOG(DBG3) << "Fabric Link Monitoring Manager packet send/receive is not"
                     " enabled on single stage fabric and dual stage L2 fabric!";
     }
+  }
+}
+
+void SwSwitch::initCpuLatencyManager() {
+  if (FLAGS_enable_cpu_latency_monitoring) {
+    cpuLatencyManager_ = std::make_unique<CpuLatencyManager>(this);
   }
 }
 
@@ -3395,7 +3468,7 @@ bool SwSwitch::sendPacketOutViaThriftStream(
 
 bool SwSwitch::sendPacketSwitchedAsync(
     std::unique_ptr<TxPacket> pkt,
-    const SwitchIDs& switchIds) noexcept {
+    const LocalSwitchIDs& switchIds) noexcept {
   pcapMgr_->packetSent(pkt.get());
   if (!multiHwSwitchHandler_->sendPacketSwitchedAsync(
           std::move(pkt), switchIds)) {
@@ -4395,6 +4468,124 @@ void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
   }
 }
 
+void SwSwitch::sendArpRequestForConfiguredInterfaces(
+    const std::string& reason,
+    const std::optional<folly::IPAddressV4>& targetIP) {
+  if (!FLAGS_arp_static_neighbor) {
+    return;
+  }
+
+  auto currentState = getState();
+  if (!currentState) {
+    XLOG(WARN)
+        << "SwSwitch::sendArpRequestForConfiguredInterfaces - No current state available";
+    return;
+  }
+
+  auto interfaces = currentState->getInterfaces();
+  for (const auto& [_, intfMap] : std::as_const(*interfaces)) {
+    for (const auto& [_, intf] : std::as_const(*intfMap)) {
+      if (!intf->getDesiredPeerAddressIPv4().has_value()) {
+        continue;
+      }
+
+      auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv4();
+      auto cidrNetwork =
+          folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
+      auto desiredPeerAddressIPv4 = cidrNetwork.first.asV4();
+
+      // If targetIP is specified, only process that specific IP
+      if (targetIP.has_value() && desiredPeerAddressIPv4 != targetIP) {
+        continue;
+      }
+
+      if (!intf->canReachAddress(desiredPeerAddressIPv4)) {
+        continue;
+      }
+
+      // Check if interface is operationally UP
+      bool isInterfaceOperationallyUp = false;
+
+      switch (intf->getType()) {
+        case cfg::InterfaceType::PORT: {
+          // Fix: PORT type interfaces have ports directly associated
+          auto portIds = getPortsForInterface(intf->getID(), currentState);
+          for (auto portId : portIds) {
+            auto port = currentState->getPorts()->getNodeIf(portId);
+            if (port && port->isPortUp()) {
+              isInterfaceOperationallyUp = true;
+              break;
+            }
+          }
+          break;
+        }
+        case cfg::InterfaceType::VLAN: {
+          // In production, FBOSS uses 1:1 VLAN-to-port mapping
+          // (onePortPerInterfaceConfig), so this loop effectively checks
+          // if the single port in the VLAN is UP. The loop handles the
+          // general multi-port case defensively.
+          if (auto vlanID = intf->getVlanID()) {
+            auto vlanMap = currentState->getVlans();
+            if (vlanMap) {
+              auto vlan = vlanMap->getNodeIf(vlanID);
+              if (vlan) {
+                for (auto memberPort : vlan->getPortsInfo()) {
+                  auto port =
+                      currentState->getPorts()->getNodeIf(memberPort.first);
+                  if (port && port->isPortUp()) {
+                    isInterfaceOperationallyUp = true;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+          break;
+        }
+        case cfg::InterfaceType::SYSTEM_PORT: {
+          if (auto sysPortID = intf->getSystemPortID()) {
+            auto physPortID = getPortID(sysPortID.value(), currentState);
+            auto port = currentState->getPorts()->getNodeIf(physPortID);
+            if (port && port->isPortUp()) {
+              isInterfaceOperationallyUp = true;
+            }
+          }
+          break;
+        }
+      }
+
+      if (isInterfaceOperationallyUp) {
+        auto sourceAddr = intf->getAddressToReach(desiredPeerAddressIPv4);
+        if (sourceAddr.has_value()) {
+          XLOG(DBG4)
+              << "SwSwitch::sendArpRequestForConfiguredInterfaces - Sending ARP request for interface "
+              << intf->getID() << " (" << intf->getName()
+              << ") with desiredPeerAddressIPv4 "
+              << desiredPeerAddressIPv4.str() << " - reason: " << reason;
+
+          try {
+            sendArpRequestHelper(
+                intf,
+                currentState,
+                sourceAddr->first.asV4(),
+                desiredPeerAddressIPv4);
+          } catch (const std::exception& e) {
+            XLOG(ERR)
+                << "SwSwitch::sendArpRequestForConfiguredInterfaces - Failed to send ARP request for interface "
+                << intf->getID() << " - reason: " << reason << ": " << e.what();
+          }
+        } else {
+          XLOG(WARN)
+              << "SwSwitch::sendArpRequestForConfiguredInterfaces - No source address found to reach "
+              << desiredPeerAddressIPv4.str() << " on interface "
+              << intf->getID()
+              << " - check that the interface has an IPv4 address in the same subnet";
+        }
+      }
+    }
+  }
+}
+
 bool SwSwitch::hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId) {
   auto switchState = getState();
   auto* intf = switchState->getInterfaces()->getNode(intfId).get();
@@ -4422,6 +4613,39 @@ bool SwSwitch::hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId) {
     if (!hasOperationalPort) {
       XLOG(DBG4) << "Interface " << intfId
                  << " has no operational ports, skipping desired peer check";
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+bool SwSwitch::hasQualifiedConfiguredDesiredPeerIPv4(
+    const InterfaceID& intfId) {
+  auto switchState = getState();
+  auto* intf = switchState->getInterfaces()->getNode(intfId).get();
+  if (intf->getDesiredPeerAddressIPv4().has_value()) {
+    auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv4();
+    auto cidrNetwork =
+        folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
+    if (!cidrNetwork.first.isV4()) {
+      XLOG(ERR) << "Desired peer address is not a valid IPv4 address: "
+                << *desiredPeerAddressString;
+      return false;
+    }
+    auto portIds = getPortsForInterface(intfId, switchState);
+    bool hasOperationalPort = false;
+    for (auto portId : portIds) {
+      auto port = switchState->getPorts()->getNodeIf(portId);
+      if (port && port->isUp()) {
+        hasOperationalPort = true;
+        break;
+      }
+    }
+    if (!hasOperationalPort) {
+      XLOG(DBG4)
+          << "Interface " << intfId
+          << " has no operational ports, skipping desired peer IPv4 check";
       return false;
     }
     return true;

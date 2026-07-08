@@ -1,6 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
-load("//fboss:THIRD-PARTY-VERSIONS.bzl", "SAI_BRCM_DNX_IMPLS")
+load("//fboss:THIRD-PARTY-VERSIONS.bzl", "SAI_BRCM_DNX_IMPLS", "to_versions")
 load("//fboss/agent/hw/sai/impl:impl.bzl", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
@@ -11,9 +11,11 @@ cpp_library(
     srcs = [
         "AgentMultiNodeDsfTest.cpp",
         "AgentMultiNodeDsfUtils.cpp",
+        "AgentMultiNodeFabricLinkMonitoringTest.cpp",
         "AgentMultiNodeProcessRestartTest.cpp",
         "AgentMultiNodeTest.cpp",
         "AgentMultiNodeUtils.cpp",
+        "AgentMultiNodeVoqSwitchHyperPortTests.cpp",
         "AgentMultiNodeVoqSwitchNeighborTests.cpp",
         "AgentMultiNodeVoqSwitchNoTrafficDropsTests.cpp",
         "AgentMultiNodeVoqSwitchTests.cpp",
@@ -33,15 +35,20 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         "//common/network:util",
+        "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:load_agent_config",
         "//fboss/agent:switchinfo_utils",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:hw_ctrl-cpp2-services",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/state:state",
+        "//fboss/agent/state:state_utils",
         "//fboss/agent/test:agent_hw_test",
+        "//fboss/agent/test:utils",
         "//fboss/agent/test/thrift_client_utils:thrift_client_utils",
         "//fboss/agent/test/utils:config_utils",
         "//fboss/agent/test/utils:load_balancer_test_utils",
@@ -74,9 +81,7 @@ _sai_agent_multinode_test_configs = [
             sai_impl,
         ),
         linker_flags = [],
-        versions = {
-            sai_impl.sdk_name: sai_impl.version,
-        },
+        versions = to_versions(sai_impl),
         deps = [
             "fbsource//third-party/googletest:gtest",
             ":agent_multinode_test_src",

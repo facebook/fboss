@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <folly/executors/IOThreadPoolExecutor.h>
 #include <folly/synchronization/Baton.h>
 
 #include <gflags/gflags.h>
@@ -46,6 +47,14 @@ class FsdbBenchmarkTestHelper {
   std::vector<std::string> getAgentStatsPath();
 
   std::unique_ptr<fsdb::test::FsdbTestServer> fsdbTestServer_;
+  // Shared, bounded IO thread pools used by every FsdbPubSubManager so the
+  // client thread count does not grow linearly with the number of subscribers.
+  // Each pool backs two of the four manager EventBase roles.
+  std::shared_ptr<folly::IOThreadPoolExecutor> ioPoolA_;
+  std::shared_ptr<folly::IOThreadPoolExecutor> ioPoolB_;
+  // Dedicated pool for the sole publisher (manager 0) so its publish path is
+  // not co-scheduled with subscriber work.
+  std::shared_ptr<folly::IOThreadPoolExecutor> publisherPool_;
   std::vector<std::unique_ptr<fsdb::FsdbPubSubManager>> pubsubMgrs_;
   folly::Baton<> publisherConnected_;
   std::atomic_bool readyForPublishing_ = false;

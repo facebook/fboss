@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_benchmark.bzl", "cpp_benchmark")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -10,6 +11,7 @@ cpp_unittest(
         "CowStorageMgrTests.cpp",
         "CowStorageTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/fsdb/oper:extended_path_builder",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-serialization",
@@ -56,10 +58,12 @@ cpp_library(
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
         "//fboss/lib/if:fboss_io_stats-cpp2-types",
         "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/thrift_cow/nodes:serializer",
         "//folly:base64",
         "//folly:network_address",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
+        "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
@@ -73,12 +77,14 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":data_factory",
-        "//common/base:proc",
         "//fboss/thrift_cow/storage:cow_storage",
         "//folly:benchmark",
         "//folly:string",
         "//folly/init:init",
         "//folly/json:dynamic",
+        "//folly/memory:mallctl_helper",
+        "//folly/memory:malloc",
+        "//folly/synchronization:call_once",
     ],
     exported_external_deps = [
         "gflags",

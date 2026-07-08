@@ -113,7 +113,7 @@ uint32_t ICMPExtIfaceNameSubObject::length() const {
 
 void ICMPExtIfaceNameSubObject::serialize(
     folly::io::RWPrivateCursor* cursor) const {
-  // Work out the size to write, ensure that we're padded to a 4-byte boundry.
+  // Work out the size to write, ensure that we're padded to a 4-byte boundary.
   // (including length octet).
   cursor->template write<uint8_t>(static_cast<uint8_t>(length()));
   cursor->push(

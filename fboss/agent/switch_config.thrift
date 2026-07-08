@@ -118,6 +118,7 @@ enum PortSpeed {
   HUNDREDG = 100000, // 100G
   HUNDREDANDSIXPOINTTWOFIVEG = 106250, //106.25G
   TWOHUNDREDG = 200000, // 200G
+  TWOHUNDREDANDTWELVEPOINTFIVEG = 212500, // 212.5G
   FOURHUNDREDG = 400000, // 400G
   EIGHTHUNDREDG = 800000, // 800G
   ONEPOINTSIXT = 1600000, // 1.6T
@@ -191,6 +192,10 @@ enum PortProfileID {
   PROFILE_200G_1_PAM4_RS544X2N_COPPER = 59,
   PROFILE_100G_1_PAM4_RS544X2N_COPPER = 60,
   PROFILE_200G_2_PAM4_RS544X2N_OPTICAL = 61,
+  PROFILE_25G_1_NRZ_RS528_OPTICAL = 62,
+  PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL = 63,
+  PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL = 64,
+  PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER = 65,
 }
 
 enum Scope {
@@ -467,6 +472,13 @@ struct MirrorOnDropReport {
    * are sent (no sampling).
    */
   14: optional i32 samplingRate;
+  /*
+   * Optional packets-per-second rate cap for drop report generation.
+   * When set, the SAI TAM event threshold object limits the rate at
+   * which MoD reports are sent; drops exceeding this rate are silently
+   * discarded. If not set, no rate limiting is applied.
+   */
+  15: optional i32 dropPacketRateThreshold;
 }
 
 /**
@@ -652,6 +664,8 @@ struct AclEntry {
   34: optional list<byte> roceMask;
 
   35: optional list<AclUdfEntry> udfTable;
+
+  36: optional Range l4DstPortRange;
 }
 
 enum AclTableActionType {
@@ -665,6 +679,7 @@ enum AclTableActionType {
   DISABLE_ARS_FORWARDING = 7,
   SET_ARS_OBJECT = 8,
   L3_SWITCH_CANCEL = 9,
+  REDIRECT = 10,
 }
 
 enum AclTableQualifier {
@@ -695,6 +710,9 @@ enum AclTableQualifier {
   UDF = 24,
   BTH_OPCODE = 25,
   IPV6_NEXT_HEADER = 26,
+  L4_DST_PORT_RANGE = 27,
+  TC = 28,
+  NEXT_HOP_GROUP_ID = 29,
 }
 
 struct AclTable {
@@ -782,13 +800,19 @@ struct RedirectNextHop {
   // NextHop IP addresses
   1: string ip;
   2: optional i32 intfID;
+  3: optional common.TunnelType tunnelType;
+  4: optional string tunnelId;
 }
 
 // Redirect packet to a different nexthop
 struct RedirectToNextHopAction {
-  // deprecated
-  1: list<string> nexthops;
+  // deprecated - use redirectNextHops
+  1: list<string> nexthops_DEPRECATED;
   2: list<RedirectNextHop> redirectNextHops;
+  // Named NHG redirect target for PBR. The RIB resolves this name to a
+  // NextHopSetID (stored in switch state) at synthesis time; the id is not
+  // known at config time.
+  3: optional string redirectNextHopGroup;
 }
 
 enum FlowletAction {
@@ -1119,6 +1143,8 @@ const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE_GROUP = "post-lookup-ingress-
 
 const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE = "PostLookupAclTable1";
 
+const string DEFAULT_PBR_ACL_TABLE = "PbrAclTable";
+
 enum PortType {
   INTERFACE_PORT = 0,
   FABRIC_PORT = 1,
@@ -1346,6 +1372,22 @@ struct Port {
    * When not set, the agent uses ASIC-level default behavior (disabled).
    */
   39: optional bool linkTraining;
+
+  /*
+   * Hold timer (in milliseconds) before reporting a port
+   * link-down event. The port stays in its previous state until the new
+   * state has been stable for this duration, debouncing brief flaps.
+   * Unset = leave SDK default untouched.
+   */
+  40: optional i32 portDownHoldoffTimeMs;
+
+  /*
+   * Hold timer (in milliseconds) before reporting a port
+   * link-up event. The port stays in its previous state until the new
+   * state has been stable for this duration, debouncing brief flaps.
+   * Unset = leave SDK default untouched.
+   */
+  41: optional i32 portUpHoldoffTimeMs;
 }
 
 enum LacpPortRate {
@@ -1578,6 +1620,7 @@ enum AsicType {
   ASIC_TYPE_QUMRAN4D = 23,
   ASIC_TYPE_JERICHO4 = 24,
   ASIC_TYPE_CHENAB2 = 25,
+  ASIC_TYPE_P200 = 26,
 }
 /**
  * The configuration for an interface
@@ -1956,7 +1999,7 @@ struct SwitchSettings {
    * Time to transition L2 from hit -> miss -> removed
    */
   4: i32 l2AgeTimerSeconds = 300;
-  5: i32 maxRouteCounterIDs = 0;
+  5: i32 maxRouteCounterIDs_DEPRECATED = 0;
 
   // neighbors to block egress traffic to
   6: list<Neighbor> blockNeighbors = [];
@@ -2137,6 +2180,42 @@ struct Srv6Tunnel {
   7: optional TunnelMode ecnMode;
   8: optional TunnelTerminationType tunnelTermType;
   9: common.TunnelType tunnelType;
+}
+
+// MySID (My SRv6 SID) configuration types.
+// MySID entries define how the switch handles packets matching its SRv6 SIDs.
+
+// uA (adjacency) MySID: forward to the neighbor on a port.
+// portName is either a physical port (e.g., "eth1/1/1") or a
+// port-channel (e.g., "Port-Channel301").
+struct AdjacencyMySidConfig {
+  1: string portName;
+  // Whether to resolve IPv6 (true) or IPv4 (false) neighbor on the port
+  2: bool isV6 = true;
+  // Optional: explicit neighbor address. If unset, resolves from NDP/ARP.
+  3: optional string address;
+}
+
+// uN (node) MySID: shift SID and forward to next SRv6 node.
+struct NodeMySidConfig {
+  1: string nodeAddress;
+}
+
+// uDT46 (decap) MySID: decapsulate and do VRF lookup on inner packet.
+struct DecapMySidConfig {}
+
+// A single MySID entry config — exactly one variant must be set.
+union MySidEntryConfig {
+  1: AdjacencyMySidConfig adjacency;
+  2: NodeMySidConfig node;
+  3: DecapMySidConfig decap;
+}
+
+struct MySidConfig {
+  // Shared locator prefix for all MySID entries (e.g., "3001:db8::/32")
+  1: string locatorPrefix;
+  // Map from function ID (i16) to MySID entry config
+  2: map<i16, MySidEntryConfig> entries;
 }
 
 enum DsfNodeType {
@@ -2407,6 +2486,7 @@ struct SwitchConfig {
     3: 0, // LINKLOCAL_ROUTE
     4: 0, // REMOTE_INTERFACE_ROUTE
     1: 1, // STATIC_ROUTE
+    800: 2, // TE_AGENT
     786: 10, // OPENR
     0: 20, // BGPD
     700: 255, // STATIC_INTERNAL
@@ -2471,4 +2551,5 @@ struct SwitchConfig {
   57: list<MirrorOnDropReport> mirrorOnDropReports = [];
   58: optional list<StaticMacEntry> staticMacAddrs;
   59: optional list<Srv6Tunnel> srv6Tunnels;
+  60: optional MySidConfig mySidConfig;
 }

@@ -72,11 +72,12 @@ fbiob_aux_data getAuxData(
   strcpy(auxData.id.name, fpgaIpBlockConfig.deviceName()->c_str());
   auxData.id.id = instanceId;
   if (!fpgaIpBlockConfig.csrOffset()->empty()) {
-    auxData.csr_offset = std::stoi(*fpgaIpBlockConfig.csrOffset(), nullptr, 16);
+    auxData.csr_offset = static_cast<__u32>(
+        std::stoul(*fpgaIpBlockConfig.csrOffset(), nullptr, 16));
   }
   if (!fpgaIpBlockConfig.iobufOffset()->empty()) {
-    auxData.iobuf_offset =
-        std::stoi(*fpgaIpBlockConfig.iobufOffset(), nullptr, 16);
+    auxData.iobuf_offset = static_cast<__u32>(
+        std::stoul(*fpgaIpBlockConfig.iobufOffset(), nullptr, 16));
   }
   return auxData;
 }

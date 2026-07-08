@@ -1,4 +1,5 @@
 {
+  "platformName": "ICECUBE800BANW",
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
@@ -2638,19 +2639,19 @@
   "powerConfig": {
     "perSlotPowerConfigs": [
       {
-        "name": "PSU1",
+        "name": "HSC1",
         "powerSensorName": "SMB_ECB_POS48V_LHS_PIN"
       },
       {
-        "name": "PSU2",
+        "name": "HSC2",
         "powerSensorName": "SMB_ECB_POS48V_RHS_PIN"
       },
       {
-        "name": "PSU3",
+        "name": "HSC3",
         "powerSensorName": "SMB_ECB_POS48V_OPTICS_01_PIN"
       },
       {
-        "name": "PSU4",
+        "name": "HSC4",
         "powerSensorName": "SMB_ECB_POS48V_OPTICS_23_PIN"
       }
     ],

@@ -3,9 +3,8 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
-load("@fbsource//tools/target_determinator/macros:ci.bzl", "ci")
-load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 load("//fboss/agent:sai.bzl", "sai_main_all")
+load("//fboss/agent/fbpkg:fbpkg_ci_builds.bzl", "build_fbpkg_ci_shards")
 load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
 
 oncall("fboss_agent_push")
@@ -293,6 +292,7 @@ cpp_library(
         "//fb303:service_data",
         "//fboss/lib:thrift_method_rate_limit",
         "//fboss/lib:thrift_service_utils",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:network_address",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
@@ -327,6 +327,10 @@ cpp_library(
         "//common/init:init",
         "//common/services/cpp:build_values",
         "//fb303:logging",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        ("openssl", None, "crypto"),
     ],
 )
 
@@ -440,6 +444,21 @@ cpp_library(
 )
 
 cpp_library(
+    name = "pfc_utils",
+    srcs = [
+        "PfcUtils.cpp",
+    ],
+    headers = [
+        "PfcUtils.h",
+    ],
+    exported_deps = [
+        ":buffer_utils",
+        ":fboss-types",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
     name = "dsfnode_utils",
     srcs = [
         "DsfNodeUtils.cpp",
@@ -500,6 +519,25 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
         "//folly:network_address",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
+    ],
+)
+
+cpp_library(
+    name = "remote_intf_route_auditor",
+    srcs = [
+        "RemoteIntfRouteAuditor.cpp",
+    ],
+    headers = [
+        "RemoteIntfRouteAuditor.h",
+    ],
+    exported_deps = [
+        ":fib_helpers",
+        ":voq_utils",
+        "//fboss/agent/state:state",
         "//folly/logging:logging",
     ],
     exported_external_deps = [
@@ -571,7 +609,6 @@ cpp_library(
         "AsicUtils.cpp",
     ],
     exported_deps = [
-        ":agent_features",
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
@@ -706,6 +743,7 @@ cpp_library(
         "//fb303/detail:quantile_stat_wrappers",
         "//fboss/agent/state:state",
         "//fboss/lib:common_utils",
+        "//fboss/lib:thrift_call_duration_logger",
         "//folly:memory",
         "//folly:range",
         "//folly:utility",
@@ -729,6 +767,7 @@ cpp_library(
         ":hw_asic_table",
         ":lacp_types",
         ":loadbalancer_utils",
+        ":pfc_utils",
         ":route_update_wrapper",
         ":switch_config-cpp2-types",
         ":switchid_scope_resolver",
@@ -878,12 +917,31 @@ cpp_library(
 )
 
 cpp_library(
+    name = "cpu_latency_manager",
+    headers = [
+        "CpuLatencyManager.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest_headers",
+        ":fboss-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//folly:network_address",
+        "//folly:synchronized",
+        "//folly/io/async:async_base",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
         "ApplyThriftConfig.cpp",
         "ArpCache.cpp",
         "ArpHandler.cpp",
+        "CpuLatencyManager.cpp",
         "DHCPv4Handler.cpp",
         "DHCPv6Handler.cpp",
         "DsfSession.cpp",
@@ -919,6 +977,7 @@ cpp_library(
         "MultiHwSwitchHandler.cpp",
         "MultiSwitchFb303Stats.cpp",
         "MultiSwitchPacketStreamMap.cpp",
+        "MySidNeighborObserver.cpp",
         "NdpCache.cpp",
         "NeighborUpdater.cpp",
         "NeighborUpdaterImpl.cpp",
@@ -973,6 +1032,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/googletest:gtest_headers",
         "fbsource//third-party/re2:re2",
         ":address_utils",
         ":agent_dir_util",
@@ -1003,6 +1063,7 @@ cpp_library(
         ":monolithic_hw_switch_handler",
         ":packet",
         ":packet_observer",
+        ":pfc_utils",
         ":phy_snapshot_lib",
         ":route_update_wrapper",
         ":shel_manager",
@@ -1073,6 +1134,7 @@ cpp_library(
         "//fboss/lib:hw_write_behavior",
         "//fboss/lib:radix_tree",
         "//fboss/lib:thread_heartbeat",
+        "//fboss/lib:thrift_call_duration_logger",
         "//fboss/lib:thrift_service_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/link_snapshots:async_filewriter_factory",
@@ -1163,6 +1225,8 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/agent/rib:fib_updater",
+        "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",
@@ -1196,6 +1260,7 @@ cpp_library(
     exported_deps = [
         ":core",
         ":handler",
+        ":load_agent_config",
         ":utils",
         "//fboss/agent/if:test_ctrl-cpp2-services",
     ],
@@ -1221,12 +1286,13 @@ cpp_library(
         "types.cpp",
     ],
     headers = [
+        "LocalSwitchIds.h",
         "PortDescriptorTemplate.h",
-        "SwitchIDs.h",
         "types.h",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        ":fboss-error",
         ":switch_config-cpp2-types",
         "//folly:conv",
         "//folly/json:dynamic",
@@ -2128,34 +2194,10 @@ cpp_unittest(
     ],
 )
 
-ci_sandcastle(
-    name = "build_fboss_fbpkg",
-    alias = "build_fboss_fbpkg_ci",
-    args = {
-        "steps": [
-            {
-                "name": "Build fboss fbkg targets",
-                "shell": "buck2 build //fbcode/fboss/agent/fbpkg/...",
-            },
-        ],
-    },
-    capabilities = {
-        "tenant": "default-tenant",
-        "type": "fbcode",
-        "vcs": "full-fbsource",
-    },
-    # Adding triggers for raw inputs (for changes in asic_vendor_config) and generated outputs
-    ci_srcs = [
-        "fbcode/fboss/agent/**",
-    ],
-    command = "SandcastleUniversalCommand",
-    metadata = {"brr_disable_reason": "NOT_YET_IMPLEMENTED"},  # auto-derived, may be wrong
-    oncall = "fboss_agent",
-    schedules = [
-        ci.diff,
-        ci.continuous,
-    ],
-)
+# Build FBOSS fbpkg targets on every fboss/agent change, independent of BTD.
+# Sharded (one ci_sandcastle per shard) to avoid OOMing the worker.
+# See fbpkg/fbpkg_ci_builds.bzl.
+build_fbpkg_ci_shards()
 
 cpp_library(
     name = "ipc_health_monitor",

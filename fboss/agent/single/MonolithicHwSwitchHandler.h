@@ -115,6 +115,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   std::string getDebugDump() const;
 
+  void setSdkRegDumpEnabled(bool enabled);
+
   void fetchL2Table(std::vector<L2EntryThrift>* l2Table, bool sdk = false)
       const;
 
