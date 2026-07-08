@@ -145,6 +145,7 @@ add_library(config_utils
 )
 
 target_link_libraries(config_utils
+  agent_config_utils
   agent_features
   asic_test_utils
   voq_test_utils
