@@ -118,6 +118,8 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
         relative_files = []
         for root, _, filenames in os.walk(directory):
             for filename in filenames:
+                if not filename.endswith(".json"):
+                    continue
                 relative_files.append(
                     os.path.relpath(os.path.join(root, filename), directory)
                 )
