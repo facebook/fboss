@@ -5129,11 +5129,19 @@ bool CmisModule::isDatapathUpdated(
     uint8_t bank) {
   // laneMask carries intra-bank lane bits; map each back to its global lane so
   // the bank-aware getDatapathLaneStateLocked reads the right bank's page.
+  const auto moduleHostLanes = numHostLanes();
   for (uint8_t intraLane = 0; intraLane < kMaxOsfpNumLanes; intraLane++) {
     if (!((1 << intraLane) & laneMask)) {
       continue;
     }
     auto lane = globalLane(bank, intraLane);
+    if (lane >= moduleHostLanes) {
+      // A port's host lane mask can be wider than the module's actual datapath
+      // (e.g. a full-bank 0xff mask on a 4-lane module). Lanes beyond
+      // numHostLanes() have no datapath and report DATA_PATH_STATE 0, which
+      // never matches a target state
+      continue;
+    }
     auto dpState = getDatapathLaneStateLocked(lane, false);
     if (std::find(states.begin(), states.end(), dpState) == states.end()) {
       return false;
