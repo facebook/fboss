@@ -216,6 +216,7 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
           ? std::make_unique<Tahansb800bcPlatformMapping>()
           : std::make_unique<Tahansb800bcPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_WEDGE800CACT:
+    case PlatformType::PLATFORM_WEDGE800CNHP:
       return platformMappingStr.empty()
           ? std::make_unique<Wedge800CACTPlatformMapping>()
           : std::make_unique<Wedge800CACTPlatformMapping>(platformMappingStr);
