@@ -228,18 +228,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
           ? std::make_unique<Tahansb800bcPlatformMapping>()
           : std::make_unique<Tahansb800bcPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_WEDGE800CACT:
+    case PlatformType::PLATFORM_WEDGE800CNHP:
       return platformMappingStr.empty()
           ? std::make_unique<Wedge800CACTPlatformMapping>()
           : std::make_unique<Wedge800CACTPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_WEDGE800CNHP:
-      // Wedge800CNHP has no compiled-in platform mapping. Unlike the Broadcom
-      // pair, nothing yet establishes that the NextHop Cisco board matches
-      // Wedge800CACT, so the mapping must be provided externally rather than
-      // reusing Wedge800CACTPlatformMapping.
-      throw FbossError(
-          "Wedge800CNHP requires an external platform mapping; ",
-          "set --platform_descriptor_config_path or ",
-          "--platform_mapping_override_path");
     case PlatformType::PLATFORM_M5120CSC:
       return platformMappingStr.empty()
           ? std::make_unique<M5120CSCPlatformMapping>()

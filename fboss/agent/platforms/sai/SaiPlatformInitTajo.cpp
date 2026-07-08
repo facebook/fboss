@@ -28,6 +28,7 @@ namespace {
 
 bool useGenericSaiTajoPlatform(PlatformType type) {
   return type == PlatformType::PLATFORM_WEDGE800CACT ||
+      type == PlatformType::PLATFORM_WEDGE800CNHP ||
       type == PlatformType::PLATFORM_M5120CSC ||
       type == PlatformType::PLATFORM_MORGAN800CC;
 }
@@ -49,6 +50,7 @@ std::unique_ptr<PlatformMapping> createGenericSaiTajoPlatformMapping(
     case PlatformType::PLATFORM_MORGAN800CC:
       return std::make_unique<Morgan800ccPlatformMapping>();
     case PlatformType::PLATFORM_WEDGE800CACT:
+    case PlatformType::PLATFORM_WEDGE800CNHP:
       return std::make_unique<Wedge800CACTPlatformMapping>();
     default:
       throw FbossError(
