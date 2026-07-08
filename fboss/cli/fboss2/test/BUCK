@@ -177,6 +177,7 @@ cpp_unittest(
         "CmdStartPortCableLengthMeasurementTest.cpp",
         "CmdStopPcapTest.cpp",
         "GitTest.cpp",
+        "InterfaceListTest.cpp",
         "PortMapTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
     ],

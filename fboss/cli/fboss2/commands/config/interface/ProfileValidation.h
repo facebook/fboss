@@ -74,6 +74,13 @@ class ProfileValidator {
       const std::vector<std::string>& portNames,
       cfg::PortProfileID profile);
 
+  // The resolved PlatformMapping used for validation. Needed by callers that
+  // must resolve port names to ids / inspect port types (e.g. pre-creating an
+  // absent-but-valid INTERFACE_PORT before applying a profile).
+  const PlatformMapping& getPlatformMapping() const {
+    return *platformMappingObj_;
+  }
+
  private:
   cfg::PlatformMapping platformMapping_;
   std::map<std::string, std::vector<cfg::PortProfileID>> qsfpSupportedProfiles_;

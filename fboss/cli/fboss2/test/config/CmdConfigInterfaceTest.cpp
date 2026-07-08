@@ -1776,4 +1776,189 @@ TEST_F(
   }
 }
 
+// ============================================================================
+// applyProfileImpl pending-port (creation) tests
+// ============================================================================
+
+namespace {
+// Builds a PlatformMapping with two ports. eth1/1/1 (id 1) is a self-
+// controlling INTERFACE_PORT that supports 100G and 400G (400G subsumes port
+// 2). eth1/1/2 (id 2) is an INTERFACE_PORT controlled by port 1 that supports
+// 100G. If `port2IsFabric` is set, port 2 is a FABRIC_PORT instead so it cannot
+// be created as an interface port.
+cfg::PlatformMapping makePendingPlatformMapping(bool port2IsFabric = false) {
+  cfg::PlatformMapping pm;
+
+  cfg::PlatformPortProfileConfigEntry profile100G;
+  profile100G.factor()->profileID() =
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91;
+  profile100G.profile()->speed() = cfg::PortSpeed::HUNDREDG;
+  pm.platformSupportedProfiles()->push_back(profile100G);
+
+  cfg::PlatformPortProfileConfigEntry profile400G;
+  profile400G.factor()->profileID() =
+      cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N;
+  profile400G.profile()->speed() = cfg::PortSpeed::FOURHUNDREDG;
+  pm.platformSupportedProfiles()->push_back(profile400G);
+
+  cfg::PlatformPortEntry port1;
+  port1.mapping()->id() = 1;
+  port1.mapping()->name() = "eth1/1/1";
+  port1.mapping()->controllingPort() = 1;
+  port1.mapping()->portType() = cfg::PortType::INTERFACE_PORT;
+  port1.supportedProfiles()[cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91] =
+      cfg::PlatformPortConfig();
+  cfg::PlatformPortConfig wide;
+  wide.subsumedPorts() = {2};
+  port1.supportedProfiles()[cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N] =
+      wide;
+  pm.ports()[1] = port1;
+
+  cfg::PlatformPortEntry port2;
+  port2.mapping()->id() = 2;
+  port2.mapping()->name() = "eth1/1/2";
+  port2.mapping()->controllingPort() = 1;
+  port2.mapping()->portType() = port2IsFabric ? cfg::PortType::FABRIC_PORT
+                                              : cfg::PortType::INTERFACE_PORT;
+  port2.supportedProfiles()[cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91] =
+      cfg::PlatformPortConfig();
+  pm.ports()[2] = port2;
+
+  return pm;
+}
+
+ProfileValidator makePendingValidator(bool port2IsFabric = false) {
+  return ProfileValidator(
+      makePendingPlatformMapping(port2IsFabric),
+      std::map<std::string, std::vector<cfg::PortProfileID>>{});
+}
+} // namespace
+
+// Fixture with an empty running config so InterfaceList(name,
+// allowMissing=true) yields pending Intfs (getPort()==nullptr) that
+// applyProfileImpl is meant to create.
+class CreatePendingInterfacePortsTestFixture : public CmdConfigTestBase {
+ public:
+  CreatePendingInterfacePortsTestFixture()
+      : CmdConfigTestBase(
+            "fboss_pending_ports_test_%%%%-%%%%-%%%%-%%%%",
+            R"({"sw": {}})") {}
+};
+
+// A pending INTERFACE_PORT with a supported profile is created: the config
+// gains a Port + Vlan + VlanPort + Interface for it, and the result mentions
+// the created port.
+TEST_F(CreatePendingInterfacePortsTestFixture, createsSupportedInterfacePort) {
+  setupTestableConfigSession();
+  auto validator = makePendingValidator();
+  cfg::SwitchConfig config;
+  utils::InterfaceList interfaces(
+      std::vector<std::string>{"eth1/1/1"}, /*allowMissing*/ true);
+
+  auto result = applyProfileImpl(
+      validator, config, interfaces, "PROFILE_100G_4_NRZ_CL91");
+
+  EXPECT_THAT(result, HasSubstr("created port(s): eth1/1/1"));
+
+  ASSERT_EQ(config.ports()->size(), 1);
+  const auto& port = config.ports()->at(0);
+  EXPECT_EQ(*port.logicalID(), 1);
+  EXPECT_EQ(*port.profileID(), cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91);
+  EXPECT_EQ(config.vlans()->size(), 1);
+  EXPECT_EQ(config.vlanPorts()->size(), 1);
+  EXPECT_EQ(config.interfaces()->size(), 1);
+}
+
+// A pending non-INTERFACE_PORT (e.g. FABRIC_PORT) cannot be created.
+TEST_F(CreatePendingInterfacePortsTestFixture, throwsOnNonInterfacePort) {
+  setupTestableConfigSession();
+  auto validator = makePendingValidator(/*port2IsFabric*/ true);
+  cfg::SwitchConfig config;
+  utils::InterfaceList interfaces(
+      std::vector<std::string>{"eth1/1/2"}, /*allowMissing*/ true);
+
+  try {
+    applyProfileImpl(validator, config, interfaces, "PROFILE_100G_4_NRZ_CL91");
+    FAIL() << "Expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(e.what(), HasSubstr("Only interface ports can be created"));
+    EXPECT_THAT(e.what(), HasSubstr("eth1/1/2"));
+  }
+  EXPECT_TRUE(config.ports()->empty());
+}
+
+// A name that is not a platform port at all is rejected.
+TEST_F(CreatePendingInterfacePortsTestFixture, throwsOnBogusName) {
+  setupTestableConfigSession();
+  auto validator = makePendingValidator();
+  cfg::SwitchConfig config;
+  utils::InterfaceList interfaces(
+      std::vector<std::string>{"eth9/9/9"}, /*allowMissing*/ true);
+
+  EXPECT_THROW(
+      applyProfileImpl(
+          validator, config, interfaces, "PROFILE_100G_4_NRZ_CL91"),
+      std::invalid_argument);
+}
+
+// Existing controlling port narrowed in the SAME command frees a subsumed
+// absent port: port1 (present at 400G, subsumes port2) is narrowed to 100G and
+// port2 (pending) is created. Both end up present at 100G.
+TEST_F(
+    CreatePendingInterfacePortsTestFixture,
+    existingNarrowedFreesAbsentSubport) {
+  setupTestableConfigSession();
+  auto validator = makePendingValidator();
+  // Controlling port 1 is present at 400G (which subsumes port 2).
+  cfg::SwitchConfig config;
+  cfg::Port controlling;
+  controlling.logicalID() = 1;
+  controlling.name() = "eth1/1/1";
+  controlling.profileID() = cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N;
+  config.ports() = {controlling};
+
+  // Both ports are in the request; port 1 (present) resolves, port 2 is
+  // pending. Narrowing both to 100G frees port 2.
+  utils::InterfaceList interfaces(
+      std::vector<std::string>{"eth1/1/1", "eth1/1/2"}, /*allowMissing*/ true);
+  interfaces[0].setPort(&config.ports()->at(0));
+
+  auto result = applyProfileImpl(
+      validator, config, interfaces, "PROFILE_100G_4_NRZ_CL91");
+
+  EXPECT_THAT(result, HasSubstr("created port(s): eth1/1/2"));
+  ASSERT_EQ(config.ports()->size(), 2);
+  for (const auto& p : *config.ports()) {
+    EXPECT_EQ(*p.profileID(), cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91);
+  }
+}
+
+// A single absent port subsumed by a present controlling port that is NOT in
+// the request is rejected (the controlling port stays at its subsuming
+// profile), leaving the config unchanged.
+TEST_F(
+    CreatePendingInterfacePortsTestFixture,
+    throwsWhenSubsumedAndLeavesConfig) {
+  setupTestableConfigSession();
+  auto validator = makePendingValidator();
+  // Controlling port 1 is already in the config at 400G, which subsumes port 2.
+  cfg::SwitchConfig config;
+  cfg::Port controlling;
+  controlling.logicalID() = 1;
+  controlling.name() = "eth1/1/1";
+  controlling.profileID() = cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N;
+  config.ports() = {controlling};
+
+  // Only port 2 is requested; port 1 keeps its subsuming 400G profile.
+  utils::InterfaceList interfaces(
+      std::vector<std::string>{"eth1/1/2"}, /*allowMissing*/ true);
+
+  const cfg::SwitchConfig before = config;
+  EXPECT_THROW(
+      applyProfileImpl(
+          validator, config, interfaces, "PROFILE_100G_4_NRZ_CL91"),
+      std::invalid_argument);
+  EXPECT_EQ(config, before);
+}
+
 } // namespace facebook::fboss

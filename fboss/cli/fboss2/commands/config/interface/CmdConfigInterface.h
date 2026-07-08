@@ -22,6 +22,8 @@
 
 namespace facebook::fboss {
 
+class PlatformMapping;
+
 /*
  * InterfacesConfig captures both port/interface names and optional
  * attribute key-value pairs from the CLI.
@@ -63,10 +65,14 @@ class CmdConfigInterface
   void printOutput(const RetType& logMsg);
 };
 
-// Testable core of the profile-change flow: validates `value` against
-// `swConfig` for `interfaces`, applies the profile to those ports, and removes
-// the subsumed ports. Throws std::invalid_argument with a user-facing message
-// on a validation failure. Declared here for unit testing.
+// Testable core of the profile-change flow. The `profile` attribute both
+// narrows/removes existing ports and creates absent-but-valid INTERFACE_PORTs,
+// so this is the single "apply profile" step. All validation (per-port support,
+// controlling-port subsumption, and creatability of absent ports) runs before
+// any mutation; then existing ports are adjusted and subsumed ports removed
+// before absent ports are created. Throws std::invalid_argument with a
+// user-facing message on any validation failure (leaving `swConfig`
+// unchanged). Declared here for unit testing.
 std::string applyProfileImpl(
     ProfileValidator& validator,
     cfg::SwitchConfig& swConfig,

@@ -28,7 +28,9 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h"
 #include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -74,6 +76,19 @@ constexpr auto kValidConfigAttrs =
     "flow-control-rx, flow-control-tx, lldp-expected-*, type, shutdown, "
     "no-shutdown";
 
+// The value of the `profile` attribute if the parsed attribute list configures
+// one, else nullopt. Centralized (single scan) so the InterfacesConfig
+// allowMissing decision and queryClient stay in sync.
+std::optional<std::string> findProfileValue(
+    const std::vector<std::pair<std::string, std::string>>& attributes) {
+  for (const auto& [attr, value] : attributes) {
+    if (attr == "profile") {
+      return value;
+    }
+  }
+  return std::nullopt;
+}
+
 } // namespace
 
 InterfacesConfig::InterfacesConfig(const std::vector<std::string>& v)
@@ -84,9 +99,15 @@ InterfacesConfig::InterfacesConfig(const std::vector<std::string>& v)
           kValidConfigAttrs) {
   auto portNames = parseTokens(v);
 
-  // Now resolve the port names to InterfaceList
-  // This will throw if any port is not found
-  interfaces_ = utils::InterfaceList(std::move(portNames));
+  // A `profile` attribute can CREATE an absent-but-valid INTERFACE_PORT, so its
+  // names are allowed to be missing from the running config at resolution time
+  // (they are created later in queryClient). Without it, every name must
+  // already resolve.
+  const bool allowMissing = findProfileValue(getAttributes()).has_value();
+
+  // Now resolve the port names to InterfaceList. Unless allowMissing is set,
+  // this throws if any port is not found.
+  interfaces_ = utils::InterfaceList(std::move(portNames), allowMissing);
 }
 
 namespace {
@@ -120,13 +141,43 @@ std::string applyProfileImpl(
   const cfg::PortProfileID requestedProfile =
       ProfileValidator::parseProfile(value);
 
-  // 1) Validate (throws on any violation). Runs before any mutation so a
-  //    rejection leaves the config untouched.
+  // 1) Pre-check absent (getPort()==nullptr) requested ports without mutating:
+  //    each must resolve to a creatable INTERFACE_PORT.
+  const PlatformMapping& pm = validator.getPlatformMapping();
+  std::vector<std::pair<std::string, PortID>> pending;
+  for (const utils::Intf& intf : interfaces) {
+    if (intf.getPort() != nullptr) {
+      continue;
+    }
+    const std::string& name = intf.name();
+
+    PortID id;
+    try {
+      id = pm.getPortID(name);
+    } catch (const FbossError& e) {
+      throw std::invalid_argument(
+          fmt::format("{} is not a valid platform port: {}", name, e.what()));
+    }
+
+    if (*pm.getPlatformPort(static_cast<int32_t>(id)).mapping()->portType() !=
+        cfg::PortType::INTERFACE_PORT) {
+      throw std::invalid_argument(
+          fmt::format("Only interface ports can be created: {}", name));
+    }
+
+    pending.emplace_back(name, id);
+  }
+
+  // 2) Validate the whole change (present + absent ports) at the new profile.
+  //    Non-mutating: throws before any port is adjusted, removed, or created.
   auto result = validator.validateProfileChange(
       swConfig, interfaces.getNames(), requestedProfile);
 
-  // 2) Apply the profile to the requested ports.
+  // 3) Adjust EXISTING ports first (before any removal/creation), capturing the
+  //    speed here from a resolved PortID so the report never needs a name
+  //    lookup (which could throw) after mutation.
   cfg::PortSpeed profileSpeed = cfg::PortSpeed::DEFAULT;
+  bool speedResolved = false;
   for (const utils::Intf& intf : interfaces) {
     cfg::Port* port = intf.getPort();
     if (!port) {
@@ -134,11 +185,18 @@ std::string applyProfileImpl(
     }
     PortID portId(static_cast<uint32_t>(*port->logicalID()));
     profileSpeed = validator.getProfileSpeed(portId, requestedProfile);
+    speedResolved = true;
     port->profileID() = requestedProfile;
     port->speed() = profileSpeed;
   }
+  // A pending-only request has no existing port above; derive the speed from an
+  // already-resolved pending PortID.
+  if (!speedResolved && !pending.empty()) {
+    profileSpeed =
+        validator.getProfileSpeed(pending.front().second, requestedProfile);
+  }
 
-  // 3) Remove the subsumed ports (+ dependents); capture their names first.
+  // 4) Remove the subsumed ports (+ dependents); capture their names first.
   std::vector<std::string> removedNames;
   if (!result.portsToRemove.empty()) {
     for (PortID id : result.portsToRemove) {
@@ -150,6 +208,15 @@ std::string applyProfileImpl(
             result.portsToRemove.begin(), result.portsToRemove.end()));
   }
 
+  // 5) Create absent ports now that the config reflects the adjusted/removed
+  //    existing ports.
+  std::vector<std::string> createdNames;
+  for (const auto& [name, id] : pending) {
+    utility::addInterfacePortToConfig(swConfig, &pm, id, requestedProfile);
+    createdNames.push_back(name);
+  }
+
+  // 6) Report.
   // Normalize to uppercase for display
   std::string upperValue = value;
   std::transform(
@@ -159,6 +226,10 @@ std::string applyProfileImpl(
   if (!removedNames.empty()) {
     out += fmt::format(
         "; auto-removed subsumed port(s): {}", folly::join(", ", removedNames));
+  }
+  if (!createdNames.empty()) {
+    out +=
+        fmt::format("; created port(s): {}", folly::join(", ", createdNames));
   }
   return out;
 }
@@ -320,9 +391,28 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
   std::vector<std::string> results;
   bool changed = false;
 
+  // The `profile` attribute mutates the port set (adjusts/removes existing
+  // ports and creates absent ones), so it must be applied first, over the
+  // ORIGINAL interfaces (which still carry pending Intfs with getPort()==
+  // nullptr). Re-resolve afterwards so the remaining attributes see valid
+  // pointers for freshly-created ports and no stale pointers to removed ones.
+  const std::optional<std::string> profileValue = findProfileValue(attributes);
+
+  utils::InterfaceList resolved(std::vector<std::string>{});
+  if (profileValue.has_value()) {
+    results.push_back(applyProfile(hostInfo, interfaces, *profileValue));
+    changed = true;
+    ConfigSession::getInstance().rebuildPortMap();
+    resolved = utils::InterfaceList(interfaces.getNames());
+  }
+  const utils::InterfaceList& effectiveInterfaces =
+      profileValue.has_value() ? resolved : interfaces;
+
   for (const auto& [attr, value] : attributes) {
-    if (attr == "description") {
-      for (const utils::Intf& intf : interfaces) {
+    if (attr == "profile") {
+      continue;
+    } else if (attr == "description") {
+      for (const utils::Intf& intf : effectiveInterfaces) {
         cfg::Port* port = intf.getPort();
         if (port) {
           port->description() = value;
@@ -334,7 +424,7 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
       validateInterfaceIpAttr(attr, value);
 
       // Add IP address to all interfaces
-      for (const utils::Intf& intf : interfaces) {
+      for (const utils::Intf& intf : effectiveInterfaces) {
         cfg::Interface* interface = intf.getInterface();
         if (interface) {
           auto& ipAddresses = *interface->ipAddresses();
@@ -364,7 +454,7 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
                 utils::kMtuMax));
       }
 
-      for (const utils::Intf& intf : interfaces) {
+      for (const utils::Intf& intf : effectiveInterfaces) {
         cfg::Interface* interface = intf.getInterface();
         if (interface) {
           interface->mtu() = mtu;
@@ -372,20 +462,17 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
         }
       }
       results.push_back(fmt::format("mtu={}", mtu));
-    } else if (attr == "profile") {
-      results.push_back(applyProfile(hostInfo, interfaces, value));
-      changed = true;
     } else if (attr == "loopback-mode") {
-      changed |= applyLoopbackMode(value, interfaces);
+      changed |= applyLoopbackMode(value, effectiveInterfaces);
       results.push_back(fmt::format("loopback-mode={}", value));
     } else if (attr == "flow-control-rx" || attr == "flow-control-tx") {
-      changed |= applyFlowControl(attr, value, interfaces);
+      changed |= applyFlowControl(attr, value, effectiveInterfaces);
       results.push_back(fmt::format("{}={}", attr, value));
     } else if (auto lldpTag = lldpTagForAttr(attr); lldpTag.has_value()) {
       if (value.empty()) {
         throw std::invalid_argument(fmt::format("{} cannot be empty", attr));
       }
-      for (const utils::Intf& intf : interfaces) {
+      for (const utils::Intf& intf : effectiveInterfaces) {
         cfg::Port* port = intf.getPort();
         if (port) {
           port->expectedLLDPValues()[*lldpTag] = value;
@@ -394,10 +481,10 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
       }
       results.push_back(fmt::format("{}=\"{}\"", attr, value));
     } else if (attr == "type") {
-      changed |= applyPortType(value, interfaces);
+      changed |= applyPortType(value, effectiveInterfaces);
       results.push_back(fmt::format("type={}", value));
     } else if (attr == "shutdown") {
-      for (const utils::Intf& intf : interfaces) {
+      for (const utils::Intf& intf : effectiveInterfaces) {
         cfg::Port* port = intf.getPort();
         if (port) {
           port->state() = cfg::PortState::DISABLED;
@@ -406,7 +493,7 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
       }
       results.emplace_back("state=disabled");
     } else if (attr == "no-shutdown") {
-      for (const utils::Intf& intf : interfaces) {
+      for (const utils::Intf& intf : effectiveInterfaces) {
         cfg::Port* port = intf.getPort();
         if (port) {
           port->state() = cfg::PortState::ENABLED;

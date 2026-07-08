@@ -27,24 +27,22 @@
 #include <folly/logging/xlog.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <chrono>
 #include <map>
 #include <optional>
 #include <set>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
-#include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 using namespace facebook::fboss;
@@ -60,10 +58,47 @@ class ConfigInterfaceProfileTest : public Fboss2IntegrationTest {
         subsumedPresent; // present ports the change removes
   };
 
-  struct PresentPort {
-    std::string name;
-    std::string profileId; // enum name string
-  };
+  // A present controlling port C whose current profile subsumes an absent
+  // subport S, plus a profile S supports. This scenario is stable (no mutation
+  // needed): creating S is rejected because C still subsumes it.
+  std::optional<CreatableCandidate> findStillSubsumedCandidate() const {
+    auto mapping = fetchPlatformMapping();
+    auto present = fetchPresentPorts();
+    auto groups = utility::getSubsidiaryPortIDs(mapping.getPlatformPorts());
+    for (const auto& [controlling, unused] : groups) {
+      int32_t cid = static_cast<int32_t>(controlling);
+      auto pit = present.find(cid);
+      if (pit == present.end()) {
+        continue;
+      }
+      cfg::PortProfileID currentProfile;
+      if (!apache::thrift::TEnumTraits<cfg::PortProfileID>::findValue(
+              pit->second.profileId.c_str(), &currentProfile)) {
+        continue;
+      }
+      for (auto sp : mapping.getSubsumedPorts(controlling, currentProfile)) {
+        int32_t sid = static_cast<int32_t>(sp);
+        if (present.find(sid) != present.end()) {
+          continue; // S must be absent
+        }
+        const auto& subMapping = mapping.getPlatformPort(sid);
+        if (subMapping.mapping()->portType() != cfg::PortType::INTERFACE_PORT) {
+          continue;
+        }
+        auto subProfiles = supportedProfileNames(mapping, sid);
+        if (subProfiles.empty()) {
+          continue;
+        }
+        return CreatableCandidate{
+            pit->second.name,
+            pit->second.profileId,
+            *subMapping.mapping()->name(),
+            *subProfiles.begin(),
+            ""};
+      }
+    }
+    return std::nullopt;
+  }
 
   /**
    * Set a profile on an interface and commit the config.
@@ -80,31 +115,6 @@ class ConfigInterfaceProfileTest : public Fboss2IntegrationTest {
     return result;
   }
 
-  // Build a PlatformMapping from the running agent.
-  PlatformMapping fetchPlatformMapping() const {
-    HostInfo hostInfo("localhost");
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    cfg::PlatformMapping thriftMapping;
-    client->sync_getPlatformMapping(thriftMapping);
-    return PlatformMapping(thriftMapping);
-  }
-
-  // Ports currently present in the agent (subsumed/removed ports are absent),
-  // keyed by logical id.
-  std::map<int32_t, PresentPort> fetchPresentPorts() const {
-    HostInfo hostInfo("localhost");
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    std::map<int32_t, PortInfoThrift> portEntries;
-    client->sync_getAllPortInfo(portEntries);
-    std::map<int32_t, PresentPort> present;
-    for (const auto& [id, info] : portEntries) {
-      present[id] = PresentPort{*info.name(), *info.profileID()};
-    }
-    return present;
-  }
-
   // Any port currently present in the agent, regardless of its name. Returns
   // nullopt if the agent reports no ports.
   std::optional<PresentPort> findAnyPresentPort() const {
@@ -113,21 +123,6 @@ class ConfigInterfaceProfileTest : public Fboss2IntegrationTest {
       return std::nullopt;
     }
     return present.begin()->second;
-  }
-
-  // Poll until the named port disappears from getAllPortInfo (i.e. it was
-  // removed as a subsumed port). Returns false if it is still present after the
-  // timeout.
-  bool waitForPortAbsent(const std::string& portName) const {
-    for (int attempt = 0; attempt < 15; ++attempt) {
-      try {
-        getPortRunningInfo(portName);
-      } catch (const std::runtime_error&) {
-        return true;
-      }
-      /* sleep override */ std::this_thread::sleep_for(std::chrono::seconds(2));
-    }
-    return false;
   }
 
   // A present port + a valid PortProfileID it does NOT support.
@@ -331,6 +326,130 @@ TEST_F(ConfigInterfaceProfileTest, SetInvalidProfileFails) {
       << "Expected 'not a valid PortProfileID' in stderr, got: "
       << result.stderr;
 
+  XLOG(INFO) << "TEST PASSED";
+}
+
+// Creating an absent subport is rejected while its controlling port's current
+// profile still subsumes it. No mutation occurs, so the port stays absent.
+TEST_F(ConfigInterfaceProfileTest, CreateStillSubsumedPortRejected) {
+  auto cand = findStillSubsumedCandidate();
+  if (!cand) {
+    GTEST_SKIP()
+        << "No absent subport whose present controlling port subsumes it";
+  }
+  XLOG(INFO) << "[CreateStillSubsumed] subport=" << cand->subportName
+             << " profile=" << cand->subportProfile
+             << " controlling=" << cand->controllingName << " ("
+             << cand->controllingProfile << ")";
+
+  auto result = runCli(
+      {"config",
+       "interface",
+       cand->subportName,
+       "profile",
+       cand->subportProfile});
+  EXPECT_NE(result.exitCode, 0)
+      << "Expected non-zero exit creating a still-subsumed port";
+  EXPECT_THAT(result.stderr, ::testing::HasSubstr("controlling port"));
+  EXPECT_THAT(result.stderr, ::testing::HasSubstr("subsumes"));
+
+  // Rejected before commit -> the subport is still absent from the agent.
+  EXPECT_THROW(getPortRunningInfo(cand->subportName), std::runtime_error);
+  XLOG(INFO) << "TEST PASSED";
+}
+
+// Narrowing a controlling port to free an absent subport AND creating that
+// subport in a single 'config interface C S profile <narrow>' command succeeds:
+// the existing controlling port is handled first (narrowed, freeing the
+// subport), then the freed subport is created -- both at the narrow profile.
+// This exercises the atomic existing-then-create ordering end to end.
+TEST_F(ConfigInterfaceProfileTest, CreateFreedPortSucceeds) {
+  auto cand = findFreeableCandidate();
+  if (!cand) {
+    GTEST_SKIP()
+        << "No absent subport freeable by narrowing its controlling port";
+  }
+  XLOG(INFO) << "[CreateFreedPort] one command narrows controlling="
+             << cand->controllingName << " (" << cand->controllingProfile
+             << ") and creates subport=" << cand->subportName << " both at "
+             << cand->narrowProfile;
+
+  // A single command lists both the existing controlling port and the absent
+  // subport at the narrow profile. The controlling port is narrowed first
+  // (freeing the subport), then the subport is created.
+  auto create = runCli(
+      {"config",
+       "interface",
+       cand->controllingName,
+       cand->subportName,
+       "profile",
+       cand->narrowProfile});
+  ASSERT_EQ(create.exitCode, 0) << create.stderr;
+  commitConfig();
+
+  // Both ports now report the narrow profile in the agent.
+  auto subInfo = waitForPortRunningInfo(
+      cand->subportName,
+      [&cand](const auto& i) { return i.profileId == cand->narrowProfile; });
+  EXPECT_EQ(subInfo.profileId, cand->narrowProfile)
+      << "freed subport should be created at the narrow profile";
+  auto ctrlInfo = waitForPortRunningInfo(
+      cand->controllingName,
+      [&cand](const auto& i) { return i.profileId == cand->narrowProfile; });
+  EXPECT_EQ(ctrlInfo.profileId, cand->narrowProfile)
+      << "controlling port should be narrowed to the narrow profile";
+
+  // Best-effort restore of the controlling port's original profile.
+  // Removal-only semantics mean the created subport is NOT removed by this
+  // restore.
+  setInterfaceProfile(cand->controllingName, cand->controllingProfile);
+  XLOG(INFO) << "TEST PASSED";
+}
+
+// Creating a freed subport with profile AND mtu in a single command wires a
+// full L3 interface: the agent reports the new port at the profile and its
+// interface MTU reflects the requested value.
+TEST_F(ConfigInterfaceProfileTest, CreateFreedPortWithMtuInOneCommand) {
+  auto cand = findFreeableCandidate();
+  if (!cand) {
+    GTEST_SKIP()
+        << "No absent subport freeable by narrowing its controlling port";
+  }
+  constexpr int kMtu = 9000;
+  XLOG(INFO) << "[CreateFreedPortWithMtu] controlling=" << cand->controllingName
+             << " " << cand->controllingProfile << " -> " << cand->narrowProfile
+             << "; create subport=" << cand->subportName
+             << " profile=" << cand->subportProfile << " mtu=" << kMtu;
+
+  // Free the subport by narrowing its controlling port.
+  auto narrow = setInterfaceProfile(cand->controllingName, cand->narrowProfile);
+  ASSERT_EQ(narrow.exitCode, 0) << narrow.stderr;
+
+  // Create the subport with profile and mtu in one command.
+  auto create = runCli(
+      {"config",
+       "interface",
+       cand->subportName,
+       "profile",
+       cand->subportProfile,
+       "mtu",
+       std::to_string(kMtu)});
+  ASSERT_EQ(create.exitCode, 0) << create.stderr;
+  commitConfig();
+
+  auto info = waitForPortRunningInfo(cand->subportName, [&cand](const auto& i) {
+    return i.profileId == cand->subportProfile;
+  });
+  EXPECT_EQ(info.profileId, cand->subportProfile);
+
+  // The created port wires a full L3 interface, so 'show interface' reports the
+  // requested MTU.
+  auto intf = waitForInterfaceInfo(
+      cand->subportName, [](const auto& i) { return i.mtu == kMtu; });
+  EXPECT_EQ(intf.mtu, kMtu);
+
+  // Best-effort restore of the controlling port's original profile.
+  setInterfaceProfile(cand->controllingName, cand->controllingProfile);
   XLOG(INFO) << "TEST PASSED";
 }
 
