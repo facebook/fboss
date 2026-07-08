@@ -29,6 +29,7 @@
 #include "fboss/agent/platforms/common/ladakh800bcls/Ladakh800bclsPlatformMapping.h"
 #include "fboss/agent/platforms/common/leh800bcls/Leh800bclsPlatformMapping.h"
 #include "fboss/agent/platforms/common/m4062nhp/M4062nhpPlatformMapping.h"
+#include "fboss/agent/platforms/common/m5120csc/M5120CSCPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
@@ -207,6 +208,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Wedge800CACTPlatformMapping>()
           : std::make_unique<Wedge800CACTPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_M5120CSC:
+      return platformMappingStr.empty()
+          ? std::make_unique<M5120CSCPlatformMapping>()
+          : std::make_unique<M5120CSCPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_LADAKH800BCLS:
       return platformMappingStr.empty()
           ? std::make_unique<Ladakh800bclsPlatformMapping>()

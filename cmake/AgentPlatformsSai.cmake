@@ -48,6 +48,8 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiBcmWedge800BACTPlatformPort.cpp
   fboss/agent/platforms/sai/SaiWedge800CACTPlatform.cpp
   fboss/agent/platforms/sai/SaiWedge800CACTPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiM5120CSCPlatform.cpp
+  fboss/agent/platforms/sai/SaiM5120CSCPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMorgan800ccPlatform.cpp
@@ -138,6 +140,7 @@ target_link_libraries(sai_platform
   led_mapping_cpp2
   wedge800bact_platform_mapping
   wedge800cact_platform_mapping
+  m5120csc_platform_mapping
   yangra2_platform_mapping
 )
 
