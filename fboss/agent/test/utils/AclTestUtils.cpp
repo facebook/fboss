@@ -103,20 +103,6 @@ std::vector<cfg::AclTableActionType> genAclActionTypesConfig(
       cfg::AclTableActionType::MIRROR_INGRESS,
       cfg::AclTableActionType::MIRROR_EGRESS,
   };
-  if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
-    // TU1 does not support the SET_TC action in the ingress ACL table.
-    std::set<cfg::AclTableActionType> remove{
-        cfg::AclTableActionType::SET_TC,
-    };
-    auto iter = actions.begin();
-    while (iter != actions.end()) {
-      if (remove.find(*iter) != remove.end()) {
-        iter = actions.erase(iter);
-      } else {
-        ++iter;
-      }
-    }
-  }
   return actions;
 }
 
