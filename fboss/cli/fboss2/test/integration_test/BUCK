@@ -57,15 +57,18 @@ cpp_binary(
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:platform_config-cpp2-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-clients",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/cli/fboss2:cmd-common-utils",
         "//fboss/cli/fboss2:cmd-init-utils",
         "//fboss/cli/fboss2:cmd-subcommands",
         "//fboss/cli/fboss2:fboss2-config-lib",  # @manual
         "//fboss/cli/fboss2:fboss2-lib",  # @manual
+        "//fboss/lib/config:fboss_config_utils",
         "//folly:dynamic",
         "//folly:network_address",
         "//folly:string",
@@ -74,6 +77,7 @@ cpp_binary(
         "//folly/json:dynamic",
         "//folly/logging:init",
         "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
     ],
     external_deps = [
         "CLI11",

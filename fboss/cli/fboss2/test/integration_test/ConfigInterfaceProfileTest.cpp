@@ -1,12 +1,22 @@
-// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
 
 /**
  * End-to-end tests for 'fboss2-dev config interface <name> profile <P>'.
  *
- * Mirrors ConfigInterfaceSpeedTest: supported profiles are discovered
- * dynamically from the CLI error message, a different profile is picked
- * to create a real before/after delta, and the agent is verified via a
- * direct getAllPortInfo() thrift call with a wait-retry loop.
+ * Test candidates are derived from the device's PlatformMapping (fetched via
+ * thrift) rather than hardcoded profile strings: we locate a controlling port
+ * and, from its supported profiles, pick profiles that (1) it does not support,
+ * (2) it supports without subsuming any port, and (3) it supports and that
+ * subsume at least one port currently present in the config. This keeps the
+ * tests portable across platforms and exercises the subsumed-port removal path.
  *
  * Requirements:
  * - FBOSS agent must be running with a valid configuration
@@ -15,15 +25,46 @@
 
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <chrono>
+#include <map>
+#include <optional>
+#include <set>
 #include <string>
+#include <thread>
 #include <vector>
+
+#include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 using namespace facebook::fboss;
 
 class ConfigInterfaceProfileTest : public Fboss2IntegrationTest {
  protected:
+  // A concrete profile-change to exercise, derived from the platform mapping.
+  struct Candidate {
+    std::string portName; // controlling port
+    std::string currentProfile; // enum name currently on the port
+    std::string targetProfile; // enum name to change to
+    std::vector<std::string>
+        subsumedPresent; // present ports the change removes
+  };
+
+  struct PresentPort {
+    std::string name;
+    std::string profileId; // enum name string
+  };
+
   /**
    * Set a profile on an interface and commit the config.
    * Only commits if the CLI set succeeds (mirrors setInterfaceSpeed).
@@ -39,119 +80,249 @@ class ConfigInterfaceProfileTest : public Fboss2IntegrationTest {
     return result;
   }
 
-  /**
-   * Extract the list of supported profiles from a CLI error message.
-   * Error format: "Supported profiles: [PROFILE_A, PROFILE_B, ...]"
-   */
-  std::vector<std::string> extractSupportedProfiles(
-      const std::string& errorMessage) const {
-    std::vector<std::string> profiles;
-    auto pos = errorMessage.find("Supported profiles: [");
-    if (pos == std::string::npos) {
-      return profiles;
+  // Build a PlatformMapping from the running agent.
+  PlatformMapping fetchPlatformMapping() const {
+    HostInfo hostInfo("localhost");
+    auto client =
+        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+    cfg::PlatformMapping thriftMapping;
+    client->sync_getPlatformMapping(thriftMapping);
+    return PlatformMapping(thriftMapping);
+  }
+
+  // Ports currently present in the agent (subsumed/removed ports are absent),
+  // keyed by logical id.
+  std::map<int32_t, PresentPort> fetchPresentPorts() const {
+    HostInfo hostInfo("localhost");
+    auto client =
+        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+    std::map<int32_t, PortInfoThrift> portEntries;
+    client->sync_getAllPortInfo(portEntries);
+    std::map<int32_t, PresentPort> present;
+    for (const auto& [id, info] : portEntries) {
+      present[id] = PresentPort{*info.name(), *info.profileID()};
     }
-    pos += 21; // skip "Supported profiles: ["
-    auto end = errorMessage.find(']', pos);
-    if (end == std::string::npos) {
-      return profiles;
+    return present;
+  }
+
+  // Any port currently present in the agent, regardless of its name. Returns
+  // nullopt if the agent reports no ports.
+  std::optional<PresentPort> findAnyPresentPort() const {
+    auto present = fetchPresentPorts();
+    if (present.empty()) {
+      return std::nullopt;
     }
-    auto listStr = errorMessage.substr(pos, end - pos);
-    folly::splitTo<std::string>(", ", listStr, std::back_inserter(profiles));
-    return profiles;
+    return present.begin()->second;
+  }
+
+  // Poll until the named port disappears from getAllPortInfo (i.e. it was
+  // removed as a subsumed port). Returns false if it is still present after the
+  // timeout.
+  bool waitForPortAbsent(const std::string& portName) const {
+    for (int attempt = 0; attempt < 15; ++attempt) {
+      try {
+        getPortRunningInfo(portName);
+      } catch (const std::runtime_error&) {
+        return true;
+      }
+      /* sleep override */ std::this_thread::sleep_for(std::chrono::seconds(2));
+    }
+    return false;
+  }
+
+  // A present port + a valid PortProfileID it does NOT support.
+  std::optional<Candidate> findUnsupportedProfileCandidate() const {
+    auto mapping = fetchPlatformMapping();
+    auto present = fetchPresentPorts();
+    const auto& platformPorts = mapping.getPlatformPorts();
+    for (const auto& [id, pp] : present) {
+      auto it = platformPorts.find(id);
+      if (it == platformPorts.end()) {
+        continue;
+      }
+      std::set<cfg::PortProfileID> supported;
+      for (const auto& [profileId, unused] : *it->second.supportedProfiles()) {
+        supported.insert(profileId);
+      }
+      for (const auto profileId :
+           apache::thrift::TEnumTraits<cfg::PortProfileID>::values) {
+        if (profileId == cfg::PortProfileID::PROFILE_DEFAULT) {
+          continue;
+        }
+        if (supported.find(profileId) == supported.end()) {
+          return Candidate{
+              pp.name,
+              pp.profileId,
+              apache::thrift::util::enumNameSafe(profileId),
+              {}};
+        }
+      }
+    }
+    return std::nullopt;
+  }
+
+  // A present, self-controlling port + a supported profile (!= current)
+  // that subsumes nothing.
+  std::optional<Candidate> findNonSubsumingCandidate() const {
+    auto mapping = fetchPlatformMapping();
+    auto present = fetchPresentPorts();
+    auto groups = utility::getSubsidiaryPortIDs(mapping.getPlatformPorts());
+    for (const auto& [controlling, unused] : groups) {
+      int32_t cid = static_cast<int32_t>(controlling);
+      auto pit = present.find(cid);
+      if (pit == present.end()) {
+        continue;
+      }
+      const auto& entry = mapping.getPlatformPort(cid);
+      for (const auto& [profileId, unused2] : *entry.supportedProfiles()) {
+        auto name = apache::thrift::util::enumNameSafe(profileId);
+        if (name == pit->second.profileId) {
+          continue;
+        }
+        if (mapping.getSubsumedPorts(controlling, profileId).empty()) {
+          return Candidate{pit->second.name, pit->second.profileId, name, {}};
+        }
+      }
+    }
+    return std::nullopt;
+  }
+
+  // A present, self-controlling port + a supported profile (!= current)
+  // that subsumes at least one currently-present port.
+  std::optional<Candidate> findSubsumingCandidate() const {
+    auto mapping = fetchPlatformMapping();
+    auto present = fetchPresentPorts();
+    auto groups = utility::getSubsidiaryPortIDs(mapping.getPlatformPorts());
+    for (const auto& [controlling, unused] : groups) {
+      int32_t cid = static_cast<int32_t>(controlling);
+      auto pit = present.find(cid);
+      if (pit == present.end()) {
+        continue;
+      }
+      const auto& entry = mapping.getPlatformPort(cid);
+      for (const auto& [profileId, unused2] : *entry.supportedProfiles()) {
+        auto name = apache::thrift::util::enumNameSafe(profileId);
+        if (name == pit->second.profileId) {
+          continue;
+        }
+        std::vector<std::string> subsumedPresent;
+        for (auto sp : mapping.getSubsumedPorts(controlling, profileId)) {
+          auto sit = present.find(static_cast<int32_t>(sp));
+          if (sit != present.end()) {
+            subsumedPresent.push_back(sit->second.name);
+          }
+        }
+        if (!subsumedPresent.empty()) {
+          return Candidate{
+              pit->second.name, pit->second.profileId, name, subsumedPresent};
+        }
+      }
+    }
+    return std::nullopt;
   }
 };
 
-// Test 1: Set a valid (different) profile and verify via direct thrift call.
-// Discovers supported profiles from the per-port validation error message,
-// then picks a profile different from the current one.
-// Skips when the port supports only one profile (no delta possible).
-TEST_F(ConfigInterfaceProfileTest, SetValidProfileVerifiedViaThrift) {
-  XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
-
-  // Read current profile from agent
-  XLOG(INFO) << "[Step 2] Reading current profile/speed from agent...";
-  auto original = getPortRunningInfo(iface.name);
-  XLOG(INFO) << "  profile=" << original.profileId
-             << "  speed=" << original.speedMbps << " Mbps";
-
-  // Probe with a valid enum that is likely unsupported per-port (10G on a
-  // high-speed port) to trigger per-port validateProfile(), which emits:
-  //   "Supported profiles: [PROFILE_A, PROFILE_B, ...]"
-  // We cannot use a bogus string because parseProfile() rejects it before
-  // per-port validation runs.
-  XLOG(INFO) << "[Step 3] Discovering supported profiles via per-port probe...";
-  const std::string kProbeA = "PROFILE_10G_1_NRZ_NOFEC";
-  const std::string kProbeB = "PROFILE_100G_4_NRZ_RS528_COPPER";
-  const std::string probeProfile =
-      (original.profileId == kProbeA) ? kProbeB : kProbeA;
-
-  auto probeResult = setInterfaceProfile(iface.name, probeProfile);
-  std::vector<std::string> supported;
-  if (probeResult.exitCode != 0) {
-    // Expected: per-port validation rejected it → extract supported list
-    supported = extractSupportedProfiles(probeResult.stderr);
-    ASSERT_FALSE(supported.empty())
-        << "Could not extract supported profiles from probe error: "
-        << probeResult.stderr;
-  } else {
-    // Probe succeeded: port supports both the current and probe profiles
-    setInterfaceProfile(iface.name, original.profileId); // restore
-    supported = {original.profileId, probeProfile};
+// Case 1: Changing a port to a valid profile it does not support is rejected
+// per-port (before commit), leaving the running config unchanged.
+TEST_F(ConfigInterfaceProfileTest, ChangeToUnsupportedProfileRejected) {
+  auto cand = findUnsupportedProfileCandidate();
+  if (!cand) {
+    GTEST_SKIP() << "No present port with an unsupported profile found";
   }
-  XLOG(INFO) << "  Supported: " << folly::join(", ", supported);
+  XLOG(INFO) << "[Case 1] port=" << cand->portName
+             << " unsupported target=" << cand->targetProfile
+             << " (current=" << cand->currentProfile << ")";
 
-  // Pick a profile different from the current one
-  std::string testProfile;
-  for (const auto& p : supported) {
-    if (p != original.profileId) {
-      testProfile = p;
-      break;
-    }
-  }
-  if (testProfile.empty()) {
-    GTEST_SKIP() << "Port supports only one profile (" << original.profileId
-                 << "); cannot test a profile change";
-  }
-  XLOG(INFO) << "  Will test changing to: " << testProfile;
+  auto result = runCli(
+      {"config", "interface", cand->portName, "profile", cand->targetProfile});
+  EXPECT_NE(result.exitCode, 0)
+      << "Expected non-zero exit for an unsupported profile";
+  EXPECT_THAT(result.stderr, ::testing::HasSubstr("Invalid profile"));
 
-  // Set the new profile
-  XLOG(INFO) << "[Step 4] Setting profile to " << testProfile << "...";
-  auto result = setInterfaceProfile(iface.name, testProfile);
-  ASSERT_EQ(result.exitCode, 0)
-      << "Failed to set profile to " << testProfile << ": " << result.stderr;
-
-  // Verify via direct getAllPortInfo() call with wait-retry
-  XLOG(INFO) << "[Step 5] Verifying profile via direct agent thrift call...";
-  auto after =
-      waitForPortRunningInfo(iface.name, [&testProfile](const auto& info) {
-        return info.profileId == testProfile;
-      });
-  XLOG(INFO) << "  After: profile=" << after.profileId
-             << "  speed=" << after.speedMbps << " Mbps";
-  EXPECT_EQ(after.profileId, testProfile)
-      << "Agent should report " << testProfile << " after CLI set";
-
-  // Restore original profile
-  XLOG(INFO) << "[Step 6] Restoring original profile (" << original.profileId
-             << ")...";
-  auto restore = setInterfaceProfile(iface.name, original.profileId);
-  ASSERT_EQ(restore.exitCode, 0) << restore.stderr;
+  // Not committed → agent still reports the original profile.
+  auto info = getPortRunningInfo(cand->portName);
+  EXPECT_EQ(info.profileId, cand->currentProfile);
   XLOG(INFO) << "TEST PASSED";
 }
 
-// Test 2: Setting a completely invalid profile string is rejected before
-// commit.
+// Case 2: Changing a controlling port to a supported profile that subsumes no
+// ports succeeds and is reflected by the agent.
+TEST_F(ConfigInterfaceProfileTest, ChangeProfileWithoutSubsumingSucceeds) {
+  auto cand = findNonSubsumingCandidate();
+  if (!cand) {
+    GTEST_SKIP()
+        << "No self-controlling port with a non-subsuming alternate profile";
+  }
+  XLOG(INFO) << "[Case 2] port=" << cand->portName << " "
+             << cand->currentProfile << " -> " << cand->targetProfile;
+
+  auto result = setInterfaceProfile(cand->portName, cand->targetProfile);
+  ASSERT_EQ(result.exitCode, 0) << result.stderr;
+
+  auto after =
+      waitForPortRunningInfo(cand->portName, [&cand](const auto& info) {
+        return info.profileId == cand->targetProfile;
+      });
+  EXPECT_EQ(after.profileId, cand->targetProfile);
+
+  // Restore original profile.
+  auto restore = setInterfaceProfile(cand->portName, cand->currentProfile);
+  EXPECT_EQ(restore.exitCode, 0) << restore.stderr;
+  XLOG(INFO) << "TEST PASSED";
+}
+
+// Case 3: Changing a controlling port to a supported profile that subsumes a
+// currently-present port succeeds, and the subsumed port is removed from the
+// config (verified via the agent).
+TEST_F(ConfigInterfaceProfileTest, ChangeProfileSubsumesAndRemovesPorts) {
+  auto cand = findSubsumingCandidate();
+  if (!cand) {
+    GTEST_SKIP()
+        << "No self-controlling port with a subsuming profile over a present port";
+  }
+  XLOG(INFO) << "[Case 3] port=" << cand->portName << " "
+             << cand->currentProfile << " -> " << cand->targetProfile
+             << "; expected to remove: "
+             << folly::join(", ", cand->subsumedPresent);
+
+  auto result = setInterfaceProfile(cand->portName, cand->targetProfile);
+  ASSERT_EQ(result.exitCode, 0) << result.stderr;
+  // The CLI reports the ports it auto-removed.
+  EXPECT_THAT(
+      result.stdout, ::testing::HasSubstr("auto-removed subsumed port"));
+
+  auto after =
+      waitForPortRunningInfo(cand->portName, [&cand](const auto& info) {
+        return info.profileId == cand->targetProfile;
+      });
+  EXPECT_EQ(after.profileId, cand->targetProfile);
+
+  // Each subsumed port that was present should now be gone from the agent.
+  for (const auto& sub : cand->subsumedPresent) {
+    EXPECT_TRUE(waitForPortAbsent(sub))
+        << sub << " should be removed after a subsuming profile change";
+  }
+
+  // Best-effort restore of the controlling port's profile. Note: removal-only
+  // semantics mean the subsumed ports are NOT re-added by this restore.
+  setInterfaceProfile(cand->portName, cand->currentProfile);
+  XLOG(INFO) << "TEST PASSED";
+}
+
+// Setting a completely invalid profile string is rejected before commit
+// (parseProfile path, distinct from the per-port unsupported-profile path).
 TEST_F(ConfigInterfaceProfileTest, SetInvalidProfileFails) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  auto port = findAnyPresentPort();
+  if (!port) {
+    GTEST_SKIP() << "No present port found";
+  }
+  XLOG(INFO) << "  Using interface: " << port->name;
 
   XLOG(INFO)
       << "[Step 2] Setting invalid profile 'PROFILE_COMPLETELY_BOGUS_9999'...";
   auto result =
-      setInterfaceProfile(iface.name, "PROFILE_COMPLETELY_BOGUS_9999");
+      setInterfaceProfile(port->name, "PROFILE_COMPLETELY_BOGUS_9999");
   XLOG(INFO) << "  Exit code: " << result.exitCode;
 
   EXPECT_NE(result.exitCode, 0)
@@ -163,14 +334,17 @@ TEST_F(ConfigInterfaceProfileTest, SetInvalidProfileFails) {
   XLOG(INFO) << "TEST PASSED";
 }
 
-// Test 3: The command accepts multiple space-separated port names.
+// The command accepts multiple space-separated port names.
 TEST_F(ConfigInterfaceProfileTest, SetProfileMultiInterface) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  auto port = findAnyPresentPort();
+  if (!port) {
+    GTEST_SKIP() << "No present port found";
+  }
+  XLOG(INFO) << "  Using interface: " << port->name;
 
   XLOG(INFO) << "[Step 2] Reading current profile from agent...";
-  auto info = getPortRunningInfo(iface.name);
+  auto info = getPortRunningInfo(port->name);
   XLOG(INFO) << "  Current profile: " << info.profileId;
 
   if (info.profileId == "PROFILE_DEFAULT") {
@@ -180,12 +354,12 @@ TEST_F(ConfigInterfaceProfileTest, SetProfileMultiInterface) {
   // Re-apply the current profile on a multi-port list (same port listed twice,
   // passed as separate CLI tokens so InterfacesConfig resolves each one).
   XLOG(INFO) << "[Step 3] Setting " << info.profileId
-             << " on two-port list: " << iface.name << " " << iface.name;
+             << " on two-port list: " << port->name << " " << port->name;
   auto result = runCli(
       {"config",
        "interface",
-       iface.name,
-       iface.name,
+       port->name,
+       port->name,
        "profile",
        info.profileId});
   ASSERT_EQ(result.exitCode, 0) << result.stderr;
@@ -193,7 +367,7 @@ TEST_F(ConfigInterfaceProfileTest, SetProfileMultiInterface) {
 
   // Verify via direct thrift with wait-retry
   XLOG(INFO) << "[Step 4] Verifying via agent thrift...";
-  auto after = waitForPortRunningInfo(iface.name, [&info](const auto& i) {
+  auto after = waitForPortRunningInfo(port->name, [&info](const auto& i) {
     return i.profileId == info.profileId;
   });
   EXPECT_EQ(after.profileId, info.profileId)

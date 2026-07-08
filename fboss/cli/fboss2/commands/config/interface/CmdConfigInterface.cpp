@@ -21,7 +21,9 @@
 #include <cstdint>
 #include <exception>
 #include <iostream>
+#include <map>
 #include <optional>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
@@ -33,6 +35,7 @@
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include "fboss/lib/config/AgentConfigUtils.h"
 
 namespace facebook::fboss {
 
@@ -86,44 +89,92 @@ InterfacesConfig::InterfacesConfig(const std::vector<std::string>& v)
   interfaces_ = utils::InterfaceList(std::move(portNames));
 }
 
-std::string applyProfile(
-    const HostInfo& hostInfo,
+namespace {
+// Resolve a port name by logical id within the config (for output/messages).
+// Callers pass ids known to be present in the config, so a missing port is a
+// broken invariant and is surfaced rather than silently masked. Unnamed ports
+// fall back to the agent's default naming convention ("port" + logicalID, see
+// ThriftHandlerUtils.h).
+std::string portNameForId(const cfg::SwitchConfig& cfg, PortID id) {
+  for (const auto& p : *cfg.ports()) {
+    if (PortID(*p.logicalID()) == id) {
+      return p.name().has_value()
+          ? *p.name()
+          : folly::to<std::string>("port", *p.logicalID());
+    }
+  }
+  throw std::runtime_error(
+      fmt::format(
+          "Port with logical ID {} not found in config",
+          static_cast<uint32_t>(id)));
+}
+} // namespace
+
+std::string applyProfileImpl(
+    ProfileValidator& validator,
+    cfg::SwitchConfig& swConfig,
     const utils::InterfaceList& interfaces,
     const std::string& value) {
-  // Parse first — fast error for completely invalid strings
-  cfg::PortProfileID requestedProfile = ProfileValidator::parseProfile(value);
+  // Parse once (throws std::invalid_argument on a bad string) and thread the
+  // enum through the rest of the flow.
+  const cfg::PortProfileID requestedProfile =
+      ProfileValidator::parseProfile(value);
 
-  // Validate against hardware + optics.
-  // Build validator once (queries Agent + QSFP); reuse across all ports.
-  ProfileValidator validator(hostInfo);
+  // 1) Validate (throws on any violation). Runs before any mutation so a
+  //    rejection leaves the config untouched.
+  auto result = validator.validateProfileChange(
+      swConfig, interfaces.getNames(), requestedProfile);
 
-  // Speed is a property of the profile, not the port — look it up once
-  // using the first port's ID to avoid rebuilding PlatformMapping per port.
-  const cfg::Port* firstPort = interfaces.begin()->getPort();
-  if (!firstPort) {
-    throw std::runtime_error("No port found for the specified interface");
-  }
-  PortID firstPortId(static_cast<uint32_t>(*firstPort->logicalID()));
-  cfg::PortSpeed profileSpeed =
-      validator.getProfileSpeed(firstPortId, requestedProfile);
-
+  // 2) Apply the profile to the requested ports.
+  cfg::PortSpeed profileSpeed = cfg::PortSpeed::DEFAULT;
   for (const utils::Intf& intf : interfaces) {
     cfg::Port* port = intf.getPort();
     if (!port) {
       continue;
     }
-    const std::string& portName = apache::thrift::can_throw(*port->name());
-    validator.validateProfile(portName, value);
+    PortID portId(static_cast<uint32_t>(*port->logicalID()));
+    profileSpeed = validator.getProfileSpeed(portId, requestedProfile);
     port->profileID() = requestedProfile;
     port->speed() = profileSpeed;
+  }
+
+  // 3) Remove the subsumed ports (+ dependents); capture their names first.
+  std::vector<std::string> removedNames;
+  if (!result.portsToRemove.empty()) {
+    for (PortID id : result.portsToRemove) {
+      removedNames.push_back(portNameForId(swConfig, id));
+    }
+    utility::removePortsFromConfig(
+        swConfig,
+        std::set<PortID>(
+            result.portsToRemove.begin(), result.portsToRemove.end()));
   }
 
   // Normalize to uppercase for display
   std::string upperValue = value;
   std::transform(
       upperValue.begin(), upperValue.end(), upperValue.begin(), ::toupper);
-  return fmt::format(
+  std::string out = fmt::format(
       "profile={}, speed={}", upperValue, static_cast<int64_t>(profileSpeed));
+  if (!removedNames.empty()) {
+    out += fmt::format(
+        "; auto-removed subsumed port(s): {}", folly::join(", ", removedNames));
+  }
+  return out;
+}
+
+std::string applyProfile(
+    const HostInfo& hostInfo,
+    const utils::InterfaceList& interfaces,
+    const std::string& value) {
+  // Build validator once (queries Agent + QSFP), then delegate to the testable
+  // core operating on the session's config.
+  ProfileValidator validator(hostInfo);
+  return applyProfileImpl(
+      validator,
+      *ConfigSession::getInstance().getAgentConfig().sw(),
+      interfaces,
+      value);
 }
 
 // Configures a port as a routed (L3) port.

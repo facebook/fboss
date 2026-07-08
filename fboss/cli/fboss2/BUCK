@@ -1318,6 +1318,7 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/lib:common_file_utils",
+        "//fboss/lib/config:agent_config_utils",
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//folly:conv",
         "//folly:file_util",

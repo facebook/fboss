@@ -10,10 +10,15 @@
 
 #pragma once
 
+#include <set>
 #include <string>
 #include <vector>
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h"
+#include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
+#include "fboss/cli/fboss2/utils/InterfaceList.h"
 
 namespace facebook::fboss {
 
@@ -57,5 +62,15 @@ class CmdConfigInterface
 
   void printOutput(const RetType& logMsg);
 };
+
+// Testable core of the profile-change flow: validates `value` against
+// `swConfig` for `interfaces`, applies the profile to those ports, and removes
+// the subsumed ports. Throws std::invalid_argument with a user-facing message
+// on a validation failure. Declared here for unit testing.
+std::string applyProfileImpl(
+    ProfileValidator& validator,
+    cfg::SwitchConfig& swConfig,
+    const utils::InterfaceList& interfaces,
+    const std::string& value);
 
 } // namespace facebook::fboss

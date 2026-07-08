@@ -632,7 +632,7 @@ TEST_F(CmdConfigInterfaceTestFixture, parseProfileEmpty) {
 // ProfileValidator::validateProfile Tests (using test constructor)
 // ============================================================================
 
-// Test that a supported profile is validated and returned
+// Test that a supported profile passes validation without throwing
 TEST_F(CmdConfigInterfaceTestFixture, validateProfileSupported) {
   cfg::PlatformMapping platformMapping;
 
@@ -652,9 +652,8 @@ TEST_F(CmdConfigInterfaceTestFixture, validateProfileSupported) {
   std::map<std::string, std::vector<cfg::PortProfileID>> emptyProfiles;
   ProfileValidator validator(platformMapping, emptyProfiles);
 
-  auto result =
-      validator.validateProfile("eth1/1/1", "PROFILE_100G_4_NRZ_CL91");
-  EXPECT_EQ(result, cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91);
+  EXPECT_NO_THROW(validator.validateProfile(
+      "eth1/1/1", cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91));
 }
 
 // Test unsupported profile throws std::invalid_argument
@@ -673,7 +672,8 @@ TEST_F(CmdConfigInterfaceTestFixture, validateProfileNotSupported) {
   ProfileValidator validator(platformMapping, emptyProfiles);
 
   try {
-    validator.validateProfile("eth1/1/1", "PROFILE_400G_8_PAM4_RS544X2N");
+    validator.validateProfile(
+        "eth1/1/1", cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N);
     FAIL() << "Expected std::invalid_argument";
   } catch (const std::invalid_argument& e) {
     EXPECT_THAT(e.what(), HasSubstr("Invalid profile"));
@@ -689,7 +689,8 @@ TEST_F(CmdConfigInterfaceTestFixture, validateProfilePortNotFound) {
   ProfileValidator validator(platformMapping, emptyProfiles);
 
   try {
-    validator.validateProfile("eth99/99/99", "PROFILE_100G_4_NRZ_CL91");
+    validator.validateProfile(
+        "eth99/99/99", cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91);
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
     EXPECT_THAT(e.what(), HasSubstr("not found"));
@@ -715,14 +716,14 @@ TEST_F(CmdConfigInterfaceTestFixture, validateProfileQsfpPrimaryFallback) {
   ProfileValidator validator(platformMapping, qsfpProfiles);
 
   // Should succeed because QSFP says 100G is supported
-  auto result =
-      validator.validateProfile("eth1/1/1", "PROFILE_100G_4_NRZ_CL91");
-  EXPECT_EQ(result, cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91);
+  EXPECT_NO_THROW(validator.validateProfile(
+      "eth1/1/1", cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91));
 
   // Should fail because QSFP does NOT include 400G (even though PlatformMapping
   // does)
   try {
-    validator.validateProfile("eth1/1/1", "PROFILE_400G_8_PAM4_RS544X2N");
+    validator.validateProfile(
+        "eth1/1/1", cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N);
     FAIL() << "Expected std::invalid_argument";
   } catch (const std::invalid_argument& e) {
     EXPECT_THAT(e.what(), HasSubstr("Invalid profile"));
@@ -1668,6 +1669,111 @@ TEST_F(CmdConfigInterfaceTestFixture, NoShutdownParserRecognizedAsValueless) {
   ASSERT_EQ(config.getAttributes().size(), 1);
   EXPECT_EQ(config.getAttributes()[0].first, "no-shutdown");
   EXPECT_EQ(config.getAttributes()[0].second, "");
+}
+
+// ============================================================================
+// applyProfileImpl integration test
+// ============================================================================
+
+// Fixture with a well-formed session config (eth1/1/1 controlling, eth1/1/2 in
+// its own vlan) so the subsumed-port removal exercises the full vlan/interface
+// pruning path.
+class ApplyProfileSubsumeTestFixture : public CmdConfigTestBase {
+ public:
+  ApplyProfileSubsumeTestFixture()
+      : CmdConfigTestBase(
+            "fboss_subsume_test_%%%%-%%%%-%%%%-%%%%",
+            R"({
+  "sw": {
+    "defaultVlan": 1,
+    "ports": [
+      {"logicalID": 1, "name": "eth1/1/1", "state": 2, "ingressVlan": 1},
+      {"logicalID": 2, "name": "eth1/1/2", "state": 2, "ingressVlan": 2}
+    ],
+    "vlans": [
+      {"id": 1, "name": "vlan1"},
+      {"id": 2, "name": "vlan2"}
+    ],
+    "vlanPorts": [
+      {"vlanID": 1, "logicalPort": 1},
+      {"vlanID": 2, "logicalPort": 2}
+    ],
+    "interfaces": [
+      {"intfID": 1, "routerID": 0, "vlanID": 1, "name": "eth1/1/1", "mtu": 1500},
+      {"intfID": 2, "routerID": 0, "vlanID": 2, "name": "eth1/1/2", "mtu": 1500}
+    ]
+  }
+})") {}
+
+  // Platform mapping where eth1/1/1 at 400G subsumes eth1/1/2.
+  ProfileValidator makeSubsumeValidator() {
+    cfg::PlatformMapping pm;
+
+    cfg::PlatformPortProfileConfigEntry profile400G;
+    profile400G.factor()->profileID() =
+        cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N;
+    profile400G.profile()->speed() = cfg::PortSpeed::FOURHUNDREDG;
+    pm.platformSupportedProfiles()->push_back(profile400G);
+
+    cfg::PlatformPortEntry port1;
+    port1.mapping()->id() = 1;
+    port1.mapping()->name() = "eth1/1/1";
+    port1.mapping()->controllingPort() = 1;
+    cfg::PlatformPortConfig wide;
+    wide.subsumedPorts() = {2};
+    port1
+        .supportedProfiles()[cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N] =
+        wide;
+    pm.ports()[1] = port1;
+
+    cfg::PlatformPortEntry port2;
+    port2.mapping()->id() = 2;
+    port2.mapping()->name() = "eth1/1/2";
+    port2.mapping()->controllingPort() = 1;
+    port2.supportedProfiles()[cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91] =
+        cfg::PlatformPortConfig();
+    pm.ports()[2] = port2;
+
+    return ProfileValidator(
+        pm, std::map<std::string, std::vector<cfg::PortProfileID>>{});
+  }
+};
+
+TEST_F(
+    ApplyProfileSubsumeTestFixture,
+    appliesProfileRemovesSubsumedAndReports) {
+  setupTestableConfigSession(
+      "config interface", "eth1/1/1 profile PROFILE_400G_8_PAM4_RS544X2N");
+  auto validator = makeSubsumeValidator();
+  auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+
+  auto result = applyProfileImpl(
+      validator, swConfig, interfaces, "PROFILE_400G_8_PAM4_RS544X2N");
+
+  EXPECT_THAT(result, HasSubstr("profile=PROFILE_400G_8_PAM4_RS544X2N"));
+  EXPECT_THAT(result, HasSubstr("auto-removed subsumed port(s): eth1/1/2"));
+
+  // eth1/1/1 took the new profile; eth1/1/2 and its dependents are gone.
+  std::set<int> portIds;
+  for (const auto& p : *swConfig.ports()) {
+    portIds.insert(*p.logicalID());
+    if (*p.logicalID() == 1) {
+      EXPECT_EQ(
+          *p.profileID(), cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N);
+    }
+  }
+  EXPECT_EQ(portIds, (std::set<int>{1}));
+
+  for (const auto& vp : *swConfig.vlanPorts()) {
+    EXPECT_NE(*vp.logicalPort(), 2);
+  }
+  for (const auto& v : *swConfig.vlans()) {
+    EXPECT_NE(*v.id(), 2);
+  }
+  for (const auto& i : *swConfig.interfaces()) {
+    EXPECT_NE(*i.intfID(), 2);
+  }
 }
 
 } // namespace facebook::fboss

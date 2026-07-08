@@ -1061,6 +1061,7 @@ add_library(fboss2_config_lib
 target_link_libraries(fboss2_config_lib
   cli_metadata
   fboss2_lib
+  agent_config_utils
   agent_dir_util
   common_file_utils
   switch_config_cpp2

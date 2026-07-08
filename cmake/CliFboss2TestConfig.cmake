@@ -37,6 +37,7 @@ add_executable(fboss2_cmd_config_test
   fboss/cli/fboss2/test/config/CmdDeleteInterfaceTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteTunnelIpInIpTest.cpp
   fboss/cli/fboss2/test/config/ConfigSessionSystemdTest.cpp
+  fboss/cli/fboss2/test/config/ProfileValidationTest.cpp
 )
 
 target_link_libraries(fboss2_cmd_config_test
