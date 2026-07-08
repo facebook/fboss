@@ -26,6 +26,9 @@ class BroadcomAsic : public HwAsic {
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_BCM;
   }
+  uint32_t getNumLanesPerCore() const override {
+    return 8;
+  }
   uint32_t getNumCores() const override {
     throw FbossError("Num cores API not supported");
   }

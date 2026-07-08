@@ -22,10 +22,6 @@ class SaiBcmWedge100Platform : public SaiBcmPlatform {
       const std::string& platformMappingStr);
   ~SaiBcmWedge100Platform() override;
   HwAsic* getAsic() const override;
-  uint32_t numLanesPerCore() const override {
-    return 4;
-  }
-
   uint32_t numCellsAvailable() const override {
     auto constexpr kPerXpeCellsAvailable = 0x436e;
     auto constexpr kPerXpeCellsAvailableOptimized = 0x454A;

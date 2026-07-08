@@ -14,10 +14,9 @@
 
 namespace facebook::fboss {
 
-// TODO: these defaults match Wedge800BACT; they should eventually come from
+// TODO: this default matches Wedge800BACT; it should eventually come from
 // ASIC traits or the platform descriptor config.
 namespace {
-constexpr uint32_t kDefaultNumLanesPerCore = 8;
 constexpr uint32_t kDefaultNumCellsAvailable = 319960;
 } // namespace
 
@@ -42,10 +41,6 @@ void GenericSaiBcmPlatform::setupAsic(
 
 HwAsic* GenericSaiBcmPlatform::getAsic() const {
   return asic_.get();
-}
-
-uint32_t GenericSaiBcmPlatform::numLanesPerCore() const {
-  return kDefaultNumLanesPerCore;
 }
 
 uint32_t GenericSaiBcmPlatform::numCellsAvailable() const {

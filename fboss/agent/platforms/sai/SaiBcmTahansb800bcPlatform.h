@@ -23,10 +23,6 @@ class SaiBcmTahansb800bcPlatform : public SaiBcmPlatform {
       const std::string& platformMappingStr);
   ~SaiBcmTahansb800bcPlatform() override;
   HwAsic* getAsic() const override;
-  uint32_t numLanesPerCore() const override {
-    return 8;
-  }
-
   uint32_t numCellsAvailable() const override {
     return 616994;
   }

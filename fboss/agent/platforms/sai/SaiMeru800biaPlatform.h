@@ -24,10 +24,6 @@ class SaiMeru800biaPlatform : public SaiBcmPlatform {
   ~SaiMeru800biaPlatform() override;
   HwAsic* getAsic() const override;
 
-  uint32_t numLanesPerCore() const override {
-    return 8;
-  }
-
   uint32_t numCellsAvailable() const override {
     return 130665;
   }

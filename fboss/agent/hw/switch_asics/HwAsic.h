@@ -636,6 +636,10 @@ class HwAsic {
     return 1;
   }
 
+  virtual uint32_t getNumLanesPerCore() const {
+    return 1;
+  }
+
   /*
    * Default Content Aware Processor group ID for ACLs
    */

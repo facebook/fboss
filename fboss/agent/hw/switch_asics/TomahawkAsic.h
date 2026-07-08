@@ -20,6 +20,9 @@ class TomahawkAsic : public BroadcomXgsAsic {
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::HUNDREDG;
   }
+  uint32_t getNumLanesPerCore() const override {
+    return 4;
+  }
   int getDefaultNumPortQueues(
       cfg::StreamType streamType,
       cfg::PortType portType) const override;

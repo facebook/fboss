@@ -36,7 +36,6 @@ class SaiBcmPlatform : public SaiPlatform {
     return true;
   }
   const char* getHwConfigValue(const std::string& key) const;
-  virtual uint32_t numLanesPerCore() const = 0;
   virtual uint32_t numCellsAvailable() const = 0;
   virtual bool supportsDynamicBcmConfig() const {
     return false;
