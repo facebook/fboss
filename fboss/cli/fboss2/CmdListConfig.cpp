@@ -1026,7 +1026,7 @@ const CommandTree& kConfigCommandTree() {
       {
           "delete",
           "interface",
-          "Reset interface settings (e.g. ipv6 ndp, ip-address)",
+          "Delete an interface/port, or reset interface settings (e.g. ipv6 ndp, ip-address)",
           commandHandler<CmdDeleteInterface>,
           argRegistrar<CmdDeleteInterfaceTraits>,
           {{
