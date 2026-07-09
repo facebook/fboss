@@ -44,7 +44,7 @@ TEST_F(ConfigInterfaceMtuTest, SetAndVerifyMtu) {
   auto maybeInterface = findFirstEthInterfaceWithMtu();
   if (!maybeInterface.has_value()) {
     GTEST_SKIP()
-        << "No ethernet interface with a configured MTU and UP status found — "
+        << "No ethernet interface with a configured MTU found — "
            "skipping MTU test (no L3 cfg::Interface present on this switch)";
   }
   const Interface& interface = *maybeInterface;
