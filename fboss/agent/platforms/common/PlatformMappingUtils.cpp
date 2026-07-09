@@ -54,6 +54,7 @@
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
 #include "fboss/agent/platforms/common/yangra2/Yangra2PlatformMapping.h"
+#include "fboss/lib/platforms/PlatformDescriptor.h"
 
 namespace {
 std::vector<int> getFakeSaiControllingPortIDs() {
@@ -76,6 +77,16 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
     }
     XLOG(INFO) << "Overriding platform mapping from "
                << FLAGS_platform_mapping_override_path;
+  }
+  if (platformMappingStr.empty() &&
+      !FLAGS_platform_descriptor_config_path.empty()) {
+    auto descriptorPlatformMapping =
+        PlatformDescriptorRegistry::get().loadPlatformMapping(type);
+    if (descriptorPlatformMapping.has_value()) {
+      XLOG(INFO) << "Loading platform mapping from platform descriptor config "
+                 << FLAGS_platform_descriptor_config_path;
+      return std::make_unique<PlatformMapping>(*descriptorPlatformMapping);
+    }
   }
   switch (type) {
     case PlatformType::PLATFORM_WEDGE:
