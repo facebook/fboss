@@ -2,7 +2,6 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"

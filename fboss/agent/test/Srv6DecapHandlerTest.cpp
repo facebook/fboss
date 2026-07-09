@@ -4,9 +4,7 @@
 #include <gtest/gtest.h>
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/packet/EthHdr.h"
-#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
-#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"

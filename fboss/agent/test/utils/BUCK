@@ -258,7 +258,6 @@ cpp_library(
         ":port_test_utils",
         ":voq_test_utils",
         "//fboss/agent:agent_features",
-        "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
