@@ -124,6 +124,7 @@ target_link_libraries(led_manager_lib
   wedge800bact_platform_mapping
   wedge800cact_platform_mapping
   yamp_platform_mapping
+  platform_mapping_utils
   product_info
   Folly::folly
   FBThrift::thriftcpp2

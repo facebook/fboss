@@ -15,6 +15,7 @@
 #include <folly/logging/xlog.h>
 #include <stdexcept>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/platforms/common/PlatformMappingUtils.h"
 #include "fboss/led_service/LedManager.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 
@@ -39,6 +40,22 @@ class BspLedManager : public LedManager {
         BspGenericSystemContainer<ContainerType>::getInstance().get();
     bspSystemContainer_->createBspLedContainers();
     platformMapping_ = std::make_unique<MappingType>();
+
+    // Subscribe to FSDB after initializing the platform mapping.
+    subscribeToFsdb();
+  }
+
+  template <typename ContainerType>
+  void init(PlatformType platformType) {
+    bspSystemContainer_ =
+        BspGenericSystemContainer<ContainerType>::getInstance().get();
+    bspSystemContainer_->createBspLedContainers();
+    platformMapping_ = utility::initPlatformMapping(platformType);
+    if (!platformMapping_) {
+      throw FbossError(
+          "Failed to load platform mapping for ",
+          static_cast<int>(platformType));
+    }
 
     // Subscribe to FSDB after initializing the platform mapping.
     subscribeToFsdb();
