@@ -14384,6 +14384,15 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         },
         {
+          "test_name_regex": "AgentSrv6MidpointTest.*$"
+        },
+        {
+          "test_name_regex": "AgentPfcConfigTest.*$"
+        },
+        {
+          "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
+        },
+        {
           "test_name_regex": "AgentTest_PROFILE_25G_.*$"
         },
         {
@@ -14783,6 +14792,15 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
+        },
+        {
+          "test_name_regex": "AgentSrv6MidpointTest.*$"
+        },
+        {
+          "test_name_regex": "AgentPfcConfigTest.*$"
+        },
+        {
+          "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
         },
         {
           "test_name_regex": "AgentTest_PROFILE_25G_.*$"
