@@ -125,6 +125,23 @@ uint32_t HwAsic::getNumCellsAvailable(PlatformType platformType) const {
       apache::thrift::util::enumNameSafe(platformType));
 }
 
+uint32_t HwAsic::getSaiPhysicalLaneId(
+    PlatformType platformType,
+    cfg::PortType portType,
+    uint32_t chipId,
+    uint32_t logicalLane) const {
+  throw FbossError(
+      getAsicTypeStr(),
+      " ASIC does not support SAI physical lane ID for platform: ",
+      apache::thrift::util::enumNameSafe(platformType),
+      " port type: ",
+      apache::thrift::util::enumNameSafe(portType),
+      " chip: ",
+      chipId,
+      " lane: ",
+      logicalLane);
+}
+
 std::unique_ptr<HwAsic> HwAsic::makeAsic(
     int64_t switchId,
     const cfg::SwitchInfo& switchInfo,

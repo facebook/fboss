@@ -46,6 +46,13 @@ bool SaiPlatformPort::shouldDisableFEC() const {
   return !getTransceiverID().has_value();
 }
 
+uint32_t SaiPlatformPort::getSaiPhysicalLaneId(
+    uint32_t chipId,
+    uint32_t logicalLane) const {
+  return getPlatform()->getAsic()->getSaiPhysicalLaneId(
+      getPlatform()->getType(), getPortType(), chipId, logicalLane);
+}
+
 bool SaiPlatformPort::checkSupportsTransceiver() const {
   if (getPlatform()->getOverrideTransceiverInfo(getPortID())) {
     return true;

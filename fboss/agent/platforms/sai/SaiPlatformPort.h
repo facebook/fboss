@@ -70,6 +70,9 @@ class SaiPlatformPort : public PlatformPort {
   std::optional<ChannelID> getChannel() const;
   virtual uint32_t getCurrentLedState() const = 0;
 
+ protected:
+  uint32_t getSaiPhysicalLaneId(uint32_t chipId, uint32_t logicalLane) const;
+
  private:
   cfg::PortProfileID profile_{};
 };

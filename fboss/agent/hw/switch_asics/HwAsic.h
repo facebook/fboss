@@ -641,6 +641,12 @@ class HwAsic {
     return 1;
   }
 
+  virtual uint32_t getSaiPhysicalLaneId(
+      PlatformType platformType,
+      cfg::PortType portType,
+      uint32_t chipId,
+      uint32_t logicalLane) const;
+
   virtual uint32_t getNumCellsAvailable(PlatformType platformType) const;
 
   /*
