@@ -249,6 +249,17 @@ struct LambdaPathVisitorOperator {
   Func f_;
 };
 
+// del on a hybrid leaf: PatchApplier issues a del patch whose base path ends at
+// the hybrid node. Returning SKIPPING_PRIMITIVE_NODE defers removal to the
+// nearest container ancestor, mirroring visitNode's handling for non-hybrid
+// nodes.
+template <typename Op>
+inline bool isHybridDelLeaf(
+    PathIter cursor,
+    const VisitImplParams<Op>& params) {
+  return cursor == params.end && params.options.visitContainerForPrimitiveNode;
+}
+
 template <typename TC, typename Node, typename Op>
 ThriftTraverseResult visitNode(
     Node& node,
@@ -394,6 +405,10 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
       // only enable for HybridNode types
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
+    if (isHybridDelLeaf(cursor, params)) {
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::SKIPPING_PRIMITIVE_NODE);
+    }
     try {
       if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Node>(node, cursor, params.end);
@@ -541,6 +556,10 @@ struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
       // only enable for HybridNode types
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
+    if (isHybridDelLeaf(cursor, params)) {
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::SKIPPING_PRIMITIVE_NODE);
+    }
     try {
       if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Node>(node, cursor, params.end);
@@ -679,6 +698,10 @@ struct PathVisitorImpl<
       // only enable for HybridNode types
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
+    if (isHybridDelLeaf(cursor, params)) {
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::SKIPPING_PRIMITIVE_NODE);
+    }
     try {
       if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Node>(node, cursor, params.end);
@@ -790,6 +813,10 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
       // only enable for HybridNode types
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
+    if (isHybridDelLeaf(cursor, params)) {
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::SKIPPING_PRIMITIVE_NODE);
+    }
     // TODO: implement specialization for hybrid nodes
     std::string message = folly::to<std::string>(
         "Unsupported hybrid node visitation: path: ",
@@ -940,6 +967,10 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
       // only enable for HybridNode types
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
+    if (isHybridDelLeaf(cursor, params)) {
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::SKIPPING_PRIMITIVE_NODE);
+    }
     try {
       if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Node>(node, cursor, params.end);
