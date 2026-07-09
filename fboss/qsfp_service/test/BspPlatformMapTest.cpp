@@ -6,6 +6,7 @@
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
 #include "fboss/lib/bsp/leh800bcls/Leh800bclsBspPlatformMapping.h"
+#include "fboss/lib/bsp/m4062nhp/M4062nhpBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
@@ -80,6 +81,10 @@ TEST_F(BspPlatformMapTest, checkNumPimTransceivers) {
   auto morgan800ccBspPlatformMap = Morgan800ccBspPlatformMapping();
   EXPECT_EQ(morgan800ccBspPlatformMap.numPims(), 1);
   EXPECT_EQ(morgan800ccBspPlatformMap.numTransceivers(), 65);
+  // Check M4062nhp
+  auto m4062nhpBspPlatformMap = M4062nhpBspPlatformMapping();
+  EXPECT_EQ(m4062nhpBspPlatformMap.numPims(), 1);
+  EXPECT_EQ(m4062nhpBspPlatformMap.numTransceivers(), 129);
 }
 
 } // namespace facebook::fboss
