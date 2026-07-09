@@ -20,6 +20,15 @@ class SaiTajoPlatformPort : public SaiPlatformPort {
   virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const override;
   virtual bool supportsTransceiver() const override;
+  uint32_t getCurrentLedState() const override;
+  void linkStatusChanged(bool /*up*/, bool /*adminUp*/) override {}
+  void externalState(PortLedExternalState /*lfs*/) override {}
+  void portChanged(
+      std::shared_ptr<Port> /*newPort*/,
+      std::shared_ptr<Port> /*oldPort*/) override {}
+
+ private:
+  uint32_t currentLedState_{0};
 };
 
 } // namespace facebook::fboss

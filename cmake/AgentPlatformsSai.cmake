@@ -46,7 +46,6 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmWedge800BACTPlatform.cpp
   fboss/agent/platforms/sai/SaiWedge800CACTPlatform.cpp
-  fboss/agent/platforms/sai/SaiWedge800CACTPlatformPort.cpp
   fboss/agent/platforms/sai/SaiM5120CSCPlatform.cpp
   fboss/agent/platforms/sai/SaiM5120CSCPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.cpp

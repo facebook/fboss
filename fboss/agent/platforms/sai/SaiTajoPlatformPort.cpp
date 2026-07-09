@@ -20,4 +20,8 @@ uint32_t SaiTajoPlatformPort::getPhysicalLaneId(
 bool SaiTajoPlatformPort::supportsTransceiver() const {
   return true;
 }
+
+uint32_t SaiTajoPlatformPort::getCurrentLedState() const {
+  return currentLedState_;
+}
 } // namespace facebook::fboss
