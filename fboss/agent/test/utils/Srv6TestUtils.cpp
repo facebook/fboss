@@ -40,16 +40,8 @@ cfg::SwitchConfig srv6EcmpInitialConfig(const AgentEnsemble& ensemble) {
       ensemble.getSw(),
       ensemble.masterLogicalPortIds(),
       true /*interfaceHasSubnet*/);
-  std::vector<cfg::Srv6Tunnel> tunnelList;
-  auto numTunnels =
-      std::min(static_cast<int>(cfg.interfaces()->size()), kSrv6MaxEcmpWidth);
-  tunnelList.reserve(numTunnels);
-  for (int i = 0; i < numTunnels; ++i) {
-    tunnelList.push_back(makeSrv6TunnelConfig(
-        folly::sformat("srv6Tunnel{}", i),
-        InterfaceID(cfg.interfaces()[i].intfID().value())));
-  }
-  cfg.srv6Tunnels() = tunnelList;
+  cfg.srv6Tunnels() = {makeSrv6TunnelConfig(
+      "srv6Tunnel0", InterfaceID(cfg.interfaces()[0].intfID().value()))};
   cfg.loadBalancers() = {
       getEcmpFullWithFlowLabelHashConfig(ensemble.getL3Asics())};
   return cfg;
