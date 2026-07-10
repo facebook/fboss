@@ -75,6 +75,10 @@
       "vendorMacOuis": [],
       "metaMacOuis": []
     },
+    "sdkVersion": {
+      "asicSdk": "sdk",
+      "saiSdk": "sai"
+    },
     "dsfNodes": {},
     "defaultVoqConfig": [],
     "mirrorOnDropReports": []
