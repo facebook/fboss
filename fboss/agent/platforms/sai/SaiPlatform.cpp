@@ -20,22 +20,16 @@
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
 #include "fboss/agent/hw/switch_asics/Qumran4DAsic.h"
-#include "fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmJ4SimPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmSaintpaulPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiJanga800bicPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiM5120CSCPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMeru800bfaPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMeru800biaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
@@ -105,6 +99,12 @@ bool useGenericSaiBcmPlatformPort(PlatformType platformMode) {
   return platformMode == PlatformType::PLATFORM_MINIPACK3BTA ||
       platformMode == PlatformType::PLATFORM_MONTBLANC ||
       platformMode == PlatformType::PLATFORM_TAHAN800BC ||
+      platformMode == PlatformType::PLATFORM_MERU800BIA ||
+      platformMode == PlatformType::PLATFORM_MERU800BIAB ||
+      platformMode == PlatformType::PLATFORM_MERU800BIAC ||
+      platformMode == PlatformType::PLATFORM_MERU800BFA ||
+      platformMode == PlatformType::PLATFORM_MERU800BFA_P1 ||
+      platformMode == PlatformType::PLATFORM_JANGA800BIC ||
       platformMode == PlatformType::PLATFORM_ICECUBE800BC ||
       platformMode == PlatformType::PLATFORM_ICECUBE800BANW ||
       platformMode == PlatformType::PLATFORM_ICETEA800BC ||
@@ -112,7 +112,10 @@ bool useGenericSaiBcmPlatformPort(PlatformType platformMode) {
       platformMode == PlatformType::PLATFORM_LEH800BCLS ||
       platformMode == PlatformType::PLATFORM_WEDGE800BACT ||
       platformMode == PlatformType::PLATFORM_WEDGE800BNHP ||
-      platformMode == PlatformType::PLATFORM_TAHANSB800BC;
+      platformMode == PlatformType::PLATFORM_TAHANSB800BC ||
+      platformMode == PlatformType::PLATFORM_J4SIM ||
+      platformMode == PlatformType::PLATFORM_SAINTPAUL ||
+      platformMode == PlatformType::PLATFORM_BLACKWOLF800BANW;
 }
 
 SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
@@ -399,17 +402,6 @@ void SaiPlatform::initPorts() {
           getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
         saiPort = std::make_unique<SaiBcmElbertPlatformPort>(portId, this);
       }
-    } else if (
-        platformMode == PlatformType::PLATFORM_MERU800BIA ||
-        platformMode == PlatformType::PLATFORM_MERU800BIAB ||
-        platformMode == PlatformType::PLATFORM_MERU800BIAC) {
-      saiPort = std::make_unique<SaiMeru800biaPlatformPort>(portId, this);
-    } else if (
-        platformMode == PlatformType::PLATFORM_MERU800BFA ||
-        platformMode == PlatformType::PLATFORM_MERU800BFA_P1) {
-      saiPort = std::make_unique<SaiMeru800bfaPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_JANGA800BIC) {
-      saiPort = std::make_unique<SaiJanga800bicPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_YANGRA) {
       saiPort = std::make_unique<SaiYangraPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MINIPACK3N) {
@@ -418,13 +410,6 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiTajoPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_M5120CSC) {
       saiPort = std::make_unique<SaiM5120CSCPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_J4SIM) {
-      saiPort = std::make_unique<SaiBcmJ4SimPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_SAINTPAUL) {
-      saiPort = std::make_unique<SaiBcmSaintpaulPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_BLACKWOLF800BANW) {
-      saiPort =
-          std::make_unique<SaiBcmBlackwolf800banwPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_YANGRA2) {
       saiPort = std::make_unique<SaiYangra2PlatformPort>(portId, this);
     } else {

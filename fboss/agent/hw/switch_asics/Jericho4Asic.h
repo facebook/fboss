@@ -24,6 +24,19 @@ class Jericho4Asic : public BroadcomAsic {
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_JERICHO4;
   }
+  uint32_t getSaiPhysicalLaneId(
+      PlatformType platformType,
+      cfg::PortType portType,
+      uint32_t chipId,
+      uint32_t logicalLane) const override {
+    if (portType == cfg::PortType::RECYCLE_PORT ||
+        portType == cfg::PortType::EVENTOR_PORT) {
+      return chipId;
+    }
+    return BroadcomAsic::getSaiPhysicalLaneId(
+               platformType, portType, chipId, logicalLane) -
+        1;
+  }
   AsicMode getAsicMode() const override;
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;
