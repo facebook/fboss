@@ -29,9 +29,8 @@
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiM5120CSCPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiTajoPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiYangra2PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiYangraPlatformPort.h"
@@ -116,6 +115,12 @@ bool useGenericSaiBcmPlatformPort(PlatformType platformMode) {
       platformMode == PlatformType::PLATFORM_J4SIM ||
       platformMode == PlatformType::PLATFORM_SAINTPAUL ||
       platformMode == PlatformType::PLATFORM_BLACKWOLF800BANW;
+}
+
+bool useGenericSaiTajoPlatformPort(PlatformType platformMode) {
+  return platformMode == PlatformType::PLATFORM_WEDGE800CACT ||
+      platformMode == PlatformType::PLATFORM_M5120CSC ||
+      platformMode == PlatformType::PLATFORM_MORGAN800CC;
 }
 
 SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
@@ -389,8 +394,6 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmMinipackPlatformPort>(portId, this);
     } else if (useGenericSaiBcmPlatformPort(platformMode)) {
       saiPort = std::make_unique<SaiBcmPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MORGAN800CC) {
-      saiPort = std::make_unique<SaiMorgan800ccPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_YAMP) {
       saiPort = std::make_unique<SaiBcmYampPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_FUJI) {
@@ -406,10 +409,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiYangraPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MINIPACK3N) {
       saiPort = std::make_unique<SaiMinipack3NPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_WEDGE800CACT) {
+    } else if (useGenericSaiTajoPlatformPort(platformMode)) {
       saiPort = std::make_unique<SaiTajoPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_M5120CSC) {
-      saiPort = std::make_unique<SaiM5120CSCPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_YANGRA2) {
       saiPort = std::make_unique<SaiYangra2PlatformPort>(portId, this);
     } else {
