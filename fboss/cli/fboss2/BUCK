@@ -70,9 +70,9 @@ cpp_library(
     headers = [
         "CmdLocalOptions.h",
     ],
+    deps = ["//folly:singleton"],
     exported_deps = [
         ":cmd-common-utils",
-        "//folly:singleton",
     ],
 )
 
@@ -244,10 +244,11 @@ cpp_library(
     headers = [
         "utils/SafetyPromptUtils.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         ":cmd-local-options",
     ],
+    exported_deps = [],
 )
 
 cpp_library(
@@ -805,6 +806,7 @@ cpp_library(
         ":cmd-global-options",
         ":cmd-handler",
         ":cmd-local-options",
+        ":cmd-show-utils",
         ":cmd-subcommands",
         ":commands-show-bgp",
         ":safety-prompt-utils",
@@ -832,6 +834,7 @@ cpp_library(
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/if:common-cpp2-types",
@@ -994,8 +997,8 @@ cpp_library(
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
-        "CLI11",
         ("boost", None, "boost_algorithm"),
+        "CLI11",
     ],
 )
 
@@ -1007,6 +1010,7 @@ cpp_binary(
     ],
     deps = [
         ":cmd-init-utils",
+        ":cmd-list-header",
         ":fboss2-lib",  # @manual
         "//folly/init:init",
         "//folly/logging:init",
@@ -1296,44 +1300,47 @@ cpp_library(
         "session/SystemdInterface.h",
         "utils/InterfaceList.h",
     ],
-    exported_deps = [
-        "fbsource//third-party/fmt:fmt",
+    deps = [
         "fbsource//third-party/glog:glog",
-        "fbsource//third-party/re2:re2",
-        ":cli_metadata-cpp2-types",
-        ":cmd-common-utils",
-        ":cmd-handler",
-        ":fboss2-lib",
+        ":cmd-list-header",
         ":table-utils",
-        "//common/network/if:if-cpp2-types",
-        "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:agent_dir_util",
         "//fboss/agent:fboss-error",
-        "//fboss/agent:fboss-types",
-        "//fboss/agent:platform_config-cpp2-types",
-        "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-clients",
         "//fboss/agent/if:ctrl-cpp2-services",
-        "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/lib:common_file_utils",
         "//fboss/lib/config:agent_config_utils",
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
-        "//folly:conv",
         "//folly:file_util",
-        "//folly:network_address",
         "//folly:range",
-        "//folly:string",
         "//folly:subprocess",
         "//folly:utility",
-        "//folly/json:dynamic",
         "//folly/lang:assume",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2:field_ref",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
+        ":cli_metadata-cpp2-types",
+        ":cmd-common-utils",
+        ":cmd-handler",
+        ":fboss2-lib",
+        "//common/network/if:if-cpp2-types",
+        "//fboss/agent:agent_config-cpp2-types",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:platform_config-cpp2-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/if:common-cpp2-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//folly:conv",
+        "//folly:network_address",
+        "//folly:string",
+        "//folly/json:dynamic",
     ],
 )
 
@@ -1350,6 +1357,7 @@ cpp_binary(
     ],
     deps = [
         ":cmd-init-utils",
+        ":cmd-list-header",
         ":fboss2-config-lib",  # @manual
         ":fboss2-lib",
         "//folly/init:init",
