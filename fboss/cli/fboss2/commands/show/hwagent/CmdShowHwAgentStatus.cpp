@@ -38,17 +38,25 @@ void AgentCounters::getAgentCounters(
   std::vector<std::map<std::string, int64_t>> FBHwCountersVec;
   for (int i = 0; i < numSwitches; i++) {
     std::map<std::string, int64_t> FBHwCounters;
-#ifndef IS_OSS
     try {
       auto hwClient =
           utils::createClient<apache::thrift::Client<FbossHwCtrl>>(hostinfo, i);
+#ifndef IS_OSS
       apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
           hwClient->getChannelShared()};
       monitoringClient.sync_getCounters(FBHwCounters);
+#else
+      // FbossHwCtrl does not extend FacebookService, but the OSS HwAgent
+      // multiplex serves fb303 methods via a FacebookBase2 handler, so reuse
+      // the channel with an FbossCtrl client (which carries getCounters) to
+      // fetch HwAgent counters.
+      apache::thrift::Client<facebook::fboss::FbossCtrl> fb303Client{
+          hwClient->getChannelShared()};
+      fb303Client.sync_getCounters(FBHwCounters);
+#endif
     } catch (const std::exception& ex) {
       XLOG(ERR) << ex.what();
     }
-#endif
     FBHwCountersVec.push_back(FBHwCounters);
   }
   FBSwHwCounters.FBSwCounters = FBSwCounters;
