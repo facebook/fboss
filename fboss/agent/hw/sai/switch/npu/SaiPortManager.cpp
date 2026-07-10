@@ -201,8 +201,8 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
           managerTable_->debugCounterManager().getTrapDropCounterStatId());
     }
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
-    if (platform_->getAsic()->isSupported(
-            HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER)) {
+    if (SaiDebugCounterManager::isSrv6MySidDropCounterSupported(
+            platform_->getAsic())) {
       counterIds.emplace_back(
           managerTable_->debugCounterManager().getSrv6MySidDropCounterStatId());
     }
@@ -302,8 +302,8 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
                 HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS),
             platform_->getAsic()->isSupported(
                 HwAsic::Feature::SAI_PORT_PG_DROP_STATUS),
-            platform_->getAsic()->isSupported(
-                HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER),
+            SaiDebugCounterManager::isSrv6MySidDropCounterSupported(
+                platform_->getAsic()),
             platform_->getAsic()->isSupported(
                 HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER)));
   }
@@ -429,8 +429,8 @@ void SaiPortManager::changePortImpl(
                   HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS),
               platform_->getAsic()->isSupported(
                   HwAsic::Feature::SAI_PORT_PG_DROP_STATUS),
-              platform_->getAsic()->isSupported(
-                  HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER),
+              SaiDebugCounterManager::isSrv6MySidDropCounterSupported(
+                  platform_->getAsic()),
               platform_->getAsic()->isSupported(
                   HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER)));
     } else if (oldPort->getName() != newPort->getName()) {
