@@ -1708,6 +1708,7 @@ cpp_library(
         ":test_utils",
         ":utils",
         "//common/fb303/cpp:default_control",
+        "//common/fb303/cpp:fb303",
         "//fb303:logging",
         "//fb303:service_data",
         "//fboss/agent/facebook:version_h",
