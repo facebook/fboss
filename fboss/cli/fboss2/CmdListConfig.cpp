@@ -966,7 +966,7 @@ const CommandTree& kConfigCommandTree() {
 
       {"config",
        "reload",
-       "Reload agent configuration",
+       "Reload agent config (hitless | warmboot | coldboot)",
        commandHandler<CmdConfigReload>,
        argRegistrar<CmdConfigReloadTraits>},
 
