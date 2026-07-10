@@ -67,17 +67,19 @@ cpp_library(
     srcs = [
         "ConfigValidator.cpp",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/range-v3:range-v3",
         "fbsource//third-party/re2:re2",
         ":cpld_manager",
         ":fbcpld_ioctl_h",
         ":i2c_misc",
-        ":platform_manager_config-cpp2-types",
         ":platform_manager_validators-cpp2-types",
         ":utils",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/op:get",
+    ],
+    exported_deps = [
+        ":platform_manager_config-cpp2-types",
     ],
 )
 
@@ -86,16 +88,18 @@ cpp_library(
     srcs = [
         "I2cExplorer.cpp",
     ],
+    deps = [
+        ":utils",
+        "//fboss/lib/i2c:i2c_ctrl",
+        "//folly:cpu_id",
+        "//folly:file_util",
+    ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/re2:re2",
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
-        ":utils",
-        "//fboss/lib/i2c:i2c_ctrl",
         "//fboss/platform/helpers:platform_fs_utils",
-        "//folly:cpu_id",
-        "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
     ],
@@ -106,29 +110,33 @@ cpp_library(
     srcs = [
         "PciExplorer.cpp",
     ],
-    exported_deps = [
-        "fbsource//third-party/re2:re2",
-        ":fbiob_ioctl_h",
+    deps = [
         ":i2c_explorer",
-        ":platform_manager_config-cpp2-types",
         ":utils",
         "//fb303:service_data",
-        "//fboss/platform/helpers:platform_fs_utils",
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "fbsource//third-party/re2:re2",
+        ":fbiob_ioctl_h",
+        ":platform_manager_config-cpp2-types",
+        "//fboss/platform/helpers:platform_fs_utils",
     ],
 )
 
 cpp_library(
     name = "device_path_resolver",
     srcs = ["DevicePathResolver.cpp"],
+    deps = [
+        ":pci_explorer",
+        ":utils",
+    ],
     exported_deps = [
         ":data_store",
         ":i2c_explorer",
-        ":pci_explorer",
         ":platform_manager_config-cpp2-types",
-        ":utils",
     ],
 )
 
@@ -147,13 +155,15 @@ cpp_library(
     srcs = [
         "SystemInterface.cpp",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/range-v3:range-v3",
-        "//fboss/platform/helpers:platform_utils",
         "//folly:conv",
         "//folly:string",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/platform/helpers:platform_utils",
     ],
 )
 
@@ -162,17 +172,19 @@ cpp_library(
     srcs = [
         "PkgManager.cpp",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/range-v3:range-v3",
         "fbsource//third-party/re2:re2",
-        ":platform_manager_config-cpp2-types",
-        ":system_interface",
         "//fb303:service_data",
-        "//fboss/platform/helpers:platform_fs_utils",
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        ":platform_manager_config-cpp2-types",
+        ":system_interface",
+        "//fboss/platform/helpers:platform_fs_utils",
     ],
 )
 
@@ -184,10 +196,12 @@ cpp_library(
     headers = [
         "ExplorationErrors.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/re2:re2",
-        ":platform_manager_config-cpp2-types",
         ":utils",
+    ],
+    exported_deps = [
+        ":platform_manager_config-cpp2-types",
     ],
 )
 
@@ -196,14 +210,16 @@ cpp_library(
     srcs = [
         "PlatformSnapshotBuilder.cpp",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
-        ":data_store",
         ":i2c_misc",
-        ":platform_manager_config-cpp2-types",
-        ":platform_manager_snapshot-cpp2-types",
         ":utils",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":data_store",
+        ":platform_manager_config-cpp2-types",
+        ":platform_manager_snapshot-cpp2-types",
     ],
 )
 
@@ -213,27 +229,29 @@ cpp_library(
         "ExplorationSummary.cpp",
         "PlatformExplorer.cpp",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/re2:re2",
         ":cpld_manager",
-        ":data_store",
-        ":device_path_resolver",
-        ":exploration_errors",
         ":fan_cpld_manager",
-        ":i2c_explorer",
-        ":pci_explorer",
-        ":platform_manager_config-cpp2-types",
-        ":platform_manager_service-cpp2-types",
-        ":presence_checker",
         ":utils",
         "//fb303:service_data",
-        "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/helpers:structured_logger",
         "//fboss/platform/weutil:fboss_eeprom_lib",
         "//fboss/platform/weutil:ioctl_smbus_eeprom_reader",
         "//folly:file_util",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":data_store",
+        ":device_path_resolver",
+        ":exploration_errors",
+        ":i2c_explorer",
+        ":pci_explorer",
+        ":platform_manager_config-cpp2-types",
+        ":platform_manager_service-cpp2-types",
+        ":presence_checker",
+        "//fboss/platform/helpers:platform_fs_utils",
     ],
 )
 
@@ -268,18 +286,20 @@ cpp_library(
         "//fboss/platform/platform_manager/hw_test:platform_manager_hw_test",
         "//fboss/platform/platform_manager/tests:config_utils_test",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         ":config_validator",
-        ":platform_manager_config-cpp2-types",
-        "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:init",
-        "//fboss/platform/helpers:platform_fs_utils",
-        "//fboss/platform/helpers:platform_name_lib",
         "//folly:string",
         "//folly/hash:hash",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        ":platform_manager_config-cpp2-types",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:platform_fs_utils",
+        "//fboss/platform/helpers:platform_name_lib",
     ],
 )
 
@@ -297,11 +317,13 @@ cpp_library(
 cpp_library(
     name = "data_store",
     srcs = ["DataStore.cpp"],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
         ":platform_manager_config-cpp2-types",
         "//fboss/platform/weutil:fboss_eeprom_lib",
-        "//folly/logging:logging",
     ],
 )
 
@@ -310,11 +332,11 @@ cpp_library(
     srcs = [
         "PlatformManagerHandler.cpp",
     ],
+    deps = [":platform_snapshot_builder"],
     exported_deps = [
         ":pkg_manager",
         ":platform_explorer",
         ":platform_manager_service-cpp2-services",
-        ":platform_snapshot_builder",
     ],
 )
 
@@ -324,6 +346,7 @@ cpp_binary(
         "Main.cpp",
     ],
     deps = [
+        "fbsource//third-party/systemd:libsystemd",
         ":config_utils",
         ":pkg_manager",
         ":platform_explorer",
@@ -353,16 +376,18 @@ cpp_library(
 cpp_library(
     name = "cpld_manager",
     srcs = ["CpldManager.cpp"],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
-        ":fbcpld_ioctl_h",
-        ":i2c_misc",
-        ":platform_manager_config-cpp2-types",
         ":utils",
         "//folly:conv",
         "//folly:file",
         "//folly:string",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":fbcpld_ioctl_h",
+        ":i2c_misc",
+        ":platform_manager_config-cpp2-types",
     ],
 )
 
@@ -376,14 +401,16 @@ cpp_library(
 cpp_library(
     name = "fan_cpld_manager",
     srcs = ["FanCpldManager.cpp"],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         ":fbfancpld_ioctl_h",
-        ":i2c_misc",
-        ":platform_manager_config-cpp2-types",
         ":utils",
         "//folly:file",
         "//folly:string",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":i2c_misc",
+        ":platform_manager_config-cpp2-types",
     ],
 )

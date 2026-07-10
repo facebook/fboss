@@ -15,7 +15,7 @@ cpp_library(
     headers = [
         "WeutilInterface.h",
     ],
-    exported_deps = [
+    deps = [
         ":config_utils_lib",
         ":eeprom_content_validator",
         ":fboss_eeprom_lib",
@@ -23,10 +23,12 @@ cpp_library(
         "//fboss/platform/helpers:platform_utils",
         "//folly:conv",
         "//folly:format",
-        "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//folly/json:dynamic",
     ],
     exported_external_deps = [
         "gflags",
@@ -43,11 +45,13 @@ cpp_library(
         "FbossEepromInterface.h",
         "ParserUtils.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         ":crc16_ccitt_aug",
-        "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
         "//folly:string",
+    ],
+    exported_deps = [
+        "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
     ],
 )
 
@@ -56,9 +60,9 @@ cpp_library(
     srcs = [
         "ConfigValidator.cpp",
     ],
+    deps = ["//folly/logging:logging"],
     exported_deps = [
         "//fboss/platform/weutil/if:weutil_config-cpp2-types",
-        "//folly/logging:logging",
     ],
 )
 
@@ -70,13 +74,15 @@ cpp_library(
     headers = [
         "ConfigUtils.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/re2:re2",
         "//fboss/platform/config_lib:config_lib",
-        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
         "//folly:format",
         "//folly:string",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
     ],
 )
 
@@ -85,9 +91,8 @@ cpp_library(
     srcs = [
         "ContentValidator.cpp",
     ],
-    exported_deps = [
-        "fbsource//third-party/fmt:fmt",
-    ],
+    deps = ["fbsource//third-party/fmt:fmt"],
+    exported_deps = [],
 )
 
 cpp_library(
@@ -108,10 +113,11 @@ cpp_library(
     headers = [
         "IoctlSmbusEepromReader.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         "//folly:string",
     ],
+    exported_deps = [],
 )
 
 cpp_binary(
