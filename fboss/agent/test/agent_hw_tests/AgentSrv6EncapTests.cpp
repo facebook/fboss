@@ -63,6 +63,15 @@ class AgentSrv6EncapTest : public AgentHwTest {
   static inline const std::string kNhgSid0{"kSid0"};
   static inline const std::string kNhgSid1OrSid2{"kSid1_or_kSid2"};
 
+  // Production recursive SRv6: a child prefix programmed by OpenR (no SID) and
+  // TE_Agent (kSid0), that a BGP parent (kEncapRoutePrefix) resolves through.
+  const folly::IPAddressV6 kChildPrefix{"2901::"};
+  static constexpr uint8_t kChildPrefixLen{48};
+  const folly::IPAddress kChildDstIp{"2901::1234"};
+  const folly::IPAddress kBgpRecursiveNhop{"2901::1"};
+  static inline const std::string kChildRouteCounter{"recursiveChildSid"};
+  static inline const std::string kParentRouteCounter{"recursiveParentSid"};
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (kIsTrunk) {
@@ -528,6 +537,80 @@ class AgentSrv6EncapTest : public AgentHwTest {
     routeUpdater.program();
   }
 
+  // Production recursive SRv6 topology:
+  //   OpenR    programs kChildPrefix -> kNumNextHops nhops, NO SID list.
+  //   TE_Agent programs kChildPrefix -> the SAME nhops, WITH kSid0 (wins by
+  //            admin distance), counted by kChildRouteCounter.
+  //   BGP      programs the parent kEncapRoutePrefix -> a next hop inside
+  //            kChildPrefix, resolving recursively through the child, counted
+  //            by kParentRouteCounter.
+  // The parent inherits the child's SID list, so both prefixes egress the same
+  // SID-list next hops.
+  void addProductionRecursiveSrv6Routes() {
+    auto ecmpHelper = makeEcmpHelper();
+    auto getNhopIp = [&ecmpHelper](int idx) {
+      auto nhop = ecmpHelper.nhop(idx);
+      if (nhop.linkLocalNhopIp.has_value()) {
+        return folly::IPAddress(nhop.linkLocalNhopIp.value());
+      }
+      return folly::IPAddress(nhop.ip);
+    };
+    auto routeUpdater = this->getSw()->getRouteUpdater();
+
+    // (a) OpenR child: same nhops, no SID list (loses on admin distance).
+    RouteNextHopSet openrNhops;
+    for (int i = 0; i < kNumNextHops; ++i) {
+      openrNhops.insert(
+          ResolvedNextHop(getNhopIp(i), ecmpHelper.nhop(i).intf, ECMP_WEIGHT));
+    }
+    routeUpdater.addRoute(
+        RouterID(0),
+        kChildPrefix,
+        kChildPrefixLen,
+        ClientID::OPENR,
+        RouteNextHopEntry(openrNhops, AdminDistance::OPENR));
+
+    // (b) TE_Agent child: the same nhops carrying kSid0 (wins on admin
+    // distance).
+    RouteNextHopSet teAgentNhops;
+    for (int i = 0; i < kNumNextHops; ++i) {
+      teAgentNhops.insert(ResolvedNextHop(
+          getNhopIp(i),
+          ecmpHelper.nhop(i).intf,
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::vector<folly::IPAddressV6>{kSid0},
+          TunnelType::SRV6_ENCAP,
+          std::string("srv6Tunnel0")));
+    }
+    routeUpdater.addRoute(
+        RouterID(0),
+        kChildPrefix,
+        kChildPrefixLen,
+        ClientID::TE_AGENT,
+        RouteNextHopEntry(
+            teAgentNhops,
+            AdminDistance::TE_AGENT,
+            std::make_optional<RouteCounterID>(kChildRouteCounter)));
+
+    // (c) BGP parent: next hop is inside kChildPrefix, resolving recursively
+    //     through the child (and inheriting its SID list).
+    routeUpdater.addRoute(
+        RouterID(0),
+        kEncapRoutePrefix,
+        kEncapRoutePrefixLen,
+        ClientID::BGPD,
+        RouteNextHopEntry(
+            RouteNextHopSet{UnresolvedNextHop(kBgpRecursiveNhop, ECMP_WEIGHT)},
+            AdminDistance::EBGP,
+            std::make_optional<RouteCounterID>(kParentRouteCounter)));
+
+    routeUpdater.program();
+  }
+
   template <typename CIDRNetworkT>
   void addEncapRoute(
       const CIDRNetworkT& prefix,
@@ -910,6 +993,51 @@ TYPED_TEST(AgentSrv6EncapTest, teAgentRoutePreferredOverOpenr) {
     // assertion in verifyEncapPacket.
     this->verifyEncapPacket(
         {egressPort}, false /*ecnMarked*/, false /*isV4*/, {this->kSid0});
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+// Production recursive SRv6: a BGP parent resolves recursively through a child
+// prefix that OpenR (no SID) and TE_Agent (kSid0) both program; TE_Agent wins,
+// so both the child and the parent egress the same next hops carrying kSid0.
+// Verified from the ASIC: outer DA == kSid0, egress-port bytes, and per-route
+// counters increment for both prefixes.
+TYPED_TEST(AgentSrv6EncapTest, recursiveBgpParentInheritsTeAgentChildSidList) {
+  auto setup = [this]() {
+    // Skip direct encap routes to avoid colliding SRv6 managed next hop keys
+    // with recursive resolution.
+    this->setupHelper(true /*resolveNeighbors*/, false /*programEncapRoutes*/);
+    this->addProductionRecursiveSrv6Routes();
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    // Both child and parent expand to the same kNumNextHops next hops; the
+    // packet may egress on any of these ports.
+    std::vector<PortID> egressPorts;
+    egressPorts.reserve(this->kNumNextHops);
+    for (int i = 0; i < this->kNumNextHops; ++i) {
+      egressPorts.push_back(this->getEgressPort(ecmpHelper.nhop(i).portDesc));
+    }
+    // 1. Child prefix egresses the SID-list next hops with kSid0.
+    this->verifyEncapPacket(
+        egressPorts,
+        false /*ecnMarked*/,
+        false /*isV4*/,
+        {this->kSid0},
+        std::nullopt /*injectPort*/,
+        this->kChildDstIp,
+        this->kChildRouteCounter);
+    // 2. Parent prefix, resolved recursively through the child, egresses the
+    //    same SID-list next hops with the inherited kSid0.
+    this->verifyEncapPacket(
+        egressPorts,
+        false /*ecnMarked*/,
+        false /*isV4*/,
+        {this->kSid0},
+        std::nullopt /*injectPort*/,
+        this->kEncapRouteDstIp,
+        this->kParentRouteCounter);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
