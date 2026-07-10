@@ -1629,8 +1629,8 @@ TEST(Route, resolveRecursiveSrv6OpenrRouteChange) {
 
 // SRv6-over-SRv6 recursion: outer route R1 has no SID list and resolves over a
 // single OpenR route R2 whose link-local next hops themselves carry SID lists.
-// Documents current behavior: the inner SID lists are NOT inherited; the
-// outer's empty SID list is stamped on the resolved leaves.
+// The outer next hop carries no SID list, so each resolved leaf inherits the
+// inner (child) SID list from the OpenR route it resolved through.
 TEST(Route, resolveRecursiveSrv6InnerSidListThroughSingleOpenrRoute) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
@@ -1692,24 +1692,23 @@ TEST(Route, resolveRecursiveSrv6InnerSidListThroughSingleOpenrRoute) {
       {},
       false);
 
-  // 3. R1 resolves to fe80::1/fe80::2 but the inner SID lists are dropped
-  //    because the outer next hop carried none.
+  // 3. R1 resolves to fe80::1/fe80::2 and each leaf inherits the inner SID list
+  //    from the OpenR route it resolved through, since the outer carried none.
   auto it = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
   ASSERT_NE(v6Routes.end(), it);
   EXPECT_TRUE(it->value()->isResolved());
   const auto& resolvedNhops = it->value()->getForwardInfo().getNextHopSet();
   ASSERT_EQ(resolvedNhops.size(), 2);
 
-  std::set<InterfaceID> intfs;
+  std::map<InterfaceID, std::vector<folly::IPAddressV6>> segListByIntf;
   for (const auto& nh : resolvedNhops) {
     EXPECT_TRUE(nh.isResolved());
-    EXPECT_TRUE(nh.srv6SegmentList().empty());
-    EXPECT_FALSE(nh.tunnelType().has_value());
-    EXPECT_FALSE(nh.tunnelId().has_value());
-    intfs.insert(nh.intf());
+    EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
+    segListByIntf[nh.intf()] = nh.srv6SegmentList();
   }
-  EXPECT_TRUE(intfs.count(InterfaceID(1)));
-  EXPECT_TRUE(intfs.count(InterfaceID(2)));
+  EXPECT_EQ(segListByIntf[InterfaceID(1)], sidList1);
+  EXPECT_EQ(segListByIntf[InterfaceID(2)], sidList2);
 }
 
 // SRv6-over-SRv6 recursion: outer route R1 carries sidList1 and resolves over a
@@ -1799,8 +1798,8 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughSingleOpenrRoute) {
 
 // SRv6-over-SRv6 recursion: outer route R1 has no SID list and its two plain
 // next hops resolve over two distinct OpenR routes R2/R3, each with a
-// link-local next hop carrying its own SID list. Documents current behavior:
-// inner SID lists are dropped (outer carried none).
+// link-local next hop carrying its own SID list. Each resolved leaf inherits
+// the inner (child) SID list, since the outer next hops carried none.
 TEST(Route, resolveRecursiveSrv6InnerSidListThroughTwoOpenrRoutes) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
@@ -1865,23 +1864,23 @@ TEST(Route, resolveRecursiveSrv6InnerSidListThroughTwoOpenrRoutes) {
       {},
       false);
 
-  // 3. R1 resolves to fe80::1/fe80::2 with empty SID lists.
+  // 3. R1 resolves to fe80::1/fe80::2, each leaf inheriting the inner SID list
+  //    from the OpenR route it resolved through.
   auto it = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
   ASSERT_NE(v6Routes.end(), it);
   EXPECT_TRUE(it->value()->isResolved());
   const auto& resolvedNhops = it->value()->getForwardInfo().getNextHopSet();
   ASSERT_EQ(resolvedNhops.size(), 2);
 
-  std::set<InterfaceID> intfs;
+  std::map<InterfaceID, std::vector<folly::IPAddressV6>> segListByIntf;
   for (const auto& nh : resolvedNhops) {
     EXPECT_TRUE(nh.isResolved());
-    EXPECT_TRUE(nh.srv6SegmentList().empty());
-    EXPECT_FALSE(nh.tunnelType().has_value());
-    EXPECT_FALSE(nh.tunnelId().has_value());
-    intfs.insert(nh.intf());
+    EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
+    segListByIntf[nh.intf()] = nh.srv6SegmentList();
   }
-  EXPECT_TRUE(intfs.count(InterfaceID(1)));
-  EXPECT_TRUE(intfs.count(InterfaceID(2)));
+  EXPECT_EQ(segListByIntf[InterfaceID(1)], sidList1);
+  EXPECT_EQ(segListByIntf[InterfaceID(2)], sidList2);
 }
 
 // SRv6-over-SRv6 recursion: outer route R1 carries sidList1 on both next hops,
