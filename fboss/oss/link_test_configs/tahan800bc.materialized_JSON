@@ -3,6 +3,7 @@
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
     "disable_neighbor_updates": "true",
+    "enable_acl_table_group": "true",
     "enable_nexthop_id_manager": "true",
     "enable_replayer": "true",
     "intf_nbr_tables": "true",
@@ -5982,95 +5983,7 @@
       
     ],
     "acls": [
-      {
-        "dstIp": "fe80::/10",
-        "srcPort": 0,
-        "name": "cpuPolicing-CPU-Port-linkLocal-v6",
-        "actionType": 1
-      },
-      {
-        "dstIp": "ff02::/16",
-        "srcPort": 0,
-        "name": "cpuPolicing-CPU-Port-Mcast-v6",
-        "actionType": 1
-      },
-      {
-        "dstIp": "fe80::/10",
-        "dscp": 48,
-        "name": "cpuPolicing-high-NetworkControl-linkLocal-v6",
-        "actionType": 1
-      },
-      {
-        "dstIp": "ff02::/16",
-        "dscp": 48,
-        "name": "cpuPolicing-high-NetworkControl-ff02::/16",
-        "actionType": 1
-      },
-      {
-        "dstIp": "fe80::/10",
-        "name": "cpuPolicing-mid-linkLocal-v6",
-        "actionType": 1
-      },
-      {
-        "dstIp": "ff02::/16",
-        "name": "cpuPolicing-mid-ff02::/16",
-        "actionType": 1
-      },
-      {
-        "srcIp": "2401:db00::/32",
-        "proto": 6,
-        "name": "ttld-prod-private",
-        "actionType": 1,
-        "ttl": {
-          "value": 128,
-          "mask": 128
-        },
-        "ipType": 3
-      },
-      {
-        "srcIp": "2a03:2880::/32",
-        "proto": 6,
-        "name": "ttld-prod-public",
-        "actionType": 1,
-        "ttl": {
-          "value": 128,
-          "mask": 128
-        },
-        "ipType": 3
-      },
-      {
-        "srcIp": "2803:6080::/29",
-        "proto": 6,
-        "name": "ttld-ip-per-task",
-        "actionType": 1,
-        "ttl": {
-          "value": 128,
-          "mask": 128
-        },
-        "ipType": 3
-      },
-      {
-        "srcIp": "2a03:83e0::/32",
-        "proto": 6,
-        "name": "ttld-onavo-infra",
-        "actionType": 1,
-        "ttl": {
-          "value": 128,
-          "mask": 128
-        },
-        "ipType": 3
-      },
-      {
-        "srcIp": "2620:0000:1c00::/40",
-        "proto": 6,
-        "name": "ttld-interconnect",
-        "actionType": 1,
-        "ttl": {
-          "value": 128,
-          "mask": 128
-        },
-        "ipType": 3
-      }
+      
     ],
     "maxNeighborProbes": 300,
     "staleEntryInterval": 10,
@@ -6443,6 +6356,116 @@
         
       ]
     },
+    "aclTableGroup": {
+      "name": "acl-table-group-ingress",
+      "aclTables": [
+        {
+          "name": "AclTable1",
+          "priority": 0,
+          "aclEntries": [
+            {
+              "dstIp": "fe80::/10",
+              "srcPort": 0,
+              "name": "cpuPolicing-CPU-Port-linkLocal-v6",
+              "actionType": 1
+            },
+            {
+              "dstIp": "ff02::/16",
+              "srcPort": 0,
+              "name": "cpuPolicing-CPU-Port-Mcast-v6",
+              "actionType": 1
+            },
+            {
+              "dstIp": "fe80::/10",
+              "dscp": 48,
+              "name": "cpuPolicing-high-NetworkControl-linkLocal-v6",
+              "actionType": 1
+            },
+            {
+              "dstIp": "ff02::/16",
+              "dscp": 48,
+              "name": "cpuPolicing-high-NetworkControl-ff02::/16",
+              "actionType": 1
+            },
+            {
+              "dstIp": "fe80::/10",
+              "name": "cpuPolicing-mid-linkLocal-v6",
+              "actionType": 1
+            },
+            {
+              "dstIp": "ff02::/16",
+              "name": "cpuPolicing-mid-ff02::/16",
+              "actionType": 1
+            },
+            {
+              "srcIp": "2401:db00::/32",
+              "proto": 6,
+              "name": "ttld-prod-private",
+              "actionType": 1,
+              "ttl": {
+                "value": 128,
+                "mask": 128
+              },
+              "ipType": 3
+            },
+            {
+              "srcIp": "2a03:2880::/32",
+              "proto": 6,
+              "name": "ttld-prod-public",
+              "actionType": 1,
+              "ttl": {
+                "value": 128,
+                "mask": 128
+              },
+              "ipType": 3
+            },
+            {
+              "srcIp": "2803:6080::/29",
+              "proto": 6,
+              "name": "ttld-ip-per-task",
+              "actionType": 1,
+              "ttl": {
+                "value": 128,
+                "mask": 128
+              },
+              "ipType": 3
+            },
+            {
+              "srcIp": "2a03:83e0::/32",
+              "proto": 6,
+              "name": "ttld-onavo-infra",
+              "actionType": 1,
+              "ttl": {
+                "value": 128,
+                "mask": 128
+              },
+              "ipType": 3
+            },
+            {
+              "srcIp": "2620:0000:1c00::/40",
+              "proto": 6,
+              "name": "ttld-interconnect",
+              "actionType": 1,
+              "ttl": {
+                "value": 128,
+                "mask": 128
+              },
+              "ipType": 3
+            }
+          ],
+          "actionTypes": [
+            
+          ],
+          "qualifiers": [
+            
+          ],
+          "udfGroups": [
+            
+          ]
+        }
+      ],
+      "stage": 0
+    },
     "sdkVersion": {
       "asicSdk": "sdk",
       "saiSdk": "sai"
@@ -6452,6 +6475,118 @@
     },
     "defaultVoqConfig": [
       
+    ],
+    "aclTableGroups": [
+      {
+        "name": "acl-table-group-ingress",
+        "aclTables": [
+          {
+            "name": "AclTable1",
+            "priority": 0,
+            "aclEntries": [
+              {
+                "dstIp": "fe80::/10",
+                "srcPort": 0,
+                "name": "cpuPolicing-CPU-Port-linkLocal-v6",
+                "actionType": 1
+              },
+              {
+                "dstIp": "ff02::/16",
+                "srcPort": 0,
+                "name": "cpuPolicing-CPU-Port-Mcast-v6",
+                "actionType": 1
+              },
+              {
+                "dstIp": "fe80::/10",
+                "dscp": 48,
+                "name": "cpuPolicing-high-NetworkControl-linkLocal-v6",
+                "actionType": 1
+              },
+              {
+                "dstIp": "ff02::/16",
+                "dscp": 48,
+                "name": "cpuPolicing-high-NetworkControl-ff02::/16",
+                "actionType": 1
+              },
+              {
+                "dstIp": "fe80::/10",
+                "name": "cpuPolicing-mid-linkLocal-v6",
+                "actionType": 1
+              },
+              {
+                "dstIp": "ff02::/16",
+                "name": "cpuPolicing-mid-ff02::/16",
+                "actionType": 1
+              },
+              {
+                "srcIp": "2401:db00::/32",
+                "proto": 6,
+                "name": "ttld-prod-private",
+                "actionType": 1,
+                "ttl": {
+                  "value": 128,
+                  "mask": 128
+                },
+                "ipType": 3
+              },
+              {
+                "srcIp": "2a03:2880::/32",
+                "proto": 6,
+                "name": "ttld-prod-public",
+                "actionType": 1,
+                "ttl": {
+                  "value": 128,
+                  "mask": 128
+                },
+                "ipType": 3
+              },
+              {
+                "srcIp": "2803:6080::/29",
+                "proto": 6,
+                "name": "ttld-ip-per-task",
+                "actionType": 1,
+                "ttl": {
+                  "value": 128,
+                  "mask": 128
+                },
+                "ipType": 3
+              },
+              {
+                "srcIp": "2a03:83e0::/32",
+                "proto": 6,
+                "name": "ttld-onavo-infra",
+                "actionType": 1,
+                "ttl": {
+                  "value": 128,
+                  "mask": 128
+                },
+                "ipType": 3
+              },
+              {
+                "srcIp": "2620:0000:1c00::/40",
+                "proto": 6,
+                "name": "ttld-interconnect",
+                "actionType": 1,
+                "ttl": {
+                  "value": 128,
+                  "mask": 128
+                },
+                "ipType": 3
+              }
+            ],
+            "actionTypes": [
+              
+            ],
+            "qualifiers": [
+              
+            ],
+            "udfGroups": [
+              
+            ]
+          }
+        ],
+        "stage": 0
+      }
     ],
     "mirrorOnDropReports": [
       
