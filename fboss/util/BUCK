@@ -74,9 +74,8 @@ cpp_library(
         "wedge_qsfp_util.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
-    exported_deps = [
+    deps = [
         "//fboss/agent:enum_utils",
-        "//fboss/agent:fboss-types",
         "//fboss/lib/bsp:bsp_core",
         "//fboss/lib/bsp/icecube800banw:icecube800banw_bsp",
         "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
@@ -94,7 +93,6 @@ cpp_library(
         "//fboss/lib/bsp/tahansb800bc:tahansb800bc_bsp",
         "//fboss/lib/bsp/wedge800bact:wedge800bact_bsp",
         "//fboss/lib/bsp/wedge800cact:wedge800cact_bsp",
-        "//fboss/lib/firmware_storage:firmware_storage",
         "//fboss/lib/fpga:wedge400_i2c",
         "//fboss/lib/fpga/facebook/darwin:darwin_i2c",
         "//fboss/lib/fpga/facebook/elbert:elbert_i2c",
@@ -102,26 +100,31 @@ cpp_library(
         "//fboss/lib/fpga/facebook/yamp:yamp_i2c",
         "//fboss/lib/i2c/facebook/fuji:fuji_i2c",
         "//fboss/lib/platforms:product-info",
-        "//fboss/lib/usb:i2-api",
         "//fboss/lib/usb:wedge_i2c",
-        "//fboss/qsfp_service:transceiver-manager",
         "//fboss/qsfp_service/if:config-cpp2-types",
-        "//fboss/qsfp_service/lib:qsfp-service-client",
-        "//fboss/qsfp_service/module:firmware_upgrader",
         "//fboss/qsfp_service/module:i2c_log_buffer",
         "//fboss/qsfp_service/module:qsfp-module",
-        "//fboss/qsfp_service/platforms/wedge:wedge-transceiver",
         "//folly:conv",
         "//folly:dynamic",
         "//folly:exception",
         "//folly:file_util",
         "//folly:memory",
-        "//folly:singleton",
-        "//folly/gen:base",
-        "//folly/io/async:async_base",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
     ],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/lib/firmware_storage:firmware_storage",
+        "//fboss/lib/usb:i2-api",
+        "//fboss/qsfp_service:transceiver-manager",
+        "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//fboss/qsfp_service/module:firmware_upgrader",
+        "//fboss/qsfp_service/platforms/wedge:wedge-transceiver",
+        "//folly:singleton",
+        "//folly/gen:base",
+        "//folly/io/async:async_base",
+    ],
+    external_deps = ["gflags"],
     exported_external_deps = [
         "gflags",
     ],
@@ -144,7 +147,6 @@ cpp_binary(
     ],
     external_deps = [
         "gflags",
-        ("glibc", None, "rt"),
     ],
 )
 
@@ -160,7 +162,6 @@ cpp_binary(
     ],
     external_deps = [
         "gflags",
-        ("glibc", None, "rt"),
     ],
 )
 
@@ -176,7 +177,6 @@ cpp_binary(
     ],
     external_deps = [
         "gflags",
-        ("glibc", None, "rt"),
     ],
 )
 
@@ -199,11 +199,13 @@ cpp_library(
     headers = [
         "CredoMacsecUtil.h",
     ],
-    exported_deps = [
+    deps = [
         "//fboss/agent/hw:hardware_stats-cpp2-types",
-        "//fboss/qsfp_service/lib:qsfp-service-client",
         "//folly:file_util",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/qsfp_service/lib:qsfp-service-client",
     ],
 )
 
