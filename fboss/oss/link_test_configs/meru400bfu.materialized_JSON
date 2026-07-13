@@ -3,7 +3,6 @@
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
     "disable_neighbor_updates": "true",
-    "enable_acl_table_group": "true",
     "enable_nexthop_id_manager": "true",
     "enable_replayer": "true",
     "intf_nbr_tables": "true",
@@ -7247,28 +7246,6 @@
         
       ]
     },
-    "aclTableGroup": {
-      "name": "acl-table-group-ingress",
-      "aclTables": [
-        {
-          "name": "AclTable1",
-          "priority": 0,
-          "aclEntries": [
-            
-          ],
-          "actionTypes": [
-            
-          ],
-          "qualifiers": [
-            
-          ],
-          "udfGroups": [
-            
-          ]
-        }
-      ],
-      "stage": 0
-    },
     "sdkVersion": {
       "asicSdk": "sdk",
       "saiSdk": "sai"
@@ -7278,30 +7255,6 @@
     },
     "defaultVoqConfig": [
       
-    ],
-    "aclTableGroups": [
-      {
-        "name": "acl-table-group-ingress",
-        "aclTables": [
-          {
-            "name": "AclTable1",
-            "priority": 0,
-            "aclEntries": [
-              
-            ],
-            "actionTypes": [
-              
-            ],
-            "qualifiers": [
-              
-            ],
-            "udfGroups": [
-              
-            ]
-          }
-        ],
-        "stage": 0
-      }
     ],
     "mirrorOnDropReports": [
       

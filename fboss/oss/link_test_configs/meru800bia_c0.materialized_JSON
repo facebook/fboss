@@ -6,7 +6,6 @@
     "dsf_edsw_platform_mapping": "true",
     "dsf_single_stage_r128_f40_e16_8k_sys_ports": "true",
     "dsf_single_stage_r128_f40_e16_uniform_local_offset": "true",
-    "enable_acl_table_group": "true",
     "enable_lacp": "true",
     "enable_nexthop_id_manager": "true",
     "enable_replayer": "true",
@@ -7182,7 +7181,188 @@
       
     ],
     "acls": [
-      
+      {
+        "dstIp": "ff02::/16",
+        "srcPort": 0,
+        "name": "cpuPolicing-CPU-Port-Mcast-v6",
+        "actionType": 1,
+        "etherType": 34525
+      },
+      {
+        "dstIp": "fe80::/10",
+        "dscp": 48,
+        "name": "cpuPolicing-high-NetworkControl-linkLocal-v6",
+        "actionType": 1,
+        "etherType": 34525
+      },
+      {
+        "dstIp": "ff02::/16",
+        "dscp": 48,
+        "name": "cpuPolicing-high-NetworkControl-ff02::/16",
+        "actionType": 1,
+        "etherType": 34525
+      },
+      {
+        "dscp": 48,
+        "name": "cpuPolicing-high-NetworkControl-dstLocal",
+        "actionType": 1,
+        "lookupClassRoute": 1,
+        "etherType": 34525
+      },
+      {
+        "dstIp": "fe80::/10",
+        "name": "cpuPolicing-mid-linkLocal-v6",
+        "actionType": 1,
+        "etherType": 34525
+      },
+      {
+        "name": "cpuPolicing-low-unresolved-route",
+        "actionType": 1,
+        "lookupClassRoute": 2,
+        "etherType": 34525
+      },
+      {
+        "dstIp": "ff02::/16",
+        "name": "cpuPolicing-mid-ff02::/16",
+        "actionType": 1,
+        "etherType": 34525
+      },
+      {
+        "icmpType": 133,
+        "name": "cpuPolicing-high-ndp-router-solicit",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "icmpType": 134,
+        "name": "cpuPolicing-high-ndp-router-advertisement",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "icmpType": 135,
+        "name": "cpuPolicing-high-ndp-neighbor-solicit",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "icmpType": 136,
+        "name": "cpuPolicing-high-ndp-neighbor-advertisement",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "icmpType": 137,
+        "name": "cpuPolicing-high-ndp-redirect",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp4",
+        "actionType": 1,
+        "l4SrcPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPDstPort-dstLocalIp4",
+        "actionType": 1,
+        "l4DstPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp6",
+        "actionType": 1,
+        "l4SrcPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 34525
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPDstPort-dstLocalIp6",
+        "actionType": 1,
+        "l4DstPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 34525
+      },
+      {
+        "name": "cpuPolicing-high-arp-request",
+        "actionType": 1,
+        "ipType": 4,
+        "etherType": 2054
+      },
+      {
+        "name": "cpuPolicing-high-arp-reply",
+        "actionType": 1,
+        "ipType": 5,
+        "etherType": 2054
+      },
+      {
+        "name": "cpuPolicing-high-lacp",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:02",
+        "etherType": 34825
+      },
+      {
+        "name": "cpuPolicing-mid-lldp-dstMac0E",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:0e",
+        "etherType": 35020
+      },
+      {
+        "name": "cpuPolicing-mid-lldp-dstMac03",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:03",
+        "etherType": 35020
+      },
+      {
+        "name": "cpuPolicing-mid-lldp-dstMac00",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:00",
+        "etherType": 35020
+      },
+      {
+        "name": "cpuPolicing-mid-Ip2Me-Ip4",
+        "actionType": 1,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "name": "cpuPolicing-mid-Ip2Me-Ip6",
+        "actionType": 1,
+        "lookupClassRoute": 1,
+        "etherType": 34525
+      },
+      {
+        "dstIp": "ff00::/8",
+        "name": "drop-v6-multicast",
+        "actionType": 0,
+        "etherType": 34525
+      }
     ],
     "maxNeighborProbes": 300,
     "staleEntryInterval": 10,
@@ -7784,209 +7964,6 @@
         
       ]
     },
-    "aclTableGroup": {
-      "name": "acl-table-group-ingress",
-      "aclTables": [
-        {
-          "name": "AclTable1",
-          "priority": 0,
-          "aclEntries": [
-            {
-              "dstIp": "ff02::/16",
-              "srcPort": 0,
-              "name": "cpuPolicing-CPU-Port-Mcast-v6",
-              "actionType": 1,
-              "etherType": 34525
-            },
-            {
-              "dstIp": "fe80::/10",
-              "dscp": 48,
-              "name": "cpuPolicing-high-NetworkControl-linkLocal-v6",
-              "actionType": 1,
-              "etherType": 34525
-            },
-            {
-              "dstIp": "ff02::/16",
-              "dscp": 48,
-              "name": "cpuPolicing-high-NetworkControl-ff02::/16",
-              "actionType": 1,
-              "etherType": 34525
-            },
-            {
-              "dscp": 48,
-              "name": "cpuPolicing-high-NetworkControl-dstLocal",
-              "actionType": 1,
-              "lookupClassRoute": 1,
-              "etherType": 34525
-            },
-            {
-              "dstIp": "fe80::/10",
-              "name": "cpuPolicing-mid-linkLocal-v6",
-              "actionType": 1,
-              "etherType": 34525
-            },
-            {
-              "name": "cpuPolicing-low-unresolved-route",
-              "actionType": 1,
-              "lookupClassRoute": 2,
-              "etherType": 34525
-            },
-            {
-              "dstIp": "ff02::/16",
-              "name": "cpuPolicing-mid-ff02::/16",
-              "actionType": 1,
-              "etherType": 34525
-            },
-            {
-              "icmpType": 133,
-              "name": "cpuPolicing-high-ndp-router-solicit",
-              "actionType": 1,
-              "ttl": {
-                "value": 255,
-                "mask": 255
-              },
-              "etherType": 34525
-            },
-            {
-              "icmpType": 134,
-              "name": "cpuPolicing-high-ndp-router-advertisement",
-              "actionType": 1,
-              "ttl": {
-                "value": 255,
-                "mask": 255
-              },
-              "etherType": 34525
-            },
-            {
-              "icmpType": 135,
-              "name": "cpuPolicing-high-ndp-neighbor-solicit",
-              "actionType": 1,
-              "ttl": {
-                "value": 255,
-                "mask": 255
-              },
-              "etherType": 34525
-            },
-            {
-              "icmpType": 136,
-              "name": "cpuPolicing-high-ndp-neighbor-advertisement",
-              "actionType": 1,
-              "ttl": {
-                "value": 255,
-                "mask": 255
-              },
-              "etherType": 34525
-            },
-            {
-              "icmpType": 137,
-              "name": "cpuPolicing-high-ndp-redirect",
-              "actionType": 1,
-              "ttl": {
-                "value": 255,
-                "mask": 255
-              },
-              "etherType": 34525
-            },
-            {
-              "proto": 6,
-              "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp4",
-              "actionType": 1,
-              "l4SrcPort": 179,
-              "lookupClassRoute": 1,
-              "etherType": 2048
-            },
-            {
-              "proto": 6,
-              "name": "cpuPolicing-high-BGPDstPort-dstLocalIp4",
-              "actionType": 1,
-              "l4DstPort": 179,
-              "lookupClassRoute": 1,
-              "etherType": 2048
-            },
-            {
-              "proto": 6,
-              "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp6",
-              "actionType": 1,
-              "l4SrcPort": 179,
-              "lookupClassRoute": 1,
-              "etherType": 34525
-            },
-            {
-              "proto": 6,
-              "name": "cpuPolicing-high-BGPDstPort-dstLocalIp6",
-              "actionType": 1,
-              "l4DstPort": 179,
-              "lookupClassRoute": 1,
-              "etherType": 34525
-            },
-            {
-              "name": "cpuPolicing-high-arp-request",
-              "actionType": 1,
-              "ipType": 4,
-              "etherType": 2054
-            },
-            {
-              "name": "cpuPolicing-high-arp-reply",
-              "actionType": 1,
-              "ipType": 5,
-              "etherType": 2054
-            },
-            {
-              "name": "cpuPolicing-high-lacp",
-              "actionType": 1,
-              "dstMac": "01:80:c2:00:00:02",
-              "etherType": 34825
-            },
-            {
-              "name": "cpuPolicing-mid-lldp-dstMac0E",
-              "actionType": 1,
-              "dstMac": "01:80:c2:00:00:0e",
-              "etherType": 35020
-            },
-            {
-              "name": "cpuPolicing-mid-lldp-dstMac03",
-              "actionType": 1,
-              "dstMac": "01:80:c2:00:00:03",
-              "etherType": 35020
-            },
-            {
-              "name": "cpuPolicing-mid-lldp-dstMac00",
-              "actionType": 1,
-              "dstMac": "01:80:c2:00:00:00",
-              "etherType": 35020
-            },
-            {
-              "name": "cpuPolicing-mid-Ip2Me-Ip4",
-              "actionType": 1,
-              "lookupClassRoute": 1,
-              "etherType": 2048
-            },
-            {
-              "name": "cpuPolicing-mid-Ip2Me-Ip6",
-              "actionType": 1,
-              "lookupClassRoute": 1,
-              "etherType": 34525
-            },
-            {
-              "dstIp": "ff00::/8",
-              "name": "drop-v6-multicast",
-              "actionType": 0,
-              "etherType": 34525
-            }
-          ],
-          "actionTypes": [
-            
-          ],
-          "qualifiers": [
-            
-          ],
-          "udfGroups": [
-            
-          ]
-        }
-      ],
-      "stage": 0
-    },
     "sdkVersion": {
       "asicSdk": "sdk",
       "saiSdk": "sai"
@@ -8039,211 +8016,6 @@
         "scheduling": 1000,
         "name": "cpuVoq-low",
         "maxDynamicSharedBytes": 20971520
-      }
-    ],
-    "aclTableGroups": [
-      {
-        "name": "acl-table-group-ingress",
-        "aclTables": [
-          {
-            "name": "AclTable1",
-            "priority": 0,
-            "aclEntries": [
-              {
-                "dstIp": "ff02::/16",
-                "srcPort": 0,
-                "name": "cpuPolicing-CPU-Port-Mcast-v6",
-                "actionType": 1,
-                "etherType": 34525
-              },
-              {
-                "dstIp": "fe80::/10",
-                "dscp": 48,
-                "name": "cpuPolicing-high-NetworkControl-linkLocal-v6",
-                "actionType": 1,
-                "etherType": 34525
-              },
-              {
-                "dstIp": "ff02::/16",
-                "dscp": 48,
-                "name": "cpuPolicing-high-NetworkControl-ff02::/16",
-                "actionType": 1,
-                "etherType": 34525
-              },
-              {
-                "dscp": 48,
-                "name": "cpuPolicing-high-NetworkControl-dstLocal",
-                "actionType": 1,
-                "lookupClassRoute": 1,
-                "etherType": 34525
-              },
-              {
-                "dstIp": "fe80::/10",
-                "name": "cpuPolicing-mid-linkLocal-v6",
-                "actionType": 1,
-                "etherType": 34525
-              },
-              {
-                "name": "cpuPolicing-low-unresolved-route",
-                "actionType": 1,
-                "lookupClassRoute": 2,
-                "etherType": 34525
-              },
-              {
-                "dstIp": "ff02::/16",
-                "name": "cpuPolicing-mid-ff02::/16",
-                "actionType": 1,
-                "etherType": 34525
-              },
-              {
-                "icmpType": 133,
-                "name": "cpuPolicing-high-ndp-router-solicit",
-                "actionType": 1,
-                "ttl": {
-                  "value": 255,
-                  "mask": 255
-                },
-                "etherType": 34525
-              },
-              {
-                "icmpType": 134,
-                "name": "cpuPolicing-high-ndp-router-advertisement",
-                "actionType": 1,
-                "ttl": {
-                  "value": 255,
-                  "mask": 255
-                },
-                "etherType": 34525
-              },
-              {
-                "icmpType": 135,
-                "name": "cpuPolicing-high-ndp-neighbor-solicit",
-                "actionType": 1,
-                "ttl": {
-                  "value": 255,
-                  "mask": 255
-                },
-                "etherType": 34525
-              },
-              {
-                "icmpType": 136,
-                "name": "cpuPolicing-high-ndp-neighbor-advertisement",
-                "actionType": 1,
-                "ttl": {
-                  "value": 255,
-                  "mask": 255
-                },
-                "etherType": 34525
-              },
-              {
-                "icmpType": 137,
-                "name": "cpuPolicing-high-ndp-redirect",
-                "actionType": 1,
-                "ttl": {
-                  "value": 255,
-                  "mask": 255
-                },
-                "etherType": 34525
-              },
-              {
-                "proto": 6,
-                "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp4",
-                "actionType": 1,
-                "l4SrcPort": 179,
-                "lookupClassRoute": 1,
-                "etherType": 2048
-              },
-              {
-                "proto": 6,
-                "name": "cpuPolicing-high-BGPDstPort-dstLocalIp4",
-                "actionType": 1,
-                "l4DstPort": 179,
-                "lookupClassRoute": 1,
-                "etherType": 2048
-              },
-              {
-                "proto": 6,
-                "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp6",
-                "actionType": 1,
-                "l4SrcPort": 179,
-                "lookupClassRoute": 1,
-                "etherType": 34525
-              },
-              {
-                "proto": 6,
-                "name": "cpuPolicing-high-BGPDstPort-dstLocalIp6",
-                "actionType": 1,
-                "l4DstPort": 179,
-                "lookupClassRoute": 1,
-                "etherType": 34525
-              },
-              {
-                "name": "cpuPolicing-high-arp-request",
-                "actionType": 1,
-                "ipType": 4,
-                "etherType": 2054
-              },
-              {
-                "name": "cpuPolicing-high-arp-reply",
-                "actionType": 1,
-                "ipType": 5,
-                "etherType": 2054
-              },
-              {
-                "name": "cpuPolicing-high-lacp",
-                "actionType": 1,
-                "dstMac": "01:80:c2:00:00:02",
-                "etherType": 34825
-              },
-              {
-                "name": "cpuPolicing-mid-lldp-dstMac0E",
-                "actionType": 1,
-                "dstMac": "01:80:c2:00:00:0e",
-                "etherType": 35020
-              },
-              {
-                "name": "cpuPolicing-mid-lldp-dstMac03",
-                "actionType": 1,
-                "dstMac": "01:80:c2:00:00:03",
-                "etherType": 35020
-              },
-              {
-                "name": "cpuPolicing-mid-lldp-dstMac00",
-                "actionType": 1,
-                "dstMac": "01:80:c2:00:00:00",
-                "etherType": 35020
-              },
-              {
-                "name": "cpuPolicing-mid-Ip2Me-Ip4",
-                "actionType": 1,
-                "lookupClassRoute": 1,
-                "etherType": 2048
-              },
-              {
-                "name": "cpuPolicing-mid-Ip2Me-Ip6",
-                "actionType": 1,
-                "lookupClassRoute": 1,
-                "etherType": 34525
-              },
-              {
-                "dstIp": "ff00::/8",
-                "name": "drop-v6-multicast",
-                "actionType": 0,
-                "etherType": 34525
-              }
-            ],
-            "actionTypes": [
-              
-            ],
-            "qualifiers": [
-              
-            ],
-            "udfGroups": [
-              
-            ]
-          }
-        ],
-        "stage": 0
       }
     ],
     "mirrorOnDropReports": [
