@@ -353,7 +353,55 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
-  // Test 12: Valid with matching ledCtrlBlockConfigs in pciDeviceConfigs
+  // Test 12: Valid with differing pciDeviceConfigs and full xcvr coverage
+  config.numXcvrs() = 4;
+  LedCtrlBlockConfig ledCtrl;
+  ledCtrl.pmUnitScopedNamePrefix() = "OSFP";
+  ledCtrl.deviceName() = "port_led";
+  ledCtrl.csrOffsetCalc() = "0x1000";
+  ledCtrl.startPort() = 1;
+  ledCtrl.numPorts() = 4;
+  ledCtrl.ledPerPort() = 1;
+  XcvrCtrlBlockConfig xcvrCtrl;
+  xcvrCtrl.pmUnitScopedNamePrefix() = "OSFP";
+  xcvrCtrl.deviceName() = "xcvr_ctrl";
+  xcvrCtrl.csrOffsetCalc() = "0x1000";
+  xcvrCtrl.startPort() = 1;
+  xcvrCtrl.numPorts() = 4;
+  auto defaultPciDev = getValidPciDeviceConfig();
+  defaultPciDev.ledCtrlBlockConfigs() = {ledCtrl};
+  defaultPciDev.xcvrCtrlBlockConfigs() = {xcvrCtrl};
+  pmUnitConfig = config.pmUnitConfigs()->at("SCM");
+  pmUnitConfig.pciDeviceConfigs() = {defaultPciDev};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  auto versionedLedCtrl1 = ledCtrl;
+  versionedLedCtrl1.numPorts() = 2;
+  auto versionedLedCtrl2 = ledCtrl;
+  versionedLedCtrl2.startPort() = 3;
+  versionedLedCtrl2.numPorts() = 2;
+  auto versionedPciDev = getValidPciDeviceConfig();
+  versionedPciDev.ledCtrlBlockConfigs() = {
+      versionedLedCtrl1, versionedLedCtrl2};
+  versionedPciDev.xcvrCtrlBlockConfigs() = {xcvrCtrl};
+  versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {versionedPciDev};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValidVersionedPciDeviceCoverage(config));
+
+  // Test 13: Invalid versioned pciDeviceConfigs under-covers xcvrs
+  // (covers ports 1-2 but numXcvrs=4)
+  auto shortLedCtrl = ledCtrl;
+  shortLedCtrl.numPorts() = 2;
+  auto shortXcvrCtrl = xcvrCtrl;
+  shortXcvrCtrl.numPorts() = 2;
+  auto underCovPciDev = getValidPciDeviceConfig();
+  underCovPciDev.ledCtrlBlockConfigs() = {shortLedCtrl};
+  underCovPciDev.xcvrCtrlBlockConfigs() = {shortXcvrCtrl};
+  versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {underCovPciDev};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_FALSE(ConfigValidator().isValidVersionedPciDeviceCoverage(config));
+
+  // Test 14: Valid with matching ledCtrlBlockConfigs in pciDeviceConfigs
+  config.numXcvrs() = 0;
   auto pciDevWithLed = getValidPciDeviceConfig();
   pciDevWithLed.ledCtrlBlockConfigs() = {};
   pmUnitConfig = config.pmUnitConfigs()->at("SCM");
