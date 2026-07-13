@@ -19,6 +19,8 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge800bact/Wedge800BACTPlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge800cact/Wedge800CACTPlatformMapping.h"
 #include "fboss/agent/platforms/sai/GenericSaiBcmPlatform.h"
 #include "fboss/agent/platforms/sai/GenericSaiTajoPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatform.h"
@@ -38,7 +40,6 @@
 #include "fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400Platform.h"
-#include "fboss/agent/platforms/sai/SaiBcmWedge800BACTPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatform.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 #include "fboss/agent/platforms/sai/SaiJanga800bicPlatform.h"
@@ -49,7 +50,6 @@
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatform.h"
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatform.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
-#include "fboss/agent/platforms/sai/SaiWedge800CACTPlatform.h"
 #include "fboss/agent/platforms/sai/SaiYangra2Platform.h"
 #include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
@@ -95,28 +95,54 @@ cfg::SwitchInfo makeAsicVendorProbeSwitchInfo(cfg::AsicType asicType) {
 std::unique_ptr<SaiPlatform> createGenericSaiBcmPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     folly::MacAddress localMac,
-    const std::string& platformMappingStr) {
-  if (platformMappingStr.empty()) {
-    throw FbossError(
-        "Generic BCM platform descriptor is missing platform mapping");
-  }
+    std::unique_ptr<PlatformMapping> platformMapping) {
   return std::make_unique<GenericSaiBcmPlatform>(
+      std::move(productInfo), std::move(platformMapping), localMac);
+}
+
+std::unique_ptr<PlatformMapping> createGenericSaiPlatformMapping(
+    PlatformType type,
+    const std::string& platformMappingStr) {
+  if (!platformMappingStr.empty()) {
+    return std::make_unique<PlatformMapping>(platformMappingStr);
+  }
+  if (!FLAGS_platform_descriptor_config_path.empty()) {
+    throw FbossError(
+        "Generic SAI platform descriptor is missing platform mapping");
+  }
+
+  switch (type) {
+    case PlatformType::PLATFORM_WEDGE800BACT:
+    case PlatformType::PLATFORM_WEDGE800BNHP:
+      return std::make_unique<Wedge800BACTPlatformMapping>();
+    case PlatformType::PLATFORM_WEDGE800CACT:
+      return std::make_unique<Wedge800CACTPlatformMapping>();
+    default:
+      throw FbossError(
+          "Generic SAI platform is missing platform mapping for platform type ",
+          apache::thrift::util::enumNameSafe(type));
+  }
+}
+
+std::unique_ptr<SaiPlatform> createGenericSaiBcmPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr) {
+  const auto platformType = productInfo->getType();
+  return createGenericSaiBcmPlatform(
       std::move(productInfo),
-      std::make_unique<PlatformMapping>(platformMappingStr),
-      localMac);
+      localMac,
+      createGenericSaiPlatformMapping(platformType, platformMappingStr));
 }
 
 std::unique_ptr<SaiPlatform> createGenericSaiTajoPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     folly::MacAddress localMac,
     const std::string& platformMappingStr) {
-  if (platformMappingStr.empty()) {
-    throw FbossError(
-        "Generic Tajo platform descriptor is missing platform mapping");
-  }
+  const auto platformType = productInfo->getType();
   return std::make_unique<GenericSaiTajoPlatform>(
       std::move(productInfo),
-      std::make_unique<PlatformMapping>(platformMappingStr),
+      createGenericSaiPlatformMapping(platformType, platformMappingStr),
       localMac);
 }
 
@@ -247,10 +273,10 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   } else if (
       productInfo->getType() == PlatformType::PLATFORM_WEDGE800BACT ||
       productInfo->getType() == PlatformType::PLATFORM_WEDGE800BNHP) {
-    return std::make_unique<SaiBcmWedge800BACTPlatform>(
+    return createGenericSaiBcmPlatform(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE800CACT) {
-    return std::make_unique<SaiWedge800CACTPlatform>(
+    return createGenericSaiTajoPlatform(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_M5120CSC) {
     return std::make_unique<SaiM5120CSCPlatform>(

@@ -39,8 +39,6 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiBcmLeh800bclsPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmWedge800BACTPlatform.cpp
-  fboss/agent/platforms/sai/SaiWedge800CACTPlatform.cpp
   fboss/agent/platforms/sai/SaiM5120CSCPlatform.cpp
   fboss/agent/platforms/sai/SaiMorgan800ccPlatform.cpp
   fboss/agent/platforms/sai/SaiTahan800bcPlatform.cpp
