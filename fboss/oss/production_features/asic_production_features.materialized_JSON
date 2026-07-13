@@ -524,7 +524,8 @@
         97,
         101,
         103,
-        104
+        104,
+        117
     ],
     "tomahawk6": [
         2,
@@ -587,7 +588,8 @@
         105,
         89,
         87,
-        78
+        78,
+        117
     ],
     "tomahawkultra1": [
         2,
@@ -1224,7 +1226,8 @@
         "ECN_PROBABILISTIC_MARKING",
         "AIFM_PACKET_STREAM_HANDLER",
         "CUT_THROUGH",
-        "SRV6_MIDPOINT"
+        "SRV6_MIDPOINT",
+        "CABLE_LENGTH_MEASUREMENT"
     ],
     "tomahawk6": [
         "CPU_RX_TX",
@@ -1287,7 +1290,8 @@
         "L4_DST_PORT_RANGE",
         "AM_IDLES",
         "UDF_HASH",
-        "ECMP_RANDOM_SPRAY"
+        "ECMP_RANDOM_SPRAY",
+        "CABLE_LENGTH_MEASUREMENT"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
@@ -1721,6 +1725,27 @@
           "sdk": 1,
           "minSdkVersion": "13.3.0.0_odp",
           "note": "AlternateArsEcmpObjects (AgentFlowletSwitchingEnhancedScaleTest) requires SAI attributes added in 13.3"
+        }
+      ]
+    },
+    {
+      "feature": 117,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "Cable length measurement is supported on SAI Tomahawk5 from SDK 13.3 onwards"
+        },
+        {
+          "asics": [
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "14.2.0.0_odp",
+          "note": "Cable length measurement is supported on SAI Tomahawk6 from SDK 14.2 onwards"
         }
       ]
     }
