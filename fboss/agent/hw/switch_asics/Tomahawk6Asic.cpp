@@ -122,6 +122,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
+    case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -192,7 +193,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CRC_ERROR_DETECT:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
-    case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::DATA_CELL_FILTER:
     case HwAsic::Feature::DRAM_BLOCK_TIME:
     case HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN:

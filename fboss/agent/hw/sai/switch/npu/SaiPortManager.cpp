@@ -689,7 +689,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     interfaceType = saiInterfaceType.value();
   }
   std::optional<sai_port_media_type_t> propagationDelayMediaType;
-#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0) || defined(BRCM_SAI_SDK_XGS_GTE_14_2)
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::CABLE_PROPOGATION_DELAY) &&
       managerTable_->switchManager().isMeasureCableLengthEnabled()) {
