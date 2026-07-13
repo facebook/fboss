@@ -42,12 +42,6 @@ class SaiMeru800biaPlatform : public SaiBcmPlatform {
     return true;
   }
 
-  std::optional<sai_port_interface_type_t> getInterfaceType(
-      TransmitterTechnology /*transmitterTech*/,
-      cfg::PortSpeed /*speed*/) const override {
-    return std::nullopt;
-  }
-
  private:
   void setupAsic(
       std::optional<int64_t> switchId,

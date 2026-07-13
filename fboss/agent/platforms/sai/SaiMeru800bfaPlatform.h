@@ -43,12 +43,6 @@ class SaiMeru800bfaPlatform : public SaiBcmPlatform {
     return true;
   }
 
-  std::optional<sai_port_interface_type_t> getInterfaceType(
-      TransmitterTechnology /*transmitterTech*/,
-      cfg::PortSpeed /*speed*/) const override {
-    return std::nullopt;
-  }
-
  protected:
   SaiMeru800bfaPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
