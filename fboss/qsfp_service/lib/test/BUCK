@@ -11,6 +11,10 @@ cpp_binary(
         "//fboss/agent:fboss-types",
         "//fboss/agent/if:ctrl-cpp2-clients",
         "//fboss/agent/if:ctrl-cpp2-types",
+        # Provides the DEFINE of FLAGS_qsfp_service_host used via DECLARE_string in
+        # QsfpCacheExerciser.cpp; link-time only (no source include), so autodeps2
+        # cannot infer it.
+        "//fboss/lib/thrift_service_client:thrift-service-client",  # @manual
         "//fboss/qsfp_service/lib:qsfp-cache",
         "//folly:random",
         "//folly/executors:function_scheduler",
