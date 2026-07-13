@@ -113,6 +113,7 @@ target_link_libraries(agent_ars_test_src
 )
 
 add_library(agent_hw_test_src
+  fboss/agent/test/agent_hw_tests/AgentCableLengthMeasurementTests.cpp
   fboss/agent/test/agent_hw_tests/AgentConfigSetupTest.cpp
   fboss/agent/test/agent_hw_tests/AgentConfigVerifyQosTests.cpp
   fboss/agent/test/agent_hw_tests/AgentCoppTests.cpp
