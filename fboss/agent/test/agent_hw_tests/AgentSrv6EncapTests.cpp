@@ -979,24 +979,6 @@ TYPED_TEST(AgentSrv6EncapTest, recursiveResolutionSameSidListSameRif) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(AgentSrv6EncapTest, teAgentRoutePreferredOverOpenr) {
-  auto setup = [this]() {
-    this->setupHelper(true /*resolveNeighbors*/, false /*programEncapRoutes*/);
-    this->addTeAgentPreferredOverOpenrRoute();
-  };
-
-  auto verify = [this]() {
-    auto ecmpHelper = this->makeEcmpHelper();
-    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    // TE_Agent wins by admin distance, so the packet is SRv6-encapped with
-    // kSid0. An OpenR win would forward un-encapped and fail the outer-SID
-    // assertion in verifyEncapPacket.
-    this->verifyEncapPacket(
-        {egressPort}, false /*ecnMarked*/, false /*isV4*/, {this->kSid0});
-  };
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
 // Production recursive SRv6: a BGP parent resolves recursively through a child
 // prefix that OpenR (no SID) and TE_Agent (kSid0) both program; TE_Agent wins,
 // so both the child and the parent egress the same next hops carrying kSid0.
