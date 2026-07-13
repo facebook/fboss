@@ -5,6 +5,7 @@ import os
 from typing import Any
 
 import yaml
+
 from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator, MODULE_DIR
 from fboss.lib.platform_mapping_v2.gen import read_all_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
@@ -19,10 +20,7 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
     ASIC_FAMILY: str = "xgs"
 
     def __init__(
-        self,
-        platform_name: str,
-        variant: str,
-        platform_config: dict[str, Any],
+        self, platform_name: str, variant: str, platform_config: dict[str, Any]
     ) -> None:
         super().__init__(platform_name, variant, platform_config)
 
@@ -413,10 +411,7 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
                 port_ranges_str = ", ".join(port_ranges)
                 pc_key = (f"PORT_ID: [{port_ranges_str}]",)
 
-        self.values["PORT"][pc_key] = (
-            f"MTU: {self.mmu_size}",
-            "MTU_CHECK: 1",
-        )
+        self.values["PORT"][pc_key] = (f"MTU: {self.mmu_size}", "MTU_CHECK: 1")
 
     def _generate_device_config_overrides(self) -> None:
         """Apply device config overrides from variant config."""
