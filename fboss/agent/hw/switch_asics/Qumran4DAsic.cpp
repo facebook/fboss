@@ -4,6 +4,27 @@
 
 namespace facebook::fboss {
 
+namespace {
+constexpr auto kCpuPortSpeed = 10000;
+constexpr auto kCpuPortNumVoqs = 8;
+} // namespace
+
+std::vector<HwAsic::InternalSystemPortConfig>
+Qumran4DAsic::getInternalSystemPortConfig(
+    const CpuPortCoreAndPortIndex& cpuPortsCoreAndPortIdx) const {
+  CHECK(getSwitchId()) << " Switch Id must be set before sys port info";
+
+  const uint32_t switchId = static_cast<uint32_t>(*getSwitchId());
+  std::vector<InternalSystemPortConfig> sysPortConfig;
+  sysPortConfig.reserve(cpuPortsCoreAndPortIdx.size());
+  for (auto [cpuPortID, coreAndPortIdx] : cpuPortsCoreAndPortIdx) {
+    auto [core, port] = coreAndPortIdx;
+    sysPortConfig.push_back(
+        {cpuPortID, switchId, core, port, kCpuPortSpeed, kCpuPortNumVoqs});
+  }
+  return sysPortConfig;
+}
+
 bool Qumran4DAsic::isSupported(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::OBJECT_KEY_CACHE:

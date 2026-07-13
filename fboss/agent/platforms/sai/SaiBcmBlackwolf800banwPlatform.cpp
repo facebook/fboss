@@ -13,11 +13,6 @@
 #include "fboss/agent/hw/switch_asics/Qumran4DAsic.h"
 #include "fboss/agent/platforms/common/blackwolf800banw/Blackwolf800banwPlatformMapping.h"
 
-namespace {
-constexpr auto kCpuPortSpeed = 10000;
-constexpr auto kCpuPortNumVoqs = 8;
-} // namespace
-
 namespace facebook::fboss {
 
 SaiBcmBlackwolf800banwPlatform::SaiBcmBlackwolf800banwPlatform(
@@ -44,29 +39,6 @@ HwAsic* SaiBcmBlackwolf800banwPlatform::getAsic() const {
   return asic_.get();
 }
 
-std::vector<sai_system_port_config_t>
-SaiBcmBlackwolf800banwPlatform::getInternalSystemPortConfig() const {
-  CHECK(asic_) << " Asic must be set before getting sys port info";
-  CHECK(asic_->getSwitchId()) << " Switch Id must be set before sys port info";
-
-  const uint32_t switchId = static_cast<uint32_t>(*asic_->getSwitchId());
-  const uint32_t speed = kCpuPortSpeed;
-  const uint32_t numVoqs = kCpuPortNumVoqs;
-  auto cpuPortsCoreAndPortIdx =
-      getPlatformMapping()->getCpuPortsCoreAndPortIdx();
-
-  // CHECK(
-  //    cpuPortsCoreAndPortIdx.size() == 1 || cpuPortsCoreAndPortIdx.size() == 8
-  //    )
-  //    << "Create one CPU port for the ASIC or one CPU port for each core";
-
-  std::vector<sai_system_port_config_t> sysPortConfig;
-  for (auto [cpuPortID, coreAndPortIdx] : cpuPortsCoreAndPortIdx) {
-    auto [core, port] = coreAndPortIdx;
-    sysPortConfig.push_back({cpuPortID, switchId, core, port, speed, numVoqs});
-  }
-  return sysPortConfig;
-}
 SaiBcmBlackwolf800banwPlatform::~SaiBcmBlackwolf800banwPlatform() = default;
 
 } // namespace facebook::fboss

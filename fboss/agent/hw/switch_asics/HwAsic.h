@@ -1,6 +1,13 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #pragma once
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include <fboss/lib/phy/gen-cpp2/phy_types.h>
 #include <folly/MacAddress.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -822,12 +829,26 @@ class HwAsic {
     uint32_t inbandPortId;
   };
 
+  using CpuPortCoreAndPortIndex =
+      std::map<uint32_t, std::pair<uint32_t, uint32_t>>;
+
+  struct InternalSystemPortConfig {
+    uint32_t portId;
+    uint32_t switchId;
+    uint32_t coreIndex;
+    uint32_t corePortIndex;
+    uint32_t speedMbps;
+    uint32_t numVoqs;
+  };
+
   std::optional<cfg::SdkVersion> getSdkVersion() const {
     return sdkVersion_;
   }
 
   virtual RecyclePortInfo getRecyclePortInfo(
       InterfaceNodeRole /* intfRole */) const;
+  virtual std::vector<InternalSystemPortConfig> getInternalSystemPortConfig(
+      const CpuPortCoreAndPortIndex& cpuPortsCoreAndPortIdx) const;
   cfg::PortLoopbackMode getDesiredLoopbackMode(
       cfg::PortType portType = cfg::PortType::INTERFACE_PORT) const;
 

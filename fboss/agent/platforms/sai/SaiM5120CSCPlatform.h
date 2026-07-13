@@ -29,9 +29,6 @@ class SaiM5120CSCPlatform : public SaiTajoPlatform {
     return true;
   }
 
-  std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
-      const override;
-
  private:
   void setupAsic(
       std::optional<int64_t> switchId,

@@ -47,8 +47,6 @@ class SaiBcmBlackwolf800banwPlatform : public SaiBcmPlatform {
       cfg::PortSpeed /*speed*/) const override {
     return std::nullopt;
   }
-  std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
-      const override;
 
  private:
   void setupAsic(

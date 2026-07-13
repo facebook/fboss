@@ -1081,8 +1081,22 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 
 std::vector<sai_system_port_config_t> SaiPlatform::getInternalSystemPortConfig()
     const {
-  throw FbossError(
-      "System port config must be provided by derived class platform");
+  CHECK(getAsic()) << " Asic must be set before getting sys port info";
+  auto internalSystemPortConfigs = getAsic()->getInternalSystemPortConfig(
+      getPlatformMapping()->getCpuPortsCoreAndPortIdx());
+
+  std::vector<sai_system_port_config_t> saiSystemPortConfigs;
+  saiSystemPortConfigs.reserve(internalSystemPortConfigs.size());
+  for (const auto& config : internalSystemPortConfigs) {
+    saiSystemPortConfigs.push_back(
+        {config.portId,
+         config.switchId,
+         config.coreIndex,
+         config.corePortIndex,
+         config.speedMbps,
+         config.numVoqs});
+  }
+  return saiSystemPortConfigs;
 }
 
 uint32_t SaiPlatform::getDefaultMacAgingTime() const {

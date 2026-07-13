@@ -34,6 +34,8 @@ class Jericho3Asic : public BroadcomAsic {
                platformType, portType, chipId, logicalLane) -
         1;
   }
+  std::vector<InternalSystemPortConfig> getInternalSystemPortConfig(
+      const CpuPortCoreAndPortIndex& cpuPortsCoreAndPortIdx) const override;
   AsicMode getAsicMode() const override;
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;
