@@ -82,6 +82,7 @@
 #include <thread>
 
 #include <limits>
+#include <unordered_map>
 
 using apache::thrift::ClientReceiveState;
 using apache::thrift::server::TConnectionContext;
@@ -3375,7 +3376,7 @@ namespace {
 struct NhgFibContext {
   std::shared_ptr<FibInfo> fibInfo;
   std::map<std::string, NextHopSetId> nameToSetId;
-  std::unordered_set<NextHopSetId> namedSetIds;
+  std::unordered_map<NextHopSetId, std::string> nhgSetIdToName;
 };
 
 std::optional<NhgFibContext> getNhgFibContext(
@@ -3389,7 +3390,7 @@ std::optional<NhgFibContext> getNhgFibContext(
   ctx.fibInfo = fibInfoIt->second;
   ctx.nameToSetId = ctx.fibInfo->getNameToNextHopSetId();
   for (const auto& [name, setId] : ctx.nameToSetId) {
-    ctx.namedSetIds.insert(setId);
+    ctx.nhgSetIdToName.emplace(setId, name);
   }
   return ctx;
 }
@@ -3411,7 +3412,7 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
   }
   auto idSetMapThrift = idToNextHopIdSetMap->toThrift();
   for (const auto& [setId, _nhIds] : idSetMapThrift) {
-    if (ctx->namedSetIds.count(setId)) {
+    if (ctx->nhgSetIdToName.count(setId)) {
       continue;
     }
     NextHopGroup thriftGroup;
