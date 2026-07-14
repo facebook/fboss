@@ -7,7 +7,7 @@
 
 #include <fb303/FollyLoggingHandler.h>
 #include <fb303/ServiceData.h>
-#include <systemd/sd-daemon.h> // @manual, autodeps maps this to the x86-only fbsource//third-party/systemd; use the platform-aware external_deps systemd instead so aarch64 links
+#include <systemd/sd-daemon.h>
 
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/StructuredLogger.h"

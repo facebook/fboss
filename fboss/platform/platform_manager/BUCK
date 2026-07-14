@@ -346,6 +346,7 @@ cpp_binary(
         "Main.cpp",
     ],
     deps = [
+        "fbsource//third-party/systemd:libsystemd",
         ":config_utils",
         ":pkg_manager",
         ":platform_explorer",
