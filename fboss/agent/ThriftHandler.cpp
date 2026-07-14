@@ -3401,7 +3401,8 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
-  auto ctx = getNhgFibContext(sw_->getState());
+  auto state = sw_->getState();
+  auto ctx = getNhgFibContext(state);
   if (!ctx) {
     return;
   }
@@ -3410,12 +3411,27 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
   if (!idToNextHopIdSetMap) {
     return;
   }
+  auto refCounts = ctx->fibInfo->getNextHopSetIdRefCountsFromRoutes();
+  FibInfo::getNextHopSetIdRefCountsFromMySid(state, refCounts);
+
   auto idSetMapThrift = idToNextHopIdSetMap->toThrift();
-  for (const auto& [setId, _nhIds] : idSetMapThrift) {
-    if (ctx->nhgSetIdToName.count(setId)) {
+  for (const auto& [setId, nhIds] : idSetMapThrift) {
+    auto nameIter = ctx->nhgSetIdToName.find(setId);
+    auto isNamed = nameIter != ctx->nhgSetIdToName.end();
+    if (!isNamed && nhIds.size() < 2) {
       continue;
     }
+
     NextHopGroup thriftGroup;
+    if (isNamed) {
+      thriftGroup.name() = nameIter->second;
+      auto refCountIter = refCounts.find(NextHopSetID(setId));
+      thriftGroup.isProgrammed() =
+          refCountIter != refCounts.end() && refCountIter->second > 0;
+    } else {
+      thriftGroup.isProgrammed() = true;
+    }
+
     try {
       auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(setId);
       std::vector<NextHopThrift> nexthopsThrift;
