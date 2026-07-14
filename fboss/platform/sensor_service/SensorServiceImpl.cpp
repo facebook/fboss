@@ -188,13 +188,13 @@ void SensorServiceImpl::fetchSensorData() {
   XLOG(INFO) << fmt::format(
       "Reading SensorData for {} PMUnits",
       sensorConfig_.pmUnitSensorsList()->size());
+  const std::optional<platform_manager::PmUnitInfo> emptyPmUnitInfo;
   for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
     const auto& slotPath = *pmUnitSensors.slotPath();
     const auto& pmUnitName = *pmUnitSensors.pmUnitName();
     auto it = pmUnitInfoMap.find(slotPath);
-    const auto& pmUnitInfo = (it != pmUnitInfoMap.end())
-        ? it->second
-        : std::optional<platform_manager::PmUnitInfo>{};
+    const auto& pmUnitInfo =
+        (it != pmUnitInfoMap.end()) ? it->second : emptyPmUnitInfo;
 
     // Skip sensor collection entirely for confirmed-absent PSU/PEM
     // slots. Avoids ~all sysfs read failures (and the resulting
