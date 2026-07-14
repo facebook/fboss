@@ -851,7 +851,6 @@ cpp_library(
         "//fboss/cli/fboss2/commands/show/agent:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/agent:model-cpp2-visitation",
         "//fboss/cli/fboss2/commands/show/aggregateport:model-cpp2-types",
-        "//fboss/cli/fboss2/commands/show/aggregateport:model-cpp2-visitation",
         "//fboss/cli/fboss2/commands/show/arp:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/bgp/summary:bgp_summary-cpp2-types",
         "//fboss/cli/fboss2/commands/show/bgp/updategroup:bgp_update_group-cpp2-types",
