@@ -61,7 +61,7 @@ class PkgManagerTest : public testing::Test {
     FLAGS_kmod_unload_retry_backoff_s = 0;
     platformConfig_.bspKmodsRpmName() = "fboss_bsp_kmods";
     platformConfig_.bspKmodsRpmVersion() = "11.44.63-14";
-    platformConfig_.requiredKmodsToLoad() = {"fboss_iob_pci", "spidev"};
+    platformConfig_.nonBspKmodsToLoad() = {"fboss_iob_pci", "spidev"};
 
     bspKmodsFile_.bspKmods() = {"fboss_iob_pci", "fboss_iob_spi"};
     bspKmodsFile_.sharedKmods() = {"scd"};
@@ -462,7 +462,7 @@ TEST_F(PkgManagerTest, loadRequiredKmods) {
       .WillRepeatedly(Return(jsonBspKmodsFile_));
   {
     InSequence seq;
-    for (const auto& kmod : *platformConfig_.requiredKmodsToLoad()) {
+    for (const auto& kmod : *platformConfig_.nonBspKmodsToLoad()) {
       EXPECT_CALL(*mockSystemInterface_, loadKmod(kmod)).WillOnce(Return(true));
     }
     for (const auto& kmod : ranges::views::concat(
@@ -484,7 +484,7 @@ TEST_F(PkgManagerTest, loadRequiredKmodsFailsWhenKmodsFileAbsent) {
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(std::nullopt));
   EXPECT_CALL(*mockSystemInterface_, loadKmod(_))
-      .Times(static_cast<int>(platformConfig_.requiredKmodsToLoad()->size()))
+      .Times(static_cast<int>(platformConfig_.nonBspKmodsToLoad()->size()))
       .WillRepeatedly(Return(true));
   EXPECT_THROW(pkgManager_.loadRequiredKmods(), std::runtime_error);
 }
@@ -506,7 +506,7 @@ TEST_F(PkgManagerTest, loadRequiredKmodsFailsOnBspKmod) {
       .WillRepeatedly(Return(jsonBspKmodsFile_));
   {
     InSequence seq;
-    for (const auto& kmod : *platformConfig_.requiredKmodsToLoad()) {
+    for (const auto& kmod : *platformConfig_.nonBspKmodsToLoad()) {
       EXPECT_CALL(*mockSystemInterface_, loadKmod(kmod)).WillOnce(Return(true));
     }
     // First kmod from kmods.json (shared) fails; later ones are not attempted.

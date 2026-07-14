@@ -858,5 +858,5 @@ struct PlatformConfig {
   // order to work properly.
   // Do NOT list BSP (out-of-tree) kmods here: every kmod enumerated in the
   // BSP's kmods.json is loaded automatically right after this list.
-  25: list<string> requiredKmodsToLoad;
+  25: list<string> nonBspKmodsToLoad;
 }

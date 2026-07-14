@@ -1591,7 +1591,7 @@
   "numXcvrs": 65,
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "4.4.1-1",
-  "requiredKmodsToLoad": [
+  "nonBspKmodsToLoad": [
     "i2c_i801",
     "spidev",
     "ledtrig_timer"

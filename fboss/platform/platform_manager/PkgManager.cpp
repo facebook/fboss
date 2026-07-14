@@ -337,14 +337,13 @@ void PkgManager::unloadBspKmods() const {
 
 void PkgManager::loadRequiredKmods() const {
   XLOG(INFO) << fmt::format(
-      "Loading {} required kernel modules",
-      platformConfig_.requiredKmodsToLoad()->size());
-  for (const auto& requiredKmod : *platformConfig_.requiredKmodsToLoad()) {
-    XLOG(INFO) << fmt::format("Loading {}", requiredKmod);
-    if (!systemInterface_->loadKmod(requiredKmod)) {
+      "Loading {} non-BSP kernel modules",
+      platformConfig_.nonBspKmodsToLoad()->size());
+  for (const auto& nonBspKmod : *platformConfig_.nonBspKmodsToLoad()) {
+    XLOG(INFO) << fmt::format("Loading {}", nonBspKmod);
+    if (!systemInterface_->loadKmod(nonBspKmod)) {
       fb303::fbData->setCounter(kLoadKmodsFailure, 1);
-      throw std::runtime_error(
-          fmt::format("Failed to load ({})", requiredKmod));
+      throw std::runtime_error(fmt::format("Failed to load ({})", nonBspKmod));
     }
   }
   loadBspKmods();

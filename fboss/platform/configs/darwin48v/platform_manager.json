@@ -422,7 +422,7 @@
   "numXcvrs": 0,
   "bspKmodsRpmName": "arista_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.26-1",
-  "requiredKmodsToLoad": [
+  "nonBspKmodsToLoad": [
     "i2c_i801",
     "ledtrig_timer",
     "spidev"
