@@ -11,6 +11,7 @@
 # - qsfp: QSFP hardware tests
 # - link: Link tests
 # - platform: Platform service hardware tests
+# - led: LED service hardware tests
 # - sai_agent_scale: SAI agent scale tests
 # - sai_invariant_agent: SAI agent invariant config tests
 # - benchmark: Benchmark tests
