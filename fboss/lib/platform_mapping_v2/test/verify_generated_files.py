@@ -54,6 +54,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "tahansb800bc",
             "tahansb800bc_test_fixture",
             "wedge800bact",
+            "wedge800bnhp",
             "wedge800cact",
             "blackwolf800banw",
             "j4sim",

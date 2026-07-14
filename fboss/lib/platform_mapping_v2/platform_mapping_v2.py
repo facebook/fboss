@@ -105,6 +105,12 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
     "minipack3bta": [
         "minipack3bta_16rifs",
     ],
+    # Wedge800BNHP shares the exact same board / platform mapping as
+    # Wedge800BACT; it only needs its own platform descriptor (distinct
+    # PlatformType / detection), inheriting all mapping CSVs from the base.
+    "wedge800bact": [
+        "wedge800bnhp",
+    ],
 }
 
 _PLATFORM_TO_BASE_PLATFORM: Dict[str, str] = {
