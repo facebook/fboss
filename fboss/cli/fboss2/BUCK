@@ -928,7 +928,6 @@ cpp_library(
         "//fboss/led_service/if:led_service-cpp2-services",
         "//fboss/lib/inputbalance:input_balance_util",
         "//fboss/lib/phy:phy-cpp2-types",
-        "//fboss/lib/phy:phy-cpp2-visitation",
         "//fboss/lib/phy:prbs-cpp2-types",
         "//fboss/mka_service/if:mka_structs-cpp2-types",
         "//fboss/mka_service/if/facebook:mka_service_thrift-cpp2-services",
