@@ -30,10 +30,6 @@ class SaiJanga800bicPlatform : public SaiBcmPlatform {
 
   void initLEDs() override {}
 
-  std::vector<PortID> getAllPortsInGroup(PortID /*portID*/) const override {
-    return {};
-  }
-
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {};
   }
