@@ -1,5 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/LinkStateToggler.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -21,10 +22,37 @@ constexpr auto kPtpEventUdpPort = 319;
 constexpr auto kPtpAclName = "ptp-pdelay-acl";
 constexpr auto kPtpAclCounterName = "ptp-pdelay-acl-stats";
 constexpr auto kPtpAclTableName = "ptp-pdelay-acl-table";
+
+// TH5 (and other XGS SDKs before the switch-level CLM attribute exists) enable
+// cable length measurement via the `clm_enable` soc property. Inject it into
+// the bcm_device global section of the ASIC YAML config.
+void addClmEnableYamlConfig(std::string& yamlCfg) {
+  const std::string kGlobalSection = "    global:\n";
+  auto pos = yamlCfg.find(kGlobalSection);
+  if (pos != std::string::npos) {
+    yamlCfg.insert(pos + kGlobalSection.size(), "      clm_enable: 1\n");
+  }
+}
 } // namespace
 
 class AgentCableLengthMeasurementTest : public AgentHwTest {
  protected:
+  // TH5 enables CLM via the `clm_enable` soc property (injected into the ASIC
+  // YAML config below); TH6 uses the switch-level SAI attribute. Everything
+  // else (per-port config, ACL) is common.
+  void applyPlatformConfigOverrides(
+      const cfg::SwitchConfig& sw,
+      cfg::PlatformConfig& config) const override {
+    if (checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+      utility::modifyPlatformConfig(
+          config,
+          [](std::string& yamlCfg) { addClmEnableYamlConfig(yamlCfg); },
+          [](std::map<std::string, std::string>& cfg) {
+            cfg["clm_enable"] = "1";
+          });
+    }
+  }
+
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = utility::onePortPerInterfaceConfig(
@@ -32,9 +60,13 @@ class AgentCableLengthMeasurementTest : public AgentHwTest {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
 
-    // Enable cable length measurement at the switch level
-    // (SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT).
-    cfg.switchSettings()->measureCableLengths() = true;
+    // Switch-level CLM enable. TH6 uses the switch-level SAI attribute
+    // (SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT). TH5 uses the
+    // `clm_enable` soc property instead (see applyPlatformConfigOverrides), so
+    // don't set the switch attribute there.
+    if (checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+      cfg.switchSettings()->measureCableLengths() = true;
+    }
 
     // Enable CLM on the port under test (per-port SAI_PORT_ATTR_* wiring).
     auto testPort = getTestPortId(ensemble);
