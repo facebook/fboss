@@ -586,15 +586,22 @@ class AgentSrv6EncapTest : public AgentHwTest {
           TunnelType::SRV6_ENCAP,
           std::string("srv6Tunnel0")));
     }
-    routeUpdater.addRoute(
-        RouterID(0),
-        kChildPrefix,
-        kChildPrefixLen,
-        ClientID::TE_AGENT,
-        RouteNextHopEntry(
-            teAgentNhops,
-            AdminDistance::TE_AGENT,
-            std::make_optional<RouteCounterID>(kChildRouteCounter)));
+    auto rib = this->getSw()->getRib();
+    rib->addOrUpdateNamedNextHopGroups(
+        this->getSw()->getScopeResolver(),
+        {{kChildRouteCounter, teAgentNhops}},
+        createRibToSwitchStateFunction(),
+        this->getSw());
+
+    UnicastRoute teAgentRoute;
+    teAgentRoute.dest()->ip() =
+        facebook::network::toBinaryAddress(kChildPrefix);
+    teAgentRoute.dest()->prefixLength() = kChildPrefixLen;
+    NamedRouteDestination namedDest;
+    namedDest.nextHopGroup_ref() = kChildRouteCounter;
+    teAgentRoute.namedRouteDestination() = namedDest;
+    teAgentRoute.counterID() = kChildRouteCounter;
+    routeUpdater.addRoute(RouterID(0), ClientID::TE_AGENT, teAgentRoute);
 
     // (c) BGP parent: next hop is inside kChildPrefix, resolving recursively
     //     through the child (and inheriting its SID list).
