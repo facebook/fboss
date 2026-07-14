@@ -154,7 +154,7 @@ PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
   }
   const auto& pmUnitInfo = slotPathToPmUnitInfo.at(slotPath);
   const auto& pmUnitName = *pmUnitInfo.name();
-  const auto& version = pmUnitInfo.version();
+  auto version = pmUnitInfo.version();
   if (!version) {
     XLOG(INFO) << fmt::format(
         "Resolved {} to default PmUnitConfig of {}. No RespinVariantIndicator "
