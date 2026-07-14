@@ -1114,9 +1114,6 @@
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",
-    "cisco_fpga_pci",
-    "cisco_fpga_i2c_ext",
-    "ledtrig_timer",
-    "cisco_fpga_i2c_smb"
+    "ledtrig_timer"
   ]
 }

@@ -985,11 +985,6 @@
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",
-    "fboss_iob_pci",
-    "fboss_iob_i2c",
-    "fboss_iob_spi",
-    "fboss_iob_gpio",
-    "fboss_iob_led",
     "ledtrig_timer"
   ]
 }

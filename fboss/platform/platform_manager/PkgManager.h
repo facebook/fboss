@@ -42,6 +42,8 @@ class PkgManager {
   virtual void processRpms() const;
   void processLocalRpms() const;
   virtual void unloadBspKmods() const;
+  // Loads the platform's required (bootstrap) kmods from the config, then
+  // additionally loads every kmod enumerated in kmods.json
   virtual void loadRequiredKmods() const;
   void removeInstalledRpms() const;
   BspKmodsFile readKmodsFile() const;
@@ -50,7 +52,11 @@ class PkgManager {
  private:
   std::string getKmodsRpmName() const;
   std::string getKmodsRpmBaseWithKernelName() const;
+  std::string getBspKmodsFilePath() const;
   void closeWatchdogs() const;
+  // Loads every kmod enumerated in kmods.json (shared kmods first, then bsp
+  // kmods -- the reverse of the unload order).
+  void loadBspKmods() const;
   // Makes a single pass over the BSP and shared kmods, unloading each one that
   // is currently loaded. Returns false as soon as an unload fails, so the
   // caller can retry the whole pass.

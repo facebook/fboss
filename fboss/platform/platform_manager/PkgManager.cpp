@@ -284,11 +284,7 @@ void PkgManager::unloadBspKmods() const {
     fb303::fbData->setCounter(kUnloadKmodsFailure, 1);
   };
 
-  std::string keyword{};
-  re2::RE2::FullMatch(
-      *platformConfig_.bspKmodsRpmName(), kBspRpmNameRe, &keyword);
-  std::string bspKmodsFilePath = fmt::format(
-      kBspKmodsFilePath, keyword, systemInterface_->getHostKernelVersion());
+  std::string bspKmodsFilePath = getBspKmodsFilePath();
   auto jsonBspKmodsFile =
       platformFsUtils_->getStringFileContent(bspKmodsFilePath);
   if (!jsonBspKmodsFile) {
@@ -351,7 +347,20 @@ void PkgManager::loadRequiredKmods() const {
           fmt::format("Failed to load ({})", requiredKmod));
     }
   }
+  loadBspKmods();
   fb303::fbData->setCounter(kLoadKmodsFailure, 0);
+}
+
+void PkgManager::loadBspKmods() const {
+  const auto bspKmodsFile = readKmodsFile();
+  for (const auto& kmod : ranges::views::concat(
+           *bspKmodsFile.sharedKmods(), *bspKmodsFile.bspKmods())) {
+    XLOG(INFO) << fmt::format("Loading {}", kmod);
+    if (!systemInterface_->loadKmod(kmod)) {
+      fb303::fbData->setCounter(kLoadKmodsFailure, 1);
+      throw std::runtime_error(fmt::format("Failed to load ({})", kmod));
+    }
+  }
 }
 
 void PkgManager::removeInstalledRpms() const {
@@ -381,11 +390,7 @@ void PkgManager::removeInstalledRpms() const {
 }
 
 BspKmodsFile PkgManager::readKmodsFile() const {
-  std::string keyword{};
-  re2::RE2::FullMatch(
-      *platformConfig_.bspKmodsRpmName(), kBspRpmNameRe, &keyword);
-  std::string bspKmodsFilePath = fmt::format(
-      kBspKmodsFilePath, keyword, systemInterface_->getHostKernelVersion());
+  std::string bspKmodsFilePath = getBspKmodsFilePath();
   auto jsonBspKmodsFile =
       platformFsUtils_->getStringFileContent(bspKmodsFilePath);
   if (!jsonBspKmodsFile) {
@@ -413,6 +418,14 @@ std::string PkgManager::getKmodsRpmBaseWithKernelName() const {
       "{}-{}",
       *platformConfig_.bspKmodsRpmName(),
       systemInterface_->getHostKernelVersion());
+}
+
+std::string PkgManager::getBspKmodsFilePath() const {
+  std::string keyword{};
+  re2::RE2::FullMatch(
+      *platformConfig_.bspKmodsRpmName(), kBspRpmNameRe, &keyword);
+  return fmt::format(
+      kBspKmodsFilePath, keyword, systemInterface_->getHostKernelVersion());
 }
 
 bool PkgManager::wereKmodsUnloaded() const {
