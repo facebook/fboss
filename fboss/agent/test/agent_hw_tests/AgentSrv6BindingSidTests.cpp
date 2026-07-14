@@ -149,27 +149,27 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     int nhopIdx;
   };
 
-  std::vector<OpenrRouteInfo> getOpenrRoutes() const {
+  std::vector<folly::IPAddressV6> getLoopbacks() const {
     return {
-        {kOpenrPrefix0, folly::IPAddressV6("fdad::1:1"), 0},
-        {kOpenrPrefix1, folly::IPAddressV6("fdad::2:1"), 1},
-        {kOpenrPrefix2, folly::IPAddressV6("fdad::3:1"), 2},
-        {kOpenrPrefix3, folly::IPAddressV6("fdad::4:1"), 3},
-    };
+        folly::IPAddressV6("fdad::1:1"),
+        folly::IPAddressV6("fdad::2:1"),
+        folly::IPAddressV6("fdad::3:1"),
+        folly::IPAddressV6("fdad::4:1")};
   }
 
   void programOpenrRoutes() {
     auto ecmpHelper = makeEcmpHelper();
     auto routeUpdater = this->getSw()->getRouteUpdater();
-    for (const auto& route : getOpenrRoutes()) {
-      auto nhop = ecmpHelper.nhop(route.nhopIdx);
+    auto loopbacks = getLoopbacks();
+    for (auto i = 0; i < loopbacks.size(); ++i) {
+      auto nhop = ecmpHelper.nhop(i);
       auto nhopIp = nhop.linkLocalNhopIp.has_value()
           ? folly::IPAddress(nhop.linkLocalNhopIp.value())
           : folly::IPAddress(nhop.ip);
       routeUpdater.addRoute(
           RouterID(0),
-          route.prefix,
-          112,
+          loopbacks[i],
+          loopbacks[i].bitCount(),
           ClientID::OPENR,
           RouteNextHopEntry(
               RouteNextHopSet{ResolvedNextHop(nhopIp, nhop.intf, ECMP_WEIGHT)},
@@ -180,8 +180,8 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
 
   void removeOpenrRoutes() {
     auto routeUpdater = this->getSw()->getRouteUpdater();
-    for (const auto& route : getOpenrRoutes()) {
-      routeUpdater.delRoute(RouterID(0), route.prefix, 112, ClientID::OPENR);
+    for (const auto& pfx : getLoopbacks()) {
+      routeUpdater.delRoute(RouterID(0), pfx, pfx.bitCount(), ClientID::OPENR);
     }
     routeUpdater.program();
   }
@@ -199,7 +199,7 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
       routeUpdater.addRoute(
           RouterID(0),
           bgpDst,
-          128,
+          bgpDst.bitCount(),
           ClientID::BGPD,
           RouteNextHopEntry(
               RouteNextHopSet{
