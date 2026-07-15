@@ -4,12 +4,11 @@
   "pwmBoostOnNoQsfpAfterInSec": 0,
   "pwmBoostValue": 70,
   "pwmTransitionValue": 45,
-  "pwmLowerThreshold": 25,
-  "pwmUpperThreshold": 70,
+  "pwmLowerThreshold": 20,
+  "pwmUpperThreshold": 100,
   "shutdownCmd": "echo 0 > /run/devmap/cplds/SMB_L_CPLD/th6_pwr_en; echo 0 > /run/devmap/cplds/SMB_R_CPLD/th6_pwr_en",
   "watchdog": {
-    "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",
-    "value": 0
+    "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",    "value": 0
   },
   "controlInterval": {
     "sensorReadInterval": 5,
@@ -20,84 +19,83 @@
       "sensorName": "NETLAKE_U1_CPU_UNCORE_TEMP",
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
-        "kp": -4,
-        "ki": -0.06,
+        "kp": 2,
+        "ki": 0.6,
         "kd": 0,
-        "setPoint": 97.0,
-        "posHysteresis": 0.0,
-        "negHysteresis": 8.0
-      }
-    },
-    {
-      "sensorName": "RTM_L_U8_LM75_INLET_TEMP",
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "30": 50,
-        "35": 60,
-        "37": 65,
-        "42": 70
-      },
-      "normalDownTable": {
-        "28": 50,
-        "33": 60,
-        "35": 65,
-        "40": 70
-      },
-      "failUpTable": {
-        "30": 55,
-        "35": 65,
-        "37": 70,
-        "42": 75
-      },
-      "failDownTable": {
-        "28": 55,
-        "33": 65,
-        "35": 70,
-        "40": 75
-      }
-    },
-    {
-      "sensorName": "RTM_R_U8_LM75_INLET_TEMP",
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "30": 50,
-        "35": 60,
-        "37": 65,
-        "42": 70
-      },
-      "normalDownTable": {
-        "28": 50,
-        "33": 60,
-        "35": 65,
-        "40": 70
-      },
-      "failUpTable": {
-        "30": 55,
-        "35": 65,
-        "37": 70,
-        "42": 75
-      },
-      "failDownTable": {
-        "28": 55,
-        "33": 65,
-        "35": 70,
-        "40": 75
-      }
-    },
-    {
-      "sensorName": "MCB_PSP3_XP12R0V_PB3_TEMP",
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": -8,
-        "ki": -0.06,
-        "kd": 0,
-        "setPoint": 105.0,
-        "posHysteresis": 0.0,
+        "setPoint": 90.0,
+        "posHysteresis": 3.0,
         "negHysteresis": 3.0
       }
+    },
+    {
+      "sensorName": "MCB_U165_LM75_INLET_TEMP",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "28": 35,
+        "33": 40,
+        "38": 45,
+        "43": 50
+      },
+      "normalDownTable": {
+        "26": 35,
+        "31": 40,
+        "36": 45,
+        "41": 50
+      },
+      "failUpTable": {
+        "28": 40,
+        "33": 45,
+        "38": 50,
+        "43": 55
+      },
+      "failDownTable": {
+        "26": 40,
+        "31": 45,
+        "36": 50,
+        "41": 55
+      }
+    },
+    {
+      "sensorName": "MCB_U202_LM75_INLET_TEMP",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "30": 35,
+        "35": 40,
+        "40": 45,
+        "45": 50
+      },
+      "normalDownTable": {
+        "28": 35,
+        "33": 40,
+        "38": 45,
+        "43": 50
+      },
+      "failUpTable": {
+        "30": 40,
+        "35": 45,
+        "40": 50,
+        "45": 55
+      },
+      "failDownTable": {
+        "28": 40,
+        "33": 45,
+        "38": 50,
+        "43": 55
+      }
+    },
+    {
+      "sensorName": "MCB_PSP2_XP12R0V_PB2_TEMP",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 9,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 104.0,
+        "posHysteresis": 1.0,
+        "negHysteresis": 1.0
+      }
     }
-  ],
-  "shutdownCondition": {
+  ],  "shutdownCondition": {
     "numOvertempSensorForShutdown": 1,
     "conditions": [
       {
@@ -276,13 +274,12 @@
       "zoneName": "zone1",
       "sensorNames": [
         "NETLAKE_U1_CPU_UNCORE_TEMP",
-        "RTM_L_U8_LM75_INLET_TEMP",
-        "RTM_R_U8_LM75_INLET_TEMP",
-        "MCB_PSP3_XP12R0V_PB3_TEMP"
+        "MCB_U165_LM75_INLET_TEMP",
+        "MCB_U202_LM75_INLET_TEMP",
+        "MCB_PSP2_XP12R0V_PB2_TEMP"
       ],
       "fanNames": [
-        "FAN_1_F",
-        "FAN_1_R",
+        "FAN_1_F",        "FAN_1_R",
         "FAN_2_F",
         "FAN_2_R",
         "FAN_3_F",
