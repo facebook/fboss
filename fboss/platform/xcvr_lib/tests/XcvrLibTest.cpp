@@ -284,6 +284,13 @@ TEST(XcvrLibTest, GetResetHoldHiCiscoBsp) {
   EXPECT_EQ(xcvr.getResetHoldHi(), 0);
 }
 
+// Nexthop's xcvr reset line is active-low.
+TEST(XcvrLibTest, GetResetHoldHiNexthopBsp) {
+  XcvrLib xcvr(makeTestConfig(
+      "TEST_PLATFORM", 1, {makeLedBlock(1, 1, 2, 8)}, {}, "nexthop_bsp_kmods"));
+  EXPECT_EQ(xcvr.getResetHoldHi(), 0);
+}
+
 // --- Tests for std::nullopt return paths (invalid xcvrId) ---
 
 TEST(XcvrLibTest, GetNumLedsForTransceiverInvalidId) {

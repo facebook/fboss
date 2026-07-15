@@ -15,13 +15,14 @@ namespace {
 // The BSPs FBOSS platforms ship with, mapped from PlatformConfig's
 // bspKmodsRpmName so call sites branch on a typed value instead of scattering
 // raw RPM-name string comparisons.
-enum class BspVendor { Fboss, Arista, Cisco, Unknown };
+enum class BspVendor { Fboss, Arista, Cisco, Nexthop, Unknown };
 
 BspVendor bspVendorFromRpmName(const std::string& bspKmodsRpmName) {
   static const std::unordered_map<std::string, BspVendor> kVendors = {
       {"fboss_bsp_kmods", BspVendor::Fboss},
       {"arista_bsp_kmods", BspVendor::Arista},
       {"cisco_bsp_kmods", BspVendor::Cisco},
+      {"nexthop_bsp_kmods", BspVendor::Nexthop},
   };
   auto it = kVendors.find(bspKmodsRpmName);
   return it != kVendors.end() ? it->second : BspVendor::Unknown;
@@ -113,6 +114,8 @@ int XcvrLib::computeResetHoldHi() const {
   const auto& bspKmodsRpmName = *pmConfig_.bspKmodsRpmName();
   switch (bspVendorFromRpmName(bspKmodsRpmName)) {
     case BspVendor::Cisco:
+      return 0;
+    case BspVendor::Nexthop:
       return 0;
     case BspVendor::Arista: {
       // Arista flipped the xcvr reset line to active-high starting at this BSP
