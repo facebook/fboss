@@ -15,7 +15,11 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTestBase.h"
 
+#include "fboss/agent/test/utils/PacketSnooper.h"
+
 namespace facebook::fboss {
+
+class HwSwitch;
 
 // Common fields extracted from a captured MirrorOnDrop packet.
 struct MirrorOnDropPacketFields {
@@ -76,17 +80,27 @@ class MirrorOnDropImpl {
   virtual MirrorOnDropPacketFields parsePacket(
       const folly::IOBuf* buf) const = 0;
 
+  virtual uint16_t expectedIngressPort(const HwSwitch* hw, const PortID& portId)
+      const {
+    (void)hw;
+    return static_cast<uint16_t>(portId);
+  }
+
   // Check ASIC-specific wire-format invariants
   // (e.g., IPFIX version for XGS).
   virtual void verifyInvariants(const folly::IOBuf* buf) const = 0;
+
+  // Pack expected drop reason for MMU/buffer drops. XGS uses egress slot
+  // (dropReasonMmu); Tajo punt header has a single code field (ingress slot).
+  virtual MirrorOnDropDropReasonCodes packMmuDropReason(uint16_t code) const {
+    return {.ingressDropReason = 0, .egressDropReason = code};
+  }
 
   // ASIC-specific raw drop-reason code for each category. The framework
   // packs these into the ingress-vs-egress slot expected by the wire format.
   virtual uint16_t getDefaultRouteDropReason() const = 0;
   virtual uint16_t getAclDropReason() const = 0;
   virtual uint16_t getMmuDropReason() const = 0;
-  // TODO: replace placeholder values with actual ASIC drop-reason codes
-  // once available from the vendor SDK.
   virtual uint16_t getSrv6MidpointNonLastSidDropReason() const = 0;
   virtual uint16_t getSrv6DecapNonLastSegmentDropReason() const = 0;
   virtual uint16_t getSrv6BindingSidNonLastSidDropReason() const = 0;
@@ -187,7 +201,19 @@ class AgentMirrorOnDropStatelessTest : public AgentMirrorOnDropTestBase {
       const PortID& injectionPortId,
       const MirrorOnDropDropReasonCodes& expectedReasons,
       std::optional<folly::IPAddressV6> expectedInnerDstIp = std::nullopt,
-      std::optional<folly::IPAddressV6> expectedInnerSrcIp = std::nullopt);
+      std::optional<folly::IPAddressV6> expectedInnerSrcIp = std::nullopt,
+      std::optional<PortID> expectedIngressPortId = std::nullopt);
+
+  // RX filter for SwSwitchPacketSnooper: outer IPv6 dst = collector IP and UDP
+  // dport = mirror port. Applied on the punt thread before EthFrame parse.
+  static utility::PacketFilterFn mirrorOnDropRxPacketFilter();
+
+  // Dequeue CPU packets until a MOD export is seen or timeout expires. Non-MOD
+  // trapped packets are discarded so ingress/inner field checks run on the
+  // correct frame.
+  std::optional<std::unique_ptr<folly::IOBuf>> waitForMirrorOnDropPacket(
+      utility::SwSwitchPacketSnooper& snooper,
+      uint32_t timeout_s = 1);
 
   // Wait until outUnicastPkts on every port stabilizes across 3 iterations.
   void waitForStatsToStabilize(const std::vector<PortID>& ports);

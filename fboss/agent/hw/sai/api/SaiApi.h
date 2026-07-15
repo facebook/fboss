@@ -284,6 +284,13 @@ class SaiApi {
 #endif
       return std::optional<typename AttrT::ValueType>(result);
     } catch (const SaiApiError& e) {
+      if constexpr (IsSaiExtensionAttribute<AttrT>::value) {
+        if (e.getSaiStatus() == SAI_STATUS_INVALID_PARAMETER) {
+          // Extension attribute is not applicable for this object instance
+          // (e.g. SAI_TAM_EVENT_ATTR_SWITCH_EVENT_TYPE on PACKET_DROP events).
+          return std::optional<typename AttrT::ValueType>();
+        }
+      }
       if constexpr (std::remove_reference_t<AttrT>::HasDefaultGetter) {
         /*
          * If default value is provided, allow fallback in case of certain

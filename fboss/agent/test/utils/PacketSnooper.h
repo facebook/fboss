@@ -10,6 +10,7 @@
 #include <folly/io/IOBuf.h>
 #include <gtest/gtest.h>
 #include <condition_variable>
+#include <functional>
 #include <optional>
 #include <queue>
 
@@ -21,6 +22,10 @@ namespace facebook::fboss::utility {
 
 using PacketComparatorFn =
     std::optional<std::function<bool(utility::EthFrame, utility::EthFrame)>>;
+
+// Optional RX filter run on the punt thread before EthFrame parse. Return false
+// to drop the packet without queuing (avoids parse throws on non-MOD traps).
+using PacketFilterFn = std::optional<std::function<bool(const folly::IOBuf*)>>;
 
 // Packet rewrite fields
 struct PacketMatchFields {
@@ -43,7 +48,8 @@ class PacketSnooper : public PacketObserverIf {
       std::optional<utility::EthFrame> expectedFrame = std::nullopt,
       PacketComparatorFn packetComparator = std::nullopt,
       packetSnooperReceivePacketType receivePktType =
-          packetSnooperReceivePacketType::PACKET_TYPE_ALL);
+          packetSnooperReceivePacketType::PACKET_TYPE_ALL,
+      PacketFilterFn packetFilter = std::nullopt);
 
   void packetReceived(const RxPacket* pkt) noexcept override;
   bool expectedReceivedPacketType(folly::io::Cursor& cursor) noexcept;
@@ -64,6 +70,7 @@ class PacketSnooper : public PacketObserverIf {
   std::optional<PortID> port_;
   std::optional<utility::EthFrame> expectedFrame_;
   PacketComparatorFn packetComparator_;
+  PacketFilterFn packetFilter_;
   std::mutex mtx_;
   std::condition_variable cv_;
   std::queue<std::unique_ptr<utility::EthFrame>> receivedFrames_;
@@ -79,7 +86,8 @@ class SwSwitchPacketSnooper : public PacketSnooper {
       std::optional<utility::EthFrame> expectedFrame = std::nullopt,
       PacketComparatorFn packetComparator = std::nullopt,
       packetSnooperReceivePacketType receivePktType =
-          packetSnooperReceivePacketType::PACKET_TYPE_ALL);
+          packetSnooperReceivePacketType::PACKET_TYPE_ALL,
+      PacketFilterFn packetFilter = std::nullopt);
 
   std::optional<std::unique_ptr<folly::IOBuf>> waitForPacket(
       uint32_t timeout_s);

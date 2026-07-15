@@ -5,8 +5,10 @@
 
 #include <string>
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/packet/HdrParseError.h"
 
 DECLARE_bool(rx_vlan_untagged_packets);
 
@@ -52,11 +54,13 @@ PacketSnooper::PacketSnooper(
     std::optional<PortID> port,
     std::optional<utility::EthFrame> expectedFrame,
     PacketComparatorFn packetComparator,
-    packetSnooperReceivePacketType receivePktType)
+    packetSnooperReceivePacketType receivePktType,
+    PacketFilterFn packetFilter)
     : receivePktType_(receivePktType),
       port_(std::move(port)),
       expectedFrame_(std::move(expectedFrame)),
-      packetComparator_(std::move(packetComparator)) {
+      packetComparator_(std::move(packetComparator)),
+      packetFilter_(std::move(packetFilter)) {
   if (FLAGS_rx_vlan_untagged_packets) {
     /* strip vlans as rx will always be untagged */
     expectedFrame_->stripVlans();
@@ -94,8 +98,31 @@ void PacketSnooper::packetReceived(const RxPacket* pkt) noexcept {
     return;
   }
   auto data = pkt->buf()->clone();
+  if (packetFilter_.has_value() && !packetFilter_.value()(data.get())) {
+    XLOG(DBG2) << "Ignoring CPU packet that failed RX filter on port "
+               << pkt->getSrcPort();
+    return;
+  }
+
+  std::unique_ptr<utility::EthFrame> frame;
+  try {
+    folly::io::Cursor cursor{data.get()};
+    frame = std::make_unique<utility::EthFrame>(cursor);
+  } catch (const HdrParseError& ex) {
+    XLOG(DBG2) << "Ignoring unparseable CPU packet on port "
+               << pkt->getSrcPort() << ": " << ex.what();
+    return;
+  } catch (const FbossError& ex) {
+    XLOG(DBG2) << "Ignoring unparseable CPU packet on port "
+               << pkt->getSrcPort() << ": " << ex.what();
+    return;
+  } catch (const std::exception& ex) {
+    XLOG(DBG2) << "Ignoring unparseable CPU packet on port "
+               << pkt->getSrcPort() << ": " << ex.what();
+    return;
+  }
+
   folly::io::Cursor cursor{data.get()};
-  auto frame = std::make_unique<utility::EthFrame>(cursor);
 
   if (packetComparator_.has_value() && expectedFrame_.has_value()) {
     if (!packetComparator_.value()(*expectedFrame_, *frame)) {
@@ -146,12 +173,14 @@ SwSwitchPacketSnooper::SwSwitchPacketSnooper(
     std::optional<PortID> port,
     std::optional<utility::EthFrame> expectedFrame,
     PacketComparatorFn packetComparator,
-    packetSnooperReceivePacketType receivePktType)
+    packetSnooperReceivePacketType receivePktType,
+    PacketFilterFn packetFilter)
     : PacketSnooper(
           port,
           std::move(expectedFrame),
           std::move(packetComparator),
-          receivePktType),
+          receivePktType,
+          std::move(packetFilter)),
       sw_(sw),
       name_(name) {
   sw_->getPacketObservers()->registerPacketObserver(this, name_);
