@@ -129,6 +129,15 @@
               },
               "portNumber": -1,
               "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MGMT_QSFP_LED",
+                "deviceName": "mgmt_qsfp_led",
+                "csrOffset": "0x9c"
+              },
+              "portNumber": 129,
+              "ledId": 1
             }
           ],
           "ledCtrlBlockConfigs": [
@@ -301,6 +310,15 @@
               "numPorts": 8,
               "ledPerPort": 2,
               "startPort": 121
+            },
+            {
+              "pmUnitScopedNamePrefix": "MGMT_QSFP_LED",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x9c",
+              "numPorts": 1,
+              "ledPerPort": 1,
+              "lanesPerPort": 4,
+              "startPort": 129
             }
           ],
           "xcvrCtrlBlockConfigs": [
@@ -331,6 +349,13 @@
               "csrOffsetCalc": "0x0",
               "startPort": 97,
               "numPorts": 32
+            },
+            {
+              "pmUnitScopedNamePrefix": "QSFP",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x0",
+              "startPort": 129,
+              "numPorts": 1
             }
           ]
         }
@@ -696,10 +721,12 @@
     "/run/devmap/xcvrs/xcvr_io_127": "/SMB_SLOT@0/[SMB1_OSFP_I2C_55]",
     "/run/devmap/xcvrs/xcvr_ctrl_127": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_127]",
     "/run/devmap/xcvrs/xcvr_io_128": "/SMB_SLOT@0/[SMB1_OSFP_I2C_56]",
-    "/run/devmap/xcvrs/xcvr_ctrl_128": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_128]"
+    "/run/devmap/xcvrs/xcvr_ctrl_128": "/SMB_SLOT@0/[OSFP_XCVR_CTRL_PORT_128]",
+    "/run/devmap/xcvrs/xcvr_io_129": "/SMB_SLOT@0/[SMB0_IOB_I2C_3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_129": "/SMB_SLOT@0/[QSFP_XCVR_CTRL_PORT_129]"
   },
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
-  "numXcvrs": 128,
+  "numXcvrs": 129,
   "bspKmodsRpmName": "nexthop_bsp_kmods",
   "bspKmodsRpmVersion": "1.0.0-1",
   "nonBspKmodsToLoad": [
