@@ -912,7 +912,7 @@ struct PlatformConfig {
   // Most kmods are loaded automatically during device creation. This field is
   // only for kmods which need to be loaded before any devices are created in
   // order to work properly.
-  25: list<string> requiredKmodsToLoad;
+  25: list<string> nonBspKmodsToLoad;
 
   // Number of retimers in the platform.
   26: i16 numRtms;
