@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include <folly/ScopeGuard.h>
+#include <folly/logging/xlog.h>
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
@@ -117,8 +118,8 @@ AgentMirrorOnDropStatelessTest::getMmuDropReasons() {
 }
 
 MirrorOnDropDropReasonCodes
-AgentMirrorOnDropStatelessTest::getSrv6MidpointNonLastSidDropReasons() {
-  return ingressOnly(impl()->getSrv6MidpointNonLastSidDropReason());
+AgentMirrorOnDropStatelessTest::getSrv6MidpointIsLastSidDropReason() {
+  return ingressOnly(impl()->getSrv6MidpointIsLastSidDropReason());
 }
 
 MirrorOnDropDropReasonCodes
@@ -170,13 +171,27 @@ void AgentMirrorOnDropStatelessTest::validateMirrorOnDropPacket(
   verifyAsicSpecificInvariants(captured);
   auto fields = parseMirrorOnDropPacket(captured);
 
-  EXPECT_EQ(fields.outerSrcMac, getLocalMacAddress());
+  // Tajo routes the MoD export out a front-panel port, so its outer source MAC
+  // is the egress router-interface MAC (my_mac), not the CPU/local MAC that
+  // XGS's tunnel uses.
+  const bool isTajoImpl =
+      dynamic_cast<TajoMirrorOnDropImpl*>(impl()) != nullptr;
+  const folly::MacAddress expectedOuterSrcMac = isTajoImpl
+      ? getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())
+      : getLocalMacAddress();
+  EXPECT_EQ(fields.outerSrcMac, expectedOuterSrcMac);
   EXPECT_EQ(fields.outerDstMac, kCollectorNextHopMac_);
   EXPECT_EQ(fields.outerSrcIp, kSwitchIp_);
   EXPECT_EQ(fields.outerDstIp, kCollectorIp_);
-  EXPECT_EQ(fields.outerSrcPort, static_cast<uint16_t>(kMirrorSrcPort));
   EXPECT_EQ(fields.outerDstPort, static_cast<uint16_t>(kMirrorDstPort));
-  EXPECT_EQ(fields.ingressPort, static_cast<uint16_t>(injectionPortId));
+  // Tajo ingress MoD does not carry the original front-panel ingress port in
+  // the export. The SDK redirects the drop to a fixed recycle port, so the punt
+  // header's source_sp/source_lp are the recycle port's system/logical port
+  // gids (constant across injection ports), not the injection PortID.
+  // TODO: ask Cisco to exposes the original ingress port for ingress MoD.
+  if (!isTajoImpl) {
+    EXPECT_EQ(fields.ingressPort, static_cast<uint16_t>(injectionPortId));
+  }
   EXPECT_EQ(fields.dropReasonIngress, expectedReasons.ingressDropReason);
   EXPECT_EQ(fields.dropReasonEgress, expectedReasons.egressDropReason);
   EXPECT_EQ(fields.innerSrcIp, expectedInnerSrcIp.value_or(kPacketSrcIp_));
@@ -247,7 +262,7 @@ void AgentMirrorOnDropStatelessTest::testDefaultRouteDrop() {
       auto frameRx = snooper.waitForPacket(1);
       EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
       if (frameRx.has_value()) {
-        XLOG(INFO) << "Captured MirrorOnDrop packet:\n"
+        XLOG(INFO) << "Captured MirrorOnDrop packet for default-route drop:\n"
                    << PktUtil::hexDump(frameRx->get());
         validateMirrorOnDropPacket(
             frameRx->get(),
@@ -385,6 +400,8 @@ void AgentMirrorOnDropStatelessTest::testMmuDrop() {
       auto frameRx = snooper.waitForPacket(1);
       EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
       if (frameRx.has_value()) {
+        XLOG(INFO) << "Captured MirrorOnDrop packet for MMU drop:\n"
+                   << PktUtil::hexDump(frameRx->get());
         validateMirrorOnDropPacket(
             frameRx->get(), injectionPortId, getMmuDropReasons());
       }

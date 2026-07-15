@@ -358,6 +358,7 @@ cpp_library(
         "//fboss/agent/packet:pktutil",
         "//fboss/agent/packet:sflow_structs",
         "//fboss/agent/packet/bcm:xgs_psamp_mod",
+        "//fboss/agent/packet/tajo:tajo_punt_header",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/agent/platforms/tests/utils:test_platform_types",
         "//fboss/agent/rib:standalone_rib",

@@ -226,6 +226,7 @@ target_link_libraries(agent_hw_test_src
   port_stats_test_utils
   packet
   packet_snooper
+  tajo_punt_header
   queue_per_host_test_utils
   multi_port_traffic_test_utils
   trap_packet_utils

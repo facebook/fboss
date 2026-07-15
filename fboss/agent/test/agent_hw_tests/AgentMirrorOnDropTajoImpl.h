@@ -6,14 +6,10 @@
 
 namespace facebook::fboss {
 
-// Tajo (Yuba=gibraltar, G202X=graphene200) MirrorOnDrop Strategy.
+// Tajo (Yuba, G202X) MirrorOnDrop implementation.
 //
-// Wire format observed in the MoD sample packet capture:
-//   Eth / IPv6 / UDP / Tajo proprietary header (28B) / inner Eth /
-//   inner IPv6 / inner transport
-//
-// Drop reason codes are TBD until Tajo publishes them; placeholders here
-// will cause all reason-based test assertions to degenerate to 0x00==0x00.
+// Wire format: outer Eth / IPv6 / UDP / Tajo punt header / inner sample.
+// The punt header is parsed by fboss/agent/packet/tajo/TajoPuntHeader.
 class TajoMirrorOnDropImpl : public MirrorOnDropImpl {
  public:
   cfg::MirrorOnDropReport makeReport(
@@ -31,7 +27,7 @@ class TajoMirrorOnDropImpl : public MirrorOnDropImpl {
   uint16_t getDefaultRouteDropReason() const override;
   uint16_t getAclDropReason() const override;
   uint16_t getMmuDropReason() const override;
-  uint16_t getSrv6MidpointNonLastSidDropReason() const override;
+  uint16_t getSrv6MidpointIsLastSidDropReason() const override;
   uint16_t getSrv6DecapNonLastSegmentDropReason() const override;
   uint16_t getSrv6BindingSidNonLastSidDropReason() const override;
   uint16_t getSrv6MidpointUnresolvedDropReason() const override;
