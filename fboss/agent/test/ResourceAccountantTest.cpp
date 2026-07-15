@@ -15,7 +15,6 @@
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
-#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/MySid.h"

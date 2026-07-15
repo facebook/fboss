@@ -161,7 +161,8 @@ class AgentWatermarkTest : public AgentHwTest {
     uint64_t minDeviceWatermarkBytes{0};
     const auto asicType =
         getSw()->getHwAsicTable()->getHwAsic(switchId)->getAsicType();
-    if (asicType == cfg::AsicType::ASIC_TYPE_EBRO) {
+    if (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+        asicType == cfg::AsicType::ASIC_TYPE_P200) {
       /*
        * Ebro will always have some internal buffer utilization even
        * when there is no traffic in the ASIC. The recommendation is

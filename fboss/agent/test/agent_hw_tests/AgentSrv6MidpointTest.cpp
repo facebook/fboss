@@ -7,7 +7,6 @@
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/AggregatePort.h"
-#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"

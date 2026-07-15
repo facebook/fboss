@@ -11,7 +11,6 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
-#include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
@@ -182,7 +181,7 @@ void serializedFullIPv6PacketHelper(bool taggedPkt) {
       0,
       0);
 
-  auto totalLength = icmp6.computeTotalLengthV6(0);
+  auto totalLength = icmp6.computeTotalLengthV6(0, taggedPkt);
   auto buf = IOBuf(IOBuf::CREATE, totalLength);
   buf.append(totalLength);
   RWPrivateCursor cursor(&buf);

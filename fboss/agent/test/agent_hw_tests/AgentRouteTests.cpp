@@ -85,9 +85,9 @@ class AgentRouteTest : public AgentHwTest {
     std::vector<PortDescriptor> ports;
     for (auto i = 0; i < 4; ++i) {
       if (FLAGS_hyper_port) {
-        ports.push_back(PortDescriptor(masterLogicalHyperPortIds()[i]));
+        ports.emplace_back(masterLogicalHyperPortIds()[i]);
       } else {
-        ports.push_back(PortDescriptor(masterLogicalInterfacePortIds()[i]));
+        ports.emplace_back(masterLogicalInterfacePortIds()[i]);
       }
     }
     return ports;

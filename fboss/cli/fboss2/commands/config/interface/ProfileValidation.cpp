@@ -14,6 +14,9 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <algorithm>
 #include <cctype>
+#include <map>
+#include <optional>
+#include <set>
 #include <stdexcept>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
@@ -100,12 +103,9 @@ std::vector<cfg::PortProfileID> ProfileValidator::getSupportedProfiles(
   return it->second;
 }
 
-cfg::PortProfileID ProfileValidator::validateProfile(
+void ProfileValidator::validateProfile(
     const std::string& portName,
-    const std::string& profileStr) {
-  // Parse first — throws std::invalid_argument on bad string
-  cfg::PortProfileID requestedProfile = parseProfile(profileStr);
-
+    cfg::PortProfileID requestedProfile) {
   // Get supported profiles for this port
   auto supportedProfiles = getSupportedProfiles(portName);
 
@@ -113,7 +113,7 @@ cfg::PortProfileID ProfileValidator::validateProfile(
   auto it = std::find(
       supportedProfiles.begin(), supportedProfiles.end(), requestedProfile);
   if (it != supportedProfiles.end()) {
-    return requestedProfile;
+    return;
   }
 
   // Build supported profile names for error message
@@ -126,7 +126,7 @@ cfg::PortProfileID ProfileValidator::validateProfile(
   throw std::invalid_argument(
       fmt::format(
           "Invalid profile '{}' for port {}. Supported profiles: [{}]",
-          profileStr,
+          apache::thrift::util::enumNameSafe(requestedProfile),
           portName,
           folly::join(", ", supportedNames)));
 }
@@ -141,6 +141,94 @@ cfg::PortSpeed ProfileValidator::getProfileSpeed(
         static_cast<int64_t>(profileConfig->speed().value()));
   }
   return cfg::PortSpeed::DEFAULT;
+}
+
+ProfileValidator::ProfileChangeResult ProfileValidator::validateProfileChange(
+    const cfg::SwitchConfig& currentConfig,
+    const std::vector<std::string>& portNames,
+    cfg::PortProfileID profile) {
+  // Requested name -> id (throws FbossError if not a platform port).
+  std::map<PortID, std::string> requested;
+  for (const auto& name : portNames) {
+    requested.emplace(platformMappingObj_->getPortID(name), name);
+  }
+
+  // Current config profile by logicalID — the effective profile of any port we
+  // are not changing.
+  std::map<PortID, cfg::PortProfileID> configProfile;
+  for (const auto& port : *currentConfig.ports()) {
+    configProfile.emplace(PortID(*port.logicalID()), *port.profileID());
+  }
+  auto effectiveProfile = [&](PortID id) -> std::optional<cfg::PortProfileID> {
+    if (auto it = requested.find(id); it != requested.end()) {
+      return profile;
+    }
+    if (auto it = configProfile.find(id); it != configProfile.end()) {
+      return it->second;
+    }
+    return std::nullopt; // absent from config and not requested
+  };
+
+  // 1) Each requested port must support the profile.
+  for (const auto& [id, name] : requested) {
+    validateProfile(name, profile);
+  }
+
+  // 2) No requested port may be subsumed by its controlling port's effective
+  //    profile (catches input-vs-input AND input-vs-existing-controlling-port).
+  for (const auto& [id, name] : requested) {
+    const PortID controlling(
+        *platformMappingObj_->getPlatformPort(static_cast<int32_t>(id))
+             .mapping()
+             ->controllingPort());
+    if (controlling == id) {
+      continue; // self-controlling: it consumes others, not itself
+    }
+    const auto cProfile = effectiveProfile(controlling);
+    if (!cProfile.has_value()) {
+      continue; // controlling port inactive -> no subsumption
+    }
+    const auto subsumed =
+        platformMappingObj_->getSubsumedPorts(controlling, *cProfile);
+    if (std::find(subsumed.begin(), subsumed.end(), id) != subsumed.end()) {
+      const auto cName =
+          platformMappingObj_->getPortNameByPortId(controlling)
+              .value_or(std::to_string(static_cast<uint32_t>(controlling)));
+      throw std::invalid_argument(
+          fmt::format(
+              "Cannot apply profile {} to port {}: its controlling port {} is "
+              "at profile {} which subsumes {}. Change {} first or drop {} from "
+              "the request.",
+              apache::thrift::util::enumNameSafe(profile),
+              name,
+              cName,
+              apache::thrift::util::enumNameSafe(*cProfile),
+              name,
+              cName,
+              name));
+    }
+  }
+
+  // 3) Ports to remove: union of what each requested port subsumes at the new
+  //    profile (skip HYPER_PORT, per coop patchers.py). Only include ports that
+  //    are actually present in the config — a subsumed port that isn't in the
+  //    config needs no removal and must not be reported as auto-removed.
+  std::set<PortID> toRemove;
+  for (const auto& [id, name] : requested) {
+    const auto& entry =
+        platformMappingObj_->getPlatformPort(static_cast<int32_t>(id));
+    if (*entry.mapping()->portType() == cfg::PortType::HYPER_PORT) {
+      continue;
+    }
+    for (PortID sp : platformMappingObj_->getSubsumedPorts(id, profile)) {
+      if (configProfile.count(sp) > 0) {
+        toRemove.insert(sp);
+      }
+    }
+  }
+
+  return ProfileChangeResult{
+      std::vector<PortID>(toRemove.begin(), toRemove.end())};
 }
 
 } // namespace facebook::fboss

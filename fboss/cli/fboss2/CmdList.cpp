@@ -84,6 +84,7 @@
 #include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
 #include "fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
+#include "fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
 #ifndef IS_OSS
@@ -428,6 +429,18 @@ const CommandTree& kCommandTree() {
          "Show details of MPLS routes",
          commandHandler<CmdShowMplsRoute>,
          argTypeHandler<CmdShowMplsRouteTraits>}}},
+
+      {"show",
+       "nexthopgroups",
+       "Show next hop groups",
+       commandHandler<CmdShowNextHopGroups>,
+       argTypeHandler<CmdShowNextHopGroupsTraits>},
+
+      {"show",
+       "namednexthopgroups",
+       "Show named next hop groups",
+       commandHandler<CmdShowNamedNextHopGroups>,
+       argTypeHandler<CmdShowNamedNextHopGroupsTraits>},
 
       {
           "show",

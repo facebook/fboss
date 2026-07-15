@@ -157,13 +157,8 @@ SensorConfig Utils::getConfig() {
   SensorConfig sensorConfig =
       apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
           ConfigLib().getSensorServiceConfig(platformName));
-  if (*sensorConfig.platformName() != platformName.value_or("")) {
-    throw std::runtime_error(
-        fmt::format(
-            "platformName in config '{}' does not match inferred name '{}'",
-            *sensorConfig.platformName(),
-            platformName.value_or("")));
-  }
+  ConfigLib::verifyPlatformNameMatches(
+      *sensorConfig.platformName(), platformName.value_or(""));
   if (!ConfigValidator().isValid(sensorConfig)) {
     throw std::runtime_error("Invalid sensor config");
   }

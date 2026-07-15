@@ -91,6 +91,12 @@ class PlatformMapping {
 
   const cfg::PlatformPortEntry& getPlatformPort(int32_t portId) const;
 
+  // Ports subsumed (consumed) when `port` runs at `profile`. Empty if the
+  // profile subsumes nothing. Throws FbossError if `port` does not support
+  // `profile`.
+  std::vector<PortID> getSubsumedPorts(PortID port, cfg::PortProfileID profile)
+      const;
+
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
       PlatformPortProfileConfigMatcher matcher) const;
 

@@ -378,6 +378,33 @@ class AgentSrv6EcmpLoadBalancerTest : public AgentLoadBalancerTest<
   }
 };
 
+// SRv6 ECMP load balancing driven purely by the IPv6 flow label (fixed 5-tuple)
+class AgentSrv6FlowLabelEcmpLoadBalancerTest
+    : public AgentLoadBalancerTest<
+          utility::HwSrv6FlowLabelEcmpDataPlaneTestUtil,
+          false> {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::SRV6_ENCAP, ProductionFeature::ECMP_LOAD_BALANCER};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    return utility::srv6EcmpInitialConfig(ensemble);
+  }
+
+  std::unique_ptr<utility::HwSrv6FlowLabelEcmpDataPlaneTestUtil> getECMPHelper()
+      override {
+    if (!getEnsemble()) {
+      return nullptr;
+    }
+    return std::make_unique<utility::HwSrv6FlowLabelEcmpDataPlaneTestUtil>(
+        getEnsemble(), RouterID(0));
+  }
+};
+
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV4)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV6)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV4ToMpls)
@@ -526,6 +553,11 @@ TEST_F(
 
 RUN_HW_LOAD_BALANCER_TEST_CPU(
     AgentSrv6EcmpLoadBalancerTest,
+    Ecmp,
+    FullWithFlowLabel)
+
+RUN_HW_LOAD_BALANCER_TEST_CPU(
+    AgentSrv6FlowLabelEcmpLoadBalancerTest,
     Ecmp,
     FullWithFlowLabel)
 

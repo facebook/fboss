@@ -452,4 +452,24 @@ void HwSrv6EcmpDataPlaneTestUtil::programRoutes(
   routeUpdater->program();
 }
 
+HwSrv6FlowLabelEcmpDataPlaneTestUtil::HwSrv6FlowLabelEcmpDataPlaneTestUtil(
+    TestEnsembleIf* ensemble,
+    RouterID vrf)
+    : BaseT(ensemble, vrf) {}
+
+void HwSrv6FlowLabelEcmpDataPlaneTestUtil::pumpTrafficThroughPort(
+    std::optional<PortID> port) {
+  auto* ensemble = getEnsemble();
+  auto programmedState = ensemble->getProgrammedState();
+  auto vlanId = getVlanIDForTx(ensemble, port);
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(programmedState);
+
+  utility::pumpTrafficWithFlowLabel(
+      utility::getAllocatePktFn(ensemble),
+      utility::getSendPktFunc(ensemble),
+      intfMac,
+      vlanId,
+      port);
+}
+
 } // namespace facebook::fboss::utility

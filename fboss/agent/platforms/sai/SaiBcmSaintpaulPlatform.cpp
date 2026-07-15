@@ -13,12 +13,6 @@
 #include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
 #include "fboss/agent/platforms/common/saintpaul/SaintpaulPlatformMapping.h"
 
-namespace {
-constexpr auto kCpuPortSpeed = 10000;
-constexpr auto kSingleStageCpuPortNumVoqs = 8;
-constexpr auto kDualStageCpuPortNumVoqs = 3;
-} // namespace
-
 namespace facebook::fboss {
 
 SaiBcmSaintpaulPlatform::SaiBcmSaintpaulPlatform(
@@ -44,28 +38,6 @@ HwAsic* SaiBcmSaintpaulPlatform::getAsic() const {
   return asic_.get();
 }
 
-std::vector<sai_system_port_config_t>
-SaiBcmSaintpaulPlatform::getInternalSystemPortConfig() const {
-  CHECK(asic_) << " Asic must be set before getting sys port info";
-  CHECK(asic_->getSwitchId()) << " Switch Id must be set before sys port info";
-
-  const uint32_t switchId = static_cast<uint32_t>(*asic_->getSwitchId());
-  const uint32_t speed = kCpuPortSpeed;
-  const uint32_t numVoqs = isDualStage3Q2QMode() ? kDualStageCpuPortNumVoqs
-                                                 : kSingleStageCpuPortNumVoqs;
-  auto cpuPortsCoreAndPortIdx =
-      getPlatformMapping()->getCpuPortsCoreAndPortIdx();
-
-  CHECK(cpuPortsCoreAndPortIdx.size() == 9)
-      << "3 CPU ports on core 0, 2 on cores 1-3";
-
-  std::vector<sai_system_port_config_t> sysPortConfig;
-  for (auto [cpuPortID, coreAndPortIdx] : cpuPortsCoreAndPortIdx) {
-    auto [core, port] = coreAndPortIdx;
-    sysPortConfig.push_back({cpuPortID, switchId, core, port, speed, numVoqs});
-  }
-  return sysPortConfig;
-}
 SaiBcmSaintpaulPlatform::~SaiBcmSaintpaulPlatform() = default;
 
 } // namespace facebook::fboss

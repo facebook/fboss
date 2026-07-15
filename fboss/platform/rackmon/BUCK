@@ -20,11 +20,13 @@ cpp_library(
         "RackmonConfig.h",
         "RackmonThriftHandler.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/glog:glog",
+        "//fb303:service_data",
+    ],
+    exported_deps = [
         ":core",
         ":rackmon_pls",
-        "//fb303:service_data",
         "//fboss/platform/rackmon/if:rackmonsvc-cpp2-services",
     ],
 )

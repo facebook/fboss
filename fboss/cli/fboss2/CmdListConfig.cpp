@@ -10,7 +10,6 @@
 
 #include <algorithm>
 #include "fboss/cli/fboss2/CmdList.h"
-
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h"
@@ -110,6 +109,10 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+#include "fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h"
+#include "fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h"
+#include "fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h"
+#include "fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.h"
@@ -137,6 +140,32 @@ namespace facebook::fboss {
 
 const CommandTree& kConfigCommandTree() {
   static CommandTree root = {
+      {
+          "config",
+          "switch",
+          "Configure switch-level settings",
+          commandHandler<CmdConfigSwitch>,
+          argRegistrar<CmdConfigSwitchTraits>,
+          {{
+               "admin-distance",
+               "Set administrative distance for a routing client",
+               commandHandler<CmdConfigAdminDistance>,
+               argRegistrar<CmdConfigAdminDistanceTraits>,
+           },
+           {
+               "hostname",
+               "Set switch hostname",
+               commandHandler<CmdConfigHostname>,
+               argRegistrar<CmdConfigHostnameTraits>,
+           },
+           {
+               "icmpv4-unavailable-src-addr",
+               "Set IPv4 source address for ICMP when no address is configured",
+               commandHandler<CmdConfigIcmpV4UnavailableSrcAddr>,
+               argRegistrar<CmdConfigIcmpV4UnavailableSrcAddrTraits>,
+           }},
+      },
+
       {"config",
        "applied-info",
        "Show config applied information",
@@ -997,7 +1026,7 @@ const CommandTree& kConfigCommandTree() {
       {
           "delete",
           "interface",
-          "Reset interface settings (e.g. ipv6 ndp, ip-address)",
+          "Delete an interface/port, or reset interface settings (e.g. ipv6 ndp, ip-address)",
           commandHandler<CmdDeleteInterface>,
           argRegistrar<CmdDeleteInterfaceTraits>,
           {{

@@ -867,7 +867,7 @@ device:
         15], [17, 17], [19, 19], [21, 21], [23, 23], [25, 25], [27, 27]]
       :
         ENABLE: 0
-        SPEED: 400000
+        SPEED: 200000
         NUM_LANES: 4
         FEC_MODE: PC_FEC_RS544_2XN
       ?

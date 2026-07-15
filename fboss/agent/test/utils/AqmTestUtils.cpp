@@ -73,7 +73,8 @@ int getRoundedBufferThreshold(
     int expectedThreshold,
     bool roundUp) {
   int threshold{};
-  if (cfg::AsicType::ASIC_TYPE_EBRO == asic->getAsicType()) {
+  if (cfg::AsicType::ASIC_TYPE_EBRO == asic->getAsicType() ||
+      cfg::AsicType::ASIC_TYPE_P200 == asic->getAsicType()) {
     /*
      * Ebro splits queue buffers into 16 blocks, watermarks and
      * ECN/WRED thresholds can only be reported / configured in

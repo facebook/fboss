@@ -82,6 +82,7 @@
 #include <thread>
 
 #include <limits>
+#include <unordered_map>
 
 using apache::thrift::ClientReceiveState;
 using apache::thrift::server::TConnectionContext;
@@ -3375,7 +3376,7 @@ namespace {
 struct NhgFibContext {
   std::shared_ptr<FibInfo> fibInfo;
   std::map<std::string, NextHopSetId> nameToSetId;
-  std::unordered_set<NextHopSetId> namedSetIds;
+  std::unordered_map<NextHopSetId, std::string> nhgSetIdToName;
 };
 
 std::optional<NhgFibContext> getNhgFibContext(
@@ -3389,7 +3390,7 @@ std::optional<NhgFibContext> getNhgFibContext(
   ctx.fibInfo = fibInfoIt->second;
   ctx.nameToSetId = ctx.fibInfo->getNameToNextHopSetId();
   for (const auto& [name, setId] : ctx.nameToSetId) {
-    ctx.namedSetIds.insert(setId);
+    ctx.nhgSetIdToName.emplace(setId, name);
   }
   return ctx;
 }
@@ -3400,7 +3401,8 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
-  auto ctx = getNhgFibContext(sw_->getState());
+  auto state = sw_->getState();
+  auto ctx = getNhgFibContext(state);
   if (!ctx) {
     return;
   }
@@ -3409,12 +3411,27 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
   if (!idToNextHopIdSetMap) {
     return;
   }
+  auto refCounts = ctx->fibInfo->getNextHopSetIdRefCountsFromRoutes();
+  FibInfo::getNextHopSetIdRefCountsFromMySid(state, refCounts);
+
   auto idSetMapThrift = idToNextHopIdSetMap->toThrift();
-  for (const auto& [setId, _nhIds] : idSetMapThrift) {
-    if (ctx->namedSetIds.count(setId)) {
+  for (const auto& [setId, nhIds] : idSetMapThrift) {
+    auto nameIter = ctx->nhgSetIdToName.find(setId);
+    auto isNamed = nameIter != ctx->nhgSetIdToName.end();
+    if (!isNamed && nhIds.size() < 2) {
       continue;
     }
+
     NextHopGroup thriftGroup;
+    if (isNamed) {
+      thriftGroup.name() = nameIter->second;
+      auto refCountIter = refCounts.find(NextHopSetID(setId));
+      thriftGroup.isProgrammed() =
+          refCountIter != refCounts.end() && refCountIter->second > 0;
+    } else {
+      thriftGroup.isProgrammed() = true;
+    }
+
     try {
       auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(setId);
       std::vector<NextHopThrift> nexthopsThrift;

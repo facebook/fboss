@@ -37,6 +37,7 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/config_lib:mock_config_lib",
         "//fboss/platform/helpers:init",
         "//fboss/platform/helpers:mock_platform_fs_utils",

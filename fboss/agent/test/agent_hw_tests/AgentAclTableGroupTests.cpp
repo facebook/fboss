@@ -34,11 +34,13 @@ class AgentAclTableGroupTest : public AgentHwTest {
   }
 
  protected:
-  // Ebro (wedge400c) derives the shared ACL key profile from the first table,
-  // so the first table must carry every qualifier used across the group.
-  bool isEbroAsic() const {
+  // Ebro (wedge400c) and P200 derive the shared ACL key profile from the first
+  // table, so the first table must carry every qualifier used across the group.
+  bool isSingleStageAclTableAsic() const {
     return checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
-               ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO;
+               ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getAsicType() == cfg::AsicType::ASIC_TYPE_P200;
   }
 
   void addAclTable1(cfg::SwitchConfig& cfg) {
@@ -47,7 +49,7 @@ class AgentAclTableGroupTest : public AgentHwTest {
     std::vector<cfg::AclTableActionType> actions = {
         cfg::AclTableActionType::PACKET_ACTION,
         cfg::AclTableActionType::COUNTER};
-    if (isEbroAsic()) {
+    if (isSingleStageAclTableAsic()) {
       qualifiers.push_back(cfg::AclTableQualifier::TTL);
       actions.push_back(cfg::AclTableActionType::COUNTER);
     }
@@ -195,7 +197,7 @@ class AgentAclTableGroupTest : public AgentHwTest {
       qualifiers.push_back(cfg::AclTableQualifier::OUTER_VLAN);
     }
 
-    if (isEbroAsic()) {
+    if (isSingleStageAclTableAsic()) {
       qualifiers.push_back(cfg::AclTableQualifier::TTL);
     }
 
@@ -242,7 +244,7 @@ class AgentAclTableGroupTest : public AgentHwTest {
       qualifiers.push_back(cfg::AclTableQualifier::OUTER_VLAN);
     }
 
-    if (isEbroAsic()) {
+    if (isSingleStageAclTableAsic()) {
       qualifiers.push_back(cfg::AclTableQualifier::TTL);
     }
 

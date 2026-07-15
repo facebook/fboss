@@ -195,20 +195,42 @@ void LinkStateToggler::portStateChangeImpl(
     for (const auto& port : portsToWaitFor) {
       invokeLinkScanIfNeeded(port, up);
     }
-    waitForPortEvents(portsToWaitFor, up);
+    waitForPortEventsOrSkipIfAlreadyInState(portsToWaitFor, up);
   }
 }
 
-bool LinkStateToggler::waitForPortEvents(
+bool LinkStateToggler::waitForPortEventsOrSkipIfAlreadyInState(
     const std::set<PortID>& ports,
     bool up) {
   if (!FLAGS_multi_switch) {
+    auto desiredOperState =
+        up ? PortFields::OperState::UP : PortFields::OperState::DOWN;
     std::unique_lock<std::mutex> lock{linkEventMutex_};
-    linkEventCV_.wait(lock, [this] { return desiredPortEventsOccurred_; });
-    CHECK(portIdToWaitFor_.empty());
+
+    // Drop ports that are already in the desired OperState from the wait set.
+    auto currentState = ensemble_->getProgrammedState();
+    for (const auto& portId : ports) {
+      auto port = currentState->getPorts()->getNodeIf(portId);
+      if (port->getOperState() == desiredOperState) {
+        portIdToWaitFor_.erase(portId);
+      }
+    }
+
+    if (portIdToWaitFor_.empty()) {
+      // No port is pending a link event (all are already in the desired state),
+      XLOG(DBG2) << "No ports pending a link event for desired "
+                 << (up ? "UP" : "DOWN") << " state, skipping event wait";
+      desiredPortEventsOccurred_ = true;
+    } else {
+      // At least one port still needs to transition, wait for its event(s).
+      linkEventCV_.wait(lock, [this] { return desiredPortEventsOccurred_; });
+      CHECK(portIdToWaitFor_.empty());
+    }
+    // A port can be dropped from the wait set by an early linkscan callback
+    // before its switch-state OperState is updated, so sync OperState for all
+    // ports here whether we waited or skipped.
     auto updateOperState = [this, ports, up](
                                const std::shared_ptr<SwitchState>& in) {
-      /* toggle the oper state */
       auto newState = in->clone();
       for (const auto& port : ports) {
         auto newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
@@ -218,6 +240,7 @@ bool LinkStateToggler::waitForPortEvents(
     };
     ensemble_->applyNewState(updateOperState);
   }
+
   for (const auto& portId : ports) {
     WITH_RETRIES_N_TIMED(60, std::chrono::milliseconds(1000), {
       EXPECT_EVENTUALLY_EQ(

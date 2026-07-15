@@ -22,9 +22,6 @@ class GenericSaiBcmPlatform : public SaiBcmPlatform {
   ~GenericSaiBcmPlatform() override;
 
   HwAsic* getAsic() const override;
-  // TODO: Move these methods to ASIC info instead of platform info.
-  uint32_t numLanesPerCore() const override;
-  uint32_t numCellsAvailable() const override;
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override;
   bool supportInterfaceType() const override;
   void initLEDs() override {}

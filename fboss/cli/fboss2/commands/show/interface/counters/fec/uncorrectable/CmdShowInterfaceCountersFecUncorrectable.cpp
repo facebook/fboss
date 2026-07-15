@@ -137,8 +137,6 @@ CmdShowInterfaceCountersFecUncorrectable::queryClient(
     const utils::LinkDirection& direction) {
   // Get all the counters from Fbagent/Fb303. We will use regex to filter out
   // our desired counters
-  auto agentClient =
-      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
   auto qsfpClient =
       utils::createClient<apache::thrift::Client<QsfpService>>(hostInfo);
 
@@ -148,14 +146,6 @@ CmdShowInterfaceCountersFecUncorrectable::queryClient(
   std::map<std::string, int64_t> fb303CountersXPhyEgressUcSum;
   std::map<std::string, int64_t> fb303CountersTcvrEgressUcSum;
 
-#ifdef IS_OSS
-  // TODO - figure out why getRegexCounters fails for OSS
-  agentClient->sync_getCounters(fb303CountersIPhyIngressUcSum);
-  qsfpClient->sync_getCounters(fb303CountersXPhyIngressUcSum);
-  qsfpClient->sync_getCounters(fb303CountersTcvrIngressUcSum);
-  qsfpClient->sync_getCounters(fb303CountersXPhyEgressUcSum);
-  qsfpClient->sync_getCounters(fb303CountersTcvrEgressUcSum);
-#else
   fb303CountersIPhyIngressUcSum = utils::getAgentFb303RegexCounters(
       hostInfo, "^(eth|fab).*fec_uncorrectable_errors.sum.*");
   qsfpClient->sync_getRegexCounters(
@@ -166,7 +156,6 @@ CmdShowInterfaceCountersFecUncorrectable::queryClient(
       fb303CountersXPhyEgressUcSum, ".*xphy.system.fec_uncorrectable.sum.*");
   qsfpClient->sync_getRegexCounters(
       fb303CountersTcvrEgressUcSum, "^qsfp.*host.uncorrectable.sum.*");
-#endif
 
   std::unordered_set<std::string> distinctInterfaceNames;
   for (const auto& counter : fb303CountersIPhyIngressUcSum) {

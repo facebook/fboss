@@ -33,6 +33,13 @@ class TajoAsic : public HwAsic {
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
   }
+  uint32_t getSaiPhysicalLaneId(
+      PlatformType /*platformType*/,
+      cfg::PortType /*portType*/,
+      uint32_t chipId,
+      uint32_t logicalLane) const override {
+    return (chipId << 8) + logicalLane;
+  }
   bool scalingFactorBasedDynamicThresholdSupported() const override {
     return false;
   }

@@ -58,6 +58,7 @@ cpp_library(
         "TraverseHelper.h",
         "VisitorUtils.h",
     ],
+    deps = ["//thrift/lib/cpp2/protocol:protocol"],
     exported_deps = [
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/re2:re2",
@@ -76,7 +77,6 @@ cpp_library(
         "//thrift/lib/cpp2:thrift-core",
         "//thrift/lib/cpp2:type_class",
         "//thrift/lib/cpp2/op:get",
-        "//thrift/lib/cpp2/protocol:protocol",
         "//thrift/lib/cpp2/type:field",
     ],
     exported_external_deps = [

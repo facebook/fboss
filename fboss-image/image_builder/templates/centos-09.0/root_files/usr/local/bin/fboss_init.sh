@@ -75,7 +75,17 @@ generate_fruid() {
 
 setup_coop_configs() {
   local platform_dir="$1"
+  # /etc/coop is created with the right ownership, setgid bit, and default
+  # ACL at image-build time (config.sh); re-assert it here in case it's ever
+  # missing or drifted. The setgid bit (mode 2775) makes new entries created
+  # by individual operators (via `fboss2-dev config`) inherit the switching
+  # group; the default ACL forces group rwx on new entries regardless of the
+  # creating operator's umask.
   mkdir -p "$COOP_DIR"
+  chown coop:switching "$COOP_DIR"
+  chmod 2775 "$COOP_DIR"
+  setfacl -m g:switching:rwx "$COOP_DIR"
+  setfacl -d -m g:switching:rwx -m o::rx "$COOP_DIR"
   copy_config "${platform_dir}/agent.conf" "${COOP_DIR}/agent.conf" "agent.conf"
   copy_config "${platform_dir}/qsfp.conf" "${COOP_DIR}/qsfp.conf" "qsfp.conf"
 }

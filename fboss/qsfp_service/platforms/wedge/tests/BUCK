@@ -22,6 +22,9 @@ cpp_unittest(
 )
 
 cpp_library(
+    # @autodeps-skip Pinned to a single SAI impl (credo-0.7.2) via the # @manual
+    # wedge-platform dep; autodeps otherwise also adds wedge-platform-brcm_pai-3.15,
+    # linking two SAI SDKs and causing SAI_API_VERSION redefinition.
     name = "mock-wedge-manager",
     headers = [
         "MockWedgeManager.h",

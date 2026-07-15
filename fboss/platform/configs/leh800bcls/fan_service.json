@@ -4,8 +4,8 @@
   "pwmBoostOnNoQsfpAfterInSec": 0,
   "pwmBoostValue": 70,
   "pwmTransitionValue": 45,
-  "pwmLowerThreshold": 25,
-  "pwmUpperThreshold": 70,
+  "pwmLowerThreshold": 30,
+  "pwmUpperThreshold": 80,
   "watchdog": {
     "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",
     "value": 0
@@ -19,12 +19,48 @@
       "sensorName": "NETLAKE_U1_CPU_UNCORE_TEMP",
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
-        "kp": -4,
-        "ki": -0.06,
+        "kp": 2,
+        "ki": 0.6,
         "kd": 0,
-        "setPoint": 97.0,
-        "posHysteresis": 0.0,
-        "negHysteresis": 8.0
+        "setPoint": 90.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
+      }
+    },
+    {
+      "sensorName": "MCB_U165_LM75_INLET_TEMP",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "31": 35,
+        "34": 40,
+        "37": 45,
+        "40": 50,
+        "43": 60,
+        "46": 70
+      },
+      "normalDownTable": {
+        "44": 60,
+        "41": 50,
+        "38": 45,
+        "35": 40,
+        "32": 35,
+        "29": 30
+      },
+      "failUpTable": {
+        "31": 40,
+        "34": 45,
+        "37": 50,
+        "40": 60,
+        "43": 70,
+        "46": 80
+      },
+      "failDownTable": {
+        "44": 70,
+        "41": 60,
+        "38": 50,
+        "35": 45,
+        "32": 40,
+        "29": 35
       }
     }
   ],
@@ -40,7 +76,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 4130
     },
     {
       "fanName": "FAN_2",
@@ -53,7 +89,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 4130
     },
     {
       "fanName": "FAN_3",
@@ -66,7 +102,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 4130
     },
     {
       "fanName": "FAN_4",
@@ -79,7 +115,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 4130
     },
     {
       "fanName": "FAN_5",
@@ -92,7 +128,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 4130
     },
     {
       "fanName": "FAN_6",
@@ -105,7 +141,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 4130
     },
     {
       "fanName": "FAN_7",
@@ -118,7 +154,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 4130
     },
     {
       "fanName": "FAN_8",
@@ -131,7 +167,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 4130
     }
   ],
   "zones": [
@@ -139,7 +175,8 @@
       "zoneType": "ZONE_TYPE_MAX",
       "zoneName": "zone1",
       "sensorNames": [
-        "NETLAKE_U1_CPU_UNCORE_TEMP"
+        "NETLAKE_U1_CPU_UNCORE_TEMP",
+        "MCB_U165_LM75_INLET_TEMP"
       ],
       "fanNames": [
         "FAN_1",

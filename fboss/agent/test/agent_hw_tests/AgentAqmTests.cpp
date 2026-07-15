@@ -477,7 +477,8 @@ class AgentAqmTest : public AgentHwTest {
     auto asic = checkSameAndGetAsicForTesting(asics);
     // The ECN/WRED threshold are rounded down for TAJO as opposed to being
     // rounded up to the next cell size for Broadcom.
-    bool roundUp = asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO;
+    bool roundUp = asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
+        asic->getAsicType() != cfg::AsicType::ASIC_TYPE_P200;
     int roundedBufferThreshold{
         utility::getRoundedBufferThreshold(asic, thresholdBytes, roundUp)};
     int effectiveBytesPerPacket{static_cast<int>(
@@ -490,6 +491,16 @@ class AgentAqmTest : public AgentHwTest {
           (maxQueueFillLevel - roundedBufferThreshold) /
           effectiveBytesPerPacket;
     }
+
+    // HW programs the marking threshold in getThresholdGranularity() steps
+    // (Chenab: 12288B; 1B on Broadcom), so it can start marking up to one step
+    // above roundedBufferThreshold, leaving that gap's worth of packets
+    // unmarked. Allow that shortfall, converted from bytes to packets via
+    // effectiveBytesPerPacket. Only the queue-fill (no-drop) case needs it.
+    const int markedCountBoundaryTolerance = maxQueueFillLevel > 0
+        ? static_cast<int>(asic->getThresholdGranularity()) /
+            effectiveBytesPerPacket
+        : 0;
 
     // Send enough packets such that the queue gets filled up to the
     // configured ECN/WRED threshold, then send a fixed number of
@@ -595,7 +606,9 @@ class AgentAqmTest : public AgentHwTest {
         //   waiting long enough to for all marked packets to be seen.
         EXPECT_EVENTUALLY_GE(outPackets, kExpectedOutPackets);
         if (isEct(ecnCodePoint)) {
-          EXPECT_EVENTUALLY_GE(ecnMarking, expectedMarkedOrDroppedPacketCount);
+          EXPECT_EVENTUALLY_GE(
+              ecnMarking + markedCountBoundaryTolerance,
+              expectedMarkedOrDroppedPacketCount);
         } else {
           EXPECT_EVENTUALLY_GE(
               wredDrops + outPackets,

@@ -25,23 +25,11 @@ class SaiMeru800bfaPlatform : public SaiBcmPlatform {
   ~SaiMeru800bfaPlatform() override;
   HwAsic* getAsic() const override;
 
-  uint32_t numLanesPerCore() const override {
-    return 8;
-  }
-
-  uint32_t numCellsAvailable() const override {
-    return 130665;
-  }
-
   bool isSerdesApiSupported() const override {
     return true;
   }
 
   void initLEDs() override;
-
-  std::vector<PortID> getAllPortsInGroup(PortID /*portID*/) const override {
-    return {};
-  }
 
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {};
@@ -49,12 +37,6 @@ class SaiMeru800bfaPlatform : public SaiBcmPlatform {
 
   bool supportInterfaceType() const override {
     return true;
-  }
-
-  std::optional<sai_port_interface_type_t> getInterfaceType(
-      TransmitterTechnology /*transmitterTech*/,
-      cfg::PortSpeed /*speed*/) const override {
-    return std::nullopt;
   }
 
  protected:

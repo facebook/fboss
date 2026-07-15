@@ -1217,6 +1217,15 @@ TransceiverStateMachineState TransceiverManager::getCurrentState(
   return stateMachineItr->second->getCurrentState();
 }
 
+TransceiverStateMachineState TransceiverManager::getCurrentStateSnapshot(
+    TransceiverID id) const {
+  auto stateMachineItr = stateMachineControllers_.find(id);
+  if (stateMachineItr == stateMachineControllers_.end()) {
+    throw FbossError("Transceiver:", id, " doesn't exist");
+  }
+  return stateMachineItr->second->getCurrentStateSnapshot();
+}
+
 const state_machine<TransceiverStateMachine>&
 TransceiverManager::getStateMachineForTesting(TransceiverID id) const {
   auto stateMachineItr = stateMachineControllers_.find(id);

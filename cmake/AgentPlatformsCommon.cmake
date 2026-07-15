@@ -52,6 +52,7 @@ target_link_libraries(platform_mapping_utils
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
   wedge800cact_platform_mapping
+  m5120csc_platform_mapping
   ladakh800bcls_platform_mapping
   leh800bcls_platform_mapping
   yangra2_platform_mapping

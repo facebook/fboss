@@ -379,7 +379,8 @@ device:
      * one per port and the maximum is 16. Configure 16 ports
      * for now on Tajo to enable sflow with mirroring.
      */
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
       return std::vector<PortID>(ports.begin(), ports.begin() + 16);
     }
     return ports;
@@ -392,6 +393,7 @@ device:
   std::optional<uint32_t> getHwLogicalPortId(PortID port) const {
     auto asic = checkSameAndGetAsic();
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200 ||
         asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
         asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
       return std::nullopt;
@@ -432,6 +434,7 @@ device:
      */
     auto asic = checkSameAndGetAsic();
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200 ||
         asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
         asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
       auto systemPortId = sflowPayload[0] << 8 | sflowPayload[1];
@@ -829,6 +832,7 @@ device:
     }
 
     if (checkSameAndGetAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
+        checkSameAndGetAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_P200 &&
         checkSameAndGetAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA &&
         checkSameAndGetAsic()->getAsicType() !=
             cfg::AsicType::ASIC_TYPE_G202X &&

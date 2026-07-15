@@ -71,7 +71,9 @@ class Intf {
 class InterfaceList : public BaseObjectArgType<Intf> {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
-  /* implicit */ InterfaceList(std::vector<std::string> names);
+  /* implicit */ InterfaceList(
+      std::vector<std::string> names,
+      bool allowMissing = false);
 
   /* Get the original names provided by the user. */
   const std::vector<std::string>& getNames() const {

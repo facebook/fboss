@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <iostream>
 #include <optional>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
@@ -25,6 +26,7 @@
 #include "fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include "fboss/lib/config/AgentConfigUtils.h"
 
 namespace facebook::fboss {
 
@@ -100,13 +102,34 @@ CmdDeleteInterfaceTraits::RetType CmdDeleteInterface::queryClient(
     throw std::invalid_argument("No interface name provided");
   }
 
-  // No attributes => pass-through to subcommands (e.g. ipv6 ndp).
+  // No attributes => delete the whole port(s) from the config.
   if (attributes.empty()) {
-    throw std::runtime_error(
-        fmt::format(
-            "Incomplete command. Specify attribute(s) to delete/reset ({}) "
-            "or use a subcommand (e.g. ipv6 ndp)",
-            kValidDeleteAttrs));
+    auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+    std::set<PortID> portsToDelete;
+    std::vector<std::string> deletedNames;
+    for (const utils::Intf& intf : interfaces) {
+      const cfg::Port* port = intf.getPort();
+      if (!port) {
+        continue;
+      }
+      portsToDelete.insert(PortID(*port->logicalID()));
+      deletedNames.push_back(intf.name());
+    }
+    if (portsToDelete.empty()) {
+      throw std::invalid_argument(
+          "No port found for the specified interface(s)");
+    }
+    utility::removePortsFromConfig(
+        swConfig,
+        portsToDelete,
+        utility::PortRemovalMode::Erase,
+        /*pruneEmptyVlansAndInterfaces=*/true);
+    // Removing a port is a HITLESS change: the agent's reloadConfig() applies
+    // the port-set delta live, matching how 'config interface <port> profile'
+    // adds/removes ports. No agent warmboot is needed.
+    ConfigSession::getInstance().saveConfig();
+    return fmt::format(
+        "Deleted interface(s): {}", folly::join(", ", deletedNames));
   }
 
   std::vector<std::string> results;

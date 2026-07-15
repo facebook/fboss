@@ -3410,6 +3410,36 @@ NextHopGroup makeGroup(
   return group;
 }
 
+void addUnicastRouteWithNextHops(
+    ThriftHandler& handler,
+    const std::string& prefix,
+    const std::vector<std::string>& nhopIps) {
+  auto network = IPAddress::createNetwork(prefix);
+  auto route = std::make_unique<UnicastRoute>();
+  route->dest()->ip() = toBinaryAddress(network.first);
+  route->dest()->prefixLength() = network.second;
+  for (const auto& ip : nhopIps) {
+    route->nextHopAddrs()->push_back(toBinaryAddress(IPAddress(ip)));
+  }
+  route->adminDistance() = AdminDistance::EBGP;
+  handler.addUnicastRoute(
+      static_cast<int16_t>(ClientID::BGPD), std::move(route));
+}
+
+void addUnicastRouteWithNamedNextHopGroup(
+    ThriftHandler& handler,
+    const std::string& prefix,
+    const std::string& nhgName) {
+  auto network = IPAddress::createNetwork(prefix);
+  auto route = std::make_unique<UnicastRoute>();
+  route->dest()->ip() = toBinaryAddress(network.first);
+  route->dest()->prefixLength() = network.second;
+  route->namedRouteDestination()->nextHopGroup() = nhgName;
+  route->adminDistance() = AdminDistance::EBGP;
+  handler.addUnicastRoute(
+      static_cast<int16_t>(ClientID::BGPD), std::move(route));
+}
+
 } // unnamed namespace
 
 class NamedNextHopGroupThriftTest : public ::testing::Test {
@@ -3554,16 +3584,90 @@ TEST_F(NamedNextHopGroupThriftTest, getAllNamedGroups) {
   EXPECT_EQ(foundNames.count("groupB"), 1);
 }
 
-TEST_F(NamedNextHopGroupThriftTest, getUnnamedNextHopGroups) {
+TEST_F(
+    NamedNextHopGroupThriftTest,
+    getNextHopGroupsIncludesNamedAndFiltersUnnamedSingletons) {
   ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(
+      makeGroup("used", {"2401:db00:2110:3001::2", "2401:db00:2110:3001::3"}));
+  groups->push_back(makeGroup("orphan", {"2401:db00:2110:3055::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+  addUnicastRouteWithNextHops(handler, "2401::101/128", {kNhopAddrA});
+  addUnicastRouteWithNextHops(
+      handler, "2401::102/128", {kNhopAddrA, kNhopAddrB});
 
   std::vector<NextHopGroup> result;
   handler.getNextHopGroups(result);
   ASSERT_FALSE(result.empty());
+
+  const NextHopGroup* usedGroup = nullptr;
+  const NextHopGroup* orphanGroup = nullptr;
   for (const auto& g : result) {
-    EXPECT_FALSE(g.name().has_value());
-    EXPECT_FALSE(g.nexthops()->empty());
+    if (g.name().has_value()) {
+      if (*g.name() == "used") {
+        usedGroup = &g;
+      } else if (*g.name() == "orphan") {
+        orphanGroup = &g;
+      }
+      continue;
+    }
+
+    EXPECT_TRUE(g.isProgrammed().has_value());
+    EXPECT_TRUE(*g.isProgrammed());
+    EXPECT_GE(g.nexthops()->size(), 2);
   }
+
+  ASSERT_NE(usedGroup, nullptr);
+  ASSERT_TRUE(usedGroup->isProgrammed().has_value());
+  EXPECT_FALSE(*usedGroup->isProgrammed());
+
+  ASSERT_NE(orphanGroup, nullptr);
+  ASSERT_TRUE(orphanGroup->isProgrammed().has_value());
+  EXPECT_FALSE(*orphanGroup->isProgrammed());
+  EXPECT_EQ(orphanGroup->nexthops()->size(), 1);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, getNextHopGroupsNamedIsProgrammed) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup("multi_ref", {"2401:db00:2110:3001::2"}));
+  groups->push_back(makeGroup("single_ref", {"2401:db00:2110:3055::2"}));
+  groups->push_back(makeGroup("orphan", {"2401:db00:2110:3001::3"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  addUnicastRouteWithNamedNextHopGroup(handler, "2401::100/128", "multi_ref");
+
+  std::vector<NextHopGroup> allGroups;
+  handler.getNextHopGroups(allGroups);
+
+  std::vector<NextHopGroup> namedGroups;
+  auto emptyNames = std::make_unique<std::vector<std::string>>();
+  handler.getNamedNextHopGroups(namedGroups, std::move(emptyNames));
+
+  std::map<std::string, bool> nameToProgrammedState;
+  for (const auto& group : allGroups) {
+    if (group.name().has_value()) {
+      ASSERT_TRUE(group.isProgrammed().has_value());
+      nameToProgrammedState[*group.name()] = *group.isProgrammed();
+    }
+  }
+
+  std::map<std::string, bool> namedApiProgrammedState;
+  for (const auto& group : namedGroups) {
+    ASSERT_TRUE(group.name().has_value());
+    ASSERT_TRUE(group.isProgrammed().has_value());
+    namedApiProgrammedState[*group.name()] = *group.isProgrammed();
+  }
+
+  ASSERT_EQ(nameToProgrammedState.count("multi_ref"), 1);
+  ASSERT_EQ(nameToProgrammedState.count("single_ref"), 1);
+  ASSERT_EQ(nameToProgrammedState.count("orphan"), 1);
+  EXPECT_FALSE(nameToProgrammedState.at("single_ref"));
+  EXPECT_FALSE(nameToProgrammedState.at("orphan"));
+  EXPECT_EQ(nameToProgrammedState, namedApiProgrammedState);
 }
 
 TEST_F(NamedNextHopGroupThriftTest, removeNextHopGroup) {

@@ -9,11 +9,33 @@
  */
 
 #include "fboss/qsfp_service/StatsPublisher.h"
+
+#include "fboss/qsfp_service/TransceiverManager.h"
+
 namespace facebook {
 namespace fboss {
 void StatsPublisher::init() {}
 
-void StatsPublisher::publishStats(folly::EventBase*, int32_t) {}
+void StatsPublisher::publishStats(
+    folly::EventBase* /* evb */,
+    int32_t /* stats_publish_interval */) {
+  // OSS doesn't publish stats to fb303/ODS, but we still need to trigger the
+  // VDM data capture cycle in the modules on each publish interval. This
+  // mirrors the trigger performed by
+  // StatsPublisherHelper::triggerVdmStatsCapture() in the internal
+  // implementation and re-arms the per-interval VDM min/max accumulators so
+  // that vdmPerfMonitorStats advances over time.
+  std::map<int32_t, TransceiverInfo> infoMap;
+  transceiverManager_->getTransceiversInfo(
+      infoMap, std::make_unique<std::vector<int32_t>>(std::vector<int32_t>()));
+
+  std::vector<int32_t> portIdList;
+  for (const auto& kv : infoMap) {
+    const TransceiverInfo& info = kv.second;
+    portIdList.push_back(info.tcvrState()->port().value());
+  }
+  transceiverManager_->triggerVdmStatsCapture(portIdList);
+}
 // static
 void StatsPublisher::bumpPciLockHeld() {}
 // static

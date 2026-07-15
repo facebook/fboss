@@ -493,7 +493,7 @@ class AgentMultiNodeVoqSwitchHyperPortTest : public AgentMultiNodeTest {
         [](const std::vector<std::pair<int32_t, folly::IPAddressV6>>& ips) {
           std::vector<folly::IPAddress> nexthops;
           for (const auto& [_, ip] : ips) {
-            nexthops.push_back(ip);
+            nexthops.emplace_back(ip);
           }
           return nexthops;
         };

@@ -3247,6 +3247,23 @@ Cmis800GZrTransceiver::Cmis800GZrTransceiver(
           kCmis800GZrUpperPages,
           mgr) {}
 
+Cmis800GZrNoHoldOffTmrTransceiver::Cmis800GZrNoHoldOffTmrTransceiver(
+    int module,
+    TransceiverManager* mgr)
+    : Cmis800GZrTransceiver(module, mgr) {
+  // Clear rxConsActHoldOffTmrImpl (Page 45h, Byte 129, Bit 2) so the module
+  // reports it does NOT support programming the Rx Consequent Action hold-off
+  // timer. The CONS_ACT_HOLD_OFF_TMR register (Page 38h) stays 0.
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  uint8_t page45 = 0x45;
+  writeTransceiver(pageParam, &page45, 0, 0);
+  TransceiverAccessParameter provParam(
+      TransceiverAccessParameter::ADDR_QSFP, 129, 1);
+  uint8_t provVal = 0x7f & ~0x04; // clear rxConsActHoldOffTmrImpl (bit 2)
+  writeTransceiver(provParam, &provVal, 0, 0);
+}
+
 Cmis2x400GDr4Transceiver::Cmis2x400GDr4Transceiver(
     int module,
     TransceiverManager* mgr)

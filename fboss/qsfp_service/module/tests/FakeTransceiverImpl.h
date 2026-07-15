@@ -168,6 +168,16 @@ class Cmis800GZrTransceiver : public FakeTransceiverImpl {
   explicit Cmis800GZrTransceiver(int module, TransceiverManager* mgr);
 };
 
+// Cmis800GZr variant that does NOT advertise rxConsActHoldOffTmrImpl support
+// (Page 45h, Byte 129, Bit 2 cleared) for testing the unsupported-module path
+// of configureRxConsActHoldOffTimer.
+class Cmis800GZrNoHoldOffTmrTransceiver : public Cmis800GZrTransceiver {
+ public:
+  explicit Cmis800GZrNoHoldOffTmrTransceiver(
+      int module,
+      TransceiverManager* mgr);
+};
+
 class Cmis2x400GDr4Transceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis2x400GDr4Transceiver(int module, TransceiverManager* mgr);

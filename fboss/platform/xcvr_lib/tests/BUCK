@@ -8,6 +8,7 @@ cpp_unittest(
     srcs = ["XcvrLibTest.cpp"],
     network_access = network_access_utils.none(),
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/xcvr_lib:xcvr_lib",
         "//thrift/lib/cpp2/protocol:protocol",
