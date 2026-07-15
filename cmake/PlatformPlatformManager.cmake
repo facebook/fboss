@@ -218,6 +218,17 @@ target_link_libraries(platform_manager_config_validator
   range-v3
 )
 
+add_library(platform_manager_system_interface
+  fboss/platform/platform_manager/SystemInterface.cpp
+)
+
+target_link_libraries(platform_manager_system_interface
+  fmt::fmt
+  range-v3
+  platform_utils
+  Folly::folly
+)
+
 add_library(platform_manager_pkg_manager
   fboss/platform/platform_manager/PkgManager.cpp
 )
@@ -225,6 +236,7 @@ add_library(platform_manager_pkg_manager
 target_link_libraries(platform_manager_pkg_manager
   range-v3
   platform_manager_config_cpp2
+  platform_manager_system_interface
   platform_fs_utils
   platform_utils
   Folly::folly

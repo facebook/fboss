@@ -343,11 +343,6 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
 TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
   addVerifiedProductionFeatures(
       {link_test_production_features::LinkTestProductionFeature::VDM});
-#ifdef IS_OSS
-  GTEST_SKIP() << "opticsVdmPerformanceMonitoring is currently not supported "
-                  "in OSS until we add an OSS implementation for "
-                  "fbcode/fboss/qsfp_service/oss/StatsPublisher.cpp";
-#endif
 
   // 1. Find the list of optical ports with VDM supported optics
   auto connectedPairPortIds = getConnectedOpticalAndActivePortPairWithFeature(

@@ -85,6 +85,10 @@ class Wedge800bActAsicConfig(Tomahawk5AsicConfig):
     def generate_sai_stats_disable_mask(self) -> None:
         self.values["global"]["sai_stats_disable_mask"] = "0x800"
 
+    def generate_sai_eapol_trap_use_bcast_mac(self) -> None:
+        # Trap broadcast EAPOL packets to the CPU
+        self.values["global"]["sai_eapol_trap_use_bcast_mac"] = "1"
+
     def generate_asic_config(self) -> None:
         self.generate_global_settings()
         self.generate_logical_port_to_physical_port_mapping(mgmt_port=True)
@@ -96,6 +100,7 @@ class Wedge800bActAsicConfig(Tomahawk5AsicConfig):
         self.generate_asic_vendor_config()
         self.generate_dlb_specific_config()
         self.generate_sai_stats_disable_mask()
+        self.generate_sai_eapol_trap_use_bcast_mac()
 
     def get_logical_port_to_physical_port_mapping(self) -> List[List[int]]:
         NUM_LOGICAL_PORTS_PER_DATAPATH = 10

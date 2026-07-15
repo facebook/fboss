@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/BroadcomXgsAsic.h"
@@ -36,6 +37,23 @@ class Tomahawk3Asic : public BroadcomXgsAsic {
   }
   uint32_t getMMUCellSize() const {
     return 254;
+  }
+  uint32_t getNumCellsAvailable(PlatformType platformType) const override {
+    if (platformType == PlatformType::PLATFORM_DARWIN ||
+        platformType == PlatformType::PLATFORM_DARWIN48V) {
+      return 130665;
+    }
+    if (platformType == PlatformType::PLATFORM_WEDGE400 ||
+        platformType == PlatformType::PLATFORM_WEDGE400_GRANDTETON) {
+      return 130217;
+    }
+    if (platformType == PlatformType::PLATFORM_MINIPACK ||
+        platformType == PlatformType::PLATFORM_YAMP) {
+      return 127977;
+    }
+    throw FbossError(
+        "Unsupported platform for Tomahawk3 num cells available: ",
+        apache::thrift::util::enumNameSafe(platformType));
   }
   std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,

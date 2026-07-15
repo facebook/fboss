@@ -44,11 +44,16 @@ class AgentPortBandwidthTest : public AgentHwTest {
     return config;
   }
 
-  PortID getPort0(const AgentEnsemble& ensemble, SwitchID switchID) const {
+  PortID getPort0(const AgentEnsemble& ensemble, const SwitchID& switchID)
+      const {
     return ensemble.masterLogicalInterfacePortIds(switchID).at(0);
   }
 
-  PortID getPort0(SwitchID switchID = SwitchID(0)) const {
+  PortID getPort0() const {
+    return getPort0(getCurrentSwitchIdForTesting());
+  }
+
+  PortID getPort0(const SwitchID& switchID) const {
     return getPort0(*getAgentEnsemble(), switchID);
   }
 
@@ -119,13 +124,19 @@ class AgentPortBandwidthTest : public AgentHwTest {
         255 /* Hop limit */,
         payload);
 
-    std::optional<PortDescriptor> port{};
+    // Chenab requires CPU-injected packets to egress a specific port; other
+    // platforms send the packet switched. Either way, target the NPU under
+    // test (switchId is used only for the switched, no-port case).
+    std::optional<PortDescriptor> port;
     if (getHwAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       port = PortDescriptor(getPort0());
     }
     getAgentEnsemble()->sendPacketAsync(
-        std::move(txPacket), port, std::nullopt);
+        std::move(txPacket),
+        port,
+        std::nullopt,
+        getCurrentSwitchIdForTesting());
   }
 
   void sendUdpPkts(uint8_t dscpVal, int cnt = 256, int payloadLen = 0) {

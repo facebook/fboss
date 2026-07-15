@@ -129,7 +129,7 @@ int BcmEgressManager::removeAllEgressesFromEcmpCallback(
   auto ucmpEnabled = ecmp->ecmp_group_flags & BCM_L3_ECMP_MEMBER_WEIGHTED;
   for (int i = 0; i < memberCount; ++i) {
     auto egressInHw = toEgressIdAndWeight<T>(memberArray[i]);
-    if (egressesToRemove->find(egressInHw.first) != egressesToRemove->end()) {
+    if (egressesToRemove->contains(egressInHw.first)) {
       BcmEcmpEgress::removeEgressIdHwNotLocked(
           unit,
           ecmp->ecmp_intf,
@@ -256,7 +256,7 @@ uint32_t BcmEgressManager::findNextAvailableId(uint32_t dynamicMode) const {
   }
 
   for (; start < std::numeric_limits<uint32_t>::max(); start += step) {
-    if (inUseIds_.find(start) == inUseIds_.end()) {
+    if (!inUseIds_.contains(start)) {
       return (firstID + start);
     }
   }

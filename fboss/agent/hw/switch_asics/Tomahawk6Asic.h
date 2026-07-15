@@ -44,6 +44,20 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
   uint32_t getMMUCellSize() const {
     return 420;
   }
+  uint32_t getNumCellsAvailable(PlatformType /*platformType*/) const override {
+    return 616994;
+  }
+  uint32_t getSaiPhysicalLaneId(
+      PlatformType platformType,
+      cfg::PortType portType,
+      uint32_t chipId,
+      uint32_t logicalLane) const override {
+    const auto laneId = BroadcomXgsAsic::getSaiPhysicalLaneId(
+        platformType, portType, chipId, logicalLane);
+    // TH6 management port lane numbering is one-based relative to the generic
+    // BCM XGS formula: core 64 maps to lanes 514-517.
+    return portType == cfg::PortType::MANAGEMENT_PORT ? laneId + 1 : laneId;
+  }
   std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {

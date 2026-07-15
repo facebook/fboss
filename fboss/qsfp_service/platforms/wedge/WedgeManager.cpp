@@ -220,7 +220,10 @@ void WedgeManager::getTransceiversInfo(
     try {
       auto tcvrID = TransceiverID(i);
       info.insert({i, getTransceiverInfo(tcvrID)});
-      auto currentState = getCurrentState(tcvrID);
+      // Use the lock-free snapshot so this status read never blocks on an
+      // in-progress state update (e.g. a firmware flash holding the state
+      // lock), which would otherwise starve the thrift worker pool.
+      auto currentState = getCurrentStateSnapshot(tcvrID);
       info[i].tcvrState()->stateMachineState() = currentState;
     } catch (const std::exception& ex) {
       MODULE_LOG(ERR, "", i) << "Error calling getTransceiverInfo(): " << ex.what();

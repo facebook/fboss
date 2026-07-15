@@ -1062,7 +1062,8 @@ class AgentMacLearningMacMoveTest : public AgentMacLearningTest {
 
       // When MAC Moves from port1 to port2, we get DELETE on port1 and ADD on
       // port2
-      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+          asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
         // TODO: Remove this once EbroAsic properly generates a
         // MAC move event.
         verifyL2TableCallback(

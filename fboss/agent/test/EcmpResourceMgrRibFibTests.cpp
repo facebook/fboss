@@ -10,6 +10,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/EcmpResourceManager.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/Route.h"
@@ -111,21 +112,36 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
     StateDelta delta(sw_->getState(), newState);
     processFibsDeltaInHwSwitchOrder(
         delta,
-        [&updater](RouterID rid, const auto& oldRoute, const auto& newRoute) {
+        [&updater, &newState](
+            const RouterID& rid,
+            const auto& /*oldRoute*/,
+            const auto& newRoute) {
+          const auto& fwd = newRoute->getForwardInfo();
+          std::optional<RouteNextHopSet> resolvedNhops;
+          if (FLAGS_resolve_nexthops_from_id) {
+            resolvedNhops = getNextHops(newState, fwd);
+          }
           updater.addRoute(
               rid,
               newRoute->prefix().network(),
               newRoute->prefix().mask(),
               kClientID,
-              newRoute->getForwardInfo());
+              fwd,
+              resolvedNhops);
         },
-        [&updater](RouterID rid, const auto& newRoute) {
+        [&updater, &newState](const RouterID& rid, const auto& newRoute) {
+          const auto& fwd = newRoute->getForwardInfo();
+          std::optional<RouteNextHopSet> resolvedNhops;
+          if (FLAGS_resolve_nexthops_from_id) {
+            resolvedNhops = getNextHops(newState, fwd);
+          }
           updater.addRoute(
               rid,
               newRoute->prefix().network(),
               newRoute->prefix().mask(),
               kClientID,
-              newRoute->getForwardInfo());
+              fwd,
+              resolvedNhops);
         },
         [&updater](RouterID rid, const auto& oldRoute) {
           IpPrefix pfx;

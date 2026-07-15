@@ -41,6 +41,13 @@ class AgentLoadBalancerTest
     Runner::setEcmpHelper();
   }
 
+  // FrontPanel variants inject traffic from masterLogicalInterfacePortIds()
+  // at index ecmpWidth (=8), so we need at least 9 INTERFACE_PORTs. CPU and
+  // spray variants are unaffected but harmless at 9.
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return 9;
+  }
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (!kWideEcmp) {
@@ -371,6 +378,33 @@ class AgentSrv6EcmpLoadBalancerTest : public AgentLoadBalancerTest<
   }
 };
 
+// SRv6 ECMP load balancing driven purely by the IPv6 flow label (fixed 5-tuple)
+class AgentSrv6FlowLabelEcmpLoadBalancerTest
+    : public AgentLoadBalancerTest<
+          utility::HwSrv6FlowLabelEcmpDataPlaneTestUtil,
+          false> {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::SRV6_ENCAP, ProductionFeature::ECMP_LOAD_BALANCER};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    return utility::srv6EcmpInitialConfig(ensemble);
+  }
+
+  std::unique_ptr<utility::HwSrv6FlowLabelEcmpDataPlaneTestUtil> getECMPHelper()
+      override {
+    if (!getEnsemble()) {
+      return nullptr;
+    }
+    return std::make_unique<utility::HwSrv6FlowLabelEcmpDataPlaneTestUtil>(
+        getEnsemble(), RouterID(0));
+  }
+};
+
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV4)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV6)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV4ToMpls)
@@ -522,6 +556,11 @@ RUN_HW_LOAD_BALANCER_TEST_CPU(
     Ecmp,
     FullWithFlowLabel)
 
+RUN_HW_LOAD_BALANCER_TEST_CPU(
+    AgentSrv6FlowLabelEcmpLoadBalancerTest,
+    Ecmp,
+    FullWithFlowLabel)
+
 namespace {
 constexpr int kPolarizationEcmpWidth = 8;
 constexpr int kPolarizationNumAggPorts = 4;
@@ -567,6 +606,12 @@ template <typename TestType>
 class AgentHashPolarizationTest : public AgentHwTest {
  protected:
   static constexpr auto isTrunk = std::is_same_v<TestType, AggregatePortID>;
+
+  // AggregatePortID instantiation needs 4*3 trunk fanout + 1 injection = 13
+  // INTERFACE_PORTs. PortID instantiation only needs 9 but 13 is harmless.
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return 13;
+  }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {

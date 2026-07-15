@@ -19,10 +19,7 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
     ASIC_FAMILY: str = "xgs"
 
     def __init__(
-        self,
-        platform_name: str,
-        variant: str,
-        platform_config: dict[str, Any],
+        self, platform_name: str, variant: str, platform_config: dict[str, Any]
     ) -> None:
         super().__init__(platform_name, variant, platform_config)
 
@@ -32,7 +29,13 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
         self._load_vendor_configs()
         self._init_tables()
 
-        self.parser = PlatformMappingParser(read_all_vendor_data(), self.platform_name)
+        # A variant may target a sibling platform_mapping_v2 directory rather
+        # than the platform's own when several variants share an asic_config
+        # but consume different lane / polarity data.
+        mapping_name = self.variant_config.get(
+            "platform_mapping_name", self.platform_name
+        )
+        self.parser = PlatformMappingParser(read_all_vendor_data(), mapping_name)
 
         self.num_ports_per_core: int = self.platform_config.get("num_ports_per_core", 2)
         self.mmu_size: int = self.asic_config.get("mmu_size", 9416)
@@ -407,10 +410,7 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
                 port_ranges_str = ", ".join(port_ranges)
                 pc_key = (f"PORT_ID: [{port_ranges_str}]",)
 
-        self.values["PORT"][pc_key] = (
-            f"MTU: {self.mmu_size}",
-            "MTU_CHECK: 1",
-        )
+        self.values["PORT"][pc_key] = (f"MTU: {self.mmu_size}", "MTU_CHECK: 1")
 
     def _generate_device_config_overrides(self) -> None:
         """Apply device config overrides from variant config."""

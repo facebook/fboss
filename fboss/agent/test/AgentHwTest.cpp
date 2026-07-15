@@ -274,6 +274,9 @@ cfg::SwitchConfig AgentHwTest::initialConfig(
     const AgentEnsemble& ensemble) const {
   auto anyL3Asics =
       haveL3Asics(ensemble.getSw()->getHwAsicTable()->getHwAsics());
+  // Build the initial config from the capped port view, so the config is
+  // trimmed to maxRequired*Ports. Tests that need every port opt out via
+  // maxRequiredInterfacePorts()/maxRequiredFabricPorts() returning nullopt.
   auto config = utility::onePortPerInterfaceConfig(
       ensemble.getSw(),
       ensemble.masterLogicalPortIds(),

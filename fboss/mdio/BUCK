@@ -47,12 +47,14 @@ cpp_library(
     headers = [
         "FbFpgaMdio.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
         ":mdio",
         "//fboss/lib/fpga:facebook_fpga",
         "//fboss/lib/fpga:fpga_device",
-        "//folly/logging:logging",
     ],
 )
 
@@ -64,10 +66,12 @@ cpp_library(
     headers = [
         "BspDeviceMdio.h",
     ],
-    exported_deps = [
-        ":mdio",
+    deps = [
         "//folly:format",
         "//folly:range",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":mdio",
     ],
 )

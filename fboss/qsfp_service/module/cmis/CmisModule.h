@@ -12,6 +12,7 @@
 
 #include <array>
 #include <chrono>
+#include <functional>
 #include <map>
 #include <optional>
 #include <vector>
@@ -288,6 +289,54 @@ class CmisModule : public QsfpModule {
     return maxNumBanks_.value_or(1);
   }
 
+  /* A global host/media lane (0..numLanes-1) lives in bank
+   * (lane / kMaxOsfpNumLanes); its position within that bank's banked register
+   * is (lane % kMaxOsfpNumLanes). A port's lanes are confined to one bank, so
+   * per-port programming selects laneToBank(startHostLane) and uses intra-bank
+   * lane offsets. On single-bank modules these collapse to the identity. */
+  static uint8_t laneToBank(int globalLane) {
+    return globalLane / kMaxOsfpNumLanes;
+  }
+  static uint8_t laneInBank(int globalLane) {
+    return globalLane % kMaxOsfpNumLanes;
+  }
+  // Convenience for the common case of needing both at once:
+  //   auto [bank, intraLane] = bankAndLane(globalLane);
+  static std::pair<uint8_t, uint8_t> bankAndLane(int globalLane) {
+    return {laneToBank(globalLane), laneInBank(globalLane)};
+  }
+  // Inverse of laneToBank/laneInBank: the global lane index for an intra-bank
+  // lane offset within a bank.
+  static int globalLane(uint8_t bank, int laneOffset) {
+    return bank * kMaxOsfpNumLanes + laneOffset;
+  }
+
+  /* Global-lane accessors for banked per-lane fields. A "global" lane spans all
+   * banks (e.g. 0..31 for a 4-bank module); it maps to bank = lane /
+   * kMaxOsfpNumLanes and intra-bank lane = lane % kMaxOsfpNumLanes. For
+   * single-bank modules these collapse to the existing bank-0 behavior.
+   *
+   * getLaneValuePtr: pointer to the bytesPerLane bytes for globalLane in a
+   * field whose per-lane values are laid out contiguously (e.g.
+   * CHANNEL_RX_PWR). getLaneFlagSet: whether the per-lane bit for globalLane is
+   * set in a 1-byte flag field (e.g. RX_LOS_FLAG). getLaneNibble: the 4-bit
+   * nibble for globalLane in a nibble-packed field (e.g. RX_OUT_PRE_CURSOR). */
+  const uint8_t*
+  getLaneValuePtr(CmisField field, int globalLane, int bytesPerLane) const;
+  bool getLaneFlagSet(CmisField field, int globalLane) const;
+  uint8_t getLaneNibble(CmisField field, int globalLane) const;
+
+  // Convenience wrappers over getVdmLaneValues/getVdmLaneValue for the two
+  // common per-lane VDM decodings, keeping the decode lambdas in one place:
+  // U16 (integer byte + fractional byte / 256) and F16 (CMIS half-precision
+  // used for BER / PM values). Values are keyed by global lane across all
+  // banks.
+  std::map<int, double> getVdmLaneValuesU16(VdmConfigType vdmConf);
+  std::map<int, double> getVdmLaneValuesF16(VdmConfigType vdmConf);
+  std::optional<double> getVdmLaneValueF16(
+      VdmConfigType vdmConf,
+      int globalLane);
+
   /*
    * Structure to hold datapath init/deinit state per port using timers
    * progStartTimer: Time point when datapath programming started.
@@ -447,7 +496,7 @@ class CmisModule : public QsfpModule {
    * Helper function to read the current application select code for a given
    * lane.
    */
-  uint8_t getCurrentAppSelCode(uint8_t startHostLane);
+  uint8_t getCurrentAppSelCode(uint8_t startHostLane) const;
   /*
    * returns individual sensor values after scaling
    */
@@ -711,9 +760,7 @@ class CmisModule : public QsfpModule {
 
   bool isRxConsActHoldOffTmrImplSupported() const override;
 
-  void configureRxConsActHoldOffTimer(
-      int32_t timerMs,
-      bool isExplicitlyConfigured);
+  void configureRxConsActHoldOffTimer(int32_t timerMs);
 
   /*
    * returns the tunable optics laser status and laser frequency
@@ -896,29 +943,34 @@ class CmisModule : public QsfpModule {
    * - Returns true if operation succeeds, false on timeout or failure
    *
    * @param portName The name of the port being programmed
-   * @param hostLaneMask Bitmask of host lanes to program
+   * @param hostLaneMask Intra-bank bitmask of host lanes to program
    * @param isInit If true, initialize (activate); if false, deinitialize
    * (deactivate)
+   * @param bank Bank that the port's lanes live in (0 for single-bank modules)
    * @return true if datapath operation completed successfully, false otherwise
    */
   bool dataPathProgram(
       const std::string& portName,
       uint8_t hostLaneMask,
-      bool isInit);
+      bool isInit,
+      uint8_t bank = 0);
 
   /*
    * Check if the datapath for the specified lanes has been updated to one of
-   * the desired states
+   * the desired states. laneMask carries intra-bank lane bits for the given
+   * bank.
    */
   bool isDatapathUpdated(
       uint8_t laneMask,
-      const std::vector<CmisLaneState>& states);
+      const std::vector<CmisLaneState>& states,
+      uint8_t bank = 0);
 
   void resetDataPathWithFunc(
       const std::string& portName,
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
           std::nullopt,
-      uint8_t hostLaneMask = 0xFF);
+      uint8_t hostLaneMask = 0xFF,
+      uint8_t bank = 0);
 
   /*
    * Helper function to reset data path for tunable optics (ZR modules)
@@ -927,7 +979,8 @@ class CmisModule : public QsfpModule {
   void resetDataPathForTunableOptics(
       const std::string& portName,
       std::optional<std::function<void()>> afterDataPathDeinitFunc,
-      uint8_t hostLaneMask);
+      uint8_t hostLaneMask,
+      uint8_t bank = 0);
 
   /*
    * Set the PRBS Generator and Checker on a module for the desired side (Line
@@ -973,6 +1026,20 @@ class CmisModule : public QsfpModule {
       VdmConfigType vdmConf,
       uint8_t bank = 0);
 
+  /* Per-lane VDM accessors that span all banks. The VDM config (and thus the
+   * data location) is bank-invariant; each bank's data page holds that bank's
+   * lanes. getVdmLaneValues returns a map keyed by global lane (bank *
+   * kMaxOsfpNumLanes + intra-bank lane); getVdmLaneValue returns a single
+   * global lane's decoded value. `decode` turns the lane's 2 bytes into a
+   * double. */
+  std::map<int, double> getVdmLaneValues(
+      VdmConfigType vdmConf,
+      const std::function<double(const std::array<uint8_t, 2>&)>& decode);
+  std::optional<double> getVdmLaneValue(
+      VdmConfigType vdmConf,
+      int globalLane,
+      const std::function<double(const std::array<uint8_t, 2>&)>& decode);
+
   // VDM value reading helper methods - read 2 bytes from VDM data
   std::optional<double> readU16VdmValue(VdmConfigType vdmConf, double lsb);
   std::optional<double> readS16VdmValue(VdmConfigType vdmConf, double lsb);
@@ -1017,7 +1084,10 @@ class CmisModule : public QsfpModule {
   link::LinkPerfMonitorParamEachSideVal
   readLinkPmMetricS16(int startByte, double lsb, VdmConfigType vdmConf);
 
-  void applyHostControlledInputEquilizerTx(uint8_t lane, uint8_t value);
+  void applyHostControlledInputEquilizerTx(
+      uint8_t lane,
+      uint8_t value,
+      uint8_t bank = 0);
 
   uint8_t setExplicitControl(
       const TransceiverPortState& state,
@@ -1031,8 +1101,7 @@ class CmisModule : public QsfpModule {
       uint8_t hostLaneMask);
   void setApplicationSelectCodeAllPorts(
       const TransceiverPortState& state,
-      uint8_t numHostLanes,
-      uint8_t hostLaneMask);
+      uint8_t numHostLanes);
 
   // Sets the sampling percentage for
   // FEC errors if supported by transceiver.

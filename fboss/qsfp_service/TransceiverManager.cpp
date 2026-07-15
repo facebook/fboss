@@ -96,6 +96,14 @@ constexpr auto kWarmbootStateFileName = "qsfp_service_state";
 static constexpr auto kStateMachineThreadHeartbeatMissed =
     "state_machine_thread_heartbeat_missed";
 constexpr int kSecAfterModuleOutOfReset = 2;
+// A CPO module presents up to (max CMIS banks) x (host lanes per bank) global
+// host lanes. Expressed as a product so the cap tracks a future change to the
+// bank capacity or per-bank lane count instead of a magic 32. (This is the
+// module-agnostic theoretical max used for validation here; CmisModule caps
+// per-module reads at the actual getMaxNumBanks() * kMaxOsfpNumLanes.)
+constexpr uint8_t kMaxCmisBanks = 4;
+constexpr uint8_t kHostLanesPerBank = 8;
+constexpr uint8_t kMaxCpoHostLanes = kMaxCmisBanks * kHostLanesPerBank;
 static constexpr auto kSuccessfulOpticsFirmwareUpgrade =
     "qsfp.optics_firmware_upgrade.success";
 static constexpr auto kFailedOpticsFirmwareUpgrade =
@@ -1209,6 +1217,15 @@ TransceiverStateMachineState TransceiverManager::getCurrentState(
   return stateMachineItr->second->getCurrentState();
 }
 
+TransceiverStateMachineState TransceiverManager::getCurrentStateSnapshot(
+    TransceiverID id) const {
+  auto stateMachineItr = stateMachineControllers_.find(id);
+  if (stateMachineItr == stateMachineControllers_.end()) {
+    throw FbossError("Transceiver:", id, " doesn't exist");
+  }
+  return stateMachineItr->second->getCurrentStateSnapshot();
+}
+
 const state_machine<TransceiverStateMachine>&
 TransceiverManager::getStateMachineForTesting(TransceiverID id) const {
   auto stateMachineItr = stateMachineControllers_.find(id);
@@ -1769,7 +1786,10 @@ void TransceiverManager::programTransceiver(
     // tcvrHostLanes is an ordered set. So begin() gives us the first lane
     tcvrStartLane = *tcvrHostLanes.begin();
 
-    if (tcvrStartLane > 8) {
+    // CPO modules present up to kMaxCpoHostLanes global host lanes (banks x
+    // lanes-per-bank), so a port's start lane can be anywhere in
+    // [0, kMaxCpoHostLanes). Non-CPO modules use the lower end of this range.
+    if (tcvrStartLane >= kMaxCpoHostLanes) {
       throw FbossError(
           "Invalid start lane of ",
           tcvrStartLane,

@@ -182,6 +182,15 @@ void AgentEnsemble::setupEnsemble(
   startAgent(initInfo.failHwCallsOnWarmboot);
 
   for (const auto& switchId : getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    if (switchIndex >= FLAGS_num_npus_for_testing) {
+      XLOG(DBG2) << "Skipping hw switch connection wait for switchId: "
+                 << static_cast<int64_t>(switchId)
+                 << " switchIndex: " << switchIndex
+                 << " numNpusForTesting: " << FLAGS_num_npus_for_testing;
+      continue;
+    }
     ensureHwSwitchConnected(switchId);
   }
 }
@@ -697,13 +706,20 @@ void AgentEnsemble::waitForSpecificRateOnPort(
 void AgentEnsemble::sendPacketAsync(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortDescriptor> portDescriptor,
-    std::optional<uint8_t> queueId) {
+    std::optional<uint8_t> queueId,
+    std::optional<SwitchID> switchId) {
   if (!portDescriptor.has_value()) {
-    auto switchId = getSw()
-                        ->getScopeResolver()
-                        ->scope(masterLogicalPortIds()[0])
-                        .switchId();
-    getSw()->sendPacketSwitchedAsync(std::move(pkt), {switchId});
+    // For a switched send, target the requested NPU; default to the switch
+    // owning the first master logical port (switch 0 on multi-NPU platforms).
+    // Resolve the default lazily so masterLogicalPortIds()[0] is only accessed
+    // when the caller did not supply a switchId.
+    SwitchID resolvedSwitchId = switchId.has_value()
+        ? *switchId
+        : getSw()
+              ->getScopeResolver()
+              ->scope(masterLogicalPortIds()[0])
+              .switchId();
+    getSw()->sendPacketSwitchedAsync(std::move(pkt), {resolvedSwitchId});
     return;
   }
   getSw()->sendPacketOutOfPortAsync(

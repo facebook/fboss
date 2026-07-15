@@ -6,7 +6,6 @@
 
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FabricConnectivityManager.h"
-#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -1261,6 +1260,12 @@ class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
     auto config =
         AgentVoqSwitchWithMultipleDsfNodesTest::initialConfig(ensemble);
     return getShelEnabledConfig(config);
+  }
+
+  // SHEL (self-healing ECMP lag) is exercised across all NIF ports, so opt out
+  // of the default interface-port cap and configure the full port set.
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return std::nullopt;
   }
 
  protected:

@@ -131,6 +131,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_nexthopgroups_model
+  fboss/cli/fboss2/commands/show/nexthopgroups/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_ndp_model
   fboss/cli/fboss2/commands/show/ndp/model.thrift
   OPTIONS
@@ -527,6 +534,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.cpp
   fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.h
   fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.cpp
+  fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.h
+  fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.cpp
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.cpp
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
@@ -729,6 +738,7 @@ target_link_libraries(fboss2_lib
   show_lldp_model
   show_mirror_model
   show_mysid_model
+  show_nexthopgroups_model
   show_ndp_model
   show_port_model
   show_product_model
@@ -787,6 +797,14 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.cpp
   fboss/cli/fboss2/commands/config/CmdConfigReload.h
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
+  fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.cpp
+  fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h
+  fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.cpp
+  fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h
+  fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.cpp
+  fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h
+  fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.cpp
+  fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.cpp
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h
   fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.cpp
@@ -1053,6 +1071,7 @@ add_library(fboss2_config_lib
 target_link_libraries(fboss2_config_lib
   cli_metadata
   fboss2_lib
+  agent_config_utils
   agent_dir_util
   common_file_utils
   switch_config_cpp2

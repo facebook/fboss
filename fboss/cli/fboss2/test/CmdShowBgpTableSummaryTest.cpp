@@ -57,7 +57,21 @@ class CmdShowBgpTableSummaryTestFixture : public CmdHandlerTestBase {
     }
     setenv("LC_ALL", "C", 1);
     v4_ = makeSummary(TBgpAfi::AFI_IPV4, 5, {{24, 3}, {32, 2}});
+    v4_.ebgp_prefixes() = 4;
+    v4_.ibgp_prefixes() = 1;
+    // RIB-wide count, identical across AFIs (as the server populates it).
+    v4_.unresolvable_nexthops_count() = 3;
+    // Per-AFI count of routes with no best path; set explicitly to exercise the
+    // per-AFI rendering.
+    v4_.routes_with_unresolved_nexthops() = 2;
+    // Total paths exceed prefixes when add-path is in play (5 prefixes, 8
+    // paths); set explicitly to exercise the per-AFI path rendering.
+    v4_.total_paths() = 8;
     v6_ = makeSummary(TBgpAfi::AFI_IPV6, 1, {{64, 1}});
+    v6_.ibgp_prefixes() = 1;
+    v6_.unresolvable_nexthops_count() = 3;
+    v6_.routes_with_unresolved_nexthops() = 0;
+    v6_.total_paths() = 2;
   }
 
   void TearDown() override {
@@ -83,6 +97,8 @@ TEST_F(CmdShowBgpTableSummaryTestFixture, queryClient) {
   EXPECT_EQ(5, result.summaries()->at(0).total_prefixes());
   EXPECT_EQ(TBgpAfi::AFI_IPV6, result.summaries()->at(1).afi());
   EXPECT_EQ(1, result.summaries()->at(1).total_prefixes());
+  EXPECT_EQ(8, result.summaries()->at(0).total_paths());
+  EXPECT_EQ(2, result.summaries()->at(1).total_paths());
 }
 
 TEST_F(CmdShowBgpTableSummaryTestFixture, printOutput) {
@@ -95,11 +111,18 @@ TEST_F(CmdShowBgpTableSummaryTestFixture, printOutput) {
 
   EXPECT_THAT(output, HasSubstr("Address Family: AFI_IPV4"));
   EXPECT_THAT(output, HasSubstr("Total Prefixes: 5"));
+  EXPECT_THAT(output, HasSubstr("Total Paths: 8"));
+  EXPECT_THAT(output, HasSubstr("External (eBGP): 4"));
+  EXPECT_THAT(output, HasSubstr("Internal (iBGP): 1"));
+  EXPECT_THAT(output, HasSubstr("Routes with unresolved next-hops: 2"));
   EXPECT_THAT(output, HasSubstr("/24"));
   EXPECT_THAT(output, HasSubstr("/32"));
   EXPECT_THAT(output, HasSubstr("Address Family: AFI_IPV6"));
   EXPECT_THAT(output, HasSubstr("Total Prefixes: 1"));
+  EXPECT_THAT(output, HasSubstr("Total Paths: 2"));
   EXPECT_THAT(output, HasSubstr("/64"));
+  // RIB-wide unresolvable count is rendered once.
+  EXPECT_THAT(output, HasSubstr("Unresolvable next-hops: 3"));
 }
 
 } // namespace facebook::fboss

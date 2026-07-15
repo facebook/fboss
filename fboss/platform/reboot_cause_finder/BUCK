@@ -1,0 +1,70 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
+
+oncall("fboss_platform")
+
+cpp_library(
+    name = "config_validator",
+    srcs = [
+        "ConfigValidator.cpp",
+    ],
+    headers = [
+        "ConfigValidator.h",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/platform/reboot_cause_finder/if:reboot_cause_config-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "reboot_cause_finder_lib",
+    srcs = [
+        "RebootCauseFinderImpl.cpp",
+    ],
+    headers = [
+        "RebootCauseFinderImpl.h",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//folly:dynamic",
+        "//folly:file_util",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/platform/reboot_cause_finder/if:reboot_cause_config-cpp2-types",
+    ],
+    external_deps = ["gflags"],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_binary(
+    name = "reboot_cause_finder",
+    srcs = [
+        "Main.cpp",
+    ],
+    deps = [
+        ":config_validator",
+        ":reboot_cause_finder_lib",
+        "//fb303:logging",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:init",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+custom_unittest(
+    name = "test_reboot_cause_finder_version",
+    command = [
+        "fboss/lib/test/test_version.sh",
+        "$(exe :reboot_cause_finder)",
+    ],
+    type = "simple",
+)

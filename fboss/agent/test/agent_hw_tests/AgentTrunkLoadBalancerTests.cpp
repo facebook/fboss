@@ -65,6 +65,13 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
     return {ProductionFeature::LAG, ProductionFeature::LAG_LOAD_BALANCER};
   }
 
+  // 4x3 wide trunks use 12 physical ports; FrontPanel variants need 1 more
+  // for traffic injection (masterLogicalPortIds()[numPhysicalPorts()]) = 13.
+  // 4x2 wide and SRv6 (2x2) variants need fewer but 13 is harmless.
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return 13;
+  }
+
   void addAggregatePorts(cfg::SwitchConfig* config, AggPortInfo aggInfo) const {
     AggregatePortID curAggId{1};
     for (auto i = 0; i < aggInfo.numAggPorts; ++i) {

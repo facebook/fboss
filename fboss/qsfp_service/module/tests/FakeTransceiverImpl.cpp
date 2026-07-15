@@ -15,17 +15,37 @@ ArrayT customizeModuleIdentifier(ArrayT base, uint8_t newIdentifier) {
   return base;
 }
 
+// Per-lane data pages that CMIS stores per-bank (10h/11h/13h/14h, VDM
+// 24h-27h). Writes to these while a non-zero bank is selected must land in that
+// bank's buffer so multi-bank (CPO) programming can be verified per-bank.
+bool isFakeBankedPage(int page) {
+  switch (page) {
+    case 0x10:
+    case 0x11:
+    case 0x13:
+    case 0x14:
+    case 0x24:
+    case 0x25:
+    case 0x26:
+    case 0x27:
+      return true;
+    default:
+      return false;
+  }
+}
+
 // Simulate datapath state transitions for CMIS modules:
 // When DATA_PATH_DEINIT (Page 10h, offset 0) is written, update
-// DATA_PATH_STATE (Page 11h, offset 0-3) to simulate hardware behavior.
-// This is needed for tests that use polling-based datapath programming.
+// DATA_PATH_STATE (Page 11h, offset 0-3) of the same bank to simulate hardware
+// behavior. This is needed for tests that use polling-based datapath
+// programming. targetPages is the upper-page map for the bank being written
+// (the bank-agnostic map for bank 0, the per-bank map otherwise).
 void simulateDataPathStateTransition(
     int page,
     int offset,
     int len,
     const uint8_t* fieldValue,
-    uint8_t dataAddress,
-    std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>>& upperPages) {
+    std::map<int, std::array<uint8_t, 128>>& targetPages) {
   constexpr int kPage10h = 0x10;
   constexpr int kPage11h = 0x11;
   constexpr int kDataPathDeinitOffset = 0; // Offset 128 - 128 = 0
@@ -35,9 +55,8 @@ void simulateDataPathStateTransition(
   if (page == kPage10h && offset == kDataPathDeinitOffset && len >= 1) {
     uint8_t dataPathDeinit = *fieldValue;
 
-    // Check if Page 11h exists in the upper pages
-    if (upperPages[dataAddress].find(kPage11h) !=
-        upperPages[dataAddress].end()) {
+    // Check if Page 11h exists in the target pages
+    if (targetPages.find(kPage11h) != targetPages.end()) {
       // Update DATA_PATH_STATE for each lane (8 lanes, 4 bits per lane)
       // Lane states are packed: 2 lanes per byte, low nibble = even lane
       for (int lane = 0; lane < 8; ++lane) {
@@ -46,7 +65,7 @@ void simulateDataPathStateTransition(
         int byteIdx = lane / 2;
         int laneBitOffset = (lane % 2) * 4;
 
-        auto& stateByte = upperPages[dataAddress][kPage11h][byteIdx];
+        auto& stateByte = targetPages[kPage11h][byteIdx];
         // Clear the nibble and set the new state
         stateByte =
             (stateByte & ~(0xF << laneBitOffset)) | (newState << laneBitOffset);
@@ -137,13 +156,27 @@ int FakeTransceiverImpl::writeTransceiver(
   } else {
     EXPECT_LE(offset + len, 2 * QsfpModule::MAX_QSFP_PAGE_SIZE);
     offset -= QsfpModule::MAX_QSFP_PAGE_SIZE;
-    std::copy(
-        fieldValue,
-        fieldValue + len,
-        upperPages_[dataAddress][page_].begin() + offset);
-
-    simulateDataPathStateTransition(
-        page_, offset, len, fieldValue, dataAddress, upperPages_);
+    // Route per-lane banked-page writes to the selected bank so multi-bank
+    // (CPO) programming lands in (and is verifiable from) the right bank. Bank
+    // 0 and non-banked pages keep using the bank-agnostic buffer.
+    if (selectedBank_ != 0 && isFakeBankedPage(page_)) {
+      auto& bankPages = bankedPages_[selectedBank_];
+      // Seed an as-yet-unwritten bank page from the bank-agnostic base content.
+      if (!bankPages.count(page_)) {
+        bankPages[page_] = upperPages_[dataAddress][page_];
+      }
+      std::copy(
+          fieldValue, fieldValue + len, bankPages[page_].begin() + offset);
+      simulateDataPathStateTransition(
+          page_, offset, len, fieldValue, bankPages);
+    } else {
+      std::copy(
+          fieldValue,
+          fieldValue + len,
+          upperPages_[dataAddress][page_].begin() + offset);
+      simulateDataPathStateTransition(
+          page_, offset, len, fieldValue, upperPages_[dataAddress]);
+    }
   }
 
   return len;
@@ -3214,6 +3247,23 @@ Cmis800GZrTransceiver::Cmis800GZrTransceiver(
           kCmis800GZrUpperPages,
           mgr) {}
 
+Cmis800GZrNoHoldOffTmrTransceiver::Cmis800GZrNoHoldOffTmrTransceiver(
+    int module,
+    TransceiverManager* mgr)
+    : Cmis800GZrTransceiver(module, mgr) {
+  // Clear rxConsActHoldOffTmrImpl (Page 45h, Byte 129, Bit 2) so the module
+  // reports it does NOT support programming the Rx Consequent Action hold-off
+  // timer. The CONS_ACT_HOLD_OFF_TMR register (Page 38h) stays 0.
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  uint8_t page45 = 0x45;
+  writeTransceiver(pageParam, &page45, 0, 0);
+  TransceiverAccessParameter provParam(
+      TransceiverAccessParameter::ADDR_QSFP, 129, 1);
+  uint8_t provVal = 0x7f & ~0x04; // clear rxConsActHoldOffTmrImpl (bit 2)
+  writeTransceiver(provParam, &provVal, 0, 0);
+}
+
 Cmis2x400GDr4Transceiver::Cmis2x400GDr4Transceiver(
     int module,
     TransceiverManager* mgr)
@@ -3264,10 +3314,22 @@ CmisCpo6P4TDrTransceiver::CmisCpo6P4TDrTransceiver(
           kCmisCpo6P4TDrUpperPages,
           mgr) {
   // Give each bank a distinct page 11h so per-bank caching can be verified.
-  // Byte 2 of page 11h is used as a per-bank marker; bank 0 keeps the base 0.
+  // Byte 2 is a generic per-bank marker; the CHANNEL_RX_PWR field is marked too
+  // so the global-lane accessor can be verified. Bank 0 keeps the base 0.
+  // CHANNEL_RX_PWR lives at page 11h byte offset 186 (see the CmisField map);
+  // subtract the lower-page size to index the 128-byte upper-page array.
+  constexpr int kChannelRxPwrPage11Offset = 186;
+  constexpr int kChannelRxPwrPageIndex =
+      kChannelRxPwrPage11Offset - QsfpModule::MAX_QSFP_PAGE_SIZE;
+  // CHANNEL_RX_PWR is 2 bytes per lane. Mark intra-bank lane 0 (byte 0) with
+  // the bank id and intra-bank lane 1 (byte 0, at offset + 1*2) with 0x10|bank
+  // so a reader can distinguish both the bank and the intra-bank lane offset.
+  constexpr int kChannelRxPwrBytesPerLane = 2;
   for (uint8_t bank = 1; bank < 4; ++bank) {
     auto page11 = kCmisCpo6P4TDrPage11;
     page11[2] = bank;
+    page11[kChannelRxPwrPageIndex] = bank;
+    page11[kChannelRxPwrPageIndex + kChannelRxPwrBytesPerLane] = 0x10 | bank;
     setBankedPage(bank, 0x11, page11);
   }
 }
@@ -3305,12 +3367,44 @@ CmisCpo6P4TDrReadyTransceiver::CmisCpo6P4TDrReadyTransceiver(
   writeTransceiver(vdmParam, &vdmSupport, 0, 0);
 
   // Give each bank a distinct VDM data page 24h (byte 0 = per-bank marker) so
-  // per-bank VDM data reads can be verified. Bank 0 keeps the base 0.
+  // per-bank VDM data reads can be verified. Bank 0 keeps the base 0. Byte 0 is
+  // also the high byte of lane 0's SNR_MEDIA_IN value (see the VDM config
+  // below), so lane 0 of bank N decodes to N.
   for (uint8_t bank = 1; bank < 4; ++bank) {
     auto page24 = kCmisCpo6P4TDrPage24;
     page24[0] = bank;
     setBankedPage(bank, 0x24, page24);
   }
+
+  // Advertise SNR_MEDIA_IN in VDM config group 1 (page 20h) so it resolves to
+  // data page 24h at offset 128, length 16 (8 lanes x 2 bytes). Each 2-byte
+  // descriptor's odd byte carries the VdmConfigType id; eight consecutive
+  // SNR_MEDIA_IN (0x05) descriptors cover the bank's 8 lanes. This lets the
+  // per-bank VDM read path be exercised through getVdmDiagsStatsInfo().
+  TransceiverAccessParameter page20Param(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  uint8_t page20 = 0x20;
+  writeTransceiver(page20Param, &page20, 0, 0);
+  std::array<uint8_t, 16> snrVdmConfig = {
+      0x00,
+      0x05,
+      0x00,
+      0x05,
+      0x00,
+      0x05,
+      0x00,
+      0x05,
+      0x00,
+      0x05,
+      0x00,
+      0x05,
+      0x00,
+      0x05,
+      0x00,
+      0x05};
+  TransceiverAccessParameter snrConfigParam(
+      TransceiverAccessParameter::ADDR_QSFP, 128, snrVdmConfig.size());
+  writeTransceiver(snrConfigParam, snrVdmConfig.data(), 0, 0);
 }
 
 CmisCredo800AEC::CmisCredo800AEC(int module, TransceiverManager* mgr)

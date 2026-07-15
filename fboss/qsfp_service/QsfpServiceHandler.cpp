@@ -256,9 +256,9 @@ void QsfpServiceHandler::getRemediationUntilTime(
 
 void QsfpServiceHandler::getSymbolErrorHistogram(
     CdbDatapathSymErrHistogram& symErr,
-    std::unique_ptr<std::string> portName) {
+    std::unique_ptr<std::string> portNameStr) {
   auto log = LOG_THRIFT_CALL(INFO);
-  tcvrManager_->getSymbolErrorHistogram(symErr, *portName);
+  tcvrManager_->getSymbolErrorHistogram(symErr, *portNameStr);
 }
 
 void QsfpServiceHandler::getAllPortSupportedProfiles(
@@ -340,50 +340,50 @@ void QsfpServiceHandler::programXphyPort(
   }
 }
 
-void QsfpServiceHandler::getXphyInfo(phy::PhyInfo& response, int32_t portID) {
+void QsfpServiceHandler::getXphyInfo(phy::PhyInfo& response, int32_t portId) {
   auto log = LOG_THRIFT_CALL(INFO);
   if (FLAGS_port_manager_mode) {
-    response = portManager_->getXphyInfo(PortID(portID));
+    response = portManager_->getXphyInfo(PortID(portId));
   } else {
-    response = tcvrManager_->getXphyInfo(PortID(portID));
+    response = tcvrManager_->getXphyInfo(PortID(portId));
   }
 }
 
 void QsfpServiceHandler::getSupportedPrbsPolynomials(
     std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
-    std::unique_ptr<std::string> portName,
+    std::unique_ptr<std::string> portNameStr,
     phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
   if (FLAGS_port_manager_mode) {
     portManager_->getSupportedPrbsPolynomials(
-        prbsCapabilities, *portName, component);
+        prbsCapabilities, *portNameStr, component);
   } else {
     tcvrManager_->getSupportedPrbsPolynomials(
-        prbsCapabilities, *portName, component);
+        prbsCapabilities, *portNameStr, component);
   }
 }
 
 void QsfpServiceHandler::setInterfacePrbs(
-    std::unique_ptr<std::string> portName,
+    std::unique_ptr<std::string> portNameStr,
     phy::PortComponent component,
     std::unique_ptr<prbs::InterfacePrbsState> state) {
   auto log = LOG_THRIFT_CALL(INFO);
   if (FLAGS_port_manager_mode) {
-    portManager_->setInterfacePrbs(*portName, component, *state);
+    portManager_->setInterfacePrbs(*portNameStr, component, *state);
   } else {
-    tcvrManager_->setInterfacePrbs(*portName, component, *state);
+    tcvrManager_->setInterfacePrbs(*portNameStr, component, *state);
   }
 }
 
 void QsfpServiceHandler::getInterfacePrbsState(
     prbs::InterfacePrbsState& prbsState,
-    std::unique_ptr<std::string> portName,
+    std::unique_ptr<std::string> portNameStr,
     phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
   if (FLAGS_port_manager_mode) {
-    portManager_->getInterfacePrbsState(prbsState, *portName, component);
+    portManager_->getInterfacePrbsState(prbsState, *portNameStr, component);
   } else {
-    tcvrManager_->getInterfacePrbsState(prbsState, *portName, component);
+    tcvrManager_->getInterfacePrbsState(prbsState, *portNameStr, component);
   }
 }
 
@@ -400,13 +400,13 @@ void QsfpServiceHandler::getAllInterfacePrbsStates(
 
 void QsfpServiceHandler::getInterfacePrbsStats(
     phy::PrbsStats& response,
-    std::unique_ptr<std::string> portName,
+    std::unique_ptr<std::string> portNameStr,
     phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
   if (FLAGS_port_manager_mode) {
-    response = portManager_->getInterfacePrbsStats(*portName, component);
+    response = portManager_->getInterfacePrbsStats(*portNameStr, component);
   } else {
-    response = tcvrManager_->getInterfacePrbsStats(*portName, component);
+    response = tcvrManager_->getInterfacePrbsStats(*portNameStr, component);
   }
 }
 
@@ -422,13 +422,13 @@ void QsfpServiceHandler::getAllInterfacePrbsStats(
 }
 
 void QsfpServiceHandler::clearInterfacePrbsStats(
-    std::unique_ptr<std::string> portName,
+    std::unique_ptr<std::string> portNameStr,
     phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
   if (FLAGS_port_manager_mode) {
-    portManager_->clearInterfacePrbsStats(*portName, component);
+    portManager_->clearInterfacePrbsStats(*portNameStr, component);
   } else {
-    tcvrManager_->clearInterfacePrbsStats(*portName, component);
+    tcvrManager_->clearInterfacePrbsStats(*portNameStr, component);
   }
 }
 
@@ -444,13 +444,13 @@ void QsfpServiceHandler::bulkClearInterfacePrbsStats(
 }
 
 void QsfpServiceHandler::dumpTransceiverI2cLog(
-    std::unique_ptr<std::string> portName) {
+    std::unique_ptr<std::string> portNameStr) {
   auto log = LOG_THRIFT_CALL(INFO);
-  auto ret = tcvrManager_->dumpTransceiverI2cLog(*portName);
+  auto ret = tcvrManager_->dumpTransceiverI2cLog(*portNameStr);
   // if the header of the log has size 0, logging is not enabled.
   if (ret.first == 0) {
     throw FbossError(
-        fmt::format("Failed to dump transceiver {} I2c log", *portName));
+        fmt::format("Failed to dump transceiver {} I2c log", *portNameStr));
   }
 }
 
@@ -538,36 +538,36 @@ bool QsfpServiceHandler::getSdkState(std::unique_ptr<std::string> fileName) {
 
 void QsfpServiceHandler::getPortInfo(
     std::string& out,
-    std::unique_ptr<std::string> portName) {
+    std::unique_ptr<std::string> portNameStr) {
   auto log = LOG_THRIFT_CALL(INFO);
   if (FLAGS_port_manager_mode) {
-    out = portManager_->getPortInfo(*portName);
+    out = portManager_->getPortInfo(*portNameStr);
   } else {
-    out = tcvrManager_->getPortInfo(*portName);
+    out = tcvrManager_->getPortInfo(*portNameStr);
   }
 }
 
 void QsfpServiceHandler::setPortLoopbackState(
-    std::unique_ptr<std::string> portName,
+    std::unique_ptr<std::string> portNameStr,
     phy::PortComponent component,
     bool setLoopback) {
   auto log = LOG_THRIFT_CALL(INFO);
   if (FLAGS_port_manager_mode) {
-    portManager_->setPortLoopbackState(*portName, component, setLoopback);
+    portManager_->setPortLoopbackState(*portNameStr, component, setLoopback);
   } else {
-    tcvrManager_->setPortLoopbackState(*portName, component, setLoopback);
+    tcvrManager_->setPortLoopbackState(*portNameStr, component, setLoopback);
   }
 }
 
 void QsfpServiceHandler::setPortAdminState(
-    std::unique_ptr<std::string> portName,
+    std::unique_ptr<std::string> portNameStr,
     phy::PortComponent component,
     bool setAdminUp) {
   auto log = LOG_THRIFT_CALL(INFO);
   if (FLAGS_port_manager_mode) {
-    portManager_->setPortAdminState(*portName, component, setAdminUp);
+    portManager_->setPortAdminState(*portNameStr, component, setAdminUp);
   } else {
-    tcvrManager_->setPortAdminState(*portName, component, setAdminUp);
+    tcvrManager_->setPortAdminState(*portNameStr, component, setAdminUp);
   }
 }
 
@@ -581,7 +581,7 @@ void QsfpServiceHandler::setInterfaceTxRx(
 
 void QsfpServiceHandler::saiPhyRegisterAccess(
     std::string& out,
-    std::unique_ptr<std::string> portName,
+    std::unique_ptr<std::string> portNameStr,
     bool opRead,
     int phyAddr,
     int devId,
@@ -590,16 +590,16 @@ void QsfpServiceHandler::saiPhyRegisterAccess(
   auto log = LOG_THRIFT_CALL(INFO);
   if (FLAGS_port_manager_mode) {
     out = portManager_->saiPhyRegisterAccess(
-        *portName, opRead, phyAddr, devId, regOffset, data);
+        *portNameStr, opRead, phyAddr, devId, regOffset, data);
   } else {
     out = tcvrManager_->saiPhyRegisterAccess(
-        *portName, opRead, phyAddr, devId, regOffset, data);
+        *portNameStr, opRead, phyAddr, devId, regOffset, data);
   }
 }
 
 void QsfpServiceHandler::saiPhySerdesRegisterAccess(
     std::string& out,
-    std::unique_ptr<std::string> portName,
+    std::unique_ptr<std::string> portNameStr,
     bool opRead,
     int16_t mdioAddr,
     phy::Side side,
@@ -609,10 +609,10 @@ void QsfpServiceHandler::saiPhySerdesRegisterAccess(
   auto log = LOG_THRIFT_CALL(INFO);
   if (FLAGS_port_manager_mode) {
     out = portManager_->saiPhySerdesRegisterAccess(
-        *portName, opRead, mdioAddr, side, serdesLane, regOffset, data);
+        *portNameStr, opRead, mdioAddr, side, serdesLane, regOffset, data);
   } else {
     out = tcvrManager_->saiPhySerdesRegisterAccess(
-        *portName, opRead, mdioAddr, side, serdesLane, regOffset, data);
+        *portNameStr, opRead, mdioAddr, side, serdesLane, regOffset, data);
   }
 }
 
@@ -666,23 +666,23 @@ void QsfpServiceHandler::paiDiagCmd(
 
 void QsfpServiceHandler::phyConfigCheckHw(
     std::string& out,
-    std::unique_ptr<std::string> portName) {
+    std::unique_ptr<std::string> portNameStr) {
   auto log = LOG_THRIFT_CALL(INFO);
   if (FLAGS_port_manager_mode) {
-    out = portManager_->phyConfigCheckHw(*portName);
+    out = portManager_->phyConfigCheckHw(*portNameStr);
   } else {
-    out = tcvrManager_->phyConfigCheckHw(*portName);
+    out = tcvrManager_->phyConfigCheckHw(*portNameStr);
   }
 }
 
 void QsfpServiceHandler::publishLinkSnapshots(
     std::unique_ptr<std::vector<std::string>> portNames) {
   auto log = LOG_THRIFT_CALL(INFO, portNames);
-  for (const auto& portName : *portNames) {
+  for (const auto& portNameStr : *portNames) {
     if (FLAGS_port_manager_mode) {
-      portManager_->publishLinkSnapshots(portName);
+      portManager_->publishLinkSnapshots(portNameStr);
     } else {
-      tcvrManager_->publishLinkSnapshots(portName);
+      tcvrManager_->publishLinkSnapshots(portNameStr);
     }
   }
 }
@@ -701,11 +701,11 @@ void QsfpServiceHandler::getInterfacePhyInfo(
     std::map<std::string, phy::PhyInfo>& phyInfos,
     std::unique_ptr<std::vector<std::string>> portNames) {
   auto log = LOG_THRIFT_CALL(INFO);
-  for (const auto& portName : *portNames) {
+  for (const auto& portNameStr : *portNames) {
     if (FLAGS_port_manager_mode) {
-      portManager_->getInterfacePhyInfo(phyInfos, portName);
+      portManager_->getInterfacePhyInfo(phyInfos, portNameStr);
     } else {
-      tcvrManager_->getInterfacePhyInfo(phyInfos, portName);
+      tcvrManager_->getInterfacePhyInfo(phyInfos, portNameStr);
     }
   }
 }
@@ -924,25 +924,25 @@ QsfpServiceHandler::co_macsecGetPhyPortInfo(
 }
 
 folly::coro::Task<PortOperState> QsfpServiceHandler::co_macsecGetPhyLinkInfo(
-    std::unique_ptr<std::string> portName) {
+    std::unique_ptr<std::string> portNameStr) {
   auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
-  co_return macsecHandler_->macsecGetPhyLinkInfo(*portName);
+  co_return macsecHandler_->macsecGetPhyLinkInfo(*portNameStr);
 }
 
 folly::coro::Task<std::unique_ptr<phy::PhyInfo>>
-QsfpServiceHandler::co_getPhyInfo(std::unique_ptr<std::string> portName) {
+QsfpServiceHandler::co_getPhyInfo(std::unique_ptr<std::string> portNameStr) {
   auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   co_return std::make_unique<phy::PhyInfo>(
-      macsecHandler_->getPhyInfo(*portName));
+      macsecHandler_->getPhyInfo(*portNameStr));
 }
 
 folly::coro::Task<bool> QsfpServiceHandler::co_deleteAllSc(
-    std::unique_ptr<std::string> portName) {
+    std::unique_ptr<std::string> portNameStr) {
   auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
-  co_return macsecHandler_->deleteAllSc(*portName);
+  co_return macsecHandler_->deleteAllSc(*portNameStr);
 }
 
 folly::coro::Task<bool> QsfpServiceHandler::co_setupMacsecState(

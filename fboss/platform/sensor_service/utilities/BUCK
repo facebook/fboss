@@ -19,11 +19,13 @@ cpp_library(
     srcs = [
         "ConfigDiffer.cpp",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
-        "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
     ],
 )
 

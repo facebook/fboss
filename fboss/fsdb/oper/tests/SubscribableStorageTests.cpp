@@ -1470,6 +1470,71 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
   }
 }
 
+CO_TYPED_TEST(
+    SubscribableStorageTests,
+    SubscribeExtendedPatchDeleteAnnotatedStruct) {
+  // Source (FSDB server role): always non-hybrid so it reliably emits the
+  // withdrawal patch, exactly like the real publisher does.
+  auto storage =
+      NaivePeriodicSubscribableCowStorage<TestStruct, false>(this->testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  // Target (subscriber role): hybrid in the hybrid type param.
+  auto tgtStorage = this->createCowStorage(this->testStruct);
+
+  const auto& path = ext_path_builder::raw("mapOfStructs")
+                         .regex("key1.*")
+                         .raw("optionalStruct")
+                         .get();
+  auto generator = storage.subscribe_patch_extended(
+      SubscriptionIdentifier(SubscriberId(kSubscriber)), {{0, path}});
+
+  // Populate mapOfStructs["key1"].optionalStruct and deliver it to the
+  // subscriber.
+  TestStructSimple optionalStruct;
+  optionalStruct.min() = 1;
+  optionalStruct.max() = 2;
+  OtherStruct entry;
+  entry.optionalStruct() = optionalStruct;
+  EXPECT_EQ(
+      storage.set(this->root.mapOfStructs()["key1"], entry), std::nullopt);
+
+  auto ret = co_await co_awaitTry(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  EXPECT_FALSE(ret.hasException());
+  for (auto& patch : ret.value().val.chunk_ref()->patchGroups()->at(0)) {
+    EXPECT_EQ(tgtStorage.patch(std::move(patch)), std::nullopt);
+  }
+  // Subscriber now holds the populated optionalStruct (add path works for
+  // hybrid).
+  EXPECT_TRUE(tgtStorage.root()
+                  ->toThrift()
+                  .mapOfStructs()
+                  ->at("key1")
+                  .optionalStruct());
+
+  // Withdraw the entry -> del patch whose base path ends at optionalStruct.
+  storage.remove(this->root.mapOfStructs()["key1"]);
+  ret = co_await co_awaitTry(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  EXPECT_FALSE(ret.hasException());
+  SubscriberChunk subChunk = *ret.value().val.chunk_ref();
+  EXPECT_EQ(subChunk.patchGroups()->size(), 1);
+  EXPECT_EQ(subChunk.patchGroups()->at(0).size(), 1);
+  EXPECT_EQ(
+      subChunk.patchGroups()->at(0).front().patch()->getType(),
+      facebook::fboss::thrift_cow::PatchNode::Type::del);
+
+  for (auto& subPatch : subChunk.patchGroups()->at(0)) {
+    EXPECT_EQ(tgtStorage.patch(std::move(subPatch)), std::nullopt);
+  }
+
+  // The withdrawn entry (and its optionalStruct) must be gone from the
+  // subscriber.
+  EXPECT_EQ(tgtStorage.root()->toThrift().mapOfStructs()->count("key1"), 0);
+}
+
 CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchMultipleChanges) {
   // add subscription for a path that doesn't exist yet, then add parent
   auto storage = this->initStorage(this->testStruct);

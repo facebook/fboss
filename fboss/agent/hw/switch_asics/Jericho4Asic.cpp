@@ -7,9 +7,35 @@
 namespace {
 static constexpr int kDefaultMidPriCpuQueueId = 3;
 static constexpr int kDefaultHiPriCpuQueueId = 7;
+constexpr auto kCpuPortSpeed = 10000;
+constexpr auto kSingleStageCpuPortNumVoqs = 8;
+constexpr auto kDualStageCpuPortNumVoqs = 3;
 } // namespace
 
 namespace facebook::fboss {
+
+std::vector<HwAsic::InternalSystemPortConfig>
+Jericho4Asic::getInternalSystemPortConfig(
+    const CpuPortCoreAndPortIndex& cpuPortsCoreAndPortIdx) const {
+  CHECK(
+      cpuPortsCoreAndPortIdx.size() == 1 ||
+      cpuPortsCoreAndPortIdx.size() == 4 ||
+      cpuPortsCoreAndPortIdx.size() == 8 || cpuPortsCoreAndPortIdx.size() == 9)
+      << "Create one CPU port for the ASIC or one CPU port for each core";
+  CHECK(getSwitchId()) << " Switch Id must be set before sys port info";
+
+  const uint32_t switchId = static_cast<uint32_t>(*getSwitchId());
+  const uint32_t numVoqs = isDualStage3Q2QMode() ? kDualStageCpuPortNumVoqs
+                                                 : kSingleStageCpuPortNumVoqs;
+  std::vector<InternalSystemPortConfig> sysPortConfig;
+  sysPortConfig.reserve(cpuPortsCoreAndPortIdx.size());
+  for (auto [cpuPortID, coreAndPortIdx] : cpuPortsCoreAndPortIdx) {
+    auto [core, port] = coreAndPortIdx;
+    sysPortConfig.push_back(
+        {cpuPortID, switchId, core, port, kCpuPortSpeed, numVoqs});
+  }
+  return sysPortConfig;
+}
 
 bool Jericho4Asic::isSupported(Feature feature) const {
   switch (feature) {
@@ -46,7 +72,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_DROP_STATS:
     case HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
-    case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
     case HwAsic::Feature::ECN:
@@ -60,7 +85,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::ERSPANv6:
-    case HwAsic::Feature::RCI_WATERMARK_COUNTER:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::SAI_PRBS:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
@@ -73,7 +97,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
-    case HwAsic::Feature::DRAM_BLOCK_TIME:
     case HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN:
     case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
@@ -96,7 +119,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
-    case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
     case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
     case HwAsic::Feature::RX_SERDES_PARAMETERS:
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
@@ -236,6 +258,12 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
+    // RCI watermark counters fail on Jericho4 with
+    // SAI_STATUS_INVALID_PARAMETER.
+    case HwAsic::Feature::RCI_WATERMARK_COUNTER:
+    // Disable DRAM counters on Jericho4 until SDK read failures are resolved.
+    case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
+    case HwAsic::Feature::DRAM_BLOCK_TIME:
     // Disabling some counters for the time being.
     // This will result in an early return in
     // SaiDebugCounterManager::setupTrapDropCounter(), which is currently
@@ -249,6 +277,7 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
+    case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
     // TODO(J4): re-enable metadata qualifiers once SDK support is validated.

@@ -533,18 +533,22 @@ void BaseEcmpResourceManagerTest::updateRoutes(
 
   processFibsDeltaInHwSwitchOrder(
       delta,
-      [&routesToAddOrUpdate](
+      [&routesToAddOrUpdate, &newState](
           RouterID rid, const auto& /*oldRoute*/, const auto& newRoute) {
+        const auto& fwdInfo = newRoute->getForwardInfo();
         routesToAddOrUpdate->emplace_back(
             util::toUnicastRoute(
                 newRoute->prefix().toCidrNetwork(),
-                newRoute->getForwardInfo()));
+                fwdInfo,
+                facebook::fboss::getNextHops(newState, fwdInfo)));
       },
-      [&routesToAddOrUpdate](RouterID rid, const auto& newRoute) {
+      [&routesToAddOrUpdate, &newState](RouterID rid, const auto& newRoute) {
+        const auto& fwdInfo = newRoute->getForwardInfo();
         routesToAddOrUpdate->emplace_back(
             util::toUnicastRoute(
                 newRoute->prefix().toCidrNetwork(),
-                newRoute->getForwardInfo()));
+                fwdInfo,
+                facebook::fboss::getNextHops(newState, fwdInfo)));
       },
       [&prefixesToDelete](RouterID rid, const auto& oldRoute) {
         IpPrefix pfx;
@@ -563,17 +567,19 @@ void BaseEcmpResourceManagerTest::updateRoutes(
 
 std::unique_ptr<std::vector<UnicastRoute>>
 BaseEcmpResourceManagerTest::getClientRoutes(ClientID client) const {
+  auto state = sw_->getState();
   auto fibContainer =
-      sw_->getState()->getFibsInfoMap()->getAllFibNodes()->getFibContainerIf(
-          RouterID(0));
+      state->getFibsInfoMap()->getAllFibNodes()->getFibContainerIf(RouterID(0));
   auto unicastRoutes = std::make_unique<std::vector<UnicastRoute>>();
-  auto fillInRoutes = [&unicastRoutes](const auto& fibIn) {
+  auto fillInRoutes = [&unicastRoutes, &state](const auto& fibIn) {
     for (const auto& [_, route] : std::as_const(*fibIn)) {
       auto forwardInfo = route->getEntryForClient(kClientID);
       if (forwardInfo) {
         unicastRoutes->emplace_back(
             util::toUnicastRoute(
-                route->prefix().toCidrNetwork(), *forwardInfo));
+                route->prefix().toCidrNetwork(),
+                *forwardInfo,
+                facebook::fboss::getClientNextHops(state, *forwardInfo)));
       }
     }
   };

@@ -2,8 +2,6 @@
 
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 
-#include <cctype>
-
 #include <fmt/format.h>
 #include <folly/String.h>
 #include <folly/hash/Hash.h>
@@ -18,30 +16,6 @@ namespace facebook::fboss::platform::platform_manager {
 using apache::thrift::SimpleJSONSerializer;
 
 namespace {
-// Verify that the platform name from the config and dmidecode match.  This
-// is necessary to prevent an incorrect config from being used on any platform.
-void verifyPlatformNameMatches(
-    const std::string& platformNameInConfig,
-    const std::string& platformNameFromBios) {
-  std::string platformNameInConfigUpper(platformNameInConfig);
-  std::transform(
-      platformNameInConfigUpper.begin(),
-      platformNameInConfigUpper.end(),
-      platformNameInConfigUpper.begin(),
-      ::toupper);
-
-  if (platformNameInConfigUpper == platformNameFromBios) {
-    return;
-  }
-
-  throw std::runtime_error(
-      fmt::format(
-          "Platform name in config does not match the inferred platform name from "
-          "bios. Config: {}, Inferred name from BIOS {}",
-          platformNameInConfigUpper,
-          platformNameFromBios));
-}
-
 std::string computeHash(const PlatformConfig& config) {
   auto configJson = SimpleJSONSerializer::serialize<std::string>(config);
   auto hash = folly::hasher<std::string>{}(configJson);
@@ -75,7 +49,8 @@ PlatformConfig ConfigUtils::getConfig() {
   }
   XLOG(DBG2) << SimpleJSONSerializer::serialize<std::string>(config);
 
-  verifyPlatformNameMatches(*config.platformName(), platformNameFromBios);
+  ConfigLib::verifyPlatformNameMatches(
+      *config.platformName(), platformNameFromBios);
 
   if (!ConfigValidator().isValid(config)) {
     XLOG(ERR) << "Invalid platform config";

@@ -52,8 +52,8 @@ struct PidSetting {
 struct Optic {
   1: string opticName;
   4: string aggregationType;
-  5: map<string/* optic_type */ , TempToPwmMap> tempToPwmMaps;
-  6: map<string/* optic_type */ , PidSetting> pidSettings;
+  5: map<string /* optic_type */, TempToPwmMap> tempToPwmMaps;
+  6: map<string /* optic_type */, PidSetting> pidSettings;
 }
 
 struct Gpio {

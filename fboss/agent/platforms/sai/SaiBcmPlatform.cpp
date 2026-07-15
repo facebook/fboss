@@ -21,21 +21,72 @@ DECLARE_bool(disable_looped_fabric_ports);
 
 namespace facebook::fboss {
 
+namespace {
+
+// Returns the NPU-specific HSDK yamlConfig for switchIndex if the asicConfig
+// contains a matching per-NPU yamlConfig entry, std::nullopt otherwise.
+std::optional<std::string> getNpuSpecificYamlConfig(
+    const cfg::AsicConfig& asicConfig,
+    int16_t switchIndex) {
+  if (!asicConfig.npuEntries()) {
+    return std::nullopt;
+  }
+  const auto& npuEntries = asicConfig.npuEntries().value();
+  const auto npuEntry = npuEntries.find(switchIndex);
+  if (npuEntry == npuEntries.end()) {
+    return std::nullopt;
+  }
+  if (npuEntry->second.getType() != cfg::AsicConfigEntry::Type::yamlConfig) {
+    XLOG(WARN) << "NPU-specific asicConfig entry for switchIndex="
+               << switchIndex
+               << " is not a yamlConfig; falling back to common config";
+    return std::nullopt;
+  }
+  return npuEntry->second.get_yamlConfig();
+}
+
+// Returns the common HSDK yamlConfig if present, std::nullopt otherwise.
+std::optional<std::string> getCommonYamlConfig(
+    const cfg::AsicConfig& asicConfig) {
+  if (asicConfig.common()->getType() !=
+      cfg::AsicConfigEntry::Type::yamlConfig) {
+    return std::nullopt;
+  }
+  return asicConfig.common()->get_yamlConfig();
+}
+
+} // namespace
+
 std::string SaiBcmPlatform::getHwConfig() {
   if (getAsic()->isSupported(HwAsic::Feature::HSDK)) {
     std::string yamlConfig;
     try {
-      yamlConfig = config()
-                       ->thrift.platform()
-                       ->chip()
-                       ->get_asicConfig()
-                       .common()
-                       ->get_yamlConfig();
-    } catch (const std::exception&) {
+      const auto& asicConfig =
+          config()->thrift.platform()->chip()->get_asicConfig();
+      const int16_t switchIndex = getAsic()->getSwitchIndex();
+      // Prefer a per-NPU yamlConfig (needed for differing polarities across
+      // NPUs on multi-NPU platforms); an empty per-NPU entry defers to the
+      // common config.
+      auto npuYamlConfig = getNpuSpecificYamlConfig(asicConfig, switchIndex);
+      if (npuYamlConfig && !npuYamlConfig->empty()) {
+        XLOG(INFO) << "Loading NPU-specific yamlConfig for switchIndex="
+                   << switchIndex;
+        yamlConfig = std::move(*npuYamlConfig);
+      } else if (auto commonYamlConfig = getCommonYamlConfig(asicConfig)) {
+        XLOG(INFO) << "Loading common HSDK yamlConfig for switchIndex="
+                   << switchIndex;
+        yamlConfig = std::move(*commonYamlConfig);
+      }
+      if (yamlConfig.empty()) {
+        throw FbossError("No HSDK yamlConfig found in asicConfig");
+      }
+    } catch (const std::exception& e) {
       /*
        * (TODO): Once asic config v2 is rolled out to the fleet, we
        * should remove this fallback and always use the config v2
        */
+      XLOG(WARN) << "Exception in SaiBcmPlatform::getHwConfig: " << e.what()
+                 << ", falling back to bcm.yamlConfig()";
       yamlConfig =
           *(config()->thrift.platform()->chip()->get_bcm().yamlConfig());
     }

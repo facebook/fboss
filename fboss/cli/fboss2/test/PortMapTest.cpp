@@ -12,7 +12,10 @@
 #include <folly/FileUtil.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <cstdlib>
 #include <filesystem>
+#include <fstream>
+#include <stdexcept>
 
 namespace facebook::fboss::utils {
 

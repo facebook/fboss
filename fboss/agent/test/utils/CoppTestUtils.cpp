@@ -129,6 +129,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_G202X:
@@ -1329,7 +1330,7 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForBcm(
           std::pair(cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
           std::pair(cfg::PacketRxReason::CPU_IS_NHOP, kCoppLowPriQueueId)};
   if (hwAsic->isSupported(HwAsic::Feature::L3_MTU_ERROR_TRAP)) {
-    rxReasonToQueueMappings.push_back(
+    rxReasonToQueueMappings.emplace_back(
         std::pair(cfg::PacketRxReason::L3_MTU_ERROR, kCoppLowPriQueueId));
   }
   for (auto rxEntry : rxReasonToQueueMappings) {

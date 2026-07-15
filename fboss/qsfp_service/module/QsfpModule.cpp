@@ -1507,8 +1507,8 @@ void QsfpModule::programTransceiver(
     }
 
     // We are done programming the transceivers. Clear the pending datapath mask
-    // and start fresh for the next programTransceiver call
-    datapathResetPendingMask_ = 0;
+    // (all banks) and start fresh for the next programTransceiver call
+    datapathResetPendingMask_.clear();
   };
 
   auto i2cEvb = qsfpImpl_->getI2cEventBase();

@@ -70,7 +70,7 @@ TEST_F(AclTableManagerTest, addTwoAclTable) {
           ->aclTable->adapterKey();
   auto table2 = std::make_shared<AclTable>(0, kAclTable2);
   AclTableSaiId aclTableId2 = saiManagerTable->aclTableManager().addAclTable(
-      table2, cfg::AclStage::INGRESS);
+      table2, cfg::AclStage::INGRESS, nullptr /*state*/);
 
   auto stageGot = saiApiTable->aclApi().getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::Stage());
@@ -88,7 +88,7 @@ TEST_F(AclTableManagerTest, addDupAclTable) {
   auto table1 = std::make_shared<AclTable>(std::move(fields));
   EXPECT_THROW(
       saiManagerTable->aclTableManager().addAclTable(
-          table1, cfg::AclStage::INGRESS),
+          table1, cfg::AclStage::INGRESS, nullptr /*state*/),
       FbossError);
 }
 

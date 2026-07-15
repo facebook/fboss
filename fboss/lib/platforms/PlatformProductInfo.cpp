@@ -107,6 +107,8 @@ void PlatformProductInfo::initMode() {
         modelName.find("Wedge800CACT") == 0 ||
         modelName.find("WEDGE800CACT") == 0) {
       type_ = PlatformType::PLATFORM_WEDGE800CACT;
+    } else if (modelName.find("M5120CSC") == 0) {
+      type_ = PlatformType::PLATFORM_M5120CSC;
     } else if (modelName.find("DARWIN48V") == 0) {
       type_ = PlatformType::PLATFORM_DARWIN48V;
     } else if (
@@ -223,7 +225,8 @@ void PlatformProductInfo::initMode() {
         modelName.find("TAHAN") == 0 || modelName.find("TAHAN800BC") == 0 ||
         modelName.find("R4063-F9001-01") == 0) {
       type_ = PlatformType::PLATFORM_TAHAN800BC;
-    } else if (modelName.find("ICECUBE") == 0) {
+    } else if (
+        modelName.find("ICECUBE") == 0 || modelName.find("ICECUBEM") == 0) {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
     } else if (modelName.find("ICETEA") == 0) {
       type_ = PlatformType::PLATFORM_ICETEA800BC;
@@ -298,7 +301,7 @@ void PlatformProductInfo::initMode() {
         FLAGS_mode == "montblanc" || FLAGS_mode == "montblancm" ||
         FLAGS_mode == "minipack3ba") {
       type_ = PlatformType::PLATFORM_MONTBLANC;
-    } else if (FLAGS_mode == "icecube800bc") {
+    } else if (FLAGS_mode == "icecube800bc" || FLAGS_mode == "icecube800bcm") {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
     } else if (FLAGS_mode == "icetea800bc") {
       type_ = PlatformType::PLATFORM_ICETEA800BC;
@@ -322,6 +325,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_TAHANSB800BC;
     } else if (FLAGS_mode == "wedge800cact") {
       type_ = PlatformType::PLATFORM_WEDGE800CACT;
+    } else if (FLAGS_mode == "m5120csc") {
+      type_ = PlatformType::PLATFORM_M5120CSC;
     } else if (FLAGS_mode == "j4sim") {
       type_ = PlatformType::PLATFORM_J4SIM;
     } else if (

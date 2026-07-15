@@ -544,6 +544,7 @@ bool needsExtraFPQsetQualifiers(cfg::AsicType asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
       return false;
     case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:

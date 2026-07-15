@@ -116,7 +116,8 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
   // it explicitly so MPLS traffic is routed on the RIF.
   std::optional<SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState>
       adminMplsStateAttribute{std::nullopt};
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
     adminMplsStateAttribute =
         SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState{true};
   }

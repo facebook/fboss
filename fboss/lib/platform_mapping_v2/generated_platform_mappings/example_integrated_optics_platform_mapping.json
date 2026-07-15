@@ -1283,6 +1283,119 @@
                 ]
               }
           },
+          "52": {
+              "subsumedPorts": [
+                2,
+                3,
+                4
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-BANKED_CMIS_INTEGRATED-slot1/chip1/core0",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-BANKED_CMIS_INTEGRATED-slot1/chip1/core0",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-BANKED_CMIS_INTEGRATED-slot1/chip1/core0",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-BANKED_CMIS_INTEGRATED-slot1/chip1/core0",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "opticalEngine": [
+                  {
+                    "id": {
+                      "chip": "OPTICAL_ENGINE-INTEGRATED_OE-slot1/chip1/core0",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "OPTICAL_ENGINE-INTEGRATED_OE-slot1/chip1/core0",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "OPTICAL_ENGINE-INTEGRATED_OE-slot1/chip1/core0",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "OPTICAL_ENGINE-INTEGRATED_OE-slot1/chip1/core0",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "laserSource": [
+                  {
+                    "id": {
+                      "chip": "LASER_SOURCE-ELSFP-slot1/chip1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "LASER_SOURCE-ELSFP-slot1/chip1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "LASER_SOURCE-ELSFP-slot1/chip1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "LASER_SOURCE-ELSFP-slot1/chip1",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
           "61": {
               "subsumedPorts": [
                 2
@@ -2410,6 +2523,119 @@
                     "id": {
                       "chip": "LASER_SOURCE-ELSFP-slot1/chip1",
                       "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "52": {
+              "subsumedPorts": [
+                6,
+                7,
+                8
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-BANKED_CMIS_INTEGRATED-slot1/chip1/core0",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-BANKED_CMIS_INTEGRATED-slot1/chip1/core0",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-BANKED_CMIS_INTEGRATED-slot1/chip1/core0",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-BANKED_CMIS_INTEGRATED-slot1/chip1/core0",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "opticalEngine": [
+                  {
+                    "id": {
+                      "chip": "OPTICAL_ENGINE-INTEGRATED_OE-slot1/chip1/core0",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "OPTICAL_ENGINE-INTEGRATED_OE-slot1/chip1/core0",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "OPTICAL_ENGINE-INTEGRATED_OE-slot1/chip1/core0",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "OPTICAL_ENGINE-INTEGRATED_OE-slot1/chip1/core0",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "laserSource": [
+                  {
+                    "id": {
+                      "chip": "LASER_SOURCE-ELSFP-slot1/chip1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "LASER_SOURCE-ELSFP-slot1/chip1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "LASER_SOURCE-ELSFP-slot1/chip1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "LASER_SOURCE-ELSFP-slot1/chip1",
+                      "lane": 7
                     }
                   }
                 ]
@@ -22306,6 +22532,21 @@
           "fec": 11,
           "medium": 1,
           "interfaceType": 13
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 52
+      },
+      "profile": {
+        "speed": 800000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 3,
+          "interfaceType": 3
         }
       }
     },

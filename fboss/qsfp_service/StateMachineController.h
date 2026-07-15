@@ -11,6 +11,7 @@
 
 #include <folly/SpinLock.h>
 #include <folly/Synchronized.h>
+#include <atomic>
 #include "fboss/agent/FbossError.h"
 #include "fboss/qsfp_service/TypedStateMachineUpdate.h"
 
@@ -40,6 +41,7 @@ class StateMachineController {
  public:
   explicit StateMachineController(IdType idVal) : id_(idVal) {
     setStateMachineAttributes();
+    refreshCurrentStateSnapshot();
   }
 
   folly::Synchronized<state_machine<StateMachineType>>& getStateMachine() {
@@ -95,6 +97,9 @@ class StateMachineController {
       XLOG(ERR) << "Exception while applying update: " << ex.what();
     }
 
+    // Publish the post-update state to the lock-free snapshot so status readers
+    // never have to take the state-machine lock
+    refreshCurrentStateSnapshot();
     update->onCompletion();
   }
 
@@ -105,6 +110,10 @@ class StateMachineController {
 
     logCurrentState(curStateOrder, curState);
     return curState;
+  }
+
+  StateType getCurrentStateSnapshot() const {
+    return currentStateSnapshot_.load(std::memory_order_acquire);
   }
 
   bool arePendingUpdates() {
@@ -118,9 +127,19 @@ class StateMachineController {
   void applyUpdate(EventType event);
   void setStateMachineAttributes();
 
+  // Reads the current state under the read lock and publishes it to the
+  // lock-free snapshot.
+  void refreshCurrentStateSnapshot() {
+    auto lockedStateMachine = stateMachine_.rlock();
+    currentStateSnapshot_.store(
+        getStateByOrder(*lockedStateMachine->current_state()),
+        std::memory_order_release);
+  }
+
   bool blockNewUpdates_{false};
   IdType id_;
   folly::Synchronized<state_machine<StateMachineType>> stateMachine_;
+  std::atomic<StateType> currentStateSnapshot_{};
   folly::Synchronized<std::list<std::unique_ptr<StateMachineUpdate>>>
       pendingUpdates_;
 };
