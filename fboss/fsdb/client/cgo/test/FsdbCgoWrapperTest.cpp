@@ -580,6 +580,55 @@ TEST_F(FsdbCgoPubSubWrapperTest, ExternCOverflowStaysQueued) {
   DestroyFsdbWrapper(handle);
 }
 
+TEST_F(FsdbCgoPubSubWrapperTest, ExternCGetConnectionStateReportsDataReceived) {
+  createStatePublisher();
+  publishState(makeSwitchStateWithPorts(/*numPorts=*/1));
+
+  FsdbInit(FSDB_CGO_ABI_VERSION);
+  FsdbWrapperHandle handle = CreateFsdbWrapper("extern-c-connstate");
+  ASSERT_NE(handle, nullptr);
+  EXPECT_EQ(GetConnectionState(handle), FSDB_CONNECTION_DISCONNECTED);
+
+  SubscribeToPortMaps(handle, nullptr, fsdbTestServer_->getFsdbPort());
+
+  // Data was published, so the state should advance past CONNECTED to
+  // DATA_RECEIVED once the initial sync is delivered.
+  int32_t state = GetConnectionState(handle);
+  const auto deadline = std::chrono::steady_clock::now() + 30s;
+  while (state != FSDB_CONNECTION_DATA_RECEIVED &&
+         std::chrono::steady_clock::now() < deadline) {
+    std::this_thread::sleep_for(50ms);
+    state = GetConnectionState(handle);
+  }
+  EXPECT_EQ(state, FSDB_CONNECTION_DATA_RECEIVED);
+
+  ShutdownFsdbWrapper(handle);
+  DestroyFsdbWrapper(handle);
+}
+
+TEST_F(
+    FsdbCgoPubSubWrapperTest,
+    ExternCGetConnectionStateUnreachableStaysConnecting) {
+  FsdbInit(FSDB_CGO_ABI_VERSION);
+  FsdbWrapperHandle handle =
+      CreateFsdbWrapper("extern-c-connstate-unreachable");
+  ASSERT_NE(handle, nullptr);
+
+  // Port 1 has no FSDB server; the connect never succeeds so no state-change
+  // callback fires and the wrapper stays in its initial CONNECTING state.
+  SubscribeToPortMaps(handle, "::1", 1);
+
+  const auto until = std::chrono::steady_clock::now() + 500ms;
+  while (std::chrono::steady_clock::now() < until) {
+    ASSERT_NE(GetConnectionState(handle), FSDB_CONNECTION_CONNECTED);
+    std::this_thread::sleep_for(50ms);
+  }
+  EXPECT_EQ(GetConnectionState(handle), FSDB_CONNECTION_CONNECTING);
+
+  ShutdownFsdbWrapper(handle);
+  DestroyFsdbWrapper(handle);
+}
+
 TEST_F(FsdbCgoPubSubWrapperTest, DestroyDuringSnapshotDelivery) {
   // Overflow the state queue so the FSDB callback is parked in enqueueState
   // (in flight) at teardown; 2x because DSPSCQueue over-provisions its bound.

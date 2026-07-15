@@ -78,6 +78,22 @@ std::vector<std::tuple<std::string, int32_t, bool>> decodePortMaps(
   }
   return ports;
 }
+
+// GR-hold means temporarily down but attempting to restore, so report it as
+// CONNECTING rather than DISCONNECTED.
+int32_t toConnectionState(fsdb::SubscriptionState state) {
+  switch (state) {
+    case fsdb::SubscriptionState::CONNECTED:
+      return FSDB_CONNECTION_CONNECTED;
+    case fsdb::SubscriptionState::DISCONNECTED_GR_HOLD:
+      return FSDB_CONNECTION_CONNECTING;
+    case fsdb::SubscriptionState::DISCONNECTED:
+    case fsdb::SubscriptionState::DISCONNECTED_GR_HOLD_EXPIRED:
+    case fsdb::SubscriptionState::CANCELLED:
+      return FSDB_CONNECTION_DISCONNECTED;
+  }
+  return FSDB_CONNECTION_DISCONNECTED;
+}
 } // namespace
 
 FsdbCgoPubSubWrapper::FsdbCgoPubSubWrapper(const std::string& clientId)
@@ -106,17 +122,34 @@ void FsdbCgoPubSubWrapper::subscribeToOperState_portMaps(
   thriftpath::RootThriftPath<FsdbOperStateRoot> rootPath;
   auto path = rootPath.agent().switchState().portMaps();
 
-  auto subscriptionStateCb = [](fsdb::SubscriptionState oldState,
-                                fsdb::SubscriptionState newState,
-                                std::optional<bool> /*initialSyncHasData*/) {
+  auto subscriptionStateCb = [this](
+                                 fsdb::SubscriptionState oldState,
+                                 fsdb::SubscriptionState newState,
+                                 std::optional<bool> /*initialSyncHasData*/) {
     XLOG(INFO) << "FSDB state subscription changed from "
                << subscriptionStateToString(oldState) << " to "
                << subscriptionStateToString(newState);
+    const int32_t mapped = toConnectionState(newState);
+    if (mapped == FSDB_CONNECTION_CONNECTED) {
+      // Stream up. Don't clobber DATA_RECEIVED, which processPortMapsUpdate may
+      // have already set on the same callback thread.
+      if (portMapsConnState_.load(std::memory_order_acquire) <
+          FSDB_CONNECTION_CONNECTED) {
+        portMapsConnState_.store(
+            FSDB_CONNECTION_CONNECTED, std::memory_order_release);
+      }
+    } else {
+      portMapsConnState_.store(mapped, std::memory_order_release);
+    }
   };
 
   auto operStateCb = [this](fsdb::OperState&& operState) {
     processPortMapsUpdate(std::move(operState));
   };
+
+  // Attempting first connect until the state-change callback reports otherwise.
+  portMapsConnState_.store(
+      FSDB_CONNECTION_CONNECTING, std::memory_order_release);
 
   try {
     if (serverPort.has_value()) {
@@ -395,6 +428,9 @@ void FsdbCgoPubSubWrapper::processPortMapsUpdate(fsdb::OperState&& operState) {
     return;
   }
 
+  portMapsConnState_.store(
+      FSDB_CONNECTION_DATA_RECEIVED, std::memory_order_release);
+
   try {
     // Enqueue an update only for a new port or one whose state changed.
     for (const auto& [portName, portId, currentState] :
@@ -597,6 +633,19 @@ int32_t GetPortSnapshot(
   } catch (const std::exception& e) {
     XLOG(ERR) << "GetPortSnapshot error: " << e.what();
     return -1;
+  }
+}
+
+// Returns the portMaps connection state (a FsdbConnectionState value).
+int32_t GetConnectionState(FsdbWrapperHandle handle) {
+  if (!handle) {
+    return FSDB_CONNECTION_DISCONNECTED;
+  }
+  try {
+    auto* wrapper = static_cast<FsdbCgoPubSubWrapper*>(handle);
+    return wrapper->getConnectionState();
+  } catch (const std::exception&) {
+    return FSDB_CONNECTION_DISCONNECTED;
   }
 }
 

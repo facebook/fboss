@@ -83,6 +83,11 @@ class FsdbCgoPubSubWrapper {
     return statePathSubscribed_.load();
   }
 
+  // Latest portMaps connection state (a FsdbConnectionState value).
+  int32_t getConnectionState() const {
+    return portMapsConnState_.load(std::memory_order_acquire);
+  }
+
   // Above max port count so a full initial snapshot buffers without dropping.
   static constexpr size_t kStateQueueCapacity = 1024;
 
@@ -142,6 +147,7 @@ class FsdbCgoPubSubWrapper {
   std::atomic<bool> statsSubscribed_{false};
   std::atomic<bool> statePathSubscribed_{false};
   std::atomic<bool> shuttingDown_{false};
+  std::atomic<int32_t> portMapsConnState_{FSDB_CONNECTION_DISCONNECTED};
 
   std::map<std::string, bool> portName2OperState_{};
 };
