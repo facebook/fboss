@@ -580,4 +580,34 @@ TEST_F(FsdbCgoPubSubWrapperTest, ExternCOverflowStaysQueued) {
   DestroyFsdbWrapper(handle);
 }
 
+TEST_F(FsdbCgoPubSubWrapperTest, DestroyDuringSnapshotDelivery) {
+  // Overflow the state queue so the FSDB callback is parked in enqueueState
+  // (in flight) at teardown; 2x because DSPSCQueue over-provisions its bound.
+  const int kNumPorts = 2 * FsdbCgoPubSubWrapper::kStateQueueCapacity;
+  createStatePublisher();
+  publishState(makeSwitchStateWithPorts(kNumPorts));
+
+  FsdbInit(FSDB_CGO_ABI_VERSION);
+  FsdbWrapperHandle handle =
+      CreateFsdbWrapper("extern-c-destroy-during-snapshot");
+  ASSERT_NE(handle, nullptr);
+  SubscribeToPortMaps(handle, nullptr, fsdbTestServer_->getFsdbPort());
+  ASSERT_EQ(HasStateSubscription(handle), 1);
+
+  // Wait until delivery starts so the callback is mid-snapshot at teardown.
+  FsdbPortStateUpdate out[16];
+  const auto deadline = std::chrono::steady_clock::now() + 30s;
+  int32_t first = 0;
+  while (first <= 0 && std::chrono::steady_clock::now() < deadline) {
+    first = WaitForStateUpdates(handle, out, 16);
+  }
+  ASSERT_GT(first, 0) << "snapshot delivery never started";
+  std::this_thread::sleep_for(200ms);
+
+  ShutdownFsdbWrapper(handle);
+  DestroyFsdbWrapper(handle);
+  // No crash under ASAN is the assertion.
+  SUCCEED();
+}
+
 } // namespace facebook::fboss::fsdb::test

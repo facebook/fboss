@@ -83,6 +83,9 @@ class FsdbCgoPubSubWrapper {
     return statePathSubscribed_.load();
   }
 
+  // Above max port count so a full initial snapshot buffers without dropping.
+  static constexpr size_t kStateQueueCapacity = 1024;
+
   // Public so extern-C wrappers can hold borrowed pointers across calls.
   std::vector<std::tuple<std::string, int32_t, bool>> lastStateUpdates_;
   std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
@@ -116,7 +119,7 @@ class FsdbCgoPubSubWrapper {
           int32_t /*portId*/,
           bool /*portOperState*/>,
       true /*may block*/>
-      stateQueue_{100};
+      stateQueue_{kStateQueueCapacity};
 
   // fbstring avoids a toStdString() copy on the producer side.
   folly::DSPSCQueue<

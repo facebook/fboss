@@ -90,7 +90,9 @@ FsdbCgoPubSubWrapper::FsdbCgoPubSubWrapper(const std::string& clientId)
 FsdbCgoPubSubWrapper::~FsdbCgoPubSubWrapper() {
   XLOG(INFO) << "FsdbCgoPubSubWrapper destructor for client: " << clientId_;
 
-  // FsdbPubSubManager will automatically clean up all subscriptions
+  // Stop the callback thread before freeing the queues/map it touches.
+  shuttingDown_.store(true, std::memory_order_release);
+  pubSubMgr_.reset();
 }
 
 void FsdbCgoPubSubWrapper::subscribeToOperState_portMaps(
@@ -235,6 +237,9 @@ void FsdbCgoPubSubWrapper::enqueueState(
     const std::string& key,
     int32_t portId,
     bool portOperState) {
+  if (shuttingDown_.load(std::memory_order_acquire)) {
+    return;
+  }
   XLOG(DBG2) << "Received state update for key: " << key
              << ", portId: " << portId
              << ", portOperState: " << (portOperState ? "UP" : "DOWN");
@@ -250,6 +255,9 @@ void FsdbCgoPubSubWrapper::enqueueStats(
     const std::string& key,
     folly::fbstring&& contents,
     int32_t protocol) {
+  if (shuttingDown_.load(std::memory_order_acquire)) {
+    return;
+  }
   XLOG(DBG2) << "Received stats update for key: " << key << " ("
              << contents.size() << " bytes, protocol=" << protocol << ")";
 
@@ -367,6 +375,9 @@ void FsdbCgoPubSubWrapper::enqueueStatePath(
     const std::string& key,
     folly::fbstring&& contents,
     int32_t protocol) {
+  if (shuttingDown_.load(std::memory_order_acquire)) {
+    return;
+  }
   XLOG(DBG2) << "Received state-path update for key: " << key << " ("
              << contents.size() << " bytes, protocol=" << protocol << ")";
 
