@@ -225,6 +225,24 @@ TEST_F(CmdConfigIpRouteTestFixture, dropWithExtraNexthops) {
       std::invalid_argument);
 }
 
+// Test adding IPv4 default route (0.0.0.0/0)
+TEST_F(CmdConfigIpRouteTestFixture, addIpv4DefaultRoute) {
+  auto cmd = CmdConfigProtocolStaticIpRouteAdd();
+  StaticRouteAddIpArg routeArg({"0.0.0.0/0", "192.168.1.1"});
+
+  auto result = cmd.queryClient(localhost(), routeArg);
+
+  EXPECT_THAT(result, HasSubstr("Successfully added static route"));
+  EXPECT_THAT(result, HasSubstr("0.0.0.0/0"));
+
+  auto& nhopRoutes = *ConfigSession::getInstance()
+                          .getAgentConfig()
+                          .sw()
+                          ->staticRoutesWithNhops();
+  ASSERT_EQ(nhopRoutes.size(), 1);
+  EXPECT_EQ(*nhopRoutes[0].prefix(), "0.0.0.0/0");
+}
+
 // ============== IPv4 Route Delete Tests ==============
 
 // Test deleting an existing route with nexthops
@@ -387,6 +405,24 @@ TEST_F(CmdConfigIpRouteTestFixture, ipv4NexthopInIpv6Command) {
   EXPECT_THROW(
       StaticRouteAddIpv6Arg({"2001:db8::/32", "192.168.1.1"}),
       std::invalid_argument);
+}
+
+// Test adding IPv6 default route (::/0)
+TEST_F(CmdConfigIpRouteTestFixture, addIpv6DefaultRoute) {
+  auto cmd = CmdConfigProtocolStaticIpv6RouteAdd();
+  StaticRouteAddIpv6Arg routeArg({"::/0", "2001:db8::1"});
+
+  auto result = cmd.queryClient(localhost(), routeArg);
+
+  EXPECT_THAT(result, HasSubstr("Successfully added static route"));
+  EXPECT_THAT(result, HasSubstr("::/0"));
+
+  auto& nhopRoutes = *ConfigSession::getInstance()
+                          .getAgentConfig()
+                          .sw()
+                          ->staticRoutesWithNhops();
+  ASSERT_EQ(nhopRoutes.size(), 1);
+  EXPECT_EQ(*nhopRoutes[0].prefix(), "::/0");
 }
 
 // ============== IPv6 Route Delete Tests ==============
