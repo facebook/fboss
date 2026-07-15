@@ -97,7 +97,13 @@ class AgentMirrorOnDropSrv6Test : public AgentMirrorOnDropStatelessTest {
       const PortID& injectionPortId,
       const folly::IPAddressV6& outerDst,
       const MirrorOnDropDropReasonCodes& expectedReasons) {
-    utility::SwSwitchPacketSnooper snooper(getSw(), "mod-srv6-snooper");
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-srv6-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        impl()->snooperReceivePacketType());
     snooper.ignoreUnclaimedRxPkts();
 
     sendSrv6Packet(injectionPortId, outerDst);

@@ -44,6 +44,11 @@ class TajoMirrorOnDropImpl : public MirrorOnDropImpl {
       const PortID& srcPortId) const override;
 
   ProductionFeature getProductionFeature() const override;
+
+  utility::packetSnooperReceivePacketType snooperReceivePacketType()
+      const override {
+    return utility::packetSnooperReceivePacketType::PACKET_TYPE_TAJO_MOD;
+  }
 };
 
 } // namespace facebook::fboss

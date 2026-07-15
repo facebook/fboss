@@ -233,7 +233,13 @@ void AgentMirrorOnDropStatelessTest::testDefaultRouteDrop() {
   };
 
   auto verify = [&]() {
-    utility::SwSwitchPacketSnooper snooper(getSw(), "mod-snooper");
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        impl()->snooperReceivePacketType());
     snooper.ignoreUnclaimedRxPkts();
     sendPackets(1, injectionPortId, kDropDestIp);
 
@@ -284,7 +290,13 @@ void AgentMirrorOnDropStatelessTest::testAclDrop() {
   };
 
   auto verify = [&]() {
-    utility::SwSwitchPacketSnooper snooper(getSw(), "mod-acl-snooper");
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-acl-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        impl()->snooperReceivePacketType());
     snooper.ignoreUnclaimedRxPkts();
     auto pkt = sendPackets(1, injectionPortId, kAclDropDestIp);
     XLOG(INFO) << "Sent packet to trigger ACL drop:\n"
@@ -347,7 +359,13 @@ void AgentMirrorOnDropStatelessTest::testMmuDrop() {
           getAgentEnsemble(), txOffPortId, true);
     };
 
-    utility::SwSwitchPacketSnooper snooper(getSw(), "mod-mmu-snooper");
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-mmu-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        impl()->snooperReceivePacketType());
     snooper.ignoreUnclaimedRxPkts();
 
     // Snapshot inCongestionDiscards before sending. The counter is monotonic

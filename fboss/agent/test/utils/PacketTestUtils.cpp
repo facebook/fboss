@@ -10,6 +10,8 @@
 
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 
+#include <exception>
+
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
@@ -17,6 +19,7 @@
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
+#include "fboss/agent/packet/tajo/TajoPuntHeader.h"
 
 namespace facebook::fboss::utility {
 
@@ -66,6 +69,34 @@ bool isPtpEventPacket(folly::io::Cursor& cursor) {
     return false;
   }
   return true;
+}
+
+bool isTajoMirrorOnDropPacket(folly::io::Cursor& cursor) {
+  // A Tajo Mirror-on-Drop export is outer Eth / IPv6 / UDP followed by the
+  // Tajo punt header. Identify it by successfully parsing that punt header off
+  // the wire, so detection needs no test-specific collector IP or port.
+  //
+  // The header parsers throw on a short/malformed frame, and the only caller
+  // (PacketSnooper::expectedReceivedPacketType) is noexcept -- so treat any
+  // parse failure as "not a MoD packet" rather than letting it escape and
+  // std::terminate the process.
+  try {
+    EthHdr ethHdr(cursor);
+    if (ethHdr.etherType != static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
+      return false;
+    }
+    IPv6Hdr ipHdr(cursor);
+    if (ipHdr.nextHeader != static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
+      return false;
+    }
+    UDPHeader udpHdr;
+    // Single-arg overload throws plain std::out_of_range on a short frame
+    // (caught below); the two-arg overload would null-deref its PortStats* arg.
+    udpHdr.parse(&cursor);
+    return parseTajoPuntHeader(cursor).parsedByWire;
+  } catch (const std::exception&) {
+    return false;
+  }
 }
 
 uint8_t getIpHopLimit(folly::io::Cursor& cursor) {
