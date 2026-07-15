@@ -874,7 +874,6 @@ cpp_library(
         "//fboss/cli/fboss2/commands/show/facebook/environment/temperature:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/facebook/openr:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/facebook/state:model-cpp2-types",
-        "//fboss/cli/fboss2/commands/show/facebook/state:model-cpp2-visitation",
         "//fboss/cli/fboss2/commands/show/facebook/techsupport:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/facebook/vip/fib:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/facebook/vip/injectors:model-cpp2-types",
