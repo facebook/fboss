@@ -95,6 +95,10 @@
       ],
       "stage": 0
     },
+    "sdkVersion": {
+      "asicSdk": "sdk",
+      "saiSdk": "sai"
+    },
     "dsfNodes": {},
     "defaultVoqConfig": [],
     "aclTableGroups": [
