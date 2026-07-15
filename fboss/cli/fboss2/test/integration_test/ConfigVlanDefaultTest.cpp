@@ -2,9 +2,14 @@
  * End-to-end tests for 'fboss2-dev config vlan default <vlan-id>'.
  *
  * Covers the happy-path workflow (move ports, set default, commit, verify via
- * thrift), the no-op case when the target equals the current default, a safety
- * guard that refuses the command when the precondition is unsafe, and the case
- * where ports have already been moved off the current default VLAN.
+ * thrift), the no-op case when the target equals the current default, and a
+ * safety guard that refuses the command when the precondition is unsafe.
+ *
+ * Branch-level coverage of CmdConfigVlanDefault (target VLAN exists vs.
+ * created, old VLAN removal, missing defaultVlan field) lives in the fast unit
+ * test CmdConfigVlanDefaultTest; the e2e tests here only verify that a
+ * committed change survives the agent warmboot, so a single happy-path e2e
+ * suffices rather than one per branch.
  */
 
 #include <folly/json/dynamic.h>
@@ -23,9 +28,9 @@ class ConfigVlanDefaultTest : public Fboss2IntegrationTest {};
  * Sets a new default VLAN, commits, verifies via thrift, and restores.
  *
  * CmdConfigVlanDefault::queryClient auto-creates the target VLAN if it
- * doesn't exist, so no manual VLAN creation is needed. We just need to
- * ensure ports on the old default VLAN are moved off first (the command
- * refuses to change when ports use the old default but it has no interface).
+ * doesn't exist, so no manual VLAN creation is needed. Ports on the old
+ * default VLAN must be moved off first (the command refuses to change when
+ * ports use the old default but it has no interface).
  */
 TEST_F(ConfigVlanDefaultTest, SetDefaultVlanTo300) {
   waitForAgentReady();
@@ -37,40 +42,70 @@ TEST_F(ConfigVlanDefaultTest, SetDefaultVlanTo300) {
   XLOG(INFO) << "[Test] currentDefault=" << currentDefault
              << " targetVlan=" << targetVlan;
 
-  // Step 1: Move all eth ports whose ingressVlan matches the current default
-  // VLAN to an existing non-default VLAN. This is required because the
-  // command refuses to change when ports use the old default but it has no
-  // interface (safety guard against agent crash).
-  int64_t sideVlan = -1;
-  for (const auto& vlan : initialConfig["sw"]["vlans"]) {
-    int64_t vid = vlan.getDefault("id", -1).asInt();
-    if (vid > 0 && vid != currentDefault) {
-      sideVlan = vid;
-      break;
+  // Step 0: Create the target VLAN if it doesn't already exist.
+  // VlanManager auto-creates the VLAN entry and a barebone cfg::Interface so
+  // the agent accepts the commit. The dummy MAC is deleted right away; only
+  // the VLAN and its interface are kept.
+  const std::string kDummyMac = "02:00:00:00:01:2c";
+  {
+    bool exists = false;
+    if (initialConfig["sw"].count("vlans")) {
+      for (const auto& vlan : initialConfig["sw"]["vlans"]) {
+        if (vlan.getDefault("id", -1).asInt() == std::stoi(targetVlan)) {
+          exists = true;
+          break;
+        }
+      }
+    }
+    if (!exists) {
+      auto firstEthPort = findFirstEthInterface().name;
+      ASSERT_FALSE(firstEthPort.empty())
+          << "No eth port found for VLAN creation";
+      auto createResult = runCli(
+          {"config",
+           "vlan",
+           targetVlan,
+           "static-mac",
+           "add",
+           kDummyMac,
+           firstEthPort});
+      ASSERT_EQ(createResult.exitCode, 0)
+          << "Failed to create VLAN " << targetVlan << ": "
+          << createResult.stderr;
+      auto macCleanup = runCli(
+          {"config", "vlan", targetVlan, "static-mac", "delete", kDummyMac});
+      EXPECT_EQ(macCleanup.exitCode, 0)
+          << "Failed to delete dummy MAC from VLAN " << targetVlan << ": "
+          << macCleanup.stderr;
+      XLOG(INFO) << "[Step 0] " << createResult.stdout;
     }
   }
 
+  // Step 1: Move every eth port whose ingressVlan is the current default VLAN
+  // onto targetVlan (created in Step 0). targetVlan is intentionally the move
+  // target — it always exists by now, so no other side VLAN has to be found.
+  // This is required because the command refuses to change the default while
+  // ports still use the old default VLAN and it has no interface (safety
+  // guard against an agent crash), so the old default is vacated first.
   std::vector<std::string> movedPorts;
-  if (sideVlan > 0) {
-    for (const auto& port : initialConfig["sw"]["ports"]) {
-      auto name = port.getDefault("name", "").asString();
-      if (name.rfind("eth", 0) != 0) {
-        continue;
-      }
-      if (port.getDefault("ingressVlan", -1).asInt() != currentDefault) {
-        continue;
-      }
-      auto result = runCli(
-          {"config",
-           "interface",
-           name,
-           "switchport",
-           "access",
-           "vlan",
-           std::to_string(sideVlan)});
-      if (result.exitCode == 0) {
-        movedPorts.push_back(name);
-      }
+  for (const auto& port : initialConfig["sw"]["ports"]) {
+    auto name = port.getDefault("name", "").asString();
+    if (name.rfind("eth", 0) != 0) {
+      continue;
+    }
+    if (port.getDefault("ingressVlan", -1).asInt() != currentDefault) {
+      continue;
+    }
+    auto result = runCli(
+        {"config",
+         "interface",
+         name,
+         "switchport",
+         "access",
+         "vlan",
+         targetVlan});
+    if (result.exitCode == 0) {
+      movedPorts.push_back(name);
     }
   }
   XLOG(INFO) << "[Step 1] Moved " << movedPorts.size()
@@ -91,9 +126,22 @@ TEST_F(ConfigVlanDefaultTest, SetDefaultVlanTo300) {
   XLOG(INFO) << "[Step 3] Verified defaultVlan="
              << getSwConfigField<int>("defaultVlan");
 
-  // Restore: move ports back, reset defaultVlan
-  XLOG(INFO) << "[Restore] Reverting ports and defaultVlan to "
+  // Restore: reset defaultVlan first, then move ports back.
+  XLOG(INFO) << "[Restore] Reverting defaultVlan and ports to "
              << currentDefault;
+
+  // 'config vlan default' recreates currentDefault as a non-routable
+  // placeholder (no interface) when the earlier default change erased it, so
+  // it has to run before the ports are moved back — 'switchport access vlan'
+  // throws on a VLAN that is absent from the config. Recreating the VLAN via
+  // a static-mac add would instead attach a cfg::Interface to it, silently
+  // turning the interface-less default VLAN state this suite's refusal test
+  // depends on into an unreachable one.
+  auto restoreDefault =
+      runCli({"config", "vlan", "default", std::to_string(currentDefault)});
+  ASSERT_EQ(restoreDefault.exitCode, 0)
+      << "[Restore] Failed to reset default VLAN: " << restoreDefault.stderr;
+
   for (const auto& name : movedPorts) {
     runCli(
         {"config",
@@ -104,11 +152,6 @@ TEST_F(ConfigVlanDefaultTest, SetDefaultVlanTo300) {
          "vlan",
          std::to_string(currentDefault)});
   }
-
-  auto restoreDefault =
-      runCli({"config", "vlan", "default", std::to_string(currentDefault)});
-  ASSERT_EQ(restoreDefault.exitCode, 0)
-      << "[Restore] Failed to reset default VLAN: " << restoreDefault.stderr;
 
   commitConfig();
   waitForAgentReady();
