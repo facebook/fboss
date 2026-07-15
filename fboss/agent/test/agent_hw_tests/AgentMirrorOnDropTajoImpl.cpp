@@ -164,6 +164,12 @@ void TajoMirrorOnDropImpl::verifyInvariants(const folly::IOBuf* buf) const {
   EXPECT_EQ(parsed.puntHeader.reserved2, 0x0000);
 }
 
+bool TajoMirrorOnDropImpl::ingressPortIsHwLogicalPort() const {
+  // The Tajo punt header's ingress-port encoding has not been characterized
+  // against hardware; keep comparing against the FBOSS PortID as before.
+  return false;
+}
+
 uint16_t TajoMirrorOnDropImpl::getDefaultRouteDropReason() const {
   return kTajoDropReasonDefaultRoute;
 }
