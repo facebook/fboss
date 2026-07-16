@@ -1655,6 +1655,19 @@ void RibRouteTables::updateMySidsImpl(
   updateRibMySids([&](const RibMySidUpdater::VrfRouteTables& routeTables,
                       MySidTable* mySidTable,
                       NextHopIDManager* nextHopIDManager) {
+    for (const auto& entry : toAdd) {
+      if (!entry.nextHopGroupName.has_value()) {
+        continue;
+      }
+      if (!nextHopIDManager ||
+          !nextHopIDManager->hasNamedNextHopGroup(*entry.nextHopGroupName)) {
+        throw FbossError(
+            "Named next-hop group '",
+            *entry.nextHopGroupName,
+            "' does not exist");
+      }
+    }
+
     // Conditional unresolve runs first so that any same-prefix entry
     // appearing in both vectors (observer-driven IP-change path) gets
     // clear-then-add semantics — toAdd's freshly-allocated nhop id can

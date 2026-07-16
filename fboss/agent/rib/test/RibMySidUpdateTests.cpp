@@ -16,6 +16,7 @@
 #include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/IPAddress.h>
@@ -80,6 +81,26 @@ MySidEntry makeMySidEntryWithNextHops(
   return entry;
 }
 
+RouteNextHopSet makeUnresolvedNextHops(
+    const std::vector<std::string>& nextHopAddrs) {
+  RouteNextHopSet nextHops;
+  for (const auto& nhAddr : nextHopAddrs) {
+    nextHops.emplace(UnresolvedNextHop(folly::IPAddress(nhAddr), 1));
+  }
+  return nextHops;
+}
+
+NextHopThrift makeSrv6NextHop(const std::string& nextHopAddr) {
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6(nextHopAddr));
+  nhop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = kSrv6Tunnel0;
+  return nhop;
+}
+
 IpPrefix toIpPrefix(const std::string& addr, uint8_t len) {
   IpPrefix prefix;
   prefix.ip() = facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
@@ -102,6 +123,32 @@ StateDelta mySidToSwitchStateUpdate(
   newState->publish();
   *switchState = newState;
   return StateDelta(oldState, newState);
+}
+
+StateDelta noOpRibToSwitchStateUpdate(
+    const SwitchIdScopeResolver* /*resolver*/,
+    RouterID /*vrf*/,
+    const IPv4NetworkToRouteMap& /*v4NetworkToRoute*/,
+    const IPv6NetworkToRouteMap& /*v6NetworkToRoute*/,
+    const LabelToRouteMap& /*labelToRoute*/,
+    const NextHopIDManager* /*nextHopIDManager*/,
+    const MySidTable& /*mySidTable*/,
+    void* cookie) {
+  auto switchState =
+      static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
+  return StateDelta(*switchState, *switchState);
+}
+
+void addNamedNextHopGroup(
+    RoutingInformationBase& rib,
+    const std::string& name,
+    const RouteNextHopSet& nextHops,
+    std::shared_ptr<SwitchState>* switchState) {
+  rib.addOrUpdateNamedNextHopGroups(
+      scopeResolver(),
+      {{name, nextHops}},
+      noOpRibToSwitchStateUpdate,
+      switchState);
 }
 
 // Callback that always fails via FbossHwUpdateError.
@@ -693,6 +740,9 @@ TEST_F(RibMySidValidationTest, rejectBindingSidWithWrongTunnelType) {
 }
 
 TEST_F(RibMySidValidationTest, acceptBindingSidWithNamedNhg) {
+  addNamedNextHopGroup(
+      rib_, "group1", makeUnresolvedNextHops({"2001:db8::1"}), &switchState_);
+
   auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
   NamedRouteDestination named;
   named.nextHopGroup() = "group1";
@@ -710,6 +760,9 @@ TEST_F(RibMySidValidationTest, acceptBindingSidWithNamedNhg) {
 }
 
 TEST_F(RibMySidValidationTest, acceptNodeSidWithNamedNhg) {
+  addNamedNextHopGroup(
+      rib_, "group1", makeUnresolvedNextHops({"2001:db8::1"}), &switchState_);
+
   auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::NODE_MICRO_SID);
   NamedRouteDestination named;
   named.nextHopGroup() = "group1";
@@ -724,6 +777,63 @@ TEST_F(RibMySidValidationTest, acceptNodeSidWithNamedNhg) {
       &switchState_);
 
   EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
+}
+
+TEST_F(RibMySidValidationTest, rejectNodeSidWithMissingNamedNhg) {
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::NODE_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "group1";
+  entry.namedNextHops() = named;
+
+  EXPECT_THROW(
+      rib_.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "node sid with missing named nhg",
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+}
+
+TEST_F(
+    RibMySidValidationTest,
+    rejectBatchWithMissingNamedNhgDoesNotMutateRibOrInlineNextHopRefs) {
+  auto inlineEntry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  inlineEntry.nextHops() = {makeSrv6NextHop("2001:db8::1")};
+  const auto inlineNextHops =
+      util::toRouteNextHopSet(*inlineEntry.nextHops(), true);
+  const auto beforeSetId =
+      rib_.getNextHopIDManagerCopy()->lookupRouteNextHopSetID(inlineNextHops);
+
+  auto namedEntry =
+      makeMySidEntry("fc00:200::1", 48, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "missing_group";
+  namedEntry.namedNextHops() = named;
+
+  EXPECT_THROW(
+      rib_.update(
+          scopeResolver(),
+          {inlineEntry, namedEntry},
+          {},
+          "binding sid batch with missing named nhg",
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
+
+  const auto mySidTable = rib_.getMySidTableCopy();
+  EXPECT_EQ(mySidTable.size(), 0);
+  EXPECT_EQ(
+      mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
+  EXPECT_EQ(
+      mySidTable.find(makeSidPrefix("fc00:200::1", 48)), mySidTable.end());
+  EXPECT_EQ(
+      rib_.getNextHopIDManagerCopy()->lookupRouteNextHopSetID(inlineNextHops),
+      beforeSetId);
 }
 
 TEST_F(RibMySidValidationTest, rejectAdjacencySidWithNamedNhg) {
