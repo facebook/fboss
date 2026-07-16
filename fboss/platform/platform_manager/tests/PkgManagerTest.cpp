@@ -519,6 +519,32 @@ TEST_F(PkgManagerTest, loadRequiredKmodsFailsOnBspKmod) {
       facebook::fb303::fbData->getCounter(PkgManager::kLoadKmodsFailure), 1);
 }
 
+TEST_F(PkgManagerTest, loadRequiredKmodsToleratesAllowlistedKmodFailure) {
+  // aadm1266 is listed in kmods.json but is absent from the BSP RPM on kernels
+  // without CONFIG_CRC8 (e.g. 6.4.3-0_fbk1). Its load failure must be tolerated
+  // so platform_manager still comes up, and later kmods are still attempted.
+  BspKmodsFile kmodsFile;
+  kmodsFile.sharedKmods() = {"scd"};
+  kmodsFile.bspKmods() = {"aadm1266", "amax20830"};
+  EXPECT_CALL(*mockSystemInterface_, getHostKernelVersion())
+      .WillRepeatedly(Return("6.4.3-0_fbk1_755_ga25447393a1d"));
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
+      .WillRepeatedly(Return(
+          apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+              kmodsFile)));
+  EXPECT_CALL(*mockSystemInterface_, loadKmod(_)).WillRepeatedly(Return(true));
+  // aadm1266 fails, but the failure is tolerated (not rethrown) and the
+  // subsequent kmod is still attempted.
+  EXPECT_CALL(*mockSystemInterface_, loadKmod("aadm1266"))
+      .WillOnce(Return(false));
+  EXPECT_CALL(*mockSystemInterface_, loadKmod("amax20830"))
+      .WillOnce(Return(true));
+  EXPECT_NO_THROW(pkgManager_.loadRequiredKmods());
+  // The tolerated failure does not throw but is still recorded in the counter.
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kLoadKmodsFailure), 1);
+}
+
 TEST_F(PkgManagerTest, ReadKmodsFileSuccess) {
   const std::string kernelVersion = "6.4.3-0_fbk1_755_ga25447393a1d";
   const std::filesystem::path expectedFilePath =
