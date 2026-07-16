@@ -185,7 +185,7 @@ class ConfigSession {
   // ~/.fboss2/bgp_config.json). This updates the action level for the service
   // in the shared session metadata and persists it, WITHOUT rewriting
   // agent.conf. A subsequent `config session commit` then applies the recorded
-  // action (e.g. restart bgp_pp).
+  // action (e.g. restart bgpd).
   void recordServiceAction(
       cli::ServiceType service,
       cli::ConfigActionLevel actionLevel);
@@ -206,13 +206,13 @@ class ConfigSession {
   const bgp::thrift::BgpConfig& getBgpConfig() const;
 
   // Persist the typed BGP config back to ~/.fboss2/bgp_config.json and record
-  // that bgp_pp must be restarted for this change to take effect on a
+  // that bgpd must be restarted for this change to take effect on a
   // subsequent `config session commit`. Mirrors saveConfig() for the agent.
   void saveBgpConfig();
 
   // ~/.fboss2/bgp_config.json (staged BGP edits)
   std::string getBgpSessionConfigPath() const;
-  // /etc/coop/bgpcpp/bgpcpp.conf (config read by the bgp_pp daemon)
+  // /etc/coop/bgpcpp/bgpcpp.conf (config read by the bgpd daemon)
   std::string getBgpSystemConfigPath() const;
   // Whether a BGP session is staged (~/.fboss2/bgp_config.json exists)
   bool bgpSessionExists() const;
@@ -292,13 +292,13 @@ class ConfigSession {
   bgp::thrift::BgpConfig bgpConfig_;
   bool bgpConfigLoaded_ = false;
 
-  // /etc/coop/bgpcpp (directory holding the bgp_pp daemon's config)
+  // /etc/coop/bgpcpp (directory holding the bgpd daemon's config)
   std::string getBgpSystemConfigDir() const;
   // Lazily seed bgpConfig_ from disk (staged file, else running config, else
   // defaults). Mirrors loadConfig() for the agent.
   void loadBgpConfig();
 
-  // git relative path of the bgp_pp config tracked in the /etc/coop repo.
+  // git relative path of the bgpd config tracked in the /etc/coop repo.
   static constexpr auto kBgpGitRelPath = "bgpcpp/bgpcpp.conf";
   // Like Git::fileAtRevision but returns "" instead of throwing when the path
   // does not exist at that revision (e.g. a pre-BGP commit). Used by

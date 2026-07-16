@@ -19,13 +19,13 @@ enum ConfigActionLevel {
   HITLESS = 0, // Can be applied with reloadConfig() - default
   AGENT_WARMBOOT = 1, // Requires agent warmboot restart
   AGENT_COLDBOOT = 2, // Requires agent coldboot restart (clears ASIC state)
-  BGP_RESTART = 3, // Requires a restart of the bgp_pp (BGP++) service
+  BGP_RESTART = 3, // Requires a restart of the bgpd (BGP++) service
 }
 
 // Identifier for different services that can be configured
 enum ServiceType {
   AGENT = 1,
-  BGP = 2, // The bgp_pp (BGP++) routing daemon
+  BGP = 2, // The bgpd (BGP++) routing daemon
 }
 
 // Metadata stored alongside the session configuration file.

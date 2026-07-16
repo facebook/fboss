@@ -25,7 +25,7 @@ namespace {
 constexpr std::string_view kWedgeAgent = "wedge_agent";
 constexpr std::string_view kSwAgent = "fboss_sw_agent";
 constexpr std::string_view kHwAgentPrefix = "fboss_hw_agent@";
-constexpr std::string_view kBgpPp = "bgp_pp";
+constexpr std::string_view kBgpd = "bgpd";
 } // namespace
 
 namespace facebook::fboss {
@@ -50,7 +50,7 @@ std::string FbossServiceUtil::getServiceName(cli::ServiceType service) {
     case cli::ServiceType::AGENT:
       return std::string(kWedgeAgent);
     case cli::ServiceType::BGP:
-      return std::string(kBgpPp);
+      return std::string(kBgpd);
   }
   throw std::runtime_error("Unknown service type");
 }
@@ -133,7 +133,7 @@ std::vector<std::string> FbossServiceUtil::getServicesToRestart(
     }
     case cli::ServiceType::BGP:
       // BGP++ is a single, mode-independent service.
-      return {std::string(kBgpPp)};
+      return {std::string(kBgpd)};
   }
   throw std::runtime_error("Unknown service type");
 }
@@ -158,10 +158,10 @@ std::vector<std::string> FbossServiceUtil::reloadConfig(
       break;
     }
     case cli::ServiceType::BGP:
-      // bgp_pp has no hitless reloadConfig() RPC; config changes are applied by
+      // bgpd has no hitless reloadConfig() RPC; config changes are applied by
       // restarting the service (BGP_RESTART), so this path is never taken.
       throw std::runtime_error(
-          "bgp_pp does not support config reload; it must be restarted");
+          "bgpd does not support config reload; it must be restarted");
   }
   return reloadedServices;
 }

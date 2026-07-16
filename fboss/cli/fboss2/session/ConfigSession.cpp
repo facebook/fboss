@@ -533,7 +533,7 @@ void ConfigSession::loadBgpConfig() {
     return;
   }
 
-  // Prefer staged edits; otherwise seed from the running bgp_pp config; else
+  // Prefer staged edits; otherwise seed from the running bgpd config; else
   // schema defaults. A read failure on a file that exists is logged (not
   // silently treated as "no config") so a permission/IO error doesn't
   // masquerade as a fresh session.
@@ -594,7 +594,7 @@ void ConfigSession::saveBgpConfig() {
   folly::writeFileAtomic(
       getBgpSessionConfigPath(), prettyJson, 0644, folly::SyncType::WITH_SYNC);
 
-  // Record the command (mirrors saveConfig) and that bgp_pp must be restarted
+  // Record the command (mirrors saveConfig) and that bgpd must be restarted
   // for this change to take effect on a subsequent `config session commit`.
   recordServiceAction(
       cli::ServiceType::BGP, cli::ConfigActionLevel::BGP_RESTART);
@@ -880,7 +880,7 @@ void ConfigSession::initializeGit() {
           initialMetadataPath, "{}", 0644, folly::SyncType::WITH_SYNC);
     }
 
-    // Seed the running bgp_pp config into the baseline commit too. Without it,
+    // Seed the running bgpd config into the baseline commit too. Without it,
     // the first revision has no BGP snapshot, so a rollback to it would read
     // the empty target as "BGP never existed" and DELETE the running
     // bgpcpp.conf.
@@ -974,7 +974,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   }
 
   // Capture the running BGP system config up front: it tells us whether the
-  // staged BGP config actually changed (so we can skip a needless bgp_pp
+  // staged BGP config actually changed (so we can skip a needless bgpd
   // restart) and is the snapshot we restore if the commit fails partway.
   const std::string bgpSystemPath = getBgpSystemConfigPath();
   const bool bgpSystemConfigExisted = fs::exists(bgpSystemPath);
@@ -991,7 +991,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   }
 
   // saveBgpConfig() records BGP_RESTART unconditionally, so re-committing an
-  // unchanged BGP config would otherwise still bounce bgp_pp (a disruptive,
+  // unchanged BGP config would otherwise still bounce bgpd (a disruptive,
   // traffic-affecting restart for no effective change). Treat BGP as changed
   // only when the staged config differs from what is running.
   bool bgpConfigChanged = false;
@@ -1008,7 +1008,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
 
   // Copy requiredActions_ before we reset it (returned in CommitResult) and
   // drop BGP when the BGP config is unchanged, so an unchanged BGP commit
-  // neither promotes the config nor restarts bgp_pp.
+  // neither promotes the config nor restarts bgpd.
   auto actions = requiredActions_;
   if (!bgpConfigChanged) {
     actions.erase(cli::ServiceType::BGP);
@@ -1073,7 +1073,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   std::map<cli::ServiceType, std::vector<std::string>> serviceNames;
 
   // stagingBgp reflects the trimmed action set: false when the BGP config was
-  // unchanged, so we neither promote bgpcpp.conf nor restart bgp_pp below. The
+  // unchanged, so we neither promote bgpcpp.conf nor restart bgpd below. The
   // prior BGP config (bgpOldData / bgpSystemConfigExisted, captured above) is
   // the snapshot restored if the commit fails partway.
   const bool stagingBgp = actions.count(cli::ServiceType::BGP) > 0;
@@ -1081,7 +1081,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
 
   try {
     // If this session staged BGP config changes, promote the staged
-    // bgp_config.json to /etc/coop/bgpcpp/bgpcpp.conf BEFORE bgp_pp is
+    // bgp_config.json to /etc/coop/bgpcpp/bgpcpp.conf BEFORE bgpd is
     // restarted below, so the restart picks up the new config. The promoted
     // file is committed as part of this commit's git operation. The staged
     // session file is left in place until the whole commit succeeds, so a
@@ -1100,7 +1100,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
       bgpConfPath = getBgpSystemConfigPath();
       commitFiles.push_back(bgpConfPath);
     } else if (bgpSystemConfigExisted) {
-      // Agent-only commit: still track the running bgp_pp config so a later
+      // Agent-only commit: still track the running bgpd config so a later
       // rollback has a snapshot to restore instead of wiping it. No restart —
       // the file is already the running config.
       commitFiles.push_back(bgpSystemPath);
@@ -1360,7 +1360,7 @@ std::string ConfigSession::rollback(
     atomicSymlinkUpdate(systemConfigPath, "cli/agent.conf");
   }
 
-  // Promote the target BGP config (if it changed) so bgp_pp picks it up when
+  // Promote the target BGP config (if it changed) so bgpd picks it up when
   // restarted below. An empty target means BGP didn't exist at that revision,
   // so remove the running config file.
   if (bgpChanged) {
@@ -1391,7 +1391,7 @@ std::string ConfigSession::rollback(
           apache::thrift::Client<facebook::fboss::FbossCtrl>>(hostInfo);
       client->sync_reloadConfig();
     }
-    // Restart bgp_pp only if its config changed.
+    // Restart bgpd only if its config changed.
     if (bgpChanged) {
       ensureFbossServiceUtil(hostInfo);
       fbossServiceUtil_->restartService(

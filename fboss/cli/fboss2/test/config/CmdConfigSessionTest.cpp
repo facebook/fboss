@@ -1400,7 +1400,7 @@ TEST_F(ConfigSessionTestFixture, rebaseBgpSession) {
 }
 
 // Rolling back to an earlier commit must restore the BGP system config and
-// restart bgp_pp (not just the agent config).
+// restart bgpd (not just the agent config).
 TEST_F(ConfigSessionTestFixture, rollbackBgpConfig) {
   fs::path sessionDir = getTestHomeDir() / ".fboss2";
   fs::path bgpSys = getTestEtcDir() / "coop" / "bgpcpp" / "bgpcpp.conf";
@@ -1408,7 +1408,7 @@ TEST_F(ConfigSessionTestFixture, rollbackBgpConfig) {
   auto makeSession = [&]() {
     auto s = std::make_unique<TestableConfigSession>(
         sessionDir.string(), (getTestEtcDir() / "coop").string());
-    // BGP commits/rollback restart bgp_pp via systemd; mock it out.
+    // BGP commits/rollback restart bgpd via systemd; mock it out.
     s->setMockSystemdFactory([] {
       return std::make_unique<::testing::NiceMock<MockSystemdInterface>>();
     });
@@ -1450,7 +1450,7 @@ TEST_F(ConfigSessionTestFixture, rollbackBgpConfig) {
 
 // Re-committing a BGP config that is byte-identical to the running
 // /etc/coop/bgpcpp/bgpcpp.conf must be a no-op: no git commit and (crucially)
-// no disruptive bgp_pp restart. saveBgpConfig() records BGP_RESTART
+// no disruptive bgpd restart. saveBgpConfig() records BGP_RESTART
 // unconditionally, so commit() compares staged vs running content.
 TEST_F(ConfigSessionTestFixture, commitUnchangedBgpConfigIsNoOp) {
   fs::path sessionDir = getTestHomeDir() / ".fboss2";
@@ -1471,7 +1471,7 @@ TEST_F(ConfigSessionTestFixture, commitUnchangedBgpConfigIsNoOp) {
     ASSERT_FALSE(s->commit(localhost()).commitSha.empty());
   }
   // Stage the SAME value again and commit -> no-op (empty commitSha, so no git
-  // revision and no bgp_pp restart).
+  // revision and no bgpd restart).
   {
     auto s = makeSession();
     s->getBgpConfig().router_id() = "1.1.1.1";
