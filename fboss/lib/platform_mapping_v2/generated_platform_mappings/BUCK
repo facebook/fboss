@@ -5,5 +5,8 @@ oncall("fboss_optics_phy")
 buck_filegroup(
     name = "vendor_platform_descriptors",
     srcs = glob(["*/*/*.json"]),
-    visibility = ["//fboss/agent/fbpkg/..."],
+    visibility = [
+        "//fboss/agent/fbpkg/...",
+        "//fboss/led_service/fbpkg/...",
+    ],
 )
