@@ -64,49 +64,6 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
   };
 
   auto verify = [&]() {
-    // Collect PFC counters before test
-    std::map<PortID, std::map<int, int>> inPfcBefore;
-    for (auto portId : portIds) {
-      auto inPfc = folly::copy(getLatestPortStats(portId).inPfc_().value());
-      for (int pgId : losslessPgIds) {
-        inPfcBefore[portId][pgId] = inPfc[pgId];
-      }
-    }
-
-    sendPfcFrame(portIds, 0xFF);
-
-    WITH_RETRIES({
-      for (auto portId : portIds) {
-        // We map pgIds to PFC priorities 1:1, so check for the same IDs.
-        auto inPfc = getLatestPortStats(portId).get_inPfc_();
-        ASSERT_EVENTUALLY_GE(inPfc.size(), losslessPgIds.size());
-        for (int pgId : losslessPgIds) {
-          EXPECT_EVENTUALLY_EQ(inPfc[pgId], inPfcBefore[portId][pgId] + 1);
-        }
-      }
-    });
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(AgentPfcTest, verifyPfcDoesNotIncrementPauseCounter) {
-  std::vector<PortID> portIds = {
-      masterLogicalPortIds(
-          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0],
-      masterLogicalPortIds(
-          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[1]};
-  std::vector<int> losslessPgIds = {2};
-  std::vector<int> lossyPgIds = {0};
-
-  auto setup = [&]() {
-    auto cfg = getAgentEnsemble()->getCurrentConfig();
-    utility::setupPfcBuffers(
-        getAgentEnsemble(), cfg, portIds, losslessPgIds, lossyPgIds);
-    applyNewConfig(cfg);
-  };
-
-  auto verify = [&]() {
     std::map<PortID, int64_t> inPauseBefore;
     std::map<PortID, std::map<int, int64_t>> inPfcBefore;
     for (auto portId : portIds) {
@@ -122,8 +79,10 @@ TEST_F(AgentPfcTest, verifyPfcDoesNotIncrementPauseCounter) {
 
     WITH_RETRIES({
       for (auto portId : portIds) {
+        // We map pgIds to PFC priorities 1:1, so check for the same IDs.
         auto stats = getLatestPortStats(portId);
-        auto inPfc = stats.get_inPfc_();
+        auto inPfc = stats.inPfc_().value();
+        ASSERT_EVENTUALLY_GE(inPfc.size(), losslessPgIds.size());
         for (int pgId : losslessPgIds) {
           EXPECT_EVENTUALLY_EQ(inPfc[pgId], inPfcBefore[portId][pgId] + 1);
         }
