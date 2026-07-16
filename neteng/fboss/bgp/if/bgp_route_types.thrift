@@ -16,6 +16,7 @@
 
 include "configerator/structs/neteng/fboss/bgp/if/bgp_attr.thrift"
 include "configerator/structs/neteng/bgp_policy/thrift/rib_policy.thrift"
+include "configerator/structs/neteng/fboss/thrift/common.thrift" as fboss_common
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
 
@@ -472,7 +473,13 @@ struct TRibEntryCanonical {
    * a best-path-only subscriber need not pull the deduped_paths pool. Carries no
    * peer attribution. Left unset by the get-rib getters (fboss2 finds the best
    * path via is_best_path in `paths`). Mirrors TRibEntry.best_path.
+   *
+   * Annotated so best-path-only subscribers (e.g. HostReachTracker) can store
+   * this subtree as a single hybrid thrift_cow node instead of a per-field COW
+   * node chain. Inert unless a consumer instantiates its storage with
+   * EnableHybridStorage=true; the wire format is unchanged (RuntimeAnnotation).
    */
+  @fboss_common.AllowSkipThriftCow
   7: optional TBgpDedupedPath best_path;
 }
 
