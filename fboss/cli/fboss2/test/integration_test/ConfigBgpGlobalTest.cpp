@@ -6,7 +6,7 @@
  * Scope: the BGP *global* tunables only. Each positive test stages the change
  * AND commits it, then asserts the value landed at the correct thrift field
  * path in the promoted system config (/etc/coop/bgpcpp/bgpcpp.conf) that the
- * bgp_pp daemon consumes. Session-lifecycle behavior (clear / diff / rollback /
+ * bgpd daemon consumes. Session-lifecycle behavior (clear / diff / rollback /
  * commit-restart mechanics) lives in ConfigBgpSessionTest.
  *
  *   - count-confeds-in-as-path-len <true|false>
@@ -19,7 +19,7 @@
  * Requirements:
  *   - The fboss2-dev binary under test (config subcommand tree).
  *   - HOME is set (the session file lives under $HOME/.fboss2).
- *   - bgp_pp is installed/active (commit restarts it).
+ *   - bgpd is installed/active (commit restarts it).
  */
 
 #include <gtest/gtest.h>
