@@ -81,20 +81,6 @@
       "metaMacOuis": [],
       "needL2EntryForNeighbor": true
     },
-    "aclTableGroup": {
-      "name": "acl-table-group-ingress",
-      "aclTables": [
-        {
-          "name": "AclTable1",
-          "priority": 0,
-          "aclEntries": [],
-          "actionTypes": [],
-          "qualifiers": [],
-          "udfGroups": []
-        }
-      ],
-      "stage": 0
-    },
     "dsfNodes": {},
     "defaultVoqConfig": [],
     "aclTableGroups": [
