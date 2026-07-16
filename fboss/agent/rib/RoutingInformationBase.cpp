@@ -1657,15 +1657,19 @@ void RibRouteTables::updateMySidsImpl(
                       NextHopIDManager* nextHopIDManager) {
     for (const auto& entry : toAdd) {
       if (!entry.nextHopGroupName.has_value()) {
+        validateMySidNextHops(entry.mySid->getType(), entry.nextHopSet);
         continue;
       }
-      if (!nextHopIDManager ||
-          !nextHopIDManager->hasNamedNextHopGroup(*entry.nextHopGroupName)) {
+      auto namedNextHops = nextHopIDManager
+          ? nextHopIDManager->getNextHopsForName(*entry.nextHopGroupName)
+          : std::nullopt;
+      if (!namedNextHops.has_value()) {
         throw FbossError(
             "Named next-hop group '",
             *entry.nextHopGroupName,
             "' does not exist");
       }
+      validateMySidNextHops(entry.mySid->getType(), *namedNextHops);
     }
 
     // Conditional unresolve runs first so that any same-prefix entry
@@ -1710,7 +1714,6 @@ void RibRouteTables::updateMySidsImpl(
     std::set<folly::CIDRNetwork> addedPrefixes;
     for (const auto& entry : toAdd) {
       auto mySid = entry.mySid;
-      validateMySidNextHops(mySid->getType(), entry.nextHopSet);
       const auto cidr = mySid->getMySid();
       addedPrefixes.emplace(cidr.first, cidr.second);
       const folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);

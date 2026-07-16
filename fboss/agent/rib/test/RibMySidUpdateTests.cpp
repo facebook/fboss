@@ -101,6 +101,14 @@ NextHopThrift makeSrv6NextHop(const std::string& nextHopAddr) {
   return nhop;
 }
 
+RouteNextHopSet makeSrv6NextHops(const std::vector<std::string>& nextHopAddrs) {
+  std::vector<NextHopThrift> nextHops;
+  for (const auto& nextHopAddr : nextHopAddrs) {
+    nextHops.push_back(makeSrv6NextHop(nextHopAddr));
+  }
+  return util::toRouteNextHopSet(nextHops, true);
+}
+
 IpPrefix toIpPrefix(const std::string& addr, uint8_t len) {
   IpPrefix prefix;
   prefix.ip() = facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
@@ -741,7 +749,7 @@ TEST_F(RibMySidValidationTest, rejectBindingSidWithWrongTunnelType) {
 
 TEST_F(RibMySidValidationTest, acceptBindingSidWithNamedNhg) {
   addNamedNextHopGroup(
-      rib_, "group1", makeUnresolvedNextHops({"2001:db8::1"}), &switchState_);
+      rib_, "group1", makeSrv6NextHops({"2001:db8::1"}), &switchState_);
 
   auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
   NamedRouteDestination named;
@@ -757,6 +765,28 @@ TEST_F(RibMySidValidationTest, acceptBindingSidWithNamedNhg) {
       &switchState_);
 
   EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
+}
+
+TEST_F(RibMySidValidationTest, rejectBindingSidWithInvalidNamedNhgNextHops) {
+  addNamedNextHopGroup(
+      rib_, "group1", makeUnresolvedNextHops({"2001:db8::1"}), &switchState_);
+
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "group1";
+  entry.namedNextHops() = named;
+
+  EXPECT_THROW(
+      rib_.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "binding sid with invalid named nhg nexthops",
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
+
+  EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
 }
 
 TEST_F(RibMySidValidationTest, acceptNodeSidWithNamedNhg) {
