@@ -6,18 +6,18 @@
  *
  * BGP global edits stage ~/.fboss2/bgp_config.json (no agent.conf), and
  * `config session commit` promotes it to /etc/coop/bgpcpp/bgpcpp.conf and
- * restarts bgp_pp. These tests exercise the session lifecycle around that:
+ * restarts bgpd. These tests exercise the session lifecycle around that:
  *   - clear (including a BGP-only session)
  *   - diff (a staged BGP change must be visible)
- *   - commit (bgp_pp is restarted)
- *   - rollback (the bgp_pp system config is restored)
+ *   - commit (bgpd is restarted)
+ *   - rollback (the bgpd system config is restored)
  *
  * Per-attribute global config behavior lives in ConfigBgpGlobalTest.
  *
  * Requirements:
  *   - The fboss2-dev binary under test (config subcommand tree).
  *   - HOME is set (the session file lives under $HOME/.fboss2).
- *   - bgp_pp installed; commit/rollback tests skip if bgp_pp is not active.
+ *   - bgpd installed; commit/rollback tests skip if bgpd is not active.
  */
 
 #include <gtest/gtest.h>
@@ -68,10 +68,10 @@ TEST_F(ConfigBgpSessionTest, DiffShowsStagedBgpChange) {
   EXPECT_THAT(result.stdout, HasSubstr("graceful_restart_convergence_seconds"));
 }
 
-// Committing a staged BGP change restarts the bgp_pp daemon.
+// Committing a staged BGP change restarts the bgpd daemon.
 TEST_F(ConfigBgpSessionTest, CommitRestartsBgpDaemon) {
   if (bgpDaemonActiveState() != "active") {
-    GTEST_SKIP() << "bgp_pp is not active on this DUT; skipping commit/restart "
+    GTEST_SKIP() << "bgpd is not active on this DUT; skipping commit/restart "
                     "verification";
   }
   discardSession();
@@ -81,20 +81,20 @@ TEST_F(ConfigBgpSessionTest, CommitRestartsBgpDaemon) {
   ASSERT_FALSE(commitAndGetSha().empty());
 
   EXPECT_TRUE(waitForBgpDaemonActive())
-      << "bgp_pp did not return to active after commit; state="
+      << "bgpd did not return to active after commit; state="
       << bgpDaemonActiveState();
 
   const std::string pidAfter = bgpDaemonMainPid();
-  EXPECT_NE(pidAfter, "0") << "bgp_pp has no MainPID after commit";
-  EXPECT_NE(pidAfter, pidBefore) << "bgp_pp MainPID unchanged (" << pidBefore
+  EXPECT_NE(pidAfter, "0") << "bgpd has no MainPID after commit";
+  EXPECT_NE(pidAfter, pidBefore) << "bgpd MainPID unchanged (" << pidBefore
                                  << "); expected a restart on commit";
 }
 
-// Rolling back a committed BGP change restores the bgp_pp system config and
-// restarts bgp_pp (not just the agent config).
+// Rolling back a committed BGP change restores the bgpd system config and
+// restarts bgpd (not just the agent config).
 TEST_F(ConfigBgpSessionTest, RollbackRestoresBgpConfig) {
   if (bgpDaemonActiveState() != "active") {
-    GTEST_SKIP() << "bgp_pp is not active on this DUT; skipping rollback "
+    GTEST_SKIP() << "bgpd is not active on this DUT; skipping rollback "
                     "verification";
   }
   discardSession();
@@ -117,24 +117,24 @@ TEST_F(ConfigBgpSessionTest, RollbackRestoresBgpConfig) {
   EXPECT_EQ(convergenceSeconds(), 222)
       << "system bgp config should reflect the latest commit";
 
-  // Roll back to commit A -> system bgp config restored to 111, bgp_pp restart.
+  // Roll back to commit A -> system bgp config restored to 111, bgpd restart.
   resetBgpDaemonLimit(); // avoid systemd start-limit on the rollback's restart
   auto rb = runCli({"config", "rollback", shaA});
   EXPECT_EQ(rb.exitCode, 0) << "stderr=" << rb.stderr;
   ASSERT_TRUE(waitForBgpDaemonActive())
-      << "bgp_pp did not return active after rollback";
+      << "bgpd did not return active after rollback";
 
   EXPECT_EQ(convergenceSeconds(), 111)
-      << "rollback must restore the bgp_pp system config";
+      << "rollback must restore the bgpd system config";
 }
 
 // Committing a BGP config identical to what is already running must be a no-op:
-// "Nothing to commit" and, crucially, NO bgp_pp restart (a restart is traffic
+// "Nothing to commit" and, crucially, NO bgpd restart (a restart is traffic
 // affecting). saveBgpConfig() always records BGP_RESTART, so commit() has to
 // compare the staged config against the running one.
 TEST_F(ConfigBgpSessionTest, CommitUnchangedBgpConfigDoesNotRestart) {
   if (bgpDaemonActiveState() != "active") {
-    GTEST_SKIP() << "bgp_pp is not active on this DUT; skipping no-op restart "
+    GTEST_SKIP() << "bgpd is not active on this DUT; skipping no-op restart "
                     "verification";
   }
   discardSession();
@@ -154,16 +154,16 @@ TEST_F(ConfigBgpSessionTest, CommitUnchangedBgpConfigDoesNotRestart) {
       << "an unchanged BGP commit should report nothing to commit";
 
   EXPECT_EQ(bgpDaemonMainPid(), pidBefore)
-      << "bgp_pp was restarted for an unchanged BGP config (pidBefore="
+      << "bgpd was restarted for an unchanged BGP config (pidBefore="
       << pidBefore << ")";
 }
 
-// An agent-only commit (no BGP staged) must still snapshot the running bgp_pp
+// An agent-only commit (no BGP staged) must still snapshot the running bgpd
 // config, so a rollback to it restores BGP instead of wiping it. Pre-fix,
 // bgpcpp.conf was untracked at such commits and rollback deleted it.
 TEST_F(ConfigBgpSessionTest, AgentCommitSnapshotsBgpAndRollbackPreservesIt) {
   if (bgpDaemonActiveState() != "active") {
-    GTEST_SKIP() << "bgp_pp is not active on this DUT; skipping cross-domain "
+    GTEST_SKIP() << "bgpd is not active on this DUT; skipping cross-domain "
                     "rollback verification";
   }
   discardSession();
@@ -171,7 +171,7 @@ TEST_F(ConfigBgpSessionTest, AgentCommitSnapshotsBgpAndRollbackPreservesIt) {
 
   // The running (default) BGP config that must survive a rollback unchanged.
   ASSERT_TRUE(fs::exists(systemBgpConfigPath()))
-      << "expected a running bgp_pp config on an active-BGP DUT";
+      << "expected a running bgpd config on an active-BGP DUT";
   const folly::dynamic defaultBgp = readSystemBgpConfig();
 
   // Step 1: an agent-only commit (interface description). No BGP is staged.
@@ -204,15 +204,15 @@ TEST_F(ConfigBgpSessionTest, AgentCommitSnapshotsBgpAndRollbackPreservesIt) {
       222);
 
   // Step 3: roll back to the agent-only commit. BGP must be RESTORED to the
-  // original default snapshot (not deleted), and bgp_pp must come back.
+  // original default snapshot (not deleted), and bgpd must come back.
   resetBgpDaemonLimit();
   auto rb = runCli({"config", "rollback", agentSha});
   EXPECT_EQ(rb.exitCode, 0) << "stderr=" << rb.stderr;
   ASSERT_TRUE(waitForBgpDaemonActive())
-      << "bgp_pp did not return active after rollback";
+      << "bgpd did not return active after rollback";
 
   EXPECT_TRUE(fs::exists(systemBgpConfigPath()))
-      << "rollback to an agent-era commit wiped the running bgp_pp config";
+      << "rollback to an agent-era commit wiped the running bgpd config";
   EXPECT_EQ(readSystemBgpConfig(), defaultBgp)
-      << "rollback did not restore the original (default) bgp_pp config";
+      << "rollback did not restore the original (default) bgpd config";
 }
