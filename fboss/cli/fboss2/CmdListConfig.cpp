@@ -132,6 +132,9 @@
 #include "fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h"
 #include "fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
+#include "fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.h"
+#include "fboss/cli/fboss2/commands/delete/copp/cpu_queue/CmdDeleteCoppCpuQueue.h"
+#include "fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.h"
 #include "fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.h"
 #include "fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.h"
 #include "fboss/cli/fboss2/commands/delete/dhcp/reply_source_override/CmdDeleteDhcpReplySourceOverride.h"
@@ -1162,6 +1165,26 @@ const CommandTree& kConfigCommandTree() {
        "Delete config objects",
        commandHandler<CmdDeleteConfig>,
        argRegistrar<CmdDeleteConfigTraits>},
+
+      {
+          "delete",
+          "copp",
+          "Delete COPP (Control Plane Policing) configuration",
+          commandHandler<CmdDeleteCopp>,
+          argRegistrar<CmdDeleteCoppTraits>,
+          {{
+               "cpu-queue",
+               "Delete a CPU queue entry",
+               commandHandler<CmdDeleteCoppCpuQueue>,
+               argRegistrar<CmdDeleteCoppCpuQueueTraits>,
+           },
+           {
+               "reason",
+               "Delete a packet-rx reason to CPU queue mapping",
+               commandHandler<CmdDeleteCoppReason>,
+               argRegistrar<CmdDeleteCoppReasonTraits>,
+           }},
+      },
 
       {
           "delete",
