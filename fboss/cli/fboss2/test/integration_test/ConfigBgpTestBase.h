@@ -8,7 +8,7 @@
  * BGP config is not pushed into the agent's running config like the
  * SwitchConfig-backed commands. Instead the CLI stages a BGP++
  * thrift-compatible JSON file at ~/.fboss2/bgp_config.json; `config session
- * commit` promotes it to /etc/coop/bgpcpp/bgpcpp.conf and restarts the bgp_pp
+ * commit` promotes it to /etc/coop/bgpcpp/bgpcpp.conf and restarts the bgpd
  * daemon. These helpers let the global-attribute tests and the
  * session-lifecycle tests share the staging, commit, daemon-state, and
  * system-config plumbing.
@@ -50,7 +50,7 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
     return std::string(home) + "/.fboss2/bgp_config.json";
   }
 
-  // System config consumed by the bgp_pp daemon (written on commit).
+  // System config consumed by the bgpd daemon (written on commit).
   std::string systemBgpConfigPath() const {
     return "/etc/coop/bgpcpp/bgpcpp.conf";
   }
@@ -86,9 +86,18 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
 
   // Current git HEAD sha of the /etc/coop repo (trimmed; "" on failure).
   // runCmd uses folly::Subprocess, which does not search PATH, so git is
-  // invoked by full path.
+  // invoked by full path. -c safe.directory mirrors the CLI's Git class:
+  // /etc/coop is typically owned by another user (e.g. coop), which git
+  // otherwise rejects as dubious ownership.
   std::string gitHead() const {
-    auto r = runCmd({"/usr/bin/git", "-C", coopRepoDir(), "rev-parse", "HEAD"});
+    auto r = runCmd(
+        {"/usr/bin/git",
+         "-c",
+         "safe.directory=" + coopRepoDir(),
+         "-C",
+         coopRepoDir(),
+         "rev-parse",
+         "HEAD"});
     std::string s = r.stdout;
     while (!s.empty() &&
            (s.back() == '\n' || s.back() == '\r' || s.back() == ' ')) {
@@ -102,6 +111,8 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
   bool bgpTrackedAtRevision(const std::string& sha) const {
     auto r = runCmd(
         {"/usr/bin/git",
+         "-c",
+         "safe.directory=" + coopRepoDir(),
          "-C",
          coopRepoDir(),
          "cat-file",
@@ -126,12 +137,12 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
     return readBgpSessionConfig();
   }
 
-  // Reset bgp_pp's systemd start-limit burst counter. Tests commit several
-  // times in quick succession, and each commit restarts bgp_pp; without this,
+  // Reset bgpd's systemd start-limit burst counter. Tests commit several
+  // times in quick succession, and each commit restarts bgpd; without this,
   // systemd's default StartLimitBurst (5 starts / 10s) refuses a rapid restart
   // with "start limit hit" — a test artifact, not a product issue.
   void resetBgpDaemonLimit() const {
-    runCmd({"/usr/bin/systemctl", "reset-failed", "bgp_pp"});
+    runCmd({"/usr/bin/systemctl", "reset-failed", "bgpd"});
   }
 
   // Run `config session commit` and return the short SHA parsed from
@@ -150,7 +161,7 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
     return r.stdout.substr(pos, end - pos);
   }
 
-  // Stage a global change, commit it, wait for bgp_pp to come back, and return
+  // Stage a global change, commit it, wait for bgpd to come back, and return
   // the promoted system config (the authoritative post-commit location).
   // A no-op commit (staged value already in the system config) yields no SHA
   // and is fine: the caller's assertions on the returned config still verify
@@ -161,16 +172,16 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
     runBgpGlobal(attr, value);
     commitAndGetSha();
     EXPECT_TRUE(waitForBgpDaemonActive())
-        << "bgp_pp did not return active after commit; state="
+        << "bgpd did not return active after commit; state="
         << bgpDaemonActiveState();
     return readSystemBgpConfig();
   }
 
-  // Trailing-whitespace-trimmed stdout of a `systemctl` query for bgp_pp.
+  // Trailing-whitespace-trimmed stdout of a `systemctl` query for bgpd.
   std::string systemctlValue(const std::string& property) const {
     // Full path: folly::Subprocess (used by runCmd) does not search PATH.
     auto r = runCmd(
-        {"/usr/bin/systemctl", "show", "bgp_pp", "-p", property, "--value"});
+        {"/usr/bin/systemctl", "show", "bgpd", "-p", property, "--value"});
     std::string s = r.stdout;
     while (!s.empty() &&
            (s.back() == '\n' || s.back() == '\r' || s.back() == ' ')) {
@@ -181,7 +192,7 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
 
   // "active" / "inactive" / "failed" / ... (trimmed).
   std::string bgpDaemonActiveState() const {
-    auto r = runCmd({"/usr/bin/systemctl", "is-active", "bgp_pp"});
+    auto r = runCmd({"/usr/bin/systemctl", "is-active", "bgpd"});
     std::string s = r.stdout;
     while (!s.empty() &&
            (s.back() == '\n' || s.back() == '\r' || s.back() == ' ')) {
@@ -190,12 +201,12 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
     return s;
   }
 
-  // bgp_pp main PID per systemd ("0" if not running).
+  // bgpd main PID per systemd ("0" if not running).
   std::string bgpDaemonMainPid() const {
     return systemctlValue("MainPID");
   }
 
-  // Poll until bgp_pp reports active or the timeout elapses.
+  // Poll until bgpd reports active or the timeout elapses.
   bool waitForBgpDaemonActive(
       std::chrono::seconds timeout = std::chrono::seconds(60)) const {
     auto deadline = std::chrono::steady_clock::now() + timeout;

@@ -13,17 +13,23 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/core.h>
-#include <folly/Conv.h>
 #include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
+#include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <iostream>
 #include <limits>
 #include <map>
-#include <optional>
+#include <ostream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/BgpCliValueParsers.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
+#include "fmt/format.h"
 
 namespace facebook::fboss {
 
@@ -49,53 +55,14 @@ constexpr std::string_view kRibAllocatedPathIds = "rib-allocated-path-ids";
 
 using Tokens = std::vector<std::string>;
 using BgpConfig = bgp::thrift::BgpConfig;
-
-// Outcome of an attribute handler: on failure the message is returned to the
-// user and the session is NOT persisted, so a rejected value never lands on
-// disk.
-struct Result {
-  bool ok;
-  std::string message;
-};
-
-Result ok(std::string message) {
-  return Result{true, std::move(message)};
-}
-
-Result err(std::string message) {
-  return Result{false, std::move(message)};
-}
-
-// ---- value parsers (modular, shared across attributes) --------------------
-
-std::optional<bool> parseBool(const std::string& value) {
-  if (value == "true" || value == "1" || value == "yes") {
-    return true;
-  }
-  if (value == "false" || value == "0" || value == "no") {
-    return false;
-  }
-  return std::nullopt;
-}
-
-template <typename T>
-std::optional<T> parseInt(const std::string& value) {
-  try {
-    return folly::to<T>(value);
-  } catch (const std::exception&) {
-    return std::nullopt;
-  }
-}
-
-// Parse a non-negative value that must fit in int32 (used for second-valued
-// timers and min-routes).
-std::optional<int32_t> parseNonNegInt32(const std::string& value) {
-  auto parsed = parseInt<int64_t>(value);
-  if (!parsed || *parsed < 0 || *parsed > std::numeric_limits<int32_t>::max()) {
-    return std::nullopt;
-  }
-  return static_cast<int32_t>(*parsed);
-}
+// Value parsers and the handler Result type are shared with the neighbor
+// dispatcher (see BgpCliValueParsers.h).
+using bgpcli::err;
+using bgpcli::ok;
+using bgpcli::parseBool;
+using bgpcli::parseInt;
+using bgpcli::parseNonNegInt32;
+using bgpcli::Result;
 
 // ---- per-attribute handlers ------------------------------------------------
 // Each handler mutates the typed bgp::thrift::BgpConfig directly. Field names
@@ -113,11 +80,15 @@ Result applyLocalAsn(BgpConfig& cfg, const Tokens& values) {
   if (values.size() != 1) {
     return err("Error: local-asn requires <asn>");
   }
-  auto asn = parseInt<uint64_t>(values[0]);
+  auto asn = bgpcli::parseAsn4Byte(values[0]);
   if (!asn) {
-    return err(fmt::format("Error: Invalid local-asn value '{}'", values[0]));
+    return err(
+        fmt::format(
+            "Error: Invalid local-asn value '{}'; expected an unsigned "
+            "4-byte ASN",
+            values[0]));
   }
-  cfg.local_as_4_byte() = static_cast<int64_t>(*asn);
+  cfg.local_as_4_byte() = *asn;
   return ok(fmt::format("Successfully set BGP local-asn to: {}", *asn));
 }
 
@@ -125,11 +96,15 @@ Result applyConfedAsn(BgpConfig& cfg, const Tokens& values) {
   if (values.size() != 1) {
     return err("Error: confed-asn requires <asn>");
   }
-  auto asn = parseInt<uint64_t>(values[0]);
+  auto asn = bgpcli::parseAsn4Byte(values[0]);
   if (!asn) {
-    return err(fmt::format("Error: Invalid confed-asn value '{}'", values[0]));
+    return err(
+        fmt::format(
+            "Error: Invalid confed-asn value '{}'; expected an unsigned "
+            "4-byte ASN",
+            values[0]));
   }
-  cfg.local_confed_as_4_byte() = static_cast<int64_t>(*asn);
+  cfg.local_confed_as_4_byte() = *asn;
   return ok(
       fmt::format("Successfully set BGP confederation AS number to: {}", *asn));
 }
