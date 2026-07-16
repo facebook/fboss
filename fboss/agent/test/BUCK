@@ -900,6 +900,25 @@ cpp_benchmark(
     ],
 )
 
+cpp_benchmark(
+    name = "state_delta_serialization",
+    srcs = [
+        "StateDeltaSerializationBenchmark.cpp",
+    ],
+    args = ["--json"],
+    deps = [
+        ":hw_test_handle",
+        ":route_scale_gen",
+        ":utils",
+        "//fboss/agent:fsdb_helper",
+        "//fboss/fsdb/common:utils",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//folly:benchmark",
+        "//folly/init:init",
+    ],
+)
+
 cpp_unittest(
     name = "hwswitch_matcher_tests",
     srcs = [

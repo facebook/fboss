@@ -263,6 +263,13 @@ thrift_library(
     ],
 )
 
+thrift_library(
+    name = "state_delta_log",
+    languages = ["cpp2"],
+    thrift_srcs = {"state_delta_log.thrift": []},
+    deps = ["//fboss/fsdb/if:fsdb_oper"],
+)
+
 cpp_library(
     name = "constants",
     headers = [
