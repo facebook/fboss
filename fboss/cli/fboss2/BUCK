@@ -1195,6 +1195,7 @@ cpp_library(
         "commands/config/mac/CmdConfigMac.h",
         "commands/config/mac/aging_time/CmdConfigMacAgingTime.h",
         "commands/config/protocol/CmdConfigProtocol.h",
+        "commands/config/protocol/bgp/BgpCliValueParsers.h",
         "commands/config/protocol/bgp/BgpConfigSession.h",
         "commands/config/protocol/bgp/CmdConfigProtocolBgp.h",
         "commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.h",
