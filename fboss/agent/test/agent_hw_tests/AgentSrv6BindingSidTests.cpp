@@ -45,12 +45,6 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
 
   static inline const folly::IPAddressV6 kSid0{"3001:db8:1:2:3:4:5:6"};
   static inline const folly::IPAddressV6 kSid1{"3001:db8:4:5:6::"};
-
-  static inline const folly::IPAddressV6 kBgpRoute0{"2001::1"};
-  static inline const folly::IPAddressV6 kBgpRoute1{"3001::1"};
-  static inline const folly::IPAddressV6 kBgpRoute2{"4001::1"};
-  static inline const folly::IPAddressV6 kBgpRoute3{"5001::1"};
-
   static inline const folly::IPAddressV6 kMySidPrefix{"fc00:100:1::"};
   static constexpr uint8_t kMySidPrefixLen{48};
   static constexpr int kNumNextHops{4};
@@ -182,33 +176,8 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     routeUpdater.program();
   }
 
-  void programBgpRoutes() {
-    auto routeUpdater = this->getSw()->getRouteUpdater();
-    const std::vector<std::pair<folly::IPAddressV6, folly::IPAddressV6>>
-        bgpRoutes{
-            {kBgpRoute0, folly::IPAddressV6("fdad::1:1")},
-            {kBgpRoute1, folly::IPAddressV6("fdad::2:1")},
-            {kBgpRoute2, folly::IPAddressV6("fdad::3:1")},
-            {kBgpRoute3, folly::IPAddressV6("fdad::4:1")},
-        };
-    for (const auto& [bgpDst, nhopAddr] : bgpRoutes) {
-      routeUpdater.addRoute(
-          RouterID(0),
-          bgpDst,
-          bgpDst.bitCount(),
-          ClientID::BGPD,
-          RouteNextHopEntry(
-              RouteNextHopSet{
-                  UnresolvedNextHop(folly::IPAddress(nhopAddr), ECMP_WEIGHT)},
-              AdminDistance::EBGP));
-    }
-
-    routeUpdater.program();
-  }
-
   void programRoutes() {
     programOpenrRoutes();
-    programBgpRoutes();
   }
 
   void unresolveAllNextHops() {
