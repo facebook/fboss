@@ -29,8 +29,7 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiTajoPlatformPort.cpp
   fboss/agent/platforms/sai/SaiYangraPlatform.cpp
   fboss/agent/platforms/sai/SaiMinipack3NPlatform.cpp
-  fboss/agent/platforms/sai/SaiYangraPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiChenabPlatformPort.cpp
   fboss/agent/platforms/sai/SaiYangra2Platform.cpp
 # platform oss srcs (== fake_srcs)
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
@@ -45,7 +44,6 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/oss/SaiBcmElbertPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiWedge400CPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
-  fboss/agent/platforms/sai/SaiYangra2PlatformPort.cpp
 )
 
 if (SAI_BRCM_PAI_IMPL)

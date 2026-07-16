@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023-present, Facebook, Inc.
+ *  Copyright (c) 2026-present, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -13,18 +13,17 @@
 
 namespace facebook::fboss {
 
-class SaiMinipack3NPlatformPort : public SaiPlatformPort {
+class SaiChenabPlatformPort : public SaiPlatformPort {
  public:
-  SaiMinipack3NPlatformPort(const PortID& id, SaiPlatform* platform)
+  SaiChenabPlatformPort(const PortID& id, SaiPlatform* platform)
       : SaiPlatformPort(id, platform) {}
+
   void linkStatusChanged(bool up, bool adminUp) override;
   uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const override;
-  //  void externalState(PortLedExternalState lfs) override;
   uint32_t getCurrentLedState() const override;
-  void portChanged(
-      std::shared_ptr<Port> /*newPort*/,
-      std::shared_ptr<Port> /*oldPort*/) override;
+  void portChanged(std::shared_ptr<Port> newPort, std::shared_ptr<Port> oldPort)
+      override;
 
   bool supportsTransceiver() const override;
 
