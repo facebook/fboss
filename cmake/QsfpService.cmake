@@ -405,7 +405,6 @@ if(SAI_BRCM_PAI_IMPL)
     sai_repl
     sai_api
     sai_phy_management
-    sai_phy
     ctrl_cpp2
   )
 else()
