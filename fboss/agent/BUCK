@@ -902,6 +902,28 @@ cpp_library(
 )
 
 cpp_library(
+    name = "switch_state_delta_logger",
+    srcs = [
+        "SwitchStateDeltaLogger.cpp",
+    ],
+    exported_deps = [
+        ":agent_features",
+        ":async_logger_base",
+        "//fb303:service_data",
+        "//fboss/agent:state_delta_log-cpp2-types",
+        "//fboss/agent/state:state",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//folly:fbstring",
+        "//folly:range",
+        "//folly/hash:checksum",
+        "//folly/lang:bits",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
     name = "hw_switch_thrift_client_table",
     srcs = [
         "HwSwitchThriftClientTable.cpp",

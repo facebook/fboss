@@ -507,6 +507,14 @@ add_fbthrift_cpp_library(
     ctrl_cpp2
 )
 add_fbthrift_cpp_library(
+  state_delta_log_cpp2
+  fboss/agent/state_delta_log.thrift
+  OPTIONS
+    json
+  DEPENDS
+    fsdb_oper_cpp2
+)
+add_fbthrift_cpp_library(
   prbs_cpp2
   fboss/lib/phy/prbs.thrift
   OPTIONS
