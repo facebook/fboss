@@ -10,9 +10,13 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+#include "CLI/App.hpp"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss {
 
@@ -43,6 +47,10 @@ class BgpGlobalConfig : public utils::BaseObjectArgType<std::string> {
 struct CmdConfigProtocolBgpGlobalTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigProtocolBgp;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    // Stop CLI11's parent-chain subcommand fallthrough from stealing value
+    // tokens that happen to match a sibling command name (e.g. a policy
+    // named "peer-group"); see CmdConfigProtocolBgpNeighborTraits.
+    cmd.positionals_at_end();
     cmd.add_option("args", args, "<attribute> <value> [value ...]");
   }
   using ObjectArgType = BgpGlobalConfig;

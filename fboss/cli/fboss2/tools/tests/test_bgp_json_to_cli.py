@@ -620,14 +620,7 @@ class JsonToCliIntegrationTest(unittest.TestCase):
 
     def test_injection_in_peer_addr_neutralized(self) -> None:
         """Command injection in peer_addr should be single-quoted."""
-        config = {
-            "peers": [
-                {
-                    "peer_addr": "$(malicious)",
-                    "remote_as_4_byte": 65000,
-                }
-            ]
-        }
+        config = {"peers": [{"peer_addr": "$(malicious)", "remote_as_4_byte": 65000}]}
         commands = json_to_cli(config, stub=False, binary="fboss2")
         joined = "\n".join(commands)
         self.assertIn("peer '$(malicious)'", joined)
