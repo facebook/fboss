@@ -698,7 +698,9 @@
         104,
         33,
         112,
-        113
+        113,
+        49,
+        111
     ]
   },
   "asicToFeatureNames": {
@@ -1400,7 +1402,9 @@
         "SRV6_MIDPOINT",
         "INTERFACE_NEIGHBOR_TABLE",
         "PORT_DEBOUNCE",
-        "SRV6_BINDING_SID"
+        "SRV6_BINDING_SID",
+        "MIRROR_ON_DROP",
+        "MIRROR_ON_DROP_STATELESS"
     ]
   },
   "featureSupportSpecs": [
@@ -1457,6 +1461,32 @@
           "sdk": 2,
           "minSdkVersion": "26.2.4210",
           "note": "SRv6 binding SID are supported on Leaba ASICs starting SDK 26.2.4210"
+        }
+      ]
+    },
+    {
+      "feature": 49,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "26.2.4210",
+          "note": "Mirror on Drop supported on Leaba ASICs starting SDK 26.2.4210"
+        }
+      ]
+    },
+    {
+      "feature": 111,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "26.2.4210",
+          "note": "Mirror on Drop supported on Leaba ASICs starting SDK 26.2.4210"
         }
       ]
     },
