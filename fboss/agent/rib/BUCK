@@ -121,7 +121,6 @@ cpp_unittest(
         "//fboss/agent/test/utils:nexthop_id_test_utils",
         "//folly:network_address",
         "//folly:scope_guard",
-        "//folly/functional:partial",
         "//folly/json:dynamic",
         "//folly/logging:logging",
     ],

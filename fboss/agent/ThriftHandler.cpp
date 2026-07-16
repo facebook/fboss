@@ -73,7 +73,6 @@
 #include <folly/IPAddressV6.h>
 #include <folly/Range.h>
 #include <folly/container/F14Map.h>
-#include <folly/functional/Partial.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>

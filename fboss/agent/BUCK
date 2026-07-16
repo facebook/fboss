@@ -1239,7 +1239,6 @@ cpp_library(
         "//folly:string",
         "//folly:synchronized",
         "//folly/container:f14_hash",
-        "//folly/functional:partial",
         "//folly/io:iobuf",
         "//folly/logging:logging",
         "//thrift/lib/cpp/server:server_event_handler",
