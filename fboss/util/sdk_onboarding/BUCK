@@ -14,6 +14,7 @@ thrift_library(
     thrift_srcs = {"sdk_test_config.thrift": []},
     deps = [
         "//fboss/agent:switch_config",
+        "//thrift/annotation:thrift",
     ],
 )
 

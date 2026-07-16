@@ -16,6 +16,7 @@ thrift_library(
         "json",
     ],
     thrift_srcs = {"led_mapping.thrift": []},
+    deps = ["//thrift/annotation:thrift"],
 )
 
 cpp_library(
