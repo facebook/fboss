@@ -8,6 +8,7 @@ buck_filegroup(
     visibility = [
         "//fboss/agent/fbpkg/...",
         "//fboss/led_service/fbpkg/...",
+        "//netos/services/fboss_led_service/...",
         "//netos/services/fboss_qsfp_service/...",
         "//netos/services/fboss_sw_agent/...",
         "//netos/services/fboss_wedge_agent/...",
