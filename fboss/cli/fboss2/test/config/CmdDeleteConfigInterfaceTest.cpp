@@ -119,7 +119,7 @@ TEST_F(CmdDeleteConfigInterfaceTestFixture, deleteExistingIpv4Address) {
   auto& intfs = *config.sw()->interfaces();
   for (auto& intf : intfs) {
     if (*intf.name() == "eth1/1/1") {
-      intf.ipAddresses()->push_back("10.0.0.1/24");
+      intf.ipAddresses()->emplace_back("10.0.0.1/24");
       break;
     }
   }
