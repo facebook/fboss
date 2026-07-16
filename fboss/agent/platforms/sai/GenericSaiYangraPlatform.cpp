@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023-present, Facebook, Inc.
+ *  Copyright (c) 2004-present, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -8,58 +8,56 @@
  *
  */
 
-#include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
-#include "fboss/agent/hw/switch_asics/ChenabAsic.h"
-#include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
+#include "fboss/agent/platforms/sai/GenericSaiYangraPlatform.h"
 
+#include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/api/ArsApi.h"
 #include "fboss/agent/hw/sai/api/MplsApi.h"
 #include "fboss/agent/hw/sai/api/SystemPortApi.h"
 #include "fboss/agent/hw/sai/api/TamApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
-
-#include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <algorithm>
+#include <fstream>
+#include <iostream>
 
 namespace facebook::fboss {
 
-// No Change
-SaiYangraPlatform::SaiYangraPlatform(
+GenericSaiYangraPlatform::GenericSaiYangraPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac,
-    const std::string& platformMappingStr)
-    : SaiPlatform(
-          std::move(productInfo),
-          platformMappingStr.empty()
-              ? std::make_unique<YangraPlatformMapping>()
-              : std::make_unique<YangraPlatformMapping>(platformMappingStr),
-          localMac) {}
-
-SaiYangraPlatform::SaiYangraPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac,
-    std::unique_ptr<PlatformMapping> platformMapping)
+    std::unique_ptr<PlatformMapping> platformMapping,
+    folly::MacAddress localMac)
     : SaiPlatform(
           std::move(productInfo),
           std::move(platformMapping),
           localMac) {}
 
-void SaiYangraPlatform::setupAsic(
+GenericSaiYangraPlatform::~GenericSaiYangraPlatform() = default;
+
+void GenericSaiYangraPlatform::setupAsic(
     std::optional<int64_t> switchId,
     const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
-  asic_ = std::make_unique<ChenabAsic>(switchId, switchInfo);
+  std::optional<cfg::SdkVersion> sdkVersion;
+  auto agentConfig = config();
+  if (agentConfig->thrift.sw()->sdkVersion().has_value()) {
+    sdkVersion = agentConfig->thrift.sw()->sdkVersion().value();
+  }
+  asic_ = HwAsic::makeAsic(
+      switchId.value_or(0), switchInfo, sdkVersion, std::nullopt);
   asic_->setDefaultStreamType(cfg::StreamType::UNICAST);
 }
 
-HwAsic* SaiYangraPlatform::getAsic() const {
+HwAsic* GenericSaiYangraPlatform::getAsic() const {
   return asic_.get();
 }
+
 const std::unordered_map<std::string, std::string>
-SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
+GenericSaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   std::unordered_map<std::string, std::string> kv_map;
 
   // FBOSS does not set SAI_PORT_ATTR_AUTO_NEG_CONFIG_MODE on ports, and
@@ -210,7 +208,8 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   return kv_map;
 }
 
-const std::set<sai_api_t>& SaiYangraPlatform::getSupportedApiList() const {
+const std::set<sai_api_t>& GenericSaiYangraPlatform::getSupportedApiList()
+    const {
   static auto apis = getDefaultSwitchAsicSupportedApis();
   apis.erase(facebook::fboss::MplsApi::ApiType);
   apis.erase(facebook::fboss::TamApi::ApiType);
@@ -218,11 +217,7 @@ const std::set<sai_api_t>& SaiYangraPlatform::getSupportedApiList() const {
   return apis;
 }
 
-std::optional<SaiSwitchTraits::Attributes::AclFieldList>
-SaiYangraPlatform::getAclFieldList() const {
-  return std::nullopt;
-}
-std::string SaiYangraPlatform::getHwConfig() {
+std::string GenericSaiYangraPlatform::getHwConfig() {
   std::string xml_filename =
       *config()->thrift.platform()->chip().value().get_asic().config();
   std::string base_filename =
@@ -249,14 +244,17 @@ std::string SaiYangraPlatform::getHwConfig() {
   return xml_config;
 }
 
-bool SaiYangraPlatform::isSerdesApiSupported() const {
+bool GenericSaiYangraPlatform::isSerdesApiSupported() const {
   return true;
 }
-std::vector<PortID> SaiYangraPlatform::getAllPortsInGroup(
+
+std::vector<PortID> GenericSaiYangraPlatform::getAllPortsInGroup(
     PortID /*portID*/) const {
   return {};
 }
-std::vector<FlexPortMode> SaiYangraPlatform::getSupportedFlexPortModes() const {
+
+std::vector<FlexPortMode> GenericSaiYangraPlatform::getSupportedFlexPortModes()
+    const {
   return {
       FlexPortMode::ONEX400G,
       FlexPortMode::ONEX100G,
@@ -265,20 +263,21 @@ std::vector<FlexPortMode> SaiYangraPlatform::getSupportedFlexPortModes() const {
       FlexPortMode::FOURX10G,
       FlexPortMode::TWOX50G};
 }
-std::optional<sai_port_interface_type_t> SaiYangraPlatform::getInterfaceType(
+
+std::optional<sai_port_interface_type_t>
+GenericSaiYangraPlatform::getInterfaceType(
     TransmitterTechnology /*transmitterTech*/,
     cfg::PortSpeed /*speed*/) const {
   return std::nullopt;
 }
 
-bool SaiYangraPlatform::supportInterfaceType() const {
+bool GenericSaiYangraPlatform::supportInterfaceType() const {
   return false;
 }
 
-void SaiYangraPlatform::initLEDs() {}
-SaiYangraPlatform::~SaiYangraPlatform() = default;
+void GenericSaiYangraPlatform::initLEDs() {}
 
-SaiSwitchTraits::CreateAttributes SaiYangraPlatform::getSwitchAttributes(
+SaiSwitchTraits::CreateAttributes GenericSaiYangraPlatform::getSwitchAttributes(
     bool mandatoryOnly,
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
@@ -291,10 +290,17 @@ SaiSwitchTraits::CreateAttributes SaiYangraPlatform::getSwitchAttributes(
   std::get<std::optional<SaiSwitchTraits::Attributes::DisableSllAndHllTimeout>>(
       attributes) = true;
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB2) {
+    std::get<std::optional<SaiSwitchTraits::Attributes::PtpMode>>(attributes) =
+        SAI_PORT_PTP_MODE_SINGLE_STEP_TIMESTAMP;
+  }
+#endif
+
   return attributes;
 }
 
-HwSwitchWarmBootHelper* SaiYangraPlatform::getWarmBootHelper() {
+HwSwitchWarmBootHelper* GenericSaiYangraPlatform::getWarmBootHelper() {
   if (!wbHelper_) {
     wbHelper_ = std::make_unique<HwSwitchWarmBootHelper>(
         getAsic()->getSwitchIndex(),
@@ -304,4 +310,5 @@ HwSwitchWarmBootHelper* SaiYangraPlatform::getWarmBootHelper() {
   }
   return wbHelper_.get();
 }
+
 } // namespace facebook::fboss

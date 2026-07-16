@@ -39,8 +39,11 @@
 #include "fboss/agent/platforms/common/tahansb800bc/Tahansb800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge800bact/Wedge800BACTPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge800cact/Wedge800CACTPlatformMapping.h"
+#include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
+#include "fboss/agent/platforms/common/yangra2/Yangra2PlatformMapping.h"
 #include "fboss/agent/platforms/sai/GenericSaiBcmPlatform.h"
 #include "fboss/agent/platforms/sai/GenericSaiTajoPlatform.h"
+#include "fboss/agent/platforms/sai/GenericSaiYangraPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatform.h"
@@ -51,8 +54,6 @@
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 #include "fboss/agent/platforms/sai/SaiMinipack3NPlatform.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
-#include "fboss/agent/platforms/sai/SaiYangra2Platform.h"
-#include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
 namespace facebook::fboss {
@@ -99,6 +100,11 @@ std::unique_ptr<SaiPlatform> createGenericSaiBcmPlatform(
     std::unique_ptr<PlatformMapping> platformMapping) {
   return std::make_unique<GenericSaiBcmPlatform>(
       std::move(productInfo), std::move(platformMapping), localMac);
+}
+
+bool useGenericSaiYangraPlatform(PlatformType type) {
+  return type == PlatformType::PLATFORM_YANGRA ||
+      type == PlatformType::PLATFORM_YANGRA2;
 }
 
 std::unique_ptr<PlatformMapping> createGenericSaiPlatformMapping(
@@ -156,6 +162,10 @@ std::unique_ptr<PlatformMapping> createGenericSaiPlatformMapping(
       return std::make_unique<Tahansb800bcPlatformMapping>();
     case PlatformType::PLATFORM_WEDGE800CACT:
       return std::make_unique<Wedge800CACTPlatformMapping>();
+    case PlatformType::PLATFORM_YANGRA:
+      return std::make_unique<YangraPlatformMapping>();
+    case PlatformType::PLATFORM_YANGRA2:
+      return std::make_unique<Yangra2PlatformMapping>();
     default:
       throw FbossError(
           "Generic SAI platform is missing platform mapping for platform type ",
@@ -185,6 +195,17 @@ std::unique_ptr<SaiPlatform> createGenericSaiTajoPlatform(
       localMac);
 }
 
+std::unique_ptr<SaiPlatform> createGenericSaiYangraPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr) {
+  const auto platformType = productInfo->getType();
+  return std::make_unique<GenericSaiYangraPlatform>(
+      std::move(productInfo),
+      createGenericSaiPlatformMapping(platformType, platformMappingStr),
+      localMac);
+}
+
 std::unique_ptr<SaiPlatform> createGenericSaiPlatform(
     const PlatformDescriptor& descriptor,
     std::unique_ptr<PlatformProductInfo> productInfo,
@@ -202,9 +223,11 @@ std::unique_ptr<SaiPlatform> createGenericSaiPlatform(
     case HwAsic::AsicVendor::ASIC_VENDOR_TAJO:
       return createGenericSaiTajoPlatform(
           std::move(productInfo), localMac, platformMappingStr);
+    case HwAsic::AsicVendor::ASIC_VENDOR_CHENAB:
+      return createGenericSaiYangraPlatform(
+          std::move(productInfo), localMac, platformMappingStr);
     case HwAsic::AsicVendor::ASIC_VENDOR_CREDO:
     case HwAsic::AsicVendor::ASIC_VENDOR_MARVELL:
-    case HwAsic::AsicVendor::ASIC_VENDOR_CHENAB:
     case HwAsic::AsicVendor::ASIC_VENDOR_MOCK:
     case HwAsic::AsicVendor::ASIC_VENDOR_FAKE:
       break;
@@ -261,8 +284,8 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   } else if (productInfo->getType() == PlatformType::PLATFORM_ELBERT) {
     return std::make_unique<SaiBcmElbertPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_YANGRA) {
-    return std::make_unique<SaiYangraPlatform>(
+  } else if (useGenericSaiYangraPlatform(productInfo->getType())) {
+    return createGenericSaiYangraPlatform(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_MINIPACK3N) {
     return std::make_unique<SaiMinipack3NPlatform>(
@@ -295,9 +318,6 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
       productInfo->getType() == PlatformType::PLATFORM_M5120CSC ||
       productInfo->getType() == PlatformType::PLATFORM_MORGAN800CC) {
     return createGenericSaiTajoPlatform(
-        std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_YANGRA2) {
-    return std::make_unique<SaiYangra2Platform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_FAKE_SAI) {
     return std::make_unique<SaiFakePlatform>(std::move(productInfo));

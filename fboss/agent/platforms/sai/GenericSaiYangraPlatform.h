@@ -13,22 +13,13 @@
 
 namespace facebook::fboss {
 
-class ChenabAsic;
-
-class SaiYangraPlatform : public SaiPlatform {
+class GenericSaiYangraPlatform : public SaiPlatform {
  public:
-  SaiYangraPlatform(
+  GenericSaiYangraPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac,
-      const std::string& platformMappingStr);
-  SaiYangraPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac,
-      std::unique_ptr<PlatformMapping> platformMapping);
-  ~SaiYangraPlatform() override;
-
-  std::optional<SaiSwitchTraits::Attributes::AclFieldList> getAclFieldList()
-      const override;
+      std::unique_ptr<PlatformMapping> platformMapping,
+      folly::MacAddress localMac);
+  ~GenericSaiYangraPlatform() override;
 
   HwAsic* getAsic() const override;
   bool isSerdesApiSupported() const override;
@@ -42,7 +33,7 @@ class SaiYangraPlatform : public SaiPlatform {
 
   const std::set<sai_api_t>& getSupportedApiList() const override;
 
-  virtual const std::unordered_map<std::string, std::string>
+  const std::unordered_map<std::string, std::string>
   getSaiProfileVendorExtensionValues() const override;
 
   std::string getHwConfig() override;
@@ -54,14 +45,13 @@ class SaiYangraPlatform : public SaiPlatform {
       BootType bootType) override;
   HwSwitchWarmBootHelper* getWarmBootHelper() override;
 
- protected:
-  std::unique_ptr<ChenabAsic> asic_;
-
  private:
   void setupAsic(
       std::optional<int64_t> switchId,
       const cfg::SwitchInfo& switchInfo,
-      std::optional<HwAsic::FabricNodeRole> role) override;
+      std::optional<HwAsic::FabricNodeRole> fabricNodeRole) override;
+
+  std::unique_ptr<HwAsic> asic_;
 };
 
 } // namespace facebook::fboss
