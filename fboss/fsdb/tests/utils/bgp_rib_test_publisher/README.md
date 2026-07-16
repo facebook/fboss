@@ -43,7 +43,7 @@ bgp_rib_test_publisher \
 PID=$!
 
 # Verify routes published
-fboss2 show fsdb state bgp/ribMap
+fboss2 show fsdb state bgp/canonicalRib
 
 # Withdraw and exit
 kill -USR1 $PID
@@ -72,7 +72,7 @@ kill -USR1 $PID
 - **`BgpRibTestPublisher`** — Core library using `FsdbSyncManager` to publish BGP RIB data
 - **`main.cpp`** — CLI binary with event-driven signal handling via `folly::AsyncSignalHandler`
 
-Follows the `FsdbSyncer` publisher pattern from the BGP codebase, writing to `BgpData.ribMap` with `TRibEntry` structs.
+Follows the `FsdbSyncer` publisher pattern from the BGP codebase, writing the canonical RIB to `BgpData.canonicalRib` as a `TCanonicalRibState` via `setCanonicalRoutes`.
 
 ## Related Documentation
 

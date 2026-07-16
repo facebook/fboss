@@ -10,11 +10,13 @@
 
 #include <algorithm>
 #include "fboss/cli/fboss2/CmdList.h"
-
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h"
 #include "fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h"
+#include "fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.h"
+#include "fboss/cli/fboss2/commands/config/dhcp/relay_source_override/CmdConfigDhcpRelaySourceOverride.h"
+#include "fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
@@ -24,6 +26,9 @@
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/CmdConfigInterfaceSwitchportTrunk.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/CmdConfigInterfaceSwitchportTrunkAllowed.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/vlan/CmdConfigInterfaceSwitchportTrunkAllowedVlan.h"
 #include "fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h"
 #include "fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h"
 #include "fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.h"
@@ -87,6 +92,8 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerV4OverV6Nh.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningLimit.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningOnly.h"
+#include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
+#include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
 #include "fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h"
 #include "fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.h"
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
@@ -102,6 +109,10 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+#include "fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h"
+#include "fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h"
+#include "fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h"
+#include "fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.h"
@@ -117,6 +128,9 @@
 #include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
@@ -126,6 +140,32 @@ namespace facebook::fboss {
 
 const CommandTree& kConfigCommandTree() {
   static CommandTree root = {
+      {
+          "config",
+          "switch",
+          "Configure switch-level settings",
+          commandHandler<CmdConfigSwitch>,
+          argRegistrar<CmdConfigSwitchTraits>,
+          {{
+               "admin-distance",
+               "Set administrative distance for a routing client",
+               commandHandler<CmdConfigAdminDistance>,
+               argRegistrar<CmdConfigAdminDistanceTraits>,
+           },
+           {
+               "hostname",
+               "Set switch hostname",
+               commandHandler<CmdConfigHostname>,
+               argRegistrar<CmdConfigHostnameTraits>,
+           },
+           {
+               "icmpv4-unavailable-src-addr",
+               "Set IPv4 source address for ICMP when no address is configured",
+               commandHandler<CmdConfigIcmpV4UnavailableSrcAddr>,
+               argRegistrar<CmdConfigIcmpV4UnavailableSrcAddrTraits>,
+           }},
+      },
+
       {"config",
        "applied-info",
        "Show config applied information",
@@ -157,6 +197,26 @@ const CommandTree& kConfigCommandTree() {
        "Configure ARP settings",
        commandHandler<CmdConfigArp>,
        argRegistrar<CmdConfigArpTraits>},
+
+      {
+          "config",
+          "dhcp",
+          "Configure DHCP settings",
+          commandHandler<CmdConfigDhcp>,
+          argRegistrar<CmdConfigDhcpTraits>,
+          {{
+               "relay-source-override",
+               "Override source IP for DHCP relay packets to the DHCP server (ipv4|ipv6 <IP>)",
+               commandHandler<CmdConfigDhcpRelaySourceOverride>,
+               argRegistrar<CmdConfigDhcpRelaySourceOverrideTraits>,
+           },
+           {
+               "reply-source-override",
+               "Override source IP for DHCP reply packets to the client (ipv4|ipv6 <IP>)",
+               commandHandler<CmdConfigDhcpReplySourceOverride>,
+               argRegistrar<CmdConfigDhcpReplySourceOverrideTraits>,
+           }},
+      },
 
       {"config",
        "history",
@@ -200,18 +260,40 @@ const CommandTree& kConfigCommandTree() {
                commandHandler<CmdConfigInterfaceSwitchport>,
                argRegistrar<CmdConfigInterfaceSwitchportTraits>,
                {{
-                   "access",
-                   "Configure access mode settings",
-                   commandHandler<CmdConfigInterfaceSwitchportAccess>,
-                   argRegistrar<CmdConfigInterfaceSwitchportAccessTraits>,
-                   {{
-                       "vlan",
-                       "Set access VLAN (ingressVlan) for the interface",
-                       commandHandler<CmdConfigInterfaceSwitchportAccessVlan>,
-                       argRegistrar<
-                           CmdConfigInterfaceSwitchportAccessVlanTraits>,
-                   }},
-               }},
+                    "access",
+                    "Configure access mode settings",
+                    commandHandler<CmdConfigInterfaceSwitchportAccess>,
+                    argRegistrar<CmdConfigInterfaceSwitchportAccessTraits>,
+                    {{
+                        "vlan",
+                        "Set access VLAN (ingressVlan) for the interface",
+                        commandHandler<CmdConfigInterfaceSwitchportAccessVlan>,
+                        argRegistrar<
+                            CmdConfigInterfaceSwitchportAccessVlanTraits>,
+                    }},
+                },
+                {
+                    "trunk",
+                    "Configure trunk mode settings",
+                    commandHandler<CmdConfigInterfaceSwitchportTrunk>,
+                    argRegistrar<CmdConfigInterfaceSwitchportTrunkTraits>,
+                    {{
+                        "allowed",
+                        "Configure allowed VLANs for trunk",
+                        commandHandler<
+                            CmdConfigInterfaceSwitchportTrunkAllowed>,
+                        argRegistrar<
+                            CmdConfigInterfaceSwitchportTrunkAllowedTraits>,
+                        {{
+                            "vlan",
+                            "Add or remove VLANs from trunk allowed list",
+                            commandHandler<
+                                CmdConfigInterfaceSwitchportTrunkAllowedVlan>,
+                            argRegistrar<
+                                CmdConfigInterfaceSwitchportTrunkAllowedVlanTraits>,
+                        }},
+                    }},
+                }},
            }},
       },
 
@@ -727,6 +809,34 @@ const CommandTree& kConfigCommandTree() {
                       },
                   },
               },
+              {
+                  "static",
+                  "Configure static routing",
+                  commandHandler<CmdConfigProtocolStatic>,
+                  argTypeHandler<CmdConfigProtocolStaticTraits>,
+                  {{
+                       "ip",
+                       "Configure IPv4 static routes",
+                       {{
+                           "route",
+                           "Add an IPv4 static route",
+                           commandHandler<CmdConfigProtocolStaticIpRouteAdd>,
+                           argRegistrar<
+                               CmdConfigProtocolStaticIpRouteAddTraits>,
+                       }},
+                   },
+                   {
+                       "ipv6",
+                       "Configure IPv6 static routes",
+                       {{
+                           "route",
+                           "Add an IPv6 static route",
+                           commandHandler<CmdConfigProtocolStaticIpv6RouteAdd>,
+                           argRegistrar<
+                               CmdConfigProtocolStaticIpv6RouteAddTraits>,
+                       }},
+                   }},
+              },
           },
       },
 
@@ -916,7 +1026,7 @@ const CommandTree& kConfigCommandTree() {
       {
           "delete",
           "interface",
-          "Reset interface settings (e.g. ipv6 ndp)",
+          "Delete an interface/port, or reset interface settings (e.g. ipv6 ndp, ip-address)",
           commandHandler<CmdDeleteInterface>,
           argRegistrar<CmdDeleteInterfaceTraits>,
           {{
@@ -930,6 +1040,40 @@ const CommandTree& kConfigCommandTree() {
                   commandHandler<CmdDeleteInterfaceIpv6Ndp>,
                   argRegistrar<CmdDeleteInterfaceIpv6NdpTraits>,
               }},
+          }},
+      },
+
+      {
+          "delete",
+          "protocol",
+          "Delete protocol objects",
+          commandHandler<CmdDeleteProtocol>,
+          argTypeHandler<CmdDeleteProtocolTraits>,
+          {{
+              "static",
+              "Delete static routing configuration",
+              commandHandler<CmdDeleteProtocolStatic>,
+              argTypeHandler<CmdDeleteProtocolStaticTraits>,
+              {{
+                   "ip",
+                   "Delete IPv4 static routes",
+                   {{
+                       "route",
+                       "Delete IPv4 static route",
+                       commandHandler<CmdDeleteProtocolStaticIpRoute>,
+                       argRegistrar<CmdDeleteProtocolStaticIpRouteTraits>,
+                   }},
+               },
+               {
+                   "ipv6",
+                   "Delete IPv6 static routes",
+                   {{
+                       "route",
+                       "Delete IPv6 static route",
+                       commandHandler<CmdDeleteProtocolStaticIpv6Route>,
+                       argRegistrar<CmdDeleteProtocolStaticIpv6RouteTraits>,
+                   }},
+               }},
           }},
       },
 

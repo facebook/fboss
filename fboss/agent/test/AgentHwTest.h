@@ -341,6 +341,29 @@ class AgentHwTest : public ::testing::Test {
   virtual void overrideTestEnsembleInitInfo(
       TestEnsembleInitInfo& /*initInfo*/) const {}
 
+  // Default cap on the number of front-panel INTERFACE_PORTs an AgentHwTest
+  // uses per switch. Covers ~77% of agent_hw_tests. Tests that need the full
+  // port set opt out by overriding maxRequiredInterfacePorts() to return
+  // std::nullopt.
+  static constexpr size_t kDefaultMaxTestInterfacePorts = 8;
+
+  /*
+   * Override to cap the number of front-panel INTERFACE_PORTs the test
+   * uses per switch. Defaults to kDefaultMaxTestInterfacePorts (8). Return
+   * std::nullopt to opt out (use the entire platform port set).
+   */
+  virtual std::optional<size_t> maxRequiredInterfacePorts() const {
+    return kDefaultMaxTestInterfacePorts;
+  }
+
+  /*
+   * Override to cap the number of FABRIC_PORTs the test uses per switch.
+   * Defaults to std::nullopt (no cap, use the entire fabric port set).
+   */
+  virtual std::optional<size_t> maxRequiredFabricPorts() const {
+    return std::nullopt;
+  }
+
  private:
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };

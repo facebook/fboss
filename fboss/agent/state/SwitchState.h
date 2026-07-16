@@ -79,10 +79,6 @@ USE_THRIFT_COW(SwitchState);
 /* multi npu maps */
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
-    switch_state_tags::fibsMap,
-    MultiSwitchForwardingInformationBaseMap);
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
     switch_state_tags::fibsInfoMap,
     MultiSwitchFibInfoMap);
 RESOLVE_STRUCT_MEMBER(
@@ -343,8 +339,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<MultiSwitchMirrorOnDropReportMap>&
   getMirrorOnDropReports() const;
   const std::shared_ptr<MultiSwitchFibInfoMap>& getFibsInfoMap() const;
-  const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& getFibs()
-      const;
   const std::shared_ptr<MultiLabelForwardingInformationBase>&
   getLabelForwardingInformationBase() const;
 
@@ -410,8 +404,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       std::shared_ptr<MultiSwitchLoadBalancerMap> loadBalancers);
   void resetLabelForwardingInformationBase(
       std::shared_ptr<MultiLabelForwardingInformationBase> labelFib);
-  void resetForwardingInformationBases(
-      std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs);
   void resetFibsInfoMap(std::shared_ptr<MultiSwitchFibInfoMap> fibsInfoMap);
   void resetSwitchSettings(std::shared_ptr<MultiSwitchSettings> switchSettings);
   void resetBufferPoolCfgs(std::shared_ptr<MultiSwitchBufferPoolCfgMap> cfgs);

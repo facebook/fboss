@@ -24,6 +24,7 @@
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/mnpu/MultiSwitchHwSwitchHandler.h"
@@ -711,7 +712,8 @@ const HwAsic* checkSameAndGetAsicForTesting(
 folly::MacAddress getMacForFirstInterfaceWithPortsForTesting(
     const std::shared_ptr<SwitchState>& state);
 InterfaceID firstInterfaceIDWithPortsForTesting(
-    const std::shared_ptr<SwitchState>& state);
+    const std::shared_ptr<SwitchState>& state,
+    std::optional<cfg::Scope> scope = std::nullopt);
 std::shared_ptr<Interface> firstInterfaceWithPortsForTesting(
     const std::shared_ptr<SwitchState>& state);
 

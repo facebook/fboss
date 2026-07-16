@@ -26,6 +26,16 @@ class BroadcomAsic : public HwAsic {
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_BCM;
   }
+  uint32_t getNumLanesPerCore() const override {
+    return 8;
+  }
+  uint32_t getSaiPhysicalLaneId(
+      PlatformType /*platformType*/,
+      cfg::PortType /*portType*/,
+      uint32_t chipId,
+      uint32_t logicalLane) const override {
+    return chipId * getNumLanesPerCore() + logicalLane + 1;
+  }
   uint32_t getNumCores() const override {
     throw FbossError("Num cores API not supported");
   }

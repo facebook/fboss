@@ -876,12 +876,16 @@ InterfaceID getRemoteIntfId(SystemPortID sysPortId) {
 }
 
 std::optional<HwSysPortStats> getRemoteSysPortStatsForSwitchUnderTest(
-    const SwSwitch* sw,
+    SwSwitch* sw,
     const std::shared_ptr<SwitchState>& state,
     uint16_t switchIndex,
-    SystemPortID sysPortId) {
+    SystemPortID sysPortId,
+    bool refreshStats) {
   auto remoteSysPort = state->getRemoteSystemPorts()->getNodeIf(sysPortId);
   CHECK(remoteSysPort);
+  if (refreshStats) {
+    sw->updateStats();
+  }
   auto hwStats = sw->getHwSwitchStatsExpensive();
   auto switchStats = hwStats.find(switchIndex);
   if (switchStats == hwStats.end()) {

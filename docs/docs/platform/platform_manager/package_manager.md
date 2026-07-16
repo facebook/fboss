@@ -28,13 +28,13 @@ The platform configuration specifies the BSP RPM:
 {
   "bspKmodsRpmName": "vendor_bsp_kmods",
   "bspKmodsRpmVersion": "1.0.0",
-  "requiredKmodsToLoad": ["module1", "module2"]
+  "nonBspKmodsToLoad": ["module1", "module2"]
 }
 ```
 
 - `bspKmodsRpmName`: Base name of the RPM package
 - `bspKmodsRpmVersion`: Required version
-- `requiredKmodsToLoad`: Modules to load before exploration (most modules are
+- `nonBspKmodsToLoad`: Modules to load before exploration (most modules are
   loaded automatically during device creation)
 
 ## Kernel Modules Management
@@ -61,7 +61,7 @@ When `--reload_kmods=true` or when the BSP version changes:
 2. Unload `bspKmods` in reverse order
 3. Unload `sharedKmods` in reverse order
 4. Run `depmod` to refresh module dependencies
-5. Load `requiredKmodsToLoad` modules
+5. Load `nonBspKmodsToLoad` modules
 6. Proceed with platform exploration (which loads modules on-demand)
 
 ## Local RPM Testing

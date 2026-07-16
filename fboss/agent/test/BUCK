@@ -163,7 +163,6 @@ cpp_unittest(
         "//fboss/agent/rib:fib_updater",
         "//fboss/agent/rib:nexthop_id_manager",
         "//fboss/agent/rib:standalone_rib",
-        "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",
         "//fboss/agent/test/utils:nexthop_id_test_utils",
@@ -859,6 +858,7 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:hw_asic_table",
         "//fboss/agent:hw_switch",
+        "//fboss/agent:packet",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/state:state",

@@ -12,7 +12,6 @@
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/hw/sai/api/SaiApiLock.h"
 #include "fboss/agent/platforms/sai/SaiPhyPlatform.h"
 #include "fboss/lib/bsp/BspPimContainer.h"
 #include "fboss/lib/phy/SaiPhyRetimer.h"

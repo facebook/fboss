@@ -287,6 +287,7 @@ TEST(UtilsTest, CreateMdioBusConfigs) {
   mdioBlock.deviceName() = "fbiob-mdio";
   mdioBlock.csrOffsetCalc() = "0x200 + {busIndex}*0x20";
   mdioBlock.numBuses() = 2;
+  mdioBlock.iobufOffsetCalc() = "0x100 + {busIndex}*0x4";
   pciDeviceConfig.mdioBusBlockConfigs() = {mdioBlock};
 
   auto configs = Utils::createMdioBusConfigs(pciDeviceConfig);
@@ -294,42 +295,8 @@ TEST(UtilsTest, CreateMdioBusConfigs) {
   EXPECT_EQ("MDIO_BUS_1", *configs[0].pmUnitScopedName());
   EXPECT_EQ("fbiob-mdio", *configs[0].deviceName());
   EXPECT_EQ("0x200", *configs[0].csrOffset());
+  EXPECT_EQ("0x100", *configs[0].iobufOffset());
   EXPECT_EQ("MDIO_BUS_2", *configs[1].pmUnitScopedName());
   EXPECT_EQ("0x220", *configs[1].csrOffset());
-}
-
-TEST(UtilsTest, CreateRtmCtrlConfigs) {
-  PciDeviceConfig pciDeviceConfig;
-  pciDeviceConfig.rtmCtrlBlockConfigs() = {};
-  EXPECT_TRUE(Utils::createRtmCtrlConfigs(pciDeviceConfig).empty());
-
-  RtmCtrlBlockConfig rtmBlock;
-  rtmBlock.pmUnitScopedNamePrefix() = "RTM_L_MDIO_1";
-  rtmBlock.deviceName() = "fbiob-rtm";
-  rtmBlock.csrOffsetCalc() = "0x1000 + ({portNum} - {startPort})*0x4";
-  rtmBlock.numPorts() = 2;
-  rtmBlock.startPort() = 1;
-  rtmBlock.iobufOffsetCalc() = "0x2000 + ({portNum} - {startPort})*0x4";
-  pciDeviceConfig.rtmCtrlBlockConfigs() = {rtmBlock};
-
-  auto configs = Utils::createRtmCtrlConfigs(pciDeviceConfig);
-  EXPECT_EQ(2, configs.size());
-  EXPECT_EQ(
-      "RTM_L_MDIO_1_RTM_CTRL_PORT_1",
-      *configs[0].fpgaIpBlockConfig()->pmUnitScopedName());
-  EXPECT_EQ(
-      "RTM_L_MDIO_1_RTM_CTRL_PORT_2",
-      *configs[1].fpgaIpBlockConfig()->pmUnitScopedName());
-  EXPECT_EQ("0x1000", *configs[0].fpgaIpBlockConfig()->csrOffset());
-  EXPECT_EQ("0x1004", *configs[1].fpgaIpBlockConfig()->csrOffset());
-  EXPECT_EQ(1, *configs[0].portNumber());
-  EXPECT_EQ(2, *configs[1].portNumber());
-  EXPECT_EQ("0x2000", *configs[0].fpgaIpBlockConfig()->iobufOffset());
-  EXPECT_EQ("0x2004", *configs[1].fpgaIpBlockConfig()->iobufOffset());
-
-  rtmBlock.iobufOffsetCalc() = "";
-  pciDeviceConfig.rtmCtrlBlockConfigs() = {rtmBlock};
-  configs = Utils::createRtmCtrlConfigs(pciDeviceConfig);
-  EXPECT_TRUE(configs[0].fpgaIpBlockConfig()->iobufOffset()->empty());
-  EXPECT_TRUE(configs[1].fpgaIpBlockConfig()->iobufOffset()->empty());
+  EXPECT_EQ("0x104", *configs[1].iobufOffset());
 }

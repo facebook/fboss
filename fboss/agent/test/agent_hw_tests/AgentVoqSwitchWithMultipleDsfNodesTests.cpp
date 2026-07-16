@@ -6,7 +6,6 @@
 
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FabricConnectivityManager.h"
-#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -311,6 +310,148 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class AgentVoqSwitchWithTwoRemoteDsfNodesTest
+    : public AgentVoqSwitchWithMultipleDsfNodesTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentVoqSwitchTest::initialConfig(ensemble);
+    cfg.dsfNodes() = *utility::addRemoteIntfNodeCfg(*cfg.dsfNodes(), 2);
+    return cfg;
+  }
+};
+
+TEST_F(
+    AgentVoqSwitchWithTwoRemoteDsfNodesTest,
+    crossSwitchInterfaceRouteMigration) {
+  // Two remote switches (A, B) symmetrically swap interface IPs via
+  // separate DSF updates. Without the ownership check fix, the second
+  // update's delete removes the first update's newly added route.
+
+  auto constexpr remotePortIdA = 401;
+  auto constexpr remotePortIdB = 501;
+  const auto prefixA =
+      RoutePrefixV6{folly::IPAddressV6("2401:db00:e702:50:1000::20"), 127};
+  const auto prefixB =
+      RoutePrefixV6{folly::IPAddressV6("2401:db00:e702:58:1000::"), 127};
+  const auto ipA = folly::IPAddress("2401:db00:e702:50:1000::21");
+  const auto ipB = folly::IPAddress("2401:db00:e702:58:1000::1");
+
+  auto logRoutes = [this](const std::string& phase) {
+    auto fibV6 = getProgrammedState()
+                     ->getFibsInfoMap()
+                     ->getFibContainer(RouterID(0))
+                     ->getFibV6();
+    XLOG(DBG2) << "=== Remote interface routes (" << phase << ") ===";
+    for (const auto& [_, route] : std::as_const(*fibV6)) {
+      auto entry = route->getEntryForClient(ClientID::REMOTE_INTERFACE_ROUTE);
+      if (!entry) {
+        continue;
+      }
+      auto nhops = entry->getNextHopSet();
+      XLOG(DBG2) << "  " << route->prefix().network() << "/"
+                 << route->prefix().mask() << " -> "
+                 << (nhops.empty()
+                         ? "none"
+                         : folly::to<std::string>(
+                               "intf ", nhops.begin()->intfID().value()))
+                 << " (connected=" << route->isConnected() << ")";
+    }
+  };
+
+  auto setup = [&, this]() {
+    int numCores =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getNumCores();
+    auto switchIdA = static_cast<SwitchID>(numCores);
+    auto switchIdB = static_cast<SwitchID>(numCores * 2);
+
+    auto dsfUpdate = [this](
+                         const SwitchID& switchId,
+                         int portId,
+                         const folly::IPAddress& ip,
+                         const std::string& desc) {
+      auto sysPorts = std::make_shared<SystemPortMap>();
+      sysPorts->addNode(
+          utility::makeRemoteSysPort(SystemPortID(portId), switchId));
+      auto rifs = std::make_shared<InterfaceMap>();
+      rifs->addNode(
+          utility::makeRemoteInterface(InterfaceID(portId), {{ip, 127}}));
+
+      std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SysPorts;
+      std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
+      switchId2SysPorts[switchId] = sysPorts;
+      switchId2Rifs[switchId] = rifs;
+      auto sw = getSw();
+      sw->getRib()->updateStateInRibThread(
+          [sw, switchId2SysPorts, switchId2Rifs, desc]() {
+            sw->updateStateWithHwFailureProtection(
+                desc,
+                [sw, switchId2SysPorts, switchId2Rifs](
+                    const std::shared_ptr<SwitchState>& in) {
+                  return DsfStateUpdaterUtil::getUpdatedState(
+                      in,
+                      sw->getScopeResolver(),
+                      sw->getRib(),
+                      switchId2SysPorts,
+                      switchId2Rifs);
+                });
+          });
+    };
+
+    // Phase 1: Initial state — A owns prefixA, B owns prefixB
+    dsfUpdate(switchIdA, remotePortIdA, ipA, "Add switch A initial state");
+    dsfUpdate(switchIdB, remotePortIdB, ipB, "Add switch B initial state");
+    WITH_RETRIES({
+      auto fibV6 = getProgrammedState()
+                       ->getFibsInfoMap()
+                       ->getFibContainer(RouterID(0))
+                       ->getFibV6();
+      EXPECT_EVENTUALLY_NE(fibV6->exactMatch(prefixA), nullptr);
+      EXPECT_EVENTUALLY_NE(fibV6->exactMatch(prefixB), nullptr);
+    });
+    logRoutes("after Phase 1: initial state");
+
+    // Phase 2: A swaps to B's old IP
+    dsfUpdate(switchIdA, remotePortIdA, ipB, "Switch A swaps to B's old IP");
+    logRoutes("after Phase 2: switch A swapped");
+
+    // Phase 3: B swaps to A's old IP — without the fix, this deletes
+    // A's newly added route because the RIB only matches by prefix.
+    dsfUpdate(switchIdB, remotePortIdB, ipA, "Switch B swaps to A's old IP");
+    logRoutes("after Phase 3: switch B swapped");
+  };
+
+  auto verify = [&, this]() {
+    logRoutes("verify: current state");
+    WITH_RETRIES({
+      auto fibV6 = getProgrammedState()
+                       ->getFibsInfoMap()
+                       ->getFibContainer(RouterID(0))
+                       ->getFibV6();
+      // Both prefixes must exist, owned by the swapped interfaces
+      auto routeForB = fibV6->exactMatch(prefixA);
+      EXPECT_EVENTUALLY_NE(routeForB, nullptr);
+      if (routeForB) {
+        EXPECT_TRUE(routeForB->isConnected());
+        auto nhops = routeForB->getForwardInfo().getNextHopSet();
+        ASSERT_EQ(nhops.size(), 1);
+        EXPECT_EQ(nhops.begin()->intf(), InterfaceID(remotePortIdB));
+      }
+      auto routeForA = fibV6->exactMatch(prefixB);
+      EXPECT_EVENTUALLY_NE(routeForA, nullptr);
+      if (routeForA) {
+        EXPECT_TRUE(routeForA->isConnected());
+        auto nhops = routeForA->getForwardInfo().getNextHopSet();
+        ASSERT_EQ(nhops.size(), 1);
+        EXPECT_EQ(nhops.begin()->intf(), InterfaceID(remotePortIdA));
+      }
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
   auto setup = [this]() {
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
@@ -431,7 +572,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
           getSw(),
           getProgrammedState(),
           getCurrentSwitchIndexForTesting(),
-          kRemoteSysPortId);
+          kRemoteSysPortId,
+          true /* refreshStats */);
       if (!sysPortStats.has_value()) {
         return std::nullopt;
       }
@@ -755,7 +897,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
             getSw(),
             getProgrammedState(),
             getCurrentSwitchIndexForTesting(),
-            kRemoteSysPortId);
+            kRemoteSysPortId,
+            true /* refreshStats */);
         ASSERT_EVENTUALLY_TRUE(statsBefore.has_value());
       });
       auto queueBytesBefore = statsBefore->queueOutBytes_()->at(voqId) +
@@ -774,7 +917,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
             getSw(),
             getProgrammedState(),
             getCurrentSwitchIndexForTesting(),
-            kRemoteSysPortId);
+            kRemoteSysPortId,
+            true /* refreshStats */);
         ASSERT_EVENTUALLY_TRUE(statsAfter.has_value());
         auto queueBytesAfter = statsAfter->queueOutBytes_()->at(voqId) +
             statsAfter->queueOutDiscardBytes_()->at(voqId);
@@ -1118,6 +1262,12 @@ class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
     return getShelEnabledConfig(config);
   }
 
+  // SHEL (self-healing ECMP lag) is exercised across all NIF ports, so opt out
+  // of the default interface-port cap and configure the full port set.
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return std::nullopt;
+  }
+
  protected:
   void verifyShelEnabled(bool desiredShelEnable, bool shelEnabled) {
     auto state = getProgrammedState();
@@ -1149,29 +1299,26 @@ class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
 
   void verifyShelPortState(bool enabled) {
     WITH_RETRIES({
-      auto stats = getAllHwSwitchStats();
+      auto hwSwitchStats = getHwSwitchStats();
+      auto sysPortShelState = hwSwitchStats.sysPortShelState();
       auto state = getProgrammedState();
       for (const auto& portMap : std::as_const(*state->getPorts())) {
         for (const auto& port : std::as_const(*portMap.second)) {
-          if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
-              port.second->getPortType() == cfg::PortType::HYPER_PORT) {
-            auto switchId = scopeResolver().scope(port.second).switchId();
-            EXPECT_EVENTUALLY_TRUE(stats.contains(switchId));
-            auto globalSystemPortOffset = *getSw()
-                                               ->getSwitchInfoTable()
-                                               .getSwitchInfo(switchId)
-                                               .globalSystemPortOffset();
-            if (stats.contains(switchId)) {
-              auto sysPortShelState = stats.at(switchId).sysPortShelState();
-              auto systemPortId = globalSystemPortOffset + port.first;
-              EXPECT_EVENTUALLY_TRUE(sysPortShelState->contains(systemPortId));
-              if (sysPortShelState->contains(systemPortId)) {
-                EXPECT_EVENTUALLY_EQ(
-                    sysPortShelState->at(systemPortId),
-                    (enabled ? cfg::PortState::ENABLED
-                             : cfg::PortState::DISABLED));
-              }
-            }
+          if ((port.second->getPortType() != cfg::PortType::INTERFACE_PORT &&
+               port.second->getPortType() != cfg::PortType::HYPER_PORT) ||
+              scopeResolver().scope(port.second).switchId() !=
+                  getCurrentSwitchIdForTesting()) {
+            continue;
+          }
+
+          auto systemPortId = getSystemPortID(
+              PortDescriptor(port.second->getID()), cfg::Scope::GLOBAL);
+          auto systemPortIdKey = static_cast<int>(systemPortId);
+          EXPECT_EVENTUALLY_TRUE(sysPortShelState->contains(systemPortIdKey));
+          if (sysPortShelState->contains(systemPortIdKey)) {
+            EXPECT_EVENTUALLY_EQ(
+                sysPortShelState->at(systemPortIdKey),
+                (enabled ? cfg::PortState::ENABLED : cfg::PortState::DISABLED));
           }
         }
       }

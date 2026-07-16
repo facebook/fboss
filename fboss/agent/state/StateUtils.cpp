@@ -56,12 +56,16 @@ folly::MacAddress getMacForFirstInterfaceWithPorts(
 
 InterfaceID firstInterfaceIDWithPorts(
     const std::shared_ptr<SwitchState>& state,
-    const SwitchID& switchId) {
+    const SwitchID& switchId,
+    std::optional<cfg::Scope> scope) {
   HwSwitchMatcher matcher(std::unordered_set<SwitchID>{switchId});
   auto intfMap = state->getInterfaces()->getMapNodeIf(matcher);
   if (intfMap) {
     for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
       if (intf->isVirtual()) {
+        continue;
+      }
+      if (scope.has_value() && intf->getScope() != scope.value()) {
         continue;
       }
       return InterfaceID(intfID);

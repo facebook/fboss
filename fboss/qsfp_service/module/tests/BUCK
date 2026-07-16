@@ -32,6 +32,7 @@ cpp_unittest(
         ":fake-transceiver-impl",
         ":transceiver-tests-helper",
         "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
         "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
         "//fboss/qsfp_service/test:transceiver_manager_test_helper",
         "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
@@ -103,12 +104,14 @@ cpp_library(
         "FakeTransceiverImpl.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
-    exported_deps = [
+    deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/lib/usb:i2-api",
         "//fboss/qsfp_service:transceiver-manager",
-        "//fboss/qsfp_service/module:firmware_upgrader",
         "//fboss/qsfp_service/module:qsfp-module",
+    ],
+    exported_deps = [
+        "//fboss/qsfp_service/module:firmware_upgrader",
     ],
 )
 
@@ -121,8 +124,8 @@ cpp_library(
         "TransceiverTestsHelper.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = ["fbsource//third-party/googletest:gtest"],
     exported_deps = [
-        "fbsource//third-party/googletest:gtest",
         "//fboss/qsfp_service/module:qsfp-module",
     ],
 )

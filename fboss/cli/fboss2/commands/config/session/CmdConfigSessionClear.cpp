@@ -15,7 +15,6 @@
 #include <fmt/format.h>
 #include <filesystem>
 #include <iostream>
-#include <ostream>
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 

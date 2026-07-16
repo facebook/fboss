@@ -248,11 +248,6 @@ StateDelta::getTransceiversDelta() const {
       old_->getTransceivers().get(), new_->getTransceivers().get());
 }
 
-MultiSwitchForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
-  return MultiSwitchForwardingInformationBaseMapDelta(
-      old_->getFibs().get(), new_->getFibs().get());
-}
-
 MultiSwitchFibInfoMapDelta StateDelta::getFibsInfoDelta() const {
   return MultiSwitchFibInfoMapDelta(
       old_->getFibsInfoMap().get(), new_->getFibsInfoMap().get());

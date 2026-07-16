@@ -80,6 +80,8 @@ phy::VCOFrequency BcmPlatform::getVCOFrequency(
       return phy::VCOFrequency::VCO_26_5625GHZ;
     case cfg::PortSpeed::TWOHUNDREDG:
       [[fallthrough]];
+    case cfg::PortSpeed::TWOHUNDREDANDTWELVEPOINTFIVEG:
+      [[fallthrough]];
     case cfg::PortSpeed::HUNDREDG:
       [[fallthrough]];
     case cfg::PortSpeed::FIFTYG:

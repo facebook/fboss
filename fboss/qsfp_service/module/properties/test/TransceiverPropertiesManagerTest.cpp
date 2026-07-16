@@ -103,6 +103,26 @@ TEST_F(TransceiverPropertiesManagerTest, DeriveSmfCodeDR4_2x800G) {
       MediaInterfaceCode::DR4_2x800G);
 }
 
+// A multi-bank module and DR4_2x800G advertise an identical application (smf
+// 0x77, host 0x82, hostStartLanes {0, 4}); only the bank count disambiguates
+// them. A 4-bank module derives DR4_8x800G, while a single bank (explicit or
+// default) still derives DR4_2x800G.
+TEST_F(TransceiverPropertiesManagerTest, DeriveSmfCodeDr4_8x800GByBankCount) {
+  initDefault();
+
+  EXPECT_EQ(
+      TransceiverPropertiesManager::deriveSmfCode(
+          0x77, {0, 4}, 0x82, 500, /*maxNumBanks=*/4),
+      MediaInterfaceCode::DR4_8x800G);
+  EXPECT_EQ(
+      TransceiverPropertiesManager::deriveSmfCode(
+          0x77, {0, 4}, 0x82, 500, /*maxNumBanks=*/1),
+      MediaInterfaceCode::DR4_2x800G);
+  EXPECT_EQ(
+      TransceiverPropertiesManager::deriveSmfCode(0x77, {0, 4}, 0x82, 500),
+      MediaInterfaceCode::DR4_2x800G);
+}
+
 TEST_F(TransceiverPropertiesManagerTest, DeriveSmfCodeFR4_2x400G) {
   initDefault();
 

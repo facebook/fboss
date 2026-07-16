@@ -12,7 +12,6 @@
 #include <memory>
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
@@ -21,6 +20,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
+#include "fboss/lib/config/AgentConfigUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Format.h>
@@ -32,28 +32,6 @@ DECLARE_string(mode);
 namespace facebook::fboss::utility {
 
 namespace {
-void removePort(
-    facebook::fboss::cfg::SwitchConfig& config,
-    facebook::fboss::PortID port,
-    bool supportsAddRemovePort) {
-  auto cfgPort = facebook::fboss::utility::findCfgPortIf(config, port);
-  if (cfgPort == config.ports()->end()) {
-    return;
-  }
-  if (supportsAddRemovePort) {
-    config.ports()->erase(cfgPort);
-    auto removed = std::remove_if(
-        config.vlanPorts()->begin(),
-        config.vlanPorts()->end(),
-        [port](auto vlanPort) {
-          return facebook::fboss::PortID(*vlanPort.logicalPort()) == port;
-        });
-    config.vlanPorts()->erase(removed, config.vlanPorts()->end());
-  } else {
-    cfgPort->state() = facebook::fboss::cfg::PortState::DISABLED;
-  }
-}
-
 int getRdswSysPortBlockSize(
     std::optional<PlatformType> platformType = std::nullopt) {
   // For dual stage 3/2q mode, sys ports are allocated in 2 blocks of 28 while
@@ -388,24 +366,12 @@ cfg::Port createDefaultPortConfig(
     const HwAsic* asic,
     PortID id,
     cfg::PortProfileID defaultProfileID) {
-  cfg::Port defaultConfig;
-  const auto& entry = platformMapping->getPlatformPort(id);
-  defaultConfig.name() = *entry.mapping()->name();
-  defaultConfig.speed() = getSpeed(defaultProfileID);
-  defaultConfig.profileID() = defaultProfileID;
-
-  defaultConfig.logicalID() = id;
-  defaultConfig.ingressVlan() = kDefaultVlanId4094;
-  defaultConfig.state() = cfg::PortState::DISABLED;
-  defaultConfig.portType() = *entry.mapping()->portType();
-  if (asic->getSwitchType() == cfg::SwitchType::VOQ ||
-      asic->getSwitchType() == cfg::SwitchType::FABRIC) {
-    defaultConfig.ingressVlan() = 0;
-  } else {
-    defaultConfig.ingressVlan() = kDefaultVlanId4094;
-  }
-  defaultConfig.scope() = *entry.mapping()->scope();
-  return defaultConfig;
+  const int32_t ingressVlan = (asic->getSwitchType() == cfg::SwitchType::VOQ ||
+                               asic->getSwitchType() == cfg::SwitchType::FABRIC)
+      ? 0
+      : kDefaultVlanId4094;
+  return createDefaultPortConfig(
+      platformMapping, id, defaultProfileID, ingressVlan);
 }
 
 void securePortsInConfig(
@@ -903,6 +869,7 @@ cfg::SwitchConfig genPortVlanCfg(
       connectionHandle = "68:00";
     } else if (
         asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+        asicType == cfg::AsicType::ASIC_TYPE_P200 ||
         asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
         asicType == cfg::AsicType::ASIC_TYPE_G202X) {
       connectionHandle = "/dev/uio0";
@@ -1124,7 +1091,8 @@ void populateSwitchInfo(
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
       auto dsfNode = dsfNodeConfig(*firstHwAsic, switchId, platformType);
       dsfNode.name() = folly::sformat("hwTestSwitch{}", deviceSwitchId);
-      if (platformType == PlatformType::PLATFORM_SAINTPAUL &&
+      if ((platformType == PlatformType::PLATFORM_SAINTPAUL ||
+           platformType == PlatformType::PLATFORM_JANGA800BIC) &&
           hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
         dsfNode.systemPortRanges() = *switchInfo.systemPortRanges();
         if (switchInfo.localSystemPortOffset().has_value()) {
@@ -1593,9 +1561,16 @@ void removeSubsumedPorts(
     const cfg::PlatformPortConfig& profile,
     bool supportsAddRemovePort) {
   if (auto subsumedPorts = profile.subsumedPorts()) {
-    for (auto& subsumedPortID : subsumedPorts.value()) {
-      removePort(config, PortID(subsumedPortID), supportsAddRemovePort);
+    std::set<PortID> ids;
+    for (auto subsumedPortID : *subsumedPorts) {
+      ids.insert(PortID(subsumedPortID));
     }
+    removePortsFromConfig(
+        config,
+        ids,
+        supportsAddRemovePort ? PortRemovalMode::Erase
+                              : PortRemovalMode::Disable,
+        /*pruneEmptyVlansAndInterfaces=*/false);
   }
 }
 

@@ -14,6 +14,7 @@
 #include <folly/io/IOBuf.h>
 
 #include "fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTestBase.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 
 namespace facebook::fboss {
 
@@ -87,7 +88,7 @@ class MirrorOnDropImpl {
   virtual uint16_t getMmuDropReason() const = 0;
   // TODO: replace placeholder values with actual ASIC drop-reason codes
   // once available from the vendor SDK.
-  virtual uint16_t getSrv6MidpointNonLastSidDropReason() const = 0;
+  virtual uint16_t getSrv6MidpointIsLastSidDropReason() const = 0;
   virtual uint16_t getSrv6DecapNonLastSegmentDropReason() const = 0;
   virtual uint16_t getSrv6BindingSidNonLastSidDropReason() const = 0;
   virtual uint16_t getSrv6MidpointUnresolvedDropReason() const = 0;
@@ -103,6 +104,14 @@ class MirrorOnDropImpl {
 
   // Production feature gating tests on hardware that supports this impl.
   virtual ProductionFeature getProductionFeature() const = 0;
+
+  // Snooper RX filter for this platform's MoD export. Tajo shares the CPU
+  // punt path with unrelated control traffic, so it filters to MoD packets by
+  // their punt-header signature; other platforms accept all packets.
+  virtual utility::packetSnooperReceivePacketType snooperReceivePacketType()
+      const {
+    return utility::packetSnooperReceivePacketType::PACKET_TYPE_ALL;
+  }
 };
 
 // Factory: returns the right impl for the given AsicType. This is the only
@@ -145,7 +154,7 @@ class AgentMirrorOnDropStatelessTest : public AgentMirrorOnDropTestBase {
   MirrorOnDropDropReasonCodes getDefaultRouteDropReasons();
   MirrorOnDropDropReasonCodes getAclDropReasons();
   MirrorOnDropDropReasonCodes getMmuDropReasons();
-  MirrorOnDropDropReasonCodes getSrv6MidpointNonLastSidDropReasons();
+  MirrorOnDropDropReasonCodes getSrv6MidpointIsLastSidDropReason();
   MirrorOnDropDropReasonCodes getSrv6DecapNonLastSegmentDropReasons();
   MirrorOnDropDropReasonCodes getSrv6BindingSidNonLastSidDropReasons();
   MirrorOnDropDropReasonCodes getSrv6MidpointUnresolvedDropReasons();

@@ -15,6 +15,9 @@
 #ifndef IS_OSS
 #include "common/fb303/cpp/DefaultControl.h"
 #endif
+#ifdef IS_OSS
+#include "common/fb303/cpp/FacebookBase2.h"
+#endif
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/CommonInit.h"
@@ -224,6 +227,16 @@ int hwAgentMain(
         hwAgent->getPlatform()->getHwSwitch());
     handlers.push_back(std::move(testUtilsHandler));
   }
+
+#ifdef IS_OSS
+  // In OSS the thrift server has no monitoring extra-interface
+  // (createDefaultExtraInterfaces returns null), so the HwAgent would not
+  // answer fb303 getCounters/getRegexCounters. Add a FacebookBase2 handler to
+  // the multiplex to serve them from fbData. Pushed last so the platform
+  // handler wins any method-name overlap (e.g. getStatus/aliveSince).
+  handlers.push_back(
+      std::make_shared<facebook::fb303::FacebookBase2>("hwagent"));
+#endif
 
   folly::EventBase eventBase;
   auto server = setupThriftServer(

@@ -36,6 +36,7 @@
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
+#include <folly/ScopeGuard.h>
 
 DECLARE_bool(enable_nexthop_id_manager);
 
@@ -1039,12 +1040,14 @@ TEST_F(NextHopMapPopulationTest, getNextHopsFromRibPrimitive) {
   EXPECT_THROW(getNextHopsFromRib(manager.get(), unknownId), FbossError);
 }
 
-// Verifies getNormalizedNextHopsFromRib: returns inline non-override
-// normalized nexthops when flag is off, resolves via manager
+// Verifies getNonOverrideNormalizedNextHopsFromRib: returns inline
+// non-override normalized nexthops when flag is off, resolves via manager
 // (normalizedResolvedNextHopSetID) when flag is on. For NEXTHOPS-action
 // entries the two paths produce the same set; DROP/TO_CPU entries return
 // empty in both paths.
-TEST_F(NextHopMapPopulationTest, getNormalizedNextHopsFromRibWrapper) {
+TEST_F(
+    NextHopMapPopulationTest,
+    getNonOverrideNormalizedNextHopsFromRibWrapper) {
   auto updater = sw_->getRouteUpdater();
   addV4RouteForClient(
       updater, kClientA, "10.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
@@ -1061,7 +1064,7 @@ TEST_F(NextHopMapPopulationTest, getNormalizedNextHopsFromRibWrapper) {
     for (const auto& [_, route] : std::as_const(*fibV4)) {
       const auto& fwd = route->getForwardInfo();
       EXPECT_EQ(
-          getNormalizedNextHopsFromRib(manager.get(), fwd),
+          getNonOverrideNormalizedNextHopsFromRib(manager.get(), fwd),
           fwd.nonOverrideNormalizedNextHops());
     }
   };
@@ -1074,6 +1077,51 @@ TEST_F(NextHopMapPopulationTest, getNormalizedNextHopsFromRibWrapper) {
   FLAGS_resolve_nexthops_from_id = true;
   runChecks();
   FLAGS_resolve_nexthops_from_id = false;
+}
+
+// Verifies getNormalizedNextHopsFromRib dispatch: an entry carrying
+// overrideNextHops is resolved via normalizedNextHops() (honoring the
+// override, independent of flag/manager); an entry without overrides
+// delegates to getNonOverrideNormalizedNextHopsFromRib.
+TEST_F(NextHopMapPopulationTest, getNormalizedNextHopsFromRibOverrideAware) {
+  auto manager = sw_->getRib()->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+
+  // Base set {A}; override adds B so honoring it yields a different set than
+  // ignoring it. Nexthops must be resolved -- normalizeNextHops() requires it.
+  RouteNextHopSet baseNhops;
+  baseNhops.emplace(ResolvedNextHop(
+      folly::IPAddress("1.1.1.1"), InterfaceID(1), ECMP_WEIGHT));
+  RouteNextHopSet overrideNhops = baseNhops;
+  overrideNhops.emplace(ResolvedNextHop(
+      folly::IPAddress("2.2.2.2"), InterfaceID(2), ECMP_WEIGHT));
+
+  RouteNextHopEntry overrideEntry(baseNhops, DISTANCE);
+  overrideEntry.setOverrideNextHops(overrideNhops);
+  ASSERT_TRUE(overrideEntry.getOverrideNextHops().has_value());
+
+  // Override branch short-circuits before the flag/manager logic, so it holds
+  // for both flag states.
+  for (bool flag : {false, true}) {
+    FLAGS_resolve_nexthops_from_id = flag;
+    EXPECT_EQ(
+        getNormalizedNextHopsFromRib(manager.get(), overrideEntry),
+        overrideEntry.normalizedNextHops());
+  }
+  FLAGS_resolve_nexthops_from_id = false;
+  // The override actually changes the result vs. ignoring it, so honoring it
+  // is meaningful.
+  EXPECT_NE(
+      overrideEntry.normalizedNextHops(),
+      overrideEntry.nonOverrideNormalizedNextHops());
+
+  // No overrides: delegates to the non-override helper. Flag off => inline
+  // path, so the directly-built entry needs no manager lookup.
+  RouteNextHopEntry plainEntry(overrideNhops, DISTANCE);
+  ASSERT_FALSE(plainEntry.getOverrideNextHops().has_value());
+  EXPECT_EQ(
+      getNormalizedNextHopsFromRib(manager.get(), plainEntry),
+      getNonOverrideNormalizedNextHopsFromRib(manager.get(), plainEntry));
 }
 
 // Verifies getResolvedNextHopsFromRib: returns inline fwd nexthops when
@@ -1176,10 +1224,19 @@ TEST_F(NextHopMapPopulationTest, MixedResolvedAndUnresolvedRoutes) {
 // routes with the manager off (so no IDs are stamped at program time), then
 // reconstructing with the manager on (backfill should fill in all IDs).
 TEST_F(NextHopMapPopulationTest, BackfillsMissingIdsFromWarmBoot) {
-  // Tear down the fixture's flag-on handle and rebuild with the flag off so
-  // routes are programmed without any IDs.
+  // Tear down the fixture's flag-on handle and rebuild with both flags off so
+  // routes are programmed without any IDs. resolve_nexthops_from_id requires
+  // enable_nexthop_id_manager, so the flag-OFF world must turn both off.
+  // Restore flags on exit so they don't leak to subsequent tests.
+  auto savedEnable = FLAGS_enable_nexthop_id_manager;
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  SCOPE_EXIT {
+    FLAGS_enable_nexthop_id_manager = savedEnable;
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
   handle_.reset();
   FLAGS_enable_nexthop_id_manager = false;
+  FLAGS_resolve_nexthops_from_id = false;
   auto config = initialConfig();
   handle_ = createTestHandle(&config);
   sw_ = handle_->getSw();
@@ -1192,6 +1249,7 @@ TEST_F(NextHopMapPopulationTest, BackfillsMissingIdsFromWarmBoot) {
 
   // Reconstruct under flag-on -- backfill runs inside fromThrift.
   FLAGS_enable_nexthop_id_manager = true;
+  FLAGS_resolve_nexthops_from_id = true;
   auto reconstructedRib = RoutingInformationBase::fromThrift(
       ribThrift,
       nullptr,
@@ -1243,10 +1301,22 @@ TEST_F(NextHopMapPopulationTest, BackfillsMissingIdsFromWarmBoot) {
 //     RouteUpdater allocation-time asymmetry at RouteUpdater.cpp's
 //     `if (!labelPopandLookup)` guard.
 TEST_F(NextHopMapPopulationTest, BackfillsMissingMplsIdsFromWarmBoot) {
-  // Rebuild with manager-off so MPLS routes are programmed without IDs.
+  // Rebuild with both flags off so MPLS routes are programmed without IDs.
+  // resolve_nexthops_from_id requires enable_nexthop_id_manager, so the
+  // flag-OFF world must turn both off.
   // FLAGS_mpls_rib needed so RIB carries labelToRoute the backfill can walk.
+  // Restore flags on exit so they don't leak to subsequent tests.
+  auto savedEnable = FLAGS_enable_nexthop_id_manager;
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  auto savedMplsRib = FLAGS_mpls_rib;
+  SCOPE_EXIT {
+    FLAGS_enable_nexthop_id_manager = savedEnable;
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+    FLAGS_mpls_rib = savedMplsRib;
+  };
   handle_.reset();
   FLAGS_enable_nexthop_id_manager = false;
+  FLAGS_resolve_nexthops_from_id = false;
   FLAGS_mpls_rib = true;
   auto config = initialConfig();
   handle_ = createTestHandle(&config);
@@ -1263,6 +1333,7 @@ TEST_F(NextHopMapPopulationTest, BackfillsMissingMplsIdsFromWarmBoot) {
 
   // Reconstruct under flag-on — backfill walks labelToRoute too.
   FLAGS_enable_nexthop_id_manager = true;
+  FLAGS_resolve_nexthops_from_id = true;
   auto reconstructedRib = RoutingInformationBase::fromThrift(
       ribThrift,
       nullptr,

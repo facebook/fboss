@@ -67,6 +67,24 @@ def split_csv_list(value: str) -> List[str]:
     return [item for item in value.split("-") if item]
 
 
+def parse_bool_map(value: str) -> Dict[str, bool]:
+    bool_map = {}
+    for item in value.split(";"):
+        if not item:
+            continue
+        parts = [part.strip() for part in item.split("=", 1)]
+        if len(parts) != 2:
+            raise ValueError(
+                f"Invalid bool map entry, expected key=value format: {item}"
+            )
+        key, raw_value = parts
+        normalized_value = raw_value.lower()
+        if normalized_value not in ("true", "false"):
+            raise ValueError(f"Invalid bool map value {item}")
+        bool_map[key] = normalized_value == "true"
+    return bool_map
+
+
 def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping:
     STATIC_MAPPING_SUFFIX = "_static_mapping.csv"
     Column = column_int_enum_generator(
@@ -247,8 +265,9 @@ def read_port_profile_mapping(
 
 def read_platform_descriptor(directory: Dict[str, str], prefix: str) -> Dict[str, Any]:
     PLATFORM_DESCRIPTOR_SUFFIX = "_platform_descriptor.csv"
+    VARIANT_ATTRIBUTES_COLUMN = 5
     Column = column_int_enum_generator(
-        "SYSTEM_VENDOR PLATFORM_TYPE PRODUCT_NAME_PREFIXES MODE_NAMES ASIC_TYPE"
+        "SYSTEM_VENDOR PLATFORM_TYPE PRODUCT_NAME_PREFIXES MODE_NAMES ASIC_TYPE VARIANT_ATTRIBUTES"
     )
     for index, line in enumerate(
         get_content(directory, prefix + PLATFORM_DESCRIPTOR_SUFFIX).splitlines()
@@ -266,13 +285,18 @@ def read_platform_descriptor(directory: Dict[str, str], prefix: str) -> Dict[str
         mode_names = split_csv_list(row[Column.MODE_NAMES])
         # pyrefly: ignore [missing-attribute]
         asic_type = AsicType[row[Column.ASIC_TYPE]]
-        return {
+        descriptor = {
             "systemVendor": system_vendor,
             "platformType": int(platform_type),
             "productNamePrefixes": product_name_prefixes,
             "modeNames": mode_names,
             "asicType": int(asic_type),
         }
+        if VARIANT_ATTRIBUTES_COLUMN < len(row) and row[VARIANT_ATTRIBUTES_COLUMN]:
+            descriptor["variantAttributes"] = parse_bool_map(
+                row[VARIANT_ATTRIBUTES_COLUMN]
+            )
+        return descriptor
     raise ValueError(f"No platform descriptor row found for {prefix}")
 
 

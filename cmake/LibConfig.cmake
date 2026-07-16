@@ -14,3 +14,14 @@ target_link_libraries(fboss_config_utils
 	switch_config_cpp2
 	external_phy
 )
+
+add_library(agent_config_utils
+  fboss/lib/config/AgentConfigUtils.cpp
+)
+
+target_link_libraries(agent_config_utils
+	fboss_error
+	fboss_types
+	switch_config_cpp2
+	platform_mapping
+)

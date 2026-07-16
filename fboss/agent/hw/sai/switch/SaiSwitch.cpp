@@ -1235,7 +1235,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       delta.getFabricLinkMonitoringSystemPortsDelta(),
       managerTable_->systemPortManager(),
       lockPolicy,
-      &SaiSystemPortManager::removeFabricLinkMonitoringSystemPort);
+      &SaiSystemPortManager::removeFabricLinkMonitoringSystemPort,
+      delta.oldState());
   processRemovedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
@@ -1285,7 +1286,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       delta.getFabricLinkMonitoringSystemPortsDelta(),
       managerTable_->systemPortManager(),
       lockPolicy,
-      &SaiSystemPortManager::addFabricLinkMonitoringSystemPort);
+      &SaiSystemPortManager::addFabricLinkMonitoringSystemPort,
+      delta.newState());
   processAddedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
@@ -3913,7 +3915,8 @@ void SaiSwitch::packetRxCallback(
    * and send it to sw switch for processing.
    */
   bool allowMissingSrcPort = hostifTrapSaiIdOpt.has_value() &&
-      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO &&
+      (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) &&
       isMissingSrcPortAllowed(hostifTrapSaiIdOpt.value());
 
   if (!portSaiIdOpt && !allowMissingSrcPort) {
@@ -5267,7 +5270,8 @@ void SaiSwitch::processAclTableGroupDelta(
         &SaiAclTableManager::changedAclTable,
         &SaiAclTableManager::addAclTable,
         &SaiAclTableManager::removeAclTable,
-        aclStage);
+        aclStage,
+        delta.newState());
 
     if (delta.getAclTablesDelta(aclStage).getNew()) {
       // Process delta for the entries of each table in the new state

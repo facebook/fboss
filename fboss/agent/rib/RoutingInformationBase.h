@@ -33,7 +33,6 @@ DECLARE_bool(mpls_rib);
 
 namespace facebook::fboss {
 class SwitchState;
-class MultiSwitchForwardingInformationBaseMap;
 class MultiSwitchFibInfoMap;
 class MultiSwitchMySidMap;
 class SwitchIdScopeResolver;
@@ -718,6 +717,15 @@ RouteNextHopSet getResolvedNextHopsFromRib(
 // resolves via normalizedResolvedNextHopSetID against the manager. When
 // off, falls back to entry.nonOverrideNormalizedNextHops(). Companion to
 // FibHelpers::getNonOverrideNormalizedNextHops.
+RouteNextHopSet getNonOverrideNormalizedNextHopsFromRib(
+    const NextHopIDManager* manager,
+    const RouteNextHopEntry& entry);
+
+// Resolve the normalized nexthops from a RouteNextHopEntry via the
+// NextHopIDManager. If the entry has override nexthops (inline for now),
+// returns entry.normalizedNextHops() so the override is honored; otherwise
+// delegates to the ID-aware getNonOverrideNormalizedNextHopsFromRib.
+// Companion to FibHelpers::getNormalizedNextHops.
 RouteNextHopSet getNormalizedNextHopsFromRib(
     const NextHopIDManager* manager,
     const RouteNextHopEntry& entry);

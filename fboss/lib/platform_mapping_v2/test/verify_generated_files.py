@@ -31,7 +31,9 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "minipack3bta_16rifs",
             "meru800bia",
             "meru800bia_dual_stage_rdsw",
+            "meru800bia_dual_stage_rdsw_fabric_uniform_local_offset",
             "meru800bia_dual_stage_edsw",
+            "meru800bia_dual_stage_edsw_fabric_uniform_local_offset",
             "meru800bia_100g_nif_port_breakout",
             "meru800bia_800g",
             "meru800bia_800g_hyperport",
@@ -39,7 +41,11 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw_800g",
             "meru800bia_800g_uniform_local_offset",
             "meru800bia_uniform_local_offset",
+            "meru800bia_fabric_uniform_local_offset",
+            "meru800bia_800g_fabric_uniform_local_offset",
+            "meru800bia_hyperport_fabric_uniform_local_offset",
             "janga800bic_dctype1_prod",
+            "janga800bic_dctype1_prod_fabric_uniform_local_offset",
             "janga800bic_dctype1_test_fixture",
             "tahan800bc_test_fixture",
             "tahan800bc_chassis",
@@ -48,6 +54,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "tahansb800bc",
             "tahansb800bc_test_fixture",
             "wedge800bact",
+            "wedge800bnhp",
             "wedge800cact",
             "blackwolf800banw",
             "j4sim",
@@ -112,6 +119,8 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
         relative_files = []
         for root, _, filenames in os.walk(directory):
             for filename in filenames:
+                if not filename.endswith(".json"):
+                    continue
                 relative_files.append(
                     os.path.relpath(os.path.join(root, filename), directory)
                 )

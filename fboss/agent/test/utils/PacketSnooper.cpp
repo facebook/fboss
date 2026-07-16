@@ -65,6 +65,7 @@ PacketSnooper::PacketSnooper(
 
 // validate expected packet type for snooping
 // if receivePktType_ is PACKET_TYPE_PTP, validate PTP packets and drop others
+// if receivePktType_ is PACKET_TYPE_TAJO_MOD, keep only Tajo MoD export packets
 // if receivePktType_ is PACKET_TYPE_ALL, no validation
 bool PacketSnooper::expectedReceivedPacketType(
     folly::io::Cursor& cursor) noexcept {
@@ -75,6 +76,12 @@ bool PacketSnooper::expectedReceivedPacketType(
     case packetSnooperReceivePacketType::PACKET_TYPE_PTP:
       // validate PTP packets
       if (!utility::isPtpEventPacket(cursor)) {
+        return false;
+      }
+      break;
+    case packetSnooperReceivePacketType::PACKET_TYPE_TAJO_MOD:
+      // keep only Tajo Mirror-on-Drop export packets
+      if (!utility::isTajoMirrorOnDropPacket(cursor)) {
         return false;
       }
       break;

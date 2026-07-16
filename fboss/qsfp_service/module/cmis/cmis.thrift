@@ -342,4 +342,8 @@ enum CmisField {
   // Page 38h, Bytes 141-142: Rx Consequent Action Hold-off Timer
   // 16-bit value in 10ms increments. 0 = disabled.
   CONS_ACT_HOLD_OFF_TMR = 467,
+
+  // Lower Page 00h, Byte 70: Maximum CMIS bank capacity. Holds the module's
+  // peak bank count directly (e.g. 4 for a 32-lane module).
+  MAX_BANK_CAPACITY = 468,
 }

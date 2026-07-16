@@ -1280,14 +1280,59 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
   auto switchIdToSwitchIndex =
       computeSwitchIdToSwitchIndex(new_->getDsfNodes());
 
-  auto getInbandSysPortId = [](const std::shared_ptr<DsfNode>& node) {
+  auto getInbandSysPortId = [this](const std::shared_ptr<DsfNode>& node) {
     CHECK(node->getInbandPortId().has_value());
-    CHECK(node->getGlobalSystemPortOffset().has_value());
-    // TODO factor in multi npu nodes where portId range maybe
-    // different
-    return *node->getGlobalSystemPortOffset() + *node->getInbandPortId();
+    auto switchId = node->getSwitchId();
+    const auto& switchIdToSwitchInfo =
+        *cfg_->switchSettings()->switchIdToSwitchInfo();
+    auto largestSwitchId = switchIdToSwitchInfo.rbegin()->first;
+    auto largestSwitchIndex =
+        *switchIdToSwitchInfo.rbegin()->second.switchIndex();
+    int64_t switchIndex = 0;
+    if (largestSwitchIndex != 0) {
+      auto switchIdStride = largestSwitchId / largestSwitchIndex;
+      if (switchIdStride == 0) {
+        throw FbossError(
+            "Invalid switchId stride derived from largest switchId: ",
+            largestSwitchId,
+            " and switchIndex: ",
+            largestSwitchIndex);
+      }
+      switchIndex = (switchId / switchIdStride) %
+          static_cast<int64_t>(switchIdToSwitchInfo.size());
+    }
+    auto switchInfoItr = std::find_if(
+        switchIdToSwitchInfo.begin(),
+        switchIdToSwitchInfo.end(),
+        [switchIndex](const auto& switchIdAndInfo) {
+          return switchIdAndInfo.second.switchIndex() == switchIndex;
+        });
+    if (switchInfoItr == switchIdToSwitchInfo.end()) {
+      throw FbossError(
+          "Missing switch info for DSF node switchId: ",
+          switchId,
+          " and switchIndex: ",
+          switchIndex);
+    }
+    const auto inbandPortId = *node->getInbandPortId();
+    const auto portRangeMin = *switchInfoItr->second.portIdRange()->minimum();
+    const auto portRangeMax = *switchInfoItr->second.portIdRange()->maximum();
+    auto globalSystemPortOffset = node->getGlobalSystemPortOffset();
+    if (inbandPortId < portRangeMin || inbandPortId > portRangeMax) {
+      throw FbossError(
+          "Inband port ID: ",
+          inbandPortId,
+          " is outside port range [",
+          portRangeMin,
+          ", ",
+          portRangeMax,
+          "] for DSF node switchId: ",
+          switchId,
+          " and switchIndex: ",
+          switchIndex);
+    }
+    return SystemPortID(inbandPortId + *globalSystemPortOffset - portRangeMin);
   };
-
   auto getRecyclePortName =
       [&switchIdToSwitchIndex](const std::shared_ptr<DsfNode>& node) {
         int asicCore;
@@ -1316,6 +1361,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
           case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
           case cfg::AsicType::ASIC_TYPE_AGERA3:
           case cfg::AsicType::ASIC_TYPE_EBRO:
+          case cfg::AsicType::ASIC_TYPE_P200:
           case cfg::AsicType::ASIC_TYPE_GARONNE:
           case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
           case cfg::AsicType::ASIC_TYPE_RAMON:
@@ -2058,9 +2104,23 @@ ThriftConfigApplier::updateFabricLinkMonitoringSystemPorts(
         // Not a valid port for fabric link monitoring
         continue;
       }
-      auto sysPort =
-          std::make_shared<SystemPort>(getFabricLinkMonitoringSystemPortID(
-              port.second->getID(), switchSettings));
+      // When fabric port logical IDs are relocated into the local port-ID
+      // range, their system ports use the same allocation as every other local
+      // port; otherwise fall back to the legacy offset-based scheme.
+      // TODO(fabric_ports_uniform_local_offset): drop the legacy branch once
+      // all users migrate. The only remaining user is
+      // AgentMultiNodeFabricLinkMonitoringTest, which scrapes remote DSF agents
+      // whose platform mapping + flag are owned by Configerator/netcastle, so
+      // migrating it is a cross-repo change, not a pure fbcode flip.
+      auto sysPortId = FLAGS_fabric_ports_uniform_local_offset
+          ? getSystemPortID(
+                port.second->getID(),
+                port.second->getScope(),
+                switchSettings->getSwitchIdToSwitchInfo(),
+                switchId)
+          : getFabricLinkMonitoringSystemPortID(
+                port.second->getID(), switchSettings);
+      auto sysPort = std::make_shared<SystemPort>(sysPortId);
       sysPort->setSwitchId(SwitchID(*fabricLinkSwitchId));
       // Last 2 bits in the SwitchID determines the core ID
       int64_t coreIdx = *fabricLinkSwitchId & 0x3;

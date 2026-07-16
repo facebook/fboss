@@ -40,6 +40,13 @@ const bool kEnableUpdateGroup = true;
 // Constants for TBgpDrainState
 const std::vector<std::string> kDrainedInterfaces = {"eth1/1/1", "eth1/2/1"};
 
+// Constants for the global summary getters. kProcessUptimeSeconds is chosen so
+// formatUptime renders the deterministic "1d 1h 1m 1s" string:
+// 90061 = 1*86400 + 1*3600 + 1*60 + 1.
+const int64_t kProcessUptimeSeconds = 90061;
+const int64_t kTotalPrefixCount = 42;
+const int64_t kRibVersion = 7;
+
 class CmdShowBgpSummaryTestFixture : public CmdHandlerTestBase {
  public:
   std::vector<TBgpSession> sessions_;
@@ -121,6 +128,9 @@ class CmdShowBgpSummaryTestFixture : public CmdHandlerTestBase {
     model.sessions() = getQueriedSession();
     model.config() = getQueriedConfig();
     model.drain_state() = getQueriedDrainState();
+    model.process_uptime_seconds() = kProcessUptimeSeconds;
+    model.total_prefix_count() = kTotalPrefixCount;
+    model.rib_version() = kRibVersion;
 
     return model;
   }
@@ -185,6 +195,10 @@ class CmdShowBgpSummaryTestFixture : public CmdHandlerTestBase {
     drainState.drained_interfaces() = kDrainedInterfaces;
     model.drain_state() = std::move(drainState);
 
+    model.process_uptime_seconds() = kProcessUptimeSeconds;
+    model.total_prefix_count() = kTotalPrefixCount;
+    model.rib_version() = kRibVersion;
+
     return model;
   }
 };
@@ -200,8 +214,60 @@ TEST_F(CmdShowBgpSummaryTestFixture, queryClient) {
   EXPECT_CALL(getMockBgp(), getDrainState(_))
       .WillOnce(Invoke([&](auto& entries) { entries = drainState_; }));
 
+  EXPECT_CALL(getMockBgp(), getProcessUptimeSeconds())
+      .WillOnce(Return(kProcessUptimeSeconds));
+  EXPECT_CALL(getMockBgp(), getNumPrefixes())
+      .WillOnce(Return(kTotalPrefixCount));
+  EXPECT_CALL(getMockBgp(), getRibVersion()).WillOnce(Return(kRibVersion));
+
   auto results = CmdShowBgpSummary().queryClient(localhost());
   EXPECT_THRIFT_EQ(results, getModelBgpSummary());
+}
+
+// Backward compatibility: an older bgpd that predates getProcessUptimeSeconds()
+// / getNumPrefixes() makes those thrift calls throw. queryClient must swallow
+// the error and leave process_uptime_seconds / total_prefix_count unset, while
+// still returning the always-available rib_version.
+TEST_F(CmdShowBgpSummaryTestFixture, queryClientOlderDaemonMissingGetters) {
+  setupMockedBgpServer();
+  EXPECT_CALL(getMockBgp(), getBgpSessions(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = sessions_; }));
+
+  EXPECT_CALL(getMockBgp(), getBgpLocalConfig(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = localConfig_; }));
+
+  EXPECT_CALL(getMockBgp(), getDrainState(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = drainState_; }));
+
+  EXPECT_CALL(getMockBgp(), getRibVersion()).WillOnce(Return(kRibVersion));
+
+  // Simulate the older daemon: the first guarded getter throws, so the CLI
+  // never reaches getNumPrefixes(). The thrown type is normalized to a thrift
+  // exception across the RPC boundary; queryClient catches it as
+  // std::exception.
+  EXPECT_CALL(getMockBgp(), getProcessUptimeSeconds())
+      .WillOnce(Throw(std::runtime_error("unimplemented on older daemon")));
+
+  auto results = CmdShowBgpSummary().queryClient(localhost());
+
+  EXPECT_FALSE(results.process_uptime_seconds().has_value());
+  EXPECT_FALSE(results.total_prefix_count().has_value());
+  EXPECT_EQ(kRibVersion, folly::copy(results.rib_version().value()));
+}
+
+TEST(CmdShowBgpSummaryFormatUptimeTest, trimsLeadingZeroUnits) {
+  // Only seconds elapsed: minutes/hours/days are omitted.
+  EXPECT_EQ("0s", CmdShowBgpSummary::formatUptime(0));
+  EXPECT_EQ("45s", CmdShowBgpSummary::formatUptime(45));
+  // Minutes elapsed: hours/days omitted, seconds kept.
+  EXPECT_EQ("5m 30s", CmdShowBgpSummary::formatUptime(330));
+  // Hours elapsed: days omitted; interior zero units kept so it stays
+  // unambiguous.
+  EXPECT_EQ("1h 1m 1s", CmdShowBgpSummary::formatUptime(3661));
+  EXPECT_EQ("3h 0m 5s", CmdShowBgpSummary::formatUptime(10805));
+  // Days elapsed: all units shown.
+  EXPECT_EQ("1d 0h 0m 0s", CmdShowBgpSummary::formatUptime(86400));
+  EXPECT_EQ("1d 1h 1m 1s", CmdShowBgpSummary::formatUptime(90061));
 }
 
 TEST_F(CmdShowBgpSummaryTestFixture, printOutput) {
@@ -211,12 +277,15 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutput) {
 
   std::string expectedOutput =
       "BGP summary information for VRF default\n"
+      "BGP is up for 1d 1h 1m 1s\n"
       "Router ID - 210.4.0.0, Local ASN - 6000, Confed ASN - 700\n"
       "BGP Switch Drain State: UNDRAINED\n"
       "UCMP weight programming is DISABLED\n"
       "Update group is ENABLED\n"
       "Peers: UP - 1, TOTAL - 2\n"
       "Paths: Received - 2, Accepted - 0, Sent - 2\n"
+      "Prefix count: 42\n"
+      "RIB Version: 7\n"
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
@@ -235,12 +304,15 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWhenConfedAsnIsZero) {
 
   std::string expectedOutput =
       "BGP summary information for VRF default\n"
+      "BGP is up for 1d 1h 1m 1s\n"
       "Router ID - 210.4.0.0, Local ASN - 6000\n"
       "BGP Switch Drain State: UNDRAINED\n"
       "UCMP weight programming is DISABLED\n"
       "Update group is ENABLED\n"
       "Peers: UP - 1, TOTAL - 2\n"
       "Paths: Received - 2, Accepted - 0, Sent - 2\n"
+      "Prefix count: 42\n"
+      "RIB Version: 7\n"
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
@@ -260,12 +332,15 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithOldAsnField) {
 
   std::string expectedOutput =
       "BGP summary information for VRF default\n"
+      "BGP is up for 1d 1h 1m 1s\n"
       "Router ID - 210.4.0.0, Local ASN - 6000, Confed ASN - 700\n"
       "BGP Switch Drain State: DRAINED\n"
       "UCMP weight programming is DISABLED\n"
       "Update group is ENABLED\n"
       "Peers: UP - 1, TOTAL - 2\n"
       "Paths: Received - 2, Accepted - 0, Sent - 2\n"
+      "Prefix count: 42\n"
+      "RIB Version: 7\n"
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
@@ -288,12 +363,15 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputBothAsnFieldPresent) {
 
   std::string expectedOutput =
       "BGP summary information for VRF default\n"
+      "BGP is up for 1d 1h 1m 1s\n"
       "Router ID - 210.4.0.0, Local ASN - 6000, Confed ASN - 700\n"
       "BGP Switch Drain State: UNDRAINED\n"
       "UCMP weight programming is DISABLED\n"
       "Update group is ENABLED\n"
       "Peers: UP - 1, TOTAL - 2\n"
       "Paths: Received - 2, Accepted - 0, Sent - 2\n"
+      "Prefix count: 42\n"
+      "RIB Version: 7\n"
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
@@ -314,12 +392,15 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputUpdateGroupDisabled) {
 
   std::string expectedOutput =
       "BGP summary information for VRF default\n"
+      "BGP is up for 1d 1h 1m 1s\n"
       "Router ID - 210.4.0.0, Local ASN - 6000, Confed ASN - 700\n"
       "BGP Switch Drain State: UNDRAINED\n"
       "UCMP weight programming is DISABLED\n"
       "Update group is DISABLED\n"
       "Peers: UP - 1, TOTAL - 2\n"
       "Paths: Received - 2, Accepted - 0, Sent - 2\n"
+      "Prefix count: 42\n"
+      "RIB Version: 7\n"
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent\n\n"
       " Peer     AS    State  GR  PR  PA  PS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------\n"
@@ -344,12 +425,15 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithUpdateGroupAndPaValues) {
 
   std::string expectedOutput =
       "BGP summary information for VRF default\n"
+      "BGP is up for 1d 1h 1m 1s\n"
       "Router ID - 210.4.0.0, Local ASN - 6000, Confed ASN - 700\n"
       "BGP Switch Drain State: UNDRAINED\n"
       "UCMP weight programming is DISABLED\n"
       "Update group is ENABLED\n"
       "Peers: UP - 1, TOTAL - 2\n"
       "Paths: Received - 2, Accepted - 2, Sent - 2\n"
+      "Prefix count: 42\n"
+      "RIB Version: 7\n"
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS       Uptime    Downtime  Description           Session ID  Flaps \n"
       "---------------------------------------------------------------------------------------------------------------------------------\n"
@@ -370,12 +454,15 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputNoDowntimeColumn) {
 
   std::string expectedOutput =
       "BGP summary information for VRF default\n"
+      "BGP is up for 1d 1h 1m 1s\n"
       "Router ID - 210.4.0.0, Local ASN - 6000, Confed ASN - 700\n"
       "BGP Switch Drain State: UNDRAINED\n"
       "UCMP weight programming is DISABLED\n"
       "Update group is ENABLED\n"
       "Peers: UP - 1, TOTAL - 2\n"
       "Paths: Received - 2, Accepted - 0, Sent - 2\n"
+      "Prefix count: 42\n"
+      "RIB Version: 7\n"
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Description           Session ID  Flaps \n"
       "-----------------------------------------------------------------------------------------------------------------\n"
@@ -395,12 +482,15 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputDrainStateNotSet) {
 
   std::string expectedOutput =
       "BGP summary information for VRF default\n"
+      "BGP is up for 1d 1h 1m 1s\n"
       "Router ID - 210.4.0.0, Local ASN - 6000, Confed ASN - 700\n"
       "BGP Switch Drain State: N/A\n"
       "UCMP weight programming is DISABLED\n"
       "Update group is ENABLED\n"
       "Peers: UP - 1, TOTAL - 2\n"
       "Paths: Received - 2, Accepted - 0, Sent - 2\n"
+      "Prefix count: 42\n"
+      "RIB Version: 7\n"
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
@@ -422,12 +512,15 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithDifferentDrainStates) {
 
   std::string expectedOutput =
       "BGP summary information for VRF default\n"
+      "BGP is up for 1d 1h 1m 1s\n"
       "Router ID - 210.4.0.0, Local ASN - 6000, Confed ASN - 700\n"
       "BGP Switch Drain State: WARM_DRAINED\n"
       "UCMP weight programming is DISABLED\n"
       "Update group is ENABLED\n"
       "Peers: UP - 1, TOTAL - 2\n"
       "Paths: Received - 2, Accepted - 0, Sent - 2\n"
+      "Prefix count: 42\n"
+      "RIB Version: 7\n"
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
@@ -445,12 +538,15 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithDifferentDrainStates) {
 
   expectedOutput =
       "BGP summary information for VRF default\n"
+      "BGP is up for 1d 1h 1m 1s\n"
       "Router ID - 210.4.0.0, Local ASN - 6000, Confed ASN - 700\n"
       "BGP Switch Drain State: SOFT_DRAINED\n"
       "UCMP weight programming is DISABLED\n"
       "Update group is ENABLED\n"
       "Peers: UP - 1, TOTAL - 2\n"
       "Paths: Received - 2, Accepted - 0, Sent - 2\n"
+      "Prefix count: 42\n"
+      "RIB Version: 7\n"
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"

@@ -333,6 +333,11 @@ DEFINE_int32(
     0,
     "switch ID under test. Used for testing NPU specific features.");
 
+DEFINE_int32(
+    num_npus_for_testing,
+    1,
+    "Number of hw agent NPUs started by the test runner.");
+
 DEFINE_uint32(
     counter_refresh_interval,
     1,
@@ -458,6 +463,13 @@ DEFINE_bool(
     enable_fabric_link_monitoring,
     false,
     "Enable fabric link monitoring feature in DSF");
+
+// Relocates fabric port logical IDs into the local port-ID range (uniform
+// local offset). Currently scoped to meru800bia and janga800bic.
+DEFINE_bool(
+    fabric_ports_uniform_local_offset,
+    false,
+    "Relocate fabric port logical IDs into the local port-ID range");
 
 DEFINE_bool(
     enable_cpu_latency_monitoring,

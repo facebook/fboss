@@ -11,6 +11,7 @@
 # - qsfp: QSFP hardware tests
 # - link: Link tests
 # - platform: Platform service hardware tests
+# - led: LED service hardware tests
 # - sai_agent_scale: SAI agent scale tests
 # - sai_invariant_agent: SAI agent invariant config tests
 # - benchmark: Benchmark tests
@@ -73,8 +74,6 @@
 #         ./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON
 # - Link: ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON
 #         ./share/link_known_bad_tests/agent_ensemble_link_unsupported_tests.materialized_JSON
-
-args = None
 
 if __name__ == "__main__":
     from fboss_test_runner.main import main

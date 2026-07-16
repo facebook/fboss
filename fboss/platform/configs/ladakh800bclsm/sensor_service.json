@@ -983,9 +983,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 1,
-          "productSubVersion": 0
+          "productionState": 1,
+          "productionSubState": 1,
+          "respinVariantIndicator": 0
         },
         {
           "sensors": [
@@ -1132,9 +1132,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 1,
-          "productSubVersion": 0
+          "productionState": 2,
+          "productionSubState": 1,
+          "respinVariantIndicator": 0
         }
       ]
     },
@@ -1373,9 +1373,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 2,
-          "productSubVersion": 1
+          "productionState": 1,
+          "productionSubState": 2,
+          "respinVariantIndicator": 1
         },
         {
           "sensors": [
@@ -1515,9 +1515,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 3,
-          "productSubVersion": 1
+          "productionState": 1,
+          "productionSubState": 3,
+          "respinVariantIndicator": 1
         },
         {
           "sensors": [
@@ -1657,9 +1657,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 2,
-          "productSubVersion": 2
+          "productionState": 1,
+          "productionSubState": 2,
+          "respinVariantIndicator": 2
         },
         {
           "sensors": [
@@ -1799,9 +1799,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 3,
-          "productSubVersion": 2
+          "productionState": 1,
+          "productionSubState": 3,
+          "respinVariantIndicator": 2
         }
       ]
     },
@@ -2881,9 +2881,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 2,
-          "productSubVersion": 11
+          "productionState": 1,
+          "productionSubState": 2,
+          "respinVariantIndicator": 11
         }
       ]
     },
@@ -3963,9 +3963,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 2,
-          "productSubVersion": 11
+          "productionState": 1,
+          "productionSubState": 2,
+          "respinVariantIndicator": 11
         }
       ]
     },
@@ -5023,9 +5023,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 1,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -5078,9 +5078,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 1,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         }
       ]
     },
@@ -6147,9 +6147,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 1,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -6202,9 +6202,9 @@
               "compute": "@/1000.0"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 1,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         }
       ]
     }

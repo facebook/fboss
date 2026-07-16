@@ -4,7 +4,6 @@
 
 from argparse import ArgumentParser
 
-import run_test
 from fboss_test_runner.constants import (
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
     SAI_AGENT_SCALE_KNOWN_BAD_TESTS,
@@ -56,19 +55,19 @@ class SaiAgentScaleTestRunner(TestRunner):
         return ""
 
     def _get_known_bad_tests_file(self) -> str:
-        args = run_test.args
+        args = self.args
         if not args.known_bad_tests_file:
             return SAI_AGENT_SCALE_KNOWN_BAD_TESTS
         return args.known_bad_tests_file
 
     def _get_unsupported_tests_file(self) -> str:
-        args = run_test.args
+        args = self.args
         if not args.unsupported_tests_file:
             return SAI_AGENT_UNSUPPORTED_TESTS
         return args.unsupported_tests_file
 
     def _get_test_binary_name(self) -> str:
-        args = run_test.args
+        args = self.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
             return "/opt/fboss/bin/sai_agent_scale_test-sai_impl"
 
@@ -77,7 +76,7 @@ class SaiAgentScaleTestRunner(TestRunner):
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: str | None
     ) -> list[str]:
-        args = run_test.args
+        args = self.args
         if sai_replayer_log_path is None:
             return []
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -91,19 +90,19 @@ class SaiAgentScaleTestRunner(TestRunner):
         ]
 
     def _get_sai_logging_flags(self) -> list[str]:
-        args = run_test.args
+        args = self.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             return []
         return ["--enable_sai_log", args.sai_logging]
 
     def _get_warmboot_check_file(self) -> str:
-        args = run_test.args
+        args = self.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             return agent_can_warm_boot_file_path(switch_index=None)
         return agent_can_warm_boot_file_path(switch_index=0)
 
     def _get_test_run_args(self, conf_file: str) -> list[str]:
-        args = run_test.args
+        args = self.args
         args_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
         if (
             args.platform_mapping_override_path is not None
@@ -121,7 +120,7 @@ class SaiAgentScaleTestRunner(TestRunner):
         pass
 
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None) -> None:
-        args = run_test.args
+        args = self.args
         if args.setup_for_coldboot:
             run_script(args.setup_for_coldboot)
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -134,7 +133,7 @@ class SaiAgentScaleTestRunner(TestRunner):
             )
 
     def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None) -> None:
-        args = run_test.args
+        args = self.args
         if args.setup_for_warmboot:
             run_script(args.setup_for_warmboot)
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -147,7 +146,7 @@ class SaiAgentScaleTestRunner(TestRunner):
             )
 
     def _end_run(self) -> None:
-        args = run_test.args
+        args = self.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             cleanup_hw_agent_service(list(range(args.num_npus)))
 

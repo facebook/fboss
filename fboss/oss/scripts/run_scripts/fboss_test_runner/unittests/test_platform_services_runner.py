@@ -53,11 +53,13 @@ class TestBinaryNameByType:
     def test_known_types_map_to_their_binary(
         self, platform_runner, test_type, expected
     ):
-        with patch("run_test.args", new=_make_args(type=test_type)):
+        with patch.object(platform_runner, "args", new=_make_args(type=test_type)):
             assert platform_runner._get_test_binary_name() == expected
 
     def test_unknown_type_falls_back_to_platform_hw_test(self, platform_runner):
-        with patch("run_test.args", new=_make_args(type="not_a_real_type")):
+        with patch.object(
+            platform_runner, "args", new=_make_args(type="not_a_real_type")
+        ):
             assert platform_runner._get_test_binary_name() == "platform_hw_test"
 
 
@@ -76,7 +78,7 @@ class TestRunTestMultiTypeIteration:
             return ["FakeTest.A"]
 
         with (
-            patch("run_test.args", new=runner_args),
+            patch.object(platform_runner, "args", new=runner_args),
             patch("shutil.which", return_value="/opt/fboss/bin/platform_hw_test"),
             patch.object(platform_runner, "_initialize_test_lists"),
             patch.object(

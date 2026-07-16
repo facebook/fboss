@@ -21,9 +21,15 @@
 #include <numeric>
 #include <vector>
 
+#include <folly/executors/IOThreadPoolExecutor.h>
+#include <folly/executors/thread_factory/NamedThreadFactory.h>
 #include <folly/init/Init.h>
 #include <folly/io/async/Epoll.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/io/async/EventBaseManager.h>
+#include <folly/io/async/IoUringBackend.h>
+#include <folly/io/async/IoUringOptions.h>
+#include <folly/system/HardwareConcurrency.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
@@ -197,12 +203,39 @@ int main(int argc, char** argv) {
   // Test 3: IoUring backend
   printSeparator();
   std::cout << "[3/3] Testing IoUring backend..." << std::endl;
+#if FOLLY_HAS_LIBURING
   auto iouringResult = runBackendTest("IoUring", [](ThriftServer& server) {
-    server.setPreferIoUring(true);
-    server.setUseDefaultIoUringExecutor(true);
+    server.setPreferAsyncIoUringSocket(true);
+    static folly::EventBaseManager ioUringEbm(
+        folly::EventBase::Options().setBackendFactory(
+            []() -> std::unique_ptr<folly::EventBaseBackendBase> {
+              folly::IoUringOptions options;
+              options.setRegisterRingFd(true)
+                  .setInitialProvidedBuffers(2048, 2000)
+                  .setUseRegisteredFds(2048)
+                  .setDeferTaskRun(true)
+                  .setCapacity(512);
+              return std::make_unique<folly::IoUringBackend>(
+                  std::move(options));
+            }));
+    server.setIOThreadPool(
+        std::make_shared<folly::IOThreadPoolExecutor>(
+            folly::available_concurrency(),
+            std::make_shared<folly::NamedThreadFactory>("ThriftIO"),
+            &ioUringEbm,
+            folly::IOThreadPoolExecutor::Options().setEnableThreadIdCollection(
+                true)));
   });
   printResult(iouringResult);
   results.push_back(iouringResult);
+#else
+  std::cout << "  SKIPPED - liburing not available" << std::endl;
+  BackendResult iouringSkipped;
+  iouringSkipped.name = "IoUring";
+  iouringSkipped.success = false;
+  iouringSkipped.errorMsg = "liburing not available";
+  results.push_back(iouringSkipped);
+#endif
 
   // Print summary
   printSeparator();

@@ -37,6 +37,7 @@ SUB_CMD_SAI_AGENT = "sai_agent"
 SUB_CMD_SAI_AGENT_SCALE = "sai_agent_scale"
 SUB_CMD_SAI_INVARIANT_AGENT = "sai_invariant_agent"
 SUB_CMD_PLATFORM = "platform"
+SUB_CMD_LED = "led"
 SUB_CMD_FBOSS2_INTEGRATION = "fboss2_integration"
 SUB_CMD_BENCHMARK = "benchmark"
 

@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "fboss/platform/helpers/PlatformFsUtils.h"
-#include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/platform_manager/SystemInterface.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
 DECLARE_bool(enable_pkg_mgmnt);
@@ -16,31 +16,6 @@ DECLARE_int32(kmod_unload_retries);
 DECLARE_int32(kmod_unload_retry_backoff_s);
 
 namespace facebook::fboss::platform::platform_manager {
-namespace package_manager {
-class SystemInterface {
- public:
-  explicit SystemInterface(
-      const std::shared_ptr<PlatformUtils>& platformUtils =
-          std::make_shared<PlatformUtils>());
-  virtual ~SystemInterface() = default;
-  virtual bool loadKmod(const std::string& moduleName) const;
-  virtual bool unloadKmod(const std::string& moduleName) const;
-  virtual int installRpm(
-      const std::string& rpmFullName,
-      const std::string& repoName = "") const;
-  virtual int depmod() const;
-  virtual std::vector<std::string> getInstalledRpms(
-      const std::string& rpmBaseName) const;
-  virtual int removeRpms(const std::vector<std::string>& installedRpms) const;
-  virtual std::set<std::string> lsmod() const;
-  virtual bool isRpmInstalled(const std::string& rpmFullName) const;
-  virtual std::string getHostKernelVersion() const;
-  int installLocalRpm() const;
-
- private:
-  std::shared_ptr<PlatformUtils> platformUtils_;
-};
-} // namespace package_manager
 
 class PkgManager {
  public:
@@ -67,6 +42,8 @@ class PkgManager {
   virtual void processRpms() const;
   void processLocalRpms() const;
   virtual void unloadBspKmods() const;
+  // Loads the platform's required (bootstrap) kmods from the config, then
+  // additionally loads every kmod enumerated in kmods.json
   virtual void loadRequiredKmods() const;
   void removeInstalledRpms() const;
   BspKmodsFile readKmodsFile() const;
@@ -75,7 +52,11 @@ class PkgManager {
  private:
   std::string getKmodsRpmName() const;
   std::string getKmodsRpmBaseWithKernelName() const;
+  std::string getBspKmodsFilePath() const;
   void closeWatchdogs() const;
+  // Loads every kmod enumerated in kmods.json (shared kmods first, then bsp
+  // kmods -- the reverse of the unload order).
+  void loadBspKmods() const;
   // Makes a single pass over the BSP and shared kmods, unloading each one that
   // is currently loaded. Returns false as soon as an unload fails, so the
   // caller can retry the whole pass.

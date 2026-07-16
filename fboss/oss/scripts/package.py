@@ -42,6 +42,7 @@ FORWARDING_BINARIES = [
     "fboss2",
     "fboss2-dev",
     "fboss_hw_agent-sai_impl",
+    "fboss_pai_diag_shell_client",
     "fboss_sw_agent",
     "fsdb",
     "qsfp_service",

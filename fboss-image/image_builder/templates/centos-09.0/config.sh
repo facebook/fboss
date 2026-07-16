@@ -14,6 +14,30 @@ mkdir -p /var/facebook/logs/fboss/sdk
 semanage fcontext -a -t var_log_t '/var/facebook/logs/fboss(/.*)?'
 restorecon -Rv /var/facebook/logs/fboss
 
+# Create the coop user/group and /etc/coop directory at image-build time so
+# every image ships with consistent ownership, rather than relying on
+# fboss_init.sh to set it up (with default root-owned permissions) at first
+# boot. Must run before RPM/component installs below: some packages (e.g.
+# bgpd) install files into /etc/coop but don't own the directory itself, so
+# they won't touch its permissions once it already exists.
+#
+# Individual operators (all members of "switching") run `fboss2-dev config`
+# commands that create files/subdirs directly under /etc/coop as themselves,
+# with no privilege elevation. The setgid bit makes new entries inherit the
+# switching group, but the *write* bit on newly created files/dirs still
+# depends on each operator's ambient umask (e.g. a 022 umask yields
+# non-group-writable 0755 dirs / 0644 files, locking other operators out). A
+# default ACL forces group rwx on every new file/dir regardless of umask, and
+# is itself inherited by new subdirectories, so it cascades indefinitely.
+echo "Creating coop user/group and /etc/coop directory..."
+groupadd -f -r switching
+useradd -r -g switching -s /sbin/nologin -M -d /nonexistent coop
+mkdir -p /etc/coop
+chown -R coop:switching /etc/coop
+chmod 2775 /etc/coop
+setfacl -R -m g:switching:rwx /etc/coop
+setfacl -R -d -m g:switching:rwx -m o::rx /etc/coop
+
 # Default to python 3.12, also simulate the Debian python-is-python3 package
 update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
 update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1

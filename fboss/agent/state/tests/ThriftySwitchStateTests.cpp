@@ -371,58 +371,6 @@ TEST(ThriftySwitchState, IpAddressConversion) {
   }
 }
 
-TEST(ThriftySwitchState, FromThriftFibsInfoMapMigration) {
-  // Test that fromThrift() correctly migrates fibsMap to fibsInfoMap
-  auto state = SwitchState();
-  auto stateThrift = state.toThrift();
-  const auto& matcherKey = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-
-  // Create fibsMap with FibContainers for VRF 0 and VRF 1
-  std::map<std::string, std::map<int16_t, state::FibContainerFields>> fibsMap;
-  std::map<int16_t, state::FibContainerFields> vrfFibMap;
-
-  // Create FibContainer fields for VRF 0
-  state::FibContainerFields fibContainer0;
-  fibContainer0.vrf() = 0;
-  vrfFibMap[0] = fibContainer0;
-
-  // Create FibContainer fields for VRF 1
-  state::FibContainerFields fibContainer1;
-  fibContainer1.vrf() = 1;
-  vrfFibMap[1] = fibContainer1;
-
-  fibsMap[matcherKey] = vrfFibMap;
-  stateThrift.fibsMap() = fibsMap;
-
-  // Ensure fibsInfoMap is empty in thrift
-  stateThrift.fibsInfoMap() = std::map<std::string, state::FibInfoFields>();
-
-  // Call fromThrift() and verify fibsInfoMap is populated
-  auto deserializedState = SwitchState::fromThrift(stateThrift);
-
-  // Verify fibsInfoMap is populated
-  auto fibsInfoMap = deserializedState->getFibsInfoMap();
-  ASSERT_NE(fibsInfoMap, nullptr);
-  EXPECT_FALSE(fibsInfoMap->empty());
-
-  // Verify the FibInfo exists for the default matcher
-  auto fibInfo = fibsInfoMap->getFibInfo(scope());
-  ASSERT_NE(fibInfo, nullptr);
-
-  // Verify the fibsMap within FibInfo contains both VRF 0 and VRF 1
-  auto internalFibsMap = fibInfo->getfibsMap();
-  ASSERT_NE(internalFibsMap, nullptr);
-
-  // Verify VRF IDs are correct
-  EXPECT_EQ(
-      internalFibsMap->getFibContainerIf(RouterID(0))->getID(), RouterID(0));
-  EXPECT_EQ(
-      internalFibsMap->getFibContainerIf(RouterID(1))->getID(), RouterID(1));
-
-  // Verify old fibsMap is cleared after migration
-  EXPECT_TRUE(deserializedState->getFibs()->empty());
-}
-
 TEST(ThriftySwitchState, FromThriftIdMapCleanupOnRollback) {
   // When FLAGS_enable_nexthop_id_manager is OFF, fromThrift() must wipe
   // every resolvedNextHopSetID/normalizedResolvedNextHopSetID from routes

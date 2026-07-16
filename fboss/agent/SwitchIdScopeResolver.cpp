@@ -9,7 +9,6 @@
 #include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/FibInfo.h"
-#include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/MirrorOnDropReport.h"

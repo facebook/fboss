@@ -24,6 +24,12 @@ constexpr int kFabricLinkMonitoringSystemPortOffsetSingleStage = -480;
 constexpr int kFabricLinkMonitoringSystemPortOffsetDualStage = -1015;
 constexpr int64_t kFabricSwitchIdStart = 512;
 
+// Single-stage relocated layout: ports sit in the 32xxx band, so inject a wide
+// portIdRange and a compensating localSystemPortOffset chosen to keep the
+// resulting system-port IDs clear of the base system ports.
+constexpr int64_t kRelocatedPortIdRangeMax = 65536;
+constexpr int32_t kRelocatedLocalSystemPortOffset = -32268;
+
 // In dual stage mode, we also need L2 fabric nodes to make the config
 // recognized as dual stage by numFabricLevels().
 // L2 fabric switch IDs start after L1 switches.
@@ -79,9 +85,35 @@ void AgentVoqSwitchFabricLinkMonitoringTest::setCmdLineFlagOverrides() const {
   AgentVoqSwitchTest::setCmdLineFlagOverrides();
   FLAGS_hide_fabric_ports = false;
   FLAGS_enable_fabric_link_monitoring = true;
+  // Relocate fabric ports into the local port-ID range for both stages. Dual
+  // stage uses its relocated mapping (dual_stage flag from the base config) and
+  // native localSystemPortOffset; single stage also needs the base relocation
+  // flags below and the switchInfo override in overrideTestEnsembleInitInfo.
+  FLAGS_fabric_ports_uniform_local_offset = true;
+  if (!isDualStage3Q2QMode()) {
+    FLAGS_dsf_edsw_platform_mapping = true;
+    FLAGS_dsf_single_stage_r128_f40_e16_8k_sys_ports = true;
+    FLAGS_dsf_single_stage_r128_f40_e16_uniform_local_offset = true;
+  }
   if (!FLAGS_multi_switch) {
     FLAGS_janga_single_npu_for_testing = true;
   }
+}
+
+void AgentVoqSwitchFabricLinkMonitoringTest::overrideTestEnsembleInitInfo(
+    TestEnsembleInitInfo& initInfo) const {
+  // Dual stage keeps its native layout/offset; only single stage needs the
+  // relocated switchInfo injected here.
+  if (isDualStage3Q2QMode()) {
+    return;
+  }
+  // Inject a switchInfo matching the relocated layout before the switch is
+  // created, so the test does not depend on the on-disk config carrying it.
+  cfg::Range64 portIdRange;
+  portIdRange.minimum() = 0;
+  portIdRange.maximum() = kRelocatedPortIdRangeMax;
+  initInfo.overridePortIdRange = portIdRange;
+  initInfo.overrideLocalSystemPortOffset = kRelocatedLocalSystemPortOffset;
 }
 
 void AgentVoqSwitchFabricLinkMonitoringTest::addFabricLinkMonitoringDsfNodes(

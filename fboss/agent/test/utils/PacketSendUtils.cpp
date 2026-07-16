@@ -171,10 +171,11 @@ bool ensureSendPacketSwitched(
     const HwPortStatsFunc& getHwPortStats,
     const std::vector<SystemPortID>& sysPortIds,
     const HwSysPortStatsFunc& getHwSysPortStats,
-    const int msBetweenRetry) {
+    const int msBetweenRetry,
+    const std::optional<SwitchID>& switchId) {
   auto originalPortStats = getHwPortStats(portIds);
   auto originalSysPortStats = getHwSysPortStats(sysPortIds);
-  ensemble->sendPacketAsync(std::move(pkt));
+  ensemble->sendPacketSwitchedAsync(std::move(pkt), switchId);
   bool waitForVoqs =
       sysPortIds.size() && featureSupported(ensemble, HwAsic::Feature::VOQ);
   return waitForAnyPorAndQueutOutBytesIncrement(
@@ -193,7 +194,8 @@ bool ensureSendPacketSwitched(
     std::unique_ptr<TxPacket> pkt,
     const std::vector<PortID>& portIds,
     const HwPortStatsFunc& getHwPortStats,
-    const int msBetweenRetry) {
+    const int msBetweenRetry,
+    const std::optional<SwitchID>& switchId) {
   auto noopGetSysPortStats = [](const std::vector<SystemPortID>&)
       -> std::map<SystemPortID, HwSysPortStats> { return {}; };
   return ensureSendPacketSwitched(
@@ -203,7 +205,8 @@ bool ensureSendPacketSwitched(
       getHwPortStats,
       {},
       noopGetSysPortStats,
-      msBetweenRetry);
+      msBetweenRetry,
+      switchId);
 }
 
 bool ensureSendPacketOutOfPort(

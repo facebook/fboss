@@ -337,6 +337,7 @@ void PortUpdateHandler::computeFabricOverdrainPct(const StateDelta& delta) {
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
       case cfg::AsicType::ASIC_TYPE_EBRO:
+      case cfg::AsicType::ASIC_TYPE_P200:
       case cfg::AsicType::ASIC_TYPE_GARONNE:
       case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
       case cfg::AsicType::ASIC_TYPE_RAMON:

@@ -81,7 +81,9 @@ std::unique_ptr<LedManager> createLedManager() {
     return std::make_unique<Icetea800bcLedManager>();
   } else if (mode == PlatformType::PLATFORM_TAHANSB800BC) {
     return std::make_unique<Tahansb800bcLedManager>();
-  } else if (mode == PlatformType::PLATFORM_WEDGE800BACT) {
+  } else if (
+      mode == PlatformType::PLATFORM_WEDGE800BACT ||
+      mode == PlatformType::PLATFORM_WEDGE800BNHP) {
     return std::make_unique<Wedge800BACTLedManager>();
   } else if (mode == PlatformType::PLATFORM_WEDGE800CACT) {
     return std::make_unique<Wedge800CACTLedManager>();

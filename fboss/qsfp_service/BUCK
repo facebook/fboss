@@ -9,6 +9,10 @@ oncall("fboss_optics_phy")
 # TODO(ccpowers): remove thisonce we support deploying a different qsfp service
 # for each phy SDK version
 cpp_binary(
+    # @autodeps-skip This default binary is pinned to a single SAI impl (credo-0.7.2)
+    # via the # @manual core/wedge-platform deps. autodeps otherwise also adds the
+    # brcm_pai-3.15 variants, linking two SAI SDKs and causing SAI_API_VERSION
+    # redefinition.
     name = "qsfp_service",
     srcs = [
         "Main.cpp",
@@ -32,6 +36,11 @@ cpp_binary(
 )
 
 cpp_library(
+    # @autodeps-skip PaiDiagShell symbols come from per-impl pai-diag-shell-{impl}
+    # libraries linked at the final qsfp_service binary stage (via core-{impl} in
+    # qsfp_service.bzl). This target is impl-agnostic and must use the headers-only
+    # pai-diag-shell-headers; autodeps otherwise swaps in a concrete brcm_pai-3.15
+    # variant, causing SAI_API_VERSION redefinition in non-BRCM-PAI binaries.
     name = "handler",
     srcs = [
         "QsfpServiceHandler.cpp",
@@ -42,17 +51,20 @@ cpp_library(
     # in qsfp_service.bzl). Same trick as core (impl-agnostic, per-impl link
     # closure at binary stage).
     undefined_symbols = True,
-    exported_deps = [
-        ":port-manager",
+    deps = [
         ":sdk_dump_path",
-        ":transceiver-manager",
-        "//common/fb303/cpp:fb303",
         "//fboss/agent:fboss-error",
-        "//fboss/agent/hw:hardware_stats-cpp2-types",
-        "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/fsdb/client:fsdb_pub_sub",
         "//fboss/fsdb/common:flags",
         "//fboss/lib:log_thrift_call",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":port-manager",
+        ":transceiver-manager",
+        "//common/fb303/cpp:fb303",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",
         "//fboss/mka_service/handlers:macsec_handler",
@@ -60,7 +72,6 @@ cpp_library(
         "//fboss/qsfp_service/fsdb:fsdb-subscriber",
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//folly/futures:core",
-        "//folly/logging:logging",
     ],
 )
 
@@ -100,13 +111,15 @@ cpp_library(
         "facebook/StatsPublisherHelper.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
-    exported_deps = [
-        ":transceiver-manager",
+    deps = [
         "//common/network:util",
         "//common/time:time",
         "//fb303:thread_cached_service_data",
-        "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":transceiver-manager",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
     ],
 )
 
@@ -119,15 +132,17 @@ cpp_library(
         "StatsPublisher.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
-    exported_deps = [
+    deps = [
         ":stats-helper",
         ":transceiver-manager",
         "//common/time:time",
         "//fb303:thread_cached_service_data",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
         "//fboss/agent:fboss-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly/io/async:async_base",
-        "//folly/logging:logging",
     ],
 )
 
@@ -148,55 +163,57 @@ cpp_library(
         "module/TransceiverImpl.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = [
+        "fbsource//third-party/re2:re2",
+        "//fb303:thread_cached_service_data",
+        "//fboss/agent:utils",
+        "//fboss/fsdb/common:flags",
+        "//fboss/lib:alert_logger",
+        "//fboss/lib:common_file_utils",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
+        "//folly:file_util",
+        "//folly/json:dynamic",
+    ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
-        "fbsource//third-party/re2:re2",
         ":qsfp-config",
         ":qsfp-service-threads",
         ":slot-thread-helper",
         ":transceiver-validator",
-        "//fb303:thread_cached_service_data",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:platform_config-cpp2-types",
         "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent:utils",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
-        "//fboss/fsdb/common:flags",
-        "//fboss/lib:alert_logger",
-        "//fboss/lib:common_file_utils",
         "//fboss/lib:thread_heartbeat",
-        "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/firmware_storage:firmware_storage",
         "//fboss/lib/i2c:i2c_controller_stats-cpp2-types",
         "//fboss/lib/link_snapshots:snapshot_manager",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:phy_management_base",
         "//fboss/lib/phy:prbs-cpp2-types",
-        "//fboss/lib/restart_tracker:restart_time_tracker",
-        "//fboss/lib/thrift_service_client:thrift-service-client",
         "//fboss/lib/usb:i2-api",
         "//fboss/lib/usb:transceiver_access_parameter",
         "//fboss/qsfp_service/fsdb:fsdb-syncer",
         "//fboss/qsfp_service/if:config-cpp2-types",
         "//fboss/qsfp_service/if:port_state-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
-        "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
-        "//folly:file_util",
         "//folly:intrusive_list",
         "//folly:spin_lock",
         "//folly:string",
         "//folly:synchronized",
         "//folly/futures:core",
         "//folly/io/async:async_base",
-        "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_external_deps = [
-        "boost",
         ("boost", None, "boost_bimap"),
+        "boost",
     ],
 )
 
@@ -209,13 +226,15 @@ cpp_library(
         "QsfpConfig.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
-    exported_deps = [
+    deps = [
         "//fboss/agent:fboss-error",
-        "//fboss/qsfp_service/if:config-cpp2-types",
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/qsfp_service/if:config-cpp2-types",
     ],
 )
 
@@ -279,11 +298,13 @@ cpp_library(
         "QsfpServiceThreads.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/config:fboss_config_utils",
+    ],
     exported_deps = [
         ":slot-thread-helper",
         "//fboss/agent:fboss-types",
-        "//fboss/agent/platforms/common:platform_mapping",
-        "//fboss/lib/config:fboss_config_utils",
     ],
 )
 
@@ -301,23 +322,25 @@ cpp_library(
         "TypedStateMachineUpdate.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = [
+        ":qsfp-config",
+        "//fboss/agent:utils",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//folly/json:dynamic",
+    ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
-        ":qsfp-config",
         ":qsfp-service-threads",
         ":transceiver-manager",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent:utils",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/fsdb/common:flags",
         "//fboss/lib/config:fboss_config_utils",
-        "//fboss/lib/thrift_service_client:thrift-service-client",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly:spin_lock",
         "//folly:synchronized",
-        "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
     ],

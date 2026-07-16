@@ -408,6 +408,8 @@ class TransceiverManager {
 
   TransceiverStateMachineState getCurrentState(TransceiverID id) const;
 
+  TransceiverStateMachineState getCurrentStateSnapshot(TransceiverID id) const;
+
   const state_machine<TransceiverStateMachine>& getStateMachineForTesting(
       TransceiverID id) const;
 

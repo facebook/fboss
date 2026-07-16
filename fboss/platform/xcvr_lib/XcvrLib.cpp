@@ -2,38 +2,30 @@
 
 #include "fboss/platform/xcvr_lib/XcvrLib.h"
 
+#include <string>
+#include <unordered_map>
+
 #include <fmt/format.h>
-#include <folly/Conv.h>
-#include <folly/String.h>
 #include <folly/logging/xlog.h>
-#include <folly/small_vector.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <string_view>
 #include "fboss/platform/config_lib/ConfigLib.h"
 
 namespace {
 
-// Returns true if the BSP RPM version string (validated upstream as
-// MAJOR.MINOR.PATCH-RELEASE) is >= the given major.minor.patch.
-bool bspVersionAtLeast(
-    const std::string& rpmVersion,
-    int major,
-    int minor,
-    int patch) {
-  folly::small_vector<std::string_view, 2> verAndRelease;
-  folly::split('-', rpmVersion, verAndRelease);
-  folly::small_vector<std::string_view, 3> nums;
-  if (!verAndRelease.empty()) {
-    folly::split('.', verAndRelease[0], nums);
-  }
-  if (nums.size() != 3) {
-    return false;
-  }
-  auto toInt = [](std::string_view s) {
-    return folly::tryTo<int>(s).value_or(0);
+// The BSPs FBOSS platforms ship with, mapped from PlatformConfig's
+// bspKmodsRpmName so call sites branch on a typed value instead of scattering
+// raw RPM-name string comparisons.
+enum class BspVendor { Fboss, Arista, Cisco, Nexthop, Unknown };
+
+BspVendor bspVendorFromRpmName(const std::string& bspKmodsRpmName) {
+  static const std::unordered_map<std::string, BspVendor> kVendors = {
+      {"fboss_bsp_kmods", BspVendor::Fboss},
+      {"arista_bsp_kmods", BspVendor::Arista},
+      {"cisco_bsp_kmods", BspVendor::Cisco},
+      {"nexthop_bsp_kmods", BspVendor::Nexthop},
   };
-  return std::tuple(toInt(nums[0]), toInt(nums[1]), toInt(nums[2])) >=
-      std::tuple(major, minor, patch);
+  auto it = kVendors.find(bspKmodsRpmName);
+  return it != kVendors.end() ? it->second : BspVendor::Unknown;
 }
 
 facebook::fboss::platform::platform_manager::PlatformConfig getPMConfig(
@@ -60,11 +52,20 @@ facebook::fboss::platform::platform_manager::PlatformConfig getPMConfig(
 
 namespace facebook::fboss {
 
-XcvrLib::XcvrLib(const std::string& platformName)
-    : XcvrLib(getPMConfig(platformName)) {}
+XcvrLib::XcvrLib(
+    const std::string& platformName,
+    std::shared_ptr<
+        platform::platform_manager::package_manager::SystemInterface>
+        systemInterface)
+    : XcvrLib(getPMConfig(platformName), std::move(systemInterface)) {}
 
-XcvrLib::XcvrLib(const platform::platform_manager::PlatformConfig& pmConfig)
-    : pmConfig_(pmConfig) {
+XcvrLib::XcvrLib(
+    const platform::platform_manager::PlatformConfig& pmConfig,
+    std::shared_ptr<
+        platform::platform_manager::package_manager::SystemInterface>
+        systemInterface)
+    : pmConfig_(pmConfig), systemInterface_(std::move(systemInterface)) {
+  XCHECK(systemInterface_) << "XcvrLib requires a non-null SystemInterface";
   numXcvrs_ = *pmConfig_.numXcvrs();
   xcvrInfos_.resize(numXcvrs_ + 1); // index 0 unused, 1..numXcvrs_
   buildPerTransceiverLedCounts();
@@ -103,14 +104,36 @@ int XcvrLib::getPresenceMask() const {
 }
 
 int XcvrLib::getResetHoldHi() const {
-  const auto& bspKmodsRpmName = *pmConfig_.bspKmodsRpmName();
-  // Arista BSPs flipped transceiver reset to active-high (resetHoldHi=1) as of
-  // the 0.7.25 kmods; only Cisco remains active-low.
-  if (bspKmodsRpmName == "cisco_bsp_kmods") {
-    return 0;
+  if (!resetHoldHiCache_.has_value()) {
+    resetHoldHiCache_ = computeResetHoldHi();
   }
-  if (bspKmodsRpmName == "arista_bsp_kmods") {
-    return bspVersionAtLeast(*pmConfig_.bspKmodsRpmVersion(), 0, 7, 25) ? 1 : 0;
+  return *resetHoldHiCache_;
+}
+
+int XcvrLib::computeResetHoldHi() const {
+  const auto& bspKmodsRpmName = *pmConfig_.bspKmodsRpmName();
+  switch (bspVendorFromRpmName(bspKmodsRpmName)) {
+    case BspVendor::Cisco:
+      return 0;
+    case BspVendor::Nexthop:
+      return 0;
+    case BspVendor::Arista: {
+      // Arista flipped the xcvr reset line to active-high starting at this BSP
+      // version. Gate on the version actually installed for the running kernel
+      // rather than the config-declared version, since install order is not
+      // monotonic. Fail safe to active-low (0) when it can't be resolved.
+      static constexpr platform::platform_manager::package_manager::BspVersion
+          kAristaActiveHighThreshold{0, 7, 23};
+      auto installedVersion =
+          systemInterface_->getInstalledBspVersion(bspKmodsRpmName);
+      return (installedVersion &&
+              *installedVersion >= kAristaActiveHighThreshold)
+          ? 1
+          : 0;
+    }
+    case BspVendor::Fboss:
+    case BspVendor::Unknown:
+      return 1;
   }
   return 1;
 }
@@ -136,7 +159,7 @@ std::optional<std::string> XcvrLib::getXcvrResetSysfsPath(int xcvrId) const {
         numXcvrs_);
     return std::nullopt;
   }
-  if (*pmConfig_.bspKmodsRpmName() == "cisco_bsp_kmods") {
+  if (bspVendorFromRpmName(*pmConfig_.bspKmodsRpmName()) == BspVendor::Cisco) {
     return fmt::format("/run/devmap/xcvrs/xcvr_ctrl_{}/xcvr_reset", xcvrId);
   }
   return fmt::format(
@@ -151,7 +174,7 @@ std::optional<std::string> XcvrLib::getXcvrPresenceSysfsPath(int xcvrId) const {
         numXcvrs_);
     return std::nullopt;
   }
-  if (*pmConfig_.bspKmodsRpmName() == "cisco_bsp_kmods") {
+  if (bspVendorFromRpmName(*pmConfig_.bspKmodsRpmName()) == BspVendor::Cisco) {
     return fmt::format("/run/devmap/xcvrs/xcvr_ctrl_{}/xcvr_present", xcvrId);
   }
   return fmt::format(

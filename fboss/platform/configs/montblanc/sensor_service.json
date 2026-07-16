@@ -7545,5 +7545,29 @@
         "SMB_TH5_TEMP"
       ]
     }
+  ],
+  "loggedSensorNames": [
+    "SMB_XP3P3_PG",
+    "SMB_XP3P3_SMB_PG",
+    "SMB_XP3P3_CLK_PG",
+    "SMB_XP3P3_L_OSFP_PG",
+    "SMB_XP3P3_R_OSFP_PG",
+    "SMB_XP1P8_CLK_PG",
+    "SMB_XP1P8_PG",
+    "SMB_XP1P2_PG",
+    "SMB_VR_ALERT_XP12R0V_SCM_STA",
+    "SMB_VR_ALERT_XP3R3V_LEFT_STA",
+    "SMB_VR_ALERT_XP3R3V_RIGHT_STA",
+    "SMB_VR_ALERT_TH5_TRVDD_0_STA",
+    "SMB_VR_ALERT_TH5_TRVDD_1_STA",
+    "SMB_VR_ALERT_TH5_VDD_CORE_STA",
+    "PDB_PSU_R_ALERT",
+    "PDB_PSU_L_ALERT",
+    "CPLD_PSU_L_PG",
+    "CPLD_PSU_R_PG",
+    "PSU_L_AC_OK",
+    "PSU_R_AC_OK",
+    "PDB_L_SENSOR_INT",
+    "PDB_R_SENSOR_INT"
   ]
 }

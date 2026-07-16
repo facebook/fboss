@@ -231,6 +231,11 @@ class AgentFlowletSprayTest : public AgentFlowletSwitchingTest {
         ProductionFeature::UDF_WR_IMMEDIATE_ACL,
         ProductionFeature::SINGLE_ACL_TABLE};
   }
+
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // VerifyEcmpRandomSpray uses ecmpPortDescriptorAt(0..13), needs >=14 ports
+    return 15;
+  }
 };
 
 /* Add route 3001::1 > DLB
@@ -594,6 +599,11 @@ class AgentFlowletSwitchingEnhancedScaleTest
     FLAGS_enable_th5_ars_scale_mode = true;
     FLAGS_dlbResourceCheckEnable = false;
   }
+
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Enhanced scale test creates large ECMP objects needing many ports
+    return std::nullopt;
+  }
 };
 
 TEST_F(AgentFlowletSwitchingEnhancedScaleTest, VerifyAlternateArsEcmpObjects) {
@@ -799,6 +809,7 @@ class AgentFlowletWideArsSwitchingTest : public AgentFlowletSwitchingTest {
     const auto& platformPorts =
         ensemble.getSw()->getPlatformMapping()->getPlatformPorts();
     std::vector<PortID> ports;
+    const SwitchID currentSwitchId = getCurrentSwitchIdForTesting();
     for (const auto& [controllingPort, subPorts] : portsByControllingPort) {
       if (ports.size() >= kWideEcmpWidth) {
         break;
@@ -807,6 +818,10 @@ class AgentFlowletWideArsSwitchingTest : public AgentFlowletSwitchingTest {
       if (ctrlIt == platformPorts.end() ||
           *ctrlIt->second.mapping()->portType() !=
               cfg::PortType::INTERFACE_PORT) {
+        continue;
+      }
+      if (ensemble.scopeResolver().scope(PortID(controllingPort)).switchId() !=
+          currentSwitchId) {
         continue;
       }
       for (auto subPort : subPorts) {
@@ -819,6 +834,7 @@ class AgentFlowletWideArsSwitchingTest : public AgentFlowletSwitchingTest {
         ports.push_back(subPort);
       }
     }
+    CHECK_GE(ports.size(), kWideEcmpWidth);
     return ports;
   }
 

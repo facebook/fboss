@@ -40,11 +40,15 @@ class TestWarmbootCheckFile:
     warmboot."""
 
     def test_mono_uses_switch_index_zero(self, sai_agent_runner):
-        with patch("run_test.args", new=_make_args(agent_run_mode="mono")):
+        with patch.object(
+            sai_agent_runner, "args", new=_make_args(agent_run_mode="mono")
+        ):
             assert sai_agent_runner._get_warmboot_check_file().endswith("_0")
 
     def test_multi_switch_uses_no_switch_index(self, sai_agent_runner):
-        with patch("run_test.args", new=_make_args(agent_run_mode="multi_switch")):
+        with patch.object(
+            sai_agent_runner, "args", new=_make_args(agent_run_mode="multi_switch")
+        ):
             # multi_switch path must NOT have the _<index> suffix.
             path = sai_agent_runner._get_warmboot_check_file()
             assert not path.endswith("_0")
@@ -56,11 +60,15 @@ class TestSaiReplayerLoggingFlagsByMode:
     --enable-replayer flags. In mono the flags go on the binary."""
 
     def test_multi_switch_returns_empty_when_path_set(self, sai_agent_runner):
-        with patch("run_test.args", new=_make_args(agent_run_mode="multi_switch")):
+        with patch.object(
+            sai_agent_runner, "args", new=_make_args(agent_run_mode="multi_switch")
+        ):
             assert sai_agent_runner._get_sai_replayer_logging_flags("/tmp/replay") == []
 
     def test_mono_returns_replayer_flags_when_path_set(self, sai_agent_runner):
-        with patch("run_test.args", new=_make_args(agent_run_mode="mono")):
+        with patch.object(
+            sai_agent_runner, "args", new=_make_args(agent_run_mode="mono")
+        ):
             flags = sai_agent_runner._get_sai_replayer_logging_flags("/tmp/replay")
             assert "--enable-replayer" in flags
             assert "--sai-log" in flags
@@ -68,7 +76,9 @@ class TestSaiReplayerLoggingFlagsByMode:
 
     def test_returns_empty_when_path_none(self, sai_agent_runner):
         # Regardless of mode, no path → no flags.
-        with patch("run_test.args", new=_make_args(agent_run_mode="mono")):
+        with patch.object(
+            sai_agent_runner, "args", new=_make_args(agent_run_mode="mono")
+        ):
             assert sai_agent_runner._get_sai_replayer_logging_flags(None) == []
 
 
@@ -77,8 +87,9 @@ class TestTestRunArgsByMode:
     mono mode — multi_switch passes it via the systemd unit file instead."""
 
     def test_mono_includes_platform_mapping_override(self, sai_agent_runner):
-        with patch(
-            "run_test.args",
+        with patch.object(
+            sai_agent_runner,
+            "args",
             new=_make_args(
                 agent_run_mode="mono",
                 platform_mapping_override_path="/tmp/pm.json",
@@ -89,8 +100,9 @@ class TestTestRunArgsByMode:
             assert "/tmp/pm.json" in args_list
 
     def test_multi_switch_omits_platform_mapping_override(self, sai_agent_runner):
-        with patch(
-            "run_test.args",
+        with patch.object(
+            sai_agent_runner,
+            "args",
             new=_make_args(
                 agent_run_mode="multi_switch",
                 platform_mapping_override_path="/tmp/pm.json",
@@ -100,6 +112,13 @@ class TestTestRunArgsByMode:
             # Override must NOT appear; multi_switch routes it via systemd unit.
             assert "--platform_mapping_override_path" not in args_list
             assert "/tmp/pm.json" not in args_list
+
+    def test_forwards_num_npus_to_test_binary(self, sai_agent_runner):
+        with patch("run_test.args", new=_make_args(num_npus=2)):
+            args_list = sai_agent_runner._get_test_run_args("dummy.conf")
+            assert "--undefok=num_npus_for_testing" in args_list
+            assert "--num_npus_for_testing" in args_list
+            assert args_list[args_list.index("--num_npus_for_testing") + 1] == "2"
 
 
 class TestFilterTestsProductionFeatures:
@@ -132,8 +151,9 @@ class TestFilterTestsProductionFeatures:
             return MagicMock(stdout=stdout)
 
         with (
-            patch(
-                "run_test.args",
+            patch.object(
+                sai_agent_runner,
+                "args",
                 new=_make_args(
                     agent_run_mode="multi_switch",
                     enable_production_features="tomahawk5",
@@ -148,8 +168,9 @@ class TestFilterTestsProductionFeatures:
         assert kept == ["AgentAclTest.OK"]
 
     def test_no_filter_when_neither_flag_set(self, sai_agent_runner):
-        with patch(
-            "run_test.args",
+        with patch.object(
+            sai_agent_runner,
+            "args",
             new=_make_args(agent_run_mode="multi_switch"),
         ):
             tests = ["AgentA.t", "AgentB.t"]

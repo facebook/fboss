@@ -718,6 +718,43 @@ struct TEntryStats {
 }
 
 /**
+ * Compact, server-computed summary of the BGP++ RIB for one address family,
+ * analogous to Arista's "show ipv6 route summary". Returned by getRibSummary so
+ * operators can see RIB scale without dumping the entire table.
+ */
+struct TRibSummary {
+  // The address family this summary covers.
+  1: bgp_attr.TBgpAfi afi;
+  // Total number of prefixes in the RIB for this address family.
+  2: i64 total_prefixes;
+  // Histogram of prefix counts keyed by prefix (mask) length. Example: an entry
+  // {64: 3751} means 3751 /64 prefixes. Only non-zero lengths are present.
+  3: map<i16, i64> prefix_length_counts;
+  // Best-path source breakdown: number of prefixes whose selected best path is
+  // external (eBGP), internal (iBGP), confederation-external, or locally
+  // originated. Analogous to Arista's "bgp External:/Internal:" split.
+  4: i64 ebgp_prefixes;
+  5: i64 ibgp_prefixes;
+  6: i64 confed_ebgp_prefixes;
+  7: i64 local_prefixes;
+  // Number of unresolvable next-hops tracked in the RIB. This is a RIB-wide
+  // (not per-address-family) count, so it is identical across the IPv4 and IPv6
+  // responses; the CLI renders it once.
+  8: i64 unresolvable_nexthops_count;
+  // Number of prefixes (routes) in this address family that have no best path
+  // because every candidate path's next-hop is unresolvable. Per-AFI, unlike
+  // unresolvable_nexthops_count above: one unresolvable next-hop can back many
+  // prefixes, and a prefix can have several next-hops. A null/drop route (0
+  // next-hops) counts as a local best path, not as unresolved.
+  9: i64 routes_with_unresolved_nexthops;
+  // Total number of paths (route advertisements) held in the RIB for this
+  // address family, summed across peers and including every add-path ID: one
+  // peer advertising N add-path routes for a prefix contributes N. Same
+  // semantic as TEntryStats.total_rib_paths, split per address family.
+  10: i64 total_paths;
+}
+
+/**
  * BGP Profiler Statistics
  *
  * Lightweight coroutine profiler stats for performance monitoring.
@@ -1117,6 +1154,20 @@ service TBgpService extends fb303.FacebookService {
    */
   i64 getRibVersion();
 
+  /**
+   * Get the total number of prefixes currently installed in the loc-RIB
+   * (i.e. the number of entries in RibBase::ribEntries_). This is a
+   * device-wide count across all address families.
+   */
+  i64 getNumPrefixes();
+
+  /**
+   * Get the BGP++ process uptime in seconds (time since the daemon started).
+   * Sourced from the Watchdog process start time, mirroring the
+   * bgpd.process.uptime.seconds ODS counter.
+   */
+  i64 getProcessUptimeSeconds();
+
   /*
    * Get locally originated routes
    */
@@ -1395,6 +1446,14 @@ service TBgpService extends fb303.FacebookService {
    * @param afi - The afi to dump RIB for
    */
   list<bgp_route_types.TRibEntry> getRibEntries(1: bgp_attr.TBgpAfi afi);
+
+  /**
+   * Get a compact summary of the BGP RIB (total prefixes + per-prefix-length
+   * histogram) for one address family, without dumping the full table.
+   *
+   * @param afi - The afi to summarize the RIB for
+   */
+  TRibSummary getRibSummary(1: bgp_attr.TBgpAfi afi);
 
   /**
    * Dump the current Shadow RIB (prefixes learned from the RIB)

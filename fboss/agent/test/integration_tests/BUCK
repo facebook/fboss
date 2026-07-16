@@ -18,7 +18,6 @@ cpp_library(
     exported_deps = [
         "//configerator/structs/neteng/fboss/bgp/if:bgp_attr-cpp2-types",
         "//fb303:service_data",
-        "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:handler",
         "//fboss/agent:load_agent_config",

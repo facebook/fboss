@@ -318,6 +318,13 @@ std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs);
 UnicastRoute toUnicastRoute(
     const folly::CIDRNetwork& nw,
     const RouteNextHopEntry& nhopEntry);
+
+// Variant that uses caller-resolved nexthops (correct under
+// FLAGS_resolve_nexthops_from_id); the 2-arg form reads inline nexthops.
+UnicastRoute toUnicastRoute(
+    const folly::CIDRNetwork& nw,
+    const RouteNextHopEntry& nhopEntry,
+    const RouteNextHopSet& nhops);
 } // namespace util
 
 } // namespace facebook::fboss

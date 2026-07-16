@@ -1629,8 +1629,8 @@ TEST(Route, resolveRecursiveSrv6OpenrRouteChange) {
 
 // SRv6-over-SRv6 recursion: outer route R1 has no SID list and resolves over a
 // single OpenR route R2 whose link-local next hops themselves carry SID lists.
-// Documents current behavior: the inner SID lists are NOT inherited; the
-// outer's empty SID list is stamped on the resolved leaves.
+// The outer next hop carries no SID list, so each resolved leaf inherits the
+// inner (child) SID list from the OpenR route it resolved through.
 TEST(Route, resolveRecursiveSrv6InnerSidListThroughSingleOpenrRoute) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
@@ -1692,24 +1692,23 @@ TEST(Route, resolveRecursiveSrv6InnerSidListThroughSingleOpenrRoute) {
       {},
       false);
 
-  // 3. R1 resolves to fe80::1/fe80::2 but the inner SID lists are dropped
-  //    because the outer next hop carried none.
+  // 3. R1 resolves to fe80::1/fe80::2 and each leaf inherits the inner SID list
+  //    from the OpenR route it resolved through, since the outer carried none.
   auto it = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
   ASSERT_NE(v6Routes.end(), it);
   EXPECT_TRUE(it->value()->isResolved());
   const auto& resolvedNhops = it->value()->getForwardInfo().getNextHopSet();
   ASSERT_EQ(resolvedNhops.size(), 2);
 
-  std::set<InterfaceID> intfs;
+  std::map<InterfaceID, std::vector<folly::IPAddressV6>> segListByIntf;
   for (const auto& nh : resolvedNhops) {
     EXPECT_TRUE(nh.isResolved());
-    EXPECT_TRUE(nh.srv6SegmentList().empty());
-    EXPECT_FALSE(nh.tunnelType().has_value());
-    EXPECT_FALSE(nh.tunnelId().has_value());
-    intfs.insert(nh.intf());
+    EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
+    segListByIntf[nh.intf()] = nh.srv6SegmentList();
   }
-  EXPECT_TRUE(intfs.count(InterfaceID(1)));
-  EXPECT_TRUE(intfs.count(InterfaceID(2)));
+  EXPECT_EQ(segListByIntf[InterfaceID(1)], sidList1);
+  EXPECT_EQ(segListByIntf[InterfaceID(2)], sidList2);
 }
 
 // SRv6-over-SRv6 recursion: outer route R1 carries sidList1 and resolves over a
@@ -1799,8 +1798,8 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughSingleOpenrRoute) {
 
 // SRv6-over-SRv6 recursion: outer route R1 has no SID list and its two plain
 // next hops resolve over two distinct OpenR routes R2/R3, each with a
-// link-local next hop carrying its own SID list. Documents current behavior:
-// inner SID lists are dropped (outer carried none).
+// link-local next hop carrying its own SID list. Each resolved leaf inherits
+// the inner (child) SID list, since the outer next hops carried none.
 TEST(Route, resolveRecursiveSrv6InnerSidListThroughTwoOpenrRoutes) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
@@ -1865,23 +1864,23 @@ TEST(Route, resolveRecursiveSrv6InnerSidListThroughTwoOpenrRoutes) {
       {},
       false);
 
-  // 3. R1 resolves to fe80::1/fe80::2 with empty SID lists.
+  // 3. R1 resolves to fe80::1/fe80::2, each leaf inheriting the inner SID list
+  //    from the OpenR route it resolved through.
   auto it = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
   ASSERT_NE(v6Routes.end(), it);
   EXPECT_TRUE(it->value()->isResolved());
   const auto& resolvedNhops = it->value()->getForwardInfo().getNextHopSet();
   ASSERT_EQ(resolvedNhops.size(), 2);
 
-  std::set<InterfaceID> intfs;
+  std::map<InterfaceID, std::vector<folly::IPAddressV6>> segListByIntf;
   for (const auto& nh : resolvedNhops) {
     EXPECT_TRUE(nh.isResolved());
-    EXPECT_TRUE(nh.srv6SegmentList().empty());
-    EXPECT_FALSE(nh.tunnelType().has_value());
-    EXPECT_FALSE(nh.tunnelId().has_value());
-    intfs.insert(nh.intf());
+    EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
+    segListByIntf[nh.intf()] = nh.srv6SegmentList();
   }
-  EXPECT_TRUE(intfs.count(InterfaceID(1)));
-  EXPECT_TRUE(intfs.count(InterfaceID(2)));
+  EXPECT_EQ(segListByIntf[InterfaceID(1)], sidList1);
+  EXPECT_EQ(segListByIntf[InterfaceID(2)], sidList2);
 }
 
 // SRv6-over-SRv6 recursion: outer route R1 carries sidList1 on both next hops,
@@ -1981,6 +1980,222 @@ TEST(Route, resolveRecursiveSrv6OuterSidListThroughTwoOpenrRoutes) {
   }
   EXPECT_TRUE(intfs.count(InterfaceID(1)));
   EXPECT_TRUE(intfs.count(InterfaceID(2)));
+}
+
+// SRv6 recursive-resolution encap-merge matrix. `resolveSrv6Encap` prefers the
+// parent next hop's SID list and inherits the child's only when the parent has
+// none. It runs at both `getFwdInfoFromNhop` call sites: the connected branch
+// (next hop resolves directly over an interface route) and the recursive branch
+// (next hop resolves over a non-connected route). Full 3x2 coverage:
+//   parent-only : connected -> resolveEcmpRouteWithSrv6NextHops (et al.)
+//                 recursive -> resolveRecursiveSrv6ParentOnlyKeepsParent
+//   child-only  : connected -> resolveConnectedSrv6ParentNoneInheritsChild
+//                 recursive -> resolveRecursiveSrv6InnerSidList* (above)
+//   both        : connected -> resolveConnectedSrv6BothPrefersParent
+//                 recursive -> resolveRecursiveSrv6OuterSidList* (above)
+
+// Connected branch, child-only: parent next hop has no SID list and resolves
+// directly over an interface route whose next hop carries one -> inherit child.
+TEST(Route, resolveConnectedSrv6ParentNoneInheritsChild) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  const std::vector<folly::IPAddressV6> childSidList{
+      folly::IPAddressV6("2001:db8:c::1")};
+
+  // Interface (connected) route whose next hop carries a SID list.
+  RouteNextHopSet intfNhop;
+  intfNhop.emplace(ResolvedNextHop(
+      IPAddress("fc00:1::1"),
+      InterfaceID(1),
+      UCMP_DEFAULT_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      childSidList,
+      TunnelType::SRV6_ENCAP,
+      kSrv6Tunnel0));
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr);
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::INTERFACE_ROUTE,
+      {
+          {{IPAddress("fc00:1::"), 64},
+           RouteNextHopEntry(intfNhop, AdminDistance::DIRECTLY_CONNECTED)},
+      },
+      {},
+      false);
+
+  // Parent route with a plain next hop resolving directly over the connected
+  // route.
+  RouteNextHopSet parentNhops{
+      UnresolvedNextHop(IPAddress("fc00:1::10"), ECMP_WEIGHT)};
+  RouteV6::Prefix r1{IPAddressV6("2800:2::"), 64};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA,
+      {
+          {{r1.network(), r1.mask()},
+           RouteNextHopEntry(parentNhops, kDistance)},
+      },
+      {},
+      false);
+
+  auto it = v6Routes.exactMatch(r1.network(), r1.mask());
+  ASSERT_NE(v6Routes.end(), it);
+  EXPECT_TRUE(it->value()->isResolved());
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, it->value()->getForwardInfo());
+  ASSERT_EQ(resolvedNhops.size(), 1);
+
+  const auto& nh = *resolvedNhops.begin();
+  EXPECT_EQ(nh.intf(), InterfaceID(1));
+  EXPECT_EQ(nh.srv6SegmentList(), childSidList);
+  EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
+}
+
+// Connected branch, both: parent next hop and the connected interface route's
+// next hop both carry SID lists -> parent's is preferred.
+TEST(Route, resolveConnectedSrv6BothPrefersParent) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  const std::vector<folly::IPAddressV6> parentSidList{
+      folly::IPAddressV6("2001:db8:a::1")};
+  const std::vector<folly::IPAddressV6> childSidList{
+      folly::IPAddressV6("2001:db8:c::1")};
+
+  RouteNextHopSet intfNhop;
+  intfNhop.emplace(ResolvedNextHop(
+      IPAddress("fc00:1::1"),
+      InterfaceID(1),
+      UCMP_DEFAULT_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      childSidList,
+      TunnelType::SRV6_ENCAP,
+      kSrv6Tunnel0));
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr);
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::INTERFACE_ROUTE,
+      {
+          {{IPAddress("fc00:1::"), 64},
+           RouteNextHopEntry(intfNhop, AdminDistance::DIRECTLY_CONNECTED)},
+      },
+      {},
+      false);
+
+  RouteNextHopSet parentNhops{UnresolvedNextHop(
+      IPAddress("fc00:1::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      parentSidList,
+      TunnelType::SRV6_ENCAP,
+      kSrv6Tunnel0)};
+  RouteV6::Prefix r1{IPAddressV6("2800:2::"), 64};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA,
+      {
+          {{r1.network(), r1.mask()},
+           RouteNextHopEntry(parentNhops, kDistance)},
+      },
+      {},
+      false);
+
+  auto it = v6Routes.exactMatch(r1.network(), r1.mask());
+  ASSERT_NE(v6Routes.end(), it);
+  EXPECT_TRUE(it->value()->isResolved());
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, it->value()->getForwardInfo());
+  ASSERT_EQ(resolvedNhops.size(), 1);
+
+  const auto& nh = *resolvedNhops.begin();
+  EXPECT_EQ(nh.intf(), InterfaceID(1));
+  EXPECT_EQ(nh.srv6SegmentList(), parentSidList);
+  EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
+}
+
+// Recursive branch, parent-only: parent next hop carries a SID list and
+// resolves over a non-connected route whose next hop has none -> keep parent's.
+TEST(Route, resolveRecursiveSrv6ParentOnlyKeepsParent) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  const std::vector<folly::IPAddressV6> parentSidList{
+      folly::IPAddressV6("2001:db8:a::1")};
+
+  // Connected interface route (no SID list).
+  RouteNextHopSet intfNhop;
+  intfNhop.emplace(ResolvedNextHop(
+      IPAddress("fc00:1::1"), InterfaceID(1), UCMP_DEFAULT_WEIGHT));
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr);
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::INTERFACE_ROUTE,
+      {
+          {{IPAddress("fc00:1::"), 64},
+           RouteNextHopEntry(intfNhop, AdminDistance::DIRECTLY_CONNECTED)},
+      },
+      {},
+      false);
+
+  // Intermediate (non-connected) route with a plain next hop (no SID list).
+  RouteNextHopSet intermediateNhops{
+      UnresolvedNextHop(IPAddress("fc00:1::10"), ECMP_WEIGHT)};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA,
+      {
+          {{IPAddress("fc00:10::"), 32},
+           RouteNextHopEntry(intermediateNhops, kDistance)},
+      },
+      {},
+      false);
+
+  // Parent route whose next hop carries a SID list, resolving recursively over
+  // the intermediate route.
+  RouteNextHopSet parentNhops{UnresolvedNextHop(
+      IPAddress("fc00:10::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      parentSidList,
+      TunnelType::SRV6_ENCAP,
+      kSrv6Tunnel0)};
+  RouteV6::Prefix r1{IPAddressV6("2800:2::"), 64};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA,
+      {
+          {{r1.network(), r1.mask()},
+           RouteNextHopEntry(parentNhops, kDistance)},
+      },
+      {},
+      false);
+
+  auto it = v6Routes.exactMatch(r1.network(), r1.mask());
+  ASSERT_NE(v6Routes.end(), it);
+  EXPECT_TRUE(it->value()->isResolved());
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, it->value()->getForwardInfo());
+  ASSERT_EQ(resolvedNhops.size(), 1);
+
+  const auto& nh = *resolvedNhops.begin();
+  EXPECT_EQ(nh.intf(), InterfaceID(1));
+  EXPECT_EQ(nh.srv6SegmentList(), parentSidList);
+  EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
 }
 
 // Same-prefix client preference: an OpenR route (no SID lists) and a TE_Agent

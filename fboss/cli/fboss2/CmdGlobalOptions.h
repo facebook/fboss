@@ -451,6 +451,10 @@ class CmdGlobalOptions {
     return teAgentThriftPort_;
   }
 
+  int getTeSrv6AgentThriftPort() const {
+    return teSrv6AgentThriftPort_;
+  }
+
   int getDataCorralServiceThriftPort() const {
     return dataCorralServiceThriftPort_;
   }
@@ -519,6 +523,10 @@ class CmdGlobalOptions {
     teAgentThriftPort_ = port;
   }
 
+  void setTeSrv6AgentThriftPort(int port) {
+    teSrv6AgentThriftPort_ = port;
+  }
+
   void setFilterInput(std::string& filter) {
     filter_ = filter;
   }
@@ -563,6 +571,8 @@ class CmdGlobalOptions {
   int sensorServiceThriftPort_{5970};
   int fanServiceThriftPort_{5972};
   int teAgentThriftPort_{2022};
+  // DEFAULT_TE_SRV6_AGENT_PORT from nettools/ebb/platform/if/TeSrv6Agent.thrift
+  int teSrv6AgentThriftPort_{5911};
   int dataCorralServiceThriftPort_{5971};
   int vipInjectorThriftPort_{3333};
   std::string color_{"yes"};

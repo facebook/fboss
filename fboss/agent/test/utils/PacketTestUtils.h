@@ -35,6 +35,10 @@ std::unique_ptr<TxPacket> makeLLDPPacket(
     const uint16_t capabilities);
 
 bool isPtpEventPacket(folly::io::Cursor& cursor);
+// True if the cursor is positioned at a Tajo Mirror-on-Drop export packet
+// (outer Eth / IPv6 / UDP followed by the Tajo MoD punt header). Advances the
+// cursor. Used to filter unrelated CPU-punted traffic out of the snooper.
+bool isTajoMirrorOnDropPacket(folly::io::Cursor& cursor);
 uint8_t getIpHopLimit(folly::io::Cursor& cursor);
 
 template <typename SwitchT>

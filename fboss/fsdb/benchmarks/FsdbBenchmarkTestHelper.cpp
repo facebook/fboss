@@ -3,6 +3,7 @@
 #include "fboss/fsdb/benchmarks/FsdbBenchmarkTestHelper.h"
 #include <folly/Subprocess.h>
 #include <folly/Utility.h>
+#include <folly/system/HardwareConcurrency.h>
 #include <thrift/lib/cpp2/op/Get.h>
 #include "fboss/thrift_cow/nodes/Types.h"
 
@@ -28,15 +29,41 @@ void FsdbBenchmarkTestHelper::setup(
     fsdbTestServer_ = std::make_unique<fsdb::test::FsdbTestServer>(
         0, kStateServeIntervalMs, kStatsServeIntervalMs);
     FLAGS_fsdbPort = fsdbTestServer_->getFsdbPort();
+
+    // Share two bounded IO pools across all managers so the client thread count
+    // does not grow linearly with the cluster size. Each FsdbPubSubManager
+    // otherwise spawns a local thread per unsupplied EventBase (4 roles), i.e.
+    // ~2800 threads at the default 699 subscribers, exhausting host thread/pid
+    // limits on resource-constrained test hosts. Cap each pool at the available
+    // (container-aware) concurrency.
+    const size_t numIoThreads = std::min<size_t>(
+        std::max<int32_t>(numSubscriptions, 1),
+        std::max<size_t>(1, folly::available_concurrency()));
+    ioPoolA_ = std::make_shared<folly::IOThreadPoolExecutor>(numIoThreads);
+    ioPoolB_ = std::make_shared<folly::IOThreadPoolExecutor>(numIoThreads);
+    // Manager 0 is the sole publisher. Give its publisher roles a dedicated
+    // pool so the publish path is not co-scheduled with the
+    // reconnect/subscriber work of the shared pools, which would distort
+    // benchmark measurements.
+    publisherPool_ = std::make_shared<folly::IOThreadPoolExecutor>(2);
+
+    subscriptionConnected_ = std::vector<std::atomic_bool>(numSubscriptions);
     for (int i = 0; i < numSubscriptions; i++) {
       const std::string clientId = folly::to<std::string>("agent_", i);
+      // Supply event bases for all four roles so each manager spawns zero local
+      // threads. Pure subscribers (i != 0) never use their publisher evbs, so
+      // routing those to the shared pools is fine.
+      auto* statsPublisherEvb =
+          (i == 0) ? publisherPool_->getEventBase() : ioPoolA_->getEventBase();
+      auto* statePublisherEvb =
+          (i == 0) ? publisherPool_->getEventBase() : ioPoolB_->getEventBase();
       pubsubMgrs_.push_back(
-          std::make_unique<fsdb::FsdbPubSubManager>(clientId));
-      std::vector<std::atomic_bool> subs(numSubscriptions);
-      for (auto& sub : subs) {
-        sub = false;
-      }
-      subscriptionConnected_ = std::move(subs);
+          std::make_unique<fsdb::FsdbPubSubManager>(
+              clientId,
+              ioPoolA_->getEventBase(),
+              ioPoolB_->getEventBase(),
+              statsPublisherEvb,
+              statePublisherEvb));
     }
   }
   if (serviceFileName) {
@@ -122,9 +149,12 @@ void FsdbBenchmarkTestHelper::TearDown(bool stopFsdbTestServer) {
   if (!pubsubMgrs_.empty()) {
     stopPublisher();
     CHECK(!readyForPublishing_.load());
-    for (auto& pubsubMgr : pubsubMgrs_) {
-      pubsubMgr.reset();
-    }
+    // Destroy managers before the IO pools whose event bases they borrow, so a
+    // subsequent setup() cannot leave managers holding dangling EventBase*.
+    pubsubMgrs_.clear();
+    ioPoolA_.reset();
+    ioPoolB_.reset();
+    publisherPool_.reset();
   }
 
   if (serviceFileName_) {

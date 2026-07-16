@@ -191,6 +191,7 @@ cpp_library(
         ":state",
         "//fboss/agent:fboss-types",
         "//fboss/agent:hwswitch_matcher",
+        "//fboss/agent:switch_config-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//folly:network_address",
     ],

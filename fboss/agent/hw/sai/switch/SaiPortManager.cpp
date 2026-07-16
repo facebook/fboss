@@ -644,6 +644,7 @@ TransmitterTechnology fromSaiMediaType(sai_port_media_type_t saiMediaType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
     case cfg::AsicType::ASIC_TYPE_CHENAB2:
@@ -3832,10 +3833,15 @@ std::vector<sai_port_err_status_t> SaiPortManager::getPortErrStatus(
 
 phy::FecMode SaiPortManager::getFECMode(PortID portId) const {
   auto handle = getPortHandle(portId);
-  auto saiFecMode = GET_OPT_ATTR(Port, FecMode, handle->port->attributes());
-  auto profileID = platform_->getPort(portId)->getCurrentProfile();
-  return utility::getFecModeFromSaiFecMode(
-      static_cast<sai_port_fec_mode_t>(saiFecMode), profileID);
+  auto attr = std::get<std::optional<SaiPortTraits::Attributes::FecMode>>(
+      handle->port->attributes());
+  if (attr.has_value()) {
+    auto saiFecMode = attr.value().value();
+    auto profileID = platform_->getPort(portId)->getCurrentProfile();
+    return utility::getFecModeFromSaiFecMode(
+        static_cast<sai_port_fec_mode_t>(saiFecMode), profileID);
+  }
+  return phy::FecMode::NONE;
 }
 
 cfg::PortSpeed SaiPortManager::getSpeed(PortID portId) const {

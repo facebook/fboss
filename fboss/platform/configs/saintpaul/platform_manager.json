@@ -1185,11 +1185,10 @@
   "chassisEepromDevicePath": "/SMB_SLOT@0/[CHASSIS_EEPROM]",
   "numXcvrs": 34,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.25-1",
-  "requiredKmodsToLoad": [
+  "bspKmodsRpmVersion": "0.7.26-1",
+  "nonBspKmodsToLoad": [
     "spidev",
     "i2c_i801",
-    "scd",
     "ledtrig_timer"
   ]
 }

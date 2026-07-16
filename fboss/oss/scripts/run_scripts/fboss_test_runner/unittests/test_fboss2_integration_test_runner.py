@@ -54,7 +54,7 @@ class TestSetupRun(unittest.TestCase):
         return_value=[True, True],
     )
     def test_prod_multi_switch_snapshots_config(self, mock_is_running, mock_run):
-        with patch("run_test.args", _make_mock_args(), create=True):
+        with patch.object(self.runner, "args", _make_mock_args()):
             self.runner._setup_run("/etc/coop/agent.conf")
 
         self.assertTrue(self.runner._is_prod_multi_switch)
@@ -69,7 +69,7 @@ class TestSetupRun(unittest.TestCase):
         return_value=[True, True],
     )
     def test_prod_multi_switch_copies_test_config(self, mock_is_running, mock_run):
-        with patch("run_test.args", _make_mock_args(), create=True):
+        with patch.object(self.runner, "args", _make_mock_args()):
             self.runner._setup_run("/opt/fboss/share/link_test_configs/test.conf")
 
         mock_run.assert_any_call(
@@ -95,7 +95,7 @@ class TestSetupRun(unittest.TestCase):
     def test_bare_device_sets_up_services(
         self, mock_is_running, mock_hw_setup, mock_sw_setup, mock_run
     ):
-        with patch("run_test.args", _make_mock_args(), create=True):
+        with patch.object(self.runner, "args", _make_mock_args()):
             self.runner._setup_run(
                 "/opt/fboss/share/link_test_configs/montblanc.materialized_JSON"
             )
@@ -134,7 +134,7 @@ class TestSetupRun(unittest.TestCase):
         "fboss_test_runner.runners.fboss2_integration_test_runner.setup_and_start_hw_agent_service"
     )
     def test_bare_device_no_snapshot(self, mock_hw, mock_sw, mock_is_running, mock_run):
-        with patch("run_test.args", _make_mock_args(), create=True):
+        with patch.object(self.runner, "args", _make_mock_args()):
             self.runner._setup_run("/etc/coop/agent.conf")
 
         snapshot_calls = [
@@ -426,7 +426,7 @@ class TestSetupRunHook(unittest.TestCase):
         )
 
         with (
-            patch("run_test.args", mock_args, create=True),
+            patch.object(runner, "args", mock_args),
             patch.object(
                 runner,
                 "_run_test",
