@@ -1,0 +1,19 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "platform_mapping_utils_test",
+    srcs = [
+        "PlatformMappingUtilsTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/agent/platforms/common:platform_mapping_utils",
+        "//fboss/lib/platforms:platform_descriptor",
+        "//folly:conv",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)

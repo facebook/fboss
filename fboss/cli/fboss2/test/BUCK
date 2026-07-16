@@ -22,6 +22,7 @@ cpp_library(
         "//fboss/agent/if:hw_ctrl-cpp2-services",
         "//fboss/cli/fboss2:cmd-common-utils",
         "//fboss/cli/fboss2:cmd-global-options",
+        "//fboss/cli/fboss2:commands-show-bgp",
         "//fboss/cli/fboss2:fboss2-config-lib",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2:options",
@@ -43,12 +44,15 @@ cpp_library(
     headers = [
         "CmdBgpTestUtils.h",
     ],
-    exported_deps = [
-        "//configerator/distribution/api:scoped-configerator-fake",
+    deps = [
         "//fboss/agent:address_utils",
         "//folly:network_address",
+    ],
+    exported_deps = [
+        "//configerator/distribution/api:scoped-configerator-fake",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
     ],
+    external_deps = [("boost", None, "boost_algorithm")],
     exported_external_deps = [
         ("boost", None, "boost_algorithm"),
     ],
@@ -75,8 +79,8 @@ cpp_library(
     headers = [
         "CmdShowConfigTestUtils.h",
     ],
+    deps = ["//folly/json:dynamic"],
     exported_deps = [
-        "//folly/json:dynamic",
         "//neteng/fboss/coop/if:coop_thrift-cpp2-services",
         "//neteng/fboss/coop/if:coop_thrift-cpp2-types",
     ],
@@ -102,6 +106,7 @@ cpp_unittest(
         "//fboss/cli/fboss2:cli-cpp2-types",
         "//fboss/cli/fboss2:cli-parser-utils",
         "//fboss/cli/fboss2:cmd-global-options",
+        "//fboss/cli/fboss2:cmd-list-header",
         "//fboss/cli/fboss2:cmd-subcommands",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2:ops-utils",
@@ -177,6 +182,7 @@ cpp_unittest(
         "CmdStartPortCableLengthMeasurementTest.cpp",
         "CmdStopPcapTest.cpp",
         "GitTest.cpp",
+        "InterfaceListTest.cpp",
         "PortMapTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
@@ -199,6 +205,7 @@ cpp_unittest(
         "//fboss/agent:address_utils",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/cli/fboss2:cmd-list-header",
         "//fboss/cli/fboss2:cmd-local-options",
         "//fboss/cli/fboss2:cmd-subcommands",
         "//fboss/cli/fboss2:commands-show-bgp",
@@ -263,6 +270,7 @@ cpp_binary(
     ],
     deps = [
         "//fboss/agent/if:ctrl-cpp2-services",
+        "//fboss/lib:thrift_service_utils",
         "//fboss/lib:thrift_service_utils_oss",  # @manual
         "//folly/executors:io_thread_pool_executor",
         "//folly/executors/thread_factory:named_thread_factory",

@@ -65,6 +65,6 @@ struct PresenceDetection {
 // `fruConfigs`: FRU presence detection mechanism in the platform.
 struct LedManagerConfig {
   1: LedConfig systemLedConfig;
-  2: map<string/*fruType*/ , LedConfig> fruTypeLedConfigs;
+  2: map<string /*fruType*/, LedConfig> fruTypeLedConfigs;
   3: list<FruConfig> fruConfigs;
 }

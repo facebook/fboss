@@ -1171,6 +1171,35 @@ TEST_F(ConfigSessionTestFixture, threeWayMergeScenarios) {
   }
 }
 
+// Test that rebuildPortMap() regenerates the cached PortMap from the current
+// in-memory agentConfig_, so a newly added port becomes visible.
+TEST_F(ConfigSessionTestFixture, rebuildPortMap) {
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
+
+  const std::string newName = "eth1/1/3";
+
+  // Add a new port to the in-memory config.
+  auto& config = session.getAgentConfig();
+  auto& ports = *config.sw()->ports();
+  cfg::Port newPort;
+  newPort.logicalID() = 3;
+  newPort.name() = newName;
+  ports.push_back(newPort);
+
+  // The cached PortMap still reflects the config as loaded from disk, so the
+  // new port is not visible yet.
+  EXPECT_EQ(session.getPortMap().getPort(newName), nullptr);
+
+  // After rebuilding, the new port is resolvable.
+  session.rebuildPortMap();
+  auto* port = session.getPortMap().getPort(newName);
+  ASSERT_NE(port, nullptr);
+  EXPECT_EQ(*port->name(), newName);
+}
+
 // Test that committing an empty session (no changes) returns an empty result
 // and doesn't create a git commit
 TEST_F(ConfigSessionTestFixture, emptyCommit) {

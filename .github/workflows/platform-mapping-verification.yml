@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - fboss/lib/platform_mapping_v2/**
+  # Allow manually triggering the workflow
+  workflow_dispatch:
 jobs:
   Platform-Mapping-Generation-Build:
     runs-on: 32-core-ubuntu

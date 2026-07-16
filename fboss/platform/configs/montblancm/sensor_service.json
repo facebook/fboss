@@ -884,9 +884,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 2,
-          "productSubVersion": 1
+          "productionState": 1,
+          "productionSubState": 2,
+          "respinVariantIndicator": 1
         },
         {
           "sensors": [
@@ -1026,9 +1026,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 1,
-          "productVersion": 3,
-          "productSubVersion": 2
+          "productionState": 1,
+          "productionSubState": 3,
+          "respinVariantIndicator": 2
         }
       ]
     },
@@ -1199,9 +1199,9 @@
         {
           "__comment__": "Delta AC PSU",
           "productName": "AC3K12V_M_D",
-          "productProductionState": 0,
-          "productVersion": 0,
-          "productSubVersion": 0,
+          "productionState": 0,
+          "productionSubState": 0,
+          "respinVariantIndicator": 0,
           "sensors": [
             {
               "name": "PSU1_L_VIN",
@@ -1250,9 +1250,9 @@
         {
           "__comment__": "Delta DC PSU",
           "productName": "DC3K12V_M_D",
-          "productProductionState": 0,
-          "productVersion": 0,
-          "productSubVersion": 0,
+          "productionState": 0,
+          "productionSubState": 0,
+          "respinVariantIndicator": 0,
           "sensors": [
             {
               "name": "PSU1_L_VIN",
@@ -1301,9 +1301,9 @@
         {
           "__comment__": "LiteOn AC PSU",
           "productName": "AC3K12V_M_L",
-          "productProductionState": 0,
-          "productVersion": 0,
-          "productSubVersion": 0,
+          "productionState": 0,
+          "productionSubState": 0,
+          "respinVariantIndicator": 0,
           "sensors": [
             {
               "name": "PSU1_L_VIN",
@@ -1352,9 +1352,9 @@
         {
           "__comment__": "LiteOn DC PSU",
           "productName": "DC3K12V_M_L",
-          "productProductionState": 0,
-          "productVersion": 0,
-          "productSubVersion": 0,
+          "productionState": 0,
+          "productionSubState": 0,
+          "respinVariantIndicator": 0,
           "sensors": [
             {
               "name": "PSU1_L_VIN",
@@ -1402,9 +1402,10 @@
         },
         {
           "__comment__": "Universal fallback (AC default thresholds)",
-          "productProductionState": 0,
-          "productVersion": 0,
-          "productSubVersion": 0,
+          "productName": "DEFAULT",
+          "productionState": 0,
+          "productionSubState": 0,
+          "respinVariantIndicator": 0,
           "sensors": [
             {
               "name": "PSU1_L_VIN",
@@ -1567,9 +1568,9 @@
         {
           "__comment__": "Delta AC PSU",
           "productName": "AC3K12V_M_D",
-          "productProductionState": 0,
-          "productVersion": 0,
-          "productSubVersion": 0,
+          "productionState": 0,
+          "productionSubState": 0,
+          "respinVariantIndicator": 0,
           "sensors": [
             {
               "name": "PSU2_R_VIN",
@@ -1618,9 +1619,9 @@
         {
           "__comment__": "Delta DC PSU",
           "productName": "DC3K12V_M_D",
-          "productProductionState": 0,
-          "productVersion": 0,
-          "productSubVersion": 0,
+          "productionState": 0,
+          "productionSubState": 0,
+          "respinVariantIndicator": 0,
           "sensors": [
             {
               "name": "PSU2_R_VIN",
@@ -1669,9 +1670,9 @@
         {
           "__comment__": "LiteOn AC PSU",
           "productName": "AC3K12V_M_L",
-          "productProductionState": 0,
-          "productVersion": 0,
-          "productSubVersion": 0,
+          "productionState": 0,
+          "productionSubState": 0,
+          "respinVariantIndicator": 0,
           "sensors": [
             {
               "name": "PSU2_R_VIN",
@@ -1720,9 +1721,9 @@
         {
           "__comment__": "LiteOn DC PSU",
           "productName": "DC3K12V_M_L",
-          "productProductionState": 0,
-          "productVersion": 0,
-          "productSubVersion": 0,
+          "productionState": 0,
+          "productionSubState": 0,
+          "respinVariantIndicator": 0,
           "sensors": [
             {
               "name": "PSU2_R_VIN",
@@ -1770,9 +1771,10 @@
         },
         {
           "__comment__": "Universal fallback (AC default thresholds)",
-          "productProductionState": 0,
-          "productVersion": 0,
-          "productSubVersion": 0,
+          "productName": "DEFAULT",
+          "productionState": 0,
+          "productionSubState": 0,
+          "respinVariantIndicator": 0,
           "sensors": [
             {
               "name": "PSU2_R_VIN",
@@ -2027,9 +2029,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 0,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 0,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2044,9 +2046,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2061,9 +2063,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2078,9 +2080,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 3,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 3,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2095,9 +2097,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 4,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 4,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2112,9 +2114,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 0,
-          "productSubVersion": 10
+          "productionState": 3,
+          "productionSubState": 0,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2129,9 +2131,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 3,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2146,9 +2148,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 3,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2163,9 +2165,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 4,
-          "productSubVersion": 10
+          "productionState": 3,
+          "productionSubState": 4,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2180,9 +2182,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 4,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2197,9 +2199,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         }
       ]
     },
@@ -2740,9 +2742,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 0,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 0,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -2895,9 +2897,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -3050,9 +3052,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -3205,9 +3207,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 3,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 3,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -3360,9 +3362,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 4,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 4,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -3515,9 +3517,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 3,
-          "productSubVersion": 10
+          "productionState": 3,
+          "productionSubState": 3,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -3670,9 +3672,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 4,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -3825,9 +3827,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -3980,9 +3982,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 0,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 0,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -4135,9 +4137,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 1,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 1,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -4290,9 +4292,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 2,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 2,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -4445,9 +4447,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 3,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 3,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -4600,9 +4602,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 4,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 4,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -4755,9 +4757,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 0,
-          "productSubVersion": 20
+          "productionState": 3,
+          "productionSubState": 0,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -4910,9 +4912,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 1,
-          "productSubVersion": 20
+          "productionState": 3,
+          "productionSubState": 1,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -5065,9 +5067,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 2,
-          "productSubVersion": 20
+          "productionState": 3,
+          "productionSubState": 2,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -5220,9 +5222,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 4,
-          "productSubVersion": 20
+          "productionState": 3,
+          "productionSubState": 4,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -5375,9 +5377,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 1,
-          "productSubVersion": 20
+          "productionState": 4,
+          "productionSubState": 1,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -5530,9 +5532,9 @@
               "compute": "@/1000000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 20
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 20
         }
       ]
     },
@@ -5619,9 +5621,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 0,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 0,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -5658,9 +5660,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -5697,9 +5699,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -5736,9 +5738,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 3,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 3,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -5775,9 +5777,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 4,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 4,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -5814,9 +5816,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 3,
-          "productSubVersion": 10
+          "productionState": 3,
+          "productionSubState": 3,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -5853,9 +5855,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 4,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -5892,9 +5894,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -5931,9 +5933,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 0,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 0,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -5970,9 +5972,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 1,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 1,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6009,9 +6011,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 2,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 2,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6048,9 +6050,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 3,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 3,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6087,9 +6089,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 4,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 4,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6126,9 +6128,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 0,
-          "productSubVersion": 20
+          "productionState": 3,
+          "productionSubState": 0,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6165,9 +6167,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 2,
-          "productSubVersion": 20
+          "productionState": 3,
+          "productionSubState": 2,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6204,9 +6206,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 4,
-          "productSubVersion": 20
+          "productionState": 3,
+          "productionSubState": 4,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6243,9 +6245,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 1,
-          "productSubVersion": 20
+          "productionState": 4,
+          "productionSubState": 1,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6282,9 +6284,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 20
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 20
         }
       ]
     },
@@ -6371,9 +6373,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 0,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 0,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -6410,9 +6412,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -6449,9 +6451,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -6488,9 +6490,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 3,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 3,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -6527,9 +6529,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 4,
-          "productSubVersion": 10
+          "productionState": 2,
+          "productionSubState": 4,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -6566,9 +6568,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 3,
-          "productSubVersion": 10
+          "productionState": 3,
+          "productionSubState": 3,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -6605,9 +6607,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 1,
-          "productSubVersion": 10
+          "productionState": 4,
+          "productionSubState": 1,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -6644,9 +6646,9 @@
               "compute": "3*@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 10
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 10
         },
         {
           "sensors": [
@@ -6683,9 +6685,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 0,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 0,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6722,9 +6724,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 1,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 1,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6761,9 +6763,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 2,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 2,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6800,9 +6802,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 3,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 3,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6839,9 +6841,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 2,
-          "productVersion": 4,
-          "productSubVersion": 20
+          "productionState": 2,
+          "productionSubState": 4,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6878,9 +6880,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 0,
-          "productSubVersion": 20
+          "productionState": 3,
+          "productionSubState": 0,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6917,9 +6919,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 2,
-          "productSubVersion": 20
+          "productionState": 3,
+          "productionSubState": 2,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6956,9 +6958,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 3,
-          "productVersion": 4,
-          "productSubVersion": 20
+          "productionState": 3,
+          "productionSubState": 4,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -6995,9 +6997,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 1,
-          "productSubVersion": 20
+          "productionState": 4,
+          "productionSubState": 1,
+          "respinVariantIndicator": 20
         },
         {
           "sensors": [
@@ -7034,9 +7036,9 @@
               "compute": "@/1000"
             }
           ],
-          "productProductionState": 4,
-          "productVersion": 2,
-          "productSubVersion": 20
+          "productionState": 4,
+          "productionSubState": 2,
+          "respinVariantIndicator": 20
         }
       ]
     }

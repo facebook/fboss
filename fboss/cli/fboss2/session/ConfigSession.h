@@ -156,6 +156,11 @@ class ConfigSession {
   utils::PortMap& getPortMap();
   const utils::PortMap& getPortMap() const;
 
+  // Regenerate the cached PortMap from the current in-memory agentConfig_.
+  // Call this after mutating the config (e.g. adding a port) so that
+  // subsequent getPortMap() lookups reflect the change.
+  void rebuildPortMap();
+
   // Save the configuration back to the session file.
   // Also updates the required action level for the specified service
   // (if the new level is higher than the current one).

@@ -37,6 +37,7 @@ SUB_CMD_SAI_AGENT = "sai_agent"
 SUB_CMD_SAI_AGENT_SCALE = "sai_agent_scale"
 SUB_CMD_SAI_INVARIANT_AGENT = "sai_invariant_agent"
 SUB_CMD_PLATFORM = "platform"
+SUB_CMD_LED = "led"
 SUB_CMD_FBOSS2_INTEGRATION = "fboss2_integration"
 SUB_CMD_BENCHMARK = "benchmark"
 
@@ -45,6 +46,12 @@ SUB_ARG_AGENT_RUN_MODE = "--agent-run-mode"
 SUB_ARG_AGENT_RUN_MODE_MONO = "mono"
 SUB_ARG_AGENT_RUN_MODE_MULTI = "multi_switch"
 SUB_ARG_NUM_NPUS = "--num-npus"
+
+# Benchmark subcommand args
+OPT_ARG_SAI_BENCH = "--sai"
+OPT_ARG_QSFP_BENCH = "--qsfp"
+OPT_ARG_FORCE_5PIM_FUJI = "--force-5pim-fuji"
+OPT_ARG_PORT_MANAGER_MODE = "--port-manager-mode"
 
 XGS_SIMULATOR_ASICS = ["th3", "th4", "th4_b0", "th5"]
 DNX_SIMULATOR_ASICS = ["j3"]

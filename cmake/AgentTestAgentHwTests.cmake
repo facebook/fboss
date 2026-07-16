@@ -113,6 +113,9 @@ target_link_libraries(agent_ars_test_src
 )
 
 add_library(agent_hw_test_src
+  fboss/agent/test/agent_hw_tests/AgentCableLengthMeasurementTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentConfigSetupTest.cpp
+  fboss/agent/test/agent_hw_tests/AgentConfigVerifyQosTests.cpp
   fboss/agent/test/agent_hw_tests/AgentCoppTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDot1qMappingTest.cpp
   fboss/agent/test/agent_hw_tests/AgentDropBitmapTests.cpp
@@ -223,6 +226,7 @@ target_link_libraries(agent_hw_test_src
   port_stats_test_utils
   packet
   packet_snooper
+  tajo_punt_header
   queue_per_host_test_utils
   multi_port_traffic_test_utils
   trap_packet_utils

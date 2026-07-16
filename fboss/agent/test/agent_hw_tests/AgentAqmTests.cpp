@@ -477,7 +477,8 @@ class AgentAqmTest : public AgentHwTest {
     auto asic = checkSameAndGetAsicForTesting(asics);
     // The ECN/WRED threshold are rounded down for TAJO as opposed to being
     // rounded up to the next cell size for Broadcom.
-    bool roundUp = asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO;
+    bool roundUp = asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
+        asic->getAsicType() != cfg::AsicType::ASIC_TYPE_P200;
     int roundedBufferThreshold{
         utility::getRoundedBufferThreshold(asic, thresholdBytes, roundUp)};
     int effectiveBytesPerPacket{static_cast<int>(

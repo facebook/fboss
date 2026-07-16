@@ -45,16 +45,6 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
 
   static inline const folly::IPAddressV6 kSid0{"3001:db8:1:2:3:4:5:6"};
   static inline const folly::IPAddressV6 kSid1{"3001:db8:4:5:6::"};
-
-  static inline const folly::IPAddressV6 kBgpRoute0{"2001::1"};
-  static inline const folly::IPAddressV6 kBgpRoute1{"3001::1"};
-  static inline const folly::IPAddressV6 kBgpRoute2{"4001::1"};
-  static inline const folly::IPAddressV6 kBgpRoute3{"5001::1"};
-  static inline const folly::IPAddressV6 kOpenrPrefix0{"fdad::1:0"};
-  static inline const folly::IPAddressV6 kOpenrPrefix1{"fdad::2:0"};
-  static inline const folly::IPAddressV6 kOpenrPrefix2{"fdad::3:0"};
-  static inline const folly::IPAddressV6 kOpenrPrefix3{"fdad::4:0"};
-
   static inline const folly::IPAddressV6 kMySidPrefix{"fc00:100:1::"};
   static constexpr uint8_t kMySidPrefixLen{48};
   static constexpr int kNumNextHops{4};
@@ -149,27 +139,27 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     int nhopIdx;
   };
 
-  std::vector<OpenrRouteInfo> getOpenrRoutes() const {
+  std::vector<folly::IPAddressV6> getLoopbacks() const {
     return {
-        {kOpenrPrefix0, folly::IPAddressV6("fdad::1:1"), 0},
-        {kOpenrPrefix1, folly::IPAddressV6("fdad::2:1"), 1},
-        {kOpenrPrefix2, folly::IPAddressV6("fdad::3:1"), 2},
-        {kOpenrPrefix3, folly::IPAddressV6("fdad::4:1"), 3},
-    };
+        folly::IPAddressV6("fdad::1:1"),
+        folly::IPAddressV6("fdad::2:1"),
+        folly::IPAddressV6("fdad::3:1"),
+        folly::IPAddressV6("fdad::4:1")};
   }
 
   void programOpenrRoutes() {
     auto ecmpHelper = makeEcmpHelper();
     auto routeUpdater = this->getSw()->getRouteUpdater();
-    for (const auto& route : getOpenrRoutes()) {
-      auto nhop = ecmpHelper.nhop(route.nhopIdx);
+    auto loopbacks = getLoopbacks();
+    for (auto i = 0; i < loopbacks.size(); ++i) {
+      auto nhop = ecmpHelper.nhop(i);
       auto nhopIp = nhop.linkLocalNhopIp.has_value()
           ? folly::IPAddress(nhop.linkLocalNhopIp.value())
           : folly::IPAddress(nhop.ip);
       routeUpdater.addRoute(
           RouterID(0),
-          route.prefix,
-          112,
+          loopbacks[i],
+          loopbacks[i].bitCount(),
           ClientID::OPENR,
           RouteNextHopEntry(
               RouteNextHopSet{ResolvedNextHop(nhopIp, nhop.intf, ECMP_WEIGHT)},
@@ -180,39 +170,14 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
 
   void removeOpenrRoutes() {
     auto routeUpdater = this->getSw()->getRouteUpdater();
-    for (const auto& route : getOpenrRoutes()) {
-      routeUpdater.delRoute(RouterID(0), route.prefix, 112, ClientID::OPENR);
+    for (const auto& pfx : getLoopbacks()) {
+      routeUpdater.delRoute(RouterID(0), pfx, pfx.bitCount(), ClientID::OPENR);
     }
-    routeUpdater.program();
-  }
-
-  void programBgpRoutes() {
-    auto routeUpdater = this->getSw()->getRouteUpdater();
-    const std::vector<std::pair<folly::IPAddressV6, folly::IPAddressV6>>
-        bgpRoutes{
-            {kBgpRoute0, folly::IPAddressV6("fdad::1:1")},
-            {kBgpRoute1, folly::IPAddressV6("fdad::2:1")},
-            {kBgpRoute2, folly::IPAddressV6("fdad::3:1")},
-            {kBgpRoute3, folly::IPAddressV6("fdad::4:1")},
-        };
-    for (const auto& [bgpDst, nhopAddr] : bgpRoutes) {
-      routeUpdater.addRoute(
-          RouterID(0),
-          bgpDst,
-          128,
-          ClientID::BGPD,
-          RouteNextHopEntry(
-              RouteNextHopSet{
-                  UnresolvedNextHop(folly::IPAddress(nhopAddr), ECMP_WEIGHT)},
-              AdminDistance::EBGP));
-    }
-
     routeUpdater.program();
   }
 
   void programRoutes() {
     programOpenrRoutes();
-    programBgpRoutes();
   }
 
   void unresolveAllNextHops() {
@@ -653,8 +618,8 @@ TYPED_TEST(AgentSrv6BindingSidTest, multipleNextHops) {
         this->getSw(),
         this->kMySidPrefix,
         this->kMySidPrefixLen,
-        {utility::makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0),
-         utility::makeSrv6NextHopThrift(this->kBgpRoute1, this->kSid1)});
+        {utility::makeSrv6NextHopThrift(this->getLoopbacks()[0], this->kSid0),
+         utility::makeSrv6NextHopThrift(this->getLoopbacks()[1], this->kSid1)});
   };
 
   auto verify = [this]() {
@@ -676,7 +641,7 @@ TYPED_TEST(AgentSrv6BindingSidTest, singleNextHop) {
         this->getSw(),
         this->kMySidPrefix,
         this->kMySidPrefixLen,
-        {utility::makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
+        {utility::makeSrv6NextHopThrift(this->getLoopbacks()[0], this->kSid0)});
   };
 
   auto verify = [this]() {
@@ -696,7 +661,7 @@ TYPED_TEST(AgentSrv6BindingSidTest, bindingSidTracksNeighborResolutionAndLink) {
         this->getSw(),
         this->kMySidPrefix,
         this->kMySidPrefixLen,
-        {utility::makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
+        {utility::makeSrv6NextHopThrift(this->getLoopbacks()[0], this->kSid0)});
 
     auto ecmpHelper = this->makeEcmpHelper();
     auto portDesc = ecmpHelper.nhop(0).portDesc;
@@ -749,7 +714,7 @@ TYPED_TEST(AgentSrv6BindingSidTest, dropPacketBindingSidIsNotLastSid) {
         this->getSw(),
         this->kMySidPrefix,
         this->kMySidPrefixLen,
-        {utility::makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0)});
+        {utility::makeSrv6NextHopThrift(this->getLoopbacks()[0], this->kSid0)});
   };
 
   auto verify = [this]() {
@@ -777,10 +742,10 @@ TYPED_TEST(AgentSrv6BindingSidTest, bindingSidMultiHopIsLoadBalanced) {
         this->getSw(),
         this->kMySidPrefix,
         this->kMySidPrefixLen,
-        {utility::makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0),
-         utility::makeSrv6NextHopThrift(this->kBgpRoute1, this->kSid1),
-         utility::makeSrv6NextHopThrift(this->kBgpRoute2, this->kSid0),
-         utility::makeSrv6NextHopThrift(this->kBgpRoute3, this->kSid1)});
+        {utility::makeSrv6NextHopThrift(this->getLoopbacks()[0], this->kSid0),
+         utility::makeSrv6NextHopThrift(this->getLoopbacks()[1], this->kSid1),
+         utility::makeSrv6NextHopThrift(this->getLoopbacks()[2], this->kSid0),
+         utility::makeSrv6NextHopThrift(this->getLoopbacks()[3], this->kSid1)});
     this->addEncapRouteToBindingSid(
         this->kEncapRoutePrefix, this->kMySidPrefix);
     this->addRouteToExistingEncapNhg(this->kEncapV4RoutePrefix);
@@ -816,8 +781,8 @@ TYPED_TEST(AgentSrv6BindingSidTest, multiHopUnresolvedToResolved) {
         this->getSw(),
         this->kMySidPrefix,
         this->kMySidPrefixLen,
-        {utility::makeSrv6NextHopThrift(this->kBgpRoute0, this->kSid0),
-         utility::makeSrv6NextHopThrift(this->kBgpRoute1, this->kSid1)});
+        {utility::makeSrv6NextHopThrift(this->getLoopbacks()[0], this->kSid0),
+         utility::makeSrv6NextHopThrift(this->getLoopbacks()[1], this->kSid1)});
     auto ecmpHelper = this->makeEcmpHelper();
     std::vector<PortID> egressPorts{
         this->getEgressPort(ecmpHelper.nhop(0).portDesc),

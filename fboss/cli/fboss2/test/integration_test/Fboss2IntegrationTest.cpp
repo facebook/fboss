@@ -37,9 +37,13 @@
 #include <vector>
 
 #include <folly/IPAddressV6.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
@@ -47,6 +51,7 @@
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/CmdInitUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace fs = std::filesystem;
 
@@ -592,6 +597,109 @@ Fboss2IntegrationTest::waitForPortRunningInfo(
              << " — last observed: profile=" << last.profileId
              << ", speed=" << last.speedMbps << " Mbps";
   return last;
+}
+
+PlatformMapping Fboss2IntegrationTest::fetchPlatformMapping() const {
+  HostInfo hostInfo("localhost");
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+  cfg::PlatformMapping thriftMapping;
+  client->sync_getPlatformMapping(thriftMapping);
+  return PlatformMapping(thriftMapping);
+}
+
+std::map<int32_t, Fboss2IntegrationTest::PresentPort>
+Fboss2IntegrationTest::fetchPresentPorts() const {
+  HostInfo hostInfo("localhost");
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+  std::map<int32_t, PortInfoThrift> portEntries;
+  client->sync_getAllPortInfo(portEntries);
+  std::map<int32_t, PresentPort> present;
+  for (const auto& [id, info] : portEntries) {
+    present[id] = PresentPort{*info.name(), *info.profileID()};
+  }
+  return present;
+}
+
+std::set<std::string> Fboss2IntegrationTest::supportedProfileNames(
+    const PlatformMapping& mapping,
+    int32_t id) const {
+  std::set<std::string> names;
+  const auto& entry = mapping.getPlatformPort(id);
+  for (const auto& [profileId, unused] : *entry.supportedProfiles()) {
+    names.insert(apache::thrift::util::enumNameSafe(profileId));
+  }
+  return names;
+}
+
+std::optional<Fboss2IntegrationTest::CreatableCandidate>
+Fboss2IntegrationTest::findFreeableCandidate() const {
+  auto mapping = fetchPlatformMapping();
+  auto present = fetchPresentPorts();
+  auto groups = utility::getSubsidiaryPortIDs(mapping.getPlatformPorts());
+  for (const auto& [controlling, unused] : groups) {
+    int32_t cid = static_cast<int32_t>(controlling);
+    auto pit = present.find(cid);
+    if (pit == present.end()) {
+      continue;
+    }
+    cfg::PortProfileID currentProfile;
+    if (!apache::thrift::TEnumTraits<cfg::PortProfileID>::findValue(
+            pit->second.profileId.c_str(), &currentProfile)) {
+      continue;
+    }
+    const auto& cEntry = mapping.getPlatformPort(cid);
+    for (auto sp : mapping.getSubsumedPorts(controlling, currentProfile)) {
+      int32_t sid = static_cast<int32_t>(sp);
+      if (present.find(sid) != present.end()) {
+        continue; // S must be absent
+      }
+      const auto& subMapping = mapping.getPlatformPort(sid);
+      if (subMapping.mapping()->portType() != cfg::PortType::INTERFACE_PORT) {
+        continue;
+      }
+      auto subProfiles = supportedProfileNames(mapping, sid);
+      if (subProfiles.empty()) {
+        continue;
+      }
+      // Find a profile C supports that no longer subsumes S and that S also
+      // supports -- so one command can narrow C and create S at that profile.
+      for (const auto& [narrowId, unused2] : *cEntry.supportedProfiles()) {
+        auto narrowName = apache::thrift::util::enumNameSafe(narrowId);
+        if (narrowName == pit->second.profileId) {
+          continue;
+        }
+        if (subProfiles.find(narrowName) == subProfiles.end()) {
+          continue; // S must support the profile we apply to it
+        }
+        const auto freed = mapping.getSubsumedPorts(controlling, narrowId);
+        if (std::find(freed.begin(), freed.end(), sp) != freed.end()) {
+          continue; // still subsumes S
+        }
+        return CreatableCandidate{
+            pit->second.name,
+            pit->second.profileId,
+            *subMapping.mapping()->name(),
+            *subProfiles.begin(),
+            std::move(narrowName)};
+      }
+    }
+  }
+  return std::nullopt;
+}
+
+bool Fboss2IntegrationTest::waitForPortAbsent(
+    const std::string& portName) const {
+  for (int attempt = 0; attempt < 15; ++attempt) {
+    try {
+      getPortRunningInfo(portName);
+    } catch (const std::runtime_error&) {
+      return true;
+    }
+    /* sleep override */ std::this_thread::sleep_for(std::chrono::seconds(2));
+  }
+  return false;
 }
 
 folly::dynamic Fboss2IntegrationTest::waitForRunningConfig(

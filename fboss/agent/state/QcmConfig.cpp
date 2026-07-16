@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/state/QcmConfig.h"
 #include <fboss/agent/gen-cpp2/switch_state_types.h>
-#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <fboss/agent/state/Thrifty.h>
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"

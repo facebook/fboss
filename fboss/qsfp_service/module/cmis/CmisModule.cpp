@@ -3694,9 +3694,7 @@ bool CmisModule::isRxConsActHoldOffTmrImplSupported() const {
   return (*data & RX_CONS_ACT_HOLD_OFF_TMR_IMPL_MASK) != 0;
 }
 
-void CmisModule::configureRxConsActHoldOffTimer(
-    int32_t timerMs,
-    bool isExplicitlyConfigured) {
+void CmisModule::configureRxConsActHoldOffTimer(int32_t timerMs) {
   if (timerMs < 0 || timerMs > 655350 || timerMs % 10 != 0) {
     throw FbossError(
         "Hold-off timer must be a non-negative multiple of 10ms "
@@ -3704,23 +3702,39 @@ void CmisModule::configureRxConsActHoldOffTimer(
         timerMs);
   }
   int32_t registerValue = timerMs / 10;
+  uint16_t regVal = static_cast<uint16_t>(registerValue);
+  uint8_t timerData[2];
+  timerData[0] = static_cast<uint8_t>((regVal >> 8) & 0xFF);
+  timerData[1] = static_cast<uint8_t>(regVal & 0xFF);
+
   if (isRxConsActHoldOffTmrImplSupported()) {
-    uint16_t regVal = static_cast<uint16_t>(registerValue);
-    uint8_t timerData[2];
-    timerData[0] = static_cast<uint8_t>((regVal >> 8) & 0xFF);
-    timerData[1] = static_cast<uint8_t>(regVal & 0xFF);
     writeCmisField(CmisField::CONS_ACT_HOLD_OFF_TMR, timerData);
     QSFP_LOG(INFO, this) << "Configured Rx Consequent Action Hold-off Timer to "
                          << timerMs << "ms (register value=" << regVal << ")";
-  } else if (isExplicitlyConfigured) {
-    throw FbossError(
-        "Module does not advertise rxConsActHoldOffTmrImpl "
-        "(Page 45h, Byte 129, Bit 2). Cannot configure hold-off timer.");
-  } else {
-    QSFP_LOG(INFO, this)
-        << "Hold-off timer not configured and module does not support it. "
-        << "Skipping hold-off timer programming.";
+    return;
   }
+
+  // The module doesn't advertise support for programming the hold-off timer
+  // (Page 45h, Byte 129, Bit 2), so we can't write it. Read the current value:
+  // if it already matches the requested value there's nothing to do; otherwise
+  // fail loudly rather than silently leaving a value we couldn't set (e.g. a
+  // module with a non-zero default when we requested it be disabled).
+  uint8_t currentData[2];
+  readCmisField(CmisField::CONS_ACT_HOLD_OFF_TMR, currentData);
+  uint16_t currentRegVal =
+      (static_cast<uint16_t>(currentData[0]) << 8) | currentData[1];
+  if (currentRegVal != regVal) {
+    throw FbossError(
+        "Module does not support programming rxConsActHoldOffTmr "
+        "(Page 45h, Byte 129, Bit 2); current value ",
+        currentRegVal * 10,
+        "ms differs from requested ",
+        timerMs,
+        "ms");
+  }
+  QSFP_LOG(INFO, this)
+      << "Rx Consequent Action Hold-off Timer already at requested " << timerMs
+      << "ms; module does not support programming it (no-op)";
 }
 
 bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
@@ -3891,14 +3905,13 @@ void CmisModule::programTunableModule(
   const auto& centerFreq = freqConfig->centerFrequencyConfig();
 
   QSFP_LOG(INFO, this) << "Program tunable optics module";
-  // Only program the Rx Consequent Action hold-off timer when a config
-  // explicitly requests it. Not all vendors implement this register, so it is
-  // left untouched by default (kept for future use if a config opts in).
-  if (auto rxConsActHoldOffTimerMs =
-          opticalChannelConfig.rxConsActHoldOffTimerMs()) {
-    configureRxConsActHoldOffTimer(
-        *rxConsActHoldOffTimerMs, /*isExplicitlyConfigured=*/true);
-  }
+  // Program the Rx Consequent Action hold-off timer (defaults to 0 = disabled).
+  // configureRxConsActHoldOffTimer writes it on modules that implement the
+  // register; on modules that don't, it's a no-op only if the current value
+  // already matches the request, otherwise it throws (so we never silently
+  // leave a value we couldn't set).
+  configureRxConsActHoldOffTimer(
+      *opticalChannelConfig.rxConsActHoldOffTimerMs());
 
   // Disable TX and RX squelch on all lanes
   disableTxRxSquelchForTunableOptics();
@@ -5116,11 +5129,19 @@ bool CmisModule::isDatapathUpdated(
     uint8_t bank) {
   // laneMask carries intra-bank lane bits; map each back to its global lane so
   // the bank-aware getDatapathLaneStateLocked reads the right bank's page.
+  const auto moduleHostLanes = numHostLanes();
   for (uint8_t intraLane = 0; intraLane < kMaxOsfpNumLanes; intraLane++) {
     if (!((1 << intraLane) & laneMask)) {
       continue;
     }
     auto lane = globalLane(bank, intraLane);
+    if (lane >= moduleHostLanes) {
+      // A port's host lane mask can be wider than the module's actual datapath
+      // (e.g. a full-bank 0xff mask on a 4-lane module). Lanes beyond
+      // numHostLanes() have no datapath and report DATA_PATH_STATE 0, which
+      // never matches a target state
+      continue;
+    }
     auto dpState = getDatapathLaneStateLocked(lane, false);
     if (std::find(states.begin(), states.end(), dpState) == states.end()) {
       return false;

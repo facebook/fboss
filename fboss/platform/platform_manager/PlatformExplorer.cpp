@@ -1046,7 +1046,7 @@ void PlatformExplorer::publishHardwareVersions() {
   // names (e.g. multiple PSUs) collapse into one counter per unique version.
   for (const auto& [slotPath, pmUnitInfo] :
        dataStore_.getSlotPathToPmUnitInfo()) {
-    const auto& version = pmUnitInfo.version();
+    auto version = pmUnitInfo.version();
     if (!version) {
       fb303::fbData->setCounter(
           fmt::format(kPmUnitVersionODS, *pmUnitInfo.name(), "unspecified"), 1);

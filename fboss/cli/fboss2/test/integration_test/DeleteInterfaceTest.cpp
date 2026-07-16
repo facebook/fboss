@@ -193,3 +193,70 @@ TEST_F(DeleteInterfaceTest, DISABLED_DeleteLoopbackModeAndLldpExpectedValue) {
   XLOG(INFO) << "  Combined delete succeeded (exit 0, config committed)";
   XLOG(INFO) << "TEST PASSED";
 }
+
+// ---------------------------------------------------------------------------
+// Test: bare 'delete interface <port>' removes a whole port.
+//
+// Break a controlling port into two lower-speed ports (create the freed subport
+// via a single combined command, as in
+// ConfigInterfaceProfileTest.CreateFreedPortSucceeds), then delete that subport
+// as a whole port and confirm the agent no longer reports it. Finally re-create
+// the original controlling port by widening it back to its starting profile,
+// leaving the DUT as we found it.
+// ---------------------------------------------------------------------------
+
+TEST_F(DeleteInterfaceTest, DeleteWholePortRemovesCreatedSubport) {
+  auto cand = findFreeableCandidate();
+  if (!cand) {
+    GTEST_SKIP()
+        << "No absent subport freeable by narrowing its controlling port";
+  }
+  XLOG(INFO) << "[Step 1] controlling=" << cand->controllingName << " ("
+             << cand->controllingProfile << ") -> " << cand->narrowProfile
+             << "; subport=" << cand->subportName;
+
+  XLOG(INFO)
+      << "[Step 2] Breaking the controlling port into two (single command)...";
+  auto create = runCli(
+      {"config",
+       "interface",
+       cand->controllingName,
+       cand->subportName,
+       "profile",
+       cand->narrowProfile});
+  ASSERT_EQ(create.exitCode, 0) << create.stderr;
+  commitConfig();
+
+  auto created = waitForPortRunningInfo(
+      cand->subportName,
+      [&cand](const auto& i) { return i.profileId == cand->narrowProfile; });
+  ASSERT_EQ(created.profileId, cand->narrowProfile)
+      << "subport " << cand->subportName << " was not created";
+
+  XLOG(INFO) << "[Step 3] Deleting the whole subport " << cand->subportName
+             << "...";
+  auto del = runCli({"delete", "interface", cand->subportName});
+  ASSERT_EQ(del.exitCode, 0) << del.stderr;
+  commitConfig();
+
+  EXPECT_TRUE(waitForPortAbsent(cand->subportName))
+      << cand->subportName << " should be removed after 'delete interface'";
+
+  XLOG(INFO) << "[Step 4] Re-creating the original controlling port...";
+  auto restore = runCli(
+      {"config",
+       "interface",
+       cand->controllingName,
+       "profile",
+       cand->controllingProfile});
+  ASSERT_EQ(restore.exitCode, 0) << restore.stderr;
+  commitConfig();
+
+  auto restored =
+      waitForPortRunningInfo(cand->controllingName, [&cand](const auto& i) {
+        return i.profileId == cand->controllingProfile;
+      });
+  EXPECT_EQ(restored.profileId, cand->controllingProfile)
+      << "controlling port should be restored to its original profile";
+  XLOG(INFO) << "TEST PASSED";
+}

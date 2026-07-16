@@ -369,7 +369,16 @@
           "busName": "MCB_IOB_I2C_MASTER_5",
           "address": "0x62",
           "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "PMBUS_3"
+          "pmUnitScopedName": "PMBUS_3",
+          "initRegSettings": [
+            {
+              "__comment__": "Set the page to 0 to ensure the driver can read the correct registers",
+              "regOffset": 0,
+              "ioBuf": [
+                0
+              ]
+            }
+          ]
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_6",
@@ -457,18 +466,6 @@
               ]
             }
           ]
-        },
-        {
-          "busName": "MCB_IOB_I2C_MASTER_18",
-          "address": "0x48",
-          "kernelDeviceName": "tmp75",
-          "pmUnitScopedName": "COME_INLET_TSENSOR"
-        },
-        {
-          "busName": "MCB_IOB_I2C_MASTER_18",
-          "address": "0x4a",
-          "kernelDeviceName": "tmp75",
-          "pmUnitScopedName": "COME_OUTLET_TSENSOR"
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_19",
@@ -1734,15 +1731,10 @@
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 2,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.4.0-1",
-  "requiredKmodsToLoad": [
+  "bspKmodsRpmVersion": "4.4.1-1",
+  "nonBspKmodsToLoad": [
     "i2c_i801",
     "spidev",
-    "fboss_iob_pci",
-    "fboss_iob_i2c",
-    "fboss_iob_spi",
-    "fboss_iob_gpio",
-    "fboss_iob_led",
     "ledtrig_timer"
   ]
 }

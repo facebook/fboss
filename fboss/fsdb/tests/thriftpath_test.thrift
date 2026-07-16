@@ -47,6 +47,8 @@ struct OtherStruct {
   3: set<i32> s;
   4: UnionSimple u;
   5: optional i32 o;
+  @fboss_common.AllowSkipThriftCow
+  6: optional TestStructSimple optionalStruct;
 }
 
 @fboss_common.AllowSkipThriftCow

@@ -295,4 +295,13 @@ TEST_F(FbossEepromInterfaceTest, UnknownFieldCode) {
       0xfb, 0xfb, 0x05, 0xff, 0x99, 0x02, 0x00, 0x00};
   EXPECT_THROW(createFbossEepromInterface(invalidField), std::runtime_error);
 }
+
+TEST_F(FbossEepromInterfaceTest, TruncatedTlvLength) {
+  // EEPROM blob with a TLV that declares a length exceeding available bytes
+  // Header (4 bytes) + field code 0x01 (1 byte) + length 0xFF (255 bytes
+  // claimed) but buffer ends after only a few data bytes
+  const EepromData truncatedTlv = {
+      0xfb, 0xfb, 0x05, 0xff, 0x01, 0xFF, 0x00, 0x00, 0x00, 0x00};
+  EXPECT_THROW(createFbossEepromInterface(truncatedTlv), std::runtime_error);
+}
 } // namespace facebook::fboss::platform

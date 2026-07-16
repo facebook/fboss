@@ -29,6 +29,7 @@
 #include "fboss/agent/platforms/common/ladakh800bcls/Ladakh800bclsPlatformMapping.h"
 #include "fboss/agent/platforms/common/leh800bcls/Leh800bclsPlatformMapping.h"
 #include "fboss/agent/platforms/common/m4062nhp/M4062nhpPlatformMapping.h"
+#include "fboss/agent/platforms/common/m5120csc/M5120CSCPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
@@ -53,6 +54,7 @@
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
 #include "fboss/agent/platforms/common/yangra2/Yangra2PlatformMapping.h"
+#include "fboss/lib/platforms/PlatformDescriptor.h"
 
 namespace {
 std::vector<int> getFakeSaiControllingPortIDs() {
@@ -75,6 +77,16 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
     }
     XLOG(INFO) << "Overriding platform mapping from "
                << FLAGS_platform_mapping_override_path;
+  }
+  if (platformMappingStr.empty() &&
+      !FLAGS_platform_descriptor_config_path.empty()) {
+    auto descriptorPlatformMapping =
+        PlatformDescriptorRegistry::get().loadPlatformMapping(type);
+    if (descriptorPlatformMapping.has_value()) {
+      XLOG(INFO) << "Loading platform mapping from platform descriptor config "
+                 << FLAGS_platform_descriptor_config_path;
+      return std::make_unique<PlatformMapping>(*descriptorPlatformMapping);
+    }
   }
   switch (type) {
     case PlatformType::PLATFORM_WEDGE:
@@ -207,6 +219,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Wedge800CACTPlatformMapping>()
           : std::make_unique<Wedge800CACTPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_M5120CSC:
+      return platformMappingStr.empty()
+          ? std::make_unique<M5120CSCPlatformMapping>()
+          : std::make_unique<M5120CSCPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_LADAKH800BCLS:
       return platformMappingStr.empty()
           ? std::make_unique<Ladakh800bclsPlatformMapping>()

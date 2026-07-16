@@ -702,7 +702,7 @@
   "numXcvrs": 128,
   "bspKmodsRpmName": "nexthop_bsp_kmods",
   "bspKmodsRpmVersion": "1.0.0-1",
-  "requiredKmodsToLoad": [
+  "nonBspKmodsToLoad": [
     "i2c_i801",
     "i2c_mux",
     "fbiob_pci",

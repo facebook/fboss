@@ -5765,6 +5765,9 @@
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
+          "test_name_regex": "AgentCableLengthMeasurementTest.PtpSentWithClmEnabled$"
+        },
+        {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
         },
         {
@@ -13926,6 +13929,9 @@
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
+          "test_name_regex": "AgentCableLengthMeasurementTest.PtpSentWithClmEnabled$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentFlowletSwitchingTest.CreateMaxDlbGroups$"
         }
     ],
@@ -14384,6 +14390,15 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         },
         {
+          "test_name_regex": "AgentSrv6MidpointTest.*$"
+        },
+        {
+          "test_name_regex": "AgentPfcConfigTest.*$"
+        },
+        {
+          "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
+        },
+        {
           "test_name_regex": "AgentTest_PROFILE_25G_.*$"
         },
         {
@@ -14783,6 +14798,15 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
+        },
+        {
+          "test_name_regex": "AgentSrv6MidpointTest.*$"
+        },
+        {
+          "test_name_regex": "AgentPfcConfigTest.*$"
+        },
+        {
+          "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
         },
         {
           "test_name_regex": "AgentTest_PROFILE_25G_.*$"
@@ -19446,6 +19470,9 @@
         },
         {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
+        },
+        {
+          "test_name_regex": "AgentCableLengthMeasurementTest.PtpSentWithClmEnabled$"
         }
     ],
     "chenab/2505.34/2505.34/chenab/mono": [
@@ -21548,6 +21575,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
         },
         {
+          "test_name_regex": "AgentMirrorOnDropStatelessTest.MirrorOnDropWithSampling$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -21980,6 +22010,9 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropStatelessTest.MirrorOnDropWithSampling$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -23357,6 +23390,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
         },
         {
+          "test_name_regex": "AgentMirrorOnDropStatelessTest.MirrorOnDropWithSampling$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -23735,6 +23771,9 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropStatelessTest.MirrorOnDropWithSampling$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -24117,6 +24156,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
         },
         {
+          "test_name_regex": "AgentMirrorOnDropStatelessTest.MirrorOnDropWithSampling$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -24495,6 +24537,9 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropStatelessTest.MirrorOnDropWithSampling$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -24883,6 +24928,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
         },
         {
+          "test_name_regex": "AgentMirrorOnDropStatelessTest.MirrorOnDropWithSampling$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -25267,6 +25315,9 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropStatelessTest.MirrorOnDropWithSampling$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"

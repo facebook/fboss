@@ -1859,6 +1859,7 @@
         },
         {
           "__comment__": "Universal fallback (AC default thresholds)",
+          "productName": "DEFAULT",
           "productionState": 0,
           "productionSubState": 0,
           "respinVariantIndicator": 0,
@@ -2227,6 +2228,7 @@
         },
         {
           "__comment__": "Universal fallback (AC default thresholds)",
+          "productName": "DEFAULT",
           "productionState": 0,
           "productionSubState": 0,
           "respinVariantIndicator": 0,

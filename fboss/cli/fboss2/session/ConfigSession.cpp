@@ -406,6 +406,13 @@ const utils::PortMap& ConfigSession::getPortMap() const {
   return *portMap_;
 }
 
+void ConfigSession::rebuildPortMap() {
+  if (!configLoaded_) {
+    loadConfig();
+  }
+  portMap_ = std::make_unique<utils::PortMap>(agentConfig_);
+}
+
 void ConfigSession::saveConfig(
     cli::ServiceType service,
     cli::ConfigActionLevel actionLevel) {

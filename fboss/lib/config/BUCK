@@ -34,3 +34,34 @@ cpp_unittest(
         "//fboss/agent:fboss-error",
     ],
 )
+
+cpp_library(
+    name = "agent_config_utils",
+    srcs = [
+        "AgentConfigUtils.cpp",
+    ],
+    headers = [
+        "AgentConfigUtils.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+)
+
+cpp_unittest(
+    name = "agent_config_utils_tests",
+    srcs = [
+        "tests/AgentConfigUtilsTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        ":agent_config_utils",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:platform_config-cpp2-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+)

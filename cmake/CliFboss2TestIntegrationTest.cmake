@@ -12,6 +12,8 @@ add_executable(fboss2_integration_test
   fboss/cli/fboss2/test/integration_test/ConfigArpTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigAclRuleTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigConcurrentSessionsTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigHostnameTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigIcmpV4UnavailableSrcAddrTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigCoppTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigDhcpSourceOverrideTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceDescriptionTest.cpp

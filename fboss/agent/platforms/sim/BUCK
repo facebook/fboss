@@ -13,6 +13,7 @@ cpp_binary(
         "//fboss/agent:main-bcm",  # @manual
         "//fboss/agent:monolithic_agent_initializer",
         "//fboss/agent:platform_base",
+        "//fboss/agent:setup_thrift_prod",  # @manual
         "//fboss/agent/hw/bcm:bcm",  # @manual
         "//fboss/agent/hw/sim:platform",
         "//folly:memory",

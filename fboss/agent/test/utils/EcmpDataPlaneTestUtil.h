@@ -171,6 +171,18 @@ class HwSrv6EcmpDataPlaneTestUtil
       override;
 };
 
+// SRv6 ECMP with traffic varying only the IPv6 flow label (fixed 5-tuple), to
+// exercise flow-label based hashing over SRv6 encap specifically.
+class HwSrv6FlowLabelEcmpDataPlaneTestUtil
+    : public HwSrv6EcmpDataPlaneTestUtil {
+ public:
+  using BaseT = HwSrv6EcmpDataPlaneTestUtil;
+
+  HwSrv6FlowLabelEcmpDataPlaneTestUtil(TestEnsembleIf* ensemble, RouterID vrf);
+
+  void pumpTrafficThroughPort(std::optional<PortID> port) override;
+};
+
 using HwIpV4EcmpDataPlaneTestUtil =
     HwIpEcmpDataPlaneTestUtil<folly::IPAddressV4>;
 using HwIpV6EcmpDataPlaneTestUtil =

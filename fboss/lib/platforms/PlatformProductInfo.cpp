@@ -107,6 +107,8 @@ void PlatformProductInfo::initMode() {
         modelName.find("Wedge800CACT") == 0 ||
         modelName.find("WEDGE800CACT") == 0) {
       type_ = PlatformType::PLATFORM_WEDGE800CACT;
+    } else if (modelName.find("M5120CSC") == 0) {
+      type_ = PlatformType::PLATFORM_M5120CSC;
     } else if (modelName.find("DARWIN48V") == 0) {
       type_ = PlatformType::PLATFORM_DARWIN48V;
     } else if (
@@ -323,6 +325,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_TAHANSB800BC;
     } else if (FLAGS_mode == "wedge800cact") {
       type_ = PlatformType::PLATFORM_WEDGE800CACT;
+    } else if (FLAGS_mode == "m5120csc") {
+      type_ = PlatformType::PLATFORM_M5120CSC;
     } else if (FLAGS_mode == "j4sim") {
       type_ = PlatformType::PLATFORM_J4SIM;
     } else if (

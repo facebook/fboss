@@ -113,10 +113,10 @@ struct OpticalChannelConfig {
   // Application Select code published by the META ZR spec
   3: i32 appSelCode;
   // Rx Consequent Action Hold-off Timer in ms (must be a multiple of 10).
-  // Max 655350ms. Delays squelch/LF while inserting PCS Idles. 0 = disabled.
-  // Optional and unset by default: not all vendors implement this register, so
-  // it is only programmed when a config explicitly provides a value.
-  4: optional i32 rxConsActHoldOffTimerMs;
+  // Max 655350ms. Delays squelch/LF while inserting PCS Idles. Defaults to 0
+  // (disabled). Only programmed on modules that implement the register; a
+  // module that doesn't advertise support is left untouched (no error).
+  4: i32 rxConsActHoldOffTimerMs = 0;
 }
 
 struct QsfpServiceConfig {

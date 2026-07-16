@@ -61,7 +61,7 @@ class PkgManagerTest : public testing::Test {
     FLAGS_kmod_unload_retry_backoff_s = 0;
     platformConfig_.bspKmodsRpmName() = "fboss_bsp_kmods";
     platformConfig_.bspKmodsRpmVersion() = "11.44.63-14";
-    platformConfig_.requiredKmodsToLoad() = {"fboss_iob_pci", "spidev"};
+    platformConfig_.nonBspKmodsToLoad() = {"fboss_iob_pci", "spidev"};
 
     bspKmodsFile_.bspKmods() = {"fboss_iob_pci", "fboss_iob_spi"};
     bspKmodsFile_.sharedKmods() = {"scd"};
@@ -454,15 +454,66 @@ TEST_F(PkgManagerTest, unloadBspKmodsAttemptsOnceWhenRetriesNonPositive) {
 }
 
 TEST_F(PkgManagerTest, loadRequiredKmods) {
-  // Load kmods from PlatformManagerConfig::loadRequiredKmods
-  EXPECT_CALL(*mockSystemInterface_, loadKmod(_))
-      .Times(platformConfig_.requiredKmodsToLoad()->size())
-      .WillRepeatedly(Return(true));
+  // The required (bootstrap) kmods are loaded first in config order, then
+  // every kmod from kmods.json -- shared kmods before bsp kmods.
+  EXPECT_CALL(*mockSystemInterface_, getHostKernelVersion())
+      .WillRepeatedly(Return("6.4.3-0_fbk1_755_ga25447393a1d"));
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
+      .WillRepeatedly(Return(jsonBspKmodsFile_));
+  {
+    InSequence seq;
+    for (const auto& kmod : *platformConfig_.nonBspKmodsToLoad()) {
+      EXPECT_CALL(*mockSystemInterface_, loadKmod(kmod)).WillOnce(Return(true));
+    }
+    for (const auto& kmod : ranges::views::concat(
+             *bspKmodsFile_.sharedKmods(), *bspKmodsFile_.bspKmods())) {
+      EXPECT_CALL(*mockSystemInterface_, loadKmod(kmod)).WillOnce(Return(true));
+    }
+  }
   EXPECT_NO_THROW(pkgManager_.loadRequiredKmods());
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kLoadKmodsFailure), 0);
-  // Load kmods fail
+}
+
+TEST_F(PkgManagerTest, loadRequiredKmodsFailsWhenKmodsFileAbsent) {
+  // The required (bootstrap) kmods succeed, then reading kmods.json fails
+  // (getStringFileContent returns nullopt) -- loadBspKmods throws via
+  // readKmodsFile.
+  EXPECT_CALL(*mockSystemInterface_, getHostKernelVersion())
+      .WillRepeatedly(Return("6.4.3-0_fbk1_755_ga25447393a1d"));
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
+      .WillOnce(Return(std::nullopt));
+  EXPECT_CALL(*mockSystemInterface_, loadKmod(_))
+      .Times(static_cast<int>(platformConfig_.nonBspKmodsToLoad()->size()))
+      .WillRepeatedly(Return(true));
+  EXPECT_THROW(pkgManager_.loadRequiredKmods(), std::runtime_error);
+}
+
+TEST_F(PkgManagerTest, loadRequiredKmodsFailsOnRequiredKmod) {
+  // A failed required kmod aborts before kmods.json is ever looked up.
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_)).Times(0);
   EXPECT_CALL(*mockSystemInterface_, loadKmod(_)).WillOnce(Return(false));
+  EXPECT_THROW(pkgManager_.loadRequiredKmods(), std::runtime_error);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kLoadKmodsFailure), 1);
+}
+
+TEST_F(PkgManagerTest, loadRequiredKmodsFailsOnBspKmod) {
+  // Required kmods succeed, then the first kmod from kmods.json fails -> throw.
+  EXPECT_CALL(*mockSystemInterface_, getHostKernelVersion())
+      .WillRepeatedly(Return("6.4.3-0_fbk1_755_ga25447393a1d"));
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
+      .WillRepeatedly(Return(jsonBspKmodsFile_));
+  {
+    InSequence seq;
+    for (const auto& kmod : *platformConfig_.nonBspKmodsToLoad()) {
+      EXPECT_CALL(*mockSystemInterface_, loadKmod(kmod)).WillOnce(Return(true));
+    }
+    // First kmod from kmods.json (shared) fails; later ones are not attempted.
+    EXPECT_CALL(
+        *mockSystemInterface_, loadKmod((*bspKmodsFile_.sharedKmods())[0]))
+        .WillOnce(Return(false));
+  }
   EXPECT_THROW(pkgManager_.loadRequiredKmods(), std::runtime_error);
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kLoadKmodsFailure), 1);

@@ -164,6 +164,20 @@ class TestGetTestRegexesFromFile:
         captured = capsys.readouterr()
         assert "Warning: Could not find tests" in captured.out
 
+    def test_empty_section_no_warning(self, runner, tmp_path, capsys):
+        # A config that legitimately defines no tests for the section (e.g. QSFP
+        # ships unsupported_tests + thresholds but no known_bad_tests) should
+        # return [] silently -- no spurious "Could not find tests" warning.
+        cfg = tmp_path / "empty_known_bad.json"
+        cfg.write_text(json.dumps({"known_bad_tests": {}}))
+        result = runner._get_test_regexes_from_file(
+            file_path=str(cfg),
+            test_dict_key="known_bad_tests",
+            keys_to_try=["montblanc/credo-0.7.2"],
+        )
+        assert result == []
+        assert "Could not find tests" not in capsys.readouterr().out
+
     def test_file_not_found_returns_empty(self, runner, capsys):
         result = runner._get_test_regexes_from_file(
             file_path="/nonexistent/file.json",

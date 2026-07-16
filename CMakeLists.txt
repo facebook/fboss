@@ -85,6 +85,7 @@ option(SAI_BRCM_PAI_IMPL "Build SAI api with BRCOM_PAI-SAI extensions" OFF)
 if ($ENV{SAI_BRCM_PAI_IMPL})
   message(STATUS "ENV SAI_BRCM_PAI_IMPL is set")
   set(SAI_BRCM_PAI_IMPL ON)
+  add_definitions(-DSAI_BRCM_PAI_IMPL)
   # NOTE: Unlike agent that we use sai_impl, we directly use pre-built SDK from
   # local directory
   # Header files for libpai.a, the whole inc directory from SDK

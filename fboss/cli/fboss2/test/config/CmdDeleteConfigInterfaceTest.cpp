@@ -2,6 +2,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <algorithm>
 
 #include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -118,7 +119,7 @@ TEST_F(CmdDeleteConfigInterfaceTestFixture, deleteExistingIpv4Address) {
   auto& intfs = *config.sw()->interfaces();
   for (auto& intf : intfs) {
     if (*intf.name() == "eth1/1/1") {
-      intf.ipAddresses()->push_back("10.0.0.1/24");
+      intf.ipAddresses()->emplace_back("10.0.0.1/24");
       break;
     }
   }
@@ -152,6 +153,123 @@ TEST_F(CmdDeleteConfigInterfaceTestFixture, deleteNonExistentIpAddress) {
   auto result = cmd.queryClient(localhost(), deleteConfig);
 
   EXPECT_THAT(result, HasSubstr("not configured"));
+}
+
+// ============================================================================
+// Whole-port delete (bare `delete interface <port>`, no attributes)
+// ============================================================================
+
+// Fixture with a full port -> vlanPort -> vlan -> interface chain so we can
+// verify that deleting a port also prunes its dependents.
+class CmdDeleteWholeInterfaceTestFixture : public CmdConfigTestBase {
+ public:
+  CmdDeleteWholeInterfaceTestFixture()
+      : CmdConfigTestBase(
+            "delete_whole_interface_test_%%%%-%%%%-%%%%",
+            R"({
+  "sw": {
+    "ports": [
+      {
+        "logicalID": 1,
+        "name": "eth1/1/1",
+        "state": 2,
+        "speed": 100000,
+        "ingressVlan": 100
+      },
+      {
+        "logicalID": 2,
+        "name": "eth1/2/1",
+        "state": 2,
+        "speed": 100000,
+        "ingressVlan": 200
+      }
+    ],
+    "vlanPorts": [
+      {"vlanID": 100, "logicalPort": 1, "spanningTreeState": 2, "emitTags": false},
+      {"vlanID": 200, "logicalPort": 2, "spanningTreeState": 2, "emitTags": false}
+    ],
+    "defaultVlan": 4000,
+    "vlans": [
+      {"id": 100, "name": "vlan100", "routable": true, "intfID": 100},
+      {"id": 200, "name": "vlan200", "routable": true, "intfID": 200},
+      {"id": 4000, "name": "vlan4000", "routable": false, "intfID": 0}
+    ],
+    "interfaces": [
+      {"intfID": 100, "vlanID": 100, "routerID": 0, "type": 1, "mtu": 9412},
+      {"intfID": 200, "vlanID": 200, "routerID": 0, "type": 1, "mtu": 9412}
+    ]
+  }
+})") {}
+
+ protected:
+  const std::string cmdPrefix_ = "delete interface";
+};
+
+// Bare `delete interface eth1/1/1` removes the port and its vlanPort, the now
+// empty vlan, and the vlan's interface, while leaving the other port's chain.
+TEST_F(CmdDeleteWholeInterfaceTestFixture, deletesPortAndDependents) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1");
+  auto cmd = CmdDeleteInterface();
+  InterfaceDeleteConfig deleteConfig({"eth1/1/1"});
+
+  auto result = cmd.queryClient(localhost(), deleteConfig);
+
+  EXPECT_THAT(result, HasSubstr("Deleted interface(s)"));
+  EXPECT_THAT(result, HasSubstr("eth1/1/1"));
+
+  auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+
+  const auto& ports = *swConfig.ports();
+  EXPECT_EQ(
+      std::none_of(
+          ports.begin(),
+          ports.end(),
+          [](const auto& p) { return *p.logicalID() == 1; }),
+      true);
+
+  const auto& vlanPorts = *swConfig.vlanPorts();
+  EXPECT_EQ(
+      std::none_of(
+          vlanPorts.begin(),
+          vlanPorts.end(),
+          [](const auto& vp) { return *vp.logicalPort() == 1; }),
+      true);
+
+  const auto& vlans = *swConfig.vlans();
+  EXPECT_EQ(
+      std::none_of(
+          vlans.begin(),
+          vlans.end(),
+          [](const auto& v) { return *v.id() == 100; }),
+      true);
+
+  const auto& interfaces = *swConfig.interfaces();
+  EXPECT_EQ(
+      std::none_of(
+          interfaces.begin(),
+          interfaces.end(),
+          [](const auto& i) { return *i.intfID() == 100; }),
+      true);
+
+  // The other port's chain is untouched.
+  EXPECT_EQ(
+      std::any_of(
+          ports.begin(),
+          ports.end(),
+          [](const auto& p) { return *p.logicalID() == 2; }),
+      true);
+  EXPECT_EQ(
+      std::any_of(
+          vlans.begin(),
+          vlans.end(),
+          [](const auto& v) { return *v.id() == 200; }),
+      true);
+  EXPECT_EQ(
+      std::any_of(
+          interfaces.begin(),
+          interfaces.end(),
+          [](const auto& i) { return *i.intfID() == 200; }),
+      true);
 }
 
 } // namespace facebook::fboss

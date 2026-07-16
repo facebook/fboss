@@ -10,12 +10,15 @@
 #include <functional>
 #include <map>
 #include <optional>
+#include <set>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
 namespace facebook::fboss {
+
+class PlatformMapping;
 
 /**
  * Fboss2IntegrationTest is the base class for CLI end-to-end tests.
@@ -286,6 +289,65 @@ class Fboss2IntegrationTest : public ::testing::Test {
       const std::function<bool(const PortRunningInfo&)>& condition,
       std::chrono::seconds timeout = std::chrono::seconds(30),
       std::chrono::seconds interval = std::chrono::seconds(2)) const;
+
+  /**
+   * A port currently present in the agent, keyed elsewhere by logical id.
+   */
+  struct PresentPort {
+    std::string name;
+    std::string profileId; // enum name string
+  };
+
+  /**
+   * A creatable-port scenario derived from the platform mapping: an absent
+   * subport whose controlling port is present. `controllingName` is the present
+   * controlling port; `subportName` is the absent INTERFACE_PORT to create.
+   * `narrowProfile` is a profile the controlling port supports that does NOT
+   * subsume the subport AND that the subport itself supports -- so applying it
+   * to both ports narrows the controlling port and creates the freed subport in
+   * a single command. `subportProfile` is any profile the subport supports.
+   */
+  struct CreatableCandidate {
+    std::string controllingName;
+    std::string controllingProfile; // controlling port's current profile
+    std::string subportName;
+    std::string subportProfile; // a profile the absent subport supports
+    std::string narrowProfile; // frees subport and is supported by it
+  };
+
+  /**
+   * Build a PlatformMapping from the running agent (via getPlatformMapping).
+   */
+  PlatformMapping fetchPlatformMapping() const;
+
+  /**
+   * Ports currently present in the agent (subsumed/removed ports are absent),
+   * keyed by logical id.
+   */
+  std::map<int32_t, PresentPort> fetchPresentPorts() const;
+
+  /**
+   * Enum-name strings of every profile the platform port `id` supports.
+   */
+  std::set<std::string> supportedProfileNames(
+      const PlatformMapping& mapping,
+      int32_t id) const;
+
+  /**
+   * A present controlling port C that currently subsumes an absent subport S,
+   * and a narrower profile C supports that does NOT subsume S and that S also
+   * supports -- so applying that profile to both C and S in one command narrows
+   * C and creates S. Returns nullopt if no such scenario exists on this
+   * platform.
+   */
+  std::optional<CreatableCandidate> findFreeableCandidate() const;
+
+  /**
+   * Poll until the named port disappears from getAllPortInfo (i.e. it was
+   * removed from the config). Returns false if it is still present after the
+   * timeout.
+   */
+  bool waitForPortAbsent(const std::string& portName) const;
 
   /**
    * Poll getRunningConfig() until condition(config) is true or timeout
