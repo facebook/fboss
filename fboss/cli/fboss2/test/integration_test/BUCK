@@ -20,6 +20,7 @@ cpp_binary(
         "ConfigAdminDistanceTest.cpp",
         "ConfigArpTest.cpp",
         "ConfigBgpGlobalTest.cpp",
+        "ConfigBgpNeighborTest.cpp",
         "ConfigBgpSessionTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",
