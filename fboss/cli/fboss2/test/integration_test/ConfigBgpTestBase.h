@@ -28,6 +28,8 @@
 #include <thread>
 
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
+#include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
 
 namespace facebook::fboss {
 
@@ -76,6 +78,36 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
           "Failed to read system BGP config at " + systemBgpConfigPath());
     }
     return folly::parseJson(content);
+  }
+
+  // The running config as reported by the bgpd daemon itself, over its
+  // TBgpService::getRunningConfig thrift RPC. Unlike readSystemBgpConfig()
+  // (the promoted file on disk, which only proves what the CLI wrote), this
+  // proves the daemon parsed and adopted the config after the post-commit
+  // restart. Mirrors Fboss2IntegrationTest::getRunningConfig() for the agent.
+  //
+  // Retries on connection errors: systemd reports bgpd "active" as soon as
+  // the process starts, but the thrift server only binds its port a few
+  // seconds later — an RPC issued right after a commit-triggered restart
+  // would otherwise race that window and get ECONNREFUSED.
+  folly::dynamic readRunningBgpConfigViaRpc(
+      std::chrono::seconds timeout = std::chrono::seconds(30)) const {
+    auto deadline = std::chrono::steady_clock::now() + timeout;
+    while (true) {
+      try {
+        HostInfo hostInfo("localhost");
+        auto client = utils::createClient<apache::thrift::Client<
+            facebook::neteng::fboss::bgp::thrift::TBgpService>>(hostInfo);
+        std::string configStr;
+        client->sync_getRunningConfig(configStr);
+        return folly::parseJson(configStr);
+      } catch (const std::exception&) {
+        if (std::chrono::steady_clock::now() >= deadline) {
+          throw;
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+      }
+    }
   }
 
   // Root of the git repo that versions both the agent config (cli/agent.conf)
@@ -162,10 +194,19 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
   }
 
   // Stage a global change, commit it, wait for bgpd to come back, and return
-  // the promoted system config (the authoritative post-commit location).
-  // A no-op commit (staged value already in the system config) yields no SHA
-  // and is fine: the caller's assertions on the returned config still verify
-  // the value; commit/restart mechanics are covered by ConfigBgpSessionTest.
+  // bgpd's own running config as reported over its getRunningConfig RPC.
+  //
+  // The returned config is the daemon's adopted view, which is strictly
+  // stronger than the promoted file on disk (readSystemBgpConfig): a value
+  // present here proves the commit promoted /etc/coop/bgpcpp/bgpcpp.conf AND
+  // that bgpd parsed and adopted it after the commit-triggered restart, not
+  // merely that the CLI wrote the file. The running config shares the same
+  // BgpConfig JSON schema as the promoted file, so callers assert the same
+  // field paths against it.
+  //
+  // A no-op commit (staged value already current) yields no SHA and is fine:
+  // the caller's assertions on the returned config still verify the value;
+  // commit/restart mechanics are covered by ConfigBgpSessionTest.
   folly::dynamic setAndCommit(const std::string& attr, const std::string& value)
       const {
     discardSession();
@@ -174,7 +215,7 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
     EXPECT_TRUE(waitForBgpDaemonActive())
         << "bgpd did not return active after commit; state="
         << bgpDaemonActiveState();
-    return readSystemBgpConfig();
+    return readRunningBgpConfigViaRpc();
   }
 
   // Trailing-whitespace-trimmed stdout of a `systemctl` query for bgpd.
