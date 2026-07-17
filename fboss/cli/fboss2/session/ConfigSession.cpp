@@ -524,6 +524,10 @@ std::string ConfigSession::getBgpSystemConfigPath() const {
   return getBgpSystemConfigDir() + "/bgpcpp.conf";
 }
 
+std::string ConfigSession::getBgpSystemConfigLinkPath() const {
+  return systemConfigDir_ + "/bgpcpp.conf";
+}
+
 bool ConfigSession::bgpSessionExists() const {
   return fs::exists(getBgpSessionConfigPath());
 }
@@ -1099,6 +1103,13 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
           getBgpSystemConfigPath(), staged, 0644, folly::SyncType::WITH_SYNC);
       bgpConfPath = getBgpSystemConfigPath();
       commitFiles.push_back(bgpConfPath);
+      // Keep the daemon-facing path (/etc/coop/bgpcpp.conf) a symlink into the
+      // CLI-managed bgpcpp/ subdir, mirroring agent.conf -> cli/agent.conf.
+      // bgpd reads its provisioned --config /etc/coop/bgpcpp.conf and follows
+      // the symlink, so no per-device systemd --config override is needed. The
+      // symlink is git-tracked alongside the config so a rollback restores it.
+      atomicSymlinkUpdate(getBgpSystemConfigLinkPath(), kBgpGitRelPath);
+      commitFiles.push_back(getBgpSystemConfigLinkPath());
     } else if (bgpSystemConfigExisted) {
       // Agent-only commit: still track the running bgpd config so a later
       // rollback has a snapshot to restore instead of wiping it. No restart —

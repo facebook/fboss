@@ -294,6 +294,11 @@ class ConfigSession {
 
   // /etc/coop/bgpcpp (directory holding the bgpd daemon's config)
   std::string getBgpSystemConfigDir() const;
+  // /etc/coop/bgpcpp.conf — the stable path the bgpd daemon is configured to
+  // read (--config). commit() keeps it as a symlink into the CLI-managed
+  // bgpcpp/ subdir (kBgpGitRelPath), mirroring how agent.conf symlinks to
+  // cli/agent.conf, so the daemon needs no per-device --config override.
+  std::string getBgpSystemConfigLinkPath() const;
   // Lazily seed bgpConfig_ from disk (staged file, else running config, else
   // defaults). Mirrors loadConfig() for the agent.
   void loadBgpConfig();
