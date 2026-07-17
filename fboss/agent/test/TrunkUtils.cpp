@@ -26,45 +26,6 @@ cfg::AggregatePortMember makePortMember(int32_t port, cfg::LacpPortRate rate) {
   return aggMember;
 }
 
-namespace {
-// A VLAN left with no ports must be dropped; otherwise it diverges between cold
-// boot and warmboot.
-void removeUnreferencedVlans(
-    cfg::SwitchConfig* config,
-    const std::set<int32_t>& memberOldVlans,
-    int32_t aggVlan) {
-  std::set<int32_t> stillReferenced;
-  for (const auto& vlanPort : *config->vlanPorts()) {
-    stillReferenced.insert(vlanPort.vlanID().value());
-  }
-
-  for (auto oldVlan : memberOldVlans) {
-    if (oldVlan == aggVlan || stillReferenced.contains(oldVlan)) {
-      continue;
-    }
-
-    auto& vlans = *config->vlans();
-    vlans.erase(
-        std::remove_if(
-            vlans.begin(),
-            vlans.end(),
-            [&](const auto& v) { return v.id().value() == oldVlan; }),
-        vlans.end());
-
-    auto& intfs = *config->interfaces();
-    intfs.erase(
-        std::remove_if(
-            intfs.begin(),
-            intfs.end(),
-            [&](const auto& i) {
-              return i.type().value() == cfg::InterfaceType::VLAN &&
-                  i.vlanID().value() == oldVlan;
-            }),
-        intfs.end());
-  }
-}
-} // namespace
-
 void addAggPort(
     int key,
     const std::vector<int32_t>& ports,
@@ -90,24 +51,16 @@ void addAggPort(
     aggPort.memberPorts()->push_back(makePortMember(port, rate));
   }
   config->aggregatePorts()->push_back(aggPort);
-
+  // Set VLAN for all members to be the same
   std::set<uint32_t> memberPorts(ports.begin(), ports.end());
   std::optional<int32_t> aggVlan;
-  std::set<int32_t> memberOldVlans;
-
   for (auto& vlanPort : *config->vlanPorts()) {
     if (memberPorts.contains(vlanPort.logicalPort().value())) {
-      int32_t oldVlan = vlanPort.vlanID().value();
-      memberOldVlans.insert(oldVlan);
       if (!aggVlan) {
-        aggVlan = oldVlan;
+        aggVlan = vlanPort.vlanID().value();
       }
       vlanPort.vlanID() = *aggVlan;
     }
-  }
-
-  if (aggVlan.has_value()) {
-    removeUnreferencedVlans(config, memberOldVlans, *aggVlan);
   }
 
   if (aggregatePortType == cfg::AggregatePortType::LAG_PORT) {
