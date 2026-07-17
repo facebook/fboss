@@ -1217,8 +1217,8 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
-        "gflags",
         ("boost", None, "boost_container"),
+        "gflags",
         ("iproute2", None, "netlink"),
         ("libnl", None, "nl-route-3"),
     ],

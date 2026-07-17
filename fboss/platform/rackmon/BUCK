@@ -116,8 +116,8 @@ cpp_library(
         "fbsource//third-party/glog:glog",
     ],
     exported_external_deps = [
-        "nlohmann_json",
         ("libgpiod", None, "gpiod"),
+        "nlohmann_json",
     ],
 )
 

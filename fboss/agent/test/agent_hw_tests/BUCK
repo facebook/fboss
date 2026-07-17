@@ -432,9 +432,9 @@ cpp_library(
         "//thrift/lib/cpp2/test:matcher",
     ],
     exported_external_deps = [
-        "gflags",
         ("boost", None, "boost_container"),
         ("boost", None, "boost_range"),
+        "gflags",
     ],
 )
 

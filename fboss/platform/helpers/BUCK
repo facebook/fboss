@@ -83,8 +83,8 @@ cpp_library(
         "//thrift/lib/cpp2/async:async_processor",
     ],
     external_deps = [
-        ("openssl", None, "crypto"),
         "gflags",
+        ("openssl", None, "crypto"),
     ],
     exported_external_deps = [
         "gflags",

@@ -27,8 +27,8 @@ cpp_library(
         "//folly/json:dynamic",
     ],
     exported_external_deps = [
-        "gflags",
         ("boost", None, "boost_container"),
+        "gflags",
     ],
 )
 
@@ -67,8 +67,8 @@ cpp_library(
         "//folly/logging:logging",
     ],
     exported_external_deps = [
-        ("boost", None, "boost_container"),
         "boost",
+        ("boost", None, "boost_container"),
     ],
 )
 

@@ -195,8 +195,8 @@ cpp_unittest(
         "//thrift/lib/cpp2/util:util",
     ],
     external_deps = [
-        "gflags",
         ("boost", None, "boost_range"),
+        "gflags",
     ],
 )
 
