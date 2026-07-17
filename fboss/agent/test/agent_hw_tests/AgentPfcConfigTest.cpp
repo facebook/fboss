@@ -355,6 +355,12 @@ TEST_F(AgentPfcConfigTest, PfcRxTxCombinations) {
     // Iterate through remaining RX/TX combinations.
     for (auto [rxEn, txEn] : std::vector<std::pair<bool, bool>>{
              {false, false}, {true, false}, {false, true}}) {
+      // Asymmetric PFC (TX != RX) is unsupported on TAJO SDK platforms.
+      if (rxEn != txEn &&
+          getAgentEnsemble()->getL3Asics().front()->getAsicVendor() ==
+              HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+        continue;
+      }
       auto cfg = initialConfig(*getAgentEnsemble());
       setupPfc(cfg, portId, rxEn, txEn);
       pfcRx = getAgentEnsemble()
