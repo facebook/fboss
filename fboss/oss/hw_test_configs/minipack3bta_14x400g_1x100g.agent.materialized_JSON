@@ -1072,7 +1072,7 @@ device:
 
             :
                 ENABLE: 0
-                SPEED: 400000
+                SPEED: 200000
                 NUM_LANES: 4
                 FEC_MODE: PC_FEC_RS544_2XN
 ...
@@ -1101,6 +1101,7 @@ device:
 bcm_device:
     0:
         global:
+            afr_enable: 0
             pktio_mode: 0
             sai_l3_byte1_udf_disable: 1
             sai_rdma_udf_disable: 1

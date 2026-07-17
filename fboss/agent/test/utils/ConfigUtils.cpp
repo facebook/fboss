@@ -305,6 +305,17 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
         bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
         bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
       }
+    } else if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+      auto portId = group.first;
+      auto platPortItr = platformMapping->getPlatformPorts().find(portId);
+      if (platPortItr == platformMapping->getPlatformPorts().end()) {
+        throw FbossError("Can't find platform port for:", portId);
+      }
+      if (*platPortItr->second.mapping()->portType() ==
+          cfg::PortType::INTERFACE_PORT) {
+        bestSpeed = cfg::PortSpeed::TWOHUNDREDG;
+        bestProfile = cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL;
+      }
     }
     // If bestSpeed is default - pick the largest speed from the safe profiles
     auto pickMaxSpeed = bestSpeed == cfg::PortSpeed::DEFAULT;

@@ -249,7 +249,8 @@ void addCpuQueueConfig(
   if (setQueueRate) {
     queue0.portQueueRate() = getPortQueueRate(hwAsic, kCoppLowPriQueueId);
   }
-  if (!hwAsic->mmuQgroupsEnabled()) {
+  if (hwAsic->isSupported(HwAsic::Feature::BUFFER_POOL) &&
+      !hwAsic->mmuQgroupsEnabled()) {
     queue0.reservedBytes() = kCoppLowPriReservedBytes;
   }
   setPortQueueSharedBytes(queue0, isSai);
@@ -273,7 +274,8 @@ void addCpuQueueConfig(
     if (setQueueRate) {
       queue1.portQueueRate() = getPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
     }
-    if (!hwAsic->mmuQgroupsEnabled()) {
+    if (hwAsic->isSupported(HwAsic::Feature::BUFFER_POOL) &&
+        !hwAsic->mmuQgroupsEnabled()) {
       queue1.reservedBytes() = kCoppDefaultPriReservedBytes;
     }
     setPortQueueSharedBytes(queue1, isSai);

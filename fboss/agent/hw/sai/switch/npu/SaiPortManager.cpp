@@ -158,6 +158,11 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
             HwAsic::Feature::PORT_WRED_COUNTER)) {
       countersToFilter.insert(SAI_PORT_STAT_WRED_DROPPED_PACKETS);
     }
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+      // ECN is supported but not this counter
+      countersToFilter.insert(SAI_PORT_STAT_ECN_MARKED_PACKETS);
+    }
     if (getPortType(port) == cfg::PortType::MANAGEMENT_PORT &&
         platform_->getAsic()->getAsicType() ==
             cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
