@@ -69,7 +69,6 @@ DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(can_qsfp_service_warm_boot);
 DECLARE_bool(enable_tcvr_validation);
 DECLARE_bool(port_manager_mode);
-DECLARE_bool(firmware_upgrade_on_link_down);
 
 namespace facebook::fboss {
 struct TransceiverConfig;

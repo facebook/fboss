@@ -63,11 +63,6 @@ DEFINE_bool(
     "Set to true to automatically upgrade firmware on coldboot");
 
 DEFINE_bool(
-    firmware_upgrade_on_link_down,
-    false,
-    "Set to true to automatically upgrade firmware when link goes down");
-
-DEFINE_bool(
     firmware_upgrade_on_tcvr_insert,
     false,
     "Set to true to automatically upgrade firmware when a transceiver is inserted");
@@ -1946,7 +1941,6 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
   }
   steady_clock::time_point begin = steady_clock::now();
   std::map<int32_t, NpuPortStatus> newPortToPortStatus;
-  std::unordered_set<TransceiverID> tcvrsForFwUpgrade;
   if (!overrideAgentPortStatusForTesting_.empty()) {
     XLOG(WARN) << "[TEST ONLY] Use overrideAgentPortStatusForTesting_ "
                << "for wedge_agent getPortStatus()";
@@ -2049,18 +2043,6 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
                   cachedPortInfoIt->second.status->operState !=
                       portStatusIt->second.operState) {
                 statusChangedPorts.insert(portID);
-                // If the port just went down, it's a candidate for firmware
-                // upgrade
-                if (cachedPortInfoIt->second.status &&
-                    cachedPortInfoIt->second.status->operState &&
-                    !portStatusIt->second.operState) {
-                  tcvrsForFwUpgrade.insert(tcvrID);
-                  auto portName = getPortName(tcvrID);
-                  XLOG(INFO)
-                      << FirmwareUpgradeAlert()
-                      << "Selected for potential firmware upgrade due to link down event"
-                      << TransceiverParam(tcvrID) << PortParam(portName);
-                }
               }
               cachedPortInfoIt->second.status.emplace(portStatusIt->second);
             }
@@ -2115,10 +2097,6 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
       << numPortStatusChanged
       << " transceivers need to update port status. Total execute time(ms):"
       << duration_cast<milliseconds>(steady_clock::now() - begin).count();
-
-  if (FLAGS_firmware_upgrade_on_link_down) {
-    triggerFirmwareUpgradeEvents(tcvrsForFwUpgrade);
-  }
 }
 
 void TransceiverManager::triggerResetEvents(
@@ -2437,14 +2415,7 @@ TransceiverManager::findPotentialTcvrsForFirmwareUpgrade(
   std::unordered_set<TransceiverID> potentialTcvrsForFwUpgrade;
   for (auto tcvrId : presentXcvrIds) {
     auto curState = getCurrentState(tcvrId);
-    if (curState == TransceiverStateMachineState::INACTIVE &&
-        FLAGS_firmware_upgrade_on_link_down) {
-      // Anytime a module is in inactive state (link down), it's a candidate
-      // for fw upgrade.
-      MODULE_LOG(INFO, "", tcvrId)
-          << "is in INACTIVE state, adding it to list of potentialTcvrsForFwUpgrade";
-      potentialTcvrsForFwUpgrade.insert(tcvrId);
-    } else if (curState == TransceiverStateMachineState::DISCOVERED) {
+    if (curState == TransceiverStateMachineState::DISCOVERED) {
       if (FLAGS_firmware_upgrade_on_coldboot && firstRefreshAfterColdboot) {
         // First refresh after cold boot and module is still in
         // discovered state
