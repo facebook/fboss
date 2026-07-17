@@ -24,7 +24,6 @@ from fboss.cli.fboss2.tools.bgp_json_to_cli import (
     generate_global_commands,
     generate_peer_commands,
     generate_peer_group_commands,
-    generate_stub_commands,
     json_to_cli,
 )
 
@@ -43,12 +42,12 @@ class EscapeShellArgTest(unittest.TestCase):
         self.assertEqual(result, "'hello world'")
 
     def test_string_with_special_chars_is_quoted(self) -> None:
-        """Strings with shell special characters should be quoted."""
+        """Shell specials should be quoted AND escaped so they stay literal."""
         result = escape_shell_arg("value$var")
         self.assertEqual(result, "'value$var'")
 
     def test_string_with_backslash_is_quoted(self) -> None:
-        """Strings with backslash should be quoted."""
+        """Backslashes should be quoted and doubled to stay literal."""
         result = escape_shell_arg("path\\to\\file")
         self.assertEqual(result, "'path\\to\\file'")
 
@@ -56,6 +55,12 @@ class EscapeShellArgTest(unittest.TestCase):
         """Empty string is quoted as empty single quotes."""
         result = escape_shell_arg("")
         self.assertEqual(result, "''")
+
+    def test_embedded_quotes_and_dollars_escaped(self) -> None:
+        """Shell specials must be neutralized (shlex single-quoting)."""
+        self.assertEqual(escape_shell_arg('rack "A1" $spine'), "'rack \"A1\" $spine'")
+        self.assertEqual(escape_shell_arg("tick `id`"), "'tick `id`'")
+        self.assertEqual(escape_shell_arg("back\\slash"), "'back\\slash'")
 
     def test_ipv6_address_not_escaped(self) -> None:
         """IPv6 addresses should not be quoted."""
@@ -353,7 +358,7 @@ class GeneratePeerGroupCommandsTest(unittest.TestCase):
 
 
 class GeneratePeerCommandsTest(unittest.TestCase):
-    """Tests for generate_peer_commands function."""
+    """Tests for generate_peer_commands (neighbor grammar)."""
 
     def test_empty_peer_addr_returns_empty(self) -> None:
         """Peer without peer_addr should return empty list."""
@@ -365,36 +370,55 @@ class GeneratePeerCommandsTest(unittest.TestCase):
         """remote_as_4_byte should generate correct command."""
         peer = {"peer_addr": "2001:db8::1", "remote_as_4_byte": 65000}
         commands = generate_peer_commands(peer)
-        self.assertIn("config protocol bgp peer 2001:db8::1 remote-asn 65000", commands)
+        self.assertIn(
+            "config protocol bgp neighbor 2001:db8::1 remote-asn 65000", commands
+        )
+
+    def test_local_asn(self) -> None:
+        """local_as_4_byte should generate local-asn command."""
+        peer = {"peer_addr": "2001:db8::1", "local_as_4_byte": 64512}
+        commands = generate_peer_commands(peer)
+        self.assertIn(
+            "config protocol bgp neighbor 2001:db8::1 local-asn 64512", commands
+        )
 
     def test_peer_group_name(self) -> None:
         """peer_group_name should generate peer-group command."""
         peer = {"peer_addr": "2001:db8::1", "peer_group_name": "MY-GROUP"}
         commands = generate_peer_commands(peer)
         self.assertIn(
-            "config protocol bgp peer 2001:db8::1 peer-group MY-GROUP", commands
+            "config protocol bgp neighbor 2001:db8::1 peer-group MY-GROUP", commands
         )
 
     def test_local_addr(self) -> None:
-        """local_addr should generate local-addr command."""
+        """local_addr should generate bind-addr address command."""
         peer = {"peer_addr": "2001:db8::1", "local_addr": "2001:db8::a"}
         commands = generate_peer_commands(peer)
         self.assertIn(
-            "config protocol bgp peer 2001:db8::1 local-addr 2001:db8::a", commands
+            "config protocol bgp neighbor 2001:db8::1 bind-addr address 2001:db8::a",
+            commands,
         )
 
     def test_is_passive(self) -> None:
-        """is_passive should generate passive command."""
+        """is_passive should generate connect-mode command."""
         peer = {"peer_addr": "2001:db8::1", "is_passive": True}
         commands = generate_peer_commands(peer)
-        self.assertIn("config protocol bgp peer 2001:db8::1 passive true", commands)
+        self.assertIn(
+            "config protocol bgp neighbor 2001:db8::1 connect-mode PASSIVE", commands
+        )
+        peer["is_passive"] = False
+        commands = generate_peer_commands(peer)
+        self.assertIn(
+            "config protocol bgp neighbor 2001:db8::1 connect-mode ACTIVE", commands
+        )
 
     def test_disable_ipv4_afi_false_preserved(self) -> None:
         """disable_ipv4_afi: false should NOT be omitted."""
         peer = {"peer_addr": "2001:db8::1", "disable_ipv4_afi": False}
         commands = generate_peer_commands(peer)
         self.assertIn(
-            "config protocol bgp peer 2001:db8::1 disable-ipv4-afi false", commands
+            "config protocol bgp neighbor 2001:db8::1 afi disable-ipv4-afi false",
+            commands,
         )
 
     def test_disable_ipv4_afi_true(self) -> None:
@@ -402,58 +426,40 @@ class GeneratePeerCommandsTest(unittest.TestCase):
         peer = {"peer_addr": "2001:db8::1", "disable_ipv4_afi": True}
         commands = generate_peer_commands(peer)
         self.assertIn(
-            "config protocol bgp peer 2001:db8::1 disable-ipv4-afi true", commands
+            "config protocol bgp neighbor 2001:db8::1 afi disable-ipv4-afi true",
+            commands,
         )
 
-    def test_next_hop4_and_next_hop6(self) -> None:
-        """next_hop4 and next_hop6 should generate correct commands."""
-        peer = {
-            "peer_addr": "2001:db8::1",
-            "next_hop4": "0.0.0.0",
-            "next_hop6": "2001:db8::a",
-        }
+    def test_stateful_ha(self) -> None:
+        """enable_stateful_ha should generate graceful-restart stateful-ha."""
+        peer = {"peer_addr": "2001:db8::1", "enable_stateful_ha": True}
         commands = generate_peer_commands(peer)
         self.assertIn(
-            "config protocol bgp peer 2001:db8::1 next-hop4 0.0.0.0", commands
-        )
-        self.assertIn(
-            "config protocol bgp peer 2001:db8::1 next-hop6 2001:db8::a", commands
+            "config protocol bgp neighbor 2001:db8::1 graceful-restart stateful-ha true",
+            commands,
         )
 
-    def test_link_bandwidth_string(self) -> None:
-        """link_bandwidth_bps as string should be used directly."""
-        peer = {"peer_addr": "2001:db8::1", "link_bandwidth_bps": "10G"}
+    def test_add_path_both(self) -> None:
+        """add_path BOTH (3) should generate both directions."""
+        peer = {"peer_addr": "2001:db8::1", "add_path": 3}
         commands = generate_peer_commands(peer)
         self.assertIn(
-            "config protocol bgp peer 2001:db8::1 link-bandwidth 10G", commands
+            "config protocol bgp neighbor 2001:db8::1 add-path receive true", commands
+        )
+        self.assertIn(
+            "config protocol bgp neighbor 2001:db8::1 add-path send true", commands
         )
 
-    def test_link_bandwidth_int(self) -> None:
-        """link_bandwidth_bps as int should be formatted."""
-        peer = {"peer_addr": "2001:db8::1", "link_bandwidth_bps": 10_000_000_000}
+    def test_add_path_receive_only(self) -> None:
+        """add_path RECEIVE (1) should generate only the receive direction."""
+        peer = {"peer_addr": "2001:db8::1", "add_path": 1}
         commands = generate_peer_commands(peer)
         self.assertIn(
-            "config protocol bgp peer 2001:db8::1 link-bandwidth 10G", commands
+            "config protocol bgp neighbor 2001:db8::1 add-path receive true", commands
         )
-
-    def test_advertise_link_bandwidth(self) -> None:
-        """advertise_link_bandwidth should generate advertise-lbw command."""
-        peer = {"peer_addr": "2001:db8::1", "advertise_link_bandwidth": 1}
-        commands = generate_peer_commands(peer)
-        self.assertIn("config protocol bgp peer 2001:db8::1 advertise-lbw 1", commands)
-
-    def test_peer_id_and_type(self) -> None:
-        """peer_id and type should generate correct commands."""
-        peer = {
-            "peer_addr": "2001:db8::1",
-            "peer_id": "test-peer:v6:1",
-            "type": "BGP_MONITOR",
-        }
-        commands = generate_peer_commands(peer)
-        self.assertIn(
-            "config protocol bgp peer 2001:db8::1 peer-id test-peer:v6:1", commands
+        self.assertNotIn(
+            "config protocol bgp neighbor 2001:db8::1 add-path send true", commands
         )
-        self.assertIn("config protocol bgp peer 2001:db8::1 type BGP_MONITOR", commands)
 
     def test_timers(self) -> None:
         """Timer fields should generate correct commands."""
@@ -463,35 +469,101 @@ class GeneratePeerCommandsTest(unittest.TestCase):
                 "hold_time_seconds": 120,
                 "keep_alive_seconds": 40,
                 "out_delay_seconds": 0,
-                "withdraw_unprog_delay_seconds": 0,
+                "graceful_restart_seconds": 60,
             },
         }
         commands = generate_peer_commands(peer)
-        self.assertIn("config protocol bgp peer 2001:db8::1 hold-time 120", commands)
         self.assertIn(
-            "config protocol bgp peer 2001:db8::1 timers keepalive 40", commands
+            "config protocol bgp neighbor 2001:db8::1 timers hold-time 120", commands
+        )
+        self.assertIn(
+            "config protocol bgp neighbor 2001:db8::1 timers keepalive 40", commands
+        )
+        self.assertIn(
+            "config protocol bgp neighbor 2001:db8::1 timers out-delay 0", commands
+        )
+        self.assertIn(
+            "config protocol bgp neighbor 2001:db8::1 graceful-restart restart-time 60",
+            commands,
         )
 
-    def test_pre_filter(self) -> None:
-        """pre_filter fields should generate correct commands."""
+    def test_route_limits(self) -> None:
+        """pre_filter/post_filter should generate max-route commands."""
         peer = {
             "peer_addr": "2001:db8::1",
-            "pre_filter": {
-                "max_routes": 45000,
-                "warning_limit": 0,
-                "warning_only": False,
-            },
+            "pre_filter": {"max_routes": 45000},
+            "post_filter": {"max_routes": 50000, "warning_limit": 48000},
         }
         commands = generate_peer_commands(peer)
-        self.assertIn("config protocol bgp peer 2001:db8::1 max-routes 45000", commands)
-        self.assertIn("config protocol bgp peer 2001:db8::1 warning-limit 0", commands)
         self.assertIn(
-            "config protocol bgp peer 2001:db8::1 warning-only false", commands
+            "config protocol bgp neighbor 2001:db8::1 max-route pre-filter 45000",
+            commands,
+        )
+        self.assertIn(
+            "config protocol bgp neighbor 2001:db8::1 max-route post-filter 50000",
+            commands,
+        )
+        self.assertIn(
+            "config protocol bgp neighbor 2001:db8::1 max-route post-warning-threshold 48000",
+            commands,
+        )
+
+    def test_parity_fields(self) -> None:
+        """Fields carried over from the old peer commands map to the new grammar."""
+        peer = {
+            "peer_addr": "2001:db8::1",
+            "next_hop4": "0.0.0.0",
+            "next_hop6": "2001:db8::a",
+            "next_hop_self": True,
+            "link_bandwidth_bps": "10G",
+            "advertise_link_bandwidth": 1,
+            "receive_link_bandwidth": 1,
+            "peer_id": "test-peer:v6:1",
+            "type": "BGP_MONITOR",
+            "bgp_peer_timers": {"withdraw_unprog_delay_seconds": 5},
+            "pre_filter": {"warning_limit": 100, "warning_only": True},
+        }
+        commands = generate_peer_commands(peer)
+        prefix = "config protocol bgp neighbor 2001:db8::1"
+        self.assertIn(f"{prefix} next-hop4 0.0.0.0", commands)
+        self.assertIn(f"{prefix} next-hop6 2001:db8::a", commands)
+        self.assertIn(f"{prefix} next-hop-self true", commands)
+        self.assertIn(f"{prefix} link-bandwidth 10G", commands)
+        self.assertIn(f"{prefix} advertise-lbw 1", commands)
+        self.assertIn(f"{prefix} receive-lbw 1", commands)
+        self.assertIn(f"{prefix} peer-id test-peer:v6:1", commands)
+        self.assertIn(f"{prefix} type BGP_MONITOR", commands)
+        self.assertIn(f"{prefix} timers withdraw-unprog-delay 5", commands)
+        self.assertIn(f"{prefix} max-route pre-warning-threshold 100", commands)
+        self.assertIn(f"{prefix} max-route pre-warning-only true", commands)
+
+    def test_zero_values_preserved(self) -> None:
+        """Explicit zero timers/limits must not be dropped."""
+        peer = {
+            "peer_addr": "2001:db8::1",
+            "bgp_peer_timers": {"hold_time_seconds": 0, "keep_alive_seconds": 0},
+            "pre_filter": {"max_routes": 0},
+        }
+        commands = generate_peer_commands(peer)
+        prefix = "config protocol bgp neighbor 2001:db8::1"
+        self.assertIn(f"{prefix} timers hold-time 0", commands)
+        self.assertIn(f"{prefix} timers keepalive 0", commands)
+        self.assertIn(f"{prefix} max-route pre-filter 0", commands)
+
+    def test_add_path_symbolic(self) -> None:
+        """add_path serialized as an enum name must not crash the tool."""
+        peer = {"peer_addr": "2001:db8::1", "add_path": "BOTH"}
+        commands = generate_peer_commands(peer)
+        self.assertIn(
+            "config protocol bgp neighbor 2001:db8::1 add-path receive true", commands
+        )
+        self.assertIn(
+            "config protocol bgp neighbor 2001:db8::1 add-path send true", commands
         )
 
 
 class GenerateScriptCommandsTest(unittest.TestCase):
-    """Tests for generate_exec_commands and generate_stub_commands."""
+    """Tests for generate_exec_commands."""
 
     def test_exec_commands_contains_header(self) -> None:
         """Exec commands should contain shebang and header."""
@@ -509,12 +581,6 @@ class GenerateScriptCommandsTest(unittest.TestCase):
             "/path/to/fboss2 config protocol bgp global router-id 10.0.0.1", result
         )
 
-    def test_stub_commands_contains_stub_env(self) -> None:
-        """Stub commands should set FBOSS_BGP_STUB_MODE."""
-        commands = ["test command"]
-        result = generate_stub_commands(commands, "fboss2")
-        self.assertIn("export FBOSS_BGP_STUB_MODE=1", result)
-
 
 class JsonToCliIntegrationTest(unittest.TestCase):
     """Integration tests for json_to_cli function."""
@@ -522,7 +588,7 @@ class JsonToCliIntegrationTest(unittest.TestCase):
     def test_minimal_config(self) -> None:
         """Minimal config with just router_id should work."""
         config = {"router_id": "10.0.0.1"}
-        commands = json_to_cli(config, stub=False, binary="fboss2")
+        commands = json_to_cli(config, binary="fboss2")
         self.assertTrue(any("router-id 10.0.0.1" in cmd for cmd in commands))
 
     def test_full_rsw_config(self) -> None:
@@ -571,7 +637,7 @@ class JsonToCliIntegrationTest(unittest.TestCase):
             ],
         }
 
-        commands = json_to_cli(config, stub=False, binary="fboss2")
+        commands = json_to_cli(config, binary="fboss2")
         joined = "\n".join(commands)
 
         # Verify global commands
@@ -587,33 +653,27 @@ class JsonToCliIntegrationTest(unittest.TestCase):
         self.assertIn("peer-group RSW-RTSW-V6 disable-ipv4-afi true", joined)
 
         # Verify peer commands
-        self.assertIn("peer 2401:db00:501c::/64 remote-asn 65000", joined)
-        self.assertIn("peer 2401:db00:501c::/64 disable-ipv4-afi false", joined)
-        self.assertIn("peer 2401:db00:e50e:1000:: peer-group RSW-FSW-V6", joined)
-
-    def test_stub_mode(self) -> None:
-        """Stub mode should set FBOSS_BGP_STUB_MODE environment variable."""
-        config = {"router_id": "10.0.0.1"}
-        commands = json_to_cli(config, stub=True, binary="fboss2")
-        self.assertIn("export FBOSS_BGP_STUB_MODE=1", commands)
+        self.assertIn("neighbor 2401:db00:501c::/64 remote-asn 65000", joined)
+        self.assertIn("neighbor 2401:db00:501c::/64 afi disable-ipv4-afi false", joined)
+        self.assertIn("neighbor 2401:db00:e50e:1000:: peer-group RSW-FSW-V6", joined)
 
     def test_empty_config(self) -> None:
         """Empty config should produce script with no commands."""
         config = {}
-        commands = json_to_cli(config, stub=False, binary="fboss2")
+        commands = json_to_cli(config, binary="fboss2")
         # Should only have header and footer, no actual BGP commands
         self.assertTrue(any("#!/bin/bash" in cmd for cmd in commands))
 
     def test_custom_binary(self) -> None:
         """Custom binary path should be used in commands."""
         config = {"router_id": "10.0.0.1"}
-        commands = json_to_cli(config, stub=False, binary="/custom/path/fboss2")
+        commands = json_to_cli(config, binary="/custom/path/fboss2")
         self.assertTrue(any("/custom/path/fboss2" in cmd for cmd in commands))
 
     def test_injection_in_router_id_neutralized(self) -> None:
         """Command injection in router_id should be single-quoted."""
         config = {"router_id": "$(reboot)"}
-        commands = json_to_cli(config, stub=False, binary="fboss2")
+        commands = json_to_cli(config, binary="fboss2")
         joined = "\n".join(commands)
         self.assertIn("router-id '$(reboot)'", joined)
         self.assertNotIn("router-id $(reboot)", joined)
@@ -621,10 +681,10 @@ class JsonToCliIntegrationTest(unittest.TestCase):
     def test_injection_in_peer_addr_neutralized(self) -> None:
         """Command injection in peer_addr should be single-quoted."""
         config = {"peers": [{"peer_addr": "$(malicious)", "remote_as_4_byte": 65000}]}
-        commands = json_to_cli(config, stub=False, binary="fboss2")
+        commands = json_to_cli(config, binary="fboss2")
         joined = "\n".join(commands)
-        self.assertIn("peer '$(malicious)'", joined)
-        self.assertNotIn("peer $(malicious)", joined)
+        self.assertIn("neighbor '$(malicious)'", joined)
+        self.assertNotIn("neighbor $(malicious)", joined)
 
 
 if __name__ == "__main__":
