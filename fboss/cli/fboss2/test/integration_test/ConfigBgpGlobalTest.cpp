@@ -5,9 +5,12 @@
  *
  * Scope: the BGP *global* tunables only. Each positive test stages the change
  * AND commits it, then asserts the value landed at the correct thrift field
- * path in the promoted system config (/etc/coop/bgpcpp/bgpcpp.conf) that the
- * bgpd daemon consumes. Session-lifecycle behavior (clear / diff / rollback /
- * commit-restart mechanics) lives in ConfigBgpSessionTest.
+ * path in bgpd's own running config — fetched over its getRunningConfig RPC
+ * (see ConfigBgpTestBase::setAndCommit) — which proves the daemon parsed and
+ * adopted the promoted /etc/coop/bgpcpp/bgpcpp.conf after the commit-triggered
+ * restart, not merely that the CLI wrote the file. Session-lifecycle behavior
+ * (clear / diff / rollback / commit-restart mechanics) lives in
+ * ConfigBgpSessionTest.
  *
  *   - count-confeds-in-as-path-len <true|false>
  *       -> BgpConfig.count_confeds_in_as_path_len
