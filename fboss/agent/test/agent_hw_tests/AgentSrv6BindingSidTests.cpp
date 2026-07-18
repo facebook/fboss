@@ -56,6 +56,7 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
       folly::IPAddress("10.100.0.0"),
       16};
   static inline const std::string kEncapNhgName{"encapToBindingSid"};
+  static inline const std::string kBindingSidNhgName{"bindingSidNHG"};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -206,10 +207,19 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
     mySidPrefix.prefixAddress() = facebook::network::toBinaryAddress(mySidAddr);
     mySidPrefix.prefixLength() = kMySidPrefixLen;
     bindingEntry.mySid() = mySidPrefix;
-    bindingEntry.nextHops() = nhops;
 
     auto* rib = this->getSw()->getRib();
     CHECK(rib) << "RIB not initialized";
+    rib->addOrUpdateNamedNextHopGroups(
+        this->getSw()->getScopeResolver(),
+        {{kBindingSidNhgName, util::toRouteNextHopSet(nhops, true)}},
+        createRibToSwitchStateFunction(),
+        this->getSw());
+
+    NamedRouteDestination namedDest;
+    namedDest.nextHopGroup_ref() = kBindingSidNhgName;
+    bindingEntry.namedNextHops() = namedDest;
+
     auto ribMySidToSwitchStateFunc =
         createRibMySidToSwitchStateFunction(std::nullopt);
     rib->update(
