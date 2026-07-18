@@ -231,6 +231,17 @@ class AgentSrv6BindingSidTest : public AgentHwTest {
         this->getSw());
   }
 
+  void updateBindingSidNamedNextHopGroup(
+      const std::vector<NextHopThrift>& nhops) {
+    auto* rib = this->getSw()->getRib();
+    CHECK(rib) << "RIB not initialized";
+    rib->addOrUpdateNamedNextHopGroups(
+        this->getSw()->getScopeResolver(),
+        {{kBindingSidNhgName, util::toRouteNextHopSet(nhops, true)}},
+        createRibToSwitchStateFunction(),
+        this->getSw());
+  }
+
   PortID getEgressPort(const PortDescriptor& portDesc) {
     if (portDesc.isPhysicalPort()) {
       return portDesc.phyPortID();
@@ -659,6 +670,34 @@ TYPED_TEST(AgentSrv6BindingSidTest, singleNextHop) {
     std::vector<PortID> egressPorts{
         this->getEgressPort(ecmpHelper.nhop(0).portDesc)};
     this->verifyBindingSidCpuAndFrontPanel(egressPorts, {this->kSid0});
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(
+    AgentSrv6BindingSidTest,
+    bindingSidNamedNextHopGroupUpdateUpdatesSidList) {
+  auto setup = [this]() {
+    this->setupHelper();
+    this->addBindingSid(
+        this->kMySidPrefix,
+        {utility::makeSrv6NextHopThrift(this->getLoopbacks()[0], this->kSid0),
+         utility::makeSrv6NextHopThrift(this->getLoopbacks()[1], this->kSid0)});
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    std::vector<PortID> egressPorts{
+        this->getEgressPort(ecmpHelper.nhop(0).portDesc),
+        this->getEgressPort(ecmpHelper.nhop(1).portDesc)};
+    this->verifyBindingSidCpuAndFrontPanel(egressPorts, {this->kSid0});
+
+    this->updateBindingSidNamedNextHopGroup(
+        {utility::makeSrv6NextHopThrift(this->getLoopbacks()[0], this->kSid1),
+         utility::makeSrv6NextHopThrift(this->getLoopbacks()[1], this->kSid1)});
+
+    this->verifyBindingSidCpuAndFrontPanel(egressPorts, {this->kSid1});
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
