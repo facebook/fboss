@@ -2164,68 +2164,78 @@ void SaiAclTableManager::recreateAclTable(
   XLOG(DBG2) << "refreshing acl table schema";
   auto adapterHostKey = aclTable->adapterHostKey();
   auto& aclEntryStore = saiStore_->get<SaiAclEntryTraits>();
+  auto tableOid = static_cast<sai_object_id_t>(aclTable->adapterKey());
 
-  std::map<
-      SaiAclEntryTraits::AdapterHostKey,
-      SaiAclEntryTraits::CreateAttributes>
-      entries{};
-  // remove acl entries from acl table, retain their attributes
-  for (const auto& entry : aclEntryStore) {
-    auto key = entry.second.lock()->adapterHostKey();
-    if (std::get<SaiAclEntryTraits::Attributes::TableId>(key) !=
-        static_cast<sai_object_id_t>(aclTable->adapterKey())) {
-      continue;
-    }
-    auto value = entry.second.lock()->attributes();
-    auto aclEntry = aclEntryStore.setObject(key, value);
-    entries.emplace(key, value);
-    aclEntry.reset();
-  }
-  // remove group member and acl table, since store holds only weak ptr after
-  // setObject is invoked, clearing returned shared ptr is enough to destroy SAI
-  // object and call SAI remove API.
-  std::shared_ptr<SaiAclTableGroupMember> groupMember{};
+  // Remove ACL entries from warmBootHandles_ (they reference counters and
+  // table)
+  aclEntryStore.removeUnclaimedWarmbootHandlesIf([tableOid](const auto& entry) {
+    auto key = entry->adapterHostKey();
+    return std::get<SaiAclEntryTraits::Attributes::TableId>(key) == tableOid;
+  });
+
+  // Remove ACL counters from warmBootHandles_ (they reference the table)
+  auto& aclCounterStore = saiStore_->get<SaiAclCounterTraits>();
+  aclCounterStore.removeUnclaimedWarmbootHandlesIf([tableOid](
+                                                       const auto& counter) {
+    auto key = counter->adapterHostKey();
+    return std::get<SaiAclCounterTraits::Attributes::TableId>(key) == tableOid;
+  });
+
+  // Remove group member and save its info for recreation
   SaiAclTableGroupMemberTraits::AdapterHostKey memberAdapterHostKey{};
   SaiAclTableGroupMemberTraits::CreateAttributes memberAttrs{};
   auto& aclGroupMemberStore = saiStore_->get<SaiAclTableGroupMemberTraits>();
   sai_object_id_t aclTableGroupId{};
+
   if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
+    // Find and save the group member info
     for (auto entry : aclGroupMemberStore) {
       auto member = entry.second.lock();
-      auto key = member->adapterHostKey();
-      auto attrs = member->attributes();
-      if (std::get<SaiAclTableGroupMemberTraits::Attributes::TableId>(attrs) !=
-          static_cast<sai_object_id_t>(aclTable->adapterKey())) {
+      if (!member) {
         continue;
       }
-      groupMember = aclGroupMemberStore.setObject(key, attrs);
-      memberAdapterHostKey = groupMember->adapterHostKey();
-      memberAttrs = groupMember->attributes();
+      auto attrs = member->attributes();
+      if (std::get<SaiAclTableGroupMemberTraits::Attributes::TableId>(attrs) !=
+          tableOid) {
+        continue;
+      }
+      memberAdapterHostKey = member->adapterHostKey();
+      memberAttrs = attrs;
+      aclTableGroupId =
+          std::get<SaiAclTableGroupMemberTraits::Attributes::TableGroupId>(
+              attrs)
+              .value();
       break;
     }
-    aclTableGroupId =
-        std::get<SaiAclTableGroupMemberTraits::Attributes::TableGroupId>(
-            memberAttrs)
-            .value();
+
     managerTable_->switchManager().resetIngressAcl();
-    // reset group member
-    groupMember.reset();
+
+    // Remove group member from warmBootHandles_ (this destroys it)
+    aclGroupMemberStore.removeUnclaimedWarmbootHandlesIf(
+        [&memberAdapterHostKey](const auto& member) {
+          return member->adapterHostKey() == memberAdapterHostKey;
+        });
   }
-  // remove acl table
-  aclTable.reset();
 
-  // update acl table
+  // Remove ACL table from warmBootHandles_ (this destroys it)
   auto& aclTableStore = saiStore_->get<SaiAclTableTraits>();
-  aclTable = aclTableStore.setObject(adapterHostKey, newAttributes);
-  // restore acl table group member
+  aclTableStore.removeUnclaimedWarmbootHandlesIf(
+      [&adapterHostKey](const auto& table) {
+        return table->adapterHostKey() == adapterHostKey;
+      });
 
+  // Create new ACL table with updated attributes
+  aclTable = aclTableStore.setObject(adapterHostKey, newAttributes);
+
+  // Recreate ACL table group member with new table ID
   sai_object_id_t tableId = aclTable->adapterKey();
   if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
     std::get<SaiAclTableGroupMemberTraits::Attributes::TableId>(
         memberAdapterHostKey) = tableId;
     std::get<SaiAclTableGroupMemberTraits::Attributes::TableId>(memberAttrs) =
         tableId;
-    aclGroupMemberStore.addWarmbootHandle(memberAdapterHostKey, memberAttrs);
+    auto groupMember =
+        aclGroupMemberStore.setObject(memberAdapterHostKey, memberAttrs);
     managerTable_->switchManager().setIngressAcl(aclTableGroupId);
   }
   // skip recreating acl entries as acl entry information is lost.
