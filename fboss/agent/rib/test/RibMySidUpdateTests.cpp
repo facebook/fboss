@@ -771,6 +771,10 @@ TEST_F(RibMySidValidationTest, acceptBindingSidWithNamedNhg) {
   const auto prefix = makeSidPrefix("fc00:100::1", 48);
   ASSERT_NE(mySidTable.find(prefix), mySidTable.end());
   EXPECT_TRUE(mySidTable.at(prefix).unresolveNextHopsId().has_value());
+
+  const auto manager = rib_.getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(manager->getMySidsForNamedNhg("group1").count(prefix), 1);
 }
 
 TEST_F(RibMySidValidationTest, rejectBindingSidWithInvalidNamedNhgNextHops) {
@@ -793,6 +797,75 @@ TEST_F(RibMySidValidationTest, rejectBindingSidWithInvalidNamedNhgNextHops) {
       FbossError);
 
   EXPECT_EQ(rib_.getMySidTableCopy().size(), 0);
+}
+
+TEST_F(RibMySidValidationTest, namedNhgMySidMappingUpdatedOnAddUpdateDelete) {
+  addNamedNextHopGroup(
+      rib_, "group1", makeSrv6NextHops({"2001:db8::1"}), &switchState_);
+  addNamedNextHopGroup(
+      rib_, "group2", makeSrv6NextHops({"2001:db8::2"}), &switchState_);
+
+  auto inlineEntry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  inlineEntry.nextHops() = {makeSrv6NextHop("2001:db8::3")};
+  rib_.update(
+      scopeResolver(),
+      {inlineEntry},
+      {},
+      "add unrelated inline binding sid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  EXPECT_FALSE(rib_.getNextHopIDManagerCopy()->hasMySidsForNamedNhg("group1"));
+  EXPECT_FALSE(rib_.getNextHopIDManagerCopy()->hasMySidsForNamedNhg("group2"));
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  auto group1Entry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination group1;
+  group1.nextHopGroup() = "group1";
+  group1Entry.namedNextHops() = group1;
+
+  rib_.update(
+      scopeResolver(),
+      {group1Entry},
+      {},
+      "binding sid with named nhg",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  EXPECT_EQ(
+      rib_.getNextHopIDManagerCopy()->getMySidsForNamedNhg("group1").count(
+          prefix),
+      1);
+  EXPECT_FALSE(rib_.getNextHopIDManagerCopy()->hasMySidsForNamedNhg("group2"));
+
+  auto group2Entry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination group2;
+  group2.nextHopGroup() = "group2";
+  group2Entry.namedNextHops() = group2;
+
+  rib_.update(
+      scopeResolver(),
+      {group2Entry},
+      {},
+      "replace binding sid named nhg",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  EXPECT_FALSE(rib_.getNextHopIDManagerCopy()->hasMySidsForNamedNhg("group1"));
+  EXPECT_EQ(
+      rib_.getNextHopIDManagerCopy()->getMySidsForNamedNhg("group2").count(
+          prefix),
+      1);
+
+  rib_.update(
+      scopeResolver(),
+      std::vector<MySidEntry>{},
+      {toIpPrefix("fc00:100::1", 48)},
+      "delete binding sid with named nhg",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  EXPECT_FALSE(rib_.getNextHopIDManagerCopy()->hasMySidsForNamedNhg("group1"));
+  EXPECT_FALSE(rib_.getNextHopIDManagerCopy()->hasMySidsForNamedNhg("group2"));
 }
 
 TEST_F(RibMySidValidationTest, acceptNodeSidWithNamedNhg) {

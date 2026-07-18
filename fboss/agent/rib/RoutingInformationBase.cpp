@@ -35,6 +35,7 @@
 #include <exception>
 #include <memory>
 #include <optional>
+#include <set>
 #include <type_traits>
 #include <utility>
 
@@ -1658,9 +1659,11 @@ void RibRouteTables::updateMySidsImpl(
     auto toAddWithNextHops = toAdd;
     for (auto& entry : toAddWithNextHops) {
       if (!entry.nextHopGroupName.has_value()) {
+        entry.mySid->setNamedNextHopGroup(std::nullopt);
         validateMySidNextHops(entry.mySid->getType(), entry.nextHopSet);
         continue;
       }
+      entry.mySid->setNamedNextHopGroup(*entry.nextHopGroupName);
       auto namedNextHops = nextHopIDManager
           ? nextHopIDManager->getNextHopsForName(*entry.nextHopGroupName)
           : std::nullopt;
@@ -1720,6 +1723,11 @@ void RibRouteTables::updateMySidsImpl(
       addedPrefixes.emplace(cidr.first, cidr.second);
       const folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
       if (nextHopIDManager) {
+        nextHopIDManager->removeMySidFromNamedNhgs(cidrV6);
+        if (entry.nextHopGroupName.has_value()) {
+          nextHopIDManager->addMySidForNamedNhg(
+              *entry.nextHopGroupName, cidrV6);
+        }
         // Alloc-then-release: get a ref on the new unresolved set first so
         // that a same-set alloc+release on a refcounted entry is a no-op
         // (rather than a deallocate/reallocate cycle).
@@ -1760,6 +1768,7 @@ void RibRouteTables::updateMySidsImpl(
           if (const auto id = it->second->getResolvedNextHopsId()) {
             nextHopIDManager->decrOrDeallocRouteNextHopSetID(*id);
           }
+          nextHopIDManager->removeMySidFromNamedNhgs(cidr);
         }
       }
       mySidTable->erase(cidr);
