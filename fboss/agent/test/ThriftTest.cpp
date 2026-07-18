@@ -21,6 +21,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
+#include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/Port.h"
@@ -3396,6 +3397,14 @@ NextHopThrift makeNextHopThrift(const std::string& ip, int weight = 0) {
   return nhop;
 }
 
+NextHopThrift makeSrv6NextHopThrift(const std::string& ip) {
+  auto nhop = makeNextHopThrift(ip);
+  nhop.srv6SegmentList() = {toBinaryAddress(folly::IPAddress("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
+  return nhop;
+}
+
 NextHopGroup makeGroup(
     const std::string& name,
     const std::vector<std::string>& nhopIps) {
@@ -3405,6 +3414,20 @@ NextHopGroup makeGroup(
   nhops.reserve(nhopIps.size());
   for (const auto& ip : nhopIps) {
     nhops.push_back(makeNextHopThrift(ip));
+  }
+  group.nexthops() = std::move(nhops);
+  return group;
+}
+
+NextHopGroup makeSrv6Group(
+    const std::string& name,
+    const std::vector<std::string>& nhopIps) {
+  NextHopGroup group;
+  group.name() = name;
+  std::vector<NextHopThrift> nhops;
+  nhops.reserve(nhopIps.size());
+  for (const auto& ip : nhopIps) {
+    nhops.push_back(makeSrv6NextHopThrift(ip));
   }
   group.nexthops() = std::move(nhops);
   return group;
@@ -3835,6 +3858,62 @@ TEST_F(NamedNextHopGroupThriftTest, acceptsSrv6WithValidTunnelType) {
   auto groups = std::make_unique<std::vector<NextHopGroup>>();
   groups->push_back(group);
   EXPECT_NO_THROW(handler.addOrUpdateNamedNextHopGroups(std::move(groups)));
+}
+
+TEST_F(
+    NamedNextHopGroupThriftTest,
+    bindingSidWithNamedNextHopGroupResolvesInSwitchState) {
+  ThriftHandler handler(sw_);
+  constexpr auto kNamedNhg = "bindingSidNHG";
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeSrv6Group(kNamedNhg, {kNhopAddrA, kNhopAddrB}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  auto entry = makeMySidEntry("2001:db8::1", 64, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = kNamedNhg;
+  entry.namedNextHops() = named;
+  entries->push_back(std::move(entry));
+  handler.addMySidEntries(std::move(entries));
+
+  auto state = sw_->getState();
+  auto mySid = state->getMySids()->getNodeIf("2001:db8::1/64");
+  ASSERT_NE(mySid, nullptr);
+  ASSERT_TRUE(mySid->getNamedNextHopGroup().has_value());
+  EXPECT_EQ(*mySid->getNamedNextHopGroup(), kNamedNhg);
+  ASSERT_TRUE(mySid->getResolvedNextHopsId().has_value());
+
+  auto fibsInfoMap = state->getFibsInfoMap();
+  ASSERT_NE(fibsInfoMap, nullptr);
+  ASSERT_FALSE(fibsInfoMap->empty());
+  const auto& fibInfo = fibsInfoMap->cbegin()->second;
+  auto resolvedNextHops = fibInfo->resolveNextHopSetFromId(
+      static_cast<NextHopSetId>(*mySid->getResolvedNextHopsId()));
+  ASSERT_EQ(resolvedNextHops.size(), 2);
+
+  std::map<folly::IPAddress, InterfaceID> expectedNhops = {
+      {folly::IPAddress(kNhopAddrA), kInterfaceA},
+      {folly::IPAddress(kNhopAddrB), kInterfaceB},
+  };
+  const std::vector<folly::IPAddressV6> expectedSidList = {
+      folly::IPAddressV6("2001:db8::10"),
+  };
+
+  for (const auto& nextHop : resolvedNextHops) {
+    auto expected = expectedNhops.find(nextHop.addr());
+    ASSERT_NE(expected, expectedNhops.end());
+    ASSERT_TRUE(nextHop.intfID().has_value());
+    EXPECT_EQ(*nextHop.intfID(), expected->second);
+    EXPECT_EQ(nextHop.srv6SegmentList(), expectedSidList);
+    ASSERT_TRUE(nextHop.tunnelType().has_value());
+    EXPECT_EQ(*nextHop.tunnelType(), TunnelType::SRV6_ENCAP);
+    ASSERT_TRUE(nextHop.tunnelId().has_value());
+    EXPECT_EQ(*nextHop.tunnelId(), "tunnel1");
+    expectedNhops.erase(expected);
+  }
+  EXPECT_TRUE(expectedNhops.empty());
 }
 
 TEST_F(NamedNextHopGroupThriftTest, rejectsSrv6WithoutTunnelIdAndNoConfig) {
