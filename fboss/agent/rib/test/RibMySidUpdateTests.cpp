@@ -1564,6 +1564,127 @@ TEST_F(RibMySidNextHopTest, namedNhgMySidResolvesLikeInlineNextHops) {
   EXPECT_EQ(*resolvedNextHop.tunnelId(), kSrv6Tunnel0);
 }
 
+TEST_F(RibMySidNextHopTest, namedNhgBindingSidReresolvesWhenRouteChanges) {
+  UnicastRoute openrRoute;
+  IpPrefix routePrefix;
+  routePrefix.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::"));
+  routePrefix.prefixLength() = 32;
+  openrRoute.dest() = routePrefix;
+  NextHopThrift llNhop1;
+  auto llAddr1 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::1"));
+  llAddr1.ifName() = "fboss1";
+  llNhop1.address() = llAddr1;
+  NextHopThrift llNhop2;
+  auto llAddr2 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::2"));
+  llAddr2.ifName() = "fboss2";
+  llNhop2.address() = llAddr2;
+  openrRoute.nextHops() = {llNhop1, llNhop2};
+
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      std::vector<UnicastRoute>{openrRoute},
+      std::vector<IpPrefix>{},
+      false,
+      "add openr route",
+      noopFibUpdate,
+      &switchState_);
+
+  addNamedNextHopGroup(
+      *rib_, "group1", makeSrv6NextHops({"2001:db8::1"}), &switchState_);
+
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "group1";
+  entry.namedNextHops() = named;
+
+  rib_->update(
+      scopeResolver(),
+      {entry},
+      {},
+      "add named nhg binding sid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto initialMySid = rib_->getMySidTableCopy().at(prefix);
+  const auto initialResolvedId = initialMySid.resolvedNextHopsId();
+  ASSERT_TRUE(initialResolvedId.has_value());
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  const auto initialResolvedNextHops =
+      manager->getNextHops(NextHopSetID(*initialResolvedId));
+  ASSERT_EQ(initialResolvedNextHops.size(), 2);
+  std::set<folly::IPAddress> initialResolvedAddrs;
+  for (const auto& nhop : initialResolvedNextHops) {
+    initialResolvedAddrs.insert(nhop.addr());
+    ASSERT_TRUE(nhop.intfID().has_value());
+  }
+  EXPECT_EQ(
+      initialResolvedAddrs,
+      std::set<folly::IPAddress>(
+          {folly::IPAddress("fe80::1"), folly::IPAddress("fe80::2")}));
+
+  UnicastRoute updatedRoute;
+  updatedRoute.dest() = routePrefix;
+  NextHopThrift llNhop3;
+  auto llAddr3 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::3"));
+  llAddr3.ifName() = "fboss3";
+  llNhop3.address() = llAddr3;
+  NextHopThrift llNhop4;
+  auto llAddr4 =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::4"));
+  llAddr4.ifName() = "fboss4";
+  llNhop4.address() = llAddr4;
+  updatedRoute.nextHops() = {llNhop3, llNhop4};
+
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      std::vector<UnicastRoute>{updatedRoute},
+      std::vector<IpPrefix>{},
+      false,
+      "update openr route nexthops",
+      noopFibUpdate,
+      &switchState_);
+
+  const auto updatedMySid = rib_->getMySidTableCopy().at(prefix);
+  const auto updatedResolvedId = updatedMySid.resolvedNextHopsId();
+  ASSERT_TRUE(updatedResolvedId.has_value());
+  EXPECT_NE(updatedResolvedId, initialResolvedId);
+
+  manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  const auto updatedResolvedNextHops =
+      manager->getNextHops(NextHopSetID(*updatedResolvedId));
+  ASSERT_EQ(updatedResolvedNextHops.size(), 2);
+
+  std::set<folly::IPAddress> updatedResolvedAddrs;
+  for (const auto& nhop : updatedResolvedNextHops) {
+    updatedResolvedAddrs.insert(nhop.addr());
+    ASSERT_TRUE(nhop.intfID().has_value());
+    const auto segmentList = nhop.srv6SegmentList();
+    EXPECT_EQ(segmentList.size(), 1);
+    EXPECT_EQ(segmentList[0], folly::IPAddressV6("2001:db8::10"));
+    ASSERT_TRUE(nhop.tunnelType().has_value());
+    EXPECT_EQ(*nhop.tunnelType(), TunnelType::SRV6_ENCAP);
+    ASSERT_TRUE(nhop.tunnelId().has_value());
+    EXPECT_EQ(*nhop.tunnelId(), kSrv6Tunnel0);
+  }
+  EXPECT_EQ(
+      updatedResolvedAddrs,
+      std::set<folly::IPAddress>(
+          {folly::IPAddress("fe80::3"), folly::IPAddress("fe80::4")}));
+}
+
 // Replacing next hops on a MySid entry should:
 // 1. Deallocate the old NextHopSetID (getNextHopsIf returns nullopt)
 // 2. Keep the new NextHopSetID alive (getNextHopsIf returns non-null)
