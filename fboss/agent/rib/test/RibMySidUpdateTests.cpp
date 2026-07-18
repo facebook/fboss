@@ -22,6 +22,8 @@
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 
+#include <set>
+
 DECLARE_bool(enable_nexthop_id_manager);
 
 namespace facebook::fboss {
@@ -107,6 +109,41 @@ RouteNextHopSet makeSrv6NextHops(const std::vector<std::string>& nextHopAddrs) {
     nextHops.push_back(makeSrv6NextHop(nextHopAddr));
   }
   return util::toRouteNextHopSet(nextHops, true);
+}
+
+NextHopThrift makeLinkLocalNextHop(
+    const std::string& nextHopAddr,
+    const std::string& ifName) {
+  NextHopThrift nhop;
+  auto addr =
+      facebook::network::toBinaryAddress(folly::IPAddressV6(nextHopAddr));
+  addr.ifName() = ifName;
+  nhop.address() = std::move(addr);
+  return nhop;
+}
+
+UnicastRoute makeOpenRRoute(
+    const std::string& prefixAddr,
+    uint8_t prefixLen,
+    const std::vector<std::pair<std::string, std::string>>& nextHops) {
+  UnicastRoute route;
+  IpPrefix routePrefix;
+  routePrefix.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6(prefixAddr));
+  routePrefix.prefixLength() = prefixLen;
+  route.dest() = routePrefix;
+  for (const auto& [nextHopAddr, ifName] : nextHops) {
+    route.nextHops()->push_back(makeLinkLocalNextHop(nextHopAddr, ifName));
+  }
+  return route;
+}
+
+std::set<folly::IPAddress> getNextHopAddrs(const RouteNextHopSet& nextHops) {
+  std::set<folly::IPAddress> addrs;
+  for (const auto& nextHop : nextHops) {
+    addrs.insert(nextHop.addr());
+  }
+  return addrs;
 }
 
 IpPrefix toIpPrefix(const std::string& addr, uint8_t len) {
@@ -1638,30 +1675,13 @@ TEST_F(RibMySidNextHopTest, namedNhgMySidResolvesLikeInlineNextHops) {
 }
 
 TEST_F(RibMySidNextHopTest, namedNhgBindingSidReresolvesWhenRouteChanges) {
-  UnicastRoute openrRoute;
-  IpPrefix routePrefix;
-  routePrefix.ip() =
-      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::"));
-  routePrefix.prefixLength() = 32;
-  openrRoute.dest() = routePrefix;
-  NextHopThrift llNhop1;
-  auto llAddr1 =
-      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::1"));
-  llAddr1.ifName() = "fboss1";
-  llNhop1.address() = llAddr1;
-  NextHopThrift llNhop2;
-  auto llAddr2 =
-      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::2"));
-  llAddr2.ifName() = "fboss2";
-  llNhop2.address() = llAddr2;
-  openrRoute.nextHops() = {llNhop1, llNhop2};
-
   rib_->update(
       scopeResolver(),
       kRid,
       ClientID::OPENR,
       AdminDistance::OPENR,
-      std::vector<UnicastRoute>{openrRoute},
+      {makeOpenRRoute(
+          "2001:db8::", 32, {{"fe80::1", "fboss1"}, {"fe80::2", "fboss2"}})},
       std::vector<IpPrefix>{},
       false,
       "add openr route",
@@ -1693,36 +1713,21 @@ TEST_F(RibMySidNextHopTest, namedNhgBindingSidReresolvesWhenRouteChanges) {
   const auto initialResolvedNextHops =
       manager->getNextHops(NextHopSetID(*initialResolvedId));
   ASSERT_EQ(initialResolvedNextHops.size(), 2);
-  std::set<folly::IPAddress> initialResolvedAddrs;
   for (const auto& nhop : initialResolvedNextHops) {
-    initialResolvedAddrs.insert(nhop.addr());
     ASSERT_TRUE(nhop.intfID().has_value());
   }
   EXPECT_EQ(
-      initialResolvedAddrs,
+      getNextHopAddrs(initialResolvedNextHops),
       std::set<folly::IPAddress>(
           {folly::IPAddress("fe80::1"), folly::IPAddress("fe80::2")}));
-
-  UnicastRoute updatedRoute;
-  updatedRoute.dest() = routePrefix;
-  NextHopThrift llNhop3;
-  auto llAddr3 =
-      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::3"));
-  llAddr3.ifName() = "fboss3";
-  llNhop3.address() = llAddr3;
-  NextHopThrift llNhop4;
-  auto llAddr4 =
-      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::4"));
-  llAddr4.ifName() = "fboss4";
-  llNhop4.address() = llAddr4;
-  updatedRoute.nextHops() = {llNhop3, llNhop4};
 
   rib_->update(
       scopeResolver(),
       kRid,
       ClientID::OPENR,
       AdminDistance::OPENR,
-      std::vector<UnicastRoute>{updatedRoute},
+      {makeOpenRRoute(
+          "2001:db8::", 32, {{"fe80::3", "fboss3"}, {"fe80::4", "fboss4"}})},
       std::vector<IpPrefix>{},
       false,
       "update openr route nexthops",
@@ -1740,9 +1745,7 @@ TEST_F(RibMySidNextHopTest, namedNhgBindingSidReresolvesWhenRouteChanges) {
       manager->getNextHops(NextHopSetID(*updatedResolvedId));
   ASSERT_EQ(updatedResolvedNextHops.size(), 2);
 
-  std::set<folly::IPAddress> updatedResolvedAddrs;
   for (const auto& nhop : updatedResolvedNextHops) {
-    updatedResolvedAddrs.insert(nhop.addr());
     ASSERT_TRUE(nhop.intfID().has_value());
     const auto segmentList = nhop.srv6SegmentList();
     EXPECT_EQ(segmentList.size(), 1);
@@ -1753,9 +1756,125 @@ TEST_F(RibMySidNextHopTest, namedNhgBindingSidReresolvesWhenRouteChanges) {
     EXPECT_EQ(*nhop.tunnelId(), kSrv6Tunnel0);
   }
   EXPECT_EQ(
-      updatedResolvedAddrs,
+      getNextHopAddrs(updatedResolvedNextHops),
       std::set<folly::IPAddress>(
           {folly::IPAddress("fe80::3"), folly::IPAddress("fe80::4")}));
+}
+
+TEST_F(RibMySidNextHopTest, updateNamedNhgReresolvesBindingSid) {
+  rib_->update(
+      scopeResolver(),
+      kRid,
+      ClientID::OPENR,
+      AdminDistance::OPENR,
+      {makeOpenRRoute(
+           "2001:db8::", 32, {{"fe80::1", "fboss1"}, {"fe80::2", "fboss2"}}),
+       makeOpenRRoute(
+           "2001:db9::", 32, {{"fe80::3", "fboss3"}, {"fe80::4", "fboss4"}})},
+      std::vector<IpPrefix>{},
+      false,
+      "add openr routes",
+      noopFibUpdate,
+      &switchState_);
+
+  addNamedNextHopGroup(
+      *rib_, "group1", makeSrv6NextHops({"2001:db8::1"}), &switchState_);
+
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "group1";
+  entry.namedNextHops() = named;
+
+  rib_->update(
+      scopeResolver(),
+      {entry},
+      {},
+      "add named nhg binding sid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto initialMySid = rib_->getMySidTableCopy().at(prefix);
+  const auto initialUnresolvedId = initialMySid.unresolveNextHopsId();
+  const auto initialResolvedId = initialMySid.resolvedNextHopsId();
+  ASSERT_TRUE(initialUnresolvedId.has_value());
+  ASSERT_TRUE(initialResolvedId.has_value());
+
+  addNamedNextHopGroup(
+      *rib_, "group1", makeSrv6NextHops({"2001:db9::1"}), &switchState_);
+
+  const auto updatedMySid = rib_->getMySidTableCopy().at(prefix);
+  const auto updatedUnresolvedId = updatedMySid.unresolveNextHopsId();
+  const auto updatedResolvedId = updatedMySid.resolvedNextHopsId();
+  ASSERT_TRUE(updatedUnresolvedId.has_value());
+  ASSERT_TRUE(updatedResolvedId.has_value());
+  EXPECT_NE(updatedUnresolvedId, initialUnresolvedId);
+  EXPECT_NE(updatedResolvedId, initialResolvedId);
+
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(
+      getNextHopAddrs(manager->getNextHops(NextHopSetID(*updatedUnresolvedId))),
+      std::set<folly::IPAddress>{folly::IPAddress("2001:db9::1")});
+
+  const auto updatedResolvedNextHops =
+      manager->getNextHops(NextHopSetID(*updatedResolvedId));
+  ASSERT_EQ(updatedResolvedNextHops.size(), 2);
+  EXPECT_EQ(
+      getNextHopAddrs(updatedResolvedNextHops),
+      std::set<folly::IPAddress>(
+          {folly::IPAddress("fe80::3"), folly::IPAddress("fe80::4")}));
+  for (const auto& nhop : updatedResolvedNextHops) {
+    ASSERT_TRUE(nhop.intfID().has_value());
+    const auto segmentList = nhop.srv6SegmentList();
+    EXPECT_EQ(segmentList.size(), 1);
+    EXPECT_EQ(segmentList[0], folly::IPAddressV6("2001:db8::10"));
+    ASSERT_TRUE(nhop.tunnelType().has_value());
+    EXPECT_EQ(*nhop.tunnelType(), TunnelType::SRV6_ENCAP);
+    ASSERT_TRUE(nhop.tunnelId().has_value());
+    EXPECT_EQ(*nhop.tunnelId(), kSrv6Tunnel0);
+  }
+}
+
+TEST_F(
+    RibMySidNextHopTest,
+    invalidNamedNhgUpdateDoesNotMutateBindingSidOrGroup) {
+  const auto originalNextHops = makeSrv6NextHops({"2001:db8::1"});
+  addNamedNextHopGroup(*rib_, "group1", originalNextHops, &switchState_);
+
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "group1";
+  entry.namedNextHops() = named;
+
+  rib_->update(
+      scopeResolver(),
+      {entry},
+      {},
+      "add named nhg binding sid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto beforeMySidTable = rib_->getMySidTableCopy();
+  const auto beforeManager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(beforeManager, nullptr);
+  EXPECT_EQ(beforeManager->getNextHopsForName("group1"), originalNextHops);
+
+  EXPECT_THROW(
+      addNamedNextHopGroup(
+          *rib_,
+          "group1",
+          makeUnresolvedNextHops({"2001:db8::2"}),
+          &switchState_),
+      FbossError);
+
+  EXPECT_EQ(rib_->getMySidTableCopy(), beforeMySidTable);
+  const auto afterManager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(afterManager, nullptr);
+  EXPECT_EQ(afterManager->getNextHopsForName("group1"), originalNextHops);
+  EXPECT_EQ(
+      afterManager->getMySidsForNamedNhg("group1"),
+      beforeManager->getMySidsForNamedNhg("group1"));
 }
 
 // Replacing next hops on a MySid entry should:
