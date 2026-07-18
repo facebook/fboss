@@ -675,7 +675,10 @@ TEST_F(RibMySidValidationTest, acceptBindingSidWithNextHops) {
       mySidToSwitchStateUpdate,
       &switchState_);
 
-  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
+  const auto mySidTable = rib_.getMySidTableCopy();
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  ASSERT_NE(mySidTable.find(prefix), mySidTable.end());
+  EXPECT_TRUE(mySidTable.at(prefix).unresolveNextHopsId().has_value());
 }
 
 TEST_F(RibMySidValidationTest, rejectBindingSidWithoutSidList) {
@@ -764,7 +767,10 @@ TEST_F(RibMySidValidationTest, acceptBindingSidWithNamedNhg) {
       mySidToSwitchStateUpdate,
       &switchState_);
 
-  EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
+  const auto mySidTable = rib_.getMySidTableCopy();
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  ASSERT_NE(mySidTable.find(prefix), mySidTable.end());
+  EXPECT_TRUE(mySidTable.at(prefix).unresolveNextHopsId().has_value());
 }
 
 TEST_F(RibMySidValidationTest, rejectBindingSidWithInvalidNamedNhgNextHops) {
@@ -1483,6 +1489,79 @@ TEST_F(
   const auto prefix = makeSidPrefix("fc00:100::1", 48);
   EXPECT_TRUE(
       rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+}
+
+TEST_F(RibMySidNextHopTest, namedNhgMySidResolvesLikeInlineNextHops) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  const auto nextHops = makeSrv6NextHops({"2001:db8::1"});
+  addNamedNextHopGroup(*rib_, "group1", nextHops, &switchState_);
+
+  auto inlineEntry =
+      makeMySidEntry("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  inlineEntry.nextHops() = {makeSrv6NextHop("2001:db8::1")};
+
+  auto namedEntry =
+      makeMySidEntry("fc00:200::1", 48, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = "group1";
+  namedEntry.namedNextHops() = named;
+
+  rib_->update(
+      scopeResolver(),
+      {inlineEntry, namedEntry},
+      {},
+      "add inline and named nhg binding sids",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto inlinePrefix = makeSidPrefix("fc00:100::1", 48);
+  const auto namedPrefix = makeSidPrefix("fc00:200::1", 48);
+  const auto mySidTable = rib_->getMySidTableCopy();
+  ASSERT_NE(mySidTable.find(inlinePrefix), mySidTable.end());
+  ASSERT_NE(mySidTable.find(namedPrefix), mySidTable.end());
+
+  const auto inlineResolvedId =
+      mySidTable.at(inlinePrefix).resolvedNextHopsId();
+  const auto namedResolvedId = mySidTable.at(namedPrefix).resolvedNextHopsId();
+  ASSERT_TRUE(inlineResolvedId.has_value());
+  ASSERT_TRUE(namedResolvedId.has_value());
+
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  const auto inlineResolvedNextHops =
+      manager->getNextHops(NextHopSetID(*inlineResolvedId));
+  const auto namedResolvedNextHops =
+      manager->getNextHops(NextHopSetID(*namedResolvedId));
+  EXPECT_EQ(inlineResolvedNextHops, namedResolvedNextHops);
+  ASSERT_EQ(namedResolvedNextHops.size(), 1);
+
+  const auto& resolvedNextHop = *namedResolvedNextHops.begin();
+  EXPECT_EQ(resolvedNextHop.addr(), folly::IPAddress("2001:db8::1"));
+  ASSERT_TRUE(resolvedNextHop.intfID().has_value());
+  EXPECT_EQ(*resolvedNextHop.intfID(), InterfaceID(1));
+  const auto segmentList = resolvedNextHop.srv6SegmentList();
+  EXPECT_EQ(segmentList.size(), 1);
+  EXPECT_EQ(segmentList[0], folly::IPAddressV6("2001:db8::10"));
+  ASSERT_TRUE(resolvedNextHop.tunnelType().has_value());
+  EXPECT_EQ(*resolvedNextHop.tunnelType(), TunnelType::SRV6_ENCAP);
+  ASSERT_TRUE(resolvedNextHop.tunnelId().has_value());
+  EXPECT_EQ(*resolvedNextHop.tunnelId(), kSrv6Tunnel0);
 }
 
 // Replacing next hops on a MySid entry should:
