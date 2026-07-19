@@ -21557,7 +21557,10 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/1.ResolveNeighborAndCheckCache$"
         },
         {
-          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+          "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
           "test_name_regex": "warm_boot.AgentAclTableRecreateTest.AclEntryCount$"
@@ -21994,7 +21997,10 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/1.ResolveNeighborAndCheckCache$"
         },
         {
-          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+          "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
           "test_name_regex": "warm_boot.AgentAclTableRecreateTest.AclEntryCount$"
@@ -23372,7 +23378,10 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/1.ResolveNeighborAndCheckCache$"
         },
         {
-          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+          "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
           "test_name_regex": "warm_boot.AgentAclTableRecreateTest.AclEntryCount$"
@@ -23755,7 +23764,10 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/1.ResolveNeighborAndCheckCache$"
         },
         {
-          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+          "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
           "test_name_regex": "warm_boot.AgentAclTableRecreateTest.AclEntryCount$"
@@ -24138,7 +24150,10 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/1.ResolveNeighborAndCheckCache$"
         },
         {
-          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+          "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
           "test_name_regex": "warm_boot.AgentAclTableRecreateTest.AclEntryCount$"
@@ -24521,7 +24536,10 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/1.ResolveNeighborAndCheckCache$"
         },
         {
-          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+          "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
           "test_name_regex": "warm_boot.AgentAclTableRecreateTest.AclEntryCount$"
@@ -24910,7 +24928,10 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/1.ResolveNeighborAndCheckCache$"
         },
         {
-          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+          "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
           "test_name_regex": "warm_boot.AgentAclTableRecreateTest.AclEntryCount$"
@@ -25299,7 +25320,10 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborResolutionTest/1.ResolveNeighborAndCheckCache$"
         },
         {
-          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+          "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
           "test_name_regex": "warm_boot.AgentAclTableRecreateTest.AclEntryCount$"
