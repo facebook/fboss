@@ -283,6 +283,7 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     // TODO(J4): re-enable metadata qualifiers once SDK support is validated.
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
     case HwAsic::Feature::ROUTE_METADATA:
+    case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
       return false;
   }
   return false;

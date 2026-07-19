@@ -239,6 +239,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     case HwAsic::Feature::PBR_ACL:
+    case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
       return false;
   }
   return false;
