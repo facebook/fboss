@@ -139,6 +139,7 @@
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.h"
+#include "fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.h"
 
 namespace facebook::fboss {
 
@@ -1140,8 +1141,14 @@ const CommandTree& kConfigCommandTree() {
             }},
        }}},
 
+      {"delete",
+       "vlan",
+       "Delete a VLAN (refuses while ports or routed interfaces reference it)",
+       commandHandler<CmdDeleteVlan>,
+       argRegistrar<CmdDeleteVlanTraits>},
+
   };
-  sort(root.begin(), root.end());
+  stable_sort(root.begin(), root.end());
   return root;
 }
 

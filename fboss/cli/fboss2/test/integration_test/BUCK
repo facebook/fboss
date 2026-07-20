@@ -49,6 +49,7 @@ cpp_binary(
         "ConfigVlanStaticMacTest.cpp",
         "ConfigVlanSwitchportAccessTest.cpp",
         "DeleteInterfaceIpv6NdpTest.cpp",
+        "DeleteVlanTest.cpp",
         "DeleteInterfaceTest.cpp",
         "Fboss2IntegrationTest.cpp",
         "TunnelIpInIpTest.cpp",

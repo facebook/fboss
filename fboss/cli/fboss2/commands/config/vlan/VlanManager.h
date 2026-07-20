@@ -23,8 +23,6 @@ namespace facebook::fboss {
  * This class is used by config vlan subcommands to automatically create VLANs
  * when they do not yet exist, so users do not need to create VLANs explicitly
  * before configuring them.
- *
- * TODO: Add deleteVlan() in a future change when "delete" commands are added.
  */
 class VlanManager {
  public:
@@ -49,6 +47,30 @@ class VlanManager {
   static const cfg::Vlan* findVlan(
       const cfg::SwitchConfig& swConfig,
       const VlanID& vlanId);
+
+  // Removes the VLAN with the given ID from swConfig, along with the barebone
+  // L3 interface createVlan() pairs with every VLAN (a vlanID-matching
+  // interface that carries no IP addresses) and any static MAC entries scoped
+  // to it (child objects that cannot outlive the VLAN).
+  //
+  // Refuses (throws FbossError) rather than silently orphaning references when
+  // the VLAN is still in use. Each referrer must be cleared first:
+  //   - it is the global default VLAN (SwitchConfig.defaultVlan)
+  //       -> point the default elsewhere: config vlan default <other-id>
+  //   - a port lists it as its untagged ingress VLAN (Port.ingressVlan)
+  //       -> move the port: config interface <port> switchport access vlan
+  //          <other-id>
+  //   - a port is a member of it (VlanPort.vlanID)
+  //       -> remove membership: config interface <port> switchport trunk
+  //          allowed vlan remove <id> (or move the access VLAN as above)
+  //   - it backs a routed SVI, i.e. an interface with vlanID == id that has
+  //     IP addresses configured
+  //       -> remove the addresses: delete interface <name> ip-address /
+  //          ipv6-address <addr>
+  // Throws FbossError if no VLAN with the given ID exists.
+  //
+  // Does NOT call saveConfig() — callers save after this returns.
+  static void deleteVlan(cfg::SwitchConfig& swConfig, const VlanID& vlanId);
 };
 
 } // namespace facebook::fboss

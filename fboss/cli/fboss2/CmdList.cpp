@@ -662,7 +662,7 @@ const CommandTree& kCommandTree() {
             argTypeHandler<CmdStreamSubFsdbOperStateTraits>},
        }},
   };
-  sort(root.begin(), root.end());
+  stable_sort(root.begin(), root.end());
   return root;
 }
 

@@ -11,10 +11,13 @@
 #include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
 
 #include <fmt/format.h>
+#include <folly/String.h>
 #include <algorithm>
 #include <cstdint>
 #include <iterator>
+#include <string>
 #include <utility>
+#include <vector>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
@@ -139,6 +142,104 @@ std::pair<bool, cfg::Vlan*> VlanManager::createVlan(
 
   // Return pointer to the newly inserted VLAN
   return {true, &(*insertedIt)};
+}
+
+void VlanManager::deleteVlan(
+    cfg::SwitchConfig& swConfig,
+    const VlanID& vlanId) {
+  const auto id = static_cast<int32_t>(vlanId);
+
+  if (findVlan(swConfig, vlanId) == nullptr) {
+    throw FbossError("VLAN ", static_cast<uint16_t>(vlanId), " does not exist");
+  }
+
+  if (*swConfig.defaultVlan() == id) {
+    throw FbossError(
+        "Cannot delete VLAN ",
+        static_cast<uint16_t>(vlanId),
+        ": it is the global default VLAN");
+  }
+
+  // Untagged ingress VLAN on a port (Port.ingressVlan).
+  std::vector<std::string> ingressPorts;
+  for (const auto& port : *swConfig.ports()) {
+    if (*port.ingressVlan() == id) {
+      ingressPorts.push_back(
+          port.name().has_value() ? *port.name()
+                                  : std::to_string(*port.logicalID()));
+    }
+  }
+  if (!ingressPorts.empty()) {
+    throw FbossError(
+        "Cannot delete VLAN ",
+        static_cast<uint16_t>(vlanId),
+        ": it is the ingress VLAN for port(s): ",
+        folly::join(", ", ingressPorts));
+  }
+
+  // Port membership (VlanPort.vlanID).
+  std::vector<std::string> memberPorts;
+  for (const auto& vlanPort : *swConfig.vlanPorts()) {
+    if (*vlanPort.vlanID() == id) {
+      memberPorts.push_back(std::to_string(*vlanPort.logicalPort()));
+    }
+  }
+  if (!memberPorts.empty()) {
+    throw FbossError(
+        "Cannot delete VLAN ",
+        static_cast<uint16_t>(vlanId),
+        ": port(s) are still members (remove switchport membership first): ",
+        folly::join(", ", memberPorts));
+  }
+
+  // Routed SVI: an interface on this VLAN that carries IP addresses.
+  std::vector<std::string> sviInterfaces;
+  for (const auto& intf : *swConfig.interfaces()) {
+    if (*intf.vlanID() == id && !intf.ipAddresses()->empty()) {
+      sviInterfaces.push_back(
+          intf.name().has_value() ? *intf.name()
+                                  : std::to_string(*intf.intfID()));
+    }
+  }
+  if (!sviInterfaces.empty()) {
+    throw FbossError(
+        "Cannot delete VLAN ",
+        static_cast<uint16_t>(vlanId),
+        ": interface(s) still have IP addresses (delete those first): ",
+        folly::join(", ", sviInterfaces));
+  }
+
+  // Safe to remove. Drop the VLAN entry, the barebone interface(s) that
+  // createVlan() pairs with it (matching vlanID, no IP addresses), and any
+  // static MAC entries scoped to it (child objects that cannot outlive the
+  // VLAN).
+  if (swConfig.staticMacAddrs().has_value()) {
+    auto& macs = *swConfig.staticMacAddrs();
+    macs.erase(
+        std::remove_if(
+            macs.begin(),
+            macs.end(),
+            [id](const cfg::StaticMacEntry& e) { return *e.vlanID() == id; }),
+        macs.end());
+  }
+
+  auto& vlans = *swConfig.vlans();
+  vlans.erase(
+      std::remove_if(
+          vlans.begin(),
+          vlans.end(),
+          [id](const cfg::Vlan& vlan) { return *vlan.id() == id; }),
+      vlans.end());
+
+  auto& interfaces = *swConfig.interfaces();
+  interfaces.erase(
+      std::remove_if(
+          interfaces.begin(),
+          interfaces.end(),
+          [id](const cfg::Interface& intf) {
+            return *intf.vlanID() == id && intf.ipAddresses()->empty();
+          }),
+      interfaces.end());
 }
 
 } // namespace facebook::fboss
