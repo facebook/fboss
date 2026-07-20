@@ -125,6 +125,10 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
+#include "fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.h"
+#include "fboss/cli/fboss2/commands/delete/copp/cpu_traffic_policy/CmdDeleteCoppCpuTrafficPolicy.h"
+#include "fboss/cli/fboss2/commands/delete/copp/cpu_traffic_policy/match/CmdDeleteCoppCpuTrafficPolicyMatch.h"
+#include "fboss/cli/fboss2/commands/delete/copp/cpu_traffic_policy/match/action/CmdDeleteCoppCpuTrafficPolicyMatchAction.h"
 #include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
@@ -183,6 +187,12 @@ const CommandTree& kConfigCommandTree() {
                "Configure a CPU queue (bandwidth shaping)",
                commandHandler<CmdConfigCoppCpuQueue>,
                argRegistrar<CmdConfigCoppCpuQueueTraits>,
+           },
+           {
+               "cpu-traffic-policy",
+               "Set a CPU-plane action (send-to-queue, counter, set-tc, user-defined-trap) on a named ACL matcher",
+               commandHandler<CmdConfigCoppCpuTrafficPolicy>,
+               argRegistrar<CmdConfigCoppCpuTrafficPolicyTraits>,
            },
            {
                "reason",
@@ -1039,6 +1049,33 @@ const CommandTree& kConfigCommandTree() {
                   "Reset IPv6 Neighbor Discovery (NDP/RA) settings to defaults",
                   commandHandler<CmdDeleteInterfaceIpv6Ndp>,
                   argRegistrar<CmdDeleteInterfaceIpv6NdpTraits>,
+              }},
+          }},
+      },
+
+      {
+          "delete",
+          "copp",
+          "Delete COPP (Control Plane Policing) configuration",
+          commandHandler<CmdDeleteCopp>,
+          argRegistrar<CmdDeleteCoppTraits>,
+          {{
+              "cpu-traffic-policy",
+              "Delete CPU traffic policy configuration",
+              commandHandler<CmdDeleteCoppCpuTrafficPolicy>,
+              argRegistrar<CmdDeleteCoppCpuTrafficPolicyTraits>,
+              {{
+                  "match",
+                  "Target a named ACL matcher entry in cpuTrafficPolicy.trafficPolicy.matchToAction",
+                  commandHandler<CmdDeleteCoppCpuTrafficPolicyMatch>,
+                  argRegistrar<CmdDeleteCoppCpuTrafficPolicyMatchTraits>,
+                  {{
+                      "action",
+                      "Delete a CPU-plane action (send-to-queue, counter, set-tc, user-defined-trap) from the matcher",
+                      commandHandler<CmdDeleteCoppCpuTrafficPolicyMatchAction>,
+                      argRegistrar<
+                          CmdDeleteCoppCpuTrafficPolicyMatchActionTraits>,
+                  }},
               }},
           }},
       },

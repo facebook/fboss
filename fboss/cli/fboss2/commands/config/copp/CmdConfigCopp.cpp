@@ -43,11 +43,25 @@ constexpr std::string_view kRateUnitPps = "pps";
 // `config copp reason <reason-name> queue <id>`.
 constexpr std::string_view kSubCmdQueue = "queue";
 
+// Literal tokens and action types accepted by
+// `config copp cpu-traffic-policy match <matcher-name> action <action-type>
+// <value>`.
+constexpr std::string_view kSubCmdMatch = "match";
+constexpr std::string_view kSubCmdAction = "action";
+using copp_cpu_traffic_policy::kActionCounter;
+using copp_cpu_traffic_policy::kActionSendToQueue;
+using copp_cpu_traffic_policy::kActionSetTc;
+using copp_cpu_traffic_policy::kActionUserDefinedTrap;
+
 // CPU queue IDs are a small platform-bounded set; reject anything that is
 // clearly out of range before we construct a PortQueue. The actual per-ASIC
 // cap is enforced by the agent (SaiHostifManager::getMaxCpuQueues) at apply
 // time.
 constexpr int16_t kMaxCpuQueueId = 255;
+
+// SetTcAction.tcValue is a thrift byte (int8_t); values above 127 wrap
+// negative. The real per-ASIC cap is enforced by the agent at apply time.
+constexpr int16_t kMaxTcValue = 127;
 
 // Normalize a user-typed reason name: uppercase + dashes->underscores, so
 // that "arp", "ARP", "bgp-v6", "bgpv6" all match the cfg::PacketRxReason
@@ -194,6 +208,84 @@ CoppCpuQueueArgs::CoppCpuQueueArgs(std::vector<std::string> v) {
   data_ = std::move(v);
 }
 
+CoppCpuTrafficPolicyArgs::CoppCpuTrafficPolicyArgs(std::vector<std::string> v) {
+  if (v.size() != 5) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Expected {} <matcher-name> {} <action-type> <value>, got {} "
+            "argument(s)",
+            kSubCmdMatch,
+            kSubCmdAction,
+            v.size()));
+  }
+  if (v[0] != kSubCmdMatch) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Expected '{}' as first token, got '{}'", kSubCmdMatch, v[0]));
+  }
+  if (v[1].empty()) {
+    throw std::invalid_argument("matcher-name must not be empty");
+  }
+  // The delete command models this grammar as subcommand tree nodes, where
+  // CLI11 classifies a bare token naming a child subcommand ("action") before
+  // filling positionals. A matcher with that name would be configurable here
+  // but impossible to delete, so reject it up front.
+  if (v[1] == kSubCmdAction) {
+    throw std::invalid_argument(
+        fmt::format(
+            "matcher-name must not be '{}': it collides with the '{}' "
+            "subcommand of the delete command tree",
+            kSubCmdAction,
+            kSubCmdAction));
+  }
+  if (v[2] != kSubCmdAction) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Expected '{}' between matcher name and action type, got '{}'",
+            kSubCmdAction,
+            v[2]));
+  }
+  const auto& actionType = v[3];
+  const auto& value = v[4];
+  if (actionType == kActionSendToQueue ||
+      actionType == kActionUserDefinedTrap) {
+    parseQueueId(value, actionType);
+  } else if (actionType == kActionSetTc) {
+    int32_t tcValue = 0;
+    try {
+      tcValue = folly::to<int32_t>(value);
+    } catch (const folly::ConversionError&) {
+      throw std::invalid_argument(
+          fmt::format(
+              "Invalid tc-value '{}': must be an integer in [0, {}]",
+              value,
+              kMaxTcValue));
+    }
+    if (tcValue < 0 || tcValue > kMaxTcValue) {
+      throw std::invalid_argument(
+          fmt::format(
+              "tc-value must be in [0, {}], got {}", kMaxTcValue, tcValue));
+    }
+  } else if (actionType == kActionCounter) {
+    if (value.empty()) {
+      throw std::invalid_argument("counter-name must not be empty");
+    }
+  } else {
+    throw std::invalid_argument(
+        fmt::format(
+            "Invalid action-type '{}': must be one of: {}, {}, {}, {}",
+            actionType,
+            kActionSendToQueue,
+            kActionCounter,
+            kActionSetTc,
+            kActionUserDefinedTrap));
+  }
+  matcherName_ = v[1];
+  actionType_ = actionType;
+  actionValue_ = value;
+  data_ = std::move(v);
+}
+
 CoppReasonArgs::CoppReasonArgs(std::vector<std::string> v) {
   if (v.size() != 3) {
     throw std::invalid_argument(
@@ -278,6 +370,52 @@ std::string applyReasonConfig(
       "Mapped reason {} -> queue {}", reasonName, args.getQueueId());
 }
 
+std::string applyCpuTrafficPolicyConfig(
+    cfg::SwitchConfig& swConfig,
+    const CoppCpuTrafficPolicyArgs& args) {
+  if (!swConfig.cpuTrafficPolicy().has_value()) {
+    swConfig.cpuTrafficPolicy() = cfg::CPUTrafficPolicyConfig{};
+  }
+  auto& policy = *swConfig.cpuTrafficPolicy();
+  if (!policy.trafficPolicy().has_value()) {
+    policy.trafficPolicy() = cfg::TrafficPolicyConfig{};
+  }
+  auto& matchToActions = *policy.trafficPolicy()->matchToAction();
+
+  const auto& name = args.getMatcherName();
+  auto it = copp_cpu_traffic_policy::findMatchToAction(matchToActions, name);
+  if (it == matchToActions.end()) {
+    cfg::MatchToAction newEntry;
+    newEntry.matcher() = name;
+    newEntry.action() = cfg::MatchAction{};
+    matchToActions.push_back(std::move(newEntry));
+    it = std::prev(matchToActions.end());
+  }
+
+  auto& action = *it->action();
+  const auto& actionType = args.getActionType();
+  const auto& value = args.getActionValue();
+  if (actionType == kActionSendToQueue) {
+    cfg::QueueMatchAction queueAction;
+    queueAction.queueId() = folly::to<int16_t>(value);
+    action.sendToQueue() = std::move(queueAction);
+  } else if (actionType == kActionCounter) {
+    action.counter() = value;
+  } else if (actionType == kActionSetTc) {
+    cfg::SetTcAction setTcAction;
+    setTcAction.tcValue() = folly::to<int8_t>(value);
+    action.setTc() = std::move(setTcAction);
+  } else {
+    // kActionUserDefinedTrap
+    cfg::UserDefinedTrapAction trapAction;
+    trapAction.queueId() = folly::to<int16_t>(value);
+    action.userDefinedTrap() = std::move(trapAction);
+  }
+
+  return fmt::format(
+      "Set action '{}' = '{}' for matcher '{}'", actionType, value, name);
+}
+
 } // namespace
 
 CmdConfigCoppCpuQueueTraits::RetType CmdConfigCoppCpuQueue::queryClient(
@@ -310,10 +448,27 @@ void CmdConfigCoppReason::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
 
+CmdConfigCoppCpuTrafficPolicyTraits::RetType
+CmdConfigCoppCpuTrafficPolicy::queryClient(
+    const HostInfo& /* hostInfo */,
+    const ObjectArgType& args) {
+  auto& session = ConfigSession::getInstance();
+  auto msg = applyCpuTrafficPolicyConfig(*session.getAgentConfig().sw(), args);
+  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  return msg;
+}
+
+void CmdConfigCoppCpuTrafficPolicy::printOutput(const RetType& logMsg) {
+  std::cout << logMsg << std::endl;
+}
+
 // Explicit template instantiations
 template void CmdHandler<CmdConfigCopp, CmdConfigCoppTraits>::run();
 template void
 CmdHandler<CmdConfigCoppCpuQueue, CmdConfigCoppCpuQueueTraits>::run();
 template void CmdHandler<CmdConfigCoppReason, CmdConfigCoppReasonTraits>::run();
+template void CmdHandler<
+    CmdConfigCoppCpuTrafficPolicy,
+    CmdConfigCoppCpuTrafficPolicyTraits>::run();
 
 } // namespace facebook::fboss
