@@ -240,4 +240,8 @@ service AgentHwTestCtrl {
   // installLogCapture() must be called before the log is emitted.
   void installLogCapture();
   list<string> getMatchingLogMessages(1: string substring);
+
+  // fb303 cross-process utils for multi-switch testing
+  map<string, i64> getFb303RegexCounters(1: string regex);
+  i64 getFb303Counter(1: string key);
 }

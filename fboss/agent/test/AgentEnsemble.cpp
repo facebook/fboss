@@ -941,15 +941,14 @@ std::map<std::string, int64_t> AgentEnsemble::getFb303CountersByRegex(
     const PortID& portId,
     const std::string& regex) {
   std::map<std::string, int64_t> counters;
-#ifndef IS_OSS
   auto switchID = scopeResolver().scope(portId).switchId();
+#ifndef IS_OSS
   auto client = getSw()->getHwSwitchThriftClientTable()->getClient(switchID);
   apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
       client->getChannelShared()};
   monitoringClient.sync_getRegexCounters(counters, regex);
 #else
-  // TODO: This needs to be updated to support multi-switch.
-  counters = facebook::fb303::fbData->getRegexCounters(regex);
+  counters = queryHwAgentFb303RegexCounters(switchID, regex);
 #endif
   return counters;
 }
@@ -975,8 +974,7 @@ int64_t AgentEnsemble::getFb303Counter(
       client->getChannelShared()};
   counter = monitoringClient.sync_getCounter(key);
 #else
-  // TODO: This needs to be updated to support multi-switch.
-  counter = facebook::fb303::fbData->getCounter(key);
+  counter = queryHwAgentFb303Counter(switchID, key);
 #endif
   return counter;
 }
@@ -1026,10 +1024,37 @@ std::map<std::string, int64_t> AgentEnsemble::getFb303RegexCounters(
       client->getChannelShared()};
   monitoringClient.sync_getRegexCounters(counters, regex);
 #else
-  // TODO: This needs to be updated to support multi-switch.
-  counters = facebook::fb303::fbData->getRegexCounters(regex);
+  counters = queryHwAgentFb303RegexCounters(switchID, regex);
 #endif
   return counters;
+}
+
+std::map<std::string, int64_t> AgentEnsemble::queryHwAgentFb303RegexCounters(
+    const SwitchID& switchID,
+    const std::string& regex) {
+  std::map<std::string, int64_t> counters;
+  if (!getSw()->isRunModeMultiSwitch()) {
+    counters = facebook::fb303::fbData->getRegexCounters(regex);
+  } else {
+    auto hwTestClient = getHwAgentTestClient(switchID);
+    hwTestClient->sync_getFb303RegexCounters(counters, regex);
+  }
+  return counters;
+}
+
+int64_t AgentEnsemble::queryHwAgentFb303Counter(
+    const SwitchID& switchID,
+    const std::string& key) {
+  int64_t counter{0};
+  if (!getSw()->isRunModeMultiSwitch()) {
+    // getCounterIfExists (not getCounter) so a missing key yields 0 instead of
+    // throwing, matching the multi-switch handler.
+    counter = facebook::fb303::fbData->getCounterIfExists(key).value_or(0);
+  } else {
+    auto hwTestClient = getHwAgentTestClient(switchID);
+    counter = hwTestClient->sync_getFb303Counter(key);
+  }
+  return counter;
 }
 
 std::string AgentEnsemble::getHwDebugDump() {
