@@ -29,6 +29,7 @@ package "facebook.com/neteng/fboss/bgp/public_tld/configerator/structs/neteng/fb
 struct ClassId {
   /*
    * classID is a way in agent to tag packets.
+   * [redacted]
    */
   1: i32 value;
   /*
@@ -321,6 +322,32 @@ struct BgpLocalPref {
 
 /**
  * BGP UCMP quantizer (non-uniform)
+ * Qunatizer internal generates a map<input_bps, quantized_bps>, and for each input_bps
+ * it will perform closet match to find its proper quantized-bps.
+ * e.g
+ * min_step_bps: 100G
+ * error_pct_threshold: 0.1
+ * fixed_quantized_bps_list: [2400G, 3600G]
+ *
+ * input-bps -> quantized_bps
+ * 3600 -> 3600
+ * 3500 -> 3600
+ * 3400 -> 3600
+ * 3300 -> 3600 (400G step)
+ * 3200 -> 3200
+ * 3100 -> 3200
+ * 3000 -> 3200 (300G step)
+ * 2900 -> 2900
+ * ...
+ * 2500 -> 2600
+ * 2400 -> 2400
+ * 2300 -> 2400
+ * 2200 -> 2400 (300G step)
+ * 2100 -> 2100
+ * ...
+ * 300 -> 300 (100G step)
+ * 200 -> 200 (100G step)
+ * 100 -> 100 (100G step)
  */
 struct BgpUcmpQuantizerConfig {
   /**
@@ -348,6 +375,10 @@ struct BgpUcmpQuantizerConfig {
 
 /**
  * BGP Policy configuration thrift struct
+ * Currently used only to help with rendering config output
+ *
+ * TODO: evaluate if the BgpPolicyConfig thrift struct is needed.
+ * Only getPolicyConfig() used this and BgpConfig completely covers this struct.
  */
 struct BgpPolicyConfig {
   /**
@@ -373,31 +404,56 @@ enum OverloadProtectionMode {
   DROP_EXCESS_PREFIXES = 1,
 
   // After the limit is exceeded, apply the golden prefix policy.
+  // See [redacted]
+  //
+  // NOTE: This behavior requires the golden prefix policy.
+  // If no golden prefix policy is available, BGP will fall back to
+  // DROP_EXCESS_PREFIXES mode.
   APPLY_GOLDEN_PREFIX_POLICY = 2,
 }
 
 /**
- * The switch level limit to enforce to cap the max path/route BGP can support.
+ * The switch level limit to enforce to cap the max path/route BGP can support
+ * after [redacted]. See [redacted] for details.
+ *  1. total ingress path scale limit
+ *  2. total unique prefix limit
+ *
+ * Consider different tier of devices have different scale limit in terms of:
+ *  1) number of prefix received
+ *  2) HW chip limitation
+ *  3) etc.
+ *
+ * The network administrator must set the limit accordingly based on the least
+ * performant platform. There is NO default value set for the switch limit.
  */
 struct BgpSwitchLimitConfig {
   /**
    * This is the max-cap of the total received path count from all BGP sessions.
+   * Attention: with add-path functionality enabled, multi-paths received for
+   * the same prefix will be counted multiple times.
    */
   1: optional i64 ingress_path_limit;
 
   /**
    * This is the max-cap of the total unique prefixes received from BGP peers.
+   * The same prefix with different path attribute will consider as 1. This
+   * limits the possible max routes to be programmed to wedge_agent.
    */
   2: optional i64 prefix_limit;
 
   /**
    * This is the max-cap of the total path limit, that includes both ingress and egress paths.
+   * The same prefix with different path attribute will consider as 1. This
+   * limits the possible max routes to be programmed to wedge_agent.
    */
   3: optional i64 total_path_limit;
 
   4: OverloadProtectionMode overload_protection_mode = DROP_EXCESS_PREFIXES;
   /**
   * upperbound of allowed golden vips per device
+  * The number needs to align with golden prefixes policy max_allowed_subnet_count, where vips are includes. ([redacted])
+  * When there are more golden vips in the production, or hardware/software platfrom has upgraded, we can consider increase the number here and
+  * in golden prefixes policy.([redacted])
   **/
   5: optional i32 max_golden_vips;
 }
@@ -518,6 +574,9 @@ struct BgpSettingConfig {
 
   /**
    * List of regex patterns for interface name matching in nexthop tracking.
+   * Only interfaces whose names match at least one of these patterns will be
+   * tracked for nexthop reachability. If empty or not set, no interfaces
+   * will be tracked.
    */
   6: optional list<string> include_interface_regexes;
 
@@ -532,7 +591,8 @@ struct BgpSettingConfig {
   8: optional bool enable_egress_queue_backpressure;
 
   /**
-   * Enable using path IDs allocated upon selection in Rib for outgoing updates.
+   * Enable using path IDs allocated upon selection in Rib for outgoing updates, instead of using cached per-nexthop IDs in AdjRibOut.
+   * This also includes constructing RibOut messages based on these path IDs instead of nexthops.
    */
   9: optional bool enable_rib_allocated_path_id;
 
@@ -552,7 +612,7 @@ struct BgpSettingConfig {
   13: optional bool enable_optimized_GR;
 
   /**
-  * Enable eiBGP multipath
+  * Enable eiBGP multipath: equalize eBGP and iBGP paths by skipping the EXTERNAL_ROUTE preference filter in best path selection
   */
   14: optional bool enable_eibgp_multipath;
 
@@ -709,17 +769,20 @@ struct BgpConfig {
 
   /**
    * Quantization bucket size for UCMP weights (received link-bandwidth) for
-   * programming.
+   * programming. The HW may quantize again. We keep the bucket high enough by
+   * default so that we can always fit the received weight (32 bit float) into
+   * 32 bit integer without overflow error.
    */
   19: i32 ucmp_width = 65636;
 
   /**
-   * BGP UCMP quantizer
+   * BGP UCMP quantizer, applys to aggregateLocalWeights to reduce control
+   * plane churns.
    */
   20: optional BgpUcmpQuantizerConfig ucmp_quantizer_config;
 
   /**
-  * VipService related configs (VIP not in OSS scope)
+  * VipService related configs
   */
   21: bool enable_vip_service = false;
   // 22: reserved
@@ -728,12 +791,14 @@ struct BgpConfig {
    * 4-byte ASN definition for local ASN and local confed ASN
    *
    * RFC-6793: BGP Support for Four-Octet Autonomous System (AS) Number Space
+   * https://datatracker.ietf.org/doc/html/rfc6793
    */
   23: optional i64 local_as_4_byte;
   24: optional i64 local_confed_as_4_byte;
 
   /**
    * Count confed as in as path length
+   * RFC extension: https://datatracker.ietf.org/doc/draft-lapukhov-bgp-ecmp-considerations/
    */
   25: optional bool count_confeds_in_as_path_len;
 
@@ -745,22 +810,44 @@ struct BgpConfig {
 
   /**
   * classID is a way in agent to tag packets.
+  * ([redacted])
+  *
+  * bgp can instruct agent to tag traffic to certain destination prefix with
+  * route programming:
+  * > prefix1, via <nhg>, classid = 20
+  *
+  * In control plane we use a special community range to encode the class id,
+  * so it comes as an attribute with route update. community_to_classid is a map from
+  * community to class id translation
+  *
+  * i.e. community_to_classid = {"65520:100" : 20}
+  * If an update come with 65520:100, it will be translate to class id 20. If update1
+  * is choosen as the only best path, bgp programs class id 20 with nexthop group.
+  *
+  * Notice bgp will only program class id if all ecmp have the same attribute.
+  * Otherwise class id is set to none.
   */
   27: optional map<string, ClassId> community_to_classid;
 
   /**
   * Not to advertise a prefix to a peer, if the prefix's AS-path contain that peer's AS
+  *
+  * Movitation:
+  * [redacted]
   */
   28: optional bool sender_suppress_as_loop;
 
   /**
-   * Indicates global drained state
+   * Indicates global drained state (i.e., whether UNDRAINED or in one of the drain states).
+   * Note that this does not reflect the state of individual interfaces that may be drained
+   * as part of orthogonal interface drain workflow
    */
   29: bgp_policy.DrainState drain_state = bgp_policy.DrainState.UNDRAINED;
   30: list<string> drained_interfaces = [];
 
   /**
    * Scuba category for logging certain policy evaluation result
+   * empty meanings no logging will be done
    */
   31: optional string scuba_logging_category;
 
@@ -780,7 +867,8 @@ struct BgpConfig {
   36: optional BgpSettingConfig bgp_setting_config;
 
   /**
-   * Config for BGP thrift server.
+   * Config for BGP thrift server. Currently only tls settings are supported.
+   * In the future the plan is to use this to support other thrift server configurables.
    */
   37: optional ThriftServerConfig thrift_server_config;
 

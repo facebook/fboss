@@ -20,6 +20,8 @@ namespace cpp2 facebook.bgp.routing_policy
 namespace go neteng.bgp_policy.routing_policy
 
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/thrift.thrift"
+
 package "facebook.com/neteng/fboss/bgp/public_tld/configerator/structs/neteng/bgp_policy/routing_policy"
 
 enum IPVersion {
