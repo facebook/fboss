@@ -11,9 +11,9 @@ python_library(
         ":tomahawk6",
         "//fboss/agent/hw/config:asic_config_v2-python-types",
         "//fboss/lib/platform_mapping_v2:asic_vendor_config",
-        "//fboss/lib/platform_mapping_v2:gen-library",
         "//fboss/lib/platform_mapping_v2:platform_mapping_config-python-types",
         "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+        "//fboss/lib/platform_mapping_v2:read_files_utils",
     ],
 )
 
@@ -25,9 +25,9 @@ python_library(
         ":tomahawk6",
         "//fboss/agent/hw/config:asic_config_v2-python-types",
         "//fboss/lib/platform_mapping_v2:asic_vendor_config",
-        "//fboss/lib/platform_mapping_v2:gen-library",
         "//fboss/lib/platform_mapping_v2:platform_mapping_config-python-types",
         "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+        "//fboss/lib/platform_mapping_v2:read_files_utils",
     ],
 )
 
@@ -96,9 +96,9 @@ python_library(
         ":tomahawk5",
         "//fboss/agent/hw/config:asic_config_v2-python-types",
         "//fboss/lib/platform_mapping_v2:asic_vendor_config",
-        "//fboss/lib/platform_mapping_v2:gen-library",
         "//fboss/lib/platform_mapping_v2:platform_mapping_config-python-types",
         "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+        "//fboss/lib/platform_mapping_v2:read_files_utils",
     ],
 )
 
@@ -110,9 +110,9 @@ python_library(
         ":tomahawk5",
         "//fboss/agent/hw/config:asic_config_v2-python-types",
         "//fboss/lib/platform_mapping_v2:asic_vendor_config",
-        "//fboss/lib/platform_mapping_v2:gen-library",
         "//fboss/lib/platform_mapping_v2:platform_mapping_config-python-types",
         "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+        "//fboss/lib/platform_mapping_v2:read_files_utils",
     ],
 )
 

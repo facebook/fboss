@@ -5,8 +5,8 @@ import neteng.fboss.asic_config_v2.thrift_types as asic_config_thrift
 import neteng.fboss.platform_mapping_config.thrift_types as pm_types
 from fboss.lib.asic_config_v2.tomahawk5 import Tomahawk5AsicConfig
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
-from fboss.lib.platform_mapping_v2.gen import read_all_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
+from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
 
 
 class MontblancAsicConfig(Tomahawk5AsicConfig):
