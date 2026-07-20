@@ -15,7 +15,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::L3_QOS:
-    case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
@@ -229,6 +228,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     // TU1 SDK 15.0/15.1 unsupported features (Accton/Broadcom CSPs)
     case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::L3_INTF_MTU:

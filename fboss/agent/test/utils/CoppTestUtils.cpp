@@ -202,7 +202,8 @@ uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId) {
 uint32_t getCoppQueueKbpsFromPps(const HwAsic* hwAsic, uint32_t pps) {
   uint32_t kbps;
   if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO ||
-      hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB ||
+      hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
     kbps = (round(pps / 60) * 60) *
         (kAveragePacketSize + kCpuPacketOverheadBytes) * 8 / 1000;
   } else {
