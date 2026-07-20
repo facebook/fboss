@@ -182,6 +182,7 @@ SensorServiceImpl::prefetchPmUnitInfos() {
 
 void SensorServiceImpl::fetchSensorData() {
   std::map<std::string, SensorData> polledData;
+  std::vector<PmSensor> loadLineSensors;
 
   auto pmUnitInfoMap = prefetchPmUnitInfos();
 
@@ -265,7 +266,14 @@ void SensorServiceImpl::fetchSensorData() {
           sensor.compute().to_optional());
       sensorData.slotPath() = *pmUnitSensors.slotPath();
       polledData[sensorName] = sensorData;
-      publishPerSensorStats(sensorData);
+      // For AVS rails that use load-line regulation (Adaptive Voltage
+      // Positioning), we need to adjust their read vout to account for
+      // load-line droops. So we defer publishing the stats for such sensors.
+      if (sensor.loadLineuOhms().has_value()) {
+        loadLineSensors.push_back(sensor);
+      } else {
+        publishPerSensorStats(sensorData);
+      }
     }
   }
 
@@ -278,6 +286,8 @@ void SensorServiceImpl::fetchSensorData() {
   }
 
   processPower(polledData, *sensorConfig_.powerConfig(), pmUnitInfoMap);
+
+  processLoadLineDroopAdjust(polledData, loadLineSensors);
 
   processTemperature(polledData, *sensorConfig_.temperatureConfigs());
 
@@ -537,6 +547,45 @@ SensorData SensorServiceImpl::processAsicCmd(const AsicCommand& asicCommand) {
         "Failed to parse AsicCommand '{}' output: {}", output, e.what());
   }
   return sensorData;
+}
+
+void SensorServiceImpl::processLoadLineDroopAdjust(
+    std::map<std::string, SensorData>& polledData,
+    const std::vector<PmSensor>& loadLineSensors) {
+  auto getSensorValue = [&](const std::string& sensorName) {
+    auto it = polledData.find(sensorName);
+    if (it != polledData.end()) {
+      return it->second.value().to_optional();
+    }
+    return std::optional<float>(std::nullopt);
+  };
+
+  for (const auto& sensor : loadLineSensors) {
+    const auto& voltageSensorName = *sensor.name();
+    const auto& loadLineSensorName = *sensor.loadLineCurrentSensor();
+    const double uOhms = *sensor.loadLineuOhms();
+    auto voutIt = polledData.find(voltageSensorName);
+    if (voutIt == polledData.end()) {
+      XLOG(ERR) << fmt::format(
+          "Load-line sensor {} missing from polled data; skipping",
+          voltageSensorName);
+      continue;
+    }
+
+    auto rawVout = voutIt->second.value().to_optional();
+    auto loadLineAmps = getSensorValue(loadLineSensorName);
+
+    if (!rawVout || !loadLineAmps) {
+      XLOG(WARNING) << fmt::format(
+          "Skipping load-line adjustment for {}", voltageSensorName);
+      publishPerSensorStats(voutIt->second);
+      continue;
+    }
+
+    double vout = static_cast<double>(*rawVout) + uOhms * 1e-6 * *loadLineAmps;
+    voutIt->second.value() = static_cast<float>(vout);
+    publishPerSensorStats(voutIt->second);
+  }
 }
 
 void SensorServiceImpl::processPower(
