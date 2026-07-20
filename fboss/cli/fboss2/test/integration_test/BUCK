@@ -43,6 +43,7 @@ cpp_binary(
         "ConfigSessionClearTest.cpp",
         "ConfigVlanCreateTest.cpp",
         "ConfigVlanDefaultTest.cpp",
+        "ConfigVlanNameTest.cpp",
         "ConfigVlanPortTaggingModeTest.cpp",
         "ConfigVlanStaticMacTest.cpp",
         "ConfigVlanSwitchportAccessTest.cpp",
@@ -69,6 +70,7 @@ cpp_binary(
         "//fboss/cli/fboss2:cmd-subcommands",
         "//fboss/cli/fboss2:fboss2-config-lib",  # @manual
         "//fboss/cli/fboss2:fboss2-lib",  # @manual
+        "//fboss/cli/fboss2/test:cmd_test_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//folly:dynamic",
         "//folly:network_address",
