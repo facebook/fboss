@@ -245,7 +245,6 @@ add_library(saintpaul_bsp
 
 target_link_libraries(saintpaul_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
