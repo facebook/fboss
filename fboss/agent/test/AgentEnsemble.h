@@ -412,6 +412,13 @@ class AgentEnsemble : public TestEnsembleIf {
   void overrideConfigFlag(const std::string& fileName);
   void dumpConfigForHwAgent(AgentConfig* agentConf);
 
+  std::map<std::string, int64_t> queryHwAgentFb303RegexCounters(
+      const SwitchID& switchId,
+      const std::string& regex);
+  int64_t queryHwAgentFb303Counter(
+      const SwitchID& switchId,
+      const std::string& key);
+
   void writeConfig(const cfg::SwitchConfig& config);
   void writeConfig(const cfg::AgentConfig& config);
   bool waitForRateOnPort(

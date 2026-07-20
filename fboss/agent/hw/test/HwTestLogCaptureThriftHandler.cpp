@@ -2,6 +2,8 @@
 
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
+#include <fb303/ServiceData.h>
+#include <fb303/ThreadCachedServiceData.h>
 #include <folly/Synchronized.h>
 #include <folly/logging/LogHandler.h>
 #include <folly/logging/LogHandlerConfig.h>
@@ -85,6 +87,18 @@ void HwTestThriftHandler::getMatchingLogMessages(
     return;
   }
   out = static_cast<CaptureLogHandler*>(handler.get())->matching(*substring);
+}
+
+void HwTestThriftHandler::getFb303RegexCounters(
+    std::map<std::string, int64_t>& counters,
+    std::unique_ptr<std::string> regex) {
+  facebook::fb303::ThreadCachedServiceData::get()->publishStats();
+  counters = facebook::fb303::fbData->getRegexCounters(*regex);
+}
+
+int64_t HwTestThriftHandler::getFb303Counter(std::unique_ptr<std::string> key) {
+  facebook::fb303::ThreadCachedServiceData::get()->publishStats();
+  return facebook::fb303::fbData->getCounterIfExists(*key).value_or(0);
 }
 
 } // namespace utility
