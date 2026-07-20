@@ -21560,6 +21560,9 @@
           "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
         },
         {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
@@ -22000,6 +22003,9 @@
           "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
         },
         {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
@@ -22192,6 +22198,9 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPauseTest.verifyPauseRxTx$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -22479,6 +22488,9 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPauseTest.verifyPauseRxTx$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -23381,6 +23393,9 @@
           "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
         },
         {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
@@ -23765,6 +23780,9 @@
         },
         {
           "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
+        },
+        {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
@@ -24153,6 +24171,9 @@
           "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
         },
         {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
@@ -24537,6 +24558,9 @@
         },
         {
           "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
+        },
+        {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
@@ -24931,6 +24955,9 @@
           "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
         },
         {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
         },
         {
@@ -25321,6 +25348,9 @@
         },
         {
           "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
+        },
+        {
+          "test_name_regex": "AgentPfcTest.verifyPfcDoesNotIncrementPauseCounter$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentPfcTest.verifyPfcCounters$"
