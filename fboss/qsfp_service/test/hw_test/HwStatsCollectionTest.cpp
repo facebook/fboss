@@ -316,12 +316,12 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
 
 TEST_F(HwXphyPrbsStatsCollectionTest, getSystemPrbsStats) {
   addVerifiedProductionFeatures(
-      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_PRBS});
+      {qsfp_production_features::QsfpProductionFeature::XPHY_PRBS_CONTROL});
   runTest(phy::Side::SYSTEM);
 }
 TEST_F(HwXphyPrbsStatsCollectionTest, getLinePrbsStats) {
   addVerifiedProductionFeatures(
-      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_PRBS});
+      {qsfp_production_features::QsfpProductionFeature::XPHY_PRBS_CONTROL});
   runTest(phy::Side::LINE);
 }
 

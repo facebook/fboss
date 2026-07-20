@@ -332,7 +332,7 @@ class HwPortPrbsTestAll : public HwExternalPhyPortTest {
 
 TEST_F(HwPortPrbsTestAll, TestAll) {
   addVerifiedProductionFeatures(
-      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_PRBS});
+      {qsfp_production_features::QsfpProductionFeature::XPHY_PRBS_CONTROL});
   addTestedPorts(findAvailableXphyPorts());
   runAllTests();
 }
