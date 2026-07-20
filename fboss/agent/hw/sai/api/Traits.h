@@ -446,6 +446,10 @@ struct IsSaiAttribute : public std::false_type {};
 template <typename AttrT>
 struct IsSaiAttribute<std::optional<AttrT>> : public IsSaiAttribute<AttrT> {};
 
+template <typename AttrT>
+concept SaiAttributeType =
+    IsSaiAttribute<std::remove_reference_t<AttrT>>::value;
+
 template <typename T>
 struct IsSaiEntryStruct : public std::false_type {};
 
@@ -456,6 +460,12 @@ struct AdapterKeyIsEntryStruct
 template <typename SaiObjectTraits>
 struct AdapterKeyIsObjectId
     : std::negation<AdapterKeyIsEntryStruct<SaiObjectTraits>> {};
+
+template <typename SaiObjectTraits>
+concept ObjectIdSaiObject = AdapterKeyIsObjectId<SaiObjectTraits>::value;
+
+template <typename SaiObjectTraits>
+concept EntryStructSaiObject = AdapterKeyIsEntryStruct<SaiObjectTraits>::value;
 
 template <typename T>
 struct IsTupleOfSaiAttributes : public std::false_type {};
@@ -469,6 +479,9 @@ struct IsSaiObjectOwnedByAdapter : public std::false_type {};
 
 template <typename SaiObjectTraits>
 struct SaiObjectHasStats : public std::false_type {};
+
+template <typename SaiObjectTraits>
+concept SaiObjectWithStats = SaiObjectHasStats<SaiObjectTraits>::value;
 
 template <typename SaiObjectTraits>
 struct SaiObjectHasConditionalAttributes : public std::false_type {};
