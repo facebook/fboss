@@ -232,7 +232,7 @@ class TestSetupColdbootTest(unittest.TestCase):
         # Even with --skip-coldboot, the very first call must cold boot to load
         # the test config / clean state; the health gate is not consulted.
         self.runner._switch_indexes = [0]
-        with patch("run_test.args", _make_mock_args(skip_coldboot=True), create=True):
+        with patch.object(self.runner, "args", new=_make_mock_args(skip_coldboot=True)):
             self.runner._setup_coldboot_test()
         mock_cold_boot.assert_called_once()
         mock_agents_ready.assert_not_called()
@@ -249,7 +249,9 @@ class TestSetupColdbootTest(unittest.TestCase):
     ):
         self.runner._switch_indexes = [0]
         self.runner._initial_coldboot_done = True
-        with patch("run_test.args", _make_mock_args(skip_coldboot=False), create=True):
+        with patch.object(
+            self.runner, "args", new=_make_mock_args(skip_coldboot=False)
+        ):
             self.runner._setup_coldboot_test()
         mock_cold_boot.assert_not_called()
         mock_run.assert_not_called()
@@ -265,7 +267,9 @@ class TestSetupColdbootTest(unittest.TestCase):
     ):
         self.runner._switch_indexes = [0]
         self.runner._initial_coldboot_done = True
-        with patch("run_test.args", _make_mock_args(skip_coldboot=False), create=True):
+        with patch.object(
+            self.runner, "args", new=_make_mock_args(skip_coldboot=False)
+        ):
             self.runner._setup_coldboot_test()
         mock_cold_boot.assert_called_once()
 
@@ -280,7 +284,7 @@ class TestSetupColdbootTest(unittest.TestCase):
     ):
         self.runner._switch_indexes = [0]
         self.runner._initial_coldboot_done = True
-        with patch("run_test.args", _make_mock_args(skip_coldboot=True), create=True):
+        with patch.object(self.runner, "args", new=_make_mock_args(skip_coldboot=True)):
             self.runner._setup_coldboot_test()
         mock_cold_boot.assert_not_called()
         # The aggressive override does not even consult agent health.

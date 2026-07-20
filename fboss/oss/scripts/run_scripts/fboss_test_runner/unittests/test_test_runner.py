@@ -180,6 +180,7 @@ class TestRunTestsWarmboot:
         mock_args.sai_logging = "WARN"
         mock_args.fboss_logging = "WARN"
         mock_args.test_run_timeout = 300
+        mock_args.num_warmboot_iterations = 1
         return mock_args
 
     def _make_conf(self, tmp_path):

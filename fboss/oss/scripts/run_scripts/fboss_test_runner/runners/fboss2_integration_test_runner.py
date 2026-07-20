@@ -167,7 +167,9 @@ class Fboss2IntegrationTestRunner(TestRunner):
         # still hold the old config until rebooted).
         if self._initial_coldboot_done:
             # Aggressive override: skip all per-test cold boots after the first.
-            if getattr(self.args, "skip_coldboot", False):
+            # Default False matches argparse; also guard None when self.args
+            # isn't set in unit tests that mock _agents_ready.
+            if self.args is not None and getattr(self.args, "skip_coldboot", False):
                 print("########## Skipping per-test cold boot (--skip-coldboot).")
                 return
             # Default: reuse the already-running agents and only cold boot when

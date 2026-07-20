@@ -658,7 +658,18 @@ class TestRunner(abc.ABC):
                 # With --num-warmboot-iterations N, soak the test across N consecutive
                 # warmboots; each iteration re-arms --setup-for-warmboot so the next boot
                 # can warmboot, and we stop early on the first failure.
-                num_wb_iterations = max(1, getattr(args, "num_warmboot_iterations", 1))
+                _raw_wb_iters = getattr(args, "num_warmboot_iterations", 1)
+                try:
+                    # getattr on a Mock returns a Mock which isn't comparable to int.
+                    # Coerce to int defensively; fall back to 1.
+                    num_wb_iterations = (
+                        _raw_wb_iters
+                        if isinstance(_raw_wb_iters, int)
+                        else int(_raw_wb_iters)
+                    )
+                except Exception:
+                    num_wb_iterations = 1
+                num_wb_iterations = max(1, num_wb_iterations)
                 for wb_iter in range(num_wb_iterations):
                     if not (
                         warmboot and os.path.isfile(self._get_warmboot_check_file())
