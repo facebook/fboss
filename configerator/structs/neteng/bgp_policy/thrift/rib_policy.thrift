@@ -19,6 +19,7 @@ package "facebook.com/neteng/fboss/bgp/public_tld/configerator/structs/neteng/bg
 include "configerator/structs/neteng/bgp_policy/thrift/bgp_policy.thrift"
 include "configerator/structs/neteng/bgp_policy/thrift/routing_policy.thrift"
 include "configerator/structs/neteng/fboss/bgp/if/bgp_attr.thrift"
+include "configerator/structs/neteng/fboss/thrift/common.thrift" as fboss_common
 
 namespace py neteng.bgp_policy.thrift.rib_policy
 namespace py3 neteng.bgp_policy.thrift
@@ -155,6 +156,7 @@ struct TPathSelectionStatement {
 }
 
 // override path selection criteria to compute routes
+@fboss_common.AllowSkipThriftCow
 struct TPathSelectionPolicy {
   // maps of statement name -> statement, e.g.,
   //   map<"cps-job-1-userA-vip", ...> statements;
@@ -263,6 +265,7 @@ struct TRouteAttributeStatement {
 }
 
 // overwrite route attributes of computed routes
+@fboss_common.AllowSkipThriftCow
 struct TRouteAttributePolicy {
   // maps of statement name -> statement, e.g.,
   //   map<"cte-job-1-prefix-type1", ...> statements;
@@ -291,6 +294,7 @@ struct TGoldenPrefixPolicy {
   1: optional routing_policy.PrefixList allowed_prefixes;
 }
 
+@fboss_common.AllowSkipThriftCow
 struct TRouteFilterPolicy {
   // maps of device regex -> statement, e.g.,
   // {{".*eb.*", TRouteFilterStatement}}
