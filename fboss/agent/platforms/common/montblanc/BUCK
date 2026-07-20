@@ -8,6 +8,7 @@ cpp_library(
         "MontblancPlatformMapping.cpp",
     ],
     headers = [
+        "MontblancGtswYoloPlatformMapping.h",
         "MontblancOddPort100GPlatformMapping.h",
         "MontblancPlatformMapping.h",
     ],

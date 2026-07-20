@@ -570,6 +570,11 @@ DEFINE_bool(
     false,
     "Enables platform mapping with 8x100G on odd ports");
 
+DEFINE_bool(
+    montblanc_gtsw_yolo,
+    false,
+    "Enables montblanc platform mapping with 4x200G on odd ports and 6x100G on even ports");
+
 DEFINE_bool(can_warm_boot, true, "Enable/disable warm boot functionality");
 
 DEFINE_string(

@@ -162,6 +162,7 @@ DECLARE_bool(recover_from_hw_switch);
 DECLARE_bool(verify_recover_from_hw_switch);
 DECLARE_int32(fabric_link_monitoring_max_l1_l2_switch_ids);
 DECLARE_bool(montblanc_odd_ports_8x100G);
+DECLARE_bool(montblanc_gtsw_yolo);
 DECLARE_bool(can_warm_boot);
 DECLARE_string(thrift_switch_state_file);
 DECLARE_bool(qsfp_port_manager_mode);

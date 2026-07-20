@@ -100,6 +100,7 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
     ],
     "montblanc": [
         "montblanc_odd_ports_8x100G",
+        "montblanc_gtsw_yolo",
         "montblanc",
     ],
     "minipack3bta": [
