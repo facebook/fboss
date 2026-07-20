@@ -447,6 +447,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.cpp
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.cpp
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentBootType.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentBootType.cpp
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.cpp
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h

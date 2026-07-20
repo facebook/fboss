@@ -32,6 +32,7 @@
 #include "fboss/cli/fboss2/commands/set/transceiver/CmdSetTransceiver.h"
 #include "fboss/cli/fboss2/commands/set/transceiver/loopback/CmdSetTransceiverLoopback.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
+#include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentBootType.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
@@ -129,6 +130,10 @@ const CommandTree& kCommandTree() {
             "Show Agent SSL information",
             commandHandler<CmdShowAgentSsl>,
             argTypeHandler<CmdShowAgentSslTraits>},
+           {"boot-type",
+            "Show Agent boot type",
+            commandHandler<CmdShowAgentBootType>,
+            argTypeHandler<CmdShowAgentBootTypeTraits>},
            {"firmware",
             "Show Agent Firmware information",
             commandHandler<CmdShowAgentFirmware>,

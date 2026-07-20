@@ -1,3 +1,4 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
 oncall("fboss_agent_push")
@@ -9,4 +10,19 @@ thrift_library(
     ],
     thrift_cpp2_options = "json",
     thrift_srcs = {"model.thrift": []},
+)
+
+cpp_library(
+    name = "CmdShowAgentBootType",
+    srcs = ["CmdShowAgentBootType.cpp"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/cli/fboss2:table-utils",
+    ],
+    exported_deps = [
+        ":model-cpp2-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/cli/fboss2:cmd-handler",
+        "//fboss/cli/fboss2:fboss2-lib",
+    ],
 )
