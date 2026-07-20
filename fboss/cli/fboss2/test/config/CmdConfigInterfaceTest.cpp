@@ -396,6 +396,43 @@ TEST_F(CmdConfigInterfaceTestFixture, queryClientSetsMtu) {
   }
 }
 
+// Regression test: ip-address/ipv6-address must persist the session config
+// to disk. A missing `changed = true` in the ip-address branch used to skip
+// saveConfig() while still reporting success (so `config session diff`
+// showed no changes).
+TEST_F(CmdConfigInterfaceTestFixture, queryClientIpAddressesPersistedToDisk) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 ip-address 10.0.0.1/31 ipv6-address cafe::1/127");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config(
+      {"eth1/1/1", "ip-address", "10.0.0.1/31", "ipv6-address", "cafe::1/127"});
+
+  auto result = cmd.queryClient(localhost(), config);
+
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("ip-address=10.0.0.1/31"));
+  EXPECT_THAT(result, HasSubstr("ipv6-address=cafe::1/127"));
+
+  // Verify the addresses were added to the in-memory config
+  auto& session = ConfigSession::getInstance();
+  auto& intfs = *session.getAgentConfig().sw()->interfaces();
+  for (const auto& intf : intfs) {
+    if (*intf.name() == "eth1/1/1") {
+      EXPECT_THAT(
+          *intf.ipAddresses(),
+          UnorderedElementsAre("10.0.0.1/31", "cafe::1/127"));
+    } else {
+      EXPECT_THAT(*intf.ipAddresses(), IsEmpty());
+    }
+  }
+
+  // Verify the session config was persisted to disk (i.e. saveConfig() ran)
+  ASSERT_TRUE(std::filesystem::exists(getSessionConfigPath()));
+  auto sessionContent = readFile(getSessionConfigPath());
+  EXPECT_THAT(sessionContent, HasSubstr("10.0.0.1/31"));
+  EXPECT_THAT(sessionContent, HasSubstr("cafe::1/127"));
+}
+
 // Test setting both description and MTU
 TEST_F(CmdConfigInterfaceTestFixture, queryClientSetsBothAttributes) {
   setupTestableConfigSession(

@@ -433,6 +433,7 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
               ipAddresses.end()) {
             ipAddresses.push_back(value);
           }
+          changed = true;
         }
       }
       results.push_back(fmt::format("{}={}", attr, value));
