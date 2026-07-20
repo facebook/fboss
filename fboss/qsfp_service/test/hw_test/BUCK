@@ -19,17 +19,19 @@ cpp_library(
         "HwTransceiverUtils.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
-    exported_deps = [
+    deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent:fboss-error",
-        "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/qsfp_service:transceiver-manager",
-        "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
+    ],
+    exported_deps = [
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
     ],
 )
 

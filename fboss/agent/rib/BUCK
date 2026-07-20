@@ -1,5 +1,9 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load(
+    "@fbsource//tools/build_defs/testinfra:network_access_utils.bzl",
+    "network_access_utils",
+)
 
 oncall("fboss_agent_push")
 
@@ -23,8 +27,8 @@ cpp_library(
         "//folly/json:dynamic",
     ],
     exported_external_deps = [
-        "gflags",
         ("boost", None, "boost_container"),
+        "gflags",
     ],
 )
 
@@ -63,8 +67,8 @@ cpp_library(
         "//folly/logging:logging",
     ],
     exported_external_deps = [
-        ("boost", None, "boost_container"),
         "boost",
+        ("boost", None, "boost_container"),
     ],
 )
 
@@ -86,6 +90,7 @@ cpp_unittest(
         "test/RouteTests.cpp",
         "test/SerDesTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":fib_updater",
@@ -116,7 +121,6 @@ cpp_unittest(
         "//fboss/agent/test/utils:nexthop_id_test_utils",
         "//folly:network_address",
         "//folly:scope_guard",
-        "//folly/functional:partial",
         "//folly/json:dynamic",
         "//folly/logging:logging",
     ],
@@ -130,6 +134,7 @@ cpp_unittest(
     srcs = [
         "test/ConfigApplicationTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":standalone_rib",
         "//fboss/agent:fib_helpers",
@@ -165,10 +170,12 @@ cpp_library(
         "SwitchStateNextHopIdUpdater.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":network_to_route_map",
         ":nexthop_id_manager",
         ":standalone_rib",
         "//fboss/agent:agent_features",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fib_helpers",
         "//fboss/agent:switchid_scope_resolver",

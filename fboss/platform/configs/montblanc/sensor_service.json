@@ -1859,6 +1859,7 @@
         },
         {
           "__comment__": "Universal fallback (AC default thresholds)",
+          "productName": "DEFAULT",
           "productionState": 0,
           "productionSubState": 0,
           "respinVariantIndicator": 0,
@@ -2227,6 +2228,7 @@
         },
         {
           "__comment__": "Universal fallback (AC default thresholds)",
+          "productName": "DEFAULT",
           "productionState": 0,
           "productionSubState": 0,
           "respinVariantIndicator": 0,
@@ -2885,6 +2887,76 @@
             "maxAlarmVal": 102
           },
           "compute": "@/1000"
+        },
+        {
+          "name": "SMB_XP3P3_PG",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xp3p3_pg",
+          "type": 6
+        },
+        {
+          "name": "SMB_XP3P3_SMB_PG",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xp3p3_smb_pg",
+          "type": 6
+        },
+        {
+          "name": "SMB_XP3P3_CLK_PG",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xp3p3_clk_pg",
+          "type": 6
+        },
+        {
+          "name": "SMB_XP3P3_L_OSFP_PG",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xp3p3_l_osfp_pg",
+          "type": 6
+        },
+        {
+          "name": "SMB_XP3P3_R_OSFP_PG",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xp3p3_r_osfp_pg",
+          "type": 6
+        },
+        {
+          "name": "SMB_XP1P8_CLK_PG",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xp1p8_clk_pg",
+          "type": 6
+        },
+        {
+          "name": "SMB_XP1P8_PG",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xp1p8_pg",
+          "type": 6
+        },
+        {
+          "name": "SMB_XP1P2_PG",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xp1p2_pg",
+          "type": 6
+        },
+        {
+          "name": "SMB_VR_ALERT_XP12R0V_SCM_STA",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/vr_alert_xp12r0v_scm_sta",
+          "type": 6
+        },
+        {
+          "name": "SMB_VR_ALERT_XP3R3V_LEFT_STA",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/vr_alert_xp3r3v_left_sta",
+          "type": 6
+        },
+        {
+          "name": "SMB_VR_ALERT_XP3R3V_RIGHT_STA",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/vr_alert_xp3r3v_right_sta",
+          "type": 6
+        },
+        {
+          "name": "SMB_VR_ALERT_TH5_TRVDD_0_STA",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/vr_alert_th5_trvdd_0_sta",
+          "type": 6
+        },
+        {
+          "name": "SMB_VR_ALERT_TH5_TRVDD_1_STA",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/vr_alert_th5_trvdd_1_sta",
+          "type": 6
+        },
+        {
+          "name": "SMB_VR_ALERT_TH5_VDD_CORE_STA",
+          "sysfsPath": "/run/devmap/cplds/SMB_CPLD/vr_alert_th5_vdd_core_sta",
+          "type": 6
         },
         {
           "name": "SMB_VDDC_VRM_PIN",
@@ -7475,5 +7547,29 @@
         "SMB_TH5_TEMP"
       ]
     }
+  ],
+  "loggedSensorNames": [
+    "SMB_XP3P3_PG",
+    "SMB_XP3P3_SMB_PG",
+    "SMB_XP3P3_CLK_PG",
+    "SMB_XP3P3_L_OSFP_PG",
+    "SMB_XP3P3_R_OSFP_PG",
+    "SMB_XP1P8_CLK_PG",
+    "SMB_XP1P8_PG",
+    "SMB_XP1P2_PG",
+    "SMB_VR_ALERT_XP12R0V_SCM_STA",
+    "SMB_VR_ALERT_XP3R3V_LEFT_STA",
+    "SMB_VR_ALERT_XP3R3V_RIGHT_STA",
+    "SMB_VR_ALERT_TH5_TRVDD_0_STA",
+    "SMB_VR_ALERT_TH5_TRVDD_1_STA",
+    "SMB_VR_ALERT_TH5_VDD_CORE_STA",
+    "PDB_PSU_R_ALERT",
+    "PDB_PSU_L_ALERT",
+    "CPLD_PSU_L_PG",
+    "CPLD_PSU_R_PG",
+    "PSU_L_AC_OK",
+    "PSU_R_AC_OK",
+    "PDB_L_SENSOR_INT",
+    "PDB_R_SENSOR_INT"
   ]
 }

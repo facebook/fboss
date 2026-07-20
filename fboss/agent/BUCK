@@ -3,9 +3,8 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
-load("@fbsource//tools/target_determinator/macros:ci.bzl", "ci")
-load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 load("//fboss/agent:sai.bzl", "sai_main_all")
+load("//fboss/agent/fbpkg:fbpkg_ci_builds.bzl", "build_fbpkg_ci_shards")
 load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
 
 oncall("fboss_agent_push")
@@ -264,6 +263,13 @@ thrift_library(
     ],
 )
 
+thrift_library(
+    name = "state_delta_log",
+    languages = ["cpp2"],
+    thrift_srcs = {"state_delta_log.thrift": []},
+    deps = ["//fboss/fsdb/if:fsdb_oper"],
+)
+
 cpp_library(
     name = "constants",
     headers = [
@@ -293,6 +299,7 @@ cpp_library(
         "//fb303:service_data",
         "//fboss/lib:thrift_method_rate_limit",
         "//fboss/lib:thrift_service_utils",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:network_address",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
@@ -439,6 +446,21 @@ cpp_library(
     ],
     exported_deps = [
         ":utils",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
+    name = "pfc_utils",
+    srcs = [
+        "PfcUtils.cpp",
+    ],
+    headers = [
+        "PfcUtils.h",
+    ],
+    exported_deps = [
+        ":buffer_utils",
+        ":fboss-types",
         "//fboss/agent/state:state",
     ],
 )
@@ -752,6 +774,7 @@ cpp_library(
         ":hw_asic_table",
         ":lacp_types",
         ":loadbalancer_utils",
+        ":pfc_utils",
         ":route_update_wrapper",
         ":switch_config-cpp2-types",
         ":switchid_scope_resolver",
@@ -875,6 +898,28 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "switch_state_delta_logger",
+    srcs = [
+        "SwitchStateDeltaLogger.cpp",
+    ],
+    exported_deps = [
+        ":agent_features",
+        ":async_logger_base",
+        "//fb303:service_data",
+        "//fboss/agent:state_delta_log-cpp2-types",
+        "//fboss/agent/state:state",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//folly:fbstring",
+        "//folly:range",
+        "//folly/hash:checksum",
+        "//folly/lang:bits",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
 
@@ -1047,6 +1092,7 @@ cpp_library(
         ":monolithic_hw_switch_handler",
         ":packet",
         ":packet_observer",
+        ":pfc_utils",
         ":phy_snapshot_lib",
         ":route_update_wrapper",
         ":shel_manager",
@@ -1171,8 +1217,8 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
-        "gflags",
         ("boost", None, "boost_container"),
+        "gflags",
         ("iproute2", None, "netlink"),
         ("libnl", None, "nl-route-3"),
     ],
@@ -1222,7 +1268,6 @@ cpp_library(
         "//folly:string",
         "//folly:synchronized",
         "//folly/container:f14_hash",
-        "//folly/functional:partial",
         "//folly/io:iobuf",
         "//folly/logging:logging",
         "//thrift/lib/cpp/server:server_event_handler",
@@ -1691,6 +1736,7 @@ cpp_library(
         ":test_utils",
         ":utils",
         "//common/fb303/cpp:default_control",
+        "//common/fb303/cpp:fb303",
         "//fb303:logging",
         "//fb303:service_data",
         "//fboss/agent/facebook:version_h",
@@ -2177,34 +2223,10 @@ cpp_unittest(
     ],
 )
 
-ci_sandcastle(
-    name = "build_fboss_fbpkg",
-    alias = "build_fboss_fbpkg_ci",
-    args = {
-        "steps": [
-            {
-                "name": "Build fboss fbkg targets",
-                "shell": "buck2 build //fbcode/fboss/agent/fbpkg/...",
-            },
-        ],
-    },
-    capabilities = {
-        "tenant": "default-tenant",
-        "type": "fbcode",
-        "vcs": "full-fbsource",
-    },
-    # Adding triggers for raw inputs (for changes in asic_vendor_config) and generated outputs
-    ci_srcs = [
-        "fbcode/fboss/agent/**",
-    ],
-    command = "SandcastleUniversalCommand",
-    metadata = {"brr_disable_reason": "NOT_YET_IMPLEMENTED"},  # auto-derived, may be wrong
-    oncall = "fboss_agent",
-    schedules = [
-        ci.diff,
-        ci.continuous,
-    ],
-)
+# Build FBOSS fbpkg targets on every fboss/agent change, independent of BTD.
+# Sharded (one ci_sandcastle per shard) to avoid OOMing the worker.
+# See fbpkg/fbpkg_ci_builds.bzl.
+build_fbpkg_ci_shards()
 
 cpp_library(
     name = "ipc_health_monitor",

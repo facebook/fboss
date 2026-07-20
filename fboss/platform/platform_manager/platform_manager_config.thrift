@@ -833,7 +833,8 @@ struct PlatformConfig {
   //          name.  Only CPU_BUS@0 is supported today.
   //        - AMD: identifies DesignWare I2C buses via ACPI
   //          firmware_node/path under /sys/devices/platform/AMDI0010:*.
-  //          CPU_BUS@0 maps to \_SB_.I2CB, CPU_BUS@1 to \_SB_.I2CA.
+  //          CPU_BUS@0 maps to \_SB_.I2CB, CPU_BUS@1 to \_SB_.I2CA,
+  //          CPU_BUS@2 to \_SB_.I2CC, CPU_BUS@3 to \_SB_.I2CD.
   //  (b) Exact adapter name matching /sys/bus/i2c/devices/i2c-N/name
   //      (e.g. "SMBus I801 adapter at 5000").
   // All entries in a single config must use the same style.
@@ -859,10 +860,12 @@ struct PlatformConfig {
   21: string bspKmodsRpmName;
   22: string bspKmodsRpmVersion;
 
-  // Specify the list of kmods which are required to be loaded before PM
+  // Specify the list of in-tree kmods which are required to be loaded before PM
   // exploration.
   // Most kmods are loaded automatically during device creation. This field is
   // only for kmods which need to be loaded before any devices are created in
   // order to work properly.
-  25: list<string> requiredKmodsToLoad;
+  // Do NOT list BSP (out-of-tree) kmods here: every kmod enumerated in the
+  // BSP's kmods.json is loaded automatically right after this list.
+  25: list<string> nonBspKmodsToLoad;
 }

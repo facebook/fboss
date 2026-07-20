@@ -151,6 +151,12 @@ struct SaiAclEntryActionBoolFalse {
   }
 };
 
+struct SaiAclEntryFieldSaiObjectIdTDefault {
+  AclEntryFieldSaiObjectIdT operator()() const {
+    return AclEntryFieldSaiObjectIdT(std::make_pair(SAI_NULL_OBJECT_ID, 0));
+  }
+};
+
 struct SaiPortEyeValuesDefault {
   sai_port_lane_eye_values_t operator()() const {
     return sai_port_lane_eye_values_t{0, 0, 0, 0, 0};

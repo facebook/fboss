@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 #include <optional>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -45,10 +46,19 @@ bool SaiPlatformPort::shouldDisableFEC() const {
   return !getTransceiverID().has_value();
 }
 
+uint32_t SaiPlatformPort::getSaiPhysicalLaneId(
+    uint32_t chipId,
+    uint32_t logicalLane) const {
+  return getPlatform()->getAsic()->getSaiPhysicalLaneId(
+      getPlatform()->getType(), getPortType(), chipId, logicalLane);
+}
+
 bool SaiPlatformPort::checkSupportsTransceiver() const {
   if (getPlatform()->getOverrideTransceiverInfo(getPortID())) {
     return true;
   }
+  // SAI platform ports consult supportsTransceiver() only through this helper,
+  // which gates the getTransceiverMapping() path below.
   return supportsTransceiver() && !FLAGS_skip_transceiver_programming &&
       getTransceiverID().has_value();
 }
@@ -90,24 +100,15 @@ std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
 
 std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
     cfg::PortProfileID profileID) const {
-  const auto& platformPortEntry = getPlatformPortEntry();
-  auto supportedProfilesIter =
-      platformPortEntry.supportedProfiles()->find(profileID);
-  if (supportedProfilesIter == platformPortEntry.supportedProfiles()->end()) {
-    throw FbossError(
-        "Port: ",
-        *platformPortEntry.mapping()->name(),
-        " doesn't support the speed profile:");
-  }
-  std::vector<PortID> subsumedPortList;
-  for (auto portId : *supportedProfilesIter->second.subsumedPorts()) {
-    subsumedPortList.emplace_back(portId);
-  }
-  return subsumedPortList;
+  return getPlatform()->getPlatformMapping()->getSubsumedPorts(
+      getPortID(), profileID);
 }
 
 TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
     cfg::PortProfileID profileID) {
+  // SaiPlatform::getPortMapping() delegates here. Its current caller is
+  // LinkTest's platform mapping consistency check; production transceiver index
+  // reporting reads PlatformMapping directly through SwSwitch.
   if (!checkSupportsTransceiver()) {
     return TransceiverIdxThrift();
   }

@@ -8,6 +8,7 @@
  *
  */
 
+#include <charconv>
 #include <filesystem>
 
 #include <fb303/ServiceData.h>
@@ -29,6 +30,34 @@ DEFINE_int32(
     "Interval at which stats subscriptions are served");
 
 namespace {
+
+// CPLD regbit sysfs attributes can emit hex (e.g. "0x1"), which
+// folly::to<float> rejects. Parse hex explicitly, decimal otherwise, and
+// return nullopt on any unparseable value so a single bad sensor degrades to a
+// read failure instead of throwing out of the entire poll cycle.
+//
+// This hex-parsing path exists solely to address SEV S649086. A forthcoming BSP
+// update will make the CPLD attrs emit decimal values, after which hex handling
+// here can be removed.
+std::optional<float> parseSensorValue(const std::string& raw) {
+  auto trimmed = folly::trimWhitespace(raw);
+  if (trimmed.empty()) {
+    return std::nullopt;
+  }
+  if (trimmed.startsWith("0x") || trimmed.startsWith("0X")) {
+    int64_t hexValue{};
+    auto body = trimmed.subpiece(2);
+    auto [ptr, ec] = std::from_chars(body.begin(), body.end(), hexValue, 16);
+    if (ec == std::errc() && ptr == body.end()) {
+      return static_cast<float>(hexValue);
+    }
+    return std::nullopt;
+  }
+  if (auto parsed = folly::tryTo<float>(trimmed)) {
+    return *parsed;
+  }
+  return std::nullopt;
+}
 
 struct SensorStatsResult {
   int readFailure{0};
@@ -159,13 +188,13 @@ void SensorServiceImpl::fetchSensorData() {
   XLOG(INFO) << fmt::format(
       "Reading SensorData for {} PMUnits",
       sensorConfig_.pmUnitSensorsList()->size());
+  const std::optional<platform_manager::PmUnitInfo> emptyPmUnitInfo;
   for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
     const auto& slotPath = *pmUnitSensors.slotPath();
     const auto& pmUnitName = *pmUnitSensors.pmUnitName();
     auto it = pmUnitInfoMap.find(slotPath);
-    const auto& pmUnitInfo = (it != pmUnitInfoMap.end())
-        ? it->second
-        : std::optional<platform_manager::PmUnitInfo>{};
+    const auto& pmUnitInfo =
+        (it != pmUnitInfoMap.end()) ? it->second : emptyPmUnitInfo;
 
     // Skip sensor collection entirely for confirmed-absent PSU/PEM
     // slots. Avoids ~all sysfs read failures (and the resulting
@@ -259,6 +288,8 @@ void SensorServiceImpl::fetchSensorData() {
 
   publishAggStats(polledData);
 
+  logSensorValues(polledData);
+
   polledData_.swap(polledData);
 
   if (FLAGS_publish_stats_to_fsdb) {
@@ -319,14 +350,26 @@ SensorData SensorServiceImpl::fetchSensorDataImpl(
   bool sysfsFileExists =
       std::filesystem::exists(std::filesystem::path(sysfsPath));
   if (sysfsFileExists && folly::readFile(sysfsPath.c_str(), sensorValue)) {
-    sensorData.value() = folly::to<float>(sensorValue);
-    sensorData.timeStamp() = Utils::nowInSecs();
-    if (compute) {
-      sensorData.value() =
-          Utils::computeExpression(*compute, *sensorData.value());
+    if (auto parsedValue = parseSensorValue(sensorValue)) {
+      sensorData.value() = *parsedValue;
+      sensorData.timeStamp() = Utils::nowInSecs();
+      if (compute) {
+        sensorData.value() =
+            Utils::computeExpression(*compute, *sensorData.value());
+      }
+      XLOG(DBG1) << fmt::format(
+          "{} ({}) : {}", sensorName, sysfsPath, *sensorData.value());
+    } else {
+      XLOG(ERR) << fmt::format(
+          "Could not parse value '{}' for {} from path:{}",
+          folly::trimWhitespace(sensorValue).str(),
+          sensorName,
+          sysfsPath);
+      structuredLogger_.logAlert(
+          "sensor_sysfs_read_failure",
+          "Unparseable sensor value",
+          {{"sensor_name", sensorName}, {"sysfs_path", sysfsPath}});
     }
-    XLOG(DBG1) << fmt::format(
-        "{} ({}) : {}", sensorName, sysfsPath, *sensorData.value());
   } else {
     XLOG(ERR) << fmt::format(
         "Could not read data for {} from path:{}, error:{}",
@@ -370,6 +413,42 @@ void SensorServiceImpl::publishPerSensorStats(const SensorData& sensorData) {
     fb303::fbData->setCounter(
         fmt::format(kAlarmThresholdViolation, sensorName),
         stats.alarmViolation);
+  }
+}
+
+void SensorServiceImpl::logSensorValues(
+    const std::map<std::string, SensorData>& polledData) {
+  const auto& loggedSensorNames = *sensorConfig_.loggedSensorNames();
+  if (loggedSensorNames.empty()) {
+    return;
+  }
+  for (const auto& sensorName : loggedSensorNames) {
+    auto it = polledData.find(sensorName);
+    if (it == polledData.end()) {
+      // ConfigValidator guarantees the name resolves on every hardware
+      // version, but a sensor can still be missing from a given cycle — e.g.
+      // it lives on a PSU/PEM slot that platform_manager reported absent, so
+      // collection was skipped. Surface it rather than dropping the configured
+      // log line silently.
+      XLOG(WARN) << fmt::format(
+          "{} {}: sensor data missing", kLoggedSensorPrefix, sensorName);
+      continue;
+    }
+    const auto& sensorData = it->second;
+    if (auto value = sensorData.value().to_optional()) {
+      XLOG(INFO) << fmt::format(
+          "{} {} = {} (sysfs: {})",
+          kLoggedSensorPrefix,
+          sensorName,
+          *value,
+          *sensorData.sysfsPath());
+    } else {
+      XLOG(WARN) << fmt::format(
+          "{} {} = READ_FAILED (sysfs: {})",
+          kLoggedSensorPrefix,
+          sensorName,
+          *sensorData.sysfsPath());
+    }
   }
 }
 

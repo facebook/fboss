@@ -47,6 +47,9 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy(
     if (preferredClient.has_value()) {
       destPair.isPreferred() = (srcPair.first == *preferredClient);
     }
+    if (auto clientSetId = srcPair.second->getClientNextHopSetID()) {
+      destPair.clientNextHopSetID() = static_cast<int64_t>(*clientSetId);
+    }
     list.push_back(destPair);
   }
   return list;

@@ -23,4 +23,5 @@ thrift_library(
     thrift_py_options = "json",
     thrift_rust_options = "serde",
     thrift_srcs = {"asic_config.thrift": []},
+    deps = ["//thrift/annotation:thrift"],
 )

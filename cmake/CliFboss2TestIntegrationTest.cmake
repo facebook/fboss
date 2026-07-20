@@ -8,28 +8,41 @@
 add_executable(fboss2_integration_test
   fboss/cli/fboss2/oss/config/CmdListImpl.cpp
   fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigAdminDistanceTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigArpTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigConcurrentSessionsTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigHostnameTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigIcmpV4UnavailableSrcAddrTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigCoppTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigDhcpSourceOverrideTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceDescriptionTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceIpv6NdpTest.cpp
+  fboss/cli/fboss2/test/integration_test/DeleteInterfaceTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceMtuTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceProfileTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigL2LearningModeTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigLoadBalancingTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigMacTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigPfcTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigPortQueueConfigTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigPtpTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigInterfaceFlowControlTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigInterfaceLldpExpectedValueTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigInterfaceLoopbackModeTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigInterfaceTypeTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigQosPolicyMapTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigSessionClearTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanCreateTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanDefaultTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanPortTaggingModeTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanStaticMacTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanSwitchportAccessTest.cpp
   fboss/cli/fboss2/test/integration_test/DeleteInterfaceIpv6NdpTest.cpp
+  fboss/cli/fboss2/test/integration_test/TunnelIpInIpTest.cpp
   fboss/cli/fboss2/utils/CmdInitUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdInitUtils.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigIpRouteTest.cpp
 )
 
 target_link_libraries(fboss2_integration_test

@@ -10,8 +10,10 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/BufferUtils.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/PfcUtils.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/StatsConstants.h"
@@ -462,7 +464,7 @@ void fillHwPortStats(
         break;
       }
 #endif
-#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_8_ea)
+#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea)
       case SAI_PORT_STAT_IF_OUT_DISCARDS_SLL:
         hwPortStats.outDiscardsSll_() = value;
         break;
@@ -642,6 +644,7 @@ TransmitterTechnology fromSaiMediaType(sai_port_media_type_t saiMediaType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
     case cfg::AsicType::ASIC_TYPE_CHENAB2:
@@ -948,9 +951,8 @@ std::pair<sai_uint8_t, sai_uint8_t> SaiPortManager::preparePfcConfigs(
   if (pfc.has_value()) {
     sai_uint8_t enabledPriorities = 0; // Bitmap of enabled PFC priorities
     for (auto pri : swPort->getPfcPriorities()) {
-      enabledPriorities |= (1 << static_cast<PfcPriority>(pri));
+      enabledPriorities |= (1 << static_cast<int>(pri));
     }
-    // PFC is enabled for priorities specified in PG configs
     txPfc = (*pfc->tx()) ? enabledPriorities : 0;
     rxPfc = (*pfc->rx()) ? enabledPriorities : 0;
   }
@@ -1044,10 +1046,12 @@ void SaiPortManager::programPfcWatchdogPerQueueEnable(
   // Enabled PFC priorities cannot be changed without a cold boot
   // and hence in this flow, just take care of a case where PFC
   // WD is being enabled or disabled for queues.
-  for (auto pfcPri : enabledPfcPriorities) {
-    // Assume 1:1 mapping b/w pfcPriority and queueId
-    auto queueHandle =
-        getQueueHandle(swPort->getID(), static_cast<uint8_t>(pfcPri));
+  auto pfcPriorityToQueueId =
+      managerTable_->qosMapManager().getPfcPriorityToQueueId(
+          swPort->getQosPolicy());
+  for (auto queueId : utility::findPfcEnabledQueues(
+           enabledPfcPriorities, pfcPriorityToQueueId)) {
+    auto queueHandle = getQueueHandle(swPort->getID(), queueId);
     managerTable_->queueManager().queuePfcDeadlockDetectionRecoveryEnable(
         queueHandle, portPfcWdEnabled);
   }
@@ -1610,6 +1614,8 @@ void SaiPortManager::changeQueue(
   auto pitr = portStats_.find(swId);
   portHandle->configuredQueues.clear();
   const auto asic = platform_->getAsic();
+  auto enabledPfcQueues =
+      managerTable_->queueManager().getPfcEnabledQueues(swPort.get());
   for (auto newPortQueue : std::as_const(newQueueConfig)) {
     // Queue create or update
     SaiQueueConfig saiQueueConfig =
@@ -1651,7 +1657,11 @@ void SaiPortManager::changeQueue(
       throw FbossError("Reserved bytes, scaling factor setting not supported");
     }
     managerTable_->queueManager().changeQueue(
-        queueHandle, *portQueue, swPort.get(), swPort->getPortType());
+        queueHandle,
+        *portQueue,
+        swPort.get(),
+        swPort->getPortType(),
+        enabledPfcQueues);
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()
         : folly::to<std::string>("queue", newPortQueue->getID());
@@ -2883,6 +2893,13 @@ void SaiPortManager::setQosMapsOnPort(
               SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{mapping});
         }
         break;
+      case SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_PRIORITY_GROUP:
+        if (isPfcSupported && FLAGS_enable_pfc_priority_to_pg_map) {
+          port->setOptionalAttribute(
+              SaiPortTraits::Attributes::QosPfcPriorityToPriorityGroupMap{
+                  mapping});
+        }
+        break;
       default:
         throw FbossError("Unhandled qos map ", qosMapTypeToSaiId.first);
     }
@@ -2908,6 +2925,10 @@ SaiPortManager::getNullSaiIdsForQosMaps() {
     }
     if (qosMapHandle->pfcPriorityToQueueMap) {
       qosMaps.emplace_back(SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE, nullObjId);
+    }
+    if (qosMapHandle->pfcPriorityToPgMap) {
+      qosMaps.emplace_back(
+          SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_PRIORITY_GROUP, nullObjId);
     }
   }
 
@@ -2943,6 +2964,11 @@ SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
     qosMaps.emplace_back(
         SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE,
         qosMapHandle->pfcPriorityToQueueMap->adapterKey());
+  }
+  if (qosMapHandle->pfcPriorityToPgMap) {
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_PRIORITY_GROUP,
+        qosMapHandle->pfcPriorityToPgMap->adapterKey());
   }
   return qosMaps;
 }
@@ -3807,10 +3833,15 @@ std::vector<sai_port_err_status_t> SaiPortManager::getPortErrStatus(
 
 phy::FecMode SaiPortManager::getFECMode(PortID portId) const {
   auto handle = getPortHandle(portId);
-  auto saiFecMode = GET_OPT_ATTR(Port, FecMode, handle->port->attributes());
-  auto profileID = platform_->getPort(portId)->getCurrentProfile();
-  return utility::getFecModeFromSaiFecMode(
-      static_cast<sai_port_fec_mode_t>(saiFecMode), profileID);
+  auto attr = std::get<std::optional<SaiPortTraits::Attributes::FecMode>>(
+      handle->port->attributes());
+  if (attr.has_value()) {
+    auto saiFecMode = attr.value().value();
+    auto profileID = platform_->getPort(portId)->getCurrentProfile();
+    return utility::getFecModeFromSaiFecMode(
+        static_cast<sai_port_fec_mode_t>(saiFecMode), profileID);
+  }
+  return phy::FecMode::NONE;
 }
 
 cfg::PortSpeed SaiPortManager::getSpeed(PortID portId) const {

@@ -425,6 +425,9 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
   deltas4.emplace_back(stateV0, stateV5);
   auto delta4 = StateDelta(stateV0, stateV5);
 
+  auto deltaOperDelta = delta.getOperDelta();
+  auto delta3OperDelta = delta3.getOperDelta();
+
   getHwSwitchHandler()->connected(SwitchID(1));
   getHwSwitchHandler()->connected(SwitchID(2));
   sw_->init(HwWriteBehavior::WRITE, SwitchFlags::DEFAULT);
@@ -483,10 +486,10 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
   });
 
   auto clientThreadBody = [this,
-                           &delta,
+                           &deltaOperDelta,
                            &delta2,
                            &delta2Full,
-                           &delta3,
+                           &delta3OperDelta,
                            &delta4,
                            &serverUpdateCompletedBaton,
                            &serverRestartBaton,
@@ -518,7 +521,7 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
           switchId, getEmptyOper(), ackNum++);
       EXPECT_EQ(
           operDelta.operDeltas()->back(),
-          *filter.filterWithSwitchStateRootPath(delta.getOperDelta()));
+          *filter.filterWithSwitchStateRootPath(deltaOperDelta));
       operDelta = getHwSwitchHandler()->getNextStateOperDelta(
           switchId, getEmptyOper(), ackNum++);
       EXPECT_EQ(
@@ -528,7 +531,7 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
           switchId, getEmptyOper(), ackNum++);
       EXPECT_EQ(
           operDelta.operDeltas()->back(),
-          *filter.filterWithSwitchStateRootPath(delta3.getOperDelta()));
+          *filter.filterWithSwitchStateRootPath(delta3OperDelta));
       // this request will be cancelled
       operDelta = getHwSwitchHandler()->getNextStateOperDelta(
           switchId, getEmptyOper(), ackNum++);
@@ -541,7 +544,7 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
           switchId, getEmptyOper(), ackNum++);
       EXPECT_EQ(
           operDelta.operDeltas()->back(),
-          *filter.filterWithSwitchStateRootPath(delta.getOperDelta()));
+          *filter.filterWithSwitchStateRootPath(deltaOperDelta));
       // ack for previous request. this request will be cancelled
       operDelta = getHwSwitchHandler()->getNextStateOperDelta(
           switchId, getEmptyOper(), ackNum++);
@@ -567,7 +570,7 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
           switchId, getEmptyOper(), operDelta.seqNum().value());
       EXPECT_EQ(
           operDelta.operDeltas()->back(),
-          *filter.filterWithSwitchStateRootPath(delta3.getOperDelta()));
+          *filter.filterWithSwitchStateRootPath(delta3OperDelta));
 
       // this request will be cancelled
       operDelta = getHwSwitchHandler()->getNextStateOperDelta(

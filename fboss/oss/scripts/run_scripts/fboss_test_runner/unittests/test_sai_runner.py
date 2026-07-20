@@ -44,13 +44,14 @@ class TestSaiReplayerLoggingFlags:
 
 class TestRunArgsPlatformMappingOverride:
     def test_omits_override_when_unset(self, sai_runner):
-        with patch("run_test.args", new=_make_args()):
+        with patch.object(sai_runner, "args", new=_make_args()):
             args_list = sai_runner._get_test_run_args("conf.yaml")
         assert args_list == ["--config", "conf.yaml", "--mgmt-if", "eth0"]
 
     def test_appends_override_when_set(self, sai_runner):
-        with patch(
-            "run_test.args",
+        with patch.object(
+            sai_runner,
+            "args",
             new=_make_args(platform_mapping_override_path="/tmp/pm.json"),
         ):
             args_list = sai_runner._get_test_run_args("conf.yaml")
@@ -60,12 +61,13 @@ class TestRunArgsPlatformMappingOverride:
 
 class TestKnownBadTestsFileFallback:
     def test_override_used_when_set(self, sai_runner):
-        with patch(
-            "run_test.args",
+        with patch.object(
+            sai_runner,
+            "args",
             new=_make_args(known_bad_tests_file="/tmp/custom.json"),
         ):
             assert sai_runner._get_known_bad_tests_file() == "/tmp/custom.json"
 
     def test_default_used_when_unset(self, sai_runner):
-        with patch("run_test.args", new=_make_args()):
+        with patch.object(sai_runner, "args", new=_make_args()):
             assert sai_runner._get_known_bad_tests_file() == SAI_HW_KNOWN_BAD_TESTS

@@ -30,7 +30,7 @@ jobs:
     # default 6h timeout.
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -39,4 +39,4 @@ jobs:
         # CI runs even when upstream releases breaking-API majors.
         run: pip install 'pytest>=8,<9' 'parameterized>=0.9,<1'
       - name: Run pytest
-        run: pytest fboss/oss/scripts/run_scripts/unittests/ -v
+        run: pytest fboss/oss/scripts/run_scripts/fboss_test_runner/unittests/ -v

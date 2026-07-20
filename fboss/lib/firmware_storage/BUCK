@@ -21,9 +21,9 @@ cpp_library(
         "//folly/logging:logging",
     ],
     exported_external_deps = [
+        ("boost", None, "boost_filesystem"),
         "gflags",
         "yaml-cpp",
-        ("boost", None, "boost_filesystem"),
     ],
 )
 

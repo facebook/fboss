@@ -51,6 +51,10 @@ cpp_library(
         "SubscriptionServeQueue.h",
         "SubscriptionStore.h",
     ],
+    deps = [
+        "//folly/coro:blocking_wait",
+        "//folly/coro:sleep",
+    ],
     exported_deps = [
         "fbsource//third-party/re2:re2",
         ":delta_value",
@@ -74,15 +78,13 @@ cpp_library(
         "//folly/coro:async_generator",
         "//folly/coro:async_pipe",
         "//folly/coro:async_scope",
-        "//folly/coro:blocking_wait",
-        "//folly/coro:sleep",
         "//folly/io/async:async_base",
         "//folly/json:dynamic",
         "//folly/logging:logging",
     ],
+    external_deps = [("boost", None, "boost_uuid")],
     exported_external_deps = [
         "boost",
-        ("boost", None, "boost_uuid"),
     ],
 )
 
@@ -97,14 +99,18 @@ cpp_library(
         "SubscribableStorage.h",
         "SubscriptionServeQueue.h",
     ],
+    deps = [
+        "//common/base:proc",
+        "//fb303:thread_cached_service_data",
+        "//fboss/fsdb/common:utils",
+        "//folly/coro:blocking_wait",
+        "//folly/system:thread_name",
+    ],
     exported_deps = [
         ":delta_value",
         ":path_helpers",
         ":subscription_common",
         ":subscription_manager",
-        "//common/base:proc",
-        "//fb303:thread_cached_service_data",
-        "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/fsdb/server:fsdb_oper_metadata_tracker",
@@ -116,13 +122,11 @@ cpp_library(
         "//folly:synchronized",
         "//folly/coro:async_generator",
         "//folly/coro:async_scope",
-        "//folly/coro:blocking_wait",
         "//folly/coro:sleep",
         "//folly/io/async:async_base",
         "//folly/io/async:scoped_event_base_thread",
         "//folly/json:dynamic",
         "//folly/logging:logging",
-        "//folly/system:thread_name",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
@@ -137,14 +141,16 @@ cpp_library(
         "PathConverter.h",
         "PathValidator.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/re2:re2",
         "//fboss/fsdb/common:utils",
+        "//folly/json:dynamic",
+    ],
+    exported_deps = [
         "//fboss/fsdb/if:fsdb_config-cpp2-types",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/thrift_visitors:visitors",
-        "//folly/json:dynamic",
     ],
 )
 
@@ -153,9 +159,9 @@ cpp_library(
     srcs = [
         "ExtendedPathBuilder.cpp",
     ],
+    deps = ["//folly:conv"],
     exported_deps = [
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
-        "//folly:conv",
         "//thrift/lib/cpp2/type:id",
     ],
 )

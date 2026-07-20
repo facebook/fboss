@@ -206,6 +206,11 @@ class HwBasePortFb303Stats {
     return mplsLabelLookupFailCounterSupported_;
   }
 
+  // PG ids for per-PG congestion counters: the full range
+  // [0, PORT_PG_VALUE_MAX] when PFC is enabled, else empty. Returns a reference
+  // to a shared static to avoid a per-call allocation on the stats path.
+  const std::vector<int>& pgIdsForStats() const;
+
  protected:
   QueueId2Name queueId2Name_;
 

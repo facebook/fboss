@@ -71,7 +71,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
-    case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
     case HwAsic::Feature::SAI_UDF_HASH:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
@@ -105,6 +104,9 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::ACL_TABLE_GROUP:
+    // UEC Link Layer Retry (UE Spec 1.0.2 section 5.1); supported via SAI
+    // PORT_LLR_PROFILE on Tomahawk Ultra.
+    case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
       return true;
     case HwAsic::Feature::MPLS:
     case HwAsic::Feature::MPLS_ECMP:
@@ -222,6 +224,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
+    case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     // TU1 SDK 15.0/15.1 unsupported features (Accton/Broadcom CSPs)
@@ -239,6 +242,8 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
+    case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
       return false;
   }
   return false;

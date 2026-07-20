@@ -154,6 +154,14 @@
             }
           ]
       },
+      "EOLO-138HG-5H-7B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.6"
+            }
+          ]
+      },
       "EOLO-138HG-5H-B": {
           "versions": [
             {
@@ -170,11 +178,19 @@
             }
           ]
       },
+      "EOLO-138HG-E5HSD": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.6"
+            }
+          ]
+      },
       "EOLO-13T-5H-1B": {
           "versions": [
             {
               "fwType": 1,
-              "version": "3.2"
+              "version": "3.3"
             }
           ]
       },
@@ -182,7 +198,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.2"
+              "version": "3.3"
             }
           ]
       },
@@ -190,7 +206,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.2"
+              "version": "3.3"
             }
           ]
       },
@@ -290,7 +306,7 @@
             }
           ]
       },
-      "EOLO-16T-02-R1": {
+      "EOLO-16T-02-1B": {
           "versions": [
             {
               "fwType": 1,
@@ -358,7 +374,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "2.5"
+              "version": "2.6"
             }
           ]
       },
@@ -379,14 +395,6 @@
             {
               "fwType": 1,
               "version": "0.11"
-            }
-          ]
-      },
-      "SPTSHP3CLCK2": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "1.2"
             }
           ]
       },
@@ -587,6 +595,14 @@
             {
               "fwType": 1,
               "version": "103.137"
+            }
+          ]
+      },
+      "T-OP4EDH-NBM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "170.131"
             }
           ]
       },

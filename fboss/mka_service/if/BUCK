@@ -29,4 +29,5 @@ thrift_library(
         "serde",
     ],
     thrift_srcs = {"mka_structs.thrift": []},
+    deps = ["//thrift/annotation:thrift"],
 )

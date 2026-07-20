@@ -71,6 +71,9 @@ class ConfigValidator {
       const std::vector<std::pair<int16_t, int16_t>>& startPortAndNumPorts);
   bool isValidLedCtrlBlockXcvrCoverage(const PlatformConfig& config);
   bool isValidXcvrCtrlBlockXcvrCoverage(const PlatformConfig& config);
+  bool isValidVersionedPciDeviceCoverage(
+      const PmUnitConfig& defaultPmUnitConfig,
+      const VersionedPmUnitConfig& versionedPmUnitConfig);
   bool isValidChassisEepromDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& chassisEepromDevicePath);

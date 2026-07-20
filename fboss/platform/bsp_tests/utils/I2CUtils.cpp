@@ -21,6 +21,7 @@
 
 #include "fboss/platform/bsp_tests/utils/CdevUtils.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/platform_manager/FanCpldManager.h"
 
 namespace fs = std::filesystem;
 namespace facebook::fboss::platform::bsp_tests {
@@ -441,6 +442,13 @@ bool I2CUtils::createI2CDevice(const I2CDevice& device, int bus) {
                 << ": wrong device name: expected '" << *device.deviceName()
                 << "' got '" << name << "'";
       return false;
+    }
+
+    if (device.fanCpldConfig().has_value()) {
+      platform_manager::configureFanCpld(
+          bus,
+          platform_manager::I2cAddr(*device.address()),
+          *device.fanCpldConfig());
     }
 
     return true;

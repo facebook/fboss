@@ -3,7 +3,6 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/TestUtils.h"
 
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
@@ -35,6 +34,19 @@ class AgentHwAclMatchActionsTest : public AgentHwTest {
     return utility::getAclEntry(
         getSw()->getState(), name, FLAGS_enable_acl_table_group);
   }
+
+  // The DSCP ACLs created by these tests are IPv6; on Q4D/J4 they are
+  // programmed in the dedicated IPv6 table rather than the default table.
+  std::string aclTableName() {
+    auto l3Asics = getAgentEnsemble()->getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
+    if (FLAGS_enable_acl_table_group &&
+        (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+         asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4)) {
+      return utility::kIpv6AclTable();
+    }
+    return utility::kDefaultAclTable();
+  }
 };
 
 TEST_F(AgentHwAclMatchActionsTest, AddTrafficPolicy) {
@@ -54,9 +66,8 @@ TEST_F(AgentHwAclMatchActionsTest, AddTrafficPolicy) {
   auto verify = [=, this]() {
     auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
     auto acl1 = getAclEntry("acl1")->toThrift();
-    EXPECT_EQ(
-        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
-    EXPECT_TRUE(client->sync_isAclEntrySame(acl1, utility::kDefaultAclTable()));
+    EXPECT_EQ(client->sync_getAclTableNumAclEntries(aclTableName()), 1);
+    EXPECT_TRUE(client->sync_isAclEntrySame(acl1, aclTableName()));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -79,9 +90,8 @@ TEST_F(AgentHwAclMatchActionsTest, SetDscpMatchAction) {
     auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
     auto acl1 = getAclEntry("acl1")->toThrift();
 
-    EXPECT_EQ(
-        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
-    EXPECT_TRUE(client->sync_isAclEntrySame(acl1, utility::kDefaultAclTable()));
+    EXPECT_EQ(client->sync_getAclTableNumAclEntries(aclTableName()), 1);
+    EXPECT_TRUE(client->sync_isAclEntrySame(acl1, aclTableName()));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -112,10 +122,9 @@ TEST_F(AgentHwAclMatchActionsTest, AddSameMatcherTwice) {
     auto acl1 = getAclEntry("acl1")->toThrift();
     auto acl2 = getAclEntry("acl2")->toThrift();
 
-    EXPECT_EQ(
-        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 2);
-    EXPECT_TRUE(client->sync_isAclEntrySame(acl1, utility::kDefaultAclTable()));
-    EXPECT_TRUE(client->sync_isAclEntrySame(acl2, utility::kDefaultAclTable()));
+    EXPECT_EQ(client->sync_getAclTableNumAclEntries(aclTableName()), 2);
+    EXPECT_TRUE(client->sync_isAclEntrySame(acl1, aclTableName()));
+    EXPECT_TRUE(client->sync_isAclEntrySame(acl2, aclTableName()));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -139,12 +148,10 @@ TEST_F(AgentHwAclMatchActionsTest, AddMultipleActions) {
   auto verify = [this]() {
     auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
 
-    EXPECT_EQ(
-        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 3);
+    EXPECT_EQ(client->sync_getAclTableNumAclEntries(aclTableName()), 3);
     for (const auto& matcher : {"acl1", "acl2", "acl3"}) {
       auto acl = getAclEntry(matcher)->toThrift();
-      EXPECT_TRUE(
-          client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+      EXPECT_TRUE(client->sync_isAclEntrySame(acl, aclTableName()));
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -171,12 +178,10 @@ TEST_F(AgentHwAclMatchActionsTest, AddRemoveActions) {
   auto verify = [this]() {
     auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
 
-    EXPECT_EQ(
-        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 2);
+    EXPECT_EQ(client->sync_getAclTableNumAclEntries(aclTableName()), 2);
     for (const auto& matcher : {"acl1", "acl2"}) {
       auto acl = getAclEntry(matcher)->toThrift();
-      EXPECT_TRUE(
-          client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+      EXPECT_TRUE(client->sync_isAclEntrySame(acl, aclTableName()));
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -202,13 +207,11 @@ TEST_F(AgentHwAclMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
   auto verify = [this]() {
     auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
 
-    EXPECT_EQ(
-        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 2);
+    EXPECT_EQ(client->sync_getAclTableNumAclEntries(aclTableName()), 2);
 
     for (const auto& matcher : {"acl1", "acl2"}) {
       auto acl = getAclEntry(matcher)->toThrift();
-      EXPECT_TRUE(
-          client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+      EXPECT_TRUE(client->sync_isAclEntrySame(acl, aclTableName()));
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);

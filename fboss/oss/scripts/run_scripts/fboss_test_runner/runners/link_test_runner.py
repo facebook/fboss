@@ -4,7 +4,6 @@
 
 from argparse import ArgumentParser
 
-import run_test
 from fboss_test_runner.constants import (
     OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH,
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
@@ -74,7 +73,7 @@ class LinkTestRunner(TestRunner):
         return ""
 
     def _get_known_bad_tests_file(self) -> str:
-        args = run_test.args
+        args = self.args
         if not args.known_bad_tests_file:
             return LINK_KNOWN_BAD_TESTS
         return args.known_bad_tests_file
@@ -83,7 +82,7 @@ class LinkTestRunner(TestRunner):
         return ""
 
     def _get_test_binary_name(self) -> str:
-        args = run_test.args
+        args = self.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
             return "/opt/fboss/bin/sai_mono_link_test-sai_impl"
 
@@ -96,10 +95,10 @@ class LinkTestRunner(TestRunner):
         return []
 
     def _get_sai_logging_flags(self) -> list[str]:
-        return ["--enable_sai_log", run_test.args.sai_logging]
+        return ["--enable_sai_log", self.args.sai_logging]
 
     def _get_warmboot_check_file(self) -> str:
-        args = run_test.args
+        args = self.args
         # If it's multi_switch mode, we need to check the warmboot file for SW switch which doesn't
         # have any switch_index
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -109,7 +108,7 @@ class LinkTestRunner(TestRunner):
         return agent_can_warm_boot_file_path(switch_index=0)
 
     def _get_test_run_args(self, conf_file: str) -> list[str]:
-        args = run_test.args
+        args = self.args
         arg_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
         if args.platform_mapping_override_path is not None:
             arg_list.extend(
@@ -127,7 +126,7 @@ class LinkTestRunner(TestRunner):
         pass
 
     def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None) -> None:
-        args = run_test.args
+        args = self.args
         # Start FSDB service if not disabled
         if not args.disable_fsdb:
             setup_and_start_fsdb_service(
@@ -153,7 +152,7 @@ class LinkTestRunner(TestRunner):
             )
 
     def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None) -> None:
-        args = run_test.args
+        args = self.args
         # Start FSDB service if not disabled
         if not args.disable_fsdb:
             setup_and_start_fsdb_service(
@@ -178,7 +177,7 @@ class LinkTestRunner(TestRunner):
             )
 
     def _end_run(self) -> None:
-        args = run_test.args
+        args = self.args
         cleanup_qsfp_service()
         if not args.disable_fsdb:
             cleanup_fsdb_service()

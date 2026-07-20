@@ -509,10 +509,9 @@ void HwPortFb303Stats::updateStats(
     }
   }
 
-  // Update PG stats if applicable.
-  // Note: There is a 1:1 mapping between priority and PG id.
+  // Update PG stats, keyed by PG id (see pgIdsForStats()).
   if (curPortStats.pgInCongestionDiscards_()->size()) {
-    for (const auto& pgId : getEnabledPfcPriorities()) {
+    for (auto pgId : pgIdsForStats()) {
       auto pgStatsIter = curPortStats.pgInCongestionDiscards_()->find(pgId);
       if (pgStatsIter != curPortStats.pgInCongestionDiscards_()->end()) {
         updatePgStat(
@@ -521,7 +520,7 @@ void HwPortFb303Stats::updateStats(
     }
   }
   if (curPortStats.pgInCongestionDiscardSeen_()->size()) {
-    for (const auto& pgId : getEnabledPfcPriorities()) {
+    for (auto pgId : pgIdsForStats()) {
       auto pgStatsIter = curPortStats.pgInCongestionDiscardSeen_()->find(pgId);
       if (pgStatsIter != curPortStats.pgInCongestionDiscardSeen_()->end()) {
         setPgCounter(

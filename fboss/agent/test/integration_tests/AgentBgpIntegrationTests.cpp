@@ -12,7 +12,6 @@
 #include <folly/Subprocess.h>
 #include <memory>
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/ThriftHandler.h"

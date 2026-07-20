@@ -63,11 +63,6 @@ DEFINE_bool(
     "Set to true to automatically upgrade firmware on coldboot");
 
 DEFINE_bool(
-    firmware_upgrade_on_link_down,
-    false,
-    "Set to true to automatically upgrade firmware when link goes down");
-
-DEFINE_bool(
     firmware_upgrade_on_tcvr_insert,
     false,
     "Set to true to automatically upgrade firmware when a transceiver is inserted");
@@ -96,6 +91,14 @@ constexpr auto kWarmbootStateFileName = "qsfp_service_state";
 static constexpr auto kStateMachineThreadHeartbeatMissed =
     "state_machine_thread_heartbeat_missed";
 constexpr int kSecAfterModuleOutOfReset = 2;
+// A CPO module presents up to (max CMIS banks) x (host lanes per bank) global
+// host lanes. Expressed as a product so the cap tracks a future change to the
+// bank capacity or per-bank lane count instead of a magic 32. (This is the
+// module-agnostic theoretical max used for validation here; CmisModule caps
+// per-module reads at the actual getMaxNumBanks() * kMaxOsfpNumLanes.)
+constexpr uint8_t kMaxCmisBanks = 4;
+constexpr uint8_t kHostLanesPerBank = 8;
+constexpr uint8_t kMaxCpoHostLanes = kMaxCmisBanks * kHostLanesPerBank;
 static constexpr auto kSuccessfulOpticsFirmwareUpgrade =
     "qsfp.optics_firmware_upgrade.success";
 static constexpr auto kFailedOpticsFirmwareUpgrade =
@@ -1209,6 +1212,15 @@ TransceiverStateMachineState TransceiverManager::getCurrentState(
   return stateMachineItr->second->getCurrentState();
 }
 
+TransceiverStateMachineState TransceiverManager::getCurrentStateSnapshot(
+    TransceiverID id) const {
+  auto stateMachineItr = stateMachineControllers_.find(id);
+  if (stateMachineItr == stateMachineControllers_.end()) {
+    throw FbossError("Transceiver:", id, " doesn't exist");
+  }
+  return stateMachineItr->second->getCurrentStateSnapshot();
+}
+
 const state_machine<TransceiverStateMachine>&
 TransceiverManager::getStateMachineForTesting(TransceiverID id) const {
   auto stateMachineItr = stateMachineControllers_.find(id);
@@ -1769,7 +1781,10 @@ void TransceiverManager::programTransceiver(
     // tcvrHostLanes is an ordered set. So begin() gives us the first lane
     tcvrStartLane = *tcvrHostLanes.begin();
 
-    if (tcvrStartLane > 8) {
+    // CPO modules present up to kMaxCpoHostLanes global host lanes (banks x
+    // lanes-per-bank), so a port's start lane can be anywhere in
+    // [0, kMaxCpoHostLanes). Non-CPO modules use the lower end of this range.
+    if (tcvrStartLane >= kMaxCpoHostLanes) {
       throw FbossError(
           "Invalid start lane of ",
           tcvrStartLane,
@@ -1784,6 +1799,9 @@ void TransceiverManager::programTransceiver(
           apache::thrift::util::enumNameSafe(portProfile));
     }
     const auto speed = *profileCfgOpt->speed();
+    auto bankId = platformMapping_->getTransceiverBankId(
+        PlatformPortProfileConfigMatcher(
+            portProfile, portToPortInfo.first, std::nullopt));
     TransceiverPortState portState;
     portState.portName = *portName;
     portState.startHostLane = tcvrStartLane;
@@ -1792,6 +1810,7 @@ void TransceiverManager::programTransceiver(
     portState.opticalChannelConfig = opticalChannelConfig;
     portState.driverPeaking =
         getDriverPeakingOverrides(id, portProfile, tcvrHostLanes.size());
+    portState.bankId = bankId;
     programTcvrState.ports.emplace(*portName, portState);
   }
 
@@ -1922,7 +1941,6 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
   }
   steady_clock::time_point begin = steady_clock::now();
   std::map<int32_t, NpuPortStatus> newPortToPortStatus;
-  std::unordered_set<TransceiverID> tcvrsForFwUpgrade;
   if (!overrideAgentPortStatusForTesting_.empty()) {
     XLOG(WARN) << "[TEST ONLY] Use overrideAgentPortStatusForTesting_ "
                << "for wedge_agent getPortStatus()";
@@ -2025,18 +2043,6 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
                   cachedPortInfoIt->second.status->operState !=
                       portStatusIt->second.operState) {
                 statusChangedPorts.insert(portID);
-                // If the port just went down, it's a candidate for firmware
-                // upgrade
-                if (cachedPortInfoIt->second.status &&
-                    cachedPortInfoIt->second.status->operState &&
-                    !portStatusIt->second.operState) {
-                  tcvrsForFwUpgrade.insert(tcvrID);
-                  auto portName = getPortName(tcvrID);
-                  XLOG(INFO)
-                      << FirmwareUpgradeAlert()
-                      << "Selected for potential firmware upgrade due to link down event"
-                      << TransceiverParam(tcvrID) << PortParam(portName);
-                }
               }
               cachedPortInfoIt->second.status.emplace(portStatusIt->second);
             }
@@ -2091,10 +2097,6 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
       << numPortStatusChanged
       << " transceivers need to update port status. Total execute time(ms):"
       << duration_cast<milliseconds>(steady_clock::now() - begin).count();
-
-  if (FLAGS_firmware_upgrade_on_link_down) {
-    triggerFirmwareUpgradeEvents(tcvrsForFwUpgrade);
-  }
 }
 
 void TransceiverManager::triggerResetEvents(
@@ -2413,14 +2415,7 @@ TransceiverManager::findPotentialTcvrsForFirmwareUpgrade(
   std::unordered_set<TransceiverID> potentialTcvrsForFwUpgrade;
   for (auto tcvrId : presentXcvrIds) {
     auto curState = getCurrentState(tcvrId);
-    if (curState == TransceiverStateMachineState::INACTIVE &&
-        FLAGS_firmware_upgrade_on_link_down) {
-      // Anytime a module is in inactive state (link down), it's a candidate
-      // for fw upgrade.
-      MODULE_LOG(INFO, "", tcvrId)
-          << "is in INACTIVE state, adding it to list of potentialTcvrsForFwUpgrade";
-      potentialTcvrsForFwUpgrade.insert(tcvrId);
-    } else if (curState == TransceiverStateMachineState::DISCOVERED) {
+    if (curState == TransceiverStateMachineState::DISCOVERED) {
       if (FLAGS_firmware_upgrade_on_coldboot && firstRefreshAfterColdboot) {
         // First refresh after cold boot and module is still in
         // discovered state

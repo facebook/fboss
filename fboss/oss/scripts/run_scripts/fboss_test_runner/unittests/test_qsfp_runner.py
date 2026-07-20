@@ -26,13 +26,14 @@ def _make_args(**overrides):
 
 class TestRunArgsOverrides:
     def test_no_overrides_only_qsfp_config(self, qsfp_runner):
-        with patch("run_test.args", new=_make_args()):
+        with patch.object(qsfp_runner, "args", new=_make_args()):
             args_list = qsfp_runner._get_test_run_args("ignored.conf")
         assert args_list == ["--qsfp-config", "/tmp/qsfp.conf"]
 
     def test_platform_mapping_override_appended_when_set(self, qsfp_runner):
-        with patch(
-            "run_test.args",
+        with patch.object(
+            qsfp_runner,
+            "args",
             new=_make_args(platform_mapping_override_path="/tmp/pm.json"),
         ):
             args_list = qsfp_runner._get_test_run_args("ignored.conf")
@@ -41,8 +42,9 @@ class TestRunArgsOverrides:
         assert "--bsp_platform_mapping_override_path" not in args_list
 
     def test_both_overrides_appended_when_both_set(self, qsfp_runner):
-        with patch(
-            "run_test.args",
+        with patch.object(
+            qsfp_runner,
+            "args",
             new=_make_args(
                 platform_mapping_override_path="/tmp/pm.json",
                 bsp_platform_mapping_override_path="/tmp/bsp.json",

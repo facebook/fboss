@@ -14,7 +14,6 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
@@ -374,9 +373,10 @@ TYPED_TEST(AgentHwMirrorTest, ResolvedToUnresolvedUpdate) {
   };
   auto verify = [=, this]() {
     auto client = this->getClient();
-    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
-    auto fields = mirror->toThrift();
     WITH_RETRIES({
+      auto mirror =
+          this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
+      auto fields = mirror->toThrift();
       EXPECT_EVENTUALLY_TRUE(client->sync_verifyUnResolvedMirror(fields));
     });
   };

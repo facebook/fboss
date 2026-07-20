@@ -36,13 +36,15 @@ def _make_args(**overrides):
 
 class TestBinaryNameByMode:
     def test_mono_uses_mono_link_test_binary(self, link_runner):
-        with patch("run_test.args", new=_make_args(agent_run_mode="mono")):
+        with patch.object(link_runner, "args", new=_make_args(agent_run_mode="mono")):
             assert link_runner._get_test_binary_name().endswith(
                 "mono_link_test-sai_impl"
             )
 
     def test_multi_switch_uses_multi_link_test_binary(self, link_runner):
-        with patch("run_test.args", new=_make_args(agent_run_mode="multi_switch")):
+        with patch.object(
+            link_runner, "args", new=_make_args(agent_run_mode="multi_switch")
+        ):
             assert link_runner._get_test_binary_name().endswith(
                 "multi_link_test-sai_impl"
             )
@@ -53,11 +55,13 @@ class TestWarmbootCheckFileByMode:
     Wrong path silently skips warmboot."""
 
     def test_mono_uses_switch_index_zero(self, link_runner):
-        with patch("run_test.args", new=_make_args(agent_run_mode="mono")):
+        with patch.object(link_runner, "args", new=_make_args(agent_run_mode="mono")):
             assert link_runner._get_warmboot_check_file().endswith("_0")
 
     def test_multi_switch_uses_no_switch_index(self, link_runner):
-        with patch("run_test.args", new=_make_args(agent_run_mode="multi_switch")):
+        with patch.object(
+            link_runner, "args", new=_make_args(agent_run_mode="multi_switch")
+        ):
             assert not link_runner._get_warmboot_check_file().endswith("_0")
 
 
@@ -69,8 +73,9 @@ class TestSetupColdbootServiceOrder:
     def test_multi_switch_starts_services_in_order(self, link_runner):
         call_order = []
         with (
-            patch(
-                "run_test.args",
+            patch.object(
+                link_runner,
+                "args",
                 new=_make_args(agent_run_mode="multi_switch"),
             ),
             patch(
@@ -93,7 +98,7 @@ class TestSetupColdbootServiceOrder:
         # mono mode keeps the HW switch in-process; no separate HW Agent service.
         call_order = []
         with (
-            patch("run_test.args", new=_make_args(agent_run_mode="mono")),
+            patch.object(link_runner, "args", new=_make_args(agent_run_mode="mono")),
             patch(
                 "fboss_test_runner.runners.link_test_runner.setup_and_start_fsdb_service",
                 side_effect=lambda **_: call_order.append("fsdb"),
@@ -112,8 +117,9 @@ class TestSetupColdbootServiceOrder:
 
     def test_disable_fsdb_skips_fsdb_startup(self, link_runner):
         with (
-            patch(
-                "run_test.args",
+            patch.object(
+                link_runner,
+                "args",
                 new=_make_args(agent_run_mode="mono", disable_fsdb=True),
             ),
             patch(

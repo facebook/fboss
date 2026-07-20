@@ -15,4 +15,11 @@ SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t>
+SaiAclEntryTraits::Attributes::AttributeFieldNextHopGroupId::operator()() {
+  // TODO(zecheng): return the real BCM SAI extension id for the PBR
+  // next-hop-group ACL match field once the vendor SDK exposes it (phase 2).
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

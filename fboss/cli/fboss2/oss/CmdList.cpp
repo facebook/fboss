@@ -7,6 +7,8 @@
 #include "fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.h"
 #include "fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h"
 #include "fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.h"
+#include "fboss/cli/fboss2/commands/show/bgp/health/CmdShowBgpHealth.h"
+#include "fboss/cli/fboss2/commands/show/bgp/holdtimers/CmdShowBgpHoldTimers.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedDryRun.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPostPolicy.h"
@@ -16,6 +18,14 @@
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedPrePolicy.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedRejected.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/CmdShowBgpNeighborsByName.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejected.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejectedCrf.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejected.h"
+#include "fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejectedCrf.h"
+#include "fboss/cli/fboss2/commands/show/bgp/nexthopinfo/CmdShowBgpNexthopInfo.h"
+#include "fboss/cli/fboss2/commands/show/bgp/policy/CmdShowBgpPolicy.h"
+#include "fboss/cli/fboss2/commands/show/bgp/profiler/CmdShowBgpProfiler.h"
 #include "fboss/cli/fboss2/commands/show/bgp/shadowrib/CmdShowBgpShadowRib.h"
 #include "fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsAttrs.h"
 #include "fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsEntries.h"
@@ -31,6 +41,8 @@
 #include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.h"
 #include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.h"
 #include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.h"
+#include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableSummary.h"
+#include "fboss/cli/fboss2/commands/show/bgp/updategroup/CmdShowBgpUpdateGroup.h"
 #include "fboss/cli/fboss2/commands/show/config/CmdShowConfigHistoryAgent.h"
 #include "fboss/cli/fboss2/commands/show/config/CmdShowConfigRunningAgent.h"
 #include "fboss/cli/fboss2/commands/show/config/CmdShowConfigTraits.h"
@@ -53,6 +65,16 @@ const CommandTree& kBaseAdditionalCommandTree() {
            "Show running BGP configuration",
            commandHandler<CmdShowConfigRunningBgp>,
            argTypeHandler<CmdShowConfigRunningBgpTraits>}}},
+
+        {"health",
+         "Show BGP health report",
+         commandHandler<CmdShowBgpHealth>,
+         argTypeHandler<CmdShowBgpHealthTraits>},
+
+        {"holdtimers",
+         "Show BGP peer hold timer information",
+         commandHandler<CmdShowBgpHoldTimers>,
+         argTypeHandler<CmdShowBgpHoldTimersTraits>},
 
         {"initialization-events",
          "Show BGP initialization events",
@@ -100,10 +122,52 @@ const CommandTree& kBaseAdditionalCommandTree() {
            commandHandler<CmdBgpNeighborsSessionId>,
            argTypeHandler<CmdBgpNeighborsSessionIdTraits>}}},
 
+        {"neighbors-by-name",
+         "Show BGP neighbor information by name regex match",
+         commandHandler<CmdShowBgpNeighborsByName>,
+         argTypeHandler<CmdShowBgpNeighborsByNameTraits>,
+         {{"advertised",
+           "Routes advertised to matching peers",
+           {{"rejected",
+             "Rejected routes grouped by prefix",
+             commandHandler<BgpNeighborsByNameAdvertisedRejected>,
+             argTypeHandler<BgpNeighborsByNameAdvertisedRejectedTraits>,
+             {{"crf",
+               "Show only CRF-rejected routes",
+               commandHandler<BgpNeighborsByNameAdvertisedRejectedCrf>,
+               argTypeHandler<
+                   BgpNeighborsByNameAdvertisedRejectedCrfTraits>}}}}},
+          {"received",
+           "Routes received from matching peers",
+           {{"rejected",
+             "Rejected routes grouped by prefix",
+             commandHandler<BgpNeighborsByNameReceivedRejected>,
+             argTypeHandler<BgpNeighborsByNameReceivedRejectedTraits>,
+             {{"crf",
+               "Show only CRF-rejected routes",
+               commandHandler<BgpNeighborsByNameReceivedRejectedCrf>,
+               argTypeHandler<
+                   BgpNeighborsByNameReceivedRejectedCrfTraits>}}}}}}},
+
+        {"nexthopinfo",
+         "Show nexthop information for a given IP",
+         commandHandler<CmdShowBgpNexthopInfo>,
+         argTypeHandler<CmdShowBgpNexthopInfoTraits>},
+
         {"originated-routes",
          "Show BGP originated routes",
          commandHandler<CmdShowBgpOriginatedRoutes>,
          argTypeHandler<CmdShowBgpOriginatedRoutesTraits>},
+
+        {"policy",
+         "Show BGP policy by name",
+         commandHandler<CmdShowBgpPolicy>,
+         argTypeHandler<CmdShowBgpPolicyTraits>},
+
+        {"profiler",
+         "Show BGP profiler stats",
+         commandHandler<CmdShowBgpProfiler>,
+         argTypeHandler<CmdShowBgpProfilerTraits>},
 
         {"shadowrib",
          "Show BGP shadow RIB",
@@ -172,7 +236,16 @@ const CommandTree& kBaseAdditionalCommandTree() {
           {"prefix",
            "Show BGP routes by prefix",
            commandHandler<CmdShowBgpTablePrefix>,
-           argTypeHandler<CmdShowBgpTablePrefixTraits>}}},
+           argTypeHandler<CmdShowBgpTablePrefixTraits>},
+          {"summary",
+           "Show BGP RIB summary (per-afi aggregate and per-masklength counts)",
+           commandHandler<CmdShowBgpTableSummary>,
+           argTypeHandler<CmdShowBgpTableSummaryTraits>}}},
+
+        {"update-group",
+         "Show update-group details",
+         commandHandler<CmdShowBgpUpdateGroup>,
+         argTypeHandler<CmdShowBgpUpdateGroupTraits>},
 
         {"version",
          "Show BGP version",

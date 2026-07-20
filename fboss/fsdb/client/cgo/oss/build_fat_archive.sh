@@ -19,7 +19,7 @@
 #
 #     -lstdc++ -lm -lpthread -ldl -lssl -lcrypto -l:libz.so.1
 #     -lgflags -lglog -l:libunwind.so.8
-#     -l:libdouble-conversion.so.3 -l:libbz2.so.1 -l:libsnappy.so.1
+#     -l:libbz2.so.1 -l:libsnappy.so.1
 #     -l:liblz4.so.1 -l:liblzma.so.5 -lxxhash -lzstd
 #
 #   gflags is intentionally excluded from the bundle because libglog.so links
@@ -84,7 +84,6 @@ RUNTIME_LIB_DEPS=(
     # excludes gflags.
     "gflags-"
     "libunwind-"
-    "double-conversion-"
     "fmt-"
 )
 

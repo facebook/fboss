@@ -80,12 +80,7 @@ CmdShowInterfaceFlapsTraits::RetType CmdShowInterfaceFlaps::queryClient(
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
 
   std::map<std::string, int64_t> wedgeCounters;
-#ifdef IS_OSS
-  // TODO - figure out why getRegexCounters fails for OSS
-  client->sync_getCounters(wedgeCounters);
-#else
   client->sync_getRegexCounters(wedgeCounters, "^(eth|fab).*flap.sum.*");
-#endif
   std::unordered_set<std::string> distinctInterfaceNames;
   for (const auto& counter : wedgeCounters) {
     std::vector<std::string> result;

@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -11,18 +12,20 @@ cpp_library(
     headers = [
         "FsdbTestClients.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/googletest:gtest",
+        "//folly:utility",
+        "//thrift/lib/cpp2/op:get",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
         "//fboss/fsdb/client:fsdb_pub_sub",
         "//fboss/fsdb/client:fsdb_stream_client",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/lib:common_utils",
         "//folly:synchronized",
-        "//folly:utility",
         "//folly/container:f14_hash",
         "//folly/logging:logging",
-        "//thrift/lib/cpp2/op:get",
-        "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
 
@@ -34,6 +37,7 @@ cpp_unittest(
         "FsdbPublisherTest.cpp",
         "FsdbStreamClientTest.cpp",
     ],
+    network_access = network_access_utils.all(),
     deps = [
         ":fsdb_test_clients",
         "//fb303:service_data",

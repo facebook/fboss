@@ -91,6 +91,11 @@ class ConfigSession {
   // If no session exists, copies /etc/coop/agent.conf to ~/.fboss2/agent.conf
   static ConfigSession& getInstance();
 
+  // Reset the singleton (for testing only).
+  // Destroys the current instance so the next getInstance() creates a fresh
+  // session, re-reading config from disk.
+  static void resetInstance();
+
   // Static path getters - can be called without creating a session instance.
   // These are useful for checking if session files exist without triggering
   // session initialization.
@@ -150,6 +155,11 @@ class ConfigSession {
   // Get the PortMap for port-to-interface lookups
   utils::PortMap& getPortMap();
   const utils::PortMap& getPortMap() const;
+
+  // Regenerate the cached PortMap from the current in-memory agentConfig_.
+  // Call this after mutating the config (e.g. adding a port) so that
+  // subsequent getPortMap() lookups reflect the change.
+  void rebuildPortMap();
 
   // Save the configuration back to the session file.
   // Also updates the required action level for the specified service

@@ -120,6 +120,12 @@ std::set<cfg::AclTableQualifier> AclEntry::getRequiredAclTableQualifiers()
   if (getUdfGroups()) {
     qualifiers.insert(cfg::AclTableQualifier::UDF);
   }
+  if (getTrafficClass()) {
+    qualifiers.insert(cfg::AclTableQualifier::TC);
+  }
+  if (getNextHopGroupId()) {
+    qualifiers.insert(cfg::AclTableQualifier::NEXT_HOP_GROUP_ID);
+  }
   return qualifiers;
 }
 

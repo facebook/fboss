@@ -3,6 +3,7 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -162,7 +163,6 @@ cpp_unittest(
         "//fboss/agent/rib:fib_updater",
         "//fboss/agent/rib:nexthop_id_manager",
         "//fboss/agent/rib:standalone_rib",
-        "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",
         "//fboss/agent/test/utils:nexthop_id_test_utils",
@@ -195,8 +195,8 @@ cpp_unittest(
         "//thrift/lib/cpp2/util:util",
     ],
     external_deps = [
-        "gflags",
         ("boost", None, "boost_range"),
+        "gflags",
     ],
 )
 
@@ -209,6 +209,21 @@ cpp_unittest(
     deps = [
         ":utils",
         "//fboss/agent/hw/mock:mock",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_unittest(
+    name = "pfc_utils_test",
+    srcs = [
+        "PfcUtilsTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    test_main = "//fboss/agent/test:fboss_test_main",
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:pfc_utils",
         "//fboss/agent/state:state",
     ],
 )
@@ -843,6 +858,7 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:hw_asic_table",
         "//fboss/agent:hw_switch",
+        "//fboss/agent:packet",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/state:state",
@@ -879,6 +895,25 @@ cpp_benchmark(
         ":utils",
         "//fboss/agent:fsdb_helper",
         "//fboss/fsdb/common:utils",
+        "//folly:benchmark",
+        "//folly/init:init",
+    ],
+)
+
+cpp_benchmark(
+    name = "state_delta_serialization",
+    srcs = [
+        "StateDeltaSerializationBenchmark.cpp",
+    ],
+    args = ["--json"],
+    deps = [
+        ":hw_test_handle",
+        ":route_scale_gen",
+        ":utils",
+        "//fboss/agent:fsdb_helper",
+        "//fboss/fsdb/common:utils",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/nodes:serializer",
         "//folly:benchmark",
         "//folly/init:init",
     ],

@@ -59,6 +59,7 @@ class MockBgpClient : public apache::thrift::ServiceHandler<TBgpService> {
       getPostfilterAdvertisedNetworks2,
       (networks, std::unique_ptr<std::string>));
   MOCK_METHOD(void, getRibEntries, (std::vector<TRibEntry>&, TBgpAfi));
+  MOCK_METHOD(void, getRibSummary, (TRibSummary&, TBgpAfi));
   MOCK_METHOD(void, getChangeListEntries, (std::vector<TRibEntry>&, TBgpAfi));
   MOCK_METHOD(void, getShadowRibEntries, (std::vector<TRibEntry>&, TBgpAfi));
   MOCK_METHOD(void, getRunningConfig, (std::string&));
@@ -75,6 +76,9 @@ class MockBgpClient : public apache::thrift::ServiceHandler<TBgpService> {
       getRibEntriesForCommunity,
       (std::vector<TRibEntry>&, TBgpAfi, std::unique_ptr<std::string>));
   MOCK_METHOD(void, getBgpStreamSessions, (std::vector<TBgpStreamSession>&));
+  MOCK_METHOD(int64_t, getRibVersion, ());
+  MOCK_METHOD(int64_t, getNumPrefixes, ());
+  MOCK_METHOD(int64_t, getProcessUptimeSeconds, ());
   MOCK_METHOD(
       void,
       getSubscriberNetworkInfo,

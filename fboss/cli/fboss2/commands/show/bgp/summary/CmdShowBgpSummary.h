@@ -17,7 +17,10 @@
 #include <chrono>
 #include <exception> // NOLINT(misc-include-cleaner)
 #include <iostream>
+#include <optional>
 #include <string>
+
+#include <folly/logging/xlog.h>
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/bgp/summary/gen-cpp2/bgp_summary_types.h"
@@ -61,7 +64,58 @@ class CmdShowBgpSummary
     client->sync_getBgpLocalConfig(config);
     client->sync_getDrainState(drain_state);
 
-    return createModel(sessions, config, drain_state);
+    const int64_t ribVersion = client->sync_getRibVersion();
+
+    /*
+     * getProcessUptimeSeconds() and getNumPrefixes() are newer thrift methods
+     * that may not exist on the bgpd binary deployed to prod. Against an older
+     * daemon the calls throw (TApplicationException, UNKNOWN_METHOD), so guard
+     * them and leave the values unset when unavailable -- printOutput omits the
+     * corresponding lines. This self-heals once the new binary is deployed; no
+     * code change is needed to re-enable them. getRibVersion() already exists
+     * on prod, so it stays outside the guard.
+     */
+    std::optional<int64_t> processUptimeSeconds;
+    std::optional<int64_t> totalPrefixCount;
+    try {
+      processUptimeSeconds = client->sync_getProcessUptimeSeconds();
+      totalPrefixCount = client->sync_getNumPrefixes();
+    } catch (const std::exception& ex) {
+      XLOG(DBG2) << "process uptime / prefix count unavailable on this bgpd: "
+                 << ex.what();
+    }
+
+    return createModel(
+        sessions,
+        config,
+        drain_state,
+        processUptimeSeconds,
+        totalPrefixCount,
+        ribVersion);
+  }
+
+  // Format process uptime, omitting leading zero units so a short uptime reads
+  // naturally: 45 -> "45s", 330 -> "5m 30s", 3661 -> "1h 1m 1s",
+  // 90061 -> "1d 1h 1m 1s". Units below the largest non-zero one are kept
+  // (e.g. "3h 0m 5s") so the value stays unambiguous.
+  static std::string formatUptime(int64_t totalSeconds) {
+    if (totalSeconds < 0) {
+      totalSeconds = 0;
+    }
+    const int64_t days = totalSeconds / 86400;
+    const int64_t hours = (totalSeconds % 86400) / 3600;
+    const int64_t minutes = (totalSeconds % 3600) / 60;
+    const int64_t seconds = totalSeconds % 60;
+    if (days > 0) {
+      return fmt::format("{}d {}h {}m {}s", days, hours, minutes, seconds);
+    }
+    if (hours > 0) {
+      return fmt::format("{}h {}m {}s", hours, minutes, seconds);
+    }
+    if (minutes > 0) {
+      return fmt::format("{}m {}s", minutes, seconds);
+    }
+    return fmt::format("{}s", seconds);
   }
 
   void printOutput(const RetType& bgpSummary, std::ostream& out = std::cout) {
@@ -73,6 +127,18 @@ class CmdShowBgpSummary
     out.imbue(std::locale("C"));
 
     out << "BGP summary information for VRF default" << std::endl;
+
+    /*
+     * Process uptime one-liner, e.g. "BGP is up for 1d 1h 1m 1s". Omitted when
+     * unset (older bgpd without getProcessUptimeSeconds(); see queryClient()).
+     */
+    if (bgpSummary.process_uptime_seconds().has_value()) {
+      out << "BGP is up for "
+          << formatUptime(
+                 folly::copy(bgpSummary.process_uptime_seconds().value()))
+          << std::endl;
+    }
+
     // Retrive the router's Ip Address from its ID.
     char ip_buff[INET_ADDRSTRLEN];
     auto id = folly::copy(config.my_router_id().value());
@@ -139,6 +205,7 @@ class CmdShowBgpSummary
       std::string pr;
       std::string pa;
       std::string ps;
+      std::string prd;
       std::string ug;
       std::string ugps;
       std::string uptime;
@@ -149,6 +216,7 @@ class CmdShowBgpSummary
     };
     std::vector<PeerRowData> rows;
     bool hasAnyDowntime = false;
+    bool hasAnyPreDrops = false;
 
     for (const auto& bgpSession : sessions) {
       const auto& peer = bgpSession.peer().value();
@@ -159,6 +227,19 @@ class CmdShowBgpSummary
       auto rcvd_prefix = *bgpSession.prepolicy_rcvd_prefix_count();
       auto accepted_prefix = *bgpSession.postpolicy_rcvd_prefix_count();
       auto sent_prefix = *bgpSession.postpolicy_sent_prefix_count();
+
+      /*
+       * Per-peer routes dropped because the peer reached its configured
+       * pre-filter prefix limit (server reports this count). Surfaced as the
+       * PRD column, shown only when some peer actually dropped routes. A
+       * non-zero count is reliable even when the live prefix count has churned
+       * back below the limit, so it avoids digging through logs.
+       */
+      auto pre_dropped =
+          bgpSession.prepolicy_rcvd_dropped_prefix_count().value_or(0);
+      if (pre_dropped > 0) {
+        hasAnyPreDrops = true;
+      }
 
       paths_rcvd += rcvd_prefix;
       paths_accepted += accepted_prefix;
@@ -210,6 +291,7 @@ class CmdShowBgpSummary
            folly::to<std::string>(rcvd_prefix),
            folly::to<std::string>(accepted_prefix),
            folly::to<std::string>(sent_prefix),
+           folly::to<std::string>(pre_dropped),
            ugStr,
            peerStateStr,
            uptimeDurationString,
@@ -226,7 +308,7 @@ class CmdShowBgpSummary
     const bool enableUpdateGroup = config.enable_update_group().value();
 
     auto buildRow = [&](const PeerRowData& row) {
-      std::vector<std::string> fields = {
+      std::vector<Table::RowData> fields = {
           row.peerAddr,
           row.remoteAs,
           row.state,
@@ -234,6 +316,11 @@ class CmdShowBgpSummary
           row.pr,
           row.pa,
           row.ps};
+      // PRD: per-peer dropped count, shown only when some peer actually dropped
+      // routes.
+      if (hasAnyPreDrops) {
+        fields.emplace_back(row.prd);
+      }
       if (enableUpdateGroup) {
         fields.emplace_back(row.ug);
         fields.emplace_back(row.ugps);
@@ -250,6 +337,9 @@ class CmdShowBgpSummary
 
     std::vector<std::string> header = {
         "Peer", "AS", "State", "GR", "PR", "PA", "PS"};
+    if (hasAnyPreDrops) {
+      header.emplace_back("PRD");
+    }
     if (enableUpdateGroup) {
       header.emplace_back("UG");
       header.emplace_back("UGPS");
@@ -273,13 +363,26 @@ class CmdShowBgpSummary
         << std::endl;
     out << "Paths: Received - " << paths_rcvd << ", Accepted - "
         << paths_accepted << ", Sent - " << paths_sent << std::endl;
-    if (enableUpdateGroup) {
-      out << "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n"
-          << std::endl;
-    } else {
-      out << "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent\n"
-          << std::endl;
+    /*
+     * Prefix count is omitted when unset (older bgpd without getNumPrefixes();
+     * see queryClient()). RIB Version comes from getRibVersion(), which is
+     * already deployed to prod, so it is always shown.
+     */
+    if (bgpSummary.total_prefix_count().has_value()) {
+      out << "Prefix count: "
+          << folly::copy(bgpSummary.total_prefix_count().value()) << std::endl;
     }
+    out << "RIB Version: " << folly::copy(bgpSummary.rib_version().value())
+        << std::endl;
+    std::string acronyms =
+        "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent";
+    if (hasAnyPreDrops) {
+      acronyms += ", PRD - Prefixes Received Dropped";
+    }
+    if (enableUpdateGroup) {
+      acronyms += ", UG - Update Group, UGPS - Update Group Peer State";
+    }
+    out << acronyms << "\n" << std::endl;
     out << table << std::endl;
   }
 
@@ -288,7 +391,10 @@ class CmdShowBgpSummary
   RetType createModel(
       std::vector<TBgpSession>& sessions,
       TBgpLocalConfig& config,
-      TBgpDrainState& drain_state) {
+      TBgpDrainState& drain_state,
+      std::optional<int64_t> processUptimeSeconds,
+      std::optional<int64_t> totalPrefixCount,
+      int64_t ribVersion) {
     std::sort(
         sessions.begin(),
         sessions.end(),
@@ -300,6 +406,15 @@ class CmdShowBgpSummary
     model.sessions() = sessions;
     model.config() = config;
     model.drain_state() = drain_state;
+    // Left unset when the daemon does not implement the getter, so printOutput
+    // omits the corresponding line (see queryClient()).
+    if (processUptimeSeconds.has_value()) {
+      model.process_uptime_seconds() = *processUptimeSeconds;
+    }
+    if (totalPrefixCount.has_value()) {
+      model.total_prefix_count() = *totalPrefixCount;
+    }
+    model.rib_version() = ribVersion;
     return model;
   }
 };

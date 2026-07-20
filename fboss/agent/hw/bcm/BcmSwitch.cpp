@@ -4203,6 +4203,7 @@ void BcmSwitch::disableHotSwap() const {
         bcmCheckError(rv, "Failed to disable hotswap");
       } break;
       case cfg::AsicType::ASIC_TYPE_EBRO:
+      case cfg::AsicType::ASIC_TYPE_P200:
       case cfg::AsicType::ASIC_TYPE_GARONNE:
       case cfg::AsicType::ASIC_TYPE_YUBA:
       case cfg::AsicType::ASIC_TYPE_CHENAB:

@@ -39,7 +39,7 @@
       }
     },
     {
-      "sensorName": "MCB_PS108_XP12R0V_PB1_TEMPARTURES",
+      "sensorName": "MCB_PS108_XP12R0V_PB1_TEMP",
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": 9,
@@ -51,7 +51,7 @@
       }
     },
     {
-      "sensorName": "MCB_PS109_XP12R0V_PB2_TEMPARTURES",
+      "sensorName": "MCB_PS109_XP12R0V_PB2_TEMP",
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": 8,
@@ -66,26 +66,26 @@
       "sensorName": "MCB_U62_PB_INLET_TSENSOR",
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
-        "23": 30,
-        "28": 35,
+        "23": 35,
+        "28": 40,
         "33": 40,
         "38": 45
       },
       "normalDownTable": {
-        "21": 30,
-        "26": 35,
+        "21": 35,
+        "26": 40,
         "31": 40,
         "36": 45
       },
       "failUpTable": {
-        "23": 50,
-        "28": 60,
+        "23": 55,
+        "28": 65,
         "33": 70,
         "38": 80
       },
       "failDownTable": {
-        "21": 50,
-        "26": 60,
+        "21": 55,
+        "26": 65,
         "31": 70,
         "36": 80
       },
@@ -199,8 +199,8 @@
       "zoneName": "zone1",
       "sensorNames": [
         "NETLAKE_U1_CPU_UNCORE_TEMP",
-        "MCB_PS108_XP12R0V_PB1_TEMPARTURES",
-        "MCB_PS109_XP12R0V_PB2_TEMPARTURES",
+        "MCB_PS108_XP12R0V_PB1_TEMP",
+        "MCB_PS109_XP12R0V_PB2_TEMP",
         "MCB_U62_PB_INLET_TSENSOR"
       ],
       "fanNames": [

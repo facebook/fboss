@@ -30,7 +30,7 @@ namespace {
 void setupQosMapForPfc(
     cfg::QosMap& qosMap,
     bool isCpuQosMap,
-    const std::map<int, int>& tc2PgOverride = {}) {
+    const PfcQosMapParams& qosMapParams = {}) {
   // update pfc maps
   std::map<int16_t, int16_t> tc2PgId;
   std::map<int16_t, int16_t> tc2QueueId;
@@ -51,17 +51,60 @@ void setupQosMapForPfc(
     pfcPri2QueueId.emplace(i, i);
   }
 
-  for (auto& tc2Pg : tc2PgOverride) {
+  for (auto& tc2Pg : qosMapParams.tcToPg) {
     tc2PgId[tc2Pg.first] = tc2Pg.second;
   }
+  for (auto& pfcPri2Pg : qosMapParams.pfcPriToPg) {
+    pfcPri2PgId[pfcPri2Pg.first] = pfcPri2Pg.second;
+  }
+  for (auto& pfcPri2Queue : qosMapParams.pfcPriToQueue) {
+    pfcPri2QueueId[pfcPri2Queue.first] = pfcPri2Queue.second;
+  }
 
-  qosMap.dscpMaps()->resize(8);
-  for (auto i = 0; i < 8; i++) {
-    qosMap.dscpMaps()[i].internalTrafficClass() = i;
-    for (auto j = 0; j < 8; j++) {
-      qosMap.dscpMaps()[i].fromDscpToTrafficClass()->push_back(8 * i + j);
+  // Build the DSCP -> TC map only when not classifying by PCP. When PCP
+  // classification is used, a DSCP -> TC map must not be programmed: on
+  // platforms with global QoS maps it binds switch-wide and its (identity) DSCP
+  // classification takes precedence over the 802.1p priority, pulling traffic
+  // into the wrong PG/queue.
+  if (qosMapParams.classification == PfcIngressClassification::Dscp) {
+    qosMap.dscpMaps()->resize(8);
+    for (auto i = 0; i < 8; i++) {
+      qosMap.dscpMaps()[i].internalTrafficClass() = i;
+      for (auto j = 0; j < 8; j++) {
+        qosMap.dscpMaps()[i].fromDscpToTrafficClass()->push_back(8 * i + j);
+      }
     }
   }
+
+  // Optionally classify ingress traffic by 802.1p priority (PCP). The PCP -> TC
+  // map defaults to identity, with any override merged on top, and stays fully
+  // populated.
+  if (qosMapParams.classification == PfcIngressClassification::Pcp) {
+    std::map<int16_t, int16_t> pcp2Tc;
+    for (auto i = 0; i < 8; i++) {
+      pcp2Tc.emplace(i, i);
+    }
+    for (const auto& [pcp, tc] : qosMapParams.pcpToTc) {
+      pcp2Tc[pcp] = tc;
+    }
+    // PcpQosMap is keyed by traffic class, with the list of PCPs that map to
+    // it.
+    std::map<int16_t, std::vector<int16_t>> tc2Pcps;
+    for (const auto& [pcp, tc] : pcp2Tc) {
+      tc2Pcps[tc].push_back(pcp);
+    }
+    qosMap.pcpMaps() = std::vector<cfg::PcpQosMap>();
+    for (const auto& [tc, pcps] : tc2Pcps) {
+      cfg::PcpQosMap pcpMap;
+      pcpMap.internalTrafficClass() = tc;
+      for (auto pcp : pcps) {
+        pcpMap.fromPcpToTrafficClass()->push_back(pcp);
+      }
+      pcpMap.fromTrafficClassToPcp() = pcps[0];
+      qosMap.pcpMaps()->push_back(pcpMap);
+    }
+  }
+
   qosMap.trafficClassToPgId() = std::move(tc2PgId);
   qosMap.trafficClassToQueueId() = std::move(tc2QueueId);
   qosMap.pfcPriorityToPgId() = std::move(pfcPri2PgId);
@@ -72,7 +115,7 @@ void setupPfc(
     const TestEnsembleIf* ensemble,
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
-    const std::map<int, int>& tcToPgOverride) {
+    const PfcQosMapParams& qosMapParams) {
   cfg::PortPfc pfc;
   pfc.tx() = true;
   pfc.rx() = true;
@@ -89,7 +132,7 @@ void setupPfc(
   // setup qosPolicy
   auto setupQosPolicy = [&](bool isCpuQosMap, const std::string& name) {
     cfg::QosMap qosMap;
-    setupQosMapForPfc(qosMap, isCpuQosMap, tcToPgOverride);
+    setupQosMapForPfc(qosMap, isCpuQosMap, qosMapParams);
     auto qosPolicy = cfg::QosPolicy();
     *qosPolicy.name() = name;
     qosPolicy.qosMap() = std::move(qosMap);
@@ -314,7 +357,7 @@ void setupPfcBuffers(
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
     const std::vector<int>& lossyPgIds,
-    const std::map<int, int>& tcToPgOverride) {
+    const PfcQosMapParams& qosMapParams) {
   auto asicType = checkSameAndGetAsicType(cfg);
   setupPfcBuffers(
       ensemble,
@@ -322,8 +365,8 @@ void setupPfcBuffers(
       ports,
       losslessPgIds,
       lossyPgIds,
-      tcToPgOverride,
-      PfcBufferParams::getPfcBufferParams(asicType));
+      PfcBufferParams::getPfcBufferParams(asicType),
+      qosMapParams);
 }
 
 void setupPfcBuffers(
@@ -332,9 +375,9 @@ void setupPfcBuffers(
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
     const std::vector<int>& lossyPgIds,
-    const std::map<int, int>& tcToPgOverride,
-    PfcBufferParams buffer) {
-  setupPfc(ensemble, cfg, ports, tcToPgOverride);
+    PfcBufferParams buffer,
+    const PfcQosMapParams& qosMapParams) {
+  setupPfc(ensemble, cfg, ports, qosMapParams);
 
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
   setupPortPgConfig(
@@ -467,8 +510,9 @@ void triggerPfcGeneration(
               std::vector<uint8_t>(2000, 0xff));
 
           if (vlanId.has_value()) {
-            ensemble->sendPacketAsync(
-                std::move(txPacket), std::nullopt, pfcPriority);
+            ensemble->getSw()->sendPacketSwitchedAsync(
+                std::move(txPacket),
+                {ensemble->scopeResolver().scope(port).switchId()});
           } else {
             ensemble->sendPacketAsync(
                 std::move(txPacket), PortDescriptor(port), pfcPriority);

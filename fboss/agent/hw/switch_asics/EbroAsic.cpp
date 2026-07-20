@@ -5,6 +5,30 @@
 
 namespace facebook::fboss {
 
+std::vector<HwAsic::InternalSystemPortConfig>
+EbroAsic::getInternalSystemPortConfig(
+    const CpuPortCoreAndPortIndex& /*cpuPortsCoreAndPortIdx*/) const {
+  CHECK(getSwitchId()) << " Switch Id must be set before sys port info";
+  auto switchIdVal = static_cast<uint32_t>(*getSwitchId());
+  // Below are a mixture system port configs for
+  // internal {loopback, CPU} ports. From the speeds (in Mbps)
+  // one can infer that ports 6-10 are 1G CPU ports and 10-14 are
+  // 100G loopback ports (TODO - confirm this with vendor)
+  //
+  return {
+      {11, switchIdVal, 0, 25, 100000, 8},
+      {12, switchIdVal, 2, 25, 100000, 8},
+      {13, switchIdVal, 4, 25, 100000, 8},
+      {14, switchIdVal, 6, 25, 100000, 8},
+      {15, switchIdVal, 8, 25, 100000, 8},
+      {16, switchIdVal, 10, 25, 100000, 8},
+      {6, switchIdVal, 0, 24, 1000, 8},
+      {7, switchIdVal, 4, 24, 1000, 8},
+      {8, switchIdVal, 6, 24, 1000, 8},
+      {9, switchIdVal, 8, 24, 1000, 8},
+      {10, switchIdVal, 1, 24, 1000, 8}};
+}
+
 bool EbroAsic::isSupportedNonFabric(Feature feature) const {
   switch (feature) {
     /*
@@ -237,9 +261,12 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
+    case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
+    case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::SAI_PRBS:

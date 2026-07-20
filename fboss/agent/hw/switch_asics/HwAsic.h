@@ -1,10 +1,18 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #pragma once
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include <fboss/lib/phy/gen-cpp2/phy_types.h>
 #include <folly/MacAddress.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 namespace facebook::fboss {
 
@@ -260,6 +268,7 @@ class HwAsic {
     SAI_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
     ECMP_DLB_OFFSET,
+    ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL,
 
     // MPLS Features::
     // ================
@@ -544,6 +553,13 @@ class HwAsic {
     // where set bits indicate specific drop reasons within that pipeline
     // stage. Currently supported on Chenab with SDK >= 2511.36.
     SWITCH_CUSTOM_DROP_BITMAP_SUPPORT,
+    // Policy based routing via a dedicated ACL table matching on next hop
+    // group and traffic class, redirecting to a per-TC next hop group.
+    PBR_ACL,
+    // UEC Link Layer Retry (UE Spec 1.0.2 section 5.1): hop-by-hop link-layer
+    // retransmission of LLR-eligible frames between link partners. Currently
+    // supported only on Tomahawk Ultra.
+    LINK_LAYER_RETRANSMISSION,
   };
 
   enum class AsicMode {
@@ -631,6 +647,18 @@ class HwAsic {
   virtual int getNumLanesPerPhysicalPort() const {
     return 1;
   }
+
+  virtual uint32_t getNumLanesPerCore() const {
+    return 1;
+  }
+
+  virtual uint32_t getSaiPhysicalLaneId(
+      PlatformType platformType,
+      cfg::PortType portType,
+      uint32_t chipId,
+      uint32_t logicalLane) const;
+
+  virtual uint32_t getNumCellsAvailable(PlatformType platformType) const;
 
   /*
    * Default Content Aware Processor group ID for ACLs
@@ -805,12 +833,26 @@ class HwAsic {
     uint32_t inbandPortId;
   };
 
+  using CpuPortCoreAndPortIndex =
+      std::map<uint32_t, std::pair<uint32_t, uint32_t>>;
+
+  struct InternalSystemPortConfig {
+    uint32_t portId;
+    uint32_t switchId;
+    uint32_t coreIndex;
+    uint32_t corePortIndex;
+    uint32_t speedMbps;
+    uint32_t numVoqs;
+  };
+
   std::optional<cfg::SdkVersion> getSdkVersion() const {
     return sdkVersion_;
   }
 
   virtual RecyclePortInfo getRecyclePortInfo(
       InterfaceNodeRole /* intfRole */) const;
+  virtual std::vector<InternalSystemPortConfig> getInternalSystemPortConfig(
+      const CpuPortCoreAndPortIndex& cpuPortsCoreAndPortIdx) const;
   cfg::PortLoopbackMode getDesiredLoopbackMode(
       cfg::PortType portType = cfg::PortType::INTERFACE_PORT) const;
 

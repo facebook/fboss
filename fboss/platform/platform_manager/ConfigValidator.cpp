@@ -367,10 +367,11 @@ bool ConfigValidator::isValidI2cAdaptersFromCpu(
   std::set<std::string> seen;
   for (const auto& name : i2cAdaptersFromCpu) {
     if (re2::RE2::FullMatch(name, kCpuBusNameRegex)) {
-      if (name != "CPU_BUS@0" && name != "CPU_BUS@1") {
+      static const re2::RE2 kSupportedCpuBusNameRegex{"CPU_BUS@[0-3]"};
+      if (!re2::RE2::FullMatch(name, kSupportedCpuBusNameRegex)) {
         XLOG(ERR) << fmt::format(
             "Invalid virtual bus name '{}'. "
-            "Only CPU_BUS@0 and CPU_BUS@1 are supported",
+            "Only CPU_BUS@0 through CPU_BUS@3 are supported",
             name);
         return false;
       }
@@ -1449,15 +1450,18 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
 
     bool fieldMismatch = false;
     apache::thrift::op::for_each_field_id<PmUnitConfig>([&]<class Id>(Id) {
-      // i2cDeviceConfigs and embeddedSensorConfigs are allowed to differ
-      // between versioned and default configs
+      // i2cDeviceConfigs, embeddedSensorConfigs and pciDeviceConfigs are
+      // allowed to differ between versioned and default configs
       if constexpr (
           std::is_same_v<
               apache::thrift::op::get_ident<PmUnitConfig, Id>,
               ident::i2cDeviceConfigs> ||
           std::is_same_v<
               apache::thrift::op::get_ident<PmUnitConfig, Id>,
-              ident::embeddedSensorConfigs>) {
+              ident::embeddedSensorConfigs> ||
+          std::is_same_v<
+              apache::thrift::op::get_ident<PmUnitConfig, Id>,
+              ident::pciDeviceConfigs>) {
         return;
       }
 
@@ -1489,6 +1493,11 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
             slotTypeConfigs, *versionedPmUnitConfig.pmUnitConfig())) {
       return false;
     }
+
+    if (!isValidVersionedPciDeviceCoverage(
+            defaultPmUnitConfig, versionedPmUnitConfig)) {
+      return false;
+    }
   }
   return true;
 }
@@ -1502,7 +1511,8 @@ bool ConfigValidator::isValidLedCtrlBlockXcvrCoverage(
   const auto& platformName = *config.platformName();
 
   // TODO: Remove once ladakh/leh ledCtrlBlockConfigs cover all xcvrs
-  if (platformName == "LADAKH800BCLS" || platformName == "LEH800BCLS") {
+  if (platformName == "LADAKH800BCLS" || platformName == "LEH800BCLS" ||
+      platformName == "LADAKH800BCLSM") {
     return true;
   }
 
@@ -1573,6 +1583,48 @@ bool ConfigValidator::isValidXcvrCtrlBlockXcvrCoverage(
   }
 
   return valid;
+}
+
+bool ConfigValidator::isValidVersionedPciDeviceCoverage(
+    const PmUnitConfig& defaultPmUnitConfig,
+    const VersionedPmUnitConfig& versionedPmUnitConfig) {
+  // The default is already validated to cover all xcvrs, so require each
+  // version to cover the same LED/xcvr port set. Compares port sets, not raw
+  // blocks, so re-layouts covering the same ports are allowed.
+  auto coveredPorts = [](const PmUnitConfig& pmUnitConfig,
+                         const auto& getBlocks) {
+    std::set<int16_t> ports;
+    for (const auto& pciDev : *pmUnitConfig.pciDeviceConfigs()) {
+      for (const auto& block : getBlocks(pciDev)) {
+        for (int16_t port = *block.startPort();
+             port < *block.startPort() + *block.numPorts();
+             ++port) {
+          ports.insert(port);
+        }
+      }
+    }
+    return ports;
+  };
+  auto ledCtrlBlocks = [](const PciDeviceConfig& pciDev) -> const auto& {
+    return *pciDev.ledCtrlBlockConfigs();
+  };
+  auto xcvrCtrlBlocks = [](const PciDeviceConfig& pciDev) -> const auto& {
+    return *pciDev.xcvrCtrlBlockConfigs();
+  };
+  const auto& versionedConfig = *versionedPmUnitConfig.pmUnitConfig();
+  if (coveredPorts(defaultPmUnitConfig, ledCtrlBlocks) !=
+      coveredPorts(versionedConfig, ledCtrlBlocks)) {
+    XLOG(ERR)
+        << "Versioned PmUnit LED ctrl coverage differs from default config";
+    return false;
+  }
+  if (coveredPorts(defaultPmUnitConfig, xcvrCtrlBlocks) !=
+      coveredPorts(versionedConfig, xcvrCtrlBlocks)) {
+    XLOG(ERR)
+        << "Versioned PmUnit xcvr ctrl coverage differs from default config";
+    return false;
+  }
+  return true;
 }
 
 bool ConfigValidator::isValidPortRanges(

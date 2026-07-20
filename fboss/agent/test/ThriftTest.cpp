@@ -21,6 +21,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
+#include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/Port.h"
@@ -307,6 +308,9 @@ TEST(ThriftEnum, assertPortSpeeds) {
         break;
       case PortSpeed::TWOHUNDREDG:
         EXPECT_EQ(static_cast<int>(key), 200000);
+        break;
+      case PortSpeed::TWOHUNDREDANDTWELVEPOINTFIVEG:
+        EXPECT_EQ(static_cast<int>(key), 212500);
         break;
       case PortSpeed::FOURHUNDREDG:
         EXPECT_EQ(static_cast<int>(key), 400000);
@@ -832,6 +836,26 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
       distance,
       counterID,
       classID);
+}
+
+TEST_F(ThriftTest, addUnicastRouteWithNonexistentLinkLocalInterfaceThrows) {
+  ThriftHandler handler(sw_);
+  auto route = std::make_unique<UnicastRoute>();
+  route->dest() = ipPrefix("2001:db8::/64");
+  route->adminDistance() = AdminDistance::OPENR;
+
+  for (auto i = 0; i < 4; ++i) {
+    NextHopThrift nexthop;
+    nexthop.address() = toBinaryAddress(IPAddress("fe80:face:b00c::1"));
+    nexthop.address()->ifName() = i == 2 ? "fboss9999" : "fboss1";
+    nexthop.weight() = ECMP_WEIGHT;
+    route->nextHops()->push_back(std::move(nexthop));
+  }
+
+  EXPECT_THROW(
+      handler.addUnicastRoute(
+          static_cast<int16_t>(ClientID::OPENR), std::move(route)),
+      FbossError);
 }
 
 // Test for the ThriftHandler::syncFib method
@@ -3373,6 +3397,14 @@ NextHopThrift makeNextHopThrift(const std::string& ip, int weight = 0) {
   return nhop;
 }
 
+NextHopThrift makeSrv6NextHopThrift(const std::string& ip) {
+  auto nhop = makeNextHopThrift(ip);
+  nhop.srv6SegmentList() = {toBinaryAddress(folly::IPAddress("2001:db8::10"))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
+  return nhop;
+}
+
 NextHopGroup makeGroup(
     const std::string& name,
     const std::vector<std::string>& nhopIps) {
@@ -3385,6 +3417,50 @@ NextHopGroup makeGroup(
   }
   group.nexthops() = std::move(nhops);
   return group;
+}
+
+NextHopGroup makeSrv6Group(
+    const std::string& name,
+    const std::vector<std::string>& nhopIps) {
+  NextHopGroup group;
+  group.name() = name;
+  std::vector<NextHopThrift> nhops;
+  nhops.reserve(nhopIps.size());
+  for (const auto& ip : nhopIps) {
+    nhops.push_back(makeSrv6NextHopThrift(ip));
+  }
+  group.nexthops() = std::move(nhops);
+  return group;
+}
+
+void addUnicastRouteWithNextHops(
+    ThriftHandler& handler,
+    const std::string& prefix,
+    const std::vector<std::string>& nhopIps) {
+  auto network = IPAddress::createNetwork(prefix);
+  auto route = std::make_unique<UnicastRoute>();
+  route->dest()->ip() = toBinaryAddress(network.first);
+  route->dest()->prefixLength() = network.second;
+  for (const auto& ip : nhopIps) {
+    route->nextHopAddrs()->push_back(toBinaryAddress(IPAddress(ip)));
+  }
+  route->adminDistance() = AdminDistance::EBGP;
+  handler.addUnicastRoute(
+      static_cast<int16_t>(ClientID::BGPD), std::move(route));
+}
+
+void addUnicastRouteWithNamedNextHopGroup(
+    ThriftHandler& handler,
+    const std::string& prefix,
+    const std::string& nhgName) {
+  auto network = IPAddress::createNetwork(prefix);
+  auto route = std::make_unique<UnicastRoute>();
+  route->dest()->ip() = toBinaryAddress(network.first);
+  route->dest()->prefixLength() = network.second;
+  route->namedRouteDestination()->nextHopGroup() = nhgName;
+  route->adminDistance() = AdminDistance::EBGP;
+  handler.addUnicastRoute(
+      static_cast<int16_t>(ClientID::BGPD), std::move(route));
 }
 
 } // unnamed namespace
@@ -3531,16 +3607,90 @@ TEST_F(NamedNextHopGroupThriftTest, getAllNamedGroups) {
   EXPECT_EQ(foundNames.count("groupB"), 1);
 }
 
-TEST_F(NamedNextHopGroupThriftTest, getUnnamedNextHopGroups) {
+TEST_F(
+    NamedNextHopGroupThriftTest,
+    getNextHopGroupsIncludesNamedAndFiltersUnnamedSingletons) {
   ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(
+      makeGroup("used", {"2401:db00:2110:3001::2", "2401:db00:2110:3001::3"}));
+  groups->push_back(makeGroup("orphan", {"2401:db00:2110:3055::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+  addUnicastRouteWithNextHops(handler, "2401::101/128", {kNhopAddrA});
+  addUnicastRouteWithNextHops(
+      handler, "2401::102/128", {kNhopAddrA, kNhopAddrB});
 
   std::vector<NextHopGroup> result;
   handler.getNextHopGroups(result);
   ASSERT_FALSE(result.empty());
+
+  const NextHopGroup* usedGroup = nullptr;
+  const NextHopGroup* orphanGroup = nullptr;
   for (const auto& g : result) {
-    EXPECT_FALSE(g.name().has_value());
-    EXPECT_FALSE(g.nexthops()->empty());
+    if (g.name().has_value()) {
+      if (*g.name() == "used") {
+        usedGroup = &g;
+      } else if (*g.name() == "orphan") {
+        orphanGroup = &g;
+      }
+      continue;
+    }
+
+    EXPECT_TRUE(g.isProgrammed().has_value());
+    EXPECT_TRUE(*g.isProgrammed());
+    EXPECT_GE(g.nexthops()->size(), 2);
   }
+
+  ASSERT_NE(usedGroup, nullptr);
+  ASSERT_TRUE(usedGroup->isProgrammed().has_value());
+  EXPECT_FALSE(*usedGroup->isProgrammed());
+
+  ASSERT_NE(orphanGroup, nullptr);
+  ASSERT_TRUE(orphanGroup->isProgrammed().has_value());
+  EXPECT_FALSE(*orphanGroup->isProgrammed());
+  EXPECT_EQ(orphanGroup->nexthops()->size(), 1);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, getNextHopGroupsNamedIsProgrammed) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup("multi_ref", {"2401:db00:2110:3001::2"}));
+  groups->push_back(makeGroup("single_ref", {"2401:db00:2110:3055::2"}));
+  groups->push_back(makeGroup("orphan", {"2401:db00:2110:3001::3"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  addUnicastRouteWithNamedNextHopGroup(handler, "2401::100/128", "multi_ref");
+
+  std::vector<NextHopGroup> allGroups;
+  handler.getNextHopGroups(allGroups);
+
+  std::vector<NextHopGroup> namedGroups;
+  auto emptyNames = std::make_unique<std::vector<std::string>>();
+  handler.getNamedNextHopGroups(namedGroups, std::move(emptyNames));
+
+  std::map<std::string, bool> nameToProgrammedState;
+  for (const auto& group : allGroups) {
+    if (group.name().has_value()) {
+      ASSERT_TRUE(group.isProgrammed().has_value());
+      nameToProgrammedState[*group.name()] = *group.isProgrammed();
+    }
+  }
+
+  std::map<std::string, bool> namedApiProgrammedState;
+  for (const auto& group : namedGroups) {
+    ASSERT_TRUE(group.name().has_value());
+    ASSERT_TRUE(group.isProgrammed().has_value());
+    namedApiProgrammedState[*group.name()] = *group.isProgrammed();
+  }
+
+  ASSERT_EQ(nameToProgrammedState.count("multi_ref"), 1);
+  ASSERT_EQ(nameToProgrammedState.count("single_ref"), 1);
+  ASSERT_EQ(nameToProgrammedState.count("orphan"), 1);
+  EXPECT_FALSE(nameToProgrammedState.at("single_ref"));
+  EXPECT_FALSE(nameToProgrammedState.at("orphan"));
+  EXPECT_EQ(nameToProgrammedState, namedApiProgrammedState);
 }
 
 TEST_F(NamedNextHopGroupThriftTest, removeNextHopGroup) {
@@ -3632,6 +3782,27 @@ TEST_F(NamedNextHopGroupThriftTest, rejectGroupNameExceedingMaxLength) {
       handler.addOrUpdateNamedNextHopGroups(std::move(groups2)), FbossError);
 }
 
+TEST_F(
+    NamedNextHopGroupThriftTest,
+    addGroupWithNonexistentLinkLocalInterfaceThrows) {
+  ThriftHandler handler(sw_);
+
+  NextHopGroup group;
+  group.name() = "group1";
+  std::vector<NextHopThrift> nhops;
+  for (auto i = 0; i < 4; ++i) {
+    auto nh = makeNextHopThrift("fe80:face:b00c::1");
+    nh.address()->ifName() = i == 2 ? "fboss9999" : "fboss1";
+    nhops.push_back(std::move(nh));
+  }
+  group.nexthops() = std::move(nhops);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(group);
+  EXPECT_THROW(
+      handler.addOrUpdateNamedNextHopGroups(std::move(groups)), FbossError);
+}
+
 TEST_F(NamedNextHopGroupThriftTest, rejectsMplsAndSrv6) {
   ThriftHandler handler(sw_);
 
@@ -3687,6 +3858,62 @@ TEST_F(NamedNextHopGroupThriftTest, acceptsSrv6WithValidTunnelType) {
   auto groups = std::make_unique<std::vector<NextHopGroup>>();
   groups->push_back(group);
   EXPECT_NO_THROW(handler.addOrUpdateNamedNextHopGroups(std::move(groups)));
+}
+
+TEST_F(
+    NamedNextHopGroupThriftTest,
+    bindingSidWithNamedNextHopGroupResolvesInSwitchState) {
+  ThriftHandler handler(sw_);
+  constexpr auto kNamedNhg = "bindingSidNHG";
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeSrv6Group(kNamedNhg, {kNhopAddrA, kNhopAddrB}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  auto entry = makeMySidEntry("2001:db8::1", 64, MySidType::BINDING_MICRO_SID);
+  NamedRouteDestination named;
+  named.nextHopGroup() = kNamedNhg;
+  entry.namedNextHops() = named;
+  entries->push_back(std::move(entry));
+  handler.addMySidEntries(std::move(entries));
+
+  auto state = sw_->getState();
+  auto mySid = state->getMySids()->getNodeIf("2001:db8::1/64");
+  ASSERT_NE(mySid, nullptr);
+  ASSERT_TRUE(mySid->getNamedNextHopGroup().has_value());
+  EXPECT_EQ(*mySid->getNamedNextHopGroup(), kNamedNhg);
+  ASSERT_TRUE(mySid->getResolvedNextHopsId().has_value());
+
+  auto fibsInfoMap = state->getFibsInfoMap();
+  ASSERT_NE(fibsInfoMap, nullptr);
+  ASSERT_FALSE(fibsInfoMap->empty());
+  const auto& fibInfo = fibsInfoMap->cbegin()->second;
+  auto resolvedNextHops = fibInfo->resolveNextHopSetFromId(
+      static_cast<NextHopSetId>(*mySid->getResolvedNextHopsId()));
+  ASSERT_EQ(resolvedNextHops.size(), 2);
+
+  std::map<folly::IPAddress, InterfaceID> expectedNhops = {
+      {folly::IPAddress(kNhopAddrA), kInterfaceA},
+      {folly::IPAddress(kNhopAddrB), kInterfaceB},
+  };
+  const std::vector<folly::IPAddressV6> expectedSidList = {
+      folly::IPAddressV6("2001:db8::10"),
+  };
+
+  for (const auto& nextHop : resolvedNextHops) {
+    auto expected = expectedNhops.find(nextHop.addr());
+    ASSERT_NE(expected, expectedNhops.end());
+    ASSERT_TRUE(nextHop.intfID().has_value());
+    EXPECT_EQ(*nextHop.intfID(), expected->second);
+    EXPECT_EQ(nextHop.srv6SegmentList(), expectedSidList);
+    ASSERT_TRUE(nextHop.tunnelType().has_value());
+    EXPECT_EQ(*nextHop.tunnelType(), TunnelType::SRV6_ENCAP);
+    ASSERT_TRUE(nextHop.tunnelId().has_value());
+    EXPECT_EQ(*nextHop.tunnelId(), "tunnel1");
+    expectedNhops.erase(expected);
+  }
+  EXPECT_TRUE(expectedNhops.empty());
 }
 
 TEST_F(NamedNextHopGroupThriftTest, rejectsSrv6WithoutTunnelIdAndNoConfig) {

@@ -1618,11 +1618,11 @@
   "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
   "numXcvrs": 128,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.22-1",
-  "requiredKmodsToLoad": [
+  "bspKmodsRpmVersion": "0.7.26-1",
+  "nonBspKmodsToLoad": [
     "spidev",
     "i2c_i801",
-    "scd",
-    "ledtrig_timer"
+    "ledtrig_timer",
+    "scd_info"
   ]
 }

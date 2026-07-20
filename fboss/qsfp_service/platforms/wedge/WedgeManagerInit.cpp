@@ -172,6 +172,7 @@ std::unique_ptr<WedgeManager> createWedgeManager(
           PlatformType::PLATFORM_TAHANSB800BC>(
           platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_WEDGE800BACT:
+    case PlatformType::PLATFORM_WEDGE800BNHP:
       return createBspWedgeManager<
           Wedge800BACTBspPlatformMapping,
           PlatformType::PLATFORM_WEDGE800BACT>(

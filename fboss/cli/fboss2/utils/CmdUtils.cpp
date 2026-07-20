@@ -476,8 +476,6 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
     const HostInfo& hostInfo,
     const std::string& regex) {
   std::map<std::string, int64_t> counters;
-#ifndef IS_OSS
-  // TODO: sync_getRegexCounters is not available in OSS
   if (utils::isMultiSwitchEnabled(hostInfo)) {
     auto hwAgentQueryFn =
         [&counters,
@@ -491,7 +489,6 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
     utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo)
         ->sync_getRegexCounters(counters, regex);
   }
-#endif
   return counters;
 }
 
@@ -542,7 +539,60 @@ getUncachedSwitchReachabilityInfo(
   return reachabilityMatrix;
 }
 
-RevisionList::RevisionList(std::vector<std::string> v) {
+TrunkVlanAction::TrunkVlanAction(const std::vector<std::string>& v) {
+  if (v.empty()) {
+    throw std::invalid_argument(
+        "VLAN trunk action requires: add|remove <vlan-id-list>");
+  }
+  if (v.size() < 2) {
+    throw std::invalid_argument(
+        "VLAN trunk action requires action and at least one VLAN ID");
+  }
+
+  // Parse action (first argument)
+  std::string action = boost::to_upper_copy(v[0]);
+  if (action == "ADD") {
+    isAdd_ = true;
+  } else if (action == "REMOVE") {
+    isAdd_ = false;
+  } else {
+    throw std::invalid_argument(
+        "Invalid action '" + v[0] + "', expected 'add' or 'remove'");
+  }
+
+  // Parse VLAN IDs (remaining arguments, may be comma-separated)
+  for (size_t i = 1; i < v.size(); ++i) {
+    // Split by comma in case of comma-separated list
+    std::vector<std::string> vlanStrs;
+    folly::split(',', v[i], vlanStrs);
+    for (const auto& vlanStr : vlanStrs) {
+      if (vlanStr.empty()) {
+        continue;
+      }
+      try {
+        int32_t vlanId = folly::to<int32_t>(vlanStr);
+        // VLAN IDs are typically 1-4094 (0 and 4095 are reserved)
+        if (vlanId < 1 || vlanId > 4094) {
+          throw std::invalid_argument(
+              "VLAN ID must be between 1 and 4094 inclusive, got: " +
+              std::to_string(vlanId));
+        }
+        data_.push_back(vlanId);
+      } catch (const folly::ConversionError&) {
+        throw std::invalid_argument(
+            "Invalid VLAN ID: '" + vlanStr +
+            "'. Expected a comma-separated list of VLAN IDs "
+            "(range notation such as 10-20 is not supported)");
+      }
+    }
+  }
+
+  if (data_.empty()) {
+    throw std::invalid_argument("At least one VLAN ID is required");
+  }
+}
+
+RevisionList::RevisionList(const std::vector<std::string>& v) {
   // Validate each revision specifier
   for (const auto& revision : v) {
     if (revision == "current") {

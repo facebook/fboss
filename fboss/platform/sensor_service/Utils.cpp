@@ -84,21 +84,46 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
     return std::nullopt;
   }
 
-  // Keep matching product-name-specific entries if any, else fall back to
-  // entries with no productName.
+  // Select the entries for this hardware, in priority order:
+  //   1. entries whose productName matches the hardware's EEPROM product;
+  //   2. else the "DEFAULT" block, if this unit defines one;
+  //   3. else the plain numerically-versioned entries (no productName).
+  // The chosen set is then narrowed by version below.
+  constexpr auto kDefaultProductName = "DEFAULT";
   auto hwProd = (pmUnitInfo && pmUnitInfo->eepromProductName())
       ? pmUnitInfo->eepromProductName().to_optional()
       : std::nullopt;
-  auto match = [&](const auto& vs) {
+  auto nameMatchesHardware = [&](const auto& vs) {
     return hwProd && vs.productName().to_optional() == hwProd;
   };
-  bool hasMatch =
-      std::any_of(versionedSensors.begin(), versionedSensors.end(), match);
-  std::erase_if(versionedSensors, [&](const auto& vs) {
-    return hasMatch ? !match(vs) : vs.productName().has_value();
-  });
+  auto isDefaultBlock = [&](const auto& vs) {
+    return vs.productName().has_value() &&
+        *vs.productName() == kDefaultProductName;
+  };
+  auto hasNoProductName = [](const auto& vs) {
+    return !vs.productName().has_value();
+  };
+  bool haveExactMatch = std::any_of(
+      versionedSensors.begin(), versionedSensors.end(), nameMatchesHardware);
+  bool haveDefaultBlock = std::any_of(
+      versionedSensors.begin(), versionedSensors.end(), isDefaultBlock);
+  std::vector<VersionedPmSensor> kept;
+  for (auto& vs : versionedSensors) {
+    bool keep = false;
+    if (haveExactMatch) {
+      keep = nameMatchesHardware(vs); // 1. product-specific match
+    } else if (haveDefaultBlock) {
+      keep = isDefaultBlock(vs); // 2. explicit DEFAULT block
+    } else {
+      keep = hasNoProductName(vs); // 3. plain numerically-versioned entries
+    }
+    if (keep) {
+      kept.push_back(std::move(vs));
+    }
+  }
+  versionedSensors = std::move(kept);
 
-  if (hasMatch) {
+  if (haveExactMatch) {
     XLOG(DBG1) << fmt::format(
         "Using product-name-specific VersionedPmSensor for '{}' at {}",
         *hwProd,
@@ -157,13 +182,8 @@ SensorConfig Utils::getConfig() {
   SensorConfig sensorConfig =
       apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
           ConfigLib().getSensorServiceConfig(platformName));
-  if (*sensorConfig.platformName() != platformName.value_or("")) {
-    throw std::runtime_error(
-        fmt::format(
-            "platformName in config '{}' does not match inferred name '{}'",
-            *sensorConfig.platformName(),
-            platformName.value_or("")));
-  }
+  ConfigLib::verifyPlatformNameMatches(
+      *sensorConfig.platformName(), platformName.value_or(""));
   if (!ConfigValidator().isValid(sensorConfig)) {
     throw std::runtime_error("Invalid sensor config");
   }

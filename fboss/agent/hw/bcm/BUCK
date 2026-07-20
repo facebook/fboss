@@ -391,8 +391,8 @@ cpp_library(
         "//folly/logging:logging",
     ],
     exported_external_deps = [
-        "gflags",
         ("broadcom-xgs-robo", None, "xgs_robo"),
+        "gflags",
     ],
 )
 

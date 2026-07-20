@@ -321,6 +321,7 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
 #endif
       std::nullopt, // enable PFC monitoring for the switch
       std::nullopt, // enable cable propagation delay measurement
+      std::nullopt, // enable CL72 link training retry
       std::nullopt, // switching mode
   };
 }

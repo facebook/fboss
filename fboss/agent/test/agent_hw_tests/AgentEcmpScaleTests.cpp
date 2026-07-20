@@ -26,6 +26,11 @@ class AgentEcmpTest : public AgentHwTest {
     return {ProductionFeature::ECMP_LOAD_BALANCER};
   }
 
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // ECMP scale tests build prefixes across the entire interface-port set.
+    return std::nullopt;
+  }
+
  protected:
   void SetUp() override {
     AgentHwTest::SetUp();

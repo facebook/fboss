@@ -1042,6 +1042,11 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeCablePropagationDelayMeasurement::operator()() {
   return SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
+  return SAI_SWITCH_ATTR_PORT_CL72_RETRY_ENABLE;
+}
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 std::optional<sai_attr_id_t>
 SaiArsProfileTraits::Attributes::AttributeArsMaxGroups::operator()() {
@@ -1081,6 +1086,11 @@ std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
 std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
   return SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL;
+}
+
+std::optional<sai_attr_id_t>
+SaiAclEntryTraits::Attributes::AttributeFieldNextHopGroupId::operator()() {
+  return SAI_ACL_ENTRY_ATTR_FIELD_NEXT_HOP_GROUP_ID;
 }
 
 std::optional<sai_attr_id_t>

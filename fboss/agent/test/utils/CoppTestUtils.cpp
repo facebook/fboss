@@ -129,6 +129,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_G202X:
@@ -248,7 +249,8 @@ void addCpuQueueConfig(
   if (setQueueRate) {
     queue0.portQueueRate() = getPortQueueRate(hwAsic, kCoppLowPriQueueId);
   }
-  if (!hwAsic->mmuQgroupsEnabled()) {
+  if (hwAsic->isSupported(HwAsic::Feature::BUFFER_POOL) &&
+      !hwAsic->mmuQgroupsEnabled()) {
     queue0.reservedBytes() = kCoppLowPriReservedBytes;
   }
   setPortQueueSharedBytes(queue0, isSai);
@@ -272,7 +274,8 @@ void addCpuQueueConfig(
     if (setQueueRate) {
       queue1.portQueueRate() = getPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
     }
-    if (!hwAsic->mmuQgroupsEnabled()) {
+    if (hwAsic->isSupported(HwAsic::Feature::BUFFER_POOL) &&
+        !hwAsic->mmuQgroupsEnabled()) {
       queue1.reservedBytes() = kCoppDefaultPriReservedBytes;
     }
     setPortQueueSharedBytes(queue1, isSai);
@@ -349,12 +352,29 @@ void setDefaultCpuTrafficPolicyConfig(
       utility::addAcl(&config, cpuAcls[i].first, cfg::AclStage::INGRESS);
     }
   } else {
+    const bool isQumran4dOrJericho4 =
+        hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+        hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4;
     for (auto stage :
          {cfg::AclStage::INGRESS, cfg::AclStage::INGRESS_POST_LOOKUP}) {
       auto stageCpuAcls = utility::defaultCpuAcls(hwAsic, config, isSai, stage);
 
       for (int i = 0; i < stageCpuAcls.size(); i++) {
-        utility::addAcl(&config, stageCpuAcls[i].first, stage);
+        const auto& acl = stageCpuAcls[i].first;
+        // On Q4D/J4, IPv6 CPU ACLs must be installed in the dedicated IPv6
+        // table.
+        // Route-class-only entries (e.g. IP2Me / unresolved-route) carry no
+        // IPv6 next-header qualifier, so the generic router would place them in
+        // the IPv4 default table where they never match IPv6 packets on DNX;
+        // the IPv6 packets then only encounter the L4-qualified entries (BGP)
+        // in the IPv6 table and fall through to the default queue.
+        if (isQumran4dOrJericho4 && FLAGS_enable_acl_table_group &&
+            stage == cfg::AclStage::INGRESS && acl.etherType().has_value() &&
+            *acl.etherType() == cfg::EtherType::IPv6) {
+          utility::addAclEntry(&config, acl, utility::kIpv6AclTable(), stage);
+        } else {
+          utility::addAcl(&config, acl, stage);
+        }
       }
       cpuAcls.insert(
           cpuAcls.end(),
@@ -563,54 +583,31 @@ void addHighPriAclForNdp(
   auto action =
       createQueueMatchAction(hwAsic, highPriQueueId, isSai, toCpuAction);
 
-  cfg::AclEntry acl1;
-  acl1.etherType() = cfg::EtherType::IPv6;
-  acl1.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
-  acl1.ttl() = ttl;
-  acl1.icmpType() =
-      static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_SOLICITATION);
-  acl1.name() =
-      folly::to<std::string>("cpuPolicing-high-ndp-router-solicit-acl");
-  acls.emplace_back(acl1, action);
+  auto makeNdpAcl = [&](const std::string& name, ICMPv6Type icmpType) {
+    cfg::AclEntry acl;
+    addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
+    acl.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
+    acl.ttl() = ttl;
+    acl.icmpType() = static_cast<uint16_t>(icmpType);
+    acl.name() = name;
+    acls.emplace_back(acl, action);
+  };
 
-  cfg::AclEntry acl2;
-  acl2.etherType() = cfg::EtherType::IPv6;
-  acl2.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
-  acl2.ttl() = ttl;
-  acl2.icmpType() =
-      static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT);
-  acl2.name() =
-      folly::to<std::string>("cpuPolicing-high-ndp-router-advertisement-acl");
-  acls.emplace_back(acl2, action);
-
-  cfg::AclEntry acl3;
-  acl3.etherType() = cfg::EtherType::IPv6;
-  acl3.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
-  acl3.ttl() = ttl;
-  acl3.icmpType() =
-      static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION);
-  acl3.name() =
-      folly::to<std::string>("cpuPolicing-high-ndp-neighbor-solicit-acl");
-  acls.emplace_back(acl3, action);
-
-  cfg::AclEntry acl4;
-  acl4.etherType() = cfg::EtherType::IPv6;
-  acl4.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
-  acl4.ttl() = ttl;
-  acl4.icmpType() =
-      static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT);
-  acl4.name() =
-      folly::to<std::string>("cpuPolicing-high-ndp-neighbor-advertisement-acl");
-  acls.emplace_back(acl4, action);
-
-  cfg::AclEntry acl5;
-  acl5.etherType() = cfg::EtherType::IPv6;
-  acl5.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
-  acl5.ttl() = ttl;
-  acl5.icmpType() =
-      static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_REDIRECT_MESSAGE);
-  acl5.name() = folly::to<std::string>("cpuPolicing-high-ndp-redirect-acl");
-  acls.emplace_back(acl5, action);
+  makeNdpAcl(
+      "cpuPolicing-high-ndp-router-solicit-acl",
+      ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_SOLICITATION);
+  makeNdpAcl(
+      "cpuPolicing-high-ndp-router-advertisement-acl",
+      ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT);
+  makeNdpAcl(
+      "cpuPolicing-high-ndp-neighbor-solicit-acl",
+      ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION);
+  makeNdpAcl(
+      "cpuPolicing-high-ndp-neighbor-advertisement-acl",
+      ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT);
+  makeNdpAcl(
+      "cpuPolicing-high-ndp-redirect-acl",
+      ICMPv6Type::ICMPV6_TYPE_NDP_REDIRECT_MESSAGE);
 }
 
 void addHighPriAclForLacp(
@@ -661,6 +658,37 @@ void addMidPriAclForIp2Me(
       acls,
       createQueueMatchAction(hwAsic, midPriQueueId, isSai, toCpuAction),
       {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
+}
+
+// J4/Q4D do not support DHCP/DHCPv6 rx reason traps. Instead, match DHCP and
+// DHCPv6 explicitly via ACLs (proto UDP + DHCP well-known L4 port as the
+// destination). Matching on the destination port alone covers both directions
+// (client->server and server->client) as well as replies that use an ephemeral
+// source port (e.g. DHCPv6 ADVERTISE). The multi-ACL-table router places the
+// IPv4 entries in the L2+IPv4 table and the IPv6 entries in the IPv6 table.
+void addMidPriAclForDhcp(
+    const HwAsic* hwAsic,
+    cfg::ToCpuAction toCpuAction,
+    int midPriQueueId,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
+  auto action =
+      createQueueMatchAction(hwAsic, midPriQueueId, isSai, toCpuAction);
+  auto makeDhcpAcl =
+      [&](const std::string& name, cfg::EtherType etherType, int l4DstPort) {
+        cfg::AclEntry acl;
+        acl.name() = name;
+        acl.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
+        acl.l4DstPort() = l4DstPort;
+        addEtherTypeToAcl(hwAsic, &acl, etherType);
+        acls.emplace_back(acl, action);
+      };
+  // DHCPv4: client port 68, server port 67
+  makeDhcpAcl("cpuPolicing-mid-dhcp-to-server", cfg::EtherType::IPv4, 67);
+  makeDhcpAcl("cpuPolicing-mid-dhcp-to-client", cfg::EtherType::IPv4, 68);
+  // DHCPv6: client port 546, server port 547
+  makeDhcpAcl("cpuPolicing-mid-dhcpv6-to-server", cfg::EtherType::IPv6, 547);
+  makeDhcpAcl("cpuPolicing-mid-dhcpv6-to-client", cfg::EtherType::IPv6, 546);
 }
 
 void addLowPriAclForUnresolvedRoutes(
@@ -925,6 +953,18 @@ defaultIngressCpuAclsForSai(
           true,
           LldpManager::LLDP_CUSTOMER_BRIDGE_MAC,
           "cpuPolicing-mid-lldp-dstMac00");
+      // J4/Q4D do not use DHCP/DHCPv6 rx reason traps (see
+      // getCoppRxReasonToQueuesForSai); trap DHCP/DHCPv6 to mid pri via ACLs
+      // instead.
+      if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4 ||
+          hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D) {
+        addMidPriAclForDhcp(
+            hwAsic,
+            cfg::ToCpuAction::TRAP,
+            getCoppMidPriQueueId({hwAsic}),
+            acls,
+            true);
+      }
     }
   }
 
@@ -1221,7 +1261,8 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
     };
-    if (hwAsic->getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO4) {
+    if (hwAsic->getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO4 &&
+        hwAsic->getAsicType() != cfg::AsicType::ASIC_TYPE_QUMRAN4D) {
       rxReasonToQueues.push_back(
           ControlPlane::makeRxReasonToQueueEntry(
               cfg::PacketRxReason::DHCP, coppMidPriQueueId));
@@ -1291,7 +1332,7 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForBcm(
           std::pair(cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
           std::pair(cfg::PacketRxReason::CPU_IS_NHOP, kCoppLowPriQueueId)};
   if (hwAsic->isSupported(HwAsic::Feature::L3_MTU_ERROR_TRAP)) {
-    rxReasonToQueueMappings.push_back(
+    rxReasonToQueueMappings.emplace_back(
         std::pair(cfg::PacketRxReason::L3_MTU_ERROR, kCoppLowPriQueueId));
   }
   for (auto rxEntry : rxReasonToQueueMappings) {

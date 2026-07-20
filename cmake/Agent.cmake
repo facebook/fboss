@@ -334,6 +334,7 @@ add_library(core
   fboss/agent/NeighborUpdaterImpl.cpp
   fboss/agent/NeighborUpdaterNoopImpl.cpp
   fboss/agent/NextHopResolver.cpp
+  fboss/agent/PfcUtils.cpp
   fboss/agent/PortUpdateHandler.cpp
   fboss/agent/RemoteNeighborUpdater.cpp
   fboss/agent/ResolvedNexthopMonitor.cpp
@@ -448,6 +449,7 @@ set(core_libs
   thrift_service_utils
   shel_manager
   state_delta_logger
+  switch_state_delta_logger
   dsfnode_utils
   hw_switch_thrift_client_table
   file_based_warmboot_utils
@@ -587,6 +589,22 @@ target_link_libraries(state_delta_logger
   async_logger_base
   state
   fsdb_oper_cpp2
+  Folly::folly
+)
+
+add_library(switch_state_delta_logger
+  fboss/agent/SwitchStateDeltaLogger.cpp
+)
+
+target_link_libraries(switch_state_delta_logger
+  agent_features
+  async_logger_base
+  state
+  state_delta_log_cpp2
+  fsdb_oper_cpp2
+  thrift_cow_serializer
+  fb303::fb303
+  FBThrift::thriftprotocol
   Folly::folly
 )
 

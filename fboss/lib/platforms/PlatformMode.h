@@ -126,6 +126,10 @@ inline std::string toString(PlatformType mode) {
       return "MERU400BFU";
     case PlatformType::PLATFORM_MERU400BIA_DEPRECATED:
       return "MERU400BIA";
+    case PlatformType::PLATFORM_WEDGE800BNHP:
+      return "WEDGE800BNHP";
+    case PlatformType::PLATFORM_M5120CSC:
+      return "M5120CSC";
     case PlatformType::PLATFORM_UNKNOWN:
       return "UNKNOWN";
   }

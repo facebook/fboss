@@ -10,12 +10,15 @@
 #include <functional>
 #include <map>
 #include <optional>
+#include <set>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
 namespace facebook::fboss {
+
+class PlatformMapping;
 
 /**
  * Fboss2IntegrationTest is the base class for CLI end-to-end tests.
@@ -224,6 +227,14 @@ class Fboss2IntegrationTest : public ::testing::Test {
   Interface findFirstEthInterface() const;
 
   /**
+   * Find the first ethernet interface that has a non-zero MTU reported by
+   * 'show interface'. This implies the interface has a configured L3
+   * cfg::Interface entry in the agent, making it suitable for MTU tests.
+   * Returns std::nullopt if no such interface exists (test should GTEST_SKIP).
+   */
+  std::optional<Interface> findFirstEthInterfaceWithMtu() const;
+
+  /**
    * Commit the current configuration session.
    */
   void commitConfig() const;
@@ -288,6 +299,65 @@ class Fboss2IntegrationTest : public ::testing::Test {
       std::chrono::seconds interval = std::chrono::seconds(2)) const;
 
   /**
+   * A port currently present in the agent, keyed elsewhere by logical id.
+   */
+  struct PresentPort {
+    std::string name;
+    std::string profileId; // enum name string
+  };
+
+  /**
+   * A creatable-port scenario derived from the platform mapping: an absent
+   * subport whose controlling port is present. `controllingName` is the present
+   * controlling port; `subportName` is the absent INTERFACE_PORT to create.
+   * `narrowProfile` is a profile the controlling port supports that does NOT
+   * subsume the subport AND that the subport itself supports -- so applying it
+   * to both ports narrows the controlling port and creates the freed subport in
+   * a single command. `subportProfile` is any profile the subport supports.
+   */
+  struct CreatableCandidate {
+    std::string controllingName;
+    std::string controllingProfile; // controlling port's current profile
+    std::string subportName;
+    std::string subportProfile; // a profile the absent subport supports
+    std::string narrowProfile; // frees subport and is supported by it
+  };
+
+  /**
+   * Build a PlatformMapping from the running agent (via getPlatformMapping).
+   */
+  PlatformMapping fetchPlatformMapping() const;
+
+  /**
+   * Ports currently present in the agent (subsumed/removed ports are absent),
+   * keyed by logical id.
+   */
+  std::map<int32_t, PresentPort> fetchPresentPorts() const;
+
+  /**
+   * Enum-name strings of every profile the platform port `id` supports.
+   */
+  std::set<std::string> supportedProfileNames(
+      const PlatformMapping& mapping,
+      int32_t id) const;
+
+  /**
+   * A present controlling port C that currently subsumes an absent subport S,
+   * and a narrower profile C supports that does NOT subsume S and that S also
+   * supports -- so applying that profile to both C and S in one command narrows
+   * C and creates S. Returns nullopt if no such scenario exists on this
+   * platform.
+   */
+  std::optional<CreatableCandidate> findFreeableCandidate() const;
+
+  /**
+   * Poll until the named port disappears from getAllPortInfo (i.e. it was
+   * removed from the config). Returns false if it is still present after the
+   * timeout.
+   */
+  bool waitForPortAbsent(const std::string& portName) const;
+
+  /**
    * Poll getRunningConfig() until condition(config) is true or timeout
    * expires. Thrift exceptions during a poll are swallowed and treated as
    * condition-not-met — the agent may still be coming back up after a
@@ -324,6 +394,28 @@ class Fboss2IntegrationTest : public ::testing::Test {
    */
   void waitForAgentReady(
       std::chrono::seconds timeout = std::chrono::seconds(120)) const;
+
+  /**
+   * Ensure a VLAN + backing cfg::Interface exists in the staged config, then
+   * return that interface's intfID for use as the IP-in-IP tunnel underlay.
+   *
+   * If the VLAN is already present, the existing interface's intfID is
+   * returned and the staged config is left unchanged. Otherwise the VLAN and
+   * a barebone interface are inserted via VlanManager, the staged config is
+   * persisted, and the new intfID is returned.
+   *
+   * The VLAN ID 3998 is reserved for tunnel-test use.
+   */
+  int ensureUnderlayIntfId(int vlanId = 3998) const;
+
+  /**
+   * Return the first IPv6 address (without prefix length) configured on the
+   * interface with the given intfID. If the interface has no IPv6 address
+   * (e.g. one freshly created by ensureUnderlayIntfId), a documentation IPv6
+   * (RFC 3849) is returned as a safe stand-in — the agent does not validate
+   * that dstIp exists on the underlay interface.
+   */
+  std::string findIpv6OnIntf(int intfId) const;
 
  private:
   Interface parseInterfaceJson(const folly::dynamic& data) const;

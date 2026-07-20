@@ -150,6 +150,16 @@ class HwMplsEcmpDataPlaneTestUtil
   MPLSHdr::Label label_;
 };
 
+class HwIpV6FlowLabelEcmpDataPlaneTestUtil
+    : public HwIpEcmpDataPlaneTestUtil<folly::IPAddressV6> {
+ public:
+  using BaseT = HwIpEcmpDataPlaneTestUtil<folly::IPAddressV6>;
+
+  HwIpV6FlowLabelEcmpDataPlaneTestUtil(TestEnsembleIf* ensemble, RouterID vrf);
+
+  void pumpTrafficThroughPort(std::optional<PortID> port) override;
+};
+
 class HwSrv6EcmpDataPlaneTestUtil
     : public HwIpEcmpDataPlaneTestUtil<folly::IPAddressV6> {
  public:
@@ -159,6 +169,18 @@ class HwSrv6EcmpDataPlaneTestUtil
 
   void programRoutes(int ecmpWidth, const std::vector<NextHopWeight>& weights)
       override;
+};
+
+// SRv6 ECMP with traffic varying only the IPv6 flow label (fixed 5-tuple), to
+// exercise flow-label based hashing over SRv6 encap specifically.
+class HwSrv6FlowLabelEcmpDataPlaneTestUtil
+    : public HwSrv6EcmpDataPlaneTestUtil {
+ public:
+  using BaseT = HwSrv6EcmpDataPlaneTestUtil;
+
+  HwSrv6FlowLabelEcmpDataPlaneTestUtil(TestEnsembleIf* ensemble, RouterID vrf);
+
+  void pumpTrafficThroughPort(std::optional<PortID> port) override;
 };
 
 using HwIpV4EcmpDataPlaneTestUtil =

@@ -45,4 +45,93 @@ TEST(SystemInterfaceTest, lsmod) {
   }
 }
 
+// Fake overriding only the low-level host-state reads, so
+// getInstalledBspVersion (the logic under test) runs for real off canned
+// kernel/rpm fixtures.
+class FakeBspSystemInterface : public package_manager::SystemInterface {
+ public:
+  std::string kernelVersion;
+  std::vector<std::string> rpms;
+
+  std::string getHostKernelVersion() const override {
+    return kernelVersion;
+  }
+  std::vector<std::string> getInstalledRpms(
+      const std::string& /* rpmBaseName */) const override {
+    return rpms;
+  }
+};
+
+TEST(BspVersionTest, FromStringParsesTriple) {
+  auto v = package_manager::BspVersion::fromString("0.7.23");
+  ASSERT_TRUE(v.has_value());
+  EXPECT_EQ((*v), (package_manager::BspVersion{0, 7, 23}));
+}
+
+TEST(BspVersionTest, FromStringIgnoresTrailingParts) {
+  // Extra dotted segments beyond the triple are tolerated.
+  auto v = package_manager::BspVersion::fromString("1.2.3.4");
+  ASSERT_TRUE(v.has_value());
+  EXPECT_EQ((*v), (package_manager::BspVersion{1, 2, 3}));
+}
+
+TEST(BspVersionTest, FromStringRejectsNonTriple) {
+  EXPECT_FALSE(package_manager::BspVersion::fromString("1.2").has_value());
+  EXPECT_FALSE(package_manager::BspVersion::fromString("").has_value());
+}
+
+TEST(BspVersionTest, FromStringRejectsNonNumeric) {
+  EXPECT_FALSE(package_manager::BspVersion::fromString("1.x.3").has_value());
+}
+
+TEST(BspVersionTest, Ordering) {
+  using package_manager::BspVersion;
+  EXPECT_LT((BspVersion{0, 7, 22}), (BspVersion{0, 7, 23}));
+  EXPECT_LT((BspVersion{0, 6, 99}), (BspVersion{0, 7, 0}));
+  EXPECT_GE((BspVersion{1, 0, 0}), (BspVersion{0, 7, 23}));
+  EXPECT_EQ((BspVersion{0, 7, 23}), (BspVersion{0, 7, 23}));
+}
+
+TEST(SystemInterfaceTest, GetInstalledBspVersionMatchesRunningKernel) {
+  FakeBspSystemInterface fake;
+  fake.kernelVersion = "6.4.3-mock";
+  fake.rpms = {"arista_bsp_kmods-6.4.3-mock-0.7.25-1.x86_64"};
+  auto v = fake.getInstalledBspVersion("arista_bsp_kmods");
+  ASSERT_TRUE(v.has_value());
+  EXPECT_EQ((*v), (package_manager::BspVersion{0, 7, 25}));
+}
+
+TEST(SystemInterfaceTest, GetInstalledBspVersionPicksRunningKernel) {
+  // Two kernel-variant RPMs installed; the running kernel's version is chosen.
+  FakeBspSystemInterface fake;
+  fake.kernelVersion = "6.4.3-mock";
+  fake.rpms = {
+      "arista_bsp_kmods-6.9.9-other-9.9.9-1.x86_64",
+      "arista_bsp_kmods-6.4.3-mock-0.7.25-1.x86_64"};
+  auto v = fake.getInstalledBspVersion("arista_bsp_kmods");
+  ASSERT_TRUE(v.has_value());
+  EXPECT_EQ((*v), (package_manager::BspVersion{0, 7, 25}));
+}
+
+TEST(SystemInterfaceTest, GetInstalledBspVersionNoKernelMatch) {
+  FakeBspSystemInterface fake;
+  fake.kernelVersion = "6.4.3-mock";
+  fake.rpms = {"arista_bsp_kmods-6.9.9-other-9.9.9-1.x86_64"};
+  EXPECT_FALSE(fake.getInstalledBspVersion("arista_bsp_kmods").has_value());
+}
+
+TEST(SystemInterfaceTest, GetInstalledBspVersionEmptyKernel) {
+  FakeBspSystemInterface fake;
+  fake.kernelVersion = "";
+  fake.rpms = {"arista_bsp_kmods-6.4.3-mock-0.7.25-1.x86_64"};
+  EXPECT_FALSE(fake.getInstalledBspVersion("arista_bsp_kmods").has_value());
+}
+
+TEST(SystemInterfaceTest, GetInstalledBspVersionUnparseableVersion) {
+  FakeBspSystemInterface fake;
+  fake.kernelVersion = "6.4.3-mock";
+  fake.rpms = {"arista_bsp_kmods-6.4.3-mock-notaversion-1.x86_64"};
+  EXPECT_FALSE(fake.getInstalledBspVersion("arista_bsp_kmods").has_value());
+}
+
 }; // namespace facebook::fboss::platform::platform_manager

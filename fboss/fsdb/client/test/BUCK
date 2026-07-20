@@ -4,6 +4,7 @@ load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:go_binary.bzl", "go_binary")
 load("@fbcode_macros//build_defs:go_package.bzl", "go_package")
 load("@fbcode_macros//build_defs:ligen_library.bzl", "ligen_library")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -36,6 +37,7 @@ cpp_unittest(
         "FsdbPublisherTest.cpp",
         "FsdbStreamClientTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fb303:service_data",
         "//fboss/fsdb/client:fsdb_pub_sub",
@@ -58,6 +60,7 @@ cpp_unittest(
     srcs = [
         "FsdbSubManagerTest.cpp",
     ],
+    network_access = network_access_utils.all(),
     deps = [
         "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
         "//fboss/fsdb/client:fsdb_cow_stats_sub_manager",
@@ -77,16 +80,18 @@ cpp_library(
     name = "test_cgo_client_lib",
     srcs = ["test_cgo_client.cpp"],
     headers = ["test_cgo_client.h"],
-    exported_deps = [
+    deps = [
         "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
         "//fboss/fsdb/client:fsdb_pub_sub",
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:string",
-        "//folly:synchronized",
         "//folly/logging:logging",
-        "//folly/synchronization:baton",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//folly:synchronized",
+        "//folly/synchronization:baton",
     ],
 )
 
@@ -117,16 +122,18 @@ cpp_library(
     name = "cgo_subscriber_lib",
     srcs = ["cgo_subscriber.cpp"],
     headers = ["cgo_subscriber.h"],
-    exported_deps = [
+    deps = [
         "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
         "//fboss/fsdb/client:fsdb_cow_stats_sub_manager",
         "//fboss/fsdb/client:fsdb_pub_sub",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:string",
-        "//folly:synchronized",
         "//folly/logging:logging",
-        "//folly/synchronization:baton",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//folly:synchronized",
+        "//folly/synchronization:baton",
     ],
 )
 

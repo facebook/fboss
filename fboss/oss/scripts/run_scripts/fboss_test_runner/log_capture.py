@@ -1,0 +1,274 @@
+#!/usr/bin/env python3
+# @noautodeps
+# (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+"""Per-run log capture for the FBOSS OSS test runner.
+
+Opt-in via the global ``--log-bundle`` flag. When enabled, it collects
+everything from a single ``run_test`` invocation into one per-run directory
+under ``/opt/fboss/logs/run_test/`` so it is easy to inspect and transfer:
+
+- ``command.txt``  -- the exact CLI invocation + environment.
+- ``run_test.log`` -- a tee of this process's stdout+stderr (the runner's own
+  output, the gtest stdout it echoes, and the inherited stderr/glog of the test
+  binaries it spawns), written to both the terminal and the file.
+- service logs and result CSVs, routed into the same directory by their owners.
+
+At the end of the run the directory is zipped into a sibling ``.zip`` for easy
+copy off the switch.
+"""
+
+from __future__ import annotations
+
+import glob
+import os
+import shlex
+import shutil
+import socket
+import subprocess
+import sys
+from collections.abc import Mapping
+from datetime import datetime
+
+# Root under which every run's per-run directory is created.
+RUN_TEST_LOG_ROOT = "/opt/fboss/logs/run_test"
+
+# Global, opt-in flag that turns on per-run log capture + bundling.
+LOG_BUNDLE_FLAG = "--log-bundle"
+
+
+def derive_test_type(argv: list[str]) -> str | None:
+    """Return the test-type subcommand from ``argv`` (the first positional token).
+
+    Any leading flags are skipped. Returns ``None`` when no subcommand is
+    present. Used to fast-fail a bare invocation before the (slower) env setup
+    and to name the per-run log directory.
+    """
+    for token in argv[1:]:
+        if not token.startswith("-"):
+            return token
+    return None
+
+
+def build_run_dir_name(timestamp: str, test_type: str | None) -> str:
+    """Build the per-run directory's basename, styled after FBOSS log archives
+    (``<name>.log-<timestamp>``, e.g. ``run_test_sai.log-20260617141138``)."""
+    name = f"run_test_{test_type}" if test_type else "run_test"
+    return f"{name}.log-{timestamp}"
+
+
+def build_command_file_contents(
+    argv: list[str],
+    env: Mapping[str, str],
+    timestamp: str,
+    hostname: str,
+) -> str:
+    """Render ``command.txt``: the copy-pasteable command plus a small header."""
+    return (
+        "\n".join(
+            [
+                f"timestamp: {timestamp}",
+                f"hostname: {hostname}",
+                f"command: {shlex.join(argv)}",
+                f"FBOSS_BIN: {env.get('FBOSS_BIN', '')}",
+                f"FBOSS_LIB: {env.get('FBOSS_LIB', '')}",
+            ]
+        )
+        + "\n"
+    )
+
+
+def create_log_bundle(run_dir: str) -> str:
+    """Zip ``run_dir`` into a sibling ``<run_dir>.zip`` and return the zip path."""
+    base = run_dir.rstrip("/")
+    return shutil.make_archive(
+        base, "zip", root_dir=os.path.dirname(base), base_dir=os.path.basename(base)
+    )
+
+
+def collect_service_logs(run_dir: str, source_dir: str = "/opt/fboss/logs") -> None:
+    """Copy the systemd service logs (``<source_dir>/*.log`` -- hw_agent, fsdb,
+    qsfp, ...) into ``run_dir`` so the bundle is self-contained. Best-effort: a
+    missing source dir or unreadable file is skipped rather than failing the run.
+    """
+    for log_path in glob.glob(os.path.join(source_dir, "*.log")):
+        try:
+            shutil.copy2(log_path, run_dir)
+        except OSError as e:
+            print(f"Could not collect service log {log_path}: {e}")
+
+
+def collect_result_csvs(run_dir: str, since: float, source_dir: str = ".") -> None:
+    """Copy this run's result CSVs into ``run_dir``.
+
+    The runners write ``*.csv`` results into the cwd (``source_dir``); copy only
+    those modified at or after ``since`` (a Unix timestamp, the run's start) so
+    stale CSVs from earlier runs -- whose uniquely timestamped names otherwise
+    pile up in the cwd -- are not swept into the bundle. Best-effort: an
+    unreadable file is reported and skipped rather than failing the run.
+    """
+    for csv_path in glob.glob(os.path.join(source_dir, "*.csv")):
+        try:
+            if os.path.getmtime(csv_path) >= since:
+                shutil.copy2(csv_path, run_dir)
+        except OSError as e:
+            print(f"Could not collect result CSV {csv_path}: {e}")
+
+
+def collect_system_logs(run_dir: str, messages_path: str = "/var/log/messages") -> None:
+    """Collect host system logs into ``run_dir``: the kernel ring buffer
+    (``dmesg -T``) as ``dmesg.log`` and a copy of ``messages_path``
+    (``/var/log/messages``). Best-effort -- a missing command/file, permission
+    error, or non-zero exit is reported and skipped rather than failing the run.
+    """
+    try:
+        # Fully hardcoded command; ``dmesg -T`` renders human-readable timestamps.
+        result = subprocess.run(
+            ["dmesg", "-T"], capture_output=True, text=True, check=True
+        )
+        with open(os.path.join(run_dir, "dmesg.log"), "w") as f:
+            f.write(result.stdout)
+    except (OSError, subprocess.SubprocessError) as e:
+        print(f"Could not collect dmesg: {e}")
+
+    try:
+        shutil.copy2(messages_path, run_dir)
+    except OSError as e:
+        print(f"Could not collect {messages_path}: {e}")
+
+
+class _OutputTee:
+    """Tee this process's stdout+stderr to a file while keeping terminal output.
+
+    Equivalent to ``2>&1 | tee <log>``: stdout and stderr (fds 1 and 2) are
+    redirected into a ``tee`` subprocess that writes every byte to both the log
+    file and its own stdout, which we point at the original terminal. Because
+    child processes inherit fds 1/2, the test binaries' stderr/glog is captured
+    automatically.
+    """
+
+    def __init__(self, log_path: str) -> None:
+        self._log_path = log_path
+        self._tee: subprocess.Popen | None = None
+        self._saved_stdout_fd: int | None = None
+        self._saved_stderr_fd: int | None = None
+
+    def start(self) -> None:
+        sys.stdout.flush()
+        sys.stderr.flush()
+        self._saved_stdout_fd = os.dup(1)
+        self._saved_stderr_fd = os.dup(2)
+        try:
+            # tee writes its stdin to the log file and to its stdout, which we aim
+            # at the real terminal (the saved fd). Default tee truncates the file,
+            # matching the prior O_WRONLY|O_TRUNC behavior.
+            self._tee = subprocess.Popen(
+                ["tee", self._log_path],
+                stdin=subprocess.PIPE,
+                stdout=self._saved_stdout_fd,
+            )
+        except OSError:
+            # tee failed to spawn (missing binary, fd/memory exhaustion). Close the
+            # fds we just dup'd so they don't leak -- stop() bails out while _tee is
+            # None -- then re-raise.
+            os.close(self._saved_stdout_fd)
+            os.close(self._saved_stderr_fd)
+            self._saved_stdout_fd = None
+            self._saved_stderr_fd = None
+            raise
+        # Route this process's (and its children's) stdout+stderr into tee.
+        tee_stdin_fd = self._tee.stdin.fileno()
+        os.dup2(tee_stdin_fd, 1)
+        os.dup2(tee_stdin_fd, 2)
+
+    def stop(self) -> None:
+        if self._tee is None:
+            return
+        sys.stdout.flush()
+        sys.stderr.flush()
+        # Restore the real fds, then close our copy of tee's stdin. tee sees EOF
+        # (and exits) only once all three write-ends -- fd 1, fd 2, tee.stdin --
+        # are closed.
+        os.dup2(self._saved_stdout_fd, 1)
+        os.dup2(self._saved_stderr_fd, 2)
+        self._tee.stdin.close()
+        self._tee.wait()
+        os.close(self._saved_stdout_fd)
+        os.close(self._saved_stderr_fd)
+        self._tee = None
+
+    def __enter__(self) -> _OutputTee:
+        self.start()
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.stop()
+
+
+class LogCapture:
+    """Capture everything from one ``run_test`` invocation into a per-run bundle.
+
+    Use as a context manager around the test run::
+
+        with LogCapture(test_type):
+            args.func(args)
+
+    On enter: create the per-run directory (``run_test_<type>.log-<timestamp>``
+    under ``root``), record the command in ``command.txt``, and tee this
+    process's stdout+stderr (and the inherited output of the test binaries it
+    spawns) into ``run_test.log``. On exit (even if the run fails): stop the tee,
+    pull in the service logs and this run's result CSVs, and zip the directory
+    into a sibling ``.zip``.
+    """
+
+    def __init__(self, test_type: str | None, *, root: str = RUN_TEST_LOG_ROOT) -> None:
+        self._test_type = test_type
+        self._root = root
+        self._run_dir: str = ""
+        self._run_start: float = 0.0
+        self._tee: _OutputTee | None = None
+
+    def start(self) -> None:
+        now = datetime.now()
+        # Unix start time, used to pick out only THIS run's result CSVs at the end.
+        self._run_start = now.timestamp()
+        # Compact timestamp for the dir/zip name (FBOSS log-archive style); a
+        # readable form goes inside command.txt.
+        self._run_dir = os.path.join(
+            self._root,
+            build_run_dir_name(now.strftime("%Y%m%d%H%M%S"), self._test_type),
+        )
+        os.makedirs(self._run_dir, exist_ok=True)
+        self._tee = _OutputTee(os.path.join(self._run_dir, "run_test.log"))
+        self._tee.start()
+        self._write_command_file(now.strftime("%Y-%m-%d %H:%M:%S"))
+
+    def stop(self) -> None:
+        if self._tee is not None:
+            self._tee.stop()
+        # Pull the systemd service logs (hw_agent/fsdb/qsfp/...), host system logs
+        # (dmesg, /var/log/messages), and this run's result CSVs into the run dir
+        # so the bundle is self-contained, then zip the whole directory.
+        collect_service_logs(self._run_dir)
+        collect_result_csvs(self._run_dir, self._run_start)
+        collect_system_logs(self._run_dir)
+        try:
+            print(f"Run logs bundled at: {create_log_bundle(self._run_dir)}")
+        except OSError as e:
+            print(f"Failed to bundle run logs in {self._run_dir}: {e}")
+
+    def __enter__(self) -> LogCapture:
+        self.start()
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.stop()
+
+    def _write_command_file(self, timestamp: str) -> None:
+        """Record the exact CLI invocation + environment for this run."""
+        with open(os.path.join(self._run_dir, "command.txt"), "w") as f:
+            f.write(
+                build_command_file_contents(
+                    sys.argv, os.environ, timestamp, socket.gethostname()
+                )
+            )

@@ -7,7 +7,6 @@ import subprocess
 import time
 from argparse import ArgumentParser
 
-import run_test
 from fboss_test_runner.runners.test_runner import TestRunner
 from fboss_test_runner.services.fboss_agent_utils import (
     cleanup_hw_agent_service,
@@ -91,7 +90,7 @@ class Fboss2IntegrationTestRunner(TestRunner):
         return self._AGENT_CONFIG_PATH
 
     def _get_known_bad_tests_file(self) -> str:
-        args = run_test.args
+        args = self.args
         if args.known_bad_tests_file:
             if os.path.exists(args.known_bad_tests_file):
                 print(
@@ -119,7 +118,7 @@ class Fboss2IntegrationTestRunner(TestRunner):
         return []
 
     def _setup_run(self, conf_file: str) -> None:
-        args = run_test.args
+        args = self.args
         self._switch_indexes = list(range(args.num_npus))
         self._is_prod_multi_switch = all(
             is_agent_running(
@@ -167,9 +166,8 @@ class Fboss2IntegrationTestRunner(TestRunner):
         # establishes a clean state (in prod multi-switch the running agents
         # still hold the old config until rebooted).
         if self._initial_coldboot_done:
-            args = run_test.args
             # Aggressive override: skip all per-test cold boots after the first.
-            if getattr(args, "skip_coldboot", False):
+            if getattr(self.args, "skip_coldboot", False):
                 print("########## Skipping per-test cold boot (--skip-coldboot).")
                 return
             # Default: reuse the already-running agents and only cold boot when

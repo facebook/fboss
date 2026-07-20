@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_optics_phy")
@@ -10,6 +11,7 @@ cpp_unittest(
         "SffTest.cpp",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/qsfp_service/module:qsfp-module",
         "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
@@ -25,10 +27,12 @@ cpp_unittest(
         "CmisTest.cpp",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    network_access = network_access_utils.none(),
     deps = [
         ":fake-transceiver-impl",
         ":transceiver-tests-helper",
         "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
         "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
         "//fboss/qsfp_service/test:transceiver_manager_test_helper",
         "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
@@ -45,6 +49,7 @@ cpp_unittest(
         "MockTransceiverImpl.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/agent:switch_config-cpp2-types",
@@ -62,6 +67,7 @@ cpp_unittest(
         "I2cLogBufferTest.cpp",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/lib/usb:transceiver_access_parameter",
         "//fboss/qsfp_service/module:i2c_log_buffer",
@@ -98,12 +104,14 @@ cpp_library(
         "FakeTransceiverImpl.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
-    exported_deps = [
+    deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/lib/usb:i2-api",
         "//fboss/qsfp_service:transceiver-manager",
-        "//fboss/qsfp_service/module:firmware_upgrader",
         "//fboss/qsfp_service/module:qsfp-module",
+    ],
+    exported_deps = [
+        "//fboss/qsfp_service/module:firmware_upgrader",
     ],
 )
 
@@ -116,8 +124,8 @@ cpp_library(
         "TransceiverTestsHelper.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = ["fbsource//third-party/googletest:gtest"],
     exported_deps = [
-        "fbsource//third-party/googletest:gtest",
         "//fboss/qsfp_service/module:qsfp-module",
     ],
 )

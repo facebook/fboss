@@ -30,6 +30,10 @@ class AgentL3ForwardingTest : public AgentHwTest {
     return getVlanIDForTx();
   }
   InterfaceID kIntfID() const {
+    if (getSw()->getSwitchInfoTable().haveVoqSwitches()) {
+      return firstInterfaceIDWithPortsForTesting(
+          getProgrammedState(), cfg::Scope::GLOBAL);
+    }
     return firstInterfaceIDWithPortsForTesting(getProgrammedState());
   }
 

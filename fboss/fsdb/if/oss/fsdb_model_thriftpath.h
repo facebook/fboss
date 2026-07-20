@@ -3572,7 +3572,8 @@ std::pair<apache::thrift::ident::memory_profiling_config, ChildThriftPath<::face
 std::pair<apache::thrift::ident::enable_optimized_GR, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<apache::thrift::ident::enable_eibgp_multipath, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<apache::thrift::ident::update_group_config, ChildThriftPath<::facebook::bgp::thrift::UpdateGroupConfig, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<apache::thrift::ident::enable_policy_default_action, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+std::pair<apache::thrift::ident::enable_policy_default_action, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<apache::thrift::ident::next_hop_tracking_use_openr_igp_cost, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -3593,6 +3594,7 @@ std::pair<apache::thrift::ident::enable_policy_default_action, Child<bool, ::apa
     STRUCT_CHILD_GETTERS(enable_eibgp_multipath, 14);
     STRUCT_CHILD_GETTERS(update_group_config, 15);
     STRUCT_CHILD_GETTERS(enable_policy_default_action, 16);
+    STRUCT_CHILD_GETTERS(next_hop_tracking_use_openr_igp_cost, 17);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -3611,6 +3613,7 @@ std::pair<apache::thrift::ident::enable_policy_default_action, Child<bool, ::apa
     else if constexpr (__id == apache::thrift::FieldId{14}) { return enable_eibgp_multipath(); }
     else if constexpr (__id == apache::thrift::FieldId{15}) { return update_group_config(); }
     else if constexpr (__id == apache::thrift::FieldId{16}) { return enable_policy_default_action(); }
+    else if constexpr (__id == apache::thrift::FieldId{17}) { return next_hop_tracking_use_openr_igp_cost(); }
   }
 };
 
@@ -15248,7 +15251,7 @@ std::pair<apache::thrift::ident::roceMask, ChildThriftPath<::std::vector<::std::
 std::pair<apache::thrift::ident::udfTable, ChildThriftPath<::std::vector<::facebook::fboss::cfg::AclUdfEntry>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::l4DstPortRange, ChildThriftPath<::facebook::fboss::cfg::Range, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::trafficClass, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
-std::pair<apache::thrift::ident::namedNextHopGroup, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+std::pair<apache::thrift::ident::nextHopGroupId, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -15288,7 +15291,7 @@ std::pair<apache::thrift::ident::namedNextHopGroup, Child<::std::string, ::apach
     STRUCT_CHILD_GETTERS(udfTable, 32);
     STRUCT_CHILD_GETTERS(l4DstPortRange, 33);
     STRUCT_CHILD_GETTERS(trafficClass, 34);
-    STRUCT_CHILD_GETTERS(namedNextHopGroup, 35);
+    STRUCT_CHILD_GETTERS(nextHopGroupId, 35);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -15326,7 +15329,7 @@ std::pair<apache::thrift::ident::namedNextHopGroup, Child<::std::string, ::apach
     else if constexpr (__id == apache::thrift::FieldId{32}) { return udfTable(); }
     else if constexpr (__id == apache::thrift::FieldId{33}) { return l4DstPortRange(); }
     else if constexpr (__id == apache::thrift::FieldId{34}) { return trafficClass(); }
-    else if constexpr (__id == apache::thrift::FieldId{35}) { return namedNextHopGroup(); }
+    else if constexpr (__id == apache::thrift::FieldId{35}) { return nextHopGroupId(); }
   }
 };
 

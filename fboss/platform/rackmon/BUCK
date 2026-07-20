@@ -4,6 +4,7 @@ load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:custom_rule.bzl", "custom_rule")
 load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
 load("@fbcode_macros//build_defs:native_rules.bzl", "buck_filegroup", "buck_sh_binary")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_platform")
 
@@ -19,11 +20,13 @@ cpp_library(
         "RackmonConfig.h",
         "RackmonThriftHandler.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/glog:glog",
+        "//fb303:service_data",
+    ],
+    exported_deps = [
         ":core",
         ":rackmon_pls",
-        "//fb303:service_data",
         "//fboss/platform/rackmon/if:rackmonsvc-cpp2-services",
     ],
 )
@@ -113,8 +116,8 @@ cpp_library(
         "fbsource//third-party/glog:glog",
     ],
     exported_external_deps = [
-        "nlohmann_json",
         ("libgpiod", None, "gpiod"),
+        "nlohmann_json",
     ],
 )
 
@@ -183,6 +186,7 @@ cpp_unittest(
     include_paths = [
         ".",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//common/services/cpp:cpp",
         "//fboss/platform/rackmon:core",

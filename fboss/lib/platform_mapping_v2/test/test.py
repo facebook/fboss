@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.gen import read_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
+from fboss.lib.platform_mapping_v2.read_files_utils import read_platform_descriptor
 from neteng.fboss.phy.phy.thrift_types import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
@@ -549,6 +550,39 @@ class TestPlatformMappingGeneration(unittest.TestCase):
         self._verify_multi_npu_platform_mapping(
             platform_mapping, self._get_expected_override_factors()
         )
+
+    def test_read_platform_descriptor_variant_attributes(self) -> None:
+        descriptor = read_platform_descriptor(
+            {
+                "test_platform_descriptor.csv": "\n".join(
+                    [
+                        "System_Vendor,Platform_Type,Product_Name_Prefixes,Mode_Names,Asic_Type,Variant_Attributes",
+                        "celestica,PLATFORM_TAHANSB800BC,TAHANSB800BC,tahansb800bc,ASIC_TYPE_TOMAHAWK6,test_fixture=true;rack=false",
+                    ]
+                )
+            },
+            "test",
+        )
+
+        self.assertEqual(
+            descriptor["variantAttributes"],
+            {"test_fixture": True, "rack": False},
+        )
+
+    def test_read_platform_descriptor_without_variant_attributes(self) -> None:
+        descriptor = read_platform_descriptor(
+            {
+                "test_platform_descriptor.csv": "\n".join(
+                    [
+                        "System_Vendor,Platform_Type,Product_Name_Prefixes,Mode_Names,Asic_Type",
+                        "celestica,PLATFORM_TAHANSB800BC,TAHANSB800BC,tahansb800bc,ASIC_TYPE_TOMAHAWK6",
+                    ]
+                )
+            },
+            "test",
+        )
+
+        self.assertNotIn("variantAttributes", descriptor)
 
 
 def run_tests() -> None:

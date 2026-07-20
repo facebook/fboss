@@ -20,7 +20,7 @@
 
 namespace facebook::fboss::utils {
 
-InterfaceList::InterfaceList(std::vector<std::string> names)
+InterfaceList::InterfaceList(std::vector<std::string> names, bool allowMissing)
     : names_(std::move(names)) {
   // Get the PortMap from the session
   auto& portMap = ConfigSession::getInstance().getPortMap();
@@ -51,7 +51,7 @@ InterfaceList::InterfaceList(std::vector<std::string> names)
       }
     }
 
-    if (!intf.isValid()) {
+    if (!intf.isValid() && !allowMissing) {
       notFound.push_back(name);
     } else {
       data_.push_back(intf);

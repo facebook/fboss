@@ -249,7 +249,8 @@ class AgentSrv6DecapTest : public AgentHwTest {
     }
     ASSERT_TRUE(expectedUdp.has_value());
 
-    utility::SwSwitchPacketSnooper snooper(this->getSw(), "srv6DecapSnooper");
+    utility::SwSwitchPacketSnooper snooper(
+        this->getSw(), "srv6DecapSnooper", egressPort);
 
     if (injectPort.has_value()) {
       this->getSw()->sendPacketOutOfPortAsync(

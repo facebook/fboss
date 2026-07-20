@@ -15,7 +15,6 @@
 #include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {

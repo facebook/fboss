@@ -76,7 +76,7 @@ class AgentPfcConfigTest : public AgentHwTest {
     auto buffer = utility::PfcBufferParams::getPfcBufferParams(
         getAgentEnsemble()->getL3Asics().front()->getAsicType());
     utility::setupPfcBuffers(
-        getAgentEnsemble(), cfg, ports, kLosslessPgs(), {}, {}, buffer);
+        getAgentEnsemble(), cfg, ports, kLosslessPgs(), {}, buffer);
 
     for (const auto& portID : ports) {
       auto portCfg = utility::findCfgPort(cfg, portID);
@@ -201,30 +201,6 @@ class AgentPfcConfigTest : public AgentHwTest {
     auto portCfg = utility::findCfgPort(currentConfig, portId);
     portCfg->pfc().reset();
     applyNewConfig(currentConfig);
-  }
-
-  // Run the various enabled/disabled combinations of PFC RX/TX
-  void runPfcTest(bool rxEnabled, bool txEnabled) {
-    auto setup = [=, this]() {
-      auto currentConfig = initialConfig(*getAgentEnsemble());
-      setupPfc(currentConfig, this->portIdsForTest()[0], rxEnabled, txEnabled);
-    };
-
-    auto verify = [=, this]() {
-      auto portId = this->portIdsForTest()[0];
-      bool pfcRx = getAgentEnsemble()
-                       ->getHwAgentTestClient(getSwitchId(portId))
-                       ->sync_getPfcEnabled(static_cast<int32_t>(portId), true);
-      bool pfcTx =
-          getAgentEnsemble()
-              ->getHwAgentTestClient(getSwitchId(portId))
-              ->sync_getPfcEnabled(static_cast<int32_t>(portId), false);
-
-      EXPECT_EQ(pfcRx, rxEnabled);
-      EXPECT_EQ(pfcTx, txEnabled);
-    };
-
-    verifyAcrossWarmBoots(setup, verify);
   }
 
   // Removes PFC configuration for port, but dont apply
@@ -355,20 +331,55 @@ TEST_F(AgentPfcConfigTest, PfcDefaultProgramming) {
   runPfcNotConfiguredTest(false, false);
 }
 
-TEST_F(AgentPfcConfigTest, PfcRxDisabledTxDisabled) {
-  runPfcTest(false, false);
-}
+TEST_F(AgentPfcConfigTest, PfcRxTxCombinations) {
+  // Setup applies RX+TX enabled so warmboot verifies this state persists.
+  auto setup = [this]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    setupPfc(cfg, portIdsForTest()[0], true /* rxEn */, true /* txEn */);
+  };
 
-TEST_F(AgentPfcConfigTest, PfcRxEnabledTxDisabled) {
-  runPfcTest(true, false);
-}
+  auto verify = [this]() {
+    auto portId = portIdsForTest()[0];
 
-TEST_F(AgentPfcConfigTest, PfcRxDisabledTxEnabled) {
-  runPfcTest(false, true);
-}
+    // Read back the warmboot-persisted state (RX=true, TX=true from setup)
+    // before applying any new config.
+    bool pfcRx = getAgentEnsemble()
+                     ->getHwAgentTestClient(getSwitchId(portId))
+                     ->sync_getPfcEnabled(static_cast<int32_t>(portId), true);
+    bool pfcTx = getAgentEnsemble()
+                     ->getHwAgentTestClient(getSwitchId(portId))
+                     ->sync_getPfcEnabled(static_cast<int32_t>(portId), false);
+    EXPECT_TRUE(pfcRx);
+    EXPECT_TRUE(pfcTx);
 
-TEST_F(AgentPfcConfigTest, PfcRxEnabledTxEnabled) {
-  runPfcTest(true, true);
+    // Iterate through remaining RX/TX combinations.
+    for (auto [rxEn, txEn] : std::vector<std::pair<bool, bool>>{
+             {false, false}, {true, false}, {false, true}}) {
+      // Asymmetric PFC (TX != RX) is unsupported on TAJO SDK platforms.
+      if (rxEn != txEn &&
+          getAgentEnsemble()->getL3Asics().front()->getAsicVendor() ==
+              HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+        continue;
+      }
+      auto cfg = initialConfig(*getAgentEnsemble());
+      setupPfc(cfg, portId, rxEn, txEn);
+      pfcRx = getAgentEnsemble()
+                  ->getHwAgentTestClient(getSwitchId(portId))
+                  ->sync_getPfcEnabled(static_cast<int32_t>(portId), true);
+      pfcTx = getAgentEnsemble()
+                  ->getHwAgentTestClient(getSwitchId(portId))
+                  ->sync_getPfcEnabled(static_cast<int32_t>(portId), false);
+      EXPECT_EQ(pfcRx, rxEn);
+      EXPECT_EQ(pfcTx, txEn);
+    }
+
+    // Restore to setup config so warmboot always preserves {true, true} and
+    // the post-warmboot verify reads the expected state.
+    auto cfg = initialConfig(*getAgentEnsemble());
+    setupPfc(cfg, portId, true /* rxEn */, true /* txEn */);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 // Try a sequence of configuring, modifying and removing PFC watchdog.
@@ -431,6 +442,28 @@ TEST_F(AgentPfcConfigTest, PfcWatchdogProgrammingSequence) {
            600,
            cfg::PfcWatchdogRecoveryAction::DROP,
            "Change just the recovery timer and ensure programming"});
+    } else if (
+        getAgentEnsemble()->getL3Asics().front()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_YUBA ||
+        getAgentEnsemble()->getL3Asics().front()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_G202X) {
+      // Cisco Silicon One (YUBA/G202X) requires timer values to be a multiple
+      // of the 25ms HW polling granularity.
+      configTest.push_back(
+          {25,
+           400,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog is enabled with specified configs"});
+      configTest.push_back(
+          {150,
+           400,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Change just the detection timer and ensure programming"});
+      configTest.push_back(
+          {150,
+           200,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Change just the recovery timer and ensure programming"});
     } else {
       configTest.push_back(
           {5,
@@ -485,6 +518,20 @@ TEST_F(AgentPfcConfigTest, PfcWatchdogProgrammingSequence) {
       // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
       setupPfcWdAndValidateProgramming(
           {200,
+           500,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Enable PFC watchdog on more ports and validate programming"},
+          portId2,
+          currentConfig);
+    } else if (
+        getAgentEnsemble()->getL3Asics().front()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_YUBA ||
+        getAgentEnsemble()->getL3Asics().front()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_G202X) {
+      // Cisco Silicon One (YUBA/G202X) requires timer values to be a multiple
+      // of the 25ms HW polling granularity.
+      setupPfcWdAndValidateProgramming(
+          {150,
            500,
            cfg::PfcWatchdogRecoveryAction::DROP,
            "Enable PFC watchdog on more ports and validate programming"},

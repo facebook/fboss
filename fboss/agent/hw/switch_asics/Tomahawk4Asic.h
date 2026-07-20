@@ -46,6 +46,9 @@ class Tomahawk4Asic : public BroadcomXgsAsic {
   uint32_t getMMUCellSize() const {
     return 254;
   }
+  uint32_t getNumCellsAvailable(PlatformType /*platformType*/) const override {
+    return 223662;
+  }
   std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {

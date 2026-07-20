@@ -122,6 +122,7 @@ DEFINE_string(
     "Turn on SAI SDK logging. Options are DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL");
 
 DECLARE_bool(enable_acl_table_group);
+DECLARE_bool(srv6);
 
 DEFINE_bool(
     force_recreate_acl_tables,
@@ -1234,7 +1235,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       delta.getFabricLinkMonitoringSystemPortsDelta(),
       managerTable_->systemPortManager(),
       lockPolicy,
-      &SaiSystemPortManager::removeFabricLinkMonitoringSystemPort);
+      &SaiSystemPortManager::removeFabricLinkMonitoringSystemPort,
+      delta.oldState());
   processRemovedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
@@ -1284,7 +1286,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       delta.getFabricLinkMonitoringSystemPortsDelta(),
       managerTable_->systemPortManager(),
       lockPolicy,
-      &SaiSystemPortManager::addFabricLinkMonitoringSystemPort);
+      &SaiSystemPortManager::addFabricLinkMonitoringSystemPort,
+      delta.newState());
   processAddedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
@@ -1692,7 +1695,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiAclTableManager::changedAclEntry,
         &SaiAclTableManager::addAclEntry,
         &SaiAclTableManager::removeAclEntry,
-        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        delta.newState());
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -1769,7 +1773,13 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
         saiSwitchId_,
         SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
-    if (platform_->getAsic()->isSupported(
+    // AvailableMySidEntry is only queryable when the SDK is initialized with
+    // mySid stat support (sai_stats_support), which is config dependent and
+    // independent of the static ASIC capability. Gate on FLAGS_srv6 so
+    // non-SRv6 configs do not issue a get that would mark all resource stats
+    // stale.
+    if (FLAGS_srv6 &&
+        platform_->getAsic()->isSupported(
             HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER)) {
       hwResourceStats_.my_sid_entries_free() = switchApi.getAttribute(
           saiSwitchId_, SaiSwitchTraits::Attributes::AvailableMySidEntry{});
@@ -3905,7 +3915,8 @@ void SaiSwitch::packetRxCallback(
    * and send it to sw switch for processing.
    */
   bool allowMissingSrcPort = hostifTrapSaiIdOpt.has_value() &&
-      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO &&
+      (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) &&
       isMissingSrcPortAllowed(hostifTrapSaiIdOpt.value());
 
   if (!portSaiIdOpt && !allowMissingSrcPort) {
@@ -5259,7 +5270,8 @@ void SaiSwitch::processAclTableGroupDelta(
         &SaiAclTableManager::changedAclTable,
         &SaiAclTableManager::addAclTable,
         &SaiAclTableManager::removeAclTable,
-        aclStage);
+        aclStage,
+        delta.newState());
 
     if (delta.getAclTablesDelta(aclStage).getNew()) {
       // Process delta for the entries of each table in the new state
@@ -5274,7 +5286,8 @@ void SaiSwitch::processAclTableGroupDelta(
             &SaiAclTableManager::changedAclEntry,
             &SaiAclTableManager::addAclEntry,
             &SaiAclTableManager::removeAclEntry,
-            tableName);
+            tableName,
+            delta.newState());
       }
     }
   }

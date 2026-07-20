@@ -751,8 +751,16 @@ SaiSwitchTraits::Attributes::AttributePfcMonitorEnable::operator()() {
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeCablePropagationDelayMeasurement::operator()() {
-#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0) || defined(BRCM_SAI_SDK_XGS_GTE_14_2)
   return SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
+#if defined(BRCM_SAI_SDK_XGS_GTE_14_2)
+  return SAI_SWITCH_ATTR_PORT_CL72_RETRY_ENABLE;
 #endif
   return std::nullopt;
 }

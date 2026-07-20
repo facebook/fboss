@@ -3,16 +3,13 @@
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 import abc
-import json
 import os
-import re
 import shutil
 import subprocess
 import time
 from argparse import ArgumentParser, Namespace
 from datetime import datetime
 
-import run_test
 from fboss_test_runner.constants import (
     ALL_SIMUALTOR_ASICS_STR,
     DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
@@ -46,7 +43,11 @@ from fboss_test_runner.constants import (
 from fboss_test_runner.reporters.console_reporter import ConsoleReporter
 from fboss_test_runner.reporters.csv_reporter import CsvReporter
 from fboss_test_runner.result_types import GtestResult, GtestStatus, RunOutcome
-from fboss_test_runner.runners.utils import load_from_file
+from fboss_test_runner.runners.utils import (
+    get_test_regexes_from_file,
+    load_from_file,
+    test_matches_any_regex,
+)
 
 _YELLOW = "\033[1;33m"
 _RED = "\033[1;31m"
@@ -72,13 +73,14 @@ class TestRunner(abc.ABC):
         self._known_bad_test_regexes: list[str] | None = None
         self._unsupported_test_regexes: list[str] | None = None
         self.env_var: dict[str, str] = dict(os.environ)
+        self.args: Namespace | None = None
 
     def _get_common_gflags(self) -> list[str]:
         """
         Return pass-through gflags appended to every test binary invocation.
         No parsing or validation - just forward whatever the user provides.
         """
-        args = run_test.args
+        args = self.args
         if hasattr(args, "extra_gflags") and args.extra_gflags:
             return args.extra_gflags.split()
         return []
@@ -297,7 +299,7 @@ class TestRunner(abc.ABC):
     def _get_test_run_cmd(
         self, conf_file: str, test_to_run: str, flags: list[str]
     ) -> list[str]:
-        args = run_test.args
+        args = self.args
         test_binary_name = self._get_test_binary_name()
         run_cmd = [
             test_binary_name,
@@ -316,42 +318,7 @@ class TestRunner(abc.ABC):
         test_dict_key: str,
         keys_to_try: list[str],
     ) -> list[str]:
-        """
-        Helper function to extract test regexes from a JSON file.
-
-        Tries multiple key variants provided in keys_to_try list.
-        Collects regexes from all matching keys.
-
-        Args:
-            file_path: Path to the JSON file containing test configurations
-            test_dict_key: Key in the JSON to access the test dictionary (e.g., "known_bad_tests", "unsupported_tests")
-            keys_to_try: List of keys to try in the test dictionary
-
-        Returns:
-            List of test name regexes from all matching keys
-        """
-        if not os.path.exists(file_path):
-            print(f"Warning: Test file {file_path} does not exist")
-            return []
-
-        with open(file_path) as f:
-            test_json = json.load(f)
-            test_dict = test_json[test_dict_key]
-
-            # Collect regexes from all matching keys
-            test_regexes = set()
-            for key in keys_to_try:
-                if key in test_dict:
-                    for test_struct in test_dict[key]:
-                        test_regexes.add(test_struct["test_name_regex"])
-
-            if not test_regexes:
-                print(
-                    f"Warning: Could not find tests for key '{keys_to_try[0]}'. "
-                    f"Available keys: {list(test_dict.keys())}"
-                )
-
-            return list(test_regexes)
+        return get_test_regexes_from_file(file_path, test_dict_key, keys_to_try)
 
     def _initialize_test_lists(self, args: Namespace) -> None:
         """
@@ -438,17 +405,7 @@ class TestRunner(abc.ABC):
         return self._parse_list_test_output(output)
 
     def _test_matches_any_regex(self, test: str, regex_list: list[str]) -> bool:
-        """
-        Check if a test name matches any regex in the provided list.
-
-        Args:
-            test: Test name to check
-            regex_list: List of regex patterns to match against
-
-        Returns:
-            True if test matches any regex in the list, False otherwise
-        """
-        return any(re.match(regex_pattern, test) for regex_pattern in regex_list)
+        return test_matches_any_regex(test, regex_list)
 
     def _is_known_bad_test(self, test: str) -> bool:
         """Check if a test is in the known bad tests list."""
@@ -475,7 +432,7 @@ class TestRunner(abc.ABC):
         # 2. Tests by filter with known bad
         # 3. All tests with known bad
         # 4. All tests without known bad
-        args = run_test.args
+        args = self.args
         test_names = []
         if args.filter or args.filter_file:
             if args.filter_file:
@@ -521,7 +478,7 @@ class TestRunner(abc.ABC):
         setup_warmboot: bool,
         sai_replayer_logging_path: str | None = None,
     ) -> RunOutcome:
-        args = run_test.args
+        args = self.args
         # Setup flags for the test binary before running the tests
         flags = [self.WARMBOOT_SETUP_OPTION] if setup_warmboot else []
         flags += self._get_sai_replayer_logging_flags(sai_replayer_logging_path)
@@ -611,7 +568,7 @@ class TestRunner(abc.ABC):
 
     def _backup_and_modify_config(self, conf_file: str) -> str:
         """Create a copy of the config and modify settings"""
-        args = run_test.args
+        args = self.args
         if getattr(args, "run_on_reference_board", False):
             # Create a copy of the config file for modification
             try:
@@ -750,6 +707,7 @@ class TestRunner(abc.ABC):
         CsvReporter().write_gtest_results(results)
 
     def run_test(self, args: Namespace) -> None:
+        self.args = args
         test_binary = self._get_test_binary_name()
         # Some runners return an absolute path (e.g. /opt/fboss/bin/sai_test-sai_impl);
         # others return a bare binary name resolved via $PATH (e.g. platform_hw_test).

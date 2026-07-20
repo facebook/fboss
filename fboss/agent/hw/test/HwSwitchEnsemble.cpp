@@ -1020,7 +1020,9 @@ LinkStateToggler* HwSwitchEnsemble::getLinkToggler() {
 void HwSwitchEnsemble::sendPacketAsync(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortDescriptor> portDescriptor,
-    std::optional<uint8_t> queueId) {
+    std::optional<uint8_t> queueId,
+    std::optional<SwitchID> /* switchId */) {
+  // switchId is unused on single-HwSwitch ensembles (only one switch).
   if (!portDescriptor.has_value()) {
     getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
     return;

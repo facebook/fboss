@@ -357,7 +357,13 @@ PortID getPortID(
     SystemPortID sysPortId,
     const std::shared_ptr<SwitchState>& state) {
   auto sysPort = state->getSystemPorts()->getNode(sysPortId);
-  auto switchId = sysPort->getSwitchId();
+  return getPortID(sysPortId, sysPort->getSwitchId(), state);
+}
+
+PortID getPortID(
+    const SystemPortID& sysPortId,
+    SwitchID switchId,
+    const std::shared_ptr<SwitchState>& state) {
   auto switchIdToSwitchInfo = state->getSwitchSettings()
                                   ->getSwitchSettings(HwSwitchMatcher(
                                       std::unordered_set<SwitchID>({switchId})))
@@ -372,7 +378,10 @@ PortID getPortID(
       continue;
     }
     for (const auto& [_, port] : std::as_const(*ports)) {
-      if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
+      // Without relocation, fabric ports do not have a getSystemPortID-based
+      // system port (they use the legacy offset scheme), so skip them here.
+      if (!FLAGS_fabric_ports_uniform_local_offset &&
+          port->getPortType() == cfg::PortType::FABRIC_PORT) {
         continue;
       }
       if (sysPortId ==

@@ -42,6 +42,8 @@ DEFINE_bool(hide_fabric_ports, false, "Elide ports of type fabric");
 
 DEFINE_bool(hide_management_ports, false, "Elide ports of type management");
 
+DEFINE_bool(hide_eventor_ports, false, "Elide ports of type eventor");
+
 DEFINE_bool(hide_interface_ports, false, "Elide ports of type interface");
 
 // DSF Subscriber flags
@@ -295,6 +297,13 @@ DEFINE_int32(
     "Percentage of MySID resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
 
 DEFINE_bool(
+    srv6,
+    false,
+    "Enable SRv6 features, e.g. collecting the SRv6 MySID resource counter. "
+    "Only valid on configs whose SDK is initialized with SRv6/mySid support "
+    "(sai_stats_support); leave off otherwise.");
+
+DEFINE_bool(
     enable_srv6_nexthop_resource_protection,
     true,
     "Enable SRv6 next hop resource protection in ResourceAccountant");
@@ -323,6 +332,11 @@ DEFINE_int32(
     switch_id_for_testing,
     0,
     "switch ID under test. Used for testing NPU specific features.");
+
+DEFINE_int32(
+    num_npus_for_testing,
+    1,
+    "Number of hw agent NPUs started by the test runner.");
 
 DEFINE_uint32(
     counter_refresh_interval,
@@ -450,6 +464,13 @@ DEFINE_bool(
     false,
     "Enable fabric link monitoring feature in DSF");
 
+// Relocates fabric port logical IDs into the local port-ID range (uniform
+// local offset). Currently scoped to meru800bia and janga800bic.
+DEFINE_bool(
+    fabric_ports_uniform_local_offset,
+    false,
+    "Relocate fabric port logical IDs into the local port-ID range");
+
 DEFINE_bool(
     enable_cpu_latency_monitoring,
     false,
@@ -494,6 +515,33 @@ DEFINE_int32(
     "Log timeout value in milliseconds. Logger will periodically"
     "flush logs even if the buffer is not full");
 
+DEFINE_bool(
+    enable_pre_manager_delta_logging,
+    false,
+    "Enable pre-manager state delta logging via SwitchStateDeltaLogger (sibling of StateDeltaLogger). Off by default; gates construction of the sibling logger.");
+
+DEFINE_string(
+    pre_manager_delta_log_file,
+    "/var/facebook/logs/fboss/pre_manager_deltas.log",
+    "Path to the pre-manager state delta log file.");
+
+DEFINE_string(
+    pre_manager_delta_log_protocol,
+    "COMPACT",
+    "Serialization protocol for pre-manager state delta logging (BINARY, SIMPLE_JSON, COMPACT)");
+
+DEFINE_int32(
+    pre_manager_delta_log_timeout_ms,
+    200,
+    "Pre-manager delta log timeout in milliseconds. Logger will periodically "
+    "flush logs even if the buffer is not full. Bounds the worst-case data-loss "
+    "window on a machine crash.");
+
+DEFINE_bool(
+    enable_post_manager_delta_logging,
+    false,
+    "Enable post-manager state delta logging via SwitchStateDeltaLogger (sibling of StateDeltaLogger). Off by default; gates logging of split sub-deltas at the post-manager capture point (record type kTypePostManagerDelta). Reserved — no-op today.");
+
 DEFINE_int32(
     fsdbStatsStreamIntervalSeconds,
     5,
@@ -521,6 +569,11 @@ DEFINE_bool(
     montblanc_odd_ports_8x100G,
     false,
     "Enables platform mapping with 8x100G on odd ports");
+
+DEFINE_bool(
+    montblanc_gtsw_yolo,
+    false,
+    "Enables montblanc platform mapping with 4x200G on odd ports and 6x100G on even ports");
 
 DEFINE_bool(can_warm_boot, true, "Enable/disable warm boot functionality");
 
@@ -558,3 +611,13 @@ DEFINE_bool(
     enable_acl_table_redirect_action,
     false,
     "Add redirect action type to ACL table");
+
+DEFINE_bool(
+    enable_pfc_priority_to_pg_map,
+    false,
+    "Enable programming the PFC priority to priority group QoS map on ports");
+
+DEFINE_bool(
+    enable_port_cl72_retry,
+    false,
+    "Enable CL72 link training retry on the switch (XGS, BRCM SDK >= 14.2 only)");

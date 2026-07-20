@@ -20,7 +20,7 @@ struct FanStatus {
 }
 
 struct FanStatusesResponse {
-  1: map<string/*fanName*/ , FanStatus> fanStatuses;
+  1: map<string /*fanName*/, FanStatus> fanStatuses;
 }
 
 struct PwmHoldRequest {

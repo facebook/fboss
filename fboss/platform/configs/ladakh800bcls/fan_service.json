@@ -85,7 +85,7 @@
       }
     },
     {
-      "sensorName": "MCB_PSP3_XP12R0V_PB3_TEMPARTURES",
+      "sensorName": "MCB_PSP3_XP12R0V_PB3_TEMP",
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": -8,
@@ -102,13 +102,13 @@
     "conditions": [
       {
         "sensorName": "SMB_L_U2_TH6_TEMP",
-        "overtempThreshold": 103.0,
-        "slidingWindowSize": 1
+        "overtempThreshold": 120.0,
+        "slidingWindowSize": 10
       },
       {
         "sensorName": "SMB_R_U2_TH6_TEMP",
-        "overtempThreshold": 104.0,
-        "slidingWindowSize": 1
+        "overtempThreshold": 120.0,
+        "slidingWindowSize": 10
       }
     ]
   },
@@ -278,7 +278,7 @@
         "NETLAKE_U1_CPU_UNCORE_TEMP",
         "RTM_L_U8_LM75_INLET_TEMP",
         "RTM_R_U8_LM75_INLET_TEMP",
-        "MCB_PSP3_XP12R0V_PB3_TEMPARTURES"
+        "MCB_PSP3_XP12R0V_PB3_TEMP"
       ],
       "fanNames": [
         "FAN_1_F",

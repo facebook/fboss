@@ -264,6 +264,10 @@ DEFINE_string(
     "",
     "Platform on which we are running."
     " One of (galaxy, wedge100, wedge, minipack16q, yamp, elbert, darwin)");
+DEFINE_string(
+    ssl_policy,
+    "encrypted",
+    "SSL policy for connecting to qsfp_service (plaintext, encrypted)");
 
 DEFINE_bool(
     clear_low_power,
@@ -537,7 +541,9 @@ std::ostream& operator<<(std::ostream& os, const FlagCommand& cmd) {
 
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(
     folly::EventBase& evb) {
-  return std::move(QsfpClient::createClient(&evb)).getVia(&evb);
+  return std::move(
+             QsfpClient::createClient(&evb, FLAGS_ssl_policy == "plaintext"))
+      .getVia(&evb);
 }
 
 /*
@@ -1669,6 +1675,12 @@ void printHostLaneSettings(const std::vector<HostLaneSettings>& settings) {
       printf(" %-12d", *(setting.rxSquelch()));
     }
   }
+  if (settings[0].currentAppSel()) {
+    printf("\n    %-22s", "Current AppSel");
+    for (const auto& setting : settings) {
+      printf(" %-12d", *(setting.currentAppSel()));
+    }
+  }
   printf("\n");
 }
 
@@ -2473,6 +2485,10 @@ void printCmisDetail(
           getStateNameString(page11Buf[i] & 0xf, kCmisLaneStateMapping).c_str(),
           getStateNameString((page11Buf[i] >> 4) & 0xf, kCmisLaneStateMapping)
               .c_str());
+    }
+    printf("\nCurrent AppSel    ");
+    for (i = 0; i < 8; i++) {
+      printf("%-9d", (page11Buf[78 + i] & 0xf0) >> 4);
     }
     printf("\nTx fault          ");
     for (i = 0; i < 8; i++) {
@@ -4731,7 +4747,8 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
                                  .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
-    } else if (FLAGS_platform == "wedge800bact") {
+    } else if (
+        FLAGS_platform == "wedge800bact" || FLAGS_platform == "wedge800bnhp") {
       auto systemContainer = BspGenericSystemContainer<
                                  Wedge800BACTBspPlatformMapping>::getInstance()
                                  .get();
@@ -4846,7 +4863,9 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
-  } else if (mode == PlatformType::PLATFORM_WEDGE800BACT) {
+  } else if (
+      mode == PlatformType::PLATFORM_WEDGE800BACT ||
+      mode == PlatformType::PLATFORM_WEDGE800BNHP) {
     auto systemContainer =
         BspGenericSystemContainer<Wedge800BACTBspPlatformMapping>::getInstance()
             .get();

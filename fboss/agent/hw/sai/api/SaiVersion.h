@@ -71,7 +71,8 @@
     defined(SAI_VERSION_13_3_0_0_DNX_ODP) ||    \
     defined(SAI_VERSION_14_0_EA_DNX_ODP) ||     \
     defined(SAI_VERSION_14_2_0_0_DNX_ODP) ||    \
-    defined(SAI_VERSION_15_0_EA_DNX_ODP)
+    defined(SAI_VERSION_15_0_EA_DNX_ODP) ||     \
+    defined(SAI_VERSION_16_0_EA_DNX_ODP)
 #define BRCM_SAI_SDK_DNX
 #endif
 
@@ -79,7 +80,11 @@
 #define BRCM_SAI_SDK_XGS_AND_DNX
 #endif
 
-#if defined(SAI_VERSION_15_0_EA_ODP) || \
+#if defined(SAI_VERSION_16_0_EA_DNX_ODP)
+#define BRCM_SAI_SDK_GTE_16_0
+#endif
+
+#if defined(BRCM_SAI_SDK_GTE_16_0) || defined(SAI_VERSION_15_0_EA_ODP) || \
     defined(SAI_VERSION_15_0_EA_DNX_ODP) || defined(SAI_VERSION_15_4_EA_ODP)
 #define BRCM_SAI_SDK_GTE_15_0
 #endif
@@ -101,7 +106,11 @@
 #define BRCM_SAI_SDK_GTE_12_0
 #endif
 
-#if defined(SAI_VERSION_15_0_EA_DNX_ODP)
+#if defined(SAI_VERSION_16_0_EA_DNX_ODP)
+#define BRCM_SAI_SDK_DNX_GTE_16_0
+#endif
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_16_0) || defined(SAI_VERSION_15_0_EA_DNX_ODP)
 #define BRCM_SAI_SDK_DNX_GTE_15_0
 #endif
 
@@ -119,6 +128,10 @@
 
 #if defined(SAI_VERSION_15_0_EA_ODP) || defined(SAI_VERSION_15_4_EA_ODP)
 #define BRCM_SAI_SDK_XGS_GTE_15_0
+#endif
+
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_0) || defined(SAI_VERSION_14_2_0_0_ODP)
+#define BRCM_SAI_SDK_XGS_GTE_14_2
 #endif
 
 #if defined(BRCM_SAI_SDK_XGS_GTE_15_0) || defined(SAI_VERSION_14_0_EA_ODP) || \
@@ -190,11 +203,12 @@
     defined(TAJO_SDK_VERSION_25_5_4210) ||                                     \
     defined(TAJO_SDK_VERSION_25_11_4210) ||                                    \
     defined(TAJO_SDK_VERSION_26_2_4210) ||                                     \
-    defined(TAJO_SDK_VERSION_26_2_5210) || defined(TAJO_SDK_VERSION_26_5_5211)
+    defined(TAJO_SDK_VERSION_26_2_5210) ||                                     \
+    defined(TAJO_SDK_VERSION_26_5_5211) || defined(TAJO_SDK_VERSION_26_5_5210)
 #define TAJO_SDK_EBRO
 #endif
 
-#if defined(TAJO_SDK_VERSION_26_5_5211)
+#if defined(TAJO_SDK_VERSION_26_5_5211) || defined(TAJO_SDK_VERSION_26_5_5210)
 #define TAJO_SDK_GTE_26_5
 #endif
 

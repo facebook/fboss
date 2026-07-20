@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_optics_phy")
 
@@ -10,6 +11,10 @@ cpp_binary(
         "//fboss/agent:fboss-types",
         "//fboss/agent/if:ctrl-cpp2-clients",
         "//fboss/agent/if:ctrl-cpp2-types",
+        # Provides the DEFINE of FLAGS_qsfp_service_host used via DECLARE_string in
+        # QsfpCacheExerciser.cpp; link-time only (no source include), so autodeps2
+        # cannot infer it.
+        "//fboss/lib/thrift_service_client:thrift-service-client",  # @manual
         "//fboss/qsfp_service/lib:qsfp-cache",
         "//folly:random",
         "//folly/executors:function_scheduler",
@@ -26,6 +31,7 @@ cpp_unittest(
     srcs = [
         "QsfpConfigParserTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/qsfp_service/if:config-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",

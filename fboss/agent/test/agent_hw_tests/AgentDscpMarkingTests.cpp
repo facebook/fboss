@@ -16,8 +16,6 @@
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 
-#include "fboss/agent/AsicUtils.h"
-
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"

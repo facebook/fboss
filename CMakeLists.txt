@@ -85,6 +85,7 @@ option(SAI_BRCM_PAI_IMPL "Build SAI api with BRCOM_PAI-SAI extensions" OFF)
 if ($ENV{SAI_BRCM_PAI_IMPL})
   message(STATUS "ENV SAI_BRCM_PAI_IMPL is set")
   set(SAI_BRCM_PAI_IMPL ON)
+  add_definitions(-DSAI_BRCM_PAI_IMPL)
   # NOTE: Unlike agent that we use sai_impl, we directly use pre-built SDK from
   # local directory
   # Header files for libpai.a, the whole inc directory from SDK
@@ -357,6 +358,8 @@ add_fbthrift_cpp_library(
 add_fbthrift_python_library(
   fb303_python
   common/fb303/if/fb303.thrift
+  SERVICES
+    FacebookService
   OPTIONS
     json
 )
@@ -502,6 +505,14 @@ add_fbthrift_cpp_library(
     switch_config_cpp2
     phy_cpp2
     ctrl_cpp2
+)
+add_fbthrift_cpp_library(
+  state_delta_log_cpp2
+  fboss/agent/state_delta_log.thrift
+  OPTIONS
+    json
+  DEPENDS
+    fsdb_oper_cpp2
 )
 add_fbthrift_cpp_library(
   prbs_cpp2
@@ -669,6 +680,8 @@ add_fbthrift_cpp_library(
 add_fbthrift_python_library(
   phy_python
   fboss/lib/phy/phy.thrift
+  SERVICES
+    FbossCommonPhyCtrl
   NAMESPACE "neteng.fboss.phy"
   OPTIONS
     json
@@ -913,6 +926,24 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  bgp_table_summary_cpp2
+  fboss/cli/fboss2/commands/show/bgp/table/bgp_table_summary.thrift
+  OPTIONS
+    json
+  DEPENDS
+    bgp_thrift_cpp2
+)
+
+add_fbthrift_cpp_library(
+  bgp_update_group_cpp2
+  fboss/cli/fboss2/commands/show/bgp/updategroup/bgp_update_group.thrift
+  OPTIONS
+    json
+  DEPENDS
+    bgp_thrift_cpp2
+)
+
+add_fbthrift_cpp_library(
   io_stats_cpp2
   fboss/lib/if/io_stats.thrift
   OPTIONS
@@ -1051,6 +1082,180 @@ add_fbthrift_python_library(
   NAMESPACE "neteng.fboss"
   OPTIONS
     json
+)
+
+add_fbthrift_python_library(
+  mka_structs_python
+  fboss/mka_service/if/mka_structs.thrift
+  NAMESPACE "neteng.fboss.mka"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  hardware_stats_python
+  fboss/agent/hw/hardware_stats.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    mka_structs_python
+)
+add_fbthrift_python_library(
+  asic_temp_python
+  fboss/agent/if/asic_temp.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    fboss_python
+)
+add_fbthrift_python_library(
+  agent_stats_python
+  fboss/agent/agent_stats.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    hardware_stats_python
+    switch_config_python
+    phy_python
+    asic_temp_python
+)
+add_fbthrift_python_library(
+  product_info_python
+  fboss/agent/if/product_info.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  cfgr_fboss_common_python
+  configerator/structs/neteng/fboss/thrift/common.thrift
+  NAMESPACE "neteng.fboss.configerator"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  ctrl_python
+  fboss/agent/if/ctrl.thrift
+  SERVICES
+    FbossCtrl
+    NeighborListenerClient
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    fboss_python
+    fb303_python
+    network_address_python
+    agent_stats_python
+    mpls_python
+    cfgr_fboss_common_python
+    common_python
+    product_info_python
+    transceiver_python
+    switch_config_python
+    platform_config_python
+    phy_python
+    prbs_python
+    hardware_stats_python
+)
+add_fbthrift_python_library(
+  highfreq_python
+  fboss/agent/if/highfreq.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  switch_state_python
+  fboss/agent/switch_state.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    switch_config_python
+    phy_python
+    cfgr_fboss_common_python
+    common_python
+    transceiver_python
+    network_address_python
+    ctrl_python
+    mka_structs_python
+)
+add_fbthrift_python_library(
+  hw_ctrl_python
+  fboss/agent/if/hw_ctrl.thrift
+  SERVICES
+    FbossHwCtrl
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    hardware_stats_python
+    common_python
+    ctrl_python
+    fboss_python
+    highfreq_python
+    switch_state_python
+    phy_python
+    prbs_python
+)
+add_fbthrift_python_library(
+  qsfp_python
+  fboss/qsfp_service/if/qsfp.thrift
+  SERVICES
+    QsfpService
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    ctrl_python
+    common_python
+    fboss_python
+    transceiver_python
+    switch_config_python
+    mka_structs_python
+    hardware_stats_python
+    phy_python
+    prbs_python
+)
+add_fbthrift_python_library(
+  fsdb_common_python
+  fboss/fsdb/if/fsdb_common.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  patch_python
+  fboss/thrift_cow/patch.thrift
+  NAMESPACE "neteng.fboss.thrift_cow"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  fsdb_oper_python
+  fboss/fsdb/if/fsdb_oper.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    fsdb_common_python
+    patch_python
+)
+add_fbthrift_python_library(
+  fsdb_python
+  fboss/fsdb/if/fsdb.thrift
+  SERVICES
+    FsdbService
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    fb303_python
+    fsdb_common_python
+    fsdb_oper_python
 )
 
 add_fbthrift_cpp_library(
@@ -1230,6 +1435,7 @@ add_dependencies(fboss_platform_services
   fw_util
   weutil
   data_corral_service
+  reboot_cause_finder
   # Utilities
   sensor_service_client
   fixmyfboss

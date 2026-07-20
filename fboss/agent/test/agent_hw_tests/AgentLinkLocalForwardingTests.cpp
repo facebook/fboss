@@ -13,7 +13,6 @@
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
-#include "fboss/agent/test/utils/QueueTestUtils.h"
 
 namespace facebook::fboss {
 

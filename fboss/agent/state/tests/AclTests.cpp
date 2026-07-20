@@ -1390,6 +1390,43 @@ TEST(Acl, L4DstPortRangeQualifier) {
       qualifiers.end());
 }
 
+TEST(Acl, PbrFieldsSerialize) {
+  auto entry = std::make_unique<AclEntry>(0, std::string("pbr0"));
+  entry->setTrafficClass(3);
+  entry->setNextHopGroupId(42);
+
+  auto serialized = entry->toThrift();
+  auto entryBack = std::make_shared<AclEntry>(serialized);
+  validateNodeSerialization(*entry);
+
+  EXPECT_TRUE(*entry == *entryBack);
+  EXPECT_EQ(entryBack->getTrafficClass(), 3);
+  EXPECT_EQ(entryBack->getNextHopGroupId(), 42);
+}
+
+TEST(Acl, PbrFieldsHasMatcher) {
+  auto entry = std::make_unique<AclEntry>(0, std::string("pbr0"));
+  EXPECT_FALSE(entry->hasMatcher());
+  entry->setTrafficClass(3);
+  EXPECT_TRUE(entry->hasMatcher());
+
+  auto entry2 = std::make_unique<AclEntry>(0, std::string("pbr1"));
+  EXPECT_FALSE(entry2->hasMatcher());
+  entry2->setNextHopGroupId(42);
+  EXPECT_TRUE(entry2->hasMatcher());
+}
+
+TEST(Acl, PbrFieldsQualifier) {
+  auto entry = std::make_unique<AclEntry>(0, std::string("pbr0"));
+  entry->setTrafficClass(3);
+  entry->setNextHopGroupId(42);
+  auto qualifiers = entry->getRequiredAclTableQualifiers();
+  EXPECT_TRUE(qualifiers.find(cfg::AclTableQualifier::TC) != qualifiers.end());
+  EXPECT_TRUE(
+      qualifiers.find(cfg::AclTableQualifier::NEXT_HOP_GROUP_ID) !=
+      qualifiers.end());
+}
+
 TEST(Acl, L4DstPortRangeValidation) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();

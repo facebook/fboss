@@ -106,7 +106,8 @@ std::vector<std::string> SaiAclTableManager::getAllHandleNames() const {
 
 AclTableSaiId SaiAclTableManager::addAclTable(
     const std::shared_ptr<AclTable>& addedAclTable,
-    cfg::AclStage aclStage) {
+    cfg::AclStage aclStage,
+    const std::shared_ptr<SwitchState>& /*state*/) {
   auto saiAclStage =
       SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage);
 
@@ -168,7 +169,8 @@ AclTableSaiId SaiAclTableManager::addAclTable(
 
 void SaiAclTableManager::removeAclTable(
     const std::shared_ptr<AclTable>& removedAclTable,
-    cfg::AclStage aclStage) {
+    cfg::AclStage aclStage,
+    const std::shared_ptr<SwitchState>& /*state*/) {
   auto saiAclStage =
       SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage);
   auto aclTableName = removedAclTable->getID();
@@ -209,7 +211,8 @@ void SaiAclTableManager::removeAclEntriesFromTable(
 
 void SaiAclTableManager::addAclEntriesToTable(
     const std::shared_ptr<AclTable>& aclTable,
-    std::shared_ptr<AclMap>& aclMap) {
+    std::shared_ptr<AclMap>& aclMap,
+    const std::shared_ptr<SwitchState>& state) {
   auto newAclMap = aclTable->getAclMap().unwrap();
   for (auto const& iter : std::as_const(*aclMap)) {
     const auto& entry = iter.second;
@@ -218,14 +221,17 @@ void SaiAclTableManager::addAclEntriesToTable(
       continue;
     }
     auto aclEntry = aclMap->getEntry(entry->getID());
-    addAclEntry(aclEntry, aclTable->getID());
+    // Pass the new state through so PBR entries can resolve their NHGs on the
+    // table-recreate path (it would otherwise throw on a null state).
+    addAclEntry(aclEntry, aclTable->getID(), state);
   }
 }
 
 void SaiAclTableManager::changedAclTable(
     const std::shared_ptr<AclTable>& oldAclTable,
     const std::shared_ptr<AclTable>& newAclTable,
-    cfg::AclStage aclStage) {
+    cfg::AclStage aclStage,
+    const std::shared_ptr<SwitchState>& state) {
   /*
    * If the only change in acl table is in acl entries, then the acl entry delta
    * processing will take care of changing those.
@@ -234,12 +240,12 @@ void SaiAclTableManager::changedAclTable(
   if (needsAclTableRecreate(oldAclTable, newAclTable)) {
     // Remove acl entries from old acl table before removing the table
     removeAclEntriesFromTable(oldAclTable);
-    removeAclTable(oldAclTable, aclStage);
-    addAclTable(newAclTable, aclStage);
+    removeAclTable(oldAclTable, aclStage, state);
+    addAclTable(newAclTable, aclStage, state);
 
     // Add the old acl Entries back to new acl table
     auto oldAclMap = oldAclTable->getAclMap().unwrap();
-    addAclEntriesToTable(newAclTable, oldAclMap);
+    addAclEntriesToTable(newAclTable, oldAclMap, state);
   }
 }
 
@@ -689,7 +695,8 @@ std::shared_ptr<SaiAclRange> SaiAclTableManager::getOrCreateAclRange(
 
 AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    const std::shared_ptr<SwitchState>& state) {
   // If we attempt to add entry to a table that does not exist, fail.
   auto aclTableHandle = getAclTableHandle(aclTableName);
   if (!aclTableHandle) {
@@ -953,6 +960,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         std::make_pair(addedAclEntry->getDscp().value(), kDscpMask))};
   }
 
+  // PBR phase 2: populated from AclEntry::getTrafficClass() in a stacked diff;
+  // nullopt here keeps the positional tuple well-formed.
+  std::optional<SaiAclEntryTraits::Attributes::FieldTc> fieldTc{std::nullopt};
+
   std::optional<SaiAclEntryTraits::Attributes::FieldDstMac> fieldDstMac{
       std::nullopt};
   if (addedAclEntry->getDstMac()) {
@@ -1110,6 +1121,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionSetEcmpHashAlgorithm{std::nullopt};
   std::optional<SaiAclEntryTraits::Attributes::ActionL3SwitchCancel>
       aclActionL3SwitchCancel{std::nullopt};
+  std::optional<SaiAclEntryTraits::Attributes::FieldNextHopGroupId>
+      aclFieldNextHopGroupId{std::nullopt};
 #endif
 
   auto action = addedAclEntry->getAclAction();
@@ -1474,6 +1487,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIcmpV6Type,
       fieldIcmpV6Code,
       fieldDscp,
+      fieldTc,
       fieldDstMac,
       fieldIpType,
       fieldTtl,
@@ -1522,6 +1536,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       aclActionSetEcmpHashAlgorithm,
       aclActionL3SwitchCancel,
+      aclFieldNextHopGroupId,
 #endif
   };
 
@@ -1551,7 +1566,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
 void SaiAclTableManager::removeAclEntry(
     const std::shared_ptr<AclEntry>& removedAclEntry,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    const std::shared_ptr<SwitchState>& /*state*/) {
   // If we attempt to remove entry for a table that does not exist, fail.
   auto aclTableHandle = getAclTableHandle(aclTableName);
   if (!aclTableHandle) {
@@ -1605,14 +1621,15 @@ void SaiAclTableManager::removeAclCounter(
 void SaiAclTableManager::changedAclEntry(
     const std::shared_ptr<AclEntry>& oldAclEntry,
     const std::shared_ptr<AclEntry>& newAclEntry,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    const std::shared_ptr<SwitchState>& state) {
   /*
    * ASIC/SAI implementation typically does not allow modifying an ACL entry.
    * Thus, remove and re-add.
    */
   XLOG(DBG2) << "changing acl entry " << oldAclEntry->getID();
-  removeAclEntry(oldAclEntry, aclTableName);
-  addAclEntry(newAclEntry, aclTableName);
+  removeAclEntry(oldAclEntry, aclTableName, state);
+  addAclEntry(newAclEntry, aclTableName, state);
 }
 
 const SaiAclEntryHandle* FOLLY_NULLABLE SaiAclTableManager::getAclEntryHandle(
@@ -1936,7 +1953,7 @@ void SaiAclTableManager::addDefaultAclTable(
   aclTableFields.priority() = 0;
   aclTableFields.id() = name;
   auto table1 = std::make_shared<AclTable>(std::move(aclTableFields));
-  addAclTable(table1, stage);
+  addAclTable(table1, stage, nullptr /*state*/);
 }
 
 void SaiAclTableManager::removeDefaultAclTable(

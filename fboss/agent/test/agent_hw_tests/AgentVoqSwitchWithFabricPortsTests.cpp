@@ -28,6 +28,11 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
     return config;
   }
 
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // VoQ + fabric tests need every fabric and interface port.
+    return std::nullopt;
+  }
+
  protected:
   void assertPortAndDrainState(cfg::SwitchDrainState expectDrainState) const {
     bool expectDrained =

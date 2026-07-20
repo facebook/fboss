@@ -71,6 +71,11 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
     ]:
         return [PortSpeed.TWOHUNDREDG]
     if profile in [
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER,
+    ]:
+        return [PortSpeed.TWOHUNDREDANDTWELVEPOINTFIVEG]
+    if profile in [
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
@@ -130,6 +135,8 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER,
     ]:
         return 1
     if profile in [
@@ -479,9 +486,20 @@ def get_start_connection_end(
         )
     # Front panel ports are named "eth|fab{slot_id}/{virtual_transceiver_id}/{lane_id}"
     # Backplane ports are named "eth{slot_id}/{backplane_chip_id}/{backplane_lane_id}"
-    # For multi-core transceivers (CPO), virtual_transceiver_id maps to
-    # (physical_chip_id, core_id) via the virtual transceiver map.
     virtual_id = int(match[3])
+    # Banked (CPO) transceivers are modeled as a single core with global lane ids.
+    # The port virtual id selects a bank on a module, so recover the global lane as
+    # bank_lane_offset + lane_in_bank.
+    port_virtual_map = static_mapping.get_port_virtual_transceiver_map()
+    if virtual_id in port_virtual_map:
+        chip_id, lane_offset = port_virtual_map[virtual_id]
+        return static_mapping.find_connection_end(
+            slot_id=int(match[2]),
+            chip_id=chip_id,
+            chip_types={ChipType.TRANSCEIVER, ChipType.BACKPLANE},
+            core_id=0,
+            logical_lane_id=lane_offset + int(match[4]) - 1,  # Lanes are 0 indexed
+        )
     virtual_map = static_mapping.get_virtual_transceiver_map()
     if virtual_id in virtual_map:
         chip_id, core_id = virtual_map[virtual_id]
@@ -1037,6 +1055,7 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL,
     ]:
         return [TransmitterTechnology.OPTICAL, TransmitterTechnology.BACKPLANE]
@@ -1063,6 +1082,7 @@ def transmitter_tech_from_profile(
         return [TransmitterTechnology.COPPER]
     if profile in [
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
     ]:
@@ -1143,6 +1163,8 @@ def fec_from_profile(profile: PortProfileID) -> FecMode:
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_OPTICAL,

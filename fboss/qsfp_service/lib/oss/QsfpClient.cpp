@@ -14,7 +14,7 @@ static constexpr int kQsfpChannelTimeoutMs = 15000;
 
 // static
 folly::Future<std::unique_ptr<apache::thrift::Client<QsfpService>>>
-QsfpClient::createClient(folly::EventBase* eb) {
+QsfpClient::createClient(folly::EventBase* eb, bool /*forcePlaintext*/) {
   auto createClient = [eb]() {
     folly::SocketAddress addr(FLAGS_qsfp_service_host, FLAGS_qsfp_service_port);
     auto socket = folly::AsyncSocket::newSocket(eb, addr, kQsfpConnTimeoutMs);

@@ -105,6 +105,12 @@ The `run_test.py` script discovers all benchmarks from the binary via
 with full setup/run/teardown isolation. Pass `--agent-run-mode multi_switch`
 to use the multi-switch binary; mono is the default.
 
+> The `benchmark` subcommand selects a benchmark family with mutually-exclusive
+> `--sai` / `--qsfp` flags. This manual covers SAI agent benchmarks (`--sai`,
+> the default when neither flag is given). For QSFP benchmarks (`--qsfp`), see
+> the "Benchmark tests" section of
+> [Packaging and Running FBOSS HW Tests](/docs/build/packaging_and_running_fboss_hw_tests_on_switch/#benchmark-tests).
+
 ```bash
 cd /opt/fboss
 source ./bin/setup_fboss_env
@@ -149,6 +155,7 @@ source ./bin/setup_fboss_env
 
 | Flag | Description |
 |------|-------------|
+| `--sai` / `--qsfp` | Mutually exclusive benchmark-family selector. `--sai` (default) runs SAI agent benchmarks (this manual); `--qsfp` runs QSFP benchmarks (see Packaging and running FBOSS). |
 | `--agent-run-mode` | `mono` (default) or `multi_switch`. Multi-switch passes `--multi_switch --hw_agent_for_testing` to the binary and manages the `hw_agent` service lifecycle automatically. |
 | `--num-npus` | Number of NPUs for multi-switch mode (1 or 2, default 1). When 2, adds `--multi_npu_platform_mapping`. |
 | `--filter` | Regex matched against discovered benchmark names to narrow which tests run. |

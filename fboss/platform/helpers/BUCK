@@ -18,12 +18,14 @@ cpp_library(
     srcs = [
         "PlatformNameLib.cpp",
     ],
-    exported_deps = [
-        ":platform_fs_utils",
-        ":platform_utils",
+    deps = [
         "//fb303:service_data",
         "//folly:string",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":platform_fs_utils",
+        ":platform_utils",
     ],
 )
 
@@ -32,11 +34,12 @@ cpp_library(
     srcs = [
         "PlatformUtils.cpp",
     ],
-    exported_deps = [
+    deps = [
         "//folly:subprocess",
         "//folly/logging:logging",
         "//folly/system:shell",
     ],
+    exported_deps = [],
 )
 
 cpp_library(
@@ -44,10 +47,12 @@ cpp_library(
     srcs = [
         "PlatformFsUtils.cpp",
     ],
-    exported_deps = [
+    deps = [
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
         "//folly/portability:fcntl",
     ],
 )
@@ -60,7 +65,7 @@ cpp_library(
     headers = [
         "Init.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         "//common/base:build_info",
         "//common/init:init",
@@ -70,10 +75,16 @@ cpp_library(
         "//common/services/cpp:proc_module",
         "//common/services/cpp:proc_standalone",
         "//common/services/cpp:thrift_acl_checker_module_config",
+    ],
+    exported_deps = [
         "//folly:function",
         "//folly/io/async:async_signal_handler",
         "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/async:async_processor",
+    ],
+    external_deps = [
+        "gflags",
+        ("openssl", None, "crypto"),
     ],
     exported_external_deps = [
         "gflags",
@@ -89,10 +100,11 @@ cpp_library(
     headers = [
         "InitCli.h",
     ],
-    exported_deps = [
+    deps = [
         "//common/base:build_info",
         "//folly/init:init",
     ],
+    exported_deps = [],
     exported_external_deps = [
         "gflags",
     ],
@@ -128,9 +140,10 @@ cpp_library(
     headers = [
         "StructuredLogger.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         ":platform_name_lib",
         "//folly/logging:logging",
     ],
+    exported_deps = [],
 )

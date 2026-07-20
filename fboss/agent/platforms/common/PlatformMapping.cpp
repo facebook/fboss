@@ -810,6 +810,29 @@ const cfg::PlatformPortEntry& PlatformMapping::getPlatformPort(
   throw FbossError("No PlatformMapping entry for port ", portId);
 }
 
+std::vector<PortID> PlatformMapping::getSubsumedPorts(
+    PortID port,
+    cfg::PortProfileID profile) const {
+  const auto& platformPortEntry = getPlatformPort(static_cast<int32_t>(port));
+  const auto& supportedProfiles = *platformPortEntry.supportedProfiles();
+  auto it = supportedProfiles.find(profile);
+  if (it == supportedProfiles.end()) {
+    throw FbossError(
+        "Port: ",
+        *platformPortEntry.mapping()->name(),
+        " doesn't support profile: ",
+        apache::thrift::util::enumNameSafe(profile));
+  }
+  std::vector<PortID> subsumed;
+  if (const auto& subsumedPorts = it->second.subsumedPorts()) {
+    subsumed.reserve(subsumedPorts->size());
+    for (auto id : *subsumedPorts) {
+      subsumed.emplace_back(id);
+    }
+  }
+  return subsumed;
+}
+
 std::map<std::string, phy::DataPlanePhyChip>
 PlatformMapping::getPortDataplaneChips(
     PlatformPortProfileConfigMatcher matcher) const {

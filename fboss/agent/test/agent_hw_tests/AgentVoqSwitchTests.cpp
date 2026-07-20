@@ -19,7 +19,6 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -220,8 +219,14 @@ int AgentVoqSwitchTest::sendPacket(
 
 void AgentVoqSwitchTest::addDscpAclWithCounter() {
   auto newCfg = initialConfig(*getAgentEnsemble());
-  auto* acl = utility::addAcl_DEPRECATED(&newCfg, kDscpAclName());
   auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+  std::optional<std::string> tableName;
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+    tableName = utility::kIpv6AclTable();
+  }
+  auto* acl = utility::addAcl_DEPRECATED(
+      &newCfg, kDscpAclName(), cfg::AclActionType::PERMIT, tableName);
   acl->dscp() = 0x24;
   utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
   utility::addAclStat(

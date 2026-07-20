@@ -13,7 +13,6 @@
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/test/CounterCache.h"
-#include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 #include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 
 namespace facebook::fboss {
@@ -1511,7 +1510,11 @@ TEST_F(DlbOverflowsAccountantTest, DemoteThenReject) {
           [&](const std::shared_ptr<SwitchState>& in) {
             auto out = in->clone();
             fib(out)->addNode(makeRoute(extraPfx, extraNhops));
-            return out;
+            // Stamp NextHop IDs + FibInfo so the ResourceAccountant's
+            // ID-aware normalized-nexthop read resolves under
+            // FLAGS_resolve_nexthops_from_id -- this raw protected update
+            // bypasses updateRoutes()'s stamping.
+            return withNextHopIds(out);
           }),
       FbossHwUpdateError);
   EXPECT_EQ(sw_->getState(), preState);

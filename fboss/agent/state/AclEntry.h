@@ -329,6 +329,28 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     set<switch_state_tags::l4DstPortRange>(range);
   }
 
+  std::optional<uint8_t> getTrafficClass() const {
+    if (auto trafficClass = cref<switch_state_tags::trafficClass>()) {
+      return trafficClass->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setTrafficClass(uint8_t trafficClass) {
+    set<switch_state_tags::trafficClass>(trafficClass);
+  }
+
+  std::optional<int64_t> getNextHopGroupId() const {
+    if (auto id = cref<switch_state_tags::nextHopGroupId>()) {
+      return id->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setNextHopGroupId(int64_t id) {
+    set<switch_state_tags::nextHopGroupId>(id);
+  }
+
   std::optional<cfg::AclLookupClass> getLookupClassL2() const {
     if (auto lookupClassL2 = cref<switch_state_tags::lookupClassL2>()) {
       return lookupClassL2->cref();
@@ -455,7 +477,8 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
         getLookupClassL2() || getLookupClassNeighbor() ||
         getLookupClassRoute() || getPacketLookupResult() || getEtherType() ||
         getVlanID() || getUdfGroups() || getRoceOpcode() || getRoceBytes() ||
-        getRoceMask() || getUdfTable();
+        getRoceMask() || getUdfTable() || getTrafficClass() ||
+        getNextHopGroupId();
   }
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;

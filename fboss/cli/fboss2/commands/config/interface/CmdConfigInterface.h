@@ -10,61 +10,34 @@
 
 #pragma once
 
+#include <set>
 #include <string>
-#include <utility>
 #include <vector>
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
+#include "fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h"
+#include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
 
 namespace facebook::fboss {
+
+class PlatformMapping;
 
 /*
  * InterfacesConfig captures both port/interface names and optional
  * attribute key-value pairs from the CLI.
  *
- * Usage: config interface <port-list> [<attr> <value> ...]
+ * Usage: config interface <port-list> [<attr> [<value>] ...]
  *
  * The first tokens (until a known attribute name is encountered) are
  * treated as port/interface names. The remaining tokens are parsed
- * as attribute-value pairs.
- *
- * Supported attributes: description, mtu
+ * as attribute-value pairs (see InterfaceAttrArgsBase).
  */
-class InterfacesConfig : public utils::BaseObjectArgType<std::string> {
+class InterfacesConfig : public InterfaceAttrArgsBase {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
-  /* implicit */ InterfacesConfig(std::vector<std::string> v);
-
-  /* Get the resolved interfaces. */
-  const utils::InterfaceList& getInterfaces() const {
-    return interfaces_;
-  }
-
-  /* Implicit conversion to InterfaceList so that child commands can accept
-   * const InterfaceList& without knowing about InterfacesConfig. */
-  // NOLINTNEXTLINE(google-explicit-constructor)
-  /* implicit */ operator const utils::InterfaceList&() const {
-    return interfaces_;
-  }
-
-  /* Get the attribute-value pairs. */
-  const std::vector<std::pair<std::string, std::string>>& getAttributes()
-      const {
-    return attributes_;
-  }
-
-  /* Check if any attributes were provided. */
-  bool hasAttributes() const {
-    return !attributes_.empty();
-  }
-
- private:
-  utils::InterfaceList interfaces_;
-  std::vector<std::pair<std::string, std::string>> attributes_;
-
-  // Check if a string is a known attribute name
-  static bool isKnownAttribute(const std::string& s);
+  /* implicit */ InterfacesConfig(const std::vector<std::string>& v);
 };
 
 struct CmdConfigInterfaceTraits : public WriteCommandTraits {
@@ -73,7 +46,7 @@ struct CmdConfigInterfaceTraits : public WriteCommandTraits {
         "interface_config",
         args,
         "<port-list> [<attr> <value> ...] where <attr> is one "
-        "of: description, mtu");
+        "of: description, mtu, ip-address, ipv6-address, ...");
   }
   using ObjectArgType = InterfacesConfig;
   using RetType = std::string;
@@ -91,5 +64,19 @@ class CmdConfigInterface
 
   void printOutput(const RetType& logMsg);
 };
+
+// Testable core of the profile-change flow. The `profile` attribute both
+// narrows/removes existing ports and creates absent-but-valid INTERFACE_PORTs,
+// so this is the single "apply profile" step. All validation (per-port support,
+// controlling-port subsumption, and creatability of absent ports) runs before
+// any mutation; then existing ports are adjusted and subsumed ports removed
+// before absent ports are created. Throws std::invalid_argument with a
+// user-facing message on any validation failure (leaving `swConfig`
+// unchanged). Declared here for unit testing.
+std::string applyProfileImpl(
+    ProfileValidator& validator,
+    cfg::SwitchConfig& swConfig,
+    const utils::InterfaceList& interfaces,
+    const std::string& value);
 
 } // namespace facebook::fboss

@@ -40,6 +40,12 @@ std::shared_ptr<RouteV4> makeV4Route(
     const RouteV4::Prefix& pfx,
     const RouteNextHopSet& nextHops);
 
+// Returns a clone of `state` with a complete, self-consistent set of NextHop
+// IDs + FibInfo stamped (via a throwaway local manager), so ID-aware reads
+// resolve under FLAGS_resolve_nexthops_from_id. Used by updateRoutes() and by
+// tests that build states outside the fixture's normal update path.
+std::shared_ptr<SwitchState> withNextHopIds(std::shared_ptr<SwitchState> state);
+
 template <typename AddrT>
 inline ForwardingInformationBase<AddrT>* fibImpl(
     std::shared_ptr<SwitchState>& newState) {

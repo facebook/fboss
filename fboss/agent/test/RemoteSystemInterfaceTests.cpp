@@ -33,31 +33,19 @@ class RemoteSystemInterfaceTest : public ::testing::Test {
     sw_->stop(false, false);
   }
 
-  void verify(int expectedSize = 2) {
+  void verifyNoGeneratedRemoteSystemPortInterfaces(int expectedSize = 0) {
     auto state = sw_->getState();
-    auto local = state->getInterfaces();
     auto remote = state->getRemoteInterfaces();
 
     EXPECT_EQ(remote->size(), expectedSize);
 
-    auto intfs1 = state->getInterfaces()->getMapNodeIf(
+    auto remoteIntfs1 = remote->getMapNodeIf(
         HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(1)}));
-    auto intfs2 = state->getInterfaces()->getMapNodeIf(
+    auto remoteIntfs2 = remote->getMapNodeIf(
         HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(2)}));
 
-    auto remoteIntfs1 = state->getRemoteInterfaces()->getMapNodeIf(
-        HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(1)}));
-    auto remoteIntfs2 = state->getRemoteInterfaces()->getMapNodeIf(
-        HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(2)}));
-
-    for (auto intf : std::as_const(*intfs1)) {
-      auto intfID = intf.second->getID();
-      EXPECT_NE(remoteIntfs2->getNodeIf(intfID), nullptr);
-    }
-    for (auto intf : std::as_const(*intfs2)) {
-      auto intfID = intf.second->getID();
-      EXPECT_NE(remoteIntfs1->getNodeIf(intfID), nullptr);
-    }
+    EXPECT_EQ(nullptr, remoteIntfs1);
+    EXPECT_EQ(nullptr, remoteIntfs2);
   }
 
  protected:
@@ -66,7 +54,7 @@ class RemoteSystemInterfaceTest : public ::testing::Test {
 };
 
 TEST_F(RemoteSystemInterfaceTest, ConfigureSystemPortInterfaces) {
-  verify();
+  verifyNoGeneratedRemoteSystemPortInterfaces();
 }
 
 TEST_F(RemoteSystemInterfaceTest, ReConfigureSystemPortInterfaces) {
@@ -103,7 +91,7 @@ TEST_F(RemoteSystemInterfaceTest, ReConfigureSystemPortInterfaces) {
         return newState;
       });
 
-  verify(3);
+  verifyNoGeneratedRemoteSystemPortInterfaces(1);
   auto allRemoteSysIntfs0 =
       sw_->getState()->getRemoteInterfaces()->getMapNodeIf(matchAll);
   EXPECT_NE(nullptr, allRemoteSysIntfs0);
@@ -113,7 +101,7 @@ TEST_F(RemoteSystemInterfaceTest, ReConfigureSystemPortInterfaces) {
     port.minFrameSize() = 1024;
   }
   sw_->applyConfig("Reconfigure", newCfg);
-  verify(3);
+  verifyNoGeneratedRemoteSystemPortInterfaces(1);
   auto allRemoteSysIntfs1 =
       sw_->getState()->getRemoteInterfaces()->getMapNodeIf(matchAll);
   EXPECT_NE(nullptr, allRemoteSysIntfs1);
@@ -126,7 +114,8 @@ TEST_F(RemoteSystemInterfaceTest, ReConfigureSystemPortInterfaces) {
   EXPECT_EQ(newRemoteSystemIntfs->getNodeIf(InterfaceID(101)), nullptr);
 }
 
-TEST_F(RemoteSystemInterfaceTest, verifyNeighborEntries) {
+TEST_F(RemoteSystemInterfaceTest, LocalScopedNeighborEntriesStayLocal) {
+  verifyNoGeneratedRemoteSystemPortInterfaces();
   sw_->updateStateBlocking(
       "Add Ndp Entry", [=](const std::shared_ptr<SwitchState>& state) {
         auto newState = state->clone();
@@ -155,15 +144,10 @@ TEST_F(RemoteSystemInterfaceTest, verifyNeighborEntries) {
       });
   waitForStateUpdates(sw_);
   waitForStateUpdates(sw_);
-  auto remoteIntfs = sw_->getState()->getRemoteInterfaces()->getMapNodeIf(
-      HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(2)}));
-  auto remoteIntf = remoteIntfs->getNodeIf(kInterfaceID);
-  EXPECT_NE(remoteIntf, nullptr);
-  auto ndpEntry = remoteIntf->getNdpTable()->getEntry(kIpV6Address);
-  EXPECT_NE(ndpEntry, nullptr);
-  EXPECT_FALSE(ndpEntry->getIsLocal());
-  auto arpEntry = remoteIntf->getArpTable()->getEntry(kIpV4Address);
-  EXPECT_NE(arpEntry, nullptr);
-  EXPECT_FALSE(arpEntry->getIsLocal());
+  auto localIntf = sw_->getState()->getInterfaces()->getNodeIf(kInterfaceID);
+  EXPECT_NE(localIntf, nullptr);
+  EXPECT_NE(localIntf->getNdpTable()->getEntry(kIpV6Address), nullptr);
+  EXPECT_NE(localIntf->getArpTable()->getEntry(kIpV4Address), nullptr);
+  verifyNoGeneratedRemoteSystemPortInterfaces();
 }
 } // namespace facebook::fboss

@@ -84,6 +84,7 @@
 #include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
 #include "fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
+#include "fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
 #ifndef IS_OSS
@@ -103,6 +104,8 @@
 #include "fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.h"
 #include "fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h"
+#include "fboss/cli/fboss2/commands/start/port/CmdStartPort.h"
+#include "fboss/cli/fboss2/commands/start/port/cable_length_measurement/CmdStartPortCableLengthMeasurement.h"
 #include "fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h"
 #include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h"
 #include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperStats.h"
@@ -427,6 +430,18 @@ const CommandTree& kCommandTree() {
          commandHandler<CmdShowMplsRoute>,
          argTypeHandler<CmdShowMplsRouteTraits>}}},
 
+      {"show",
+       "nexthopgroups",
+       "Show next hop groups",
+       commandHandler<CmdShowNextHopGroups>,
+       argTypeHandler<CmdShowNextHopGroupsTraits>},
+
+      {"show",
+       "namednexthopgroups",
+       "Show named next hop groups",
+       commandHandler<CmdShowNamedNextHopGroups>,
+       argTypeHandler<CmdShowNamedNextHopGroupsTraits>},
+
       {
           "show",
           "sdk",
@@ -593,6 +608,16 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdStartPcap>,
        argTypeHandler<CmdStartPcapTraits>,
        localOptionsHandler<CmdStartPcapTraits>},
+
+      {"start",
+       "port",
+       "Start Port event",
+       commandHandler<CmdStartPort>,
+       argTypeHandler<CmdStartPortTraits>,
+       {{"cable-length-measurement",
+         "Trigger cable length measurement",
+         commandHandler<CmdStartPortCableLengthMeasurement>,
+         argTypeHandler<CmdStartPortCableLengthMeasurementTraits>}}},
 
       {"stop",
        "pcap",
