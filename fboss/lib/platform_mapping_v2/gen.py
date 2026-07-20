@@ -6,11 +6,14 @@ import sys
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
-from fboss.lib.platform_mapping_v2.read_files_utils import read_platform_descriptor
+from fboss.lib.platform_mapping_v2.read_files_utils import (
+    _FBOSS_DIR,
+    INPUT_DIR,
+    read_all_vendor_data,
+    read_platform_descriptor,
+)
 from thrift.python.serializer import Protocol, serialize
 
-_FBOSS_DIR: str = os.getcwd() + "/fboss"
-INPUT_DIR: str = f"{_FBOSS_DIR}/lib/platform_mapping_v2/platforms/"
 JsonValue = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
 PlatformDescriptorData = Tuple[str, Dict[str, Any]]
 
@@ -109,23 +112,6 @@ def get_command_line_args() -> Tuple[str, str, str, bool]:
     )
 
 
-def read_vendor_data(input_file_path: str) -> Dict[str, str]:
-    vendor_data = {}
-    if not os.path.exists(input_file_path):
-        raise FileNotFoundError(f"The folder '{input_file_path}' does not exist.")
-
-    for filename in os.listdir(input_file_path):
-        filepath = os.path.join(input_file_path, filename)
-        if (
-            filepath.endswith(".csv") or filepath.endswith(".json")
-        ) and not os.path.isdir(filepath):
-            with open(filepath, "r") as file:
-                content = file.read()
-            vendor_data[filename] = content
-
-    return vendor_data
-
-
 def generate_platform_mappings(
     input_dir: str, output_dir: str, platform_name: str, is_multi_npu: bool
 ) -> None:
@@ -219,22 +205,6 @@ def generate_platform_descriptor(
 
 def generate_mappings_without_args() -> None:
     generate_platform_mappings(*get_command_line_args())
-
-
-def read_all_vendor_data() -> Dict[str, Dict[str, str]]:
-    all_vendor_data = {}
-    data_path = INPUT_DIR
-    print(
-        f"Reading all vendor data in {data_path}...",
-        file=sys.stderr,
-    )
-    for filename in os.listdir(data_path):
-        filepath = os.path.join(data_path, filename)
-        if not os.path.isdir(filepath):
-            continue
-        all_vendor_data[filename] = read_vendor_data(filepath)
-
-    return all_vendor_data
 
 
 if __name__ == "__main__":

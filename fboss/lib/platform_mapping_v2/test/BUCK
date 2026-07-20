@@ -12,7 +12,6 @@ python_unittest(
         "//fboss/agent:platform_config-python-types",
         "//fboss/agent:switch_config-python-types",
         "//fboss/lib/phy:phy-python-types",
-        "//fboss/lib/platform_mapping_v2:gen-library",
         "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
         "//fboss/lib/platform_mapping_v2:read_files_utils",
         "//fboss/qsfp_service/if:transceiver-python-types",

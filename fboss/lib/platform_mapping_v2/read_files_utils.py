@@ -1,6 +1,8 @@
 # pyre-unsafe
 import copy
 import json
+import os
+import sys
 from enum import IntEnum
 from typing import Any, Dict, List, Optional
 
@@ -46,6 +48,42 @@ from neteng.fboss.switch_config.thrift_types import (
     Scope,
 )
 from neteng.fboss.transceiver.thrift_types import TransmitterTechnology, Vendor
+
+_FBOSS_DIR: str = os.getcwd() + "/fboss"
+INPUT_DIR: str = f"{_FBOSS_DIR}/lib/platform_mapping_v2/platforms/"
+
+
+def read_vendor_data(input_file_path: str) -> Dict[str, str]:
+    vendor_data = {}
+    if not os.path.exists(input_file_path):
+        raise FileNotFoundError(f"The folder '{input_file_path}' does not exist.")
+
+    for filename in os.listdir(input_file_path):
+        filepath = os.path.join(input_file_path, filename)
+        if (
+            filepath.endswith(".csv") or filepath.endswith(".json")
+        ) and not os.path.isdir(filepath):
+            with open(filepath, "r") as file:
+                content = file.read()
+            vendor_data[filename] = content
+
+    return vendor_data
+
+
+def read_all_vendor_data() -> Dict[str, Dict[str, str]]:
+    all_vendor_data = {}
+    data_path = INPUT_DIR
+    print(
+        f"Reading all vendor data in {data_path}...",
+        file=sys.stderr,
+    )
+    for filename in os.listdir(data_path):
+        filepath = os.path.join(data_path, filename)
+        if not os.path.isdir(filepath):
+            continue
+        all_vendor_data[filename] = read_vendor_data(filepath)
+
+    return all_vendor_data
 
 
 def get_content(directory: Dict[str, str], filename: str) -> str:

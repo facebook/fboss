@@ -6,8 +6,8 @@ from typing import Any
 
 import yaml
 from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator, MODULE_DIR
-from fboss.lib.platform_mapping_v2.gen import read_all_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
+from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
 
 
 class BroadcomXgsGenerator(BaseAsicConfigGenerator):

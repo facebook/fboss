@@ -5,9 +5,11 @@
 import unittest
 from typing import Dict, List, Optional
 
-from fboss.lib.platform_mapping_v2.gen import read_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
-from fboss.lib.platform_mapping_v2.read_files_utils import read_platform_descriptor
+from fboss.lib.platform_mapping_v2.read_files_utils import (
+    read_platform_descriptor,
+    read_vendor_data,
+)
 from neteng.fboss.phy.phy.thrift_types import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
