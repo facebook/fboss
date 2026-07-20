@@ -54,14 +54,11 @@ class SaiApi {
   // one for objects whose AdapterKey is a SAI object id, which needs to
   // return the adapter key, and another for those objects whose AdapterKey
   // is an entry struct, which must take an AdapterKey but don't return one.
-  // The distinction is drawn with traits from Traits.h and SFINAE
+  // The distinction is drawn with concepts from Traits.h.
 
-  // sai_object_id_t case
-  template <typename SaiObjectTraits>
-  std::enable_if_t<
-      AdapterKeyIsObjectId<SaiObjectTraits>::value,
-      typename SaiObjectTraits::AdapterKey>
-  create(
+  // ObjectIdSaiObject case: SAI returns a new object ID.
+  template <ObjectIdSaiObject SaiObjectTraits>
+  typename SaiObjectTraits::AdapterKey create(
       const typename SaiObjectTraits::CreateAttributes& createAttributes,
       sai_object_id_t switch_id) const {
     static_assert(
@@ -101,10 +98,9 @@ class SaiApi {
     return key;
   }
 
-  // entry struct case
-  template <typename SaiObjectTraits>
-  std::enable_if_t<AdapterKeyIsEntryStruct<SaiObjectTraits>::value, void>
-  create(
+  // EntryStructSaiObject case: caller provides the full SAI entry key.
+  template <EntryStructSaiObject SaiObjectTraits>
+  void create(
       const typename SaiObjectTraits::AdapterKey& entry,
       const typename SaiObjectTraits::CreateAttributes& createAttributes)
       const {
