@@ -162,10 +162,13 @@ class VlanIdValue : public BaseObjectArgType<int32_t> {
     try {
       int32_t vlanId = folly::to<int32_t>(v[0]);
       // VLAN IDs are typically 1-4094 (0 and 4095 are reserved)
-      if (vlanId < 1 || vlanId > 4094) {
+      if (vlanId < kVlanIdMin || vlanId > kVlanIdMax) {
         throw std::invalid_argument(
-            "VLAN ID must be between 1 and 4094 inclusive, got: " +
-            std::to_string(vlanId));
+            fmt::format(
+                "VLAN ID must be between {} and {} inclusive, got: {}",
+                kVlanIdMin,
+                kVlanIdMax,
+                vlanId));
       }
       data_.push_back(vlanId);
     } catch (const folly::ConversionError&) {

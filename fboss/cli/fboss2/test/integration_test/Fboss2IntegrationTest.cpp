@@ -71,9 +71,6 @@ void Fboss2IntegrationTest::TearDown() {
 }
 
 void Fboss2IntegrationTest::discardSession() const {
-  // Delete the session files to ensure we start with a fresh session
-  // based on the current HEAD. ConfigSession::initializeSession() will
-  // reset internal state when it detects no session file exists.
   // NOLINTNEXTLINE(concurrency-mt-unsafe): HOME is read-only in practice
   const char* home = std::getenv("HOME");
   if (home == nullptr) {

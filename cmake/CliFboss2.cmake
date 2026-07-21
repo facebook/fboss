@@ -807,6 +807,12 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h
   fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.cpp
   fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h
+  fboss/cli/fboss2/commands/config/acl/CmdConfigAcl.cpp
+  fboss/cli/fboss2/commands/config/acl/CmdConfigAcl.h
+  fboss/cli/fboss2/commands/config/acl/rule/AclRuleAttrs.cpp
+  fboss/cli/fboss2/commands/config/acl/rule/AclRuleAttrs.h
+  fboss/cli/fboss2/commands/config/acl/rule/CmdConfigAclRule.cpp
+  fboss/cli/fboss2/commands/config/acl/rule/CmdConfigAclRule.h
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.cpp
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h
   fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.cpp
@@ -1035,6 +1041,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.cpp
   fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h
   fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.cpp
+  fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.cpp
+  fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.h
+  fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.cpp
+  fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h
   fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.cpp
   fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h
   fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.cpp
