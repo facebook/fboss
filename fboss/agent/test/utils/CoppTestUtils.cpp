@@ -1439,6 +1439,56 @@ uint64_t getCpuQueueInPackets(SwSwitch* sw, SwitchID switchId, int queueId) {
       : cpuPortStats.queueInPackets_()->at(queueId);
 }
 
+namespace {
+// Read the timestamp of the stats snapshot currently published for `switchId`.
+// CPU queue counters are served from the SwSwitch-side stats cache
+// (getHwSwitchStatsExpensive), which never reads hardware directly: it is
+// refreshed asynchronously by the periodic stats poll in mono mode, and by the
+// stats stream from the HwAgent in multi-switch mode. Each published snapshot
+// carries a per-switch timestamp, which lets callers tell a genuinely fresh
+// poll apart from a stale cached one.
+int64_t getHwSwitchStatsTimestamp(SwSwitch* sw, const SwitchID& switchId) {
+  auto switchIndex =
+      sw->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+  auto switchStats = sw->getHwSwitchStatsExpensive();
+  auto it = switchStats.find(switchIndex);
+  return it == switchStats.end() ? 0 : it->second.timestamp().value();
+}
+
+// Block until SwSwitch publishes a stats snapshot strictly newer than
+// `sinceTimestamp` for `switchId`, returning the fresh snapshot's timestamp.
+//
+// Reading the cache without this gate can return a snapshot that predates the
+// event under test. This is most visible right after a warm boot, where the
+// cache still holds the pre-warm-boot values until the first post-warm-boot
+// poll lands; using such a stale snapshot as a baseline makes a later delta
+// count packets that arrived outside the test window (spurious "extra
+// packets"). Waiting for the timestamp to advance is ASIC- and
+// run-mode-agnostic, since both mono and multi-switch modes stamp the timestamp
+// on every poll -- unlike forcing SwSwitch::updateStats(), which only refreshes
+// the cache in mono mode. Timestamps are in seconds, so this waits up to a poll
+// interval (~1-2s).
+int64_t waitForFreshHwSwitchStats(
+    SwSwitch* sw,
+    SwitchID switchId,
+    int64_t sinceTimestamp) {
+  int64_t freshTimestamp = sinceTimestamp;
+  checkWithRetry(
+      [&]() {
+        auto timestamp = getHwSwitchStatsTimestamp(sw, switchId);
+        if (timestamp > sinceTimestamp) {
+          freshTimestamp = timestamp;
+          return true;
+        }
+        return false;
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " wait for fresh CPU port stats");
+  return freshTimestamp;
+}
+} // namespace
+
 template <typename SwitchT>
 std::map<int, uint64_t> getQueueOutPacketsWithRetry(
     SwitchT* switchPtr,
@@ -1458,7 +1508,24 @@ std::map<int, uint64_t> getQueueOutPacketsWithRetry(
     asic = static_cast<HwSwitch*>(switchPtr)->getPlatform()->getAsic();
   }
 
+  // On the SwSwitch read path the CPU queue counters come from the
+  // asynchronously refreshed stats cache, so record the currently published
+  // stats timestamp up front. On every iteration below we wait for this
+  // timestamp to advance before reading, guaranteeing the counters reflect a
+  // fresh poll rather than a stale snapshot (notably the pre-warm-boot values
+  // still cached immediately after a warm boot). The HwSwitch read path reads
+  // hardware directly and needs no such gating.
+  int64_t lastStatsTimestamp = 0;
+  if constexpr (std::is_same_v<SwitchT, SwSwitch>) {
+    lastStatsTimestamp =
+        getHwSwitchStatsTimestamp(static_cast<SwSwitch*>(switchPtr), switchId);
+  }
+
   do {
+    if constexpr (std::is_same_v<SwitchT, SwSwitch>) {
+      lastStatsTimestamp = waitForFreshHwSwitchStats(
+          static_cast<SwSwitch*>(switchPtr), switchId, lastStatsTimestamp);
+    }
     if (!verifyPktCntInOtherQueues) {
       for (auto i = 0; i <= utility::getCoppHighPriQueueId(asic); i++) {
         auto qOutPkts =
@@ -1506,6 +1573,12 @@ std::map<int, uint64_t> getQueueOutPacketsWithRetry(
   } while (retryTimes-- > 0);
 
   while ((result[queueId] == expectedNumPkts) && postMatchRetryTimes--) {
+    if constexpr (std::is_same_v<SwitchT, SwSwitch>) {
+      // Re-read from a fresh poll so a late/extra packet is actually observed
+      // instead of re-reading the same cached snapshot.
+      lastStatsTimestamp = waitForFreshHwSwitchStats(
+          static_cast<SwSwitch*>(switchPtr), switchId, lastStatsTimestamp);
+    }
     result[queueId] =
         getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
   }
