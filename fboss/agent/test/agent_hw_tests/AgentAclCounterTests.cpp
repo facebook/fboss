@@ -452,12 +452,16 @@ class AgentAclCounterTest : public AgentHwTest {
           EXPECT_EVENTUALLY_GE(
               aclBytesCountAfter + extraBytes,
               aclBytesCountBefore + sizeOfPacketSent);
-          //  On native BCM we see 4 extra bytes in the acl counter. This is
-          //  likely due to ingress vlan getting imposed and getting counted
-          //  when packet hits acl in ingress pipeline
+          //  The ACL byte counter can include the 4-byte FCS for each packet
+          //  that hits the ACL (in addition to bytes from ingress vlan
+          //  imposition seen on native BCM). The ACL is hit once on most ASICs
+          //  but twice on some (the looped-back pkt re-hits the ACL before
+          //  being dropped in the ingress pipeline), so scale the FCS byte
+          //  tolerance by the number of ACL hits.
+          auto numAclHits = aclPktCountAfter - aclPktCountBefore;
           EXPECT_EVENTUALLY_LE(
               aclBytesCountAfter,
-              aclBytesCountBefore + (2 * sizeOfPacketSent) + 4);
+              aclBytesCountBefore + (2 * sizeOfPacketSent) + (4 * numAclHits));
         }
       } else {
         EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
