@@ -467,6 +467,10 @@ concept ObjectIdSaiObject = AdapterKeyIsObjectId<SaiObjectTraits>::value;
 template <typename SaiObjectTraits>
 concept EntryStructSaiObject = AdapterKeyIsEntryStruct<SaiObjectTraits>::value;
 
+template <typename SaiObjectTraits, typename ApiT>
+concept SaiObjectForApi = requires { typename SaiObjectTraits::SaiApiT; } &&
+    std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>;
+
 template <typename T>
 struct IsTupleOfSaiAttributes : public std::false_type {};
 

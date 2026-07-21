@@ -58,12 +58,10 @@ class SaiApi {
 
   // ObjectIdSaiObject case: SAI returns a new object ID.
   template <ObjectIdSaiObject SaiObjectTraits>
+    requires SaiObjectForApi<SaiObjectTraits, ApiT>
   typename SaiObjectTraits::AdapterKey create(
       const typename SaiObjectTraits::CreateAttributes& createAttributes,
       sai_object_id_t switch_id) const {
-    static_assert(
-        std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>,
-        "invalid traits for the api");
     typename SaiObjectTraits::AdapterKey key;
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
     if (UNLIKELY(failHwWrites() || skipHwWrites())) {
@@ -100,13 +98,11 @@ class SaiApi {
 
   // EntryStructSaiObject case: caller provides the full SAI entry key.
   template <EntryStructSaiObject SaiObjectTraits>
+    requires SaiObjectForApi<SaiObjectTraits, ApiT>
   void create(
       const typename SaiObjectTraits::AdapterKey& entry,
       const typename SaiObjectTraits::CreateAttributes& createAttributes)
       const {
-    static_assert(
-        std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>,
-        "invalid traits for the api");
     if (UNLIKELY(skipHwWrites())) {
       return;
     }
@@ -495,6 +491,7 @@ class SaiApi {
   }
 
   template <ObjectIdSaiObject SaiObjectTraits>
+    requires SaiObjectForApi<SaiObjectTraits, ApiT>
   std::vector<typename SaiObjectTraits::AdapterKey> bulkCreate(
       const std::vector<typename SaiObjectTraits::CreateAttributes>&
           createAttributes,
