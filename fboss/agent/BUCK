@@ -770,6 +770,7 @@ cpp_library(
     name = "apply_thrift_config",
     srcs = ["ApplyThriftConfig.cpp"],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":agent_features",
         ":asic_utils",
         ":buffer_utils",
@@ -1063,6 +1064,7 @@ cpp_library(
         "facebook/ScubaRouteLogger.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
         "fbsource//third-party/googletest:gtest_headers",
@@ -1235,6 +1237,7 @@ cpp_library(
         "ThriftHandler.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":address_utils",
         ":agent_features",
         ":core",

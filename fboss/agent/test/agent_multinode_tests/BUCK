@@ -33,6 +33,7 @@ cpp_library(
     ],
     link_whole = True,
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         "//common/network:util",
         "//fboss/agent:agent_features",

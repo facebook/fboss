@@ -20,6 +20,7 @@
 #include <utility>
 
 #include <boost/filesystem/operations.hpp>
+#include <fmt/format.h>
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
@@ -2392,7 +2393,7 @@ void BcmSwitch::changeDefaultVlan(VlanID oldId, VlanID newId) {
           InterfaceID(oldId),
           RouterID(0), /* currently VRF is always zero anyway */
           std::optional<VlanID>(oldId),
-          folly::StringPiece(folly::sformat("Interface-{}", uint16_t(oldId))),
+          folly::StringPiece(fmt::format("Interface-{}", uint16_t(oldId))),
           getPlatform()->getLocalMac(),
           9000, /* mtu */
           false, /* is virtual */
@@ -2403,7 +2404,7 @@ void BcmSwitch::changeDefaultVlan(VlanID oldId, VlanID newId) {
         InterfaceID(newId),
         RouterID(0), /* currently VRF is always zero anyway */
         std::optional<VlanID>(newId),
-        folly::StringPiece(folly::sformat("Interface-{}", uint16_t(newId))),
+        folly::StringPiece(fmt::format("Interface-{}", uint16_t(newId))),
         getPlatform()->getLocalMac(),
         9000, /* mtu */
         false, /* is virtual */
@@ -4023,7 +4024,7 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
       static_cast<std::pair<BcmSwitch*, std::vector<L2EntryThrift>*>*>(
           user_data);
   auto [hw, l2Table] = *cookie;
-  *entry.mac() = folly::sformat(
+  *entry.mac() = fmt::format(
       "{0:02x}:{1:02x}:{2:02x}:{3:02x}:{4:02x}:{5:02x}",
       l2addr->mac[0],
       l2addr->mac[1],

@@ -1,5 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/oper/Subscription.h"
@@ -1091,7 +1092,7 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriberDisconnectThreshold) {
 
   WITH_RETRIES_N(90, {
     fb303::ThreadCachedServiceData::get()->publishStats();
-    auto counterName = folly::sformat(
+    auto counterName = fmt::format(
         "{}.subscriber.{}.disconnects.slow_subscriber.count",
         this->pubSubStats() ? "stats" : "fsdb",
         "unspecified");
@@ -1204,7 +1205,7 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, memoryAwareDisconnect) {
 
   WITH_RETRIES_N(90, {
     fb303::ThreadCachedServiceData::get()->publishStats();
-    auto counterName = folly::sformat(
+    auto counterName = fmt::format(
         "{}.subscriber.{}.disconnects.slow_subscriber.count",
         this->pubSubStats() ? "stats" : "fsdb",
         "unspecified");
@@ -1287,7 +1288,7 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriber) {
   // Also validate fb303 counter for slow subscriber disconnects
   WITH_RETRIES_N(90, {
     fb303::ThreadCachedServiceData::get()->publishStats();
-    auto counterName = folly::sformat(
+    auto counterName = fmt::format(
         "{}.subscriber.{}.disconnects.slow_subscriber.count",
         this->pubSubStats() ? "stats" : "fsdb",
         "unspecified");
@@ -1371,7 +1372,7 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriberQueueWatermark) {
     // Also validate fb303 counter for subscription serve queue watermark
     // In tests, we don't start the publisher threads
     fb303::ThreadCachedServiceData::get()->publishStats();
-    auto counterName = folly::sformat(
+    auto counterName = fmt::format(
         "{}.subscriber.{}.queue_watermark.avg.60",
         this->pubSubStats() ? "stats" : "fsdb",
         "unspecified");

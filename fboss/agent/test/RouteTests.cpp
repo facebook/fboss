@@ -21,6 +21,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include <optional>
 #include <set>
@@ -2354,9 +2355,9 @@ class StaticRoutesTest : public RouteTest {
                                         int prefixStartIdx) {
       staticRouteNoNhops.resize(2);
       staticRouteNoNhops[0].prefix() =
-          folly::sformat("240{}::/64", prefixStartIdx);
+          fmt::format("240{}::/64", prefixStartIdx);
       staticRouteNoNhops[1].prefix() =
-          folly::sformat("30.30.{}.0/24", prefixStartIdx);
+          fmt::format("30.30.{}.0/24", prefixStartIdx);
     };
     // Add v4/v6 static routes to CPU/NULL
     insertStaticNoNhopRoutes(*config.staticRoutesToCPU(), 1);
@@ -2394,7 +2395,7 @@ class UcmpTest : public RouteTest {
     ASSERT_NE(nullptr, state);
     for (const auto& nnhs : networkAndNextHops) {
       folly::IPAddress net = nnhs.first;
-      auto pfx = folly::sformat("{}/{}", net.str(), mask);
+      auto pfx = fmt::format("{}/{}", net.str(), mask);
       auto r = this->findRoute4(state, rid_, pfx);
       EXPECT_RESOLVED(r);
       EXPECT_FALSE(r->isConnected());

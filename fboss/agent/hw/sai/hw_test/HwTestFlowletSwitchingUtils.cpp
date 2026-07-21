@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/HwTestFlowletSwitchingUtils.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
@@ -261,7 +262,7 @@ void runCint(TestEnsembleIf* ensemble, const std::string& cintStr) {
   folly::test::TemporaryFile file;
   XLOG(INFO) << " Cint file " << file.path().c_str();
   folly::writeFull(file.fd(), cintStr.c_str(), cintStr.size());
-  auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+  auto cmd = fmt::format("cint {}\n", file.path().c_str());
   std::string out;
   ensemble->runDiagCommand(cmd, out, std::nullopt);
 }

@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <folly/Conv.h>
 #include <algorithm>
 
@@ -66,14 +67,14 @@ void validateVdm(
         XLOG(DBG2) << "Validating VDM performance monitoring for " << portName
                    << ", side: " << apache::thrift::util::enumNameSafe(side);
         EXPECT_LE(preFecBer.get_max(), thresholds.preFecBer.maxThreshold)
-            << folly::sformat(
+            << fmt::format(
                    "PreFecBer Max for {} is {}",
                    portName,
                    folly::copy(preFecBer.max().value()));
         EXPECT_LE(fecTailMax, thresholds.fecTailMax.maxThreshold)
-            << folly::sformat("FecTail Max for {} is {}", portName, fecTailMax);
+            << fmt::format("FecTail Max for {} is {}", portName, fecTailMax);
         for (auto& [lane, snr] : laneSnr) {
-          EXPECT_GE(snr, thresholds.pam4eSnr.minThreshold) << folly::sformat(
+          EXPECT_GE(snr, thresholds.pam4eSnr.minThreshold) << fmt::format(
               "SNR for lane {} on {} is {}", lane, portName, snr);
         }
       };
@@ -179,106 +180,103 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
   auto qsfpServiceClient = utils::createQsfpServiceClient();
   qsfpServiceClient->sync_pauseRemediation(24 * 60 * 60 /* 24hrs */, {});
 
-  auto verifyLatches =
-      [this, cachedHostLanes, cachedMediaLanes](
-          std::unordered_map<int32_t, std::string>& transceiverIds,
-          bool txLatch,
-          bool rxLatch) {
-        std::vector<int32_t> onlyTcvrIds;
-        for (const auto& tcvrId : transceiverIds) {
-          onlyTcvrIds.push_back(int32_t(tcvrId.first));
-        }
-        WITH_RETRIES_N_TIMED(10, std::chrono::seconds(10), {
-          auto transceiverInfos =
-              utility::waitForTransceiverInfo(onlyTcvrIds, /*includeLpo*/ true);
-          for (const auto& tcvrId : onlyTcvrIds) {
-            auto& portName = transceiverIds[TransceiverID(tcvrId)];
-            auto tcvrInfoInfoItr = transceiverInfos.find(tcvrId);
-            ASSERT_EVENTUALLY_TRUE(tcvrInfoInfoItr != transceiverInfos.end());
+  auto verifyLatches = [this, cachedHostLanes, cachedMediaLanes](
+                           std::unordered_map<int32_t, std::string>&
+                               transceiverIds,
+                           bool txLatch,
+                           bool rxLatch) {
+    std::vector<int32_t> onlyTcvrIds;
+    for (const auto& tcvrId : transceiverIds) {
+      onlyTcvrIds.push_back(int32_t(tcvrId.first));
+    }
+    WITH_RETRIES_N_TIMED(10, std::chrono::seconds(10), {
+      auto transceiverInfos =
+          utility::waitForTransceiverInfo(onlyTcvrIds, /*includeLpo*/ true);
+      for (const auto& tcvrId : onlyTcvrIds) {
+        auto& portName = transceiverIds[TransceiverID(tcvrId)];
+        auto tcvrInfoInfoItr = transceiverInfos.find(tcvrId);
+        ASSERT_EVENTUALLY_TRUE(tcvrInfoInfoItr != transceiverInfos.end());
 
-            auto& tcvrState = *tcvrInfoInfoItr->second.tcvrState();
-            auto mediaInterface = tcvrState.moduleMediaInterface().value_or({});
-            ASSERT_EVENTUALLY_TRUE(
-                cachedHostLanes.find(portName) != cachedHostLanes.end())
-                << folly::sformat(
-                       "Port {} not found in cachedHostLanes", portName);
-            ASSERT_EVENTUALLY_TRUE(
-                cachedMediaLanes.find(portName) != cachedMediaLanes.end())
-                << folly::sformat(
-                       "Port {} not found in cachedMediaLanes", portName);
-            auto& hostLanes = cachedHostLanes.at(portName);
-            auto& mediaLanes = cachedMediaLanes.at(portName);
-            auto& hostLaneSignals = *tcvrState.hostLaneSignals();
-            auto& mediaLaneSignals = *tcvrState.mediaLaneSignals();
+        auto& tcvrState = *tcvrInfoInfoItr->second.tcvrState();
+        auto mediaInterface = tcvrState.moduleMediaInterface().value_or({});
+        ASSERT_EVENTUALLY_TRUE(
+            cachedHostLanes.find(portName) != cachedHostLanes.end())
+            << fmt::format("Port {} not found in cachedHostLanes", portName);
+        ASSERT_EVENTUALLY_TRUE(
+            cachedMediaLanes.find(portName) != cachedMediaLanes.end())
+            << fmt::format("Port {} not found in cachedMediaLanes", portName);
+        auto& hostLanes = cachedHostLanes.at(portName);
+        auto& mediaLanes = cachedMediaLanes.at(portName);
+        auto& hostLaneSignals = *tcvrState.hostLaneSignals();
+        auto& mediaLaneSignals = *tcvrState.mediaLaneSignals();
 
-            ASSERT_EVENTUALLY_GT(hostLanes.size(), 0);
-            ASSERT_EVENTUALLY_GT(mediaLanes.size(), 0);
-            ASSERT_EVENTUALLY_GT(hostLaneSignals.size(), 0);
-            ASSERT_EVENTUALLY_GT(mediaLaneSignals.size(), 0);
+        ASSERT_EVENTUALLY_GT(hostLanes.size(), 0);
+        ASSERT_EVENTUALLY_GT(mediaLanes.size(), 0);
+        ASSERT_EVENTUALLY_GT(hostLaneSignals.size(), 0);
+        ASSERT_EVENTUALLY_GT(mediaLaneSignals.size(), 0);
 
-            // LPO does not support TxLol
-            bool isLpo = *tcvrState.moduleTechnology() == ModuleTechnology::LPO;
+        // LPO does not support TxLol
+        bool isLpo = *tcvrState.moduleTechnology() == ModuleTechnology::LPO;
 
-            for (const auto& signal : hostLaneSignals) {
-              if (std::find(
-                      hostLanes.begin(),
-                      hostLanes.end(),
-                      signal.lane().value()) != hostLanes.end()) {
-                if (!isLpo) {
-                  ASSERT_EVENTUALLY_TRUE(signal.txLol().has_value());
-                }
-                ASSERT_EVENTUALLY_TRUE(signal.txLos().has_value());
-                // TX_LOL is not reliable right now on certain 100G
-                // CWDM4 optics like AOI and Miniphoton. So skip checking it
-                // on these optics for now
-                if (mediaInterface != MediaInterfaceCode::CWDM4_100G &&
-                    isLpo == false) {
-                  EXPECT_EVENTUALLY_EQ(signal.txLol().value(), txLatch)
-                      << portName << ", lane: " << signal.lane().value();
-                }
-                // We see TX_LOS set only on the first lane of FR1_100G. This is
-                // a bug but we can't get the vendor to fix it now. Therefore,
-                // handle it separately in the test
-                if (mediaInterface != MediaInterfaceCode::FR1_100G ||
-                    signal.lane().value() == 0) {
-                  EXPECT_EVENTUALLY_EQ(signal.txLos().value(), txLatch)
-                      << portName << ", lane: " << signal.lane().value();
-                }
-              }
+        for (const auto& signal : hostLaneSignals) {
+          if (std::find(
+                  hostLanes.begin(), hostLanes.end(), signal.lane().value()) !=
+              hostLanes.end()) {
+            if (!isLpo) {
+              ASSERT_EVENTUALLY_TRUE(signal.txLol().has_value());
             }
+            ASSERT_EVENTUALLY_TRUE(signal.txLos().has_value());
+            // TX_LOL is not reliable right now on certain 100G
+            // CWDM4 optics like AOI and Miniphoton. So skip checking it
+            // on these optics for now
+            if (mediaInterface != MediaInterfaceCode::CWDM4_100G &&
+                isLpo == false) {
+              EXPECT_EVENTUALLY_EQ(signal.txLol().value(), txLatch)
+                  << portName << ", lane: " << signal.lane().value();
+            }
+            // We see TX_LOS set only on the first lane of FR1_100G. This is
+            // a bug but we can't get the vendor to fix it now. Therefore,
+            // handle it separately in the test
+            if (mediaInterface != MediaInterfaceCode::FR1_100G ||
+                signal.lane().value() == 0) {
+              EXPECT_EVENTUALLY_EQ(signal.txLos().value(), txLatch)
+                  << portName << ", lane: " << signal.lane().value();
+            }
+          }
+        }
 
-            for (const auto& signal : mediaLaneSignals) {
-              if (std::find(
-                      mediaLanes.begin(),
-                      mediaLanes.end(),
-                      signal.lane().value()) != mediaLanes.end()) {
-                if (isLpo) {
-                  // LPO Supports RX LOS only.
-                  ASSERT_EVENTUALLY_TRUE(signal.rxLos().has_value());
-                  EXPECT_EVENTUALLY_EQ(signal.rxLos().value(), rxLatch)
-                      << portName << ", lane: " << signal.lane().value();
-                } else {
-                  // Unfortunately, can't rely on rxLos as it doesn't always get
-                  // set. Some optics don't squelch their line side when the
-                  // system side is down.
-                  ASSERT_EVENTUALLY_TRUE(signal.rxLol().has_value());
+        for (const auto& signal : mediaLaneSignals) {
+          if (std::find(
+                  mediaLanes.begin(),
+                  mediaLanes.end(),
+                  signal.lane().value()) != mediaLanes.end()) {
+            if (isLpo) {
+              // LPO Supports RX LOS only.
+              ASSERT_EVENTUALLY_TRUE(signal.rxLos().has_value());
+              EXPECT_EVENTUALLY_EQ(signal.rxLos().value(), rxLatch)
+                  << portName << ", lane: " << signal.lane().value();
+            } else {
+              // Unfortunately, can't rely on rxLos as it doesn't always get
+              // set. Some optics don't squelch their line side when the
+              // system side is down.
+              ASSERT_EVENTUALLY_TRUE(signal.rxLol().has_value());
 
-                  // RX_LOL is not reliable right now on certain 100G
-                  // CWDM4 optics like AOI and Miniphoton. So skip checking it
-                  // on these optics for now
-                  // RX_LOL is not raised for 800G ZR optics as squelching is
-                  // disable by default
-                  if (mediaInterface != MediaInterfaceCode::CWDM4_100G &&
-                      mediaInterface != MediaInterfaceCode::ZR_800G) {
-                    EXPECT_EVENTUALLY_EQ(signal.rxLol().value(), rxLatch)
-                        << portName << ", lane: " << signal.lane().value();
-                  }
-                }
+              // RX_LOL is not reliable right now on certain 100G
+              // CWDM4 optics like AOI and Miniphoton. So skip checking it
+              // on these optics for now
+              // RX_LOL is not raised for 800G ZR optics as squelching is
+              // disable by default
+              if (mediaInterface != MediaInterfaceCode::CWDM4_100G &&
+                  mediaInterface != MediaInterfaceCode::ZR_800G) {
+                EXPECT_EVENTUALLY_EQ(signal.rxLol().value(), rxLatch)
+                    << portName << ", lane: " << signal.lane().value();
               }
             }
           }
-        });
-      };
+        }
+      }
+    });
+  };
 
   auto verify = [this, opticalPortPairs, verifyLatches](bool disableAPort) {
     std::unordered_map<int32_t, std::string> portsWithTxDown;

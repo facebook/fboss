@@ -23,6 +23,7 @@
 #include "fboss/lib/config/AgentConfigUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+#include <fmt/format.h>
 #include <folly/Format.h>
 #include "folly/testing/TestUtil.h"
 
@@ -185,12 +186,10 @@ std::vector<std::string> getLoopbackIps(SwitchID switchId) {
   int firstOctet = 200 + switchIdVal / 256;
   int secondOctet = switchIdVal % 256;
 
-  auto v6 = FLAGS_nodeZ
-      ? folly::sformat("{}:{}::2/128", firstOctet, secondOctet)
-      : folly::sformat("{}:{}::1/128", firstOctet, secondOctet);
-  auto v4 = FLAGS_nodeZ
-      ? folly::sformat("{}.{}.0.2/32", firstOctet, secondOctet)
-      : folly::sformat("{}.{}.0.1/32", firstOctet, secondOctet);
+  auto v6 = FLAGS_nodeZ ? fmt::format("{}:{}::2/128", firstOctet, secondOctet)
+                        : fmt::format("{}:{}::1/128", firstOctet, secondOctet);
+  auto v4 = FLAGS_nodeZ ? fmt::format("{}.{}.0.2/32", firstOctet, secondOctet)
+                        : fmt::format("{}.{}.0.1/32", firstOctet, secondOctet);
   return {v6, v4};
 }
 
@@ -520,8 +519,7 @@ cfg::DsfNode dsfNodeConfig(
   };
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = otherSwitchId;
-  dsfNode.name() =
-      folly::sformat("{}{}", switchNamePrefix, *dsfNode.switchId());
+  dsfNode.name() = fmt::format("{}{}", switchNamePrefix, *dsfNode.switchId());
   auto resolvedPlatformType = getPlatformType(firstAsic, platformType);
   switch (firstAsic.getSwitchType()) {
     case cfg::SwitchType::VOQ: {
@@ -1031,7 +1029,7 @@ cfg::SwitchConfig genPortVlanCfg(
         : kDefaultVlanId1;
     cfg::Vlan defaultVlan;
     defaultVlan.id() = defaultVlanId;
-    defaultVlan.name() = folly::sformat("vlan{}", defaultVlanId);
+    defaultVlan.name() = fmt::format("vlan{}", defaultVlanId);
     defaultVlan.intfID() = 10;
     defaultVlan.routable() = true;
     config.vlans()->push_back(defaultVlan);
@@ -1101,7 +1099,7 @@ void populateSwitchInfo(
     if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ ||
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
       auto dsfNode = dsfNodeConfig(*firstHwAsic, switchId, platformType);
-      dsfNode.name() = folly::sformat("hwTestSwitch{}", deviceSwitchId);
+      dsfNode.name() = fmt::format("hwTestSwitch{}", deviceSwitchId);
       if ((platformType == PlatformType::PLATFORM_SAINTPAUL ||
            platformType == PlatformType::PLATFORM_JANGA800BIC) &&
           hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
@@ -1332,8 +1330,8 @@ cfg::SwitchConfig twoL3IntfConfig(
     intf.ipAddresses()->resize(2);
     auto ipOctet = i + 1;
     intf.ipAddresses()[0] =
-        folly::sformat("{}.{}.{}.{}/24", ipOctet, ipOctet, ipOctet, ipOctet);
-    intf.ipAddresses()[1] = folly::sformat("{}::{}/64", ipOctet, ipOctet);
+        fmt::format("{}.{}.{}.{}/24", ipOctet, ipOctet, ipOctet, ipOctet);
+    intf.ipAddresses()[1] = fmt::format("{}::{}/64", ipOctet, ipOctet);
     intf.mac() = getLocalCpuMacStr();
     intf.mtu() = 9000;
     intf.routerID() = 0;
@@ -1830,7 +1828,7 @@ void runCintScript(TestEnsembleIf* ensemble, const std::string& cintStr) {
   folly::test::TemporaryFile file;
   XLOG(INFO) << " Cint file " << file.path().c_str();
   folly::writeFull(file.fd(), cintStr.c_str(), cintStr.size());
-  auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+  auto cmd = fmt::format("cint {}\n", file.path().c_str());
   std::string out;
   ensemble->runDiagCommand(cmd, out, std::nullopt);
 }
@@ -1838,14 +1836,14 @@ void runCintScript(TestEnsembleIf* ensemble, const std::string& cintStr) {
 std::string
 genInterfaceAddress(int ipDecimal, bool isV4, int host, int subnetMask) {
   /* 224.x.x.x onwards are multicast */
-  auto ipDecimal1 = folly::sformat("{}", ipDecimal % 224);
-  auto ipDecimal2 = folly::sformat("{}", ipDecimal / 224);
+  auto ipDecimal1 = fmt::format("{}", ipDecimal % 224);
+  auto ipDecimal2 = fmt::format("{}", ipDecimal / 224);
 
   auto addr = isV4
       ? folly::IPAddress(
-            folly::sformat("{}.{}.0.{}", ipDecimal1, ipDecimal2, host))
+            fmt::format("{}.{}.0.{}", ipDecimal1, ipDecimal2, host))
       : folly::IPAddress(
-            folly::sformat("{}:{}::{}", ipDecimal1, ipDecimal2, host));
-  return folly::sformat("{}/{}", addr.str(), subnetMask);
+            fmt::format("{}:{}::{}", ipDecimal1, ipDecimal2, host));
+  return fmt::format("{}/{}", addr.str(), subnetMask);
 }
 } // namespace facebook::fboss::utility

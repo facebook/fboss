@@ -19,6 +19,7 @@
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <fmt/format.h>
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 
@@ -3659,10 +3660,10 @@ TEST_F(RibMySidNextHopTest, asyncUpdatesAreSerialized) {
   for (int i = 1; i <= 3; ++i) {
     rib_->updateAsync(
         scopeResolver(),
-        makePair(folly::sformat("3001:db8:{}::", i), 48),
+        makePair(fmt::format("3001:db8:{}::", i), 48),
         {} /* toUnresolveIfMatch */,
         {},
-        folly::sformat("asyncAdd{}", i),
+        fmt::format("asyncAdd{}", i),
         mySidToSwitchStateUpdate,
         &switchState_);
   }

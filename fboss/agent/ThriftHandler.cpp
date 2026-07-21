@@ -69,6 +69,7 @@
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
 #include <fb303/ServiceData.h>
+#include <fmt/format.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/Range.h>
@@ -1614,7 +1615,7 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
   };
 
   sw_->updateState(
-      folly::sformat("Update state by patchCurrentStateJSONForPaths: "),
+      fmt::format("Update state by patchCurrentStateJSONForPaths: "),
       std::move(updateDsfStateFn));
 }
 

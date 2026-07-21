@@ -1,5 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
+
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeDsfUtils.h"
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeTest.h"
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeUtils.h"
@@ -477,7 +479,7 @@ class AgentMultiNodeVoqSwitchHyperPortTest : public AgentMultiNodeTest {
       CHECK(localIP.has_value())
           << "No local IP in same subnet as " << remoteIP.str();
 
-      auto cmd = folly::sformat(
+      auto cmd = fmt::format(
           "ping -6 -c 5 -W 2 -I {} {}", localIP->str(), remoteIP.str());
       XLOG(DBG2) << "Pinging: " << cmd;
       auto ret = std::system(cmd.c_str());

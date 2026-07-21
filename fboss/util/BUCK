@@ -75,6 +75,7 @@ cpp_library(
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/agent:enum_utils",
         "//fboss/lib/bsp:bsp_core",
         "//fboss/lib/bsp/icecube800banw:icecube800banw_bsp",

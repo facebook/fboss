@@ -8,6 +8,8 @@
  *
  */
 
+#include <fmt/format.h>
+
 #include "fboss/agent/hw/sai/diag/PythonRepl.h"
 
 #include <Python.h>
@@ -62,7 +64,7 @@ void PythonRepl::runPythonInterpreter() {
    */
   PyRun_SimpleString("import os");
   PyRun_SimpleString("import sys");
-  auto fdopenCmd = folly::sformat("f = os.fdopen({}, 'w')", fd_);
+  auto fdopenCmd = fmt::format("f = os.fdopen({}, 'w')", fd_);
   PyRun_SimpleString(fdopenCmd.c_str());
   PyRun_SimpleString("sys.stderr = f");
 

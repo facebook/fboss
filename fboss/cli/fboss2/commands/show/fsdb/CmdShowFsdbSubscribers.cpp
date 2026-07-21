@@ -183,8 +183,8 @@ void CmdShowFsdbSubscribers::printOutput(
           folly::to<std::string>(folly::copy(subscriber.isStats().value()));
       std::string queueWatermark = "--";
       if (subscriber.subscriptionQueueWatermark().has_value()) {
-        queueWatermark = folly::sformat(
-            "{}", subscriber.subscriptionQueueWatermark().value());
+        queueWatermark =
+            fmt::format("{}", subscriber.subscriptionQueueWatermark().value());
       }
 
       std::string subscribedSince = "--";

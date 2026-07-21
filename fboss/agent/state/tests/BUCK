@@ -97,5 +97,6 @@ cpp_unittest(
     ],
     external_deps = [
         ("boost", None, "boost_container"),
+        "gflags",
     ],
 )

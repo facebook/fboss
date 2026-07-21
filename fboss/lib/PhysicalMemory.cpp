@@ -11,6 +11,7 @@
 
 #include <cstdint>
 
+#include <fmt/format.h>
 #include <folly/File.h>
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
@@ -40,7 +41,7 @@ PhysicalMemory::PhysicalMemory(uint64_t phyAddr, uint32_t size, bool mustLock)
   };
 
   // construct the lock file name
-  const auto lockFN = folly::sformat("{}/pmem_{:x}_lock", kLockPath, phyAddr_);
+  const auto lockFN = fmt::format("{}/pmem_{:x}_lock", kLockPath, phyAddr_);
 
   // lock it
   lockFile_ = folly::File(lockFN, O_CREAT | O_WRONLY);

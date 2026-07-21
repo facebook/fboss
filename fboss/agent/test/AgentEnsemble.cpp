@@ -24,6 +24,7 @@
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+#include <fmt/format.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/testing/TestUtil.h>
@@ -589,7 +590,7 @@ void AgentEnsemble::runCint(
     const SwitchID& switchId) {
   folly::test::TemporaryFile file;
   folly::writeFull(file.fd(), cintData.c_str(), cintData.size());
-  auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+  auto cmd = fmt::format("cint {}\n", file.path().c_str());
   runDiagCommand(cmd, output, switchId);
 }
 

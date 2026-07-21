@@ -255,6 +255,7 @@ cpp_library(
     ],
     headers = ["ConfigUtils.h"],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":acl_test_utils",
         ":port_test_utils",
         ":voq_test_utils",
@@ -325,6 +326,7 @@ cpp_library(
         "LoadBalancerTestUtils.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         ":acl_test_utils",
         ":config_utils",
@@ -425,6 +427,7 @@ cpp_library(
         "EcmpDataPlaneTestUtil.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":load_balancer_test_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:route_update_wrapper",
@@ -667,6 +670,7 @@ cpp_library(
         "VoqTestUtils.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/agent:agent_features",
         "//fboss/agent:core",
         "//fboss/agent:fboss-types",

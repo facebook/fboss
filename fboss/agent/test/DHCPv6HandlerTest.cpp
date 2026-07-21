@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/DHCPv6Handler.h"
 #include <fb303/ServiceData.h>
+#include <fmt/format.h>
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
@@ -173,9 +174,9 @@ void sendDHCPV6Packet(
   constexpr auto udpHdrSize = 8;
   auto payloadSize = dhcpV6HdrSize;
   std::string ipV6HdrPayloadLengthStr =
-      folly::sformat("{0:04x}", udpHdrSize + payloadSize);
+      fmt::format("{0:04x}", udpHdrSize + payloadSize);
   std::string udpHdrLengthStr =
-      folly::sformat("{0:04x}", udpHdrSize + payloadSize);
+      fmt::format("{0:04x}", udpHdrSize + payloadSize);
 
   auto buf = make_unique<folly::IOBuf>(PktUtil::parseHexData(
       // Ethernet header: dstMac, srcMac, EthType, vlanId
@@ -1272,7 +1273,7 @@ TEST_F(DHCPv6HandlerTest, DHCPV6BadRelayForward) {
   // UDP Src and Dst ports for DHCPV6 relay forward
   const string srcPort = "02 23";
   const string dstPort = "02 23";
-  const std::string relayHopCount = folly::sformat(
+  const std::string relayHopCount = fmt::format(
       "{0:02x}", static_cast<uint16_t>(DHCPv6Handler::MAX_RELAY_HOPCOUNT));
   // DHCPV6 Relay-Forward Message Header
   const string dhcpV6Hdr =

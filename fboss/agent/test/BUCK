@@ -763,6 +763,7 @@ cpp_library(
     # Need symbols from bcm, sai layers.
     undefined_symbols = True,
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         ":linkstate_toggler",
         ":route_distribution_gen",
@@ -1119,6 +1120,7 @@ cpp_unittest(
     ],
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
+        "fbsource//third-party/fmt:fmt",
         ":hw_test_handle",
         ":utils",
         "//fboss/agent:address_utils",

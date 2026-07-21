@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include <chrono>
 #include "fboss/agent/AgentFeatures.h"
@@ -435,7 +436,7 @@ class PrbsTest : public LinkTest {
       time_t testStartTime) {
     ASSERT_FALSE(stats.laneStats().value().empty());
     for (const auto& laneStat : stats.laneStats().value()) {
-      XLOG(DBG2) << folly::sformat(
+      XLOG(DBG2) << fmt::format(
           "Interface {:s}, component {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
           interfaceName,
           apache::thrift::util::enumNameSafe(component),

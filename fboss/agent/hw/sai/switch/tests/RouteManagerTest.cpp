@@ -29,6 +29,7 @@
 #include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 #include "fboss/agent/types.h"
 
+#include <fmt/format.h>
 #include <gflags/gflags.h>
 #include <optional>
 #include <set>
@@ -66,7 +67,7 @@ TEST_F(RouteManagerTest, verifySwitchStateConstruction) {
                   ->modify(RouterID(0), &newState);
   for (int i = 0; i < 10; i++) {
     TestRoute nhopRouteV4;
-    auto ip4 = folly::IPAddressV4(folly::sformat("1.1.1.{}", i));
+    auto ip4 = folly::IPAddressV4(fmt::format("1.1.1.{}", i));
     folly::CIDRNetwork c4{ip4, 32};
     nhopRouteV4.destination = c4;
     nhopRouteV4.nextHopInterfaces.push_back(testInterfaces.at(i));
@@ -75,7 +76,7 @@ TEST_F(RouteManagerTest, verifySwitchStateConstruction) {
     fib4->addNode(pfx1.str(), std::move(r1));
 
     TestRoute ecmpRouteV4;
-    ip4 = folly::IPAddressV4(folly::sformat("1.{}.0.0", i));
+    ip4 = folly::IPAddressV4(fmt::format("1.{}.0.0", i));
     folly::CIDRNetwork c42{ip4, 16};
     ecmpRouteV4.destination = c42;
     ecmpRouteV4.nextHopInterfaces.push_back(testInterfaces.at(0));

@@ -8,13 +8,15 @@
  *
  */
 
-#include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
+#include <fmt/format.h>
+
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/FileBasedWarmbootUtils.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 #include "fboss/agent/test/utils/NextHopIdTestUtils.h"
@@ -32,7 +34,7 @@ RouteNextHopSet makeNextHops(int n, int numNhopsPerIntf, int startOffset) {
     ss << std::hex << subnetIndex;
     // ::1 is local interface address, start nhop addressed from 2
     auto lastQuad = 2 + startOffset + i % numNhopsPerIntf;
-    auto ipStr = folly::sformat("2400:db00:2110:{}::{}", ss.str(), lastQuad);
+    auto ipStr = fmt::format("2400:db00:2110:{}::{}", ss.str(), lastQuad);
     h.emplace(ResolvedNextHop(
         folly::IPAddress(ipStr),
         InterfaceID(interfaceId),
@@ -44,7 +46,7 @@ RouteNextHopSet makeV4NextHops(int n) {
   CHECK_LT(n, 253);
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
-    auto ipStr = folly::sformat("200.0.{}.2", i);
+    auto ipStr = fmt::format("200.0.{}.2", i);
     h.emplace(ResolvedNextHop(
         folly::IPAddress(ipStr), InterfaceID(i + 1), UCMP_DEFAULT_WEIGHT));
   }
@@ -55,14 +57,14 @@ RouteV6::Prefix makePrefix(int offset) {
   std::stringstream ss;
   ss << std::hex << offset;
   return RouteV6::Prefix(
-      folly::IPAddressV6(folly::sformat("2601:db00:2110:{}::", ss.str())), 64);
+      folly::IPAddressV6(fmt::format("2601:db00:2110:{}::", ss.str())), 64);
 }
 
 RouteV4::Prefix makeV4Prefix(int offset) {
   std::stringstream ss;
   ss << std::hex << offset;
   return RouteV4::Prefix(
-      folly::IPAddressV4(folly::sformat("150.0.{}.0", ss.str())), 24);
+      folly::IPAddressV4(fmt::format("150.0.{}.0", ss.str())), 24);
 }
 
 std::shared_ptr<RouteV6> makeRoute(
@@ -158,8 +160,8 @@ cfg::SwitchConfig onePortPerIntfConfig(
     std::stringstream ss;
     ss << std::hex << p;
     cfg.interfaces()[p].ipAddresses()[0] =
-        folly::sformat("2400:db00:2110:{}::1/64", ss.str());
-    cfg.interfaces()[p].ipAddresses()[1] = folly::sformat("200.0.{}.1/24", p);
+        fmt::format("2400:db00:2110:{}::1/64", ss.str());
+    cfg.interfaces()[p].ipAddresses()[1] = fmt::format("200.0.{}.1/24", p);
   }
   if (ecmpCompressionThresholdPct) {
     cfg.switchSettings()->ecmpCompressionThresholdPct() =

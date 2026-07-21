@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
@@ -136,7 +137,7 @@ BcmPortGroup::BcmPortGroup(
              << ", laneMode:" << laneMode_
              << (vcoFrequencies_.empty()
                      ? "."
-                     : folly::sformat(
+                     : fmt::format(
                            ", VCO Frequencies {}.",
                            VCOFrequencySetToString(vcoFrequencies_)));
 }
@@ -318,7 +319,7 @@ void BcmPortGroup::reconfigure(
              << " lanes"
              << (newVCOFrequencies.empty()
                      ? "."
-                     : folly::sformat(
+                     : fmt::format(
                            ", from {} to {}.",
                            VCOFrequencySetToString(vcoFrequencies_),
                            VCOFrequencySetToString(newVCOFrequencies)));

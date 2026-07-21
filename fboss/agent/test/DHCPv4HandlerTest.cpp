@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/DHCPv4Handler.h"
 #include <fb303/ServiceData.h>
+#include <fmt/format.h>
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
@@ -159,9 +160,9 @@ void sendDHCPPacket(
   constexpr auto udpHdrSize = 8;
   auto payloadSize = 248 + PktUtil::parseHexData(appendOptions).length();
   std::string ipHdrLengthStr =
-      folly::sformat("{0:04x}", ipHdrSize + udpHdrSize + payloadSize);
+      fmt::format("{0:04x}", ipHdrSize + udpHdrSize + payloadSize);
   std::string udpHdrLengthStr =
-      folly::sformat("{0:04x}", +udpHdrSize + payloadSize);
+      fmt::format("{0:04x}", +udpHdrSize + payloadSize);
 
   auto buf = make_unique<folly::IOBuf>(PktUtil::parseHexData(
       // Ethernet header

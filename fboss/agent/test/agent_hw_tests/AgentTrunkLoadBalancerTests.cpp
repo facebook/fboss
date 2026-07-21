@@ -11,6 +11,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 
 #include <fboss/agent/RouteUpdateWrapper.h>
+#include <fmt/format.h>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
@@ -481,7 +482,7 @@ class AgentSrv6TrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
     for (int i = 0; i < kSrv6AggInfo.numAggPorts; ++i) {
       tunnelList.push_back(
           utility::makeSrv6TunnelConfig(
-              folly::sformat("srv6Tunnel{}", i),
+              fmt::format("srv6Tunnel{}", i),
               InterfaceID(config.interfaces()[i * kSrv6AggInfo.aggPortWidth]
                               .intfID()
                               .value())));
@@ -506,7 +507,7 @@ class AgentSrv6TrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
       auto aggPortDesc = PortDescriptor(AggregatePortID(i + 1));
       auto nhop = ecmpHelper.nhop(aggPortDesc);
       std::vector<folly::IPAddressV6> sidList{
-          folly::IPAddressV6(folly::sformat("3001:db8:{}::", i + 1))};
+          folly::IPAddressV6(fmt::format("3001:db8:{}::", i + 1))};
       nhops.insert(ResolvedNextHop(
           nhop.ip,
           nhop.intf,

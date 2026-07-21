@@ -16,6 +16,7 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/types.h"
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 namespace facebook::fboss {
@@ -64,7 +65,7 @@ class FabricConnectivityManagerTest : public ::testing::Test {
       const cfg::PortType portType = cfg::PortType::FABRIC_PORT) {
     state::PortFields portFields;
     portFields.portId() = portId;
-    portFields.portName() = folly::sformat("port{}", portId);
+    portFields.portName() = fmt::format("port{}", portId);
     auto swPort = std::make_shared<Port>(std::move(portFields));
     swPort->setAdminState(cfg::PortState::ENABLED);
     swPort->setProfileId(

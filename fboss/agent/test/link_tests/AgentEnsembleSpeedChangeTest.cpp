@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -117,7 +118,7 @@ class AgentEnsembleSpeedChangeTest : public AgentEnsembleLinkTest {
       auto iter = eligilePortsAndProfile.find(*port.logicalID());
       if (iter != eligilePortsAndProfile.end()) {
         auto desiredProfileId = iter->second;
-        XLOG(INFO) << folly::sformat(
+        XLOG(INFO) << fmt::format(
             "Changing speed and profile on port {:s} from speed={:s},profile={:s} to speed={:s},profile={:s}",
             port.name().ensure(),
             apache::thrift::util::enumName(*port.speed()),

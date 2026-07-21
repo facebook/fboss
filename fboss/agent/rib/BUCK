@@ -93,6 +93,7 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
+        "fbsource//third-party/fmt:fmt",
         ":fib_updater",
         ":network_to_route_map",
         ":nexthop_id_manager",

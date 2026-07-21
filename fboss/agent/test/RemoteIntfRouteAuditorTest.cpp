@@ -10,6 +10,7 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <fmt/format.h>
 #include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
@@ -57,7 +58,7 @@ HwSwitchMatcher localMatcher() {
 
 std::shared_ptr<Interface>
 makeRif(InterfaceID id, folly::CIDRNetwork addr, RouterID vrf = kVrf) {
-  auto name = folly::sformat("rif{}", static_cast<int>(id));
+  auto name = fmt::format("rif{}", static_cast<int>(id));
   auto rif = std::make_shared<Interface>(
       id,
       vrf,

@@ -18,6 +18,7 @@
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
+#include <fmt/format.h>
 #include <folly/Benchmark.h>
 
 namespace facebook::fboss {
@@ -64,7 +65,7 @@ BENCHMARK(HwVoqSysPortProgramming) {
   ensemble->getSw()->getRib()->updateStateInRibThread(
       [&ensemble, updateDsfStateFn]() {
         ensemble->getSw()->updateStateWithHwFailureProtection(
-            folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
+            fmt::format("Update state for node: {}", 0), updateDsfStateFn);
       });
   suspender.rehire();
 }

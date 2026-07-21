@@ -1,7 +1,9 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/DsfSubscriber.h"
+#include <fmt/format.h>
+
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/DsfNode.h"
@@ -137,7 +139,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       auto remoteEndpoint = makeRemoteEndpoint(nodeName, dstIPAddr);
 
       fsdb::SubscriptionOptions opts{
-          folly::sformat("{}_{}:agent", localNodeName_, dstIPAddr.str()),
+          fmt::format("{}_{}:agent", localNodeName_, dstIPAddr.str()),
           false /* subscribeStats */,
           FLAGS_dsf_gr_hold_time,
           true /* requireInitialSyncToMarkConnect */,

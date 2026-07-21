@@ -10,6 +10,7 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 
 #include <fboss/thrift_cow/nodes/ThriftMapNode-inl.h>
+#include <fmt/format.h>
 #include <folly/FileUtil.h>
 #include <folly/gen/Base.h>
 #include <memory>
@@ -1386,7 +1387,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         //    rcy<pim_id>/<npu_id>/<npu_core>
         // pmi_id is always 1 for Recycle port.
         // npu_id = switchIndex + 1 (switchIndex strarts at 0)
-        return folly::sformat(
+        return fmt::format(
             "{}:rcy1/{}/{}", node->getName(), switchIndex + 1, asicCore);
       };
   auto isLocal = [localSwitchIds](const std::shared_ptr<DsfNode>& node) {
@@ -2134,7 +2135,7 @@ ThriftConfigApplier::updateFabricLinkMonitoringSystemPorts(
         }
       }
       sysPort->setName(
-          folly::sformat("{}:{}", *dsfNode.name(), port.second->getName()));
+          fmt::format("{}:{}", *dsfNode.name(), port.second->getName()));
       sysPort->setNumVoqs(getLocalPortNumVoqs(
           port.second->getPortType(), port.second->getScope()));
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
@@ -2182,8 +2183,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           switchSettings->getSwitchIdToSwitchInfo(),
           switchId));
       sysPort->setSwitchId(SwitchID(switchId));
-      sysPort->setName(
-          folly::sformat("{}:{}", nodeName, port.second->getName()));
+      sysPort->setName(fmt::format("{}:{}", nodeName, port.second->getName()));
       auto platformPort =
           platformMapping_->getPlatformPort(port.second->getID());
       CHECK(platformPort.mapping()->attachedCoreId().has_value());

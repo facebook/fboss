@@ -20,6 +20,7 @@ cpp_library(
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent:fboss-error",
         "//fboss/lib/config:fboss_config_utils",

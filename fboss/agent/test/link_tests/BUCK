@@ -39,6 +39,7 @@ cpp_library(
     # will come when we build bcm/sai link test bins
     undefined_symbols = True,
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         ":link_test_production_features-cpp2-types",
         "//common/base:proc",

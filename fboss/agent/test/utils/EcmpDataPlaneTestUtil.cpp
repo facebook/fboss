@@ -1,5 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include <fmt/format.h>
+
 #include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"
 
 #include "fboss/agent/RouteUpdateWrapper.h"
@@ -429,7 +431,7 @@ void HwSrv6EcmpDataPlaneTestUtil::programRoutes(
   for (int i = 0; i < ecmpWidth; ++i) {
     auto nhop = helper->nhop(i);
     std::vector<folly::IPAddressV6> sidList{
-        folly::IPAddressV6(folly::sformat("3001:db8:{}::", i + 1))};
+        folly::IPAddressV6(fmt::format("3001:db8:{}::", i + 1))};
     nhops.insert(ResolvedNextHop(
         nhop.ip,
         nhop.intf,

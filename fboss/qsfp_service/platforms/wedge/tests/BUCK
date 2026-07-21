@@ -13,6 +13,7 @@ cpp_unittest(
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     network_access = network_access_utils.none(),
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",

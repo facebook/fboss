@@ -8,6 +8,8 @@
  *
  */
 
+#include <fmt/format.h>
+
 #include "fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTestBase.h"
 
 #include "fboss/agent/TxPacket.h"
@@ -44,8 +46,7 @@ std::string AgentMirrorOnDropTestBase::portDesc(const PortID& portId) const {
   const auto& cfg = getAgentEnsemble()->getCurrentConfig();
   for (const auto& port : *cfg.ports()) {
     if (PortID(*port.logicalID()) == portId) {
-      return folly::sformat(
-          "portId={} name={}", *port.logicalID(), *port.name());
+      return fmt::format("portId={} name={}", *port.logicalID(), *port.name());
     }
   }
   return "";

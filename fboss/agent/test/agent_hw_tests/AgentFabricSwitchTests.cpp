@@ -12,6 +12,8 @@
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include <fmt/format.h>
+
 #include "folly/testing/TestUtil.h"
 
 namespace {
@@ -628,7 +630,7 @@ TEST_F(AgentFabricSwitchTest, verifySourceRoutedCellHandling) {
         file.fd(),
         sourceRoutedCellInjectCintStr.c_str(),
         sourceRoutedCellInjectCintStr.size());
-    auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+    auto cmd = fmt::format("cint {}\n", file.path().c_str());
     std::string out;
     getAgentEnsemble()->runDiagCommand(cmd, out, fabricSwitchId);
     WITH_RETRIES({
@@ -644,7 +646,7 @@ TEST_F(AgentFabricSwitchTest, verifySourceRoutedCellHandling) {
       for (auto portId : fabricPorts) {
         auto portName =
             getProgrammedState()->getPorts()->getNodeIf(portId)->getName();
-        auto rciWatermarkStr = folly::sformat(
+        auto rciWatermarkStr = fmt::format(
             "buffer_watermark_ucast.{}.queue0.fabric_q0.p100.60", portName);
         auto counters = getAgentEnsemble()->getFb303CountersByRegex(
             portId, rciWatermarkStr);

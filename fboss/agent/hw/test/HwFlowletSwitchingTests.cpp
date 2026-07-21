@@ -8,6 +8,7 @@
  *
  */
 
+#include <fmt/format.h>
 #include <folly/IPAddress.h>
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -142,7 +143,7 @@ class HwArsTest : public HwLinkStateDependentTest {
           portIds.push_back(masterLogicalPortIds()[k]);
           resolveNextHopsAddRoute(
               std::move(portIds),
-              folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, count++)));
+              folly::IPAddressV6(fmt::format("{}:{:x}::", kAddr3, count++)));
           if (count >= numEcmp) {
             return;
           }
@@ -155,7 +156,7 @@ class HwArsTest : public HwLinkStateDependentTest {
     auto portFlowletConfig =
         getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
     for (int i = 0; i < numEcmp; i++) {
-      auto currentIp = folly::IPAddress(folly::sformat("{}:{:x}::", kAddr3, i));
+      auto currentIp = folly::IPAddress(fmt::format("{}:{:x}::", kAddr3, i));
       folly::CIDRNetwork currentPrefix{currentIp, 64};
       EXPECT_TRUE(
           utility::verifyEcmpForFlowletSwitching(
@@ -655,8 +656,7 @@ TEST_F(HwArsFlowletTest, ValidateFlowsetTableFull) {
         portIds.push_back(masterLogicalPortIds()[j]);
         resolveNextHopsAddRoute(
             portIds,
-            folly::IPAddressV6(
-                folly::sformat("{}:{:x}::", kAddr3, totalEcmp++)));
+            folly::IPAddressV6(fmt::format("{}:{:x}::", kAddr3, totalEcmp++)));
       }
     }
   };
@@ -668,7 +668,7 @@ TEST_F(HwArsFlowletTest, ValidateFlowsetTableFull) {
     int numEcmp = int(utility::KMaxFlowsetTableSize / kFlowletTableSize2);
 
     for (int i = 0; i < numEcmp; i++) {
-      auto currentIp = folly::IPAddress(folly::sformat("{}:{:x}::", kAddr3, i));
+      auto currentIp = folly::IPAddress(fmt::format("{}:{:x}::", kAddr3, i));
       folly::CIDRNetwork currentPrefix{currentIp, 64};
       EXPECT_TRUE(
           utility::verifyEcmpForFlowletSwitching(
@@ -724,7 +724,7 @@ TEST_F(HwArsSprayTest, ValidateMaxEcmpIdFlowletUpdate) {
           << i;
       resolveNextHopsAddRoute(
           filteredPorts,
-          folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, i)));
+          folly::IPAddressV6(fmt::format("{}:{:x}::", kAddr3, i)));
       std::vector<PortID> portIds2;
       portIds2.push_back(masterLogicalPortIds()[i % 64]);
       portIds2.push_back(masterLogicalPortIds()[(i + 2) % 64]);
@@ -734,7 +734,7 @@ TEST_F(HwArsSprayTest, ValidateMaxEcmpIdFlowletUpdate) {
           << i;
       resolveNextHopsAddRoute(
           filteredPorts2,
-          folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr4, i)));
+          folly::IPAddressV6(fmt::format("{}:{:x}::", kAddr4, i)));
     }
 
     // create 1 more ECMP object
@@ -766,11 +766,11 @@ TEST_F(HwArsSprayTest, ValidateMaxEcmpIdFlowletUpdate) {
       ecmpHelper_->unprogramRoutes(
           getRouteUpdater(),
           {RoutePrefixV6{
-              folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, i)), 64}});
+              folly::IPAddressV6(fmt::format("{}:{:x}::", kAddr3, i)), 64}});
       ecmpHelper_->unprogramRoutes(
           getRouteUpdater(),
           {RoutePrefixV6{
-              folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr4, i)), 64}});
+              folly::IPAddressV6(fmt::format("{}:{:x}::", kAddr4, i)), 64}});
     }
     auto cfg = initialConfig();
     utility::verifyEcmpForNonFlowlet(
@@ -1295,7 +1295,7 @@ TEST_F(HwArsTest, VerifyEcmpIdAllocationForNonDynamicEcmp) {
     updateFlowletConfigs(
         cfg, cfg::SwitchingMode::PER_PACKET_RANDOM, kMinFlowletTableSize);
     for (int i = 1; i < 32; i++) {
-      auto currentIp = folly::IPAddress(folly::sformat("{}:{:x}::", kAddr3, i));
+      auto currentIp = folly::IPAddress(fmt::format("{}:{:x}::", kAddr3, i));
       folly::CIDRNetwork currentPrefix{currentIp, 64};
       utility::verifyEcmpForNonFlowlet(
           getHwSwitch(), currentPrefix, *cfg.flowletSwitchingConfig(), true);

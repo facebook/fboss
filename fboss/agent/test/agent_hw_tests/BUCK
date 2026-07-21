@@ -166,6 +166,7 @@ cpp_library(
     ],
     link_whole = True,
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fb303:service_data",
         "//fboss/agent:asic_utils",
         "//fboss/agent:packet",
@@ -464,6 +465,7 @@ cpp_library(
     ],
     link_whole = True,
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:ecmp_resource_manager",

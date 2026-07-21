@@ -18,6 +18,7 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include <fb303/ServiceData.h>
+#include <fmt/format.h>
 
 DECLARE_bool(disable_neighbor_updates);
 
@@ -134,7 +135,7 @@ class AgentWatermarkTest : public AgentHwTest {
     }
 
     if (!FLAGS_multi_switch) {
-      auto counters = fb303::fbData->getRegexCounters({folly::sformat(
+      auto counters = fb303::fbData->getRegexCounters({fmt::format(
           "buffer_watermark_ucast.{}.*.queue{}.*.p100.60", portName, queueId)});
       // Unfortunately since  we use quantile stats, which compute
       // a MAX over a period, we can't really assert on the exact

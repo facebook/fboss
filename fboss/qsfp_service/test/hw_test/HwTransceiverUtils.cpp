@@ -11,6 +11,7 @@
 
 #include <set>
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -30,16 +31,16 @@ void HwTransceiverUtils::verifyTempAndVccFlags(
     auto& tcvrStats = *transceiverInfo.tcvrStats();
     EXPECT_FALSE(
         *tcvrStats.sensor()->temp()->flags().value_or({}).alarm()->high())
-        << folly::sformat("{:d} has high temp alarm flag", tcvrID);
+        << fmt::format("{:d} has high temp alarm flag", tcvrID);
     EXPECT_FALSE(
         *tcvrStats.sensor()->temp()->flags().value_or({}).warn()->high())
-        << folly::sformat("{:d} has high temp warn flag", tcvrID);
+        << fmt::format("{:d} has high temp warn flag", tcvrID);
     EXPECT_FALSE(
         *tcvrStats.sensor()->vcc()->flags().value_or({}).alarm()->high())
-        << folly::sformat("{:d} has high vcc alarm flag", tcvrID);
+        << fmt::format("{:d} has high vcc alarm flag", tcvrID);
     EXPECT_FALSE(
         *tcvrStats.sensor()->vcc()->flags().value_or({}).warn()->high())
-        << folly::sformat("{:d} has high vcc warn flag", tcvrID);
+        << fmt::format("{:d} has high vcc warn flag", tcvrID);
   }
 }
 
@@ -48,7 +49,7 @@ void HwTransceiverUtils::verifyTcvrErrorStates(
   for (auto& [_, transceiverInfo] : portToTransceiverInfoMap) {
     auto& tcvrState = *transceiverInfo.tcvrState();
     auto tcvrID = *tcvrState.port();
-    EXPECT_TRUE(tcvrState.errorStates()->empty()) << folly::sformat(
+    EXPECT_TRUE(tcvrState.errorStates()->empty()) << fmt::format(
         "{:d} has error states {:s}",
         tcvrID,
         folly::join(",", *tcvrState.errorStates()));
