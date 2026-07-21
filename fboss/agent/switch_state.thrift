@@ -184,6 +184,8 @@ struct PortFields {
   // Hold timer (ms) the SDK applies before reporting a link-up event.
   // Unset = leave SDK default untouched.
   68: optional i32 portUpHoldoffTimeMs;
+  69: optional string llrConfigName;
+  70: optional LlrFields llrConfig;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -417,6 +419,21 @@ struct PortFlowletFields {
   2: i16 scalingFactor;
   3: i16 loadWeight;
   4: i16 queueWeight;
+}
+
+// Backing fields for the LlrConfig thrift-cow state node (UE Spec section 5.1).
+struct LlrFields {
+  1: string id;
+  2: i32 outstandingFramesMax;
+  3: i32 outstandingBytesMax;
+  4: i32 replayTimerMax;
+  5: i16 replayCountMax;
+  6: i32 pcsLostTimeout;
+  7: i32 dataAgeTimeout;
+  8: switch_config.LlrFrameAction initFrameAction;
+  9: switch_config.LlrFrameAction flushFrameAction;
+  10: bool reInitOnFlush;
+  11: i32 ctlosTargetSpacing;
 }
 
 struct BlockedNeighbor {
@@ -857,6 +874,7 @@ struct SwitchState {
   124: map<SwitchIdList, FibInfoFields> fibsInfoMap;
   125: map<SwitchIdList, map<string, Srv6TunnelFields>> srv6TunnelMaps;
   126: map<SwitchIdList, map<string, MySidFields>> mySidMaps;
+  127: map<SwitchIdList, map<string, LlrFields>> llrCfgMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;

@@ -65,6 +65,8 @@ cpp_library(
         "IpTunnel.cpp",
         "IpTunnelMap.cpp",
         "LabelForwardingInformationBase.cpp",
+        "LlrConfig.cpp",
+        "LlrConfigMap.cpp",
         "LoadBalancer.cpp",
         "LoadBalancerMap.cpp",
         "MacEntry.cpp",

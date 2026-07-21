@@ -277,6 +277,16 @@ SwitchState::getPortFlowletCfgs() const {
   return safe_cref<switch_state_tags::portFlowletCfgMaps>();
 }
 
+void SwitchState::resetLlrConfigs(
+    std::shared_ptr<MultiSwitchLlrConfigMap> cfgs) {
+  ref<switch_state_tags::llrCfgMaps>() = cfgs;
+}
+
+const std::shared_ptr<MultiSwitchLlrConfigMap> SwitchState::getLlrConfigs()
+    const {
+  return safe_cref<switch_state_tags::llrCfgMaps>();
+}
+
 const std::shared_ptr<MultiSwitchLoadBalancerMap>&
 SwitchState::getLoadBalancers() const {
   return safe_cref<switch_state_tags::loadBalancerMaps>();
@@ -1123,6 +1133,8 @@ template MultiSwitchTransceiverMap* SwitchState::modify<
     switch_state_tags::transceiverMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchPortFlowletCfgMap* SwitchState::modify<
     switch_state_tags::portFlowletCfgMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchLlrConfigMap* SwitchState::modify<
+    switch_state_tags::llrCfgMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchDsfNodeMap* SwitchState::modify<
     switch_state_tags::dsfNodesMap>(std::shared_ptr<SwitchState>*);
 
