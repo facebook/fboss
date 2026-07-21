@@ -858,6 +858,40 @@ TEST_F(ThriftTest, addUnicastRouteWithNonexistentLinkLocalInterfaceThrows) {
       FbossError);
 }
 
+TEST_F(ThriftTest, addUnicastRouteWithLinkLocalInterfaceSucceeds) {
+  ThriftHandler handler(sw_);
+  auto route = std::make_unique<UnicastRoute>();
+  route->dest() = ipPrefix("2001:db8::/64");
+  route->adminDistance() = AdminDistance::OPENR;
+
+  NextHopThrift nexthop;
+  nexthop.address() = toBinaryAddress(IPAddress("fe80:face:b00c::1"));
+  nexthop.address()->ifName() = "fboss1";
+  nexthop.weight() = ECMP_WEIGHT;
+  route->nextHops()->push_back(std::move(nexthop));
+
+  EXPECT_NO_THROW(handler.addUnicastRoute(
+      static_cast<int16_t>(ClientID::OPENR), std::move(route)));
+}
+
+TEST_F(ThriftTest, addUnicastRouteWithNonLinkLocalInterfaceThrows) {
+  ThriftHandler handler(sw_);
+  auto route = std::make_unique<UnicastRoute>();
+  route->dest() = ipPrefix("2001:db8::/64");
+  route->adminDistance() = AdminDistance::OPENR;
+
+  NextHopThrift nexthop;
+  nexthop.address() = toBinaryAddress(IPAddress("2001:db8::1"));
+  nexthop.address()->ifName() = "fboss1";
+  nexthop.weight() = ECMP_WEIGHT;
+  route->nextHops()->push_back(std::move(nexthop));
+
+  EXPECT_THROW(
+      handler.addUnicastRoute(
+          static_cast<int16_t>(ClientID::OPENR), std::move(route)),
+      FbossError);
+}
+
 // Test for the ThriftHandler::syncFib method
 TYPED_TEST(ThriftTestAllSwitchTypes, multipleClientSyncFib) {
   if (this->isFabric()) {

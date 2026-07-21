@@ -749,8 +749,15 @@ void validateLinkLocalNextHopInterfaces(
   for (const auto& nhop : nextHops) {
     const auto& address = toIPAddress(*nhop.address());
     auto ifName = apache::thrift::get_pointer(nhop.address()->ifName());
-    if (!ifName || !address.isV6() || !address.isLinkLocal()) {
+    if (!ifName) {
       continue;
+    }
+    if (!(address.isV6() && address.isLinkLocal())) {
+      throw FbossError(
+          "Interface ",
+          *ifName,
+          " associated with a non link-local next hop ",
+          address.str());
     }
     auto intfID = utility::getIDFromTunIntfName(*ifName);
     if (!state->getInterfaces()->getNodeIf(intfID)) {

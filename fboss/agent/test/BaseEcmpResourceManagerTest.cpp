@@ -24,6 +24,19 @@
 #include <functional>
 
 namespace facebook::fboss {
+namespace {
+
+UnicastRoute stripNonLinkLocalInterfaceNames(UnicastRoute route) {
+  for (auto& nextHop : *route.nextHops()) {
+    const auto address = network::toIPAddress(*nextHop.address());
+    if (!address.isV6() || !address.isLinkLocal()) {
+      nextHop.address()->ifName().reset();
+    }
+  }
+  return route;
+}
+
+} // namespace
 
 RouteNextHopSet makeNextHops(int n, int numNhopsPerIntf, int startOffset) {
   RouteNextHopSet h;
@@ -538,19 +551,19 @@ void BaseEcmpResourceManagerTest::updateRoutes(
       [&routesToAddOrUpdate, &newState](
           RouterID rid, const auto& /*oldRoute*/, const auto& newRoute) {
         const auto& fwdInfo = newRoute->getForwardInfo();
-        routesToAddOrUpdate->emplace_back(
+        routesToAddOrUpdate->emplace_back(stripNonLinkLocalInterfaceNames(
             util::toUnicastRoute(
                 newRoute->prefix().toCidrNetwork(),
                 fwdInfo,
-                facebook::fboss::getNextHops(newState, fwdInfo)));
+                facebook::fboss::getNextHops(newState, fwdInfo))));
       },
       [&routesToAddOrUpdate, &newState](RouterID rid, const auto& newRoute) {
         const auto& fwdInfo = newRoute->getForwardInfo();
-        routesToAddOrUpdate->emplace_back(
+        routesToAddOrUpdate->emplace_back(stripNonLinkLocalInterfaceNames(
             util::toUnicastRoute(
                 newRoute->prefix().toCidrNetwork(),
                 fwdInfo,
-                facebook::fboss::getNextHops(newState, fwdInfo)));
+                facebook::fboss::getNextHops(newState, fwdInfo))));
       },
       [&prefixesToDelete](RouterID rid, const auto& oldRoute) {
         IpPrefix pfx;
@@ -577,11 +590,11 @@ BaseEcmpResourceManagerTest::getClientRoutes(ClientID client) const {
     for (const auto& [_, route] : std::as_const(*fibIn)) {
       auto forwardInfo = route->getEntryForClient(kClientID);
       if (forwardInfo) {
-        unicastRoutes->emplace_back(
+        unicastRoutes->emplace_back(stripNonLinkLocalInterfaceNames(
             util::toUnicastRoute(
                 route->prefix().toCidrNetwork(),
                 *forwardInfo,
-                facebook::fboss::getClientNextHops(state, *forwardInfo)));
+                facebook::fboss::getClientNextHops(state, *forwardInfo))));
       }
     }
   };
