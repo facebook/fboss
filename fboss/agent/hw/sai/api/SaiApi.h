@@ -177,18 +177,10 @@ class SaiApi {
    */
 
   // Default "real attr". This is the base case of the recursion
-  template <
-      typename AdapterKeyT,
-      typename AttrT,
-      typename = std::enable_if_t<
-          IsSaiAttribute<std::remove_reference_t<AttrT>>::value>>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   typename std::remove_reference_t<AttrT>::ValueType getAttribute(
       const AdapterKeyT& key,
       AttrT&& attr) const {
-    static_assert(
-        IsSaiAttribute<typename std::remove_reference<AttrT>::type>::value,
-        "getAttribute must be called on a SaiAttribute or supported "
-        "collection of SaiAttributes");
     auto g{SaiApiLock::getInstance()->lock()};
     sai_status_t status;
     {
@@ -246,11 +238,7 @@ class SaiApi {
   }
 
   // std::optional of attribute
-  template <
-      typename AdapterKeyT,
-      typename AttrT,
-      typename = std::enable_if_t<
-          IsSaiAttribute<std::remove_reference_t<AttrT>>::value>>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   auto getAttribute(const AdapterKeyT& key, std::optional<AttrT>& attrOptional)
       const {
     if constexpr (IsSaiExtensionAttribute<AttrT>::value) {
@@ -614,25 +602,19 @@ class SaiApi {
     }
   }
 
-  template <typename SaiObjectTraits>
+  template <SaiObjectWithStats SaiObjectTraits>
   std::vector<uint64_t> getStats(
       const typename SaiObjectTraits::AdapterKey& key,
       const std::vector<sai_stat_id_t>& counterIds,
       sai_stats_mode_t mode) const {
-    static_assert(
-        SaiObjectHasStats<SaiObjectTraits>::value,
-        "getStats only supported for Sai objects with stats");
     auto g{SaiApiLock::getInstance()->lock()};
     return getStatsImpl<SaiObjectTraits>(
         key, counterIds.data(), counterIds.size(), mode);
   }
-  template <typename SaiObjectTraits>
+  template <SaiObjectWithStats SaiObjectTraits>
   std::vector<uint64_t> getStats(
       const typename SaiObjectTraits::AdapterKey& key,
       sai_stats_mode_t mode) const {
-    static_assert(
-        SaiObjectHasStats<SaiObjectTraits>::value,
-        "getStats only supported for Sai objects with stats");
     auto g{SaiApiLock::getInstance()->lock()};
     XLOGF(DBG6, "got SAI stats for {}", key);
     return mode == SAI_STATS_MODE_READ
@@ -648,21 +630,15 @@ class SaiApi {
               mode);
   }
 
-  template <typename SaiObjectTraits>
+  template <SaiObjectWithStats SaiObjectTraits>
   void clearStats(
       const typename SaiObjectTraits::AdapterKey& key,
       const std::vector<sai_stat_id_t>& counterIds) const {
-    static_assert(
-        SaiObjectHasStats<SaiObjectTraits>::value,
-        "clearStats only supported for Sai objects with stats");
     auto g{SaiApiLock::getInstance()->lock()};
     clearStatsImpl<SaiObjectTraits>(key, counterIds.data(), counterIds.size());
   }
-  template <typename SaiObjectTraits>
+  template <SaiObjectWithStats SaiObjectTraits>
   void clearStats(const typename SaiObjectTraits::AdapterKey& key) const {
-    static_assert(
-        SaiObjectHasStats<SaiObjectTraits>::value,
-        "clearStats only supported for Sai objects with stats");
     auto g{SaiApiLock::getInstance()->lock()};
     clearStatsImpl<SaiObjectTraits>(
         key,

@@ -26,15 +26,12 @@ extern "C" {
 
 namespace facebook::fboss {
 
-template <typename AttrT>
+template <SaiAttributeType AttrT>
 const sai_attribute_t* saiAttr(const AttrT& attr) {
-  static_assert(
-      IsSaiAttribute<AttrT>::value,
-      "cannot call saiAttrs() directly on a non SaiAttribute type");
   return attr.saiAttr();
 }
 
-template <typename AttrT>
+template <SaiAttributeType AttrT>
 const sai_attribute_t* saiAttr(const std::optional<AttrT>& opt) {
   if (opt) {
     return opt.value().saiAttr();
