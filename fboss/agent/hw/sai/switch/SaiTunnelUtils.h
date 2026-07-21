@@ -13,5 +13,6 @@ namespace facebook::fboss {
 sai_tunnel_ttl_mode_t getSaiTtlMode(cfg::TunnelMode mode);
 sai_tunnel_dscp_mode_t getSaiDscpMode(cfg::TunnelMode mode);
 sai_tunnel_encap_ecn_mode_t getSaiEncapEcnMode(cfg::TunnelMode mode);
+sai_tunnel_decap_ecn_mode_t getSaiDecapEcnMode(cfg::TunnelMode mode);
 
 } // namespace facebook::fboss

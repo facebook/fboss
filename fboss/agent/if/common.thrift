@@ -206,6 +206,7 @@ enum TunnelType {
   IP_IN_IP_DECAP = 0,
   SRV6_ENCAP = 1,
   IP_IN_IP_ENCAP = 2,
+  SRV6_DECAP = 3,
 }
 
 enum MySidType {

@@ -6760,21 +6760,32 @@ shared_ptr<Srv6Tunnel> ThriftConfigApplier::createSrv6Tunnel(
   if (config.dstIp().has_value()) {
     tunnel->setDstIP(folly::IPAddress(*config.dstIp()));
   }
-  if (tunnel->getType() != TunnelType::SRV6_ENCAP) {
+  auto type = tunnel->getType();
+  if (type == TunnelType::SRV6_ENCAP) {
+    if (!tunnel->getSrcIP()) {
+      throw FbossError(
+          "Src IP not set for: ", tunnel->getID(), ", SRv6 encap tunnel");
+    }
+    if (tunnel->getDstIP()) {
+      throw FbossError(
+          "DST IP set for: ",
+          tunnel->getID(),
+          ", must not be set for tunnels of type SRv6 encap tunnel");
+    }
+  } else if (type == TunnelType::SRV6_DECAP) {
+    // SRv6 decap tunnel carries only decap QoS modes; src/dst IP must not be
+    // set.
+    if (tunnel->getSrcIP() || tunnel->getDstIP()) {
+      throw FbossError(
+          "Src/DST IP set for: ",
+          tunnel->getID(),
+          ", must not be set for tunnels of type SRv6 decap tunnel");
+    }
+  } else {
     throw FbossError(
         "Unsupported tunnel type for: ",
         tunnel->getID(),
-        ", only SRV6_ENCAP is supported");
-  }
-  if (!tunnel->getSrcIP()) {
-    throw FbossError(
-        "Src IP not set for: ", tunnel->getID(), ", SRv6 encap tunnel");
-  }
-  if (tunnel->getDstIP()) {
-    throw FbossError(
-        "DST IP set for: ",
-        tunnel->getID(),
-        ", must not be set for tunnels of type SRv6 encap tunnel");
+        ", only SRV6_ENCAP and SRV6_DECAP are supported");
   }
   return tunnel;
 }
