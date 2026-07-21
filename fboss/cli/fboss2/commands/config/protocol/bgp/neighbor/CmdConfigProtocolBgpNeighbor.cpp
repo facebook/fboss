@@ -233,8 +233,7 @@ AttrHandler enumAttr(
       mode = static_cast<EnumT>(*enable ? 1 : 0);
       valid = true;
     } else {
-      valid = apache::thrift::TEnumTraits<EnumT>::findValue(
-          values[0].c_str(), &mode);
+      valid = apache::thrift::TEnumTraits<EnumT>::findValue(values[0], &mode);
     }
     if (!valid) {
       std::string names;
