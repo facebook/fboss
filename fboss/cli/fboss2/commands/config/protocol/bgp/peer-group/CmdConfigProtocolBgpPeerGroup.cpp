@@ -90,7 +90,6 @@ using PeerGroup = bgp::thrift::PeerGroup;
 using bgpcli::err;
 using bgpcli::ok;
 using bgpcli::parseBool;
-using bgpcli::parseInt;
 using bgpcli::parseNonNegInt32;
 using bgpcli::parseNonNegInt64;
 using bgpcli::Result;
