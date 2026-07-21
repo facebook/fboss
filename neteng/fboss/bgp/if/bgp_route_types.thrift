@@ -281,7 +281,7 @@ struct TPartialDrainState {
 /**
  * Dictionary of unique list-valued sub-attributes -- AS_PATH, communities,
  * extended-communities, and cluster-lists. Each TBgpDedupedPath references an
- * entry here by i32 index instead of inlining the list, so a list shared by
+ * entry here by i64 ID instead of inlining the list, so a list shared by
  * many paths is stored once.
  *
  * Dedup unit is the WHOLE list (matching BGP++'s
@@ -290,13 +290,17 @@ struct TPartialDrainState {
  */
 struct TBgpAttrDict {
   /** Unique whole-list COMMUNITY values (RFC 1997). */
-  1: list<list<bgp_attr.TBgpCommunity>> community_lists;
+  @cpp.Type{template = "std::unordered_map"}
+  1: map<i64, list<bgp_attr.TBgpCommunity>> community_lists;
   /** Unique whole-list AS_PATH values (RFC 4271). */
-  2: list<list<bgp_attr.TAsPathSeg>> as_path_lists;
+  @cpp.Type{template = "std::unordered_map"}
+  2: map<i64, list<bgp_attr.TAsPathSeg>> as_path_lists;
   /** Unique whole-list EXTENDED COMMUNITIES values (RFC 4360). */
-  3: list<list<TBgpExtCommunity>> ext_community_lists;
+  @cpp.Type{template = "std::unordered_map"}
+  3: map<i64, list<TBgpExtCommunity>> ext_community_lists;
   /** Unique whole-list CLUSTER_LIST values (RFC 4456). */
-  4: list<list<i64>> cluster_lists;
+  @cpp.Type{template = "std::unordered_map"}
+  4: map<i64, list<i64>> cluster_lists;
 }
 
 /**
@@ -336,24 +340,24 @@ struct TBgpDedupedPath {
    * the AS_PATH is empty (e.g. locally-originated routes) -- an empty list has
    * no deduplicated pointer to intern, so it carries no dict entry.
    */
-  2: optional i32 as_path_idx;
+  2: optional i64 as_path_idx;
   /**
    * RFC 1997 COMMUNITIES, as an index into TBgpAttrDict.community_lists.
    * Unset when the path has no communities (the converter skips the dict
    * lookup in that case for cheap empty-handling).
    */
-  3: optional i32 communities_idx;
+  3: optional i64 communities_idx;
   /**
    * RFC 4360 EXTENDED COMMUNITIES, as an index into
    * TBgpAttrDict.ext_community_lists. Unset when none (typical for eBGP).
    */
-  4: optional i32 ext_communities_idx;
+  4: optional i64 ext_communities_idx;
   /**
    * RFC 4456 CLUSTER_LIST, as an index into TBgpAttrDict.cluster_lists.
    * Unset when empty (typical for eBGP; only iBGP routes through route
    * reflectors carry a non-empty cluster_list).
    */
-  5: optional i32 cluster_list_idx;
+  5: optional i64 cluster_list_idx;
   /** RFC 4271 ORIGIN. */
   6: optional i32 origin;
   /** RFC 4271 LOCAL_PREF. */
@@ -392,7 +396,7 @@ struct TBgpDedupedPath {
  */
 struct TBgpPathCanonical {
   /** Index into TCanonicalRibState.deduped_paths. Always set; consumers dereference it. */
-  1: i32 path_idx;
+  1: i64 path_idx;
   /**
    * Marks the selected best path within the "bestPath" group. Typically set
    * on at most one path per entry (or none, when no bestpath is currently
@@ -411,7 +415,7 @@ struct TBgpPathCanonical {
    * this path. Unset when peer attribution is not exported (e.g. best-path
    * views that don't need per-path peer info).
    */
-  5: optional i32 peer_idx;
+  5: optional i64 peer_idx;
   /** IGP cost to the nexthop. Mirrors TBgpPath.igp_cost. */
   6: optional i64 igp_cost;
   /** Last modified time in microseconds. Mirrors TBgpPath.last_modified_time. */
@@ -445,6 +449,7 @@ struct TRibEntryCanonical {
    * other paths (e.g. received paths that did not make the bestpath group).
    * Constants: facebook::bgp::kBestPathGroup, facebook::bgp::kDefaultPathGroup.
    */
+  @cpp.Type{template = "std::unordered_map"}
   2: map<string, list<TBgpPathCanonical>> paths;
   /**
    * RIB version when this entry was last modified. Monotonically increasing
@@ -506,41 +511,39 @@ struct TCanonicalPeer {
  * Top-level wrapper for the canonical RIB -- a compact, deduplicated form of
  * BGP RIB entries (prefix -> paths). Holds the shared TBgpDedupedPath and
  * TCanonicalPeer pools (plus the TBgpAttrDict sub-attribute dictionary) and
- * the per-prefix entries that reference them by index. An index stays stable
- * while it is referenced; once the last referencing path is gone the slot is
- * reclaimed and may be reused for a different value (freed slots appear as
- * default-valued holes that no live entry references). Indices reset on
- * restart.
+ * the per-prefix entries that reference them by ID. IDs increase monotonically
+ * for the lifetime of a bgpd process and are never reused. Retired values can
+ * therefore be erased immediately without changing the meaning of any live
+ * reference. IDs reset on restart, when consumers receive a full rewalk.
  *
- * CONSUMER CONTRACT: resolve values only by following the indices on a live
+ * CONSUMER CONTRACT: resolve values only by following the IDs on a live
  * TBgpPathCanonical (path_idx -> deduped_paths, peer_idx -> peers) and the
- * sub-attr indices on the paths so reached -- never iterate deduped_paths /
- * peers / attr_dict lists directly. A freed slot is default-constructed and is
- * indistinguishable from a real default-valued entry, so a direct scan would
- * surface phantom rows. (The incremental encoder is what reclaims/reuses slots;
- * the one-shot get-rib converter emits a dense, hole-free state.)
+ * sub-attribute IDs on the paths so reached. A missing key is a stale or
+ * malformed reference and must not be interpreted as another value.
  */
 struct TCanonicalRibState {
   /**
    * Dictionary of unique list-valued sub-attributes. Each TBgpDedupedPath in
-   * deduped_paths references entries here via index. Slots are reclaimed and
-   * reused once no path references a value.
+   * deduped_paths references entries here via ID.
    */
   1: TBgpAttrDict attr_dict;
   /**
    * Shared pool of unique (deduplicated) paths. Each TBgpPathCanonical in
    * rib_entries references one entry here via path_idx.
    */
-  2: list<TBgpDedupedPath> deduped_paths;
+  @cpp.Type{template = "std::unordered_map"}
+  2: map<i64, TBgpDedupedPath> deduped_paths;
   /**
    * Shared pool of unique peers. Each TBgpPathCanonical references the peer
    * that advertised it via peer_idx. Bounded by the device's peer count, so
    * negligible relative to deduped_paths.
    */
-  3: list<TCanonicalPeer> peers;
+  @cpp.Type{template = "std::unordered_map"}
+  3: map<i64, TCanonicalPeer> peers;
   /**
    * Per-prefix entries. Key is str() of folly::CIDRNetwork (matches the
    * prefix in TRibEntryCanonical.prefix).
    */
+  @cpp.Type{template = "std::unordered_map"}
   4: map<string, TRibEntryCanonical> rib_entries;
 }

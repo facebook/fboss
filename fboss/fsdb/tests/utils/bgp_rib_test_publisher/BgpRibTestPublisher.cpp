@@ -74,13 +74,11 @@ void BgpRibTestPublisher::setCanonicalRoutes(
   // Shared fallback next hop; a route may override it with its own nextHop.
   const auto defaultNextHopPrefix = toIpPrefix(nextHop);
 
-  // Index of a community list in the carried-forward attr_dict.community_lists,
-  // appending when absent. Existing entries keep their index, so a prefix whose
-  // communities change is pointed at a different index (its best_path therefore
-  // changes), while a prefix's unchanged communities resolve to the same index.
+  // ID of a community list in the carried-forward attr_dict.community_lists.
+  // Existing values keep their ID; new values receive a fresh monotonic ID.
   auto internCommunities =
       [this](const std::vector<std::pair<int32_t, int32_t>>& communities)
-      -> int32_t {
+      -> int64_t {
     std::vector<bgp_attr::TBgpCommunity> list;
     list.reserve(communities.size());
     for (const auto& [asn, value] : communities) {
@@ -90,13 +88,14 @@ void BgpRibTestPublisher::setCanonicalRoutes(
       list.push_back(std::move(comm));
     }
     auto& lists = *canonicalState_.attr_dict()->community_lists();
-    for (size_t i = 0; i < lists.size(); ++i) {
-      if (lists[i] == list) {
-        return static_cast<int32_t>(i);
+    for (const auto& [id, value] : lists) {
+      if (value == list) {
+        return id;
       }
     }
-    lists.push_back(std::move(list));
-    return static_cast<int32_t>(lists.size() - 1);
+    const int64_t id = nextCommunityListId_++;
+    lists.emplace(id, std::move(list));
+    return id;
   };
 
   std::set<std::string> desired;
@@ -123,6 +122,20 @@ void BgpRibTestPublisher::setCanonicalRoutes(
   auto& entries = *canonicalState_.rib_entries();
   for (auto it = entries.begin(); it != entries.end();) {
     it = (desired.count(it->first) == 0) ? entries.erase(it) : std::next(it);
+  }
+
+  std::set<int64_t> referencedCommunityListIds;
+  for (const auto& [prefix, entry] : entries) {
+    if (entry.best_path().has_value() &&
+        entry.best_path()->communities_idx().has_value()) {
+      referencedCommunityListIds.insert(*entry.best_path()->communities_idx());
+    }
+  }
+  auto& communityLists = *canonicalState_.attr_dict()->community_lists();
+  for (auto it = communityLists.begin(); it != communityLists.end();) {
+    it = referencedCommunityListIds.contains(it->first)
+        ? std::next(it)
+        : communityLists.erase(it);
   }
 
   XLOG(INFO) << "Publishing canonicalRib with " << entries.size() << " entries";

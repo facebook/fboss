@@ -23,7 +23,7 @@ namespace facebook::fboss::fsdb::test {
  *
  * Used to test FSDB subscribers (like HostReachTracker) that consume the
  * canonical RIB. Declare the desired routes with setCanonicalRoutes(); the
- * publisher holds the TCanonicalRibState across calls so community-list indices
+ * publisher holds the TCanonicalRibState across calls so community-list IDs
  * stay stable, and prefixes omitted from a later call are withdrawn.
  *
  * Usage:
@@ -56,8 +56,8 @@ class BgpRibTestPublisher {
   // Declares the full set of canonical-RIB routes and publishes the resulting
   // TCanonicalRibState (BgpData.canonicalRib). Stateful across calls: the
   // de-duplicated community dictionary is carried forward so a community list's
-  // index stays stable while referenced and a content change lands on a fresh
-  // index -- mirroring bgpd's incremental encoder, not the dense get-rib
+  // ID stays stable while referenced and a content change lands on a fresh
+  // ID -- mirroring bgpd's incremental encoder, not the dense get-rib
   // rebuild. Prefixes absent from `routes` are withdrawn.
   void setCanonicalRoutes(
       const std::vector<CanonicalRoute>& routes,
@@ -68,15 +68,25 @@ class BgpRibTestPublisher {
     return publishedPrefixes_;
   }
 
+  size_t communityListPoolSize() const {
+    return canonicalState_.attr_dict()->community_lists()->size();
+  }
+
+  int64_t nextCommunityListId() const {
+    return nextCommunityListId_;
+  }
+
  private:
   std::unique_ptr<FsdbPubSubManager> fsdbPubSubMgr_;
   std::unique_ptr<FsdbSyncManager<BgpData, true /* EnablePatchAPIs */>>
       stateSyncer_;
   std::string publisherId_;
   std::vector<std::string> publishedPrefixes_;
-  // Accumulated canonical RIB. Persisted across setCanonicalRoutes calls so the
-  // community dictionary indices stay stable like the real incremental encoder.
+  // Accumulated canonical RIB. Persisted across setCanonicalRoutes calls so
+  // live community dictionary IDs stay stable like the real incremental
+  // encoder; unreferenced values are swept without reusing their IDs.
   bgp_thrift::TCanonicalRibState canonicalState_;
+  int64_t nextCommunityListId_{0};
 };
 
 } // namespace facebook::fboss::fsdb::test
