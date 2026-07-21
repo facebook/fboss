@@ -8,6 +8,7 @@ import re
 import subprocess
 import threading
 from argparse import Namespace
+from collections.abc import Iterable
 
 from fboss_test_runner.frameworks.benchmark_suite import BenchmarkSuite
 from fboss_test_runner.reporters.console_reporter import ConsoleReporter
@@ -240,7 +241,9 @@ class BenchmarkFramework:
     # ---- execution -----------------------------------------------------------
 
     @staticmethod
-    def _read_stream(stream: object, lines_list: list[str], prefix: str = "") -> None:
+    def _read_stream(
+        stream: Iterable[str], lines_list: list[str], prefix: str = ""
+    ) -> None:
         """Read lines from a stream, echo in real-time, and collect them."""
         for line in stream:
             print(f"{prefix}{line}", end="", flush=True)

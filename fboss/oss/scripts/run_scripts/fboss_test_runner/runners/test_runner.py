@@ -73,10 +73,14 @@ class TestRunner(abc.ABC):
     UNSUPPORTED_TESTS_LABEL = "unsupported"
 
     def __init__(self) -> None:
-        self._known_bad_test_regexes: list[str] | None = None
-        self._unsupported_test_regexes: list[str] | None = None
+        self._known_bad_test_regexes: list[str] = []
+        self._unsupported_test_regexes: list[str] = []
         self.env_var: dict[str, str] = dict(os.environ)
-        self.args: Namespace | None = None
+        # Populated by run_test() before any per-run method runs. Defaults to an
+        # empty Namespace so attribute access is typed (Namespace.__getattr__ ->
+        # Any) rather than Optional; a method reached before run_test() fails
+        # loudly on the missing attribute, same as the old None default.
+        self.args: Namespace = Namespace()
 
     def _get_common_gflags(self) -> list[str]:
         """
@@ -506,6 +510,7 @@ class TestRunner(abc.ABC):
         flags += self._get_sai_logging_flags()
         flags += ["--logging", args.fboss_logging]
 
+        start_time = time.time()
         try:
             test_run_cmd = self._get_test_run_cmd(conf_file, test_to_run, flags)
             print(
@@ -513,7 +518,6 @@ class TestRunner(abc.ABC):
                 flush=True,
             )
 
-            start_time = time.time()
             run_test_output = subprocess.check_output(
                 test_run_cmd,
                 timeout=args.test_run_timeout,

@@ -177,6 +177,8 @@ class _OutputTee:
             self._saved_stderr_fd = None
             raise
         # Route this process's (and its children's) stdout+stderr into tee.
+        # stdin=PIPE above guarantees tee.stdin is set.
+        assert self._tee.stdin is not None
         tee_stdin_fd = self._tee.stdin.fileno()
         os.dup2(tee_stdin_fd, 1)
         os.dup2(tee_stdin_fd, 2)
@@ -186,6 +188,10 @@ class _OutputTee:
             return
         sys.stdout.flush()
         sys.stderr.flush()
+        # When _tee is set, start() also set the saved fds and tee's stdin.
+        assert self._saved_stdout_fd is not None
+        assert self._saved_stderr_fd is not None
+        assert self._tee.stdin is not None
         # Restore the real fds, then close our copy of tee's stdin. tee sees EOF
         # (and exits) only once all three write-ends -- fd 1, fd 2, tee.stdin --
         # are closed.
