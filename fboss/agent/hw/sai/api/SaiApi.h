@@ -499,11 +499,8 @@ class SaiApi {
     return bulkSetAttributesUnlocked(adapterKeys, attributes);
   }
 
-  template <typename SaiObjectTraits>
-  std::vector<std::enable_if_t<
-      AdapterKeyIsObjectId<SaiObjectTraits>::value,
-      typename SaiObjectTraits::AdapterKey>>
-  bulkCreate(
+  template <ObjectIdSaiObject SaiObjectTraits>
+  std::vector<typename SaiObjectTraits::AdapterKey> bulkCreate(
       const std::vector<typename SaiObjectTraits::CreateAttributes>&
           createAttributes,
       sai_object_id_t switch_id) const {
