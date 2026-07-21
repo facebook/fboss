@@ -73,10 +73,11 @@ class LinkTestRunner(TestRunner):
         return ""
 
     def _get_known_bad_tests_file(self) -> str:
-        args = self.args
-        if not args.known_bad_tests_file:
-            return LINK_KNOWN_BAD_TESTS
-        return args.known_bad_tests_file
+        return self._resolve_tests_file(
+            self.args.known_bad_tests_file,
+            LINK_KNOWN_BAD_TESTS,
+            self.KNOWN_BAD_TESTS_LABEL,
+        )
 
     def _get_unsupported_tests_file(self) -> str:
         return ""

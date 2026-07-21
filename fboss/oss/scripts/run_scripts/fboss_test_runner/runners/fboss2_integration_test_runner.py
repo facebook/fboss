@@ -2,7 +2,6 @@
 # @noautodeps
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-import os
 import subprocess
 import time
 from argparse import ArgumentParser
@@ -19,7 +18,12 @@ from fboss_test_runner.services.fboss_agent_utils import (
     SW_AGENT_SERVICE_PROD,
 )
 
-FBOSS2_INTEGRATION_KNOWN_BAD_TESTS = "./share/fboss2_integration_known_bad_tests/fboss2_integration_known_bad_tests.materialized_JSON"
+# fboss2 integration known-bad and unsupported tests are published as two
+# separate materialized JSONs (mirroring sai_agent_test): one carrying the
+# `known_bad_tests` section, the other the `unsupported_tests` section. The base
+# runner reads each by its own top-level key.
+FBOSS2_INTEGRATION_KNOWN_BAD_TESTS_FILE = "./share/fboss2_integration_known_bad_tests/fboss2_integration_known_bad_tests.materialized_JSON"
+FBOSS2_INTEGRATION_UNSUPPORTED_TESTS_FILE = "./share/fboss2_integration_unsupported_tests/fboss2_integration_unsupported_tests.materialized_JSON"
 
 
 class Fboss2IntegrationTestRunner(TestRunner):
@@ -90,23 +94,18 @@ class Fboss2IntegrationTestRunner(TestRunner):
         return self._AGENT_CONFIG_PATH
 
     def _get_known_bad_tests_file(self) -> str:
-        args = self.args
-        if args.known_bad_tests_file:
-            if os.path.exists(args.known_bad_tests_file):
-                print(
-                    f"Using user-specified known bad tests file: {args.known_bad_tests_file}"
-                )
-                return args.known_bad_tests_file
-            print(
-                f"Warning: User-specified known bad tests file not found: {args.known_bad_tests_file}"
-            )
-        if os.path.exists(FBOSS2_INTEGRATION_KNOWN_BAD_TESTS):
-            print(
-                f"Using default known bad tests file: {FBOSS2_INTEGRATION_KNOWN_BAD_TESTS}"
-            )
-            return FBOSS2_INTEGRATION_KNOWN_BAD_TESTS
-        print("No known bad tests file found, skipping known bad test filtering")
-        return ""
+        return self._resolve_tests_file(
+            self.args.known_bad_tests_file,
+            FBOSS2_INTEGRATION_KNOWN_BAD_TESTS_FILE,
+            self.KNOWN_BAD_TESTS_LABEL,
+        )
+
+    def _get_unsupported_tests_file(self) -> str:
+        return self._resolve_tests_file(
+            self.args.unsupported_tests_file,
+            FBOSS2_INTEGRATION_UNSUPPORTED_TESTS_FILE,
+            self.UNSUPPORTED_TESTS_LABEL,
+        )
 
     def _get_test_binary_name(self) -> str:
         return "fboss2_integration_test"

@@ -30,16 +30,18 @@ class SaiTestRunner(TestRunner):
         )
 
     def _get_known_bad_tests_file(self) -> str:
-        args = self.args
-        if not args.known_bad_tests_file:
-            return SAI_HW_KNOWN_BAD_TESTS
-        return args.known_bad_tests_file
+        return self._resolve_tests_file(
+            self.args.known_bad_tests_file,
+            SAI_HW_KNOWN_BAD_TESTS,
+            self.KNOWN_BAD_TESTS_LABEL,
+        )
 
     def _get_unsupported_tests_file(self) -> str:
-        args = self.args
-        if not args.unsupported_tests_file:
-            return SAI_UNSUPPORTED_TESTS
-        return args.unsupported_tests_file
+        return self._resolve_tests_file(
+            self.args.unsupported_tests_file,
+            SAI_UNSUPPORTED_TESTS,
+            self.UNSUPPORTED_TESTS_LABEL,
+        )
 
     def _get_test_binary_name(self) -> str:
         return "/opt/fboss/bin/sai_test-sai_impl"

@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fboss_test_runner.runners.sai_test_runner import (
     SAI_HW_KNOWN_BAD_TESTS,
+    SAI_UNSUPPORTED_TESTS,
     SaiTestRunner,
 )
 
@@ -59,15 +60,22 @@ class TestRunArgsPlatformMappingOverride:
         assert args_list[idx + 1] == "/tmp/pm.json"
 
 
-class TestKnownBadTestsFileFallback:
-    def test_override_used_when_set(self, sai_runner):
-        with patch.object(
-            sai_runner,
-            "args",
-            new=_make_args(known_bad_tests_file="/tmp/custom.json"),
-        ):
-            assert sai_runner._get_known_bad_tests_file() == "/tmp/custom.json"
+class TestDefaultTestsFiles:
+    # Only assert the default files wire through; the override / fallback /
+    # missing-file resolution logic is covered by TestResolveTestsFile in
+    # test_test_runner. Mock os.path.exists so the default resolves.
+    _EXISTS = "fboss_test_runner.runners.test_runner.os.path.exists"
 
-    def test_default_used_when_unset(self, sai_runner):
-        with patch.object(sai_runner, "args", new=_make_args()):
+    def test_known_bad_default_file(self, sai_runner):
+        with (
+            patch.object(sai_runner, "args", new=_make_args()),
+            patch(self._EXISTS, return_value=True),
+        ):
             assert sai_runner._get_known_bad_tests_file() == SAI_HW_KNOWN_BAD_TESTS
+
+    def test_unsupported_default_file(self, sai_runner):
+        with (
+            patch.object(sai_runner, "args", new=_make_args()),
+            patch(self._EXISTS, return_value=True),
+        ):
+            assert sai_runner._get_unsupported_tests_file() == SAI_UNSUPPORTED_TESTS

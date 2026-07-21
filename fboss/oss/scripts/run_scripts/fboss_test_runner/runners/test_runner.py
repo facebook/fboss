@@ -68,6 +68,9 @@ class TestRunner(abc.ABC):
     WARMBOOT_SETUP_OPTION = "--setup-for-warmboot"
     COLDBOOT_PREFIX = "cold_boot."
     WARMBOOT_PREFIX = "warm_boot."
+    # Category labels passed to _resolve_tests_file (used in log messages).
+    KNOWN_BAD_TESTS_LABEL = "known_bad"
+    UNSUPPORTED_TESTS_LABEL = "unsupported"
 
     def __init__(self) -> None:
         self._known_bad_test_regexes: list[str] | None = None
@@ -86,6 +89,23 @@ class TestRunner(abc.ABC):
         return []
 
     def _get_config_path(self) -> str:
+        return ""
+
+    def _resolve_tests_file(
+        self, user_file: str | None, default_file: str, label: str
+    ) -> str:
+        """Resolve a known-bad / unsupported tests file, shared by all runners:
+        prefer a caller-supplied override when it exists, else fall back to the
+        default file when it exists, else return "" (no filtering)."""
+        if user_file:
+            if os.path.exists(user_file):
+                print(f"Using user-specified {label} tests file: {user_file}")
+                return user_file
+            print(f"Warning: User-specified {label} tests file not found: {user_file}")
+        if default_file and os.path.exists(default_file):
+            print(f"Using default {label} tests file: {default_file}")
+            return default_file
+        print(f"No {label} tests file found, skipping {label} test filtering")
         return ""
 
     def _get_known_bad_tests_file(self) -> str:
@@ -444,10 +464,11 @@ class TestRunner(abc.ABC):
             test_names = self._list_tests_to_run("*")
         test_filter = ""
         for test_name in test_names:
-            if self._is_known_bad_test(test_name) or self._is_unsupported_test(
-                test_name
-            ):
-                print(f"  >> SKIPPING (known bad/unsupported): {test_name}")
+            if self._is_known_bad_test(test_name):
+                print(f"  >> SKIPPING (known bad)  : {test_name}")
+                continue
+            if self._is_unsupported_test(test_name):
+                print(f"  >> SKIPPING (unsupported): {test_name}")
                 continue
             test_filter += f"{test_name}:"
         if not test_filter:
