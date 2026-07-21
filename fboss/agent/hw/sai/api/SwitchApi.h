@@ -481,8 +481,10 @@ struct SaiSwitchTraits {
     struct AttributeSwitchIsolateWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
-    using SwitchIsolate =
-        SaiExtensionAttribute<bool, AttributeSwitchIsolateWrapper>;
+    using SwitchIsolate = SaiExtensionAttribute<
+        bool,
+        AttributeSwitchIsolateWrapper,
+        SaiBoolDefaultFalse>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     using CreditWd = SaiAttribute<
         EnumType,
