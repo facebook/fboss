@@ -11,7 +11,10 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/IPAddress.h>
+#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+
+#include <chrono>
 
 namespace facebook::fboss {
 namespace {
@@ -333,6 +336,27 @@ TEST_F(AuditRemoteInterfaceRoutesTest, BidirectionalSameDeviceIntfSwap) {
   EXPECT_EQ(audit.missing.at(kVrf).size(), 2);
   EXPECT_TRUE(audit.extra.empty());
   EXPECT_EQ(audit.totalMismatchCount(), 2);
+  EXPECT_EQ(audit.duplicateAcrossRifsCount(), 0);
+}
+
+class AuditScaleStressTest : public AuditRemoteInterfaceRoutesTest {};
+
+TEST_F(AuditScaleStressTest, FunctionalCorrectnessAtScale) {
+  constexpr int kNumRifs = 5000;
+  for (int i = 0; i < kNumRifs; ++i) {
+    auto prefix = folly::IPAddress::createNetwork(
+        folly::sformat("2001:db8:{:x}::1/127", i));
+    addConsistentRemoteRif(InterfaceID(1000 + i), prefix);
+  }
+  auto start = std::chrono::steady_clock::now();
+  auto audit = auditRemoteInterfaceRoutes(state_);
+  auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - start)
+                .count();
+  XLOG(INFO) << "ScaleStress audit: N=" << kNumRifs << " duration=" << ms
+             << " ms";
+  EXPECT_TRUE(audit.noMismatches());
+  EXPECT_EQ(audit.totalMismatchCount(), 0);
   EXPECT_EQ(audit.duplicateAcrossRifsCount(), 0);
 }
 

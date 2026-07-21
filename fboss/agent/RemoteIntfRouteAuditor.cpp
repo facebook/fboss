@@ -9,17 +9,24 @@
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <folly/container/F14Map.h>
 #include <folly/logging/xlog.h>
 
 #include <chrono>
+#include <utility>
 
 namespace facebook::fboss {
 
 namespace {
 
-using FibRemoteIntfRoutes = boost::container::flat_map<
-    RouterID,
-    boost::container::flat_map<folly::CIDRNetwork, InterfaceID>>;
+// Per-VRF accumulators: outer flat_map keyed by RouterID (few VRFs), inner
+// F14FastMap keyed by prefix. F14 was chosen over flat_map / std::unordered_map
+// / sorted-vector by benchmark — ~2.2x over flat_map at N>=10k prefixes, whose
+// per-insert cost grows with N (~O(N^1.3)).
+using FibRemoteIntfRoutes = boost::container::
+    flat_map<RouterID, folly::F14FastMap<folly::CIDRNetwork, InterfaceID>>;
+using ExpectedRemoteIntfRoutes = boost::container::
+    flat_map<RouterID, folly::F14FastMap<folly::CIDRNetwork, IntfAddress>>;
 
 std::pair<FibRemoteIntfRoutes, size_t> collectRemoteIntfRoutesFromFib(
     const std::shared_ptr<SwitchState>& state) {
@@ -52,9 +59,9 @@ std::pair<FibRemoteIntfRoutes, size_t> collectRemoteIntfRoutesFromFib(
   return {std::move(result), malformedCount};
 }
 
-std::pair<IntfRouteTable, DuplicatePrefixSet> computeExpectedRemoteIntfRoutes(
-    const std::shared_ptr<SwitchState>& state) {
-  IntfRouteTable expected;
+std::pair<ExpectedRemoteIntfRoutes, DuplicatePrefixSet>
+computeExpectedRemoteIntfRoutes(const std::shared_ptr<SwitchState>& state) {
+  ExpectedRemoteIntfRoutes expected;
   DuplicatePrefixSet duplicateAcrossRifs;
   RouterIDToPrefixes discardedDeletions;
   for (const auto& [_, intfMap] :
@@ -77,6 +84,9 @@ std::pair<IntfRouteTable, DuplicatePrefixSet> computeExpectedRemoteIntfRoutes(
   return {std::move(expected), std::move(duplicateAcrossRifs)};
 }
 
+// Lookup in an F14FastMap-backed per-VRF table. Templated on the inner value
+// type so it serves both the FIB table (value InterfaceID) and the expected
+// table (value IntfAddress) via the `extract` projection.
 template <typename Map, typename ExtractIntf>
 bool containsRoute(
     const Map& m,
@@ -186,6 +196,7 @@ RemoteIntfRouteAudit auditRemoteInterfaceRoutes(
   audit.duplicateAcrossRifs = std::move(duplicateAcrossRifs);
   auto [currentFromFIB, malformedCount] = collectRemoteIntfRoutesFromFib(state);
   audit.malformedRemoteIntfRoute = malformedCount;
+
   for (const auto& [vrf, vrfRoutes] : expectedFromRIF) {
     for (const auto& [prefix, intfAndAddr] : vrfRoutes) {
       if (!containsRoute(
@@ -206,31 +217,25 @@ RemoteIntfRouteAudit auditRemoteInterfaceRoutes(
           })) {
         continue;
       }
-      // IP-swap case: same prefix appears in both `missing` (correct
-      // intf) and `extra` (stale intf). RIB processes adds before
-      // deletes, so the `missing` add overwrites the stale entry in
-      // place; queuing a delete here would then stomp that re-add.
-      // Relies on missing-loop above having already populated audit.missing.
+      // IP-swap case: same prefix appears in both `missing` (correct intf)
+      // and `extra` (stale intf). RIB processes adds before deletes, so the
+      // `missing` add overwrites the stale entry in place; queuing a delete
+      // here would then stomp that re-add. Relies on the missing-loop above
+      // having already populated audit.missing.
       //
       // Example — two RIFs swap addresses on the same device:
       //   state: intf1 -> prefix2, intf2 -> prefix1   (post-swap)
       //   FIB:   prefix1 -> intf1, prefix2 -> intf2   (pre-swap, stale)
-      //
-      // Missing loop emits:
-      //   audit.missing = { prefix1 -> intf2, prefix2 -> intf1 }
-      //
-      // Extra loop sees prefix1/intf1 and prefix2/intf2 as candidates,
-      // but `routeInMissingSet` returns true for both, so both are
-      // suppressed. RIB's add for prefix1/intf2 rewrites the stale
-      // prefix1/intf1 in place via `addOrReplaceRouteImpl`, same for
-      // prefix2. Final FIB matches state; no delete fires.
+      // Missing loop emits audit.missing = {prefix1 -> intf2, prefix2 ->
+      // intf1}; the extra loop suppresses both via routeInMissingSet, so RIB's
+      // add-before-delete rewrites the stale entries in place via
+      // addOrReplaceRouteImpl. Final FIB matches state; no delete fires.
       if (routeInMissingSet(audit.missing, vrf, prefix)) {
         continue;
       }
       audit.extra[vrf].emplace_back(prefix, intf);
     }
   }
-
   return audit;
 }
 

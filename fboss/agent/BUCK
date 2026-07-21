@@ -548,6 +548,7 @@ cpp_library(
         "//fboss/agent/rib:fib_updater",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
+        "//folly/container:f14_hash",
         "//folly/logging:logging",
     ],
     exported_external_deps = [
