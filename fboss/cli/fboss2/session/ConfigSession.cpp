@@ -592,7 +592,7 @@ void ConfigSession::saveBgpConfig() {
 
   // Serialize the entire typed config (round-tripped through parse so integer
   // map keys become string keys, mirroring saveConfig() for the agent).
-  std::string json =
+  auto json =
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(bgpConfig_);
   std::string prettyJson = folly::toPrettyJson(folly::parseJson(json));
   folly::writeFileAtomic(
