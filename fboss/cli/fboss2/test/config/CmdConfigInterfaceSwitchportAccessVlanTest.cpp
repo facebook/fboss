@@ -4,10 +4,13 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 
+#include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
+#include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
 
@@ -204,24 +207,31 @@ TEST_F(
 
 TEST_F(
     CmdConfigInterfaceSwitchportAccessVlanTestFixture,
-    queryClientThrowsWhenVlanDoesNotExist) {
+    queryClientCreatesVlanWhenMissing) {
   auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
   utils::InterfaceList interfaces({"eth1/1/1"});
   VlanIdValue vlanId({"4094"});
 
-  try {
-    cmd.queryClient(localhost(), interfaces, vlanId);
-    FAIL() << "Expected std::invalid_argument";
-  } catch (const std::invalid_argument& e) {
-    std::string msg = e.what();
-    EXPECT_THAT(msg, HasSubstr("VLAN 4094"));
-    EXPECT_THAT(msg, HasSubstr("does not exist"));
-  }
+  auto result = cmd.queryClient(localhost(), interfaces, vlanId);
+
+  EXPECT_THAT(result, HasSubstr("Successfully set access VLAN"));
+  EXPECT_THAT(result, HasSubstr("(VLAN 4094 created)"));
 
   auto& config = ConfigSession::getInstance().getAgentConfig();
-  for (const auto& port : *config.sw()->ports()) {
+  auto& swConfig = *config.sw();
+
+  // The VLAN and its barebone interface were created
+  EXPECT_NE(VlanManager::findVlan(swConfig, VlanID(4094)), nullptr);
+  bool intfFound = std::any_of(
+      swConfig.interfaces()->cbegin(),
+      swConfig.interfaces()->cend(),
+      [](const auto& intf) { return *intf.vlanID() == 4094; });
+  EXPECT_TRUE(intfFound);
+
+  // And the port was moved to it
+  for (const auto& port : *swConfig.ports()) {
     if (*port.name() == "eth1/1/1") {
-      EXPECT_EQ(*port.ingressVlan(), 1);
+      EXPECT_EQ(*port.ingressVlan(), 4094);
     }
   }
 }
