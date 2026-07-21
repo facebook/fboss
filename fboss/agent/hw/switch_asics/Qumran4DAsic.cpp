@@ -103,6 +103,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
+    case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -245,10 +246,12 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
-    // TODO (Q4D/J4/R4): Enable once SDK support is available
+    // TODO (Q4D/J4/R4): Vendor switch interrupt events are rejected by the Q4D
+    // SDK (INVALID PARAMETER) because there is no Q4D-specific vendor-switch
+    // interrupt event set yet (only J3/R3 exist in bcm_switch_vendor_events).
+    // Enable once Broadcom provides the Q4D vendor-switch event definitions.
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
-    case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
     // TODO (Q4D/J4/R4): Following features are not currently supported
     // in SDK. Some of them are not applicable for Q4D. Will be updated
     // accordingly after BRCM confirmation. Rest of the features will be
