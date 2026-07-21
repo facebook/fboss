@@ -89,7 +89,8 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
       SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_NONE,
       nextHopId,
       vrId,
-      packetAction};
+      packetAction,
+      std::nullopt};
 }
 } // namespace
 
