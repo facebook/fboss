@@ -37,16 +37,7 @@
 #include "fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalClusterId.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalConfedAsn.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalHoldTime.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalLocalAsn.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalNetwork6Add.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalRouterId.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitMaxGoldenVips.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitOverloadProtectionMode.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitPrefixLimit.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitTotalPathLimit.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/neighbor/CmdConfigProtocolBgpNeighbor.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupConfedPeer.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupDescription.h"
@@ -66,32 +57,6 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupV4OverV6Nh.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupWarningLimit.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupWarningOnly.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeer.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerAdvertiseLbw.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerDescription.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerDisableIpv4Afi.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerEgressPolicy.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerHoldTime.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerIngressPolicy.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerLinkBandwidth.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerLocalAddr.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerMaxRoutes.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHop4.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHop6.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHopSelf.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPassive.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPeerGroup.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPeerId.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerRemoteAsn.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerRrClient.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimers.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersKeepalive.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersOutDelay.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersWithdrawUnprogDelay.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerType.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerV4OverV6Nh.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningLimit.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningOnly.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
 #include "fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h"
@@ -129,6 +94,8 @@
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/bgp/CmdDeleteProtocolBgp.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/bgp/neighbor/CmdDeleteProtocolBgpNeighbor.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
@@ -358,91 +325,14 @@ const CommandTree& kConfigCommandTree() {
                   {
                       {
                           "global",
-                          "Configure BGP global settings",
+                          "Configure BGP global settings: <attribute> <value> "
+                          "(router-id, local-asn, hold-time, confed-asn, "
+                          "count-confeds-in-as-path-len, "
+                          "graceful-restart-time, rib-allocated-path-ids, "
+                          "network6, switch-limit[-total-path|"
+                          "-max-golden-vips|-overload-protection-mode])",
                           commandHandler<CmdConfigProtocolBgpGlobal>,
                           argRegistrar<CmdConfigProtocolBgpGlobalTraits>,
-                          {
-                              {
-                                  "router-id",
-                                  "Set BGP router identifier",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalRouterId>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalRouterIdTraits>,
-                              },
-                              {
-                                  "local-asn",
-                                  "Set local AS number",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalLocalAsn>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalLocalAsnTraits>,
-                              },
-                              {
-                                  "hold-time",
-                                  "Set BGP hold time in seconds",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalHoldTime>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalHoldTimeTraits>,
-                              },
-                              {
-                                  "confed-asn",
-                                  "Set BGP confederation AS number",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalConfedAsn>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalConfedAsnTraits>,
-                              },
-                              {
-                                  "cluster-id",
-                                  "Set route reflector cluster ID",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalClusterId>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalClusterIdTraits>,
-                              },
-                              {
-                                  "network6",
-                                  "Add IPv6 network to advertise",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalNetwork6Add>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalNetwork6AddTraits>,
-                              },
-                              {
-                                  "switch-limit",
-                                  "Set switch limit prefix-limit",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitPrefixLimit>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitPrefixLimitTraits>,
-                              },
-                              {
-                                  "switch-limit-total-path",
-                                  "Set switch limit total-path-limit",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitTotalPathLimit>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitTotalPathLimitTraits>,
-                              },
-                              {
-                                  "switch-limit-max-golden-vips",
-                                  "Set switch limit max-golden-vips",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitMaxGoldenVips>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitMaxGoldenVipsTraits>,
-                              },
-                              {
-                                  "switch-limit-overload-protection-mode",
-                                  "Set switch limit overload-protection-mode",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitOverloadProtectionMode>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpGlobalSwitchLimitOverloadProtectionModeTraits>,
-                              },
-                          },
                       },
                       {
                           "peer-group",
@@ -599,213 +489,25 @@ const CommandTree& kConfigCommandTree() {
                           },
                       },
                       {
-                          "peer",
-                          "Configure BGP peer",
-                          commandHandler<CmdConfigProtocolBgpPeer>,
-                          argRegistrar<CmdConfigProtocolBgpPeerTraits>,
-                          {
-                              {
-                                  "peer-group",
-                                  "Set peer group",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerPeerGroup>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerPeerGroupTraits>,
-                              },
-                              {
-                                  "description",
-                                  "Set peer description",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerDescription>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerDescriptionTraits>,
-                              },
-                              {
-                                  "remote-asn",
-                                  "Set remote AS number",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerRemoteAsn>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerRemoteAsnTraits>,
-                              },
-                              {
-                                  "local-addr",
-                                  "Set local address",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerLocalAddr>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerLocalAddrTraits>,
-                              },
-                              {
-                                  "next-hop4",
-                                  "Set IPv4 next-hop",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerNextHop4>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerNextHop4Traits>,
-                              },
-                              {
-                                  "next-hop6",
-                                  "Set IPv6 next-hop",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerNextHop6>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerNextHop6Traits>,
-                              },
-                              {
-                                  "next-hop-self",
-                                  "Enable/disable next-hop-self",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerNextHopSelf>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerNextHopSelfTraits>,
-                              },
-                              {
-                                  "disable-ipv4-afi",
-                                  "Enable/disable IPv4 AFI",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerDisableIpv4Afi>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerDisableIpv4AfiTraits>,
-                              },
-                              {
-                                  "v4-over-v6-nh",
-                                  "Enable/disable v4-over-v6 next-hop",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerV4OverV6Nh>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerV4OverV6NhTraits>,
-                              },
-                              {
-                                  "rr-client",
-                                  "Enable/disable route reflector client",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerRrClient>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerRrClientTraits>,
-                              },
-                              {
-                                  "passive",
-                                  "Enable/disable passive mode",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerPassive>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerPassiveTraits>,
-                              },
-                              {
-                                  "type",
-                                  "Set peer type",
-                                  commandHandler<CmdConfigProtocolBgpPeerType>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerTypeTraits>,
-                              },
-                              {
-                                  "ingress-policy",
-                                  "Set ingress policy",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerIngressPolicy>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerIngressPolicyTraits>,
-                              },
-                              {
-                                  "egress-policy",
-                                  "Set egress policy",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerEgressPolicy>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerEgressPolicyTraits>,
-                              },
-                              {
-                                  "max-routes",
-                                  "Set maximum routes",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerMaxRoutes>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerMaxRoutesTraits>,
-                              },
-                              {
-                                  "peer-id",
-                                  "Set peer identifier",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerPeerId>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerPeerIdTraits>,
-                              },
-                              {
-                                  "advertise-lbw",
-                                  "Enable/disable link bandwidth advertisement",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerAdvertiseLbw>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerAdvertiseLbwTraits>,
-                              },
-                              {
-                                  "link-bandwidth",
-                                  "Set link bandwidth",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerLinkBandwidth>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerLinkBandwidthTraits>,
-                              },
-                              {
-                                  "hold-time",
-                                  "Set hold time",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerHoldTime>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerHoldTimeTraits>,
-                              },
-                              {
-                                  "warning-only",
-                                  "Enable/disable warning-only mode",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerWarningOnly>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerWarningOnlyTraits>,
-                              },
-                              {
-                                  "warning-limit",
-                                  "Set warning limit percentage",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerWarningLimit>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerWarningLimitTraits>,
-                              },
-                              {
-                                  "timers",
-                                  "Configure BGP timers",
-                                  commandHandler<
-                                      CmdConfigProtocolBgpPeerTimers>,
-                                  argRegistrar<
-                                      CmdConfigProtocolBgpPeerTimersTraits>,
-                                  {
-                                      {
-                                          "keepalive",
-                                          "Set keepalive interval",
-                                          commandHandler<
-                                              CmdConfigProtocolBgpPeerTimersKeepalive>,
-                                          argRegistrar<
-                                              CmdConfigProtocolBgpPeerTimersKeepaliveTraits>,
-                                      },
-                                      {
-                                          "out-delay",
-                                          "Set output delay",
-                                          commandHandler<
-                                              CmdConfigProtocolBgpPeerTimersOutDelay>,
-                                          argRegistrar<
-                                              CmdConfigProtocolBgpPeerTimersOutDelayTraits>,
-                                      },
-                                      {
-                                          "withdraw-unprog-delay",
-                                          "Set withdraw unprogrammed delay",
-                                          commandHandler<
-                                              CmdConfigProtocolBgpPeerTimersWithdrawUnprogDelay>,
-                                          argRegistrar<
-                                              CmdConfigProtocolBgpPeerTimersWithdrawUnprogDelayTraits>,
-                                      },
-                                  },
-                              },
-                          },
+                          "neighbor",
+                          "Configure BGP neighbor: <ip-address> "
+                          "[<attribute> <value> ...] (remote-asn, local-asn, "
+                          "description, peer-tag, peer-group, ingress-policy, "
+                          "egress-policy, rr-client, confed-peer, "
+                          "redistribute-peer, enhanced-route-refresh, "
+                          "connect-mode, next-hop4, next-hop6, next-hop-self, "
+                          "peer-id, type, link-bandwidth, advertise-lbw, "
+                          "receive-lbw, add-path send|receive, "
+                          "afi disable-ipv4-afi|disable-ipv6-afi|"
+                          "ipv4-over-ipv6-nh, bind-addr address, "
+                          "graceful-restart restart-time|stateful-ha, "
+                          "max-route pre-filter|post-filter|"
+                          "pre-warning-threshold|post-warning-threshold|"
+                          "pre-warning-only|post-warning-only, "
+                          "timers hold-time|keepalive|out-delay|"
+                          "withdraw-unprog-delay)",
+                          commandHandler<CmdConfigProtocolBgpNeighbor>,
+                          argRegistrar<CmdConfigProtocolBgpNeighborTraits>,
                       },
                   },
               },
@@ -1050,31 +752,43 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdDeleteProtocol>,
           argTypeHandler<CmdDeleteProtocolTraits>,
           {{
-              "static",
-              "Delete static routing configuration",
-              commandHandler<CmdDeleteProtocolStatic>,
-              argTypeHandler<CmdDeleteProtocolStaticTraits>,
-              {{
-                   "ip",
-                   "Delete IPv4 static routes",
-                   {{
-                       "route",
-                       "Delete IPv4 static route",
-                       commandHandler<CmdDeleteProtocolStaticIpRoute>,
-                       argRegistrar<CmdDeleteProtocolStaticIpRouteTraits>,
-                   }},
-               },
-               {
-                   "ipv6",
-                   "Delete IPv6 static routes",
-                   {{
-                       "route",
-                       "Delete IPv6 static route",
-                       commandHandler<CmdDeleteProtocolStaticIpv6Route>,
-                       argRegistrar<CmdDeleteProtocolStaticIpv6RouteTraits>,
-                   }},
+               "bgp",
+               "Delete BGP configuration objects",
+               commandHandler<CmdDeleteProtocolBgp>,
+               argTypeHandler<CmdDeleteProtocolBgpTraits>,
+               {{
+                   "neighbor",
+                   "Delete a BGP neighbor: <ip-address>",
+                   commandHandler<CmdDeleteProtocolBgpNeighbor>,
+                   argRegistrar<CmdDeleteProtocolBgpNeighborTraits>,
                }},
-          }},
+           },
+           {
+               "static",
+               "Delete static routing configuration",
+               commandHandler<CmdDeleteProtocolStatic>,
+               argTypeHandler<CmdDeleteProtocolStaticTraits>,
+               {{
+                    "ip",
+                    "Delete IPv4 static routes",
+                    {{
+                        "route",
+                        "Delete IPv4 static route",
+                        commandHandler<CmdDeleteProtocolStaticIpRoute>,
+                        argRegistrar<CmdDeleteProtocolStaticIpRouteTraits>,
+                    }},
+                },
+                {
+                    "ipv6",
+                    "Delete IPv6 static routes",
+                    {{
+                        "route",
+                        "Delete IPv6 static route",
+                        commandHandler<CmdDeleteProtocolStaticIpv6Route>,
+                        argRegistrar<CmdDeleteProtocolStaticIpv6RouteTraits>,
+                    }},
+                }},
+           }},
       },
 
       {"delete",
