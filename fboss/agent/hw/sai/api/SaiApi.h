@@ -222,15 +222,10 @@ class SaiApi {
   }
 
   // std::tuple of attributes
-  template <
-      typename AdapterKeyT,
-      typename TupleT,
-      typename =
-          std::enable_if_t<IsTuple<std::remove_reference_t<TupleT>>::value>>
+  template <typename AdapterKeyT, SaiAttributeTuple TupleT>
   const std::remove_reference_t<TupleT> getAttribute(
       const AdapterKeyT& key,
       TupleT&& attrTuple) const {
-    // TODO: assert on All<IsSaiAttribute>
     auto recurse = [&key, this](auto&& attr) {
       return getAttribute(key, std::forward<decltype(attr)>(attr));
     };
@@ -304,7 +299,7 @@ class SaiApi {
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
-  template <typename AdapterKeyT, typename AttrT>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   std::vector<typename std::remove_reference_t<AttrT>::ValueType>
   bulkGetAttributes(
       std::vector<AdapterKeyT>& adapterKeys,
@@ -389,7 +384,7 @@ class SaiApi {
   }
 #endif
 
-  template <typename AdapterKeyT, typename AttrT>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   void setAttributeUnlocked(const AdapterKeyT& key, const AttrT& attr) const {
     if (UNLIKELY(skipHwWrites())) {
       return;
@@ -430,13 +425,13 @@ class SaiApi {
         fmt::format("Failed to set attribute {} to {}", key, attr));
     XLOGF(DBG5, "set SAI attribute of {} to {}", key, attr);
   }
-  template <typename AdapterKeyT, typename AttrT>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   void setAttribute(const AdapterKeyT& key, const AttrT& attr) const {
     auto g{SaiApiLock::getInstance()->lock()};
     setAttributeUnlocked(key, attr);
   }
 
-  template <typename AdapterKeyT, typename AttrT>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   void bulkSetAttributesUnlocked(
       std::vector<AdapterKeyT>& adapterKeys,
       std::vector<AttrT>& attributes) const {
@@ -491,7 +486,7 @@ class SaiApi {
     }
   }
 
-  template <typename AdapterKeyT, typename AttrT>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   void bulkSetAttributes(
       std::vector<AdapterKeyT>& adapterKeys,
       std::vector<AttrT>& attributes) const {

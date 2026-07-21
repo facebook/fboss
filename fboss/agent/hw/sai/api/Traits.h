@@ -474,6 +474,10 @@ template <typename... AttrTs>
 struct IsTupleOfSaiAttributes<std::tuple<AttrTs...>>
     : public std::conjunction<IsSaiAttribute<AttrTs>...> {};
 
+template <typename TupleT>
+concept SaiAttributeTuple =
+    IsTupleOfSaiAttributes<std::remove_cvref_t<TupleT>>::value;
+
 template <typename SaiObjectTraits>
 struct IsSaiObjectOwnedByAdapter : public std::false_type {};
 
