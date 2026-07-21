@@ -28,6 +28,21 @@
  *    - Delete on a VLAN that doesn't exist returns "does not exist"
  *    - No VLAN is auto-created for a delete operation
  *
+ * 4. CreateVlanCommand
+ *    - "config vlan <id>" with no subcommand creates the VLAN in the session
+ *    - Re-running the command in the same session reports "already exists"
+ *    - Commit succeeds (VlanManager also created the barebone interface)
+ *
+ * 5. CreateVlanAlreadyExists
+ *    - "config vlan <id>" on a VLAN present in the running config reports
+ *      "already exists" and does not create anything
+ *
+ * 6. SwitchportAccessVlanAutoCreates
+ *    - "config interface <port> switchport access vlan <id>" on a missing
+ *      VLAN auto-creates it and appends "(VLAN <id> created)" to the output
+ *    - Second run in the same session does not print the created suffix
+ *    - Session is cleared without committing (the DUT is left untouched)
+ *
  * Requirements:
  * - FBOSS agent must be running with a valid configuration
  * - The test must be run as root (or with appropriate permissions)
@@ -237,4 +252,134 @@ TEST_F(ConfigVlanCreateTest, DeleteOnNonExistentVlanIsIdempotent) {
   EXPECT_THAT(
       result.stdout, ::testing::Not(::testing::HasSubstr("Created VLAN")));
   XLOG(INFO) << "  Output: " << result.stdout << " TEST PASSED";
+}
+
+TEST_F(ConfigVlanCreateTest, CreateVlanCommand) {
+  if (s_newVlanId_ == 0) {
+    GTEST_SKIP() << "No VLAN ID free in [" << kTestVlanMin << ", "
+                 << kTestVlanMax << "] on this switch";
+  }
+
+  // Step 0: Ensure the test VLAN is absent (idempotency across runs).
+  XLOG(INFO) << "[Step 0] Ensuring VLAN " << s_newVlanId_
+             << " is absent from running config...";
+  deleteVlanIfPresent(s_newVlanId_);
+
+  // Step 1: "config vlan <id>" with no subcommand creates the VLAN.
+  XLOG(INFO) << "[Step 1] Creating VLAN " << s_newVlanId_
+             << " via 'config vlan'...";
+  auto result = runCli({"config", "vlan", std::to_string(s_newVlanId_)});
+  ASSERT_EQ(result.exitCode, 0) << "Command failed: " << result.stderr;
+  EXPECT_THAT(
+      result.stdout,
+      ::testing::HasSubstr(
+          "Successfully created VLAN " + std::to_string(s_newVlanId_)));
+  XLOG(INFO) << "  Output: " << result.stdout;
+
+  // Step 2: Re-running in the same session reports "already exists".
+  XLOG(INFO) << "[Step 2] Re-running create (already exists expected)...";
+  auto result2 = runCli({"config", "vlan", std::to_string(s_newVlanId_)});
+  ASSERT_EQ(result2.exitCode, 0) << "Command failed: " << result2.stderr;
+  EXPECT_THAT(
+      result2.stdout,
+      ::testing::HasSubstr(
+          "VLAN " + std::to_string(s_newVlanId_) + " already exists"));
+  EXPECT_THAT(
+      result2.stdout,
+      ::testing::Not(::testing::HasSubstr("Successfully created")));
+  XLOG(INFO) << "  Output: " << result2.stdout;
+
+  // Step 3: Commit — VlanManager created both the VLAN and its barebone
+  // interface, so the agent accepts the commit.
+  XLOG(INFO) << "[Step 3] Committing session...";
+  commitConfig();
+  XLOG(INFO) << "  Config committed.";
+
+  // Step 4: A new session on the committed config also reports the VLAN as
+  // existing (the create actually persisted).
+  XLOG(INFO) << "[Step 4] Verifying VLAN persisted after commit...";
+  auto result3 = runCli({"config", "vlan", std::to_string(s_newVlanId_)});
+  ASSERT_EQ(result3.exitCode, 0) << "Command failed: " << result3.stderr;
+  EXPECT_THAT(result3.stdout, ::testing::HasSubstr("already exists"));
+  discardSession();
+  XLOG(INFO) << "  TEST PASSED (VLAN " << s_newVlanId_
+             << " removed by TearDown)";
+}
+
+TEST_F(ConfigVlanCreateTest, CreateVlanAlreadyExists) {
+  auto vp = findConfiguredVlanPort();
+  if (!vp.has_value()) {
+    GTEST_SKIP()
+        << "This DUT has no port that is a member of a configured VLAN via "
+           "sw.vlanPorts; 'config vlan <id>' needs a VLAN that already exists.";
+  }
+  const int existingVlanId = vp->first;
+  XLOG(INFO) << "Testing 'config vlan' on existing VLAN " << existingVlanId
+             << "...";
+  auto result = runCli({"config", "vlan", std::to_string(existingVlanId)});
+  ASSERT_EQ(result.exitCode, 0) << "Command failed: " << result.stderr;
+  EXPECT_THAT(
+      result.stdout,
+      ::testing::HasSubstr(
+          "VLAN " + std::to_string(existingVlanId) + " already exists"));
+  EXPECT_THAT(
+      result.stdout,
+      ::testing::Not(::testing::HasSubstr("Successfully created")));
+  // Nothing was modified; discard the session.
+  discardSession();
+  XLOG(INFO) << "  Output: " << result.stdout << " TEST PASSED";
+}
+
+TEST_F(ConfigVlanCreateTest, SwitchportAccessVlanAutoCreates) {
+  if (s_newVlanId_ == 0) {
+    GTEST_SKIP() << "No VLAN ID free in [" << kTestVlanMin << ", "
+                 << kTestVlanMax << "] on this switch";
+  }
+  XLOG(INFO) << "[Step 1] Using port=" << s_testInterfaceName_;
+
+  // Step 0: Start from a clean session so the VLAN isn't left over from a
+  // previous (aborted) run. This test never commits, so the running config
+  // is untouched.
+  discardSession();
+
+  // Step 2: Assign the port to a non-existent VLAN — it gets auto-created.
+  XLOG(INFO) << "[Step 2] switchport access vlan " << s_newVlanId_
+             << " (auto-create expected)...";
+  auto result = runCli(
+      {"config",
+       "interface",
+       s_testInterfaceName_,
+       "switchport",
+       "access",
+       "vlan",
+       std::to_string(s_newVlanId_)});
+  ASSERT_EQ(result.exitCode, 0) << "Command failed: " << result.stderr;
+  EXPECT_THAT(
+      result.stdout, ::testing::HasSubstr("Successfully set access VLAN"));
+  EXPECT_THAT(
+      result.stdout,
+      ::testing::HasSubstr(
+          "(VLAN " + std::to_string(s_newVlanId_) + " created)"));
+  XLOG(INFO) << "  Output: " << result.stdout;
+
+  // Step 3: Second run in the same session — VLAN now exists, no suffix.
+  XLOG(INFO) << "[Step 3] Second run (no creation suffix expected)...";
+  auto result2 = runCli(
+      {"config",
+       "interface",
+       s_testInterfaceName_,
+       "switchport",
+       "access",
+       "vlan",
+       std::to_string(s_newVlanId_)});
+  ASSERT_EQ(result2.exitCode, 0) << "Command failed: " << result2.stderr;
+  EXPECT_THAT(
+      result2.stdout, ::testing::HasSubstr("Successfully set access VLAN"));
+  EXPECT_THAT(result2.stdout, ::testing::Not(::testing::HasSubstr("created")));
+  XLOG(INFO) << "  Output: " << result2.stdout;
+
+  // Step 4: Discard the session — never committed, DUT is unchanged.
+  XLOG(INFO) << "[Step 4] Clearing session (no commit)...";
+  discardSession();
+  XLOG(INFO) << "  TEST PASSED";
 }
