@@ -203,4 +203,62 @@ TEST_F(AgentVoqSwitchWarmbootReconcileTest, WarmbootReconcileExtraRoute) {
   verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
 }
 
+// "IP swap" drift: two RIFs swap addresses in state, but the FIB
+// keeps the pre-swap (intfId, prefix) mapping. Reconcile must re-point both
+// routes to their new owning interfaces in place (no extra deletes, see the
+// IP-swap suppression in `auditRemoteInterfaceRoutes`).
+TEST_F(AgentVoqSwitchWarmbootReconcileTest, WarmbootReconcileIpSwapRoute) {
+  const auto kPrefixA = folly::IPAddress::createNetwork("2001:db8:a::/127");
+  const auto kPrefixB = folly::IPAddress::createNetwork("2001:db8:b::/127");
+  auto setup = [this, kPrefixA, kPrefixB]() {
+    const auto kSysPortIdA =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState(), 0);
+    const auto kSysPortIdB =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState(), 1);
+    const auto kIntfA = utility::getRemoteIntfId(kSysPortIdA);
+    const auto kIntfB = utility::getRemoteIntfId(kSysPortIdB);
+    addRemoteRifsViaDsfUpdate(
+        {{kSysPortIdA,
+          kIntfA,
+          {{folly::IPAddress(kPrefixA.first), kPrefixA.second}}},
+         {kSysPortIdB,
+          kIntfB,
+          {{folly::IPAddress(kPrefixB.first), kPrefixB.second}}}});
+    // Swap addresses on the two RIFs in state ONLY. RIB/FIB stays at the
+    // pre-swap mapping — kPrefixA still points at kIntfA, kPrefixB still
+    // points at kIntfB.
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto out = in->clone();
+      auto remoteIntfs = out->getRemoteInterfaces()->modify(&out);
+      auto intfA = remoteIntfs->getNode(kIntfA)->modify(&out);
+      intfA->setAddresses(
+          Interface::Addresses{
+              {folly::IPAddress(kPrefixB.first), kPrefixB.second}});
+      auto intfB = remoteIntfs->getNode(kIntfB)->modify(&out);
+      intfB->setAddresses(
+          Interface::Addresses{
+              {folly::IPAddress(kPrefixA.first), kPrefixA.second}});
+      return out;
+    });
+    auto audit = auditRemoteInterfaceRoutes(getProgrammedState());
+    EXPECT_FALSE(audit.noMismatches());
+    EXPECT_EQ(audit.missing.at(RouterID(0)).size(), 2);
+    EXPECT_TRUE(audit.extra.empty()); // IP-swap suppression
+  };
+  auto verifyPostWarmboot = [this, kPrefixA, kPrefixB]() {
+    const auto kIntfA = utility::getRemoteIntfId(
+        utility::getRemoteSysPortId(getSw(), getProgrammedState(), 0));
+    const auto kIntfB = utility::getRemoteIntfId(
+        utility::getRemoteSysPortId(getSw(), getProgrammedState(), 1));
+    // Reconcile runs inline during SwSwitch::init on warm boot, so by the
+    // time verifyPostWarmboot is invoked the state is already converged.
+    auto state = getProgrammedState();
+    EXPECT_TRUE(fibHasRoute(state, kPrefixA, kIntfB));
+    EXPECT_TRUE(fibHasRoute(state, kPrefixB, kIntfA));
+    EXPECT_TRUE(auditRemoteInterfaceRoutes(state).noMismatches());
+    EXPECT_EQ(inconsistencyCounter(), 2);
+  };
+  verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
+}
+
 } // namespace facebook::fboss
