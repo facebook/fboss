@@ -149,4 +149,58 @@ TEST_F(AgentVoqSwitchWarmbootReconcileTest, WarmbootReconcileMissingRoute) {
   verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
 }
 
+// "extra" drift: FIB has a REMOTE_INTERFACE_ROUTE entry whose
+// (intfId, prefix) tuple has no matching RIF in state. Reconcile must remove
+// it.
+TEST_F(AgentVoqSwitchWarmbootReconcileTest, WarmbootReconcileExtraRoute) {
+  const auto kPhantomPrefix =
+      folly::IPAddress::createNetwork("2001:db8:dead::/127");
+  const auto kPhantomIntfId = InterfaceID(99999);
+  auto setup = [this, kPhantomPrefix, kPhantomIntfId]() {
+    // Baseline: legitimate RIF + route via DSF helper, so audit can later
+    // distinguish phantom-only drift from a fully-broken setup.
+    const auto kSysPortId =
+        utility::getRemoteSysPortId(getSw(), getProgrammedState());
+    const auto kIntfId = utility::getRemoteIntfId(kSysPortId);
+    addRemoteRifsViaDsfUpdate(
+        {{kSysPortId, kIntfId, {{folly::IPAddress("2001:db8:2::"), 127}}}});
+    // Inject a phantom REMOTE_INTERFACE_ROUTE for an intfId that doesn't
+    // exist as a RIF — pure "extra" drift.
+    applyNewState([this, kPhantomPrefix, kPhantomIntfId](
+                      const std::shared_ptr<SwitchState>& in) {
+      auto out = in;
+      RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes toAdd;
+      toAdd[RouterID(0)][kPhantomPrefix] = std::make_pair(
+          kPhantomIntfId, folly::IPAddress(kPhantomPrefix.first));
+      boost::container::flat_map<
+          RouterID,
+          std::vector<std::pair<folly::CIDRNetwork, InterfaceID>>>
+          toDel;
+      getSw()->getRib()->updateRemoteInterfaceRoutes(
+          getSw()->getScopeResolver(),
+          toAdd,
+          toDel,
+          &ribToSwitchStateUpdate,
+          static_cast<void*>(&out));
+      return out;
+    });
+    auto audit = auditRemoteInterfaceRoutes(getProgrammedState());
+    EXPECT_FALSE(audit.noMismatches());
+    ASSERT_EQ(audit.extra.size(), 1);
+    ASSERT_EQ(audit.extra.at(RouterID(0)).size(), 1);
+    EXPECT_EQ(
+        audit.extra.at(RouterID(0)).front(),
+        std::make_pair(kPhantomPrefix, kPhantomIntfId));
+  };
+  auto verifyPostWarmboot = [this, kPhantomPrefix]() {
+    // Reconcile runs inline during SwSwitch::init on warm boot, so by the
+    // time verifyPostWarmboot is invoked the state is already converged.
+    auto state = getProgrammedState();
+    EXPECT_FALSE(fibHasPrefix(state, kPhantomPrefix));
+    EXPECT_TRUE(auditRemoteInterfaceRoutes(state).noMismatches());
+    EXPECT_EQ(inconsistencyCounter(), 1);
+  };
+  verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
+}
+
 } // namespace facebook::fboss
