@@ -1995,6 +1995,11 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_PORT_CONNECTOR:
       setPortConnectorAttributes(attr_list, attr_count, attrLines, rv);
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    case SAI_OBJECT_TYPE_PORT_LLR_PROFILE:
+      setPortLlrProfileAttributes(attr_list, attr_count, attrLines, rv);
+      break;
+#endif
     case SAI_OBJECT_TYPE_QOS_MAP:
       setQosMapAttributes(attr_list, attr_count, attrLines, rv);
       break;
@@ -2550,6 +2555,9 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT_SERDES, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT_CONNECTOR, 0);
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  varCounts_.emplace(SAI_OBJECT_TYPE_PORT_LLR_PROFILE, 0);
+#endif
   varCounts_.emplace(SAI_OBJECT_TYPE_QOS_MAP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QUEUE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ROUTER_INTERFACE, 0);

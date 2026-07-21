@@ -2379,6 +2379,167 @@ sai_status_t get_port_connector_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+sai_status_t create_port_llr_profile_fn(
+    sai_object_id_t* port_llr_profile_id,
+    sai_object_id_t /*switch_id*/,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  sai_uint32_t outstandingFramesMax = 0;
+  sai_uint32_t outstandingBytesMax = 0;
+  sai_uint32_t replayTimerMax = 0;
+  sai_uint8_t replayCountMax = 0;
+  sai_uint32_t pcsLostTimeout = 0;
+  sai_uint32_t dataAgeTimeout = 0;
+  sai_int32_t initLlrFrameAction = 0;
+  sai_int32_t flushLlrFrameAction = 0;
+  bool reInitOnFlush = false;
+  sai_uint16_t ctlosTargetSpacing = 0;
+  for (uint32_t i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_PORT_LLR_PROFILE_ATTR_OUTSTANDING_FRAMES_MAX:
+        outstandingFramesMax = attr_list[i].value.u32;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_OUTSTANDING_BYTES_MAX:
+        outstandingBytesMax = attr_list[i].value.u32;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_REPLAY_TIMER_MAX:
+        replayTimerMax = attr_list[i].value.u32;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_REPLAY_COUNT_MAX:
+        replayCountMax = attr_list[i].value.u8;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_PCS_LOST_TIMEOUT:
+        pcsLostTimeout = attr_list[i].value.u32;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_DATA_AGE_TIMEOUT:
+        dataAgeTimeout = attr_list[i].value.u32;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_INIT_LLR_FRAME_ACTION:
+        initLlrFrameAction = attr_list[i].value.s32;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_FLUSH_LLR_FRAME_ACTION:
+        flushLlrFrameAction = attr_list[i].value.s32;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_RE_INIT_ON_FLUSH:
+        reInitOnFlush = attr_list[i].value.booldata;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_CTLOS_TARGET_SPACING:
+        ctlosTargetSpacing = attr_list[i].value.u16;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  *port_llr_profile_id = fs->portLlrProfileManager.create(
+      outstandingFramesMax,
+      outstandingBytesMax,
+      replayTimerMax,
+      replayCountMax,
+      pcsLostTimeout,
+      dataAgeTimeout,
+      initLlrFrameAction,
+      flushLlrFrameAction,
+      reInitOnFlush,
+      ctlosTargetSpacing);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_port_llr_profile_fn(sai_object_id_t port_llr_profile_id) {
+  auto fs = FakeSai::getInstance();
+  fs->portLlrProfileManager.remove(port_llr_profile_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_port_llr_profile_attribute_fn(
+    sai_object_id_t port_llr_profile_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& profile = fs->portLlrProfileManager.get(port_llr_profile_id);
+  switch (attr->id) {
+    case SAI_PORT_LLR_PROFILE_ATTR_OUTSTANDING_FRAMES_MAX:
+      profile.outstandingFramesMax = attr->value.u32;
+      break;
+    case SAI_PORT_LLR_PROFILE_ATTR_OUTSTANDING_BYTES_MAX:
+      profile.outstandingBytesMax = attr->value.u32;
+      break;
+    case SAI_PORT_LLR_PROFILE_ATTR_REPLAY_TIMER_MAX:
+      profile.replayTimerMax = attr->value.u32;
+      break;
+    case SAI_PORT_LLR_PROFILE_ATTR_REPLAY_COUNT_MAX:
+      profile.replayCountMax = attr->value.u8;
+      break;
+    case SAI_PORT_LLR_PROFILE_ATTR_PCS_LOST_TIMEOUT:
+      profile.pcsLostTimeout = attr->value.u32;
+      break;
+    case SAI_PORT_LLR_PROFILE_ATTR_DATA_AGE_TIMEOUT:
+      profile.dataAgeTimeout = attr->value.u32;
+      break;
+    case SAI_PORT_LLR_PROFILE_ATTR_INIT_LLR_FRAME_ACTION:
+      profile.initLlrFrameAction = attr->value.s32;
+      break;
+    case SAI_PORT_LLR_PROFILE_ATTR_FLUSH_LLR_FRAME_ACTION:
+      profile.flushLlrFrameAction = attr->value.s32;
+      break;
+    case SAI_PORT_LLR_PROFILE_ATTR_RE_INIT_ON_FLUSH:
+      profile.reInitOnFlush = attr->value.booldata;
+      break;
+    case SAI_PORT_LLR_PROFILE_ATTR_CTLOS_TARGET_SPACING:
+      profile.ctlosTargetSpacing = attr->value.u16;
+      break;
+    default:
+      return SAI_STATUS_INVALID_PARAMETER;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_port_llr_profile_attribute_fn(
+    sai_object_id_t port_llr_profile_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  auto& profile = fs->portLlrProfileManager.get(port_llr_profile_id);
+  for (uint32_t i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_PORT_LLR_PROFILE_ATTR_OUTSTANDING_FRAMES_MAX:
+        attr_list[i].value.u32 = profile.outstandingFramesMax;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_OUTSTANDING_BYTES_MAX:
+        attr_list[i].value.u32 = profile.outstandingBytesMax;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_REPLAY_TIMER_MAX:
+        attr_list[i].value.u32 = profile.replayTimerMax;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_REPLAY_COUNT_MAX:
+        attr_list[i].value.u8 = profile.replayCountMax;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_PCS_LOST_TIMEOUT:
+        attr_list[i].value.u32 = profile.pcsLostTimeout;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_DATA_AGE_TIMEOUT:
+        attr_list[i].value.u32 = profile.dataAgeTimeout;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_INIT_LLR_FRAME_ACTION:
+        attr_list[i].value.s32 = profile.initLlrFrameAction;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_FLUSH_LLR_FRAME_ACTION:
+        attr_list[i].value.s32 = profile.flushLlrFrameAction;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_RE_INIT_ON_FLUSH:
+        attr_list[i].value.booldata = profile.reInitOnFlush;
+        break;
+      case SAI_PORT_LLR_PROFILE_ATTR_CTLOS_TARGET_SPACING:
+        attr_list[i].value.u16 = profile.ctlosTargetSpacing;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+#endif
+
 namespace facebook::fboss {
 
 static sai_port_api_t _port_api;
@@ -2399,6 +2560,12 @@ void populate_port_api(sai_port_api_t** port_api) {
   _port_api.remove_port_connector = &remove_port_connector_fn;
   _port_api.set_port_connector_attribute = &set_port_connector_attribute_fn;
   _port_api.get_port_connector_attribute = &get_port_connector_attribute_fn;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  _port_api.create_port_llr_profile = &create_port_llr_profile_fn;
+  _port_api.remove_port_llr_profile = &remove_port_llr_profile_fn;
+  _port_api.set_port_llr_profile_attribute = &set_port_llr_profile_attribute_fn;
+  _port_api.get_port_llr_profile_attribute = &get_port_llr_profile_attribute_fn;
+#endif
   *port_api = &_port_api;
 }
 

@@ -1494,6 +1494,85 @@ struct SaiPortConnectorTraits {
 SAI_ATTRIBUTE_NAME(PortConnector, LineSidePortId);
 SAI_ATTRIBUTE_NAME(PortConnector, SystemSidePortId);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+// UEC Link Layer Retry (LLR) profile (UE Spec 1.0.2 section 5.1). A reusable
+// SAI object holding the LLR configuration registers (UE Spec Table 5-9),
+// referenced from a port via SAI_PORT_ATTR_LLR_PROFILE. It is a secondary
+// object under the Port API (like SAI_OBJECT_TYPE_PORT_CONNECTOR).
+struct SaiPortLlrProfileTraits {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_PORT_LLR_PROFILE;
+  using SaiApiT = PortApi;
+  struct Attributes {
+    using EnumType = sai_port_llr_profile_attr_t;
+    using OutstandingFramesMax = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_OUTSTANDING_FRAMES_MAX,
+        sai_uint32_t>;
+    using OutstandingBytesMax = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_OUTSTANDING_BYTES_MAX,
+        sai_uint32_t>;
+    using ReplayTimerMax = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_REPLAY_TIMER_MAX,
+        sai_uint32_t>;
+    using ReplayCountMax = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_REPLAY_COUNT_MAX,
+        sai_uint8_t>;
+    using PcsLostTimeout = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_PCS_LOST_TIMEOUT,
+        sai_uint32_t>;
+    using DataAgeTimeout = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_DATA_AGE_TIMEOUT,
+        sai_uint32_t>;
+    using InitLlrFrameAction = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_INIT_LLR_FRAME_ACTION,
+        sai_int32_t>;
+    using FlushLlrFrameAction = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_FLUSH_LLR_FRAME_ACTION,
+        sai_int32_t>;
+    using ReInitOnFlush = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_RE_INIT_ON_FLUSH,
+        bool>;
+    using CtlosTargetSpacing = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_CTLOS_TARGET_SPACING,
+        sai_uint16_t>;
+  };
+  using AdapterKey = PortLlrProfileSaiId;
+  using AdapterHostKey = std::tuple<
+      Attributes::OutstandingFramesMax,
+      Attributes::OutstandingBytesMax,
+      Attributes::ReplayTimerMax,
+      Attributes::ReplayCountMax,
+      Attributes::PcsLostTimeout,
+      Attributes::DataAgeTimeout,
+      Attributes::InitLlrFrameAction,
+      Attributes::FlushLlrFrameAction,
+      Attributes::ReInitOnFlush,
+      Attributes::CtlosTargetSpacing>;
+  using CreateAttributes = AdapterHostKey;
+};
+
+SAI_ATTRIBUTE_NAME(PortLlrProfile, OutstandingFramesMax);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, OutstandingBytesMax);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, ReplayTimerMax);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, ReplayCountMax);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, PcsLostTimeout);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, DataAgeTimeout);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, InitLlrFrameAction);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, FlushLlrFrameAction);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, ReInitOnFlush);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, CtlosTargetSpacing);
+#endif
+
 class PortApi : public SaiApi<PortApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_PORT;
@@ -1588,6 +1667,32 @@ class PortApi : public SaiApi<PortApi> {
       const sai_attribute_t* attr) const {
     return api_->set_port_connector_attribute(key, attr);
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  sai_status_t _create(
+      PortLlrProfileSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_port_llr_profile(
+        rawSaiId(id), switch_id, count, attr_list);
+  }
+
+  sai_status_t _remove(PortLlrProfileSaiId id) const {
+    return api_->remove_port_llr_profile(id);
+  }
+
+  sai_status_t _getAttribute(PortLlrProfileSaiId key, sai_attribute_t* attr)
+      const {
+    return api_->get_port_llr_profile_attribute(key, 1, attr);
+  }
+
+  sai_status_t _setAttribute(
+      PortLlrProfileSaiId key,
+      const sai_attribute_t* attr) const {
+    return api_->set_port_llr_profile_attribute(key, attr);
+  }
+#endif
 
   sai_status_t _getStats(
       PortSaiId key,

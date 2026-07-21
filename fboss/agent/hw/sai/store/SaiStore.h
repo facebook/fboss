@@ -697,6 +697,9 @@ class SaiStore {
       SaiObjectStore<SaiQosMapTraits>,
       SaiObjectStore<SaiPortSerdesTraits>,
       SaiObjectStore<SaiPortConnectorTraits>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      SaiObjectStore<SaiPortLlrProfileTraits>,
+#endif
       SaiObjectStore<SaiWredTraits>,
       SaiObjectStore<SaiTamTraits>,
       SaiObjectStore<SaiTamReportTraits>,
