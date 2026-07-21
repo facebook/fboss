@@ -621,3 +621,8 @@ DEFINE_bool(
     enable_port_cl72_retry,
     false,
     "Enable CL72 link training retry on the switch (XGS, BRCM SDK >= 14.2 only)");
+
+DEFINE_bool(
+    enable_remote_intf_route_reconcile,
+    false,
+    "Reconcile remote interface routes (RIB/FIB drift) on VOQ-switch warmboot");

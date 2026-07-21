@@ -35,11 +35,13 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
+#include "fboss/agent/RemoteIntfRouteAuditor.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/ShelManager.h"
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/TxPacketUtils.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
@@ -1528,6 +1530,8 @@ void SwSwitch::init(
   // that the two states are in sync. tolerating this discrepancy for now
   setStateInternal(initialState);
 
+  initialState = reconcileRemoteInterfaceRoutesOnWarmboot(initialState);
+
   XLOG(DBG0) << "hardware initialized in " << hwInitRet.bootTime
              << " seconds; applying initial config";
 
@@ -1620,6 +1624,7 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   // until config is applied, after that the two states are in sync.
   // tolerating this discrepancy for now.
   setStateInternal(initialState);
+  initialState = reconcileRemoteInterfaceRoutesOnWarmboot(initialState);
   if (bootType_ == BootType::WARM_BOOT) {
     // Notify the state observers of the initial state
     updateEventBase_.runInFbossEventBaseThread(
@@ -2055,6 +2060,36 @@ void SwSwitch::setStateInternal(std::shared_ptr<SwitchState> newAppliedState) {
   CHECK(newAppliedState->isPublished());
   std::unique_lock guard(stateLock_);
   appliedStateDontUseDirectly_.swap(newAppliedState);
+}
+
+std::shared_ptr<SwitchState> SwSwitch::reconcileRemoteInterfaceRoutesOnWarmboot(
+    const std::shared_ptr<SwitchState>& state) {
+  if (!FLAGS_enable_remote_intf_route_reconcile ||
+      bootType_ != BootType::WARM_BOOT ||
+      !getSwitchInfoTable().haveVoqSwitches()) {
+    return state;
+  }
+  if (!updateEventBase_.isRunning()) {
+    XLOG(ERR) << "Skipping warmboot remote interface route reconcile: "
+              << "updateEventBase_ not running";
+    return state;
+  }
+
+  // Capture the state this reconcile produces so the return value is
+  // unambiguously tied to this update, rather than reading getState() which
+  // could reflect a concurrent update. Default to the input state so we never
+  // return null if the update callback does not run (e.g. SwSwitch exiting).
+  std::shared_ptr<SwitchState> reconciled = state;
+  updateStateBlocking(
+      "warmboot remote interface route reconcile",
+      [this, &reconciled](const std::shared_ptr<SwitchState>& in)
+          -> std::shared_ptr<SwitchState> {
+        reconciled = reconcileRemoteInterfaceRoutes(
+            in, *rib_, *scopeResolver_, *stats());
+        return reconciled == in ? std::shared_ptr<SwitchState>{} : reconciled;
+      });
+
+  return reconciled;
 }
 
 std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>

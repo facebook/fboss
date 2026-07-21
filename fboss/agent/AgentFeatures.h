@@ -172,3 +172,4 @@ DECLARE_int32(max_tx_packets);
 DECLARE_bool(enable_acl_table_redirect_action);
 DECLARE_bool(enable_pfc_priority_to_pg_map);
 DECLARE_bool(enable_port_cl72_retry);
+DECLARE_bool(enable_remote_intf_route_reconcile);

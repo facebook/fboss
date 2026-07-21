@@ -3,10 +3,15 @@
 #include "fboss/agent/RemoteIntfRouteAuditor.h"
 
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/rib/FibUpdateHelpers.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>
+
+#include <chrono>
 
 namespace facebook::fboss {
 
@@ -100,6 +105,58 @@ bool routeInMissingSet(
       vrfIter->second.find(prefix) != vrfIter->second.end();
 }
 
+// Cap per-category ERR lines so a bulk drift after a bad warmboot cannot flood
+// the log; the aggregate counts are still logged by the caller's summary line.
+constexpr size_t kMaxLoggedPrefixesPerCategory = 50;
+
+template <typename PerVrfMap, typename LogOne>
+void logCappedMismatch(
+    const PerVrfMap& perVrf,
+    const char* category,
+    const LogOne& logOne) {
+  size_t logged = 0;
+  size_t total = 0;
+  for (const auto& [vrf, items] : perVrf) {
+    for (const auto& item : items) {
+      ++total;
+      if (logged < kMaxLoggedPrefixesPerCategory) {
+        logOne(vrf, item);
+        ++logged;
+      }
+    }
+  }
+  if (total > logged) {
+    XLOG(ERR) << "... and " << (total - logged) << " more " << category
+              << " remote interface route(s) not logged (capped at "
+              << kMaxLoggedPrefixesPerCategory << ")";
+  }
+}
+
+void logMismatchRemoteIntfRoutes(const RemoteIntfRouteAudit& audit) {
+  logCappedMismatch(
+      audit.missing, "missing", [](RouterID vrf, const auto& route) {
+        const auto& [prefix, intfAddr] = route;
+        XLOG(ERR) << "Remote interface route missing: vrf=" << vrf
+                  << " prefix=" << prefix.first.str() << "/"
+                  << static_cast<int>(prefix.second)
+                  << " intf=" << intfAddr.first;
+      });
+  logCappedMismatch(audit.extra, "extra", [](RouterID vrf, const auto& route) {
+    const auto& [prefix, intf] = route;
+    XLOG(ERR) << "Remote interface route extra: vrf=" << vrf
+              << " prefix=" << prefix.first.str() << "/"
+              << static_cast<int>(prefix.second) << " intf=" << intf;
+  });
+  logCappedMismatch(
+      audit.duplicateAcrossRifs,
+      "duplicate",
+      [](RouterID vrf, const folly::CIDRNetwork& prefix) {
+        XLOG(ERR) << "Remote interface route prefix appears on multiple RIFs:"
+                  << " vrf=" << vrf << " prefix=" << prefix.first.str() << "/"
+                  << static_cast<int>(prefix.second);
+      });
+}
+
 } // namespace
 
 size_t RemoteIntfRouteAudit::totalMismatchCount() const {
@@ -175,6 +232,53 @@ RemoteIntfRouteAudit auditRemoteInterfaceRoutes(
   }
 
   return audit;
+}
+
+std::shared_ptr<SwitchState> reconcileRemoteInterfaceRoutes(
+    const std::shared_ptr<SwitchState>& state,
+    RoutingInformationBase& rib,
+    const SwitchIdScopeResolver& resolver,
+    SwitchStats& stats) {
+  // Best-effort drift recovery: a failure here must degrade gracefully rather
+  // than abort agent warmboot. Report via SwitchStats and skip reconciliation.
+  try {
+    auto auditStart = std::chrono::steady_clock::now();
+    auto audit = auditRemoteInterfaceRoutes(state);
+    auto auditMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                       std::chrono::steady_clock::now() - auditStart)
+                       .count();
+    XLOG(INFO) << "RemoteIntfRouteAudit completed in " << auditMs << " ms; "
+               << "mismatch=" << audit.totalMismatchCount()
+               << " duplicate=" << audit.duplicateAcrossRifsCount()
+               << " malformed=" << audit.malformedRemoteIntfRoute;
+    if (!audit.noMismatches() || !audit.duplicateAcrossRifs.empty()) {
+      logMismatchRemoteIntfRoutes(audit);
+    }
+    if (audit.noMismatches()) {
+      return state;
+    }
+    stats.warmbootRemoteIntfRoutesInconsistency(
+        static_cast<int64_t>(audit.totalMismatchCount()));
+    auto reconciled = state;
+    auto reconcileStart = std::chrono::steady_clock::now();
+    rib.updateRemoteInterfaceRoutes(
+        &resolver,
+        audit.missing,
+        audit.extra,
+        &ribToSwitchStateUpdate,
+        static_cast<void*>(&reconciled));
+    auto reconcileMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::steady_clock::now() - reconcileStart)
+                           .count();
+    XLOG(INFO) << "Remote interface route RIB update completed in "
+               << reconcileMs << " ms";
+    return reconciled;
+  } catch (const std::exception& ex) {
+    stats.warmbootRemoteIntfRoutesReconcileError(1);
+    XLOG(ERR) << "Remote interface route reconcile failed; skipping "
+              << "reconciliation and continuing warmboot: " << ex.what();
+    return state;
+  }
 }
 
 } // namespace facebook::fboss

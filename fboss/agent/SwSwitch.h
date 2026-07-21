@@ -439,6 +439,10 @@ class SwSwitch : public HwSwitchCallback {
    */
   void initialConfigApplied(
       const std::chrono::steady_clock::time_point& startTime);
+
+  std::shared_ptr<SwitchState> reconcileRemoteInterfaceRoutesOnWarmboot(
+      const std::shared_ptr<SwitchState>& state);
+
   /*
    * Get the SwitchStats for the current thread.
    *

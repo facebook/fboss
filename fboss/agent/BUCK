@@ -543,7 +543,10 @@ cpp_library(
     ],
     exported_deps = [
         ":fib_helpers",
+        ":stats",
         ":voq_utils",
+        "//fboss/agent/rib:fib_updater",
+        "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
         "//folly/logging:logging",
     ],
@@ -1094,6 +1097,7 @@ cpp_library(
         ":packet_observer",
         ":pfc_utils",
         ":phy_snapshot_lib",
+        ":remote_intf_route_auditor",
         ":route_update_wrapper",
         ":shel_manager",
         ":state_delta_logger",
