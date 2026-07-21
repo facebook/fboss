@@ -866,6 +866,11 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/protocol/bgp/neighbor/CmdConfigProtocolBgpNeighbor.h
   fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.cpp
   fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/BgpCliAttrHandlers.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h
   fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.cpp
   fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h
   fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.cpp
@@ -964,6 +969,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/protocol/bgp/neighbor/CmdDeleteProtocolBgpNeighbor.h
   fboss/cli/fboss2/commands/delete/protocol/bgp/peer-group/CmdDeleteProtocolBgpPeerGroup.cpp
   fboss/cli/fboss2/commands/delete/protocol/bgp/peer-group/CmdDeleteProtocolBgpPeerGroup.h
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.h
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.h
   fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h
   fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.cpp
   fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h

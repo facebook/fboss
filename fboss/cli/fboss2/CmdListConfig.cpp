@@ -39,6 +39,8 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/neighbor/CmdConfigProtocolBgpNeighbor.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
 #include "fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h"
@@ -79,6 +81,8 @@
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/CmdDeleteProtocolBgp.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/neighbor/CmdDeleteProtocolBgpNeighbor.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/peer-group/CmdDeleteProtocolBgpPeerGroup.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
@@ -357,6 +361,23 @@ const CommandTree& kConfigCommandTree() {
                           commandHandler<CmdConfigProtocolBgpNeighbor>,
                           argRegistrar<CmdConfigProtocolBgpNeighborTraits>,
                       },
+                      {
+                          "policy",
+                          "Configure BGP policy objects",
+                          commandHandler<CmdConfigProtocolBgpPolicy>,
+                          argRegistrar<CmdConfigProtocolBgpPolicyTraits>,
+                          {{
+                              "as-path-list",
+                              "Configure BGP AS-path list: <name> "
+                              "[entry <seq-num>] [<attribute> <value> ...] "
+                              "(description; entry <seq-num> "
+                              "asn-regexp|description|match-logic)",
+                              commandHandler<
+                                  CmdConfigProtocolBgpPolicyAsPathList>,
+                              argRegistrar<
+                                  CmdConfigProtocolBgpPolicyAsPathListTraits>,
+                          }},
+                      },
                   },
               },
               {
@@ -615,6 +636,19 @@ const CommandTree& kConfigCommandTree() {
                     "Delete a BGP peer-group: <name>",
                     commandHandler<CmdDeleteProtocolBgpPeerGroup>,
                     argRegistrar<CmdDeleteProtocolBgpPeerGroupTraits>,
+                },
+                {
+                    "policy",
+                    "Delete BGP policy objects",
+                    commandHandler<CmdDeleteProtocolBgpPolicy>,
+                    argTypeHandler<CmdDeleteProtocolBgpPolicyTraits>,
+                    {{
+                        "as-path-list",
+                        "Delete a BGP AS-path list: <name>",
+                        commandHandler<CmdDeleteProtocolBgpPolicyAsPathList>,
+                        argRegistrar<
+                            CmdDeleteProtocolBgpPolicyAsPathListTraits>,
+                    }},
                 }},
            },
            {

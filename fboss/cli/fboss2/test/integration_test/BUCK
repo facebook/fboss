@@ -22,6 +22,7 @@ cpp_binary(
         "ConfigBgpGlobalTest.cpp",
         "ConfigBgpNeighborTest.cpp",
         "ConfigBgpPeerGroupTest.cpp",
+        "ConfigBgpPolicyAsPathListTest.cpp",
         "ConfigBgpSessionTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",
