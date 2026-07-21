@@ -805,6 +805,17 @@ sai_status_t set_port_attribute_fn(
       port.fabricIsolate = attr->value.booldata;
       break;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    case SAI_PORT_ATTR_LLR_MODE_LOCAL:
+      port.llrModeLocal = attr->value.booldata;
+      break;
+    case SAI_PORT_ATTR_LLR_MODE_REMOTE:
+      port.llrModeRemote = attr->value.booldata;
+      break;
+    case SAI_PORT_ATTR_LLR_PROFILE:
+      port.llrProfile = attr->value.oid;
+      break;
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
     case SAI_PORT_ATTR_PFC_TC_DLD_INTERVAL: {
       std::vector<sai_map_t> pfcTcDldInterval{};
@@ -1195,6 +1206,23 @@ sai_status_t get_port_attribute_fn(
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
       case SAI_PORT_ATTR_FABRIC_ISOLATE:
         attr->value.booldata = port.fabricIsolate;
+        break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      case SAI_PORT_ATTR_LLR_MODE_LOCAL:
+        attr->value.booldata = port.llrModeLocal;
+        break;
+      case SAI_PORT_ATTR_LLR_MODE_REMOTE:
+        attr->value.booldata = port.llrModeRemote;
+        break;
+      case SAI_PORT_ATTR_LLR_PROFILE:
+        attr->value.oid = port.llrProfile;
+        break;
+      case SAI_PORT_ATTR_LLR_TX_STATUS:
+        attr->value.s32 = port.llrTxStatus;
+        break;
+      case SAI_PORT_ATTR_LLR_RX_STATUS:
+        attr->value.s32 = port.llrRxStatus;
         break;
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)

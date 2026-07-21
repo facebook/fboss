@@ -595,6 +595,43 @@ struct SaiPortTraits {
         sai_uint32_t,
         AttributeLinkDownDebouncePeriodMs,
         SaiIntDefault<sai_uint32_t>>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    // UEC Link Layer Retry per-port controls (UE Spec 1.0.2 section 5.1).
+    // Mode local/remote enable LLR receive/transmit (section 5.1.3); the
+    // profile OID binds the port to a SaiPortLlrProfile; TX/RX status expose
+    // the LLR transmit and ACK/NACK state machines (sections 5.1.5, 5.1.7).
+    // Default getters are mandatory: these attrs live in CreateAttributes and
+    // are read back for every port on store reload. On SDK drops that ship the
+    // 1.18 headers but do not yet implement LLR at runtime, the get returns
+    // NOT_SUPPORTED; without a default getter SaiApi rethrows and crashes init.
+    // With one it falls back to the default (LLR off / null profile), matching
+    // how other SDK-gated port attrs (e.g. FdrEnable) behave.
+    using LlrModeLocal = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LLR_MODE_LOCAL,
+        bool,
+        SaiBoolDefaultFalse>;
+    using LlrModeRemote = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LLR_MODE_REMOTE,
+        bool,
+        SaiBoolDefaultFalse>;
+    using LlrProfile = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LLR_PROFILE,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using LlrTxStatus = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LLR_TX_STATUS,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
+    using LlrRxStatus = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LLR_RX_STATUS,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
+#endif
   };
   using AdapterKey = PortSaiId;
 
@@ -796,6 +833,13 @@ SAI_ATTRIBUTE_NAME(Port, ExtendedFecMode)
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
 SAI_ATTRIBUTE_NAME(Port, FabricIsolate)
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+SAI_ATTRIBUTE_NAME(Port, LlrModeLocal)
+SAI_ATTRIBUTE_NAME(Port, LlrModeRemote)
+SAI_ATTRIBUTE_NAME(Port, LlrProfile)
+SAI_ATTRIBUTE_NAME(Port, LlrTxStatus)
+SAI_ATTRIBUTE_NAME(Port, LlrRxStatus)
 #endif
 SAI_ATTRIBUTE_NAME(Port, MediaType)
 SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)

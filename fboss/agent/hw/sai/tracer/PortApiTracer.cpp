@@ -78,6 +78,13 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
     SAI_ATTR_MAP(Port, FabricIsolate),
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    SAI_ATTR_MAP(Port, LlrModeLocal),
+    SAI_ATTR_MAP(Port, LlrModeRemote),
+    SAI_ATTR_MAP(Port, LlrProfile),
+    SAI_ATTR_MAP(Port, LlrTxStatus),
+    SAI_ATTR_MAP(Port, LlrRxStatus),
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
     SAI_ATTR_MAP(Port, RxSignalDetect),
     SAI_ATTR_MAP(Port, RxLockStatus),

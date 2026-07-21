@@ -42,6 +42,13 @@ struct FakePort {
   sai_port_internal_loopback_mode_t internalLoopbackMode{
       SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE};
   bool fabricIsolate{false};
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  bool llrModeLocal{false};
+  bool llrModeRemote{false};
+  sai_object_id_t llrProfile{SAI_NULL_OBJECT_ID};
+  sai_int32_t llrTxStatus{SAI_PORT_LLR_TX_STATUS_OFF};
+  sai_int32_t llrRxStatus{SAI_PORT_LLR_RX_STATUS_OFF};
+#endif
   sai_port_flow_control_mode_t globalFlowControlMode{
       SAI_PORT_FLOW_CONTROL_MODE_DISABLE};
   sai_port_media_type_t mediaType{SAI_PORT_MEDIA_TYPE_NOT_PRESENT};
