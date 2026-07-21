@@ -991,7 +991,8 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
           CHECK(
               clientId == kInterfaceRouteClientId ||
               clientId == kRemoteInterfaceRouteClientId ||
-              (addr.isV6() && addr.isLinkLocal()));
+              (addr.isV6() && addr.isLinkLocal()))
+              << "Next hop:" << nh << " cannot be associated with a RIF";
           nhToFwds[nh].emplace(nh);
           continue;
         }
