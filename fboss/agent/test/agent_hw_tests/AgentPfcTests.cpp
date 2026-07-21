@@ -166,14 +166,22 @@ TEST_F(AgentPfcCaptureTest, verifyPfcLoopback) {
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
       // TODO: Investigate spurious diag command failures.
       std::string out;
-      getAgentEnsemble()->runDiagCommand(
-          "m DC3MAC_RSV_MASK MASK=0\n"
-          "m NBU_RX_MLF_DROP_FC_PKTS RX_DROP_FC_PKTS=0\n"
-          "g DC3MAC_RSV_MASK\n"
-          "g NBU_RX_MLF_DROP_FC_PKTS\n"
-          "",
-          out,
-          switchId);
+      // The registers that disable reserved-MAC filtering and flow-control
+      // packet dropping (so a PFC frame can loop back) live in different
+      // hardware blocks on Q4D than on the other (XGS / legacy DNX) ASICs, so
+      // use the Q4D-specific register names there.
+      auto asicType =
+          getSw()->getHwAsicTable()->getHwAsicIf(switchId)->getAsicType();
+      std::string diagCmds = (asicType == cfg::AsicType::ASIC_TYPE_QUMRAN4D)
+          ? "m PT100_DC3PORT_DC3MAC_RSV_MASK MASK=0\n"
+            "m NCURX_RX_MLF_DROP_FC_PKTS RX_DROP_FC_PKTS=0\n"
+            "g PT100_DC3PORT_DC3MAC_RSV_MASK\n"
+            "g NCURX_RX_MLF_DROP_FC_PKTS\n"
+          : "m DC3MAC_RSV_MASK MASK=0\n"
+            "m NBU_RX_MLF_DROP_FC_PKTS RX_DROP_FC_PKTS=0\n"
+            "g DC3MAC_RSV_MASK\n"
+            "g NBU_RX_MLF_DROP_FC_PKTS\n";
+      getAgentEnsemble()->runDiagCommand(diagCmds, out, switchId);
       XLOG(DBG3) << "==== Diag command output ====\n"
                  << out << "\n==== End output ====";
       getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
