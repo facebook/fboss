@@ -236,9 +236,18 @@ SaiSwitchManager::SaiSwitchManager(
       // warm boot. So, to cater to the systems which will only
       // WB to this change, set the attribute post WB. It should
       // be a no-op if already set.
-      switch_->setOptionalAttribute(
-          SaiSwitchTraits::Attributes::MaxSwitchId{
-              utility::getDsfVoqSwitchMaxSwitchId()});
+      //
+      // Only J3 constrains MaxSwitchId below the HW default (R3/J3 HW bug,
+      // see getSwitchAttributes() in SaiPlatform.cpp which gates the create
+      // attribute to R3/J3). Mirror that condition here: standalone DNX
+      // devices such as Q4D are not part of a DSF cluster and their SDK
+      // rejects a constrained MaxSwitchId, so leave them at the HW default.
+      if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_JERICHO3) {
+        switch_->setOptionalAttribute(
+            SaiSwitchTraits::Attributes::MaxSwitchId{
+                utility::getDsfVoqSwitchMaxSwitchId()});
+      }
 #endif
     }
   } else {
