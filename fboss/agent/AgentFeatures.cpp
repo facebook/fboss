@@ -626,3 +626,12 @@ DEFINE_bool(
     enable_remote_intf_route_reconcile,
     false,
     "Reconcile remote interface routes (RIB/FIB drift) on VOQ-switch warmboot");
+
+DEFINE_string(
+    bcm_sdk_log_file,
+    "",
+    "If set, path to a Broadcom SDK SOC/diag command file (e.g. containing "
+    "'debug bcm stat verbose'). When set, the sai_preinit_cmd_file and "
+    "sai_postinit_cmd_file SOC properties are added to the SDK config pointing "
+    "to this file, so the SDK runs the commands at init time. Used to enable "
+    "native BCM SDK debug logging (analogous to --enable_sai_log for SAI).");

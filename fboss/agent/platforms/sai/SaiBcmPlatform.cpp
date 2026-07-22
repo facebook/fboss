@@ -14,8 +14,10 @@
 #include "fboss/agent/platforms/common/utils/BcmYamlConfig.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+#include <folly/logging/xlog.h>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 
 DECLARE_bool(disable_looped_fabric_ports);
 
@@ -55,9 +57,42 @@ std::optional<std::string> getCommonYamlConfig(
   return asicConfig.common()->get_yamlConfig();
 }
 
+// SOC properties pointing at a diag/SOC command file the SDK runs at init.
+constexpr auto kSaiPreinitCmdFile = "sai_preinit_cmd_file";
+constexpr auto kSaiPostinitCmdFile = "sai_postinit_cmd_file";
 } // namespace
 
+std::vector<std::pair<std::string, std::string>>
+SaiBcmPlatform::getBcmSdkLogFileSocProperties() const {
+  if (FLAGS_bcm_sdk_log_file.empty()) {
+    return {};
+  }
+  // Fail fast on a bad path: otherwise a wrong/unreadable file silently no-ops
+  // or fails opaquely deep in SDK init, at a Tier-0 boundary.
+  if (!std::filesystem::exists(FLAGS_bcm_sdk_log_file)) {
+    throw FbossError(
+        "--bcm_sdk_log_file does not exist: ", FLAGS_bcm_sdk_log_file);
+  }
+  // This flag is process-global. In multi-switch mode every co-located
+  // fboss_hw_agent reads the same value, so all SDK instances run the same
+  // command file. Log this switch's index once so an operator can correlate
+  // output and knows per-ASIC separation needs single-ASIC hosts or a
+  // switch-index-aware 'log file=' line inside the command file itself.
+  [[maybe_unused]] static const bool logged = [this] {
+    XLOG(INFO) << "--bcm_sdk_log_file set: injecting SDK init command file "
+               << FLAGS_bcm_sdk_log_file << " (switchIndex "
+               << getAsic()->getSwitchIndex() << ")";
+    return true;
+  }();
+  return {
+      {kSaiPreinitCmdFile, FLAGS_bcm_sdk_log_file},
+      {kSaiPostinitCmdFile, FLAGS_bcm_sdk_log_file}};
+}
+
 std::string SaiBcmPlatform::getHwConfig() {
+  // Compute once so validation/logging happen a single time and every config
+  // path below sees a consistent snapshot of the flag.
+  const auto socProperties = getBcmSdkLogFileSocProperties();
   if (getAsic()->isSupported(HwAsic::Feature::HSDK)) {
     std::string yamlConfig;
     try {
@@ -91,12 +126,19 @@ std::string SaiBcmPlatform::getHwConfig() {
           *(config()->thrift.platform()->chip()->get_bcm().yamlConfig());
     }
     if (!yamlConfig.empty()) {
-      if (supportsDynamicBcmConfig()) {
+      // For HSDK only yamlConfig reaches the SDK, so SOC properties must be
+      // injected into the bcm_device.<n>.global section of the yaml.
+      if (supportsDynamicBcmConfig() || !socProperties.empty()) {
         BcmYamlConfig bcmYamlConfig;
         bcmYamlConfig.setBaseConfig(yamlConfig);
-        auto ports = config()->thrift.sw()->ports().value();
-        bcmYamlConfig.modifyCoreMaps(
-            getPlatformMapping()->getCorePinMapping(ports));
+        if (supportsDynamicBcmConfig()) {
+          auto ports = config()->thrift.sw()->ports().value();
+          bcmYamlConfig.modifyCoreMaps(
+              getPlatformMapping()->getCorePinMapping(ports));
+        }
+        for (const auto& [name, value] : socProperties) {
+          bcmYamlConfig.setGlobalProperty(name, value);
+        }
         return bcmYamlConfig.getConfig();
       }
       return yamlConfig;
@@ -112,6 +154,15 @@ std::string SaiBcmPlatform::getHwConfig() {
       overrides.insert({"fabric_load_balancing_mode", "NORMAL_LOAD_BALANCE"});
     }
     auto hwConfig = getHwAsicConfig(overrides);
+    // getHwAsicConfig only substitutes values for keys already present in the
+    // base asic config and never inserts new ones. The SOC log-file properties
+    // are debug knobs that are never part of the asic config, so append them
+    // (and record them in hwConfig_ so getHwConfigValue stays consistent with
+    // the other config paths).
+    for (const auto& [name, value] : socProperties) {
+      hwConfig += folly::to<std::string>('\n', name, '=', value);
+      hwConfig_.insert_or_assign(name, value);
+    }
     return hwConfig;
   } catch (const FbossError&) {
     /*
@@ -121,9 +172,20 @@ std::string SaiBcmPlatform::getHwConfig() {
     auto& cfg = *config()->thrift.platform()->chip()->get_bcm().config();
     std::vector<std::string> nameValStrs;
     for (const auto& entry : cfg) {
+      // Skip keys we override below so the emitted string and hwConfig_ carry
+      // no duplicates even if the base cfg already contained them.
+      if (!socProperties.empty() &&
+          (entry.first == kSaiPreinitCmdFile ||
+           entry.first == kSaiPostinitCmdFile)) {
+        continue;
+      }
       nameValStrs.emplace_back(
           folly::to<std::string>(entry.first, '=', entry.second));
       hwConfig_.emplace(entry.first, entry.second);
+    }
+    for (const auto& [name, value] : socProperties) {
+      nameValStrs.emplace_back(folly::to<std::string>(name, '=', value));
+      hwConfig_.insert_or_assign(name, value);
     }
     auto hwConfig = folly::join('\n', nameValStrs);
     return hwConfig;
