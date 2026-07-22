@@ -1,0 +1,19 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "snapshot_manager_test",
+    srcs = [
+        "SnapshotManagerTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/lib/link_snapshots:ring_buffer",
+        "//fboss/lib/link_snapshots:snapshot_manager",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+        "//folly/logging/test:test_handler",
+    ],
+)

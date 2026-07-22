@@ -21,7 +21,7 @@ class RingBuffer {
 
   explicit RingBuffer<T>(size_t maxLength) : maxLength_(maxLength) {}
 
-  void write(T val);
+  T& write(T val);
   const T last() const;
   bool empty() const;
   iterator begin();

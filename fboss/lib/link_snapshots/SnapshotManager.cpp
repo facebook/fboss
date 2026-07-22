@@ -50,13 +50,10 @@ SnapshotManager::SnapshotManager(
           kDefaultTimespanSeconds) {}
 
 void SnapshotManager::addSnapshot(const phy::LinkSnapshot& val) {
-  auto snapshot = SnapshotWrapper(val);
-  buf_.write(snapshot);
+  auto& snapshot = buf_.write(SnapshotWrapper(val));
 
   if (numSnapshotsToPublish_ > 0) {
     snapshot.publish(portNames_, asyncFileWriter_, snapshotLogSource_);
-  }
-  if (numSnapshotsToPublish_ > 0) {
     numSnapshotsToPublish_--;
   }
 }
