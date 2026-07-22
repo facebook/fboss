@@ -890,6 +890,16 @@ struct FirmwareInfo {
   3: FirmwareFuncStatus funcStatus;
 }
 
+/*
+ * Fast ReRoute (FRR) object to protect.
+ * For RBB, the object is identified by uA mySID for the LAG.
+ * For BBF, the object is identified by adjacency SID label for the LAG.
+ */
+union FrrProtectedObject {
+  1: Address.IPPrefix mySid;
+  2: mpls.MplsLabel mplsLabel;
+}
+
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -1654,6 +1664,23 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     1: list<string> portNames,
     2: phy.PortComponent component,
     3: prbs.InterfacePrbsState state,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Add Adjacency FRR to protect an object with given backup nexthops.
+   * If the protected object already exists, replaces its backup nexthops.
+   *
+   * FrrProtectedObject is a union. Fill either uA mySID or MPLS label to
+   * protect.
+   *
+   * Number of backup nexthops in the list:
+   *  = 0: throws Error
+   *  = 1: single backup
+   *  > 1: ECMP of backups
+   */
+  void addAdjacencyFrr(
+    1: FrrProtectedObject protectedObject,
+    2: list<common.NextHopThrift> backupNextHops,
   ) throws (1: fboss.FbossBaseError error);
 }
 
