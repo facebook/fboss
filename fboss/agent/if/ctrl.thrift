@@ -457,6 +457,7 @@ struct PortInfoThrift {
   32: switch_config.Scope scope;
   33: list<switch_config.PortNeighbor> expectedNeighborReachability;
   34: optional i64 cableLengthMeters;
+  35: optional i32 ingressVlan;
 }
 
 // Port queueing configuration
