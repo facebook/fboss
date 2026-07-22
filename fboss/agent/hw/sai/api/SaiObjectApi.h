@@ -28,20 +28,16 @@ extern "C" {
 namespace facebook::fboss {
 
 namespace detail {
-template <typename SaiObjectTraits>
-typename std::enable_if_t<
-    AdapterKeyIsEntryStruct<SaiObjectTraits>::value,
-    typename SaiObjectTraits::AdapterKey>
-getAdapterKey(const sai_object_key_t& key) {
+template <EntryStructSaiObject SaiObjectTraits>
+typename SaiObjectTraits::AdapterKey getAdapterKey(
+    const sai_object_key_t& key) {
   typename SaiObjectTraits::AdapterKey k{key};
   return k;
 }
 
-template <typename SaiObjectTraits>
-typename std::enable_if_t<
-    AdapterKeyIsObjectId<SaiObjectTraits>::value,
-    typename SaiObjectTraits::AdapterKey>
-getAdapterKey(const sai_object_key_t& key) {
+template <ObjectIdSaiObject SaiObjectTraits>
+typename SaiObjectTraits::AdapterKey getAdapterKey(
+    const sai_object_key_t& key) {
   return typename SaiObjectTraits::AdapterKey{key.key.object_id};
 }
 } // namespace detail
