@@ -1593,8 +1593,17 @@ service TBgpService extends fb303.FacebookService {
 
   /**
    * Clear PathSelectionPolicy.
+   * Note: When CPS FILE_MODE is active, this operation is silently skipped.
    */
   void clearPathSelectionPolicy();
+
+  /**
+   * [Path Selection Policy - File Mode]
+   * Refresh CPS policy from the local artifact file.
+   * Reads CpsPolicyArtifact, syncs dryrun mode, and applies policy if
+   * dryrun=false (FILE_MODE).
+   */
+  TResult setCpsPolicyFromFile();
 
   /**
    * Get the active path selection criteria for the given prefixes.
