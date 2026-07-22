@@ -1456,6 +1456,16 @@ service TBgpService extends fb303.FacebookService {
   TRibSummary getRibSummary(1: bgp_attr.TBgpAfi afi);
 
   /**
+   * Dump the current BGP RIB in canonical (deduplicated) form -- the same
+   * content as getRibEntries(), encoded as a single TCanonicalRibState (shared
+   * attr / path / peer pools + per-prefix entries) for a far smaller payload.
+   *
+   * @param afi - The afi to dump RIB for
+   */
+  bgp_route_types.TCanonicalRibState getRibEntriesCanonical(
+    1: bgp_attr.TBgpAfi afi,
+  );
+  /**
    * Dump the current Shadow RIB (prefixes learned from the RIB)
    *
    * Though both getRibEntries and getShadowRibEntries provide so
