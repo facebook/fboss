@@ -1465,6 +1465,46 @@ service TBgpService extends fb303.FacebookService {
   bgp_route_types.TCanonicalRibState getRibEntriesCanonical(
     1: bgp_attr.TBgpAfi afi,
   );
+
+  /**
+   * Get a single prefix from the RIB in canonical (deduplicated) form.
+   *
+   * @param prefix - The string representation of the prefix to get
+   */
+  bgp_route_types.TCanonicalRibState getRibPrefixCanonical(1: string prefix);
+
+  /**
+   * Fetch routes in the RIB matching communities in canonical form.
+   * Only paths matching at least one community are returned (match-any logic).
+   *
+   * @param afi - ipv4 or ipv6
+   * @param community_ids - List of community strings (ASN:NN or integer or well-known)
+   */
+  bgp_route_types.TCanonicalRibState getRibEntriesForCommunitiesCanonical(
+    1: bgp_attr.TBgpAfi afi,
+    2: list<string> community_ids,
+  );
+
+  /**
+   * Fetch routes in the RIB matching a single community in canonical form.
+   *
+   * @param afi - ipv4 or ipv6
+   * @param community_id - Community string (ASN:NN or integer or well-known)
+   */
+  bgp_route_types.TCanonicalRibState getRibEntriesForCommunityCanonical(
+    1: bgp_attr.TBgpAfi afi,
+    2: string community_id,
+  );
+
+  /**
+   * Get RIB entries for subprefixes in canonical (deduplicated) form.
+   *
+   * @param prefix - The string representation of the parent prefix
+   */
+  bgp_route_types.TCanonicalRibState getRibSubprefixesCanonical(
+    1: string prefix,
+  );
+
   /**
    * Dump the current Shadow RIB (prefixes learned from the RIB)
    *
@@ -1503,7 +1543,7 @@ service TBgpService extends fb303.FacebookService {
    * passed community are filtered out (even though those might be part of
    * bestpath or ecmp/ucmp paths).
    *
-   * @param afi - ipv4 or ipv6 or both
+   * @param afi - ipv4 or ipv6
    *
    * @param string - The string represents ASN:NN (both 16bits) value or
    *                 an integer (32bits) representing community.
@@ -1521,7 +1561,7 @@ service TBgpService extends fb303.FacebookService {
    * the local-rib are returned, i.e. route's paths which does not match
    * passed community are filtered out (even though those might be part of
    * bestpath or ecmp/ucmp paths).
-   * @param afi - ipv4 or ipv6 or both
+   * @param afi - ipv4 or ipv6
    *
    * @param list<string> - The string represents ASN:NN (both 16bits) value or
    *                       an integer (32bits) representing community.
