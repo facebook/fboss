@@ -27,11 +27,10 @@ using namespace facebook::fboss;
 class ConfigInterfaceLookupClassTest : public Fboss2IntegrationTest {
  protected:
   void TearDown() override {
-    // Never leave a staged lookup-class change behind for the next test.
-    discardSession();
-    // A test that failed between its set-commit and clear-commit would leave
-    // the committed class list on the port; clear it (best-effort) so the
-    // device is restored even on failure.
+    // If the test failed after committing a lookup-class change but before
+    // clearing it, best-effort restore the port so a shared DUT is left
+    // clean. (A committed change survives discardSession(), which the base
+    // SetUp already runs to clear any staged session before the next test.)
     if (!committedPort_.empty()) {
       try {
         if (!portLookupClasses(getRunningConfig(), committedPort_).empty()) {
@@ -39,11 +38,8 @@ class ConfigInterfaceLookupClassTest : public Fboss2IntegrationTest {
           commitConfig();
         }
       } catch (const std::exception&) {
-        // Restoration is best-effort; do not mask the test result.
+        // Best-effort; do not mask the test result.
       }
-      // A failed restore may itself have staged a delete; never leave a
-      // half-staged session behind for whatever runs next.
-      discardSession();
     }
     Fboss2IntegrationTest::TearDown();
   }
@@ -74,161 +70,53 @@ class ConfigInterfaceLookupClassTest : public Fboss2IntegrationTest {
     return {};
   }
 
-  // Stage lookup-class ids on the interface, commit, and wait until the
-  // running config shows exactly the expected list.
-  void setLookupClassAndVerify(
-      const std::string& ifaceName,
-      const std::string& ids,
-      const std::vector<int>& expected) {
-    auto result =
-        runCli({"config", "interface", ifaceName, "lookup-class", ids});
-    ASSERT_EQ(result.exitCode, 0)
-        << "Failed to stage lookup-class " << ids << ": " << result.stderr;
-    committedPort_ = ifaceName;
-    commitConfig();
-    auto config = waitForRunningConfig([&](const folly::dynamic& c) {
-      return portLookupClasses(c, ifaceName) == expected;
-    });
-    EXPECT_EQ(portLookupClasses(config, ifaceName), expected)
-        << "Running config does not show lookupClasses " << ids << " on "
-        << ifaceName;
-  }
-
-  // Delete lookup-class on the interface, commit, and wait until the running
-  // config shows an empty lookupClasses list.
-  void clearLookupClassAndVerify(const std::string& ifaceName) {
-    auto result = runCli({"delete", "interface", ifaceName, "lookup-class"});
-    ASSERT_EQ(result.exitCode, 0)
-        << "Failed to delete lookup-class: " << result.stderr;
-    commitConfig();
-    auto config = waitForRunningConfig([&](const folly::dynamic& c) {
-      return portLookupClasses(c, ifaceName).empty();
-    });
-    EXPECT_TRUE(portLookupClasses(config, ifaceName).empty())
-        << "Running config still shows lookupClasses on " << ifaceName;
-  }
-
-  // First eth port whose lookupClasses list is empty in the running config.
-  // The set -> clear cycle needs an empty baseline so the device is restored
-  // to its original state; scanning (instead of insisting on the first eth
-  // port) keeps the test runnable on a device that already has lookup
-  // classes on some ports. Returns an empty string when every eth port has
-  // classes configured.
-  std::string findEthPortWithEmptyLookupClasses() {
-    auto config = getRunningConfig();
-    if (!config.isObject() || !config.count("sw")) {
-      return "";
-    }
-    const auto& sw = config["sw"];
-    if (!sw.isObject() || !sw.count("ports")) {
-      return "";
-    }
-    for (const auto& port : sw["ports"]) {
-      if (!port.count("name")) {
-        continue;
-      }
-      auto name = port["name"].asString();
-      if (name.rfind("eth", 0) != 0) {
-        continue;
-      }
-      if (portLookupClasses(config, name).empty()) {
-        return name;
-      }
-    }
-    return "";
-  }
-
   // Port a test committed a lookup-class list on; cleared in TearDown if the
   // test did not restore it itself.
   std::string committedPort_;
 };
 
-// A non-numeric value is rejected before anything is staged; the running
-// config is untouched.
-TEST_F(ConfigInterfaceLookupClassTest, RejectsNonNumericLookupClass) {
-  Interface iface = findFirstEthInterface();
-  auto before = portLookupClasses(getRunningConfig(), iface.name);
-  auto result =
-      runCli({"config", "interface", iface.name, "lookup-class", "bogus"});
-  EXPECT_NE(result.exitCode, 0)
-      << "Expected non-zero exit for non-numeric lookup-class value";
-  EXPECT_EQ(portLookupClasses(getRunningConfig(), iface.name), before)
-      << "Rejected command must not change the running config";
-}
-
-// An integer that is not a valid AclLookupClass enum value is rejected; the
-// running config is untouched.
-TEST_F(ConfigInterfaceLookupClassTest, RejectsInvalidLookupClassId) {
-  Interface iface = findFirstEthInterface();
-  auto before = portLookupClasses(getRunningConfig(), iface.name);
-  auto result =
-      runCli({"config", "interface", iface.name, "lookup-class", "999"});
-  EXPECT_NE(result.exitCode, 0)
-      << "Expected non-zero exit for out-of-range lookup-class id 999";
-  EXPECT_EQ(portLookupClasses(getRunningConfig(), iface.name), before)
-      << "Rejected command must not change the running config";
-}
-
-// A list with an invalid id is rejected entirely; the running config is
-// untouched.
-TEST_F(ConfigInterfaceLookupClassTest, RejectsInvalidIdInList) {
-  Interface iface = findFirstEthInterface();
-  auto before = portLookupClasses(getRunningConfig(), iface.name);
-  auto result =
-      runCli({"config", "interface", iface.name, "lookup-class", "10,999"});
-  EXPECT_NE(result.exitCode, 0)
-      << "Expected non-zero exit for lookup-class list containing 999";
-  EXPECT_EQ(portLookupClasses(getRunningConfig(), iface.name), before)
-      << "Rejected command must not change the running config";
-}
-
-// Duplicate ids in the list are rejected; the running config is untouched.
-TEST_F(ConfigInterfaceLookupClassTest, RejectsDuplicateIdsInList) {
-  Interface iface = findFirstEthInterface();
-  auto before = portLookupClasses(getRunningConfig(), iface.name);
-  auto result =
-      runCli({"config", "interface", iface.name, "lookup-class", "10,11,10"});
-  EXPECT_NE(result.exitCode, 0)
-      << "Expected non-zero exit for duplicate lookup-class ids";
-  EXPECT_EQ(portLookupClasses(getRunningConfig(), iface.name), before)
-      << "Rejected command must not change the running config";
-}
-
-// Set a single id, commit, verify it in the running config, then delete +
-// commit and verify the running config is restored.
-TEST_F(ConfigInterfaceLookupClassTest, SetThenDeleteLookupClass) {
-  std::string ifaceName = findEthPortWithEmptyLookupClasses();
-  if (ifaceName.empty()) {
-    GTEST_SKIP() << "Every eth port already has lookupClasses configured";
-  }
-
-  setLookupClassAndVerify(ifaceName, "10", {10});
-  clearLookupClassAndVerify(ifaceName);
-}
-
-// Set the full queue-per-host pool, commit, verify, then clear + verify.
+// Stage the full queue-per-host class list on a port, commit, verify it in
+// the agent's running config, then delete + commit and verify it is cleared.
 TEST_F(ConfigInterfaceLookupClassTest, SetThenDeleteLookupClassList) {
-  std::string ifaceName = findEthPortWithEmptyLookupClasses();
+  // Pick a port with an empty lookupClasses list so the set -> clear cycle
+  // restores the device to its original state.
+  auto config = getRunningConfig();
+  std::string ifaceName;
+  if (config.isObject() && config.count("sw") && config["sw"].count("ports")) {
+    for (const auto& port : config["sw"]["ports"]) {
+      if (port.count("name") &&
+          portLookupClasses(config, port["name"].asString()).empty()) {
+        ifaceName = port["name"].asString();
+        break;
+      }
+    }
+  }
   if (ifaceName.empty()) {
-    GTEST_SKIP() << "Every eth port already has lookupClasses configured";
+    GTEST_SKIP() << "Every port already has lookupClasses configured";
   }
 
-  setLookupClassAndVerify(ifaceName, "10,11,12,13,14", {10, 11, 12, 13, 14});
-  clearLookupClassAndVerify(ifaceName);
-}
+  // Stage the class list, commit, and verify it in the agent running config.
+  const std::vector<int> expected = {10, 11, 12, 13, 14};
+  auto setResult = runCli(
+      {"config", "interface", ifaceName, "lookup-class", "10,11,12,13,14"});
+  ASSERT_EQ(setResult.exitCode, 0)
+      << "Failed to stage lookup-class: " << setResult.stderr;
+  committedPort_ = ifaceName;
+  commitConfig();
+  auto afterSet = waitForRunningConfig([&](const folly::dynamic& c) {
+    return portLookupClasses(c, ifaceName) == expected;
+  });
+  EXPECT_EQ(portLookupClasses(afterSet, ifaceName), expected)
+      << "Running config does not show lookupClasses on " << ifaceName;
 
-// Delete on a port whose lookupClasses list is already empty succeeds and
-// stages nothing, so the running config is unchanged. (No commit: an
-// unchanged session has nothing to commit.)
-TEST_F(ConfigInterfaceLookupClassTest, DeleteLookupClassIdempotent) {
-  std::string ifaceName = findEthPortWithEmptyLookupClasses();
-  if (ifaceName.empty()) {
-    GTEST_SKIP() << "Every eth port already has lookupClasses configured";
-  }
-
+  // Delete, commit, and verify the list is cleared.
   auto delResult = runCli({"delete", "interface", ifaceName, "lookup-class"});
-  EXPECT_EQ(delResult.exitCode, 0)
-      << "Expected delete on empty lookupClasses to succeed: "
-      << delResult.stderr;
-  EXPECT_TRUE(portLookupClasses(getRunningConfig(), ifaceName).empty());
+  ASSERT_EQ(delResult.exitCode, 0)
+      << "Failed to delete lookup-class: " << delResult.stderr;
+  commitConfig();
+  auto afterClear = waitForRunningConfig([&](const folly::dynamic& c) {
+    return portLookupClasses(c, ifaceName).empty();
+  });
+  EXPECT_TRUE(portLookupClasses(afterClear, ifaceName).empty())
+      << "Running config still shows lookupClasses on " << ifaceName;
 }

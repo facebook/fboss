@@ -237,6 +237,9 @@ TEST_F(CmdDeleteInterfaceTestFixture, queryClientClearsLookupClasses) {
 
   auto& ports = *ConfigSession::getInstance().getAgentConfig().sw()->ports();
   EXPECT_TRUE(ports[0].lookupClasses()->empty());
+  // Clearing lookup-class must not disturb the port's other attributes.
+  EXPECT_EQ(*ports[0].loopbackMode(), cfg::PortLoopbackMode::PHY);
+  EXPECT_EQ(ports[0].expectedLLDPValues()->count(cfg::LLDPTag::PORT), 1);
 }
 
 // ---------------------------------------------------------------------------
@@ -249,10 +252,12 @@ TEST_F(CmdDeleteInterfaceTestFixture, queryClientIdempotentNoLookupClasses) {
   auto cmd = CmdDeleteInterface();
   auto deleteAttrs = InterfaceDeleteConfig({"eth1/2/1", "lookup-class"});
 
-  EXPECT_NO_THROW({
-    auto result = cmd.queryClient(localhost(), deleteAttrs);
-    EXPECT_THAT(result, HasSubstr("lookup-class"));
-  });
+  auto result = cmd.queryClient(localhost(), deleteAttrs);
+  EXPECT_THAT(result, HasSubstr("lookup-class"));
+
+  // eth1/2/1 had no lookupClasses; delete is a no-op and leaves it empty.
+  auto& ports = *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+  EXPECT_TRUE(ports[1].lookupClasses()->empty());
 }
 
 // ---------------------------------------------------------------------------

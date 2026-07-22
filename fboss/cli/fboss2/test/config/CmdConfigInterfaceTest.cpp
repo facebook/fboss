@@ -2184,6 +2184,13 @@ TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassRejectsDuplicate) {
   } catch (const std::invalid_argument& e) {
     EXPECT_THAT(e.what(), HasSubstr("duplicate id"));
   }
+
+  // The list is fully parsed before any port is mutated, so a rejected list
+  // must leave lookupClasses empty — the valid prefix "10" is not applied.
+  auto& ports = *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    EXPECT_TRUE(port.lookupClasses()->empty());
+  }
 }
 
 TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassRejectsEmptySlot) {
@@ -2210,6 +2217,13 @@ TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassRejectsBadInList) {
   } catch (const std::invalid_argument& e) {
     EXPECT_THAT(e.what(), HasSubstr("Invalid lookup-class value"));
     EXPECT_THAT(e.what(), HasSubstr("Valid values"));
+  }
+
+  // The list is fully parsed before any port is mutated, so a rejected list
+  // must leave lookupClasses empty — the valid prefix "10" is not applied.
+  auto& ports = *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    EXPECT_TRUE(port.lookupClasses()->empty());
   }
 }
 
