@@ -26,6 +26,7 @@ cpp_unittest(
         "CmdConfigMacAgingTimeTest.cpp",
         "CmdConfigPtpTransparentClockTest.cpp",
         "CmdConfigQosBufferPoolTest.cpp",
+        "CmdConfigQosDefaultQueueConfigTest.cpp",
         "CmdConfigReloadTest.cpp",
         "CmdConfigSessionCommitTest.cpp",
         "CmdConfigSessionDiffTest.cpp",
@@ -42,6 +43,7 @@ cpp_unittest(
         "CmdDeleteInterfaceTest.cpp",
         "CmdDeleteTunnelIpInIpTest.cpp",
         "ConfigSessionSystemdTest.cpp",
+        "CmdDeleteQosDefaultQueueConfigTest.cpp",
         "ProfileValidationTest.cpp",
     ],
     headers = [
