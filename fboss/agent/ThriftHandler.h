@@ -247,6 +247,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<std::vector<std::string>> portNames,
       phy::PortComponent component,
       std::unique_ptr<prbs::InterfacePrbsState> state) override;
+  void addAdjacencyFrr(
+      std::unique_ptr<FrrProtectedObject> protectedObject,
+      std::unique_ptr<std::vector<NextHopThrift>> backupNextHops) override;
   void setInterfaceTxRx(
       std::vector<phy::TxRxEnableResponse>& txRxEnableResponse,
       std::unique_ptr<std::vector<phy::TxRxEnableRequest>> txRxEnableRequests)

@@ -1732,6 +1732,15 @@ void ThriftHandler::setInterfacesPrbs(
   }
 }
 
+void ThriftHandler::addAdjacencyFrr(
+    std::unique_ptr<FrrProtectedObject>,
+    std::unique_ptr<std::vector<NextHopThrift>>) {
+  ensureConfigured(__func__);
+
+  // TODO add support
+  throw FbossError("addAdjacencyFrr Not supported");
+}
+
 void ThriftHandler::clearPortPrbsStats(
     int32_t portId,
     phy::PortComponent component) {
