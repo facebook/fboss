@@ -14,6 +14,7 @@
 #include "fboss/agent/test/TestUtils.h"
 
 #include <fb303/ThreadCachedServiceData.h>
+#include <fmt/format.h>
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 
@@ -35,7 +36,7 @@ HwSwitchMatcher remoteMatcher() {
 std::shared_ptr<Interface> makeRemoteRif(
     InterfaceID id,
     folly::CIDRNetwork addr) {
-  auto name = folly::sformat("rif{}", static_cast<int>(id));
+  auto name = fmt::format("rif{}", static_cast<int>(id));
   auto rif = std::make_shared<Interface>(
       id,
       kTestVrf,

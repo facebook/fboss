@@ -345,8 +345,8 @@ class AuditScaleStressTest : public AuditRemoteInterfaceRoutesTest {};
 TEST_F(AuditScaleStressTest, FunctionalCorrectnessAtScale) {
   constexpr int kNumRifs = 5000;
   for (int i = 0; i < kNumRifs; ++i) {
-    auto prefix = folly::IPAddress::createNetwork(
-        folly::sformat("2001:db8:{:x}::1/127", i));
+    auto prefix =
+        folly::IPAddress::createNetwork(fmt::format("2001:db8:{:x}::1/127", i));
     addConsistentRemoteRif(InterfaceID(1000 + i), prefix);
   }
   auto start = std::chrono::steady_clock::now();
