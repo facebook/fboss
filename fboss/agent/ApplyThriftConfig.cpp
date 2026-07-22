@@ -524,6 +524,9 @@ class ThriftConfigApplier {
   bool isPortFlowletConfigUnchanged(
       std::shared_ptr<PortFlowletCfg> newPortFlowletCfg,
       const shared_ptr<Port>& port);
+  bool isLlrConfigUnchanged(
+      std::shared_ptr<LlrConfig> newLlrConfig,
+      const shared_ptr<Port>& port);
   void checkPortQueueAQMValid(
       const std::vector<cfg::ActiveQueueManagement>& aqms);
   std::shared_ptr<AggregatePortMap> updateAggregatePorts();
@@ -712,6 +715,10 @@ class ThriftConfigApplier {
   std::shared_ptr<PortFlowletCfg> createPortFlowletConfig(
       const std::string& id,
       const cfg::PortFlowletConfig& config);
+  shared_ptr<MultiSwitchLlrConfigMap> updateLlrConfigs(bool* changed);
+  std::shared_ptr<LlrConfig> createLlrConfig(
+      const std::string& id,
+      const cfg::LlrConfig& config);
 
   uint32_t generateDeterministicSeed(cfg::LoadBalancerID id);
 
@@ -785,6 +792,15 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         updatePortFlowletConfigs(&portFlowletConfigChanged);
     if (portFlowletConfigChanged) {
       new_->resetPortFlowletCfgs(newPortFlowletCfg);
+      changed = true;
+    }
+  }
+
+  {
+    bool llrConfigChanged = false;
+    auto newLlrCfg = updateLlrConfigs(&llrConfigChanged);
+    if (llrConfigChanged) {
+      new_->resetLlrConfigs(newLlrCfg);
       changed = true;
     }
   }
@@ -2642,6 +2658,24 @@ bool ThriftConfigApplier::isPortFlowletConfigUnchanged(
   return true;
 }
 
+bool ThriftConfigApplier::isLlrConfigUnchanged(
+    std::shared_ptr<LlrConfig> newLlrConfig,
+    const shared_ptr<Port>& port) {
+  std::shared_ptr<LlrConfig> oldLlrConfig{nullptr};
+  if (port->getLlrConfig().has_value()) {
+    oldLlrConfig = port->getLlrConfig().value();
+  }
+  if ((newLlrConfig && !oldLlrConfig) || (!newLlrConfig && oldLlrConfig)) {
+    return false;
+  }
+  if (oldLlrConfig && newLlrConfig) {
+    if (*oldLlrConfig != *newLlrConfig) {
+      return false;
+    }
+  }
+  return true;
+}
+
 QueueConfig ThriftConfigApplier::updatePortQueues(
     const QueueConfig& origPortQueues,
     const std::vector<cfg::PortQueue>& cfgPortQueues,
@@ -3108,6 +3142,49 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         isPortFlowletConfigUnchanged(portFlowletCfg, orig);
   }
 
+  bool llrConfigUnchanged = true;
+  auto newLlrConfigName = std::optional<cfg::LlrConfigName>();
+  std::shared_ptr<LlrConfig> llrConfig;
+  if (portConf->llrConfigName().has_value()) {
+    newLlrConfigName = portConf->llrConfigName().value();
+    // Loud rejection: LLR is only meaningful on ASICs that support it (UE Spec
+    // section 5.1; Tomahawk Ultra only today). Reject at config time rather
+    // than silently ignoring so state and hardware never diverge.
+    const auto portSwitchIds =
+        scopeResolver_.scope(PortID(*portConf->logicalID())).switchIds();
+    for (auto switchId : portSwitchIds) {
+      if (!hwAsicTable_->isFeatureSupported(
+              switchId, HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
+        throw FbossError(
+            "Port ",
+            orig->getID(),
+            " has LLR config name: ",
+            *newLlrConfigName,
+            " but its ASIC does not support LINK_LAYER_RETRANSMISSION");
+      }
+    }
+    if (auto llrConfigs = cfg_->llrConfigs()) {
+      auto it = llrConfigs->find(newLlrConfigName.value());
+      if (it == llrConfigs->end()) {
+        throw FbossError(
+            "Port LLR config name: ",
+            *newLlrConfigName,
+            " does not exist in LlrConfig map");
+      }
+    }
+    auto llrConfigMap = new_->getLlrConfigs();
+    llrConfig = llrConfigMap->getNodeIf(*newLlrConfigName);
+    if (!llrConfig) {
+      throw FbossError(
+          "Port:",
+          orig->getID(),
+          " but LLR config name: ",
+          *newLlrConfigName,
+          " doesn't exist in the LLR config map.");
+    }
+    llrConfigUnchanged = isLlrConfigUnchanged(llrConfig, orig);
+  }
+
   auto newFabricLinkMonSwitchId = getFabricLinkMonitoringPortSwitchId(
       PortID(*portConf->logicalID()),
       *portConf->portType(),
@@ -3137,6 +3214,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->drainState() == orig->getPortDrainState() &&
       portFlowletConfigUnchanged &&
       newFlowletConfigName == orig->getFlowletConfigName() &&
+      llrConfigUnchanged && newLlrConfigName == orig->getLlrConfigName() &&
       *portConf->conditionalEntropyRehash() ==
           orig->getConditionalEntropyRehash() &&
       portConf->selfHealingECMPLagEnable().value_or(false) ==
@@ -3219,6 +3297,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setPortDrainState(*portConf->drainState());
   newPort->setFlowletConfigName(newFlowletConfigName);
   newPort->setPortFlowletConfig(portFlowletCfg);
+  newPort->setLlrConfigName(newLlrConfigName);
+  newPort->setLlrConfig(llrConfig);
   newPort->setScope(*portConf->scope());
   newPort->setConditionalEntropyRehash(*portConf->conditionalEntropyRehash());
   newPort->setPortSwitchId(newFabricLinkMonSwitchId);
@@ -5120,6 +5200,62 @@ std::shared_ptr<PortFlowletCfg> ThriftConfigApplier::createPortFlowletConfig(
   portFlowletCfg->setLoadWeight(*portFlowletConfig.loadWeight());
   portFlowletCfg->setQueueWeight(*portFlowletConfig.queueWeight());
   return portFlowletCfg;
+}
+
+shared_ptr<MultiSwitchLlrConfigMap> ThriftConfigApplier::updateLlrConfigs(
+    bool* changed) {
+  *changed = false;
+  auto origLlrConfigs = orig_->getLlrConfigs();
+  LlrConfigMap::NodeContainer newLlrConfigMap;
+  auto newCfgedLlrConfigs = cfg_->llrConfigs();
+
+  if (!newCfgedLlrConfigs && !origLlrConfigs->numNodes()) {
+    return nullptr;
+  }
+  if (!newCfgedLlrConfigs && origLlrConfigs->numNodes()) {
+    // old cfg exists but new one doesn't
+    *changed = true;
+    return std::make_shared<MultiSwitchLlrConfigMap>();
+  }
+  if (newCfgedLlrConfigs && !origLlrConfigs->numNodes()) {
+    *changed = true;
+  }
+  if (origLlrConfigs->numNodes() != (*newCfgedLlrConfigs).size()) {
+    *changed = true;
+  }
+  for (auto& llrConfig : *newCfgedLlrConfigs) {
+    auto newLlrConfig = createLlrConfig(llrConfig.first, llrConfig.second);
+    auto origLlrConfig = origLlrConfigs->getNodeIf(llrConfig.first);
+    if (!origLlrConfig || (*origLlrConfig != *newLlrConfig)) {
+      *changed = true;
+    }
+    newLlrConfigMap.emplace(std::make_pair(llrConfig.first, newLlrConfig));
+  }
+
+  if (*changed) {
+    auto llrConfigMap =
+        std::make_shared<LlrConfigMap>(std::move(newLlrConfigMap));
+    return toMultiSwitchMap<MultiSwitchLlrConfigMap>(
+        llrConfigMap, scopeResolver_);
+  }
+  return nullptr;
+}
+
+std::shared_ptr<LlrConfig> ThriftConfigApplier::createLlrConfig(
+    const std::string& id,
+    const cfg::LlrConfig& llrConfig) {
+  auto cfg = std::make_shared<LlrConfig>(id);
+  cfg->setOutstandingFramesMax(*llrConfig.outstandingFramesMax());
+  cfg->setOutstandingBytesMax(*llrConfig.outstandingBytesMax());
+  cfg->setReplayTimerMax(*llrConfig.replayTimerMax());
+  cfg->setReplayCountMax(*llrConfig.replayCountMax());
+  cfg->setPcsLostTimeout(*llrConfig.pcsLostTimeout());
+  cfg->setDataAgeTimeout(*llrConfig.dataAgeTimeout());
+  cfg->setInitFrameAction(*llrConfig.initFrameAction());
+  cfg->setFlushFrameAction(*llrConfig.flushFrameAction());
+  cfg->setReInitOnFlush(*llrConfig.reInitOnFlush());
+  cfg->setCtlosTargetSpacing(*llrConfig.ctlosTargetSpacing());
+  return cfg;
 }
 
 shared_ptr<MultiSwitchBufferPoolCfgMap>

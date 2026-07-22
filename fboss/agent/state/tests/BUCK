@@ -21,6 +21,7 @@ cpp_unittest(
         "LabelFIBTests.cpp",
         "LabelForwardingActionTests.cpp",
         "LabelForwardingEntryTests.cpp",
+        "LlrConfigTests.cpp",
         "LoadBalancerTests.cpp",
         "MacEntryTests.cpp",
         "MacTableTests.cpp",

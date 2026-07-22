@@ -1,0 +1,163 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/state/LlrConfig.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
+
+#include <gtest/gtest.h>
+
+using namespace facebook::fboss;
+using std::make_shared;
+
+namespace {
+
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
+constexpr auto kLlrName = "llrProfile";
+
+// A fully-populated LlrConfig with non-default values so tests can verify each
+// field is resolved onto the Port rather than left at its thrift default.
+cfg::LlrConfig makeLlrConfig() {
+  cfg::LlrConfig llr;
+  llr.outstandingFramesMax() = 512;
+  llr.outstandingBytesMax() = 300000;
+  llr.replayTimerMax() = 5000;
+  llr.replayCountMax() = 3;
+  llr.pcsLostTimeout() = 1000;
+  llr.dataAgeTimeout() = 200000;
+  llr.initFrameAction() = cfg::LlrFrameAction::DISCARD;
+  llr.flushFrameAction() = cfg::LlrFrameAction::BLOCK;
+  llr.reInitOnFlush() = true;
+  llr.ctlosTargetSpacing() = 4096;
+  return llr;
+}
+
+void setAsicType(cfg::SwitchConfig& config, cfg::AsicType asicType) {
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      {0, createSwitchInfo(cfg::SwitchType::NPU, asicType)}};
+}
+
+} // namespace
+
+// A port referencing a named LlrConfig resolves both the name and an embedded
+// copy of the profile onto the Port, and the profile lands in the SwitchState
+// LlrConfig map (LLR-capable ASIC).
+TEST(LlrConfigTest, resolveOntoPort) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+  setAsicType(config, cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1);
+  config.llrConfigs() = {{kLlrName, makeLlrConfig()}};
+  config.ports()[0].llrConfigName() = kLlrName;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  auto port = stateV1->getPorts()->getNodeIf(PortID(1));
+  ASSERT_NE(nullptr, port);
+  ASSERT_TRUE(port->getLlrConfigName().has_value());
+  EXPECT_EQ(*port->getLlrConfigName(), kLlrName);
+
+  // The resolved copy on the port carries every register from the config.
+  ASSERT_TRUE(port->getLlrConfig().has_value());
+  auto resolved = port->getLlrConfig().value();
+  ASSERT_NE(nullptr, resolved);
+  EXPECT_EQ(resolved->getOutstandingFramesMax(), 512);
+  EXPECT_EQ(resolved->getOutstandingBytesMax(), 300000);
+  EXPECT_EQ(resolved->getReplayTimerMax(), 5000);
+  EXPECT_EQ(resolved->getReplayCountMax(), 3);
+  EXPECT_EQ(resolved->getPcsLostTimeout(), 1000);
+  EXPECT_EQ(resolved->getDataAgeTimeout(), 200000);
+  EXPECT_EQ(resolved->getInitFrameAction(), cfg::LlrFrameAction::DISCARD);
+  EXPECT_EQ(resolved->getFlushFrameAction(), cfg::LlrFrameAction::BLOCK);
+  EXPECT_TRUE(resolved->getReInitOnFlush());
+  EXPECT_EQ(resolved->getCtlosTargetSpacing(), 4096);
+
+  // The profile is also present in the SwitchState LlrConfig map.
+  auto llrConfigs = stateV1->getLlrConfigs();
+  ASSERT_NE(nullptr, llrConfigs);
+  auto node = llrConfigs->getNodeIf(kLlrName);
+  ASSERT_NE(nullptr, node);
+  EXPECT_EQ(node->getReplayCountMax(), 3);
+}
+
+// Clearing a port's llrConfigName removes the resolved config from the Port.
+TEST(LlrConfigTest, unconfigureClearsPort) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+  setAsicType(config, cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1);
+  config.llrConfigs() = {{kLlrName, makeLlrConfig()}};
+  config.ports()[0].llrConfigName() = kLlrName;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  ASSERT_TRUE(stateV1->getPorts()
+                  ->getNodeIf(PortID(1))
+                  ->getLlrConfigName()
+                  .has_value());
+
+  config.ports()[0].llrConfigName().reset();
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  auto port = stateV2->getPorts()->getNodeIf(PortID(1));
+  ASSERT_NE(nullptr, port);
+  EXPECT_FALSE(port->getLlrConfigName().has_value());
+  EXPECT_FALSE(port->getLlrConfig().has_value());
+}
+
+// Loud rejection: a port with an LlrConfig on an ASIC that does not support
+// LINK_LAYER_RETRANSMISSION is rejected at config time.
+TEST(LlrConfigTest, rejectOnUnsupportedAsic) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+  setAsicType(config, cfg::AsicType::ASIC_TYPE_TOMAHAWK5);
+  config.llrConfigs() = {{kLlrName, makeLlrConfig()}};
+  config.ports()[0].llrConfigName() = kLlrName;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+// A port referencing an LlrConfig name that is absent from the llrConfigs map
+// is rejected.
+TEST(LlrConfigTest, rejectMissingConfigName) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+  setAsicType(config, cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1);
+  config.ports()[0].llrConfigName() = kLlrName;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
