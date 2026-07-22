@@ -1961,4 +1961,256 @@ TEST_F(
   EXPECT_EQ(config, before);
 }
 
+// ============================================================================
+// lookup-class tests
+// ============================================================================
+
+// Test valid config with port + lookup-class is parsed as an attribute pair
+TEST_F(CmdConfigInterfaceTestFixture, interfaceConfigValidPortAndLookupClass) {
+  setupTestableConfigSession();
+  InterfacesConfig config({"eth1/1/1", "lookup-class", "10"});
+  EXPECT_EQ(config.getInterfaces().size(), 1);
+  EXPECT_TRUE(config.hasAttributes());
+  ASSERT_EQ(config.getAttributes().size(), 1);
+  EXPECT_EQ(config.getAttributes()[0].first, "lookup-class");
+  EXPECT_EQ(config.getAttributes()[0].second, "10");
+}
+
+// Test setting a valid lookup-class replaces lookupClasses with [id]
+TEST_F(CmdConfigInterfaceTestFixture, queryClientSetsLookupClass) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 lookup-class 10");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lookup-class", "10"});
+
+  auto result = cmd.queryClient(localhost(), config);
+
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("eth1/1/1"));
+  EXPECT_THAT(result, HasSubstr("lookup-class=10"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      ASSERT_EQ(port.lookupClasses()->size(), 1);
+      EXPECT_EQ(
+          port.lookupClasses()->at(0),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+    } else {
+      // Other ports should be untouched.
+      EXPECT_TRUE(port.lookupClasses()->empty());
+    }
+  }
+}
+
+// Test comma-separated list sets the full lookupClasses pool
+TEST_F(CmdConfigInterfaceTestFixture, queryClientSetsLookupClassList) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 lookup-class 10,11,12,13,14");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lookup-class", "10,11,12,13,14"});
+
+  auto result = cmd.queryClient(localhost(), config);
+
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("lookup-class=10,11,12,13,14"));
+
+  auto& ports = *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      ASSERT_EQ(port.lookupClasses()->size(), 5);
+      EXPECT_EQ(
+          port.lookupClasses()->at(0),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+      EXPECT_EQ(
+          port.lookupClasses()->at(1),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+      EXPECT_EQ(
+          port.lookupClasses()->at(2),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
+      EXPECT_EQ(
+          port.lookupClasses()->at(3),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
+      EXPECT_EQ(
+          port.lookupClasses()->at(4),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4);
+    } else {
+      EXPECT_TRUE(port.lookupClasses()->empty());
+    }
+  }
+}
+
+TEST_F(
+    CmdConfigInterfaceTestFixture,
+    interfaceConfigValidPortAndLookupClassList) {
+  setupTestableConfigSession();
+  InterfacesConfig config({"eth1/1/1", "lookup-class", "10,11,12"});
+  ASSERT_EQ(config.getAttributes().size(), 1);
+  EXPECT_EQ(config.getAttributes()[0].second, "10,11,12");
+}
+
+// Test that setting a new lookup-class replaces any pre-existing list
+TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassReplacesList) {
+  auto cmd = CmdConfigInterface();
+
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 lookup-class 10,11");
+  cmd.queryClient(
+      localhost(), InterfacesConfig({"eth1/1/1", "lookup-class", "10,11"}));
+
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 lookup-class 12,13,14");
+  cmd.queryClient(
+      localhost(), InterfacesConfig({"eth1/1/1", "lookup-class", "12,13,14"}));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      ASSERT_EQ(port.lookupClasses()->size(), 3);
+      EXPECT_EQ(
+          port.lookupClasses()->at(0),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
+      EXPECT_EQ(
+          port.lookupClasses()->at(1),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
+      EXPECT_EQ(
+          port.lookupClasses()->at(2),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4);
+    }
+  }
+}
+
+// Test setting lookup-class on multiple interfaces
+TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassMultiPort) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 eth1/2/1 lookup-class 12");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "eth1/2/1", "lookup-class", "12"});
+
+  auto result = cmd.queryClient(localhost(), config);
+
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("eth1/1/1"));
+  EXPECT_THAT(result, HasSubstr("eth1/2/1"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    ASSERT_EQ(port.lookupClasses()->size(), 1);
+    EXPECT_EQ(
+        port.lookupClasses()->at(0),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
+  }
+}
+
+// Test a class name (case-insensitive) is accepted in place of a numeric id
+TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassByName) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 lookup-class class_queue_per_host_queue_0");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config(
+      {"eth1/1/1", "lookup-class", "class_queue_per_host_queue_0"});
+
+  auto result = cmd.queryClient(localhost(), config);
+
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      ASSERT_EQ(port.lookupClasses()->size(), 1);
+      EXPECT_EQ(
+          port.lookupClasses()->at(0),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+    }
+  }
+}
+
+// Test an agent-reserved class id (valid enum member, not queue-per-host)
+// is rejected
+TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassRejectsReserved) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  // 9 is CLASS_DROP, reserved for the agent's blocked-neighbor feature.
+  InterfacesConfig config({"eth1/1/1", "lookup-class", "9"});
+
+  try {
+    cmd.queryClient(localhost(), config);
+    FAIL() << "Expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(e.what(), HasSubstr("reserved for agent use"));
+    EXPECT_THAT(e.what(), HasSubstr("CLASS_DROP"));
+  }
+}
+
+// Test non-integer lookup-class value throws
+TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassNonNumeric) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lookup-class", "abc"});
+
+  try {
+    cmd.queryClient(localhost(), config);
+    FAIL() << "Expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(e.what(), HasSubstr("Invalid lookup-class value"));
+    EXPECT_THAT(e.what(), HasSubstr("abc"));
+  }
+}
+
+// Test an integer that is not a valid AclLookupClass enum value throws
+TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassInvalidEnum) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  // 999 is not a member of AclLookupClass.
+  InterfacesConfig config({"eth1/1/1", "lookup-class", "999"});
+
+  try {
+    cmd.queryClient(localhost(), config);
+    FAIL() << "Expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(e.what(), HasSubstr("Invalid lookup-class value"));
+    EXPECT_THAT(e.what(), HasSubstr("Valid values"));
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassRejectsDuplicate) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lookup-class", "10,11,10"});
+
+  try {
+    cmd.queryClient(localhost(), config);
+    FAIL() << "Expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(e.what(), HasSubstr("duplicate id"));
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassRejectsEmptySlot) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lookup-class", "10,,11"});
+
+  try {
+    cmd.queryClient(localhost(), config);
+    FAIL() << "Expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(e.what(), HasSubstr("empty id"));
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassRejectsBadInList) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lookup-class", "10,999"});
+
+  try {
+    cmd.queryClient(localhost(), config);
+    FAIL() << "Expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(e.what(), HasSubstr("Invalid lookup-class value"));
+    EXPECT_THAT(e.what(), HasSubstr("Valid values"));
+  }
+}
+
 } // namespace facebook::fboss

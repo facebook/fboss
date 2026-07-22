@@ -36,7 +36,7 @@ namespace {
 // The lldp-expected-* names come from the shared lldpAttrToTag() list so the
 // config and delete commands cannot drift apart.
 const std::unordered_set<std::string> kValuelessDeleteAttributes = [] {
-  std::unordered_set<std::string> attrs = {"loopback-mode"};
+  std::unordered_set<std::string> attrs = {"loopback-mode", "lookup-class"};
   for (const auto& name : lldpAttrNames()) {
     attrs.insert(name);
   }
@@ -52,7 +52,7 @@ const std::unordered_set<std::string> kKnownDeleteAttributes = [] {
 }();
 
 const std::string kValidDeleteAttrs = fmt::format(
-    "loopback-mode, {}, ip-address, ipv6-address",
+    "loopback-mode, lookup-class, {}, ip-address, ipv6-address",
     folly::join(", ", lldpAttrNames()));
 
 } // namespace
@@ -177,7 +177,8 @@ CmdDeleteInterfaceTraits::RetType CmdDeleteInterface::queryClient(
                 folly::join(", ", missingNames)));
       }
     } else {
-      // Port-level valueless reset (loopback-mode, lldp-expected-*).
+      // Port-level valueless reset (loopback-mode, lookup-class,
+      // lldp-expected-*).
       std::vector<std::string> resetNames;
       std::vector<std::string> skippedNames;
       for (const utils::Intf& intf : interfaces) {
@@ -189,6 +190,11 @@ CmdDeleteInterfaceTraits::RetType CmdDeleteInterface::queryClient(
         if (attr == "loopback-mode") {
           if (*port->loopbackMode() != cfg::PortLoopbackMode::NONE) {
             port->loopbackMode() = cfg::PortLoopbackMode::NONE;
+            changed = true;
+          }
+        } else if (attr == "lookup-class") {
+          if (!port->lookupClasses()->empty()) {
+            port->lookupClasses()->clear();
             changed = true;
           }
         } else if (auto tag = lldpTagForAttr(attr); tag.has_value()) {

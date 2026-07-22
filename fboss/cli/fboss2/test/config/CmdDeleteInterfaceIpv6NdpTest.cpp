@@ -17,6 +17,7 @@
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
+#include "fboss/cli/fboss2/utils/InterfaceList.h"
 
 using namespace ::testing;
 
