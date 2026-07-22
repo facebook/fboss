@@ -765,6 +765,11 @@ struct SaiPortTraits {
       std::optional<Attributes::LinkUpDebouncePeriodMs>,
       std::optional<Attributes::LinkDownDebouncePeriodMs>,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      std::optional<Attributes::LlrModeLocal>,
+      std::optional<Attributes::LlrModeRemote>,
+      std::optional<Attributes::LlrProfile>,
+#endif
       std::optional<Attributes::PfcPauseDurationOverride>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,

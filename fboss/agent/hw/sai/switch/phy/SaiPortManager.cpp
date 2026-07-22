@@ -349,6 +349,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // LinkUpDebouncePeriodMs
       std::nullopt, // LinkDownDebouncePeriodMs
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      std::nullopt, // LlrModeLocal
+      std::nullopt, // LlrModeRemote
+      std::nullopt, // LlrProfile
+#endif
       std::nullopt, // PfcPauseDurationOverride
   };
 }

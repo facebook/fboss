@@ -293,6 +293,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto saiPort = portStore.setObject(portKey, attributes, swPort->getID());
   handle->port = saiPort;
   programSerdes(saiPort, swPort, handle.get());
+  programLlr(swPort, handle.get());
 
   if (swPort->isEnabled()) {
     HwBasePortFb303Stats::QueueId2Name queueId2Name{};
@@ -480,6 +481,10 @@ void SaiPortManager::changePortImpl(
     resetCableLength(newPort->getID());
   }
   changePortFlowletConfig(oldPort, newPort);
+  if (oldPort->getLlrConfig() != newPort->getLlrConfig() ||
+      oldPort->getLlrConfigName() != newPort->getLlrConfigName()) {
+    programLlr(newPort, existingPort);
+  }
   changeClm(oldPort, newPort);
 }
 
@@ -968,6 +973,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // LinkUpDebouncePeriodMs
         std::nullopt, // LinkDownDebouncePeriodMs
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+        std::nullopt, // LlrModeLocal
+        std::nullopt, // LlrModeRemote
+        std::nullopt, // LlrProfile
+#endif
         std::nullopt, // PfcPauseDurationOverride
     };
   }
@@ -1071,6 +1081,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       linkUpDebounce, // LinkUpDebouncePeriodMs
       linkDownDebounce, // LinkDownDebouncePeriodMs
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      std::nullopt, // LlrModeLocal
+      std::nullopt, // LlrModeRemote
+      std::nullopt, // LlrProfile
+#endif
 #if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea)
       0xffff, // PfcPauseDurationOverride
 #else
@@ -1083,6 +1098,98 @@ bool SaiPortManager::linkTrainingSupportedOnPort(
     const std::shared_ptr<Port>& swPort) const {
   return platform_->getAsic()->isSupported(HwAsic::Feature::LINK_TRAINING) &&
       swPort->getPortType() != cfg::PortType::HYPER_PORT;
+}
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+static sai_int32_t cfgLlrFrameActionToSai(cfg::LlrFrameAction action) {
+  switch (action) {
+    case cfg::LlrFrameAction::DISCARD:
+      return SAI_LLR_FRAME_ACTION_DISCARD;
+    case cfg::LlrFrameAction::BLOCK:
+      return SAI_LLR_FRAME_ACTION_BLOCK;
+    case cfg::LlrFrameAction::BEST_EFFORT:
+      return SAI_LLR_FRAME_ACTION_BEST_EFFORT;
+  }
+  throw FbossError("Unknown cfg::LlrFrameAction: ", static_cast<int>(action));
+}
+#endif
+
+// Program UEC Link Layer Retry (UE Spec 1.0.2 section 5.1) on a port from its
+// resolved LlrConfig. Creates a content-keyed SAI PORT_LLR_PROFILE (shared and
+// warm-boot reclaimed via SaiStore) and binds it to the port. When (re)enabling
+// or reconfiguring, modes are disabled first so the profile is configured while
+// LLR is not actively transmitting (SDK config-before-enable ordering).
+void SaiPortManager::programLlr(
+    std::shared_ptr<Port> swPort,
+    SaiPortHandle* portHandle) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
+    return;
+  }
+  auto llrConfig = swPort->getLlrConfig();
+  const bool wantLlr =
+      swPort->getLlrConfigName().has_value() && llrConfig.has_value();
+  // Nothing to program and nothing previously programmed: leave the port's LLR
+  // attributes untouched. Writing them (even to the disabled default) issues a
+  // set_port_attribute that returns NOT_SUPPORTED on SDK drops shipping
+  // the 1.18 headers without a runtime LLR implementation, which would crash
+  // normal (non-LLR) port bring-up.
+  if (!wantLlr && !portHandle->llrProfile) {
+    return;
+  }
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeLocal{false});
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeRemote{false});
+
+  if (wantLlr) {
+    const auto& cfg = llrConfig.value();
+    SaiPortLlrProfileTraits::CreateAttributes attributes{
+        SaiPortLlrProfileTraits::Attributes::OutstandingFramesMax{
+            static_cast<sai_uint32_t>(cfg->getOutstandingFramesMax())},
+        SaiPortLlrProfileTraits::Attributes::OutstandingBytesMax{
+            static_cast<sai_uint32_t>(cfg->getOutstandingBytesMax())},
+        SaiPortLlrProfileTraits::Attributes::ReplayTimerMax{
+            static_cast<sai_uint32_t>(cfg->getReplayTimerMax())},
+        SaiPortLlrProfileTraits::Attributes::ReplayCountMax{
+            static_cast<sai_uint8_t>(cfg->getReplayCountMax())},
+        SaiPortLlrProfileTraits::Attributes::PcsLostTimeout{
+            static_cast<sai_uint32_t>(cfg->getPcsLostTimeout())},
+        SaiPortLlrProfileTraits::Attributes::DataAgeTimeout{
+            static_cast<sai_uint32_t>(cfg->getDataAgeTimeout())},
+        SaiPortLlrProfileTraits::Attributes::InitLlrFrameAction{
+            cfgLlrFrameActionToSai(cfg->getInitFrameAction())},
+        SaiPortLlrProfileTraits::Attributes::FlushLlrFrameAction{
+            cfgLlrFrameActionToSai(cfg->getFlushFrameAction())},
+        SaiPortLlrProfileTraits::Attributes::ReInitOnFlush{
+            cfg->getReInitOnFlush()},
+        SaiPortLlrProfileTraits::Attributes::CtlosTargetSpacing{
+            static_cast<sai_uint16_t>(cfg->getCtlosTargetSpacing())}};
+    auto& store = saiStore_->get<SaiPortLlrProfileTraits>();
+    SaiPortLlrProfileTraits::AdapterHostKey key = attributes;
+    // Bind the port to the new profile before releasing the old handle: on a
+    // live reconfiguration (content change => new key) the assignment below
+    // drops the last reference to the old profile and removes it from HW, so
+    // the port must already reference the new profile to avoid pointing at a
+    // removed OID during the swap.
+    auto newLlrProfile = store.setObject(key, attributes);
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::LlrProfile{newLlrProfile->adapterKey()});
+    portHandle->llrProfile = std::move(newLlrProfile);
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::LlrModeLocal{true});
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::LlrModeRemote{true});
+  } else {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::LlrProfile{SAI_NULL_OBJECT_ID});
+    portHandle->llrProfile.reset();
+  }
+#else
+  (void)swPort;
+  (void)portHandle;
+#endif
 }
 
 void SaiPortManager::programSerdes(
