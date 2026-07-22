@@ -460,6 +460,10 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const cfg::Srv6Tunnel& tunnel,
     const cfg::SwitchConfig& cfg) const {
+  if (*tunnel.tunnelType() == TunnelType::SRV6_DECAP) {
+    // A decap tunnel has no underlay interface; scope it to all L3 switches.
+    return l3SwitchMatcher();
+  }
   auto intfId = InterfaceID(*tunnel.underlayIntfID());
   for (const auto& intf : *cfg.interfaces()) {
     if (InterfaceID(*intf.intfID()) == intfId) {
@@ -473,6 +477,10 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Srv6Tunnel>& tunnel,
     const std::shared_ptr<SwitchState>& state) const {
+  if (tunnel->getType() == TunnelType::SRV6_DECAP) {
+    // A decap tunnel has no underlay interface; scope it to all L3 switches.
+    return l3SwitchMatcher();
+  }
   auto intfId = tunnel->getUnderlayIntfId();
   auto intf = state->getInterfaces()->getNode(intfId);
   return scope(intf, state);
@@ -481,6 +489,10 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Srv6Tunnel>& tunnel,
     const cfg::SwitchConfig& cfg) const {
+  if (tunnel->getType() == TunnelType::SRV6_DECAP) {
+    // A decap tunnel has no underlay interface; scope it to all L3 switches.
+    return l3SwitchMatcher();
+  }
   auto intfId = tunnel->getUnderlayIntfId();
   for (const auto& intf : *cfg.interfaces()) {
     if (InterfaceID(*intf.intfID()) == intfId) {
