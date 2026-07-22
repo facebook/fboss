@@ -674,6 +674,7 @@ cpp_library(
         "//fboss/agent/hw/test:hw_test_aqm_utils",
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:hw_test_pfc_utils",
+        "//fboss/agent/hw/test:hw_test_thrift_handler",  # @manual
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
         "//fboss/agent/hw/test:phy_capabilities",
         "//fboss/agent/packet:ipproto",
