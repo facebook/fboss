@@ -68,14 +68,6 @@ class BgpRibTestPublisher {
     return publishedPrefixes_;
   }
 
-  size_t communityListPoolSize() const {
-    return canonicalState_.attr_dict()->community_lists()->size();
-  }
-
-  int64_t nextCommunityListId() const {
-    return nextCommunityListId_;
-  }
-
  private:
   std::unique_ptr<FsdbPubSubManager> fsdbPubSubMgr_;
   std::unique_ptr<FsdbSyncManager<BgpData, true /* EnablePatchAPIs */>>
