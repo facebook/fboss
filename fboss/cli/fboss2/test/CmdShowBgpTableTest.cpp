@@ -12,11 +12,13 @@
 #include <folly/json.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp/TApplicationException.h>
 #include <thrift/lib/cpp2/reflection/testing.h> // NOLINT(misc-include-cleaner)
 #include <vector>
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h" // NOLINT(misc-include-cleaner)
+#include "fboss/cli/fboss2/commands/show/bgp/CanonicalRibResolver.h"
 #include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTable.h"
 #include "fboss/cli/fboss2/test/CmdBgpTestUtils.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
@@ -54,17 +56,22 @@ class CmdShowBgpTableTestFixture : public CmdHandlerTestBase {
 
 TEST_F(CmdShowBgpTableTestFixture, queryClient) {
   setupMockedBgpServer();
-  EXPECT_CALL(getMockBgp(), getRibEntries(_, TBgpAfi::AFI_IPV4))
-      .WillOnce(Invoke([&](std::vector<TRibEntry>& entries, TBgpAfi) {
-        entries = entriesIPv4_;
-      }));
+  auto canonicalV4 = buildCanonicalRibState();
+  auto canonicalV6 = buildCanonicalRibState(
+      "2001::1/64", "2001::2", "2001::3", "two00one::three");
+  EXPECT_CALL(getMockBgp(), getRibEntriesCanonical(_, TBgpAfi::AFI_IPV4))
+      .WillOnce(
+          [&](TCanonicalRibState& state, TBgpAfi) { state = canonicalV4; });
+  EXPECT_CALL(getMockBgp(), getRibEntriesCanonical(_, TBgpAfi::AFI_IPV6))
+      .WillOnce(
+          [&](TCanonicalRibState& state, TBgpAfi) { state = canonicalV6; });
 
-  EXPECT_CALL(getMockBgp(), getRibEntries(_, TBgpAfi::AFI_IPV6))
-      .WillOnce(Invoke([&](std::vector<TRibEntry>& entries, TBgpAfi) {
-        entries = entriesIPv6_;
-      }));
   auto result = CmdShowBgpTable().queryClient(localhost());
-  EXPECT_THRIFT_EQ_VECTOR(*result.tRibEntries(), combinedEntries_);
+
+  std::vector<TRibEntry> expected = resolveCanonicalRibState(canonicalV4);
+  auto expectedV6 = resolveCanonicalRibState(canonicalV6);
+  expected.insert(expected.end(), expectedV6.begin(), expectedV6.end());
+  EXPECT_THRIFT_EQ_VECTOR(*result.tRibEntries(), expected);
 }
 
 TEST_F(CmdShowBgpTableTestFixture, printOutput) {

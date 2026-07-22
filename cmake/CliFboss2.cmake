@@ -596,6 +596,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.cpp
   fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h
   fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.cpp
+  fboss/cli/fboss2/commands/show/bgp/CanonicalRibResolver.h
+  fboss/cli/fboss2/commands/show/bgp/CanonicalRibResolver.cpp
   fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.h
   fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.cpp
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.h
@@ -642,9 +644,13 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTable.h
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTable.cpp
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableCommunity.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableCommunity.cpp
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.cpp
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.cpp
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.cpp
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableSummary.h
   fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h
   fboss/cli/fboss2/commands/show/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h

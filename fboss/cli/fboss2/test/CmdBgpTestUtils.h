@@ -14,6 +14,7 @@
 #include <optional>
 #include <string>
 
+#include <neteng/fboss/bgp/if/gen-cpp2/bgp_route_types_types.h>
 #include <neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h>
 #ifndef IS_OSS
 #include "configerator/distribution/api/ScopedConfigeratorFake.h"
@@ -133,6 +134,16 @@ TRibEntry buildEntry(
     bool omitBestPath = false,
     // if set to true, there's no best paths installed to FIB
     bool omitBestPaths = false);
+
+// Build a minimal canonical (deduplicated) RIB state with a single prefix whose
+// one path is the selected best, advertised by one peer. Exercises the
+// --canonical command path; resolveCanonicalRibState() expands it back to the
+// flat TRibEntry form.
+TCanonicalRibState buildCanonicalRibState(
+    const std::string& ipAddress = kIpAddress,
+    const std::string& nextHop = kNextHop,
+    const std::string& peerId = kPeerId,
+    const std::string& peerDescription = kPeerDescription);
 
 // Mask the date from bgp table output. Since the last modified time
 // duration will change every time the test is ran, we need to mask

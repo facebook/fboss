@@ -39,29 +39,7 @@ class CmdShowBgpTableMoreSpecifics : public CmdHandler<
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const std::vector<std::string>& prefixes) {
-    std::vector<TRibEntry> entries;
-    auto client = utils::createClient<apache::thrift::Client<
-        facebook::neteng::fboss::bgp::thrift::TBgpService>>(hostInfo);
-    TRibEntryWithHost result;
-    if (prefixes.empty()) {
-      std::cout
-          << "No prefixes entered. Usage: fboss2 show bgp table more-specifics <prefix>"
-          << std::endl;
-      return result;
-    }
-
-    std::vector<TRibEntry> newEntry;
-    for (const auto& prefix : prefixes) {
-      client->sync_getRibSubprefixes(newEntry, prefix);
-      entries.insert(entries.end(), newEntry.begin(), newEntry.end());
-    }
-    result.tRibEntries() = std::move(entries);
-    result.host() = hostInfo.getName();
-    result.oobName() = hostInfo.getOobName();
-    result.ip() = hostInfo.getIpStr();
-    return result;
-  }
+      const std::vector<std::string>& prefixes);
 
   void printOutput(RetType& data, std::ostream& out = std::cout) {
     if (!data.tRibEntries()->empty()) {

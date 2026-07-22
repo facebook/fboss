@@ -12,11 +12,13 @@
 #include <folly/json.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp/TApplicationException.h>
 #include <thrift/lib/cpp2/reflection/testing.h> // NOLINT(misc-include-cleaner)
 #include <memory>
 #include <vector>
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
+#include "fboss/cli/fboss2/commands/show/bgp/CanonicalRibResolver.h"
 #include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.h"
 #include "fboss/cli/fboss2/test/CmdBgpTestUtils.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
@@ -43,15 +45,16 @@ class CmdShowBgpTableMoreSpecificsTestFixture : public CmdHandlerTestBase {
 
 TEST_F(CmdShowBgpTableMoreSpecificsTestFixture, queryClient) {
   setupMockedBgpServer();
-  EXPECT_CALL(getMockBgp(), getRibSubprefixes(_, _))
-      .WillOnce(Invoke(
-          [&](std::vector<TRibEntry>& entries, std::unique_ptr<std::string>) {
-            entries = queriedEntry_;
-          }));
+  auto canonical = buildCanonicalRibState(kPrefixToQuery);
+  EXPECT_CALL(getMockBgp(), getRibSubprefixesCanonical(_, _))
+      .WillOnce([&](TCanonicalRibState& state, std::unique_ptr<std::string>) {
+        state = canonical;
+      });
 
   auto result =
       CmdShowBgpTableMoreSpecifics().queryClient(localhost(), {kPrefixToQuery});
-  EXPECT_THRIFT_EQ_VECTOR(*result.tRibEntries(), queriedEntry_);
+  EXPECT_THRIFT_EQ_VECTOR(
+      *result.tRibEntries(), resolveCanonicalRibState(canonical));
 }
 
 TEST_F(CmdShowBgpTableMoreSpecificsTestFixture, printOutput) {

@@ -269,6 +269,37 @@ TRibEntry buildEntry(
   return buildEntry(ipAddress, nextHop, paths, omitBestPath);
 }
 
+TCanonicalRibState buildCanonicalRibState(
+    const std::string& ipAddress,
+    const std::string& nextHop,
+    const std::string& peerId,
+    const std::string& peerDescription) {
+  TCanonicalRibState state;
+
+  TBgpDedupedPath deduped;
+  deduped.next_hop() = getPrefix(nextHop);
+  deduped.med() = 10;
+  state.deduped_paths()->emplace(0, std::move(deduped));
+
+  TCanonicalPeer peer;
+  peer.peer_id() = getPrefix(peerId);
+  peer.peer_description() = peerDescription;
+  state.peers()->emplace(0, std::move(peer));
+
+  TBgpPathCanonical path;
+  path.path_idx() = 0;
+  path.peer_idx() = 0;
+  path.is_best_path() = true;
+
+  TRibEntryCanonical entry;
+  entry.prefix() = getPrefix(ipAddress);
+  // "best" mirrors facebook::bgp::kBestPathGroup (the group key real bgpd
+  // uses).
+  entry.paths() = {{"best", {std::move(path)}}};
+  state.rib_entries() = {{ipAddress, std::move(entry)}};
+  return state;
+}
+
 void maskDateInOutput(std::string& output) {
   std::size_t dateEndIndex = 0;
   // get the next "LM: "

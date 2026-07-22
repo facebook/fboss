@@ -8,16 +8,13 @@
  *
  */
 
-#include "fboss/cli/fboss2/commands/show/bgp/shadowrib/CmdShowBgpShadowRib.h"
+#include "fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.h"
 
 #include "fboss/cli/fboss2/commands/show/bgp/CanonicalRibResolver.h"
-#include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
-#include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
 
 namespace facebook::fboss {
 
-CmdShowBgpShadowRib::RetType CmdShowBgpShadowRib::queryClient(
+CmdShowBgpTableDetail::RetType CmdShowBgpTableDetail::queryClient(
     const HostInfo& hostInfo) {
   auto client = utils::createClient<apache::thrift::Client<
       facebook::neteng::fboss::bgp::thrift::TBgpService>>(hostInfo);
@@ -25,10 +22,10 @@ CmdShowBgpShadowRib::RetType CmdShowBgpShadowRib::queryClient(
   auto entries = queryCanonicalRibWithFallback(
       *client,
       [](auto& c, TCanonicalRibState& state, TBgpAfi afi) {
-        c.sync_getShadowRibEntriesCanonical(state, afi);
+        c.sync_getRibEntriesCanonical(state, afi);
       },
       [](auto& c, std::vector<TRibEntry>& out, TBgpAfi afi) {
-        c.sync_getShadowRibEntries(out, afi);
+        c.sync_getRibEntries(out, afi);
       });
 
   TRibEntryWithHost result;
@@ -37,10 +34,6 @@ CmdShowBgpShadowRib::RetType CmdShowBgpShadowRib::queryClient(
   result.oobName() = hostInfo.getOobName();
   result.ip() = hostInfo.getIpStr();
   return result;
-}
-
-void CmdShowBgpShadowRib::printOutput(RetType& entries, std::ostream& out) {
-  printRIBEntries(out, entries);
 }
 
 } // namespace facebook::fboss

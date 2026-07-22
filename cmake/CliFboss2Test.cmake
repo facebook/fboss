@@ -78,6 +78,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowTeFlowTest.cpp
   # fboss/cli/fboss2/test/CmdShowTransceiverTest.cpp - excluded (depends on configerator bgp namespace)
   fboss/cli/fboss2/test/CmdBgpTestUtils.cpp
+  fboss/cli/fboss2/test/CanonicalRibResolverTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpChangelistTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedPostPolicyTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedPrePolicyTest.cpp
