@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/state/MySid.h"
@@ -31,6 +32,7 @@ namespace {
 SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
     const MySid& mySid,
     const std::optional<SaiMySidEntryHandle::NextHopHandle>& nexthopHandle,
+    std::optional<SaiMySidEntryTraits::Attributes::TunnelId> tunnelIdAttr,
     SaiManagerTable* managerTable) {
   sai_int32_t endpointBehavior;
   std::optional<SaiMySidEntryTraits::Attributes::Vrf> vrId;
@@ -90,7 +92,7 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
       nextHopId,
       vrId,
       packetAction,
-      std::nullopt};
+      tunnelIdAttr};
 }
 } // namespace
 
@@ -250,8 +252,22 @@ void SaiSrv6MySidManager::addMySidEntry(
     }
   }
 
-  auto createAttributes =
-      getMySidCreateAttributes(*mySid, nexthopHandle, managerTable_);
+  std::shared_ptr<SaiObject<SaiSrv6TunnelTraits>> decapTunnel;
+  std::optional<SaiMySidEntryTraits::Attributes::TunnelId> tunnelIdAttr;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  if (mySid->getType() == MySidType::DECAPSULATE_AND_LOOKUP) {
+    const auto* decapTunnelHandle =
+        managerTable_->srv6TunnelManager().getDecapTunnelHandle();
+    if (decapTunnelHandle && decapTunnelHandle->tunnel) {
+      decapTunnel = decapTunnelHandle->tunnel;
+      tunnelIdAttr =
+          SaiMySidEntryTraits::Attributes::TunnelId{decapTunnel->adapterKey()};
+    }
+  }
+#endif
+
+  auto createAttributes = getMySidCreateAttributes(
+      *mySid, nexthopHandle, tunnelIdAttr, managerTable_);
   auto& store = saiStore_->get<SaiMySidEntryTraits>();
   auto mySidEntry = store.setObject(adapterHostKey, createAttributes);
 
@@ -260,6 +276,7 @@ void SaiSrv6MySidManager::addMySidEntry(
     handle->nexthopHandle = nexthopHandle.value();
   }
   handle->mySidEntry = mySidEntry;
+  handle->decapTunnel = decapTunnel;
   handles_.emplace(adapterHostKey, std::move(handle));
 }
 
