@@ -35,6 +35,18 @@ cfg::Srv6Tunnel makeSrv6TunnelConfig(
   return tunnel;
 }
 
+cfg::Srv6Tunnel makeSrv6DecapTunnelConfig(const std::string& name) {
+  cfg::Srv6Tunnel tunnel;
+  tunnel.srv6TunnelId() = name;
+  tunnel.tunnelType() = TunnelType::SRV6_DECAP;
+  tunnel.ttlMode() = cfg::TunnelMode::UNIFORM;
+  tunnel.dscpMode() = cfg::TunnelMode::UNIFORM;
+  // PIPE maps to SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER (see
+  // getSaiDecapEcnMode) — the RBB decap ECN behavior.
+  tunnel.ecnMode() = cfg::TunnelMode::PIPE;
+  return tunnel;
+}
+
 cfg::SwitchConfig srv6EcmpInitialConfig(const AgentEnsemble& ensemble) {
   auto cfg = utility::onePortPerInterfaceConfig(
       ensemble.getSw(),

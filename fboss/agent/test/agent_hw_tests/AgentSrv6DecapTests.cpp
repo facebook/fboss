@@ -90,6 +90,8 @@ class AgentSrv6DecapTest : public AgentHwTest {
     cfg.loadBalancers() =
         utility::getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
             ensemble.getL3Asics());
+    cfg.srv6Tunnels() = {
+        utility::makeSrv6DecapTunnelConfig("srv6DecapTunnel0")};
     // Add trap ACLs for inner packet destinations so snooper can capture
     // the decapped and forwarded packets
     auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
