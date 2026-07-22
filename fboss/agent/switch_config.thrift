@@ -2384,7 +2384,10 @@ struct LlrConfig {
   // Action for LLR-desired frames in INIT state (llr_init_behavior).
   7: LlrFrameAction initFrameAction = LlrFrameAction.BEST_EFFORT;
   // Action for LLR-desired frames in FLUSH state (llr_flush_behavior).
-  8: LlrFrameAction flushFrameAction = LlrFrameAction.BEST_EFFORT;
+  // Tomahawk Ultra (the only LLR-capable ASIC today) only supports BLOCK in
+  // FLUSH; other values are rejected at SAI profile create, so BLOCK is the
+  // default.
+  8: LlrFrameAction flushFrameAction = LlrFrameAction.BLOCK;
   // Re-initialize LLR on FLUSH (re_init_on_discard).
   9: bool reInitOnFlush = false;
   // Target bytes between successive ACK/NACK CtlOS (ctlos_target_spacing).
