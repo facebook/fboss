@@ -13,40 +13,13 @@ inline const int MIN_LANE_ID = 1;
 inline const int MAX_LANE_ID = 8;
 inline constexpr folly::StringPiece kInputConfigPrefix{
     "fboss/lib/bsp/bspmapping/input/"};
-inline constexpr folly::StringPiece kPortMappingMontblancCsv{
-    "Montblanc_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingMinipack3BTACsv{
-    "Minipack3BTA_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingMinipack3NCsv{
-    "Minipack3N_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingMeru800biaCsv{
-    "Meru800bia_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingMeru800bfaCsv{
-    "Meru800bfa_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingJanga800bicCsv{
-    "Janga800bic_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingTahan800bcCsv{
-    "Tahan800bc_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingMorgan800ccCsv{
-    "Morgan800cc_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingIcecube800bcCsv{
-    "Icecube800bc_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingIcetea800bcCsv{
-    "Icetea800bc_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingTahansb800bcCsv{
-    "Tahansb800bc_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingWedge800BACTCsv{
-    "Wedge800BACT_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingWedge800CACTCsv{
-    "Wedge800CACT_BspMapping.csv"};
+// Only ladakh800bcls and leh800bcls remain on the legacy CSV flow for their
+// MDIO retimer (Phy) mappings; all other platforms are constructed dynamically
+// via XcvrLib from platform_manager.json.
 inline constexpr folly::StringPiece kPortMappingLadakh800bclsCsv{
     "Ladakh800bcls_BspMapping.csv"};
 inline constexpr folly::StringPiece kPortMappingLeh800bclsCsv{
     "Leh800bcls_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingIcecube800banwCsv{
-    "Icecube800banw_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingSaintpaulCsv{
-    "Saintpaul_BspMapping.csv"};
 
 class Parser {
  public:
