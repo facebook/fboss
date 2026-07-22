@@ -15,12 +15,18 @@
 #include <folly/logging/xlog.h>
 
 #include <chrono>
+#include <thread>
 
 namespace facebook::fboss {
 
 constexpr double kTolerance = 0.10;
 constexpr int32_t kHoldoffLongMs = 15000;
 constexpr auto kFlapWithinWindow = std::chrono::milliseconds(1000);
+// After driving loopback to NONE the SDK needs time to apply TX squelch before
+// we inject the test packet.
+constexpr auto kPostLoopbackNoneSettleDelay = std::chrono::seconds(1);
+// End CHECK_HOLDS slightly before the configured down-holdoff expires.
+constexpr auto kHoldoffCheckSlack = std::chrono::milliseconds(1000);
 
 class AgentHwLinkDebounceTest : public AgentHwTest {
  public:
@@ -96,6 +102,20 @@ class AgentHwLinkDebounceTest : public AgentHwTest {
       newPort->setLoopbackMode(desiredMode);
       return newState;
     });
+  }
+
+  // Poll until loopback NONE is programmed, then wait for SDK squelch settle.
+  void waitForLoopbackNoneSettle(PortID port) {
+    WITH_RETRIES({
+      EXPECT_EQ(
+          getProgrammedState()->getPorts()->getNodeIf(port)->getLoopbackMode(),
+          cfg::PortLoopbackMode::NONE)
+          << "port " << port << " loopback did not reach NONE";
+    });
+    XLOG(INFO) << "port " << port << " loopback NONE; sleeping "
+               << kPostLoopbackNoneSettleDelay.count()
+               << "s for SDK squelch settle";
+    std::this_thread::sleep_for(kPostLoopbackNoneSettleDelay);
   }
 
   int64_t getLinkStateFlapCount(PortID port) const {
@@ -205,9 +225,11 @@ TEST_F(AgentHwLinkDebounceTest, PacketDropDuringDownHoldoff) {
     ASSERT_TRUE(getProgrammedState()->getPorts()->getNodeIf(port)->isUp());
     auto baselineFlaps = getLinkStateFlapCount(port);
     auto statsBefore = getLatestPortStats(port);
+    auto outBefore = *statsBefore.outDiscards_();
 
     auto holdoffStart = std::chrono::steady_clock::now();
     togglePortNoWait(port, false /* toUp */);
+    waitForLoopbackNoneSettle(port);
 
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
@@ -224,24 +246,31 @@ TEST_F(AgentHwLinkDebounceTest, PacketDropDuringDownHoldoff) {
     getSw()->sendPacketOutOfPortAsync(std::move(pkt), port);
 
     auto elapsed = std::chrono::steady_clock::now() - holdoffStart;
-    auto verifyWindow = std::chrono::milliseconds(kHoldoffLongMs) - elapsed;
-    CHECK_HOLDS_FOR_DURATION(verifyWindow, [&]() -> bool {
-      return getProgrammedState()->getPorts()->getNodeIf(port)->isUp() &&
-          getLinkStateFlapCount(port) == baselineFlaps;
-    });
+    auto remainingHoldoff = std::chrono::milliseconds(kHoldoffLongMs) - elapsed;
+    EXPECT_TRUE(getProgrammedState()->getPorts()->getNodeIf(port)->isUp())
+        << "port should still be UP immediately after packet inject";
+    EXPECT_EQ(getLinkStateFlapCount(port), baselineFlaps)
+        << "Unexpected flap immediately after packet inject";
+
+    auto verifyWindow = remainingHoldoff - kHoldoffCheckSlack;
+    if (verifyWindow > std::chrono::milliseconds(0)) {
+      CHECK_HOLDS_FOR_DURATION(verifyWindow, [&]() -> bool {
+        return getProgrammedState()->getPorts()->getNodeIf(port)->isUp() &&
+            getLinkStateFlapCount(port) == baselineFlaps;
+      });
+    }
 
     WITH_RETRIES({
       EXPECT_EVENTUALLY_FALSE(
           getProgrammedState()->getPorts()->getNodeIf(port)->isUp());
     });
 
-    auto inBefore = *statsBefore.inDiscards_();
     WITH_RETRIES({
       auto statsAfter = getLatestPortStats(port);
-      auto inAfter = *statsAfter.inDiscards_();
-      XLOG(INFO) << "Port inDiscards before/after: " << inBefore << "/"
-                 << inAfter;
-      EXPECT_EVENTUALLY_EQ(inAfter, inBefore + 1);
+      auto outAfter = *statsAfter.outDiscards_();
+      XLOG(INFO) << "Port outDiscards before/after: " << outBefore << "/"
+                 << outAfter;
+      EXPECT_EVENTUALLY_EQ(outAfter, outBefore + 1);
     });
 
     togglePortNoWait(port, true /* toUp */);
