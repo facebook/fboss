@@ -94,11 +94,8 @@ struct formatter<folly::IPAddressV6> {
 
 // Formatting for AdapterKeys which are SAI entry structs
 template <typename AdapterKeyType>
-struct formatter<
-    AdapterKeyType,
-    char,
-    typename std::enable_if_t<
-        facebook::fboss::IsSaiEntryStruct<AdapterKeyType>::value>> {
+  requires facebook::fboss::IsSaiEntryStruct<AdapterKeyType>::value
+struct formatter<AdapterKeyType, char> {
   template <typename ParseContext>
   constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
@@ -514,10 +511,8 @@ struct formatter<sai_s32_range_t> {
 
 // formatter for extension attributes
 template <typename T>
-struct formatter<
-    T,
-    char,
-    std::enable_if_t<facebook::fboss::IsSaiExtensionAttribute<T>::value>> {
+  requires facebook::fboss::IsSaiExtensionAttribute<T>::value
+struct formatter<T, char> {
   template <typename ParseContext>
   constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
