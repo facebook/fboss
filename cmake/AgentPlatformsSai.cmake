@@ -91,6 +91,7 @@ target_link_libraries(sai_platform
   blackwolf800banw_platform_mapping
   ladakh800bcls_platform_mapping
   leh800bcls_platform_mapping
+  m4062nhp_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
