@@ -47,7 +47,9 @@ struct TunnelAttributesTypes<SAI_TUNNEL_TYPE_IPINIP> {
 // Encap-only and decap-only attributes are unset on the opposite tunnel kind
 // (e.g. UnderlayInterface/EncapSrcIp on a decap tunnel), and the SDK returns
 // NOT_SUPPORTED when GET-ing them during warm boot store reload. Default
-// getters make that GET fall back to a benign default instead of throwing.
+// getters make that GET fall back to a benign default instead of throwing. (The
+// AdapterHostKey itself is serialized and restored verbatim; see
+// AdapterHostKeyWarmbootRecoverable.)
 template <>
 struct TunnelAttributesTypes<SAI_TUNNEL_TYPE_SRV6> {
   using EnumType = sai_tunnel_attr_t;

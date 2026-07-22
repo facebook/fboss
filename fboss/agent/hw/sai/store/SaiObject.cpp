@@ -366,6 +366,100 @@ SaiObject<SaiSrv6SidListTraits>::follyDynamicToAdapterHostKey(
   auto ip = folly::IPAddress(json["ip"].asString());
   return SaiSrv6SidListTraits::AdapterHostKey{type, segmentList, rifId, ip};
 }
+
+// SRv6 encap and decap tunnels share one non-recoverable traits type; unset
+// optional slots are simply omitted from the JSON so they round-trip as
+// nullopt.
+template <>
+folly::dynamic SaiObject<SaiSrv6TunnelTraits>::adapterHostKeyToFollyDynamic() {
+  using Attributes = SaiSrv6TunnelTraits::Attributes;
+  folly::dynamic json = folly::dynamic::object;
+  json["type"] = std::get<Attributes::Type>(adapterHostKey_).value();
+  if (auto attr = std::get<std::optional<Attributes::UnderlayInterface>>(
+          adapterHostKey_)) {
+    json["underlayInterface"] = folly::to<std::string>(attr->value());
+  }
+  if (auto attr =
+          std::get<std::optional<Attributes::EncapSrcIp>>(adapterHostKey_)) {
+    json["encapSrcIp"] = attr->value().str();
+  }
+  if (auto attr =
+          std::get<std::optional<Attributes::EncapTtlMode>>(adapterHostKey_)) {
+    json["encapTtlMode"] = attr->value();
+  }
+  if (auto attr =
+          std::get<std::optional<Attributes::EncapEcnMode>>(adapterHostKey_)) {
+    json["encapEcnMode"] = attr->value();
+  }
+  if (auto attr =
+          std::get<std::optional<Attributes::EncapDscpMode>>(adapterHostKey_)) {
+    json["encapDscpMode"] = attr->value();
+  }
+  if (auto attr =
+          std::get<std::optional<Attributes::DecapTtlMode>>(adapterHostKey_)) {
+    json["decapTtlMode"] = attr->value();
+  }
+  if (auto attr =
+          std::get<std::optional<Attributes::DecapDscpMode>>(adapterHostKey_)) {
+    json["decapDscpMode"] = attr->value();
+  }
+  if (auto attr =
+          std::get<std::optional<Attributes::DecapEcnMode>>(adapterHostKey_)) {
+    json["decapEcnMode"] = attr->value();
+  }
+  return json;
+}
+
+template <>
+typename SaiSrv6TunnelTraits::AdapterHostKey
+SaiObject<SaiSrv6TunnelTraits>::follyDynamicToAdapterHostKey(
+    const folly::dynamic& json) {
+  using Attributes = SaiSrv6TunnelTraits::Attributes;
+  SaiSrv6TunnelTraits::AdapterHostKey key;
+  auto has = [&](const char* k) { return json.find(k) != json.items().end(); };
+  std::get<Attributes::Type>(key) =
+      Attributes::Type{static_cast<sai_int32_t>(json["type"].asInt())};
+  if (has("underlayInterface")) {
+    std::get<std::optional<Attributes::UnderlayInterface>>(key) =
+        Attributes::UnderlayInterface{
+            folly::to<sai_object_id_t>(json["underlayInterface"].asString())};
+  }
+  if (has("encapSrcIp")) {
+    std::get<std::optional<Attributes::EncapSrcIp>>(key) =
+        Attributes::EncapSrcIp{folly::IPAddress(json["encapSrcIp"].asString())};
+  }
+  if (has("encapTtlMode")) {
+    std::get<std::optional<Attributes::EncapTtlMode>>(key) =
+        Attributes::EncapTtlMode{
+            static_cast<sai_int32_t>(json["encapTtlMode"].asInt())};
+  }
+  if (has("encapEcnMode")) {
+    std::get<std::optional<Attributes::EncapEcnMode>>(key) =
+        Attributes::EncapEcnMode{
+            static_cast<sai_int32_t>(json["encapEcnMode"].asInt())};
+  }
+  if (has("encapDscpMode")) {
+    std::get<std::optional<Attributes::EncapDscpMode>>(key) =
+        Attributes::EncapDscpMode{
+            static_cast<sai_int32_t>(json["encapDscpMode"].asInt())};
+  }
+  if (has("decapTtlMode")) {
+    std::get<std::optional<Attributes::DecapTtlMode>>(key) =
+        Attributes::DecapTtlMode{
+            static_cast<sai_int32_t>(json["decapTtlMode"].asInt())};
+  }
+  if (has("decapDscpMode")) {
+    std::get<std::optional<Attributes::DecapDscpMode>>(key) =
+        Attributes::DecapDscpMode{
+            static_cast<sai_int32_t>(json["decapDscpMode"].asInt())};
+  }
+  if (has("decapEcnMode")) {
+    std::get<std::optional<Attributes::DecapEcnMode>>(key) =
+        Attributes::DecapEcnMode{
+            static_cast<sai_int32_t>(json["decapEcnMode"].asInt())};
+  }
+  return key;
+}
 #endif
 
 } // namespace fboss

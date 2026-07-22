@@ -57,6 +57,15 @@ struct AdapterHostKeyWarmbootRecoverable<SaiUdfGroupTraits> : std::false_type {
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiSrv6SidListTraits>
     : std::false_type {};
+
+// SRv6 encap and decap tunnels share one traits type; a decap tunnel leaves the
+// encap attributes unset (and vice versa). Serialize the AdapterHostKey into
+// warm boot state and restore it verbatim instead of re-deriving it from HW
+// GETs, so unset optional slots round-trip as nullopt and a future added
+// attribute cannot silently break warm boot.
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiSrv6TunnelTraits>
+    : std::false_type {};
 #endif
 
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
