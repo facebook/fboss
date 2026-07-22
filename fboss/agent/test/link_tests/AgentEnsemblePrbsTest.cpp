@@ -935,7 +935,7 @@ class AsicToAsicPrbsTest : public AgentEnsemblePrbsTest {
     runTest();                                                          \
   }
 
-PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR1_100G, PRBS31);
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR1_100G, PRBS31Q);
 
 PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR4_200G, PRBS31Q);
 
