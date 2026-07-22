@@ -22,6 +22,7 @@
 #include <fmt/ranges.h>
 
 #include <array>
+#include <concepts>
 #include <cstring>
 #include <type_traits>
 #include <utility>
@@ -108,25 +109,22 @@ namespace {
  * sai_uint32_t are uint32_t. This makes specialization based just on the
  * SAI data type for the attribute impossible in those cases. We handle
  * this by using a different ValueType and a slightly more complicated set
- * of conditions for enable_if.
+ * of overload constraints.
  * 2) sai_pointer_t is void *. This is currently only used by switch api
  * for setting up callback functions, so we plan to provide a special direct
  * interface for that, for now, rather than using this generic mechanism.
  */
-#define DEFINE_extract(_type, _field)                                   \
-  template <typename AttrT>                                             \
-  typename std::enable_if<                                              \
-      std::is_same<typename AttrT::ExtractSelectionType, _type>::value, \
-      typename AttrT::DataType>::type&                                  \
-  _extract(sai_attribute_t& sai_attribute) {                            \
-    return sai_attribute.value._field;                                  \
-  }                                                                     \
-  template <typename AttrT>                                             \
-  const typename std::enable_if<                                        \
-      std::is_same<typename AttrT::ExtractSelectionType, _type>::value, \
-      typename AttrT::DataType>::type&                                  \
-  _extract(const sai_attribute_t& sai_attribute) {                      \
-    return sai_attribute.value._field;                                  \
+#define DEFINE_extract(_type, _field)                                  \
+  template <typename AttrT>                                            \
+    requires std::same_as<typename AttrT::ExtractSelectionType, _type> \
+  typename AttrT::DataType& _extract(sai_attribute_t& sai_attribute) { \
+    return sai_attribute.value._field;                                 \
+  }                                                                    \
+  template <typename AttrT>                                            \
+    requires std::same_as<typename AttrT::ExtractSelectionType, _type> \
+  const typename AttrT::DataType& _extract(                            \
+      const sai_attribute_t& sai_attribute) {                          \
+    return sai_attribute.value._field;                                 \
   }
 
 using facebook::fboss::SaiCharArray32;
@@ -219,17 +217,14 @@ DEFINE_extract(sai_system_port_config_t, sysportconfig);
 DEFINE_extract(sai_fabric_port_reachability_t, reachability);
 
 template <typename SrcT, typename DstT>
-typename std::enable_if<std::is_same<SrcT, DstT>::value>::type _fill(
-    const SrcT& src,
-    DstT& dst) {
+  requires std::same_as<SrcT, DstT>
+void _fill(const SrcT& src, DstT& dst) {
   dst = src;
 }
 
 template <typename SrcT, typename DstT>
-typename std::enable_if<
-    !std::is_same<SrcT, DstT>::value &&
-    std::is_convertible<SrcT, DstT>::value>::type
-_fill(const SrcT& src, DstT& dst) {
+  requires(!std::same_as<SrcT, DstT> && std::convertible_to<SrcT, DstT>)
+void _fill(const SrcT& src, DstT& dst) {
   dst = src;
 }
 
