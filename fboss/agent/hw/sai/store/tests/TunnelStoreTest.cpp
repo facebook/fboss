@@ -104,11 +104,44 @@ class TunnelStoreTest : public SaiStoreTest {
     SaiSrv6TunnelTraits::Attributes::EncapDscpMode encapDscpMode{
         SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
     return {
-        encapSrcIp, type, underlay, encapTtlMode, encapEcnMode, encapDscpMode};
+        type,
+        underlay,
+        encapSrcIp,
+        encapTtlMode,
+        encapEcnMode,
+        encapDscpMode,
+        std::nullopt, // DecapTtlMode (encap tunnel)
+        std::nullopt, // DecapDscpMode (encap tunnel)
+        std::nullopt}; // DecapEcnMode (encap tunnel)
   }
   TunnelSaiId createSrv6Tunnel() const {
     auto& tunnelApi = saiApiTable->tunnelApi();
     return tunnelApi.create<SaiSrv6TunnelTraits>(createSrv6TunnelAttrs(), 0);
+  }
+
+  SaiSrv6TunnelTraits::CreateAttributes createSrv6DecapTunnelAttrs() const {
+    SaiSrv6TunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_SRV6};
+    SaiSrv6TunnelTraits::Attributes::DecapTtlMode decapTtlMode{
+        SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL};
+    SaiSrv6TunnelTraits::Attributes::DecapDscpMode decapDscpMode{
+        SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
+    SaiSrv6TunnelTraits::Attributes::DecapEcnMode decapEcnMode{
+        SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER};
+    return {
+        type,
+        std::nullopt, // UnderlayInterface (decap tunnel)
+        std::nullopt, // EncapSrcIp (decap tunnel)
+        std::nullopt, // EncapTtlMode (decap tunnel)
+        std::nullopt, // EncapEcnMode (decap tunnel)
+        std::nullopt, // EncapDscpMode (decap tunnel)
+        decapTtlMode,
+        decapDscpMode,
+        decapEcnMode};
+  }
+  TunnelSaiId createSrv6DecapTunnel() const {
+    auto& tunnelApi = saiApiTable->tunnelApi();
+    return tunnelApi.create<SaiSrv6TunnelTraits>(
+        createSrv6DecapTunnelAttrs(), 0);
   }
 };
 
@@ -124,7 +157,7 @@ TEST_F(TunnelStoreTest, loadTunnel) {
       SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
       SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL,
       SAI_TUNNEL_DECAP_ECN_MODE_STANDARD,
-      folly::IPAddress("0.0.0.0"),
+      folly::IPAddressV6("::"),
       0,
       0};
   auto got = store.get(k);
@@ -277,18 +310,43 @@ TEST_F(TunnelStoreTest, loadSrv6Tunnel) {
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiSrv6TunnelTraits>();
+  // Unset decap modes read back as engaged zero-defaults on reload.
   SaiSrv6TunnelTraits::AdapterHostKey k{
-      folly::IPAddress(srv6SrcIp),
       SAI_TUNNEL_TYPE_SRV6,
-      42,
-      SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
-      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD,
-      SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
+      42, // UnderlayInterface
+      folly::IPAddress(srv6SrcIp), // EncapSrcIp
+      SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL, // EncapTtlMode
+      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD, // EncapEcnMode
+      SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL, // EncapDscpMode
+      0, // DecapTtlMode
+      0, // DecapDscpMode
+      0}; // DecapEcnMode
   auto got = store.get(k);
   EXPECT_EQ(got->adapterKey(), tunnelId);
   EXPECT_EQ(
-      GET_ATTR(Srv6Tunnel, EncapSrcIp, got->attributes()),
+      GET_OPT_ATTR(Srv6Tunnel, EncapSrcIp, got->attributes()),
       folly::IPAddress(srv6SrcIp));
+}
+
+TEST_F(TunnelStoreTest, loadSrv6DecapTunnel) {
+  auto tunnelId = createSrv6DecapTunnel();
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiSrv6TunnelTraits>();
+  // Decap tunnel: unset encap fields read back as engaged zero-defaults.
+  SaiSrv6TunnelTraits::AdapterHostKey k{
+      SAI_TUNNEL_TYPE_SRV6,
+      SAI_NULL_OBJECT_ID, // UnderlayInterface
+      folly::IPAddressV6("::"), // EncapSrcIp
+      0, // EncapTtlMode
+      0, // EncapEcnMode
+      0, // EncapDscpMode
+      SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL, // DecapTtlMode
+      SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL, // DecapDscpMode
+      SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER}; // DecapEcnMode
+  auto got = store.get(k);
+  ASSERT_NE(got, nullptr);
+  EXPECT_EQ(got->adapterKey(), tunnelId);
 }
 
 TEST_F(TunnelStoreTest, srv6TunnelLoadCtor) {
@@ -296,21 +354,24 @@ TEST_F(TunnelStoreTest, srv6TunnelLoadCtor) {
   SaiObject<SaiSrv6TunnelTraits> obj = createObj<SaiSrv6TunnelTraits>(tunnelId);
   EXPECT_EQ(obj.adapterKey(), tunnelId);
   EXPECT_EQ(
-      GET_ATTR(Srv6Tunnel, EncapSrcIp, obj.attributes()),
+      GET_OPT_ATTR(Srv6Tunnel, EncapSrcIp, obj.attributes()),
       folly::IPAddress(srv6SrcIp));
 }
 
 TEST_F(TunnelStoreTest, srv6TunnelCreateCtor) {
   SaiSrv6TunnelTraits::AdapterHostKey k{
-      folly::IPAddress(srv6SrcIp),
       SAI_TUNNEL_TYPE_SRV6,
-      42,
-      SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
-      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD,
-      SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
+      42, // UnderlayInterface
+      folly::IPAddress(srv6SrcIp), // EncapSrcIp
+      SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL, // EncapTtlMode
+      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD, // EncapEcnMode
+      SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL, // EncapDscpMode
+      0, // DecapTtlMode
+      0, // DecapDscpMode
+      0}; // DecapEcnMode
   SaiObject<SaiSrv6TunnelTraits> obj = createObj<SaiSrv6TunnelTraits>(k, k, 0);
   EXPECT_EQ(
-      GET_ATTR(Srv6Tunnel, EncapSrcIp, obj.attributes()),
+      GET_OPT_ATTR(Srv6Tunnel, EncapSrcIp, obj.attributes()),
       folly::IPAddress(srv6SrcIp));
 }
 

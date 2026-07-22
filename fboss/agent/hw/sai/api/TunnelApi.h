@@ -44,21 +44,54 @@ struct TunnelAttributesTypes<SAI_TUNNEL_TYPE_IPINIP> {
 };
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+// Encap-only and decap-only attributes are unset on the opposite tunnel kind
+// (e.g. UnderlayInterface/EncapSrcIp on a decap tunnel), and the SDK returns
+// NOT_SUPPORTED when GET-ing them during warm boot store reload. Default
+// getters make that GET fall back to a benign default instead of throwing.
 template <>
 struct TunnelAttributesTypes<SAI_TUNNEL_TYPE_SRV6> {
   using EnumType = sai_tunnel_attr_t;
+  using UnderlayInterface = SaiAttribute<
+      EnumType,
+      SAI_TUNNEL_ATTR_UNDERLAY_INTERFACE,
+      SaiObjectIdT,
+      SaiObjectIdDefault>;
   using OverlayInterface = void;
-  using EncapSrcIp =
-      SaiAttribute<EnumType, SAI_TUNNEL_ATTR_ENCAP_SRC_IP, folly::IPAddress>;
-  using DecapTtlMode = void;
-  using DecapDscpMode = void;
-  using DecapEcnMode = void;
-  using EncapTtlMode =
-      SaiAttribute<EnumType, SAI_TUNNEL_ATTR_ENCAP_TTL_MODE, sai_int32_t>;
-  using EncapDscpMode =
-      SaiAttribute<EnumType, SAI_TUNNEL_ATTR_ENCAP_DSCP_MODE, sai_int32_t>;
-  using EncapEcnMode =
-      SaiAttribute<EnumType, SAI_TUNNEL_ATTR_ENCAP_ECN_MODE, sai_int32_t>;
+  using EncapSrcIp = SaiAttribute<
+      EnumType,
+      SAI_TUNNEL_ATTR_ENCAP_SRC_IP,
+      folly::IPAddress,
+      SaiIpAddressDefault>;
+  using DecapTtlMode = SaiAttribute<
+      EnumType,
+      SAI_TUNNEL_ATTR_DECAP_TTL_MODE,
+      sai_int32_t,
+      SaiIntDefault<sai_int32_t>>;
+  using DecapDscpMode = SaiAttribute<
+      EnumType,
+      SAI_TUNNEL_ATTR_DECAP_DSCP_MODE,
+      sai_int32_t,
+      SaiIntDefault<sai_int32_t>>;
+  using DecapEcnMode = SaiAttribute<
+      EnumType,
+      SAI_TUNNEL_ATTR_DECAP_ECN_MODE,
+      sai_int32_t,
+      SaiIntDefault<sai_int32_t>>;
+  using EncapTtlMode = SaiAttribute<
+      EnumType,
+      SAI_TUNNEL_ATTR_ENCAP_TTL_MODE,
+      sai_int32_t,
+      SaiIntDefault<sai_int32_t>>;
+  using EncapDscpMode = SaiAttribute<
+      EnumType,
+      SAI_TUNNEL_ATTR_ENCAP_DSCP_MODE,
+      sai_int32_t,
+      SaiIntDefault<sai_int32_t>>;
+  using EncapEcnMode = SaiAttribute<
+      EnumType,
+      SAI_TUNNEL_ATTR_ENCAP_ECN_MODE,
+      sai_int32_t,
+      SaiIntDefault<sai_int32_t>>;
 };
 #endif
 
@@ -81,15 +114,22 @@ struct TunnelTraitsAttributes<Attributes, SAI_TUNNEL_TYPE_IPINIP> {
 };
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+// SRv6 tunnels (SAI_TUNNEL_TYPE_SRV6) cover both encap and decap: an encap
+// tunnel sets EncapSrcIp/UnderlayInterface/Encap* modes; a decap tunnel sets
+// only the Decap* modes. All are optional so a single store/traits holds both
+// kinds without a same-object-type/same-Type warmboot collision.
 template <typename Attributes>
 struct TunnelTraitsAttributes<Attributes, SAI_TUNNEL_TYPE_SRV6> {
   using CreateAttributes = std::tuple<
-      typename Attributes::EncapSrcIp,
       typename Attributes::Type,
-      typename Attributes::UnderlayInterface,
+      std::optional<typename Attributes::UnderlayInterface>,
+      std::optional<typename Attributes::EncapSrcIp>,
       std::optional<typename Attributes::EncapTtlMode>,
       std::optional<typename Attributes::EncapEcnMode>,
-      std::optional<typename Attributes::EncapDscpMode>>;
+      std::optional<typename Attributes::EncapDscpMode>,
+      std::optional<typename Attributes::DecapTtlMode>,
+      std::optional<typename Attributes::DecapDscpMode>,
+      std::optional<typename Attributes::DecapEcnMode>>;
   using AdapterHostKey = CreateAttributes;
 };
 #endif
@@ -103,10 +143,24 @@ struct SaiTunnelTraitsT {
   struct Attributes {
     using EnumType = sai_tunnel_attr_t;
     using Type = SaiAttribute<EnumType, SAI_TUNNEL_ATTR_TYPE, sai_int32_t>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    // UnderlayInterface is the same base attribute for both tunnel kinds; only
+    // SRv6 decorates it with a default getter (unset on a decap tunnel), so it
+    // is defined per-type only for SRv6 and defaults to the plain form here.
+    using UnderlayInterface = std::conditional_t<
+        type == SAI_TUNNEL_TYPE_SRV6,
+        typename detail::TunnelAttributesTypes<
+            SAI_TUNNEL_TYPE_SRV6>::UnderlayInterface,
+        SaiAttribute<
+            EnumType,
+            SAI_TUNNEL_ATTR_UNDERLAY_INTERFACE,
+            SaiObjectIdT>>;
+#else
     using UnderlayInterface = SaiAttribute<
         EnumType,
         SAI_TUNNEL_ATTR_UNDERLAY_INTERFACE,
         SaiObjectIdT>;
+#endif
     using OverlayInterface =
         typename detail::TunnelAttributesTypes<type>::OverlayInterface;
     using EncapSrcIp = typename detail::TunnelAttributesTypes<type>::EncapSrcIp;
@@ -165,6 +219,20 @@ SAI_ATTRIBUTE_NAME(IpInIpTunnel, EncapSrcIp);
 SAI_ATTRIBUTE_NAME(IpInIpTunnel, EncapTtlMode);
 SAI_ATTRIBUTE_NAME(IpInIpTunnel, EncapDscpMode);
 SAI_ATTRIBUTE_NAME(IpInIpTunnel, EncapEcnMode);
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+// SRv6 tunnel encap/decap attributes carry default getters (see above), making
+// them distinct types from their IPINIP counterparts, so they need their own
+// AttributeName specializations.
+SAI_ATTRIBUTE_NAME(Srv6Tunnel, UnderlayInterface);
+SAI_ATTRIBUTE_NAME(Srv6Tunnel, EncapSrcIp);
+SAI_ATTRIBUTE_NAME(Srv6Tunnel, DecapTtlMode);
+SAI_ATTRIBUTE_NAME(Srv6Tunnel, DecapDscpMode);
+SAI_ATTRIBUTE_NAME(Srv6Tunnel, DecapEcnMode);
+SAI_ATTRIBUTE_NAME(Srv6Tunnel, EncapTtlMode);
+SAI_ATTRIBUTE_NAME(Srv6Tunnel, EncapDscpMode);
+SAI_ATTRIBUTE_NAME(Srv6Tunnel, EncapEcnMode);
+#endif
 
 namespace detail {
 

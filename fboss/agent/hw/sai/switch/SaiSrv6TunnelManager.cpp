@@ -62,13 +62,17 @@ void SaiSrv6TunnelManager::addSrv6Tunnel(
   if (auto dscpMode = srv6Tunnel->getDscpMode()) {
     encapDscpMode = getSaiDscpMode(*dscpMode);
   }
+  using Attrs = SaiSrv6TunnelTraits::Attributes;
   SaiSrv6TunnelTraits::CreateAttributes attrs{
-      srcIp.value(),
       SAI_TUNNEL_TYPE_SRV6,
-      saiIntfId,
+      std::optional<Attrs::UnderlayInterface>(saiIntfId),
+      std::optional<Attrs::EncapSrcIp>(srcIp.value()),
       encapTtlMode,
       encapEcnMode,
-      encapDscpMode};
+      encapDscpMode,
+      std::nullopt, // DecapTtlMode (encap tunnel)
+      std::nullopt, // DecapDscpMode (encap tunnel)
+      std::nullopt}; // DecapEcnMode (encap tunnel)
   auto tunnelObj = tunnelStore.setObject(attrs, attrs);
   auto handle = std::make_unique<SaiSrv6TunnelHandle>();
   handle->tunnel = tunnelObj;
