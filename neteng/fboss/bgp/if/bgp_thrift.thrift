@@ -1527,7 +1527,25 @@ service TBgpService extends fb303.FacebookService {
    */
   list<bgp_route_types.TRibEntry> getShadowRibEntries(1: bgp_attr.TBgpAfi afi);
 
+  /**
+   * Dump the current Shadow RIB in canonical (deduplicated) form.
+   *
+   * @param afi - The afi to dump Shadow RIB for
+   */
+  bgp_route_types.TCanonicalRibState getShadowRibEntriesCanonical(
+    1: bgp_attr.TBgpAfi afi,
+  );
+
   list<bgp_route_types.TRibEntry> getChangeListEntries(1: bgp_attr.TBgpAfi afi);
+
+  /**
+   * Dump the current ChangeList in canonical (deduplicated) form.
+   *
+   * @param afi - The afi to dump ChangeList for
+   */
+  bgp_route_types.TCanonicalRibState getChangeListEntriesCanonical(
+    1: bgp_attr.TBgpAfi afi,
+  );
 
   /**
    * Dump the current BGP RIB (prefixes learned from others)
