@@ -657,12 +657,8 @@ template <
     AttrEnumT AttrEnum,
     typename DataT,
     typename DefaultGetterT>
-class SaiAttribute<
-    AttrEnumT,
-    AttrEnum,
-    DataT,
-    DefaultGetterT,
-    typename std::enable_if<!IsSaiTypeWrapper<DataT>::value>::type> {
+  requires(!SaiTypeWrapper<DataT>)
+class SaiAttribute<AttrEnumT, AttrEnum, DataT, DefaultGetterT, void> {
  public:
   using DataType = typename DuplicateTypeFixer<DataT>::value;
   using ValueType = DataType;
@@ -747,12 +743,8 @@ template <
     AttrEnumT AttrEnum,
     typename DataT,
     typename DefaultGetterT>
-class SaiAttribute<
-    AttrEnumT,
-    AttrEnum,
-    DataT,
-    DefaultGetterT,
-    typename std::enable_if<IsSaiTypeWrapper<DataT>::value>::type> {
+  requires SaiTypeWrapper<DataT>
+class SaiAttribute<AttrEnumT, AttrEnum, DataT, DefaultGetterT, void> {
  public:
   using DataType = typename WrappedSaiType<DataT>::value;
   using ValueType = DataT;

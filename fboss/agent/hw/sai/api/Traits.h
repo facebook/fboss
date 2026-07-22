@@ -409,6 +409,9 @@ template <typename T>
 struct IsSaiTypeWrapper
     : std::negation<std::is_same<typename WrappedSaiType<T>::value, T>> {};
 
+template <typename T>
+concept SaiTypeWrapper = IsSaiTypeWrapper<T>::value;
+
 /*
  * Helper metafunctions for resolving two types in the SAI
  * sai_attribute_value_t union being aliases. This results in SaiAttribute
