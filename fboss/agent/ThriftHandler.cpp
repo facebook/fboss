@@ -1741,6 +1741,13 @@ void ThriftHandler::addAdjacencyFrr(
   throw FbossError("addAdjacencyFrr Not supported");
 }
 
+void ThriftHandler::removeAdjacencyFrr(std::unique_ptr<FrrProtectedObject>) {
+  ensureConfigured(__func__);
+
+  // TODO add support
+  throw FbossError("removeAdjacencyFrr Not supported");
+}
+
 void ThriftHandler::clearPortPrbsStats(
     int32_t portId,
     phy::PortComponent component) {
