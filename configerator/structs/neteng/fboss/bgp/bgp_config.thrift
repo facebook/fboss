@@ -655,6 +655,9 @@ struct BgpSettingConfig {
    * grow this boolean into that general mechanism.
    */
   17: optional bool next_hop_tracking_use_openr_igp_cost;
+
+  /** Enable add-path-receive reconciliation across a peer graceful restart. */
+  18: optional bool enable_addpath_gr_reconcile;
 }
 
 /**
