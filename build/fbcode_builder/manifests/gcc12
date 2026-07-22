@@ -3,3 +3,7 @@ name = gcc12
 
 [rpms.all(distro=centos_stream,distro_vers=9)]
 gcc-toolset-12
+
+[debs.all(distro=ubuntu,distro_vers="24.04")]
+gcc-12
+g++-12
