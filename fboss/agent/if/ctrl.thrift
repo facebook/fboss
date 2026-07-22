@@ -1682,6 +1682,20 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     1: FrrProtectedObject protectedObject,
     2: list<common.NextHopThrift> backupNextHops,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Remove Adjacency FRR.
+   *
+   * protectedObject:
+   *  non-existing (never added by addAdjacencyFrr): throws error
+   *  existing: removes FRR protection
+   *
+   * FrrProtectedObject is a union. Fill either protected uA mySID or MPLS
+   * label.
+   */
+  void removeAdjacencyFrr(1: FrrProtectedObject protectedObject) throws (
+    1: fboss.FbossBaseError error,
+  );
 }
 
 service NeighborListenerClient extends fb303.FacebookService {
