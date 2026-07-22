@@ -27,6 +27,7 @@ cpp_unittest(
         "CmdConfigPtpTransparentClockTest.cpp",
         "CmdConfigQosBufferPoolTest.cpp",
         "CmdConfigQosDefaultPolicyTest.cpp",
+        "CmdConfigQosDefaultQueueConfigTest.cpp",
         "CmdConfigReloadTest.cpp",
         "CmdConfigSessionCommitTest.cpp",
         "CmdConfigSessionDiffTest.cpp",
@@ -44,6 +45,7 @@ cpp_unittest(
         "CmdDeleteQosDefaultPolicyTest.cpp",
         "CmdDeleteTunnelIpInIpTest.cpp",
         "ConfigSessionSystemdTest.cpp",
+        "CmdDeleteQosDefaultQueueConfigTest.cpp",
         "ProfileValidationTest.cpp",
     ],
     headers = [

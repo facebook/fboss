@@ -18,13 +18,15 @@ namespace facebook::fboss {
 
 CmdDeleteQosTraits::RetType CmdDeleteQos::queryClient(
     const HostInfo& /* hostInfo */) {
-  return "Delete QoS configuration commands. Use subcommands: default-policy";
+  return "Delete QoS configuration commands. Use subcommands: default-policy, "
+         "default-queue-config";
 }
 
 void CmdDeleteQos::printOutput(const RetType& output) {
   std::cout << output << std::endl;
 }
 
+// Explicit template instantiation
 template void CmdHandler<CmdDeleteQos, CmdDeleteQosTraits>::run();
 
 } // namespace facebook::fboss

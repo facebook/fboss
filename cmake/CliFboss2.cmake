@@ -992,12 +992,18 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h
+  fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.cpp
+  fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h
   fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.cpp
   fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.h
+  fboss/cli/fboss2/commands/config/qos/default_queue_config/CmdConfigQosDefaultQueueConfig.cpp
+  fboss/cli/fboss2/commands/config/qos/default_queue_config/CmdConfigQosDefaultQueueConfig.h
   fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp
   fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h
   fboss/cli/fboss2/commands/delete/qos/default_policy/CmdDeleteQosDefaultPolicy.cpp
   fboss/cli/fboss2/commands/delete/qos/default_policy/CmdDeleteQosDefaultPolicy.h
+  fboss/cli/fboss2/commands/delete/qos/default_queue_config/CmdDeleteQosDefaultQueueConfig.cpp
+  fboss/cli/fboss2/commands/delete/qos/default_queue_config/CmdDeleteQosDefaultQueueConfig.h
   fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.cpp
   fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h
   fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicyMap.cpp

@@ -222,6 +222,16 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_RESTART_WARM:
       sw.setRestartWarm(attr->value.booldata);
       break;
+    case SAI_SWITCH_ATTR_PRE_SHUTDOWN:
+      // The agent sets this just before exit to tell the ASIC "prepare to shut
+      // down". A real SAI does hardware cleanup here; the fake has no hardware,
+      // so there is nothing to do — acknowledge it and return success. Handling
+      // it matters: without this case the set falls through to `default` below
+      // and returns SAI_STATUS_INVALID_PARAMETER, which the agent turns into a
+      // thrown SaiApiError inside its noexcept shutdown handler, so the process
+      // std::terminate()s mid-exit on every commit-triggered restart under
+      // fboss-sim.
+      break;
     case SAI_SWITCH_ATTR_FDB_AGING_TIME:
       sw.setMacAgingTime(attr->value.u32);
       break;
