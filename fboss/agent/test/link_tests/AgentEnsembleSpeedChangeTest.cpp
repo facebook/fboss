@@ -150,6 +150,13 @@ class AgentEnsembleSpeedChangeTest : public AgentEnsembleLinkTest {
       // updated
       applyNewConfig(newConfig);
 
+      // The speed change can subsume (disable) or add ports, so the cabled port
+      // set captured during SetUp() from the original config is now stale.
+      // Recompute it from the applied config before we wait on links or program
+      // traffic, otherwise downstream helpers look up ports that no longer
+      // exist in the SwitchState.
+      reinitializeCabledPorts();
+
       EXPECT_NO_THROW(waitForAllCabledPorts(true, 60, 5s););
       createL3DataplaneFlood();
     };

@@ -33,6 +33,11 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
 
  protected:
   void SetUp() override;
+  // Recompute the cabled port set from the currently applied config. Tests that
+  // reprogram ports after SetUp() (e.g. speed change, which can subsume/disable
+  // or add ports) must call this so the cabled port set no longer references
+  // ports that were removed from the SwitchState.
+  void reinitializeCabledPorts();
   void overrideL2LearningConfig(bool swLearning = false, int ageTimer = 300);
   void setupTtl0ForwardingEnable();
   void waitForAllCabledPorts(
