@@ -201,7 +201,7 @@
               "deviceName": "mgmt_qsfp_led",
               "csrOffsetCalc": "0x9c",
               "numPorts": 1,
-              "ledPerPort": 1,
+              "ledPerPort": 2,
               "lanesPerPort": 4,
               "startPort": 129
             }
