@@ -899,20 +899,17 @@ struct SaiExtensionAttributeId {
 };
 
 template <
-    typename T,
-    typename SaiExtensionAttributeId = SaiExtensionAttributeId<T>,
+    typename ValueT,
+    typename AttributeIdT = SaiExtensionAttributeId<ValueT>,
     typename DefaultGetterT = void>
 class SaiExtensionAttribute {
  public:
-  using DataType = std::conditional_t<
-      IsSaiTypeWrapper<T>::value,
-      typename WrappedSaiType<T>::value,
-      T>;
-  using ValueType = T;
+  using DataType = typename WrappedSaiType<ValueT>::value;
+  using ValueType = ValueT;
   static constexpr bool HasDefaultGetter =
       !std::is_same_v<DefaultGetterT, void>;
-  using AttributeId = SaiExtensionAttributeId;
-  using ExtractSelectionType = T;
+  using AttributeId = AttributeIdT;
+  using ExtractSelectionType = ValueT;
   using DefaultGetter = DefaultGetterT;
 
   SaiExtensionAttribute() {
@@ -976,7 +973,7 @@ class SaiExtensionAttribute {
 
   static ValueType defaultValue() {
     static_assert(HasDefaultGetter, "No default getter provided for attribute");
-    if constexpr (IsSaiTypeWrapper<T>::value) {
+    if constexpr (IsSaiTypeWrapper<ValueT>::value) {
       static thread_local ValueType v;
       _fill(DefaultGetterT{}(), v);
       return v;
@@ -1003,7 +1000,7 @@ class SaiExtensionAttribute {
   }
 
   static std::optional<sai_attr_id_t> optionalExtensionAttributeId() {
-    return SaiExtensionAttributeId()();
+    return AttributeIdT()();
   }
 
  private:
@@ -1026,7 +1023,7 @@ class SaiExtensionAttribute {
   }
 
   static sai_attr_id_t kExtensionAttributeId() {
-    auto id = SaiExtensionAttributeId()();
+    auto id = AttributeIdT()();
     CHECK(id.has_value()) << " unknown id";
     return id.value();
   }
