@@ -575,6 +575,11 @@ DEFINE_bool(
     false,
     "Enables montblanc platform mapping with 4x200G on odd ports and 6x100G on even ports");
 
+DEFINE_bool(
+    montblanc_precoding,
+    false,
+    "Enables montblanc platform mapping with precoding on downlinks, used by VR200 (San Miguel) racks");
+
 DEFINE_bool(can_warm_boot, true, "Enable/disable warm boot functionality");
 
 DEFINE_string(
