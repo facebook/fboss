@@ -5,6 +5,7 @@ import os
 from typing import Any
 
 import yaml
+
 from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator, MODULE_DIR
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
 from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
@@ -379,6 +380,11 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
             f"FEC_MODE: {fec}",
             f"MAX_FRAME_SIZE: {self.mmu_size}",
         )
+        # Optional pass-through PC_PORT settings, appended in declaration order.
+        for setting_key, setting_value in port_config.get(
+            "pc_port_overrides", {}
+        ).items():
+            pc_value = (*pc_value, f"{setting_key}: {setting_value}")
         self.values["PC_PORT"][pc_key] = pc_value
 
         if mgmt_port and mgmt_port_config.get("enabled", False):
