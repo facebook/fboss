@@ -65,6 +65,18 @@ bool checkWarmbootStateFileExists(
       getWarmBootThriftSwitchStateFile(warmBootDir, thriftSwitchStateFile));
 }
 
+folly::File openSymlinkSafeFallbackLog(const std::string& path) {
+  // The agent runs as root, so opening a world-writable /tmp path is a
+  // symlink-following hazard: a local attacker could pre-create the path as a
+  // symlink (or hardlink) to an arbitrary file and have us truncate/overwrite
+  // it. Defend by unlinking any pre-existing entry first (unlink never follows
+  // the link, so a planted symlink/hardlink is removed rather than its target),
+  // then atomically create a fresh file with O_EXCL | O_NOFOLLOW so anything
+  // re-planted in the race window is refused.
+  ::unlink(path.c_str());
+  return folly::File(path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW);
+}
+
 void logBootHistory(
     const AgentDirectoryUtil* directoryUtil,
     const std::string& bootType,
@@ -79,20 +91,10 @@ void logBootHistory(
     //   /var/facebook/logs/fboss/ might not exist for testing switch
     XLOG(WARNING)
         << "Agent boot history log failed to create under /var/facebook/logs/fboss/, using /tmp/";
-    // The agent runs as root, so opening a world-writable /tmp path is a
-    // symlink-following hazard: a local attacker could pre-create the path as a
-    // symlink (or hardlink) to an arbitrary file and have us truncate/overwrite
-    // it. Defend by unlinking any pre-existing entry first (unlink never
-    // follows the link, so a planted symlink/hardlink is removed rather than
-    // its target), then atomically create a fresh file with O_EXCL | O_NOFOLLOW
-    // so anything re-planted in the race window is refused. This is best-effort
-    // boot history logging, so on failure we log and skip rather than aborting
-    // agent startup.
-    ::unlink("/tmp/wedge_agent_starts.log");
+    // This is best-effort boot history logging, so on failure we log and skip
+    // rather than aborting agent startup.
     try {
-      logFile = folly::File(
-          "/tmp/wedge_agent_starts.log",
-          O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW);
+      logFile = openSymlinkSafeFallbackLog("/tmp/wedge_agent_starts.log");
     } catch (const std::system_error& ex) {
       XLOG(WARNING)
           << "Failed to safely open fallback boot history log /tmp/wedge_agent_starts.log, skipping: "
