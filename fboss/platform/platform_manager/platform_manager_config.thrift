@@ -356,9 +356,12 @@ struct FpgaIpBlockConfig {
 // `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
 //
 // `numberOfAdapters`: Number of I2C Adapters created by this block.
+//
+// `busFreqHz`: I2C bus clock frequency in Hz. Applies to all buses in this block.
 struct I2cAdapterConfig {
   1: FpgaIpBlockConfig fpgaIpBlockConfig;
   2: i32 numberOfAdapters;
+  3: optional i32 busFreqHz;
 }
 
 // Defines generic I2C Adapter block in FPGAs.
@@ -402,6 +405,8 @@ struct I2cAdapterConfig {
 //  adapterIndex=2, startAdapterIndex=1:
 //    iobufOffsetCalc: "0x2000 + 1*0x100"
 //    iobufOffsetCalc: "0x2100"
+//
+// `busFreqHz`: I2C bus clock frequency in Hz. Applies to all buses in this block.
 struct I2cAdapterBlockConfig {
   1: string pmUnitScopedNamePrefix;
   2: string deviceName;
@@ -410,6 +415,7 @@ struct I2cAdapterBlockConfig {
   5: i32 numAdapters;
   6: i32 numBusesPerAdapter = 1;
   7: string iobufOffsetCalc;
+  8: optional i32 busFreqHz;
 }
 
 // Defines a Spi Device in FPGAs.
