@@ -490,9 +490,8 @@ class SaiObject {
     }
   }
 
-  template <typename T = SaiObjectTraits>
-  std::enable_if_t<AdapterKeyIsObjectId<T>::value, typename T::AdapterKey>
-  createHelper(
+  template <ObjectIdSaiObject T = SaiObjectTraits>
+  typename T::AdapterKey createHelper(
       const typename T::AdapterHostKey& k,
       const typename T::CreateAttributes& attributes,
       sai_object_id_t switchId) {
@@ -501,9 +500,8 @@ class SaiObject {
     return api.template create<T>(attributes, switchId);
   }
 
-  template <typename T = SaiObjectTraits>
-  std::enable_if_t<AdapterKeyIsEntryStruct<T>::value, typename T::AdapterKey>
-  createHelper(
+  template <EntryStructSaiObject T = SaiObjectTraits>
+  typename T::AdapterKey createHelper(
       const typename T::AdapterHostKey& k,
       const typename T::CreateAttributes& attributes,
       sai_object_id_t switchId) {
