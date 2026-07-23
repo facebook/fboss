@@ -91,7 +91,8 @@ int getSysPortIdsAllocated(
 }
 
 cfg::InterfaceType getInterfaceType(const HwAsic& asic) {
-  if (asic.getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+  if (asic.getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB ||
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
     return cfg::InterfaceType::PORT;
   }
   return cfg::InterfaceType::VLAN;
@@ -1023,6 +1024,8 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlans()->push_back(vlan);
     }
 
+    // TODO(daiweix): Determine whether and how P200 should configure a
+    // default VLAN interface.
     auto defaultVlanId =
         (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB)
         ? kDefaultVlanId4094
