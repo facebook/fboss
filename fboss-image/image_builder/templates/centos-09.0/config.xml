@@ -65,10 +65,6 @@
         <source path="http://download.fedoraproject.org/pub/epel/9/Everything/x86_64/"/>
     </repository>
 
-    <repository type="rpm-md" alias="KiwiTools">
-        <source path="https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/CentOS_10/"/>
-    </repository>
-
     <packages type="image">
         <!-- Do not install any specific kernel package, those are done in config.sh -->
         <package name="acl"/>
