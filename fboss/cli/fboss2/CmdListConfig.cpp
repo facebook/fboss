@@ -100,6 +100,7 @@
 #include "fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.h"
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
+#include "fboss/cli/fboss2/commands/config/qos/default_queue_config/CmdConfigQosDefaultQueueConfig.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicyMap.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h"
@@ -135,6 +136,8 @@
 #include "fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
+#include "fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h"
+#include "fboss/cli/fboss2/commands/delete/qos/default_queue_config/CmdDeleteQosDefaultQueueConfig.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
@@ -885,6 +888,12 @@ const CommandTree& kConfigCommandTree() {
                argRegistrar<CmdConfigQosBufferPoolTraits>,
            },
            {
+               "default-queue-config",
+               "Configure default port queue settings",
+               commandHandler<CmdConfigQosDefaultQueueConfig>,
+               argRegistrar<CmdConfigQosDefaultQueueConfigTraits>,
+           },
+           {
                "policy",
                "Configure QoS policy settings",
                commandHandler<CmdConfigQosPolicy>,
@@ -1106,6 +1115,20 @@ const CommandTree& kConfigCommandTree() {
               "Delete an ACL rule (and any associated MatchAction) from an AclTable",
               commandHandler<CmdDeleteAclRule>,
               argRegistrar<CmdDeleteAclRuleTraits>,
+          }},
+      },
+
+      {
+          "delete",
+          "qos",
+          "Delete QoS configuration",
+          commandHandler<CmdDeleteQos>,
+          argRegistrar<CmdDeleteQosTraits>,
+          {{
+              "default-queue-config",
+              "Remove a queue entry from the default port queue config",
+              commandHandler<CmdDeleteQosDefaultQueueConfig>,
+              argRegistrar<CmdDeleteQosDefaultQueueConfigTraits>,
           }},
       },
 
