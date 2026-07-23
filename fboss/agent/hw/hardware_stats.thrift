@@ -131,6 +131,8 @@ struct HwPortStats {
   85: optional i64 llrRxDuplicateSeq_;
   86: optional i64 llrRxAckNackSeqError_;
   87: optional i64 llrRxReplay_;
+  88: optional i64 linkDownDebounceRetriggerCount_;
+  89: optional i64 linkUpDebounceRetriggerCount_;
 }
 
 struct HwSysPortStats {

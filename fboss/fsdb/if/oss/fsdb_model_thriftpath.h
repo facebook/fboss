@@ -25747,7 +25747,9 @@ std::pair<apache::thrift::ident::llrRxBad_, Child<::std::int64_t, ::apache::thri
 std::pair<apache::thrift::ident::llrRxMissingSeq_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<apache::thrift::ident::llrRxDuplicateSeq_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<apache::thrift::ident::llrRxAckNackSeqError_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<apache::thrift::ident::llrRxReplay_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<apache::thrift::ident::llrRxReplay_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::linkDownDebounceRetriggerCount_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::linkUpDebounceRetriggerCount_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -25831,6 +25833,8 @@ std::pair<apache::thrift::ident::llrRxReplay_, Child<::std::int64_t, ::apache::t
     STRUCT_CHILD_GETTERS(llrRxDuplicateSeq_, 85);
     STRUCT_CHILD_GETTERS(llrRxAckNackSeqError_, 86);
     STRUCT_CHILD_GETTERS(llrRxReplay_, 87);
+    STRUCT_CHILD_GETTERS(linkDownDebounceRetriggerCount_, 88);
+    STRUCT_CHILD_GETTERS(linkUpDebounceRetriggerCount_, 89);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -25912,6 +25916,8 @@ std::pair<apache::thrift::ident::llrRxReplay_, Child<::std::int64_t, ::apache::t
     else if constexpr (__id == apache::thrift::FieldId{85}) { return llrRxDuplicateSeq_(); }
     else if constexpr (__id == apache::thrift::FieldId{86}) { return llrRxAckNackSeqError_(); }
     else if constexpr (__id == apache::thrift::FieldId{87}) { return llrRxReplay_(); }
+    else if constexpr (__id == apache::thrift::FieldId{88}) { return linkDownDebounceRetriggerCount_(); }
+    else if constexpr (__id == apache::thrift::FieldId{89}) { return linkUpDebounceRetriggerCount_(); }
   }
 };
 
