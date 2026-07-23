@@ -25,6 +25,7 @@ namespace {
 constexpr std::string_view kWedgeAgent = "wedge_agent";
 constexpr std::string_view kSwAgent = "fboss_sw_agent";
 constexpr std::string_view kHwAgentPrefix = "fboss_hw_agent@";
+constexpr std::string_view kBgpd = "bgpd";
 } // namespace
 
 namespace facebook::fboss {
@@ -48,6 +49,8 @@ std::string FbossServiceUtil::getServiceName(cli::ServiceType service) {
   switch (service) {
     case cli::ServiceType::AGENT:
       return std::string(kWedgeAgent);
+    case cli::ServiceType::BGP:
+      return std::string(kBgpd);
   }
   throw std::runtime_error("Unknown service type");
 }
@@ -128,6 +131,9 @@ std::vector<std::string> FbossServiceUtil::getServicesToRestart(
       }
       return services;
     }
+    case cli::ServiceType::BGP:
+      // BGP++ is a single, mode-independent service.
+      return {std::string(kBgpd)};
   }
   throw std::runtime_error("Unknown service type");
 }
@@ -151,7 +157,11 @@ std::vector<std::string> FbossServiceUtil::reloadConfig(
       reloadedServices.emplace_back(serviceName);
       break;
     }
-      // TODO: Add cases for future services (e.g., BGP)
+    case cli::ServiceType::BGP:
+      // bgpd has no hitless reloadConfig() RPC; config changes are applied by
+      // restarting the service (BGP_RESTART), so this path is never taken.
+      throw std::runtime_error(
+          "bgpd does not support config reload; it must be restarted");
   }
   return reloadedServices;
 }
@@ -159,14 +169,30 @@ std::vector<std::string> FbossServiceUtil::reloadConfig(
 std::vector<std::string> FbossServiceUtil::restartService(
     cli::ServiceType service,
     cli::ConfigActionLevel level) {
-  std::string restartType = (level == cli::ConfigActionLevel::AGENT_COLDBOOT)
-      ? "coldboot"
-      : "warmboot";
+  std::string restartType;
+  switch (level) {
+    case cli::ConfigActionLevel::AGENT_COLDBOOT:
+      restartType = "coldboot";
+      break;
+    case cli::ConfigActionLevel::AGENT_WARMBOOT:
+      restartType = "warmboot";
+      break;
+    case cli::ConfigActionLevel::BGP_RESTART:
+      restartType = "restart";
+      break;
+    case cli::ConfigActionLevel::HITLESS:
+      // Not expected: HITLESS is applied via reloadConfig(), not restart.
+      restartType = "reload";
+      break;
+  }
 
   auto services = getServicesToRestart(service);
 
-  LOG(INFO) << "Restarting agents (" << restartType << ")...";
+  LOG(INFO) << "Restarting " << getServiceName(service) << " (" << restartType
+            << ")...";
 
+  // Only AGENT_COLDBOOT needs the coldboot marker file; every other level is a
+  // plain restart-and-wait.
   if (level == cli::ConfigActionLevel::AGENT_COLDBOOT) {
     performColdboot(services);
   } else {
