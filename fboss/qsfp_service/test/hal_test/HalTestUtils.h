@@ -56,6 +56,13 @@ std::vector<std::string> getAllSpeedCombinationDescriptions();
 // Collect all speed-change transitions from TransceiverPropertiesManager.
 std::vector<std::pair<std::string, std::string>> getAllSpeedChangeTransitions();
 
+// Detect the module and bring it out of the post-reset low-power state, waiting
+// until it reports ready so subsequent I2C reads / refresh succeed. A module
+// fresh out of a hard reset comes up in low power and not yet ready, so paged
+// reads fail until this runs. No-op (beyond detectPresence) for non-CMIS
+// modules. Best effort: transient I2C errors are logged, not thrown.
+void ensureModuleReady(QsfpModule* module);
+
 // Upgrade firmware on a module to the specified versions.
 // Returns true if an upgrade was performed.
 bool upgradeFirmware(QsfpModule* module, const cfg::Firmware& desiredFw);

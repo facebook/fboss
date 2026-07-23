@@ -220,6 +220,28 @@ std::pair<std::string, std::string> readFirmwareVersions(QsfpModule* module) {
 
 } // namespace
 
+void ensureModuleReady(QsfpModule* module) {
+  module->detectPresence();
+  auto* cmis = dynamic_cast<CmisModule*>(module);
+  if (cmis == nullptr) {
+    return;
+  }
+  // releaseModuleLowPowerModeLocked / moduleReadyStatePoll are safe to call
+  // without the module mutex here: this runs single threaded before any upgrade
+  // worker starts. Swallow transient early-boot I2C errors so callers (e.g.
+  // SetUp) don't abort on a module that just needs another moment.
+  try {
+    cmis->releaseModuleLowPowerModeLocked();
+    if (!cmis->moduleReadyStatePoll()) {
+      XLOG(WARNING) << "Module " << module->getID()
+                    << " did not reach ready state";
+    }
+  } catch (const std::exception& e) {
+    XLOG(WARNING) << "Module " << module->getID()
+                  << " readiness prep failed: " << e.what();
+  }
+}
+
 bool upgradeFirmware(QsfpModule* module, const cfg::Firmware& desiredFw) {
   auto tcvrId = module->getID();
 
