@@ -49,6 +49,7 @@ target_link_libraries(qsfp_platforms_wedge
   tahan800bc_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
+  m4062nhp_platform_mapping
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
   wedge800bact_platform_mapping
