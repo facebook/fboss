@@ -121,6 +121,16 @@ struct HwPortStats {
   77: optional i64 outDiscardsHll_;
   78: optional i64 inSrv6MySidDiscards_;
   79: optional i64 cableDelayNsec;
+  // UEC Link Layer Retry counters (UE Spec 1.0.2 section 5.1.11, Table 5-13).
+  // Populated only on LLR-capable ASICs (Tomahawk Ultra).
+  80: optional i64 llrTxOk_;
+  81: optional i64 llrTxReplay_;
+  82: optional i64 llrRxOk_;
+  83: optional i64 llrRxBad_;
+  84: optional i64 llrRxMissingSeq_;
+  85: optional i64 llrRxDuplicateSeq_;
+  86: optional i64 llrRxAckNackSeqError_;
+  87: optional i64 llrRxReplay_;
 }
 
 struct HwSysPortStats {

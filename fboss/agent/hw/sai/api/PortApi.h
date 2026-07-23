@@ -789,6 +789,22 @@ struct SaiPortTraits {
       SAI_PORT_STAT_WRED_DROPPED_PACKETS,
       SAI_PORT_STAT_ECN_MARKED_PACKETS,
   };
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  // UEC Link Layer Retry counters (UE Spec 1.0.2 section 5.1.11, Table 5-13).
+  static const std::vector<sai_stat_id_t>& llrStats() {
+    static const std::vector<sai_stat_id_t> ids = {
+        SAI_PORT_STAT_LLR_TX_OK,
+        SAI_PORT_STAT_LLR_TX_REPLAY,
+        SAI_PORT_STAT_LLR_RX_OK,
+        SAI_PORT_STAT_LLR_RX_BAD,
+        SAI_PORT_STAT_LLR_RX_MISSING_SEQ,
+        SAI_PORT_STAT_LLR_RX_DUPLICATE_SEQ,
+        SAI_PORT_STAT_LLR_RX_ACK_NACK_SEQ_ERROR,
+        SAI_PORT_STAT_LLR_RX_REPLAY,
+    };
+    return ids;
+  }
+#endif
   static constexpr std::array<sai_stat_id_t, 16> PfcCounterIdsToRead = {
       SAI_PORT_STAT_PFC_0_RX_PKTS,
       SAI_PORT_STAT_PFC_1_RX_PKTS,

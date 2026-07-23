@@ -25739,7 +25739,15 @@ std::pair<apache::thrift::ident::rxPfcDurationUsec_, ChildThriftPath<::std::map<
 std::pair<apache::thrift::ident::outDiscardsSll_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<apache::thrift::ident::outDiscardsHll_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<apache::thrift::ident::inSrv6MySidDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<apache::thrift::ident::cableDelayNsec, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<apache::thrift::ident::cableDelayNsec, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrTxOk_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrTxReplay_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxOk_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxBad_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxMissingSeq_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxDuplicateSeq_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxAckNackSeqError_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxReplay_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -25815,6 +25823,14 @@ std::pair<apache::thrift::ident::cableDelayNsec, Child<::std::int64_t, ::apache:
     STRUCT_CHILD_GETTERS(outDiscardsHll_, 77);
     STRUCT_CHILD_GETTERS(inSrv6MySidDiscards_, 78);
     STRUCT_CHILD_GETTERS(cableDelayNsec, 79);
+    STRUCT_CHILD_GETTERS(llrTxOk_, 80);
+    STRUCT_CHILD_GETTERS(llrTxReplay_, 81);
+    STRUCT_CHILD_GETTERS(llrRxOk_, 82);
+    STRUCT_CHILD_GETTERS(llrRxBad_, 83);
+    STRUCT_CHILD_GETTERS(llrRxMissingSeq_, 84);
+    STRUCT_CHILD_GETTERS(llrRxDuplicateSeq_, 85);
+    STRUCT_CHILD_GETTERS(llrRxAckNackSeqError_, 86);
+    STRUCT_CHILD_GETTERS(llrRxReplay_, 87);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -25888,6 +25904,14 @@ std::pair<apache::thrift::ident::cableDelayNsec, Child<::std::int64_t, ::apache:
     else if constexpr (__id == apache::thrift::FieldId{77}) { return outDiscardsHll_(); }
     else if constexpr (__id == apache::thrift::FieldId{78}) { return inSrv6MySidDiscards_(); }
     else if constexpr (__id == apache::thrift::FieldId{79}) { return cableDelayNsec(); }
+    else if constexpr (__id == apache::thrift::FieldId{80}) { return llrTxOk_(); }
+    else if constexpr (__id == apache::thrift::FieldId{81}) { return llrTxReplay_(); }
+    else if constexpr (__id == apache::thrift::FieldId{82}) { return llrRxOk_(); }
+    else if constexpr (__id == apache::thrift::FieldId{83}) { return llrRxBad_(); }
+    else if constexpr (__id == apache::thrift::FieldId{84}) { return llrRxMissingSeq_(); }
+    else if constexpr (__id == apache::thrift::FieldId{85}) { return llrRxDuplicateSeq_(); }
+    else if constexpr (__id == apache::thrift::FieldId{86}) { return llrRxAckNackSeqError_(); }
+    else if constexpr (__id == apache::thrift::FieldId{87}) { return llrRxReplay_(); }
   }
 };
 

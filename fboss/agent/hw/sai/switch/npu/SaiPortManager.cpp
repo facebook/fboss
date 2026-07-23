@@ -231,7 +231,10 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
             std::back_inserter(counterIds));
       }
     }
-    // ETHER stats used on j3 sim
+    // LLR counters are NOT added here: they are collected in updateStats via a
+    // separate, isolated stats read (like FEC) so that a drop whose SDK returns
+    // NOT_SUPPORTED for the LLR reads does not fail the whole basic
+    // port-counter batch. ETHER stats used on j3 sim
     if (platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_PORT_ETHER_STATS)) {
       counterIds.emplace_back(SAI_PORT_STAT_ETHER_STATS_TX_NO_ERRORS);
