@@ -6,7 +6,7 @@
     "SMB_SLOT": {
       "numOutgoingI2cBuses": 0,
       "idpromConfig": {
-        "busName": "SMBus I801 adapter at 1000",
+        "busName": "CPU_BUS@1",
         "address": "0x50",
         "kernelDeviceName": "24c512",
         "offset": 15360
@@ -21,30 +21,18 @@
         {
           "busName": "CPU_I2C_MASTER_0@1",
           "address": "0x31",
-          "kernelDeviceName": "ruggles_aucd90320",
+          "kernelDeviceName": "icecubcpu_aucd90320",
           "pmUnitScopedName": "CPU_DPM_UCD90320"
         },
         {
-          "busName": "CPU_I2C_MASTER_0@2",
-          "address": "0x68",
-          "kernelDeviceName": "axdpe1b284b",
-          "pmUnitScopedName": "CPU_VCCIN_1V8_CPU"
-        },
-        {
-          "busName": "CPU_I2C_MASTER_0@2",
-          "address": "0x62",
-          "kernelDeviceName": "axdpe1b284b",
-          "pmUnitScopedName": "CPU_1V2_VDDQ_1V0_CPU"
-        },
-        {
-          "busName": "CPU_I2C_MASTER_0@2",
-          "address": "0x70",
-          "kernelDeviceName": "axdpe1b284b",
-          "pmUnitScopedName": "CPU_1V05_CPU_VNN_PCH"
+          "busName": "CPU_I2C_MASTER_0@6",
+          "address": "0x49",
+          "kernelDeviceName": "lm75",
+          "pmUnitScopedName": "AMBIENT_TEMP"
         },
         {
           "busName": "CPU_I2C_MASTER_1@0",
-          "address": "0x50",
+          "address": "0x53",
           "kernelDeviceName": "24c512",
           "pmUnitScopedName": "CHASSIS_EEPROM",
           "isEeprom": true,
@@ -248,6 +236,18 @@
           "address": "0x4c",
           "kernelDeviceName": "bp4a_tmp431",
           "pmUnitScopedName": "SMB_REAR_LEFT_TMP431"
+        },
+        {
+          "busName": "CPU_I2C_MASTER_1@3",
+          "address": "0x48",
+          "kernelDeviceName": "lm75",
+          "pmUnitScopedName": "CHASSIS_REAR_TMP75"
+        },
+        {
+          "busName": "CPU_I2C_MASTER_1@3",
+          "address": "0x52",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "CPU_POS48V"
         }
       ],
       "outgoingSlotConfigs": {},
@@ -257,7 +257,7 @@
           "vendorId": "0x3475",
           "deviceId": "0x0001",
           "subSystemVendorId": "0x3475",
-          "subSystemDeviceId": "0x0012",
+          "subSystemDeviceId": "0x0017",
           "i2cAdapterBlockConfigs": [
             {
               "pmUnitScopedNamePrefix": "CPU_I2C_MASTER",
@@ -380,7 +380,7 @@
     }
   },
   "i2cAdaptersFromCpu": [
-    "SMBus I801 adapter at 1000"
+    "CPU_BUS@1"
   ],
   "symbolicLinkToDevicePath": {
     "/run/devmap/fpgas/CPU_FPGA": "/[CPU_FPGA]",
@@ -478,9 +478,7 @@
     "/run/devmap/i2c-busses/ICECUBE800BANW_SMB_FPGA_SMBUS8_CH6": "/[SMB_I2C_MASTER_8@6]",
     "/run/devmap/i2c-busses/ICECUBE800BANW_SMB_FPGA_SMBUS8_CH7": "/[SMB_I2C_MASTER_8@7]",
     "/run/devmap/sensors/CPU_DPM_UCD90320": "/[CPU_DPM_UCD90320]",
-    "/run/devmap/sensors/CPU_VCCIN_1V8_CPU": "/[CPU_VCCIN_1V8_CPU]",
-    "/run/devmap/sensors/CPU_1V2_VDDQ_1V0_CPU": "/[CPU_1V2_VDDQ_1V0_CPU]",
-    "/run/devmap/sensors/CPU_1V05_CPU_VNN_PCH": "/[CPU_1V05_CPU_VNN_PCH]",
+    "/run/devmap/sensors/AMBIENT_TEMP": "/[AMBIENT_TEMP]",
     "/run/devmap/eeproms/CHASSIS_EEPROM": "/[CHASSIS_EEPROM]",
     "/run/devmap/gpiochips/SMB_PCA": "/[SMB_PCA]",
     "/run/devmap/sensors/SMB_UCD90320_0": "/[SMB_UCD90320_0]",
@@ -515,6 +513,8 @@
     "/run/devmap/sensors/SMB_REAR_MIDDLE_TMP431": "/[SMB_REAR_MIDDLE_TMP431]",
     "/run/devmap/sensors/SMB_FRONT_LEFT_TMP431": "/[SMB_FRONT_LEFT_TMP431]",
     "/run/devmap/sensors/SMB_REAR_LEFT_TMP431": "/[SMB_REAR_LEFT_TMP431]",
+    "/run/devmap/sensors/CHASSIS_REAR_TMP75": "/[CHASSIS_REAR_TMP75]",
+    "/run/devmap/sensors/CPU_POS48V": "/[CPU_POS48V]",
     "/run/devmap/sensors/NVME_TEMP": "/[NVME_TEMP]",
     "/run/devmap/flashes/SMB_SPI_MASTER0_DEVICE1": "/[SMB_SPI_MASTER0_DEVICE1]",
     "/run/devmap/xcvrs/xcvr_io_1": "/[SMB_I2C_MASTER_1@0]",
@@ -651,8 +651,8 @@
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 65,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.26-1",
-  "nonBspKmodsToLoad": [
+  "bspKmodsRpmVersion": "0.7.27-1",
+  "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",
     "ledtrig_timer"
