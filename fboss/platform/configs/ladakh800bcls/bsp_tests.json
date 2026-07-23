@@ -90,11 +90,10 @@
             "phyAddress": 0,
             "regAddress": 35585,
             "__comment__": "0x8B01 is the retimer chip ID register high word. ",
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_2": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -113,11 +112,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_3": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -136,11 +134,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_4": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -159,11 +156,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_5": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -182,11 +178,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_6": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -205,11 +200,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_7": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -228,11 +222,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_8": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -251,11 +244,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_9": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -274,11 +266,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_10": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -297,11 +288,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_11": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -320,11 +310,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_12": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -343,11 +332,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_13": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -366,11 +354,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_14": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -389,11 +376,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_15": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -412,11 +398,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_L_MDIO_BUS_16": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -435,11 +420,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_1": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -458,11 +442,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_2": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -481,11 +464,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_3": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -504,11 +486,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_4": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -527,11 +508,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_5": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -550,11 +530,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_6": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -573,11 +552,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_7": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -596,11 +574,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_8": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -619,11 +596,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_9": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -642,11 +618,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_10": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -665,11 +640,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_11": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -688,11 +662,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_12": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -711,11 +684,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_13": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -734,11 +706,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_14": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -757,11 +728,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_15": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -780,11 +750,10 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    },
+      }    },
     "RTM_R_MDIO_BUS_16": {
       "mdioTestData": {
         "mdioWriteData": [
@@ -803,10 +772,9 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
-      }
-    }
+      }    }
   }
 }
