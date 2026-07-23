@@ -1,0 +1,85 @@
+name: Build & Test fboss-sim
+run-name: Build & Test fboss-sim
+on:
+  pull_request:
+    paths:
+      - 'fboss-sim/**'
+      - 'fboss/cli/**'
+      - '.github/workflows/fboss-sim.yml'
+  # Allow manually triggering the workflow
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  fboss-sim:
+    if: github.repository_owner == 'facebook'
+    runs-on: 32-core-ubuntu
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+
+      # Build the fake-SAI agents and the fboss2 CLI / integration-test targets
+      # into <workspace>/.build_dir (the getdeps scratch dir that
+      # fboss-sim-docker-package.py reads). This also produces the CentOS
+      # fboss_image:latest used for the collect step below. --target may be
+      # repeated to build several targets sequentially into one scratch dir.
+      - name: Build fake-SAI agent + fboss2 targets
+        run: >
+          sudo
+          ./fboss/oss/scripts/docker-build.py
+          --scratch-path ${{ github.workspace }}/.build_dir
+          --target fboss_fake_agent_targets
+          --target fboss2_targets
+          --no-docker-output
+          --local
+          --env-var BUILD_SAI_FAKE
+          --num-jobs 18
+
+      - name: Restore workspace ownership
+        run: sudo chown -R runner:runner ${{ github.workspace }}
+
+      # Phase 1: collect binaries + libs inside the CentOS fboss_image, so ldd
+      # resolves the same system libraries the runtime image base (CentOS
+      # Stream 9) provides. Writes <workspace>/tmp_build_dir.
+      - name: Collect fboss-sim artifacts (inside CentOS build image)
+        run: >
+          sudo
+          docker run --rm
+          -v ${{ github.workspace }}:/var/FBOSS/fboss:z
+          --cap-add=CAP_AUDIT_WRITE
+          fboss_image:latest
+          python3 /var/FBOSS/fboss/fboss-sim/scripts/fboss-sim-docker-package.py --collect-only
+
+      - name: Restore workspace ownership
+        run: sudo chown -R runner:runner ${{ github.workspace }}
+
+      # Phase 2: build the runtime image on the host (where the Docker daemon is).
+      - name: Build fboss-sim runtime image
+        run: python3 fboss-sim/scripts/fboss-sim-docker-package.py --build-only
+
+      - name: Start fboss-sim runtime container
+        run: python3 fboss-sim/scripts/fboss-sim-docker-run.py
+
+      - name: Wait for agent services to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if docker exec fboss_sim_runtime_${USER} /opt/fboss/bin/fboss2 show interface >/dev/null 2>&1; then
+              echo "✓ Agent ready after $(( (i - 1) * 2 ))s"
+              exit 0
+            fi
+            echo "  [$(( (i - 1) * 2 ))s] not ready yet, retrying..."
+            sleep 2
+          done
+          echo "❌ Agent not ready"
+          docker exec fboss_sim_runtime_${USER} tail -n 50 /var/facebook/logs/fboss/wedge_agent.log || true
+          exit 1
+
+      - name: Run fboss2 integration test
+        run: docker exec fboss_sim_runtime_${USER} /opt/fboss/bin/fboss2_integration_test
