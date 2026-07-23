@@ -15909,12 +15909,12 @@ class ChildThriftPath<::facebook::fboss::cfg::LlrConfig, ::facebook::fboss::fsdb
     ChildTag,
     Self
   >;
-  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::outstandingFramesMax, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<apache::thrift::ident::outstandingBytesMax, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<apache::thrift::ident::replayTimerMax, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::outstandingFramesMax, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::outstandingBytesMax, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::replayTimerMax, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<apache::thrift::ident::replayCountMax, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
-std::pair<apache::thrift::ident::pcsLostTimeout, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<apache::thrift::ident::dataAgeTimeout, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<apache::thrift::ident::pcsLostTimeout, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::dataAgeTimeout, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<apache::thrift::ident::initFrameAction, Child<::facebook::fboss::cfg::LlrFrameAction, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::LlrFrameAction>>>,
 std::pair<apache::thrift::ident::flushFrameAction, Child<::facebook::fboss::cfg::LlrFrameAction, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::LlrFrameAction>>>,
 std::pair<apache::thrift::ident::reInitOnFlush, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,

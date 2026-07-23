@@ -5241,9 +5241,44 @@ shared_ptr<MultiSwitchLlrConfigMap> ThriftConfigApplier::updateLlrConfigs(
   return nullptr;
 }
 
+static void validateLlrConfig(
+    const std::string& id,
+    const cfg::LlrConfig& llrConfig) {
+  // LlrConfig thrift fields are signed (thrift has no unsigned type) but map to
+  // unsigned SAI attributes of fixed width (u8/u16/u32). Reject negative or
+  // over-width values so a misconfiguration fails loudly here instead of
+  // silently wrapping when narrowed in SaiPortManager::programLlr.
+  auto checkRange = [&id](const char* field, int64_t value, int64_t maxVal) {
+    if (value < 0 || value > maxVal) {
+      throw FbossError(
+          "LlrConfig \"",
+          id,
+          "\": ",
+          field,
+          "=",
+          value,
+          " is out of range [0, ",
+          maxVal,
+          "]");
+    }
+  };
+  constexpr int64_t kU8Max = std::numeric_limits<uint8_t>::max();
+  constexpr int64_t kU16Max = std::numeric_limits<uint16_t>::max();
+  constexpr int64_t kU32Max = std::numeric_limits<uint32_t>::max();
+  checkRange(
+      "outstandingFramesMax", *llrConfig.outstandingFramesMax(), kU32Max);
+  checkRange("outstandingBytesMax", *llrConfig.outstandingBytesMax(), kU32Max);
+  checkRange("replayTimerMax", *llrConfig.replayTimerMax(), kU32Max);
+  checkRange("replayCountMax", *llrConfig.replayCountMax(), kU8Max);
+  checkRange("pcsLostTimeout", *llrConfig.pcsLostTimeout(), kU32Max);
+  checkRange("dataAgeTimeout", *llrConfig.dataAgeTimeout(), kU32Max);
+  checkRange("ctlosTargetSpacing", *llrConfig.ctlosTargetSpacing(), kU16Max);
+}
+
 std::shared_ptr<LlrConfig> ThriftConfigApplier::createLlrConfig(
     const std::string& id,
     const cfg::LlrConfig& llrConfig) {
+  validateLlrConfig(id, llrConfig);
   auto cfg = std::make_shared<LlrConfig>(id);
   cfg->setOutstandingFramesMax(*llrConfig.outstandingFramesMax());
   cfg->setOutstandingBytesMax(*llrConfig.outstandingBytesMax());

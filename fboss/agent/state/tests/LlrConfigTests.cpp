@@ -161,3 +161,39 @@ TEST(LlrConfigTest, rejectMissingConfigName) {
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
+
+// Loud rejection: LlrConfig thrift fields are signed and wider than their
+// unsigned SAI attribute; a value that is negative or exceeds the SAI width is
+// rejected at config time rather than silently wrapping when programmed.
+TEST(LlrConfigTest, rejectOutOfRange) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+  setAsicType(config, cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1);
+  config.ports()[0].llrConfigName() = kLlrName;
+
+  // replayCountMax maps to a u8 SAI attribute; 256 overflows it.
+  auto badReplayCount = makeLlrConfig();
+  badReplayCount.replayCountMax() = 256;
+  config.llrConfigs() = {{kLlrName, badReplayCount}};
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+
+  // ctlosTargetSpacing maps to a u16 SAI attribute; 70000 overflows it.
+  auto badCtlos = makeLlrConfig();
+  badCtlos.ctlosTargetSpacing() = 70000;
+  config.llrConfigs() = {{kLlrName, badCtlos}};
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+
+  // A negative value (thrift is signed) is rejected too.
+  auto negative = makeLlrConfig();
+  negative.dataAgeTimeout() = -1;
+  config.llrConfigs() = {{kLlrName, negative}};
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}

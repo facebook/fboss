@@ -2367,20 +2367,23 @@ enum LlrFrameAction {
 // UE Spec 1.0.2 section 5.1.4 (Table 5-9). Referenced per-port by name via
 // Port.llrConfigName.
 struct LlrConfig {
+  // Fields backed by a u32 SAI attribute use i64: thrift has no unsigned type,
+  // and i32 cannot represent the full 0..2^32-1 range. ApplyThriftConfig
+  // validates each field against its SAI attribute width (see validateLlrConfig).
   // Max unacknowledged frames held in the replay buffer (outstanding_seq_max).
-  1: i32 outstandingFramesMax;
+  1: i64 outstandingFramesMax;
   // Max unacknowledged bytes; SHOULD be the link bandwidth-delay product so
   // pause/PFC keep working (outstanding_data_max).
-  2: i32 outstandingBytesMax;
+  2: i64 outstandingBytesMax;
   // Timer (ns) after which a replay is initiated (replay_timer_max).
-  3: i32 replayTimerMax;
+  3: i64 replayTimerMax;
   // Max replays before entering FLUSH; 255 = unlimited (replay_ct_max).
   // Meta sim study recommends >= 2.
   4: i16 replayCountMax = 2;
   // PCS-lost duration (ns) before FLUSH (pcs_lost_status_timer_max).
-  5: i32 pcsLostTimeout;
+  5: i64 pcsLostTimeout;
   // Max time (ns) a frame may reside in the replay buffer (data_age_timer_max).
-  6: i32 dataAgeTimeout;
+  6: i64 dataAgeTimeout;
   // Action for LLR-desired frames in INIT state (llr_init_behavior).
   7: LlrFrameAction initFrameAction = LlrFrameAction.BEST_EFFORT;
   // Action for LLR-desired frames in FLUSH state (llr_flush_behavior).
