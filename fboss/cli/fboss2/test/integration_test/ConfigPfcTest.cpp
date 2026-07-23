@@ -186,9 +186,9 @@ class ConfigPfcTest : public Fboss2IntegrationTest {
 };
 
 TEST_F(ConfigPfcTest, BufferPoolPriorityGroupAndPortPfc) {
-  Interface intf = findFirstEthInterface();
-  pfcIntfName_ = intf.name;
-  XLOG(INFO) << "Using test interface " << intf.name;
+  std::string ifName = getRandomInterfacePortName();
+  pfcIntfName_ = ifName;
+  XLOG(INFO) << "Using test interface " << ifName;
 
   XLOG(INFO) << "[Step 1] Configuring buffer pool...";
   configureBufferPool(/*sharedBytes=*/78773528, /*headroomBytes=*/4405376);
@@ -207,20 +207,20 @@ TEST_F(ConfigPfcTest, BufferPoolPriorityGroupAndPortPfc) {
   configurePgMultiAttr(pgs[2]);
   configurePgMultiAttr(pgs[3]);
 
-  XLOG(INFO) << "[Step 3] Configuring port PFC on " << intf.name;
+  XLOG(INFO) << "[Step 3] Configuring port PFC on " << ifName;
   // Single-attribute form for tx / rx / pg-policy binding.
   ASSERT_EQ(
-      runCli({"config", "interface", intf.name, "pfc-config", "tx", "enabled"})
+      runCli({"config", "interface", ifName, "pfc-config", "tx", "enabled"})
           .exitCode,
       0);
   ASSERT_EQ(
-      runCli({"config", "interface", intf.name, "pfc-config", "rx", "enabled"})
+      runCli({"config", "interface", ifName, "pfc-config", "rx", "enabled"})
           .exitCode,
       0);
   ASSERT_EQ(
       runCli({"config",
               "interface",
-              intf.name,
+              ifName,
               "pfc-config",
               "priority-group-policy",
               policyName_})
@@ -230,7 +230,7 @@ TEST_F(ConfigPfcTest, BufferPoolPriorityGroupAndPortPfc) {
   ASSERT_EQ(
       runCli({"config",
               "interface",
-              intf.name,
+              ifName,
               "pfc-config",
               "watchdog-detection-time",
               "150",
@@ -271,11 +271,11 @@ TEST_F(ConfigPfcTest, BufferPoolPriorityGroupAndPortPfc) {
   // Per-port PFC
   bool sawPort = false;
   for (const auto& port : sw["ports"]) {
-    if (!port.count("name") || port["name"].asString() != intf.name) {
+    if (!port.count("name") || port["name"].asString() != ifName) {
       continue;
     }
     sawPort = true;
-    ASSERT_TRUE(port.count("pfc")) << "pfc missing on " << intf.name;
+    ASSERT_TRUE(port.count("pfc")) << "pfc missing on " << ifName;
     const auto& pfc = port["pfc"];
     EXPECT_TRUE(pfc["tx"].asBool());
     EXPECT_TRUE(pfc["rx"].asBool());
@@ -287,7 +287,7 @@ TEST_F(ConfigPfcTest, BufferPoolPriorityGroupAndPortPfc) {
     EXPECT_EQ(wd["recoveryAction"].asInt(), kRecoveryNoDrop);
     break;
   }
-  EXPECT_TRUE(sawPort) << "interface " << intf.name << " not in running config";
+  EXPECT_TRUE(sawPort) << "interface " << ifName << " not in running config";
 
   XLOG(INFO) << "TEST PASSED";
 }

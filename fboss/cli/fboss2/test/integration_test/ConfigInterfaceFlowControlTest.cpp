@@ -84,7 +84,7 @@ class ConfigInterfaceFlowControlTest : public Fboss2IntegrationTest {
 TEST_F(ConfigInterfaceFlowControlTest, SetAndVerifyFlowControlRx) {
   // Step 1: Find an interface to test with
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface interface = findFirstEthInterface();
+  Interface interface = getInterfaceInfo(getRandomInterfacePortName());
   XLOG(INFO) << "  Using interface: " << interface.name << " (VLAN: "
              << (interface.vlan.has_value() ? std::to_string(*interface.vlan)
                                             : "none")
@@ -107,17 +107,17 @@ TEST_F(ConfigInterfaceFlowControlTest, SetAndVerifyFlowControlRx) {
 }
 
 TEST_F(ConfigInterfaceFlowControlTest, InvalidFlowControlRxValueIsRejected) {
-  Interface iface = findFirstEthInterface();
+  std::string ifName = getRandomInterfacePortName();
   auto result =
-      runCli({"config", "interface", iface.name, "flow-control-rx", "yes"});
+      runCli({"config", "interface", ifName, "flow-control-rx", "yes"});
   EXPECT_NE(result.exitCode, 0)
       << "Expected non-zero exit for invalid flow-control-rx value 'yes'";
 }
 
 TEST_F(ConfigInterfaceFlowControlTest, InvalidFlowControlTxValueIsRejected) {
-  Interface iface = findFirstEthInterface();
+  std::string ifName = getRandomInterfacePortName();
   auto result =
-      runCli({"config", "interface", iface.name, "flow-control-tx", "on"});
+      runCli({"config", "interface", ifName, "flow-control-tx", "on"});
   EXPECT_NE(result.exitCode, 0)
       << "Expected non-zero exit for invalid flow-control-tx value 'on'";
 }
@@ -125,7 +125,7 @@ TEST_F(ConfigInterfaceFlowControlTest, InvalidFlowControlTxValueIsRejected) {
 TEST_F(ConfigInterfaceFlowControlTest, SetAndVerifyFlowControlTx) {
   // Step 1: Find an interface to test with
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface interface = findFirstEthInterface();
+  Interface interface = getInterfaceInfo(getRandomInterfacePortName());
   XLOG(INFO) << "  Using interface: " << interface.name << " (VLAN: "
              << (interface.vlan.has_value() ? std::to_string(*interface.vlan)
                                             : "none")

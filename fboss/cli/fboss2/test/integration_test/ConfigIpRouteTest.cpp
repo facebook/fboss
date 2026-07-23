@@ -182,7 +182,7 @@ class ConfigIpRouteTest : public Fboss2IntegrationTest {
 TEST_F(ConfigIpRouteTest, AddAndDeleteIpv4Route) {
   // Step 1: Find a valid interface to use
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface interface = findFirstEthInterface();
+  Interface interface = getInterfaceInfo(getRandomInterfacePortName());
   XLOG(INFO) << "  Using interface: " << interface.name << " (VLAN: "
              << (interface.vlan.has_value() ? std::to_string(*interface.vlan)
                                             : "none")
@@ -237,7 +237,7 @@ TEST_F(ConfigIpRouteTest, AddAndDeleteIpv4Route) {
 TEST_F(ConfigIpRouteTest, AddAndDeleteIpv6Route) {
   // Step 1: Find a valid interface to use
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface interface = findFirstEthInterface();
+  Interface interface = getInterfaceInfo(getRandomInterfacePortName());
   XLOG(INFO) << "  Using interface: " << interface.name << " (VLAN: "
              << (interface.vlan.has_value() ? std::to_string(*interface.vlan)
                                             : "none")

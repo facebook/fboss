@@ -54,15 +54,15 @@ class ConfigInterfaceLldpExpectedValueTest : public Fboss2IntegrationTest {
       const std::string& attr,
       const std::string& testValue,
       const std::string& altValue) {
-    Interface iface = findFirstEthInterface();
-    XLOG(INFO) << "[" << attr << "] Using interface: " << iface.name;
+    std::string ifName = getRandomInterfacePortName();
+    XLOG(INFO) << "[" << attr << "] Using interface: " << ifName;
 
     XLOG(INFO) << "  Setting " << attr << "='" << testValue << "'";
-    setLldpExpectedValue(iface.name, attr, testValue);
+    setLldpExpectedValue(ifName, attr, testValue);
     XLOG(INFO) << "  Set OK";
 
     XLOG(INFO) << "  Overwriting with '" << altValue << "'";
-    setLldpExpectedValue(iface.name, attr, altValue);
+    setLldpExpectedValue(ifName, attr, altValue);
     XLOG(INFO) << "  Overwrite OK";
   }
 
@@ -140,25 +140,25 @@ TEST_F(ConfigInterfaceLldpExpectedValueTest, SetLldpExpectedSystemDesc) {
 // ───────────────────────────────────────────────────────────
 
 TEST_F(ConfigInterfaceLldpExpectedValueTest, EmptyPortValueIsRejected) {
-  Interface iface = findFirstEthInterface();
+  std::string ifName = getRandomInterfacePortName();
   auto result =
-      runCli({"config", "interface", iface.name, "lldp-expected-value", ""});
+      runCli({"config", "interface", ifName, "lldp-expected-value", ""});
   EXPECT_NE(result.exitCode, 0)
       << "Expected non-zero exit for empty lldp-expected-value";
 }
 
 TEST_F(ConfigInterfaceLldpExpectedValueTest, EmptyChassisValueIsRejected) {
-  Interface iface = findFirstEthInterface();
+  std::string ifName = getRandomInterfacePortName();
   auto result =
-      runCli({"config", "interface", iface.name, "lldp-expected-chassis", ""});
+      runCli({"config", "interface", ifName, "lldp-expected-chassis", ""});
   EXPECT_NE(result.exitCode, 0)
       << "Expected non-zero exit for empty lldp-expected-chassis";
 }
 
 TEST_F(ConfigInterfaceLldpExpectedValueTest, EmptySystemNameValueIsRejected) {
-  Interface iface = findFirstEthInterface();
-  auto result = runCli(
-      {"config", "interface", iface.name, "lldp-expected-system-name", ""});
+  std::string ifName = getRandomInterfacePortName();
+  auto result =
+      runCli({"config", "interface", ifName, "lldp-expected-system-name", ""});
   EXPECT_NE(result.exitCode, 0)
       << "Expected non-zero exit for empty lldp-expected-system-name";
 }

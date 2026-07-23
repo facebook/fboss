@@ -111,17 +111,17 @@ class ConfigInterfaceIpv6NdpTest : public Fboss2IntegrationTest {
 
 TEST_F(ConfigInterfaceIpv6NdpTest, SetAndVerifyRaInterval) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   const int newInterval = 30;
 
   XLOG(INFO) << "[Step 2] Setting ra-interval to " << newInterval << "...";
-  setNdpAttr(iface.name, "ra-interval", std::to_string(newInterval));
+  setNdpAttr(ifName, "ra-interval", std::to_string(newInterval));
 
   XLOG(INFO) << "[Step 3] Verifying running config via thrift...";
   expectNdpField(
-      getInterfaceIdForPort(iface.name),
+      getInterfaceIdForPort(ifName),
       "routerAdvertisementSeconds",
       [&](const folly::dynamic& v) { return v.asInt() == newInterval; },
       fmt::format("== {}", newInterval));
@@ -134,17 +134,17 @@ TEST_F(ConfigInterfaceIpv6NdpTest, SetAndVerifyRaInterval) {
 
 TEST_F(ConfigInterfaceIpv6NdpTest, SetAndVerifyHopLimit) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   const int newHopLimit = 64;
 
   XLOG(INFO) << "[Step 2] Setting hop-limit to " << newHopLimit << "...";
-  setNdpAttr(iface.name, "hop-limit", std::to_string(newHopLimit));
+  setNdpAttr(ifName, "hop-limit", std::to_string(newHopLimit));
 
   XLOG(INFO) << "[Step 3] Verifying running config via thrift...";
   expectNdpField(
-      getInterfaceIdForPort(iface.name),
+      getInterfaceIdForPort(ifName),
       "curHopLimit",
       [&](const folly::dynamic& v) { return v.asInt() == newHopLimit; },
       fmt::format("== {}", newHopLimit));
@@ -157,15 +157,15 @@ TEST_F(ConfigInterfaceIpv6NdpTest, SetAndVerifyHopLimit) {
 
 TEST_F(ConfigInterfaceIpv6NdpTest, SetManagedConfigFlag) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   XLOG(INFO) << "[Step 2] Setting managed-config-flag...";
-  setNdpAttr(iface.name, "managed-config-flag");
+  setNdpAttr(ifName, "managed-config-flag");
 
   XLOG(INFO) << "[Step 3] Verifying running config via thrift...";
   expectNdpField(
-      getInterfaceIdForPort(iface.name),
+      getInterfaceIdForPort(ifName),
       "routerAdvertisementManagedBit",
       [](const folly::dynamic& v) { return v.asBool(); },
       "== true");
@@ -178,7 +178,7 @@ TEST_F(ConfigInterfaceIpv6NdpTest, SetManagedConfigFlag) {
 
 TEST_F(ConfigInterfaceIpv6NdpTest, SetRaAddress) {
   XLOG(INFO) << "[Step 1] Finding an interface with an IPv6 address...";
-  Interface iface = findFirstEthInterface();
+  Interface iface = getInterfaceInfo(getRandomInterfacePortName());
   XLOG(INFO) << "  Using interface: " << iface.name;
 
   // ra-address must be one of the interface's own addresses, so pick the
@@ -213,12 +213,12 @@ TEST_F(ConfigInterfaceIpv6NdpTest, SetRaAddress) {
 
 TEST_F(ConfigInterfaceIpv6NdpTest, InvalidHopLimitRejected) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   XLOG(INFO) << "[Step 2] Attempting to set hop-limit=999 (out of range)...";
   auto result = runCli(
-      {"config", "interface", iface.name, "ipv6", "ndp", "hop-limit", "999"});
+      {"config", "interface", ifName, "ipv6", "ndp", "hop-limit", "999"});
   EXPECT_NE(result.exitCode, 0)
       << "Expected non-zero exit for out-of-range hop-limit";
   XLOG(INFO) << "  Correctly rejected with exit code " << result.exitCode;

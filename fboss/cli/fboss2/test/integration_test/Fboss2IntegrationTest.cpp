@@ -351,54 +351,60 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::getInterfaceInfo(
       fmt::format("Interface {} not found", interfaceName));
 }
 
-Fboss2IntegrationTest::Interface Fboss2IntegrationTest::findFirstEthInterface()
-    const {
+std::string Fboss2IntegrationTest::getRandomInterfacePortName() const {
   // Retry with backoff to handle the window where the agent is processing a
   // config reload after a preceding commit. Agent reloads can take up to ~30s.
   constexpr int kMaxRetries = 60;
   constexpr auto kRetryDelay = std::chrono::milliseconds(1000);
 
+  // Select from the agent's port list rather than 'show interface' so we only
+  // ever pick an INTERFACE_PORT. Other port types (e.g. MANAGEMENT_PORT) can
+  // still carry an L3 interface, but that interface is virtual and the agent
+  // omits its member ports from getAllInterfaces(); selecting one would make
+  // getInterfaceIdForPort() throw "No L3 interface found for port".
   for (int attempt = 0; attempt < kMaxRetries; ++attempt) {
-    auto interfaces = getAllInterfaces();
-    std::vector<Interface> upCandidates;
-    std::vector<Interface> allCandidates;
-    for (const auto& [name, intf] : interfaces) {
-      if (name.rfind("eth", 0) != 0 || !intf.vlan.has_value() ||
-          *intf.vlan <= 1) {
+    HostInfo hostInfo("localhost");
+    auto client =
+        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+    std::map<int32_t, PortInfoThrift> portEntries;
+    client->sync_getAllPortInfo(portEntries);
+
+    std::vector<std::string> upCandidates;
+    std::vector<std::string> allCandidates;
+    for (const auto& [portId, portInfo] : portEntries) {
+      if (portInfo.portType() != cfg::PortType::INTERFACE_PORT) {
         continue;
       }
-      allCandidates.push_back(intf);
-      std::string status = intf.status;
-      std::transform(status.begin(), status.end(), status.begin(), ::tolower);
-      if (status == "up") {
-        upCandidates.push_back(intf);
+      allCandidates.push_back(*portInfo.name());
+      if (portInfo.operState() == PortOperState::UP) {
+        upCandidates.push_back(*portInfo.name());
       }
     }
     const auto& pool = !upCandidates.empty() ? upCandidates : allCandidates;
     if (!pool.empty()) {
       thread_local std::mt19937 rng{std::random_device{}()};
       std::uniform_int_distribution<size_t> dist(0, pool.size() - 1);
-      const auto& chosen = pool[dist(rng)];
-      XLOG(INFO) << "Selected test interface " << chosen.name
-                 << " (status=" << chosen.status
-                 << ", pool=" << (!upCandidates.empty() ? "up" : "all")
+      const auto& chosenName = pool[dist(rng)];
+      XLOG(INFO) << "Selected test interface " << chosenName
+                 << " (pool=" << (!upCandidates.empty() ? "up" : "all")
                  << ", size=" << pool.size() << ")";
-      return chosen;
+      // Callers that need vlan/addresses/description can pass this name to
+      // getInterfaceInfo().
+      return chosenName;
     }
     if (attempt + 1 < kMaxRetries) {
-      XLOG(WARN) << "findFirstEthInterface: no suitable interface found "
+      XLOG(WARN) << "getRandomInterfacePortName: no INTERFACE_PORT found "
                     "(attempt "
                  << (attempt + 1) << "/" << kMaxRetries
                  << "), retrying in 1s...";
-      // Polling backoff: the interface list is populated asynchronously by the
+      // Polling backoff: the port list is populated asynchronously by the
       // agent, with no event/future to await, so a short delay between retries
       // is the appropriate pattern here.
       // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
       std::this_thread::sleep_for(kRetryDelay);
     }
   }
-  throw std::runtime_error(
-      "No suitable ethernet interface found with VLAN > 1");
+  throw std::runtime_error("No INTERFACE_PORT found in getAllPortInfo");
 }
 
 std::optional<Fboss2IntegrationTest::Interface>

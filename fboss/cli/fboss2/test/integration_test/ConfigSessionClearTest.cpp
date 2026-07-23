@@ -52,14 +52,14 @@ class ConfigSessionClearTest : public Fboss2IntegrationTest {
 TEST_F(ConfigSessionClearTest, CreateAndClearSession) {
   // Step 1: Find an interface to make a config change
   XLOG(INFO) << "[Step 1] Finding an interface to create a session...";
-  Interface interface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << interface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   // Step 2: Make a config change to create a session
   XLOG(INFO) << "[Step 2] Making a config change to create a session...";
   std::string testDescription = "CLI_E2E_SESSION_CLEAR_TEST";
-  auto result = runCli(
-      {"config", "interface", interface.name, "description", testDescription});
+  auto result =
+      runCli({"config", "interface", ifName, "description", testDescription});
   ASSERT_EQ(result.exitCode, 0)
       << "Failed to set description: " << result.stderr;
   XLOG(INFO) << "  Config change made successfully";

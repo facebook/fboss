@@ -39,22 +39,21 @@ class ConfigInterfaceTypeTest : public Fboss2IntegrationTest {
 };
 
 TEST_F(ConfigInterfaceTypeTest, InvalidTypeIsRejected) {
-  Interface iface = findFirstEthInterface();
-  auto result =
-      runCli({"config", "interface", iface.name, "type", "fabric-port"});
+  std::string ifName = getRandomInterfacePortName();
+  auto result = runCli({"config", "interface", ifName, "type", "fabric-port"});
   EXPECT_NE(result.exitCode, 0)
       << "Expected non-zero exit for invalid type 'fabric-port'";
 }
 
 TEST_F(ConfigInterfaceTypeTest, EmptyTypeIsRejected) {
-  Interface iface = findFirstEthInterface();
-  auto result = runCli({"config", "interface", iface.name, "type", ""});
+  std::string ifName = getRandomInterfacePortName();
+  auto result = runCli({"config", "interface", ifName, "type", ""});
   EXPECT_NE(result.exitCode, 0)
       << "Expected non-zero exit for empty type value";
 }
 
 // Disabled: the restore step assumes the interface's PVID corresponds to an
-// existing `Vlan` config entry, but `findFirstEthInterface()` returns any
+// existing `Vlan` config entry, but `getRandomInterfacePortName()` returns any
 // interface with a PVID — which is only a port attribute, not a guaranteed
 // Vlan entity. `config interface switchport access vlan` then rejects the
 // restore with "VLAN N does not exist". Re-enable once the test picks an
@@ -63,7 +62,7 @@ TEST_F(ConfigInterfaceTypeTest, DISABLED_SetAndVerifyTypeRoutedPort) {
   // Step 1: Find a switched interface to test with (needs VLAN to restore
   // later)
   XLOG(INFO) << "[Step 1] Finding a switched interface to test...";
-  Interface interface = findFirstEthInterface();
+  Interface interface = getInterfaceInfo(getRandomInterfacePortName());
   ASSERT_TRUE(interface.vlan.has_value())
       << "Expected interface with a VLAN for proper restore";
   int originalVlan = *interface.vlan;

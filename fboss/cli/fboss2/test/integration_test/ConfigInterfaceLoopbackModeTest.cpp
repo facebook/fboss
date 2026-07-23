@@ -46,9 +46,9 @@ class ConfigInterfaceLoopbackModeTest : public Fboss2IntegrationTest {
 };
 
 TEST_F(ConfigInterfaceLoopbackModeTest, InvalidLoopbackModeIsRejected) {
-  Interface iface = findFirstEthInterface();
-  auto result = runCli(
-      {"config", "interface", iface.name, "loopback-mode", "full-duplex"});
+  std::string ifName = getRandomInterfacePortName();
+  auto result =
+      runCli({"config", "interface", ifName, "loopback-mode", "full-duplex"});
   EXPECT_NE(result.exitCode, 0)
       << "Expected non-zero exit for invalid loopback-mode value 'full-duplex'";
 }
@@ -62,7 +62,7 @@ TEST_F(ConfigInterfaceLoopbackModeTest, InvalidLoopbackModeIsRejected) {
 TEST_F(ConfigInterfaceLoopbackModeTest, DISABLED_SetAndVerifyLoopbackMode) {
   // Step 1: Find an interface to test with
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface interface = findFirstEthInterface();
+  Interface interface = getInterfaceInfo(getRandomInterfacePortName());
   XLOG(INFO) << "  Using interface: " << interface.name << " (VLAN: "
              << (interface.vlan.has_value() ? std::to_string(*interface.vlan)
                                             : "none")

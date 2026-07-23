@@ -205,18 +205,24 @@ class Fboss2IntegrationTest : public ::testing::Test {
   std::map<std::string, Interface> getAllInterfaces() const;
 
   /**
-   * Pick an ethernet interface for testing.
+   * Pick a random INTERFACE_PORT for testing and return its name.
    *
-   * Interfaces whose status indicates they are up are strongly preferred — if
-   * at least one matches, a random one is returned. If none are up, a random
-   * interface from all ethernet candidates is returned. An "ethernet
-   * candidate" is any interface whose name starts with "eth" and has
-   * VLAN > 1. Throws if no candidates exist.
+   * Candidates come from the agent's getAllPortInfo() and are restricted to
+   * INTERFACE_PORT ports, so the returned port is always L3-resolvable via
+   * getInterfaceIdForPort(). (Other port types such as MANAGEMENT_PORT may
+   * carry a virtual L3 interface whose member ports the agent omits from
+   * getAllInterfaces(), which would break port->interface lookups.) Ports that
+   * are operationally up are strongly preferred — if at least one is up, a
+   * random up port is chosen; otherwise a random INTERFACE_PORT is chosen.
+   * Throws if no INTERFACE_PORT exists.
    *
    * The selection is randomized (thread-local mt19937) to reduce the chance
    * of piling test load onto the same port across back-to-back runs.
+   *
+   * Callers that need the full Interface object (vlan/addresses/description)
+   * should pass the returned name to getInterfaceInfo().
    */
-  Interface findFirstEthInterface() const;
+  std::string getRandomInterfacePortName() const;
 
   /**
    * Find the first ethernet interface that has a non-zero MTU reported by
