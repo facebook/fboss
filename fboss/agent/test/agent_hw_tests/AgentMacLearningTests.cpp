@@ -697,10 +697,11 @@ class AgentMacLearningAndMyStationInteractionTest
         auto vlanId =
             VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
         auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+        auto smac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
         auto txPacket = utility::makeIpTxPacket(
             [sw = getSw()](uint32_t size) { return sw->allocatePacket(size); },
             vlanId,
-            intfMac,
+            smac,
             intfMac,
             folly::IPAddress("1000::1"),
             folly::IPAddress("2000::1"));
