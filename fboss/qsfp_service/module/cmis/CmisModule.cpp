@@ -1650,15 +1650,21 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
         getChannelFlags(CmisField::TX_PWR_FLAG, channel);
   }
 
+  // AEC modules don't support rx/tx power monitoring
+  const bool isAec = isAecModule();
+
   for (int channel = 0; channel < numMediaLanes(); channel++) {
     const uint8_t* data =
         getLaneValuePtr(CmisField::CHANNEL_RX_PWR, channel, 2);
     uint16_t value = data[0] << 8 | data[1];
     auto pwr = CmisFieldInfo::getPwr(value); // This is in mW
+    // TODO: we should probably make rxPwr optional as well
     channels.at(channel).sensors()->rxPwr()->value() = pwr;
-    Sensor rxDbm;
-    rxDbm.value() = mwToDb(pwr);
-    channels.at(channel).sensors()->rxPwrdBm() = rxDbm;
+    if (!isAec) {
+      Sensor rxDbm;
+      rxDbm.value() = mwToDb(pwr);
+      channels.at(channel).sensors()->rxPwrdBm() = rxDbm;
+    }
   }
 
   // For Tx bias, take care of multiplier. The multiplier is module-level
@@ -1682,10 +1688,13 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
         getLaneValuePtr(CmisField::CHANNEL_TX_PWR, channel, 2);
     uint16_t value = data[0] << 8 | data[1];
     auto pwr = CmisFieldInfo::getPwr(value); // This is in mW
+    // TODO: we should probably make txPwr optional as well
     channels.at(channel).sensors()->txPwr()->value() = pwr;
-    Sensor txDbm;
-    txDbm.value() = mwToDb(pwr);
-    channels.at(channel).sensors()->txPwrdBm() = txDbm;
+    if (!isAec) {
+      Sensor txDbm;
+      txDbm.value() = mwToDb(pwr);
+      channels.at(channel).sensors()->txPwrdBm() = txDbm;
+    }
   }
 
   for (int channel = 0; channel < numMediaLanes(); channel++) {

@@ -449,6 +449,12 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   };
   tests.verifyLaneDom(laneDom, xcvr->numMediaLanes());
 
+  // Optical modules populate the converted dBm power fields
+  for (const auto& channel : *info.tcvrStats()->channels()) {
+    EXPECT_TRUE(channel.sensors()->rxPwrdBm().has_value());
+    EXPECT_TRUE(channel.sensors()->txPwrdBm().has_value());
+  }
+
   std::map<std::string, std::vector<bool>> expectedMediaSignals = {
       {"Tx_Los", {1, 1, 0, 1}},
       {"Rx_Los", {1, 0, 1, 0}},
@@ -2205,6 +2211,15 @@ TEST_F(CmisTest, cmisCredo800AecInfoTest) {
   for (auto portState : {badPortState1, badPortState2, badPortState3}) {
     EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
   }
+
+  // AEC modules leave the optical dBm fields unset; mW values stay populated
+  const auto& channels = *info.tcvrStats()->channels();
+  EXPECT_EQ(channels.size(), xcvr->numMediaLanes());
+  for (const auto& channel : channels) {
+    EXPECT_FALSE(channel.sensors()->rxPwrdBm().has_value());
+    EXPECT_FALSE(channel.sensors()->txPwrdBm().has_value());
+  }
+
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
