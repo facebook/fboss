@@ -22,8 +22,10 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -806,6 +808,103 @@ TEST_F(ProdInvariantStswTest, verifyInvariants) {
     verifyThriftHandler();
     verifyFlowletAcls();
     verifyDlbGroups();
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+class ProdInvariantSuswTest : public ProdInvariantTest {
+ public:
+  ProdInvariantSuswTest() {
+    set_mmu_lossless(true);
+  }
+
+ protected:
+  void SetUp() override {
+    // Scale-up switches do not run load-balancing or DLB invariants, so skip
+    // the base SetUp's ECMP route programming over uplinks, which requires
+    // every uplink to have a resolvable next hop.
+    AgentEnsembleTest::SetUp();
+    XLOG(DBG2) << "ProdInvariantSuswTest setup done";
+  }
+
+  // Scale-up switches run with ndp_static_neighbor set, which keeps every
+  // downlink interface soliciting its (unresolvable, under loopback) neighbor.
+  // The resulting ff02:: NDP packets are continuously punted to the high
+  // priority CPU queue, so an exact-delta check on it is not meaningful here.
+  // Verify only the mid priority (IP2Me) queue.
+  void verifyCopp() {
+    AgentEnsemble* ensemble = getAgentEnsemble();
+    const auto ports = getAllPlatformPorts(ensemble->getPlatformPorts());
+    const auto switchId = getSw()->getScopeResolver()->scope(ports).switchId();
+    const auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+    const auto state = getSw()->getState();
+    const auto srcPort = getDownlinkPort();
+    auto intf = utility::getEligibleInterface(state, srcPort);
+    if (!intf) {
+      throw FbossError(
+          "No eligible uplink/downlink interfaces in config to verify COPP invariant");
+    }
+    auto addrs = intf->getAddressesCopy();
+    const auto vlanId = utility::getSwitchVlanIDForTx(getSw(), intf);
+    const auto intfMac = intf->getMac();
+    auto sendPkts = [&]() {
+      utility::sendTcpPkts(
+          getSw(),
+          1 /*numPktsToSend*/,
+          vlanId,
+          intfMac,
+          addrs.begin()->first,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2,
+          srcPort);
+    };
+    utility::sendPktAndVerifyCpuQueue(
+        getSw(),
+        switchId,
+        utility::getCoppMidPriQueueId({asic}),
+        sendPkts,
+        1 /*expectedPktDelta*/,
+        false /*verifyPktCntInOtherQueues*/);
+    XLOG(DBG2) << "Verify COPP (mid priority queue only) Done";
+  }
+
+  // Documents why the high priority CPU queue is not checked in verifyCopp():
+  // with ndp_static_neighbor set, unresolved neighbor entries never expire and
+  // keep emitting ff02:: NDP solicitations, which are punted to the high
+  // priority CPU queue and increment its counters continuously.
+  void verifyNdpStaticNeighborCpuPunts() {
+    if (!FLAGS_ndp_static_neighbor) {
+      return;
+    }
+    AgentEnsemble* ensemble = getAgentEnsemble();
+    const auto ports = getAllPlatformPorts(ensemble->getPlatformPorts());
+    const auto switchId = getSw()->getScopeResolver()->scope(ports).switchId();
+    const auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+    const auto hiPriQueueId = utility::getCoppHighPriQueueId(asic);
+    const auto before =
+        utility::getCpuQueueOutPacketsAndBytes(getSw(), hiPriQueueId, switchId)
+            .first;
+    WITH_RETRIES({
+      const auto after = utility::getCpuQueueOutPacketsAndBytes(
+                             getSw(), hiPriQueueId, switchId)
+                             .first;
+      XLOG(DBG2) << "ndp_static_neighbor high priority CPU punts: " << before
+                 << " -> " << after;
+      EXPECT_EVENTUALLY_GT(after, before);
+    });
+    XLOG(DBG2) << "Verify ndp_static_neighbor high priority CPU punts Done";
+  }
+};
+
+TEST_F(ProdInvariantSuswTest, verifyInvariants) {
+  auto setup = [&]() {};
+  auto verify = [&]() {
+    verifyAcl();
+    verifyCopp();
+    verifyNdpStaticNeighborCpuPunts();
+    verifyDscpToQueueMapping();
+    verifySafeDiagCommands();
+    verifyThriftHandler();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
