@@ -28,6 +28,39 @@ class SaiStoreTest;
 
 namespace detail {
 
+template <typename SaiObjectTraits>
+using AdapterHostKeyT = typename SaiObjectTraits::AdapterHostKey;
+
+template <typename SaiObjectTraits>
+concept SaiObjectCreateAttributes =
+    SaiAttributeTuple<typename SaiObjectTraits::CreateAttributes>;
+
+template <typename SaiObjectTraits>
+concept AdapterHostKeyFromCreateAttribute =
+    (SaiObjectCreateAttributes<SaiObjectTraits> &&
+     IsElementOfTuple<
+         AdapterHostKeyT<SaiObjectTraits>,
+         typename SaiObjectTraits::CreateAttributes>::value);
+
+template <typename SaiObjectTraits>
+concept AdapterHostKeyFromCreateAttributeSubset =
+    (SaiObjectCreateAttributes<SaiObjectTraits> &&
+     IsSubsetOfTuple<
+         AdapterHostKeyT<SaiObjectTraits>,
+         typename SaiObjectTraits::CreateAttributes>::value);
+
+template <typename SaiObjectTraits>
+concept AdapterHostKeyFromEntryStruct =
+    IsSaiEntryStruct<AdapterHostKeyT<SaiObjectTraits>>::value;
+
+template <typename SaiObjectTraits>
+concept SingleInstanceSaiObject =
+    std::is_same_v<AdapterHostKeyT<SaiObjectTraits>, std::monostate>;
+
+template <typename SaiObjectTraits>
+concept NextHopGroupSaiObject =
+    std::is_same_v<SaiObjectTraits, SaiNextHopGroupTraits>;
+
 /*
  * For now, adapter host key extraction is a little clumsy.
  *
@@ -53,42 +86,22 @@ namespace detail {
 
 // If the adapter host key is one of the CreateAttributes of the object,
 // simply extract that attribute from the tuple of CreateAttributes.
-template <
-    typename SaiObjectTraits,
-    typename T = typename SaiObjectTraits::AdapterHostKey>
-typename std::enable_if_t<
-    IsElementOfTuple<T, typename SaiObjectTraits::CreateAttributes>::value,
-    T>
-adapterHostKey(
-    const typename SaiObjectTraits::AdapterKey& adapterKey,
+template <typename SaiObjectTraits>
+  requires AdapterHostKeyFromCreateAttribute<SaiObjectTraits>
+typename SaiObjectTraits::AdapterHostKey adapterHostKey(
+    const typename SaiObjectTraits::AdapterKey&,
     const typename SaiObjectTraits::CreateAttributes& attributes) {
-  static_assert(
-      IsTupleOfSaiAttributes<typename SaiObjectTraits::CreateAttributes>::value,
-      "attributes must be an std::tuple of SaiAttributes");
-  static_assert(
-      std::is_same_v<T, typename SaiObjectTraits::AdapterHostKey>,
-      "placeholder template parameter must be adapter host key type");
   return std::get<typename SaiObjectTraits::AdapterHostKey>(attributes);
 }
 
 // If the adapter host key is a tuple subset of the CreateAttributes of the
 // object (e.g., key=std:tuple<A,C>, create=std::tuple<A,B,C,D>), then
 // project the full set of CreateAttributes onto the subset.
-template <
-    typename SaiObjectTraits,
-    typename T = typename SaiObjectTraits::AdapterHostKey>
-typename std::enable_if_t<
-    IsSubsetOfTuple<T, typename SaiObjectTraits::CreateAttributes>::value,
-    T>
-adapterHostKey(
-    const typename SaiObjectTraits::AdapterKey& adapterKey,
+template <typename SaiObjectTraits>
+  requires AdapterHostKeyFromCreateAttributeSubset<SaiObjectTraits>
+typename SaiObjectTraits::AdapterHostKey adapterHostKey(
+    const typename SaiObjectTraits::AdapterKey&,
     const typename SaiObjectTraits::CreateAttributes& attributes) {
-  static_assert(
-      IsTupleOfSaiAttributes<typename SaiObjectTraits::CreateAttributes>::value,
-      "attributes must be an std::tuple of SaiAttributes");
-  static_assert(
-      std::is_same_v<T, typename SaiObjectTraits::AdapterHostKey>,
-      "placeholder template parameter must be adapter host key type");
   return tupleProjection<
       typename SaiObjectTraits::CreateAttributes,
       typename SaiObjectTraits::AdapterHostKey>(attributes);
@@ -96,40 +109,29 @@ adapterHostKey(
 
 // If the adapter host key is an entry type (e.g. RouteEntry, FdbEntry), simply
 // return the adapter key, which must also be the entry type.
-template <
-    typename SaiObjectTraits,
-    typename T = typename SaiObjectTraits::AdapterHostKey>
-typename std::enable_if_t<IsSaiEntryStruct<T>::value, T> adapterHostKey(
+template <typename SaiObjectTraits>
+  requires AdapterHostKeyFromEntryStruct<SaiObjectTraits>
+typename SaiObjectTraits::AdapterHostKey adapterHostKey(
     const typename SaiObjectTraits::AdapterKey& adapterKey,
-    const typename SaiObjectTraits::CreateAttributes& attributes) {
-  static_assert(
-      std::is_same_v<T, typename SaiObjectTraits::AdapterHostKey>,
-      "placeholder template parameter must be adapter host key type");
+    const typename SaiObjectTraits::CreateAttributes&) {
   return adapterKey;
 }
 
 // If the object always has only a single value, the key will be std::monostate
-template <
-    typename SaiObjectTraits,
-    typename T = typename SaiObjectTraits::AdapterHostKey>
-typename std::enable_if_t<std::is_same_v<T, std::monostate>, T> adapterHostKey(
-    const typename SaiObjectTraits::AdapterKey& adapterKey,
-    const typename SaiObjectTraits::CreateAttributes& attributes) {
-  static_assert(
-      std::is_same_v<T, typename SaiObjectTraits::AdapterHostKey>,
-      "placeholder template parameter must be adapter host key type");
+template <typename SaiObjectTraits>
+  requires SingleInstanceSaiObject<SaiObjectTraits>
+typename SaiObjectTraits::AdapterHostKey adapterHostKey(
+    const typename SaiObjectTraits::AdapterKey&,
+    const typename SaiObjectTraits::CreateAttributes&) {
   return std::monostate{};
 }
 
 // Exactly a special case for NextHopGroup
-template <
-    typename SaiObjectTraits,
-    typename T = typename SaiObjectTraits::AdapterHostKey>
-typename std::
-    enable_if_t<std::is_same_v<SaiObjectTraits, SaiNextHopGroupTraits>, T>
-    adapterHostKey(
-        const typename SaiObjectTraits::AdapterKey& adapterKey,
-        const typename SaiObjectTraits::CreateAttributes& attributes) {
+template <typename SaiObjectTraits>
+  requires NextHopGroupSaiObject<SaiObjectTraits>
+typename SaiObjectTraits::AdapterHostKey adapterHostKey(
+    const typename SaiObjectTraits::AdapterKey& adapterKey,
+    const typename SaiObjectTraits::CreateAttributes& attributes) {
   typename SaiObjectTraits::AdapterHostKey ret;
   const auto& apiTable = SaiApiTable::getInstance();
   auto memberIds = apiTable->nextHopGroupApi().getAttribute(
