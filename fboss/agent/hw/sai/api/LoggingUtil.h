@@ -131,10 +131,9 @@ template <
     typename DataT,
     typename DefaultGetterT>
 struct formatter<
-    facebook::fboss::
-        SaiAttribute<AttrEnumT, AttrEnum, DataT, DefaultGetterT, void>> {
-  using AttrT = facebook::fboss::
-      SaiAttribute<AttrEnumT, AttrEnum, DataT, DefaultGetterT, void>;
+    facebook::fboss::SaiAttribute<AttrEnumT, AttrEnum, DataT, DefaultGetterT>> {
+  using AttrT =
+      facebook::fboss::SaiAttribute<AttrEnumT, AttrEnum, DataT, DefaultGetterT>;
 
   template <typename ParseContext>
   constexpr auto parse(ParseContext& ctx) const {
