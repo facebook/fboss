@@ -1,6 +1,54 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_platform")
+
+# Pure (folly-only) helpers used by the platform Thrift connection acceptor:
+# parsing the trusted-subnet allowlist and deciding whether a client IP is
+# trusted. Split out so the security-relevant logic is unit testable without
+# pulling in the Thrift server stack.
+cpp_library(
+    name = "platform_thrift_acceptor_util",
+    headers = [
+        "PlatformThriftAcceptorUtil.h",
+    ],
+    exported_deps = [
+        "//folly:network_address",
+        "//folly:string",
+    ],
+)
+
+# Connection-level acceptor that admits only loopback + trusted-subnet peers.
+# Header-only; consumed by the OSS runThriftService bootstrap.
+cpp_library(
+    name = "platform_thrift_acceptor",
+    headers = [
+        "PlatformThriftAcceptor.h",
+    ],
+    exported_deps = [
+        ":platform_thrift_acceptor_util",
+        "//folly:network_address",
+        "//folly/io/async:async_transport",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2:server",
+        "//wangle/acceptor:acceptor",
+    ],
+)
+
+cpp_unittest(
+    name = "platform_thrift_acceptor_test",
+    srcs = [
+        "facebook/PlatformThriftAcceptorTest.cpp",
+    ],
+    # Pure in-process string/IP logic; no network access needed.
+    network_access = network_access_utils.none(),
+    deps = [
+        ":platform_thrift_acceptor",
+        ":platform_thrift_acceptor_util",
+        "//folly:network_address",
+    ],
+)
 
 cpp_library(
     name = "expect_session",
