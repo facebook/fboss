@@ -97,6 +97,34 @@ bool ConfigValidator::isValid(const FanServiceConfig& config) {
     }
   }
 
+  if (config.deadFanShutdownCondition()) {
+    if (*config.deadFanShutdownCondition()->numDeadFans() <= 0) {
+      XLOG(ERR)
+          << "deadFanShutdownCondition.numDeadFans must be greater than 0";
+      return false;
+    }
+    if (config.deadFanShutdownCondition()->fanDeadShutdownCmds()->empty()) {
+      XLOG(ERR)
+          << "deadFanShutdownCondition.fanDeadShutdownCmds cannot be empty";
+      return false;
+    }
+    for (const auto& shutdownCmd :
+         *config.deadFanShutdownCondition()->fanDeadShutdownCmds()) {
+      if (shutdownCmd.empty()) {
+        XLOG(ERR)
+            << "deadFanShutdownCondition.fanDeadShutdownCmds cannot contain empty commands";
+        return false;
+      }
+    }
+    if (config.deadFanShutdownCondition()->fanDeadPwmValue() &&
+        (*config.deadFanShutdownCondition()->fanDeadPwmValue() < 0 ||
+         *config.deadFanShutdownCondition()->fanDeadPwmValue() > 100)) {
+      XLOG(ERR)
+          << "deadFanShutdownCondition.fanDeadPwmValue must be between 0 and 100";
+      return false;
+    }
+  }
+
   return true;
 }
 
