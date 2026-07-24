@@ -96,6 +96,10 @@
 #include "fboss/cli/fboss2/commands/show/rif/CmdShowRif.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
+#include "fboss/cli/fboss2/commands/show/route/CmdShowRouteStatic.h"
+#include "fboss/cli/fboss2/commands/show/route/CmdShowRouteStaticIp.h"
+#include "fboss/cli/fboss2/commands/show/route/CmdShowRouteStaticIpv6.h"
+#include "fboss/cli/fboss2/commands/show/route/CmdShowRouteStaticMpls.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
 #include "fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h"
@@ -401,7 +405,23 @@ const CommandTree& kCommandTree() {
         {"summary",
          "Print a summary of routing tables",
          commandHandler<CmdShowRouteSummary>,
-         argTypeHandler<CmdShowRouteSummaryTraits>}}},
+         argTypeHandler<CmdShowRouteSummaryTraits>},
+        {"static",
+         "Show static routes",
+         commandHandler<CmdShowRouteStatic>,
+         argTypeHandler<CmdShowRouteStaticTraits>,
+         {{"ip",
+           "Show static IPv4 routes",
+           commandHandler<CmdShowRouteStaticIp>,
+           argTypeHandler<CmdShowRouteStaticIpTraits>},
+          {"ipv6",
+           "Show static IPv6 routes",
+           commandHandler<CmdShowRouteStaticIpv6>,
+           argTypeHandler<CmdShowRouteStaticIpv6Traits>},
+          {"mpls",
+           "Show static MPLS routes",
+           commandHandler<CmdShowRouteStaticMpls>,
+           argTypeHandler<CmdShowRouteStaticMplsTraits>}}}}},
 
       {"show",
        "mac",
