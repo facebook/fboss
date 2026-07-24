@@ -390,7 +390,11 @@ SaiSwitchTraits::Attributes::AttributePfcMonitorEnable::operator()() {
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeCablePropagationDelayMeasurement::operator()() {
+#if defined(CHENAB_SAI_SDK_GTE_2511_36)
+  return SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT;
+#else
   return std::nullopt;
+#endif
 }
 
 std::optional<sai_attr_id_t>
