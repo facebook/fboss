@@ -1031,19 +1031,14 @@ class SaiExtensionAttribute {
   ValueType value_{};
 };
 
-template <typename T>
-struct IsSaiExtensionAttribute<SaiExtensionAttribute<T>, void>
+template <typename ValueT, typename AttributeIdT, typename DefaultGetterT>
+struct IsSaiExtensionAttribute<
+    SaiExtensionAttribute<ValueT, AttributeIdT, DefaultGetterT>>
     : std::true_type {};
 
 template <typename T>
-struct IsSaiExtensionAttribute<
-    T,
-    std::enable_if_t<std::is_base_of_v<
-        SaiExtensionAttribute<
-            typename T::ValueType,
-            typename T::AttributeId,
-            typename T::DefaultGetter>,
-        T>>> : std::true_type {};
+concept SaiExtensionAttributeType =
+    IsSaiExtensionAttribute<std::remove_cvref_t<T>>::value;
 
 // implement trait that detects SaiAttribute
 template <
@@ -1054,12 +1049,8 @@ template <
 struct IsSaiAttribute<SaiAttribute<AttrEnumT, AttrEnum, DataT, DefaultGetterT>>
     : public std::true_type {};
 
-template <typename T>
-struct IsSaiAttribute<SaiExtensionAttribute<T>> : public std::true_type {};
-
-template <typename T>
-struct IsSaiAttribute<T, std::enable_if_t<IsSaiExtensionAttribute<T>::value>>
-    : std::true_type {};
+template <SaiExtensionAttributeType T>
+struct IsSaiAttribute<T> : std::true_type {};
 
 template <typename AttrT>
 struct AttributeName {
