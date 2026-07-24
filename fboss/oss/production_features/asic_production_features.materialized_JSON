@@ -644,7 +644,8 @@
         93,
         49,
         96,
-        97
+        97,
+        118
     ],
     "yuba": [
         2,
@@ -1348,7 +1349,8 @@
         "PFC_TX_DURATION",
         "MIRROR_ON_DROP",
         "MIRROR_ON_DROP_XGS",
-        "ECN_PROBABILISTIC_MARKING"
+        "ECN_PROBABILISTIC_MARKING",
+        "LINK_LAYER_RETRANSMISSION"
     ],
     "yuba": [
         "CPU_RX_TX",
