@@ -4837,9 +4837,6 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
   if (config->desiredPeerAddressIPv6().has_value()) {
     intf->setDesiredPeerAddressIPv6(config->desiredPeerAddressIPv6().value());
   }
-  if (config->desiredPeerAddressIPv4().has_value()) {
-    intf->setDesiredPeerAddressIPv4(config->desiredPeerAddressIPv4().value());
-  }
   return intf;
 }
 
@@ -4884,13 +4881,11 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
     return true;
   };
 
-  bool changedDesiredPeer = desiredPeerChanged(
-                                config->desiredPeerName(),
-                                orig->getDesiredPeerName()) ||
-      desiredPeerChanged(config->desiredPeerAddressIPv6(),
-                         orig->getDesiredPeerAddressIPv6()) ||
-      desiredPeerChanged(config->desiredPeerAddressIPv4(),
-                         orig->getDesiredPeerAddressIPv4());
+  bool changedDesiredPeer =
+      desiredPeerChanged(
+          config->desiredPeerName(), orig->getDesiredPeerName()) ||
+      desiredPeerChanged(
+          config->desiredPeerAddressIPv6(), orig->getDesiredPeerAddressIPv6());
 
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
       (orig->getVlanIDHelper() == VlanID(*config->vlanID())) &&
@@ -4934,10 +4929,6 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   if (config->desiredPeerAddressIPv6().has_value()) {
     newIntf->setDesiredPeerAddressIPv6(
         config->desiredPeerAddressIPv6().value());
-  }
-  if (config->desiredPeerAddressIPv4().has_value()) {
-    newIntf->setDesiredPeerAddressIPv4(
-        config->desiredPeerAddressIPv4().value());
   }
 
   return newIntf;

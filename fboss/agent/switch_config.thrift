@@ -1693,7 +1693,6 @@ struct Interface {
    * These fields contains information of remote GPU */
   18: optional string desiredPeerName;
   19: optional string desiredPeerAddressIPv6;
-  20: optional string desiredPeerAddressIPv4;
 }
 
 struct StaticRouteWithNextHops {
