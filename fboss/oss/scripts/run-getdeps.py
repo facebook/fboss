@@ -201,9 +201,11 @@ def parse_args():
     parser.add_argument(
         ARG_NPU_LIBSAI_IMPL_TARBALL,
         required=False,
-        help="Full path to a pre-built libsai_impl.tar.gz containing lib/ and include/ "
-        f"subdirectories. Mutually exclusive with {ARG_NPU_LIBSAI_IMPL_PATH} and "
-        f"{ARG_NPU_EXPERIMENTS_PATH}.",
+        help="Full path to a pre-built NPU SDK tarball. May use either the flat "
+        f"layout consumed by {ARG_NPU_LIBSAI_IMPL_PATH}/{ARG_NPU_EXPERIMENTS_PATH} "
+        "(libsai_impl.a plus an experimental/ headers dir) or a lib/ + include/ "
+        "layout, optionally under a single top-level directory. Mutually exclusive "
+        f"with {ARG_NPU_LIBSAI_IMPL_PATH} and {ARG_NPU_EXPERIMENTS_PATH}.",
     )
     parser.add_argument(
         ARG_NPU_EXPERIMENTS_PATH,
@@ -527,6 +529,43 @@ def _edit_libsai_manifest(version):
     print_info(f"Updated libsai manifest for SAI version {version}")
 
 
+def _find_dir_with_file(root, filename):
+    """First directory at/under root that directly contains filename, or None."""
+    for dirpath, _dirs, files in os.walk(root):
+        if filename in files:
+            return dirpath
+    return None
+
+
+def _stage_npu_sdk(libsai_impl_dir, experiments_dir):
+    """Stage a flat NPU SDK into a temp prefix and prepend it to
+    CMAKE_PREFIX_PATH. Shared by the --npu-libsai-impl-path and
+    --npu-libsai-impl-tarball flows.
+
+    ``libsai_impl_dir`` holds libsai_impl.a (and any sibling libs /
+    sai_dependencies.txt). ``experiments_dir`` holds the flat SAI extension
+    headers and is symlinked BOTH as include/ (so bare includes like
+    <brcm_sai_extensions.h> resolve) and as experimental/ off the staging root
+    (so <experimental/...>-prefixed includes resolve, since SAI_IMPL_DIR puts the
+    staging root on the include path).
+    """
+    staging_dir = tempfile.mkdtemp(prefix="fboss_sdk_")
+    abs_lib = os.path.abspath(libsai_impl_dir)
+    abs_exp = os.path.abspath(experiments_dir)
+    os.symlink(abs_lib, os.path.join(staging_dir, "lib"))
+    os.symlink(abs_exp, os.path.join(staging_dir, "include"))
+    os.symlink(abs_exp, os.path.join(staging_dir, "experimental"))
+    print_info(f"Symlinked {abs_lib} -> {os.path.join(staging_dir, 'lib')}")
+    print_info(f"Symlinked {abs_exp} -> {os.path.join(staging_dir, 'include')}")
+    print_info(f"Symlinked {abs_exp} -> {os.path.join(staging_dir, 'experimental')}")
+    print_info(f"Staged SDK artifacts in {staging_dir}")
+
+    existing = os.environ.get("CMAKE_PREFIX_PATH", "")
+    os.environ["CMAKE_PREFIX_PATH"] = (
+        f"{staging_dir}:{existing}" if existing else staging_dir
+    )
+
+
 def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
     """Validate SDK artifact paths, stage them, and prepend to CMAKE_PREFIX_PATH.
 
@@ -577,41 +616,7 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
         )
         sys.exit(1)
 
-    # Stage artifacts into a prefix directory with lib/ and include/ subdirs.
-    # The lib/ symlink points at the source directory so libsai_impl.a and
-    # any siblings (sai_dependencies.txt, extra SDK libs) are visible to CMake.
-    #
-    # Vendor SDKs ship their SAI extension headers flat in the experiments dir
-    # (e.g. <exp>/saiextensions.h and <exp>/saitamextensions.h), but FBOSS
-    # references them with two different include forms: bare (e.g.
-    # <saiextensions.h>, <brcm_sai_extensions.h>) and "experimental/"-prefixed
-    # (e.g. <experimental/saitamextensions.h>). To make both forms resolve
-    # against the single flat directory, stage it twice: as include/ (so bare
-    # includes resolve) and as experimental/ off the staging root (so prefixed
-    # includes resolve, since the staging root is on the include path).
-    staging_dir = tempfile.mkdtemp(prefix="fboss_sdk_")
-    abs_libsai_impl_path = os.path.abspath(libsai_impl_path)
-    abs_experiments_path = os.path.abspath(experiments_path)
-    os.symlink(abs_libsai_impl_path, os.path.join(staging_dir, "lib"))
-    os.symlink(abs_experiments_path, os.path.join(staging_dir, "include"))
-    os.symlink(abs_experiments_path, os.path.join(staging_dir, "experimental"))
-    print_info(
-        f"Symlinked {abs_libsai_impl_path} -> {os.path.join(staging_dir, 'lib')}"
-    )
-    print_info(
-        f"Symlinked {abs_experiments_path} -> {os.path.join(staging_dir, 'include')}"
-    )
-    print_info(
-        f"Symlinked {abs_experiments_path} -> {os.path.join(staging_dir, 'experimental')}"
-    )
-
-    print_info(f"Staged SDK artifacts in {staging_dir}")
-
-    # Prepend the staging directory to CMAKE_PREFIX_PATH
-    existing = os.environ.get("CMAKE_PREFIX_PATH", "")
-    os.environ["CMAKE_PREFIX_PATH"] = (
-        f"{staging_dir}:{existing}" if existing else staging_dir
-    )
+    _stage_npu_sdk(libsai_impl_path, experiments_path)
 
 
 def _get_scratch_path(getdeps_args):
@@ -625,10 +630,15 @@ def _get_scratch_path(getdeps_args):
 
 
 def _prepare_sdk_from_tarball(tarball_path, scratch_path):
-    """Extract a pre-built SDK tarball and prepend its root to CMAKE_PREFIX_PATH.
+    """Extract a pre-built NPU SDK tarball and stage it for the build.
 
-    The tarball must contain lib/ and include/ subdirectories, as produced by
-    build-helper.py (tar czvf libsai_impl.tar.gz -C output_path lib include).
+    The tarball may use either the flat layout consumed by
+    --npu-libsai-impl-path/--npu-experiments-path (libsai_impl.a plus an
+    experimental/ headers dir) or the lib/ + include/ layout produced by
+    build-helper.py, each optionally wrapped in a single top-level directory.
+    It is staged the same way the path flow stages its artifacts (via
+    _stage_npu_sdk), so both bare and experimental/-prefixed SAI includes
+    resolve.
 
     Files are extracted to <scratch_path>/installed/sai_impl_tarball/ so they
     live alongside other getdeps-installed packages rather than in /tmp.
@@ -655,10 +665,35 @@ def _prepare_sdk_from_tarball(tarball_path, scratch_path):
     )
     print_info(f"Extracted SDK tarball {tarball_path} to {extract_dir}")
 
-    existing = os.environ.get("CMAKE_PREFIX_PATH", "")
-    os.environ["CMAKE_PREFIX_PATH"] = (
-        f"{extract_dir}:{existing}" if existing else extract_dir
+    # libsai_impl.a locates the SDK root (os.walk descends any wrapper dir). The
+    # flat layout keeps the headers in a sibling experimental/; the build-helper
+    # layout keeps libsai_impl.a in lib/ and the headers in a sibling include/.
+    libsai_dir = _find_dir_with_file(extract_dir, "libsai_impl.a")
+    if libsai_dir is None:
+        print_error(
+            f"Error: {ARG_NPU_LIBSAI_IMPL_TARBALL} does not contain "
+            f"libsai_impl.a: {tarball_path}"
+        )
+        sys.exit(1)
+    experiments_dir = next(
+        (
+            d
+            for d in (
+                os.path.join(libsai_dir, "experimental"),
+                os.path.join(os.path.dirname(libsai_dir), "include"),
+            )
+            if os.path.isdir(d)
+        ),
+        None,
     )
+    if experiments_dir is None:
+        print_error(
+            f"Error: {ARG_NPU_LIBSAI_IMPL_TARBALL} does not contain an "
+            f"experimental/ or include/ headers directory: {tarball_path}"
+        )
+        sys.exit(1)
+
+    _stage_npu_sdk(libsai_dir, experiments_dir)
 
 
 def _validate_pai_sdk_dir(sdk_dir):
