@@ -39,6 +39,8 @@ ARG_NPU_LIBSAI_IMPL_TARBALL = "--npu-libsai-impl-tarball"
 ARG_NPU_EXPERIMENTS_PATH = "--npu-experiments-path"
 ARG_PHY_SAI_IMPL = "--phy-sai-impl"
 ARG_PHY_SAI_VERSION = "--phy-sai-version"
+ARG_PHY_PAI_SDK_PATH = "--phy-pai-sdk-path"
+ARG_PHY_PAI_SDK_TARBALL = "--phy-pai-sdk-tarball"
 
 # Misc Build Flags
 ARG_BENCHMARK_INSTALL = "--benchmark-install"
@@ -110,6 +112,13 @@ PASS_IMPL_FAKE = "fake"
 # The CMake target that the PHY pass always (re)builds against the PAI SDK.
 PHY_CMAKE_TARGET = "qsfp_targets"
 
+# CMake reads the PAI SDK from this hard-coded location, so a user-provided PAI
+# SDK dir/tarball is symlinked/extracted to point here. The expected layout is
+# lib/ (the archives below) and include/ (the subdirs below).
+PAI_IMPL_DIR = "/var/FBOSS/pai_impl"
+PAI_EXPECTED_LIBS = ("libepdm.a", "libpai.a", "libphymodepil.a")
+PAI_EXPECTED_INCLUDE_SUBDIRS = ("sai", "pai_macsec", "epdm")
+
 # Env vars that select the SAI implementation. These are reset between passes so
 # one pass's selection never leaks into the next.
 _SAI_ENV_VARS = (
@@ -152,6 +161,24 @@ def parse_args():
         help="SAI spec version to use for the PHY (PAI) build pass. "
         "Only used when --phy-sai-impl is set. When omitted, the PHY pass "
         "uses the build's default SAI version (current behavior).",
+    )
+    parser.add_argument(
+        ARG_PHY_PAI_SDK_PATH,
+        required=False,
+        help="Path to a prepared PAI SDK directory containing lib/ (with "
+        f"{', '.join(PAI_EXPECTED_LIBS)}) and include/ (with "
+        f"{', '.join(d + '/' for d in PAI_EXPECTED_INCLUDE_SUBDIRS)}). It is "
+        f"symlinked to {PAI_IMPL_DIR} so CMake finds it, instead of requiring "
+        f"that directory to be populated by hand. Only used with "
+        f"{ARG_PHY_SAI_IMPL}. Mutually exclusive with {ARG_PHY_PAI_SDK_TARBALL}.",
+    )
+    parser.add_argument(
+        ARG_PHY_PAI_SDK_TARBALL,
+        required=False,
+        help="Path to a PAI SDK tarball with the same lib/ and include/ layout "
+        f"as {ARG_PHY_PAI_SDK_PATH} (optionally under a single top-level "
+        f"directory). It is extracted and symlinked to {PAI_IMPL_DIR}. Only used "
+        f"with {ARG_PHY_SAI_IMPL}. Mutually exclusive with {ARG_PHY_PAI_SDK_PATH}.",
     )
     parser.add_argument(
         ARG_NPU_SAI_VERSION,
@@ -634,6 +661,123 @@ def _prepare_sdk_from_tarball(tarball_path, scratch_path):
     )
 
 
+def _validate_pai_sdk_dir(sdk_dir):
+    """Validate that sdk_dir has the lib/ and include/ layout CMake expects for
+    the PAI SDK. Exits with a clear error otherwise."""
+    if not os.path.isdir(sdk_dir):
+        print_error(
+            f"Error: PAI SDK path does not exist or is not a directory: {sdk_dir}"
+        )
+        sys.exit(1)
+
+    lib_dir = os.path.join(sdk_dir, "lib")
+    if not os.path.isdir(lib_dir):
+        print_error(f"Error: PAI SDK is missing a lib/ subdirectory: {lib_dir}")
+        sys.exit(1)
+    missing_libs = []
+    for lib_name in PAI_EXPECTED_LIBS:
+        lib_path = os.path.join(lib_dir, lib_name)
+        if not os.path.isfile(lib_path):
+            missing_libs.append(lib_name)
+        elif os.path.getsize(lib_path) == 0:
+            print_error(f"Error: PAI SDK library is empty: {lib_path}")
+            sys.exit(1)
+    if missing_libs:
+        print_error(
+            f"Error: PAI SDK lib/ is missing expected libraries: {sorted(missing_libs)}"
+        )
+        sys.exit(1)
+
+    inc_dir = os.path.join(sdk_dir, "include")
+    if not os.path.isdir(inc_dir):
+        print_error(f"Error: PAI SDK is missing an include/ subdirectory: {inc_dir}")
+        sys.exit(1)
+    missing_inc = [
+        subdir
+        for subdir in PAI_EXPECTED_INCLUDE_SUBDIRS
+        if not os.path.isdir(os.path.join(inc_dir, subdir))
+    ]
+    if missing_inc:
+        print_error(
+            f"Error: PAI SDK include/ is missing expected subdirectories: "
+            f"{sorted(missing_inc)}"
+        )
+        sys.exit(1)
+
+
+def _symlink_pai_impl(sdk_dir):
+    """Point PAI_IMPL_DIR at sdk_dir so CMake's hard-coded /var/FBOSS/pai_impl
+    include/lib paths resolve to the provided SDK."""
+    abs_sdk = os.path.abspath(sdk_dir)
+    if abs_sdk == os.path.abspath(PAI_IMPL_DIR):
+        print_info(f"PAI SDK is already at {PAI_IMPL_DIR}, no symlink needed.")
+        return
+    if os.path.islink(PAI_IMPL_DIR):
+        if os.path.realpath(PAI_IMPL_DIR) == os.path.realpath(abs_sdk):
+            print_info(f"Symlink {PAI_IMPL_DIR} -> {abs_sdk} already exists, skipping.")
+            return
+        os.remove(PAI_IMPL_DIR)
+    elif os.path.exists(PAI_IMPL_DIR):
+        print_error(
+            f"Error: {PAI_IMPL_DIR} already exists and is not a symlink. Remove it "
+            f"before using {ARG_PHY_PAI_SDK_PATH}/{ARG_PHY_PAI_SDK_TARBALL}."
+        )
+        sys.exit(1)
+    os.makedirs(os.path.dirname(PAI_IMPL_DIR), exist_ok=True)
+    os.symlink(abs_sdk, PAI_IMPL_DIR)
+    print_info(f"Created symlink {PAI_IMPL_DIR} -> {abs_sdk}")
+
+
+def _find_pai_sdk_root(extract_dir):
+    """Return the directory that directly contains lib/ within an extracted PAI
+    tarball, transparently descending through a single top-level wrapper dir
+    (the tarball ships its contents under a pai_impl/ prefix)."""
+    if os.path.isdir(os.path.join(extract_dir, "lib")):
+        return extract_dir
+    subdirs = [
+        os.path.join(extract_dir, entry)
+        for entry in os.listdir(extract_dir)
+        if os.path.isdir(os.path.join(extract_dir, entry))
+    ]
+    if len(subdirs) == 1 and os.path.isdir(os.path.join(subdirs[0], "lib")):
+        return subdirs[0]
+    # Fall back to extract_dir; _validate_pai_sdk_dir will emit a clear error.
+    return extract_dir
+
+
+def _prepare_pai_from_dir(sdk_dir):
+    """Stage a prepared PAI SDK directory for the build."""
+    _validate_pai_sdk_dir(sdk_dir)
+    _symlink_pai_impl(sdk_dir)
+
+
+def _prepare_pai_from_tarball(tarball_path, scratch_path):
+    """Extract a PAI SDK tarball and stage it for the build.
+
+    Files are extracted to <scratch_path>/installed/pai_impl_tarball/ so they live
+    alongside other getdeps-installed packages rather than in /tmp."""
+    if not os.path.isfile(tarball_path):
+        print_error(
+            f"Error: {ARG_PHY_PAI_SDK_TARBALL} path does not exist "
+            f"or is not a file: {tarball_path}"
+        )
+        sys.exit(1)
+    if os.path.getsize(tarball_path) == 0:
+        print_error(f"Error: {ARG_PHY_PAI_SDK_TARBALL} file is empty: {tarball_path}")
+        sys.exit(1)
+
+    extract_dir = os.path.join(scratch_path, "installed", "pai_impl_tarball")
+    if os.path.exists(extract_dir):
+        shutil.rmtree(extract_dir)
+    os.makedirs(extract_dir)
+    subprocess.run(["tar", "xzf", tarball_path, "-C", extract_dir], check=True)
+    print_info(f"Extracted PAI SDK tarball {tarball_path} to {extract_dir}")
+
+    sdk_dir = _find_pai_sdk_root(extract_dir)
+    _validate_pai_sdk_dir(sdk_dir)
+    _symlink_pai_impl(sdk_dir)
+
+
 def _warn_if_unsupported(flag_name, value, supported_values):
     """Print an info message if value is not in the set of officially supported values."""
     if value not in supported_values:
@@ -665,11 +809,25 @@ def _validate_sai_flags(args):
     if args.phy_sai_impl is not None:
         _warn_if_unsupported(ARG_PHY_SAI_IMPL, args.phy_sai_impl, SUPPORTED_PHY_IMPLS)
 
-    if args.phy_sai_version is not None and args.phy_sai_impl is None:
-        print_info(
-            f"Warning: {ARG_PHY_SAI_VERSION} is provided but {ARG_PHY_SAI_IMPL} "
-            "is not set; it will be ignored."
+    if args.phy_pai_sdk_path is not None and args.phy_pai_sdk_tarball is not None:
+        print_error(
+            f"Error: {ARG_PHY_PAI_SDK_PATH} and {ARG_PHY_PAI_SDK_TARBALL} are "
+            "mutually exclusive."
         )
+        sys.exit(1)
+
+    phy_only_flags = [
+        (ARG_PHY_SAI_VERSION, args.phy_sai_version is not None),
+        (ARG_PHY_PAI_SDK_PATH, args.phy_pai_sdk_path is not None),
+        (ARG_PHY_PAI_SDK_TARBALL, args.phy_pai_sdk_tarball is not None),
+    ]
+    if args.phy_sai_impl is None:
+        for flag_name, provided in phy_only_flags:
+            if provided:
+                print_info(
+                    f"Warning: {flag_name} is provided but {ARG_PHY_SAI_IMPL} "
+                    "is not set; it will be ignored."
+                )
 
 
 def _impl_env_vars(args, impl):
@@ -841,8 +999,16 @@ def _prepare_pass(
             _conditionally_prepare_sdk_artifacts(
                 args.npu_libsai_impl_path, args.npu_experiments_path
             )
-    # PHY consumes its PAI artifacts from /var/FBOSS/pai_impl via CMake directly,
-    # so no staging is needed here.
+    elif impl == PASS_IMPL_PHY:
+        # Stage a user-provided PAI SDK so CMake's hard-coded /var/FBOSS/pai_impl
+        # resolves to it. If neither flag is given, rely on that directory being
+        # populated already (unchanged behavior).
+        if args.phy_pai_sdk_tarball is not None:
+            _prepare_pai_from_tarball(
+                args.phy_pai_sdk_tarball, _get_scratch_path(args.getdeps_args)
+            )
+        elif args.phy_pai_sdk_path is not None:
+            _prepare_pai_from_dir(args.phy_pai_sdk_path)
 
     # Pin the libsai (SAI spec) version for the pass: the base pass (NPU or fake)
     # follows --npu-sai-version; the PHY pass follows --phy-sai-version.
