@@ -598,6 +598,13 @@ struct SaiPortTraits {
     // Read-only counts of how many times a link up/down debounce was
     // retriggered by an additional flap while a debounce timeout was already
     // active.
+    struct AttributeLinkUpDebounceRetriggerCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkUpDebounceRetriggerCount = SaiExtensionAttribute<
+        sai_uint64_t,
+        AttributeLinkUpDebounceRetriggerCount,
+        SaiIntDefault<sai_uint64_t>>;
     struct AttributeLinkDownDebounceRetriggerCount {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -987,6 +994,7 @@ SAI_ATTRIBUTE_NAME(Port, PfcPauseDurationOverride)
 SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMeasure)
 SAI_ATTRIBUTE_NAME(Port, LinkUpDebouncePeriodMs)
 SAI_ATTRIBUTE_NAME(Port, LinkDownDebouncePeriodMs)
+SAI_ATTRIBUTE_NAME(Port, LinkUpDebounceRetriggerCount)
 SAI_ATTRIBUTE_NAME(Port, LinkDownDebounceRetriggerCount)
 
 #if defined(CHENAB_SAI_SDK)

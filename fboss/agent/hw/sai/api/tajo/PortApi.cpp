@@ -463,6 +463,17 @@ SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkUpDebounceRetriggerCount::operator()() {
+#if defined(TAJO_SDK_VERSION_25_5_4210) || \
+    defined(TAJO_SDK_VERSION_26_2_4210) || \
+    (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_VERSION_26_5_5211))
+  return SAI_PORT_ATTR_LINK_UP_DEBOUNCE_RETRIGGER_COUNT;
+#else
+  return std::nullopt;
+#endif
+}
+
 std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
     AttributeLinkDownDebounceRetriggerCount::operator()() {
 #if defined(TAJO_SDK_VERSION_25_5_4210) || \
