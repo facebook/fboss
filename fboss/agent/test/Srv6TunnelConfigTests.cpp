@@ -151,3 +151,48 @@ TEST_F(Srv6TunnelConfigTest, RejectsNonSrv6EncapTunnelType) {
   EXPECT_THROW(
       publishAndApplyConfig(state_, &config_, platform_.get()), FbossError);
 }
+
+TEST_F(Srv6TunnelConfigTest, CreateSrv6DecapTunnel) {
+  // SRv6 decap tunnel carries only decap QoS modes; no src IP required.
+  cfg::Srv6Tunnel tunnelCfg;
+  tunnelCfg.srv6TunnelId() = "decap0";
+  tunnelCfg.underlayIntfID() = 1;
+  tunnelCfg.tunnelType() = TunnelType::SRV6_DECAP;
+  tunnelCfg.ttlMode() = cfg::TunnelMode::UNIFORM;
+  tunnelCfg.dscpMode() = cfg::TunnelMode::UNIFORM;
+  tunnelCfg.ecnMode() = cfg::TunnelMode::PIPE;
+  config_.srv6Tunnels() = {tunnelCfg};
+
+  state_ = publishAndApplyConfig(state_, &config_, platform_.get());
+  ASSERT_NE(state_, nullptr);
+
+  auto tunnel = state_->getSrv6Tunnels()->getNodeIf("decap0");
+  ASSERT_NE(tunnel, nullptr);
+  EXPECT_EQ(tunnel->getType(), TunnelType::SRV6_DECAP);
+  EXPECT_EQ(tunnel->getSrcIP(), std::nullopt);
+  EXPECT_EQ(tunnel->getTTLMode(), cfg::TunnelMode::UNIFORM);
+  EXPECT_EQ(tunnel->getDscpMode(), cfg::TunnelMode::UNIFORM);
+  EXPECT_EQ(tunnel->getEcnMode(), cfg::TunnelMode::PIPE);
+}
+
+TEST_F(Srv6TunnelConfigTest, Srv6DecapRejectsSrcIp) {
+  cfg::Srv6Tunnel tunnelCfg;
+  tunnelCfg.srv6TunnelId() = "decap0";
+  tunnelCfg.underlayIntfID() = 1;
+  tunnelCfg.tunnelType() = TunnelType::SRV6_DECAP;
+  tunnelCfg.srcIp() = "2401:db00:11c:8202::1";
+  config_.srv6Tunnels() = {tunnelCfg};
+  EXPECT_THROW(
+      publishAndApplyConfig(state_, &config_, platform_.get()), FbossError);
+}
+
+TEST_F(Srv6TunnelConfigTest, Srv6DecapRejectsDstIp) {
+  cfg::Srv6Tunnel tunnelCfg;
+  tunnelCfg.srv6TunnelId() = "decap0";
+  tunnelCfg.underlayIntfID() = 1;
+  tunnelCfg.tunnelType() = TunnelType::SRV6_DECAP;
+  tunnelCfg.dstIp() = "2401:db00:11c:8202::100";
+  config_.srv6Tunnels() = {tunnelCfg};
+  EXPECT_THROW(
+      publishAndApplyConfig(state_, &config_, platform_.get()), FbossError);
+}

@@ -1,0 +1,15 @@
+{
+  "platformType": 45,
+  "productNamePrefixes": [
+    "LADAKH800BCLS",
+    "LADAKH800BCLSM"
+  ],
+  "modeNames": [
+    "ladakh800bcls",
+    "ladakh800bclsm"
+  ],
+  "asicType": 18,
+  "variantAttributes": {
+    "osfp_tray": true
+  }
+}

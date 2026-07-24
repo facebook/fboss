@@ -9,11 +9,11 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
+#include "fboss/agent/platforms/sai/GenericSaiYangraPlatform.h"
 
 namespace facebook::fboss {
 
-class SaiMinipack3NPlatform : public SaiYangraPlatform {
+class SaiMinipack3NPlatform : public GenericSaiYangraPlatform {
  public:
   SaiMinipack3NPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,

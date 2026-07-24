@@ -622,14 +622,6 @@
             }
           ]
       },
-      "SPTSHP3CLCK2": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "1.2"
-            }
-          ]
-      },
       "SPTSHP3CLCKS": {
           "versions": [
             {

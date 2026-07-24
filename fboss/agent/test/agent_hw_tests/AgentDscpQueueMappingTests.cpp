@@ -124,13 +124,6 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     // QosMap
     auto l3Asics = ensemble.getL3Asics();
     utility::addOlympicV2QosMaps(cfg, l3Asics);
-    auto kAclName = "acl1";
-    auto asic = checkSameAndGetAsicForTesting(l3Asics);
-    utility::addDscpAclToCfg(asic, &cfg, kAclName, kDscp());
-    utility::addTrafficCounter(
-        &cfg, kCounterName(), utility::getAclCounterTypes(l3Asics));
-    utility::addQueueMatcher(
-        &cfg, kAclName, kQueueId(), ensemble.isSai(), kCounterName());
     return cfg;
   }
 
@@ -247,9 +240,15 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     }
     auto* acl = utility::addAcl_DEPRECATED(
         &cfg, "acl0", cfg::AclActionType::PERMIT, aclTableName);
-    cfg::Ttl ttl; // Match packets with hop limit > 127
-    std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
-    acl->ttl() = ttl;
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+      // TU1 does not support the TTL ACL qualifier; qualify on dstIp instead.
+      // ::/0 matches any IPv6 destination, so the test packet still hits acl0.
+      acl->dstIp() = "::/0";
+    } else {
+      cfg::Ttl ttl; // Match packets with hop limit > 127
+      std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
+      acl->ttl() = ttl;
+    }
     utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
     utility::addAclStat(
         &cfg,

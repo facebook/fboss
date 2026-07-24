@@ -11,6 +11,7 @@
 
 #include <set>
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -30,16 +31,16 @@ void HwTransceiverUtils::verifyTempAndVccFlags(
     auto& tcvrStats = *transceiverInfo.tcvrStats();
     EXPECT_FALSE(
         *tcvrStats.sensor()->temp()->flags().value_or({}).alarm()->high())
-        << folly::sformat("{:d} has high temp alarm flag", tcvrID);
+        << fmt::format("{:d} has high temp alarm flag", tcvrID);
     EXPECT_FALSE(
         *tcvrStats.sensor()->temp()->flags().value_or({}).warn()->high())
-        << folly::sformat("{:d} has high temp warn flag", tcvrID);
+        << fmt::format("{:d} has high temp warn flag", tcvrID);
     EXPECT_FALSE(
         *tcvrStats.sensor()->vcc()->flags().value_or({}).alarm()->high())
-        << folly::sformat("{:d} has high vcc alarm flag", tcvrID);
+        << fmt::format("{:d} has high vcc alarm flag", tcvrID);
     EXPECT_FALSE(
         *tcvrStats.sensor()->vcc()->flags().value_or({}).warn()->high())
-        << folly::sformat("{:d} has high vcc warn flag", tcvrID);
+        << fmt::format("{:d} has high vcc warn flag", tcvrID);
   }
 }
 
@@ -48,7 +49,7 @@ void HwTransceiverUtils::verifyTcvrErrorStates(
   for (auto& [_, transceiverInfo] : portToTransceiverInfoMap) {
     auto& tcvrState = *transceiverInfo.tcvrState();
     auto tcvrID = *tcvrState.port();
-    EXPECT_TRUE(tcvrState.errorStates()->empty()) << folly::sformat(
+    EXPECT_TRUE(tcvrState.errorStates()->empty()) << fmt::format(
         "{:d} has error states {:s}",
         tcvrID,
         folly::join(",", *tcvrState.errorStates()));
@@ -504,12 +505,14 @@ void HwTransceiverUtils::verify200gProfile(
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR4_200G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::LR4_200G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR2_200G ||
-        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR1_200G);
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR1_200G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR1_200G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_200G ||
         *mediaId.code() == MediaInterfaceCode::LR4_200G ||
         *mediaId.code() == MediaInterfaceCode::DR2_200G ||
-        *mediaId.code() == MediaInterfaceCode::DR1_200G);
+        *mediaId.code() == MediaInterfaceCode::DR1_200G ||
+        *mediaId.code() == MediaInterfaceCode::FR1_200G);
   }
 }
 
@@ -523,12 +526,14 @@ void HwTransceiverUtils::verify400gProfile(
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR4_400G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::LR4_10_400G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR4_400G ||
-        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR2_400G);
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR2_400G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR2_400G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_400G ||
         *mediaId.code() == MediaInterfaceCode::LR4_400G_10KM ||
         *mediaId.code() == MediaInterfaceCode::DR4_400G ||
-        *mediaId.code() == MediaInterfaceCode::DR2_400G);
+        *mediaId.code() == MediaInterfaceCode::DR2_400G ||
+        *mediaId.code() == MediaInterfaceCode::FR2_400G);
   }
 }
 

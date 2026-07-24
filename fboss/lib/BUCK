@@ -35,6 +35,7 @@ cpp_library(
         "PhysicalMemory.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/glog:glog",
         "//folly:file",
         "//folly:format",
@@ -136,6 +137,7 @@ cpp_library(
         "AlertLogger.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "//folly:format",
         "//folly/logging:logging",
     ],
@@ -210,6 +212,7 @@ cpp_library(
         "PhysicalMemory.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/glog:glog",
         "//folly:file",
         "//folly:format",

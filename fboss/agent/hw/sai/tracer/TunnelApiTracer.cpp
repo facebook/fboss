@@ -21,6 +21,19 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _TunnelMap{
     SAI_ATTR_MAP(IpInIpTunnel, EncapTtlMode),
     SAI_ATTR_MAP(IpInIpTunnel, EncapDscpMode),
     SAI_ATTR_MAP(IpInIpTunnel, EncapEcnMode),
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    // SRv6 tunnels share the SAI_TUNNEL_ATTR_* ids with IP-in-IP but are
+    // distinct AttributeName types (default getters), so they need their own
+    // replayer entries.
+    SAI_ATTR_MAP(Srv6Tunnel, UnderlayInterface),
+    SAI_ATTR_MAP(Srv6Tunnel, EncapSrcIp),
+    SAI_ATTR_MAP(Srv6Tunnel, EncapTtlMode),
+    SAI_ATTR_MAP(Srv6Tunnel, EncapDscpMode),
+    SAI_ATTR_MAP(Srv6Tunnel, EncapEcnMode),
+    SAI_ATTR_MAP(Srv6Tunnel, DecapTtlMode),
+    SAI_ATTR_MAP(Srv6Tunnel, DecapDscpMode),
+    SAI_ATTR_MAP(Srv6Tunnel, DecapEcnMode),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _TunnelTermMap{

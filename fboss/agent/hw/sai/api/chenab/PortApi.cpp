@@ -434,4 +434,14 @@ SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkUpDebounceRetriggerCount::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
+    AttributeLinkDownDebounceRetriggerCount::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

@@ -240,6 +240,7 @@ class NextHopIDManager {
   // Reverse mapping: track which routes reference a named NHG
   using RoutePrefixKey = std::pair<RouterID, folly::CIDRNetwork>;
   using RouteSet = std::set<RoutePrefixKey>;
+  using MySidSet = std::set<folly::CIDRNetworkV6>;
 
   void addRouteForNamedNhg(
       const std::string& name,
@@ -254,6 +255,20 @@ class NextHopIDManager {
   const RouteSet& getRoutesForNamedNhg(const std::string& name) const;
 
   bool hasRoutesForNamedNhg(const std::string& name) const;
+
+  void addMySidForNamedNhg(
+      const std::string& name,
+      const folly::CIDRNetworkV6& mySid);
+
+  void removeMySidForNamedNhg(
+      const std::string& name,
+      const folly::CIDRNetworkV6& mySid);
+
+  void removeMySidFromNamedNhgs(const folly::CIDRNetworkV6& mySid);
+
+  const MySidSet& getMySidsForNamedNhg(const std::string& name) const;
+
+  bool hasMySidsForNamedNhg(const std::string& name) const;
 
   /**
    * Reconstruct the NextHopIDManager for two main scenarios:
@@ -396,6 +411,8 @@ class NextHopIDManager {
   std::unordered_map<std::string, NextHopSetID> nameToNextHopSetID_;
   // Reverse mapping: named NHG name to routes referencing it
   std::unordered_map<std::string, RouteSet> nameToRoutes_;
+  // Reverse mapping: named NHG name to MySids referencing it
+  std::unordered_map<std::string, MySidSet> nameToMySids_;
 
   // Get the ref count for a given NextHop
   uint32_t getNextHopRefCount(const NextHop& nextHop);
@@ -456,6 +473,7 @@ class NextHopIDManager {
   FRIEND_TEST(NextHopIDManagerTest, routeReusesNamedNextHopGroupSetId);
   FRIEND_TEST(NextHopIDManagerTest, namedNhgRouteReverseMapping);
   FRIEND_TEST(NextHopIDManagerTest, namedNhgRouteReverseMappingWarmBoot);
+  FRIEND_TEST(NextHopIDManagerTest, namedNhgMySidReverseMapping);
   FRIEND_TEST(
       RibMySidUpdaterTest,
       nhopRefCountBumped_afterResolvingNhopWithIntfId);

@@ -39,39 +39,7 @@ class CmdShowBgpTableCommunity : public CmdHandler<
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const std::vector<std::string>& queriedCommunities) {
-    std::vector<TRibEntry> entries;
-    TRibEntryWithHost result;
-    auto client = utils::createClient<apache::thrift::Client<
-        facebook::neteng::fboss::bgp::thrift::TBgpService>>(hostInfo);
-
-    if (queriedCommunities.empty()) {
-      std::cout
-          << "No community entered. Usage: fboss2 show bgp table community <community>"
-          << std::endl;
-      return result;
-    }
-
-    std::vector<std::string> communityValues;
-    try {
-      communityValues = communityNameToValue(queriedCommunities[0], hostInfo);
-    } catch (std::invalid_argument& e) {
-      std::cout << e.what() << std::endl;
-      return {};
-    }
-
-    client->sync_getRibEntriesForCommunity(
-        entries, TBgpAfi::AFI_ALL, communityValues[0]);
-
-    auto data = (communityValues.size() > 1)
-        ? filterEntriesByCommunities(entries, communityValues[1])
-        : entries;
-    result.tRibEntries() = std::move(data);
-    result.host() = hostInfo.getName();
-    result.oobName() = hostInfo.getOobName();
-    result.ip() = hostInfo.getIpStr();
-    return result;
-  }
+      const std::vector<std::string>& queriedCommunities);
 
   void printOutput(RetType& data, std::ostream& out = std::cout) {
     if (!data.tRibEntries()->empty()) {

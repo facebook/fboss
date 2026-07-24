@@ -18,6 +18,7 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include <fb303/ServiceData.h>
+#include <fmt/format.h>
 
 DECLARE_bool(disable_neighbor_updates);
 
@@ -134,7 +135,7 @@ class AgentWatermarkTest : public AgentHwTest {
     }
 
     if (!FLAGS_multi_switch) {
-      auto counters = fb303::fbData->getRegexCounters({folly::sformat(
+      auto counters = fb303::fbData->getRegexCounters({fmt::format(
           "buffer_watermark_ucast.{}.*.queue{}.*.p100.60", portName, queueId)});
       // Unfortunately since  we use quantile stats, which compute
       // a MAX over a period, we can't really assert on the exact
@@ -194,14 +195,16 @@ class AgentWatermarkTest : public AgentHwTest {
     uint64_t lastDeviceWatermarkBytes{0};
     bool sawSwitchWatermarkStats{false};
     bool fb303DeviceCtrPresent{false};
+    const auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
     WITH_RETRIES({
       auto switchWatermarkStats = getAllSwitchWatermarkStats();
-      if (!switchWatermarkStats.contains(switchId)) {
+      if (!switchWatermarkStats.contains(switchIndex)) {
         continue;
       }
       sawSwitchWatermarkStats = true;
       auto deviceWatermarkBytes =
-          *switchWatermarkStats.at(switchId).deviceWatermarkBytes();
+          *switchWatermarkStats.at(switchIndex).deviceWatermarkBytes();
       lastDeviceWatermarkBytes = deviceWatermarkBytes;
       XLOG(DBG0) << "Device watermark bytes: " << deviceWatermarkBytes;
       const auto minWatermarkBytes = getMinDeviceWatermarkValue(switchId);
@@ -480,9 +483,11 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
       });
 
       // Get device watermark now, so that it is > highest queue watermark!
+      const auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
       auto switchWatermarkStats = getAllSwitchWatermarkStats();
       auto deviceWatermark =
-          *switchWatermarkStats.at(switchId).deviceWatermarkBytes();
+          *switchWatermarkStats.at(switchIndex).deviceWatermarkBytes();
       XLOG(DBG2) << "For port: "
                  << getAgentEnsemble()->masterLogicalInterfacePortIds(
                         switchId)[0]

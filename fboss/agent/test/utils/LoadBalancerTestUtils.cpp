@@ -16,6 +16,7 @@
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include <fmt/format.h>
 #include <folly/gen/Base.h>
 
 #include <gtest/gtest.h>
@@ -874,12 +875,12 @@ void pumpDeterministicRandomTraffic(
   auto srcMac = MacAddressGenerator().get(intfMac.u64HBO() + 1);
   for (auto i = 0; i < 1000; ++i) {
     auto srcIp = isV6
-        ? folly::IPAddress(folly::sformat("1001::{}", intToHex(srcV6())))
-        : folly::IPAddress(folly::sformat("100.10.0.{}", srcV4()));
+        ? folly::IPAddress(fmt::format("1001::{}", intToHex(srcV6())))
+        : folly::IPAddress(fmt::format("100.10.0.{}", srcV4()));
     for (auto j = 0; j < 100; ++j) {
       auto dstIp = isV6
-          ? folly::IPAddress(folly::sformat("2001::{}", intToHex(dstV6())))
-          : folly::IPAddress(folly::sformat("200.10.0.{}", dstV4()));
+          ? folly::IPAddress(fmt::format("2001::{}", intToHex(dstV6())))
+          : folly::IPAddress(fmt::format("200.10.0.{}", dstV4()));
 
       auto pkt = makeUDPTxPacket(
           allocateFn,

@@ -99,50 +99,65 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan1_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm1",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan1_present",
+      "goodLedSysfsPath": "/sys/class/leds/fan1:blue:status",
+      "failLedSysfsPath": "/sys/class/leds/fan1:amber:status",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
-      "fanMissingVal": 0
+      "fanMissingVal": 0,
+      "rpmMin": 2400
     },
     {
       "fanName": "fan_2",
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan2_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm2",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan2_present",
+      "goodLedSysfsPath": "/sys/class/leds/fan2:blue:status",
+      "failLedSysfsPath": "/sys/class/leds/fan2:amber:status",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
-      "fanMissingVal": 0
+      "fanMissingVal": 0,
+      "rpmMin": 2400
     },
     {
       "fanName": "fan_3",
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan3_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm3",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan3_present",
+      "goodLedSysfsPath": "/sys/class/leds/fan3:blue:status",
+      "failLedSysfsPath": "/sys/class/leds/fan3:amber:status",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
-      "fanMissingVal": 0
+      "fanMissingVal": 0,
+      "rpmMin": 2400
     },
     {
       "fanName": "fan_4",
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan4_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm4",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan4_present",
+      "goodLedSysfsPath": "/sys/class/leds/fan4:blue:status",
+      "failLedSysfsPath": "/sys/class/leds/fan4:amber:status",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
-      "fanMissingVal": 0
+      "fanMissingVal": 0,
+      "rpmMin": 2400
     },
     {
       "fanName": "fan_5",
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan5_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm5",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan5_present",
+      "goodLedSysfsPath": "/sys/class/leds/fan5:blue:status",
+      "failLedSysfsPath": "/sys/class/leds/fan5:amber:status",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
-      "fanMissingVal": 0
+      "fanMissingVal": 0,
+      "rpmMin": 2400
     },
     {
       "fanName": "fan_6",

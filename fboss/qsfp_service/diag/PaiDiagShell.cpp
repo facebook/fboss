@@ -17,6 +17,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <fmt/format.h>
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
 #include <folly/Format.h>
@@ -46,7 +47,7 @@ std::string escapeForLog(const std::string& s) {
     } else if (c >= 0x20 && c < 0x7f) {
       out += static_cast<char>(c);
     } else {
-      out += folly::sformat("\\x{:02x}", c);
+      out += fmt::format("\\x{:02x}", c);
     }
   }
   return out;
@@ -58,7 +59,7 @@ std::string truncForLog(const std::string& s, std::size_t max = 200) {
     return escapeForLog(s);
   }
   return escapeForLog(s.substr(0, max)) +
-      folly::sformat("...[+{} bytes]", s.size() - max);
+      fmt::format("...[+{} bytes]", s.size() - max);
 }
 } // namespace
 
@@ -278,7 +279,7 @@ std::string PaiDiagShell::readOutput(int timeoutMs) {
              << std::hex << pfd.revents << std::dec;
   if (pollRet > 0) {
     if (!(pfd.revents & POLLIN)) {
-      std::string msg = folly::sformat(
+      std::string msg = fmt::format(
           "PaiDiagShell::readOutput: poll returned {} but POLLIN not set "
           "(revents=0x{:x}, fd={})",
           pollRet,

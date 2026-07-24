@@ -45,7 +45,7 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
     return 420;
   }
   uint32_t getNumCellsAvailable(PlatformType /*platformType*/) const override {
-    return 616994;
+    return 629986;
   }
   uint32_t getSaiPhysicalLaneId(
       PlatformType platformType,

@@ -33,6 +33,9 @@ class Qumran4DAsic : public Jericho3Asic {
   uint32_t getNumDies() const override {
     return 2;
   }
+
+  std::vector<InternalSystemPortConfig> getInternalSystemPortConfig(
+      const CpuPortCoreAndPortIndex& cpuPortsCoreAndPortIdx) const override;
 };
 
 } // namespace facebook::fboss

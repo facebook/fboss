@@ -1,6 +1,8 @@
 # pyre-unsafe
 import copy
 import json
+import os
+import sys
 from enum import IntEnum
 from typing import Any, Dict, List, Optional
 
@@ -47,6 +49,42 @@ from neteng.fboss.switch_config.thrift_types import (
 )
 from neteng.fboss.transceiver.thrift_types import TransmitterTechnology, Vendor
 
+_FBOSS_DIR: str = os.getcwd() + "/fboss"
+INPUT_DIR: str = f"{_FBOSS_DIR}/lib/platform_mapping_v2/platforms/"
+
+
+def read_vendor_data(input_file_path: str) -> Dict[str, str]:
+    vendor_data = {}
+    if not os.path.exists(input_file_path):
+        raise FileNotFoundError(f"The folder '{input_file_path}' does not exist.")
+
+    for filename in os.listdir(input_file_path):
+        filepath = os.path.join(input_file_path, filename)
+        if (
+            filepath.endswith(".csv") or filepath.endswith(".json")
+        ) and not os.path.isdir(filepath):
+            with open(filepath, "r") as file:
+                content = file.read()
+            vendor_data[filename] = content
+
+    return vendor_data
+
+
+def read_all_vendor_data() -> Dict[str, Dict[str, str]]:
+    all_vendor_data = {}
+    data_path = INPUT_DIR
+    print(
+        f"Reading all vendor data in {data_path}...",
+        file=sys.stderr,
+    )
+    for filename in os.listdir(data_path):
+        filepath = os.path.join(data_path, filename)
+        if not os.path.isdir(filepath):
+            continue
+        all_vendor_data[filename] = read_vendor_data(filepath)
+
+    return all_vendor_data
+
 
 def get_content(directory: Dict[str, str], filename: str) -> str:
     if filename not in directory:
@@ -65,6 +103,24 @@ def column_int_enum_generator(string_list: str):
 
 def split_csv_list(value: str) -> List[str]:
     return [item for item in value.split("-") if item]
+
+
+def parse_bool_map(value: str) -> Dict[str, bool]:
+    bool_map = {}
+    for item in value.split(";"):
+        if not item:
+            continue
+        parts = [part.strip() for part in item.split("=", 1)]
+        if len(parts) != 2:
+            raise ValueError(
+                f"Invalid bool map entry, expected key=value format: {item}"
+            )
+        key, raw_value = parts
+        normalized_value = raw_value.lower()
+        if normalized_value not in ("true", "false"):
+            raise ValueError(f"Invalid bool map value {item}")
+        bool_map[key] = normalized_value == "true"
+    return bool_map
 
 
 def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping:
@@ -247,8 +303,9 @@ def read_port_profile_mapping(
 
 def read_platform_descriptor(directory: Dict[str, str], prefix: str) -> Dict[str, Any]:
     PLATFORM_DESCRIPTOR_SUFFIX = "_platform_descriptor.csv"
+    VARIANT_ATTRIBUTES_COLUMN = 5
     Column = column_int_enum_generator(
-        "SYSTEM_VENDOR PLATFORM_TYPE PRODUCT_NAME_PREFIXES MODE_NAMES ASIC_TYPE"
+        "SYSTEM_VENDOR PLATFORM_TYPE PRODUCT_NAME_PREFIXES MODE_NAMES ASIC_TYPE VARIANT_ATTRIBUTES"
     )
     for index, line in enumerate(
         get_content(directory, prefix + PLATFORM_DESCRIPTOR_SUFFIX).splitlines()
@@ -266,13 +323,18 @@ def read_platform_descriptor(directory: Dict[str, str], prefix: str) -> Dict[str
         mode_names = split_csv_list(row[Column.MODE_NAMES])
         # pyrefly: ignore [missing-attribute]
         asic_type = AsicType[row[Column.ASIC_TYPE]]
-        return {
+        descriptor = {
             "systemVendor": system_vendor,
             "platformType": int(platform_type),
             "productNamePrefixes": product_name_prefixes,
             "modeNames": mode_names,
             "asicType": int(asic_type),
         }
+        if VARIANT_ATTRIBUTES_COLUMN < len(row) and row[VARIANT_ATTRIBUTES_COLUMN]:
+            descriptor["variantAttributes"] = parse_bool_map(
+                row[VARIANT_ATTRIBUTES_COLUMN]
+            )
+        return descriptor
     raise ValueError(f"No platform descriptor row found for {prefix}")
 
 

@@ -83,6 +83,7 @@ TEST(ConfigLibTest, Basic) {
   // BspTests Configs
   EXPECT_NO_THROW(ConfigLib().getBspTestConfig(kMeru800bfa));
   EXPECT_NO_THROW(ConfigLib().getBspTestConfig(kBlackwolf800banw));
+  EXPECT_NO_THROW(ConfigLib().getBspTestConfig(kM4062nhp));
   EXPECT_THROW(
       ConfigLib().getBspTestConfig(kNonExistentPlatform), std::out_of_range);
 

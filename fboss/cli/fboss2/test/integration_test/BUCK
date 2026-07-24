@@ -16,6 +16,7 @@ oncall("fboss_oss")
 cpp_binary(
     name = "fboss2_integration_test",
     srcs = [
+        "ConfigAclRuleTest.cpp",
         "ConfigAdminDistanceTest.cpp",
         "ConfigArpTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
@@ -27,6 +28,7 @@ cpp_binary(
         "ConfigInterfaceFlowControlTest.cpp",
         "ConfigInterfaceIpv6NdpTest.cpp",
         "ConfigInterfaceLldpExpectedValueTest.cpp",
+        "ConfigInterfaceLookupClassTest.cpp",
         "ConfigInterfaceLoopbackModeTest.cpp",
         "ConfigInterfaceMtuTest.cpp",
         "ConfigInterfaceProfileTest.cpp",
@@ -65,6 +67,7 @@ cpp_binary(
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/cli/fboss2:cmd-common-utils",
         "//fboss/cli/fboss2:cmd-init-utils",
+        "//fboss/cli/fboss2:cmd-list-header",
         "//fboss/cli/fboss2:cmd-subcommands",
         "//fboss/cli/fboss2:fboss2-config-lib",  # @manual
         "//fboss/cli/fboss2:fboss2-lib",  # @manual

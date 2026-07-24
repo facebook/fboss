@@ -13,8 +13,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from fboss_test_runner.result_types import RunOutcome
 from fboss_test_runner.runners.fboss2_integration_test_runner import (
+    FBOSS2_INTEGRATION_KNOWN_BAD_TESTS_FILE,
+    FBOSS2_INTEGRATION_UNSUPPORTED_TESTS_FILE,
     Fboss2IntegrationTestRunner,
 )
+
+# The getters delegate to TestRunner._resolve_tests_file, which gates on
+# os.path.exists in the base test_runner module's namespace.
+_EXISTS = "fboss_test_runner.runners.test_runner.os.path.exists"
 
 
 def _make_mock_args(**overrides):
@@ -30,6 +36,8 @@ def _make_mock_args(**overrides):
     mock_args.fboss_logging = "WARN"
     mock_args.test_run_timeout = 300
     mock_args.skip_known_bad_tests = None
+    mock_args.known_bad_tests_file = None
+    mock_args.unsupported_tests_file = None
     mock_args.sai_replayer_logging = None
     mock_args.simulator = None
     mock_args.coldboot_only = True
@@ -232,7 +240,7 @@ class TestSetupColdbootTest(unittest.TestCase):
         # Even with --skip-coldboot, the very first call must cold boot to load
         # the test config / clean state; the health gate is not consulted.
         self.runner._switch_indexes = [0]
-        with patch("run_test.args", _make_mock_args(skip_coldboot=True), create=True):
+        with patch.object(self.runner, "args", new=_make_mock_args(skip_coldboot=True)):
             self.runner._setup_coldboot_test()
         mock_cold_boot.assert_called_once()
         mock_agents_ready.assert_not_called()
@@ -249,7 +257,9 @@ class TestSetupColdbootTest(unittest.TestCase):
     ):
         self.runner._switch_indexes = [0]
         self.runner._initial_coldboot_done = True
-        with patch("run_test.args", _make_mock_args(skip_coldboot=False), create=True):
+        with patch.object(
+            self.runner, "args", new=_make_mock_args(skip_coldboot=False)
+        ):
             self.runner._setup_coldboot_test()
         mock_cold_boot.assert_not_called()
         mock_run.assert_not_called()
@@ -265,7 +275,9 @@ class TestSetupColdbootTest(unittest.TestCase):
     ):
         self.runner._switch_indexes = [0]
         self.runner._initial_coldboot_done = True
-        with patch("run_test.args", _make_mock_args(skip_coldboot=False), create=True):
+        with patch.object(
+            self.runner, "args", new=_make_mock_args(skip_coldboot=False)
+        ):
             self.runner._setup_coldboot_test()
         mock_cold_boot.assert_called_once()
 
@@ -280,7 +292,7 @@ class TestSetupColdbootTest(unittest.TestCase):
     ):
         self.runner._switch_indexes = [0]
         self.runner._initial_coldboot_done = True
-        with patch("run_test.args", _make_mock_args(skip_coldboot=True), create=True):
+        with patch.object(self.runner, "args", new=_make_mock_args(skip_coldboot=True)):
             self.runner._setup_coldboot_test()
         mock_cold_boot.assert_not_called()
         # The aggressive override does not even consult agent health.
@@ -444,6 +456,32 @@ class TestSetupRunHook(unittest.TestCase):
         self.assertEqual(call_order[0], "_setup_run")
         self.assertEqual(call_order[1], "_setup_coldboot_test")
         self.assertEqual(call_order.count("_setup_run"), 1)
+
+
+class TestKnownBadAndUnsupportedTestsFiles(unittest.TestCase):
+    """fboss2 wires each getter to its own default materialized JSON. The
+    override / fallback / missing-file resolution logic is covered once by
+    TestResolveTestsFile in test_test_runner; here we only assert the correct
+    default file is used for each category."""
+
+    def setUp(self):
+        self.runner = Fboss2IntegrationTestRunner()
+
+    @patch(_EXISTS, return_value=True)
+    def test_known_bad_default_file(self, _exists):
+        with patch.object(self.runner, "args", _make_mock_args()):
+            self.assertEqual(
+                self.runner._get_known_bad_tests_file(),
+                FBOSS2_INTEGRATION_KNOWN_BAD_TESTS_FILE,
+            )
+
+    @patch(_EXISTS, return_value=True)
+    def test_unsupported_default_file(self, _exists):
+        with patch.object(self.runner, "args", _make_mock_args()):
+            self.assertEqual(
+                self.runner._get_unsupported_tests_file(),
+                FBOSS2_INTEGRATION_UNSUPPORTED_TESTS_FILE,
+            )
 
 
 if __name__ == "__main__":

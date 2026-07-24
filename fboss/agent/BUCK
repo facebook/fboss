@@ -263,6 +263,13 @@ thrift_library(
     ],
 )
 
+thrift_library(
+    name = "state_delta_log",
+    languages = ["cpp2"],
+    thrift_srcs = {"state_delta_log.thrift": []},
+    deps = ["//fboss/fsdb/if:fsdb_oper"],
+)
+
 cpp_library(
     name = "constants",
     headers = [
@@ -536,8 +543,12 @@ cpp_library(
     ],
     exported_deps = [
         ":fib_helpers",
+        ":stats",
         ":voq_utils",
+        "//fboss/agent/rib:fib_updater",
+        "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
+        "//folly/container:f14_hash",
         "//folly/logging:logging",
     ],
     exported_external_deps = [
@@ -759,6 +770,7 @@ cpp_library(
     name = "apply_thrift_config",
     srcs = ["ApplyThriftConfig.cpp"],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":agent_features",
         ":asic_utils",
         ":buffer_utils",
@@ -891,6 +903,28 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "switch_state_delta_logger",
+    srcs = [
+        "SwitchStateDeltaLogger.cpp",
+    ],
+    exported_deps = [
+        ":agent_features",
+        ":async_logger_base",
+        "//fb303:service_data",
+        "//fboss/agent:state_delta_log-cpp2-types",
+        "//fboss/agent/state:state",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//folly:fbstring",
+        "//folly:range",
+        "//folly/hash:checksum",
+        "//folly/lang:bits",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
 
@@ -1030,6 +1064,7 @@ cpp_library(
         "facebook/ScubaRouteLogger.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
         "fbsource//third-party/googletest:gtest_headers",
@@ -1065,6 +1100,7 @@ cpp_library(
         ":packet_observer",
         ":pfc_utils",
         ":phy_snapshot_lib",
+        ":remote_intf_route_auditor",
         ":route_update_wrapper",
         ":shel_manager",
         ":state_delta_logger",
@@ -1188,8 +1224,8 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
-        "gflags",
         ("boost", None, "boost_container"),
+        "gflags",
         ("iproute2", None, "netlink"),
         ("libnl", None, "nl-route-3"),
     ],
@@ -1201,6 +1237,7 @@ cpp_library(
         "ThriftHandler.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":address_utils",
         ":agent_features",
         ":core",
@@ -1239,7 +1276,6 @@ cpp_library(
         "//folly:string",
         "//folly:synchronized",
         "//folly/container:f14_hash",
-        "//folly/functional:partial",
         "//folly/io:iobuf",
         "//folly/logging:logging",
         "//thrift/lib/cpp/server:server_event_handler",
@@ -1708,6 +1744,7 @@ cpp_library(
         ":test_utils",
         ":utils",
         "//common/fb303/cpp:default_control",
+        "//common/fb303/cpp:fb303",
         "//fb303:logging",
         "//fb303:service_data",
         "//fboss/agent/facebook:version_h",

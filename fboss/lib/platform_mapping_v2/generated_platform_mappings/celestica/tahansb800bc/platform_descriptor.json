@@ -1,0 +1,16 @@
+{
+  "platformType": 43,
+  "productNamePrefixes": [
+    "TAHANSB800BC",
+    "TAHANSB800BCM",
+    "TAHAN_SB"
+  ],
+  "modeNames": [
+    "tahansb800bc",
+    "tahansb800bcm"
+  ],
+  "asicType": 18,
+  "variantAttributes": {
+    "test_fixture": false
+  }
+}

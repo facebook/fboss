@@ -67,7 +67,8 @@ Currently `fboss/` only. TODO: extend to `configerator/source/neteng/fboss`, `ne
 | Testing | Consolidate test helpers | Move shared helpers to base classes |
 | Testing | Validation UTs | Pure validation → unit tests, not just HW tests |
 | Testing | No setup changes to existing tests | Create new tests instead; setup changes break warmboot roundtrip CI |
-| Testing | NextHop IDs on routes | Route tests must keep `enable_nexthop_id_manager` on; every route added must have a nexthop ID assigned |
+| Testing | Program routes via routeUpdater | Use `routeUpdater.program()` (`SwSwitchRouteUpdateWrapper`); never hand-build routes and add to FIB; keep `enable_nexthop_id_manager` on so every route gets a nexthop ID |
+| Agent | Read nexthops via ID-aware helpers | State/FIB-side code → `FibHelpers` `getNextHops(state,…)` etc.; RIB-internal code → `*FromRib(manager,…)`; never `getNextHopSet()` (inline nexthops are being removed) |
 
 ## When to Load References
 

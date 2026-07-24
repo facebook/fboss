@@ -17,6 +17,7 @@
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h" // NOLINT(misc-include-cleaner)
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
+#include "neteng/fboss/bgp/if/gen-cpp2/bgp_route_types_types.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/policy_thrift_types.h"
 
@@ -75,6 +76,29 @@ class MockBgpClient : public apache::thrift::ServiceHandler<TBgpService> {
       void,
       getRibEntriesForCommunity,
       (std::vector<TRibEntry>&, TBgpAfi, std::unique_ptr<std::string>));
+  // Canonical (deduplicated) RIB getters -- mirror the legacy getters above but
+  // return a single TCanonicalRibState.
+  MOCK_METHOD(void, getRibEntriesCanonical, (TCanonicalRibState&, TBgpAfi));
+  MOCK_METHOD(
+      void,
+      getRibPrefixCanonical,
+      (TCanonicalRibState&, std::unique_ptr<std::string>));
+  MOCK_METHOD(
+      void,
+      getRibSubprefixesCanonical,
+      (TCanonicalRibState&, std::unique_ptr<std::string>));
+  MOCK_METHOD(
+      void,
+      getRibEntriesForCommunityCanonical,
+      (TCanonicalRibState&, TBgpAfi, std::unique_ptr<std::string>));
+  MOCK_METHOD(
+      void,
+      getShadowRibEntriesCanonical,
+      (TCanonicalRibState&, TBgpAfi));
+  MOCK_METHOD(
+      void,
+      getChangeListEntriesCanonical,
+      (TCanonicalRibState&, TBgpAfi));
   MOCK_METHOD(void, getBgpStreamSessions, (std::vector<TBgpStreamSession>&));
   MOCK_METHOD(int64_t, getRibVersion, ());
   MOCK_METHOD(int64_t, getNumPrefixes, ());

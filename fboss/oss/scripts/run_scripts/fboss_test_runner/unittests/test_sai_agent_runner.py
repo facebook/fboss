@@ -114,7 +114,7 @@ class TestTestRunArgsByMode:
             assert "/tmp/pm.json" not in args_list
 
     def test_forwards_num_npus_to_test_binary(self, sai_agent_runner):
-        with patch("run_test.args", new=_make_args(num_npus=2)):
+        with patch.object(sai_agent_runner, "args", new=_make_args(num_npus=2)):
             args_list = sai_agent_runner._get_test_run_args("dummy.conf")
             assert "--undefok=num_npus_for_testing" in args_list
             assert "--num_npus_for_testing" in args_list

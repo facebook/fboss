@@ -214,29 +214,66 @@ Special flags:
 
 ### Benchmark tests
 
-All benchmarks are consolidated into two binaries — `sai_all_benchmarks-sai_impl` (mono) and `sai_multi_switch_all_benchmarks-sai_impl` (multi-switch). The runner discovers tests from the binary via `--bm_list`, pre-filters known-bad tests, and runs each test in its own process for full setup/run/teardown isolation.
+The `benchmark` subcommand runs hardware benchmarks for two families, selected with mutually-exclusive flags: **SAI agent** benchmarks (`--sai`, the default when neither flag is given) and **QSFP** benchmarks (`--qsfp`). Both share one runner that discovers tests from the binary via `--bm_list`, pre-filters known-bad / unsupported tests, runs each test in its own process for full setup/run/teardown isolation, parses `--json` metrics, and validates them against per-platform thresholds.
+
+#### SAI agent benchmarks
+
+SAI benchmarks are consolidated into two binaries — `sai_all_benchmarks-sai_impl` (mono) and `sai_multi_switch_all_benchmarks-sai_impl` (multi-switch).
 
 ```
-# Run all Benchmark tests (mono is the default)
-./bin/run_test.py benchmark \
+# Run all SAI benchmarks (--sai and mono are the defaults)
+./bin/run_test.py benchmark --sai \
 --config ./share/hw_test_configs/$CONFIG \
 --skip-known-bad-tests brcm/13.3.0.0_odp/tomahawk5 \
 --test-run-timeout 1800
 
-# Run benchmarks with the multi-switch binary
-./bin/run_test.py benchmark --agent-run-mode multi_switch \
+# Run SAI benchmarks with the multi-switch binary
+./bin/run_test.py benchmark --sai --agent-run-mode multi_switch \
 --config ./share/hw_test_configs/$CONFIG \
 --skip-known-bad-tests brcm/13.3.0.0_odp/tomahawk5 \
 --test-run-timeout 1800
 ```
 
-Special flags:
+SAI-specific flags:
 
 1. `--agent-run-mode`: Agent run mode to use. Supports `mono` (default, runs `sai_all_benchmarks-sai_impl`) and `multi_switch` (runs `sai_multi_switch_all_benchmarks-sai_impl`). In multi-switch mode the runner passes `--multi_switch --hw_agent_for_testing` to the binary and manages the `hw_agent` service lifecycle automatically.
 1. `--num-npus`: Number of NPUs for multi-switch mode (1 or 2, default 1). When set to 2, `--multi_npu_platform_mapping` is passed to the binary.
-1. `--filter_file:` Collection of tests to run. This is a file containing a list of tests to run. The file should contain one BENCHMARK() registered name per line. To see the list, run `./bin/sai_all_benchmarks-sai_impl --bm_list`.
-1. `--filter`: Regex matched against discovered benchmark names to narrow which tests run.
-1. `--skip-known-bad-tests:` Platform key (e.g. `brcm/13.3.0.0_odp/tomahawk5`) used both to pre-filter known-bad tests *before* running and to look up per-platform thresholds for result validation. Without it, all discovered tests run and threshold validation is skipped (results show `NO_THRESHOLD`).
-1. `--test-run-timeout:` Timeout for each test run. Default is 1200 seconds.
 
-Threshold validation looks up entries by benchmark name in `share/hw_benchmark_tests/sai_bench.materialized_JSON`. The matching mode (mono vs multi-switch) is preferred, falling back to the other mode if only one variant is configured. When no threshold is configured for a benchmark, the runner prints a `WILL ALWAYS PASS` warning so missing entries are visible.
+SAI threshold validation looks up entries by benchmark name in `share/hw_benchmark_tests/sai_bench.materialized_JSON`. The matching mode (mono vs multi-switch) is preferred, falling back to the other mode if only one variant is configured.
+
+#### QSFP benchmarks
+
+QSFP benchmarks run from the `qsfp_hw_test_benchmark` binary, which self-initializes a WedgeManager in-process from `--qsfp-config` (no `qsfp_service`, `fsdb`, or `wedge_agent` needed) and forces its own coldboot per benchmark process.
+
+```
+# Run all QSFP benchmarks
+./bin/run_test.py benchmark --qsfp \
+--qsfp-config ./share/qsfp_test_configs/$QSFP_CONFIG \
+--skip-known-bad-tests montblanc/credo-0.7.2 \
+--test-run-timeout 1800
+
+# Run a single QSFP benchmark
+./bin/run_test.py benchmark --qsfp \
+--qsfp-config ./share/qsfp_test_configs/$QSFP_CONFIG \
+--skip-known-bad-tests montblanc/credo-0.7.2 \
+--filter RefreshTransceiver_CWDM4_100G \
+--test-run-timeout 1800
+```
+
+QSFP-specific flags:
+
+1. `--qsfp-config`: Absolute path to the qsfp config (required with `--qsfp`).
+1. `--force-5pim-fuji`: Force 5PIM Fuji mode (QSFP benchmarks on `fuji_5x16Q`).
+1. `--port-manager-mode`: Enable port manager mode.
+
+QSFP threshold validation looks up entries under the single buck-target key `//fboss/qsfp_service/test/benchmarks:qsfp_bench_test` in `share/hw_benchmark_tests/qsfp_bench.materialized_JSON`, selecting every entry whose `test_config_regex` matches the `<platform>/<phy_sdk>` key passed via `--skip-known-bad-tests`.
+
+#### Common flags
+
+1. `--sai` / `--qsfp`: Mutually exclusive; select the benchmark family. SAI is the default when neither is given.
+1. `--filter`: Regex matched against discovered benchmark names to narrow which tests run.
+1. `--filter_file`: File containing one `BENCHMARK()` registered name per line. To see the list, run the relevant binary with `--bm_list`.
+1. `--skip-known-bad-tests`: Platform key used both to pre-filter known-bad tests *before* running and to look up per-platform thresholds for result validation. SAI uses `vendor/sdk/asic` (e.g. `brcm/13.3.0.0_odp/tomahawk5`); QSFP uses `<platform>/<phy_sdk>` (e.g. `montblanc/credo-0.7.2`). Without it, all discovered tests run and threshold validation is skipped (results show `NO_THRESHOLD`).
+1. `--test-run-timeout`: Timeout for each test run. Default is 1200 seconds.
+
+When no threshold is configured for a benchmark, the runner prints a `WILL ALWAYS PASS` warning so missing entries are visible. Results are written to a timestamped CSV (e.g. `benchmark_results_20260119_143022.csv`) with columns: `benchmark_binary_name, benchmark_test_name, benchmark_time_ps, test_status, cpu_time_usec, max_rss, cpu_rx_pps, cpu_tx_pps, threshold_status, threshold_details`.

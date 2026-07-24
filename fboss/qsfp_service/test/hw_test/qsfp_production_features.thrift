@@ -41,6 +41,7 @@ enum QsfpProductionFeature {
   XPHY_PROGRAMMING = 18,
   THERMAL_VALIDATION = 19,
   TRANSCEIVER_ADVERTISEMENTS = 20,
+  XPHY_PRBS_CONTROL = 21,
 }
 
 struct PlatformConfigToQsfpProductionFeatures {

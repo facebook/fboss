@@ -38,30 +38,7 @@ class CmdShowBgpTablePrefix
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const std::vector<std::string>& prefixes) {
-    std::vector<TRibEntry> allEntries;
-    auto client = utils::createClient<apache::thrift::Client<
-        facebook::neteng::fboss::bgp::thrift::TBgpService>>(hostInfo);
-    TRibEntryWithHost result;
-
-    if (prefixes.empty()) {
-      std::cout
-          << "No prefixes entered. Usage: fboss2 show bgp table prefix <prefix>"
-          << std::endl;
-      return result;
-    }
-
-    for (const auto& prefix : prefixes) {
-      std::vector<TRibEntry> newEntry;
-      client->sync_getRibPrefix(newEntry, prefix);
-      allEntries.insert(allEntries.end(), newEntry.begin(), newEntry.end());
-    }
-    result.tRibEntries() = std::move(allEntries);
-    result.host() = hostInfo.getName();
-    result.oobName() = hostInfo.getOobName();
-    result.ip() = hostInfo.getIpStr();
-    return result;
-  }
+      const std::vector<std::string>& prefixes);
 
   void printOutput(RetType& data, std::ostream& out = std::cout) {
     if (!data.tRibEntries()->empty()) {

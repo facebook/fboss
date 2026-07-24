@@ -355,8 +355,7 @@ void SaiPortManager::changeClm(
     const std::shared_ptr<Port>& newPort) {
   // Per port CLM is not supported on DNX. The clmEnable port config only
   // applies to XGS
-#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0) && \
-    defined(BRCM_SAI_SDK_XGS)
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
   // no change in config
   if (oldPort->getClmEnable().has_value() &&
       newPort->getClmEnable().has_value() &&

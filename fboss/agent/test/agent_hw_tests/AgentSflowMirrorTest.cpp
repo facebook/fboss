@@ -1562,7 +1562,7 @@ class AgentSflowMirrorRemoteSystemPortTest
   std::string getPortName(PortID portId) {
     auto port = getProgrammedState()->getPorts()->getNodeIf(portId);
     return port ? port->getName()
-                : folly::sformat("unknown({})", static_cast<int>(portId));
+                : fmt::format("unknown({})", static_cast<int>(portId));
   }
 
   // Helper to log port statistics for debugging

@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -87,17 +88,17 @@ class AgentTunnelMgrTest : public AgentHwTest {
                 .first);
         if (isIpv4) {
           if (intfIP.find("::") == std::string::npos) {
-            auto ipDecimal = folly::sformat("{}", i + 1);
+            auto ipDecimal = fmt::format("{}", i + 1);
             config.interfaces()[i].ipAddresses()[j] =
-                folly::sformat("{}.2.2.2/24", ipDecimal);
+                fmt::format("{}.2.2.2/24", ipDecimal);
             intfIPList.push_back(config.interfaces()[i].ipAddresses()[j]);
           }
         } else {
           if (intfIP.find("::") != std::string::npos) {
             auto ipDecimal =
-                folly::sformat("{}", i + config.interfaces()->size() + 1);
+                fmt::format("{}", i + config.interfaces()->size() + 1);
             config.interfaces()[i].ipAddresses()[j] =
-                folly::sformat("{}::/64", ipDecimal);
+                fmt::format("{}::/64", ipDecimal);
             intfIPList.push_back(config.interfaces()[i].ipAddresses()[j]);
           }
         }
@@ -783,10 +784,10 @@ TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
       for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
         if (config.interfaces()[i].ipAddresses()[j].find("::") ==
             std::string::npos) {
-          auto ipDecimal = folly::sformat("{}", i + 1);
+          auto ipDecimal = fmt::format("{}", i + 1);
           config.interfaces()[i].ipAddresses()[j] =
-              folly::sformat("{}.2.2.2/24", ipDecimal);
-          intfIPv4 = folly::sformat("{}.2.2.2", ipDecimal);
+              fmt::format("{}.2.2.2/24", ipDecimal);
+          intfIPv4 = fmt::format("{}.2.2.2", ipDecimal);
         }
       }
 
@@ -877,10 +878,10 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
       for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
         if (config.interfaces()[i].ipAddresses()[j].find("::") !=
             std::string::npos) {
-          auto ipDecimal = folly::sformat("{}", i + 1);
+          auto ipDecimal = fmt::format("{}", i + 1);
           config.interfaces()[i].ipAddresses()[j] =
-              folly::sformat("{}::2/64", ipDecimal);
-          intfIPv6 = folly::sformat("{}::2", ipDecimal);
+              fmt::format("{}::2/64", ipDecimal);
+          intfIPv6 = fmt::format("{}::2", ipDecimal);
         }
       }
 

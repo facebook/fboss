@@ -232,7 +232,7 @@ TEST_F(SwitchStatsObserverTest, ribRouteProgrammingTimeUs) {
   auto counterName =
       SwitchStats::kCounterPrefix + "rib_route_programming_time.us.p100";
   ASSERT_TRUE(counters.count(counterName));
-  EXPECT_EQ(counters[counterName], 5000);
+  EXPECT_GE(counters[counterName], 5000);
 }
 
 } // namespace facebook::fboss

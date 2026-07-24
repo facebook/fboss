@@ -13,9 +13,9 @@
 #include <folly/DynamicConverter.h>
 #include <folly/io/IOBufQueue.h>
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
+#include <thrift/lib/cpp2/op/Encode.h>
 #include <thrift/lib/cpp2/op/Get.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <thrift/lib/cpp2/protocol/detail/protocol_methods.h>
 #include <utility>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
@@ -128,8 +128,8 @@ struct Serializer {
     folly::IOBufQueue queue;
     Writer writer;
     writer.setOutput(&queue, maxGrowth);
-    apache::thrift::detail::pm::protocol_methods<TC, TType>::write(
-        writer, ttype);
+    using Tag = apache::thrift::type_class::to_type_tag_t<TC, TType>;
+    apache::thrift::op::encode<Tag>(writer, ttype);
     return queue.moveAsValue();
   }
 
@@ -148,8 +148,8 @@ struct Serializer {
     auto buf = folly::IOBuf::copyBuffer(encoded.data(), encoded.length());
     reader.setInput(buf.get());
     TType recovered;
-    apache::thrift::detail::pm::protocol_methods<TC, TType>::read(
-        reader, recovered);
+    using Tag = apache::thrift::type_class::to_type_tag_t<TC, TType>;
+    apache::thrift::op::decode<Tag>(reader, recovered);
     return recovered;
   }
 
@@ -167,8 +167,8 @@ struct Serializer {
     Reader reader;
     reader.setInput(&buf);
     TType recovered;
-    apache::thrift::detail::pm::protocol_methods<TC, TType>::read(
-        reader, recovered);
+    using Tag = apache::thrift::type_class::to_type_tag_t<TC, TType>;
+    apache::thrift::op::decode<Tag>(reader, recovered);
     return recovered;
   }
 };

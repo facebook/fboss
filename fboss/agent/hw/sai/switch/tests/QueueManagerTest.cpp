@@ -20,6 +20,7 @@
 
 #include <string>
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
@@ -329,7 +330,7 @@ TEST_F(QueueManagerTest, checkSysPortVoqStats) {
 TEST_F(QueueManagerTest, changeSysPortAndCheckVoqStats) {
   auto sysPort = firstSysPort();
   auto newSysPort = sysPort->clone();
-  newSysPort->setName(folly::sformat("new_{}", sysPort->getName()));
+  newSysPort->setName(fmt::format("new_{}", sysPort->getName()));
   saiManagerTable->systemPortManager().changeSystemPort(sysPort, newSysPort);
   saiManagerTable->systemPortManager().updateStats(
       newSysPort->getID(),

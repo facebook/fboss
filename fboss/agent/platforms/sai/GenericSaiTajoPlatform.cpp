@@ -10,6 +10,7 @@
 
 #include "fboss/agent/platforms/sai/GenericSaiTajoPlatform.h"
 
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
@@ -29,8 +30,13 @@ void GenericSaiTajoPlatform::setupAsic(
     std::optional<int64_t> switchId,
     const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
+  std::optional<cfg::SdkVersion> sdkVersion;
+  auto agentConfig = config();
+  if (agentConfig->thrift.sw()->sdkVersion().has_value()) {
+    sdkVersion = agentConfig->thrift.sw()->sdkVersion().value();
+  }
   asic_ = HwAsic::makeAsic(
-      switchId.value_or(0), switchInfo, std::nullopt, fabricNodeRole);
+      switchId.value_or(0), switchInfo, sdkVersion, fabricNodeRole);
 }
 
 HwAsic* GenericSaiTajoPlatform::getAsic() const {

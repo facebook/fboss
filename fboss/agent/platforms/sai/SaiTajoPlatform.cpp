@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/sai/SaiTajoPlatform.h"
 #include "fboss/agent/hw/sai/api/UdfApi.h"
 #include "fboss/agent/hw/switch_asics/TajoAsic.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace facebook::fboss {
 SaiTajoPlatform::SaiTajoPlatform(
@@ -32,7 +33,26 @@ const std::set<sai_api_t>& SaiTajoPlatform::getSupportedApiList() const {
 }
 
 std::string SaiTajoPlatform::getHwConfig() {
-  return *config()->thrift.platform()->chip().value().get_asic().config();
+  auto chipConfigType = config()->thrift.platform()->chip()->getType();
+  if (chipConfigType != facebook::fboss::cfg::ChipConfig::Type::asicConfig) {
+    return *config()->thrift.platform()->chip().value().get_asic().config();
+  }
+
+  auto& asicConfig =
+      config()->thrift.platform()->chip().value().get_asicConfig();
+  return asicConfig.common().value().get_jsonConfig();
+}
+
+std::vector<PortID> SaiTajoPlatform::getAllPortsInGroup(PortID portID) const {
+  std::vector<PortID> allPortsinGroup;
+  if (const auto& platformPorts = getPlatformPorts(); !platformPorts.empty()) {
+    const auto& portList =
+        utility::getPlatformPortsByControllingPort(platformPorts, portID);
+    for (const auto& port : portList) {
+      allPortsinGroup.emplace_back(*port.mapping()->id());
+    }
+  }
+  return allPortsinGroup;
 }
 
 } // namespace facebook::fboss

@@ -45,6 +45,7 @@ target_link_libraries(pkt_test_utils
   config_factory
   fboss_types
   network_address_cpp2
+  tajo_punt_header
 )
 
 add_library(fabric_test_utils

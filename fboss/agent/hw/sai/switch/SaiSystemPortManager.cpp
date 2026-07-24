@@ -24,6 +24,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 
 #include <fmt/ranges.h>
@@ -448,8 +449,7 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
           switchIdToSwitchInfo,
           SwitchID(switchId)));
       sysPort->setSwitchId(SwitchID(switchId));
-      sysPort->setName(
-          folly::sformat("{}:{}", switchId, port.second->getName()));
+      sysPort->setName(fmt::format("{}:{}", switchId, port.second->getName()));
       auto platformPort = platform_->getPlatformPort(port.second->getID());
       sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
       sysPort->setCorePortIndex(*platformPort->getCorePortIndex());

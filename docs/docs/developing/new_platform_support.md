@@ -2,7 +2,89 @@
 
 ## Overview
 
-This document describes all of the locations in the code where you need to add code to onboard a new platform in qsfp_service / agent code. Please follow this [GitHub Commit](https://github.com/facebook/fboss/commit/00b86dfee299bd164f6380938c501e0ee92482c2) as an example if the code pointers are not sufficient.
+This document describes how to onboard a new platform to the FBOSS `wedge_agent`, `qsfp_service`, and `led_service`.
+
+FBOSS is transitioning to a **config-driven platform model**. Historically, adding a
+platform required new per-platform C++ classes and edits to several hardcoded `if/else`
+dispatch chains. With the config-driven model, a *standard* platform is instead described
+by two generated JSON files — a **platform mapping** and a **platform descriptor** — and is
+instantiated at runtime through generic platform/port classes. This path is gated behind the
+`--platform_descriptor_config_path` flag and is the recommended way to add new standard
+platforms.
+
+The historical manual path still works and remains the default when
+`--platform_descriptor_config_path` is not set. It is documented below as a fallback and for
+platforms that require custom C++ behavior. Please follow this [GitHub Commit](https://github.com/facebook/fboss/commit/00b86dfee299bd164f6380938c501e0ee92482c2)
+as an example if the code pointers are not sufficient.
+
+## Config-Driven Platform Support (Recommended)
+
+With the config-driven path, a standard platform needs **no new per-platform C++ classes** in
+the agent. Platform identity, detection, and ASIC selection come from a `PlatformDescriptor`,
+and the agent instantiates generic platform and port classes at runtime.
+
+### 1. Add the PlatformType enum entry
+
+The `PlatformType` enum in [fboss/lib/if/fboss_common.thrift](https://github.com/facebook/fboss/blob/main/fboss/lib/if/fboss_common.thrift)
+is intentionally preserved because it has broad downstream impact (Thrift RPCs, FSDB, DSF node
+configs). A new platform therefore still needs a single new enum entry. This is the only
+required Thrift change.
+
+### 2. Generate the platform mapping and platform descriptor
+
+Follow [Platform Mapping Config Generation](https://facebook.github.io/fboss/docs/developing/platform_mapping/).
+In addition to the existing CSVs, provide a `PLATFORM_platform_descriptor.csv` describing the
+platform identity (system vendor, `PlatformType`, product-name prefixes, mode names, and ASIC
+type). The generator writes **both** `platform_mapping.json` and `platform_descriptor.json`
+into `fboss/lib/platform_mapping_v2/generated_platform_mappings/<system_vendor>/<platform_name>/`.
+
+### 3. Deploy the descriptor tree and run with the flag
+
+Deploy the generated files under a descriptor config root using the layout
+`<root>/<system_vendor>/<platform_name>/platform_descriptor.json` and
+`<root>/<system_vendor>/<platform_name>/platform_mapping.json`, then start the binaries with
+`--platform_descriptor_config_path <root>`. On startup:
+
+- `PlatformDescriptorRegistry` ([fboss/lib/platforms/PlatformDescriptor.h](https://github.com/facebook/fboss/blob/main/fboss/lib/platforms/PlatformDescriptor.h) /
+  [.cpp](https://github.com/facebook/fboss/blob/main/fboss/lib/platforms/PlatformDescriptor.cpp))
+  scans the tree and indexes descriptors by product-name prefix and mode name.
+- `PlatformProductInfo::initMode()` resolves the `PlatformType` from the registry, falling back
+  to the legacy detection chains if no descriptor matches.
+- `SaiPlatformInit` loads the external `platform_mapping.json` (instead of a compiled-in string)
+  and, based on the descriptor's `asicType`, dispatches to `GenericSaiBcmPlatform`
+  ([source](https://github.com/facebook/fboss/blob/main/fboss/agent/platforms/sai/GenericSaiBcmPlatform.h))
+  or `GenericSaiTajoPlatform`
+  ([source](https://github.com/facebook/fboss/blob/main/fboss/agent/platforms/sai/GenericSaiTajoPlatform.h)).
+  Ports use the shared `SaiBcmPlatformPort` / `SaiTajoPlatformPort` classes.
+
+### 4. Ensure ASIC support
+
+Per-ASIC constants and formulas — such as `numLanesPerCore()`, `numCellsAvailable()`, the SAI
+physical lane IDs, and internal system-port config — now live on the ASIC traits
+(`HwAsic` subclasses in
+[fboss/agent/hw/switch_asics/](https://github.com/facebook/fboss/tree/main/fboss/agent/hw/switch_asics)),
+not on platform classes. If your platform uses an already-supported ASIC, no C++ is needed. If
+it introduces a new ASIC, add or extend the corresponding ASIC trait — see
+[Agent Development](https://facebook.github.io/fboss/docs/developing/agent_development/).
+
+### 5. Custom behavior (only if needed)
+
+Most platforms are pure data and need no C++. If your platform has non-standard behavior that
+the generic classes cannot express, add a dedicated platform/port subclass (see the manual path
+below) for that specific behavior; the generic path continues to serve everything else.
+
+:::note
+The platform descriptor currently carries platform identity and ASIC type. Additional
+capabilities — such as embedding hardware topology in the descriptor and per-variant descriptor
+selection — are being added incrementally.
+:::
+
+## Manual Path (fallback / custom platforms)
+
+When `--platform_descriptor_config_path` is not set, or for platforms that require custom C++,
+the agent uses the manual wiring below. Note that many of the per-platform classes and `if/else`
+branches listed here have been superseded by the generic classes and ASIC traits described
+above; add them only if your platform needs behavior beyond the generic path.
 
 ### Common Code Changes
 1. Add a new entry to the PlatformType enum in [fboss/lib/if/fboss_common.thrift](https://github.com/facebook/fboss/blob/main/fboss/lib/if/fboss_common.thrift).
@@ -13,8 +95,17 @@ This document describes all of the locations in the code where you need to add c
 7. Similarly, create a new folder and add a source file and header for your platform mapping. This requires copying the generated platform mapping JSON into `kJsonPlatformMappingStr` within the `.cpp` file.
    - `fboss/agent/platforms/common/{PLATFORM}/{PLATFORM}PlatformMapping.h` [Header example](https://github.com/facebook/fboss/blob/main/fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h)
    - `fboss/agent/platforms/common/{PLATFORM}/{PLATFORM}PlatformMapping.cpp` [Source example](https://github.com/facebook/fboss/blob/main/fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.cpp)
+   - Embedding the mapping JSON as a C++ string literal is the legacy approach. With the
+     config-driven path, the mapping is loaded from an external `platform_mapping.json` instead;
+     see [Config-Driven Platform Support](#config-driven-platform-support-recommended) above.
 
 ### Agent Code Changes
+
+For a standard platform, prefer the generic classes over the per-platform classes below:
+instantiate `GenericSaiBcmPlatform` / `GenericSaiTajoPlatform` and the shared
+`SaiBcmPlatformPort` / `SaiTajoPlatformPort`, and keep ASIC-specific values in the ASIC trait.
+Only add the dedicated classes below if your platform needs custom behavior.
+
 1. Add a `SaiBcm{PLATFORM}PlatformPort` header and source file for your platform:
    - `fboss/agent/platforms/sai/SaiBcm{PLATFORM}PlatformPort.h` [Header example](https://github.com/facebook/fboss/blob/ad0121584f3dc5f9b3d631c2473d14412599e6c7/fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.h)
    - `fboss/agent/platforms/sai/SaiBcm{PLATFORM}PlatformPort.cpp` [Source example](https://github.com/facebook/fboss/blob/ad0121584f3dc5f9b3d631c2473d14412599e6c7/fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.cpp)

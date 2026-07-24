@@ -102,14 +102,14 @@ class DeleteInterfaceTest : public Fboss2IntegrationTest {
 
 TEST_F(DeleteInterfaceTest, DISABLED_DeleteLoopbackModePHY) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   XLOG(INFO) << "[Step 2] Setting loopback-mode=PHY...";
-  setLoopbackMode(iface.name, "PHY");
+  setLoopbackMode(ifName, "PHY");
 
   XLOG(INFO) << "[Step 3] Deleting loopback-mode (reset to NONE)...";
-  deleteInterfaceAttrs(iface.name, {"loopback-mode"});
+  deleteInterfaceAttrs(ifName, {"loopback-mode"});
 
   XLOG(INFO)
       << "  loopback-mode deleted successfully (exit 0, config committed)";
@@ -122,11 +122,11 @@ TEST_F(DeleteInterfaceTest, DISABLED_DeleteLoopbackModePHY) {
 
 TEST_F(DeleteInterfaceTest, DeleteLoopbackModeIdempotent) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   XLOG(INFO) << "[Step 2] Deleting loopback-mode without setting it first...";
-  deleteInterfaceAttrs(iface.name, {"loopback-mode"});
+  deleteInterfaceAttrs(ifName, {"loopback-mode"});
 
   XLOG(INFO) << "  Idempotent delete succeeded (exit 0)";
   XLOG(INFO) << "TEST PASSED";
@@ -138,15 +138,15 @@ TEST_F(DeleteInterfaceTest, DeleteLoopbackModeIdempotent) {
 
 TEST_F(DeleteInterfaceTest, DeleteLldpExpectedValue) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   XLOG(INFO) << "[Step 2] Setting lldp-expected-value=ge-0/0/0...";
-  setLldpExpectedValue(iface.name, "ge-0/0/0");
+  setLldpExpectedValue(ifName, "ge-0/0/0");
 
   XLOG(INFO)
       << "[Step 3] Deleting lldp-expected-value (removing PORT entry)...";
-  deleteInterfaceAttrs(iface.name, {"lldp-expected-value"});
+  deleteInterfaceAttrs(ifName, {"lldp-expected-value"});
 
   XLOG(INFO)
       << "  lldp-expected-value deleted successfully (exit 0, config committed)";
@@ -159,12 +159,12 @@ TEST_F(DeleteInterfaceTest, DeleteLldpExpectedValue) {
 
 TEST_F(DeleteInterfaceTest, DeleteLldpExpectedValueIdempotent) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   XLOG(INFO)
       << "[Step 2] Deleting lldp-expected-value without setting it first...";
-  deleteInterfaceAttrs(iface.name, {"lldp-expected-value"});
+  deleteInterfaceAttrs(ifName, {"lldp-expected-value"});
 
   XLOG(INFO) << "  Idempotent delete succeeded (exit 0)";
   XLOG(INFO) << "TEST PASSED";
@@ -179,16 +179,16 @@ TEST_F(DeleteInterfaceTest, DeleteLldpExpectedValueIdempotent) {
 
 TEST_F(DeleteInterfaceTest, DISABLED_DeleteLoopbackModeAndLldpExpectedValue) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   XLOG(INFO) << "[Step 2] Setting loopback-mode=PHY and lldp-expected-value...";
-  setLoopbackMode(iface.name, "PHY");
-  setLldpExpectedValue(iface.name, "ge-0/0/0");
+  setLoopbackMode(ifName, "PHY");
+  setLldpExpectedValue(ifName, "ge-0/0/0");
 
   XLOG(INFO)
       << "[Step 3] Deleting both loopback-mode and lldp-expected-value in one call...";
-  deleteInterfaceAttrs(iface.name, {"loopback-mode", "lldp-expected-value"});
+  deleteInterfaceAttrs(ifName, {"loopback-mode", "lldp-expected-value"});
 
   XLOG(INFO) << "  Combined delete succeeded (exit 0, config committed)";
   XLOG(INFO) << "TEST PASSED";

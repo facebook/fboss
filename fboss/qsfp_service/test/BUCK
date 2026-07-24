@@ -7,6 +7,9 @@ load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 oncall("fboss_optics_phy")
 
 cpp_binary(
+    # @autodeps-skip Pinned to a single SAI impl (credo-0.7.2) via the # @manual
+    # wedge-platform dep; autodeps otherwise also adds wedge-platform-brcm_pai-3.15,
+    # linking two SAI SDKs and causing SAI_API_VERSION redefinition.
     name = "qsfp_service_test",
     srcs = [
         "QsfpServiceTest.cpp",
@@ -45,10 +48,12 @@ cpp_library(
         "TransceiverManagerTestHelper.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
-    exported_deps = [
-        "fbsource//third-party/googletest:gtest",
+    deps = [
         ":fake-configs-helper",
         "//fboss/qsfp_service/if:transceiver_validation-cpp2-types",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
         "//fboss/qsfp_service/platforms/wedge/tests:mock-wedge-manager",
         "//folly/testing:test_util",
     ],
@@ -153,8 +158,8 @@ cpp_library(
     srcs = ["MockStateMachine.cpp"],
     headers = ["MockStateMachine.h"],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = ["//fboss/agent:fboss-error"],
     exported_deps = [
-        "//fboss/agent:fboss-error",
         "//fboss/qsfp_service:port-manager",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
@@ -172,7 +177,7 @@ cpp_unittest(
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     network_access = network_access_utils.none(),
     deps = [
-        "//fboss/qsfp_service:typed-state-machine-update",
+        "//fboss/qsfp_service:port-manager",
     ],
 )
 
@@ -185,7 +190,6 @@ cpp_unittest(
         "fbsource//third-party/googletest:gmock",
         ":mock-state-machine",
         "//fboss/qsfp_service:port-manager",
-        "//fboss/qsfp_service:typed-state-machine-update",
         "//folly:synchronized",
         "//folly/logging:logging",
     ],

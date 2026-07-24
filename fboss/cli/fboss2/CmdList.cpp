@@ -32,6 +32,7 @@
 #include "fboss/cli/fboss2/commands/set/transceiver/CmdSetTransceiver.h"
 #include "fboss/cli/fboss2/commands/set/transceiver/loopback/CmdSetTransceiverLoopback.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
+#include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentBootType.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
@@ -84,6 +85,7 @@
 #include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
 #include "fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
+#include "fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
 #ifndef IS_OSS
@@ -128,6 +130,10 @@ const CommandTree& kCommandTree() {
             "Show Agent SSL information",
             commandHandler<CmdShowAgentSsl>,
             argTypeHandler<CmdShowAgentSslTraits>},
+           {"boot-type",
+            "Show Agent boot type",
+            commandHandler<CmdShowAgentBootType>,
+            argTypeHandler<CmdShowAgentBootTypeTraits>},
            {"firmware",
             "Show Agent Firmware information",
             commandHandler<CmdShowAgentFirmware>,
@@ -428,6 +434,18 @@ const CommandTree& kCommandTree() {
          "Show details of MPLS routes",
          commandHandler<CmdShowMplsRoute>,
          argTypeHandler<CmdShowMplsRouteTraits>}}},
+
+      {"show",
+       "nexthopgroups",
+       "Show next hop groups",
+       commandHandler<CmdShowNextHopGroups>,
+       argTypeHandler<CmdShowNextHopGroupsTraits>},
+
+      {"show",
+       "namednexthopgroups",
+       "Show named next hop groups",
+       commandHandler<CmdShowNamedNextHopGroups>,
+       argTypeHandler<CmdShowNamedNextHopGroupsTraits>},
 
       {
           "show",

@@ -257,6 +257,19 @@ class PackageFboss:
             os.path.join(tmp_dir_name, PackageFboss.DATA, "qsfp_unsupported_tests"),
         )
 
+        fboss2_integration_unsupported_tests_path = self.get_fboss_subdirectory(
+            "fboss/oss/fboss2_integration_unsupported_tests"
+        )
+        print(f"Copying {fboss2_integration_unsupported_tests_path} to {tmp_dir_name}")
+        shutil.copytree(
+            fboss2_integration_unsupported_tests_path,
+            os.path.join(
+                tmp_dir_name,
+                PackageFboss.DATA,
+                "fboss2_integration_unsupported_tests",
+            ),
+        )
+
     def _copy_binaries(self, tmp_dir_name):
         print("Copying binaries...")
 

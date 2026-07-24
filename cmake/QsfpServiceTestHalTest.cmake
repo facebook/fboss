@@ -23,7 +23,9 @@ target_link_libraries(hal_test_utils
   hal_test_config_cpp2
   fboss_error
   switch_config_cpp2
+  bsp_platform_mapping
   bsp_platform_mapping_cpp2
+  platform_name_lib
   transceiver_cpp2
   transceiver_properties_cpp2
   transceiver_properties_manager

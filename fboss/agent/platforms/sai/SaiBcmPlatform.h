@@ -52,6 +52,13 @@ class SaiBcmPlatform : public SaiPlatform {
   void initWedgeLED(int led, folly::ByteRange range);
 
  private:
+  // SOC (name, value) properties that --bcm_sdk_log_file injects so the SDK
+  // runs the given diag/SOC command file at init. Empty when the flag is unset.
+  // Validates the path (throws on a missing file) and logs the injected file
+  // once. Single source of truth shared by all getHwConfig() config paths.
+  std::vector<std::pair<std::string, std::string>>
+  getBcmSdkLogFileSocProperties() const;
+
   std::unordered_map<std::string, std::string> hwConfig_;
 };
 

@@ -389,7 +389,8 @@ TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
  */
 TEST_F(AgentEnsembleLinkTest, verifyIphyFecCounters) {
   addVerifiedProductionFeatures(
-      {link_test_production_features::LinkTestProductionFeature::FEC});
+      {link_test_production_features::LinkTestProductionFeature::
+           IPHY_FEC_INJECT});
   auto cabledPorts = getCabledPorts();
   addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
@@ -475,7 +476,8 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecCounters) {
 
 TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
   addVerifiedProductionFeatures(
-      {link_test_production_features::LinkTestProductionFeature::FEC});
+      {link_test_production_features::LinkTestProductionFeature::
+           IPHY_FEC_COUNTERS});
   /*
    * Collects 5 (500 for stress test) phyInfos and verifies
    * 1. No uncorrected codewords

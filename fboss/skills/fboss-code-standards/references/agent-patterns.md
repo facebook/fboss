@@ -90,3 +90,10 @@ Patterns for code under `fboss/agent/`, including SwSwitch, HwSwitch, and state 
 **Why**: Incremental undo is error-prone. Clean rebuild ensures validator state stays in sync even when validation fails partway through.
 **Source**: D96253394 reviewer feedback
 **Confidence**: MEDIUM
+
+### 18. Read Route NextHops Through the ID-Aware Helpers (FIB vs RIB)
+**Check**: Never read a route's nexthops via `getNextHopSet()` (or otherwise read inline nexthop sets directly off the route/fwd-entry object) in new or modified code — inline nexthops are being removed by the ECMP NextHop-ID migration. Use the ID-aware helper family matched to your layer (both in `namespace facebook::fboss`):
+- **Code with a published `SwitchState`** — the default for everything outside the RIB internals (SaiSwitch, SaiRouteManager, resolvers, thrift handlers, ResourceAccountant, ERM, emulation switch, tests) → use the `FibHelpers.h` state-based helpers: `getNextHops(state, id)` / `getNextHops(state, entry)`, `getNormalizedNextHops(state, entry)`, `getNonOverrideNormalizedNextHops(state, entry)`, `getClientNextHops(state, entry)`.
+- **RIB-internal code that runs before the state is published** (has only a `NextHopIDManager*`, e.g. inside `RibRouteUpdater` / `RoutingInformationBase`) → use the `RoutingInformationBase.h` `*FromRib` helpers: `getNextHopsFromRib(manager, id)`, `getResolvedNextHopsFromRib(manager, entry)`, `getNormalizedNextHopsFromRib(manager, entry)`, `getNonOverrideNormalizedNextHopsFromRib(manager, entry)`, `getClientNextHopsFromRib(manager, entry)`. Each is the 1:1 companion of the FibHelpers function of the same name.
+**Why**: Once inline nexthops are dropped, `getNextHopSet()` returns empty/stale data. The helpers resolve nexthops through the refcounted ID map and stay correct under `FLAGS_enable_nexthop_id_manager` / `FLAGS_resolve_nexthops_from_id`. Picking the wrong family is a layering error: FIB helpers need a published state the RIB doesn't have yet, and RIB helpers need the `NextHopIDManager` directly.
+**Confidence**: HIGH (read-path code must go through the ID-aware helper for its layer)

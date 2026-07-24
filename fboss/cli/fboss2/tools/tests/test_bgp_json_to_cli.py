@@ -38,29 +38,39 @@ class EscapeShellArgTest(unittest.TestCase):
         self.assertEqual(result, "simple")
 
     def test_string_with_space_is_quoted(self) -> None:
-        """Strings with spaces should be wrapped in double quotes."""
+        """Strings with spaces should be wrapped in single quotes."""
         result = escape_shell_arg("hello world")
-        self.assertEqual(result, '"hello world"')
+        self.assertEqual(result, "'hello world'")
 
     def test_string_with_special_chars_is_quoted(self) -> None:
         """Strings with shell special characters should be quoted."""
         result = escape_shell_arg("value$var")
-        self.assertEqual(result, '"value$var"')
+        self.assertEqual(result, "'value$var'")
 
     def test_string_with_backslash_is_quoted(self) -> None:
         """Strings with backslash should be quoted."""
         result = escape_shell_arg("path\\to\\file")
-        self.assertEqual(result, '"path\\to\\file"')
+        self.assertEqual(result, "'path\\to\\file'")
 
     def test_empty_string(self) -> None:
-        """Empty string should not be quoted."""
+        """Empty string is quoted as empty single quotes."""
         result = escape_shell_arg("")
-        self.assertEqual(result, "")
+        self.assertEqual(result, "''")
 
     def test_ipv6_address_not_escaped(self) -> None:
         """IPv6 addresses should not be quoted."""
         result = escape_shell_arg("2401:db00:501c::/64")
         self.assertEqual(result, "2401:db00:501c::/64")
+
+    def test_command_injection_payload_neutralized(self) -> None:
+        """Command injection payloads should be rendered literal."""
+        result = escape_shell_arg("$(reboot)")
+        self.assertEqual(result, "'$(reboot)'")
+
+    def test_backtick_injection_neutralized(self) -> None:
+        """Backtick command substitution should be rendered literal."""
+        result = escape_shell_arg("`reboot`")
+        self.assertEqual(result, "'`reboot`'")
 
 
 class FormatBandwidthTest(unittest.TestCase):
@@ -253,7 +263,7 @@ class GeneratePeerGroupCommandsTest(unittest.TestCase):
         peer_group = {"name": "TEST", "description": "Test peer group"}
         commands = generate_peer_group_commands(peer_group)
         self.assertIn(
-            'config protocol bgp peer-group TEST description "Test peer group"',
+            "config protocol bgp peer-group TEST description 'Test peer group'",
             commands,
         )
 
@@ -617,6 +627,29 @@ class JsonToCliIntegrationTest(unittest.TestCase):
         config = {"router_id": "10.0.0.1"}
         commands = json_to_cli(config, stub=False, binary="/custom/path/fboss2")
         self.assertTrue(any("/custom/path/fboss2" in cmd for cmd in commands))
+
+    def test_injection_in_router_id_neutralized(self) -> None:
+        """Command injection in router_id should be single-quoted."""
+        config = {"router_id": "$(reboot)"}
+        commands = json_to_cli(config, stub=False, binary="fboss2")
+        joined = "\n".join(commands)
+        self.assertIn("router-id '$(reboot)'", joined)
+        self.assertNotIn("router-id $(reboot)", joined)
+
+    def test_injection_in_peer_addr_neutralized(self) -> None:
+        """Command injection in peer_addr should be single-quoted."""
+        config = {
+            "peers": [
+                {
+                    "peer_addr": "$(malicious)",
+                    "remote_as_4_byte": 65000,
+                }
+            ]
+        }
+        commands = json_to_cli(config, stub=False, binary="fboss2")
+        joined = "\n".join(commands)
+        self.assertIn("peer '$(malicious)'", joined)
+        self.assertNotIn("peer $(malicious)", joined)
 
 
 if __name__ == "__main__":

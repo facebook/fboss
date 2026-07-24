@@ -12,10 +12,38 @@
 #include <string>
 #include <vector>
 
+#include "fboss/platform/bsp_tests/BspTestEnvironment.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
-#include "fboss/platform/platform_manager/PkgManager.h"
+#include "fboss/platform/platform_manager/PciExplorer.h"
+#include "fboss/platform/platform_manager/SystemInterface.h"
 
 namespace facebook::fboss::platform::bsp_tests {
+
+void KmodUtils::bindDesiredDrivers(
+    const platform_manager::PlatformConfig& platformConfig) {
+  for (const auto& [pmUnitName, pmUnitConfig] :
+       *platformConfig.pmUnitConfigs()) {
+    for (const auto& pciConf : *pmUnitConfig.pciDeviceConfigs()) {
+      if (!pciConf.desiredDriver().has_value()) {
+        continue;
+      }
+      try {
+        // PciDevice constructor handles device binding
+        platform_manager::PciDevice pciDevice(pciConf);
+        XLOG(INFO) << fmt::format(
+            "Successfully bound {} to driver {}",
+            *pciConf.pmUnitScopedName(),
+            *pciConf.desiredDriver());
+      } catch (const std::exception& e) {
+        FAIL() << fmt::format(
+            "Failed to bind device {} to driver {}: {}",
+            *pciConf.pmUnitScopedName(),
+            *pciConf.desiredDriver(),
+            e.what());
+      }
+    }
+  }
+}
 
 void KmodUtils::loadKmods(const BspKmodsFile& kmods) {
   // Load shared kmods first
@@ -23,6 +51,11 @@ void KmodUtils::loadKmods(const BspKmodsFile& kmods) {
     auto result = PlatformUtils().execCommand(fmt::format("modprobe {}", kmod));
     EXPECT_EQ(result.first, 0) << "Failed to load shared kmod: " << kmod;
   }
+
+  BspTestEnvironment* env = BspTestEnvironment::GetInstance();
+  const platform_manager::PlatformConfig& platformConfig =
+      env->getPlatformManagerConfig();
+  bindDesiredDrivers(platformConfig);
 
   // Then load BSP kmods
   for (const auto& kmod : *kmods.bspKmods()) {

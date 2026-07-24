@@ -8,6 +8,7 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiPlatform.cpp
   fboss/agent/platforms/sai/GenericSaiBcmPlatform.cpp
   fboss/agent/platforms/sai/GenericSaiTajoPlatform.cpp
+  fboss/agent/platforms/sai/GenericSaiYangraPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmWedge100Platform.cpp
@@ -16,51 +17,20 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiBcmDarwinPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmElbertPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMinipackPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmYampPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmFujiPlatform.cpp
   fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.cpp
   fboss/agent/platforms/sai/SaiFakePlatform.cpp
   fboss/agent/platforms/sai/SaiFakePlatformPort.cpp
-  fboss/agent/platforms/sai/SaiJanga800bicPlatform.cpp
-  fboss/agent/platforms/sai/SaiJanga800bicPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformInit.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatform.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatformPort.cpp
   fboss/agent/platforms/sai/SaiTajoPlatform.cpp
   fboss/agent/platforms/sai/SaiTajoPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiMeru800biaPlatform.cpp
-  fboss/agent/platforms/sai/SaiMeru800bfaPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmMontblancPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmIcecube800banwPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmLeh800bclsPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiBcmWedge800BACTPlatform.cpp
-  fboss/agent/platforms/sai/SaiWedge800CACTPlatform.cpp
-  fboss/agent/platforms/sai/SaiM5120CSCPlatform.cpp
-  fboss/agent/platforms/sai/SaiM5120CSCPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiMorgan800ccPlatform.cpp
-  fboss/agent/platforms/sai/SaiTahan800bcPlatform.cpp
-  fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiYangraPlatform.cpp
   fboss/agent/platforms/sai/SaiMinipack3NPlatform.cpp
-  fboss/agent/platforms/sai/SaiYangraPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiYangra2Platform.cpp
+  fboss/agent/platforms/sai/SaiChenabPlatformPort.cpp
 # platform oss srcs (== fake_srcs)
-  fboss/agent/platforms/sai/SaiBcmJ4SimPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmJ4SimPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiBcmSaintpaulPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmSaintpaulPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatformPort.cpp
@@ -72,13 +42,7 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/oss/SaiBcmYampPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmElbertPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiWedge400CPlatformPort.cpp
-  fboss/agent/platforms/sai/oss/SaiMeru800biaPlatform.cpp
-  fboss/agent/platforms/sai/oss/SaiMeru800biaPlatformPort.cpp
-  fboss/agent/platforms/sai/oss/SaiMeru800bfaPlatform.cpp
-  fboss/agent/platforms/sai/oss/SaiMeru800bfaPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
-  fboss/agent/platforms/sai/oss/SaiMorgan800ccPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiYangra2PlatformPort.cpp
 )
 
 if (SAI_BRCM_PAI_IMPL)
@@ -206,10 +170,11 @@ find_library(SAI_IMPL sai_impl)
 message(STATUS "SAI_IMPL: ${SAI_IMPL}")
 
 if(BUILD_SAI_FAKE)
-  BUILD_SAI_WEDGE_AGENT("fake" fake_sai)
-endif()
-
-if(SAI_IMPL)
+  # Name fake-SAI agent binaries with the -sai_impl suffix so they sit at
+  # the same /opt/fboss/bin/ paths the systemd unit files reference and
+  # package.py FORWARDING_BINARIES matches without modification.
+  BUILD_SAI_WEDGE_AGENT("sai_impl" fake_sai)
+elseif(SAI_IMPL)
   BUILD_SAI_WEDGE_AGENT("sai_impl" ${SAI_IMPL})
   install(
     TARGETS

@@ -312,7 +312,7 @@ std::string getRouteDropAclName() {
 
 void addQueuePerHostAcls(cfg::SwitchConfig* config, bool isSai) {
   cfg::Ttl ttl;
-  std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
+  std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0xFF);
   auto ttlCounterName = getQueuePerHostTtlCounterName();
 
   std::vector<cfg::CounterType> counterTypes{

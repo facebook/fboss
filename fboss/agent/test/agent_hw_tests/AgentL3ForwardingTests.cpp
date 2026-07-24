@@ -173,6 +173,9 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
         auto vlanId = getVlanIDForTx();
         auto intfMac =
             getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+        // Use a distinct src MAC so the test packet's SMAC != DMAC; TU1 drops
+        // L3 packets whose SMAC equals DMAC.
+        auto srcMac = folly::MacAddress("02:01:02:03:04:05");
         auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "10.0.0.1");
         auto dstIp =
             folly::IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");
@@ -181,7 +184,7 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
           auto pkt = utility::makeUDPTxPacket(
               getSw(),
               vlanId,
-              intfMac,
+              srcMac,
               intfMac,
               srcIp,
               dstIp,

@@ -1,0 +1,35 @@
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_oss")
+
+# The FBOSS OSS test runner package. Shipped to the switch at /opt/fboss by
+# package-fboss.py and invoked on-device as `run_test.py <test_type>` (a thin
+# entry point that calls fboss_test_runner.main). Exists so the unit tests can
+# depend on the runner sources and run on-diff; run_test.py and setup.py are
+# included so a diff touching the entry point (or setup, which main.py imports)
+# also re-triggers the tests. brcmsim.py is excluded -- it is a standalone
+# subprocess script the runner never imports.
+#
+# typing = False: the modules import each other as the top-level
+# `fboss_test_runner` package (matching the /opt/fboss on-device layout, where
+# the unit tests add run_scripts/ to sys.path via conftest.py), not the
+# fbcode-rooted fboss.oss.scripts.run_scripts.* path. pyre can only resolve that
+# top-level layout via base_module, which is no longer allowed, so type checking
+# is disabled here; the value is the on-diff unit-test signal, not pyre.
+python_library(
+    name = "fboss_test_runner",
+    srcs = glob(
+        ["fboss_test_runner/**/*.py"],
+        exclude = ["fboss_test_runner/unittests/**/*.py"],
+    )
+    + [
+        "run_test.py",
+        "setup.py",
+    ],
+    # base_module is intentional here. The modules import each other as the
+    # top-level `fboss_test_runner` package (the on-device /opt/fboss layout),
+    # not the fbcode-rooted fboss.oss.scripts.run_scripts.* path, so
+    # base_module = "" is required for pyre to resolve them.
+    # @lint-ignore BUCKLINT no_base_module_usage_python
+    base_module = "",
+)

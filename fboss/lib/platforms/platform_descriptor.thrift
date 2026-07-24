@@ -14,4 +14,5 @@ struct PlatformDescriptor {
   2: list<string> productNamePrefixes;
   3: list<string> modeNames;
   4: switch_config.AsicType asicType;
+  5: map<string, bool> variantAttributes;
 }

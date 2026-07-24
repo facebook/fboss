@@ -7,9 +7,12 @@ cpp_library(
     srcs = [
         "FsdbStreamClient.cpp",
     ],
-    exported_deps = [
-        "fbsource//third-party/googletest:gtest_headers",
+    deps = [
         "//common/time:time",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
         "//fb303:thread_cached_service_data",
         "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb-cpp2-services",
@@ -20,7 +23,6 @@ cpp_library(
         "//folly/coro:async_scope",
         "//folly/io/async:async_socket_transport",
         "//folly/io/async:scoped_event_base_thread",
-        "//folly/logging:logging",
         "//folly/synchronization:baton",
         "//thrift/lib/cpp2/async:client_buffered_stream",
         "//thrift/lib/cpp2/async:rpc_options",
@@ -49,16 +51,18 @@ cpp_library(
         "FsdbStatePublisher.h",
         "FsdbStateSubscriber.h",
     ],
+    deps = [
+        "//fboss/fsdb/if:fsdb-cpp2-services",
+        "//fboss/fsdb/oper:delta_value",
+    ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
-        "fbsource//third-party/googletest:gtest_headers",
+        "fbsource//third-party/googletest:gtest",
         ":fsdb_stream_client",
         "//fboss/fsdb/common:flags",
         "//fboss/fsdb/common:utils",
-        "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
-        "//fboss/fsdb/oper:delta_value",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:string",
         "//folly:synchronized",
@@ -139,8 +143,8 @@ cpp_library(
     headers = [
         "instantiations/FsdbCowStatsSubManager.h",
     ],
+    deps = [":fsdb_cow_state_sub_manager"],
     exported_deps = [
-        ":fsdb_cow_state_sub_manager",
         ":fsdb_sub_manager",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/oper/instantiations:fsdb_cow_storage",

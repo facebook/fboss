@@ -1131,6 +1131,8 @@ typedef string BufferPoolConfigName
 
 typedef string PortFlowletConfigName
 
+typedef string LlrConfigName
+
 typedef string FirmwareName
 
 const i32 DEFAULT_PORT_MTU = 9412;
@@ -1388,6 +1390,9 @@ struct Port {
    * Unset = leave SDK default untouched.
    */
   41: optional i32 portUpHoldoffTimeMs;
+  // UEC Link Layer Retry: name of the LlrConfig profile to apply to this port.
+  // Presence enables LLR on the port (UE Spec 1.0.2 section 5.1).
+  42: optional LlrConfigName llrConfigName;
 }
 
 enum LacpPortRate {
@@ -1688,7 +1693,6 @@ struct Interface {
    * These fields contains information of remote GPU */
   18: optional string desiredPeerName;
   19: optional string desiredPeerAddressIPv6;
-  20: optional string desiredPeerAddressIPv4;
 }
 
 struct StaticRouteWithNextHops {
@@ -2350,6 +2354,48 @@ struct PortFlowletConfig {
   3: i16 queueWeight;
 }
 
+// Behavior for LLR-desired frames while the LLR TX state machine is in the
+// INIT or FLUSH state (UE Spec 1.0.2 section 5.1.5).
+enum LlrFrameAction {
+  DISCARD = 0,
+  BLOCK = 1,
+  BEST_EFFORT = 2,
+}
+
+// UEC Link Layer Retry (LLR) profile: the configuration registers defined in
+// UE Spec 1.0.2 section 5.1.4 (Table 5-9). Referenced per-port by name via
+// Port.llrConfigName.
+struct LlrConfig {
+  // Fields backed by a u32 SAI attribute use i64: thrift has no unsigned type,
+  // and i32 cannot represent the full 0..2^32-1 range. ApplyThriftConfig
+  // validates each field against its SAI attribute width (see validateLlrConfig).
+  // Max unacknowledged frames held in the replay buffer (outstanding_seq_max).
+  1: i64 outstandingFramesMax;
+  // Max unacknowledged bytes; SHOULD be the link bandwidth-delay product so
+  // pause/PFC keep working (outstanding_data_max).
+  2: i64 outstandingBytesMax;
+  // Timer (ns) after which a replay is initiated (replay_timer_max).
+  3: i64 replayTimerMax;
+  // Max replays before entering FLUSH; 255 = unlimited (replay_ct_max).
+  // Meta sim study recommends >= 2.
+  4: i16 replayCountMax = 2;
+  // PCS-lost duration (ns) before FLUSH (pcs_lost_status_timer_max).
+  5: i64 pcsLostTimeout;
+  // Max time (ns) a frame may reside in the replay buffer (data_age_timer_max).
+  6: i64 dataAgeTimeout;
+  // Action for LLR-desired frames in INIT state (llr_init_behavior).
+  7: LlrFrameAction initFrameAction = LlrFrameAction.BEST_EFFORT;
+  // Action for LLR-desired frames in FLUSH state (llr_flush_behavior).
+  // Tomahawk Ultra (the only LLR-capable ASIC today) only supports BLOCK in
+  // FLUSH; other values are rejected at SAI profile create, so BLOCK is the
+  // default.
+  8: LlrFrameAction flushFrameAction = LlrFrameAction.BLOCK;
+  // Re-initialize LLR on FLUSH (re_init_on_discard).
+  9: bool reInitOnFlush = false;
+  // Target bytes between successive ACK/NACK CtlOS (ctlos_target_spacing).
+  10: i32 ctlosTargetSpacing = 2048;
+}
+
 enum SwitchingMode {
   // flowlet regular quality based reassignments
   FLOWLET_QUALITY = 0,
@@ -2552,4 +2598,7 @@ struct SwitchConfig {
   58: optional list<StaticMacEntry> staticMacAddrs;
   59: optional list<Srv6Tunnel> srv6Tunnels;
   60: optional MySidConfig mySidConfig;
+  // Named UEC Link Layer Retry (LLR) profiles, referenced per-port by
+  // Port.llrConfigName (UE Spec 1.0.2 section 5.1).
+  61: optional map<LlrConfigName, LlrConfig> llrConfigs;
 }

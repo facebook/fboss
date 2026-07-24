@@ -1,6 +1,54 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_platform")
+
+# Pure (folly-only) helpers used by the platform Thrift connection acceptor:
+# parsing the trusted-subnet allowlist and deciding whether a client IP is
+# trusted. Split out so the security-relevant logic is unit testable without
+# pulling in the Thrift server stack.
+cpp_library(
+    name = "platform_thrift_acceptor_util",
+    headers = [
+        "PlatformThriftAcceptorUtil.h",
+    ],
+    exported_deps = [
+        "//folly:network_address",
+        "//folly:string",
+    ],
+)
+
+# Connection-level acceptor that admits only loopback + trusted-subnet peers.
+# Header-only; consumed by the OSS runThriftService bootstrap.
+cpp_library(
+    name = "platform_thrift_acceptor",
+    headers = [
+        "PlatformThriftAcceptor.h",
+    ],
+    exported_deps = [
+        ":platform_thrift_acceptor_util",
+        "//folly:network_address",
+        "//folly/io/async:async_transport",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2:server",
+        "//wangle/acceptor:acceptor",
+    ],
+)
+
+cpp_unittest(
+    name = "platform_thrift_acceptor_test",
+    srcs = [
+        "facebook/PlatformThriftAcceptorTest.cpp",
+    ],
+    # Pure in-process string/IP logic; no network access needed.
+    network_access = network_access_utils.none(),
+    deps = [
+        ":platform_thrift_acceptor",
+        ":platform_thrift_acceptor_util",
+        "//folly:network_address",
+    ],
+)
 
 cpp_library(
     name = "expect_session",
@@ -18,12 +66,14 @@ cpp_library(
     srcs = [
         "PlatformNameLib.cpp",
     ],
-    exported_deps = [
-        ":platform_fs_utils",
-        ":platform_utils",
+    deps = [
         "//fb303:service_data",
         "//folly:string",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":platform_fs_utils",
+        ":platform_utils",
     ],
 )
 
@@ -32,11 +82,12 @@ cpp_library(
     srcs = [
         "PlatformUtils.cpp",
     ],
-    exported_deps = [
+    deps = [
         "//folly:subprocess",
         "//folly/logging:logging",
         "//folly/system:shell",
     ],
+    exported_deps = [],
 )
 
 cpp_library(
@@ -44,10 +95,12 @@ cpp_library(
     srcs = [
         "PlatformFsUtils.cpp",
     ],
-    exported_deps = [
+    deps = [
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
         "//folly/portability:fcntl",
     ],
 )
@@ -60,7 +113,7 @@ cpp_library(
     headers = [
         "Init.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         "//common/base:build_info",
         "//common/init:init",
@@ -70,10 +123,16 @@ cpp_library(
         "//common/services/cpp:proc_module",
         "//common/services/cpp:proc_standalone",
         "//common/services/cpp:thrift_acl_checker_module_config",
+    ],
+    exported_deps = [
         "//folly:function",
         "//folly/io/async:async_signal_handler",
         "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/async:async_processor",
+    ],
+    external_deps = [
+        "gflags",
+        ("openssl", None, "crypto"),
     ],
     exported_external_deps = [
         "gflags",
@@ -89,10 +148,11 @@ cpp_library(
     headers = [
         "InitCli.h",
     ],
-    exported_deps = [
+    deps = [
         "//common/base:build_info",
         "//folly/init:init",
     ],
+    exported_deps = [],
     exported_external_deps = [
         "gflags",
     ],
@@ -128,9 +188,10 @@ cpp_library(
     headers = [
         "StructuredLogger.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         ":platform_name_lib",
         "//folly/logging:logging",
     ],
+    exported_deps = [],
 )

@@ -19,20 +19,17 @@ def sanitize_platform_name(platform_name_from_bios: str) -> str:
     """
     platform_name_upper = platform_name_from_bios.upper()
 
-    if platform_name_upper in ["MINIPACK3", "MINIPACK3_MCB"]:
-        return "MONTBLANC"
+    name_translations = {
+        "MINIPACK3": "MONTBLANC",
+        "MINIPACK3_MCB": "MONTBLANC",
+        "JANGA": "JANGA800BIC",
+        "TAHAN": "TAHAN800BC",
+        "MERU800BIAB": "MERU800BIA",
+        "WEDGE800BNHP": "WEDGE800BACT",
+        "WEDGE800CNHP": "WEDGE800CACT",
+    }
 
-    if platform_name_upper == "JANGA":
-        return "JANGA800BIC"
-
-    if platform_name_upper == "TAHAN":
-        return "TAHAN800BC"
-
-    # MERU800BIAB and MERU800BIA have equivalent configs
-    if platform_name_upper == "MERU800BIAB":
-        return "MERU800BIA"
-
-    return platform_name_upper
+    return name_translations.get(platform_name_upper, platform_name_upper)
 
 
 def get_string_file_content(path: str) -> Optional[str]:
@@ -40,7 +37,7 @@ def get_string_file_content(path: str) -> Optional[str]:
     Read string content from file. Returns None if file doesn't exist or can't be read.
     """
     try:
-        with open(path, "r") as f:
+        with open(path) as f:
             return f.read().strip()
     except Exception:
         return None
@@ -61,9 +58,8 @@ def get_platform_name_from_bios() -> str:
         raise RuntimeError(error_msg)
 
     standard_out = standard_out.strip()
-    result = sanitize_platform_name(standard_out)
 
-    return result
+    return sanitize_platform_name(standard_out)
 
 
 def get_platform_name() -> Optional[str]:

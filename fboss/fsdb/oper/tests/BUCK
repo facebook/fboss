@@ -98,11 +98,11 @@ cpp_library(
     headers = [
         "SubscribableStorageBenchHelper.h",
     ],
+    deps = ["//folly/coro:blocking_wait"],
     exported_deps = [
         "//fboss/fsdb/oper:subscribable_storage",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
         "//fboss/thrift_cow/storage/tests:data_factory",
-        "//folly/coro:blocking_wait",
     ],
 )
 

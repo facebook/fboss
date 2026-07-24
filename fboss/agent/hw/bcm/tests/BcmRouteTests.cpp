@@ -33,6 +33,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include <boost/range/combine.hpp>
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 
 #include <string>
@@ -101,7 +102,7 @@ int L3RouteCountCb(
   bcm_l3_intf_t_init(&intfInfo);
   intfInfo.l3a_intf_id = egr.intf;
   rv = bcm_l3_intf_get(unit, &intfInfo);
-  bcmCheckError(rv, folly::sformat("failed to get l3 intf: {}", egr.intf));
+  bcmCheckError(rv, fmt::format("failed to get l3 intf: {}", egr.intf));
 
   auto mac = MacAddress::fromBinary(
       ByteRange(intfInfo.l3a_mac_addr, MacAddress::SIZE));

@@ -198,5 +198,25 @@ TEST_F(UtilsTests, ResolveVersionedSensorsWithProductName) {
       {createVersionedPmSensorWithProductName(2, 0, 0, "DC3K12V_M_L"),
        createVersionedPmSensor(1, 0, 0)});
   EXPECT_EQ(resolvedVersionedSensor, std::nullopt);
+
+  // Case-12: no exact productName match — the explicit "DEFAULT" sentinel
+  // block is selected as the fallback.
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(1, 1, 20, "UNKNOWN_PSU"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(1, 1, 2, "DC3K12V_M_L"),
+       createVersionedPmSensorWithProductName(1, 1, 2, "DEFAULT")});
+  ASSERT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_EQ(*resolvedVersionedSensor->productName(), "DEFAULT");
+
+  // Case-13: an exact productName match wins over the "DEFAULT" sentinel even
+  // when DEFAULT is listed first — selection is order-independent.
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      createPmUnitInfoWithEepromProductName(1, 1, 20, "DC3K12V_M_L"),
+      slotPath_,
+      {createVersionedPmSensorWithProductName(1, 1, 2, "DEFAULT"),
+       createVersionedPmSensorWithProductName(1, 1, 2, "DC3K12V_M_L")});
+  ASSERT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_EQ(*resolvedVersionedSensor->productName(), "DC3K12V_M_L");
 }
 } // namespace facebook::fboss::platform::sensor_service

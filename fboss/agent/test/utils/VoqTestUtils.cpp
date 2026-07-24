@@ -8,13 +8,15 @@
  *
  */
 
-#include "fboss/agent/test/utils/VoqTestUtils.h"
+#include <fmt/format.h>
+
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 
 #include <algorithm>
 #include <functional>
@@ -733,7 +735,7 @@ void setupRemoteIntfAndSysPorts(
   };
   swSwitch->getRib()->updateStateInRibThread([swSwitch, updateDsfStateFn]() {
     swSwitch->updateStateWithHwFailureProtection(
-        folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
+        fmt::format("Update state for node: {}", 0), updateDsfStateFn);
   });
 }
 

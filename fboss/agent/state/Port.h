@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/LlrConfig.h"
 #include "fboss/agent/state/PortFlowletConfig.h"
 #include "fboss/agent/state/PortPgConfig.h"
 #include "fboss/agent/state/PortQueue.h"
@@ -30,6 +31,7 @@ namespace facebook::fboss {
 class SwitchState;
 
 using PortFlowletCfgPtr = std::shared_ptr<PortFlowletCfg>;
+using LlrConfigPtr = std::shared_ptr<LlrConfig>;
 
 struct PortFields {
   struct VlanInfo {
@@ -84,6 +86,7 @@ struct PortFields {
 USE_THRIFT_COW(Port);
 
 RESOLVE_STRUCT_MEMBER(Port, switch_state_tags::flowletConfig, PortFlowletCfg);
+RESOLVE_STRUCT_MEMBER(Port, switch_state_tags::llrConfig, LlrConfig);
 /*
  * Port stores state about one of the physical ports on the switch.
  */
@@ -625,6 +628,32 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
 
   void setPortFlowletConfig(PortFlowletCfgPtr flowletConfigPtr) {
     ref<switch_state_tags::flowletConfig>() = flowletConfigPtr;
+  }
+
+  std::optional<std::string> getLlrConfigName() const {
+    if (auto name = cref<switch_state_tags::llrConfigName>()) {
+      return name->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setLlrConfigName(const std::optional<std::string>& name) {
+    if (!name) {
+      ref<switch_state_tags::llrConfigName>().reset();
+      return;
+    }
+    set<switch_state_tags::llrConfigName>(name.value());
+  }
+
+  std::optional<LlrConfigPtr> getLlrConfig() const {
+    if (auto llrConfigPtr = safe_cref<switch_state_tags::llrConfig>()) {
+      return llrConfigPtr;
+    }
+    return std::nullopt;
+  }
+
+  void setLlrConfig(LlrConfigPtr llrConfigPtr) {
+    ref<switch_state_tags::llrConfig>() = llrConfigPtr;
   }
 
   void setLedPortExternalState(std::optional<PortLedExternalState> state) {

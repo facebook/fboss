@@ -5092,6 +5092,9 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_PORT);
         objTypes.push_back(SAI_OBJECT_TYPE_PORT_SERDES);
         objTypes.push_back(SAI_OBJECT_TYPE_PORT_CONNECTOR);
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+        objTypes.push_back(SAI_OBJECT_TYPE_PORT_LLR_PROFILE);
+#endif
         break;
       case HwObjectType::LAG:
         objTypes.push_back(SAI_OBJECT_TYPE_LAG);

@@ -7,9 +7,33 @@
 namespace {
 static constexpr int kDefaultMidPriCpuQueueId = 3;
 static constexpr int kDefaultHiPriCpuQueueId = 7;
+constexpr auto kCpuPortSpeed = 10000;
+constexpr auto kSingleStageCpuPortNumVoqs = 8;
+constexpr auto kDualStageCpuPortNumVoqs = 3;
 } // namespace
 
 namespace facebook::fboss {
+
+std::vector<HwAsic::InternalSystemPortConfig>
+Jericho3Asic::getInternalSystemPortConfig(
+    const CpuPortCoreAndPortIndex& cpuPortsCoreAndPortIdx) const {
+  CHECK(
+      cpuPortsCoreAndPortIdx.size() == 1 || cpuPortsCoreAndPortIdx.size() == 4)
+      << "Create one CPU port for the ASIC or one CPU port for each core";
+  CHECK(getSwitchId()) << " Switch Id must be set before sys port info";
+
+  const uint32_t switchId = static_cast<uint32_t>(*getSwitchId());
+  const uint32_t numVoqs = isDualStage3Q2QMode() ? kDualStageCpuPortNumVoqs
+                                                 : kSingleStageCpuPortNumVoqs;
+  std::vector<InternalSystemPortConfig> sysPortConfig;
+  sysPortConfig.reserve(cpuPortsCoreAndPortIdx.size());
+  for (auto [cpuPortID, coreAndPortIdx] : cpuPortsCoreAndPortIdx) {
+    auto [core, port] = coreAndPortIdx;
+    sysPortConfig.push_back(
+        {cpuPortID, switchId, core, port, kCpuPortSpeed, numVoqs});
+  }
+  return sysPortConfig;
+}
 
 bool Jericho3Asic::isSupported(Feature feature) const {
   switch (feature) {
@@ -257,6 +281,8 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
+    case HwAsic::Feature::PORT_DEBOUNCE:
       return false;
   }
   return false;

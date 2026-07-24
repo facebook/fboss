@@ -7,6 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <fmt/format.h>
+
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
@@ -43,7 +45,7 @@ int getSleepSeconds(PlatformType platformMode) {
 
 template <typename IOStatsType>
 std::string ioStatsString(const IOStatsType& stats) {
-  return folly::sformat(
+  return fmt::format(
       "numReadAttempted = {}, numReadFailed = {}, numWriteAttempted = {}, numWriteFailed = {}, readDownTime = {}, writeDownTime = {}",
       stats.get_numReadAttempted(),
       stats.get_numReadFailed(),
@@ -316,12 +318,12 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
 
 TEST_F(HwXphyPrbsStatsCollectionTest, getSystemPrbsStats) {
   addVerifiedProductionFeatures(
-      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_PRBS});
+      {qsfp_production_features::QsfpProductionFeature::XPHY_PRBS_CONTROL});
   runTest(phy::Side::SYSTEM);
 }
 TEST_F(HwXphyPrbsStatsCollectionTest, getLinePrbsStats) {
   addVerifiedProductionFeatures(
-      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_PRBS});
+      {qsfp_production_features::QsfpProductionFeature::XPHY_PRBS_CONTROL});
   runTest(phy::Side::LINE);
 }
 

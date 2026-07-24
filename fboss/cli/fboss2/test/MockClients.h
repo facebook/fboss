@@ -82,6 +82,7 @@ class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
   MOCK_METHOD(void, stopPktCapture, (std::unique_ptr<std::string>));
   MOCK_METHOD(void, getAllPortInfo, (PortInfoMap));
   MOCK_METHOD(void, getProductInfo, (ProductInfo&));
+  MOCK_METHOD(BootType, getBootType, ());
   MOCK_METHOD(
       void,
       getAllCpuPortStats,
@@ -155,6 +156,7 @@ class MockFbossHwCtrlAgent
   using Ports = std::unique_ptr<std::vector<int32_t>>;
 
   MOCK_METHOD(void, getProgrammedState, (SwitchState));
+  MOCK_METHOD(BootType, getBootType, ());
   MOCK_METHOD(void, triggerCableLengthMeasurement, (Ports));
 };
 

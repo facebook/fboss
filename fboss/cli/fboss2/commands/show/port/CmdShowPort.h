@@ -14,7 +14,6 @@
 #include <thrift/lib/cpp/transport/TTransportException.h>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"

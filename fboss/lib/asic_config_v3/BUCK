@@ -1,0 +1,34 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_agent")
+
+python_library(
+    name = "base_generator",
+    srcs = ["base_generator.py"],
+    labels = ["autodeps2_generated"],
+)
+
+python_library(
+    name = "broadcom_xgs_generator",
+    srcs = ["generators/broadcom_xgs_generator.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "fbsource//third-party/pypi/pyyaml:pyyaml",
+        ":base_generator",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+        "//fboss/lib/platform_mapping_v2:read_files_utils",
+    ],
+)
+
+python_binary(
+    name = "gen",
+    srcs = ["gen.py"],
+    labels = ["autodeps2_generated"],
+    main_module = "fboss.lib.asic_config_v3.gen",
+    par_style = "xar",
+    deps = [
+        ":base_generator",
+        ":broadcom_xgs_generator",
+    ],
+)

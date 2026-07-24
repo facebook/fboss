@@ -215,41 +215,6 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
       {"EXTRA_SLOT@0", slotConfig}};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
-
-  // Test 6: Mismatched pciDeviceConfigs
-  versionedPmUnitConfig.pmUnitConfig()->outgoingSlotConfigs() = {};
-  versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {
-      getValidPciDeviceConfig()};
-  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
-
-  // Test 7: Mismatched pciDeviceConfigs (via differing ledCtrlBlockConfigs)
-  versionedPmUnitConfig.pmUnitConfig()->embeddedSensorConfigs() = {};
-  config.numXcvrs() = 1;
-  auto defaultPciDev = getValidPciDeviceConfig();
-  LedCtrlBlockConfig defaultLedCtrl;
-  defaultLedCtrl.pmUnitScopedNamePrefix() = "MCB_LED";
-  defaultLedCtrl.deviceName() = "port_led";
-  defaultLedCtrl.csrOffsetCalc() = "0x1000";
-  defaultLedCtrl.numPorts() = 1;
-  defaultLedCtrl.ledPerPort() = 1;
-  defaultLedCtrl.startPort() = 1;
-  defaultPciDev.ledCtrlBlockConfigs() = {defaultLedCtrl};
-  auto pmUnitCfg = config.pmUnitConfigs()->at("SCM");
-  pmUnitCfg.pciDeviceConfigs() = {defaultPciDev};
-  config.pmUnitConfigs() = {{"SCM", pmUnitCfg}};
-  auto versionedPciDev = getValidPciDeviceConfig();
-  LedCtrlBlockConfig versionedLedCtrl;
-  versionedLedCtrl.pmUnitScopedNamePrefix() = "MCB_LED";
-  versionedLedCtrl.deviceName() = "port_led";
-  versionedLedCtrl.csrOffsetCalc() = "0x2000";
-  versionedLedCtrl.numPorts() = 1;
-  versionedLedCtrl.ledPerPort() = 1;
-  versionedLedCtrl.startPort() = 1;
-  versionedPciDev.ledCtrlBlockConfigs() = {versionedLedCtrl};
-  versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {versionedPciDev};
-  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
-  EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, VersionedPmUnitConfigMissingVersion) {
@@ -363,7 +328,85 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
   EXPECT_TRUE(ConfigValidator().isValid(config));
 
-  // Test 10: Valid with matching ledCtrlBlockConfigs in pciDeviceConfigs
+  // Test 10: Valid with differing embeddedSensorConfigs (allowed to differ)
+  EmbeddedSensorConfig embeddedSensor1, embeddedSensor2;
+  embeddedSensor1.pmUnitScopedName() = "SENSOR_V1";
+  embeddedSensor1.sysfsPath() = "/sys/bus/platform/devices/coretemp.0";
+  embeddedSensor2.pmUnitScopedName() = "SENSOR_V2";
+  embeddedSensor2.sysfsPath() = "/sys/bus/platform/devices/coretemp.1";
+  versionedPmUnitConfig1.pmUnitConfig()->embeddedSensorConfigs() = {
+      embeddedSensor1};
+  pmUnitConfig = config.pmUnitConfigs()->at("SCM");
+  pmUnitConfig.embeddedSensorConfigs() = {embeddedSensor2};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 11: Valid with differing pciDeviceConfigs (allowed to differ)
+  auto pciDev1 = getValidPciDeviceConfig();
+  auto pciDev2 = getValidPciDeviceConfig();
+  pciDev2.pmUnitScopedName() = "PCI_DEV_V2";
+  versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {pciDev1};
+  pmUnitConfig = config.pmUnitConfigs()->at("SCM");
+  pmUnitConfig.pciDeviceConfigs() = {pciDev2};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 12: Valid - versioned pciDeviceConfigs re-lays-out blocks but covers
+  // the same LED/xcvr ports as the default (one 4-port block vs two 2-port)
+  config.numXcvrs() = 4;
+  LedCtrlBlockConfig ledCtrl;
+  ledCtrl.pmUnitScopedNamePrefix() = "OSFP";
+  ledCtrl.deviceName() = "port_led";
+  ledCtrl.csrOffsetCalc() = "0x1000";
+  ledCtrl.startPort() = 1;
+  ledCtrl.numPorts() = 4;
+  ledCtrl.ledPerPort() = 1;
+  XcvrCtrlBlockConfig xcvrCtrl;
+  xcvrCtrl.pmUnitScopedNamePrefix() = "OSFP";
+  xcvrCtrl.deviceName() = "xcvr_ctrl";
+  xcvrCtrl.csrOffsetCalc() = "0x1000";
+  xcvrCtrl.startPort() = 1;
+  xcvrCtrl.numPorts() = 4;
+  auto defaultPciDev = getValidPciDeviceConfig();
+  defaultPciDev.ledCtrlBlockConfigs() = {ledCtrl};
+  defaultPciDev.xcvrCtrlBlockConfigs() = {xcvrCtrl};
+  pmUnitConfig = config.pmUnitConfigs()->at("SCM");
+  pmUnitConfig.pciDeviceConfigs() = {defaultPciDev};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  auto versionedLedCtrl1 = ledCtrl;
+  versionedLedCtrl1.numPorts() = 2;
+  auto versionedLedCtrl2 = ledCtrl;
+  versionedLedCtrl2.startPort() = 3;
+  versionedLedCtrl2.numPorts() = 2;
+  auto versionedPciDev = getValidPciDeviceConfig();
+  versionedPciDev.ledCtrlBlockConfigs() = {
+      versionedLedCtrl1, versionedLedCtrl2};
+  versionedPciDev.xcvrCtrlBlockConfigs() = {xcvrCtrl};
+  versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {versionedPciDev};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(
+      ConfigValidator().isValidVersionedPciDeviceCoverage(
+          config.pmUnitConfigs()->at("SCM"), versionedPmUnitConfig1));
+
+  // Test 13: Invalid - versioned pciDeviceConfigs cover fewer ports than the
+  // default (ports 1-2 vs 1-4), so coverage differs from default
+  auto shortLedCtrl = ledCtrl;
+  shortLedCtrl.numPorts() = 2;
+  auto shortXcvrCtrl = xcvrCtrl;
+  shortXcvrCtrl.numPorts() = 2;
+  auto underCovPciDev = getValidPciDeviceConfig();
+  underCovPciDev.ledCtrlBlockConfigs() = {shortLedCtrl};
+  underCovPciDev.xcvrCtrlBlockConfigs() = {shortXcvrCtrl};
+  versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {underCovPciDev};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_FALSE(
+      ConfigValidator().isValidVersionedPciDeviceCoverage(
+          config.pmUnitConfigs()->at("SCM"), versionedPmUnitConfig1));
+
+  // Test 14: Valid with matching ledCtrlBlockConfigs in pciDeviceConfigs
+  config.numXcvrs() = 0;
   auto pciDevWithLed = getValidPciDeviceConfig();
   pciDevWithLed.ledCtrlBlockConfigs() = {};
   pmUnitConfig = config.pmUnitConfigs()->at("SCM");

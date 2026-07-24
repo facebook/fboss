@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 #include <boost/container/flat_set.hpp>
@@ -758,10 +759,10 @@ class AgentHashPolarizationTest : public AgentHwTest {
     auto sqrtN = static_cast<int>(std::sqrt(numPackets));
     for (int i = 0; i < sqrtN; ++i) {
       auto srcIp = folly::IPAddress(
-          folly::sformat("1001::{}:{}", (i + 1) / 256, (i + 1) % 256));
+          fmt::format("1001::{}:{}", (i + 1) / 256, (i + 1) % 256));
       for (int j = 0; j < sqrtN; ++j) {
         auto dstIp = folly::IPAddress(
-            folly::sformat("2001::{}:{}", (j + 1) / 256, (j + 1) % 256));
+            fmt::format("2001::{}:{}", (j + 1) / 256, (j + 1) % 256));
         auto pkt = utility::makeUDPTxPacket(
             allocFn, vlan, srcMac, dstMac, srcIp, dstIp, 10000 + i, 20000 + j);
         sendFn(std::move(pkt), PortDescriptor(injectionPort()), std::nullopt);

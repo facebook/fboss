@@ -42,13 +42,18 @@ class QsfpTestRunner(TestRunner):
         )
 
     def _get_known_bad_tests_file(self) -> str:
-        args = self.args
-        if not args.known_bad_tests_file:
-            return QSFP_KNOWN_BAD_TESTS
-        return args.known_bad_tests_file
+        return self._resolve_tests_file(
+            self.args.known_bad_tests_file,
+            QSFP_KNOWN_BAD_TESTS,
+            self.KNOWN_BAD_TESTS_LABEL,
+        )
 
     def _get_unsupported_tests_file(self) -> str:
-        return QSFP_UNSUPPORTED_TESTS
+        return self._resolve_tests_file(
+            self.args.unsupported_tests_file,
+            QSFP_UNSUPPORTED_TESTS,
+            self.UNSUPPORTED_TESTS_LABEL,
+        )
 
     def _get_test_binary_name(self) -> str:
         return "/opt/fboss/bin/qsfp_hw_test"

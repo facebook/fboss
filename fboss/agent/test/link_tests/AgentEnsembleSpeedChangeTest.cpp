@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -117,7 +118,7 @@ class AgentEnsembleSpeedChangeTest : public AgentEnsembleLinkTest {
       auto iter = eligilePortsAndProfile.find(*port.logicalID());
       if (iter != eligilePortsAndProfile.end()) {
         auto desiredProfileId = iter->second;
-        XLOG(INFO) << folly::sformat(
+        XLOG(INFO) << fmt::format(
             "Changing speed and profile on port {:s} from speed={:s},profile={:s} to speed={:s},profile={:s}",
             port.name().ensure(),
             apache::thrift::util::enumName(*port.speed()),
@@ -148,6 +149,13 @@ class AgentEnsembleSpeedChangeTest : public AgentEnsembleLinkTest {
       // Apply the new config. Call ApplyNewConfig so warmboot file is also
       // updated
       applyNewConfig(newConfig);
+
+      // The speed change can subsume (disable) or add ports, so the cabled port
+      // set captured during SetUp() from the original config is now stale.
+      // Recompute it from the applied config before we wait on links or program
+      // traffic, otherwise downstream helpers look up ports that no longer
+      // exist in the SwitchState.
+      reinitializeCabledPorts();
 
       EXPECT_NO_THROW(waitForAllCabledPorts(true, 60, 5s););
       createL3DataplaneFlood();

@@ -36,6 +36,15 @@ class Ramon3Asic : public BroadcomAsic {
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_RAMON3;
   }
+  uint32_t getSaiPhysicalLaneId(
+      PlatformType platformType,
+      cfg::PortType portType,
+      uint32_t chipId,
+      uint32_t logicalLane) const override {
+    return BroadcomAsic::getSaiPhysicalLaneId(
+               platformType, portType, chipId, logicalLane) -
+        1;
+  }
   AsicMode getAsicMode() const override {
     static const AsicMode asicMode = std::getenv("BCM_SIM_PATH")
         ? AsicMode::ASIC_MODE_SIM

@@ -2344,6 +2344,84 @@ TEST_F(NextHopIDManagerTest, namedNhgRouteReverseMapping) {
   EXPECT_FALSE(manager_->hasRoutesForNamedNhg("nonexistent"));
 }
 
+TEST_F(NextHopIDManagerTest, namedNhgMySidReverseMapping) {
+  const folly::CIDRNetworkV6 mySid1{folly::IPAddressV6("fc00:100::1"), 48};
+  const folly::CIDRNetworkV6 mySid2{folly::IPAddressV6("fc00:200::1"), 64};
+
+  EXPECT_FALSE(manager_->hasMySidsForNamedNhg("nhg1"));
+  EXPECT_TRUE(manager_->getMySidsForNamedNhg("nhg1").empty());
+
+  manager_->addMySidForNamedNhg("nhg1", mySid1);
+  EXPECT_TRUE(manager_->hasMySidsForNamedNhg("nhg1"));
+  EXPECT_EQ(manager_->getMySidsForNamedNhg("nhg1").count(mySid1), 1);
+
+  manager_->addMySidForNamedNhg("nhg1", mySid2);
+  manager_->addMySidForNamedNhg("nhg2", mySid1);
+  EXPECT_EQ(manager_->getMySidsForNamedNhg("nhg1").size(), 2);
+  EXPECT_EQ(manager_->getMySidsForNamedNhg("nhg2").count(mySid1), 1);
+
+  manager_->removeMySidForNamedNhg("nhg1", mySid1);
+  EXPECT_EQ(manager_->getMySidsForNamedNhg("nhg1").size(), 1);
+  EXPECT_EQ(manager_->getMySidsForNamedNhg("nhg1").count(mySid2), 1);
+  EXPECT_EQ(manager_->getMySidsForNamedNhg("nhg2").count(mySid1), 1);
+
+  manager_->removeMySidFromNamedNhgs(mySid1);
+  EXPECT_FALSE(manager_->hasMySidsForNamedNhg("nhg2"));
+  EXPECT_EQ(manager_->getMySidsForNamedNhg("nhg1").count(mySid2), 1);
+
+  manager_->removeMySidForNamedNhg("nhg1", mySid2);
+  EXPECT_FALSE(manager_->hasMySidsForNamedNhg("nhg1"));
+}
+
+TEST_F(NextHopIDManagerTest, deallocateNamedNhgBlockedByMySidReference) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  const RouteNextHopSet nhops{nh1};
+  manager_->allocateNamedNextHopGroup("nhg1", nhops);
+
+  const folly::CIDRNetworkV6 mySid{folly::IPAddressV6("fc00:100::1"), 48};
+  manager_->addMySidForNamedNhg("nhg1", mySid);
+
+  EXPECT_THROW(manager_->deallocateNamedNextHopGroup("nhg1"), FbossError);
+  EXPECT_TRUE(manager_->hasNamedNextHopGroup("nhg1"));
+
+  manager_->removeMySidForNamedNhg("nhg1", mySid);
+  EXPECT_NO_THROW(manager_->deallocateNamedNextHopGroup("nhg1"));
+  EXPECT_FALSE(manager_->hasNamedNextHopGroup("nhg1"));
+}
+
+TEST_F(NextHopIDManagerTest, namedNhgMySidReverseMappingWarmBoot) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHopID nhId1 = NextHopID(1);
+  NextHopSetID setId1 = NextHopSetID(kSetIdOffset + 1);
+
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId1), nh1.toThrift());
+
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1),
+      {static_cast<state::NextHopIdType>(nhId1)});
+
+  auto multiSwitchFibInfoMap = createMultiSwitchFibInfoMap(
+      createFibsMap(), idToNextHopMap, idToNextHopIdSetMap);
+
+  auto mySid = makeMySidEntry(setId1, std::nullopt);
+  mySid->setNamedNextHopGroup("my-nhg");
+  auto mySidMap = makeMySidMap(mySid);
+
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, mySidMap, nullptr, nullptr);
+
+  EXPECT_TRUE(manager_->hasMySidsForNamedNhg("my-nhg"));
+  const folly::CIDRNetworkV6 expectedMySid{
+      folly::IPAddressV6("fc00:100::1"), 48};
+  EXPECT_EQ(manager_->getMySidsForNamedNhg("my-nhg").count(expectedMySid), 1);
+  EXPECT_FALSE(manager_->hasMySidsForNamedNhg("other-nhg"));
+}
+
 TEST_F(NextHopIDManagerTest, namedNhgRouteReverseMappingWarmBoot) {
   NextHop nh1 =
       makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);

@@ -45,6 +45,9 @@ class SaiStore;
 using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
 using SaiPortSerdes = SaiObject<SaiPortSerdesTraits>;
 using SaiPortConnector = SaiObject<SaiPortConnectorTraits>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+using SaiPortLlrProfile = SaiObject<SaiPortLlrProfileTraits>;
+#endif
 using PrbsStatsTable = std::vector<PrbsStatsEntry>;
 
 /*
@@ -101,6 +104,9 @@ struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiPort> sysPort;
   std::shared_ptr<SaiPortSerdes> serdes;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  std::shared_ptr<SaiPortLlrProfile> llrProfile;
+#endif
   std::shared_ptr<SaiPortSerdes> sysSerdes;
   std::shared_ptr<SaiPortConnector> connector;
   std::shared_ptr<SaiBridgePort> bridgePort;
@@ -399,6 +405,7 @@ class SaiPortManager {
       std::shared_ptr<SaiPort> saiPort,
       std::shared_ptr<Port> swPort,
       SaiPortHandle* portHandle);
+  void programLlr(std::shared_ptr<Port> swPort, SaiPortHandle* portHandle);
   void programSampling(
       PortID portId,
       SamplePacketDirection direction,

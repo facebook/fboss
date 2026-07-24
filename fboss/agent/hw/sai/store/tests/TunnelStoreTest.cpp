@@ -104,11 +104,39 @@ class TunnelStoreTest : public SaiStoreTest {
     SaiSrv6TunnelTraits::Attributes::EncapDscpMode encapDscpMode{
         SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
     return {
-        encapSrcIp, type, underlay, encapTtlMode, encapEcnMode, encapDscpMode};
+        type,
+        underlay,
+        encapSrcIp,
+        encapTtlMode,
+        encapEcnMode,
+        encapDscpMode,
+        std::nullopt, // DecapTtlMode (encap tunnel)
+        std::nullopt, // DecapDscpMode (encap tunnel)
+        std::nullopt}; // DecapEcnMode (encap tunnel)
   }
   TunnelSaiId createSrv6Tunnel() const {
     auto& tunnelApi = saiApiTable->tunnelApi();
     return tunnelApi.create<SaiSrv6TunnelTraits>(createSrv6TunnelAttrs(), 0);
+  }
+
+  SaiSrv6TunnelTraits::CreateAttributes createSrv6DecapTunnelAttrs() const {
+    SaiSrv6TunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_SRV6};
+    SaiSrv6TunnelTraits::Attributes::DecapTtlMode decapTtlMode{
+        SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL};
+    SaiSrv6TunnelTraits::Attributes::DecapDscpMode decapDscpMode{
+        SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
+    SaiSrv6TunnelTraits::Attributes::DecapEcnMode decapEcnMode{
+        SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER};
+    return {
+        type,
+        std::nullopt, // UnderlayInterface (decap tunnel)
+        std::nullopt, // EncapSrcIp (decap tunnel)
+        std::nullopt, // EncapTtlMode (decap tunnel)
+        std::nullopt, // EncapEcnMode (decap tunnel)
+        std::nullopt, // EncapDscpMode (decap tunnel)
+        decapTtlMode,
+        decapDscpMode,
+        decapEcnMode};
   }
 };
 
@@ -124,7 +152,7 @@ TEST_F(TunnelStoreTest, loadTunnel) {
       SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
       SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL,
       SAI_TUNNEL_DECAP_ECN_MODE_STANDARD,
-      folly::IPAddress("0.0.0.0"),
+      folly::IPAddressV6("::"),
       0,
       0};
   auto got = store.get(k);
@@ -272,23 +300,44 @@ TEST_F(TunnelStoreTest, toStrEncapTunnel) {
 
 // SRv6 Tunnel Store Tests
 
+// SaiSrv6TunnelTraits is non-warmboot-recoverable: the AdapterHostKey is
+// serialized and restored verbatim, so unset optional slots round-trip as
+// nullopt (not engaged zero-defaults). Create via the store so the AHK is
+// serialized, then reload a second store from the serialized JSON blobs.
 TEST_F(TunnelStoreTest, loadSrv6Tunnel) {
-  auto tunnelId = createSrv6Tunnel();
+  auto attrs = createSrv6TunnelAttrs();
   SaiStore s(0);
-  s.reload();
-  auto& store = s.get<SaiSrv6TunnelTraits>();
-  SaiSrv6TunnelTraits::AdapterHostKey k{
-      folly::IPAddress(srv6SrcIp),
-      SAI_TUNNEL_TYPE_SRV6,
-      42,
-      SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
-      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD,
-      SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
-  auto got = store.get(k);
-  EXPECT_EQ(got->adapterKey(), tunnelId);
+  auto obj = s.get<SaiSrv6TunnelTraits>().setObject(attrs, attrs);
+  auto adapterKey = obj->adapterKey();
+  auto adapterKeys = s.adapterKeysFollyDynamic();
+  auto adapterKeys2AdapterHostKeys =
+      s.adapterKeys2AdapterHostKeysFollyDynamic();
+  SaiStore s1(0);
+  s1.reload(&adapterKeys, &adapterKeys2AdapterHostKeys);
+  auto& store = s1.get<SaiSrv6TunnelTraits>();
+  // AdapterHostKey == CreateAttributes; look up by the plain create attrs.
+  auto got = store.get(attrs);
+  ASSERT_NE(got, nullptr);
+  EXPECT_EQ(got->adapterKey(), adapterKey);
   EXPECT_EQ(
-      GET_ATTR(Srv6Tunnel, EncapSrcIp, got->attributes()),
+      GET_OPT_ATTR(Srv6Tunnel, EncapSrcIp, got->attributes()),
       folly::IPAddress(srv6SrcIp));
+}
+
+TEST_F(TunnelStoreTest, loadSrv6DecapTunnel) {
+  auto attrs = createSrv6DecapTunnelAttrs();
+  SaiStore s(0);
+  auto obj = s.get<SaiSrv6TunnelTraits>().setObject(attrs, attrs);
+  auto adapterKey = obj->adapterKey();
+  auto adapterKeys = s.adapterKeysFollyDynamic();
+  auto adapterKeys2AdapterHostKeys =
+      s.adapterKeys2AdapterHostKeysFollyDynamic();
+  SaiStore s1(0);
+  s1.reload(&adapterKeys, &adapterKeys2AdapterHostKeys);
+  auto& store = s1.get<SaiSrv6TunnelTraits>();
+  auto got = store.get(attrs);
+  ASSERT_NE(got, nullptr);
+  EXPECT_EQ(got->adapterKey(), adapterKey);
 }
 
 TEST_F(TunnelStoreTest, srv6TunnelLoadCtor) {
@@ -296,32 +345,44 @@ TEST_F(TunnelStoreTest, srv6TunnelLoadCtor) {
   SaiObject<SaiSrv6TunnelTraits> obj = createObj<SaiSrv6TunnelTraits>(tunnelId);
   EXPECT_EQ(obj.adapterKey(), tunnelId);
   EXPECT_EQ(
-      GET_ATTR(Srv6Tunnel, EncapSrcIp, obj.attributes()),
+      GET_OPT_ATTR(Srv6Tunnel, EncapSrcIp, obj.attributes()),
       folly::IPAddress(srv6SrcIp));
 }
 
 TEST_F(TunnelStoreTest, srv6TunnelCreateCtor) {
   SaiSrv6TunnelTraits::AdapterHostKey k{
-      folly::IPAddress(srv6SrcIp),
       SAI_TUNNEL_TYPE_SRV6,
-      42,
-      SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
-      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD,
-      SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
+      42, // UnderlayInterface
+      folly::IPAddress(srv6SrcIp), // EncapSrcIp
+      SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL, // EncapTtlMode
+      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD, // EncapEcnMode
+      SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL, // EncapDscpMode
+      0, // DecapTtlMode
+      0, // DecapDscpMode
+      0}; // DecapEcnMode
   SaiObject<SaiSrv6TunnelTraits> obj = createObj<SaiSrv6TunnelTraits>(k, k, 0);
   EXPECT_EQ(
-      GET_ATTR(Srv6Tunnel, EncapSrcIp, obj.attributes()),
+      GET_OPT_ATTR(Srv6Tunnel, EncapSrcIp, obj.attributes()),
       folly::IPAddress(srv6SrcIp));
 }
 
 TEST_F(TunnelStoreTest, serDeserSrv6Tunnel) {
-  auto tunnelId = createSrv6Tunnel();
-  verifyAdapterKeySerDeser<SaiSrv6TunnelTraits>({tunnelId});
+  auto attrs = createSrv6TunnelAttrs();
+  auto& store = saiStore->get<SaiSrv6TunnelTraits>();
+  auto obj = store.setObject(attrs, attrs);
+  auto tunnelId = obj->adapterKey();
+  auto json = saiStore->adapterKeysFollyDynamic();
+  auto gotKeys = keysForSaiObjStoreFromStoreJson<SaiSrv6TunnelTraits>(json);
+  EXPECT_EQ(gotKeys.size(), 1);
+  EXPECT_EQ(gotKeys[0], tunnelId);
 }
 
 TEST_F(TunnelStoreTest, toStrSrv6Tunnel) {
-  std::ignore = createSrv6Tunnel();
-  verifyToStr<SaiSrv6TunnelTraits>();
+  auto attrs = createSrv6TunnelAttrs();
+  auto& store = saiStore->get<SaiSrv6TunnelTraits>();
+  store.setObject(attrs, attrs);
+  auto str = fmt::format("{}", store);
+  EXPECT_EQ(std::count(str.begin(), str.end(), '\n'), store.size() + 1);
 }
 
 TEST_F(TunnelStoreTest, tunnelSetOnlyTtl) {

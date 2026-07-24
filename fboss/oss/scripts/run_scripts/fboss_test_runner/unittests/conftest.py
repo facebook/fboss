@@ -49,6 +49,8 @@ def mock_args():
     args.test_run_timeout = 300
     args.skip_known_bad_tests = None
     args.extra_gflags = None
+    args.num_warmboot_iterations = 1
+    args.coldboot_only = False
     return args
 
 

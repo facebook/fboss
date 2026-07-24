@@ -356,7 +356,12 @@ void CdbCommandBlock::createCdbCmdFwDownloadStart(
   cdbFields_.cdbCommandCode = htons(kCdbCommandFirmwareDownloadStart);
   cdbFields_.cdbEplLength = 0;
 
-  int imageChunkLen = startCommandPayloadSize;
+  // Clamp imageChunkLen to prevent stack buffer overflow:
+  // startCommandPayloadSize comes from module CDB reply (uint8_t, max 255) but
+  // cdbImageHeader is only 112 bytes.
+  int imageChunkLen = std::min(
+      static_cast<int>(startCommandPayloadSize),
+      static_cast<int>(kCdbFwDnldStartMaxHeaderLen));
   cdbFields_.cdbLplLength = imageChunkLen + 8;
 
   cdbFields_.cdbLplMemory.cdbFwDnldStartData.cdbImageSize = htonl(imageLen);

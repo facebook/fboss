@@ -8,6 +8,7 @@
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <string>
@@ -1650,15 +1651,21 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
         getChannelFlags(CmisField::TX_PWR_FLAG, channel);
   }
 
+  // AEC modules don't support rx/tx power monitoring
+  const bool isAec = isAecModule();
+
   for (int channel = 0; channel < numMediaLanes(); channel++) {
     const uint8_t* data =
         getLaneValuePtr(CmisField::CHANNEL_RX_PWR, channel, 2);
     uint16_t value = data[0] << 8 | data[1];
     auto pwr = CmisFieldInfo::getPwr(value); // This is in mW
+    // TODO: we should probably make rxPwr optional as well
     channels.at(channel).sensors()->rxPwr()->value() = pwr;
-    Sensor rxDbm;
-    rxDbm.value() = mwToDb(pwr);
-    channels.at(channel).sensors()->rxPwrdBm() = rxDbm;
+    if (!isAec) {
+      Sensor rxDbm;
+      rxDbm.value() = mwToDb(pwr);
+      channels.at(channel).sensors()->rxPwrdBm() = rxDbm;
+    }
   }
 
   // For Tx bias, take care of multiplier. The multiplier is module-level
@@ -1682,10 +1689,13 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
         getLaneValuePtr(CmisField::CHANNEL_TX_PWR, channel, 2);
     uint16_t value = data[0] << 8 | data[1];
     auto pwr = CmisFieldInfo::getPwr(value); // This is in mW
+    // TODO: we should probably make txPwr optional as well
     channels.at(channel).sensors()->txPwr()->value() = pwr;
-    Sensor txDbm;
-    txDbm.value() = mwToDb(pwr);
-    channels.at(channel).sensors()->txPwrdBm() = txDbm;
+    if (!isAec) {
+      Sensor txDbm;
+      txDbm.value() = mwToDb(pwr);
+      channels.at(channel).sensors()->txPwrdBm() = txDbm;
+    }
   }
 
   for (int channel = 0; channel < numMediaLanes(); channel++) {
@@ -1864,6 +1874,11 @@ CmisModule::getCdbSymbolErrorHistogramLocked(
   auto ret = commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
   if (ret && commandBlockBuf.getCdbRlplLength() >= 1) {
     int numBins = commandBlockBuf.getCdbLplFlatMemory()[0];
+    // Clamp numBins to prevent OOB read: each bin reads kCdbSymErrHistBinSize
+    // bytes from the fixed 120-byte LPL buffer (first byte is numBins itself).
+    numBins = std::min(
+        numBins,
+        (CdbCommandBlock::kCdbLplMemoryLength - 1) / kCdbSymErrHistBinSize);
     for (auto bin = 0; bin < numBins; bin++) {
       SymErrHistogramBin binHistData;
       binHistData.nbitSymbolErrorMax() = f16ToDouble(

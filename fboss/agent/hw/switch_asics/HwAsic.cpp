@@ -142,6 +142,12 @@ uint32_t HwAsic::getSaiPhysicalLaneId(
       logicalLane);
 }
 
+std::vector<HwAsic::InternalSystemPortConfig>
+HwAsic::getInternalSystemPortConfig(
+    const CpuPortCoreAndPortIndex& /*cpuPortsCoreAndPortIdx*/) const {
+  return {};
+}
+
 std::unique_ptr<HwAsic> HwAsic::makeAsic(
     int64_t switchId,
     const cfg::SwitchInfo& switchInfo,

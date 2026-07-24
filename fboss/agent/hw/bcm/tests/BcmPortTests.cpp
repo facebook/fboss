@@ -17,6 +17,8 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
+#include <fmt/format.h>
+
 extern "C" {
 #include <bcm/port.h>
 }
@@ -466,7 +468,7 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
               &currVal);
           bcmCheckError(
               rv,
-              folly::sformat(
+              fmt::format(
                   "Failed to get {} for port {} : {}",
                   std::get<0>(l3Option),
                   static_cast<int>(port.second->getID()),

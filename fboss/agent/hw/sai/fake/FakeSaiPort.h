@@ -42,6 +42,13 @@ struct FakePort {
   sai_port_internal_loopback_mode_t internalLoopbackMode{
       SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE};
   bool fabricIsolate{false};
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  bool llrModeLocal{false};
+  bool llrModeRemote{false};
+  sai_object_id_t llrProfile{SAI_NULL_OBJECT_ID};
+  sai_int32_t llrTxStatus{SAI_PORT_LLR_TX_STATUS_OFF};
+  sai_int32_t llrRxStatus{SAI_PORT_LLR_RX_STATUS_OFF};
+#endif
   sai_port_flow_control_mode_t globalFlowControlMode{
       SAI_PORT_FLOW_CONTROL_MODE_DISABLE};
   sai_port_media_type_t mediaType{SAI_PORT_MEDIA_TYPE_NOT_PRESENT};
@@ -189,10 +196,51 @@ struct FakePortConnector {
   sai_object_id_t systemPort;
 };
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+struct FakePortLlrProfile {
+  explicit FakePortLlrProfile(
+      sai_uint32_t _outstandingFramesMax,
+      sai_uint32_t _outstandingBytesMax,
+      sai_uint32_t _replayTimerMax,
+      sai_uint8_t _replayCountMax,
+      sai_uint32_t _pcsLostTimeout,
+      sai_uint32_t _dataAgeTimeout,
+      sai_int32_t _initLlrFrameAction,
+      sai_int32_t _flushLlrFrameAction,
+      bool _reInitOnFlush,
+      sai_uint16_t _ctlosTargetSpacing)
+      : outstandingFramesMax(_outstandingFramesMax),
+        outstandingBytesMax(_outstandingBytesMax),
+        replayTimerMax(_replayTimerMax),
+        replayCountMax(_replayCountMax),
+        pcsLostTimeout(_pcsLostTimeout),
+        dataAgeTimeout(_dataAgeTimeout),
+        initLlrFrameAction(_initLlrFrameAction),
+        flushLlrFrameAction(_flushLlrFrameAction),
+        reInitOnFlush(_reInitOnFlush),
+        ctlosTargetSpacing(_ctlosTargetSpacing) {}
+  sai_object_id_t id;
+  sai_uint32_t outstandingFramesMax;
+  sai_uint32_t outstandingBytesMax;
+  sai_uint32_t replayTimerMax;
+  sai_uint8_t replayCountMax;
+  sai_uint32_t pcsLostTimeout;
+  sai_uint32_t dataAgeTimeout;
+  sai_int32_t initLlrFrameAction;
+  sai_int32_t flushLlrFrameAction;
+  bool reInitOnFlush;
+  sai_uint16_t ctlosTargetSpacing;
+};
+#endif
+
 using FakePortManager = FakeManager<sai_object_id_t, FakePort>;
 using FakePortSerdesManager = FakeManager<sai_object_id_t, FakePortSerdes>;
 using FakePortConnectorManager =
     FakeManager<sai_object_id_t, FakePortConnector>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+using FakePortLlrProfileManager =
+    FakeManager<sai_object_id_t, FakePortLlrProfile>;
+#endif
 
 void populate_port_api(sai_port_api_t** port_api);
 

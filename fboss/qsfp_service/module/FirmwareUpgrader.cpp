@@ -341,6 +341,18 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
         startCommandPayloadSize);
   }
 
+  // startCommandPayloadSize (from the module CDB reply or the known-optics
+  // fallback) is later copied into the fixed-size cdbImageHeader buffer. Reject
+  // an oversized value here to prevent a stack buffer overflow.
+  if (startCommandPayloadSize > CdbCommandBlock::kCdbFwDnldStartMaxHeaderLen) {
+    XLOG(ERR) << fmt::format(
+        "cmisModuleFirmwareDownload: Mod{:d}: startCommandPayloadSize {:d} exceeds maximum {:d}, aborting",
+        moduleId_,
+        startCommandPayloadSize,
+        CdbCommandBlock::kCdbFwDnldStartMaxHeaderLen);
+    return false;
+  }
+
   XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 0: Got Start Command Payload Size as {:d}",
       moduleId_,

@@ -1,4 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+#include <fmt/format.h>
+
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/lib/CommonUtils.h"
@@ -18,7 +20,7 @@ class AgentVoqSwitchInterruptTest : public AgentHwTest {
     folly::test::TemporaryFile file;
     XLOG(INFO) << " Cint file " << file.path().c_str();
     folly::writeFull(file.fd(), cintStr.c_str(), cintStr.size());
-    auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+    auto cmd = fmt::format("cint {}\n", file.path().c_str());
     runCmd(cmd);
   }
   void runCmd(const std::string& cmd) {

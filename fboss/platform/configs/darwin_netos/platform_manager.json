@@ -412,12 +412,10 @@
     "/run/devmap/sensors/PEM_TEMP_MAX6658": "/PEM_SLOT@0/[PEM_TEMP_MAX6658]"
   },
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.22-1",
-  "requiredKmodsToLoad": [
+  "bspKmodsRpmVersion": "0.7.26-1",
+  "nonBspKmodsToLoad": [
     "spidev",
     "i2c_i801",
-    "scd",
-    "scd_spi",
     "ledtrig_timer"
   ]
 }

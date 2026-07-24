@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "tajo_punt_header_test",
+    srcs = [
+        "TajoPuntHeaderTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/agent/packet/tajo:tajo_punt_header",
+        "//folly/io:iobuf",
+    ],
+)

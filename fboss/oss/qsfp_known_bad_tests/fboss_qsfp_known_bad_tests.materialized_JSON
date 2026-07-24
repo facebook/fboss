@@ -169,9 +169,6 @@
           "test_name_regex": "HwXphyPortInfoTest.*$"
         },
         {
-          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
-        },
-        {
           "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
         },
         {
@@ -182,6 +179,9 @@
         },
         {
           "test_name_regex": "warm_boot.HwStateMachineTest.CheckAgentConfigChanged$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
         }
     ],
     "elbert_2x16Q_6x8DD/physdk-credo-1.2.8/credo-1.2.8": [
@@ -253,9 +253,6 @@
           "test_name_regex": "HwXphyPortInfoTest.*$"
         },
         {
-          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
-        },
-        {
           "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
         },
         {
@@ -266,6 +263,9 @@
         },
         {
           "test_name_regex": "warm_boot.HwStateMachineTest.CheckAgentConfigChanged$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
         }
     ],
     "elbert_5x16Q_3x8DD/physdk-credo-1.2.8/credo-1.2.8": [

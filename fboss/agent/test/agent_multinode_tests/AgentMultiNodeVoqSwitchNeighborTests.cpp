@@ -33,9 +33,7 @@ AgentMultiNodeVoqSwitchNeighborTest::computeNeighborsForRdsw(
       topologyInfo->getSwitchNameToSystemPortRanges();
   auto getSystemPortMin = [switchNameToSystemPortRanges, rdsw]() {
     // Get system portID range for the RDSW
-    CHECK(
-        switchNameToSystemPortRanges.find(rdsw) !=
-        switchNameToSystemPortRanges.end());
+    CHECK(switchNameToSystemPortRanges.contains(rdsw));
     auto ranges = switchNameToSystemPortRanges.at(rdsw);
     // TODO: Extend to work with multiple system port ranges
     CHECK(ranges.systemPortRanges()->size() >= 1);
@@ -97,7 +95,7 @@ AgentMultiNodeVoqSwitchNeighborTest::computeNeighborsForRdsw(
         auto intfIDToIp = getIntfIDToIp();
 
         for (auto& neighbor : neighbors) {
-          CHECK(intfIDToIp.find(neighbor.intfID) != intfIDToIp.end())
+          CHECK(intfIDToIp.contains(neighbor.intfID))
               << "rdsw: " << rdsw << " neighbor.intfID: " << neighbor.intfID;
           auto ip = intfIDToIp.at(neighbor.intfID);
           auto [neighborIp, neighborMac] = computeNeighborIpAndMac(ip.str());

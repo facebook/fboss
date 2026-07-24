@@ -98,6 +98,16 @@ HwPortStats getInitedStats() {
       0, // outDiscardsHll_
       0, // inSrv6MySidDiscards_
       0, // cableDelayNsec
+      0, // llrTxOk
+      0, // llrTxReplay
+      0, // llrRxOk
+      0, // llrRxBad
+      0, // llrRxMissingSeq
+      0, // llrRxDuplicateSeq
+      0, // llrRxAckNackSeqError
+      0, // llrRxReplay
+      0, // linkDownDebounceRetriggerCount_
+      0, // linkUpDebounceRetriggerCount_
   };
 }
 

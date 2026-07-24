@@ -135,7 +135,10 @@ add_library(remote_intf_route_auditor
 target_link_libraries(remote_intf_route_auditor
   Folly::folly
   fib_helpers
+  fib_updater
+  standalone_rib
   state
+  stats
   voq_utils
 )
 
@@ -409,6 +412,7 @@ set(core_libs
   route_update_wrapper
   fib_updater
   network_to_route_map
+  remote_intf_route_auditor
   standalone_rib
   state
   state_utils
@@ -449,6 +453,7 @@ set(core_libs
   thrift_service_utils
   shel_manager
   state_delta_logger
+  switch_state_delta_logger
   dsfnode_utils
   hw_switch_thrift_client_table
   file_based_warmboot_utils
@@ -588,6 +593,22 @@ target_link_libraries(state_delta_logger
   async_logger_base
   state
   fsdb_oper_cpp2
+  Folly::folly
+)
+
+add_library(switch_state_delta_logger
+  fboss/agent/SwitchStateDeltaLogger.cpp
+)
+
+target_link_libraries(switch_state_delta_logger
+  agent_features
+  async_logger_base
+  state
+  state_delta_log_cpp2
+  fsdb_oper_cpp2
+  thrift_cow_serializer
+  fb303::fb303
+  FBThrift::thriftprotocol
   Folly::folly
 )
 

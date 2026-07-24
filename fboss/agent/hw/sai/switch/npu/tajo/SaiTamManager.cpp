@@ -109,27 +109,36 @@ void rebuildAndRebindTam(
 }
 
 // Build a TAM_EVENT_THRESHOLD object whose UNIT is packets and RATE is the
-// configured packet-per-second cap. Returns nullptr if no rate is configured
-// or the configured value is non-positive — SAI_TAM_EVENT_ATTR_THRESHOLD
-// will then be left unset on the TAM_EVENT, which is the most permissive
-// default (no rate limiting).
+// configured packet-per-second cap. Always returns a threshold object: the
+// Leaba SDK's create_tam_event rejects a PACKET_DROP (MoD) event with a
+// missing SAI_TAM_EVENT_ATTR_THRESHOLD. When no positive rate is configured we
+// use rate=0, which selects the SDK's default MoD sampling rate rather than
+// disabling rate limiting.
 std::shared_ptr<SaiTamEventThreshold> createTamEventThreshold(
     SaiStore* saiStore,
     std::optional<int32_t> rateThreshold) {
-  if (!rateThreshold.has_value() || *rateThreshold <= 0) {
-    if (rateThreshold.has_value()) {
+  // A TAM_EVENT_THRESHOLD object is mandatory for every PACKET_DROP (MoD)
+  // event: the Leaba SDK's create_tam_event rejects a missing
+  // SAI_TAM_EVENT_ATTR_THRESHOLD with SAI_STATUS_MANDATORY_ATTRIBUTE_MISSING.
+  // So always create one. Rate 0 selects the SDK's default MoD sampling
+  // (~2 KPPS per drop reason); a positive dropPacketRateThreshold caps sampling
+  // explicitly.
+  sai_uint32_t rate = 0;
+  if (rateThreshold.has_value()) {
+    if (*rateThreshold > 0) {
+      rate = static_cast<sai_uint32_t>(*rateThreshold);
+    } else {
       XLOG(WARN) << "MirrorOnDropReport dropPacketRateThreshold="
                  << *rateThreshold
-                 << " is non-positive; ignoring (no rate limiting will apply)";
+                 << " is non-positive; using default MoD sampling rate";
     }
-    return nullptr;
   }
   SaiTamEventThresholdTraits::CreateAttributes thresholdTraits;
   std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Unit>>(
       thresholdTraits) =
       static_cast<sai_int32_t>(SAI_TAM_EVENT_THRESHOLD_UNIT_PACKETS);
   std::get<std::optional<SaiTamEventThresholdTraits::Attributes::Rate>>(
-      thresholdTraits) = static_cast<sai_uint32_t>(*rateThreshold);
+      thresholdTraits) = rate;
   auto& store = saiStore->get<SaiTamEventThresholdTraits>();
   return store.setObject(thresholdTraits, thresholdTraits);
 }
@@ -222,15 +231,15 @@ std::shared_ptr<SaiTamEventAction> SaiTamManager::createTamAction(
 std::shared_ptr<SaiTamTransport> SaiTamManager::createTamTransport(
     const std::shared_ptr<MirrorOnDropReport>& report,
     sai_int32_t transportType,
-    std::optional<folly::MacAddress> dstMac) {
+    std::optional<folly::MacAddress> /* dstMac */) {
   auto& transportStore = saiStore_->get<SaiTamTransportTraits>();
   auto transportTraits = SaiTamTransportTraits::AdapterHostKey{
       transportType,
       report->getLocalSrcPort(),
       report->getCollectorPort(),
       report->getMtu(),
-      folly::MacAddress(report->getSwitchMac()),
-      dstMac,
+      std::nullopt, // srcMac unsupported on Tajo (SDK derives it from RIF)
+      std::nullopt, // dstMac unsupported on Tajo
   };
   return transportStore.setObject(transportTraits, transportTraits);
 }

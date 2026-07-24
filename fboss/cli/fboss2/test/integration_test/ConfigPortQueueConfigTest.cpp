@@ -100,8 +100,8 @@ class ConfigPortQueueConfigTest : public Fboss2IntegrationTest {
 };
 
 TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
-  Interface intf = findFirstEthInterface();
-  XLOG(INFO) << "Using test interface " << intf.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "Using test interface " << ifName;
 
   XLOG(INFO) << "[Step 1] Configuring buffer pool...";
   configureBufferPool(/*sharedBytes=*/78773528, /*headroomBytes=*/4405376);
@@ -147,9 +147,9 @@ TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
        "probability",
        "100"});
 
-  XLOG(INFO) << "[Step 3] Assigning queuing-policy to " << intf.name;
+  XLOG(INFO) << "[Step 3] Assigning queuing-policy to " << ifName;
   ASSERT_EQ(
-      runCli({"config", "interface", intf.name, "queuing-policy", policyName_})
+      runCli({"config", "interface", ifName, "queuing-policy", policyName_})
           .exitCode,
       0);
 
@@ -228,14 +228,14 @@ TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
   // Interface assignment
   bool sawPort = false;
   for (const auto& port : sw["ports"]) {
-    if (port.count("name") && port["name"].asString() == intf.name) {
+    if (port.count("name") && port["name"].asString() == ifName) {
       sawPort = true;
       EXPECT_EQ(
           port.getDefault("portQueueConfigName", "").asString(), policyName_);
       break;
     }
   }
-  EXPECT_TRUE(sawPort) << "interface " << intf.name << " not in running config";
+  EXPECT_TRUE(sawPort) << "interface " << ifName << " not in running config";
 
   XLOG(INFO) << "TEST PASSED";
 }

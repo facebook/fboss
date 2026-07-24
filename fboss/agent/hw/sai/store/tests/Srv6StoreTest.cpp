@@ -112,7 +112,8 @@ class MySidEntryStoreTest : public SaiStoreTest {
         SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_PSP_AND_USP,
         SAI_NULL_OBJECT_ID,
         0,
-        SAI_PACKET_ACTION_FORWARD};
+        SAI_PACKET_ACTION_FORWARD,
+        std::nullopt};
   }
 };
 

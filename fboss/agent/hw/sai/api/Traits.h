@@ -409,6 +409,9 @@ template <typename T>
 struct IsSaiTypeWrapper
     : std::negation<std::is_same<typename WrappedSaiType<T>::value, T>> {};
 
+template <typename T>
+concept SaiTypeWrapper = IsSaiTypeWrapper<T>::value;
+
 /*
  * Helper metafunctions for resolving two types in the SAI
  * sai_attribute_value_t union being aliases. This results in SaiAttribute
@@ -440,11 +443,15 @@ template <typename T>
 struct IsDuplicateSaiType
     : std::negation<std::is_same<typename DuplicateTypeFixer<T>::value, T>> {};
 
-template <typename T, typename = void>
+template <typename T>
 struct IsSaiAttribute : public std::false_type {};
 
 template <typename AttrT>
 struct IsSaiAttribute<std::optional<AttrT>> : public IsSaiAttribute<AttrT> {};
+
+template <typename AttrT>
+concept SaiAttributeType =
+    IsSaiAttribute<std::remove_reference_t<AttrT>>::value;
 
 template <typename T>
 struct IsSaiEntryStruct : public std::false_type {};
@@ -457,6 +464,16 @@ template <typename SaiObjectTraits>
 struct AdapterKeyIsObjectId
     : std::negation<AdapterKeyIsEntryStruct<SaiObjectTraits>> {};
 
+template <typename SaiObjectTraits>
+concept ObjectIdSaiObject = AdapterKeyIsObjectId<SaiObjectTraits>::value;
+
+template <typename SaiObjectTraits>
+concept EntryStructSaiObject = AdapterKeyIsEntryStruct<SaiObjectTraits>::value;
+
+template <typename SaiObjectTraits, typename ApiT>
+concept SaiObjectForApi = requires { typename SaiObjectTraits::SaiApiT; } &&
+    std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>;
+
 template <typename T>
 struct IsTupleOfSaiAttributes : public std::false_type {};
 
@@ -464,11 +481,18 @@ template <typename... AttrTs>
 struct IsTupleOfSaiAttributes<std::tuple<AttrTs...>>
     : public std::conjunction<IsSaiAttribute<AttrTs>...> {};
 
+template <typename TupleT>
+concept SaiAttributeTuple =
+    IsTupleOfSaiAttributes<std::remove_cvref_t<TupleT>>::value;
+
 template <typename SaiObjectTraits>
 struct IsSaiObjectOwnedByAdapter : public std::false_type {};
 
 template <typename SaiObjectTraits>
 struct SaiObjectHasStats : public std::false_type {};
+
+template <typename SaiObjectTraits>
+concept SaiObjectWithStats = SaiObjectHasStats<SaiObjectTraits>::value;
 
 template <typename SaiObjectTraits>
 struct SaiObjectHasConditionalAttributes : public std::false_type {};
@@ -530,6 +554,6 @@ struct ConditionObjectTraits {
 template <typename ObjectTraits>
 struct GetObjectKeySupported : std::true_type {};
 
-template <typename T, typename = void>
+template <typename T>
 struct IsSaiExtensionAttribute : std::false_type {};
 } // namespace facebook::fboss

@@ -190,6 +190,20 @@ void HwPortFb303Stats::updateStats(
         kInSrv6MySidDiscards(),
         *curPortStats.inSrv6MySidDiscards_());
   }
+  if (isLinkDebounceRetriggerCounterSupported()) {
+    if (curPortStats.linkDownDebounceRetriggerCount_().has_value()) {
+      updateStat(
+          timeRetrieved_,
+          kLinkDownDebounceRetriggerCount(),
+          *curPortStats.linkDownDebounceRetriggerCount_());
+    }
+    if (curPortStats.linkUpDebounceRetriggerCount_().has_value()) {
+      updateStat(
+          timeRetrieved_,
+          kLinkUpDebounceRetriggerCount(),
+          *curPortStats.linkUpDebounceRetriggerCount_());
+    }
+  }
   // Egress Stats
   updateStat(timeRetrieved_, kOutBytes(), *curPortStats.outBytes_());
   updateStat(

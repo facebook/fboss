@@ -54,13 +54,16 @@ DEFINE_int32(
     refresh_all_pages_cycles,
     100,
     "Number of cycles to kick off a full refresh of all pages");
+DEFINE_int32(
+    firmware_upgrade_attempts,
+    3,
+    "Number of attempts to upgrade transceiver firmware before giving up. "
+    "Set to 1 to disable retries (e.g. for interrupt tests).");
 
 using folly::IOBuf;
 using std::lock_guard;
 using std::memcpy;
 using std::mutex;
-
-static constexpr int kAllowedFwUpgradeAttempts = 3;
 
 namespace facebook {
 namespace fboss {
@@ -253,9 +256,10 @@ bool QsfpModule::upgradeFirmwareLocked(
 
   int upgradeAttempts = 1;
   bool finalFwUpgradeResult = false;
-  while (upgradeAttempts <= kAllowedFwUpgradeAttempts) {
+  while (upgradeAttempts <= FLAGS_firmware_upgrade_attempts) {
     finalFwUpgradeResult = fwUpgradeFn();
-    if (!finalFwUpgradeResult && upgradeAttempts < kAllowedFwUpgradeAttempts) {
+    if (!finalFwUpgradeResult &&
+        upgradeAttempts < FLAGS_firmware_upgrade_attempts) {
       // fwUpgradeFn will wait 5 seconds internally when re-trying.
       upgradeAttempts++;
     } else {

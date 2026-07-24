@@ -4,6 +4,27 @@
 
 namespace facebook::fboss {
 
+namespace {
+constexpr auto kCpuPortSpeed = 10000;
+constexpr auto kCpuPortNumVoqs = 8;
+} // namespace
+
+std::vector<HwAsic::InternalSystemPortConfig>
+Qumran4DAsic::getInternalSystemPortConfig(
+    const CpuPortCoreAndPortIndex& cpuPortsCoreAndPortIdx) const {
+  CHECK(getSwitchId()) << " Switch Id must be set before sys port info";
+
+  const uint32_t switchId = static_cast<uint32_t>(*getSwitchId());
+  std::vector<InternalSystemPortConfig> sysPortConfig;
+  sysPortConfig.reserve(cpuPortsCoreAndPortIdx.size());
+  for (auto [cpuPortID, coreAndPortIdx] : cpuPortsCoreAndPortIdx) {
+    auto [core, port] = coreAndPortIdx;
+    sysPortConfig.push_back(
+        {cpuPortID, switchId, core, port, kCpuPortSpeed, kCpuPortNumVoqs});
+  }
+  return sysPortConfig;
+}
+
 bool Qumran4DAsic::isSupported(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::OBJECT_KEY_CACHE:
@@ -82,6 +103,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
+    case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -224,10 +246,12 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
-    // TODO (Q4D/J4/R4): Enable once SDK support is available
+    // TODO (Q4D/J4/R4): Vendor switch interrupt events are rejected by the Q4D
+    // SDK (INVALID PARAMETER) because there is no Q4D-specific vendor-switch
+    // interrupt event set yet (only J3/R3 exist in bcm_switch_vendor_events).
+    // Enable once Broadcom provides the Q4D vendor-switch event definitions.
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
-    case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
     // TODO (Q4D/J4/R4): Following features are not currently supported
     // in SDK. Some of them are not applicable for Q4D. Will be updated
     // accordingly after BRCM confirmation. Rest of the features will be
@@ -260,6 +284,8 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
+    case HwAsic::Feature::PORT_DEBOUNCE:
       return false;
   }
   return false;

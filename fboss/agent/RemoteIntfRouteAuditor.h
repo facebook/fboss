@@ -9,7 +9,10 @@
 
 namespace facebook::fboss {
 
+class RoutingInformationBase;
+class SwitchIdScopeResolver;
 class SwitchState;
+class SwitchStats;
 
 using DuplicatePrefixSet = boost::container::flat_map<
     facebook::fboss::RouterID,
@@ -42,5 +45,18 @@ struct RemoteIntfRouteAudit {
 
 RemoteIntfRouteAudit auditRemoteInterfaceRoutes(
     const std::shared_ptr<SwitchState>& state);
+
+// Audits state, logs every drifted (missing/extra/duplicate) prefix, bumps
+// `warmboot_remote_intf_routes_inconsistency`, and applies reconciliation via
+// rib.updateRemoteInterfaceRoutes. Returns the reconciled state on drift, or
+// the input state unchanged when there is no drift. Caller can detect whether
+// drift was applied by comparing the shared_ptr before/after. Best-effort: on
+// any failure it bumps `warmboot_remote_intf_routes_reconcile_error` and
+// returns the input state rather than throwing, so warmboot cannot abort here.
+std::shared_ptr<SwitchState> reconcileRemoteInterfaceRoutes(
+    const std::shared_ptr<SwitchState>& state,
+    RoutingInformationBase& rib,
+    const SwitchIdScopeResolver& resolver,
+    SwitchStats& stats);
 
 } // namespace facebook::fboss

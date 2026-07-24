@@ -13,6 +13,7 @@
 
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 
+#include <fmt/format.h>
 #include <folly/io/IOBuf.h>
 
 namespace facebook::fboss {
@@ -59,7 +60,7 @@ SaiRxPacket::SaiRxPacket(
 }
 
 std::string SaiRxPacket::describeDetails() const {
-  return folly::sformat("rx reason={}", packetRxReasonToString(rxReason_));
+  return fmt::format("rx reason={}", packetRxReasonToString(rxReason_));
 }
 
 } // namespace facebook::fboss

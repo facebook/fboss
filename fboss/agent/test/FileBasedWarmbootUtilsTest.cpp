@@ -2,6 +2,9 @@
 
 #include "fboss/agent/FileBasedWarmbootUtils.h"
 
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <gmock/gmock.h>
@@ -227,6 +230,49 @@ TEST_F(FileBasedWarmbootUtilsTest, LogBootHistoryOverridesExistingLog) {
   EXPECT_NE(logContent.find("warm"), std::string::npos);
   EXPECT_EQ(logContent.find("1.0.0"), std::string::npos);
   EXPECT_NE(logContent.find("1.0.1"), std::string::npos);
+}
+
+// ============================================================================
+// FALLBACK LOG SYMLINK-SAFETY TESTS
+// ============================================================================
+
+TEST_F(FileBasedWarmbootUtilsTest, FallbackLogRefusesSymlinkTarget) {
+  // Plant a symlink at the fallback path pointing at a sensitive "victim" file,
+  // mimicking a local attacker who pre-creates /tmp/wedge_agent_starts.log as a
+  // symlink to e.g. /etc/cron.d/runme before the root agent restarts.
+  auto victimPath = tempDir_ + "/victim";
+  folly::writeFileAtomic(victimPath, "DO NOT TRUNCATE");
+  auto logPath = tempDir_ + "/fallback_boot.log";
+  ASSERT_EQ(::symlink(victimPath.c_str(), logPath.c_str()), 0);
+
+  // The symlink-safe open must not follow the link: it unlinks the planted
+  // symlink and creates a fresh regular file at logPath.
+  auto logFile = openSymlinkSafeFallbackLog(logPath);
+  const std::string entry = "boot entry\n";
+  folly::writeFull(logFile.fd(), entry.c_str(), entry.size());
+
+  // The victim file must be intact (not truncated/overwritten via the symlink).
+  std::string victimContent;
+  ASSERT_TRUE(folly::readFile(victimPath.c_str(), victimContent));
+  EXPECT_EQ(victimContent, "DO NOT TRUNCATE");
+
+  // logPath must now be a regular file (the planted symlink was removed), and
+  // our write must have landed there rather than in the victim.
+  struct stat st{};
+  ASSERT_EQ(::lstat(logPath.c_str(), &st), 0);
+  EXPECT_TRUE(S_ISREG(st.st_mode));
+  std::string logContent;
+  ASSERT_TRUE(folly::readFile(logPath.c_str(), logContent));
+  EXPECT_EQ(logContent, entry);
+}
+
+TEST_F(FileBasedWarmbootUtilsTest, FallbackLogCreatesFreshRegularFile) {
+  // With nothing pre-existing at the path, the helper creates a regular file.
+  auto logPath = tempDir_ + "/fresh_boot.log";
+  auto logFile = openSymlinkSafeFallbackLog(logPath);
+  struct stat st{};
+  ASSERT_EQ(::lstat(logPath.c_str(), &st), 0);
+  EXPECT_TRUE(S_ISREG(st.st_mode));
 }
 
 // ============================================================================

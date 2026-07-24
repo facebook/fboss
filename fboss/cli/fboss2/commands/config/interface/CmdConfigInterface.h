@@ -18,6 +18,7 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h"
 #include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
+#include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
 
 namespace facebook::fboss {
@@ -73,10 +74,17 @@ class CmdConfigInterface
 // before absent ports are created. Throws std::invalid_argument with a
 // user-facing message on any validation failure (leaving `swConfig`
 // unchanged). Declared here for unit testing.
+//
+// If `actionLevel` is non-null, it is escalated (raised, never lowered) to the
+// commit action level this profile change requires -- e.g. AGENT_COLDBOOT when
+// the change subsumes/removes a port (see T281221621). Callers thread one
+// ConfigActionLevel through every attribute handler and commit at the resulting
+// level, so any future attribute needing warmboot/coldboot can escalate it too.
 std::string applyProfileImpl(
     ProfileValidator& validator,
     cfg::SwitchConfig& swConfig,
     const utils::InterfaceList& interfaces,
-    const std::string& value);
+    const std::string& value,
+    cli::ConfigActionLevel* actionLevel = nullptr);
 
 } // namespace facebook::fboss

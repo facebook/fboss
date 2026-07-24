@@ -58,6 +58,7 @@ constexpr int kLowerPage = -1;
 class CdbCommandBlock {
  public:
   static constexpr uint8_t kCdbLplMemoryLength = 120;
+  static constexpr uint8_t kCdbFwDnldStartMaxHeaderLen = 112;
 
   // Constructor to initialize data block from 0
   explicit CdbCommandBlock(
@@ -219,7 +220,7 @@ class CdbCommandBlock {
       struct {
         uint32_t cdbImageSize; // Reg 136-139
         uint32_t reserved;
-        uint8_t cdbImageHeader[112]; // Reg 144-255
+        uint8_t cdbImageHeader[kCdbFwDnldStartMaxHeaderLen]; // Reg 144-255
       } cdbFwDnldStartData;
 
       struct {

@@ -432,11 +432,6 @@ DEFINE_bool(
     "Initiate neighbor solicitation for static neighbors");
 
 DEFINE_bool(
-    arp_static_neighbor,
-    false,
-    "Initiate ARP request for static neighbors");
-
-DEFINE_bool(
     dsf_single_stage_r128_f40_e16_8k_sys_ports,
     false,
     "Allow upto 8K system ports on single stage DSF (default=6144)");
@@ -515,6 +510,33 @@ DEFINE_int32(
     "Log timeout value in milliseconds. Logger will periodically"
     "flush logs even if the buffer is not full");
 
+DEFINE_bool(
+    enable_pre_manager_delta_logging,
+    false,
+    "Enable pre-manager state delta logging via SwitchStateDeltaLogger (sibling of StateDeltaLogger). Off by default; gates construction of the sibling logger.");
+
+DEFINE_string(
+    pre_manager_delta_log_file,
+    "/var/facebook/logs/fboss/pre_manager_deltas.log",
+    "Path to the pre-manager state delta log file.");
+
+DEFINE_string(
+    pre_manager_delta_log_protocol,
+    "COMPACT",
+    "Serialization protocol for pre-manager state delta logging (BINARY, SIMPLE_JSON, COMPACT)");
+
+DEFINE_int32(
+    pre_manager_delta_log_timeout_ms,
+    200,
+    "Pre-manager delta log timeout in milliseconds. Logger will periodically "
+    "flush logs even if the buffer is not full. Bounds the worst-case data-loss "
+    "window on a machine crash.");
+
+DEFINE_bool(
+    enable_post_manager_delta_logging,
+    false,
+    "Enable post-manager state delta logging via SwitchStateDeltaLogger (sibling of StateDeltaLogger). Off by default; gates logging of split sub-deltas at the post-manager capture point (record type kTypePostManagerDelta). Reserved — no-op today.");
+
 DEFINE_int32(
     fsdbStatsStreamIntervalSeconds,
     5,
@@ -542,6 +564,16 @@ DEFINE_bool(
     montblanc_odd_ports_8x100G,
     false,
     "Enables platform mapping with 8x100G on odd ports");
+
+DEFINE_bool(
+    montblanc_gtsw_yolo,
+    false,
+    "Enables montblanc platform mapping with 4x200G on odd ports and 6x100G on even ports");
+
+DEFINE_bool(
+    montblanc_precoding,
+    false,
+    "Enables montblanc platform mapping with precoding on downlinks, used by VR200 (San Miguel) racks");
 
 DEFINE_bool(can_warm_boot, true, "Enable/disable warm boot functionality");
 
@@ -589,3 +621,17 @@ DEFINE_bool(
     enable_port_cl72_retry,
     false,
     "Enable CL72 link training retry on the switch (XGS, BRCM SDK >= 14.2 only)");
+
+DEFINE_bool(
+    enable_remote_intf_route_reconcile,
+    false,
+    "Reconcile remote interface routes (RIB/FIB drift) on VOQ-switch warmboot");
+
+DEFINE_string(
+    bcm_sdk_log_file,
+    "",
+    "If set, path to a Broadcom SDK SOC/diag command file (e.g. containing "
+    "'debug bcm stat verbose'). When set, the sai_preinit_cmd_file and "
+    "sai_postinit_cmd_file SOC properties are added to the SDK config pointing "
+    "to this file, so the SDK runs the commands at init time. Used to enable "
+    "native BCM SDK debug logging (analogous to --enable_sai_log for SAI).");

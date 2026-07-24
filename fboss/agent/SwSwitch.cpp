@@ -35,11 +35,13 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
+#include "fboss/agent/RemoteIntfRouteAuditor.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/ShelManager.h"
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/TxPacketUtils.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
@@ -1528,6 +1530,8 @@ void SwSwitch::init(
   // that the two states are in sync. tolerating this discrepancy for now
   setStateInternal(initialState);
 
+  initialState = reconcileRemoteInterfaceRoutesOnWarmboot(initialState);
+
   XLOG(DBG0) << "hardware initialized in " << hwInitRet.bootTime
              << " seconds; applying initial config";
 
@@ -1620,6 +1624,7 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   // until config is applied, after that the two states are in sync.
   // tolerating this discrepancy for now.
   setStateInternal(initialState);
+  initialState = reconcileRemoteInterfaceRoutesOnWarmboot(initialState);
   if (bootType_ == BootType::WARM_BOOT) {
     // Notify the state observers of the initial state
     updateEventBase_.runInFbossEventBaseThread(
@@ -1671,7 +1676,6 @@ void SwSwitch::initialConfigApplied(
   XLOG(DBG4)
       << "SwSwitch::initialConfigApplied - Checking for existing interfaces that need neighbor solicitation after warm boot";
   sendNeighborSolicitationForConfiguredInterfaces("warm boot");
-  sendArpRequestForConfiguredInterfaces("warm boot");
 
   if (flags_ & SwitchFlags::PUBLISH_STATS) {
     stats()->switchConfiguredMs(
@@ -2055,6 +2059,36 @@ void SwSwitch::setStateInternal(std::shared_ptr<SwitchState> newAppliedState) {
   CHECK(newAppliedState->isPublished());
   std::unique_lock guard(stateLock_);
   appliedStateDontUseDirectly_.swap(newAppliedState);
+}
+
+std::shared_ptr<SwitchState> SwSwitch::reconcileRemoteInterfaceRoutesOnWarmboot(
+    const std::shared_ptr<SwitchState>& state) {
+  if (!FLAGS_enable_remote_intf_route_reconcile ||
+      bootType_ != BootType::WARM_BOOT ||
+      !getSwitchInfoTable().haveVoqSwitches()) {
+    return state;
+  }
+  if (!updateEventBase_.isRunning()) {
+    XLOG(ERR) << "Skipping warmboot remote interface route reconcile: "
+              << "updateEventBase_ not running";
+    return state;
+  }
+
+  // Capture the state this reconcile produces so the return value is
+  // unambiguously tied to this update, rather than reading getState() which
+  // could reflect a concurrent update. Default to the input state so we never
+  // return null if the update callback does not run (e.g. SwSwitch exiting).
+  std::shared_ptr<SwitchState> reconciled = state;
+  updateStateBlocking(
+      "warmboot remote interface route reconcile",
+      [this, &reconciled](const std::shared_ptr<SwitchState>& in)
+          -> std::shared_ptr<SwitchState> {
+        reconciled = reconcileRemoteInterfaceRoutes(
+            in, *rib_, *scopeResolver_, *stats());
+        return reconciled == in ? std::shared_ptr<SwitchState>{} : reconciled;
+      });
+
+  return reconciled;
 }
 
 std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
@@ -4468,124 +4502,6 @@ void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
   }
 }
 
-void SwSwitch::sendArpRequestForConfiguredInterfaces(
-    const std::string& reason,
-    const std::optional<folly::IPAddressV4>& targetIP) {
-  if (!FLAGS_arp_static_neighbor) {
-    return;
-  }
-
-  auto currentState = getState();
-  if (!currentState) {
-    XLOG(WARN)
-        << "SwSwitch::sendArpRequestForConfiguredInterfaces - No current state available";
-    return;
-  }
-
-  auto interfaces = currentState->getInterfaces();
-  for (const auto& [_, intfMap] : std::as_const(*interfaces)) {
-    for (const auto& [_, intf] : std::as_const(*intfMap)) {
-      if (!intf->getDesiredPeerAddressIPv4().has_value()) {
-        continue;
-      }
-
-      auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv4();
-      auto cidrNetwork =
-          folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
-      auto desiredPeerAddressIPv4 = cidrNetwork.first.asV4();
-
-      // If targetIP is specified, only process that specific IP
-      if (targetIP.has_value() && desiredPeerAddressIPv4 != targetIP) {
-        continue;
-      }
-
-      if (!intf->canReachAddress(desiredPeerAddressIPv4)) {
-        continue;
-      }
-
-      // Check if interface is operationally UP
-      bool isInterfaceOperationallyUp = false;
-
-      switch (intf->getType()) {
-        case cfg::InterfaceType::PORT: {
-          // Fix: PORT type interfaces have ports directly associated
-          auto portIds = getPortsForInterface(intf->getID(), currentState);
-          for (auto portId : portIds) {
-            auto port = currentState->getPorts()->getNodeIf(portId);
-            if (port && port->isPortUp()) {
-              isInterfaceOperationallyUp = true;
-              break;
-            }
-          }
-          break;
-        }
-        case cfg::InterfaceType::VLAN: {
-          // In production, FBOSS uses 1:1 VLAN-to-port mapping
-          // (onePortPerInterfaceConfig), so this loop effectively checks
-          // if the single port in the VLAN is UP. The loop handles the
-          // general multi-port case defensively.
-          if (auto vlanID = intf->getVlanID()) {
-            auto vlanMap = currentState->getVlans();
-            if (vlanMap) {
-              auto vlan = vlanMap->getNodeIf(vlanID);
-              if (vlan) {
-                for (auto memberPort : vlan->getPortsInfo()) {
-                  auto port =
-                      currentState->getPorts()->getNodeIf(memberPort.first);
-                  if (port && port->isPortUp()) {
-                    isInterfaceOperationallyUp = true;
-                    break;
-                  }
-                }
-              }
-            }
-          }
-          break;
-        }
-        case cfg::InterfaceType::SYSTEM_PORT: {
-          if (auto sysPortID = intf->getSystemPortID()) {
-            auto physPortID = getPortID(sysPortID.value(), currentState);
-            auto port = currentState->getPorts()->getNodeIf(physPortID);
-            if (port && port->isPortUp()) {
-              isInterfaceOperationallyUp = true;
-            }
-          }
-          break;
-        }
-      }
-
-      if (isInterfaceOperationallyUp) {
-        auto sourceAddr = intf->getAddressToReach(desiredPeerAddressIPv4);
-        if (sourceAddr.has_value()) {
-          XLOG(DBG4)
-              << "SwSwitch::sendArpRequestForConfiguredInterfaces - Sending ARP request for interface "
-              << intf->getID() << " (" << intf->getName()
-              << ") with desiredPeerAddressIPv4 "
-              << desiredPeerAddressIPv4.str() << " - reason: " << reason;
-
-          try {
-            sendArpRequestHelper(
-                intf,
-                currentState,
-                sourceAddr->first.asV4(),
-                desiredPeerAddressIPv4);
-          } catch (const std::exception& e) {
-            XLOG(ERR)
-                << "SwSwitch::sendArpRequestForConfiguredInterfaces - Failed to send ARP request for interface "
-                << intf->getID() << " - reason: " << reason << ": " << e.what();
-          }
-        } else {
-          XLOG(WARN)
-              << "SwSwitch::sendArpRequestForConfiguredInterfaces - No source address found to reach "
-              << desiredPeerAddressIPv4.str() << " on interface "
-              << intf->getID()
-              << " - check that the interface has an IPv4 address in the same subnet";
-        }
-      }
-    }
-  }
-}
-
 bool SwSwitch::hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId) {
   auto switchState = getState();
   auto* intf = switchState->getInterfaces()->getNode(intfId).get();
@@ -4613,39 +4529,6 @@ bool SwSwitch::hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId) {
     if (!hasOperationalPort) {
       XLOG(DBG4) << "Interface " << intfId
                  << " has no operational ports, skipping desired peer check";
-      return false;
-    }
-    return true;
-  }
-  return false;
-}
-
-bool SwSwitch::hasQualifiedConfiguredDesiredPeerIPv4(
-    const InterfaceID& intfId) {
-  auto switchState = getState();
-  auto* intf = switchState->getInterfaces()->getNode(intfId).get();
-  if (intf->getDesiredPeerAddressIPv4().has_value()) {
-    auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv4();
-    auto cidrNetwork =
-        folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
-    if (!cidrNetwork.first.isV4()) {
-      XLOG(ERR) << "Desired peer address is not a valid IPv4 address: "
-                << *desiredPeerAddressString;
-      return false;
-    }
-    auto portIds = getPortsForInterface(intfId, switchState);
-    bool hasOperationalPort = false;
-    for (auto portId : portIds) {
-      auto port = switchState->getPorts()->getNodeIf(portId);
-      if (port && port->isUp()) {
-        hasOperationalPort = true;
-        break;
-      }
-    }
-    if (!hasOperationalPort) {
-      XLOG(DBG4)
-          << "Interface " << intfId
-          << " has no operational ports, skipping desired peer IPv4 check";
       return false;
     }
     return true;

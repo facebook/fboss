@@ -11,6 +11,7 @@
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/LldpManager.h"
 
+#include <fmt/format.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
@@ -86,7 +87,7 @@ void PortUpdateHandler::disableIfLooped(
 
   auto portId = newPort->getID();
   sw_->updateState(
-      folly::sformat("Disable undrained, looped port: {}", newPort->getName()),
+      fmt::format("Disable undrained, looped port: {}", newPort->getName()),
       [portId](const std::shared_ptr<SwitchState>& in) {
         auto out = in->clone();
         auto curPort = out->getPorts()->getNode(portId);
@@ -136,7 +137,7 @@ void PortUpdateHandler::clearErrorDisableLoopDetected(
 
   auto portId = newPort->getID();
   sw_->updateState(
-      folly::sformat(
+      fmt::format(
           "Clear error disable loop detected on: {}", newPort->getName()),
       [portId](const std::shared_ptr<SwitchState>& in) {
         auto out = in->clone();
@@ -183,28 +184,6 @@ void PortUpdateHandler::handlePortUp(
                    << " comes UP";
         sw_->sendNdpSolicitationHelper(
             interface, state, desiredPeerAddressIPv6);
-      }
-    }
-
-    // ARP cold start: send ARP request for configured IPv4 peers
-    if (FLAGS_arp_static_neighbor &&
-        interface->getDesiredPeerAddressIPv4().has_value()) {
-      auto desiredPeerAddressString = interface->getDesiredPeerAddressIPv4();
-      auto cidrNetwork =
-          folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
-      auto desiredPeerAddressIPv4 = cidrNetwork.first.asV4();
-      if (interface->canReachAddress(desiredPeerAddressIPv4)) {
-        auto sourceAddr = interface->getAddressToReach(desiredPeerAddressIPv4);
-        if (sourceAddr.has_value()) {
-          XLOG(DBG4) << "Calling sendArpRequestHelper for interface "
-                     << interface->getID() << " when port " << newPort->getID()
-                     << " comes UP";
-          sw_->sendArpRequestHelper(
-              interface,
-              state,
-              sourceAddr->first.asV4(),
-              desiredPeerAddressIPv4);
-        }
       }
     }
   }

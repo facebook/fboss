@@ -103,6 +103,11 @@ void AsyncLoggerBase::setBootType(bool canWarmBoot) {
   bootTypeLatch_.unlock();
 }
 
+bool AsyncLoggerBase::getBootType() {
+  std::lock_guard<std::mutex> guard(bootTypeLatch_);
+  return isWarmBoot;
+}
+
 void AsyncLoggerBase::startFlushThread() {
   enableLogging_ = true;
   if (!FLAGS_disable_async_logger) {

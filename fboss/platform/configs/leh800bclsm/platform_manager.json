@@ -1574,7 +1574,7 @@
   "numXcvrs": 2,
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "4.4.0-1",
-  "requiredKmodsToLoad": [
+  "nonBspKmodsToLoad": [
     "i2c_i801",
     "spidev",
     "fboss_iob_pci",

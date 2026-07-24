@@ -1,5 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 //
+#include <fmt/format.h>
+
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
@@ -1115,7 +1117,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToRemoteNeighbor) {
     };
     swSwitch->getRib()->updateStateInRibThread([swSwitch, updateDsfStateFn]() {
       swSwitch->updateStateWithHwFailureProtection(
-          folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
+          fmt::format("Update state for node: {}", 0), updateDsfStateFn);
     });
   };
 

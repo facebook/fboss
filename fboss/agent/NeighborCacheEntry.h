@@ -363,13 +363,6 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
           XLOG(DBG2) << "Slow Retries enabling for " << getIP();
           probesLeft_ = 1;
         }
-        // Check if ARP static neighbor is enabled
-        if (FLAGS_arp_static_neighbor &&
-            cache_->sw_->hasQualifiedConfiguredDesiredPeerIPv4(getIntfID())) {
-          slowRetries_ = true;
-          XLOG(DBG2) << "Slow Retries enabling for " << getIP();
-          probesLeft_ = 1;
-        }
       }
     } else {
       state_ = NeighborEntryState::EXPIRED;

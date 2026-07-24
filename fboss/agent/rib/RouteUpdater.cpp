@@ -140,7 +140,7 @@ void RibRouteUpdater::update(
         (addItr == toAdd.end() ? std::vector<RouteEntry>() : addItr->second),
         (delItr == toDel.end() ? std::vector<folly::CIDRNetwork>()
                                : delItr->second),
-        resetClientsRoutesFor.find(client) != resetClientsRoutesFor.end());
+        resetClientsRoutesFor.contains(client));
   }
   updateDone();
 }
@@ -821,6 +821,26 @@ RouteNextHopSet mergeForwardInfos(
   }
   return fwd;
 }
+
+struct Srv6Encap {
+  std::vector<folly::IPAddressV6> segmentList;
+  std::optional<TunnelType> tunnelType;
+  std::optional<std::string> tunnelId;
+};
+
+// Prefer the parent next-hop's SRv6 encap; if the parent has none, inherit the
+// child's.
+template <typename NextHopT>
+Srv6Encap resolveSrv6Encap(
+    const std::vector<folly::IPAddressV6>& parentSegmentList,
+    const std::optional<TunnelType>& parentTunnelType,
+    const std::optional<std::string>& parentTunnelId,
+    const NextHopT& child) {
+  if (!parentSegmentList.empty()) {
+    return {parentSegmentList, parentTunnelType, parentTunnelId};
+  }
+  return {child.srv6SegmentList(), child.tunnelType(), child.tunnelId()};
+}
 } // anonymous namespace
 
 template <typename AddressT>
@@ -847,7 +867,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
   auto route = it->value();
   CHECK(route);
 
-  if (resolving_.find(route.get()) != resolving_.end()) {
+  if (resolving_.contains(route.get())) {
     XLOG(DBG2) << "Cycle detected resolving nexthop " << nh
                << " — route is already being resolved";
     ++cyclesDetected_;
@@ -870,6 +890,8 @@ void RibRouteUpdater::getFwdInfoFromNhop(
       // if the route used to resolve the nexthop is directly connected
       if (route->isConnected()) {
         const auto& rtNh = *nhops.begin();
+        const auto srv6Encap =
+            resolveSrv6Encap(srv6SegmentList, tunnelType, tunnelId, rtNh);
         // NOTE: we need to use a UCMP compatible weight so that this can
         // be a leaf in the recursive resolution defined in the comment
         // describing mergeForwardInfos above.
@@ -883,9 +905,9 @@ void RibRouteUpdater::getFwdInfoFromNhop(
                                             : rtNh.disableTTLDecrement(),
             topologyInfo,
             std::nullopt, /* adjustedWeight */
-            srv6SegmentList,
-            tunnelType,
-            tunnelId,
+            srv6Encap.segmentList,
+            srv6Encap.tunnelType,
+            srv6Encap.tunnelId,
             cost));
       } else {
         std::for_each(
@@ -899,6 +921,8 @@ void RibRouteUpdater::getFwdInfoFromNhop(
              &tunnelType,
              &tunnelId,
              &cost](const auto& nhop) {
+              const auto srv6Encap =
+                  resolveSrv6Encap(srv6SegmentList, tunnelType, tunnelId, nhop);
               fwd.insert(ResolvedNextHop(
                   nhop.addr(),
                   nhop.intf(),
@@ -909,9 +933,9 @@ void RibRouteUpdater::getFwdInfoFromNhop(
                                                   : nhop.disableTTLDecrement(),
                   topologyInfo,
                   std::nullopt, /* adjustedWeight */
-                  srv6SegmentList,
-                  tunnelType,
-                  tunnelId,
+                  srv6Encap.segmentList,
+                  srv6Encap.tunnelType,
+                  srv6Encap.tunnelId,
                   cost));
             });
       }
@@ -967,7 +991,8 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
           CHECK(
               clientId == kInterfaceRouteClientId ||
               clientId == kRemoteInterfaceRouteClientId ||
-              (addr.isV6() && addr.isLinkLocal()));
+              (addr.isV6() && addr.isLinkLocal()))
+              << "Next hop:" << nh << " cannot be associated with a RIF";
           nhToFwds[nh].emplace(nh);
           continue;
         }
@@ -1197,7 +1222,7 @@ void RibRouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
 template <typename AddressT>
 bool RibRouteUpdater::needResolve(
     const std::shared_ptr<Route<AddressT>>& route) const {
-  return needsResolution_.find(route.get()) != needsResolution_.end();
+  return needsResolution_.contains(route.get());
 }
 
 void RibRouteUpdater::updateDone() {

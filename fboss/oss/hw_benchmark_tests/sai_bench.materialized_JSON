@@ -3355,6 +3355,10 @@
         {
           "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
           "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "HwTunManagerProbeAndCleanup",
+          "reason": "Produces no benchmark results on Spectrum4 (times out during pre-measurement kernel/state debug dump); blocking conveyor since release 7406, under investigation"
         }
     ],
     "nvda/2505.34/spectrum4/mono": [
@@ -3397,6 +3401,10 @@
         {
           "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
           "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "HwTunManagerProbeAndCleanup",
+          "reason": "Produces no benchmark results on Spectrum4 (times out during pre-measurement kernel/state debug dump); blocking conveyor since release 7406, under investigation"
         }
     ],
     "nvda/2505.34/spectrum4/multi_switch": [
@@ -3439,6 +3447,10 @@
         {
           "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
           "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "HwTunManagerProbeAndCleanup",
+          "reason": "Produces no benchmark results on Spectrum4 (times out during pre-measurement kernel/state debug dump); blocking conveyor since release 7406, under investigation"
         }
     ],
     "nvda/2511.36/spectrum4": [
@@ -3481,6 +3493,10 @@
         {
           "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
           "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "HwTunManagerProbeAndCleanup",
+          "reason": "Produces no benchmark results on Spectrum4 (times out during pre-measurement kernel/state debug dump); blocking conveyor since release 7406, under investigation"
         }
     ],
     "nvda/2511.36/spectrum4/mono": [
@@ -3523,6 +3539,10 @@
         {
           "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
           "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "HwTunManagerProbeAndCleanup",
+          "reason": "Produces no benchmark results on Spectrum4 (times out during pre-measurement kernel/state debug dump); blocking conveyor since release 7406, under investigation"
         }
     ],
     "nvda/2511.36/spectrum4/multi_switch": [
@@ -3565,6 +3585,10 @@
         {
           "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
           "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "HwTunManagerProbeAndCleanup",
+          "reason": "Produces no benchmark results on Spectrum4 (times out during pre-measurement kernel/state debug dump); blocking conveyor since release 7406, under investigation"
         }
     ]
   },

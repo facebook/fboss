@@ -12,6 +12,7 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
+#include <fmt/format.h>
 #include <re2/re2.h>
 #include <map>
 #include <string>
@@ -71,7 +72,7 @@ RetType CmdShowDsfNodes::createModel(
     if (node.systemPortRanges()->systemPortRanges()->size()) {
       for (const auto& range : *node.systemPortRanges()->systemPortRanges()) {
         ranges.push_back(
-            folly::sformat("({}, {})", *range.minimum(), *range.maximum()));
+            fmt::format("({}, {})", *range.minimum(), *range.maximum()));
       }
       entry.systemPortRanges() = folly::join(", ", ranges);
     } else {

@@ -439,6 +439,10 @@ class SwSwitch : public HwSwitchCallback {
    */
   void initialConfigApplied(
       const std::chrono::steady_clock::time_point& startTime);
+
+  std::shared_ptr<SwitchState> reconcileRemoteInterfaceRoutesOnWarmboot(
+      const std::shared_ptr<SwitchState>& state);
+
   /*
    * Get the SwitchStats for the current thread.
    *
@@ -943,11 +947,6 @@ class SwSwitch : public HwSwitchCallback {
       const std::string& reason,
       const std::optional<folly::IPAddressV6>& targetIP = std::nullopt);
 
-  // Send ARP request for interfaces with desiredPeerAddressIPv4 configured
-  void sendArpRequestForConfiguredInterfaces(
-      const std::string& reason,
-      const std::optional<folly::IPAddressV4>& targetIP = std::nullopt);
-
   InterfaceID getInterfaceIDForAggregatePort(
       AggregatePortID aggregatePortID) const;
 
@@ -1051,7 +1050,6 @@ class SwSwitch : public HwSwitchCallback {
   std::optional<VlanID> getVlanIDForTx(
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
   bool hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId);
-  bool hasQualifiedConfiguredDesiredPeerIPv4(const InterfaceID& intfId);
   const ResourceAccountant* getResourceAccountant() const;
 
  private:

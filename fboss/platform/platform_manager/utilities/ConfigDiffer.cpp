@@ -176,7 +176,7 @@ void ConfigDiffer::compareVersionedConfigs(
   // Compare each versioned config against the default config
   for (const auto& versionedConfig : versionedConfigs) {
     std::string versionInfo;
-    if (const auto& pmUvs = versionedConfig.pmUnitVersions();
+    if (auto pmUvs = versionedConfig.pmUnitVersions();
         pmUvs && !pmUvs->empty()) {
       std::string versions;
       for (const auto& pmUv : *pmUvs) {

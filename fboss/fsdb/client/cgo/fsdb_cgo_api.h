@@ -48,6 +48,18 @@ typedef struct {
   int32_t data_len;
   int32_t protocol;
 } FsdbStatePathUpdate;
+
+// Connection state of the portMaps subscription, returned by
+// GetConnectionState. Values increase monotonically through a connection's
+// lifecycle: CONNECTING (before the first successful connect, e.g. server
+// unreachable) -> CONNECTED (stream established, no data yet) -> DATA_RECEIVED
+// (initial sync / first data delivered). A live drop resets to DISCONNECTED.
+typedef enum {
+  FSDB_CONNECTION_DISCONNECTED = 0,
+  FSDB_CONNECTION_CONNECTING = 1,
+  FSDB_CONNECTION_CONNECTED = 2,
+  FSDB_CONNECTION_DATA_RECEIVED = 3,
+} FsdbConnectionState;
 // NOLINTEND(modernize-use-using)
 
 // Set a folly/gflags flag value. Call before FsdbInit for the value to be
@@ -121,6 +133,13 @@ FSDB_CGO_API int32_t GetPortSnapshot(
     int32_t server_port,
     FsdbPortStateUpdate* out,
     int32_t max_count);
+
+// Live connection state of the portMaps subscription (a FsdbConnectionState).
+// SubscribeToPortMaps returns before the connection is established, so poll
+// this to tell "still connecting" from "stream up but no data yet" from "data
+// received" from "connection lost". Returns FSDB_CONNECTION_DISCONNECTED for a
+// null handle or before subscribing.
+FSDB_CGO_API int32_t GetConnectionState(FsdbWrapperHandle handle);
 
 FSDB_CGO_API int32_t HasStateSubscription(FsdbWrapperHandle handle);
 FSDB_CGO_API int32_t HasStatsSubscription(FsdbWrapperHandle handle);

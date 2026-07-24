@@ -19,6 +19,8 @@ class MontblancPlatformMapping : public PlatformMapping {
   explicit MontblancPlatformMapping(const std::string& platformMappingStr);
 
  private:
+  static std::string getPlatformMappingStr();
+
   // Forbidden copy constructor and assignment operator
   MontblancPlatformMapping(MontblancPlatformMapping const&) = delete;
   MontblancPlatformMapping& operator=(MontblancPlatformMapping const&) = delete;

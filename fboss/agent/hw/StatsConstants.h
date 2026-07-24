@@ -73,6 +73,14 @@ inline folly::StringPiece constexpr kInSrv6MySidDiscards() {
   return "in_srv6_mysid_discards";
 }
 
+inline folly::StringPiece constexpr kLinkDownDebounceRetriggerCount() {
+  return "link_down_debounce_retrigger_count";
+}
+
+inline folly::StringPiece constexpr kLinkUpDebounceRetriggerCount() {
+  return "link_up_debounce_retrigger_count";
+}
+
 inline folly::StringPiece constexpr kInDroppedPkts() {
   return "in_dropped_pkts";
 }

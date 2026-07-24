@@ -188,6 +188,7 @@ void fillHwPortStats(
     const SaiPlatform* platform,
     const cfg::PortType& portType,
     bool updateFecStats,
+    [[maybe_unused]] bool updateLlrStats,
     bool rxPfcDurationStatsEnabled,
     bool txPfcDurationStatsEnabled) {
   // TODO fill these in when we have debug counter support in SAI
@@ -320,6 +321,51 @@ void fillHwPortStats(
       case SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS:
         if (updateFecStats) {
           hwPortStats.fecCorrectedBits_() = value;
+        }
+        break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      // LLR cases are gated on updateLlrStats (a successful isolated read), the
+      // same way FEC cases are gated on updateFecStats, so a
+      // failed/NOT_SUPPORTED LLR read does not publish stale or empty counters.
+      case SAI_PORT_STAT_LLR_TX_OK:
+        if (updateLlrStats) {
+          hwPortStats.llrTxOk_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TX_REPLAY:
+        if (updateLlrStats) {
+          hwPortStats.llrTxReplay_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_OK:
+        if (updateLlrStats) {
+          hwPortStats.llrRxOk_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_BAD:
+        if (updateLlrStats) {
+          hwPortStats.llrRxBad_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_MISSING_SEQ:
+        if (updateLlrStats) {
+          hwPortStats.llrRxMissingSeq_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_DUPLICATE_SEQ:
+        if (updateLlrStats) {
+          hwPortStats.llrRxDuplicateSeq_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_ACK_NACK_SEQ_ERROR:
+        if (updateLlrStats) {
+          hwPortStats.llrRxAckNackSeqError_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_REPLAY:
+        if (updateLlrStats) {
+          hwPortStats.llrRxReplay_() = value;
         }
         break;
 #endif
@@ -2555,6 +2601,21 @@ void SaiPortManager::updateStats(
       updateFecStats = true;
     }
   }
+  bool updateLlrStats = false;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  // LLR counters are collected in their own isolated read (not bundled with the
+  // basic port counters) so that on a drop whose SDK does not yet implement the
+  // LLR stat reads, the NOT_SUPPORTED failure is confined to this call and does
+  // not drop every other port counter. Only ports with an LLR profile bound
+  // request them. Gate the fill on a successful read (like FEC) so a failed
+  // read does not publish stale/empty LLR counters.
+  if (handle->llrProfile &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
+    updateLlrStats = collectStats(
+        SaiPortTraits::llrStats(), SAI_STATS_MODE_READ, "LLR port counters");
+  }
+#endif
   const auto& counters = handle->port->getStats();
   fillHwPortStats(
       counters,
@@ -2563,6 +2624,7 @@ void SaiPortManager::updateStats(
       platform_,
       portType,
       updateFecStats,
+      updateLlrStats,
       handle->rxPfcDurationStatsEnabled,
       handle->txPfcDurationStatsEnabled);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {

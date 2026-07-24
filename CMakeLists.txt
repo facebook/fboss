@@ -85,6 +85,7 @@ option(SAI_BRCM_PAI_IMPL "Build SAI api with BRCOM_PAI-SAI extensions" OFF)
 if ($ENV{SAI_BRCM_PAI_IMPL})
   message(STATUS "ENV SAI_BRCM_PAI_IMPL is set")
   set(SAI_BRCM_PAI_IMPL ON)
+  add_definitions(-DSAI_BRCM_PAI_IMPL)
   # NOTE: Unlike agent that we use sai_impl, we directly use pre-built SDK from
   # local directory
   # Header files for libpai.a, the whole inc directory from SDK
@@ -504,6 +505,14 @@ add_fbthrift_cpp_library(
     switch_config_cpp2
     phy_cpp2
     ctrl_cpp2
+)
+add_fbthrift_cpp_library(
+  state_delta_log_cpp2
+  fboss/agent/state_delta_log.thrift
+  OPTIONS
+    json
+  DEPENDS
+    fsdb_oper_cpp2
 )
 add_fbthrift_cpp_library(
   prbs_cpp2
@@ -1427,6 +1436,7 @@ add_dependencies(fboss_platform_services
   weutil
   data_corral_service
   reboot_cause_finder
+  watchdog_util
   # Utilities
   sensor_service_client
   fixmyfboss
@@ -1567,8 +1577,8 @@ add_dependencies(fboss_fake_agent_targets
   fboss_agent_thrift_libs
   fboss_sw_agent
   sai_replayer-fake
-  wedge_agent-fake
-  fboss_hw_agent-fake
+  wedge_agent-sai_impl
+  fboss_hw_agent-sai_impl
 )
 
 add_custom_target(fboss_fake_agent_test_targets)

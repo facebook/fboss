@@ -42,6 +42,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdListConfigTest.cpp
   fboss/cli/fboss2/test/CmdSetPortStateTest.cpp
   fboss/cli/fboss2/test/CmdShowAclTest.cpp
+  fboss/cli/fboss2/test/CmdShowAgentBootTypeTest.cpp
   fboss/cli/fboss2/test/CmdShowAgentSslTest.cpp
   fboss/cli/fboss2/test/CmdShowArpTest.cpp
   fboss/cli/fboss2/test/CmdShowConfigRunningBgpTest.cpp
@@ -77,6 +78,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowTeFlowTest.cpp
   # fboss/cli/fboss2/test/CmdShowTransceiverTest.cpp - excluded (depends on configerator bgp namespace)
   fboss/cli/fboss2/test/CmdBgpTestUtils.cpp
+  fboss/cli/fboss2/test/CanonicalRibResolverTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpChangelistTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedPostPolicyTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedPrePolicyTest.cpp

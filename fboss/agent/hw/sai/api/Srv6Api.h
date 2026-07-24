@@ -73,6 +73,8 @@ struct SaiMySidEntryTraits {
         EnumType,
         SAI_MY_SID_ENTRY_ATTR_PACKET_ACTION,
         sai_int32_t>;
+    using TunnelId =
+        SaiAttribute<EnumType, SAI_MY_SID_ENTRY_ATTR_TUNNEL_ID, SaiObjectIdT>;
   };
   class MySidEntry {
    public:
@@ -143,7 +145,8 @@ struct SaiMySidEntryTraits {
       Attributes::EndpointBehaviorFlavor,
       Attributes::NextHopId,
       std::optional<Attributes::Vrf>,
-      Attributes::PacketAction>;
+      Attributes::PacketAction,
+      std::optional<Attributes::TunnelId>>;
 };
 template <>
 struct IsSaiEntryStruct<SaiMySidEntryTraits::MySidEntry>
@@ -154,6 +157,7 @@ SAI_ATTRIBUTE_NAME(MySidEntry, EndpointBehaviorFlavor);
 SAI_ATTRIBUTE_NAME(MySidEntry, NextHopId);
 SAI_ATTRIBUTE_NAME(MySidEntry, Vrf);
 SAI_ATTRIBUTE_NAME(MySidEntry, PacketAction);
+SAI_ATTRIBUTE_NAME(MySidEntry, TunnelId);
 
 class Srv6Api : public SaiApi<Srv6Api> {
  public:

@@ -41,12 +41,15 @@ class HwBasePortFb303Stats {
       bool inCongestionDiscardSeenSupported = false,
       bool srv6MysidDiscardCounterSupported = false,
       bool mplsLabelLookupFailCounterSupported = false,
+      bool linkDebounceRetriggerCounterSupported = false,
       std::optional<std::string> multiSwitchStatsPrefix = std::nullopt)
       : queueId2Name_(std::move(queueId2Name)),
         portName_(portName),
         srv6MysidDiscardCounterSupported_(srv6MysidDiscardCounterSupported),
         mplsLabelLookupFailCounterSupported_(
             mplsLabelLookupFailCounterSupported),
+        linkDebounceRetriggerCounterSupported_(
+            linkDebounceRetriggerCounterSupported),
         portCounters_(HwFb303Stats(std::move(multiSwitchStatsPrefix))) {
     pfcInfo_.inCongestionDiscardCountSupported =
         inCongestionDiscardCountSupported;
@@ -205,6 +208,9 @@ class HwBasePortFb303Stats {
   bool isMplsLabelLookupFailCounterSupported() const {
     return mplsLabelLookupFailCounterSupported_;
   }
+  bool isLinkDebounceRetriggerCounterSupported() const {
+    return linkDebounceRetriggerCounterSupported_;
+  }
 
   // PG ids for per-PG congestion counters: the full range
   // [0, PORT_PG_VALUE_MAX] when PFC is enabled, else empty. Returns a reference
@@ -233,6 +239,7 @@ class HwBasePortFb303Stats {
   std::string portName_;
   bool srv6MysidDiscardCounterSupported_{false};
   bool mplsLabelLookupFailCounterSupported_{false};
+  bool linkDebounceRetriggerCounterSupported_{false};
   HwFb303Stats portCounters_;
   bool macsecStatsInited_{false};
   PfcPriorityInfo pfcInfo_;

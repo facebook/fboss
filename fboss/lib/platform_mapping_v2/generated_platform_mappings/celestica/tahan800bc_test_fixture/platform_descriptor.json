@@ -1,0 +1,14 @@
+{
+  "platformType": 33,
+  "productNamePrefixes": [
+    "TAHAN800BC",
+    "R4063"
+  ],
+  "modeNames": [
+    "tahan800bc"
+  ],
+  "asicType": 13,
+  "variantAttributes": {
+    "test_fixture": true
+  }
+}

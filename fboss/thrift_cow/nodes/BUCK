@@ -13,9 +13,9 @@ cpp_library(
         "//folly:dynamic",
         "//folly/io:iobuf",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+        "//thrift/lib/cpp2/op:encode",
         "//thrift/lib/cpp2/op:get",
         "//thrift/lib/cpp2/protocol:protocol",
-        "//thrift/lib/cpp2/protocol/detail:protocol_methods",
     ],
 )
 

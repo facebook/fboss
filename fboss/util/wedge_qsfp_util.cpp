@@ -18,6 +18,7 @@
 
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 
+#include <fmt/format.h>
 #include <folly/Conv.h>
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
@@ -1323,7 +1324,7 @@ DOMDataUnion getDOMDataUnionI2CBus(
     return sffModule->getDOMDataUnion();
   } else {
     throw std::runtime_error(
-        folly::sformat(
+        fmt::format(
             "Unknown transceiver management interface: {}.",
             static_cast<int>(mgmtInterface)));
   }

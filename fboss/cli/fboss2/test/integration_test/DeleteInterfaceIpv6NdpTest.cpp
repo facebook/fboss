@@ -122,18 +122,18 @@ class DeleteInterfaceIpv6NdpTest : public Fboss2IntegrationTest {
 
 TEST_F(DeleteInterfaceIpv6NdpTest, DeleteRaInterval) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   XLOG(INFO) << "[Step 2] Setting ra-interval=30...";
-  setNdpAttr(iface.name, "ra-interval", "30");
+  setNdpAttr(ifName, "ra-interval", "30");
 
   XLOG(INFO) << "[Step 3] Deleting ra-interval (reset to default 0)...";
-  deleteNdpAttr(iface.name, "ra-interval");
+  deleteNdpAttr(ifName, "ra-interval");
 
   XLOG(INFO) << "[Step 4] Verifying running config via thrift...";
   expectNdpFieldDefault(
-      getInterfaceIdForPort(iface.name),
+      getInterfaceIdForPort(ifName),
       "routerAdvertisementSeconds",
       [](const folly::dynamic& v) { return v.asInt() == 0; },
       "== 0 (default)");
@@ -146,18 +146,18 @@ TEST_F(DeleteInterfaceIpv6NdpTest, DeleteRaInterval) {
 
 TEST_F(DeleteInterfaceIpv6NdpTest, DeleteHopLimit) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   XLOG(INFO) << "[Step 2] Setting hop-limit=64...";
-  setNdpAttr(iface.name, "hop-limit", "64");
+  setNdpAttr(ifName, "hop-limit", "64");
 
   XLOG(INFO) << "[Step 3] Deleting hop-limit (reset to default 255)...";
-  deleteNdpAttr(iface.name, "hop-limit");
+  deleteNdpAttr(ifName, "hop-limit");
 
   XLOG(INFO) << "[Step 4] Verifying running config via thrift...";
   expectNdpFieldDefault(
-      getInterfaceIdForPort(iface.name),
+      getInterfaceIdForPort(ifName),
       "curHopLimit",
       [](const folly::dynamic& v) { return v.asInt() == 255; },
       "== 255 (default)");
@@ -170,18 +170,18 @@ TEST_F(DeleteInterfaceIpv6NdpTest, DeleteHopLimit) {
 
 TEST_F(DeleteInterfaceIpv6NdpTest, DeleteManagedConfigFlag) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   XLOG(INFO) << "[Step 2] Setting managed-config-flag...";
-  setNdpAttr(iface.name, "managed-config-flag");
+  setNdpAttr(ifName, "managed-config-flag");
 
   XLOG(INFO) << "[Step 3] Deleting managed-config-flag (reset to false)...";
-  deleteNdpAttr(iface.name, "managed-config-flag");
+  deleteNdpAttr(ifName, "managed-config-flag");
 
   XLOG(INFO) << "[Step 4] Verifying running config via thrift...";
   expectNdpFieldDefault(
-      getInterfaceIdForPort(iface.name),
+      getInterfaceIdForPort(ifName),
       "routerAdvertisementManagedBit",
       [](const folly::dynamic& v) { return !v.asBool(); },
       "== false (default)");
@@ -194,21 +194,21 @@ TEST_F(DeleteInterfaceIpv6NdpTest, DeleteManagedConfigFlag) {
 
 TEST_F(DeleteInterfaceIpv6NdpTest, DeleteRaAddress) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   const std::string raAddr = "2001:db8::1";
 
   XLOG(INFO) << "[Step 2] Setting ra-address to " << raAddr << "...";
-  setNdpAttr(iface.name, "ra-address", raAddr);
+  setNdpAttr(ifName, "ra-address", raAddr);
 
   XLOG(INFO) << "[Step 3] Deleting ra-address (clearing the optional)...";
-  deleteNdpAttr(iface.name, "ra-address");
+  deleteNdpAttr(ifName, "ra-address");
 
   XLOG(INFO) << "[Step 4] Verifying running config via thrift...";
   // routerAddress is optional with no schema default — after delete it must
   // be absent from the running config.
-  int intfID = getInterfaceIdForPort(iface.name);
+  int intfID = getInterfaceIdForPort(ifName);
   auto cfg = waitForRunningConfig(
       [&](const folly::dynamic& c) {
         auto ndp = getNdpConfig(c, intfID);
@@ -228,13 +228,13 @@ TEST_F(DeleteInterfaceIpv6NdpTest, DeleteRaAddress) {
 
 TEST_F(DeleteInterfaceIpv6NdpTest, DeleteUnknownAttrRejected) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface iface = findFirstEthInterface();
-  XLOG(INFO) << "  Using interface: " << iface.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "  Using interface: " << ifName;
 
   XLOG(INFO)
       << "[Step 2] Attempting to delete unknown attribute 'bogus-attr'...";
   auto result =
-      runCli({"delete", "interface", iface.name, "ipv6", "ndp", "bogus-attr"});
+      runCli({"delete", "interface", ifName, "ipv6", "ndp", "bogus-attr"});
   EXPECT_NE(result.exitCode, 0)
       << "Expected non-zero exit for unknown ndp attribute";
   XLOG(INFO) << "  Correctly rejected with exit code " << result.exitCode;

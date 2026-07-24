@@ -23,6 +23,7 @@ thrift_library(
     thrift_py_options = "json",
     thrift_rust_options = ["deprecated_default_enum_min_i32"],
     thrift_srcs = {"led_structs.thrift": []},
+    deps = ["//thrift/annotation:thrift"],
 )
 
 thrift_library(
@@ -72,4 +73,5 @@ thrift_library(
     thrift_py_options = "json,sort_keys",
     thrift_rust_options = "serde",
     thrift_srcs = {"led_service_config.thrift": []},
+    deps = ["//thrift/annotation:thrift"],
 )

@@ -58,6 +58,7 @@ add_library(agent_voq_test_src
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchWithFabricPortsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchWithMultipleDsfNodesTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchWarmbootReconcileTests.cpp
 )
 
 target_link_libraries(agent_voq_test_src
@@ -113,6 +114,7 @@ target_link_libraries(agent_ars_test_src
 )
 
 add_library(agent_hw_test_src
+  fboss/agent/test/agent_hw_tests/AgentCableLengthMeasurementTests.cpp
   fboss/agent/test/agent_hw_tests/AgentConfigSetupTest.cpp
   fboss/agent/test/agent_hw_tests/AgentConfigVerifyQosTests.cpp
   fboss/agent/test/agent_hw_tests/AgentCoppTests.cpp
@@ -138,6 +140,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentL4PortBlackholingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentLinkLocalForwardingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwLinkDebounceTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwLlrTest.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningAndNeighborResolutionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropDnxTests.cpp
@@ -225,6 +228,7 @@ target_link_libraries(agent_hw_test_src
   port_stats_test_utils
   packet
   packet_snooper
+  tajo_punt_header
   queue_per_host_test_utils
   multi_port_traffic_test_utils
   trap_packet_utils

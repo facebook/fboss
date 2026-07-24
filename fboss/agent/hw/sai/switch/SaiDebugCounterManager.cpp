@@ -10,8 +10,10 @@
 
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -260,10 +262,26 @@ void SaiDebugCounterManager::setupTunnelSwitchDropCounter() {
           SaiInSwitchDebugCounterTraits::Attributes::Index{});
 }
 
+bool SaiDebugCounterManager::isSrv6MySidDropCounterSupported(
+    const HwAsic* asic) {
+  // Only RBB (srv6) configs exercise the mySID drop counter.
+  if (!FLAGS_srv6 ||
+      !asic->isSupported(HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER)) {
+    return false;
+  }
+#if defined(BRCM_SAI_SDK_XGS) && !defined(BRCM_SAI_SDK_XGS_GTE_15_0)
+  // SAI_IN_DROP_REASON_SRV6_LOCAL_SID_DROP is only implemented in the brcm-sai
+  // 15.x XGS SDK. Creating this debug counter on older XGS SDKs returns
+  // NOT_SUPPORTED and aborts switch init.
+  return false;
+#else
+  return true;
+#endif
+}
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
 void SaiDebugCounterManager::setupSrv6MySidDropCounter() {
-  if (!platform_->getAsic()->isSupported(
-          HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER)) {
+  if (!isSrv6MySidDropCounterSupported(platform_->getAsic())) {
     return;
   }
   SaiInPortDebugCounterTraits::CreateAttributes attrs{

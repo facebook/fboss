@@ -1,5 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
@@ -68,7 +69,7 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
           if (auto rxEqSetting =
                   cmisRxEqualizerSettingOverride(*cfgOverride.config())) {
             for (const auto& setting : hostSettings) {
-              XLOG(DBG2) << folly::sformat(
+              XLOG(DBG2) << fmt::format(
                   "Module : {:d}, Settings in the configuration : {:d}, {:d}, {:d}, Settings programmed in the module : {:d}, {:d}, {:d}",
                   *tcvrState.port(),
                   *(*rxEqSetting).preCursor(),
@@ -86,7 +87,7 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
           if (auto rxPreemphasis =
                   sffRxPreemphasisOverride(*cfgOverride.config())) {
             for (const auto& setting : hostSettings) {
-              XLOG(DBG2) << folly::sformat(
+              XLOG(DBG2) << fmt::format(
                   "Module : {:d}, Preemphasis in the configuration : {:d}, Preemphasis programmed in the module : {:d}",
                   *tcvrState.port(),
                   *rxPreemphasis,
@@ -99,7 +100,7 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
           if (auto txEqualization =
                   sffTxEqualizationOverride(*cfgOverride.config())) {
             for (const auto& setting : hostSettings) {
-              XLOG(DBG2) << folly::sformat(
+              XLOG(DBG2) << fmt::format(
                   "Module : {:d}, TxEqualization in the configuration : {:d}, TxEqualization programmed in the module : {:d}",
                   *tcvrState.port(),
                   *txEqualization,
@@ -112,7 +113,7 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
           if (auto rxAmplitude =
                   sffRxAmplitudeOverride(*cfgOverride.config())) {
             for (const auto& setting : hostSettings) {
-              XLOG(DBG2) << folly::sformat(
+              XLOG(DBG2) << fmt::format(
                   "Module : {:d}, RxAmplitude in the configuration : {:d}, RxAmplitude programmed in the module : {:d}",
                   *tcvrState.port(),
                   *rxAmplitude,

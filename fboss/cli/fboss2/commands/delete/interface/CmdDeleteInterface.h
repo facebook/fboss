@@ -25,7 +25,7 @@ namespace facebook::fboss {
  * Usage: delete interface <port-list> [<attr> [<value>] ...]
  *
  * Valueless attributes (reset to default):
- *   loopback-mode, lldp-expected-value, lldp-expected-chassis,
+ *   loopback-mode, lookup-class, lldp-expected-value, lldp-expected-chassis,
  *   lldp-expected-ttl, lldp-expected-port-desc, lldp-expected-system-name,
  *   lldp-expected-system-desc
  *
@@ -45,7 +45,7 @@ struct CmdDeleteInterfaceTraits : public WriteCommandTraits {
     cmd.add_option(
         "interface_delete_config",
         args,
-        "<port-list> [loopback-mode|lldp-expected-*|ip-address <cidr>|ipv6-address <cidr>]");
+        "<port-list> [loopback-mode|lookup-class|lldp-expected-*|ip-address <cidr>|ipv6-address <cidr>]");
   }
   using ObjectArgType = InterfaceDeleteConfig;
   using RetType = std::string;

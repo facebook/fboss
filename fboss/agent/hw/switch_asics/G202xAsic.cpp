@@ -95,6 +95,7 @@ bool G202xAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::PBR_ACL:
+    case HwAsic::Feature::PORT_DEBOUNCE:
       return true;
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
@@ -243,6 +244,7 @@ bool G202xAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
       return false;
   }
   return false;

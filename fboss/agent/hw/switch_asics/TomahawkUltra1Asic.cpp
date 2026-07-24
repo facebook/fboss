@@ -15,7 +15,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::L3_QOS:
-    case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
@@ -104,6 +103,9 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::ACL_TABLE_GROUP:
+    // UEC Link Layer Retry (UE Spec 1.0.2 section 5.1); supported via SAI
+    // PORT_LLR_PROFILE on Tomahawk Ultra.
+    case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
       return true;
     case HwAsic::Feature::MPLS:
     case HwAsic::Feature::MPLS_ECMP:
@@ -226,6 +228,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     // TU1 SDK 15.0/15.1 unsupported features (Accton/Broadcom CSPs)
     case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::L3_INTF_MTU:
@@ -241,6 +244,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
+    case HwAsic::Feature::PORT_DEBOUNCE:
       return false;
   }
   return false;

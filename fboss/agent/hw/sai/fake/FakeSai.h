@@ -83,6 +83,9 @@ struct FakeSai {
   FakePortManager portManager;
   FakePortSerdesManager portSerdesManager;
   FakePortConnectorManager portConnectorManager;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  FakePortLlrProfileManager portLlrProfileManager;
+#endif
   FakeQosMapManager qosMapManager;
   FakeQueueManager queueManager;
   FakeRouteManager routeManager;

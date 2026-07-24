@@ -504,6 +504,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_PORT, "port_"},
       {SAI_OBJECT_TYPE_PORT_SERDES, "portSerdes_"},
       {SAI_OBJECT_TYPE_PORT_CONNECTOR, "portConnector_"},
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      {SAI_OBJECT_TYPE_PORT_LLR_PROFILE, "portLlrProfile_"},
+#endif
       {SAI_OBJECT_TYPE_QOS_MAP, "qosMap_"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_"},
       {SAI_OBJECT_TYPE_ROUTER_INTERFACE, "routerInterface_"},
@@ -584,6 +587,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_PORT, "port_api->"},
       {SAI_OBJECT_TYPE_PORT_SERDES, "port_api->"},
       {SAI_OBJECT_TYPE_PORT_CONNECTOR, "port_api->"},
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      {SAI_OBJECT_TYPE_PORT_LLR_PROFILE, "port_api->"},
+#endif
       {SAI_OBJECT_TYPE_ROUTE_ENTRY, "route_api->"},
       {SAI_OBJECT_TYPE_ROUTER_INTERFACE, "router_interface_api->"},
       {SAI_OBJECT_TYPE_QOS_MAP, "qos_map_api->"},

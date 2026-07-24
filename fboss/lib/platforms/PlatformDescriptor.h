@@ -55,6 +55,9 @@ class PlatformDescriptorRegistry {
   explicit PlatformDescriptorRegistry(
       std::vector<PlatformDescriptorEntry> descriptorEntries);
 
+  const PlatformDescriptorEntry* FOLLY_NULLABLE
+  getDescriptorEntry(PlatformType type) const;
+
   static std::vector<PlatformDescriptorEntry>
   loadPlatformDescriptorEntriesFromDirectory(
       const std::string& path,

@@ -35,11 +35,13 @@ cpp_library(
         "//fboss/agent:platform_config-cpp2-types",
         "//folly:cpp_attributes",
         "//folly:file_util",
+        "//folly/logging:logging",
         "//thrift/lib/cpp2:field_ref",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
         ("boost", None, "boost_algorithm"),
+        "gflags",
     ],
 )
 

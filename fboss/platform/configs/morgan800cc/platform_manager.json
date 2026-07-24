@@ -1110,13 +1110,10 @@
   "chassisEepromDevicePath": "/FCB_SLOT@0/[IDPROM]",
   "numXcvrs": 65,
   "bspKmodsRpmName": "cisco_bsp_kmods",
-  "bspKmodsRpmVersion": "3.0.3-1",
-  "requiredKmodsToLoad": [
+  "bspKmodsRpmVersion": "3.0.4-1",
+  "nonBspKmodsToLoad": [
     "spidev",
     "i2c_i801",
-    "cisco_fpga_pci",
-    "cisco_fpga_i2c_ext",
-    "ledtrig_timer",
-    "cisco_fpga_i2c_smb"
+    "ledtrig_timer"
   ]
 }

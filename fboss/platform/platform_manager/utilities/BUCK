@@ -10,12 +10,14 @@ cpp_library(
     srcs = [
         "ConfigDiffer.cpp",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
-        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/op:get",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
     ],
 )
 

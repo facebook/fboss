@@ -12,8 +12,6 @@
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/packet/PktUtil.h"
-#include "fboss/agent/packet/TCPPacket.h"
-#include "fboss/agent/packet/UDPDatagram.h"
 
 namespace facebook::fboss::utility {
 namespace {

@@ -8,8 +8,10 @@ cpp_library(
         "MontblancPlatformMapping.cpp",
     ],
     headers = [
+        "MontblancGtswYoloPlatformMapping.h",
         "MontblancOddPort100GPlatformMapping.h",
         "MontblancPlatformMapping.h",
+        "MontblancPrecodingPlatformMapping.h",
     ],
     exported_deps = [
         "//fboss/agent:agent_features",

@@ -57,8 +57,8 @@ copy_config() {
 }
 
 generate_fruid() {
-  if [[ -e $FRUID_FILE ]]; then
-    log "fruid.json already exists at $FRUID_FILE (skipping)"
+  if [[ -s $FRUID_FILE ]]; then
+    log "Non-empty fruid.json already exists at $FRUID_FILE (skipping)"
     return
   fi
 

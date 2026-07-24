@@ -524,7 +524,8 @@
         97,
         101,
         103,
-        104
+        104,
+        117
     ],
     "tomahawk6": [
         2,
@@ -587,7 +588,8 @@
         105,
         89,
         87,
-        78
+        78,
+        117
     ],
     "tomahawkultra1": [
         2,
@@ -696,7 +698,9 @@
         104,
         33,
         112,
-        113
+        113,
+        49,
+        111
     ]
   },
   "asicToFeatureNames": {
@@ -1224,7 +1228,8 @@
         "ECN_PROBABILISTIC_MARKING",
         "AIFM_PACKET_STREAM_HANDLER",
         "CUT_THROUGH",
-        "SRV6_MIDPOINT"
+        "SRV6_MIDPOINT",
+        "CABLE_LENGTH_MEASUREMENT"
     ],
     "tomahawk6": [
         "CPU_RX_TX",
@@ -1287,7 +1292,8 @@
         "L4_DST_PORT_RANGE",
         "AM_IDLES",
         "UDF_HASH",
-        "ECMP_RANDOM_SPRAY"
+        "ECMP_RANDOM_SPRAY",
+        "CABLE_LENGTH_MEASUREMENT"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
@@ -1396,7 +1402,9 @@
         "SRV6_MIDPOINT",
         "INTERFACE_NEIGHBOR_TABLE",
         "PORT_DEBOUNCE",
-        "SRV6_BINDING_SID"
+        "SRV6_BINDING_SID",
+        "MIRROR_ON_DROP",
+        "MIRROR_ON_DROP_STATELESS"
     ]
   },
   "featureSupportSpecs": [
@@ -1453,6 +1461,32 @@
           "sdk": 2,
           "minSdkVersion": "26.2.4210",
           "note": "SRv6 binding SID are supported on Leaba ASICs starting SDK 26.2.4210"
+        }
+      ]
+    },
+    {
+      "feature": 49,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "26.2.4210",
+          "note": "Mirror on Drop supported on Leaba ASICs starting SDK 26.2.4210"
+        }
+      ]
+    },
+    {
+      "feature": 111,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "26.2.4210",
+          "note": "Mirror on Drop supported on Leaba ASICs starting SDK 26.2.4210"
         }
       ]
     },
@@ -1721,6 +1755,27 @@
           "sdk": 1,
           "minSdkVersion": "13.3.0.0_odp",
           "note": "AlternateArsEcmpObjects (AgentFlowletSwitchingEnhancedScaleTest) requires SAI attributes added in 13.3"
+        }
+      ]
+    },
+    {
+      "feature": 117,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "Cable length measurement is supported on SAI Tomahawk5 from SDK 13.3 onwards"
+        },
+        {
+          "asics": [
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "14.2.0.0_odp",
+          "note": "Cable length measurement is supported on SAI Tomahawk6 from SDK 14.2 onwards"
         }
       ]
     }

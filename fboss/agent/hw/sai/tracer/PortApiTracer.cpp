@@ -78,6 +78,13 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
     SAI_ATTR_MAP(Port, FabricIsolate),
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    SAI_ATTR_MAP(Port, LlrModeLocal),
+    SAI_ATTR_MAP(Port, LlrModeRemote),
+    SAI_ATTR_MAP(Port, LlrProfile),
+    SAI_ATTR_MAP(Port, LlrTxStatus),
+    SAI_ATTR_MAP(Port, LlrRxStatus),
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
     SAI_ATTR_MAP(Port, RxSignalDetect),
     SAI_ATTR_MAP(Port, RxLockStatus),
@@ -146,6 +153,21 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortConnectorMap{
     SAI_ATTR_MAP(PortConnector, SystemSidePortId),
 };
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+std::map<int32_t, std::pair<std::string, std::size_t>> _PortLlrProfileMap{
+    SAI_ATTR_MAP(PortLlrProfile, OutstandingFramesMax),
+    SAI_ATTR_MAP(PortLlrProfile, OutstandingBytesMax),
+    SAI_ATTR_MAP(PortLlrProfile, ReplayTimerMax),
+    SAI_ATTR_MAP(PortLlrProfile, ReplayCountMax),
+    SAI_ATTR_MAP(PortLlrProfile, PcsLostTimeout),
+    SAI_ATTR_MAP(PortLlrProfile, DataAgeTimeout),
+    SAI_ATTR_MAP(PortLlrProfile, InitLlrFrameAction),
+    SAI_ATTR_MAP(PortLlrProfile, FlushLlrFrameAction),
+    SAI_ATTR_MAP(PortLlrProfile, ReInitOnFlush),
+    SAI_ATTR_MAP(PortLlrProfile, CtlosTargetSpacing),
+};
+#endif
+
 void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, SystemPortId)
   SAI_EXT_ATTR_MAP(Port, SerdesLaneList)
@@ -212,6 +234,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, CablePropagationDelayMeasure)
   SAI_EXT_ATTR_MAP(Port, LinkUpDebouncePeriodMs)
   SAI_EXT_ATTR_MAP(Port, LinkDownDebouncePeriodMs)
+  SAI_EXT_ATTR_MAP(Port, LinkUpDebounceRetriggerCount)
+  SAI_EXT_ATTR_MAP(Port, LinkDownDebounceRetriggerCount)
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)
@@ -266,6 +290,13 @@ WRAP_CREATE_FUNC(port_connector, SAI_OBJECT_TYPE_PORT_CONNECTOR, port);
 WRAP_REMOVE_FUNC(port_connector, SAI_OBJECT_TYPE_PORT_CONNECTOR, port);
 WRAP_SET_ATTR_FUNC(port_connector, SAI_OBJECT_TYPE_PORT_CONNECTOR, port);
 WRAP_GET_ATTR_FUNC(port_connector, SAI_OBJECT_TYPE_PORT_CONNECTOR, port);
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+WRAP_CREATE_FUNC(port_llr_profile, SAI_OBJECT_TYPE_PORT_LLR_PROFILE, port);
+WRAP_REMOVE_FUNC(port_llr_profile, SAI_OBJECT_TYPE_PORT_LLR_PROFILE, port);
+WRAP_SET_ATTR_FUNC(port_llr_profile, SAI_OBJECT_TYPE_PORT_LLR_PROFILE, port);
+WRAP_GET_ATTR_FUNC(port_llr_profile, SAI_OBJECT_TYPE_PORT_LLR_PROFILE, port);
+#endif
 
 sai_status_t wrap_clear_port_all_stats(sai_object_id_t port_id) {
   return SaiTracer::getInstance()->portApi_->clear_port_all_stats(port_id);
@@ -348,6 +379,14 @@ sai_port_api_t* wrappedPortApi() {
       &wrap_set_port_connector_attribute;
   portWrappers.get_port_connector_attribute =
       &wrap_get_port_connector_attribute;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  portWrappers.create_port_llr_profile = &wrap_create_port_llr_profile;
+  portWrappers.remove_port_llr_profile = &wrap_remove_port_llr_profile;
+  portWrappers.set_port_llr_profile_attribute =
+      &wrap_set_port_llr_profile_attribute;
+  portWrappers.get_port_llr_profile_attribute =
+      &wrap_get_port_llr_profile_attribute;
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
   portWrappers.get_ports_attribute = &wrap_get_ports_attribute;
 #endif
@@ -357,5 +396,8 @@ sai_port_api_t* wrappedPortApi() {
 SET_SAI_ATTRIBUTES(Port)
 SET_SAI_ATTRIBUTES(PortSerdes)
 SET_SAI_ATTRIBUTES(PortConnector)
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+SET_SAI_ATTRIBUTES(PortLlrProfile)
+#endif
 
 } // namespace facebook::fboss

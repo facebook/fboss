@@ -595,6 +595,60 @@ struct SaiPortTraits {
         sai_uint32_t,
         AttributeLinkDownDebouncePeriodMs,
         SaiIntDefault<sai_uint32_t>>;
+    // Read-only counts of how many times a link up/down debounce was
+    // retriggered by an additional flap while a debounce timeout was already
+    // active.
+    struct AttributeLinkUpDebounceRetriggerCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkUpDebounceRetriggerCount = SaiExtensionAttribute<
+        sai_uint64_t,
+        AttributeLinkUpDebounceRetriggerCount,
+        SaiIntDefault<sai_uint64_t>>;
+    struct AttributeLinkDownDebounceRetriggerCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkDownDebounceRetriggerCount = SaiExtensionAttribute<
+        sai_uint64_t,
+        AttributeLinkDownDebounceRetriggerCount,
+        SaiIntDefault<sai_uint64_t>>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    // UEC Link Layer Retry per-port controls (UE Spec 1.0.2 section 5.1).
+    // Mode local/remote enable LLR receive/transmit (section 5.1.3); the
+    // profile OID binds the port to a SaiPortLlrProfile; TX/RX status expose
+    // the LLR transmit and ACK/NACK state machines (sections 5.1.5, 5.1.7).
+    // Default getters are mandatory: these attrs live in CreateAttributes and
+    // are read back for every port on store reload. On SDK drops that ship the
+    // 1.18 headers but do not yet implement LLR at runtime, the get returns
+    // NOT_SUPPORTED; without a default getter SaiApi rethrows and crashes init.
+    // With one it falls back to the default (LLR off / null profile), matching
+    // how other SDK-gated port attrs (e.g. FdrEnable) behave.
+    using LlrModeLocal = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LLR_MODE_LOCAL,
+        bool,
+        SaiBoolDefaultFalse>;
+    using LlrModeRemote = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LLR_MODE_REMOTE,
+        bool,
+        SaiBoolDefaultFalse>;
+    using LlrProfile = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LLR_PROFILE,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using LlrTxStatus = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LLR_TX_STATUS,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
+    using LlrRxStatus = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LLR_RX_STATUS,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
+#endif
   };
   using AdapterKey = PortSaiId;
 
@@ -728,6 +782,11 @@ struct SaiPortTraits {
       std::optional<Attributes::LinkUpDebouncePeriodMs>,
       std::optional<Attributes::LinkDownDebouncePeriodMs>,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      std::optional<Attributes::LlrModeLocal>,
+      std::optional<Attributes::LlrModeRemote>,
+      std::optional<Attributes::LlrProfile>,
+#endif
       std::optional<Attributes::PfcPauseDurationOverride>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
@@ -747,6 +806,22 @@ struct SaiPortTraits {
       SAI_PORT_STAT_WRED_DROPPED_PACKETS,
       SAI_PORT_STAT_ECN_MARKED_PACKETS,
   };
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  // UEC Link Layer Retry counters (UE Spec 1.0.2 section 5.1.11, Table 5-13).
+  static const std::vector<sai_stat_id_t>& llrStats() {
+    static const std::vector<sai_stat_id_t> ids = {
+        SAI_PORT_STAT_LLR_TX_OK,
+        SAI_PORT_STAT_LLR_TX_REPLAY,
+        SAI_PORT_STAT_LLR_RX_OK,
+        SAI_PORT_STAT_LLR_RX_BAD,
+        SAI_PORT_STAT_LLR_RX_MISSING_SEQ,
+        SAI_PORT_STAT_LLR_RX_DUPLICATE_SEQ,
+        SAI_PORT_STAT_LLR_RX_ACK_NACK_SEQ_ERROR,
+        SAI_PORT_STAT_LLR_RX_REPLAY,
+    };
+    return ids;
+  }
+#endif
   static constexpr std::array<sai_stat_id_t, 16> PfcCounterIdsToRead = {
       SAI_PORT_STAT_PFC_0_RX_PKTS,
       SAI_PORT_STAT_PFC_1_RX_PKTS,
@@ -796,6 +871,13 @@ SAI_ATTRIBUTE_NAME(Port, ExtendedFecMode)
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
 SAI_ATTRIBUTE_NAME(Port, FabricIsolate)
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+SAI_ATTRIBUTE_NAME(Port, LlrModeLocal)
+SAI_ATTRIBUTE_NAME(Port, LlrModeRemote)
+SAI_ATTRIBUTE_NAME(Port, LlrProfile)
+SAI_ATTRIBUTE_NAME(Port, LlrTxStatus)
+SAI_ATTRIBUTE_NAME(Port, LlrRxStatus)
 #endif
 SAI_ATTRIBUTE_NAME(Port, MediaType)
 SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)
@@ -912,6 +994,8 @@ SAI_ATTRIBUTE_NAME(Port, PfcPauseDurationOverride)
 SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMeasure)
 SAI_ATTRIBUTE_NAME(Port, LinkUpDebouncePeriodMs)
 SAI_ATTRIBUTE_NAME(Port, LinkDownDebouncePeriodMs)
+SAI_ATTRIBUTE_NAME(Port, LinkUpDebounceRetriggerCount)
+SAI_ATTRIBUTE_NAME(Port, LinkDownDebounceRetriggerCount)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)
@@ -1494,6 +1578,85 @@ struct SaiPortConnectorTraits {
 SAI_ATTRIBUTE_NAME(PortConnector, LineSidePortId);
 SAI_ATTRIBUTE_NAME(PortConnector, SystemSidePortId);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+// UEC Link Layer Retry (LLR) profile (UE Spec 1.0.2 section 5.1). A reusable
+// SAI object holding the LLR configuration registers (UE Spec Table 5-9),
+// referenced from a port via SAI_PORT_ATTR_LLR_PROFILE. It is a secondary
+// object under the Port API (like SAI_OBJECT_TYPE_PORT_CONNECTOR).
+struct SaiPortLlrProfileTraits {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_PORT_LLR_PROFILE;
+  using SaiApiT = PortApi;
+  struct Attributes {
+    using EnumType = sai_port_llr_profile_attr_t;
+    using OutstandingFramesMax = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_OUTSTANDING_FRAMES_MAX,
+        sai_uint32_t>;
+    using OutstandingBytesMax = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_OUTSTANDING_BYTES_MAX,
+        sai_uint32_t>;
+    using ReplayTimerMax = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_REPLAY_TIMER_MAX,
+        sai_uint32_t>;
+    using ReplayCountMax = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_REPLAY_COUNT_MAX,
+        sai_uint8_t>;
+    using PcsLostTimeout = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_PCS_LOST_TIMEOUT,
+        sai_uint32_t>;
+    using DataAgeTimeout = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_DATA_AGE_TIMEOUT,
+        sai_uint32_t>;
+    using InitLlrFrameAction = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_INIT_LLR_FRAME_ACTION,
+        sai_int32_t>;
+    using FlushLlrFrameAction = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_FLUSH_LLR_FRAME_ACTION,
+        sai_int32_t>;
+    using ReInitOnFlush = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_RE_INIT_ON_FLUSH,
+        bool>;
+    using CtlosTargetSpacing = SaiAttribute<
+        EnumType,
+        SAI_PORT_LLR_PROFILE_ATTR_CTLOS_TARGET_SPACING,
+        sai_uint16_t>;
+  };
+  using AdapterKey = PortLlrProfileSaiId;
+  using AdapterHostKey = std::tuple<
+      Attributes::OutstandingFramesMax,
+      Attributes::OutstandingBytesMax,
+      Attributes::ReplayTimerMax,
+      Attributes::ReplayCountMax,
+      Attributes::PcsLostTimeout,
+      Attributes::DataAgeTimeout,
+      Attributes::InitLlrFrameAction,
+      Attributes::FlushLlrFrameAction,
+      Attributes::ReInitOnFlush,
+      Attributes::CtlosTargetSpacing>;
+  using CreateAttributes = AdapterHostKey;
+};
+
+SAI_ATTRIBUTE_NAME(PortLlrProfile, OutstandingFramesMax);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, OutstandingBytesMax);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, ReplayTimerMax);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, ReplayCountMax);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, PcsLostTimeout);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, DataAgeTimeout);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, InitLlrFrameAction);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, FlushLlrFrameAction);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, ReInitOnFlush);
+SAI_ATTRIBUTE_NAME(PortLlrProfile, CtlosTargetSpacing);
+#endif
+
 class PortApi : public SaiApi<PortApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_PORT;
@@ -1588,6 +1751,32 @@ class PortApi : public SaiApi<PortApi> {
       const sai_attribute_t* attr) const {
     return api_->set_port_connector_attribute(key, attr);
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  sai_status_t _create(
+      PortLlrProfileSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_port_llr_profile(
+        rawSaiId(id), switch_id, count, attr_list);
+  }
+
+  sai_status_t _remove(PortLlrProfileSaiId id) const {
+    return api_->remove_port_llr_profile(id);
+  }
+
+  sai_status_t _getAttribute(PortLlrProfileSaiId key, sai_attribute_t* attr)
+      const {
+    return api_->get_port_llr_profile_attribute(key, 1, attr);
+  }
+
+  sai_status_t _setAttribute(
+      PortLlrProfileSaiId key,
+      const sai_attribute_t* attr) const {
+    return api_->set_port_llr_profile_attribute(key, attr);
+  }
+#endif
 
   sai_status_t _getStats(
       PortSaiId key,

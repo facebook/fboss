@@ -302,8 +302,8 @@ cpp_unittest(
             "//fboss/agent/platforms/tests/utils:bcm_test_platforms",
         ],
         external_deps = [
-            "gflags",
             ("broadcom-xgs-robo", None, "xgs_robo"),
+            "gflags",
         ],
     )
     for sdk in BCM_SDKS
@@ -451,8 +451,8 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
         ],
         external_deps = [
             "boost",
-            "gflags",
             ("broadcom-xgs-robo", None, "xgs_robo"),
+            "gflags",
         ],
     )
     for sdk in BCM_SDKS
@@ -674,7 +674,7 @@ cpp_library(
         "//fboss/agent/hw/test:hw_test_aqm_utils",
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:hw_test_pfc_utils",
-        "//fboss/agent/hw/test:hw_test_thrift_handler",
+        "//fboss/agent/hw/test:hw_test_thrift_handler",  # @manual
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
         "//fboss/agent/hw/test:phy_capabilities",
         "//fboss/agent/packet:ipproto",

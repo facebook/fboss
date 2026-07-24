@@ -21,6 +21,7 @@ class SaiManagerTable;
 class StateDelta;
 class SaiStore;
 class SaiPlatform;
+class HwAsic;
 
 using SaiInPortDebugCounter = SaiObject<SaiInPortDebugCounterTraits>;
 using SaiOutPortDebugCounter = SaiObject<SaiOutPortDebugCounterTraits>;
@@ -35,6 +36,7 @@ class SaiDebugCounterManager {
       : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
   void setupDebugCounters();
+  static bool isSrv6MySidDropCounterSupported(const HwAsic* asic);
   sai_stat_id_t getPortL3BlackHoleCounterStatId() const {
     return portL3BlackHoleCounterStatId_;
   }

@@ -245,7 +245,6 @@ add_library(saintpaul_bsp
 
 target_link_libraries(saintpaul_bsp
   bsp_platform_mapping
-  bsp_platform_mapping_cpp2
   FBThrift::thriftcpp2
 )
 
@@ -405,7 +404,6 @@ if(SAI_BRCM_PAI_IMPL)
     sai_repl
     sai_api
     sai_phy_management
-    sai_phy
     ctrl_cpp2
   )
 else()

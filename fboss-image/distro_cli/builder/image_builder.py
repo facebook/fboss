@@ -8,6 +8,7 @@
 """Image Builder - handles building FBOSS images from manifests."""
 
 import logging
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -213,7 +214,12 @@ class ImageBuilder:
 
             for artifact_path in artifacts_to_copy:
                 dest_path = component_dir / artifact_path.name
-                shutil.copy2(artifact_path, dest_path)
+                # Hardlink (same fs, read-only in container) to avoid duplicating
+                # multi-GB artifacts; copy if the link fails (e.g. cross-device).
+                try:
+                    os.link(artifact_path, dest_path)
+                except OSError:
+                    shutil.copy2(artifact_path, dest_path)
                 logger.info(f"Staged {component_name}: {artifact_path.name}")
 
         return Path("/image_builder/deps_staging")

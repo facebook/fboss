@@ -12,11 +12,13 @@ cpp_library(
     headers = [
         "VisitorTestUtils.h",
     ],
+    deps = [
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
     exported_deps = [
         "//fboss/thrift_cow/nodes/tests:test-cpp2-types",
         "//fboss/thrift_cow/visitors:visitors",
-        "//folly/json:dynamic",
-        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
         "//thrift/lib/cpp2/op:get",
     ],
 )

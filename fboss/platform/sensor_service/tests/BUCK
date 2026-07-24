@@ -9,10 +9,12 @@ cpp_library(
     srcs = [
         "TestUtils.cpp",
     ],
-    exported_deps = [
-        "//fboss/platform/sensor_service:service",
+    deps = [
         "//folly:file_util",
         "//folly/testing:test_util",
+    ],
+    exported_deps = [
+        "//fboss/platform/sensor_service:service",
     ],
 )
 

@@ -219,26 +219,26 @@ bool LinkStateToggler::waitForPortEventsOrSkipIfAlreadyInState(
     if (portIdToWaitFor_.empty()) {
       // No port is pending a link event (all are already in the desired state),
       XLOG(DBG2) << "No ports pending a link event for desired "
-                 << (up ? "UP" : "DOWN")
-                 << " state, skipping event wait and state update";
+                 << (up ? "UP" : "DOWN") << " state, skipping event wait";
       desiredPortEventsOccurred_ = true;
     } else {
       // At least one port still needs to transition, wait for its event(s).
       linkEventCV_.wait(lock, [this] { return desiredPortEventsOccurred_; });
       CHECK(portIdToWaitFor_.empty());
-      auto updateOperState =
-          [this, ports, up](const std::shared_ptr<SwitchState>& in) {
-            /* toggle the oper state */
-            auto newState = in->clone();
-            for (const auto& port : ports) {
-              auto newPort =
-                  newState->getPorts()->getNodeIf(port)->modify(&newState);
-              newPort->setOperState(up);
-            }
-            return newState;
-          };
-      ensemble_->applyNewState(updateOperState);
     }
+    // A port can be dropped from the wait set by an early linkscan callback
+    // before its switch-state OperState is updated, so sync OperState for all
+    // ports here whether we waited or skipped.
+    auto updateOperState = [this, ports, up](
+                               const std::shared_ptr<SwitchState>& in) {
+      auto newState = in->clone();
+      for (const auto& port : ports) {
+        auto newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
+        newPort->setOperState(up);
+      }
+      return newState;
+    };
+    ensemble_->applyNewState(updateOperState);
   }
 
   for (const auto& portId : ports) {

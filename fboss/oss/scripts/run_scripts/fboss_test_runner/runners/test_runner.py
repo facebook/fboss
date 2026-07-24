@@ -3,9 +3,7 @@
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 import abc
-import json
 import os
-import re
 import shutil
 import subprocess
 import time
@@ -45,7 +43,11 @@ from fboss_test_runner.constants import (
 from fboss_test_runner.reporters.console_reporter import ConsoleReporter
 from fboss_test_runner.reporters.csv_reporter import CsvReporter
 from fboss_test_runner.result_types import GtestResult, GtestStatus, RunOutcome
-from fboss_test_runner.runners.utils import load_from_file
+from fboss_test_runner.runners.utils import (
+    get_test_regexes_from_file,
+    load_from_file,
+    test_matches_any_regex,
+)
 
 _YELLOW = "\033[1;33m"
 _RED = "\033[1;31m"
@@ -66,12 +68,19 @@ class TestRunner(abc.ABC):
     WARMBOOT_SETUP_OPTION = "--setup-for-warmboot"
     COLDBOOT_PREFIX = "cold_boot."
     WARMBOOT_PREFIX = "warm_boot."
+    # Category labels passed to _resolve_tests_file (used in log messages).
+    KNOWN_BAD_TESTS_LABEL = "known_bad"
+    UNSUPPORTED_TESTS_LABEL = "unsupported"
 
     def __init__(self) -> None:
-        self._known_bad_test_regexes: list[str] | None = None
-        self._unsupported_test_regexes: list[str] | None = None
+        self._known_bad_test_regexes: list[str] = []
+        self._unsupported_test_regexes: list[str] = []
         self.env_var: dict[str, str] = dict(os.environ)
-        self.args: Namespace | None = None
+        # Populated by run_test() before any per-run method runs. Defaults to an
+        # empty Namespace so attribute access is typed (Namespace.__getattr__ ->
+        # Any) rather than Optional; a method reached before run_test() fails
+        # loudly on the missing attribute, same as the old None default.
+        self.args: Namespace = Namespace()
 
     def _get_common_gflags(self) -> list[str]:
         """
@@ -84,6 +93,23 @@ class TestRunner(abc.ABC):
         return []
 
     def _get_config_path(self) -> str:
+        return ""
+
+    def _resolve_tests_file(
+        self, user_file: str | None, default_file: str, label: str
+    ) -> str:
+        """Resolve a known-bad / unsupported tests file, shared by all runners:
+        prefer a caller-supplied override when it exists, else fall back to the
+        default file when it exists, else return "" (no filtering)."""
+        if user_file:
+            if os.path.exists(user_file):
+                print(f"Using user-specified {label} tests file: {user_file}")
+                return user_file
+            print(f"Warning: User-specified {label} tests file not found: {user_file}")
+        if default_file and os.path.exists(default_file):
+            print(f"Using default {label} tests file: {default_file}")
+            return default_file
+        print(f"No {label} tests file found, skipping {label} test filtering")
         return ""
 
     def _get_known_bad_tests_file(self) -> str:
@@ -316,42 +342,7 @@ class TestRunner(abc.ABC):
         test_dict_key: str,
         keys_to_try: list[str],
     ) -> list[str]:
-        """
-        Helper function to extract test regexes from a JSON file.
-
-        Tries multiple key variants provided in keys_to_try list.
-        Collects regexes from all matching keys.
-
-        Args:
-            file_path: Path to the JSON file containing test configurations
-            test_dict_key: Key in the JSON to access the test dictionary (e.g., "known_bad_tests", "unsupported_tests")
-            keys_to_try: List of keys to try in the test dictionary
-
-        Returns:
-            List of test name regexes from all matching keys
-        """
-        if not os.path.exists(file_path):
-            print(f"Warning: Test file {file_path} does not exist")
-            return []
-
-        with open(file_path) as f:
-            test_json = json.load(f)
-            test_dict = test_json[test_dict_key]
-
-            # Collect regexes from all matching keys
-            test_regexes = set()
-            for key in keys_to_try:
-                if key in test_dict:
-                    for test_struct in test_dict[key]:
-                        test_regexes.add(test_struct["test_name_regex"])
-
-            if not test_regexes:
-                print(
-                    f"Warning: Could not find tests for key '{keys_to_try[0]}'. "
-                    f"Available keys: {list(test_dict.keys())}"
-                )
-
-            return list(test_regexes)
+        return get_test_regexes_from_file(file_path, test_dict_key, keys_to_try)
 
     def _initialize_test_lists(self, args: Namespace) -> None:
         """
@@ -438,17 +429,7 @@ class TestRunner(abc.ABC):
         return self._parse_list_test_output(output)
 
     def _test_matches_any_regex(self, test: str, regex_list: list[str]) -> bool:
-        """
-        Check if a test name matches any regex in the provided list.
-
-        Args:
-            test: Test name to check
-            regex_list: List of regex patterns to match against
-
-        Returns:
-            True if test matches any regex in the list, False otherwise
-        """
-        return any(re.match(regex_pattern, test) for regex_pattern in regex_list)
+        return test_matches_any_regex(test, regex_list)
 
     def _is_known_bad_test(self, test: str) -> bool:
         """Check if a test is in the known bad tests list."""
@@ -487,10 +468,11 @@ class TestRunner(abc.ABC):
             test_names = self._list_tests_to_run("*")
         test_filter = ""
         for test_name in test_names:
-            if self._is_known_bad_test(test_name) or self._is_unsupported_test(
-                test_name
-            ):
-                print(f"  >> SKIPPING (known bad/unsupported): {test_name}")
+            if self._is_known_bad_test(test_name):
+                print(f"  >> SKIPPING (known bad)  : {test_name}")
+                continue
+            if self._is_unsupported_test(test_name):
+                print(f"  >> SKIPPING (unsupported): {test_name}")
                 continue
             test_filter += f"{test_name}:"
         if not test_filter:
@@ -528,6 +510,7 @@ class TestRunner(abc.ABC):
         flags += self._get_sai_logging_flags()
         flags += ["--logging", args.fboss_logging]
 
+        start_time = time.time()
         try:
             test_run_cmd = self._get_test_run_cmd(conf_file, test_to_run, flags)
             print(
@@ -535,7 +518,6 @@ class TestRunner(abc.ABC):
                 flush=True,
             )
 
-            start_time = time.time()
             run_test_output = subprocess.check_output(
                 test_run_cmd,
                 timeout=args.test_run_timeout,
@@ -701,7 +683,18 @@ class TestRunner(abc.ABC):
                 # With --num-warmboot-iterations N, soak the test across N consecutive
                 # warmboots; each iteration re-arms --setup-for-warmboot so the next boot
                 # can warmboot, and we stop early on the first failure.
-                num_wb_iterations = max(1, getattr(args, "num_warmboot_iterations", 1))
+                _raw_wb_iters = getattr(args, "num_warmboot_iterations", 1)
+                try:
+                    # getattr on a Mock returns a Mock which isn't comparable to int.
+                    # Coerce to int defensively; fall back to 1.
+                    num_wb_iterations = (
+                        _raw_wb_iters
+                        if isinstance(_raw_wb_iters, int)
+                        else int(_raw_wb_iters)
+                    )
+                except Exception:
+                    num_wb_iterations = 1
+                num_wb_iterations = max(1, num_wb_iterations)
                 for wb_iter in range(num_wb_iterations):
                     if not (
                         warmboot and os.path.isfile(self._get_warmboot_check_file())
@@ -777,6 +770,8 @@ class TestRunner(abc.ABC):
             )
         tests_to_run = self._get_tests_to_run()
         tests_to_run = self._filter_tests(tests_to_run)
+        # Sort the tests to run to match internal test infra behavior
+        tests_to_run = sorted(tests_to_run)
 
         # Check if tests need to be run or only listed
         if (

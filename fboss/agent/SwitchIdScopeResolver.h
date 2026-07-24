@@ -42,6 +42,7 @@ class ForwardingInformationBaseContainer;
 class FibInfo;
 class BufferPoolCfg;
 class PortFlowletCfg;
+class LlrConfig;
 class QosPolicy;
 template <typename T>
 class Route;
@@ -152,6 +153,9 @@ class SwitchIdScopeResolver {
   }
   const HwSwitchMatcher& scope(
       const std::shared_ptr<PortFlowletCfg>& /*p*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const std::shared_ptr<LlrConfig>& /*l*/) const {
     return l3SwitchMatcher();
   }
   const HwSwitchMatcher& scope(const std::shared_ptr<MySid>& /*m*/) const {

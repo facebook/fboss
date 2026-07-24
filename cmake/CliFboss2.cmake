@@ -131,6 +131,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_nexthopgroups_model
+  fboss/cli/fboss2/commands/show/nexthopgroups/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_ndp_model
   fboss/cli/fboss2/commands/show/ndp/model.thrift
   OPTIONS
@@ -440,6 +447,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.cpp
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.cpp
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentBootType.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentBootType.cpp
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.cpp
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
@@ -527,6 +536,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.cpp
   fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.h
   fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.cpp
+  fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.h
+  fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.cpp
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.cpp
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
@@ -585,6 +596,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.cpp
   fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h
   fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.cpp
+  fboss/cli/fboss2/commands/show/bgp/CanonicalRibResolver.h
+  fboss/cli/fboss2/commands/show/bgp/CanonicalRibResolver.cpp
   fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.h
   fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.cpp
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.h
@@ -631,9 +644,13 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTable.h
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTable.cpp
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableCommunity.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableCommunity.cpp
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.cpp
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.cpp
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.cpp
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableSummary.h
   fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h
   fboss/cli/fboss2/commands/show/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h
@@ -729,6 +746,7 @@ target_link_libraries(fboss2_lib
   show_lldp_model
   show_mirror_model
   show_mysid_model
+  show_nexthopgroups_model
   show_ndp_model
   show_port_model
   show_product_model
@@ -795,6 +813,12 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h
   fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.cpp
   fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h
+  fboss/cli/fboss2/commands/config/acl/CmdConfigAcl.cpp
+  fboss/cli/fboss2/commands/config/acl/CmdConfigAcl.h
+  fboss/cli/fboss2/commands/config/acl/rule/AclRuleAttrs.cpp
+  fboss/cli/fboss2/commands/config/acl/rule/AclRuleAttrs.h
+  fboss/cli/fboss2/commands/config/acl/rule/CmdConfigAclRule.cpp
+  fboss/cli/fboss2/commands/config/acl/rule/CmdConfigAclRule.h
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.cpp
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h
   fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.cpp
@@ -1023,6 +1047,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.cpp
   fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h
   fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.cpp
+  fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.cpp
+  fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.h
+  fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.cpp
+  fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h
   fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.cpp
   fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h
   fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.cpp

@@ -58,13 +58,12 @@ class ConfigVlanCreateTest : public Fboss2IntegrationTest {
     // Concrete subclass to access protected Fboss2IntegrationTest methods.
     struct Helper : public Fboss2IntegrationTest {
       void TestBody() override {}
-      Interface getFirstEthInterface() {
-        return findFirstEthInterface();
+      std::string getFirstEthInterface() {
+        return getRandomInterfacePortName();
       }
     };
     Helper h;
-    auto iface = h.getFirstEthInterface();
-    s_testInterfaceName_ = iface.name;
+    s_testInterfaceName_ = h.getFirstEthInterface();
     XLOG(INFO) << "SetUpTestSuite: cached test interface = "
                << s_testInterfaceName_;
   }

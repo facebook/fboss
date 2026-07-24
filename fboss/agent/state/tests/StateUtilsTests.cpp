@@ -22,6 +22,7 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/fsdb/common/Utils.h"
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
@@ -58,7 +59,7 @@ class ComputeReversedDeltasTest : public ::testing::Test {
     auto ports = newState->getPorts()->modify(&newState);
     state::PortFields portFields;
     portFields.portId() = portId;
-    portFields.portName() = folly::sformat("port{}", static_cast<int>(portId));
+    portFields.portName() = fmt::format("port{}", static_cast<int>(portId));
     auto port = std::make_shared<Port>(std::move(portFields));
     ports->addNode(port, hwMatcher());
     newState->publish();
@@ -267,7 +268,7 @@ class FirstInterfaceIDWithPortsTest : public ::testing::Test {
     intf->setRouterID(RouterID(0));
     intf->setType(cfg::InterfaceType::VLAN);
     intf->setVlanID(vlanId);
-    intf->setName(folly::sformat("intf{}", static_cast<int>(intfId)));
+    intf->setName(fmt::format("intf{}", static_cast<int>(intfId)));
     intf->setMac(folly::MacAddress("00:00:00:00:00:01"));
     intf->setMtu(9000);
     intf->setIsVirtual(isVirtual);

@@ -57,6 +57,8 @@ bool SaiPlatformPort::checkSupportsTransceiver() const {
   if (getPlatform()->getOverrideTransceiverInfo(getPortID())) {
     return true;
   }
+  // SAI platform ports consult supportsTransceiver() only through this helper,
+  // which gates the getTransceiverMapping() path below.
   return supportsTransceiver() && !FLAGS_skip_transceiver_programming &&
       getTransceiverID().has_value();
 }
@@ -104,6 +106,9 @@ std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
 
 TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
     cfg::PortProfileID profileID) {
+  // SaiPlatform::getPortMapping() delegates here. Its current caller is
+  // LinkTest's platform mapping consistency check; production transceiver index
+  // reporting reads PlatformMapping directly through SwSwitch.
   if (!checkSupportsTransceiver()) {
     return TransceiverIdxThrift();
   }

@@ -406,6 +406,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "warmboot_remote_intf_routes_inconsistency",
           SUM,
           RATE),
+      warmbootRemoteIntfRoutesReconcileError_(
+          map,
+          kCounterPrefix + "warmboot_remote_intf_routes_reconcile_error",
+          SUM,
+          RATE),
       hiPriPktsReceived_(
           map,
           kCounterPrefix + "hi_pri_pkts_received",

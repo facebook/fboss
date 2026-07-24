@@ -65,6 +65,8 @@ cpp_library(
         "IpTunnel.cpp",
         "IpTunnelMap.cpp",
         "LabelForwardingInformationBase.cpp",
+        "LlrConfig.cpp",
+        "LlrConfigMap.cpp",
         "LoadBalancer.cpp",
         "LoadBalancerMap.cpp",
         "MacEntry.cpp",
@@ -174,8 +176,8 @@ cpp_library(
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
-        "gflags",
         ("boost", None, "boost_container"),
+        "gflags",
     ],
 )
 

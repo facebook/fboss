@@ -1344,15 +1344,10 @@
   "chassisEepromDevicePath": "/FCBTOP_SLOT@0/[CHASSIS_EEPROM]",
   "numXcvrs": 65,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.4.0-1",
-  "requiredKmodsToLoad": [
+  "bspKmodsRpmVersion": "4.4.1-1",
+  "nonBspKmodsToLoad": [
     "i2c_i801",
     "spidev",
-    "fboss_iob_pci",
-    "fboss_iob_i2c",
-    "fboss_iob_spi",
-    "fboss_iob_gpio",
-    "fboss_iob_led",
     "ledtrig_timer"
   ]
 }

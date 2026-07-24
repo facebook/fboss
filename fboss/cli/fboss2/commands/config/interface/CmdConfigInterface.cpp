@@ -15,6 +15,7 @@
 #include <fmt/format.h>
 #include <folly/Conv.h>
 #include <folly/String.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/FieldRef.h>
 #include <algorithm>
 #include <cctype>
@@ -58,6 +59,7 @@ const std::unordered_set<std::string> kKnownAttributes = [] {
       "type",
       "shutdown",
       "no-shutdown",
+      "lookup-class",
   };
   for (const auto& name : lldpAttrNames()) {
     attrs.insert(name);
@@ -74,7 +76,7 @@ const std::unordered_set<std::string> kValuelessAttributes = {
 constexpr auto kValidConfigAttrs =
     "description, mtu, ip-address, ipv6-address, profile, loopback-mode, "
     "flow-control-rx, flow-control-tx, lldp-expected-*, type, shutdown, "
-    "no-shutdown";
+    "no-shutdown, lookup-class";
 
 // The value of the `profile` attribute if the parsed attribute list configures
 // one, else nullopt. Centralized (single scan) so the InterfacesConfig
@@ -135,7 +137,8 @@ std::string applyProfileImpl(
     ProfileValidator& validator,
     cfg::SwitchConfig& swConfig,
     const utils::InterfaceList& interfaces,
-    const std::string& value) {
+    const std::string& value,
+    cli::ConfigActionLevel* actionLevel) {
   // Parse once (throws std::invalid_argument on a bad string) and thread the
   // enum through the rest of the flow.
   const cfg::PortProfileID requestedProfile =
@@ -206,6 +209,12 @@ std::string applyProfileImpl(
         swConfig,
         std::set<PortID>(
             result.portsToRemove.begin(), result.portsToRemove.end()));
+    // Removing a port must not be applied on a live agent (crashes the SwAgent
+    // -- see T281221621); escalate the commit to a coldboot.
+    if (actionLevel != nullptr) {
+      *actionLevel =
+          std::max(*actionLevel, cli::ConfigActionLevel::AGENT_COLDBOOT);
+    }
   }
 
   // 5) Create absent ports now that the config reflects the adjusted/removed
@@ -237,7 +246,8 @@ std::string applyProfileImpl(
 std::string applyProfile(
     const HostInfo& hostInfo,
     const utils::InterfaceList& interfaces,
-    const std::string& value) {
+    const std::string& value,
+    cli::ConfigActionLevel* actionLevel = nullptr) {
   // Build validator once (queries Agent + QSFP), then delegate to the testable
   // core operating on the session's config.
   ProfileValidator validator(hostInfo);
@@ -245,7 +255,8 @@ std::string applyProfile(
       validator,
       *ConfigSession::getInstance().getAgentConfig().sw(),
       interfaces,
-      value);
+      value,
+      actionLevel);
 }
 
 // Configures a port as a routed (L3) port.
@@ -370,6 +381,129 @@ bool applyLoopbackMode(
   return changed;
 }
 
+// Port.lookupClasses drives queue-per-host (MH-NIC) neighbor classification,
+// so only the CLASS_QUEUE_PER_HOST_QUEUE_* classes are configurable here.
+// The other AclLookupClass members (CLASS_DROP, DST_CLASS_L3_LOCAL_*, ...)
+// are assigned by the agent itself; putting one of them in a port's list
+// would make LookupClassUpdater tag neighbors with an agent-reserved class.
+bool isQueuePerHostClass(cfg::AclLookupClass lookupClass) {
+  return lookupClass >= cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 &&
+      lookupClass <= cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_9;
+}
+
+// Human-readable list of every configurable lookup class as "<id> (<name>)".
+std::string validLookupClasses() {
+  std::vector<std::string> entries;
+  for (const auto value :
+       apache::thrift::TEnumTraits<cfg::AclLookupClass>::values) {
+    if (!isQueuePerHostClass(value)) {
+      continue;
+    }
+    entries.push_back(
+        fmt::format(
+            "{} ({})",
+            static_cast<int>(value),
+            apache::thrift::util::enumNameSafe(value)));
+  }
+  return folly::join(", ", entries);
+}
+
+// Parses a single lookup-class token: a numeric id (e.g. "10") or an enum
+// name (e.g. "CLASS_QUEUE_PER_HOST_QUEUE_0", case-insensitive). Only
+// queue-per-host classes are accepted.
+cfg::AclLookupClass parseLookupClassId(const std::string& token) {
+  cfg::AclLookupClass lookupClass{
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0};
+  int32_t classId = 0;
+  if (folly::tryTo<int32_t>(token).hasValue()) {
+    classId = folly::to<int32_t>(token);
+    lookupClass = static_cast<cfg::AclLookupClass>(classId);
+    if (apache::thrift::TEnumTraits<cfg::AclLookupClass>::findName(
+            lookupClass) == nullptr) {
+      throw std::invalid_argument(
+          fmt::format(
+              "Invalid lookup-class value '{}'. Valid values: {}",
+              token,
+              validLookupClasses()));
+    }
+  } else {
+    std::string tokenUpper = token;
+    std::transform(
+        tokenUpper.begin(),
+        tokenUpper.end(),
+        tokenUpper.begin(),
+        [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+    if (!apache::thrift::TEnumTraits<cfg::AclLookupClass>::findValue(
+            tokenUpper, &lookupClass)) {
+      throw std::invalid_argument(
+          fmt::format(
+              "Invalid lookup-class value '{}': must be a numeric id or class "
+              "name. Valid values: {}",
+              token,
+              validLookupClasses()));
+    }
+  }
+
+  if (!isQueuePerHostClass(lookupClass)) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Invalid lookup-class value '{}': {} is reserved for agent use. "
+            "Valid values: {}",
+            token,
+            apache::thrift::util::enumNameSafe(lookupClass),
+            validLookupClasses()));
+  }
+  return lookupClass;
+}
+
+// Parses a comma-separated list of lookup classes
+// (e.g. "10" or "10,11,12,13,14"). Rejects empty slots and duplicates.
+std::vector<cfg::AclLookupClass> parseLookupClassList(
+    const std::string& value) {
+  std::vector<std::string> parts;
+  folly::split(',', value, parts, /*ignoreEmpty=*/false);
+
+  std::vector<cfg::AclLookupClass> classes;
+  for (auto& part : parts) {
+    part = folly::trimWhitespace(part).str();
+    if (part.empty()) {
+      throw std::invalid_argument(
+          fmt::format(
+              "Invalid lookup-class value '{}': empty id in list", value));
+    }
+    auto lookupClass = parseLookupClassId(part);
+    if (std::find(classes.begin(), classes.end(), lookupClass) !=
+        classes.end()) {
+      throw std::invalid_argument(
+          fmt::format(
+              "Invalid lookup-class value '{}': duplicate id {}",
+              value,
+              static_cast<int32_t>(lookupClass)));
+    }
+    classes.push_back(lookupClass);
+  }
+  return classes;
+}
+
+// Parses a comma-separated list of AclLookupClass ids and applies it to all
+// ports, replacing any existing lookupClasses list. Returns true if any port
+// was modified.
+bool applyLookupClass(
+    const std::string& value,
+    const utils::InterfaceList& interfaces) {
+  auto lookupClasses = parseLookupClassList(value);
+
+  bool changed = false;
+  for (const utils::Intf& intf : interfaces) {
+    cfg::Port* port = intf.getPort();
+    if (port) {
+      port->lookupClasses() = lookupClasses;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& interfaceConfig) {
@@ -399,8 +533,15 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
   const std::optional<std::string> profileValue = findProfileValue(attributes);
 
   utils::InterfaceList resolved(std::vector<std::string>{});
+  // The commit action level required by this command, escalated by attribute
+  // handlers as needed. Starts HITLESS (reloadConfig); a profile change that
+  // removes a port escalates it to AGENT_COLDBOOT, because applying a port
+  // removal on a live agent can crash the SwAgent (LookupClassRouteUpdater
+  // dereferences the removed port's now-absent interface). See T281221621.
+  cli::ConfigActionLevel actionLevel = cli::ConfigActionLevel::HITLESS;
   if (profileValue.has_value()) {
-    results.push_back(applyProfile(hostInfo, interfaces, *profileValue));
+    results.push_back(
+        applyProfile(hostInfo, interfaces, *profileValue, &actionLevel));
     changed = true;
     ConfigSession::getInstance().rebuildPortMap();
     resolved = utils::InterfaceList(interfaces.getNames());
@@ -433,6 +574,7 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
               ipAddresses.end()) {
             ipAddresses.push_back(value);
           }
+          changed = true;
         }
       }
       results.push_back(fmt::format("{}={}", attr, value));
@@ -483,6 +625,9 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
     } else if (attr == "type") {
       changed |= applyPortType(value, effectiveInterfaces);
       results.push_back(fmt::format("type={}", value));
+    } else if (attr == "lookup-class") {
+      changed |= applyLookupClass(value, effectiveInterfaces);
+      results.push_back(fmt::format("lookup-class={}", value));
     } else if (attr == "shutdown") {
       for (const utils::Intf& intf : effectiveInterfaces) {
         cfg::Port* port = intf.getPort();
@@ -505,9 +650,12 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
   }
 
   // Save the updated config (skip the write/commit cycle if no port or
-  // interface was actually modified).
+  // interface was actually modified). Commit at the escalated action level: a
+  // profile change that removed a port coldboots the agent (T281221621);
+  // everything else stays a hitless reloadConfig.
   if (changed) {
-    ConfigSession::getInstance().saveConfig();
+    ConfigSession::getInstance().saveConfig(
+        cli::ServiceType::AGENT, actionLevel);
   }
 
   std::string interfaceList = folly::join(", ", interfaces.getNames());

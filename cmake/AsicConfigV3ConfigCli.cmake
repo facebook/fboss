@@ -24,7 +24,7 @@ set(
 
 add_fb_thrift_python_executable(
     fboss-asic-config-v3-gen
-    MAIN_MODULE fboss.lib.asic_config_v3.gen:generate_all_asic_configs
+    MAIN_MODULE fboss.lib.asic_config_v3.gen:main
     SOURCES ${ASIC_CONFIG_V3_PY_SRCS}
     DEPENDS
         platform_config_python

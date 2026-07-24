@@ -35,6 +35,7 @@
 #include <exception>
 #include <memory>
 #include <optional>
+#include <set>
 #include <type_traits>
 #include <utility>
 
@@ -1655,6 +1656,27 @@ void RibRouteTables::updateMySidsImpl(
   updateRibMySids([&](const RibMySidUpdater::VrfRouteTables& routeTables,
                       MySidTable* mySidTable,
                       NextHopIDManager* nextHopIDManager) {
+    auto toAddWithNextHops = toAdd;
+    for (auto& entry : toAddWithNextHops) {
+      if (!entry.nextHopGroupName.has_value()) {
+        entry.mySid->setNamedNextHopGroup(std::nullopt);
+        validateMySidNextHops(entry.mySid->getType(), entry.nextHopSet);
+        continue;
+      }
+      entry.mySid->setNamedNextHopGroup(*entry.nextHopGroupName);
+      auto namedNextHops = nextHopIDManager
+          ? nextHopIDManager->getNextHopsForName(*entry.nextHopGroupName)
+          : std::nullopt;
+      if (!namedNextHops.has_value()) {
+        throw FbossError(
+            "Named next-hop group '",
+            *entry.nextHopGroupName,
+            "' does not exist");
+      }
+      entry.nextHopSet = std::move(*namedNextHops);
+      validateMySidNextHops(entry.mySid->getType(), entry.nextHopSet);
+    }
+
     // Conditional unresolve runs first so that any same-prefix entry
     // appearing in both vectors (observer-driven IP-change path) gets
     // clear-then-add semantics — toAdd's freshly-allocated nhop id can
@@ -1695,13 +1717,17 @@ void RibRouteTables::updateMySidsImpl(
       }
     }
     std::set<folly::CIDRNetwork> addedPrefixes;
-    for (const auto& entry : toAdd) {
+    for (const auto& entry : toAddWithNextHops) {
       auto mySid = entry.mySid;
-      validateMySidNextHops(mySid->getType(), entry.nextHopSet);
       const auto cidr = mySid->getMySid();
       addedPrefixes.emplace(cidr.first, cidr.second);
       const folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
       if (nextHopIDManager) {
+        nextHopIDManager->removeMySidFromNamedNhgs(cidrV6);
+        if (entry.nextHopGroupName.has_value()) {
+          nextHopIDManager->addMySidForNamedNhg(
+              *entry.nextHopGroupName, cidrV6);
+        }
         // Alloc-then-release: get a ref on the new unresolved set first so
         // that a same-set alloc+release on a refcounted entry is a no-op
         // (rather than a deallocate/reallocate cycle).
@@ -1742,6 +1768,7 @@ void RibRouteTables::updateMySidsImpl(
           if (const auto id = it->second->getResolvedNextHopsId()) {
             nextHopIDManager->decrOrDeallocRouteNextHopSetID(*id);
           }
+          nextHopIDManager->removeMySidFromNamedNhgs(cidr);
         }
       }
       mySidTable->erase(cidr);
@@ -1871,6 +1898,9 @@ void RibRouteTables::addOrUpdateNamedNextHopGroups(
   using RouteKey = std::pair<RouterID, ClientID>;
   std::map<RouteKey, std::vector<RibRouteUpdater::RouteEntry>>
       routesToReprogram;
+  std::unordered_map<std::string, NextHopIDManager::MySidSet>
+      nameToAffectedMySids;
+  std::set<folly::CIDRNetwork> mySidsToReresolve;
 
   {
     auto lockedRouteTables = synchronizedRouteTables_.wlock();
@@ -1878,6 +1908,28 @@ void RibRouteTables::addOrUpdateNamedNextHopGroups(
       throw FbossError("NextHopIDManager not initialized");
     }
     auto* nhIdManager = lockedRouteTables->nextHopIDManager.get();
+
+    for (const auto& [name, nextHopSet] : groups) {
+      if (!nhIdManager->hasNamedNextHopGroup(name)) {
+        continue;
+      }
+      const auto& affectedMySids = nhIdManager->getMySidsForNamedNhg(name);
+      auto& affectedMySidsSnapshot = nameToAffectedMySids[name];
+      for (const auto& cidr : affectedMySids) {
+        auto it = lockedRouteTables->mySidTable.find(cidr);
+        if (it == lockedRouteTables->mySidTable.end()) {
+          throw FbossError(
+              "Named next-hop group '",
+              name,
+              "' references missing MySid ",
+              folly::IPAddress(cidr.first),
+              "/",
+              static_cast<int>(cidr.second));
+        }
+        validateMySidNextHops(it->second->getType(), nextHopSet);
+        affectedMySidsSnapshot.insert(cidr);
+      }
+    }
 
     for (const auto& [name, nextHopSet] : groups) {
       auto result = nhIdManager->allocateNamedNextHopGroup(name, nextHopSet);
@@ -1922,6 +1974,32 @@ void RibRouteTables::addOrUpdateNamedNextHopGroups(
           }
         }
       }
+
+      for (const auto& cidr : nameToAffectedMySids[name]) {
+        auto it = lockedRouteTables->mySidTable.find(cidr);
+        CHECK(it != lockedRouteTables->mySidTable.end());
+        auto mySid = it->second->clone();
+        const auto oldUnresolvedId = mySid->getUnresolveNextHopsId();
+        mySid->setUnresolveNextHopsId(
+            nhIdManager->getOrAllocRouteNextHopSetID(nextHopSet)
+                .nextHopIdSetIter->second.id);
+        it->second = std::move(mySid);
+        if (oldUnresolvedId.has_value()) {
+          nhIdManager->decrOrDeallocRouteNextHopSetID(*oldUnresolvedId);
+        }
+        mySidsToReresolve.emplace(cidr.first, cidr.second);
+      }
+    }
+
+    if (!mySidsToReresolve.empty()) {
+      RibMySidUpdater::VrfRouteTables routeTables;
+      for (auto& [_rid, routeTable] : lockedRouteTables->routerIDToRouteTable) {
+        routeTables.emplace_back(
+            &routeTable.v4NetworkToRoute, &routeTable.v6NetworkToRoute);
+      }
+      RibMySidUpdater updater(
+          routeTables, nhIdManager, &lockedRouteTables->mySidTable);
+      updater.resolve(mySidsToReresolve);
     }
   }
 
@@ -1982,10 +2060,19 @@ void RoutingInformationBase::addOrUpdateNamedNextHopGroups(
           "Named next-hop group '", name, "' has empty nexthop set");
     }
   }
-  updateStateInRibThread([&]() {
-    ribTables_.addOrUpdateNamedNextHopGroups(
-        resolver, groups, ribToSwitchStateFunc, cookie);
+  ensureRunning();
+  std::exception_ptr exceptionPtr;
+  ribUpdateEventBase_.runInFbossEventBaseThreadAndWait([&]() {
+    try {
+      ribTables_.addOrUpdateNamedNextHopGroups(
+          resolver, groups, ribToSwitchStateFunc, cookie);
+    } catch (const std::exception&) {
+      exceptionPtr = std::current_exception();
+    }
   });
+  if (exceptionPtr) {
+    std::rethrow_exception(exceptionPtr);
+  }
 }
 
 void RoutingInformationBase::deleteNamedNextHopGroups(

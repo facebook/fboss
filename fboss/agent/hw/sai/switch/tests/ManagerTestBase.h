@@ -26,6 +26,7 @@
 #include <array>
 #include <string>
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 extern "C" {
@@ -93,17 +94,17 @@ class ManagerTestBase : public ::testing::Test {
       if (numHosts > 9) {
         XLOG(FATAL) << "TestInterface doesn't support >9 attached hosts";
       }
-      routerMac = folly::MacAddress{folly::sformat("42:42:42:42:42:{:x}", id)};
-      auto subnetBase = folly::sformat("10.10.{}", id + 10);
-      routerIp = folly::IPAddress{folly::sformat("{}.0", subnetBase)};
+      routerMac = folly::MacAddress{fmt::format("42:42:42:42:42:{:x}", id)};
+      auto subnetBase = fmt::format("10.10.{}", id + 10);
+      routerIp = folly::IPAddress{fmt::format("{}.0", subnetBase)};
       subnet = folly::CIDRNetwork{routerIp, 24};
       remoteHosts.resize(numHosts);
       size_t count = 0;
       for (auto& remoteHost : remoteHosts) {
         remoteHost.ip =
-            folly::IPAddress{folly::sformat("{}.{}", subnetBase, count)};
+            folly::IPAddress{fmt::format("{}.{}", subnetBase, count)};
         remoteHost.mac =
-            folly::MacAddress{folly::sformat("10:10:10:10:10:{:x}", count)};
+            folly::MacAddress{fmt::format("10:10:10:10:10:{:x}", count)};
         remoteHost.port.id = id * 10 + count;
         ++count;
       }

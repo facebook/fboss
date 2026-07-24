@@ -266,6 +266,7 @@ void NextHopIDManager::clearNhopIdManagerState() {
   nameToNextHopSet_.clear();
   nameToNextHopSetID_.clear();
   nameToRoutes_.clear();
+  nameToMySids_.clear();
 }
 
 // Allocate or update a named next-hop group.
@@ -351,6 +352,12 @@ NextHopIDManager::deallocateNamedNextHopGroup(const std::string& name) {
         "Cannot delete named next-hop group '",
         name,
         "' because it is referenced by routes");
+  }
+  if (hasMySidsForNamedNhg(name)) {
+    throw FbossError(
+        "Cannot delete named next-hop group '",
+        name,
+        "' because it is referenced by MySids");
   }
 
   auto setIdIt = nameToNextHopSetID_.find(name);
@@ -720,7 +727,7 @@ void NextHopIDManager::reconstructMySidPass(
     return;
   }
   for (const auto& miter : std::as_const(*mySidMap)) {
-    for (const auto& [key, mySid] : std::as_const(*miter.second)) {
+    for (const auto& [_, mySid] : std::as_const(*miter.second)) {
       if (auto setIdOpt = mySid->getResolvedNextHopsId()) {
         processNextHopSetIdForReconstruction(
             *setIdOpt, ctx.fibId2NhopMap, ctx.fibId2NhopIdSetMap, ctx);
@@ -728,6 +735,10 @@ void NextHopIDManager::reconstructMySidPass(
       if (auto setIdOpt = mySid->getUnresolveNextHopsId()) {
         processNextHopSetIdForReconstruction(
             *setIdOpt, ctx.fibId2NhopMap, ctx.fibId2NhopIdSetMap, ctx);
+      }
+      if (auto nhgName = mySid->getNamedNextHopGroup()) {
+        const auto cidr = mySid->getMySid();
+        nameToMySids_[*nhgName].emplace(cidr.first.asV6(), cidr.second);
       }
     }
   }
@@ -933,6 +944,51 @@ const NextHopIDManager::RouteSet& NextHopIDManager::getRoutesForNamedNhg(
 bool NextHopIDManager::hasRoutesForNamedNhg(const std::string& name) const {
   auto it = nameToRoutes_.find(name);
   return it != nameToRoutes_.end() && !it->second.empty();
+}
+
+void NextHopIDManager::addMySidForNamedNhg(
+    const std::string& name,
+    const folly::CIDRNetworkV6& mySid) {
+  nameToMySids_[name].emplace(mySid);
+}
+
+void NextHopIDManager::removeMySidForNamedNhg(
+    const std::string& name,
+    const folly::CIDRNetworkV6& mySid) {
+  auto it = nameToMySids_.find(name);
+  if (it != nameToMySids_.end()) {
+    it->second.erase(mySid);
+    if (it->second.empty()) {
+      nameToMySids_.erase(it);
+    }
+  }
+}
+
+void NextHopIDManager::removeMySidFromNamedNhgs(
+    const folly::CIDRNetworkV6& mySid) {
+  for (auto it = nameToMySids_.begin(); it != nameToMySids_.end();) {
+    it->second.erase(mySid);
+    if (it->second.empty()) {
+      it = nameToMySids_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+const NextHopIDManager::MySidSet& NextHopIDManager::getMySidsForNamedNhg(
+    const std::string& name) const {
+  static const MySidSet kEmpty;
+  auto it = nameToMySids_.find(name);
+  if (it != nameToMySids_.end()) {
+    return it->second;
+  }
+  return kEmpty;
+}
+
+bool NextHopIDManager::hasMySidsForNamedNhg(const std::string& name) const {
+  auto it = nameToMySids_.find(name);
+  return it != nameToMySids_.end() && !it->second.empty();
 }
 
 } // namespace facebook::fboss

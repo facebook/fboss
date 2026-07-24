@@ -58,6 +58,28 @@ File: `PLATFORM_vendor_config.json` ([example](https://github.com/facebook/fboss
 
 This config file contains vendor-specific configurations that are included in the `wedge_agent` configuration and passed directly to the SAI SDK during ASIC initialization. This file only contains information that cannot be derived from the other configuration files provided by the vendor. For example, this shouldn’t contain lane swap or polarity swap properties as that’s already derived from the static mapping file.
 
+### Platform Descriptor (Config-Driven Platform Detection)
+
+File: `PLATFORM_platform_descriptor.csv` ([example](https://github.com/facebook/fboss/blob/main/fboss/lib/platform_mapping_v2/platforms/wedge800bact/wedge800bact_platform_descriptor.csv))
+
+This config file describes the platform's identity so the agent can detect the platform and
+select the right ASIC and mapping **at runtime**, without hardcoded `if/else` dispatch chains.
+The generator turns this single-row CSV into a `platform_descriptor.json` file (see
+[Platform Mapping JSON Generation Tool](#platform-mapping-json-generation-tool) below), which
+is consumed by the `PlatformDescriptorRegistry` in the agent. See
+[New Platform Support](https://facebook.github.io/fboss/docs/developing/new_platform_support/)
+for how the descriptor drives config-driven platform instantiation.
+
+The CSV has a single data row with the following columns:
+
+| Column Name | Definition | Valid Values |
+|------------------------------------|-------------------------------------------------------------|-------|
+| **System_Vendor** | System vendor (OEM) that builds the platform. Also determines the output subdirectory (`<system_vendor>/<platform_name>/`). | e.g. `accton`, `celestica`, `arista` |
+| **Platform_Type** | The `PlatformType` enum name for this platform. | [enum names](https://github.com/facebook/fboss/blob/main/fboss/lib/if/fboss_common.thrift) |
+| **Product_Name_Prefixes** | One or more product/model name prefixes (from FRUID) used to detect this platform. Separate multiple values with the list delimiter. | e.g. `Wedge800BACT` |
+| **Mode_Names** | One or more `--mode` flag values that map to this platform. | e.g. `wedge800bact` |
+| **Asic_Type** | The `AsicType` enum name. The SAI backend (BCM vs Tajo) is derived from this. | [enum names](https://github.com/facebook/fboss/blob/main/fboss/agent/switch_config.thrift) |
+
 ### CSV Column Definitions
 
 | Column Name | Definition | Valid Values |
@@ -125,12 +147,33 @@ To use this command, your input directory, either the default location or the on
 - `PLATFORM_si_settings.csv`
 - `PLATFORM_static_mapping.csv`
 - `PLATFORM_vendor_config.json`
+- `PLATFORM_platform_descriptor.csv` (for config-driven platform detection)
+
+#### Generated Output
+
+When a `PLATFORM_platform_descriptor.csv` is present, the tool emits two files into a
+vendor-scoped, self-describing directory
+`generated_platform_mappings/<system_vendor>/<platform_name>/`:
+
+- `platform_mapping.json` — the platform mapping described above.
+- `platform_descriptor.json` — the platform identity (`platformType`, `productNamePrefixes`,
+  `modeNames`, `asicType`) consumed by the agent's `PlatformDescriptorRegistry`.
+
+The `<system_vendor>` segment comes from the `System_Vendor` column of the descriptor CSV.
 
 
 ### Validating Platform Mapping JSON
 The first step in validing your platform mapping source files is to ensure a valid JSON is created in `output-dir` by running the above tool.
 
 The second step is using this platform mapping JSON to ensure `qsfp_service` and `wedge_agent` binaries are brought up correctly. We typically have platfom mapping JSONs embedded into our FBOSS binaries, but to enable faster testing for external users, you can run both binaries with the `--platform_mapping_override_path` flag followed by the filepath to your platform mapping JSON – e.g. `./qsfp_service --platform_mapping_override_path /tmp/generated_platform_mappings/PLATFORM-platform-mapping.json`.
+
+To exercise the full config-driven path (external platform mapping **and** descriptor-based
+platform detection), point the binaries at the descriptor config root instead, using the
+`--platform_descriptor_config_path` flag – e.g.
+`./wedge_agent --platform_descriptor_config_path /tmp/generated_platform_mappings`. The root
+must follow the `<root>/<system_vendor>/<platform_name>/` layout produced by the generator,
+containing both `platform_descriptor.json` and `platform_mapping.json`. When this flag is empty
+(the default), the agent uses the legacy embedded mapping and hardcoded detection instead.
 
 
 ### Updating FBOSS Code to Use New Platform Mapping

@@ -252,6 +252,15 @@ void AgentEnsembleLinkTest::waitForPortStateMachineState(
 // If the expectedLLDPValues in the switch config has an entry, we expect
 // that port to take part in the test
 void AgentEnsembleLinkTest::initializeCabledPorts() {
+  // Reset first so this can be re-run after a config change (e.g. a speed
+  // change that subsumes or adds ports) to recompute the cabled port set from
+  // the currently applied config.
+  cabledPorts_.clear();
+  cabledFabricPorts_.clear();
+  cabledTransceivers_.clear();
+  cabledTransceiverPorts_.clear();
+  qsfpServiceManagedPorts_.clear();
+
   const auto& platformPorts = getSw()->getPlatformMapping()->getPlatformPorts();
 
   auto swConfig = getSw()->getConfig();
@@ -264,6 +273,12 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
   std::set<PortID> managedPortSet(managedPortIds.begin(), managedPortIds.end());
 
   for (const auto& port : *swConfig.ports()) {
+    // Skip disabled ports. A speed change can subsume ports (the merged
+    // higher-speed port disables its subsidiary ports); such ports are no
+    // longer present in the SwitchState, so they must not be treated as cabled.
+    if (*port.state() == cfg::PortState::DISABLED) {
+      continue;
+    }
     if (!(*port.expectedLLDPValues()).empty() ||
         !(*port.expectedNeighborReachability()).empty()) {
       auto portID = *port.logicalID();
@@ -288,6 +303,10 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
       }
     }
   }
+}
+
+void AgentEnsembleLinkTest::reinitializeCabledPorts() {
+  initializeCabledPorts();
 }
 
 std::tuple<std::vector<PortID>, std::string>

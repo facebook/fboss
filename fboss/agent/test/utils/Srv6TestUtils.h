@@ -29,6 +29,8 @@ cfg::Srv6Tunnel makeSrv6TunnelConfig(
     const std::string& name,
     InterfaceID interfaceId);
 
+cfg::Srv6Tunnel makeSrv6DecapTunnelConfig(const std::string& name);
+
 cfg::SwitchConfig srv6EcmpInitialConfig(const AgentEnsemble& ensemble);
 
 // Common ECN verification for SRv6 encap/decap/midpoint tests.

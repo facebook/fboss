@@ -14,6 +14,7 @@ class BspPlatformMapping {
   explicit BspPlatformMapping(BspPlatformMappingThrift bspMapping);
   explicit BspPlatformMapping(const std::string& platformName);
 
+  bool hasTcvrMapping(int tcvrID) const;
   const BspTransceiverMapping& getTcvrMapping(int tcvrID) const;
   std::map<int, BspPimMapping> getPimMappings() const;
   int getPimIDFromTcvrID(int tcvrID) const;

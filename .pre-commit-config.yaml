@@ -38,6 +38,19 @@ repos:
       # Ruff formatter for all Python files in fboss/
       - id: ruff-format
         files: ^fboss/
+  # TODO: Uncomment once existing violations are fixed (run
+  # `fboss/oss/scripts/buck_cmake_dep_checker.py --check-files --check-sorted --from-commit HEAD~1`
+  # to see what would be flagged on a given commit).
+  # - repo: local
+  #   hooks:
+  #     - id: buck-cmake-checker
+  #       name: Check BUCK/cmake file-list consistency and sort order
+  #       language: system
+  #       entry: fboss/oss/scripts/buck_cmake_dep_checker.py --check-files --check-sorted --from-commit
+  #       args: [HEAD~1]
+  #       pass_filenames: false
+  #       always_run: true
+
   - repo: local
     hooks:
       - id: do-not-change-fboss-manifests
